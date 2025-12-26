@@ -1,0 +1,64 @@
+<div class="tontine-dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h1 class="dashboard-title">
+        <mat-icon>savings</mat-icon>
+        Gestion des Tontines
+      </h1>
+      <app-session-selector (sessionChange)="onSessionChange($event)"></app-session-selector>
+    </div>
+    <div class="header-actions">
+      <button mat-button (click)="navigateToComparison()">
+        <mat-icon>compare_arrows</mat-icon>
+        Comparer les Sessions
+      </button>
+      <button mat-raised-button color="primary" (click)="openAddMemberModal()" [disabled]="isHistoricalView">
+        <mat-icon>person_add</mat-icon>
+        Ajouter un Membre
+      </button>
+      <button mat-raised-button color="accent" (click)="openAddMultipleMembersModal()" [disabled]="isHistoricalView">
+        <mat-icon>group_add</mat-icon>
+        Ajout Multiple
+      </button>
+      <button mat-stroked-button (click)="openSessionSettings()" [disabled]="isHistoricalView">
+        <mat-icon>settings</mat-icon>
+        Paramètres de Session
+      </button>
+    </div>
+  </div>
+
+  <!-- Historical View Banner -->
+  <div *ngIf="showHistoricalAlertMessage" class="historical-banner">
+    <mat-icon>info</mat-icon>
+    <span>Vous consultez une session historique (lecture seule)</span>
+    <button mat-button (click)="returnToCurrentSession()">
+      Retourner à la session en cours
+    </button>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-section" *ngIf="kpiCards$ | async as kpiCards">
+    <app-tontine-kpi-card
+      *ngFor="let kpi of kpiCards"
+      [config]="kpi">
+    </app-tontine-kpi-card>
+  </div>
+
+  <!-- Filters -->
+  <app-tontine-filter-bar
+    (filterChanged)="onFilterChange($event)">
+  </app-tontine-filter-bar>
+
+  <!-- Members Table -->
+  <app-tontine-member-table
+    [paginatedResponse]="paginatedMembers"
+    [loading]="loadingMembers"
+    [pageSize]="memberQueryParams.size || 20"
+    [currentPage]="memberQueryParams.page || 0"
+    [totalElements]="paginatedMembers?.page?.totalElements || 0"
+    (memberClick)="onMemberClick($event)"
+    (pageChange)="onPageChange($event)"
+    (sortChange)="onSortChange($event)">
+  </app-tontine-member-table>
+</div>

@@ -1,0 +1,64 @@
+.kpi-card {
+  height: 100%;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.kpi-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.kpi-title {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.kpi-subtitle {
+  font-size: 12px;
+  color: #999;
+}
+
+.kpi-card-primary {
+  .kpi-icon { color: #1976d2; }
+  .kpi-value { color: #1976d2; }
+}
+
+.kpi-card-success {
+  .kpi-icon { color: #388e3c; }
+  .kpi-value { color: #388e3c; }
+}
+
+.kpi-card-warning {
+  .kpi-icon { color: #f57c00; }
+  .kpi-value { color: #f57c00; }
+}
+
+.kpi-card-info {
+  .kpi-icon { color: #0288d1; }
+  .kpi-value { color: #0288d1; }
+}
+
+.kpi-card-danger {
+  .kpi-icon { color: #d32f2f; }
+  .kpi-value { color: #d32f2f; }
+}

@@ -1,0 +1,46 @@
+/* register.component.scss */
+:host {
+    display: grid;
+    place-items: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: #f5f5f5; /* Couleur de fond optionnelle */
+  }
+  
+  .register-container {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    max-width: 400px; /* Ajustez selon la largeur désirée */
+    padding: 20px;
+    background: white; /* Fond blanc pour le formulaire */
+    border-radius: 8px; /* Coins arrondis */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Ombre légère */
+  }
+  
+  .register-form {
+    width: 100%;
+  }
+  
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  mat-form-field {
+    width: 100%;
+  }
+  
+  button {
+    width: 100%;
+  }
+  
+  .login-redirect {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .login-redirect a {
+    color: #007bff;
+  }
+  

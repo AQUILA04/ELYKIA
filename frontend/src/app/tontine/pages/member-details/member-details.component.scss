@@ -1,0 +1,271 @@
+.member-details {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 50px auto 0;
+}
+
+.details-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.details-title {
+  flex: 1;
+  font-size: 24px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.summary-card {
+  margin-bottom: 24px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+
+  &.highlight {
+    color: #388e3c;
+    font-size: 24px;
+  }
+}
+
+.status-chip {
+  font-size: 12px;
+  min-height: 24px;
+  padding: 4px 12px;
+  width: fit-content;
+
+  &.status-pending {
+    background-color: #fff3e0;
+    color: #f57c00;
+  }
+
+  &.status-delivered {
+    background-color: #e8f5e9;
+    color: #388e3c;
+  }
+}
+
+.collections-card {
+  mat-card-header {
+    margin-bottom: 16px;
+  }
+}
+
+.collections-table {
+  width: 100%;
+
+  th {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .amount {
+    font-weight: 600;
+    color: #388e3c;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #999;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-size: 16px;
+    margin: 0;
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+@media (max-width: 768px) {
+  .member-details {
+    padding: 16px;
+  }
+
+  .details-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    
+    button {
+      flex: 1;
+    }
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.delivery-card {
+  margin-bottom: 24px;
+
+  mat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 600;
+
+      mat-icon {
+        color: #1976d2;
+      }
+    }
+
+    .delivered-badge {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      font-weight: 600;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  .delivery-info {
+    background-color: #f5f5f5;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e0e0e0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .label {
+        font-weight: 500;
+        color: #666;
+      }
+
+      .value {
+        font-weight: 600;
+        color: #333;
+
+        &.highlight {
+          color: #1976d2;
+          font-size: 18px;
+        }
+      }
+    }
+  }
+
+  h4 {
+    margin: 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .delivery-items-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background-color: #f5f5f5;
+
+      th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #666;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid #e0e0e0;
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+
+      td {
+        padding: 12px;
+
+        .article-info {
+          display: flex;
+          flex-direction: column;
+
+          .code {
+            font-size: 12px;
+            color: #666;
+          }
+
+          .name {
+            font-size: 14px;
+            font-weight: 500;
+          }
+        }
+
+        &.total {
+          font-weight: 600;
+          color: #1976d2;
+        }
+      }
+    }
+  }
+}

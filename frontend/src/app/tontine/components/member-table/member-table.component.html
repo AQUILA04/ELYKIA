@@ -1,0 +1,76 @@
+<div class="table-container">
+  <mat-card>
+    <mat-card-content>
+      <div class="table-wrapper">
+        <table mat-table [dataSource]="dataSource" matSort [matSortActive]="matSort?.active ?? ''" [matSortDirection]="matSort?.direction ?? ''" class="members-table">
+
+          <!-- Client Column -->
+          <ng-container matColumnDef="client">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="client.lastname">Client</th>
+            <td mat-cell *matCellDef="let member">
+              <div class="client-info">
+                <div class="client-name">{{ getClientName(member) }}</div>
+                <div class="client-code" *ngIf="member.client.code">{{ member.client.code }}</div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Total Contribution Column -->
+          <ng-container matColumnDef="totalContribution">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="totalContribution">Total Contribué</th>
+            <td mat-cell *matCellDef="let member">
+              <span class="contribution-amount">{{ formatCurrency(member.totalContribution) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Delivery Status Column -->
+          <ng-container matColumnDef="deliveryStatus">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="deliveryStatus">Statut Livraison</th>
+            <td mat-cell *matCellDef="let member">
+              <mat-chip [color]="getStatusColor(member.deliveryStatus)">
+                {{ getStatusLabel(member.deliveryStatus) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Registration Date Column -->
+          <ng-container matColumnDef="registrationDate">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="registrationDate">Date d'Inscription</th>
+            <td mat-cell *matCellDef="let member">{{ formatDate(member.registrationDate) }}</td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let member">
+              <button mat-icon-button color="primary" (click)="onViewDetails(member)" matTooltip="Voir détails">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+        </table>
+
+        <div *ngIf="loading" class="loading-overlay">
+          <mat-spinner diameter="50"></mat-spinner>
+        </div>
+
+        <div *ngIf="!loading && dataSource.data.length === 0" class="empty-state">
+          <mat-icon>people_outline</mat-icon>
+          <p>Aucun membre trouvé</p>
+        </div>
+      </div>
+
+      <mat-paginator
+        [length]="totalElements"
+        [pageSize]="pageSize"
+        [pageIndex]="currentPage"
+        [pageSizeOptions]="[10, 20, 50, 100]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

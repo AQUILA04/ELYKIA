@@ -1,0 +1,91 @@
+spring:
+  application:
+    name: optimize-elykia-core
+  datasource:
+    url: jdbc:postgresql://localhost:5432/oec_uat_db
+    username: oec
+    password: APP2024
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  main:
+    allow-circular-references: true
+  boot:
+    admin:
+      client:
+        url: http://localhost:8090
+        instance:
+          service-base-url: http://localhost:8080
+          service-host-type: IP
+
+app:
+  credit:
+    dividend: 5
+  users:
+    root:
+      lastname: ADLER
+      firstname: Francis
+      email: francis.ahonsou@gmail.com
+      phone: 92181351
+      gender: MALE
+    manager:
+      lastname: AKOFA
+      firstname: Yasmine
+      email: franics.ahonsou@gmail.com
+      phone: 97497965
+      gender: FEMALE
+
+bezkoder:
+  app:
+    jwtSecret: cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
+    jwtExpirationMs: 86400000
+    jwtRefreshExpirationMs: 86400000
+logging:
+  level:
+    org:
+      springframework:
+        web:
+          filter:
+            CommonsRequestLoggingFilter: DEBUG
+
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: "*"
+    info:
+     env:
+      enabled: true
+
+server:
+  port: 8081
+  ssl:
+    enabled: false
+
+#swagger: '2.0'
+#info:
+#  version: 1.0.0
+#  title: Bearer auth example
+#  description: >
+#    An example for how to use Bearer Auth with OpenAPI / Swagger 2.0.
+#
+##host: basic-auth-server.herokuapp.com
+#schemes:
+#  - http
+#  - https
+#securityDefinitions:
+#  Bearer:
+#    type: apiKey
+#    name: Authorization
+#    in: header
+#    description: >-
+#      Enter the token with the `Bearer: ` prefix, e.g. "Bearer abcde12345".
+
+

@@ -1,0 +1,75 @@
+<ion-content class="login-container">
+  <div class="login-page-wrapper">
+    <!-- Header avec logo et titre -->
+    <div class="login-header">
+      <div class="app-logo">
+        📱
+      </div>
+      <div class="app-title">AMENOUVEVE-YAVEH</div>
+      <div class="app-subtitle">ELYKIA</div>
+      <div class="app-subtitle">Gestion Mobile</div>
+    </div>
+
+    <!-- Zone de connexion -->
+    <div class="login-form-container">
+      <ion-card class="login-form">
+        <form #loginForm="ngForm">
+          <!-- Champ nom d'utilisateur -->
+          <ion-item lines="none" class="input-group">
+            <ion-label position="stacked" class="input-label">Nom d'utilisateur *</ion-label>
+            <ion-input type="text" placeholder="Saisissez votre nom d'utilisateur" [(ngModel)]="username" name="username" required>
+              <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
+            </ion-input>
+          </ion-item>
+
+          <!-- Champ mot de passe -->
+          <ion-item lines="none" class="input-group">
+            <ion-label position="stacked" class="input-label">Mot de passe *</ion-label>
+            <ion-input [type]="passwordVisible ? 'text' : 'password'" placeholder="Saisissez votre mot de passe" [(ngModel)]="password" name="password" required>
+              <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+              <ion-button fill="clear" size="small" slot="end" class="password-toggle" (click)="togglePasswordVisibility()">
+                <ion-icon [name]="passwordVisible ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </ion-button>
+            </ion-input>
+          </ion-item>
+
+          <!-- Message d'erreur -->
+          <div class="error-message" *ngIf="error$ | async as error">
+            {{ error }}
+          </div>
+
+          <!-- Bouton de connexion -->
+          <ion-button expand="block" class="btn-login" (click)="onLogin()" [disabled]="!loginForm.form.valid">
+            SE CONNECTER
+          </ion-button>
+
+          <!-- Bouton de restauration -->
+          <ion-button expand="block" color="success" fill="outline" class="btn-restore" (click)="onRestore()">
+            <ion-icon name="sync-circle-outline" slot="start"></ion-icon>
+            Restaurer une sauvegarde
+          </ion-button>
+
+          <!-- Statut de connexion -->
+          @if (isOnline$ | async; as isOnline) {
+            <div class="connection-status">
+              <div class="status-indicator status-online"></div>
+              <span>Connecté</span>
+            </div>
+          } @else {
+            <div class="connection-status">
+              <div class="status-indicator status-offline"></div>
+              <span>Hors ligne</span>
+            </div>
+          }
+
+        </form>
+      </ion-card>
+    </div>
+
+    <!-- Footer avec version -->
+    <div class="login-footer">
+      <div class="version-info" (click)="showLogs()">Version {{ appVersion }}</div>
+    </div>
+  </div>
+  <!-- Overlay de chargement is handled by LoadingController in login.page.ts -->
+</ion-content>

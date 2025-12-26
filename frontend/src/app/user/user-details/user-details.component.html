@@ -1,0 +1,41 @@
+
+<div class="details-container" *ngIf="!isLoading">
+    <div class="form-header">
+      <h1>Details de l'utilisateur</h1>
+    </div>
+    <div class="details-content" *ngIf="user">
+      <div class="details-row">
+        <span class="details-label">Nom d'utilisateur</span>
+        <div class="details-value">{{ user.username }}</div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Nom et prénom</span>
+        <div class="details-value">{{ user.firstname }} {{ user.lastname }}</div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Numero de telephone</span>
+        <div class="details-value">{{ user.phone }}</div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Genre</span>
+        <div class="details-value">{{ user.gender }}</div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Profil</span>
+        <div class="details-value">{{ user.profil.name }}</div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <a (click)="onCancel()" class="link-back">
+        <i class="ti ti-arrow-left"></i> Retour à la liste
+      </a>
+      
+      <div class="form-actions">
+        <a (click)="navigateToEdit()" class="link-edit">
+          <i class="ti ti-pencil"></i> Modifier
+        </a>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="isLoading">Chargement...</div>
+  

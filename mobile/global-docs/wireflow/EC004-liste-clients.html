@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC004 - Liste des Clients | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styles spécifiques à la liste des clients */
+        .clients-container {
+            padding-bottom: 72px; /* Espace pour la navigation inférieure */
+        }
+
+        .clients-header {
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            color: var(--text-on-primary);
+            padding: var(--margin-external);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--margin-internal);
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .header-title {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+            flex: 1;
+            text-align: center;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 20px;
+            padding: 0 20px 0 45px;
+            font-size: var(--font-size-secondary);
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            background: var(--surface-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: var(--primary-color);
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: none;
+        }
+
+        /* Filtres rapides */
+        .filters-section {
+            height: 48px;
+            background: var(--surface-color);
+            border-bottom: 1px solid #E0E0E0;
+            display: flex;
+            align-items: center;
+            padding: 0 var(--margin-external);
+            overflow-x: auto;
+            gap: var(--spacing-elements);
+        }
+
+        .filter-chip {
+            flex-shrink: 0;
+            padding: 6px 12px;
+            border-radius: 16px;
+            border: 1px solid var(--primary-color);
+            background: var(--surface-color);
+            color: var(--primary-color);
+            font-size: var(--font-size-caption);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .filter-chip.active {
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+        }
+
+        .filter-chip:hover {
+            transform: scale(1.05);
+        }
+
+        /* Liste des clients */
+        .clients-list {
+            background: var(--background-color);
+        }
+
+        .client-item {
+            background: var(--surface-color);
+            margin: var(--spacing-elements) var(--margin-external);
+            border-radius: var(--border-radius);
+            padding: var(--margin-internal);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .client-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .client-item:active {
+            transform: scale(0.98);
+        }
+
+        .client-photo {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-on-primary);
+            font-size: 20px;
+            font-weight: bold;
+            margin-right: var(--margin-internal);
+            flex-shrink: 0;
+        }
+
+        .client-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .client-name {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .client-address {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .client-phone {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+        }
+
+        .client-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .client-balance {
+            font-size: var(--font-size-secondary);
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: var(--font-size-caption);
+        }
+
+        .balance-positive {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .balance-negative {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error-color);
+        }
+
+        .balance-zero {
+            background: rgba(117, 117, 117, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .client-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .badge-credit {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--warning-color);
+        }
+
+        .badge-new {
+            background: rgba(33, 150, 243, 0.1);
+            color: var(--info-color);
+        }
+
+        .location-button {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--info-color);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .location-button:hover {
+            background: rgba(33, 150, 243, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* Bouton d'action flottant */
+        .fab {
+            position: fixed;
+            bottom: 72px;
+            right: var(--margin-external);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            color: var(--text-on-primary);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(255, 152, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .fab:hover {
+            background: var(--secondary-variant);
+            box-shadow: 0 8px 16px rgba(255, 152, 0, 0.4);
+            transform: scale(1.1);
+        }
+
+        /* État vide */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-sections);
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: var(--margin-external);
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: var(--font-size-h3);
+            margin-bottom: var(--spacing-elements);
+            color: var(--text-primary);
+        }
+
+        .empty-message {
+            font-size: var(--font-size-secondary);
+            line-height: 1.5;
+        }
+
+        /* Navigation inférieure */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            height: 56px;
+            background: var(--surface-color);
+            border-top: 1px solid #E0E0E0;
+            display: flex;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .nav-item-icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .nav-item-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* Animation de chargement */
+        .loading-item {
+            background: var(--surface-color);
+            margin: var(--spacing-elements) var(--margin-external);
+            border-radius: var(--border-radius);
+            padding: var(--margin-internal);
+            display: flex;
+            align-items: center;
+        }
+
+        .loading-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            margin-right: var(--margin-internal);
+        }
+
+        .loading-content {
+            flex: 1;
+        }
+
+        .loading-line {
+            height: 12px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .loading-line.short {
+            width: 60%;
+        }
+
+        .loading-line.medium {
+            width: 80%;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="clients-container">
+            <!-- Header avec recherche -->
+            <div class="clients-header">
+                <div class="header-top">
+                    <button class="back-button" onclick="goBack()">←</button>
+                    <div class="header-title">Mes Clients</div>
+                    <div style="width: 40px;"></div> <!-- Spacer -->
+                </div>
+                <div class="search-container">
+                    <div class="search-icon">🔍</div>
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="searchInput"
+                        placeholder="Rechercher un client..."
+                        oninput="filterClients()"
+                    >
+                    <button class="clear-search" id="clearSearch" onclick="clearSearch()">✕</button>
+                </div>
+            </div>
+
+            <!-- Filtres rapides -->
+            <div class="filters-section">
+                <div class="filter-chip active" data-filter="all" onclick="setFilter('all')">Tous</div>
+                <div class="filter-chip" data-filter="credit" onclick="setFilter('credit')">Crédit en cours</div>
+                <div class="filter-chip" data-filter="new" onclick="setFilter('new')">Nouveau</div>
+                <div class="filter-chip" data-filter="quartier" onclick="setFilter('quartier')">Par Quartier</div>
+            </div>
+
+            <!-- Liste des clients -->
+            <div class="clients-list" id="clientsList">
+                <!-- Les clients seront chargés dynamiquement -->
+            </div>
+
+            <!-- État vide -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-icon">👥</div>
+                <div class="empty-title">Aucun client trouvé</div>
+                <div class="empty-message">
+                    Aucun client ne correspond à vos critères de recherche.<br>
+                    Essayez de modifier votre recherche ou ajoutez un nouveau client.
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton d'action flottant -->
+        <button class="fab" onclick="addNewClient()">+</button>
+
+        <!-- Navigation inférieure -->
+        <div class="bottom-nav">
+            <a href="EC003-tableau-de-bord.html" class="nav-item">
+                <div class="nav-item-icon">🏠</div>
+                <div class="nav-item-label">Tableau de Bord</div>
+            </a>
+            <a href="EC004-liste-clients.html" class="nav-item active">
+                <div class="nav-item-icon">👥</div>
+                <div class="nav-item-label">Clients</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-item-icon">📦</div>
+                <div class="nav-item-label">Distributions</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-item-icon">⚙️</div>
+                <div class="nav-item-label">Plus</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Données simulées des clients
+        let allClients = [
+            {
+                id: 1,
+                firstName: "Marie",
+                lastName: "Kouassi",
+                address: "Cocody, Riviera 3",
+                phone: "+225 07 12 34 56 78",
+                balance: 15000,
+                hasCredit: true,
+                isNew: false,
+                quartier: "Cocody"
+            },
+            {
+                id: 2,
+                firstName: "Jean",
+                lastName: "Koffi",
+                address: "Yopougon, Niangon",
+                phone: "+225 05 98 76 54 32",
+                balance: -5000,
+                hasCredit: false,
+                isNew: true,
+                quartier: "Yopougon"
+            },
+            {
+                id: 3,
+                firstName: "Fatou",
+                lastName: "Traoré",
+                address: "Adjamé, Bracodi",
+                phone: "+225 01 23 45 67 89",
+                balance: 0,
+                hasCredit: true,
+                isNew: false,
+                quartier: "Adjamé"
+            },
+            {
+                id: 4,
+                firstName: "Amadou",
+                lastName: "Bamba",
+                address: "Treichville, Zone 3",
+                phone: "+225 07 87 65 43 21",
+                balance: 25000,
+                hasCredit: false,
+                isNew: false,
+                quartier: "Treichville"
+            },
+            {
+                id: 5,
+                firstName: "Aya",
+                lastName: "Diabaté",
+                address: "Marcory, Zone 4",
+                phone: "+225 05 11 22 33 44",
+                balance: -12000,
+                hasCredit: true,
+                isNew: true,
+                quartier: "Marcory"
+            }
+        ];
+
+        let filteredClients = [...allClients];
+        let currentFilter = 'all';
+        let searchTerm = '';
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            showLoadingState();
+            setTimeout(() => {
+                hideLoadingState();
+                renderClients();
+            }, 1500);
+        });
+
+        // Afficher l'état de chargement
+        function showLoadingState() {
+            const clientsList = document.getElementById('clientsList');
+            clientsList.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                const loadingItem = document.createElement('div');
+                loadingItem.className = 'loading-item';
+                loadingItem.innerHTML = `
+                    <div class="loading-avatar"></div>
+                    <div class="loading-content">
+                        <div class="loading-line medium"></div>
+                        <div class="loading-line short"></div>
+                        <div class="loading-line short"></div>
+                    </div>
+                `;
+                clientsList.appendChild(loadingItem);
+            }
+        }
+
+        // Masquer l'état de chargement
+        function hideLoadingState() {
+            const loadingItems = document.querySelectorAll('.loading-item');
+            loadingItems.forEach(item => item.remove());
+        }
+
+        // Rendu de la liste des clients
+        function renderClients() {
+            const clientsList = document.getElementById('clientsList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (filteredClients.length === 0) {
+                clientsList.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            clientsList.innerHTML = '';
+            
+            filteredClients.forEach((client, index) => {
+                const clientItem = createClientItem(client);
+                clientItem.style.opacity = '0';
+                clientItem.style.transform = 'translateY(20px)';
+                clientsList.appendChild(clientItem);
+                
+                // Animation d'entrée
+                setTimeout(() => {
+                    clientItem.style.transition = 'all 0.4s ease';
+                    clientItem.style.opacity = '1';
+                    clientItem.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
+
+        // Créer un élément client
+        function createClientItem(client) {
+            const item = document.createElement('div');
+            item.className = 'client-item';
+            item.onclick = () => viewClientDetails(client.id);
+            
+            const initials = client.firstName.charAt(0) + client.lastName.charAt(0);
+            const fullName = `${client.firstName} ${client.lastName}`;
+            
+            let balanceClass = 'balance-zero';
+            let balanceText = '0 FCFA';
+            
+            if (client.balance > 0) {
+                balanceClass = 'balance-positive';
+                balanceText = `+${client.balance.toLocaleString()} FCFA`;
+            } else if (client.balance < 0) {
+                balanceClass = 'balance-negative';
+                balanceText = `${client.balance.toLocaleString()} FCFA`;
+            }
+            
+            let badges = '';
+            if (client.hasCredit) {
+                badges += '<div class="client-badge badge-credit">Crédit en cours</div>';
+            }
+            if (client.isNew) {
+                badges += '<div class="client-badge badge-new">Nouveau</div>';
+            }
+            
+            item.innerHTML = `
+                <div class="client-photo">${initials}</div>
+                <div class="client-info">
+                    <div class="client-name">${fullName}</div>
+                    <div class="client-address">${client.address}</div>
+                    <div class="client-phone">${client.phone}</div>
+                </div>
+                <div class="client-details">
+                    <div class="client-balance ${balanceClass}">${balanceText}</div>
+                    ${badges}
+                    <button class="location-button" onclick="event.stopPropagation(); showLocation(${client.id})" title="Voir sur la carte">📍</button>
+                </div>
+            `;
+            
+            return item;
+        }
+
+        // Filtrer les clients
+        function filterClients() {
+            const searchInput = document.getElementById('searchInput');
+            const clearButton = document.getElementById('clearSearch');
+            
+            searchTerm = searchInput.value.toLowerCase().trim();
+            
+            // Afficher/masquer le bouton de suppression
+            clearButton.style.display = searchTerm ? 'block' : 'none';
+            
+            applyFilters();
+        }
+
+        // Appliquer les filtres
+        function applyFilters() {
+            filteredClients = allClients.filter(client => {
+                // Filtre de recherche
+                const matchesSearch = !searchTerm || 
+                    client.firstName.toLowerCase().includes(searchTerm) ||
+                    client.lastName.toLowerCase().includes(searchTerm) ||
+                    client.address.toLowerCase().includes(searchTerm) ||
+                    client.phone.includes(searchTerm);
+                
+                // Filtre de catégorie
+                let matchesFilter = true;
+                switch (currentFilter) {
+                    case 'credit':
+                        matchesFilter = client.hasCredit;
+                        break;
+                    case 'new':
+                        matchesFilter = client.isNew;
+                        break;
+                    case 'quartier':
+                        // Pour la démo, on peut grouper par quartier
+                        matchesFilter = true;
+                        break;
+                    default:
+                        matchesFilter = true;
+                }
+                
+                return matchesSearch && matchesFilter;
+            });
+            
+            renderClients();
+        }
+
+        // Définir un filtre
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            // Mettre à jour l'interface
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+            
+            applyFilters();
+        }
+
+        // Effacer la recherche
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const clearButton = document.getElementById('clearSearch');
+            
+            searchInput.value = '';
+            clearButton.style.display = 'none';
+            searchTerm = '';
+            
+            applyFilters();
+        }
+
+        // Voir les détails d'un client
+        function viewClientDetails(clientId) {
+            // Animation de sélection
+            const clientItems = document.querySelectorAll('.client-item');
+            clientItems.forEach(item => {
+                if (item.onclick.toString().includes(clientId)) {
+                    item.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        item.style.transform = 'scale(1)';
+                    }, 150);
+                }
+            });
+            
+            // Redirection vers la page de détail
+            setTimeout(() => {
+                window.location.href = `EC005-detail-client.html?id=${clientId}`;
+            }, 200);
+        }
+
+        // Afficher la localisation
+        function showLocation(clientId) {
+            const client = allClients.find(c => c.id === clientId);
+            if (client) {
+                showNotification(`Ouverture de la carte pour ${client.firstName} ${client.lastName}`, 'info');
+                // Ici on ouvrirait une carte ou une application de navigation
+            }
+        }
+
+        // Ajouter un nouveau client
+        function addNewClient() {
+            // Animation du bouton FAB
+            const fab = document.querySelector('.fab');
+            fab.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                fab.style.transform = 'scale(1)';
+                window.location.href = 'EC006-nouveau-client.html';
+            }, 150);
+        }
+
+        // Retour
+        function goBack() {
+            window.history.back();
+        }
+
+        // Fonction pour afficher les notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.zIndex = '2000';
+            notification.style.maxWidth = '90%';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Gestion du pull-to-refresh (simulation)
+        let startY = 0;
+        let currentY = 0;
+        let pullDistance = 0;
+        let isPulling = false;
+
+        document.addEventListener('touchstart', function(e) {
+            if (window.scrollY === 0) {
+                startY = e.touches[0].clientY;
+                isPulling = true;
+            }
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            if (isPulling && window.scrollY === 0) {
+                currentY = e.touches[0].clientY;
+                pullDistance = Math.max(0, currentY - startY);
+                
+                if (pullDistance > 100) {
+                    // Déclencher le rafraîchissement
+                    isPulling = false;
+                    refreshClients();
+                }
+            }
+        });
+
+        document.addEventListener('touchend', function() {
+            isPulling = false;
+            pullDistance = 0;
+        });
+
+        // Rafraîchir la liste des clients
+        function refreshClients() {
+            showNotification('Actualisation de la liste...', 'info');
+            showLoadingState();
+            
+            setTimeout(() => {
+                hideLoadingState();
+                renderClients();
+                showNotification('Liste mise à jour', 'success');
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
+

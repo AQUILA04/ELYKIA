@@ -1,0 +1,27 @@
+<div class="license-activation-container">
+    <div class="card">
+      <h2> Activation de la licence</h2>
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="licenseKey">veuillez saisir le clé d'activation :</label>
+          <input
+            id="licenseKey"
+            type="text"
+            [(ngModel)]="licenseKey"
+            (input)="onLicenseKeyInput($event)" 
+            name="licenseKey"
+            required
+            class="form-control"
+            placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+            [value]="licenseKey | licenseKeyFormatter" 
+            maxlength="29" 
+          />
+        </div>
+        <p><br/>
+          Veuillez contacter le support si vous avez besoin d'aide pour activer votre licence.
+        </p>
+        <button type="submit" class="btn btn-primary" [disabled]="!licenseKey.trim() || !isLicenseKeyValid()">suivant</button>
+      </form>
+    </div>
+  </div>
+  

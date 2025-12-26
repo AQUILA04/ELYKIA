@@ -1,0 +1,112 @@
+.magasinier-dashboard {
+    padding: 20px;
+
+    .page-title {
+        margin-bottom: 20px;
+        color: #3f51b5; /* Primary color */
+        font-size: 24px;
+        font-weight: 500;
+    }
+
+    mat-card {
+        margin-bottom: 20px;
+    }
+
+    .table-container {
+        position: relative;
+        min-height: 200px; /* To prevent layout shift during loading */
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+    }
+
+    .error-message {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        color: #f44336; /* Warn color */
+        mat-icon {
+            margin-right: 10px;
+        }
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        color: #757575; /* Grey text */
+        mat-icon {
+            font-size: 48px;
+            height: 48px;
+            width: 48px;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 18px;
+            text-align: center;
+        }
+    }
+
+    .mat-table {
+        width: 100%;
+    }
+
+    .mat-column-clientName {
+        flex: 0 0 20%;
+    }
+    .mat-column-deliveryDate {
+        flex: 0 0 18%;
+    }
+    .mat-column-totalAmount {
+        flex: 0 0 15%;
+    }
+    .mat-column-commercialUsername {
+        flex: 0 0 18%;
+    }
+    .mat-column-status {
+        flex: 0 0 12%;
+    }
+    .mat-column-actions {
+        flex: 0 0 17%;
+        padding-right: 8px;
+        button {
+            width: 100%;
+            height: 36px;
+            line-height: 36px;
+            mat-icon {
+                font-size: 18px;
+                margin-right: 5px;
+            }
+        }
+    }
+
+    .mat-header-cell {
+        font-weight: bold;
+        color: rgba(0, 0, 0, 0.87);
+        font-size: 14px;
+    }
+
+    .amount-value {
+        font-weight: 500;
+        color: #4caf50; /* Green color for money */
+    }
+
+    mat-chip {
+        min-width: 80px;
+        justify-content: center;
+        font-weight: 500;
+    }
+}

@@ -1,0 +1,81 @@
+<h2 mat-dialog-title>Ajout multiple de membres</h2>
+<mat-dialog-content>
+  <mat-form-field class="full-width">
+    <mat-label>Choisir le commercial</mat-label>
+    <mat-select [(value)]="selectedAgent" (selectionChange)="onAgentChange($event.value)">
+      <mat-option *ngFor="let agent of agents" [value]="agent">{{agent.username}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div *ngIf="selectedAgent">
+    <div class="global-fields">
+      <mat-form-field appearance="outline">
+        <mat-label>Montant global par échéance</mat-label>
+        <input matInput type="number" [(ngModel)]="globalAmount" placeholder="0">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Fréquence globale</mat-label>
+        <mat-select [(ngModel)]="globalFrequency">
+          <mat-option value="">(aucune)</mat-option>
+          <mat-option value="DAILY">Journalier</mat-option>
+          <mat-option value="WEEKLY">Hebdomadaire</mat-option>
+          <mat-option value="MONTHLY">Mensuel</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <mat-progress-bar *ngIf="isLoadingClients" mode="indeterminate"></mat-progress-bar>
+
+  <div *ngIf="clients.length">
+    <table class="clients-table">
+      <thead>
+        <tr>
+          <th><mat-checkbox [(ngModel)]="allSelected" (change)="toggleAll()"></mat-checkbox></th>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>Téléphone</th>
+          <th>Montant</th>
+          <th>Fréquence</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let client of clients">
+          <td>
+            <mat-checkbox [(ngModel)]="selectedClients" [value]="client.id" (change)="toggleSelected(client.id,$event.checked)"></mat-checkbox>
+          </td>
+          <td>{{client.lastname}}</td>
+          <td>{{client.firstname}}</td>
+          <td>{{client.phone}}</td>
+          <td>
+            <input matInput type="number" min="200" [min]="200" [placeholder]="globalAmount != null ? globalAmount.toString() : '0'"
+                   [(ngModel)]="clientOverrides[client.id].amount"
+                   (ngModelChange)="updateClientOverride(client.id,'amount', $event)"
+                   style="width: 90px;">
+          </td>
+          <td>
+            <mat-select
+              [ngModel]="clientOverrides[client.id].frequency ?? globalFrequency"
+              (ngModelChange)="updateClientOverride(client.id, 'frequency', $event)"
+              style="width:110px">
+              <mat-option value="">--</mat-option>
+              <mat-option value="DAILY">Journalier</mat-option>
+              <mat-option value="WEEKLY">Hebdomadaire</mat-option>
+              <mat-option value="MONTHLY">Mensuel</mat-option>
+            </mat-select>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <mat-paginator [length]="totalClients" [pageSize]="size" [pageIndex]="page" (page)="onPageChange($event)"></mat-paginator>
+  </div>
+
+  <mat-error *ngIf="apiError">{{apiError}}</mat-error>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="submitting">Annuler</button>
+  <button mat-raised-button color="primary" (click)="onConfirm()" [disabled]="submitting || !selectedClients.length || hasInvalidAmount()">
+    <mat-spinner *ngIf="submitting" diameter="20"></mat-spinner>
+    <span *ngIf="!submitting">Valider</span>
+  </button>
+</mat-dialog-actions>

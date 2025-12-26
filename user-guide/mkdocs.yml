@@ -1,0 +1,24 @@
+site_name: Guide Utilisateur AMENOUVEVE-YAVEH
+theme:
+  name: material
+  language: fr
+  palette:
+    primary: indigo
+    accent: blue
+  features:
+    - navigation.expand
+    - navigation.sections
+
+nav:
+  - Accueil: index.md
+  - Cycle de Vie Journalier: daily-cycle.md
+  - Administration: administration.md
+  - Gestion Commerciale: commercial.md
+  - Gestion Tontine: tontine.md
+  - Logistique: logistics.md
+  - Reporting: reporting.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences

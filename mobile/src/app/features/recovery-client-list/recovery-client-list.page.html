@@ -1,0 +1,46 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/clients"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Clients à Recouvrer</ion-title>
+  </ion-toolbar>
+  <ion-toolbar color="primary">
+    <ion-searchbar placeholder="Rechercher par nom ou quartier..." [formControl]="searchControl"></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ng-container *ngIf="(groupedClients$ | async) as groups">
+    <div *ngIf="groups.length > 0; else emptyState">
+      <ion-list>
+        <ion-item-group *ngFor="let group of groups">
+          <ion-item-divider>
+            <ion-label>{{ group.quarter }}</ion-label>
+          </ion-item-divider>
+          <ion-item *ngFor="let client of group.clients" (click)="openRecoveryPage(client.id)" button>
+            <ion-avatar slot="start">
+              <img [src]="client.photoUrl || 'assets/icon/person-circle-outline.svg'" />
+            </ion-avatar>
+            <ion-label>
+              <h2>{{ client.fullName || (client.firstname + ' ' + client.lastname) }}</h2>
+              <p>{{ client.address }}</p>
+              <p>{{ client.phone }}</p>
+            </ion-label>
+            <ion-note slot="end" color="danger" *ngIf="client.account?.accountBalance ?? 0 < 0">
+              {{ client.account?.accountBalance | currency:'XOF' }}
+            </ion-note>
+          </ion-item>
+        </ion-item-group>
+      </ion-list>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty-state ion-text-center ion-padding">
+        <ion-icon name="document-text-outline" size="large"></ion-icon>
+        <h2>Aucun client à recouvrer</h2>
+        <p>Tous les comptes clients sont à jour.</p>
+      </div>
+    </ng-template>
+  </ng-container>
+</ion-content>

@@ -1,0 +1,174 @@
+.receipt-preview {
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 24px;
+
+    .logo {
+        font-size: 48px;
+        margin-bottom: 8px;
+    }
+
+    h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: bold;
+        color: #2d3748;
+    }
+
+    p {
+        margin: 4px 0 0;
+        color: #718096;
+        font-size: 14px;
+    }
+}
+
+.separator {
+    border-top: 2px dashed #e2e8f0;
+    margin: 24px 0;
+}
+
+.receipt-number {
+    text-align: center;
+    background: #f7fafc;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+
+    .label {
+        display: block;
+        font-size: 12px;
+        color: #718096;
+        margin-bottom: 4px;
+    }
+
+    .value {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--ion-color-primary);
+        font-family: monospace;
+    }
+}
+
+.section {
+    margin-bottom: 24px;
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        color: var(--ion-color-primary);
+        font-weight: 500;
+        font-size: 14px;
+
+        ion-icon {
+            font-size: 16px;
+        }
+    }
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed #edf2f7;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .label {
+        color: #718096;
+        font-size: 14px;
+    }
+
+    .value {
+        color: #2d3748;
+        font-weight: 500;
+        font-size: 14px;
+        text-align: right;
+    }
+}
+
+.amount-highlight {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    margin: 24px 0;
+
+    .amount-label {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 8px;
+    }
+
+    .amount-value {
+        font-size: 28px;
+        font-weight: bold;
+    }
+}
+
+.total-highlight {
+    background: rgba(var(--ion-color-success-rgb), 0.1);
+    border: 2px solid var(--ion-color-success);
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 24px;
+
+    .total-label {
+        font-size: 13px;
+        color: var(--ion-color-success);
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .total-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--ion-color-success);
+    }
+}
+
+.receipt-footer {
+    padding-top: 24px;
+    border-top: 2px dashed #e2e8f0;
+    text-align: center;
+
+    .signature-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 24px 0;
+    }
+
+    .signature-box {
+        text-align: center;
+
+        .signature-line {
+            border-top: 2px solid #e2e8f0;
+            margin: 40px 0 8px 0;
+        }
+
+        .signature-label {
+            font-size: 11px;
+            color: #718096;
+        }
+    }
+
+    .receipt-note {
+        font-size: 12px;
+        color: #718096;
+        line-height: 1.6;
+    }
+}

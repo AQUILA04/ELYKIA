@@ -1,0 +1,341 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import '@ionic/angular/css/display.css';
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+.distribution-modal {
+  --background: #f5f5f5;
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    text-align: center;
+    height: 100%;
+    min-height: 400px;
+
+    .empty-icon {
+      font-size: 4rem;
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+
+    .empty-title {
+      color: #666;
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+    }
+
+    .empty-message {
+      color: #999;
+      font-size: 1rem;
+      margin: 0 0 30px 0;
+      line-height: 1.5;
+    }
+
+    ion-button {
+      --border-radius: 8px;
+      --padding-start: 24px;
+      --padding-end: 24px;
+    }
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 12px;
+    margin: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .distribution-header {
+    background: var(--ion-color-primary);
+    color: white;
+    padding: 20px;
+    text-align: center;
+
+    .distribution-title {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+  }
+
+  .distribution-details {
+    padding: 20px;
+
+    .detail-item {
+      margin-bottom: 20px;
+
+      &:last-child:not(.total-section) {
+        margin-bottom: 0;
+      }
+
+      .detail-label {
+        display: block;
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .detail-value {
+        color: #333;
+        font-size: 1rem;
+        font-weight: 600;
+
+        &.amount {
+          color: var(--ion-color-primary);
+          font-weight: 700;
+        }
+      }
+
+      .status-chip {
+        margin: 0;
+        height: 28px;
+
+        &.chip-success {
+          --background: #d4edda;
+          --color: #155724;
+        }
+
+        &.chip-danger {
+          --background: #f8d7da;
+          --color: #721c24;
+        }
+
+        &.chip-medium {
+          --background: #e2e3e5;
+          --color: #383d41;
+        }
+      }
+
+      .progress-container {
+        .progress-value {
+          color: var(--ion-color-primary);
+          font-size: 1rem;
+          font-weight: 700;
+          margin-bottom: 8px;
+        }
+
+        .payment-progress {
+          height: 8px;
+          border-radius: 4px;
+        }
+      }
+    }
+
+    .articles-list {
+      .article-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .article-info {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .article-name {
+            color: #333;
+            font-weight: 500;
+          }
+
+          .article-quantity {
+            color: #666;
+            font-size: 0.9rem;
+          }
+        }
+
+        .article-price {
+          color: var(--ion-color-primary);
+          font-weight: 600;
+        }
+      }
+    }
+
+    .total-section {
+      border-top: 2px solid #eee;
+      padding-top: 20px;
+      margin-top: 20px;
+      text-align: center;
+
+      .total-label {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .total-amount {
+        color: var(--ion-color-primary);
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+    }
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .distribution-modal {
+    --background: #1e1e1e;
+
+    .empty-state {
+      .empty-icon {
+        color: #666;
+      }
+
+      .empty-title {
+        color: #ccc;
+      }
+
+      .empty-message {
+        color: #999;
+      }
+    }
+
+    .modal-content {
+      background: #2d2d2d;
+    }
+
+    .distribution-details {
+      .detail-item {
+        .detail-label {
+          color: #ccc;
+        }
+
+        .detail-value {
+          color: #fff;
+        }
+      }
+
+      .articles-list {
+        .article-item {
+          border-bottom-color: #444;
+
+          .article-info {
+            .article-name {
+              color: #fff;
+            }
+
+            .article-quantity {
+              color: #ccc;
+            }
+          }
+        }
+      }
+
+      .total-section {
+        border-top-color: #444;
+
+        .total-label {
+          color: #ccc;
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .distribution-modal {
+    .empty-state {
+      padding: 40px 20px;
+      min-height: 300px;
+
+      .empty-icon {
+        font-size: 3rem;
+      }
+
+      .empty-title {
+        font-size: 1.2rem;
+      }
+
+      .empty-message {
+        font-size: 0.9rem;
+      }
+    }
+
+    .modal-content {
+      margin: 8px;
+    }
+
+    .distribution-details {
+      padding: 16px;
+
+      .articles-list {
+        .article-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+
+          .article-price {
+            align-self: flex-end;
+          }
+        }
+      }
+    }
+  }
+}
+
+.mobile-container {
+  width: 100%;
+  margin: 0 auto;
+  background-color: var(--surface-color);
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Forcer l'affichage mobile UNIQUEMENT sur desktop */
+@media (min-width: 1025px),
+(hover: hover) and (pointer: fine) and (min-width: 768px) {
+  .mobile-container {
+    max-width: 414px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
+    margin: 20px auto;
+    height: 90vh;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+}
+
+/* Pour les tablettes - mode plein écran */
+@media (min-width: 768px) and (max-width: 1024px) and (hover: none) {
+  .mobile-container {
+    max-width: 100%;
+    box-shadow: none;
+    margin: 0;
+  }
+}

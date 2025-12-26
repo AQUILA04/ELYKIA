@@ -1,0 +1,81 @@
+<!-- Section Articles -->
+<div class="articles-section">
+  <div class="section-header">
+    <ion-icon name="cube" class="section-icon"></ion-icon>
+    <span class="section-title">Articles Disponibles</span>
+    <span class="articles-count">{{ articles.length }} articles</span>
+  </div>
+
+  <!-- Search Container -->
+  <div class="search-container">
+    <ion-searchbar 
+      placeholder="Rechercher par nom, référence..."
+      (ionInput)="onSearchInput($event)"
+      debounce="300">
+    </ion-searchbar>
+  </div>
+
+  <div class="articles-list">
+    <cdk-virtual-scroll-viewport itemSize="140" class="ion-content-scroll-host">
+      <ion-card
+        *cdkVirtualFor="let article of filteredArticles; trackBy: trackByArticleId"
+        class="article-card"
+        [class.selected]="getArticleQuantity(article.id) > 0"
+        [class.low-stock]="shouldShowStockWarning(article)">
+        <ion-card-content>
+          <div class="article-content">
+            <div class="article-info">
+              <h3 class="article-name">{{ article.commercialName || article.name }}</h3>
+              <p class="article-details">{{ article.type }} • {{ article.marque }}</p>
+              
+              <!-- Stock info - conditionnel selon la config -->
+              <p class="stock-info" *ngIf="config.showStockInfo">
+                <ion-icon 
+                  [name]="shouldShowStockWarning(article) ? 'warning' : 'checkmark-circle'" 
+                  [color]="shouldShowStockWarning(article) ? 'warning' : 'success'">
+                </ion-icon>
+                Stock disponible: {{ article.stockQuantity }} unités
+              </p>
+              
+              <!-- Prix -->
+              <div class="price-info">
+                <span class="unit-price">{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
+                <span class="total-price" *ngIf="getArticleQuantity(article.id) > 0">
+                  {{ getArticleTotal(article.id) | number:'1.0-0' }} FCFA
+                </span>
+              </div>
+            </div>
+
+            <!-- Contrôles de quantité -->
+            <div class="quantity-controls">
+              <ion-button
+                fill="outline"
+                size="small"
+                (click)="decreaseQuantity(article)"
+                [disabled]="getArticleQuantity(article.id) <= 0">
+                <ion-icon slot="icon-only" name="remove"></ion-icon>
+              </ion-button>
+
+              <ion-input
+                type="number"
+                [value]="getArticleQuantity(article.id)"
+                (ionBlur)="onQuantityChange(article.id, $event)"
+                min="0"
+                [max]="config.maxQuantityCheck ? article.stockQuantity : null"
+                class="quantity-input">
+              </ion-input>
+
+              <ion-button
+                fill="outline"
+                size="small"
+                (click)="increaseQuantity(article)"
+                [disabled]="!canIncreaseQuantity(article)">
+                <ion-icon slot="icon-only" name="add"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </cdk-virtual-scroll-viewport>
+  </div>
+</div>

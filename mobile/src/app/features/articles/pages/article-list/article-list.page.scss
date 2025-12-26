@@ -1,0 +1,112 @@
+// NOTE: Le bloc :host a été entièrement supprimé.
+
+// Section Headers
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 4px;
+
+  .section-icon {
+    color: #1976d2;
+    font-size: 20px;
+    margin-right: 8px;
+  }
+
+  .section-title {
+    color: #212121;
+    font-size: 16px;
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .articles-count {
+    color: #757575;
+    font-size: 14px;
+    background: #e3f2fd;
+    padding: 4px 8px;
+    border-radius: 12px;
+  }
+}
+
+// Articles Section
+.articles-section {
+  // Changement : plus besoin de flex ici, la page défile normalement
+  margin-bottom: 24px;
+
+  .search-container {
+    padding: 0 4px 16px;
+
+    ion-searchbar {
+      --background: white;
+      --border-radius: 12px;
+      --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 0;
+    }
+  }
+
+  .articles-list {
+    .article-card {
+      margin: 0 0 12px 0;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+
+      ion-card-content {
+        padding: 16px;
+      }
+    }
+
+    .article-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+
+      .article-info {
+        flex: 1;
+
+        .article-name {
+          color: #1976d2;
+          font-size: 16px;
+          font-weight: 500;
+          margin-bottom: 4px;
+        }
+
+        .article-details {
+          color: #757575;
+          font-size: 14px;
+          margin-bottom: 4px;
+        }
+
+        .stock-info {
+          color: #4caf50;
+          font-size: 12px;
+          font-weight: 500;
+          margin-bottom: 8px;
+        }
+
+        .price-info {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+
+          .unit-price {
+            color: #1976d2;
+            font-size: 16px;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .article-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}

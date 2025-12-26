@@ -1,0 +1,139 @@
+<div class="details-container" *ngIf="!isLoading">
+  <div class="form-header">
+    <h1>Détails de la vente</h1>
+  </div>
+  <div class="details-content" *ngIf="credit">
+    <!-- Client Details -->
+    <div class="details-section">
+      <h2>Informations du client</h2>
+      <div class="details-row">
+        <span class="details-label">Nom:</span>
+        <div class="details-value">{{ credit.client.lastname }}</div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Prénom:</span>
+        <div class="details-value">{{ credit.client.firstname }}</div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Numéro de téléphone:</span>
+        <div class="details-value">{{ credit.client.phone }}</div>
+      </div>
+    </div>
+
+    <!-- Articles Details -->
+    <div class="credit-list-section">
+      <h2>Information des articles</h2>
+      <table class="credit-table">
+        <thead>
+          <tr>
+            <th>Nom de l'article</th>
+            <th>Type de l'article</th>
+            <th>Quantité</th>
+            <th>Prix unitaire</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let articleItem of credit.articles">
+            <td>{{ articleItem.articles.name }}</td>
+            <td>{{ articleItem.articles.type }}</td>
+            <td>{{ articleItem.quantity }}</td>
+            <td>{{ articleItem.unitPrice }}</td>
+            <td>{{ articleItem.quantity * articleItem.unitPrice }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="details-row">
+        <span class="detail-label">Montant total:</span>
+        <div class="detail-value">{{ credit.totalAmount }}</div>
+      </div>
+    </div>
+
+    <!-- Article Distribution Details -->
+    <div class="details-section" *ngIf="distributionDetails && distributionDetails.length > 0">
+      <h2>Détails de distribution des articles</h2>
+      <table class="credit-table">
+        <thead>
+          <tr>
+            <th>Article</th>
+            <th>Quantité totale</th>
+            <th>Quantité distribuée</th>
+            <th>Quantité non distribuée</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let detail of distributionDetails">
+            <td>{{ detail.articleName }} ({{ detail.brand }} - {{ detail.model }})</td>
+            <td>{{ detail.parentQuantity }}</td>
+            <td>{{ detail.distributedQuantity }}</td>
+            <td>{{ detail.undistributedQuantity }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+        <!-- Credits Details -->
+        <div class="details-section">
+          <h2>Informations sur le credit</h2>
+          <div class="details-row">
+            <span class="details-label">Mise journalière:</span>
+            <div class="details-value">
+              <span>{{ credit.dailyStake }}</span>
+              <span class="mx-4"></span>
+              <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
+                {{ (credit.status | statusBadge).label }}
+              </span>
+            </div>
+          </div>
+          <div class="details-row">
+            <span class="details-label">Date de debut du credit</span>
+            <div class="details-value">{{ credit.beginDate }}</div>
+          </div>
+          <div class="details-row">
+            <span class="details-label">Date fin prévu:</span>
+            <div class="details-value">{{ credit.expectedEndDate }}</div>
+          </div>
+          <div class="details-row">
+            <span class="details-label">Montant total déja payé:</span>
+            <div class="details-value">{{ credit.totalAmountPaid }}</div>
+          </div>
+          <div class="details-row">
+            <span class="details-label">Nombre de jours restant:</span>
+            <div class="details-value">{{ credit.remainingDaysCount }}</div>
+          </div>
+          <div class="details-row">
+            <span class="details-label">Montant total restant a payé:</span>
+            <div class="details-value">{{ credit.totalAmountRemaining }}</div>
+          </div>
+          <div class="details-row">
+            <span class="details-label">Agent collecteur:</span>
+            <div class="details-value">{{ credit.collector }}</div>
+          </div>
+        </div>
+    <!-- <div class="d-flex justify-content-end action-buttons" style="margin-top: 20px;">
+      <button *ngIf="credit.status === 'VALIDATED' && credit.status === 'VALIDATED'" class="btn validate-button btn-sm" (click)="validateCredit(credit.id)">
+        <mat-icon>check</mat-icon>
+        <span>Valider</span>
+      </button>
+      &nbsp;
+      <button *ngIf="credit.status === 'STARTED' && credit.status === 'STARTED'" class="btn start-button btn-sm" (click)="startCredit(credit.id)">
+        <mat-icon>play_arrow</mat-icon>
+        <span>Démarrer</span>
+      </button>
+    </div> -->
+
+
+
+    <div class="form-actions">
+       <a (click)="onCancel()" class="link-back">
+        <i class="ti ti-arrow-left"></i> Retour à la liste
+      </a>
+      <!-- <div class="form-actions">
+        <a (click)="navigateToEdit(this.creditId)" class="link-edit" *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']">
+          <i class="ti ti-pencil"></i> Modifier
+        </a>
+      </div> -->
+    </div>
+  </div>
+  <div *ngIf="isLoading">Chargement...</div>
+</div>

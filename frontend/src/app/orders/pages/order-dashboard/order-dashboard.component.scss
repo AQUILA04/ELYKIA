@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+:host {
+  font-family: 'Poppins', sans-serif;
+}
+
+.dashboard-container {
+  min-height: calc(100vh - 64px);
+  background-color: #F5F6FA;
+  padding: 24px;
+  padding-bottom: 100px;
+  box-sizing: border-box;
+}
+
+// === EN-TÊTE (Titre et sous-titre) ===
+.dashboard-header {
+  // Pas besoin de flexbox ici, juste une marge en bas
+  margin-bottom: 24px;
+}
+
+.header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-title {
+  margin: 0 0 4px 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #2C3E50;
+  line-height: 1.2;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  font-size: 15px;
+  color: #7F8C8D;
+  line-height: 1.4;
+}
+
+// === ACTIONS PRINCIPALES (Boutons) ===
+.header-actions {
+  display: flex;
+  justify-content: flex-end; // Aligne les boutons à droite
+  gap: 12px;
+  margin-bottom: 32px; // Espace avant les cartes KPI
+}
+
+.create-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  height: 44px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(25, 118, 210, 0.2);
+  }
+}
+
+.reports-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px;
+  height: 44px;
+  font-size: 14px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border: 1px solid #D2D6DE;
+  color: #34495E;
+
+  &:hover {
+    background-color: rgba(25, 118, 210, 0.04);
+    border-color: #a9b8c9;
+  }
+}
+
+// === SECTION KPI ===
+.kpi-section {
+  margin-bottom: 32px;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+// === SECTION ONGLETS ===
+.tabs-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: none;
+  border: 1px solid #EAECEE;
+  overflow: hidden;
+}
+
+.status-tabs {
+  // Style pour la ligne de séparation sous les onglets
+  ::ng-deep .mat-mdc-tab-header {
+    border-bottom: 1px solid #EAECEE;
+  }
+
+  // Styles pour le texte et l'icône de l'onglet
+  ::ng-deep .mat-mdc-tab .mdc-tab__text-label,
+  ::ng-deep .mat-mdc-tab .tab-icon {
+    font-size: 15px;
+    font-weight: 500;
+    color: #7F8C8D;
+    transition: color 0.2s ease-in-out;
+  }
+
+  // Styles pour l'onglet actif (texte et icône en bleu)
+  ::ng-deep .mat-mdc-tab.mat-mdc-tab-active .mdc-tab__text-label,
+  ::ng-deep .mat-mdc-tab.mat-mdc-tab-active .tab-icon {
+    color: #1976d2;
+  }
+
+  // Style pour la barre de soulignement de l'onglet actif
+  ::ng-deep .mat-mdc-tab-group.mat-primary .mat-mdc-ink-bar {
+    background-color: #1976d2;
+  }
+}
+
+.tab-content {
+  padding: 24px;
+  min-height: 400px;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+

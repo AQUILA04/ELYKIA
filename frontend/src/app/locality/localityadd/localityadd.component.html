@@ -1,0 +1,22 @@
+<div class="container">
+    <div class="form-header">
+      <h1>Editer une Localité</h1>
+    </div>
+  
+    <form [formGroup]="localityForm" (ngSubmit)="onSubmit()">
+  
+      <div class="form-group">
+        <label for="name">Nom de la localité<span class="text-danger">*</span></label>
+        <input type="text" id="name" formControlName="name" class="form-control">
+        <mat-error *ngIf="localityForm.get('name')?.invalid && localityForm.get('name')?.touched">
+          Le nom de la localité est requis
+        </mat-error>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-cancel" (click)="onCancel()">Annuler</button>
+        <button type="submit" class="btn btn-submit" [disabled]="!localityForm.valid">Valider</button>
+      </div>
+  
+    </form>
+  </div>
+  

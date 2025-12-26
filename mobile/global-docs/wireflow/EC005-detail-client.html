@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC005 - Détail Client | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styles spécifiques au détail client */
+        .client-detail-container {
+            padding-bottom: 72px; /* Espace pour la navigation inférieure */
+        }
+
+        .client-header {
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            color: var(--text-on-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            padding: var(--margin-external);
+        }
+
+        .back-button {
+            position: absolute;
+            top: var(--margin-external);
+            left: var(--margin-external);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .client-photo-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--surface-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: var(--primary-color);
+            font-weight: bold;
+            border: 4px solid var(--surface-color);
+            margin-bottom: var(--margin-internal);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .client-name-large {
+            font-size: var(--font-size-h2);
+            font-weight: bold;
+            margin-bottom: var(--spacing-elements);
+        }
+
+        .client-basic-info {
+            font-size: var(--font-size-secondary);
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        /* Onglets */
+        .tabs-container {
+            background: var(--surface-color);
+            border-bottom: 1px solid #E0E0E0;
+            display: flex;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: var(--margin-internal);
+            background: none;
+            border: none;
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            position: relative;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .tab-button:hover {
+            background: rgba(25, 118, 210, 0.05);
+        }
+
+        /* Contenu des onglets */
+        .tab-content {
+            display: none;
+            padding: var(--margin-external);
+            background: var(--background-color);
+            min-height: calc(100vh - 320px);
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Onglet Informations */
+        .info-section {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            margin-bottom: var(--margin-internal);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-section-title {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-bottom: var(--margin-internal);
+            display: flex;
+            align-items: center;
+        }
+
+        .info-section-icon {
+            margin-right: var(--spacing-elements);
+            font-size: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-elements);
+            padding-bottom: var(--spacing-elements);
+            border-bottom: 1px solid #F0F0F0;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            font-weight: 500;
+            min-width: 100px;
+        }
+
+        .info-value {
+            font-size: var(--font-size-secondary);
+            color: var(--text-primary);
+            text-align: right;
+            flex: 1;
+        }
+
+        .location-link {
+            color: var(--info-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: var(--font-size-caption);
+            margin-top: 4px;
+        }
+
+        .location-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Onglet Crédits */
+        .credit-item {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            margin-bottom: var(--margin-internal);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .credit-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .credit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--margin-internal);
+        }
+
+        .credit-reference {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .credit-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: var(--font-size-caption);
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--warning-color);
+        }
+
+        .status-completed {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-overdue {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error-color);
+        }
+
+        .credit-amounts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--margin-internal);
+            margin-bottom: var(--margin-internal);
+        }
+
+        .amount-item {
+            text-align: center;
+        }
+
+        .amount-label {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+        }
+
+        .amount-value {
+            font-size: var(--font-size-body);
+            font-weight: bold;
+        }
+
+        .amount-total {
+            color: var(--primary-color);
+        }
+
+        .amount-paid {
+            color: var(--success-color);
+        }
+
+        .amount-remaining {
+            color: var(--error-color);
+        }
+
+        .progress-section {
+            margin-bottom: var(--margin-internal);
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .progress-bar-credit {
+            height: 8px;
+            background: #E0E0E0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill-credit {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), #66BB6A);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .credit-dates {
+            display: flex;
+            justify-content: space-between;
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+        }
+
+        /* Onglet Historique */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #E0E0E0;
+        }
+
+        .timeline-item {
+            position: relative;
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-internal);
+            margin-bottom: var(--margin-internal);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 3px solid var(--surface-color);
+            box-shadow: 0 0 0 2px #E0E0E0;
+        }
+
+        .timeline-item.distribution::before {
+            background: var(--secondary-color);
+            box-shadow: 0 0 0 2px var(--secondary-color);
+        }
+
+        .timeline-item.payment::before {
+            background: var(--success-color);
+            box-shadow: 0 0 0 2px var(--success-color);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-elements);
+        }
+
+        .timeline-type {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .timeline-icon {
+            margin-right: var(--spacing-elements);
+            font-size: 18px;
+        }
+
+        .timeline-date {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+        }
+
+        .timeline-amount {
+            font-size: var(--font-size-body);
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .amount-distribution {
+            color: var(--secondary-color);
+        }
+
+        .amount-payment {
+            color: var(--success-color);
+        }
+
+        .timeline-details {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            margin-top: var(--spacing-elements);
+        }
+
+        /* État vide */
+        .empty-tab-state {
+            text-align: center;
+            padding: var(--spacing-sections);
+            color: var(--text-secondary);
+        }
+
+        .empty-tab-icon {
+            font-size: 48px;
+            margin-bottom: var(--margin-external);
+            opacity: 0.5;
+        }
+
+        .empty-tab-title {
+            font-size: var(--font-size-h3);
+            margin-bottom: var(--spacing-elements);
+            color: var(--text-primary);
+        }
+
+        .empty-tab-message {
+            font-size: var(--font-size-secondary);
+            line-height: 1.5;
+        }
+
+        /* Navigation inférieure */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            height: 56px;
+            background: var(--surface-color);
+            border-top: 1px solid #E0E0E0;
+            display: flex;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .nav-item-icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .nav-item-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="client-detail-container">
+            <!-- Header client -->
+            <div class="client-header">
+                <button class="back-button" onclick="goBack()">←</button>
+                <div class="client-photo-large" id="clientPhoto">MK</div>
+                <div class="client-name-large" id="clientName">Marie Kouassi</div>
+                <div class="client-basic-info" id="clientBasicInfo">
+                    Cocody, Riviera 3<br>
+                    +225 07 12 34 56 78
+                </div>
+            </div>
+
+            <!-- Onglets -->
+            <div class="tabs-container">
+                <button class="tab-button active" onclick="switchTab('informations')">Informations</button>
+                <button class="tab-button" onclick="switchTab('credits')">Crédits</button>
+                <button class="tab-button" onclick="switchTab('historique')">Historique</button>
+            </div>
+
+            <!-- Contenu onglet Informations -->
+            <div class="tab-content active" id="informations">
+                <div class="info-section">
+                    <div class="info-section-title">
+                        <span class="info-section-icon">👤</span>
+                        Informations Personnelles
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Prénom</span>
+                        <span class="info-value">Marie</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Nom</span>
+                        <span class="info-value">Kouassi</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date de naissance</span>
+                        <span class="info-value">15/03/1985</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Profession</span>
+                        <span class="info-value">Commerçante</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-section-title">
+                        <span class="info-section-icon">📞</span>
+                        Contact
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Téléphone</span>
+                        <span class="info-value">+225 07 12 34 56 78</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Adresse</span>
+                        <span class="info-value">Cocody, Riviera 3</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Quartier</span>
+                        <span class="info-value">Cocody</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-section-title">
+                        <span class="info-section-icon">🆔</span>
+                        Pièce d'Identité
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Type</span>
+                        <span class="info-value">CNI</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Numéro</span>
+                        <span class="info-value">CI123456789</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-section-title">
+                        <span class="info-section-icon">🚨</span>
+                        Personne à Contacter
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Nom</span>
+                        <span class="info-value">Jean Kouassi</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Téléphone</span>
+                        <span class="info-value">+225 05 98 76 54 32</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Adresse</span>
+                        <span class="info-value">Cocody, Riviera 2</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-section-title">
+                        <span class="info-section-icon">📍</span>
+                        Géolocalisation
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Coordonnées</span>
+                        <span class="info-value">
+                            5.3364° N, 4.0267° W
+                            <a href="#" class="location-link" onclick="openMap()">
+                                📍 Voir sur la carte
+                            </a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenu onglet Crédits -->
+            <div class="tab-content" id="credits">
+                <div class="credit-item">
+                    <div class="credit-header">
+                        <div class="credit-reference">CRED-2024-001</div>
+                        <div class="credit-status status-active">En cours</div>
+                    </div>
+                    <div class="credit-amounts">
+                        <div class="amount-item">
+                            <div class="amount-label">Montant total</div>
+                            <div class="amount-value amount-total">50,000 FCFA</div>
+                        </div>
+                        <div class="amount-item">
+                            <div class="amount-label">Montant payé</div>
+                            <div class="amount-value amount-paid">35,000 FCFA</div>
+                        </div>
+                    </div>
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span>Progression</span>
+                            <span>70%</span>
+                        </div>
+                        <div class="progress-bar-credit">
+                            <div class="progress-fill-credit" style="width: 70%"></div>
+                        </div>
+                    </div>
+                    <div class="credit-amounts">
+                        <div class="amount-item">
+                            <div class="amount-label">Montant restant</div>
+                            <div class="amount-value amount-remaining">15,000 FCFA</div>
+                        </div>
+                        <div class="amount-item">
+                            <div class="amount-label">Mise journalière</div>
+                            <div class="amount-value">1,000 FCFA</div>
+                        </div>
+                    </div>
+                    <div class="credit-dates">
+                        <span>Début: 01/01/2024</span>
+                        <span>Échéance: 31/03/2024</span>
+                    </div>
+                </div>
+
+                <div class="credit-item">
+                    <div class="credit-header">
+                        <div class="credit-reference">CRED-2023-045</div>
+                        <div class="credit-status status-completed">Terminé</div>
+                    </div>
+                    <div class="credit-amounts">
+                        <div class="amount-item">
+                            <div class="amount-label">Montant total</div>
+                            <div class="amount-value amount-total">30,000 FCFA</div>
+                        </div>
+                        <div class="amount-item">
+                            <div class="amount-label">Montant payé</div>
+                            <div class="amount-value amount-paid">30,000 FCFA</div>
+                        </div>
+                    </div>
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span>Progression</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="progress-bar-credit">
+                            <div class="progress-fill-credit" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="credit-dates">
+                        <span>Début: 01/10/2023</span>
+                        <span>Terminé: 15/12/2023</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenu onglet Historique -->
+            <div class="tab-content" id="historique">
+                <div class="timeline">
+                    <div class="timeline-item distribution">
+                        <div class="timeline-header">
+                            <div class="timeline-type">
+                                <span class="timeline-icon">🛒</span>
+                                Distribution
+                            </div>
+                            <div class="timeline-date">15/01/2024</div>
+                        </div>
+                        <div class="timeline-amount amount-distribution">+50,000 FCFA</div>
+                        <div class="timeline-details">
+                            Articles distribués: Riz (2 sacs), Huile (5L), Sucre (1kg)<br>
+                            Référence: DIST-2024-001
+                        </div>
+                    </div>
+
+                    <div class="timeline-item payment">
+                        <div class="timeline-header">
+                            <div class="timeline-type">
+                                <span class="timeline-icon">💰</span>
+                                Recouvrement
+                            </div>
+                            <div class="timeline-date">16/01/2024</div>
+                        </div>
+                        <div class="timeline-amount amount-payment">-1,000 FCFA</div>
+                        <div class="timeline-details">
+                            Mise journalière - Crédit CRED-2024-001
+                        </div>
+                    </div>
+
+                    <div class="timeline-item payment">
+                        <div class="timeline-header">
+                            <div class="timeline-type">
+                                <span class="timeline-icon">💰</span>
+                                Recouvrement
+                            </div>
+                            <div class="timeline-date">17/01/2024</div>
+                        </div>
+                        <div class="timeline-amount amount-payment">-1,000 FCFA</div>
+                        <div class="timeline-details">
+                            Mise journalière - Crédit CRED-2024-001
+                        </div>
+                    </div>
+
+                    <div class="timeline-item payment">
+                        <div class="timeline-header">
+                            <div class="timeline-type">
+                                <span class="timeline-icon">💰</span>
+                                Recouvrement
+                            </div>
+                            <div class="timeline-date">18/01/2024</div>
+                        </div>
+                        <div class="timeline-amount amount-payment">-2,000 FCFA</div>
+                        <div class="timeline-details">
+                            Mise journalière double - Crédit CRED-2024-001
+                        </div>
+                    </div>
+
+                    <div class="timeline-item distribution">
+                        <div class="timeline-header">
+                            <div class="timeline-type">
+                                <span class="timeline-icon">🛒</span>
+                                Distribution
+                            </div>
+                            <div class="timeline-date">01/10/2023</div>
+                        </div>
+                        <div class="timeline-amount amount-distribution">+30,000 FCFA</div>
+                        <div class="timeline-details">
+                            Articles distribués: Riz (1 sac), Huile (3L)<br>
+                            Référence: DIST-2023-045
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation inférieure -->
+        <div class="bottom-nav">
+            <a href="EC003-tableau-de-bord.html" class="nav-item">
+                <div class="nav-item-icon">🏠</div>
+                <div class="nav-item-label">Tableau de Bord</div>
+            </a>
+            <a href="EC004-liste-clients.html" class="nav-item active">
+                <div class="nav-item-icon">👥</div>
+                <div class="nav-item-label">Clients</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-item-icon">📦</div>
+                <div class="nav-item-label">Distributions</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-item-icon">⚙️</div>
+                <div class="nav-item-label">Plus</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Données du client (simulées)
+        const clientData = {
+            id: 1,
+            firstName: "Marie",
+            lastName: "Kouassi",
+            address: "Cocody, Riviera 3",
+            phone: "+225 07 12 34 56 78",
+            dateOfBirth: "15/03/1985",
+            profession: "Commerçante",
+            quartier: "Cocody",
+            idType: "CNI",
+            idNumber: "CI123456789",
+            emergencyContact: {
+                name: "Jean Kouassi",
+                phone: "+225 05 98 76 54 32",
+                address: "Cocody, Riviera 2"
+            },
+            coordinates: {
+                latitude: 5.3364,
+                longitude: -4.0267
+            }
+        };
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            loadClientData();
+            animateProgressBars();
+        });
+
+        // Charger les données du client
+        function loadClientData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const clientId = urlParams.get('id');
+            
+            // Simuler le chargement des données
+            const initials = clientData.firstName.charAt(0) + clientData.lastName.charAt(0);
+            const fullName = `${clientData.firstName} ${clientData.lastName}`;
+            
+            document.getElementById('clientPhoto').textContent = initials;
+            document.getElementById('clientName').textContent = fullName;
+            document.getElementById('clientBasicInfo').innerHTML = `
+                ${clientData.address}<br>
+                ${clientData.phone}
+            `;
+        }
+
+        // Changer d'onglet
+        function switchTab(tabName) {
+            // Masquer tous les contenus d'onglets
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Désactiver tous les boutons d'onglets
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Activer l'onglet sélectionné
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Animer les barres de progression si on est sur l'onglet crédits
+            if (tabName === 'credits') {
+                setTimeout(animateProgressBars, 100);
+            }
+        }
+
+        // Animer les barres de progression
+        function animateProgressBars() {
+            const progressBars = document.querySelectorAll('.progress-fill-credit');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+        }
+
+        // Ouvrir la carte
+        function openMap() {
+            const { latitude, longitude } = clientData.coordinates;
+            const mapUrl = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=15`;
+            
+            // Simuler l'ouverture de la carte
+            showNotification('Ouverture de la carte...', 'info');
+            
+            // Dans une vraie application, on ouvrirait la carte
+            // window.open(mapUrl, '_blank');
+        }
+
+        // Retour
+        function goBack() {
+            window.history.back();
+        }
+
+        // Fonction pour afficher les notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.zIndex = '2000';
+            notification.style.maxWidth = '90%';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Animation d'entrée pour les éléments de la timeline
+        function animateTimelineItems() {
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            timelineItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                
+                setTimeout(() => {
+                    item.style.transition = 'all 0.4s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, index * 100);
+            });
+        }
+
+        // Observer pour déclencher les animations quand l'onglet historique est visible
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.target.id === 'historique' && mutation.target.classList.contains('active')) {
+                    setTimeout(animateTimelineItems, 100);
+                }
+            });
+        });
+
+        // Observer les changements de classe sur l'onglet historique
+        const historiqueTab = document.getElementById('historique');
+        if (historiqueTab) {
+            observer.observe(historiqueTab, { attributes: true, attributeFilter: ['class'] });
+        }
+
+        // Animation des sections d'informations au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const infoSections = document.querySelectorAll('.info-section');
+            infoSections.forEach((section, index) => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    section.style.transition = 'all 0.4s ease';
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        });
+    </script>
+</body>
+</html>
+

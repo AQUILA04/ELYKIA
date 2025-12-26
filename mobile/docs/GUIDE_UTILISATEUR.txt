@@ -1,0 +1,69 @@
+# Guide d'Utilisation - Fonctionnalités Tontine et Livraison
+
+Ce document détaille le fonctionnement des modules de gestion des tontines et des livraisons (distributions) de l'application mobile.
+
+---
+
+## Partie 1 : Gestion des Tontines
+
+Le module Tontine permet de gérer les cycles de cotisation, les membres, la collecte des fonds et la distribution des gains.
+
+### 1.1. Accès au module Tontine
+1.  Depuis l'écran principal (tableau de bord), naviguez vers l'onglet ou le menu dédié aux "Tontines".
+2.  L'écran principal du module affiche la liste des sessions de tontine en cours ou planifiées.
+
+### 1.2. Gestion d'une Session de Tontine
+-   **Création :** Pour démarrer une nouvelle tontine, utilisez le bouton "Ajouter" ou "+". Vous devrez renseigner les informations de base (nom, fréquence, montant de la cotisation, date de début).
+-   **Consultation :** Appuyez sur une session pour voir ses détails, y compris la liste des membres et le calendrier des collectes et des remises.
+
+### 1.3. Gestion des Membres
+-   **Ajout :** Dans l'écran de détail d'une session, vous pouvez ajouter des membres existants (clients) à la tontine.
+-   **Retrait :** Il est possible de retirer un membre d'une session (cette action peut être soumise à des conditions).
+
+### 1.4. Collecte des Cotisations
+1.  Pour une session donnée, l'application affiche la liste des membres devant cotiser pour la période en cours.
+2.  Rendez-vous chez le membre et sélectionnez son nom dans la liste.
+3.  Saisissez le montant collecté et validez la transaction. Un reçu peut être généré ou envoyé numériquement.
+4.  Le statut du membre est mis à jour en temps réel dans l'application (par exemple, "Payé" ou "En attente").
+
+### 1.5. Remise des Gains (Tour du membre)
+1.  Lorsque c'est le tour d'un membre de recevoir la totalité des fonds collectés, l'application le signalera.
+2.  Le processus de remise est initié, confirmant que le membre a bien reçu le montant total de la collecte pour la session.
+3.  Cette transaction est enregistrée et marquée comme "Gain reçu" pour le membre concerné.
+
+### 1.6. Synchronisation
+-   Toutes les opérations (collectes, ajouts de membres, etc.) sont enregistrées localement sur l'appareil.
+-   Pensez à synchroniser régulièrement vos données via le bouton de synchronisation pour que les informations soient mises à jour sur le serveur central.
+
+---
+
+## Partie 2 : Gestion des Livraisons (Distributions)
+
+Le module de livraison, aussi appelé "Distribution", permet d'organiser et de suivre les tournées de livraison de produits aux clients.
+
+### 2.1. Accès au module Distribution
+1.  Depuis le menu principal, sélectionnez l'onglet "Distributions" ou "Livraisons".
+2.  L'écran affiche la liste des tournées de livraison planifiées pour la journée ou la semaine.
+
+### 2.2. Consultation d'une Tournée
+-   Sélectionnez une tournée pour afficher la liste des clients à livrer, classés par ordre de passage optimisé (si la fonctionnalité est activée).
+-   Pour chaque client, vous pouvez voir les articles à livrer et l'adresse.
+
+### 2.3. Processus de Livraison
+1.  **Navigation :** Utilisez la fonction GPS intégrée (si disponible) pour vous rendre à l'adresse du client.
+2.  **Arrivée chez le client :** Une fois sur place, ouvrez la fiche de livraison du client.
+3.  **Validation de la livraison :**
+    -   Vérifiez avec le client la liste des produits et les quantités.
+    -   Confirmez la livraison dans l'application.
+    -   Selon la configuration, une signature électronique du client peut être requise sur l'écran de l'appareil.
+4.  **Enregistrement du paiement :** Si un paiement est dû à la livraison, enregistrez le montant perçu.
+5.  **Mise à jour du statut :** Une fois la livraison terminée, marquez-la comme "Livrée".
+
+### 2.4. Gestion des Exceptions
+-   **Livraison Partielle :** Si le client n'accepte qu'une partie de la commande, vous pouvez l'indiquer et ajuster les quantités livrées.
+-   **Livraison Reportée :** Si le client est absent ou demande à reporter, utilisez le statut "Reporté" et ajoutez une note si nécessaire.
+-   **Livraison Annulée/Refusée :** En cas de refus, marquez la livraison comme "Annulée" ou "Refusée" en précisant le motif.
+
+### 2.5. Synchronisation des Données de Livraison
+-   Comme pour les tontines, les statuts de livraison et les paiements sont enregistrés localement.
+-   Une synchronisation régulière est indispensable pour mettre à jour l'état des stocks et informer le système central de l'avancement de la tournée.

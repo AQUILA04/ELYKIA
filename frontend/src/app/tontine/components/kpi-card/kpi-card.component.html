@@ -1,0 +1,10 @@
+<mat-card class="kpi-card" [ngClass]="getColorClass()">
+  <mat-card-content>
+    <div class="kpi-header">
+      <mat-icon class="kpi-icon">{{ config.icon }}</mat-icon>
+      <span class="kpi-title">{{ config.title }}</span>
+    </div>
+    <div class="kpi-value">{{ config.value }}</div>
+    <div class="kpi-subtitle" *ngIf="config.subtitle">{{ config.subtitle }}</div>
+  </mat-card-content>
+</mat-card>

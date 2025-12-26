@@ -1,0 +1,217 @@
+<div class="container">
+  <div class="header-fixed">
+    <div class="d-flex justify-content-center">
+      <h1>{{ clientType === 'PROMOTER' ? 'Vue Sortie' : 'Vue Ventes' }}</h1>
+    </div>
+  </div>
+  
+  <div class="credit-details">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="detail-line">
+          <span class="detail-label">Référence:</span>
+          <span class="detail-value">{{this.creditDetails.reference}}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Client:</span>
+          <span class="detail-value">{{this.creditDetails.client?.firstname}} {{this.creditDetails.client?.lastname}}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Commercial en Charge:</span>
+          <span class="detail-value"><a [routerLink]="['/credit-view', this.creditDetails.id, this.creditDetails.clientType]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{this.creditDetails.collector}}</a></span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Statut:</span>
+          <span class="detail-value">
+            <span class="badge {{ (creditDetails.status | statusBadge).badgeClass }}">
+              {{ (creditDetails.status | statusBadge).label }}
+            </span>
+          </span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Mise journalière:</span>
+          <span class="detail-value">{{this.creditDetails.dailyStake | number:'1.0-0'}} FCFA</span>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="detail-line">
+          <span class="detail-label">Montant total:</span>
+          <span class="detail-value">{{this.creditDetails.totalAmount | number:'1.0-0'}} FCFA</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Montant payé:</span>
+          <span class="detail-value">{{this.creditDetails.totalAmountPaid | number:'1.0-0'}} FCFA</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Montant restant:</span>
+          <span class="detail-value">{{this.creditDetails.totalAmountRemaining | number:'1.0-0'}} FCFA</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Date de début:</span>
+          <span class="detail-value">{{this.creditDetails.beginDate | date:'dd/MM/yyyy'}}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Date fin prévue:</span>
+          <span class="detail-value">{{this.creditDetails.expectedEndDate | date:'dd/MM/yyyy'}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Onglets conditionnels -->
+  <div class="tabs-container">
+    <mat-tab-group (selectedTabChange)="onTabChange($event)">
+      <!-- Onglet Distribution - visible uniquement pour PROMOTER -->
+      <mat-tab label="Distribution" *ngIf="clientType === 'PROMOTER'">
+        <ng-template matTabContent>
+          <div class="tab-content" *ngIf="selectedTabIndex === 0">
+            <ng-container *ngTemplateOutlet="distributionTemplate"></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+      
+      <!-- Onglet Échéance - visible uniquement pour CLIENT -->
+      <mat-tab label="Échéance" *ngIf="clientType === 'CLIENT'">
+        <ng-template matTabContent>
+          <div class="tab-content" *ngIf="selectedTabIndex === 0">
+            <ng-container *ngTemplateOutlet="echeanceTemplate"></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+      
+      <!-- Onglet Articles - toujours visible -->
+      <mat-tab label="Articles">
+        <ng-template matTabContent>
+          <div class="tab-content" *ngIf="(clientType === 'PROMOTER' && selectedTabIndex === 1) || (clientType === 'CLIENT' && selectedTabIndex === 1)">
+            <ng-container *ngTemplateOutlet="articlesTemplate"></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>
+
+<!-- Template pour Distribution (même structure que CreditListTemplate) -->
+<ng-template #distributionTemplate>
+  <div class="credits-content">
+    <div class="header-fixed">
+      <div class="d-flex justify-content-start">
+        <h2>Distribution du crédit</h2>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end">
+      <button class="btn refresh-button btn-sm" (click)="refreshDistribution()">
+        <mat-icon>refresh</mat-icon>
+        <span>Rafraîchir</span>
+      </button>
+    </div>
+    
+    <div class="table-container">
+      <table class="article-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Référence</th>
+            <th>Client</th>
+            <th>Montant</th>
+            <th>Date de création</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let distribution of distributions; let i = index">
+            <td>{{(currentDistributionPage * distributionPageSize) + (i + 1)}}</td>
+            <td><a [routerLink]="['/credit-view', distribution.id, distribution.clientType]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{distribution.reference}}</a></td>
+            <td><a [routerLink]="['/client-view', distribution.client?.id]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{distribution.client?.firstname}} {{distribution.client?.lastname}}</a></td>
+            <td>{{distribution.totalAmount | number:'1.0-0'}} FCFA</td>
+            <td>{{distribution.beginDate | date:'dd/MM/yyyy'}}</td>
+            <td>
+              <span class="badge {{ (distribution.status | statusBadge).badgeClass }}">
+                {{ (distribution.status | statusBadge).label }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <mat-paginator [length]="totalDistributionElements" [pageSize]="distributionPageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onDistributionPageChange($event)">
+    </mat-paginator>
+  </div>
+</ng-template>
+
+<!-- Template pour Échéance -->
+<ng-template #echeanceTemplate>
+  <div class="credits-content">
+    <div class="header-fixed">
+      <div class="d-flex justify-content-start">
+        <h2>Échéances du crédit</h2>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end">
+      <button class="btn refresh-button btn-sm" (click)="refreshEcheance()">
+        <mat-icon>refresh</mat-icon>
+        <span>Rafraîchir</span>
+      </button>
+    </div>
+    
+    <div class="table-container">
+      <table class="article-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date d'échéance</th>
+            <th>Montant dû</th>
+            <th>Montant payé</th>
+            <th>Montant total restant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let echeance of echeances; let i = index">
+            <td>{{(currentEcheancePage * echeancePageSize) + (i + 1)}}</td>
+            <td>{{echeance.creationDate | date:'dd/MM/yyyy'}}</td>  
+            <td>{{echeance.dailyStakeAmount | number:'1.0-0'}} FCFA</td>
+            <td>{{echeance.amount | number:'1.0-0'}} FCFA</td>
+            <td>
+              <!-- <span class="badge" [ngClass]="getStatusClass(echeance.status)"> -->
+                {{echeance.totalAmountRemaining | number:'1.0-0'}} FCFA
+              <!-- </span> -->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <mat-paginator [length]="totalEcheanceElements" [pageSize]="echeancePageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onEcheancePageChange($event)">
+    </mat-paginator>
+  </div>
+</ng-template>
+
+<!-- Template pour Articles (basé sur credit-details) -->
+<ng-template #articlesTemplate>
+  <div class="credit-list-section">
+    <h2>Information des articles</h2>
+    <table class="credit-table">
+      <thead>
+        <tr>
+          <th>Nom de l'article</th>
+          <th>Type de l'article</th>
+          <th>Quantité</th>
+          <th>Prix unitaire</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let articleItem of credit.articles">
+          <td>{{ articleItem.articles.name }}</td>
+          <td>{{ articleItem.articles.type }}</td>
+          <td>{{ articleItem.quantity }}</td>
+          <td>{{ articleItem.articles.creditSalePrice }} FCFA</td>
+          <td>{{ articleItem.quantity * articleItem.articles?.creditSalePrice }} FCFA</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="details-row">
+      <span class="detail-label">Montant total:</span>
+      <div class="detail-value">{{ credit.totalAmount }} FCFA</div>
+    </div>
+  </div>
+</ng-template>

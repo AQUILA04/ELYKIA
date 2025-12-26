@@ -1,0 +1,266 @@
+name: Build Android Debug APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'elykia-mobile/package-lock.json'
+        
+    - name: Setup Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Clean npm cache
+      working-directory: ./elykia-mobile
+      run: npm cache clean --force
+      
+    - name: Install dependencies
+      working-directory: ./elykia-mobile
+      run: npm install --legacy-peer-deps
+      
+    - name: Install Ionic CLI
+      run: npm install -g @ionic/cli
+      
+    - name: Install Capacitor CLI
+      run: npm install -g @capacitor/cli
+      
+    - name: Bump application version
+      working-directory: ./elykia-mobile
+      run: npm run version:bump
+
+    - name: Build Ionic app
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Ionic Info ==="
+        ionic info
+        
+        echo "=== Checking Ionic project structure ==="
+        ls -la
+        cat package.json | grep -A 5 -B 5 "ionic" || echo "No ionic config in package.json"
+        
+        echo "=== Building Ionic app ==="
+        ionic build --prod
+        
+        echo "=== Verifying build output ==="
+        ls -la www/ || echo "www directory not found"
+      
+    - name: Add Android platform
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Current directory structure ==="
+        ls -la
+        
+        echo "=== Checking if Android platform exists ==="
+        if [ ! -d "android" ]; then
+          echo "Android platform not found, adding it..."
+          npx cap add android
+          echo "Android platform added successfully"
+        else
+          echo "Android platform already exists"
+          ls -la android/
+        fi
+        
+        echo "=== Verifying Android structure after add ==="
+        ls -la android/ || echo "Android directory still not found"
+        ls -la android/gradlew || echo "gradlew not found in android/"
+        
+    - name: Sync Capacitor
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Syncing Capacitor ==="
+        npx cap sync android
+        
+        echo "=== Verifying Android structure after sync ==="
+        ls -la android/
+        
+        echo "=== Checking for essential Android files ==="
+        ls -la android/gradlew || echo "gradlew missing"
+        ls -la android/build.gradle || echo "build.gradle missing"
+        ls -la android/app/build.gradle || echo "app/build.gradle missing"
+        
+        if [ ! -f "android/gradlew" ]; then
+          echo "WARNING: gradlew not found after sync, Android platform may be incomplete"
+        fi
+
+    - name: Configure Android Project
+      working-directory: ./elykia-mobile
+      run: |
+        MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+        XML_DIR="android/app/src/main/res/xml"
+        
+        # Vérifier que les fichiers existent
+        echo "=== Checking if files exist ==="
+        ls -la android/app/src/main/ || echo "Main directory not found"
+        ls -la android/app/src/main/AndroidManifest.xml || echo "AndroidManifest.xml not found"
+        
+        # Si AndroidManifest.xml n'existe pas, on le crée avec une structure de base
+        if [ ! -f "$MANIFEST_PATH" ]; then
+          echo "AndroidManifest.xml not found, creating basic structure..."
+          mkdir -p android/app/src/main
+          cat <<'MANIFEST_EOF' > $MANIFEST_PATH
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <application
+                android:allowBackup="true"
+                android:icon="@mipmap/ic_launcher"
+                android:label="@string/app_name"
+                android:roundIcon="@mipmap/ic_launcher_round"
+                android:supportsRtl="true"
+                android:theme="@style/AppTheme">
+                <activity
+                    android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+                    android:name=".MainActivity"
+                    android:exported="true"
+                    android:launchMode="singleTask"
+                    android:theme="@style/AppTheme.NoActionBarLaunch">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
+        MANIFEST_EOF
+        fi
+        
+        # 1. Create network security config file (copy from local config)
+        mkdir -p $XML_DIR
+        cat <<'EOF' > $XML_DIR/network_security_config.xml
+        <?xml version="1.0" encoding="utf-8" ?>
+        <network-security-config>
+          <base-config cleartextTrafficPermitted="true">
+            <trust-anchors>
+              <certificates src="system" />
+            </trust-anchors>
+          </base-config>
+          <domain-config cleartextTrafficPermitted="true">
+            <domain includeSubdomains="false">192.168.1.*</domain>
+            <domain includeSubdomains="false">192.168.100.*</domain>
+            <domain includeSubdomains="true">127.0.0.1</domain>
+            <domain includeSubdomains="true">localhost</domain>
+            <domain includeSubdomains="true">10.0.2.2</domain>
+          </domain-config>
+        </network-security-config>
+        EOF
+
+        # 2. Add permissions to AndroidManifest.xml (only if not already present)
+        if ! grep -q "android.permission.INTERNET" $MANIFEST_PATH; then
+          sed -i '/<manifest/a \    <uses-permission android:name="android.permission.INTERNET" />' $MANIFEST_PATH
+          echo "Added INTERNET permission"
+        fi
+        if ! grep -q "android.permission.READ_EXTERNAL_STORAGE" $MANIFEST_PATH; then
+          sed -i '/<manifest/a \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />' $MANIFEST_PATH
+          echo "Added READ_EXTERNAL_STORAGE permission"
+        fi
+        if ! grep -q "android.permission.WRITE_EXTERNAL_STORAGE" $MANIFEST_PATH; then
+          sed -i '/<manifest/a \    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />' $MANIFEST_PATH
+          echo "Added WRITE_EXTERNAL_STORAGE permission"
+        fi
+        
+        # 3. Add attributes to the <application> tag (only if not already present)
+        if ! grep -q "android:usesCleartextTraffic" $MANIFEST_PATH; then
+          sed -i 's|<application|<application android:usesCleartextTraffic="true"|' $MANIFEST_PATH
+        fi
+        if ! grep -q "android:networkSecurityConfig" $MANIFEST_PATH; then
+          sed -i 's|<application|<application android:networkSecurityConfig="@xml/network_security_config"|' $MANIFEST_PATH
+        fi
+        if ! grep -q "android:requestLegacyExternalStorage" $MANIFEST_PATH; then
+          sed -i 's|<application|<application android:requestLegacyExternalStorage="true"|' $MANIFEST_PATH
+        fi
+        
+        # 4. Verify configuration was applied correctly
+        echo "=== Network Security Config ==="
+        cat $XML_DIR/network_security_config.xml
+        echo ""
+        echo "=== AndroidManifest.xml Application Tag ==="
+        grep -A 15 "<application" $MANIFEST_PATH
+        echo ""
+        echo "=== Capacitor Config ==="
+        cat capacitor.config.ts
+        echo ""
+        echo "=== Verify files exist ==="
+        ls -la $XML_DIR/
+        ls -la android/app/src/main/AndroidManifest.xml
+
+    - name: Final Capacitor Sync
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Final sync after configuration ==="
+        npx cap sync android
+        echo "=== Final verification ==="
+        ls -la android/app/src/main/res/xml/
+        cat android/app/src/main/res/xml/network_security_config.xml
+
+    - name: Grant execute permission for gradlew
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Checking Android structure ==="
+        ls -la android/ || echo "Android directory not found"
+        ls -la android/gradlew || echo "gradlew not found"
+        
+        if [ -f "android/gradlew" ]; then
+          echo "Setting gradlew permissions..."
+          chmod +x android/gradlew
+        else
+          echo "gradlew not found, trying to regenerate Android platform..."
+          echo "Removing existing android directory..."
+          rm -rf android
+          echo "Adding Android platform fresh..."
+          npx cap add android
+          echo "Syncing Android platform..."
+          npx cap sync android
+          
+          if [ -f "android/gradlew" ]; then
+            chmod +x android/gradlew
+            echo "gradlew permissions set after regeneration"
+          else
+            echo "ERROR: gradlew still not found after regeneration"
+            echo "=== Android directory contents ==="
+            ls -la android/
+            echo "=== Looking for gradle wrapper ==="
+            find android/ -name "gradlew*" -type f || echo "No gradlew files found"
+            exit 1
+          fi
+        fi
+      
+    - name: Build Android Debug APK
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Starting Android build ==="
+        cd android
+        ls -la gradlew
+        ./gradlew assembleDebug
+      
+    - name: Upload APK as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: elykia-mobile-debug-apk
+        path: elykia-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 3
+        
+    - name: Upload APK to GitHub Packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: elykia-mobile-debug-${{ github.sha }}
+        path: elykia-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 6

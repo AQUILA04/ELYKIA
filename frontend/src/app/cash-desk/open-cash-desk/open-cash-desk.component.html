@@ -1,0 +1,21 @@
+<!-- open-cash-desk.component.html -->
+<div class="container">
+    <div class="h1">
+      <h1>Gestion de la caisse</h1>
+    </div>
+    <div class="form-group">
+      <div class="action-row" *ngxPermissionsOnly="['ROLE_OPEN_CASH_DESK', 'ROLE_CLOSE_CASH_DESK']">
+        <label>
+            {{ isCashDeskOpen ? 'Fermer la caisse de  l\'utilisateur : '  : 'Ouvrir la caisse de l\'utilisateur : ' }}
+            <strong>{{ username }}</strong>
+          </label>
+        <button *ngIf="!isCashDeskOpen" class="btn btn-primary action-button" (click)="openCashDesk()" [disabled]="isLoading">
+          Ouvrir Caisse
+        </button>
+        <button *ngIf="isCashDeskOpen" class="btn btn-danger action-button" (click)="closeCashDesk()" [disabled]="isLoading">
+          Fermer Caisse
+        </button>
+      </div>
+    </div>
+  </div>
+  

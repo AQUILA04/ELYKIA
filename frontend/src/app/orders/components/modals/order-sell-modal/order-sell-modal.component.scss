@@ -1,0 +1,290 @@
+.sell-modal {
+  padding: 24px;
+  min-width: 400px;
+  max-width: 500px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba(25, 118, 210, 0.1);
+  color: #1976d2;
+
+  mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+  flex: 1;
+}
+
+.modal-content {
+  margin-bottom: 24px;
+}
+
+.modal-message {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+// === RÉSUMÉ DE LA COMMANDE ===
+.order-summary {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.summary-header {
+  margin-bottom: 16px;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.87);
+  }
+}
+
+.summary-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e9ecef;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.total-row {
+    border-top: 2px solid #dee2e6;
+    margin-top: 8px;
+    padding-top: 12px;
+
+    .detail-label,
+    .detail-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .total-amount {
+      color: #2e7d32;
+    }
+  }
+}
+
+.detail-label {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.87);
+  font-weight: 500;
+  text-align: right;
+}
+
+// === AVERTISSEMENT ===
+.warning-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  color: #856404;
+}
+
+.warning-icon {
+  color: #f57c00;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.warning-text {
+  font-size: 14px;
+  line-height: 1.4;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+// === ACTIONS ===
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-button,
+.confirm-button {
+  min-width: 100px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 20px;
+}
+
+.confirm-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// === RESPONSIVE ===
+@media (max-width: 480px) {
+  .sell-modal {
+    padding: 20px;
+    min-width: 300px;
+  }
+
+  .modal-header {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .header-icon {
+    width: 40px;
+    height: 40px;
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .modal-title {
+    font-size: 18px;
+  }
+
+  .modal-message {
+    font-size: 15px;
+  }
+
+  .order-summary {
+    padding: 12px;
+  }
+
+  .summary-header h3 {
+    font-size: 15px;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 6px 0;
+  }
+
+  .detail-value {
+    text-align: left;
+  }
+
+  .warning-box {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .warning-text {
+    font-size: 13px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+
+    .cancel-button,
+    .confirm-button {
+      width: 100%;
+    }
+  }
+}
+
+// === MODE SOMBRE ===
+@media (prefers-color-scheme: dark) {
+  .modal-title {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .modal-message {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .order-summary {
+    background-color: #2d2d2d;
+    border-color: #404040;
+  }
+
+  .summary-header h3 {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .detail-label {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .detail-value {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .detail-row {
+    border-bottom-color: #404040;
+
+    &.total-row {
+      border-top-color: #404040;
+    }
+  }
+
+  .warning-box {
+    background-color: #3e2723;
+    border-color: #5d4037;
+    color: #ffb74d;
+  }
+
+  .header-icon {
+    background-color: rgba(144, 202, 249, 0.2);
+    color: #90caf9;
+  }
+}

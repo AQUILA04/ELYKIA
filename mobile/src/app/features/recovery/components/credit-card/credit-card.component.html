@@ -1,0 +1,53 @@
+<div class="credit-card" [class.selected]="isSelected" (click)="onSelectCredit()">
+  <!-- Header du crédit -->
+  <div class="credit-header">
+    <div class="credit-reference">{{ credit.reference || credit.id }}</div>
+    <div class="credit-date">{{ formatDate(credit.createdAt || credit.startDate) }}</div>
+  </div>
+  
+  <!-- Barre de progression -->
+  <div class="progress-section">
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+    </div>
+    <div class="progress-label">
+      <span>Progression</span>
+      <span>{{ getProgressPercentage() }}%</span>
+    </div>
+  </div>
+  
+  <!-- Montants -->
+  <div class="credit-amounts">
+    <div class="amount-item">
+      <div class="amount-label">Montant total</div>
+      <div class="amount-value amount-total">{{ formatAmount(credit.totalAmount) }}</div>
+    </div>
+    <div class="amount-item">
+      <div class="amount-label">Montant payé</div>
+      <div class="amount-value amount-paid">{{ formatAmount(getPaidAmount()) }}</div>
+    </div>
+    <div class="amount-item">
+      <div class="amount-label">Montant restant</div>
+      <div class="amount-value amount-remaining">{{ formatAmount(credit.remainingAmount || 0) }}</div>
+    </div>
+  </div>
+  
+  <!-- Mise journalière attendue -->
+  <div class="daily-payment-info">
+    <div class="daily-payment-label">
+      Mise journalière attendue
+    </div>
+    <div class="daily-amount">{{ formatAmount(getDailyPayment()) }} FCFA</div>
+  </div>
+  
+  <!-- Bouton de sélection -->
+  <ion-button 
+    expand="block" 
+    [color]="isSelected ? 'success' : 'medium'" 
+    fill="solid"
+    class="select-credit-btn">
+    <ion-icon [name]="isSelected ? 'checkmark-circle' : 'radio-button-off'" slot="start"></ion-icon>
+    {{ isSelected ? 'Crédit Sélectionné' : 'Sélectionner ce Crédit' }}
+  </ion-button>
+</div>
+

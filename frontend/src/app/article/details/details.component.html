@@ -1,0 +1,60 @@
+<div class="details-container" *ngIf="!isLoading">
+  <div class="form-header">
+    <h1>Détails de l'article</h1>
+  </div>
+
+  <div class="details-content" *ngIf="article">
+    <!-- Infos article existantes -->
+    <div class="details-row">
+      <div class="details-label">Nom</div>
+      <div class="details-value">{{ article.name }}</div>
+    </div>
+    <div class="details-row">
+      <div class="details-label">Marque</div>
+      <div class="details-value">{{ article.marque }}</div>
+    </div>
+    <div class="details-row">
+      <div class="details-label">Modèle</div>
+      <div class="details-value">{{ article.model }}</div>
+    </div>
+    <div class="details-row">
+      <div class="details-label">Type</div>
+      <div class="details-value">{{ article.type }}</div>
+    </div>
+
+    <!-- Section visible uniquement par le GESTIONNAIRE -->
+    <div class="details-row" *ngIf="isGestionnaire">
+      <div class="details-label">Prix d'achat</div>
+      <div class="details-value">{{ article.purchasePrice | currency:'XOF':'symbol':'1.0-0' }}</div>
+    </div>
+    <div class="details-row" *ngIf="isGestionnaire">
+      <div class="details-label">Prix de vente</div>
+      <div class="details-value">{{ article.sellingPrice | currency:'XOF':'symbol':'1.0-0' }}</div>
+    </div>
+
+    <!-- MODIFIÉ : Section visible par GESTIONNAIRE, SECRETAIRE, et COMMERCIAL -->
+    <div class="details-row" *ngIf="article && article.creditSalePrice !== undefined && canViewCreditPrice">
+      <div class="details-label">Prix de vente à crédit</div>
+      <div class="details-value">{{ article.creditSalePrice | currency:'XOF':'symbol':'1.0-0' }}</div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <a (click)="onCancel()" class="link-back">
+      <i class="ti ti-arrow-left"></i> Retour à la liste
+    </a>
+
+    <!-- Bouton "Modifier" visible uniquement par le GESTIONNAIRE -->
+    <div class="form-actions" *ngIf="isGestionnaire">
+      <a (click)="navigateToEdit(article!.id)" class="link-edit">
+        <i class="ti ti-pencil"></i> Modifier
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Affichage pendant le chargement -->
+<div *ngIf="isLoading" class="loading-indicator">
+  <ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+  <p>Chargement...</p>
+</div>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Mobile Commerciale - Navigation</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .navigation-container {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            min-height: 100vh;
+            padding: var(--margin-external);
+        }
+
+        .app-header {
+            text-align: center;
+            color: var(--text-on-primary);
+            margin-bottom: var(--spacing-sections);
+        }
+
+        .app-title {
+            font-size: var(--font-size-h1);
+            font-weight: bold;
+            margin-bottom: var(--spacing-elements);
+        }
+
+        .app-subtitle {
+            font-size: var(--font-size-body);
+            opacity: 0.9;
+            margin-bottom: var(--margin-external);
+        }
+
+        .app-description {
+            font-size: var(--font-size-secondary);
+            opacity: 0.8;
+            line-height: 1.5;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .screens-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--margin-internal);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .screen-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .screen-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .screen-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: var(--margin-internal);
+            color: white;
+            font-weight: bold;
+        }
+
+        .screen-info {
+            flex: 1;
+        }
+
+        .screen-title {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .screen-description {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+        }
+
+        .screen-arrow {
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+
+        /* Couleurs spécifiques par écran */
+        .ec001 .screen-icon { background: linear-gradient(135deg, var(--primary-color), var(--primary-variant)); }
+        .ec002 .screen-icon { background: linear-gradient(135deg, var(--info-color), #1976D2); }
+        .ec003 .screen-icon { background: linear-gradient(135deg, var(--primary-color), var(--primary-variant)); }
+        .ec004 .screen-icon { background: linear-gradient(135deg, var(--secondary-color), var(--secondary-variant)); }
+        .ec005 .screen-icon { background: linear-gradient(135deg, var(--info-color), #1976D2); }
+        .ec006 .screen-icon { background: linear-gradient(135deg, var(--success-color), #45a049); }
+        .ec007 .screen-icon { background: linear-gradient(135deg, var(--primary-color), var(--primary-variant)); }
+        .ec008 .screen-icon { background: linear-gradient(135deg, var(--success-color), #45a049); }
+        .ec009 .screen-icon { background: linear-gradient(135deg, var(--warning-color), #F57C00); }
+        .ec010 .screen-icon { background: linear-gradient(135deg, var(--info-color), #1976D2); }
+        .ec011 .screen-icon { background: linear-gradient(135deg, var(--text-secondary), #616161); }
+        
+        /* Tontine screens */
+        .ec014 .screen-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .ec015 .screen-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .ec016 .screen-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .ec017 .screen-icon { background: linear-gradient(135deg, var(--success-color), #45a049); }
+        .ec018 .screen-icon { background: linear-gradient(135deg, var(--info-color), #1976D2); }
+        .ec019 .screen-icon { background: linear-gradient(135deg, var(--secondary-color), var(--secondary-variant)); }
+        .ec020 .screen-icon { background: linear-gradient(135deg, var(--primary-color), var(--primary-variant)); }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: var(--spacing-sections);
+            font-size: var(--font-size-secondary);
+        }
+
+        .version {
+            opacity: 0.7;
+            margin-top: var(--spacing-elements);
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="navigation-container">
+            <!-- Header -->
+            <div class="app-header">
+                <div class="app-title">Commercial App</div>
+                <div class="app-subtitle">Application Mobile Commerciale</div>
+                <div class="app-description">
+                    Naviguez entre les différents écrans de l'application pour découvrir 
+                    toutes les fonctionnalités développées selon les spécifications.
+                </div>
+            </div>
+
+            <!-- Grille des écrans -->
+            <div class="screens-grid">
+                <a href="EC001-connexion.html" class="screen-card ec001">
+                    <div class="screen-icon">🔐</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC001 - Connexion</div>
+                        <div class="screen-description">Écran d'authentification utilisateur</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC002-chargement-initial.html" class="screen-card ec002">
+                    <div class="screen-icon">⏳</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC002 - Chargement Initial</div>
+                        <div class="screen-description">Écran de chargement et initialisation</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC003-tableau-de-bord.html" class="screen-card ec003">
+                    <div class="screen-icon">📊</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC003 - Tableau de Bord</div>
+                        <div class="screen-description">Écran principal avec statistiques</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC004-liste-clients.html" class="screen-card ec004">
+                    <div class="screen-icon">👥</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC004 - Liste des Clients</div>
+                        <div class="screen-description">Gestion et recherche des clients</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC005-detail-client.html" class="screen-card ec005">
+                    <div class="screen-icon">👤</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC005 - Détail Client</div>
+                        <div class="screen-description">Informations détaillées du client</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC006-nouveau-client.html" class="screen-card ec006">
+                    <div class="screen-icon">➕</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC006 - Nouveau Client</div>
+                        <div class="screen-description">Formulaire d'ajout de client</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC007-distribution.html" class="screen-card ec007">
+                    <div class="screen-icon">📦</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC007 - Distribution</div>
+                        <div class="screen-description">Enregistrement des distributions</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC008-recouvrement.html" class="screen-card ec008">
+                    <div class="screen-icon">💰</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC008 - Recouvrement</div>
+                        <div class="screen-description">Collecte des paiements clients</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC009-synchronisation.html" class="screen-card ec009">
+                    <div class="screen-icon">🔄</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC009 - Synchronisation</div>
+                        <div class="screen-description">Synchronisation des données</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC010-rapport-journalier.html" class="screen-card ec010">
+                    <div class="screen-icon">📋</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC010 - Rapport Journalier</div>
+                        <div class="screen-description">Rapport d'activité quotidienne</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC011-parametres.html" class="screen-card ec011">
+                    <div class="screen-icon">⚙️</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC011 - Paramètres</div>
+                        <div class="screen-description">Configuration de l'application</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <!-- Nouvelle Fonctionnalité: Gestion Tontine -->
+                <div style="margin: 32px 0 16px 0; padding: 16px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; text-align: center;">
+                    <div style="color: white; font-size: 18px; font-weight: bold; margin-bottom: 4px;">🎯 Nouveau Module</div>
+                    <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">Gestion de la Tontine</div>
+                </div>
+
+                <a href="EC014-tableau-de-bord-tontine.html" class="screen-card ec014">
+                    <div class="screen-icon">🎯</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC014 - Tableau de Bord Tontine</div>
+                        <div class="screen-description">Vue d'ensemble des membres tontine</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC015-enregistrement-client-tontine.html" class="screen-card ec015">
+                    <div class="screen-icon">📝</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC015 - Inscription Tontine</div>
+                        <div class="screen-description">Enregistrer un client pour la tontine</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC016-detail-membre-tontine.html" class="screen-card ec016">
+                    <div class="screen-icon">👤</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC016 - Détail Membre Tontine</div>
+                        <div class="screen-description">Profil et historique du membre</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC017-collecte-cotisation.html" class="screen-card ec017">
+                    <div class="screen-icon">💵</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC017 - Collecte Cotisation</div>
+                        <div class="screen-description">Enregistrer un paiement tontine</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC018-recu-tontine.html" class="screen-card ec018">
+                    <div class="screen-icon">🧾</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC018 - Reçu Tontine</div>
+                        <div class="screen-description">Reçu de cotisation imprimable</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC019-livraison-fin-annee.html" class="screen-card ec019">
+                    <div class="screen-icon">📦</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC019 - Livraison Fin d'Année</div>
+                        <div class="screen-description">Sélection articles pour livraison</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+
+                <a href="EC020-historique-collections-tontine.html" class="screen-card ec020">
+                    <div class="screen-icon">📊</div>
+                    <div class="screen-info">
+                        <div class="screen-title">EC020 - Historique Collections</div>
+                        <div class="screen-description">Historique complet des cotisations</div>
+                    </div>
+                    <div class="screen-arrow">›</div>
+                </a>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <div>Application Mobile Commerciale</div>
+                <div class="version">Version 1.0.0 - Développé selon les spécifications</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Animation d'entrée pour les cartes
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.screen-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+
+        // Effet de survol amélioré
+        document.querySelectorAll('.screen-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
+

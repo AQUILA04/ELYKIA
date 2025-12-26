@@ -1,0 +1,122 @@
+import { Component, OnInit } from '@angular/core';
+import { ItemService, Article } from '../service/item.service';
+import { PageEvent } from '@angular/material/paginator';
+import { Router } from '@angular/router';
+import { NgxSpinnerService } from 'ngx-spinner';
+import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
+import { AlertService } from 'src/app/shared/service/alert.service';
+import {AuthService} from "../../auth/service/auth.service";
+
+@Component({
+  selector: 'app-list',
+  templateUrl: './list.component.html',
+  styleUrls: ['./list.component.scss']
+})
+export class ListComponent implements OnInit {
+  articles: Article[] = [];
+  currentPage = 0;
+  pageSize = 5;
+  totalElement = 0;
+  isLoading = true;
+  sortField = 'id,desc';
+  searchTerm: string = '';
+
+  // NOUVEAU : Variable pour identifier le rôle
+  isGestionnaire: boolean = false;
+
+  constructor(
+    private itemService: ItemService,
+    private router: Router,
+    private spinner: NgxSpinnerService,
+    private tokenStorage: TokenStorageService,
+    private alertService: AlertService,
+    private authService: AuthService
+  ) {
+    this.tokenStorage.checkConnectedUser();
+
+    // NOUVEAU : Logique pour déterminer le rôle
+    try {
+      const user = this.authService.getCurrentUser();
+      // On vérifie si la liste de permissions de l'utilisateur contient
+      // une permission distinctive du GESTIONNAIRE.
+      if (user && user.roles && Array.isArray(user.roles)) {
+        this.isGestionnaire = user.roles.includes('ROLE_VALIDATE_CREDIT');
+      }
+    } catch (e) {
+      console.error('Impossible de lire les informations utilisateur', e);
+    }
+  }
+
+  ngOnInit(): void {
+    this.loadArticles();
+  }
+
+  loadArticles(): void {
+    this.spinner.show();
+    this.itemService.getArticles(this.currentPage, this.pageSize, this.sortField, this.searchTerm).subscribe({
+      next: (data) => {
+        if (data.statusCode === 200) {
+          this.articles = data.data.content;
+          this.totalElement = data.data.page.totalElements;
+          this.isLoading = false;
+        } else {
+          this.alertService.showError(data.message || 'Une erreur est survenue lors du chargement');
+        }
+        this.spinner.hide();
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des articles', error);
+        this.alertService.showError('Erreur de communication avec le serveur.');
+        this.spinner.hide();
+        this.isLoading = false;
+      }
+    });
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadArticles();
+  }
+
+  onSearch(): void {
+    this.currentPage = 0;
+    this.loadArticles();
+  }
+
+  refresh(): void {
+    this.searchTerm = '';
+    this.onSearch();
+  }
+
+  deleteArticle(id: number): void {
+    this.alertService.showDeleteConfirmation('Voulez-vous vraiment supprimer cet article !')
+      .then((result) => {
+        if (result) {
+          this.itemService.deleteArticle(id).subscribe({
+            next: () => {
+              this.alertService.showDefaultSucces('L\'article a été supprimé avec succès.');
+              this.loadArticles();
+            },
+            error: (error) => {
+              const errorMessage = error?.error?.message || 'Erreur lors de la suppression de l\'article.';
+              this.alertService.showError(errorMessage);
+              console.error('Erreur lors de la suppression de l\'article', error);
+            }
+          });
+        }
+      });
+  }
+
+  addArticle(): void {
+    this.router.navigate(['/add']);
+  }
+
+  viewDetails(articleId: number): void {
+    this.router.navigate(['/details', articleId]);
+  }
+
+  editArticle(articleId: number): void {
+    this.router.navigate(['/add', articleId]);
+  }
+}

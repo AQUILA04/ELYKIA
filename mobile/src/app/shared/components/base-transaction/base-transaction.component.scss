@@ -1,0 +1,361 @@
+// Composant racine - occupe toute la hauteur
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+// Assurer que ion-content occupe toute la hauteur disponible
+ion-content.transaction-content {
+  --padding-bottom: 0;
+  --padding-top: 0;
+  height: 100%;
+}
+
+.client-section {
+  margin: 16px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 8px;
+
+  .section-icon {
+    font-size: 20px;
+    margin-right: 8px;
+    color: var(--ion-color-primary);
+  }
+
+  .section-title {
+    font-weight: 600;
+    font-size: 16px;
+    flex: 1;
+  }
+
+  .articles-count {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+    background: var(--ion-color-light);
+    padding: 4px 8px;
+    border-radius: 12px;
+  }
+}
+
+.client-card {
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  &.selected {
+    border: 2px solid var(--ion-color-primary);
+    box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.2);
+  }
+
+  ion-card-content {
+    padding: 16px;
+  }
+}
+
+.client-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+
+  .empty-client {
+    text-align: center;
+    color: var(--ion-color-medium);
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+
+    h3 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+
+  .select-client-button {
+    --border-radius: 8px;
+  }
+}
+
+.client-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+
+  .client-avatar {
+    .avatar-circle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
+    }
+  }
+
+  .client-details {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ion-color-dark);
+    }
+
+    .address, .phone {
+      margin: 0 0 2px 0;
+      font-size: 14px;
+      color: var(--ion-color-medium);
+    }
+  }
+}
+
+.articles-section {
+  margin: 16px;
+}
+
+.search-container {
+  margin-bottom: 16px;
+}
+
+.articles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.article-card {
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &.selected {
+    border: 2px solid var(--ion-color-primary);
+    box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.2);
+  }
+
+  &.low-stock {
+    border-left: 4px solid var(--ion-color-warning);
+  }
+
+  ion-card-content {
+    padding: 16px;
+  }
+}
+
+.article-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.article-info {
+  flex: 1;
+
+  .article-name {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+  }
+
+  .article-details {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: var(--ion-color-medium);
+  }
+
+  .stock-info {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    ion-icon {
+      font-size: 14px;
+    }
+  }
+
+  .price-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .unit-price {
+      font-size: 14px;
+      color: var(--ion-color-primary);
+      font-weight: 500;
+    }
+
+    .total-price {
+      font-size: 16px;
+      color: var(--ion-color-success);
+      font-weight: 600;
+    }
+  }
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+
+  ion-button {
+    --border-radius: 8px;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    height: 32px;
+    width: 32px;
+  }
+
+  .quantity-input {
+    width: 60px;
+    text-align: center;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --border-radius: 8px;
+    --background: var(--ion-color-light);
+    font-weight: 600;
+  }
+}
+
+.summary-section {
+  margin: 16px;
+}
+
+.summary-card {
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  ion-card-header {
+    padding-bottom: 8px;
+
+    ion-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 600;
+
+      .summary-icon {
+        color: var(--ion-color-primary);
+      }
+    }
+  }
+
+  ion-card-content {
+    padding-top: 8px;
+  }
+}
+
+.summary-details {
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--ion-color-light);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.total-row {
+      font-weight: 600;
+      font-size: 16px;
+      border-bottom: 2px solid var(--ion-color-primary);
+      margin-bottom: 16px;
+
+      .total-amount {
+        color: var(--ion-color-primary);
+      }
+    }
+
+    &.calculated-row {
+      .adjusted-advance {
+        color: var(--ion-color-warning);
+        font-weight: 600;
+      }
+    }
+
+    &.daily-payment-row {
+      .daily-payment {
+        color: var(--ion-color-success);
+        font-weight: 600;
+      }
+    }
+
+    .label {
+      color: var(--ion-color-medium);
+    }
+
+    .value {
+      font-weight: 500;
+    }
+  }
+
+  .advance-item {
+    margin: 16px 0;
+    --border-radius: 8px;
+    --background: var(--ion-color-light);
+
+    &.readonly {
+      --background: var(--ion-color-light-shade);
+    }
+  }
+}
+
+.confirm-section {
+  margin: 16px;
+  padding-bottom: 32px;
+
+  .confirm-button {
+    --border-radius: 12px;
+    height: 48px;
+    font-weight: 600;
+    font-size: 16px;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .article-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .quantity-controls {
+    justify-content: center;
+    min-width: auto;
+  }
+
+  .client-info {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+}

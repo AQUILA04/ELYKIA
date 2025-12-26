@@ -1,0 +1,22 @@
+.chart-wrapper {
+  display: flex;
+  justify-content: center; /* Écarte les graphiques avec un espace égal sur les côtés */
+  margin-top: 5px; /* Espace au-dessus du conteneur des graphiques */
+}
+
+.chart-container {
+  display: flex;
+  gap: 20px; /* Espace entre les graphiques */
+  width: 100%; /* Utilise toute la largeur disponible */
+  max-width: 1200px; /* Largeur maximale du conteneur des graphiques */
+}
+
+.chart {
+  flex: 1;
+  min-width: 0; /* Permet aux graphiques de réduire leur largeur si nécessaire */
+}
+
+.apexcharts-canvas {
+  width: 100% !important; /* Assure que le graphique prend toute la largeur de son conteneur */
+  height: 300px !important; /* Hauteur fixe pour chaque graphique */
+}

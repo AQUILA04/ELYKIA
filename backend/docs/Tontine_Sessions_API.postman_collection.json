@@ -1,0 +1,436 @@
+{
+  "info": {
+    "name": "Tontine Sessions API",
+    "description": "Collection pour tester l'API de consultation des sessions historiques",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN_HERE",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Sessions Management",
+      "item": [
+        {
+          "name": "1. Get All Sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions"]
+            },
+            "description": "Récupérer toutes les sessions de tontine"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get Session by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "1"]
+            },
+            "description": "Récupérer les détails d'une session spécifique"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Session Members - Page 1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/1/members?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "1", "members"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Récupérer les membres d'une session (page 1)"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get Session Members - Page 2",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/1/members?page=1&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "1", "members"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Récupérer les membres d'une session (page 2)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Statistics",
+      "item": [
+        {
+          "name": "5. Get Session Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/1/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "1", "stats"]
+            },
+            "description": "Récupérer les statistiques complètes d'une session"
+          },
+          "response": []
+        },
+        {
+          "name": "6. Get Session 2023 Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/1/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "1", "stats"]
+            },
+            "description": "Statistiques de la session 2023"
+          },
+          "response": []
+        },
+        {
+          "name": "7. Get Session 2024 Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/2/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "2", "stats"]
+            },
+            "description": "Statistiques de la session 2024"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Comparison",
+      "item": [
+        {
+          "name": "8. Compare 3 Sessions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"years\": [2023, 2024, 2025]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/compare",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "compare"]
+            },
+            "description": "Comparer 3 sessions de tontine"
+          },
+          "response": []
+        },
+        {
+          "name": "9. Compare 2 Sessions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"years\": [2023, 2024]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/compare",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "compare"]
+            },
+            "description": "Comparer 2 sessions"
+          },
+          "response": []
+        },
+        {
+          "name": "10. Compare 5 Sessions (Max)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"years\": [2020, 2021, 2022, 2023, 2024]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/compare",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "compare"]
+            },
+            "description": "Comparer 5 sessions (maximum autorisé)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "11. Get Session - Not Found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "999"]
+            },
+            "description": "Erreur : Session inexistante (404)"
+          },
+          "response": []
+        },
+        {
+          "name": "12. Get Members - Session Not Found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/999/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "999", "members"]
+            },
+            "description": "Erreur : Session inexistante (404)"
+          },
+          "response": []
+        },
+        {
+          "name": "13. Compare - Less than 2 Years",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"years\": [2023]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/compare",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "compare"]
+            },
+            "description": "Erreur : Moins de 2 années (400)"
+          },
+          "response": []
+        },
+        {
+          "name": "14. Compare - More than 5 Years",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"years\": [2019, 2020, 2021, 2022, 2023, 2024]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/compare",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "compare"]
+            },
+            "description": "Erreur : Plus de 5 années (400)"
+          },
+          "response": []
+        },
+        {
+          "name": "15. Compare - Empty List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"years\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/compare",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "compare"]
+            },
+            "description": "Erreur : Liste vide (400)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Security Tests",
+      "item": [
+        {
+          "name": "16. Get Sessions - No Auth",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions"]
+            },
+            "description": "Erreur : Pas d'authentification (401)"
+          },
+          "response": []
+        },
+        {
+          "name": "17. Compare Sessions - No Auth",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"years\": [2023, 2024]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/sessions/compare",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "sessions", "compare"]
+            },
+            "description": "Erreur : Pas d'authentification (401)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

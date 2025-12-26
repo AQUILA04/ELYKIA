@@ -1,0 +1,56 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+<div class="container">
+  <!-- <app-breadcrumb></app-breadcrumb> -->
+<div class="header-fixed">
+  <div class="d-flex justify-content-center">
+    <app-breadcrumb></app-breadcrumb>
+    <h1>Liste des utilisateurs</h1>
+  </div>
+</div>
+ <div class="button-group">
+  <button class="btn refresh-button btn-sm" (click)="refresh()">
+    <mat-icon>refresh</mat-icon>
+    <span>Rafraîchir</span>
+  </button>
+  <button class="btn add btn-sm" (click)="addUser()">
+    <mat-icon>add</mat-icon>
+    <span>Ajouter</span>
+  </button>
+</div>
+
+  <div class="table-container">
+    <table class="article-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nom de l'utilisateur</th>
+          <th>Nom et Prenom</th>
+          <th>Email</th>
+          <th>Téléphone</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users; let i = index">
+          <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.firstname }} {{ user.lastname }}</td>
+            <td>{{ user.email}}</td>
+            <td>{{ user.phone}}</td>
+
+                <button mat-icon-button matTooltip="Détails" (click)="viewDetails(user.id)">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <button *ngxPermissionsOnly="['ROLE_EDIT_USER']" mat-icon-button matTooltip="Modifier" (click)="editUser(user.id)">
+                    <mat-icon style="color: #003366;">edit</mat-icon>
+                  </button> 
+                   <button *ngxPermissionsOnly="['ROLE_DEL_USER']" mat-icon-button matTooltip="Supprimer" (click)="deleteUser(user.id)">
+                    <mat-icon style="color: #c90a17;">delete</mat-icon>
+                  </button> 
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <mat-paginator [length]="totalElement" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPageChange($event)">
+  </mat-paginator>
+</div>

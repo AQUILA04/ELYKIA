@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC011 - Paramètres | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .settings-container {
+            background: var(--background-color);
+        }
+
+        .settings-header {
+            height: 56px;
+            background: linear-gradient(135deg, var(--text-secondary), #616161);
+            color: var(--text-on-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--margin-external);
+        }
+
+        .header-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .header-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .header-title {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+        }
+
+        .settings-content {
+            padding: var(--margin-external);
+        }
+
+        .profile-section {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            margin-bottom: var(--margin-external);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: var(--text-on-primary);
+            margin: 0 auto var(--margin-internal);
+            font-weight: bold;
+        }
+
+        .profile-name {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .profile-role {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            margin-bottom: var(--margin-internal);
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--margin-internal);
+            margin-top: var(--margin-internal);
+            padding-top: var(--margin-internal);
+            border-top: 1px solid #E0E0E0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: var(--font-size-h3);
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 2px;
+        }
+
+        .stat-label {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .settings-section {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--margin-external);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: var(--margin-external);
+            background: rgba(117, 117, 117, 0.05);
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .section-title {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+
+        .section-icon {
+            margin-right: var(--spacing-elements);
+            font-size: 20px;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            padding: var(--margin-external);
+            border-bottom: 1px solid #E0E0E0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-item:hover {
+            background: rgba(117, 117, 117, 0.05);
+        }
+
+        .setting-item.toggle-item {
+            cursor: default;
+        }
+
+        .setting-item.toggle-item:hover {
+            background: transparent;
+        }
+
+        .setting-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: var(--margin-internal);
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-title {
+            font-size: var(--font-size-body);
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .setting-description {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+        }
+
+        .setting-action {
+            display: flex;
+            align-items: center;
+        }
+
+        .setting-value {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            margin-right: var(--spacing-elements);
+        }
+
+        .setting-arrow {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 28px;
+            background: #E0E0E0;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--primary-color);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(22px);
+        }
+
+        /* Couleurs d'icônes spécifiques */
+        .sync-icon { background: rgba(33, 150, 243, 0.1); color: var(--info-color); }
+        .notification-icon { background: rgba(255, 193, 7, 0.1); color: var(--warning-color); }
+        .security-icon { background: rgba(76, 175, 80, 0.1); color: var(--success-color); }
+        .storage-icon { background: rgba(156, 39, 176, 0.1); color: #9C27B0; }
+        .help-icon { background: rgba(255, 87, 34, 0.1); color: #FF5722; }
+        .about-icon { background: rgba(96, 125, 139, 0.1); color: #607D8B; }
+        .logout-icon { background: rgba(244, 67, 54, 0.1); color: var(--error-color); }
+
+        .danger-item {
+            color: var(--error-color);
+        }
+
+        .danger-item .setting-title {
+            color: var(--error-color);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: var(--spacing-sections);
+            margin: var(--margin-external);
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: var(--margin-internal);
+        }
+
+        .modal-message {
+            font-size: var(--font-size-body);
+            color: var(--text-secondary);
+            margin-bottom: var(--margin-external);
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: var(--margin-internal);
+        }
+
+        .modal-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-body);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-button-cancel {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid #E0E0E0;
+        }
+
+        .modal-button-cancel:hover {
+            background: rgba(117, 117, 117, 0.1);
+        }
+
+        .modal-button-confirm {
+            background: var(--error-color);
+            color: var(--text-on-primary);
+        }
+
+        .modal-button-confirm:hover {
+            background: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="settings-container">
+            <!-- Header -->
+            <div class="settings-header">
+                <button class="header-button" onclick="goBack()">←</button>
+                <div class="header-title">Paramètres</div>
+                <div style="width: 40px;"></div>
+            </div>
+
+            <!-- Contenu -->
+            <div class="settings-content">
+                <!-- Section Profil -->
+                <div class="profile-section">
+                    <div class="profile-avatar">JD</div>
+                    <div class="profile-name">Jean Dupont</div>
+                    <div class="profile-role">Commercial • Zone Cocody</div>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">45</div>
+                            <div class="stat-label">Clients</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">12</div>
+                            <div class="stat-label">Crédits actifs</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">98%</div>
+                            <div class="stat-label">Taux collecte</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Synchronisation -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <span class="section-icon">🔄</span>
+                            Synchronisation
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item toggle-item">
+                        <div class="setting-icon sync-icon">🔄</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Synchronisation automatique</div>
+                            <div class="setting-description">Synchroniser les données automatiquement</div>
+                        </div>
+                        <div class="setting-action">
+                            <div class="toggle-switch active" onclick="toggleSetting(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item" onclick="showSyncSettings()">
+                        <div class="setting-icon sync-icon">⏰</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Fréquence de synchronisation</div>
+                            <div class="setting-description">Toutes les 2 heures</div>
+                        </div>
+                        <div class="setting-action">
+                            <span class="setting-arrow">›</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Notifications -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <span class="section-icon">🔔</span>
+                            Notifications
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item toggle-item">
+                        <div class="setting-icon notification-icon">🔔</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Notifications push</div>
+                            <div class="setting-description">Recevoir les notifications importantes</div>
+                        </div>
+                        <div class="setting-action">
+                            <div class="toggle-switch active" onclick="toggleSetting(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item toggle-item">
+                        <div class="setting-icon notification-icon">🔊</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Sons de notification</div>
+                            <div class="setting-description">Jouer un son pour les notifications</div>
+                        </div>
+                        <div class="setting-action">
+                            <div class="toggle-switch" onclick="toggleSetting(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item toggle-item">
+                        <div class="setting-icon notification-icon">📳</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Vibration</div>
+                            <div class="setting-description">Vibrer lors des notifications</div>
+                        </div>
+                        <div class="setting-action">
+                            <div class="toggle-switch active" onclick="toggleSetting(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Sécurité -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <span class="section-icon">🔒</span>
+                            Sécurité
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item" onclick="showChangePassword()">
+                        <div class="setting-icon security-icon">🔑</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Changer le mot de passe</div>
+                            <div class="setting-description">Modifier votre mot de passe</div>
+                        </div>
+                        <div class="setting-action">
+                            <span class="setting-arrow">›</span>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item toggle-item">
+                        <div class="setting-icon security-icon">📱</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Verrouillage automatique</div>
+                            <div class="setting-description">Verrouiller après 5 minutes d'inactivité</div>
+                        </div>
+                        <div class="setting-action">
+                            <div class="toggle-switch active" onclick="toggleSetting(this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Stockage -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <span class="section-icon">💾</span>
+                            Stockage
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item" onclick="showStorageInfo()">
+                        <div class="setting-icon storage-icon">📊</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Utilisation du stockage</div>
+                            <div class="setting-description">45 MB utilisés sur 100 MB</div>
+                        </div>
+                        <div class="setting-action">
+                            <span class="setting-arrow">›</span>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item" onclick="clearCache()">
+                        <div class="setting-icon storage-icon">🗑️</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Vider le cache</div>
+                            <div class="setting-description">Libérer de l'espace de stockage</div>
+                        </div>
+                        <div class="setting-action">
+                            <span class="setting-arrow">›</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Aide -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <span class="section-icon">❓</span>
+                            Aide et Support
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item" onclick="showHelp()">
+                        <div class="setting-icon help-icon">📖</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Guide d'utilisation</div>
+                            <div class="setting-description">Apprendre à utiliser l'application</div>
+                        </div>
+                        <div class="setting-action">
+                            <span class="setting-arrow">›</span>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item" onclick="contactSupport()">
+                        <div class="setting-icon help-icon">📞</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Contacter le support</div>
+                            <div class="setting-description">Obtenir de l'aide technique</div>
+                        </div>
+                        <div class="setting-action">
+                            <span class="setting-arrow">›</span>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item" onclick="showAbout()">
+                        <div class="setting-icon about-icon">ℹ️</div>
+                        <div class="setting-info">
+                            <div class="setting-title">À propos</div>
+                            <div class="setting-description">Version 1.2.0</div>
+                        </div>
+                        <div class="setting-action">
+                            <span class="setting-arrow">›</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Déconnexion -->
+                <div class="settings-section">
+                    <div class="setting-item danger-item" onclick="showLogoutConfirmation()">
+                        <div class="setting-icon logout-icon">🚪</div>
+                        <div class="setting-info">
+                            <div class="setting-title">Se déconnecter</div>
+                            <div class="setting-description">Fermer la session actuelle</div>
+                        </div>
+                        <div class="setting-action">
+                            <span class="setting-arrow">›</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de confirmation de déconnexion -->
+        <div class="modal" id="logoutModal">
+            <div class="modal-content">
+                <div class="modal-title">Confirmer la déconnexion</div>
+                <div class="modal-message">
+                    Êtes-vous sûr de vouloir vous déconnecter ? 
+                    Assurez-vous d'avoir synchronisé toutes vos données.
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-button modal-button-cancel" onclick="closeModal('logoutModal')">
+                        Annuler
+                    </button>
+                    <button class="modal-button modal-button-confirm" onclick="confirmLogout()">
+                        Se déconnecter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Basculer un paramètre toggle
+        function toggleSetting(toggleElement) {
+            toggleElement.classList.toggle('active');
+            
+            // Simuler la sauvegarde du paramètre
+            const isActive = toggleElement.classList.contains('active');
+            showNotification(
+                isActive ? 'Paramètre activé' : 'Paramètre désactivé', 
+                'success'
+            );
+        }
+
+        // Afficher les paramètres de synchronisation
+        function showSyncSettings() {
+            showNotification('Paramètres de synchronisation', 'info');
+        }
+
+        // Afficher le changement de mot de passe
+        function showChangePassword() {
+            showNotification('Changement de mot de passe', 'info');
+        }
+
+        // Afficher les informations de stockage
+        function showStorageInfo() {
+            showNotification('Informations de stockage', 'info');
+        }
+
+        // Vider le cache
+        function clearCache() {
+            if (confirm('Êtes-vous sûr de vouloir vider le cache ?')) {
+                showNotification('Cache vidé avec succès', 'success');
+            }
+        }
+
+        // Afficher l'aide
+        function showHelp() {
+            showNotification('Guide d\'utilisation', 'info');
+        }
+
+        // Contacter le support
+        function contactSupport() {
+            showNotification('Contact du support technique', 'info');
+        }
+
+        // Afficher les informations de l'application
+        function showAbout() {
+            showNotification('À propos de l\'application', 'info');
+        }
+
+        // Afficher la confirmation de déconnexion
+        function showLogoutConfirmation() {
+            document.getElementById('logoutModal').style.display = 'flex';
+        }
+
+        // Fermer un modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Confirmer la déconnexion
+        function confirmLogout() {
+            closeModal('logoutModal');
+            showNotification('Déconnexion en cours...', 'info');
+            
+            // Simuler la déconnexion
+            setTimeout(() => {
+                window.location.href = 'EC001-connexion.html';
+            }, 2000);
+        }
+
+        // Retour
+        function goBack() {
+            window.history.back();
+        }
+
+        // Fonction pour afficher les notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.zIndex = '2000';
+            notification.style.maxWidth = '90%';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Fermer les modals en cliquant à l'extérieur
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation d'entrée pour les sections
+            const sections = document.querySelectorAll('.settings-section, .profile-section');
+            sections.forEach((section, index) => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    section.style.transition = 'all 0.4s ease';
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,120 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container">
+  <div class="form-header">
+    <mat-icon class="header-icon">local_shipping</mat-icon>
+    <h1>Livraison Tontine</h1>
+    <p class="subtitle">Créer une livraison pour un commercial</p>
+  </div>
+
+  <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()">
+    <!-- Client Selection -->
+    <div class="form-section">
+      <h3 class="section-title">
+        <mat-icon>person</mat-icon>
+        Sélection du client promoteur
+      </h3>
+
+      <div class="form-group">
+        <label for="clientId">Commercial<span class="text-danger">*</span></label>
+        <ng-select
+          id="clientId"
+          formControlName="clientId"
+          [items]="promoterClients"
+          bindLabel="firstname"
+          bindValue="id"
+          [searchFn]="searchClient"
+          placeholder="Rechercher un client promoteur"
+          notFoundText="Aucun client promoteur trouvé">
+
+          <ng-template ng-label-tmp let-item="item">
+            <div class="client-label">
+              <mat-icon class="client-icon">account_circle</mat-icon>
+              {{ item.firstname }} {{ item.lastname }}
+            </div>
+          </ng-template>
+
+          <ng-template ng-option-tmp let-item="item">
+            <div class="client-option">
+              <div class="client-name">{{ item.firstname }} {{ item.lastname }}</div>
+              <small class="client-type">
+                <mat-icon class="small-icon">verified_user</mat-icon>
+                Promoteur
+              </small>
+            </div>
+          </ng-template>
+        </ng-select>
+
+        <mat-error *ngIf="deliveryForm.get('clientId')?.invalid && deliveryForm.get('clientId')?.touched">
+          Le commercial est requis.
+        </mat-error>
+      </div>
+    </div>
+
+    <!-- Articles Selection -->
+    <div class="form-section">
+      <h3 class="section-title">
+        <mat-icon>shopping_cart</mat-icon>
+        Sélection des articles
+      </h3>
+
+      <app-article-selector
+        formControlName="articles"
+        [articles]="articles"
+        [priceType]="'tontine'"
+        [validateStock]="true"
+        [showStock]="true"
+        [showPrices]="true"
+        (totalAmountChange)="onTotalAmountChange($event)">
+      </app-article-selector>
+
+      <mat-error *ngIf="deliveryForm.get('articles')?.invalid && deliveryForm.get('articles')?.touched">
+        Au moins un article doit être sélectionné.
+      </mat-error>
+    </div>
+
+    <!-- Payment Information -->
+<!--    <div class="form-section">-->
+<!--      <h3 class="section-title">-->
+<!--        <mat-icon>payment</mat-icon>-->
+<!--        Informations de paiement-->
+<!--      </h3>-->
+
+<!--      <div class="form-group">-->
+<!--        <label for="advance">Avance (Optionnel)</label>-->
+<!--        <div class="input-with-icon">-->
+<!--          <mat-icon class="input-icon">attach_money</mat-icon>-->
+<!--          <input-->
+<!--            id="advance"-->
+<!--            type="number"-->
+<!--            formControlName="advance"-->
+<!--            class="form-control"-->
+<!--            placeholder="0">-->
+<!--        </div>-->
+<!--        <mat-error *ngIf="deliveryForm.get('advance')?.invalid && deliveryForm.get('advance')?.touched">-->
+<!--          L'avance doit être un nombre positif.-->
+<!--        </mat-error>-->
+<!--      </div>-->
+<!--    </div>-->
+
+    <!-- Action Buttons -->
+    <div class="actions">
+      <button
+        type="button"
+        class="btn btn-cancel"
+        (click)="onCancel()"
+        [disabled]="isLoading">
+        <mat-icon>cancel</mat-icon>
+        <span>Annuler</span>
+      </button>
+
+      <button
+        type="submit"
+        class="btn btn-submit"
+        [disabled]="deliveryForm.invalid || isLoading">
+        <mat-icon>check_circle</mat-icon>
+        <span>{{ isLoading ? 'Création en cours...' : 'Créer la livraison' }}</span>
+      </button>
+    </div>
+  </form>
+</div>

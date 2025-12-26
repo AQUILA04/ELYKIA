@@ -1,0 +1,183 @@
+// NOTE: Le bloc :host a été entièrement supprimé.
+// Le layout est maintenant géré nativement par ion-content.
+
+// Quick Actions
+.quick-actions {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.quick-actions .action-card {
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.quick-actions .action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+.quick-actions .action-card .action-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 8px;
+}
+.quick-actions .action-card .action-content .action-icon {
+  font-size: 28px;
+}
+.quick-actions .action-card .action-content .action-icon.primary {
+  color: #1976d2;
+}
+.quick-actions .action-card .action-content .action-icon.success {
+  color: #388e3c;
+}
+.quick-actions .action-card .action-content .action-text {
+  flex: 1;
+}
+.quick-actions .action-card .action-content .action-text h3 {
+  margin: 0 0 4px 0;
+  color: #212121;
+  font-size: 14px;
+  font-weight: 600;
+}
+.quick-actions .action-card .action-content .action-text p {
+  margin: 0;
+  color: #757575;
+  font-size: 12px;
+  line-height: 1.3;
+}
+@media (max-width: 480px) {
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+  .quick-actions .action-card .action-content {
+    flex-direction: row;
+    text-align: left;
+  }
+  .quick-actions .action-card .action-content .action-icon {
+    font-size: 32px;
+  }
+  .quick-actions .action-card .action-content .action-text h3 {
+    font-size: 16px;
+  }
+  .quick-actions .action-card .action-content .action-text p {
+    font-size: 14px;
+  }
+}
+
+// Search Section
+.search-section {
+  padding: 0 16px 16px;
+}
+.search-section ion-searchbar {
+  --background: white;
+  --border-radius: 12px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+}
+
+// Stats Section
+.stats-section {
+  display: flex;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+.stats-section ion-card {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.stats-section ion-card .stat-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 4px;
+}
+.stats-section ion-card .stat-label {
+  font-size: 12px;
+  color: #757575;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+// Loading & Error States
+.loading-container, .error-container {
+  padding: 16px;
+}
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: #757575;
+}
+.loading-container ion-spinner {
+  margin-bottom: 16px;
+  --color: #1976d2;
+}
+.error-container ion-card { margin: 0; border-radius: 12px; }
+.error-container .error-content { text-align: center; }
+
+// Distributions List
+.distributions-list {
+  padding: 0 16px 16px;
+}
+.distributions-list .list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.distributions-list .list-header .list-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #212121;
+}
+.distributions-list .list-header .list-count {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
+// Enlève le padding par défaut de la liste pour qu'elle soit bien alignée
+ion-list {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+
+// Empty State
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+.empty-state .empty-icon {
+  font-size: 64px;
+  color: #bdbdbd;
+  margin-bottom: 24px;
+}
+.empty-state h3 {
+  color: #212121;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+.empty-state p {
+  color: #757575;
+  font-size: 14px;
+  margin: 0 0 24px 0;
+  line-height: 1.4;
+}

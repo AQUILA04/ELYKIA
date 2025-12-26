@@ -1,0 +1,45 @@
+<div class="pdf-list-container">
+  <div class="header-fixed">
+    <div class="d-flex justify-content-center">
+      <h1>Liste des fichiers PDF</h1>
+    </div>
+  </div>
+  <div class="header">
+    <div class="actions">
+      <button *ngIf="selectedFiles.length > 0" class="btn btn-primary" (click)="downloadSelected()">
+        Télécharger les fichiers sélectionnés
+      </button>
+      <button *ngIf="selectAll" class="btn btn-primary" (click)="downloadAll()">
+        Télécharger tout
+      </button>
+    </div>
+  </div>
+
+  <table class="pdf-table">
+    <thead>
+      <tr>
+        <th>
+          <input *ngIf="pdfFiles.length > 0" type="checkbox" [(ngModel)]="selectAll" (change)="toggleSelectAll()">
+        </th>
+        <th>Nom du fichier</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let file of pdfFiles">
+        <td>
+          <input type="checkbox" 
+                 [checked]="selectedFiles.includes(file)" 
+                 (change)="toggleFileSelection(file)">
+        </td>
+        <td>{{ file }}</td>
+        <td>
+          <button mat-icon-button (click)="downloadFile(file)">
+            <mat-icon>download</mat-icon>
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="pdfFiles.length < 1 "> <td colspan="3">Aucun fichiers pdf Générer aujourd'hui</td></tr>
+    </tbody>
+  </table>
+</div>

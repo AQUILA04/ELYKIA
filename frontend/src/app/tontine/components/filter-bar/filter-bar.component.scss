@@ -1,0 +1,38 @@
+.filter-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: center; // Align items vertically in the center
+}
+
+.search-field {
+  flex: 1;
+  min-width: 250px;
+}
+
+.status-field {
+  min-width: 200px;
+}
+
+.clear-filters-button {
+  height: 40px; // A common height for form elements
+  line-height: 40px; // Center text vertically
+  padding: 0 16px; // Adjust padding to match other buttons
+  background-color: #e0e0e0; // Light gray color for basic button
+  color: rgba(0, 0, 0, 0.87); // Standard text color for basic button
+  .mat-icon {
+    margin-right: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+  }
+
+  .search-field,
+  .status-field {
+    width: 100%;
+  }
+}

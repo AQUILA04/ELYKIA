@@ -1,0 +1,134 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Distributions</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="distribution-modal">
+  <!-- Empty state when no distribution data -->
+  <div class="empty-state" *ngIf="!distribution || !hasValidData()">
+    <ion-icon name="document-outline" class="empty-icon"></ion-icon>
+    <h3 class="empty-title">Oups, désolé !</h3>
+    <p class="empty-message">Les données ne sont pas chargées</p>
+    <ion-button fill="outline" (click)="dismiss()">
+      Fermer
+    </ion-button>
+  </div>
+
+  <div class="modal-content" *ngIf="distribution && hasValidData()">
+    <!-- Header with reference -->
+    <div class="distribution-header">
+      <h2 class="distribution-title">Distribution {{ distribution.reference }}</h2>
+    </div>
+
+    <!-- Distribution details -->
+    <div class="distribution-details">
+      <!-- Date de distribution -->
+      <div class="detail-item">
+        <label class="detail-label">Date de distribution</label>
+        <div class="detail-value">{{ getFormattedDate(distribution.startDate) }}</div>
+      </div>
+
+      <!-- Client -->
+      <div class="detail-item">
+        <label class="detail-label">Client</label>
+        <div class="detail-value">{{ getClientFullName() }}</div>
+      </div>
+
+      <!-- Statut -->
+      <div class="detail-item">
+        <label class="detail-label">Statut</label>
+        <ion-chip [color]="getStatusColor()" class="status-chip">
+          {{ distribution.status }}
+        </ion-chip>
+      </div>
+
+      <!-- Progression du paiement -->
+      <div class="detail-item">
+        <label class="detail-label">Progression du paiement</label>
+        <div class="progress-container">
+          <div class="progress-value">{{ getPaymentProgress() }}%</div>
+          <ion-progress-bar
+            [value]="getPaymentProgress() / 100"
+            color="primary"
+            class="payment-progress">
+          </ion-progress-bar>
+        </div>
+      </div>
+
+      <!-- Mise journalière -->
+      <div class="detail-item">
+        <label class="detail-label">Mise journalière</label>
+        <div class="detail-value amount">{{ getFormattedAmount(distribution.dailyPayment || 0) }}</div>
+      </div>
+
+      <!-- Avance -->
+      <div class="detail-item">
+        <label class="detail-label">Avance</label>
+        <div class="detail-value amount">{{ getFormattedAmount(distribution.advance || 0) }}</div>
+      </div>
+
+      <!-- Montant total payé -->
+      <div class="detail-item">
+        <label class="detail-label">Montant total payé</label>
+        <div class="detail-value amount">{{ getFormattedAmount(distribution.paidAmount || 0) }}</div>
+      </div>
+
+      <!-- Montant restant -->
+      <div class="detail-item">
+        <label class="detail-label">Montant restant</label>
+        <div class="detail-value amount">{{ getFormattedAmount(distribution.remainingAmount || 0) }}</div>
+      </div>
+
+      <!-- Articles distribués -->
+      <div class="detail-item">
+        <label class="detail-label">Articles distribués</label>
+        <div class="articles-list" *ngIf="distribution.items && distribution.items.length > 0">
+          <div class="article-item" *ngFor="let item of distribution.items">
+            <div class="article-info">
+              <span class="article-name">{{ item.article.name || 'Article #' + item.articleId }}</span>
+              <span class="article-quantity">(x{{ item.quantity }})</span>
+            </div>
+            <div class="article-price">{{ item.totalPrice }} FCFA</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Montant total -->
+      <div class="total-section">
+        <div class="total-label">Montant total</div>
+        <div class="total-amount">{{ getFormattedAmount(distribution.totalAmount) }}</div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <ion-button 
+          expand="block" 
+          fill="outline" 
+          color="primary"
+          (click)="editDistribution()"
+          [disabled]="!canModifyOrDelete()"
+          class="action-button">
+          <ion-icon name="create-outline" slot="start"></ion-icon>
+          Modifier
+        </ion-button>
+        
+        <ion-button 
+          expand="block" 
+          fill="outline" 
+          color="danger"
+          (click)="deleteDistribution()"
+          [disabled]="!canModifyOrDelete()"
+          class="action-button">
+          <ion-icon name="trash-outline" slot="start"></ion-icon>
+          Supprimer
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-content>

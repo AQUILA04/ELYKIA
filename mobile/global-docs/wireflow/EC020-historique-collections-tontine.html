@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC020 - Historique Collections Tontine | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .stats-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 24px 16px;
+            color: white;
+        }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .member-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: white;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .member-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .filters-section {
+            padding: 16px;
+            background: white;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .filter-select {
+            flex: 1;
+            height: 44px;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            padding: 0 12px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #E0E0E0;
+            background: white;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chip.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .timeline-container {
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .timeline-group {
+            margin-bottom: 24px;
+        }
+
+        .timeline-date-header {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            padding-left: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 40px;
+            padding-bottom: 20px;
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 15px;
+            top: 32px;
+            width: 2px;
+            height: calc(100% - 32px);
+            background: #E0E0E0;
+        }
+
+        .collection-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .collection-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .collection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .collection-time {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .collection-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
+        .collection-details {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .collection-total {
+            background: var(--background-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .collection-total-label {
+            color: var(--text-secondary);
+        }
+
+        .collection-total-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #E0E0E0;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            padding-top: 12px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .summary-label {
+            color: var(--text-secondary);
+        }
+
+        .summary-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 16px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .export-btn {
+            position: fixed;
+            bottom: 72px;
+            right: 16px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .export-btn:hover {
+            background: var(--secondary-variant);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="header">
+            <button class="header-icon" onclick="goBack()">←</button>
+            <div class="header-title">Historique Collections</div>
+            <button class="header-icon" onclick="showMenu()">⋮</button>
+        </div>
+
+        <!-- Stats Header -->
+        <div class="stats-header">
+            <div class="member-info">
+                <div class="member-avatar" id="memberAvatar">M</div>
+                <div>
+                    <div class="member-name" id="memberName">Marie Kouassi</div>
+                    <div style="font-size: 13px; opacity: 0.9;">Session 2025</div>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">💰 Total</div>
+                    <div class="stat-value" id="totalAmount">0 F</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">📊 Collections</div>
+                    <div class="stat-value" id="collectionCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">📈 Moyenne</div>
+                    <div class="stat-value" id="avgAmount">0 F</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="filter-row">
+                <select class="filter-select" id="periodFilter" onchange="applyFilters()">
+                    <option value="all">Toute la période</option>
+                    <option value="month">Ce mois</option>
+                    <option value="quarter">Ce trimestre</option>
+                    <option value="year">Cette année</option>
+                </select>
+                <select class="filter-select" id="sortFilter" onchange="applyFilters()">
+                    <option value="desc">Plus récent</option>
+                    <option value="asc">Plus ancien</option>
+                </select>
+            </div>
+            <div class="filter-chips">
+                <div class="chip active" onclick="filterByMonth('all')">Tous</div>
+                <div class="chip" onclick="filterByMonth('09')">Septembre</div>
+                <div class="chip" onclick="filterByMonth('08')">Août</div>
+                <div class="chip" onclick="filterByMonth('07')">Juillet</div>
+                <div class="chip" onclick="filterByMonth('06')">Juin</div>
+            </div>
+        </div>
+
+        <!-- Summary Card -->
+        <div style="padding: 0 16px;">
+            <div class="summary-card">
+                <div class="summary-title">
+                    <span>📊</span>
+                    <span>Résumé de la Période</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Nombre de collections</span>
+                    <span class="summary-value" id="periodCount">0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Montant minimum</span>
+                    <span class="summary-value" id="minAmount">0 F</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Montant maximum</span>
+                    <span class="summary-value" id="maxAmount">0 F</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Montant moyen</span>
+                    <span class="summary-value" id="periodAvg">0 F</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total période</span>
+                    <span class="summary-value" style="color: var(--success-color);" id="periodTotal">0 F</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Container -->
+        <div class="timeline-container" id="timelineContainer">
+            <!-- Collections will be loaded here -->
+        </div>
+
+        <!-- Export Button -->
+        <button class="export-btn" onclick="exportHistory()" title="Exporter l'historique">
+            📄
+        </button>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-navigation">
+            <a href="EC003-tableau-de-bord.html" class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Tableau de Bord</div>
+            </a>
+            <a href="EC004-liste-clients.html" class="nav-item">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">Clients</div>
+            </a>
+            <a href="EC014-tableau-de-bord-tontine.html" class="nav-item active">
+                <div class="nav-icon">🎯</div>
+                <div class="nav-label">Tontine</div>
+            </a>
+            <a href="EC011-parametres.html" class="nav-item">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">Plus</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        const memberData = {
+            id: 1,
+            name: "Marie Kouassi",
+            collections: [
+                { date: "2025-09-27", time: "14:30", amount: 4000, commercial: "Jean Dupont" },
+                { date: "2025-09-25", time: "10:15", amount: 5000, commercial: "Jean Dupont" },
+                { date: "2025-09-20", time: "16:45", amount: 3500, commercial: "Jean Dupont" },
+                { date: "2025-09-18", time: "11:20", amount: 4500, commercial: "Jean Dupont" },
+                { date: "2025-09-15", time: "09:30", amount: 5000, commercial: "Jean Dupont" },
+                { date: "2025-09-11", time: "14:00", amount: 4000, commercial: "Jean Dupont" },
+                { date: "2025-09-08", time: "10:45", amount: 3000, commercial: "Jean Dupont" },
+                { date: "2025-09-04", time: "15:20", amount: 5500, commercial: "Jean Dupont" },
+                { date: "2025-08-28", time: "13:10", amount: 4000, commercial: "Jean Dupont" },
+                { date: "2025-08-25", time: "11:30", amount: 4500, commercial: "Jean Dupont" },
+                { date: "2025-08-21", time: "16:00", amount: 3500, commercial: "Jean Dupont" },
+                { date: "2025-08-18", time: "10:20", amount: 5000, commercial: "Jean Dupont" }
+            ]
+        };
+
+        let filteredCollections = [...memberData.collections];
+        let currentMonthFilter = 'all';
+
+        function initializePage() {
+            document.getElementById('memberAvatar').textContent = memberData.name.charAt(0);
+            document.getElementById('memberName').textContent = memberData.name;
+            
+            updateStats();
+            renderTimeline();
+        }
+
+        function updateStats() {
+            const collections = filteredCollections;
+            const total = collections.reduce((sum, c) => sum + c.amount, 0);
+            const count = collections.length;
+            const avg = count > 0 ? Math.round(total / count) : 0;
+            const min = count > 0 ? Math.min(...collections.map(c => c.amount)) : 0;
+            const max = count > 0 ? Math.max(...collections.map(c => c.amount)) : 0;
+
+            document.getElementById('totalAmount').textContent = total.toLocaleString('fr-FR') + ' F';
+            document.getElementById('collectionCount').textContent = count;
+            document.getElementById('avgAmount').textContent = avg.toLocaleString('fr-FR') + ' F';
+
+            document.getElementById('periodCount').textContent = count;
+            document.getElementById('minAmount').textContent = min.toLocaleString('fr-FR') + ' F';
+            document.getElementById('maxAmount').textContent = max.toLocaleString('fr-FR') + ' F';
+            document.getElementById('periodAvg').textContent = avg.toLocaleString('fr-FR') + ' F';
+            document.getElementById('periodTotal').textContent = total.toLocaleString('fr-FR') + ' F';
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timelineContainer');
+            
+            if (filteredCollections.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <h3>Aucune collection</h3>
+                        <p>Aucune collection ne correspond aux filtres sélectionnés.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group collections by date
+            const groupedCollections = {};
+            filteredCollections.forEach(collection => {
+                if (!groupedCollections[collection.date]) {
+                    groupedCollections[collection.date] = [];
+                }
+                groupedCollections[collection.date].push(collection);
+            });
+
+            // Calculate running total
+            let runningTotal = 0;
+            const sortedDates = Object.keys(groupedCollections).sort((a, b) => 
+                new Date(b) - new Date(a)
+            );
+
+            // Calculate total from oldest to newest for running total
+            const allCollectionsSorted = [...filteredCollections].sort((a, b) => 
+                new Date(a.date) - new Date(b.date)
+            );
+            const runningTotals = {};
+            allCollectionsSorted.forEach(collection => {
+                runningTotal += collection.amount;
+                if (!runningTotals[collection.date]) {
+                    runningTotals[collection.date] = runningTotal;
+                }
+            });
+
+            container.innerHTML = sortedDates.map(date => {
+                const collections = groupedCollections[date];
+                const dateObj = new Date(date);
+                const dateStr = dateObj.toLocaleDateString('fr-FR', { 
+                    weekday: 'long',
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                });
+
+                const collectionsHtml = collections.map((collection, index) => {
+                    const isLast = index === collections.length - 1;
+                    return `
+                        <div class="timeline-item">
+                            <div class="timeline-marker">💰</div>
+                            ${!isLast ? '<div class="timeline-line"></div>' : ''}
+                            <div class="collection-card" onclick="viewCollectionDetails(${JSON.stringify(collection).replace(/"/g, '&quot;')})">
+                                <div class="collection-header">
+                                    <span class="collection-time">🕐 ${collection.time}</span>
+                                    <span class="collection-amount">+${collection.amount.toLocaleString('fr-FR')} F</span>
+                                </div>
+                                <div class="collection-details">
+                                    <span>👤 ${collection.commercial}</span>
+                                </div>
+                                <div class="collection-total">
+                                    <span class="collection-total-label">Total après collecte: </span>
+                                    <span class="collection-total-value">${runningTotals[date].toLocaleString('fr-FR')} FCFA</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="timeline-group">
+                        <div class="timeline-date-header">
+                            <span>📅</span>
+                            <span>${dateStr}</span>
+                        </div>
+                        ${collectionsHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function applyFilters() {
+            const period = document.getElementById('periodFilter').value;
+            const sort = document.getElementById('sortFilter').value;
+
+            let filtered = [...memberData.collections];
+
+            // Apply period filter
+            if (period !== 'all') {
+                const now = new Date();
+                filtered = filtered.filter(c => {
+                    const collectionDate = new Date(c.date);
+                    switch(period) {
+                        case 'month':
+                            return collectionDate.getMonth() === now.getMonth() &&
+                                   collectionDate.getFullYear() === now.getFullYear();
+                        case 'quarter':
+                            const quarterStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+                            return collectionDate >= quarterStart;
+                        case 'year':
+                            return collectionDate.getFullYear() === now.getFullYear();
+                        default:
+                            return true;
+                    }
+                });
+            }
+
+            // Apply month filter if set
+            if (currentMonthFilter !== 'all') {
+                filtered = filtered.filter(c => {
+                    const month = new Date(c.date).getMonth() + 1;
+                    return month.toString().padStart(2, '0') === currentMonthFilter;
+                });
+            }
+
+            // Apply sort
+            filtered.sort((a, b) => {
+                const dateA = new Date(a.date + ' ' + a.time);
+                const dateB = new Date(b.date + ' ' + b.time);
+                return sort === 'desc' ? dateB - dateA : dateA - dateB;
+            });
+
+            filteredCollections = filtered;
+            updateStats();
+            renderTimeline();
+        }
+
+        function filterByMonth(month) {
+            currentMonthFilter = month;
+            
+            // Update chip active state
+            document.querySelectorAll('.chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            applyFilters();
+        }
+
+        function viewCollectionDetails(collection) {
+            alert(`Détails de la Collection:\n\n` +
+                  `Date: ${new Date(collection.date).toLocaleDateString('fr-FR')}\n` +
+                  `Heure: ${collection.time}\n` +
+                  `Montant: ${collection.amount.toLocaleString('fr-FR')} FCFA\n` +
+                  `Commercial: ${collection.commercial}`);
+        }
+
+        function exportHistory() {
+            const total = filteredCollections.reduce((sum, c) => sum + c.amount, 0);
+            const count = filteredCollections.length;
+            
+            alert(`📄 Export de l'historique\n\n` +
+                  `Membre: ${memberData.name}\n` +
+                  `Période: ${document.getElementById('periodFilter').options[document.getElementById('periodFilter').selectedIndex].text}\n` +
+                  `Nombre de collections: ${count}\n` +
+                  `Total: ${total.toLocaleString('fr-FR')} FCFA\n\n` +
+                  `Format: PDF / Excel / CSV`);
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function showMenu() {
+            alert('Options:\n- Imprimer l\'historique\n- Envoyer par email\n- Filtres avancés');
+        }
+
+        // Initialize page on load
+        window.onload = initializePage;
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/backend-lib/common-entities-dependencies" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/backend-lib/common-security-service" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/backend-lib/optimize-elykia-client" vcs="Git" />
+  </component>
+</project>

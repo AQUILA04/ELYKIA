@@ -1,0 +1,66 @@
+.license-activation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #fff;
+
+  .card {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+
+      label {
+        display: block;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        color: #666;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1rem;
+      }
+    }
+
+    p {
+      font-size: 0.875rem;
+      color: #888;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+
+      &.btn-primary {
+        background-color: #003366;
+        color: #fff;
+        border: none;
+      }
+
+      &:hover {
+        background-color: #0056b3;
+      }
+    }
+  }
+}

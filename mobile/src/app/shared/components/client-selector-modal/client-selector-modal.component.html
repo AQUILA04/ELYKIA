@@ -1,0 +1,90 @@
+<div class="modal-backdrop">
+  <div class="modal-container">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">Sélectionner un Client</h2>
+      <button class="close-button" (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+      <ion-searchbar
+        [ngModel]="vm.searchTerm"
+        (ionInput)="onSearchChange($event)"
+        placeholder="Rechercher un client..."
+        debounce="300"
+        show-clear-button="focus">
+      </ion-searchbar>
+    </div>
+
+    <!-- Content -->
+    <div class="modal-content">
+      <!-- Loading State -->
+      <div *ngIf="vm.loading" class="loading-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Chargement des clients...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="vm.error && !vm.loading" class="error-container">
+        <ion-icon name="alert-circle" color="danger"></ion-icon>
+        <h3>Erreur de chargement</h3>
+        <p>{{ vm.error }}</p>
+        <ion-button fill="outline" (click)="retry()">
+          <ion-icon name="refresh" slot="start"></ion-icon>
+          Réessayer
+        </ion-button>
+      </div>
+
+      <!-- Clients List -->
+      <div *ngIf="!vm.loading && !vm.error" class="clients-container">
+        <div *ngIf="vm.clients.length > 0" class="clients-list">
+          <cdk-virtual-scroll-viewport itemSize="80" class="ion-content-scroll-host">
+            <div
+              *cdkVirtualFor="let client of vm.clients; trackBy: trackByClientId"
+              class="client-item"
+              (click)="selectClient(client)">
+
+              <div class="client-avatar" [style.background-color]="getAvatarColor(client)">
+                {{ getClientInitials(client) }}
+              </div>
+
+              <div class="client-info">
+                <div class="client-name">{{ getClientDisplayName(client) }}</div>
+                <div class="client-details">
+                  <div class="client-address">
+                    <ion-icon name="location-outline"></ion-icon>
+                    {{ getClientAddress(client) }}
+                  </div>
+                  <div class="client-phone">
+                    <ion-icon name="call-outline"></ion-icon>
+                    {{ getClientPhone(client) }}
+                  </div>
+                </div>
+                <div class="client-meta">{{ formatClientInfo(client) }}</div>
+              </div>
+
+              <div class="client-action">
+                <ion-icon name="chevron-forward"></ion-icon>
+              </div>
+            </div>
+          </cdk-virtual-scroll-viewport>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="vm.clients.length === 0" class="empty-state">
+          <ion-icon name="people-outline" class="empty-icon"></ion-icon>
+          <h3>{{ getEmptyStateMessage(vm.searchTerm) }}</h3>
+          <p>{{ getEmptyStateSubtitle(vm.searchTerm) }}</p>
+        </div>
+
+        <!-- Results Count -->
+        <div *ngIf="vm.clients.length > 0" class="results-count">
+          {{ vm.clients.length }} client{{ vm.clients.length > 1 ? 's' : '' }} trouvé{{ vm.clients.length > 1 ? 's' : '' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

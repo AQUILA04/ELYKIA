@@ -1,0 +1,138 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container">
+  <div class="header-fixed">
+    <div class="d-flex justify-content-center mb-3">
+      <h1>Liste des Ventes</h1>
+    </div>
+  </div>
+
+  <!-- Conteneur recherche + boutons -->
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <!-- Bouton de recherche avancée -->
+    <button
+      class="btn search-toggle-btn btn-sm"
+      (click)="toggleAdvancedSearch()"
+      [class.active]="showAdvancedSearch">
+      <mat-icon>{{ showAdvancedSearch ? 'search_off' : 'search' }}</mat-icon>
+      <span>{{ showAdvancedSearch ? 'Fermer la recherche' : 'Recherche avancée' }}</span>
+    </button>
+
+    <div class="button-group d-flex gap-2">
+      <button class="btn refresh-button btn-sm" (click)="refresh()">
+        <mat-icon>refresh</mat-icon>
+        <span>Rafraîchir</span>
+      </button>
+
+      <button class="btn add btn-sm" (click)="addCredit()">
+        <mat-icon>add</mat-icon>
+        <span>Ajouter</span>
+      </button>
+
+      <button class="btn tontine btn-sm" (click)="addTontineDelivery()">
+        <mat-icon>local_shipping</mat-icon>
+        <span>+ Livraison tontine</span>
+      </button>
+
+      <button class="btn add btn-sm" (click)="openMergeModal()">
+        <mat-icon>merge_type</mat-icon>
+        <span>Fusion</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Composant de recherche avancée -->
+  <app-advanced-search
+    [isVisible]="showAdvancedSearch"
+    [commercials]="collectors"
+    (search)="onAdvancedSearch($event)"
+    (reset)="onSearchReset()"
+    (close)="onCloseAdvancedSearch()">
+  </app-advanced-search>
+
+  <div class="table-container">
+    <table class="article-table">
+      <thead>
+      <tr>
+        <th>#</th>
+        <th>Nom du Client</th>
+        <th>Commercial</th>
+        <th>Date de début</th>
+        <th>Montant</th>
+        <th>Mise journalière</th>
+        <th>Statut</th>
+        <th>Nombre de jours restants</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let credit of filteredCredits; let i = index">
+        <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+        <td>{{ credit.client?.firstname }} {{ credit.client?.lastname }}</td>
+        <td>{{ credit.collector }}</td>
+        <td>{{ credit.beginDate | date: 'dd/MM/yyyy' }}</td>
+        <td>{{ credit.totalAmount | currency }}</td>
+        <td>{{ credit.dailyStake }}</td>
+        <td>
+          <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
+            {{ (credit.status | statusBadge).label }}
+          </span>
+        </td>
+        <td>
+            <span class="badge" [ngClass]="getBadgeClass(credit.remainingDaysCount)">
+              {{ credit.remainingDaysCount ?? 0 }}
+            </span>
+        </td>
+        <td class="action-buttons">
+            <span *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
+              <button *ngIf="credit.status === 'VALIDATED'" mat-icon-button matTooltip="Démarrer" (click)="startCredit(credit.id)">
+                <mat-icon style="color: #003366;">play_arrow</mat-icon>
+              </button>
+            </span>
+          <span *ngxPermissionsOnly="['ROLE_VALIDATE_CREDIT']">
+              <button *ngIf="credit.status === 'CREATED'" mat-icon-button matTooltip="Valider" (click)="validateCredit(credit.id)">
+                <mat-icon style="color: green;">check</mat-icon>
+              </button>
+            </span>
+          <button mat-icon-button matTooltip="Détails" (click)="viewDetails(credit.id)">
+            <mat-icon>visibility</mat-icon>
+          </button>
+
+          <button *ngIf="['CREATED', 'VALIDATED', 'INPROGRESS'].includes(credit.status)" mat-icon-button matTooltip="Changer la mise" (click)="changeDailyStake(credit.id)">
+            <mat-icon>monetization_on</mat-icon>
+          </button>
+
+          <span *ngIf="credit.updatable === true && credit.status === 'INPROGRESS' && credit.type === 'CREDIT'">
+              <button *ngIf="credit.clientType === 'PROMOTER'" mat-icon-button matTooltip="Distribuer" (click)="distributeCredit(credit.id)">
+                <mat-icon>share</mat-icon>
+              </button>
+            </span>
+          <span *ngIf="['CREATED', 'VALIDATED'].includes(credit.status)">
+              <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" mat-icon-button matTooltip="Modifier" (click)="editCredit(credit.id)">
+                <mat-icon style="color: #003366;">edit</mat-icon>
+              </button>
+              <button *ngxPermissionsOnly="['ROLE_DEL_CREDIT']" mat-icon-button matTooltip="Supprimer" (click)="deleteCredit(credit.id)">
+                <mat-icon style="color: #c90a17;">delete</mat-icon>
+              </button>
+          </span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <mat-paginator
+    [length]="totalElement"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[5, 10, 25, 100]"
+    (page)="onPageChange($event)">
+  </mat-paginator>
+</div>
+
+<!-- Credit Merge Modal -->
+<app-credit-merge-modal
+  *ngIf="showMergeModal"
+  [collectors]="collectors"
+  (onMergeSuccess)="onMergeSuccess($event)"
+  (onClose)="closeMergeModal()">
+</app-credit-merge-modal>

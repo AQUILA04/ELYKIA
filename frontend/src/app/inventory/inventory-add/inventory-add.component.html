@@ -1,0 +1,39 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container">
+  <div class="form-header">
+    <mat-icon class="header-icon">inventory</mat-icon>
+    <h1>Entrée de stock</h1>
+    <p class="subtitle">Ajouter des articles à l'inventaire</p>
+  </div>
+
+  <form [formGroup]="inventoryForm" (ngSubmit)="onSubmit()">
+
+    <!-- Utilisation du composant article-selector en mode inventory -->
+    <div class="form-group">
+      <label>Articles à approvisionner<span class="text-danger">*</span></label>
+      <app-article-selector
+        formControlName="articles"
+        [articles]="articles"
+        [priceType]="'inventory'"
+        [showStock]="false"
+        [validateStock]="false"
+      >
+      </app-article-selector>
+      <mat-error *ngIf="inventoryForm.get('articles')?.invalid && inventoryForm.get('articles')?.touched">
+        Au moins un article doit être sélectionné.
+      </mat-error>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-cancel" (click)="onCancel()">
+        <mat-icon>cancel</mat-icon>
+        <span>Annuler</span>
+      </button>
+      <button type="submit" class="btn btn-submit" [disabled]="inventoryForm.invalid">
+        <mat-icon>check_circle</mat-icon>
+        <span>Valider l'entrée</span>
+      </button>
+    </div>
+  </form>
+</div>

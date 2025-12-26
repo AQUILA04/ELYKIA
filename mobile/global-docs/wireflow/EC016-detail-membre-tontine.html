@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC016 - Détail Membre Tontine | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 24px 16px;
+            color: white;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: white;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            margin: 0 auto 16px auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .profile-info {
+            font-size: 14px;
+            opacity: 0.9;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .amount-card {
+            background: white;
+            margin: -30px 16px 16px 16px;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .amount-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .amount-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--success-color);
+            margin-bottom: 8px;
+        }
+
+        .amount-details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #E0E0E0;
+        }
+
+        .amount-detail-item {
+            text-align: center;
+        }
+
+        .amount-detail-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .amount-detail-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+        }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-card.primary {
+            border-color: var(--primary-color);
+        }
+
+        .action-card.success {
+            border-color: var(--success-color);
+        }
+
+        .action-card.warning {
+            border-color: var(--warning-color);
+        }
+
+        .action-card.info {
+            border-color: var(--info-color);
+        }
+
+        .action-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .action-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .section-header {
+            padding: 16px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .collections-list {
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .collection-item {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collection-date {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .collection-date-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .collection-date-day {
+            font-size: 20px;
+        }
+
+        .collection-info {
+            flex: 1;
+        }
+
+        .collection-time {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .collection-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 16px;
+            background: var(--background-color);
+        }
+
+        .info-item {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-item-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .info-item-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 16px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="header">
+            <button class="header-icon" onclick="goBack()">←</button>
+            <div class="header-title">Détail Membre</div>
+            <button class="header-icon" onclick="showMenu()">⋮</button>
+        </div>
+
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar" id="profileAvatar">M</div>
+            <div class="profile-name" id="profileName">Marie Kouassi</div>
+            <div class="profile-info">
+                <span id="profilePhone">📱 0701234567</span>
+                <span id="profileFrequency">📅 Hebdomadaire</span>
+            </div>
+        </div>
+
+        <!-- Amount Card -->
+        <div class="amount-card">
+            <div class="amount-label">💰 Total Épargné (Session 2025)</div>
+            <div class="amount-value" id="totalAmount">45,000 FCFA</div>
+            <div class="amount-details">
+                <div class="amount-detail-item">
+                    <div class="amount-detail-value" id="collectionCount">12</div>
+                    <div class="amount-detail-label">Cotisations</div>
+                </div>
+                <div class="amount-detail-item">
+                    <div class="amount-detail-value" id="avgAmount">3,750</div>
+                    <div class="amount-detail-label">Moyenne (FCFA)</div>
+                </div>
+                <div class="amount-detail-item">
+                    <div class="amount-detail-value" id="lastCollection">25 Sept</div>
+                    <div class="amount-detail-label">Dernière collecte</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <div class="action-card primary" onclick="recordCollection()">
+                <div class="action-icon">💵</div>
+                <div class="action-label">Nouvelle Collecte</div>
+            </div>
+            <div class="action-card success" onclick="viewHistory()">
+                <div class="action-icon">📊</div>
+                <div class="action-label">Historique</div>
+            </div>
+            <div class="action-card warning" onclick="manageDelivery()">
+                <div class="action-icon">📦</div>
+                <div class="action-label">Gérer Livraison</div>
+            </div>
+            <div class="action-card info" onclick="printReport()">
+                <div class="action-icon">🖨️</div>
+                <div class="action-label">Imprimer Rapport</div>
+            </div>
+        </div>
+
+        <!-- Member Info Grid -->
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-item-label">📅 Date d'inscription</div>
+                <div class="info-item-value" id="registrationDate">15 Jan 2025</div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label">🎯 Statut</div>
+                <div class="info-item-value" id="memberStatus">
+                    <span class="badge badge-success">ACTIF</span>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label">💰 Montant suggéré</div>
+                <div class="info-item-value" id="suggestedAmount">5,000 FCFA</div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label">📆 Prochaine collecte</div>
+                <div class="info-item-value" id="nextCollection">02 Oct 2025</div>
+            </div>
+        </div>
+
+        <!-- Recent Collections Section -->
+        <div class="section-header">
+            <div class="section-title">📋 Dernières Collectes</div>
+            <button class="btn btn-outline" style="padding: 8px 16px; height: auto; font-size: 14px;" 
+                    onclick="viewAllCollections()">
+                Voir tout
+            </button>
+        </div>
+
+        <!-- Collections List -->
+        <div class="collections-list" id="collectionsList">
+            <!-- Collections will be loaded here -->
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-navigation">
+            <a href="EC003-tableau-de-bord.html" class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Tableau de Bord</div>
+            </a>
+            <a href="EC004-liste-clients.html" class="nav-item">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">Clients</div>
+            </a>
+            <a href="EC014-tableau-de-bord-tontine.html" class="nav-item active">
+                <div class="nav-icon">🎯</div>
+                <div class="nav-label">Tontine</div>
+            </a>
+            <a href="EC011-parametres.html" class="nav-item">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">Plus</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Sample member data
+        const memberData = {
+            id: 1,
+            name: "Marie Kouassi",
+            phone: "0701234567",
+            frequency: "Hebdomadaire",
+            totalAmount: 45000,
+            suggestedAmount: 5000,
+            registrationDate: "2025-01-15",
+            status: "active",
+            collections: [
+                { date: "2025-09-25", amount: 4000, time: "14:30" },
+                { date: "2025-09-18", amount: 5000, time: "10:15" },
+                { date: "2025-09-11", amount: 3500, time: "16:45" },
+                { date: "2025-09-04", amount: 4500, time: "11:20" },
+                { date: "2025-08-28", amount: 5000, time: "09:30" }
+            ]
+        };
+
+        function initializePage() {
+            loadMemberData();
+            renderRecentCollections();
+        }
+
+        function loadMemberData() {
+            // Update profile
+            document.getElementById('profileAvatar').textContent = memberData.name.charAt(0);
+            document.getElementById('profileName').textContent = memberData.name;
+            document.getElementById('profilePhone').textContent = `📱 ${memberData.phone}`;
+            document.getElementById('profileFrequency').textContent = `📅 ${memberData.frequency}`;
+
+            // Update amount card
+            document.getElementById('totalAmount').textContent = 
+                memberData.totalAmount.toLocaleString('fr-FR') + ' FCFA';
+            document.getElementById('collectionCount').textContent = memberData.collections.length;
+            
+            const avgAmount = Math.round(memberData.totalAmount / memberData.collections.length);
+            document.getElementById('avgAmount').textContent = avgAmount.toLocaleString('fr-FR');
+
+            const lastCollectionDate = new Date(memberData.collections[0].date);
+            document.getElementById('lastCollection').textContent = 
+                lastCollectionDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+            // Update info grid
+            const regDate = new Date(memberData.registrationDate);
+            document.getElementById('registrationDate').textContent = 
+                regDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+            
+            document.getElementById('suggestedAmount').textContent = 
+                memberData.suggestedAmount.toLocaleString('fr-FR') + ' FCFA';
+
+            // Calculate next collection date based on frequency
+            const nextDate = calculateNextCollection(memberData.collections[0].date, memberData.frequency);
+            document.getElementById('nextCollection').textContent = 
+                nextDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function calculateNextCollection(lastDate, frequency) {
+            const date = new Date(lastDate);
+            switch(frequency.toLowerCase()) {
+                case 'quotidien':
+                    date.setDate(date.getDate() + 1);
+                    break;
+                case 'hebdomadaire':
+                    date.setDate(date.getDate() + 7);
+                    break;
+                case 'mensuel':
+                    date.setMonth(date.getMonth() + 1);
+                    break;
+            }
+            return date;
+        }
+
+        function renderRecentCollections() {
+            const container = document.getElementById('collectionsList');
+            const recentCollections = memberData.collections.slice(0, 5);
+
+            if (recentCollections.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💰</div>
+                        <h3>Aucune collecte</h3>
+                        <p>Aucune collecte n'a encore été enregistrée pour ce membre.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = recentCollections.map(collection => {
+                const date = new Date(collection.date);
+                const day = date.getDate();
+                const month = date.toLocaleDateString('fr-FR', { month: 'short' });
+                
+                return `
+                    <div class="collection-item">
+                        <div class="collection-date">
+                            <div class="collection-date-icon">
+                                <div class="collection-date-day">${day}</div>
+                                <div>${month}</div>
+                            </div>
+                            <div class="collection-info">
+                                <div style="font-weight: 500; color: var(--text-primary);">
+                                    Cotisation ${memberData.frequency.toLowerCase()}
+                                </div>
+                                <div class="collection-time">🕐 ${collection.time}</div>
+                            </div>
+                        </div>
+                        <div class="collection-amount">
+                            +${collection.amount.toLocaleString('fr-FR')} F
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function recordCollection() {
+            localStorage.setItem('selectedMemberId', memberData.id);
+            window.location.href = 'EC017-collecte-cotisation.html';
+        }
+
+        function viewHistory() {
+            localStorage.setItem('selectedMemberId', memberData.id);
+            window.location.href = 'EC020-historique-collections-tontine.html';
+        }
+
+        function manageDelivery() {
+            if (memberData.totalAmount < 50000) {
+                alert('⚠️ Le montant épargné est encore faible. La livraison se fait généralement en Décembre.');
+                return;
+            }
+            localStorage.setItem('selectedMemberId', memberData.id);
+            window.location.href = 'EC019-livraison-fin-annee.html';
+        }
+
+        function printReport() {
+            alert('🖨️ Génération du rapport en cours...\n\n' +
+                  `Membre: ${memberData.name}\n` +
+                  `Total épargné: ${memberData.totalAmount.toLocaleString('fr-FR')} FCFA\n` +
+                  `Nombre de cotisations: ${memberData.collections.length}\n` +
+                  `Période: ${memberData.registrationDate} - ${new Date().toISOString().split('T')[0]}`);
+        }
+
+        function viewAllCollections() {
+            viewHistory();
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function showMenu() {
+            alert('Options:\n- Modifier les informations\n- Suspendre le membre\n- Supprimer le membre\n- Envoyer un message');
+        }
+
+        // Initialize page on load
+        window.onload = initializePage;
+    </script>
+</body>
+</html>

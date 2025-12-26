@@ -1,0 +1,90 @@
+<div class="login-page">
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+    <div class="circle circle-3"></div>
+  </div>
+
+  <div class="login-wrapper">
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <div class="logo-circle">
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 5L40 20H20L30 5Z" fill="currentColor" opacity="0.9" />
+          <rect x="15" y="20" width="30" height="25" rx="2" fill="currentColor" opacity="0.8" />
+          <rect x="20" y="45" width="20" height="10" rx="1" fill="currentColor" opacity="0.7" />
+        </svg>
+      </div>
+      <h1 class="brand-name">AMENOUVEVE-YAVEH</h1>
+      <p class="brand-tagline">Gestion Elykia</p>
+    </div>
+
+    <!-- Login Form -->
+    <div class="login-card">
+      <div class="card-header">
+        <h2>Bienvenue</h2>
+        <p>Connectez-vous à votre compte</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="username">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>Identifiant</span>
+          </label>
+          <input type="text" id="username" formControlName="username" class="form-control"
+            placeholder="Entrez votre identifiant" />
+          <mat-error *ngIf="loginForm.get('username')?.hasError('required') && loginForm.get('username')?.touched">
+            L'identifiant est requis
+          </mat-error>
+        </div>
+
+        <div class="form-group">
+          <label for="password">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span>Mot de passe</span>
+          </label>
+          <input type="password" id="password" formControlName="password" class="form-control"
+            placeholder="Entrez votre mot de passe" />
+          <mat-error *ngIf="loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched">
+            Le mot de passe est requis
+          </mat-error>
+        </div>
+
+        <div class="form-options">
+          <label class="remember-me">
+            <input type="checkbox" />
+            <span>Se souvenir de moi</span>
+          </label>
+          <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+        </div>
+
+        <button type="submit" class="btn-login" [disabled]="isLoading" [class.loading]="isLoading">
+          <span *ngIf="!isLoading">Se connecter</span>
+          <span *ngIf="isLoading" class="spinner"></span>
+        </button>
+
+        <mat-error *ngIf="errorMessage" class="error-alert">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          {{ errorMessage }}
+        </mat-error>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <p>© 2024 Elykia. Tous droits réservés.</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,136 @@
+<div class="advanced-search-container" *ngIf="isVisible" [@slideDown]>
+  <div class="search-header">
+    <div class="header-content">
+      <mat-icon class="search-icon">search</mat-icon>
+      <h3>Recherche avancée</h3>
+      <span class="filter-badge" *ngIf="hasActiveFilters()">
+        {{ activeFiltersCount }} filtre(s) actif(s)
+      </span>
+    </div>
+    <button class="close-button" (click)="onClose()" type="button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="searchForm" class="search-form">
+    <div class="form-grid">
+      <!-- Mot-clé -->
+      <div class="form-field full-width">
+        <label for="keyword">
+          <mat-icon class="field-icon">text_fields</mat-icon>
+          Mot-clé
+        </label>
+        <input
+          id="keyword"
+          type="text"
+          formControlName="keyword"
+          class="form-control"
+          placeholder="Rechercher par nom, référence, etc."
+          autocomplete="off">
+      </div>
+
+      <!-- Type de client -->
+      <div class="form-field">
+        <label for="clientType">
+          <mat-icon class="field-icon">person</mat-icon>
+          Type de client
+        </label>
+        <ng-select
+          id="clientType"
+          formControlName="clientType"
+          [items]="clientTypeOptions"
+          bindLabel="label"
+          bindValue="value"
+          [clearable]="true"
+          placeholder="Sélectionner un type"
+          notFoundText="Aucun type trouvé">
+        </ng-select>
+      </div>
+
+      <!-- Type de vente -->
+      <div class="form-field">
+        <label for="type">
+          <mat-icon class="field-icon">shopping_cart</mat-icon>
+          Type de vente
+        </label>
+        <ng-select
+          id="type"
+          formControlName="type"
+          [items]="operationTypeOptions"
+          bindLabel="label"
+          bindValue="value"
+          [clearable]="true"
+          placeholder="Sélectionner un type"
+          notFoundText="Aucun type trouvé">
+        </ng-select>
+      </div>
+
+      <!-- Statut -->
+      <div class="form-field">
+        <label for="status">
+          <mat-icon class="field-icon">flag</mat-icon>
+          Statut
+        </label>
+        <ng-select
+          id="status"
+          formControlName="status"
+          [items]="statusOptions"
+          bindLabel="label"
+          bindValue="value"
+          [clearable]="true"
+          placeholder="Sélectionner un statut"
+          notFoundText="Aucun statut trouvé">
+        </ng-select>
+      </div>
+
+      <!-- Commercial -->
+      <div class="form-field">
+        <label for="commercial">
+          <mat-icon class="field-icon">badge</mat-icon>
+          Commercial
+        </label>
+        <ng-select
+          id="commercial"
+          formControlName="commercial"
+          [items]="commercials"
+          bindLabel="username"
+          bindValue="username"
+          [searchFn]="searchCommercial"
+          [clearable]="true"
+          placeholder="Sélectionner un commercial"
+          notFoundText="Aucun commercial trouvé">
+          <ng-template ng-label-tmp let-item="item">
+            {{ item.firstname }} {{ item.lastname }}
+          </ng-template>
+          <ng-template ng-option-tmp let-item="item">
+            <div class="commercial-option">
+              <div class="commercial-name">{{ item.firstname }} {{ item.lastname }}</div>
+              <small class="commercial-username">@{{ item.username }}</small>
+            </div>
+          </ng-template>
+        </ng-select>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="search-actions">
+      <button
+        type="button"
+        class="btn btn-reset"
+        (click)="onReset()"
+        [disabled]="!hasActiveFilters()">
+        <mat-icon>clear_all</mat-icon>
+        <span>Réinitialiser</span>
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-search"
+        (click)="onSearch()"
+        [disabled]="!hasActiveFilters()">
+        <mat-icon>search</mat-icon>
+        <span>Rechercher</span>
+      </button>
+    </div>
+  </form>
+</div>

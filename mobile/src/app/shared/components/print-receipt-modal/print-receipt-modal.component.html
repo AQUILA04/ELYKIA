@@ -1,0 +1,102 @@
+
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Aperçu du Reçu</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Fermer</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div id="receipt-content">
+    <!-- Contenu du reçu ici -->
+    <div class="header">
+      AMENOUVEVE-YAVEH<br>
+      REÇU D'ACHAT (Crédit)
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="row">
+      <span>Référence:</span>
+      <span>{{ printableDistribution.distribution.reference || 'N/A' }}</span>
+    </div>
+    <div class="row">
+      <span>Date:</span>
+      <span>{{ printableDistribution.distribution.createdAt | date: 'dd/MM/yyyy' }}</span>
+    </div>
+    <div class="row">
+      <span>Heure:</span>
+      <span>{{ printableDistribution.distribution.createdAt | date: 'HH:mm' }}</span>
+    </div>
+
+    <div class="separator"></div>
+
+    <div style="margin-bottom: 10px;">
+      <strong>CLIENT:</strong><br>
+      {{ printableDistribution.client.firstname }} {{ printableDistribution.client.lastname }}<br>
+      {{ printableDistribution.client.address || '' }}<br>
+      {{ printableDistribution.client.phone || '' }}
+    </div>
+
+    <div style="margin-bottom: 10px;">
+      <strong>COMMERCIAL:</strong><br>
+      {{ printableDistribution.commercial.name }}<br>
+      {{ printableDistribution.commercial.phone || '' }}
+    </div>
+
+    <div class="separator"></div>
+
+    <div style="margin-bottom: 10px;">
+      <strong>ARTICLES:</strong>
+    </div>
+
+    <div *ngFor="let item of printableDistribution.articles" class="article-item">
+      <div class="article-name">{{ item.article.commercialName || item.article.name }}</div>
+      <div class="article-details">
+        {{ item.quantity }} x {{ item.unitPrice | number }} = {{ item.totalPrice | number }} FCFA
+      </div>
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="row total-row">
+      <span>TOTAL:</span>
+      <span>{{ printableDistribution.distribution.totalAmount | number }} FCFA</span>
+    </div>
+    <div class="row">
+      <span>AVANCE:</span>
+      <span>{{ printableDistribution.distribution.advance | number }} FCFA</span>
+    </div>
+    <div class="row total-row">
+      <span>NOUVEAU SOLDE:</span>
+      <span>{{ printableDistribution.distribution.remainingAmount | number }} FCFA</span>
+    </div>
+    <div class="row total-row">
+      <span>MISE JOURNALIÈRE:</span>
+      <span>{{ printableDistribution.distribution.dailyPayment | number }} FCFA</span>
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="footer">
+      <div class="qr-code-container" *ngIf="qrCodeData">
+        <qrcode
+          [qrdata]="qrCodeData"
+          [width]="120"
+          [errorCorrectionLevel]="'M'">
+        </qrcode>
+      </div>
+      <br>
+      Merci pour votre confiance!<br>
+      Payez régulièrement vos mises
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-button expand="block" (click)="print()">Imprimer</ion-button>
+  </ion-toolbar>
+</ion-footer>

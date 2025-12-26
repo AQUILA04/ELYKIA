@@ -1,0 +1,67 @@
+/* Style global pour le conteneur */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centre horizontalement le contenu */
+  justify-content: center; /* Centre verticalement le contenu */
+  height: calc(40vh - 40px); /* Ajuste la hauteur en tenant compte de la hauteur du header */
+  margin-top: 30px; /* Marge au-dessus du contenu */
+  padding: 30px; /* Espacement intérieur */
+}
+
+/* Style pour le formulaire */
+.form-group {
+  width: 100%; /* Prend toute la largeur disponible */
+  max-width: 600px; /* Largeur maximale pour éviter d'étirer trop sur les grands écrans */
+  margin-top: 20px; /* Marge au-dessus du formulaire */
+}
+
+/* Style pour chaque ligne d'action */
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Espace entre les éléments */
+  margin-bottom: 10px; /* Marge au-dessous de chaque ligne */
+}
+
+/* Style pour l'input de date */
+.date-input {
+  flex: 1; /* Prend l'espace restant */
+  max-width: 200px; /* Largeur maximale de l'input */
+}
+
+/* Style pour les boutons */
+.action-button {
+  background-color: #003366; /* Couleur bleue */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: center;
+  margin-left: 10px; /* Marge à gauche du bouton */
+}
+
+.action-button:disabled {
+  background-color: #c0c0c0; /* Couleur grise pour les boutons désactivés */
+  cursor: not-allowed;
+}
+
+/* Style pour le titre */
+h1 {
+  margin-bottom: 20px;
+  text-align: center; /* Centre le titre horizontalement */
+  margin-left: 20px; /* Décale le titre vers la gauche */
+}
+
+.cash-desk-list {
+  margin-top: 30px;
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+}

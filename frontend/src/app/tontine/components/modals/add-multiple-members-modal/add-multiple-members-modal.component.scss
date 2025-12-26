@@ -1,0 +1,10 @@
+.clients-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 14px; }
+.clients-table th, .clients-table td { border-bottom: 1px solid #e0e0e0; padding: 6px 4px; }
+.full-width { width: 100%; }
+.global-fields {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+mat-dialog-content { min-width: 640px; }
+td input[matInput], td mat-select { font-size: 13px; max-width: 110px; }

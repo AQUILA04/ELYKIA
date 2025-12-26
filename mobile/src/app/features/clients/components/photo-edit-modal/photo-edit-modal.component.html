@@ -1,0 +1,62 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Modifier les Photos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismissModal()">Fermer</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-accordion-group>
+    <ion-accordion value="profile">
+      <ion-item slot="header" color="light">
+        <ion-label>Modifier la photo de profil</ion-label>
+      </ion-item>
+      <div class="ion-padding" slot="content">
+        <ion-button expand="block" (click)="takeProfilePicture()">
+          <ion-icon name="camera" slot="start"></ion-icon>
+          Prendre une nouvelle photo de profil
+        </ion-button>
+        <img [src]="newProfilePhoto.dataUrl" *ngIf="newProfilePhoto" class="preview-image"/>
+      </div>
+    </ion-accordion>
+    <ion-accordion value="id_card">
+      <ion-item slot="header" color="light">
+        <ion-label>Modifier la pièce d'identité</ion-label>
+      </ion-item>
+      <div class="ion-padding" slot="content">
+        <form [formGroup]="photoEditForm">
+          <ion-item>
+            <ion-label position="floating">Type de pièce</ion-label>
+            <ion-input formControlName="cardType"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Numéro de pièce</ion-label>
+            <ion-input formControlName="cardID"></ion-input>
+          </ion-item>
+        </form>
+        <ion-button expand="block" (click)="takeCardPicture()" class="ion-margin-top">
+          <ion-icon name="camera" slot="start"></ion-icon>
+          Prendre une nouvelle photo de la pièce
+        </ion-button>
+        <img [src]="newCardPhoto.dataUrl" *ngIf="newCardPhoto" class="preview-image"/>
+      </div>
+    </ion-accordion>
+  </ion-accordion-group>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          <ion-button expand="block" color="light" (click)="dismissModal()">Annuler</ion-button>
+        </ion-col>
+        <ion-col>
+          <ion-button expand="block" color="success" (click)="saveChanges()">Valider les changements</ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

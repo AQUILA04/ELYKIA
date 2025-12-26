@@ -1,0 +1,44 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Modifier la Localisation</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismissModal()">Fermer</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-item lines="none">
+    <ion-label>Saisie manuelle</ion-label>
+    <ion-toggle [(ngModel)]="manualGeolocation"></ion-toggle>
+  </ion-item>
+
+  <div *ngIf="manualGeolocation">
+    <ion-item>
+      <ion-label position="floating">Latitude</ion-label>
+      <ion-input type="number" [(ngModel)]="latitude"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="floating">Longitude</ion-label>
+      <ion-input type="number" [(ngModel)]="longitude"></ion-input>
+    </ion-item>
+  </div>
+
+  <ion-button *ngIf="!manualGeolocation" expand="block" fill="outline" (click)="getGeolocation()">
+    <ion-icon slot="start" name="location"></ion-icon>
+    Obtenir la position GPS
+  </ion-button>
+
+  <div *ngIf="latitude && longitude" class="ion-text-center ion-padding-top">
+    <b>Latitude:</b> {{ latitude }} <br>
+    <b>Longitude:</b> {{ longitude }}
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-button expand="block" (click)="saveLocation()" [disabled]="!latitude || !longitude">
+      Enregistrer
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

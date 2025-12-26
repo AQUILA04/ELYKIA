@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC006 - Nouveau Client | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styles spécifiques au formulaire nouveau client */
+        .new-client-container {
+            padding-bottom: 80px; /* Espace pour les boutons d'action */
+        }
+
+        .form-header {
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            color: var(--text-on-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--margin-external);
+        }
+
+        .header-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .header-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .header-title {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+        }
+
+        .form-content {
+            padding: var(--margin-external);
+            background: var(--background-color);
+        }
+
+        /* Section photo */
+        .photo-section {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-sections);
+            margin-bottom: var(--margin-external);
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .photo-zone {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto var(--margin-internal);
+            border: 2px dashed var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .photo-zone:hover {
+            border-color: var(--primary-variant);
+            transform: scale(1.05);
+        }
+
+        .photo-zone.has-photo {
+            border-style: solid;
+            border-width: 3px;
+        }
+
+        .photo-placeholder {
+            font-size: 48px;
+            color: var(--primary-color);
+            opacity: 0.7;
+        }
+
+        .photo-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .photo-button {
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: var(--font-size-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .photo-button:hover {
+            background: var(--primary-variant);
+            transform: translateY(-1px);
+        }
+
+        /* Sections du formulaire */
+        .form-section {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            margin-bottom: var(--margin-external);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-bottom: var(--margin-external);
+            display: flex;
+            align-items: center;
+        }
+
+        .section-icon {
+            margin-right: var(--spacing-elements);
+            font-size: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: var(--margin-internal);
+            margin-bottom: var(--margin-external);
+        }
+
+        .form-row .input-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .required-field .input-label::after {
+            content: ' *';
+            color: var(--error-color);
+            font-weight: bold;
+        }
+
+        .input-field-select {
+            width: 100%;
+            height: var(--input-height);
+            border: 2px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            padding: 0 var(--margin-internal);
+            font-size: var(--font-size-body);
+            background: var(--surface-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .input-field-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+
+        .input-field-textarea {
+            width: 100%;
+            min-height: 80px;
+            border: 2px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            padding: var(--margin-internal);
+            font-size: var(--font-size-body);
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .input-field-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+
+        .date-input {
+            position: relative;
+        }
+
+        .date-input::after {
+            content: '📅';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            font-size: 16px;
+        }
+
+        /* Section géolocalisation */
+        .geo-section {
+            border: 1px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            padding: var(--margin-internal);
+            margin-top: var(--margin-internal);
+            background: rgba(33, 150, 243, 0.05);
+        }
+
+        .geo-button {
+            background: var(--info-color);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 12px 16px;
+            font-size: var(--font-size-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-elements);
+            width: 100%;
+            justify-content: center;
+        }
+
+        .geo-button:hover {
+            background: #1976D2;
+            transform: translateY(-1px);
+        }
+
+        .geo-button:disabled {
+            background: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .geo-info {
+            margin-top: var(--margin-internal);
+            padding: var(--margin-internal);
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-secondary);
+        }
+
+        .geo-coordinates {
+            font-family: monospace;
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        /* Section personne à contacter */
+        .collapsible-section {
+            border: 1px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin-top: var(--margin-external);
+        }
+
+        .collapsible-header {
+            background: rgba(117, 117, 117, 0.1);
+            padding: var(--margin-internal);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.3s ease;
+        }
+
+        .collapsible-header:hover {
+            background: rgba(117, 117, 117, 0.15);
+        }
+
+        .collapsible-content {
+            padding: var(--margin-external);
+            display: none;
+            background: var(--surface-color);
+        }
+
+        .collapsible-content.expanded {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 300px;
+            }
+        }
+
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .expand-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        /* Boutons d'action */
+        .action-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            background: var(--surface-color);
+            border-top: 1px solid #E0E0E0;
+            padding: var(--margin-external);
+            display: flex;
+            gap: var(--margin-internal);
+            z-index: 1000;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background: transparent;
+            color: var(--error-color);
+            border: 2px solid var(--error-color);
+        }
+
+        .btn-cancel:hover {
+            background: var(--error-color);
+            color: var(--text-on-primary);
+        }
+
+        .btn-save {
+            flex: 1;
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-save:hover {
+            background: var(--primary-variant);
+            border-color: var(--primary-variant);
+        }
+
+        .btn-save:disabled {
+            background: var(--text-secondary);
+            border-color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        /* Validation des champs */
+        .input-error {
+            border-color: var(--error-color) !important;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: var(--font-size-caption);
+            margin-top: 4px;
+            display: none;
+        }
+
+        .input-error + .error-message {
+            display: block;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .loading-content {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: var(--spacing-sections);
+            text-align: center;
+            max-width: 280px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #E0E0E0;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--margin-internal);
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="new-client-container">
+            <!-- Header -->
+            <div class="form-header">
+                <button class="header-button" onclick="goBack()">←</button>
+                <div class="header-title">Nouveau Client</div>
+                <button class="header-button" onclick="saveClient()" id="saveHeaderBtn">💾</button>
+            </div>
+
+            <!-- Contenu du formulaire -->
+            <div class="form-content">
+                <form id="clientForm" novalidate>
+                    <!-- Section Photo -->
+                    <div class="photo-section">
+                        <div class="photo-zone" onclick="selectPhoto()" id="photoZone">
+                            <div class="photo-placeholder" id="photoPlaceholder">📷</div>
+                        </div>
+                        <button type="button" class="photo-button" onclick="selectPhoto()">
+                            Prendre Photo
+                        </button>
+                        <input type="file" id="photoInput" accept="image/*" capture="camera" style="display: none;" onchange="handlePhotoSelect(event)">
+                    </div>
+
+                    <!-- Section Informations Personnelles -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span class="section-icon">👤</span>
+                            Informations Personnelles
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="input-group required-field">
+                                <label class="input-label" for="firstName">Prénom</label>
+                                <input type="text" id="firstName" class="input-field" required>
+                                <div class="error-message">Le prénom est obligatoire</div>
+                            </div>
+                            <div class="input-group required-field">
+                                <label class="input-label" for="lastName">Nom</label>
+                                <input type="text" id="lastName" class="input-field" required>
+                                <div class="error-message">Le nom est obligatoire</div>
+                            </div>
+                        </div>
+
+                        <div class="input-group required-field date-input">
+                            <label class="input-label" for="dateOfBirth">Date de naissance</label>
+                            <input type="date" id="dateOfBirth" class="input-field" required>
+                            <div class="error-message">La date de naissance est obligatoire</div>
+                        </div>
+
+                        <div class="input-group required-field">
+                            <label class="input-label" for="profession">Profession</label>
+                            <input type="text" id="profession" class="input-field" required>
+                            <div class="error-message">La profession est obligatoire</div>
+                        </div>
+
+                        <div class="input-group required-field">
+                            <label class="input-label" for="phone">Téléphone</label>
+                            <input type="tel" id="phone" class="input-field" placeholder="+225 XX XX XX XX XX" required>
+                            <div class="error-message">Le téléphone est obligatoire</div>
+                        </div>
+                    </div>
+
+                    <!-- Section Pièce d'Identité -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span class="section-icon">🆔</span>
+                            Pièce d'Identité
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label" for="idType">Type de pièce</label>
+                            <select id="idType" class="input-field-select">
+                                <option value="">Sélectionner...</option>
+                                <option value="CNI">Carte Nationale d'Identité</option>
+                                <option value="PASSPORT">Passeport</option>
+                                <option value="CARTE_ID">Carte d'identité</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" for="idNumber">Numéro</label>
+                            <input type="text" id="idNumber" class="input-field">
+                        </div>
+                    </div>
+
+                    <!-- Section Adresse -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span class="section-icon">📍</span>
+                            Adresse
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label" for="address">Adresse complète</label>
+                            <textarea id="address" class="input-field-textarea" placeholder="Saisissez l'adresse complète..."></textarea>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" for="quartier">Quartier</label>
+                            <select id="quartier" class="input-field-select">
+                                <option value="">Sélectionner un quartier...</option>
+                                <option value="Cocody">Cocody</option>
+                                <option value="Yopougon">Yopougon</option>
+                                <option value="Adjamé">Adjamé</option>
+                                <option value="Treichville">Treichville</option>
+                                <option value="Marcory">Marcory</option>
+                                <option value="Koumassi">Koumassi</option>
+                                <option value="Port-Bouët">Port-Bouët</option>
+                            </select>
+                        </div>
+
+                        <!-- Géolocalisation -->
+                        <div class="geo-section">
+                            <button type="button" class="geo-button" onclick="getLocation()" id="geoButton">
+                                📍 Obtenir Position GPS
+                            </button>
+                            <div class="geo-info" id="geoInfo" style="display: none;">
+                                <div>Position obtenue :</div>
+                                <div class="geo-coordinates" id="coordinates"></div>
+                                <div style="margin-top: 8px;">
+                                    <label>
+                                        <input type="checkbox" id="manualGeo"> Saisie manuelle
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Personne à Contacter (Optionnel) -->
+                    <div class="form-section">
+                        <div class="collapsible-section">
+                            <div class="collapsible-header" onclick="toggleCollapsible()">
+                                <span>
+                                    <span class="section-icon">🚨</span>
+                                    Personne à Contacter (Optionnel)
+                                </span>
+                                <span class="expand-icon" id="expandIcon">▼</span>
+                            </div>
+                            <div class="collapsible-content" id="emergencyContact">
+                                <div class="input-group">
+                                    <label class="input-label" for="emergencyName">Nom complet</label>
+                                    <input type="text" id="emergencyName" class="input-field">
+                                </div>
+
+                                <div class="input-group">
+                                    <label class="input-label" for="emergencyPhone">Téléphone</label>
+                                    <input type="tel" id="emergencyPhone" class="input-field" placeholder="+225 XX XX XX XX XX">
+                                </div>
+
+                                <div class="input-group">
+                                    <label class="input-label" for="emergencyAddress">Adresse</label>
+                                    <textarea id="emergencyAddress" class="input-field-textarea" placeholder="Adresse de la personne à contacter..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="action-buttons">
+            <button type="button" class="btn btn-cancel" onclick="cancelForm()">
+                Annuler
+            </button>
+            <button type="button" class="btn btn-save" onclick="saveClient()" id="saveButton">
+                Enregistrer
+            </button>
+        </div>
+
+        <!-- Loading overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <div style="font-weight: 500;">Enregistrement en cours...</div>
+                <div style="font-size: var(--font-size-secondary); color: var(--text-secondary); margin-top: 8px;">
+                    Veuillez patienter
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedPhoto = null;
+        let currentLocation = null;
+        let formData = {};
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            setupFormValidation();
+            setupPhoneFormatting();
+        });
+
+        // Configuration de la validation du formulaire
+        function setupFormValidation() {
+            const form = document.getElementById('clientForm');
+            const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+            
+            inputs.forEach(input => {
+                input.addEventListener('blur', validateField);
+                input.addEventListener('input', clearFieldError);
+            });
+        }
+
+        // Configuration du formatage du téléphone
+        function setupPhoneFormatting() {
+            const phoneInputs = document.querySelectorAll('input[type="tel"]');
+            phoneInputs.forEach(input => {
+                input.addEventListener('input', formatPhoneNumber);
+            });
+        }
+
+        // Formatage du numéro de téléphone
+        function formatPhoneNumber(event) {
+            let value = event.target.value.replace(/\D/g, '');
+            if (value.startsWith('225')) {
+                value = value.substring(3);
+            }
+            if (value.length > 0) {
+                value = '+225 ' + value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
+            }
+            event.target.value = value;
+        }
+
+        // Validation d'un champ
+        function validateField(event) {
+            const field = event.target;
+            const value = field.value.trim();
+            
+            if (field.hasAttribute('required') && !value) {
+                field.classList.add('input-error');
+                return false;
+            } else {
+                field.classList.remove('input-error');
+                return true;
+            }
+        }
+
+        // Effacer l'erreur d'un champ
+        function clearFieldError(event) {
+            event.target.classList.remove('input-error');
+        }
+
+        // Sélectionner une photo
+        function selectPhoto() {
+            document.getElementById('photoInput').click();
+        }
+
+        // Gérer la sélection de photo
+        function handlePhotoSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const photoZone = document.getElementById('photoZone');
+                    const placeholder = document.getElementById('photoPlaceholder');
+                    
+                    placeholder.innerHTML = `<img src="${e.target.result}" class="photo-preview" alt="Photo client">`;
+                    photoZone.classList.add('has-photo');
+                    selectedPhoto = file;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Obtenir la géolocalisation
+        function getLocation() {
+            const geoButton = document.getElementById('geoButton');
+            const geoInfo = document.getElementById('geoInfo');
+            const coordinates = document.getElementById('coordinates');
+            
+            if (!navigator.geolocation) {
+                showNotification('La géolocalisation n\'est pas supportée par ce navigateur', 'error');
+                return;
+            }
+            
+            geoButton.disabled = true;
+            geoButton.innerHTML = '🔄 Localisation en cours...';
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lng = position.coords.longitude.toFixed(6);
+                    
+                    currentLocation = { latitude: lat, longitude: lng };
+                    coordinates.textContent = `${lat}°N, ${lng}°W`;
+                    geoInfo.style.display = 'block';
+                    
+                    geoButton.disabled = false;
+                    geoButton.innerHTML = '✓ Position obtenue';
+                    geoButton.style.background = '#4CAF50';
+                    
+                    showNotification('Position GPS obtenue avec succès', 'success');
+                },
+                function(error) {
+                    geoButton.disabled = false;
+                    geoButton.innerHTML = '📍 Obtenir Position GPS';
+                    
+                    let errorMessage = 'Erreur de géolocalisation';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'Permission de géolocalisation refusée';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'Position indisponible';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'Délai de géolocalisation dépassé';
+                            break;
+                    }
+                    showNotification(errorMessage, 'error');
+                }
+            );
+        }
+
+        // Basculer la section repliable
+        function toggleCollapsible() {
+            const content = document.getElementById('emergencyContact');
+            const icon = document.getElementById('expandIcon');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.classList.remove('rotated');
+            } else {
+                content.classList.add('expanded');
+                icon.classList.add('rotated');
+            }
+        }
+
+        // Valider le formulaire
+        function validateForm() {
+            const form = document.getElementById('clientForm');
+            const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!validateField({ target: field })) {
+                    isValid = false;
+                }
+            });
+            
+            // Validation spécifique pour la géolocalisation
+            if (!currentLocation) {
+                showNotification('La géolocalisation est obligatoire pour les nouveaux clients', 'warning');
+                isValid = false;
+            }
+            
+            // Validation spécifique pour la photo
+            if (!selectedPhoto) {
+                showNotification('La photo de profil est obligatoire pour les nouveaux clients', 'warning');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        // Collecter les données du formulaire
+        function collectFormData() {
+            return {
+                firstName: document.getElementById('firstName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim(),
+                dateOfBirth: document.getElementById('dateOfBirth').value,
+                profession: document.getElementById('profession').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                idType: document.getElementById('idType').value,
+                idNumber: document.getElementById('idNumber').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                quartier: document.getElementById('quartier').value,
+                location: currentLocation,
+                photo: selectedPhoto,
+                emergencyContact: {
+                    name: document.getElementById('emergencyName').value.trim(),
+                    phone: document.getElementById('emergencyPhone').value.trim(),
+                    address: document.getElementById('emergencyAddress').value.trim()
+                }
+            };
+        }
+
+        // Enregistrer le client
+        function saveClient() {
+            if (!validateForm()) {
+                showNotification('Veuillez corriger les erreurs dans le formulaire', 'error');
+                return;
+            }
+            
+            const clientData = collectFormData();
+            
+            // Afficher le loading
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            // Simuler l'enregistrement
+            setTimeout(() => {
+                // Sauvegarder dans le localStorage pour la démo
+                const clients = JSON.parse(localStorage.getItem('clients') || '[]');
+                const newClient = {
+                    id: Date.now(),
+                    ...clientData,
+                    createdAt: new Date().toISOString(),
+                    isNew: true
+                };
+                clients.push(newClient);
+                localStorage.setItem('clients', JSON.stringify(clients));
+                
+                document.getElementById('loadingOverlay').style.display = 'none';
+                
+                showNotification('Client enregistré avec succès !', 'success');
+                
+                // Redirection après 2 secondes
+                setTimeout(() => {
+                    window.location.href = 'EC004-liste-clients.html';
+                }, 2000);
+            }, 3000);
+        }
+
+        // Annuler le formulaire
+        function cancelForm() {
+            if (confirm('Êtes-vous sûr de vouloir annuler ? Toutes les données saisies seront perdues.')) {
+                window.history.back();
+            }
+        }
+
+        // Retour
+        function goBack() {
+            cancelForm();
+        }
+
+        // Fonction pour afficher les notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.zIndex = '2000';
+            notification.style.maxWidth = '90%';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Sauvegarde automatique (brouillon)
+        function autoSave() {
+            const formData = collectFormData();
+            localStorage.setItem('clientDraft', JSON.stringify(formData));
+        }
+
+        // Charger le brouillon
+        function loadDraft() {
+            const draft = localStorage.getItem('clientDraft');
+            if (draft) {
+                const data = JSON.parse(draft);
+                // Remplir les champs avec les données du brouillon
+                Object.keys(data).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element && data[key]) {
+                        element.value = data[key];
+                    }
+                });
+            }
+        }
+
+        // Sauvegarder automatiquement toutes les 30 secondes
+        setInterval(autoSave, 30000);
+
+        // Charger le brouillon au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            // loadDraft(); // Décommenté pour la démo
+        });
+
+        // Effacer le brouillon après enregistrement réussi
+        function clearDraft() {
+            localStorage.removeItem('clientDraft');
+        }
+    </script>
+</body>
+</html>
+

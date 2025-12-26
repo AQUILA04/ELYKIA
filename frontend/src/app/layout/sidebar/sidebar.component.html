@@ -1,0 +1,208 @@
+<!-- Sidebar Start -->
+<aside class="left-sidebar">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Sidebar scroll-->
+  <div>
+    <div class="brand-logo d-flex align-items-center justify-content-between">
+      <a routerLink="/home" class="text-nowrap logo-img">
+        <img src="../assets/images/logos/elykiaa.png" width="180" alt="" />
+      </a>
+      <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
+        <i class="ti ti-x fs-8"></i>
+      </div>
+    </div>
+    <!-- Sidebar navigation-->
+    <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
+      <ul id="sidebarnav">
+        <li class="nav-small-cap">
+          <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
+          <span class="hide-menu">Menu</span>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_DASHBOARD', 'ROLE_STOREKEEPER_DASHBOARD']" [ngClass]="{ 'active': isRouteActive('/home') }">
+          <a class="sidebar-link" routerLink="/home" aria-expanded="false">
+            <span>
+              <i class="ti ti-home"></i>
+            </span>
+            <span class="hide-menu">Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_OPEN_ACCOUNTING_DAY', 'ROLE_CLOSE_ACCOUNTING_DAY']" [ngClass]="{ 'active': isRouteActive('/accounting-day') }">
+          <a class="sidebar-link" routerLink="/accounting-day" aria-expanded="false">
+            <span>
+              <i class="material-icons">calendar_today</i>
+            </span>
+            <span class="hide-menu">Journée comptable</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_OPEN_CASH_DESK', 'ROLE_CLOSE_CASH_DESK']" [ngClass]="{ 'active': isRouteActive('/open-cashDesk') }">
+          <a class="sidebar-link has-arrow" (click)="onCaisseClick()" aria-expanded="false">
+            <span>
+              <mat-icon>point_of_sale</mat-icon>
+            </span>
+            <span class="hide-menu">Caisse</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isCaisseOpen }">
+            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_OPEN_CASH_DESK', 'ROLE_CLOSE_CASH_DESK']">
+              <a class="sidebar-link" routerLink="/open-cashDesk">
+                <span class="material-icons">add_box</span>
+                <span class="hide-menu">Ouverture / Fermeture</span>
+              </a>
+            </li>
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="daily-operation">
+                <span class="material-icons">receipt</span>
+                <span class="hide-menu">Opération Journalière</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_ARTICLE', 'ROLE_STOREKEEPER']" [ngClass]="{ 'active': isRouteActive('/list') }">
+          <a class="sidebar-link" routerLink="/list" aria-expanded="false">
+            <span>
+              <mat-icon>shopping_bag</mat-icon>
+            </span>
+            <span class="hide-menu">Articles</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_LOCALITY','ROLE_EDIT_LOCALITY']" [ngClass]="{ 'active': isRouteActive('/localitylist') }">
+          <a class="sidebar-link" routerLink="/localitylist" aria-expanded="false">
+            <span>
+              <i class="ti ti-map"></i>
+            </span>
+            <span class="hide-menu">Localités</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT']" [ngClass]="{ 'active': isRouteActive('/credit-list') }">
+          <a class="sidebar-link" routerLink="/credit-list" aria-expanded="false">
+            <span>
+              <mat-icon>monetization_on</mat-icon>
+            </span>
+            <span class="hide-menu">Ventes</span>
+          </a>
+        </li>
+        <!-- <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT','ROLE_EDIT_CREDIT']" [ngClass]="{ 'active': isRouteActive('/orders') }">
+          <a class="sidebar-link" routerLink="/orders" aria-expanded="false">
+            <span>
+              <mat-icon>shopping_cart</mat-icon>
+            </span>
+            <span class="hide-menu">Commandes</span>
+          </a>
+        </li> -->
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER']" [ngClass]="{ 'active': isRouteActive('/out-list') }">
+          <a class="sidebar-link" routerLink="/out-list" aria-expanded="false">
+            <span>
+              <mat-icon>exit_to_app</mat-icon>
+            </span>
+            <span class="hide-menu">Sortie</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_TONTINE','ROLE_EDIT_TONTINE']" [ngClass]="{ 'active': isRouteActive('/tontine') }">
+          <a class="sidebar-link" routerLink="/tontine" aria-expanded="false">
+            <span>
+              <mat-icon>savings</mat-icon>
+            </span>
+            <span class="hide-menu">Tontines</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ACCOUNT', 'ROLE_EDIT_ACCOUNT']" [ngClass]="{ 'active': isRouteActive('/accountlist') }">
+          <a class="sidebar-link" routerLink="/accountlist" aria-expanded="false">
+            <span>
+              <mat-icon>account_balance</mat-icon>
+            </span>
+            <span class="hide-menu">Comptes</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT']" [ngClass]="{ 'active': isRouteActive('/client-list') }">
+          <a class="sidebar-link" routerLink="/client-list" aria-expanded="false">
+            <span>
+              <mat-icon>account_circle</mat-icon>
+            </span>
+            <span class="hide-menu">Clients</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']" [ngClass]="{ 'active': isRouteActive('/report') }">
+          <a class="sidebar-link" routerLink="/report" aria-expanded="false">
+            <span>
+              <mat-icon>insert_chart</mat-icon>
+            </span>
+            <span class="hide-menu">Rapports</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']" [ngClass]="{ 'active': isRouteActive('/bi') }">
+          <a class="sidebar-link" routerLink="/bi" aria-expanded="false">
+            <span>
+              <mat-icon>analytics</mat-icon>
+            </span>
+            <span class="hide-menu">Dashboard BI</span>
+          </a>
+        </li>
+
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER','ROLE_REPORT']" [ngClass]="{ 'active': isRouteActive('/inventory') }">
+          <a class="sidebar-link" routerLink="/inventory" aria-expanded="false">
+            <span>
+              <mat-icon>inventory</mat-icon>
+            </span>
+            <span class="hide-menu">Inventaires</span>
+          </a>
+        </li>
+
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']" [ngClass]="{ 'active': isRouteActive('/gestion-list') }">
+          <a class="sidebar-link" routerLink="/gestion-list" aria-expanded="false">
+            <span>
+              <mat-icon>business</mat-icon>
+            </span>
+            <span class="hide-menu">Agences</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_REPORT','ROLE_EDIT_AGENCY_REPORT']" [ngClass]="{ 'active': isRouteActive('/operation-list') }">
+          <a class="sidebar-link" routerLink="/operation-list" aria-expanded="false">
+            <span>
+              <mat-icon>event</mat-icon>
+            </span>
+            <span class="hide-menu">Opération</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']" [ngClass]="{ 'active': isRouteActive('/deposit-list') }">
+          <a class="sidebar-link" routerLink="/deposit-list" aria-expanded="false">
+            <span>
+              <mat-icon>savings</mat-icon>
+            </span>
+            <span class="hide-menu">Dépôt</span>
+          </a>
+        </li>
+        <!-- Pour l'élément Utilisateurs -->
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_USER','ROLE_DEL_USER']" [ngClass]="{ 'active': isRouteActive('/user-list') }">
+          <a class="sidebar-link" routerLink="/user-list" aria-expanded="false">
+            <span>
+              <mat-icon>person</mat-icon>
+            </span>
+            <span class="hide-menu">Utilisateurs</span>
+          </a>
+        </li>
+
+        <!-- Pour l'élément Commercial -->
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']" [ngClass]="{ 'active': isRouteActive('/commercial-list') }">
+          <a class="sidebar-link" routerLink="/commercial-list">
+            <span>
+              <mat-icon>business_center</mat-icon>
+            </span>
+            <span class="hide-menu">Commercial</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" (click)="confirmLogout()">
+            <span>
+              <i class="ti ti-power"></i>
+            </span>
+            <span class="hide-menu">Déconnexion</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <!-- End Sidebar navigation -->
+  </div>
+  <!-- End Sidebar scroll-->
+</aside>
+<!--  Sidebar End -->

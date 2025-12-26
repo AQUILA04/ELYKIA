@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC013 - Liste des Recouvrements | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styles spécifiques à la liste des recouvrements */
+        .recouvrements-container {
+            padding-bottom: 80px;
+        }
+
+        .recouvrements-header {
+            height: 56px;
+            background: linear-gradient(135deg, var(--success-color), #45a049);
+            color: var(--text-on-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--margin-external);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .header-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .header-title {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+        }
+
+        .recouvrements-content {
+            padding: var(--margin-external);
+            background: var(--background-color);
+        }
+
+        /* Section de recherche et filtres */
+        .search-section {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            margin-bottom: var(--margin-external);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: var(--margin-internal);
+        }
+
+        .search-input {
+            width: 100%;
+            height: var(--input-height);
+            border: 2px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            padding: 0 var(--margin-external) 0 48px;
+            font-size: var(--font-size-body);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+
+        .filters-container {
+            display: flex;
+            gap: var(--margin-internal);
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            flex: 1;
+            min-width: 120px;
+            height: 40px;
+            border: 1px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            padding: 0 var(--margin-internal);
+            font-size: var(--font-size-secondary);
+            background: var(--surface-color);
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--success-color);
+        }
+
+        /* Section statistiques */
+        .stats-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--margin-internal);
+            margin-bottom: var(--margin-external);
+        }
+
+        .stat-card {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: var(--font-size-h2);
+            font-weight: bold;
+            color: var(--success-color);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* Liste des recouvrements */
+        .recouvrements-list {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .list-header {
+            background: rgba(76, 175, 80, 0.05);
+            padding: var(--margin-internal) var(--margin-external);
+            border-bottom: 1px solid #E0E0E0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-title {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--success-color);
+        }
+
+        .list-count {
+            background: var(--success-color);
+            color: var(--text-on-primary);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: var(--font-size-caption);
+            font-weight: bold;
+        }
+
+        .recouvrement-item {
+            display: flex;
+            align-items: center;
+            padding: var(--margin-external);
+            border-bottom: 1px solid #E0E0E0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .recouvrement-item:last-child {
+            border-bottom: none;
+        }
+
+        .recouvrement-item:hover {
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .recouvrement-date {
+            width: 60px;
+            text-align: center;
+            margin-right: var(--margin-internal);
+        }
+
+        .date-day {
+            font-size: var(--font-size-h3);
+            font-weight: bold;
+            color: var(--success-color);
+            line-height: 1;
+        }
+
+        .date-month {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .recouvrement-info {
+            flex: 1;
+            margin-right: var(--margin-internal);
+        }
+
+        .recouvrement-reference {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .recouvrement-client {
+            font-size: var(--font-size-secondary);
+            color: var(--success-color);
+            margin-bottom: 2px;
+        }
+
+        .recouvrement-details {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+        }
+
+        .recouvrement-amount {
+            text-align: right;
+        }
+
+        .amount-value {
+            font-size: var(--font-size-body);
+            font-weight: bold;
+            color: var(--success-color);
+            margin-bottom: 2px;
+        }
+
+        .amount-type {
+            font-size: var(--font-size-caption);
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .type-daily {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .type-partial {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--warning-color);
+        }
+
+        .type-complete {
+            background: rgba(33, 150, 243, 0.1);
+            color: var(--info-color);
+        }
+
+        .type-advance {
+            background: rgba(156, 39, 176, 0.1);
+            color: #9C27B0;
+        }
+
+        /* Bouton d'action flottant */
+        .fab-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: var(--success-color);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .fab-button:hover {
+            background: #45a049;
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* État vide */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-sections);
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: var(--margin-external);
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: var(--font-size-h3);
+            margin-bottom: var(--spacing-elements);
+            color: var(--text-primary);
+        }
+
+        .empty-message {
+            font-size: var(--font-size-secondary);
+            line-height: 1.5;
+            margin-bottom: var(--margin-external);
+        }
+
+        .empty-action {
+            background: var(--success-color);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 12px 24px;
+            font-size: var(--font-size-body);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .empty-action:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+        }
+
+        /* Modal de détail */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: var(--spacing-sections);
+            margin: var(--margin-external);
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--margin-external);
+            padding-bottom: var(--margin-internal);
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .modal-title {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+            color: var(--success-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .detail-section {
+            margin-bottom: var(--margin-external);
+        }
+
+        .detail-label {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: var(--font-size-body);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .payment-progress {
+            background: rgba(76, 175, 80, 0.05);
+            border-radius: var(--border-radius);
+            padding: var(--margin-internal);
+            margin-top: var(--margin-internal);
+        }
+
+        .progress-bar-detail {
+            height: 8px;
+            background: #E0E0E0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill-detail {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), #66BB6A);
+            border-radius: 4px;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+        }
+
+        .credit-info {
+            background: rgba(25, 118, 210, 0.05);
+            border-radius: var(--border-radius);
+            padding: var(--margin-internal);
+            margin-top: var(--margin-internal);
+        }
+
+        .credit-amounts {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--margin-internal);
+            text-align: center;
+        }
+
+        .credit-amount-item {
+            padding: var(--spacing-elements);
+        }
+
+        .credit-amount-label {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .credit-amount-value {
+            font-size: var(--font-size-secondary);
+            font-weight: bold;
+        }
+
+        .amount-total { color: var(--primary-color); }
+        .amount-paid { color: var(--success-color); }
+        .amount-remaining { color: var(--error-color); }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="recouvrements-container">
+            <!-- Header -->
+            <div class="recouvrements-header">
+                <button class="header-button" onclick="goBack()">←</button>
+                <div class="header-title">Recouvrements</div>
+                <button class="header-button" onclick="showFilters()">🔍</button>
+            </div>
+
+            <!-- Contenu -->
+            <div class="recouvrements-content">
+                <!-- Section de recherche -->
+                <div class="search-section">
+                    <div class="search-container">
+                        <div class="search-icon">🔍</div>
+                        <input 
+                            type="text" 
+                            class="search-input" 
+                            placeholder="Rechercher par client, référence..."
+                            id="searchInput"
+                            oninput="filterRecouvrements()"
+                        >
+                    </div>
+                    
+                    <div class="filters-container">
+                        <select class="filter-select" id="typeFilter" onchange="filterRecouvrements()">
+                            <option value="">Tous les types</option>
+                            <option value="daily">Mise journalière</option>
+                            <option value="partial">Paiement partiel</option>
+                            <option value="complete">Solde complet</option>
+                            <option value="advance">Avance</option>
+                        </select>
+                        
+                        <select class="filter-select" id="periodFilter" onchange="filterRecouvrements()">
+                            <option value="">Toutes les périodes</option>
+                            <option value="today">Aujourd'hui</option>
+                            <option value="week">Cette semaine</option>
+                            <option value="month">Ce mois</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Section statistiques -->
+                <div class="stats-section">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalRecouvrements">47</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="todayRecouvrements">8</div>
+                        <div class="stat-label">Aujourd'hui</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalAmount">485K</div>
+                        <div class="stat-label">FCFA</div>
+                    </div>
+                </div>
+
+                <!-- Liste des recouvrements -->
+                <div class="recouvrements-list">
+                    <div class="list-header">
+                        <div class="list-title">Historique des Recouvrements</div>
+                        <div class="list-count" id="listCount">47</div>
+                    </div>
+                    
+                    <div id="recouvrementsListe">
+                        <!-- Les recouvrements seront chargés dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton d'action flottant -->
+        <button class="fab-button" onclick="newRecouvrement()" title="Nouveau Recouvrement">
+            💰
+        </button>
+
+        <!-- Modal de détail -->
+        <div class="modal" id="detailModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title" id="modalTitle">Détail Recouvrement</div>
+                    <button class="close-modal" onclick="closeModal()">&times;</button>
+                </div>
+                <div id="modalBody">
+                    <!-- Le contenu sera chargé dynamiquement -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Données simulées des recouvrements
+        let recouvrements = [
+            {
+                id: 'REC-2024-001',
+                date: '2024-01-17',
+                time: '08:30',
+                client: 'Marie Kouassi',
+                clientId: 1,
+                creditReference: 'CRED-2024-001',
+                amount: 1000,
+                type: 'daily',
+                creditTotal: 50000,
+                creditPaid: 35000,
+                creditRemaining: 15000,
+                paymentProgress: 70
+            },
+            {
+                id: 'REC-2024-002',
+                date: '2024-01-17',
+                time: '09:00',
+                client: 'Amadou Bamba',
+                clientId: 4,
+                creditReference: 'CRED-2024-005',
+                amount: 1500,
+                type: 'daily',
+                creditTotal: 30000,
+                creditPaid: 18000,
+                creditRemaining: 12000,
+                paymentProgress: 60
+            },
+            {
+                id: 'REC-2024-003',
+                date: '2024-01-17',
+                time: '10:15',
+                client: 'Aya Diabaté',
+                clientId: 5,
+                creditReference: 'CRED-2024-008',
+                amount: 2000,
+                type: 'daily',
+                creditTotal: 40000,
+                creditPaid: 28000,
+                creditRemaining: 12000,
+                paymentProgress: 70
+            },
+            {
+                id: 'REC-2024-004',
+                date: '2024-01-17',
+                time: '12:00',
+                client: 'Jean Koffi',
+                clientId: 2,
+                creditReference: 'CRED-2024-003',
+                amount: 1200,
+                type: 'daily',
+                creditTotal: 25000,
+                creditPaid: 15000,
+                creditRemaining: 10000,
+                paymentProgress: 60
+            },
+            {
+                id: 'REC-2024-005',
+                date: '2024-01-17',
+                time: '13:30',
+                client: 'Marie Kouassi',
+                clientId: 1,
+                creditReference: 'CRED-2024-001',
+                amount: 1000,
+                type: 'daily',
+                creditTotal: 50000,
+                creditPaid: 36000,
+                creditRemaining: 14000,
+                paymentProgress: 72
+            },
+            {
+                id: 'REC-2024-006',
+                date: '2024-01-16',
+                time: '15:45',
+                client: 'Fatou Traoré',
+                clientId: 3,
+                creditReference: 'CRED-2024-007',
+                amount: 1800,
+                type: 'daily',
+                creditTotal: 35000,
+                creditPaid: 21000,
+                creditRemaining: 14000,
+                paymentProgress: 60
+            },
+            {
+                id: 'REC-2024-007',
+                date: '2024-01-16',
+                time: '16:20',
+                client: 'Amadou Bamba',
+                clientId: 4,
+                creditReference: 'CRED-2024-002',
+                amount: 5000,
+                type: 'complete',
+                creditTotal: 20000,
+                creditPaid: 20000,
+                creditRemaining: 0,
+                paymentProgress: 100
+            },
+            {
+                id: 'REC-2024-008',
+                date: '2024-01-16',
+                time: '17:00',
+                client: 'Aya Diabaté',
+                clientId: 5,
+                creditReference: 'CRED-2024-008',
+                amount: 2000,
+                type: 'daily',
+                creditTotal: 40000,
+                creditPaid: 30000,
+                creditRemaining: 10000,
+                paymentProgress: 75
+            },
+            {
+                id: 'REC-2024-009',
+                date: '2024-01-15',
+                time: '14:30',
+                client: 'Marie Kouassi',
+                clientId: 1,
+                creditReference: 'CRED-2024-012',
+                amount: 3500,
+                type: 'partial',
+                creditTotal: 45000,
+                creditPaid: 25000,
+                creditRemaining: 20000,
+                paymentProgress: 56
+            },
+            {
+                id: 'REC-2024-010',
+                date: '2024-01-15',
+                time: '11:00',
+                client: 'Jean Koffi',
+                clientId: 2,
+                creditReference: 'CRED-2024-009',
+                amount: 2000,
+                type: 'advance',
+                creditTotal: 0,
+                creditPaid: 0,
+                creditRemaining: 0,
+                paymentProgress: 0
+            }
+        ];
+
+        let filteredRecouvrements = [...recouvrements];
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRecouvrements();
+            updateStats();
+            animateElements();
+        });
+
+        // Charger les recouvrements
+        function loadRecouvrements() {
+            const recouvrementsListe = document.getElementById('recouvrementsListe');
+            recouvrementsListe.innerHTML = '';
+            
+            if (filteredRecouvrements.length === 0) {
+                recouvrementsListe.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💰</div>
+                        <div class="empty-title">Aucun recouvrement trouvé</div>
+                        <div class="empty-message">
+                            Aucun recouvrement ne correspond à vos critères de recherche.
+                            Essayez de modifier vos filtres ou effectuez un nouveau recouvrement.
+                        </div>
+                        <button class="empty-action" onclick="newRecouvrement()">
+                            Nouveau Recouvrement
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredRecouvrements.forEach(recouvrement => {
+                const recouvrementElement = createRecouvrementElement(recouvrement);
+                recouvrementsListe.appendChild(recouvrementElement);
+            });
+            
+            document.getElementById('listCount').textContent = filteredRecouvrements.length;
+        }
+
+        // Créer un élément recouvrement
+        function createRecouvrementElement(recouvrement) {
+            const div = document.createElement('div');
+            div.className = 'recouvrement-item';
+            div.onclick = () => showRecouvrementDetail(recouvrement);
+            
+            const date = new Date(recouvrement.date);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = date.toLocaleDateString('fr-FR', { month: 'short' }).toUpperCase();
+            
+            let typeClass = 'type-daily';
+            let typeText = 'Mise journalière';
+            
+            switch (recouvrement.type) {
+                case 'partial':
+                    typeClass = 'type-partial';
+                    typeText = 'Paiement partiel';
+                    break;
+                case 'complete':
+                    typeClass = 'type-complete';
+                    typeText = 'Solde complet';
+                    break;
+                case 'advance':
+                    typeClass = 'type-advance';
+                    typeText = 'Avance';
+                    break;
+            }
+            
+            div.innerHTML = `
+                <div class="recouvrement-date">
+                    <div class="date-day">${day}</div>
+                    <div class="date-month">${month}</div>
+                </div>
+                <div class="recouvrement-info">
+                    <div class="recouvrement-reference">${recouvrement.id}</div>
+                    <div class="recouvrement-client">${recouvrement.client}</div>
+                    <div class="recouvrement-details">${recouvrement.time} • ${recouvrement.creditReference}</div>
+                </div>
+                <div class="recouvrement-amount">
+                    <div class="amount-value">${recouvrement.amount.toLocaleString()} FCFA</div>
+                    <div class="amount-type ${typeClass}">${typeText}</div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Filtrer les recouvrements
+        function filterRecouvrements() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilter').value;
+            const periodFilter = document.getElementById('periodFilter').value;
+            
+            filteredRecouvrements = recouvrements.filter(recouvrement => {
+                // Filtre de recherche
+                const matchesSearch = !searchTerm || 
+                    recouvrement.client.toLowerCase().includes(searchTerm) ||
+                    recouvrement.id.toLowerCase().includes(searchTerm) ||
+                    recouvrement.creditReference.toLowerCase().includes(searchTerm);
+                
+                // Filtre de type
+                const matchesType = !typeFilter || recouvrement.type === typeFilter;
+                
+                // Filtre de période
+                let matchesPeriod = true;
+                if (periodFilter) {
+                    const recouvrementDate = new Date(recouvrement.date);
+                    const today = new Date();
+                    
+                    switch (periodFilter) {
+                        case 'today':
+                            matchesPeriod = recouvrementDate.toDateString() === today.toDateString();
+                            break;
+                        case 'week':
+                            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            matchesPeriod = recouvrementDate >= weekAgo;
+                            break;
+                        case 'month':
+                            const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            matchesPeriod = recouvrementDate >= monthAgo;
+                            break;
+                    }
+                }
+                
+                return matchesSearch && matchesType && matchesPeriod;
+            });
+            
+            loadRecouvrements();
+            updateStats();
+        }
+
+        // Mettre à jour les statistiques
+        function updateStats() {
+            const total = filteredRecouvrements.length;
+            const today = filteredRecouvrements.filter(r => {
+                const recDate = new Date(r.date);
+                const todayDate = new Date();
+                return recDate.toDateString() === todayDate.toDateString();
+            }).length;
+            const totalAmount = filteredRecouvrements.reduce((sum, r) => sum + r.amount, 0);
+            
+            document.getElementById('totalRecouvrements').textContent = total;
+            document.getElementById('todayRecouvrements').textContent = today;
+            document.getElementById('totalAmount').textContent = (totalAmount / 1000).toFixed(0) + 'K';
+        }
+
+        // Afficher le détail d'un recouvrement
+        function showRecouvrementDetail(recouvrement) {
+            const modal = document.getElementById('detailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.textContent = `Recouvrement ${recouvrement.id}`;
+            
+            const date = new Date(recouvrement.date).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            let typeText = 'Mise journalière';
+            let typeColor = 'var(--success-color)';
+            
+            switch (recouvrement.type) {
+                case 'partial':
+                    typeText = 'Paiement partiel';
+                    typeColor = 'var(--warning-color)';
+                    break;
+                case 'complete':
+                    typeText = 'Solde complet';
+                    typeColor = 'var(--info-color)';
+                    break;
+                case 'advance':
+                    typeText = 'Avance';
+                    typeColor = '#9C27B0';
+                    break;
+            }
+            
+            modalBody.innerHTML = `
+                <div class="detail-section">
+                    <div class="detail-label">Date et heure</div>
+                    <div class="detail-value">${date} à ${recouvrement.time}</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-label">Client</div>
+                    <div class="detail-value">${recouvrement.client}</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-label">Type de paiement</div>
+                    <div class="detail-value" style="color: ${typeColor}">${typeText}</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-label">Montant collecté</div>
+                    <div class="detail-value" style="font-size: var(--font-size-h3); color: var(--success-color);">
+                        ${recouvrement.amount.toLocaleString()} FCFA
+                    </div>
+                </div>
+                
+                ${recouvrement.type !== 'advance' ? `
+                <div class="detail-section">
+                    <div class="detail-label">Crédit associé</div>
+                    <div class="detail-value">${recouvrement.creditReference}</div>
+                    
+                    <div class="credit-info">
+                        <div class="credit-amounts">
+                            <div class="credit-amount-item">
+                                <div class="credit-amount-label">Total</div>
+                                <div class="credit-amount-value amount-total">${recouvrement.creditTotal.toLocaleString()}</div>
+                            </div>
+                            <div class="credit-amount-item">
+                                <div class="credit-amount-label">Payé</div>
+                                <div class="credit-amount-value amount-paid">${recouvrement.creditPaid.toLocaleString()}</div>
+                            </div>
+                            <div class="credit-amount-item">
+                                <div class="credit-amount-label">Restant</div>
+                                <div class="credit-amount-value amount-remaining">${recouvrement.creditRemaining.toLocaleString()}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-progress">
+                            <div class="progress-bar-detail">
+                                <div class="progress-fill-detail" style="width: ${recouvrement.paymentProgress}%"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span>Progression du crédit</span>
+                                <span>${recouvrement.paymentProgress}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            modal.style.display = 'flex';
+        }
+
+        // Fermer le modal
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // Nouveau recouvrement
+        function newRecouvrement() {
+            window.location.href = 'EC008-recouvrement.html';
+        }
+
+        // Afficher les filtres (pour mobile)
+        function showFilters() {
+            showNotification('Filtres avancés', 'info');
+        }
+
+        // Retour
+        function goBack() {
+            window.history.back();
+        }
+
+        // Animer les éléments au chargement
+        function animateElements() {
+            const elements = document.querySelectorAll('.stat-card, .search-section, .recouvrements-list');
+            elements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    element.style.transition = 'all 0.6s ease';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        }
+
+        // Fonction pour afficher les notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.zIndex = '2000';
+            notification.style.maxWidth = '90%';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Fermer le modal en cliquant à l'extérieur
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Gestion du bouton retour sur mobile
+        window.addEventListener('popstate', function(e) {
+            if (document.getElementById('detailModal').style.display === 'flex') {
+                closeModal();
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
+

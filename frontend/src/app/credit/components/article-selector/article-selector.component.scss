@@ -1,0 +1,546 @@
+.article-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.article-group {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 1rem;
+  align-items: start;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #003366;
+    box-shadow: 0 2px 4px rgba(0, 51, 102, 0.1);
+  }
+
+  // Indication visuelle si le stock est dépassé
+  &.stock-exceeded {
+    border-color: #dc3545;
+    background: #fff5f5;
+  }
+
+  // Layout simple pour inventory (sans colonnes de prix)
+  &.simple-layout {
+    grid-template-columns: 2fr 1fr auto;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  label {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #495057;
+    margin-bottom: 0.25rem;
+  }
+
+  .form-control {
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease-in-out;
+
+    &:focus {
+      outline: none;
+      border-color: #003366;
+      box-shadow: 0 0 0 0.2rem rgba(0, 51, 102, 0.25);
+    }
+
+    &[readonly] {
+      background-color: #e9ecef;
+      cursor: not-allowed;
+    }
+  }
+
+  mat-error {
+    font-size: 0.75rem;
+    color: #dc3545;
+    margin-top: 0.25rem;
+  }
+}
+
+.article-field {
+  min-width: 200px;
+}
+
+.quantity-field {
+  max-width: 120px;
+}
+
+.price-field,
+.subtotal-field {
+  max-width: 150px;
+}
+
+.price-display,
+.subtotal-display {
+  padding: 0.5rem;
+  background: #ffffff;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #003366;
+  text-align: right;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.subtotal-display {
+  background: #e3f2fd;
+  border-color: #90caf9;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.option-title {
+  font-weight: 500;
+  color: #212529;
+}
+
+.option-details {
+  color: #6c757d;
+  font-size: 0.75rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  mat-icon {
+    font-size: 1.25rem;
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-remove {
+  background-color: #dc3545;
+  color: white;
+  align-self: center;
+  padding: 0.5rem;
+
+  &:hover:not(:disabled) {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+  }
+
+  mat-icon {
+    margin: 0;
+  }
+}
+
+.btn-add {
+  background-color: #28a745;
+  color: white;
+  align-self: flex-start;
+  margin-top: 0.5rem;
+
+  &:hover:not(:disabled) {
+    background-color: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+  }
+}
+
+// Section du total
+.total-section {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 1rem;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, #003366 0%, #004d99 100%);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 51, 102, 0.2);
+
+  .total-label {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .total-amount {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #ffd700;
+    padding: 0.5rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    min-width: 200px;
+    text-align: right;
+  }
+}
+
+@media (max-width: 1200px) {
+  .article-group {
+    grid-template-columns: 1fr 100px 120px 120px auto;
+    gap: 0.75rem;
+
+    &.simple-layout {
+      grid-template-columns: 1fr 100px auto;
+    }
+  }
+
+  .total-section {
+    .total-label {
+      font-size: 1.1rem;
+    }
+
+    .total-amount {
+      font-size: 1.5rem;
+      min-width: 150px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .article-group {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+
+    &.simple-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .quantity-field,
+  .price-field,
+  .subtotal-field {
+    max-width: 100%;
+  }
+
+  .btn-remove {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .total-section {
+    flex-direction: column;
+    text-align: center;
+
+    .total-label {
+      font-size: 1rem;
+    }
+
+    .total-amount {
+      font-size: 1.5rem;
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
+
+
+// ============================================
+// BADGES ET INDICATEURS DE STOCK
+// ============================================
+
+// Badge dans l'article sélectionné (ng-select label)
+.stock-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  &.stock-empty {
+    background: #dc3545;
+    color: white;
+    animation: pulse-red 2s ease-in-out infinite;
+  }
+
+  &.stock-low {
+    background: #ffc107;
+    color: #000;
+    animation: pulse-yellow 2s ease-in-out infinite;
+  }
+
+  &.stock-medium {
+    background: #17a2b8;
+    color: white;
+  }
+
+  &.stock-good {
+    background: #28a745;
+    color: white;
+  }
+}
+
+// Info dans le dropdown (ng-select options)
+.stock-info {
+  display: inline;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding-left: 0.25rem;
+
+  &.stock-empty {
+    color: #dc3545;
+  }
+
+  &.stock-low {
+    color: #ffc107;
+  }
+
+  &.stock-medium {
+    color: #17a2b8;
+  }
+
+  &.stock-good {
+    color: #28a745;
+  }
+}
+
+// Indicateur X / Y à côté du champ quantité
+.stock-indicator {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &.stock-empty {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+  }
+
+  &.stock-low {
+    color: #856404;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+  }
+
+  &.stock-medium {
+    color: #0c5460;
+    background: rgba(23, 162, 184, 0.1);
+    border: 1px solid rgba(23, 162, 184, 0.3);
+  }
+
+  &.stock-good {
+    color: #155724;
+    background: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+  }
+}
+
+// Input avec bordure rouge quand stock dépassé
+.stock-warning {
+  border-color: #dc3545 !important;
+  background: #fff5f5 !important;
+
+  &:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+  }
+}
+
+// Ligne complète avec fond rose quand stock dépassé
+// IMPORTANT: Cette classe ne doit être appliquée QUE si validateStock est true
+// En mode inventory, on AJOUTE au stock, donc pas de warning
+.article-group.stock-exceeded {
+  border-color: #dc3545 !important;
+  background: #fff5f5 !important;
+  position: relative;
+
+  // Badge "Stock insuffisant" seulement si validation activée
+  &.with-validation::before {
+    content: '⚠️ Stock insuffisant';
+    position: absolute;
+    top: -12px;
+    right: 10px;
+    background: #dc3545;
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    z-index: 10;
+    animation: shake 0.5s ease-in-out;
+  }
+
+  &:hover {
+    border-color: #dc3545 !important;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
+  }
+}
+
+// Animations
+@keyframes pulse-red {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(220, 53, 69, 0);
+  }
+}
+
+@keyframes pulse-yellow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+// Classes de couleur individuelles (pour usage direct)
+.stock-empty {
+  color: #dc3545;
+}
+
+.stock-low {
+  color: #ffc107;
+}
+
+.stock-medium {
+  color: #17a2b8;
+}
+
+.stock-good {
+  color: #28a745;
+}
+
+// Versions avec background
+.bg-stock-empty {
+  background: #dc3545;
+  color: white;
+}
+
+.bg-stock-low {
+  background: #ffc107;
+  color: #000;
+}
+
+.bg-stock-medium {
+  background: #17a2b8;
+  color: white;
+}
+
+.bg-stock-good {
+  background: #28a745;
+  color: white;
+}
+
+// Wrapper pour le champ quantité avec indicateur
+.quantity-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .form-control {
+    flex: 1;
+  }
+
+  .stock-indicator {
+    flex-shrink: 0;
+  }
+}
+
+// Style pour les options dans ng-select
+.article-option {
+  .option-title {
+    font-weight: 500;
+    color: #212529;
+    margin-bottom: 0.25rem;
+  }
+
+  .option-details {
+    color: #6c757d;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+}
+
+// Style pour l'article sélectionné dans ng-select
+.selected-article {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+
+  .stock-badge {
+    margin-left: auto;
+  }
+}
+
+// Messages d'erreur pour le stock
+mat-error {
+  &.stock-error {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 600;
+
+    &::before {
+      content: '⚠️';
+      font-size: 1rem;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .stock-badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .stock-indicator {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .article-group.stock-exceeded::before {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    top: -10px;
+  }
+}

@@ -1,0 +1,103 @@
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #003366;
+}
+
+.container {
+  background-color: white;
+  border-radius: 5px;
+  padding-top: 40px;
+}
+
+/* Style de base pour la nouvelle barre de recherche */
+.form-control {
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+.w-50 {
+  width: 50%;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px; /* Espacement entre les boutons */
+}
+
+.refresh-button, .add {
+  color: white;
+  background-color: #003366;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 20px;
+    margin-right: 5px;
+    color: white;
+  }
+}
+
+/* Le style de la table reste inchangé */
+.article-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+
+  thead {
+    background-color: #ddd;
+    color: #003366;
+    text-align: center;
+
+    th {
+      padding: 12px;
+      text-align: center;
+    }
+  }
+
+  tbody {
+    tr {
+      &:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      &:hover {
+        background-color: #ddd;
+      }
+
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+        vertical-align: middle;
+        text-align: center;
+
+        button {
+          margin-right: 5px;
+          padding: 5px 10px;
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+          font-size: 14px;
+
+
+          &:nth-child(3) {
+            background-color: transparent;
+            color: #f44336;
+          }
+        }
+      }
+    }
+  }
+}

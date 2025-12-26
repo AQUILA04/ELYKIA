@@ -1,0 +1,269 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/clients"></ion-back-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="presentPopover($event)">
+        <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ng-container *ngIf="client$ | async as client">
+    <div class="client-header-content">
+      <ion-avatar class="client-photo-large" (click)="onAvatarClick(client)">
+        <img [src]="client.photoUrl" *ngIf="client.photoUrl; else initials">
+        <ng-template #initials>
+          <div class="initials-placeholder">{{ client.firstname?.charAt(0) }}{{ client.lastname?.charAt(0) }}</div>
+        </ng-template>
+      </ion-avatar>
+      <h1 class="client-name-large">{{ client.firstname }} {{ client.lastname }}</h1>
+      <p class="client-basic-info">
+              {{ client.address }}<br>
+              {{ client.phone }} <ion-icon name="call" (click)="callClient(client.phone)" class="call-icon"></ion-icon>      </p>
+    </div>
+  </ng-container>
+
+  <ion-toolbar class="header-toolbar segment-toolbar">
+    <ion-segment [(ngModel)]="selectedTab">
+      <ion-segment-button value="informations">
+        <ion-label>Informations</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="credits">
+        <ion-label>Crédits</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="historique">
+        <ion-label>Historique</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ng-container *ngIf="client$ | async as client">
+    <div [ngSwitch]="selectedTab" class="ion-padding">
+
+      <!-- Onglet Informations -->
+      <div *ngSwitchCase="'informations'">
+        <ion-list lines="none" class="info-list">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="person-outline"></ion-icon>
+                Informations Personnelles
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="info-row">
+                <span class="info-label">Prénom</span>
+                <span class="info-value">{{ client.firstname }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Nom</span>
+                <span class="info-value">{{ client.lastname }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Né(e) le</span>
+                <span class="info-value">{{ client.dateOfBirth | date: 'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Profession</span>
+                <span class="info-value">{{ client.occupation }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Code</span>
+                <span class="info-value">{{ client.code }}</span>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="call-outline" ></ion-icon>
+                Contact
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="info-row">
+                <span class="info-label">Téléphone</span>
+                <span class="info-value">{{ client.phone }} <ion-icon name="call" (click)="callClient(client.phone)" class="call-icon"></ion-icon></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Adresse</span>
+                <span class="info-value">{{ client.address }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Zone</span>
+                <span class="info-value">{{ client.quarter }}</span>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="card-outline"></ion-icon>
+                Pièce d'Identité
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="info-row">
+                <span class="info-label">Type</span>
+                <span class="info-value">{{ client.cardType }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Numéro</span>
+                <span class="info-value">{{ client.cardID }}</span>
+              </div>
+              <ion-button *ngIf="client.cardPhoto" expand="block" fill="outline" class="ion-margin-top" (click)="openCardPreview(client)">
+                <ion-icon slot="start" name="eye-outline"></ion-icon>
+                Voir la photo de la pièce
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="alert-circle-outline" ></ion-icon>
+                Personne à Contacter
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="info-row">
+                <span class="info-label">Nom</span>
+                <span class="info-value">{{ client.contactPersonName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Téléphone</span>
+                <span class="info-value">{{ client.contactPersonPhone }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Adresse</span>
+                <span class="info-value">{{ client.contactPersonAddress }}</span>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="wallet-outline"></ion-icon>
+                Compte
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="info-row">
+                <span class="info-label">Numéro de compte</span>
+                <span class="info-value">{{ client.account?.accountNumber }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Solde</span>
+                <span class="info-value">{{ client.account?.accountBalance | currency:'XOF':'symbol':'1.0-0' }}</span>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="location-outline" ></ion-icon>
+                Géolocalisation
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="info-row">
+                <span class="info-label">Coordonnées</span>
+                <span class="info-value">{{ client.latitude ?? '0.0' | number:'1.4-4'}}, {{ client.longitude ?? '0.0' | number:'1.4-4' }}</span>
+              </div>
+              <ion-button expand="block" fill="outline" class="map-button" (click)="openMapPreview(client)">
+                <ion-icon name="map-outline" slot="start"></ion-icon>
+                Voir sur la carte
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        </ion-list>
+      </div>
+
+      <!-- Onglet Crédits -->
+      <div *ngSwitchCase="'credits'">
+        <ng-container *ngIf="credits$ | async as credits">
+          <div *ngIf="credits.length === 0" class="empty-state">
+            <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
+            <h2>Aucun crédit en cours</h2>
+            <p>Ce client n'a pas de distribution de crédit active.</p>
+          </div>
+          <ion-list *ngIf="credits.length > 0" lines="none" class="credit-list">
+            <ion-card *ngFor="let credit of credits" class="credit-card" (click)="goToRecouvrement(credit)">
+              <ion-card-header>
+                <div class="credit-header-line">
+                  <ion-card-title>{{ credit.reference }}</ion-card-title>
+                  <ion-badge [color]="credit.status === 'INPROGRESS' ? 'warning' : 'success'">{{ credit.status }}</ion-badge>
+                </div>
+              </ion-card-header>
+              <ion-card-content>
+                <div class="credit-amounts">
+                  <div class="amount-item">
+                    <span class="amount-label">Montant Total</span>
+                    <span class="amount-value amount-total">{{ credit.totalAmount | currency:'XOF':'symbol':'1.0-0' }}</span>
+                  </div>
+                  <div class="amount-item">
+                    <span class="amount-label">Payé</span>
+                    <span class="amount-value amount-paid">{{ credit.paidAmount || 0 | currency:'XOF':'symbol':'1.0-0' }}</span>
+                  </div>
+                </div>
+                <div class="progress-section">
+                  <ion-progress-bar [value]="((credit.paidAmount / credit.totalAmount) * 100)"></ion-progress-bar>
+                  <span class="progress-label">{{ (credit.paidAmount / credit.totalAmount) * 100 || 0 | number:'1.0-0' }}%</span>
+                </div>
+                <div class="credit-footer">
+                    <div class="amount-item">
+                        <span class="amount-label">Restant</span>
+                        <span class="amount-value amount-remaining">{{ credit.remainingAmount | currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="amount-item">
+                        <span class="amount-label">Mise/jour</span>
+                        <span class="amount-value">{{ credit.dailyPayment | currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                </div>
+                <div class="credit-dates">
+                  <span>Début: {{ credit.startDate | date:'dd/MM/yy' }}</span>
+                  <span>Échéance: {{ getDisplayDate(credit) }}</span>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-list>
+        </ng-container>
+      </div>
+
+      <!-- Onglet Historique -->
+      <div *ngSwitchCase="'historique'">
+        <ng-container *ngIf="history$ | async as history">
+          <div *ngIf="history.length === 0" class="empty-state">
+            <ion-icon name="archive-outline" class="empty-icon"></ion-icon>
+            <h2>Aucun historique</h2>
+            <p>Aucune transaction n'a été enregistrée pour ce client.</p>
+          </div>
+          <div class="timeline" *ngIf="history.length > 0">
+            <div *ngFor="let item of history" class="timeline-item">
+              <div class="timeline-icon" [ngClass]="item.type">
+                <ion-icon [name]="item.type === 'distribution' ? 'arrow-down-circle' : 'arrow-up-circle'"></ion-icon>
+              </div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <span class="timeline-title">{{ item.details }}</span>
+                  <span class="timeline-date">{{ item.date | date:'dd/MM/yy HH:mm' }}</span>
+                </div>
+                <p class="timeline-details">Ref: {{ item.referenceId }}</p>
+                <span class="timeline-amount" [ngClass]="item.type">{{ item.amount | currency:'FCFA':'symbol':'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+    </div>
+  </ng-container>
+</ion-content>

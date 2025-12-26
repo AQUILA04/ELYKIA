@@ -1,0 +1,26 @@
+/* breadcrumb.component.scss */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+  position: relative; 
+  top: 60px; 
+  z-index: 900;
+
+  .breadcrumb-item {
+    margin-right: 10px;
+    color: #007bff;
+    text-decoration: none;
+
+    &:not(:last-child)::after {
+      content: '>';
+      margin-left: 10px;
+    }
+  }
+
+  .breadcrumb-item.active {
+    color: #6c757d;
+  }
+}

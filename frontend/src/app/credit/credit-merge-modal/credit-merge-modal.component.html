@@ -1,0 +1,85 @@
+<!-- Debug: Simple Modal Test -->
+<div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+  <div style="background: white; padding: 30px; border-radius: 8px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="margin: 0; color: #003366;">Fusion des Crédits</h2>
+      <button (click)="closeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; padding: 5px;">×</button>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <p><strong>Debug Info:</strong></p>
+      <p>Collectors reçus: {{ collectors.length }}</p>
+      <p>Selected Commercial: {{ selectedCommercial }}</p>
+      <p>Loading: {{ loading }}</p>
+      <p>Mergeable Credits: {{ mergeableCredits.length }}</p>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 8px; font-weight: bold;">Sélectionner un commercial :</label>
+      <select 
+        [(ngModel)]="selectedCommercial"
+        (change)="onCommercialChange()"
+        [disabled]="loading"
+        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        <option value="">-- Choisir un commercial --</option>
+        <option *ngFor="let collector of collectors" [value]="collector.username">
+          {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
+        </option>
+      </select>
+    </div>
+
+    <div *ngIf="loading" style="text-align: center; padding: 20px;">
+      <p>Chargement des crédits...</p>
+    </div>
+
+    <div *ngIf="!loading && selectedCommercial" style="margin-bottom: 20px;">
+      <h3>Crédits fusionnables ({{ mergeableCredits.length }})</h3>
+      
+      <div *ngIf="mergeableCredits && mergeableCredits.length === 0" style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 4px;">
+        <p>Aucun crédit fusionnable trouvé pour ce commercial</p>
+      </div>
+
+      <div *ngIf="mergeableCredits && mergeableCredits.length > 0" style="border: 1px solid #ddd; border-radius: 4px; max-height: 300px; overflow-y: auto;">
+        <div *ngFor="let credit of mergeableCredits" style="display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee;">
+          <input 
+            type="checkbox" 
+            [id]="'credit-' + credit.id"
+            [value]="credit.id"
+            [checked]="selectedCreditIds.includes(credit.id)"
+            (change)="onCreditSelection(credit.id, $any($event.target).checked)"
+            [disabled]="merging"
+            style="margin-right: 15px;">
+          <div>
+            <div style="font-weight: bold; color: #003366;">{{ credit.reference }}</div>
+            <div style="font-size: 14px; color: #666;">
+              {{ credit.beginDate | date: 'dd/MM/yyyy' }} - {{ credit.totalAmount | currency: 'XOF':'symbol':'1.0-0' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+      <div *ngIf="selectedCreditsCount > 0" style="color: #666;">
+        {{ selectedCreditsCount }} crédit(s) sélectionné(s)
+      </div>
+      
+      <div style="display: flex; gap: 10px;">
+        <button 
+          (click)="closeModal()"
+          [disabled]="merging"
+          style="padding: 10px 20px; border: none; border-radius: 4px; background: #6c757d; color: white; cursor: pointer;">
+          Annuler
+        </button>
+        
+        <button 
+          (click)="mergeCreditsList()"
+          [disabled]="!canMerge"
+          style="padding: 10px 20px; border: none; border-radius: 4px; background: #003366; color: white; cursor: pointer;">
+          <span *ngIf="!merging">Fusionner ({{ selectedCreditsCount }})</span>
+          <span *ngIf="merging">Fusion en cours...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

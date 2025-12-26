@@ -1,0 +1,94 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.kpi-card {
+  height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #EAECEE;
+  border-left-width: 4px;
+  transition: all 0.2s ease-in-out;
+  background: white;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+
+  // Couleurs de la bordure gauche et de l'icône
+  &.kpi-card--primary { border-left-color: #5D6D7E; .kpi-icon { color: #5D6D7E; } }
+  &.kpi-card--success { border-left-color: #388e3c; .kpi-icon { color: #388e3c; } }
+  &.kpi-card--warning { border-left-color: #f57c00; .kpi-icon { color: #f57c00; } }
+  &.kpi-card--info    { border-left-color: #1976d2; .kpi-icon { color: #1976d2; } }
+  &.kpi-card--danger   { border-left-color: #d32f2f; .kpi-icon { color: #d32f2f; } }
+}
+
+// Conteneur principal qui organise les deux lignes
+.kpi-card-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box; // Empêche le padding de causer des débordements
+}
+
+// Ligne du haut : Icône + Titre
+.kpi-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kpi-icon {
+  font-size: 20px;
+}
+
+.kpi-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #7F8C8D; // Couleur grise comme sur l'image
+}
+
+// Ligne du bas : Valeur + Sous-titre
+.kpi-body {
+  margin-top: auto; // Pousse le body vers le bas pour remplir l'espace
+  padding-top: 12px; // Espace de sécurité avec le header
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+// CORRECTION : La disposition est changée pour être en colonne (verticale)
+.kpi-body-content {
+  display: flex;
+  flex-direction: column; // Aligne les éléments verticalement
+  align-items: flex-start; // Aligne les éléments à gauche
+  justify-content: center;
+  width: 100%;
+}
+
+.kpi-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #2C3E50;
+  line-height: 1.2; // Ajout d'un peu d'espace
+}
+
+.kpi-subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #7F8C8D; // Couleur grise
+  margin-top: 4px; // Ajoute un petit espace avec la valeur au-dessus
+}
+
+.kpi-loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+

@@ -1,0 +1,94 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container">
+  <div class="header-fixed">
+    <div class="d-flex justify-content-center">
+      <h1>Inventaires</h1>
+    </div>
+  </div>
+
+  <div *ngIf="isGestionnaire && stockValues" class="stock-summary-container mb-4">
+    <div class="summary-card">
+      <div class="card-title">Prix Total Achat</div>
+      <div class="card-value purchase-value">
+        {{ stockValues.purchaseTotal | currency:'XOF':'symbol':'1.0-0' }}
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="card-title"> Prix total Vente </div>
+      <div class="card-value credit-value">
+        {{ stockValues.creditSaleTotal | currency:'XOF':'symbol':'1.0-0' }}
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="card-title">Total écart</div>
+      <div class="card-value combined-value">
+        {{ stockValues.combinedTotal | currency:'XOF':'symbol':'1.0-0' }}
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <input
+      type="text"
+      placeholder="Rechercher..."
+      [(ngModel)]="searchTerm"
+      (input)="onSearch()"
+      class="form-control w-50"
+    />
+    <div class="button-group">
+      <button class="btn refresh-button btn-sm" (click)="refresh()">
+        <mat-icon>refresh</mat-icon>
+        <span>Rafraîchir</span>
+      </button>
+      &nbsp;
+      <button class="btn add btn-sm" (click)="addItem()">
+        <mat-icon>add</mat-icon>
+        <span>Entrées</span>
+      </button>
+
+      <button *ngxPermissionsOnly="['ROLE_REPORT']" class="btn btn-danger btn-sm" (click)="resetAllStock()">
+        <mat-icon>autorenew</mat-icon>
+        <span>Reset Stock</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="article-table">
+      <thead>
+      <tr>
+        <th>#</th>
+        <th>Nom</th>
+        <th>Marque</th>
+        <th>Modèle</th>
+        <th>Type</th>
+        <th>Quantité en stock</th>
+        <th>Action</th> </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let inventory of filteredInventory; let i = index">
+        <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+        <td>{{ inventory.name }}</td>
+        <td>{{ inventory.marque }}</td>
+        <td>{{ inventory.model }}</td>
+        <td>{{ inventory.type }}</td>
+        <td>{{ inventory.stockQuantity }}</td>
+        <td class="action-buttons">
+          <button *ngxPermissionsOnly="['ROLE_REPORT']" mat-icon-button matTooltip="Reset stock article" (click)="resetStockForArticle(inventory.id, inventory.name)">
+            <mat-icon>autorenew</mat-icon>
+          </button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <mat-paginator
+    [length]="totalElements"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[5, 10, 25, 100]"
+    (page)="onPageChange($event)"
+  >
+  </mat-paginator>
+</div>

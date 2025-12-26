@@ -1,0 +1,119 @@
+<div class="modal-header">
+  <h2 mat-dialog-title>Préparer la Livraison - {{ member.client.firstname }} {{ member.client.lastname }}</h2>
+  <button mat-icon-button (click)="onCancel()" class="close-button">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="modal-content">
+  <!-- Montants -->
+  <div class="amounts-section">
+    <div class="amount-card available">
+      <div class="label">Montant disponible</div>
+      <div class="value">{{ formatCurrency(member.totalContribution) }}</div>
+    </div>
+    <div class="amount-card remaining" [class.negative]="remainingBalance < 0">
+      <div class="label">Solde restant</div>
+      <div class="value">{{ formatCurrency(remainingBalance) }}</div>
+    </div>
+  </div>
+
+  <!-- Recherche d'articles -->
+  <div class="search-section">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Rechercher un article</mat-label>
+      <input 
+        matInput 
+        [formControl]="searchControl" 
+        [matAutocomplete]="articleAuto"
+        placeholder="Code ou nom de l'article">
+      <mat-icon matPrefix>search</mat-icon>
+      
+      <mat-autocomplete 
+        #articleAuto="matAutocomplete"
+        [displayWith]="displayArticle"
+        (optionSelected)="onArticleSelected($event.option.value)">
+        <mat-option 
+          *ngFor="let article of filteredArticles$ | async" 
+          [value]="article">
+          <div class="article-option">
+            <div class="article-info">
+              <span class="article-code">{{ article.code }}</span>
+              <span class="article-name">{{ article.name }}</span>
+            </div>
+            <span class="article-price">{{ formatCurrency(article.sellingPrice) }}</span>
+          </div>
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+
+  <!-- Articles sélectionnés -->
+  <div class="selected-section">
+    <h3>Articles sélectionnés</h3>
+
+    <div *ngIf="selectedArticles.length === 0" class="empty-state">
+      <mat-icon>shopping_cart</mat-icon>
+      <p>Aucun article sélectionné</p>
+    </div>
+
+    <table *ngIf="selectedArticles.length > 0" class="articles-table">
+      <thead>
+        <tr>
+          <th>Article</th>
+          <th>Prix unitaire</th>
+          <th>Quantité</th>
+          <th>Total</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let selected of selectedArticles">
+          <td>
+            <div class="article-cell">
+              <span class="code">{{ selected.article.code }}</span>
+              <span class="name">{{ selected.article.name }}</span>
+            </div>
+          </td>
+          <td>{{ formatCurrency(selected.article.sellingPrice) }}</td>
+          <td>
+            <div class="quantity-controls">
+              <button mat-icon-button (click)="updateQuantity(selected, -1)" [disabled]="selected.quantity <= 1">
+                <mat-icon>remove</mat-icon>
+              </button>
+              <span class="quantity">{{ selected.quantity }}</span>
+              <button mat-icon-button (click)="updateQuantity(selected, 1)">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+          </td>
+          <td class="total-cell">{{ formatCurrency(selected.totalPrice) }}</td>
+          <td>
+            <button mat-icon-button color="warn" (click)="removeArticle(selected)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3" class="total-label">TOTAL</td>
+          <td colspan="2" class="total-value">{{ formatCurrency(totalAmount) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Message d'erreur -->
+  <div *ngIf="remainingBalance < 0" class="error-message">
+    <mat-icon>error</mat-icon>
+    <span>Le montant total dépasse le montant disponible. Veuillez retirer ou modifier des articles.</span>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Annuler</button>
+  <button mat-raised-button color="primary" (click)="onValidate()" [disabled]="!isValid">
+    Valider la Livraison
+  </button>
+</mat-dialog-actions>

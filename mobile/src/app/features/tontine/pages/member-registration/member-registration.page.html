@@ -1,0 +1,99 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+                <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>Nouvel Enregistrement</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+    <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+
+        <!-- Client Selection Section -->
+        <div class="section-header">
+            <ion-icon name="person-outline"></ion-icon>
+            <h2>Sélection du Client</h2>
+        </div>
+
+        <div class="client-selector-card" *ngIf="!selectedClient" (click)="selectClient()">
+            <ion-icon name="add-circle-outline" class="add-icon"></ion-icon>
+            <p class="selector-text">Appuyez pour sélectionner un client</p>
+        </div>
+
+        <div class="selected-client-card" *ngIf="selectedClient">
+            <div class="client-info">
+                <div class="client-avatar">
+                    <span>{{getClientDisplayName().substring(0, 2).toUpperCase()}}</span>
+                </div>
+                <div class="client-details">
+                    <h3>{{getClientDisplayName()}}</h3>
+                    <p>{{getClientInfo()}}</p>
+                </div>
+            </div>
+            <ion-button fill="clear" color="danger" (click)="removeClient()">
+                <ion-icon slot="icon-only" name="close-circle"></ion-icon>
+            </ion-button>
+        </div>
+
+        <!-- Frequency Section -->
+        <div class="section-header">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <h2>Fréquence de Cotisation</h2>
+        </div>
+
+        <ion-list class="frequency-list">
+            <ion-radio-group formControlName="frequency">
+                <ion-item *ngFor="let option of frequencyOptions" lines="none" class="frequency-item">
+                    <ion-radio [value]="option.value" slot="start"></ion-radio>
+                    <ion-label>
+                        <h3>{{option.label}}</h3>
+                    </ion-label>
+                    <ion-icon *ngIf="registrationForm.get('frequency')?.value === option.value" name="checkmark-circle"
+                        color="success" slot="end">
+                    </ion-icon>
+                </ion-item>
+            </ion-radio-group>
+        </ion-list>
+
+        <!-- Amount Section -->
+        <div class="section-header">
+            <ion-icon name="cash-outline"></ion-icon>
+            <h2>Montant par Échéance</h2>
+        </div>
+
+        <ion-item class="amount-input" lines="none">
+            <ion-input type="number" formControlName="amount" placeholder="Entrez le montant" min="200" max="500000" step="100">
+            </ion-input>
+            <span class="currency" slot="end">FCFA</span>
+        </ion-item>
+
+        <div class="error-message"
+            *ngIf="registrationForm.get('amount')?.invalid && registrationForm.get('amount')?.touched">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>Le montant est requis et doit être supérieur à 0</span>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="section-header">
+            <ion-icon name="document-text-outline"></ion-icon>
+            <h2>Notes / Observations</h2>
+        </div>
+
+        <ion-item class="notes-input" lines="none">
+            <ion-textarea formControlName="notes" placeholder="Ajoutez des notes ou observations (optionnel)" rows="4"
+                auto-grow="true">
+            </ion-textarea>
+        </ion-item>
+
+        <!-- Submit Button -->
+        <ion-button expand="block" type="submit" class="submit-button"
+            [disabled]="!selectedClient || registrationForm.invalid">
+            <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+            Enregistrer le Membre
+        </ion-button>
+
+    </form>
+</ion-content>

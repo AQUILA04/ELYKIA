@@ -1,0 +1,22 @@
+<div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
+  data-sidebar-position="fixed" data-header-position="fixed">
+
+  <!-- Sidebar -->
+  <div *ngIf="showHeaderAndSidebar" class="sidebar">
+    <app-sidebar></app-sidebar>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- Header -->
+    <app-header *ngIf="showHeaderAndSidebar"></app-header>
+
+    <!-- Breadcrumb -->
+    <div class="table-container">
+      <app-breadcrumb *ngIf="showHeaderAndSidebar"></app-breadcrumb>
+      
+      <!-- Main Router Outlet for Pages -->
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

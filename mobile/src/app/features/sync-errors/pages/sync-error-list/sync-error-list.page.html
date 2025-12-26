@@ -1,0 +1,48 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/more"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Erreurs de Synchronisation</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ng-container *ngIf="syncErrors$ | async as errors; else loading">
+    <div *ngIf="errors.length === 0" class="ion-text-center ion-padding-top">
+      <ion-icon name="checkmark-circle-outline" size="large" color="success"></ion-icon>
+      <p>Aucune erreur de synchronisation.</p>
+    </div>
+
+    <ion-list *ngIf="errors.length > 0">
+      <ion-item *ngFor="let error of errors" (click)="goToDetails(error.id)" button [detail]="true">
+        <ion-icon name="warning-outline" slot="start" color="danger"></ion-icon>
+        <ion-label>
+          <h2>{{ error.entityDisplayName }}</h2>
+          <p>Type: {{ error.entityType }} | Opération: {{ error.operation }}</p>
+          <p *ngIf="isValidDate(error.syncDate)">{{ error.syncDate | date:'dd/MM/yyyy HH:mm' }}</p>
+          <p *ngIf="!isValidDate(error.syncDate)" class="ion-text-muted">Date non disponible</p>
+          <p class="error-message">{{ error.errorMessage }}</p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+
+  <ng-template #loading>
+    <ion-list>
+      <ion-item *ngFor="let i of [1,2,3,4,5]">
+        <ion-icon name="warning-outline" slot="start" color="medium"></ion-icon>
+        <ion-label>
+          <h2><ion-skeleton-text animated style="width: 60%;"></ion-skeleton-text></h2>
+          <p><ion-skeleton-text animated style="width: 80%;"></ion-skeleton-text></p>
+          <p><ion-skeleton-text animated style="width: 40%;"></ion-skeleton-text></p>
+          <p class="error-message"><ion-skeleton-text animated style="width: 90%;"></ion-skeleton-text></p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+</ion-content>

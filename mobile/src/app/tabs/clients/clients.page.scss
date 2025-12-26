@@ -1,0 +1,139 @@
+:host {
+  height: 100%;
+  
+  ion-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .list-container {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+  }
+
+  ion-list {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  cdk-virtual-scroll-viewport {
+    flex: 1;
+    min-height: 300px;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+  text-align: center;
+  color: var(--ion-color-step-600, #757575);
+}
+
+.empty-state ion-icon {
+  font-size: 64px;
+  margin-bottom: 8px;
+  color: var(--ion-color-step-400, #bdbdbd);
+}
+
+.empty-state h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+}
+
+.empty-state p {
+  font-size: 14px;
+}
+
+.empty-state p a {
+  color: var(--ion-color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+ion-toolbar {
+  --background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+}
+
+ion-searchbar {
+  --box-shadow: none;
+  --border-radius: 20px;
+  --background: rgba(255, 255, 255, 0.9);
+  //margin: 0 16px;
+  width: calc(100% - 32px);
+  margin: 0 auto 16px auto;
+}
+
+.filters-section {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--ion-color-background, #ffffff);
+  display: flex;
+  overflow-x: auto;
+  padding: 8px 16px;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+ion-chip {
+  --background: var(--ion-color-light);
+  --color: var(--ion-color-primary);
+  border: 1px solid var(--ion-color-primary-tint);
+  font-size: 10px;
+}
+
+ion-chip.ion-color-primary {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+  --border-color: var(--ion-color-primary);
+}
+
+ion-item {
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  border-bottom: 1px solid var(--ion-color-step-200, #e0e0e0);
+}
+
+ion-avatar {
+  width: 48px;
+  height: 48px;
+}
+
+ion-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+h2 {
+  font-weight: 500;
+  color: var(--ion-color-primary);
+}
+
+p {
+  font-size: 14px;
+  color: var(--ion-color-step-600, #757575);
+}
+
+.client-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+ion-note {
+  font-weight: bold;
+}
+
+ion-badge {
+  font-size: 10px;
+}

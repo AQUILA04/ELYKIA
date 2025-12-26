@@ -1,0 +1,251 @@
+<div class="sales-dashboard">
+  <!-- Header -->
+  <div class="sales-dashboard__header">
+    <h1 class="sales-dashboard__title">Analyse des Ventes</h1>
+    <p class="sales-dashboard__subtitle">Performance commerciale et analyse détaillée</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="sales-dashboard__filters">
+    <!-- Period Filter -->
+    <div class="filter-group">
+      <label class="filter-label">Période</label>
+      <div class="period-buttons">
+        <button class="period-btn" [class.active]="selectedPeriod === 'TODAY'" (click)="selectPeriod('TODAY')">
+          Aujourd'hui
+        </button>
+        <button class="period-btn" [class.active]="selectedPeriod === 'WEEK'" (click)="selectPeriod('WEEK')">
+          Semaine
+        </button>
+        <button class="period-btn" [class.active]="selectedPeriod === 'MONTH'" (click)="selectPeriod('MONTH')">
+          Mois
+        </button>
+        <button class="period-btn" [class.active]="selectedPeriod === 'YEAR'" (click)="selectPeriod('YEAR')">
+          Année
+        </button>
+        <button class="period-btn" [class.active]="selectedPeriod === 'CUSTOM'" (click)="selectPeriod('CUSTOM')">
+          Personnalisé
+        </button>
+      </div>
+    </div>
+
+    <!-- Custom Date Range -->
+    <div *ngIf="selectedPeriod === 'CUSTOM'" class="filter-group">
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Date début</mat-label>
+        <input matInput [matDatepicker]="startPicker" [(ngModel)]="customStartDate" (dateChange)="onDateChange()">
+        <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+        <mat-datepicker #startPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Date fin</mat-label>
+        <input matInput [matDatepicker]="endPicker" [(ngModel)]="customEndDate" (dateChange)="onDateChange()">
+        <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+        <mat-datepicker #endPicker></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <!-- Additional Filters -->
+    <div class="filter-group">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Commercial</mat-label>
+        <mat-select [(ngModel)]="selectedCollector" (selectionChange)="applyFilters()">
+          <mat-option value="">Tous</mat-option>
+          <mat-option *ngFor="let collector of collectors" [value]="collector">
+            {{ collector }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Type Client</mat-label>
+        <mat-select [(ngModel)]="selectedClientType" (selectionChange)="applyFilters()">
+          <mat-option value="">Tous</mat-option>
+          <mat-option value="PROMOTER">Promoteur</mat-option>
+          <mat-option value="CLIENT">Client</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-stroked-button color="primary" (click)="resetFilters()" class="reset-btn">
+        <mat-icon>refresh</mat-icon>
+        Réinitialiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="sales-dashboard__loading">
+    <mat-spinner diameter="60"></mat-spinner>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !loading" class="sales-dashboard__error">
+    <mat-icon>error_outline</mat-icon>
+    <h3>{{ error }}</h3>
+    <button mat-raised-button color="primary" (click)="loadData()">Réessayer</button>
+  </div>
+
+  <!-- Content -->
+  <ng-container *ngIf="!loading && !error">
+    <!-- KPI Cards -->
+    <div class="sales-dashboard__kpis">
+      <app-bi-kpi-card [data]="salesKpi"></app-bi-kpi-card>
+      <app-bi-kpi-card [data]="profitKpi"></app-bi-kpi-card>
+      <app-bi-kpi-card [data]="volumeKpi"></app-bi-kpi-card>
+      <app-bi-kpi-card [data]="avgSaleKpi"></app-bi-kpi-card>
+    </div>
+
+    <!-- Sales Trend Chart -->
+    <div class="sales-dashboard__section">
+      <div class="section-card">
+        <h3 class="section-title">Évolution des Ventes</h3>
+        <app-line-chart 
+          *ngIf="salesTrendChartData" 
+          [chartData]="salesTrendChartData"
+          [height]="'350px'">
+        </app-line-chart>
+        <p *ngIf="!salesTrendChartData" class="no-data">Aucune donnée disponible</p>
+      </div>
+    </div>
+
+    <!-- Commercial Performance -->
+    <div class="sales-dashboard__section">
+      <div class="section-card">
+        <div class="section-header">
+          <h3 class="section-title">Top 10 Commerciaux</h3>
+          <button mat-icon-button [matMenuTriggerFor]="commercialMenu">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #commercialMenu="matMenu">
+            <button mat-menu-item>
+              <mat-icon>download</mat-icon>
+              <span>Exporter CSV</span>
+            </button>
+          </mat-menu>
+        </div>
+
+        <div class="section-content">
+          <!-- Chart -->
+          <div class="chart-wrapper">
+            <app-bar-chart 
+              *ngIf="commercialChartData" 
+              [chartData]="commercialChartData"
+              [height]="'300px'"
+              [horizontal]="true">
+            </app-bar-chart>
+          </div>
+
+          <!-- Table -->
+          <div class="table-wrapper">
+            <table mat-table [dataSource]="commercialPerformance.slice(0, 10)" class="performance-table">
+              <!-- Collector Column -->
+              <ng-container matColumnDef="collector">
+                <th mat-header-cell *matHeaderCellDef>Commercial</th>
+                <td mat-cell *matCellDef="let row">{{ row.collector }}</td>
+              </ng-container>
+
+              <!-- Sales Count Column -->
+              <ng-container matColumnDef="salesCount">
+                <th mat-header-cell *matHeaderCellDef>Nb Ventes</th>
+                <td mat-cell *matCellDef="let row">{{ formatNumber(row.totalSalesCount) }}</td>
+              </ng-container>
+
+              <!-- Sales Amount Column -->
+              <ng-container matColumnDef="salesAmount">
+                <th mat-header-cell *matHeaderCellDef>CA</th>
+                <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalSalesAmount) }}</td>
+              </ng-container>
+
+              <!-- Profit Column -->
+              <ng-container matColumnDef="profit">
+                <th mat-header-cell *matHeaderCellDef>Marge</th>
+                <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalProfit) }}</td>
+              </ng-container>
+
+              <!-- Collection Rate Column -->
+              <ng-container matColumnDef="collectionRate">
+                <th mat-header-cell *matHeaderCellDef>Taux Recouvrement</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="rate-badge" [class.good]="row.collectionRate >= 75" [class.medium]="row.collectionRate >= 50 && row.collectionRate < 75" [class.low]="row.collectionRate < 50">
+                    {{ formatPercentage(row.collectionRate) }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="['collector', 'salesCount', 'salesAmount', 'profit', 'collectionRate']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['collector', 'salesCount', 'salesAmount', 'profit', 'collectionRate']"></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article Performance -->
+    <div class="sales-dashboard__section">
+      <div class="section-card">
+        <div class="section-header">
+          <h3 class="section-title">Top 10 Articles</h3>
+          <button mat-icon-button [matMenuTriggerFor]="articleMenu">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #articleMenu="matMenu">
+            <button mat-menu-item>
+              <mat-icon>download</mat-icon>
+              <span>Exporter CSV</span>
+            </button>
+          </mat-menu>
+        </div>
+
+        <div class="section-content">
+          <!-- Chart -->
+          <div class="chart-wrapper">
+            <app-bar-chart 
+              *ngIf="articleChartData" 
+              [chartData]="articleChartData"
+              [height]="'300px'">
+            </app-bar-chart>
+          </div>
+
+          <!-- Table -->
+          <div class="table-wrapper">
+            <table mat-table [dataSource]="articlePerformance.slice(0, 10)" class="performance-table">
+              <!-- Article Column -->
+              <ng-container matColumnDef="article">
+                <th mat-header-cell *matHeaderCellDef>Article</th>
+                <td mat-cell *matCellDef="let row">{{ row.articleName }}</td>
+              </ng-container>
+
+              <!-- Quantity Column -->
+              <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef>Qté Vendue</th>
+                <td mat-cell *matCellDef="let row">{{ formatNumber(row.quantitySold) }}</td>
+              </ng-container>
+
+              <!-- Revenue Column -->
+              <ng-container matColumnDef="revenue">
+                <th mat-header-cell *matHeaderCellDef>CA</th>
+                <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalRevenue) }}</td>
+              </ng-container>
+
+              <!-- Profit Column -->
+              <ng-container matColumnDef="profit">
+                <th mat-header-cell *matHeaderCellDef>Marge</th>
+                <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalProfit) }}</td>
+              </ng-container>
+
+              <!-- Margin Column -->
+              <ng-container matColumnDef="margin">
+                <th mat-header-cell *matHeaderCellDef>Taux Marge</th>
+                <td mat-cell *matCellDef="let row">{{ formatPercentage(row.profitMargin) }}</td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="['article', 'quantity', 'revenue', 'profit', 'margin']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['article', 'quantity', 'revenue', 'profit', 'margin']"></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

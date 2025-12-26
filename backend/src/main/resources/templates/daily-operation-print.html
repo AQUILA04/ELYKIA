@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" ></meta>
+    <title>Opération Journalière - AMENOUVEVE - YAVEH</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .class-header {
+            background-color: #003366;
+            color: white;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .class-header h2 {
+            margin: 0;
+        }
+        .class-header p {
+            margin: 5px 0 0 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #003366;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<div class="class-header">
+    <h2 >AMENOUVEVE - YAHVEH</h2>
+    <br />
+    <h2 th:text="'Agent de collecte: ' + ${operation.collector}"></h2>
+    <p th:text="'Date: ' + ${operation.currentDate}"></p>
+    <p th:text="'Semaine du: ' + ${operation.weekFrom} + ' au ' + ${operation.weekTo}"></p>
+    <p th:text="'Nombre total de clients: ' + ${operation.totalElements}"></p>
+</div>
+
+<div th:each="entry : ${operation.groupedData}">
+    <h4 th:text="${'Localité: ' + entry.key}">Localité : </h4>
+
+    <table>
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Noms</th>
+            <th>Occup.</th>
+            <th>Reste</th>
+            <th>Mise</th>
+            <th>Jr 1</th>
+            <th>Jr 2</th>
+            <th>Jr 3</th>
+            <th>Jr 4</th>
+            <th>Jr 5</th>
+            <th>Jr 6</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="credit, iterStat : ${entry.value}">
+            <td th:text="${iterStat.count}"></td>
+            <td th:text="${credit.client.fullName}"></td>
+            <td th:text="${credit.client.occupation}"></td>
+<!--            <td th:text="${credit.client.phone}"></td>-->
+            <td th:text="${credit.totalAmountRemaining}"></td>
+            <td th:text="${credit.dailyStake}"></td>
+            <td >__
+                <input type="radio" id="radioN1" name="radioButton1" value="N" />
+                <label for="radioN1">N</label>
+                <input type="radio" id="radioS1" name="radioButton1" value="S" />
+                <label for="radioS1">S</label>
+            </td>
+            <td >__
+                <input type="radio" id="radioN2" name="radioButton2" value="N" />
+                <label for="radioN2">N</label>
+                <input type="radio" id="radioS2" name="radioButton2" value="S" />
+                <label for="radioS2">S</label>
+            </td>
+            <td >__
+                <input type="radio" id="radioN3" name="radioButton3" value="N" />
+                <label for="radioN3">N</label>
+                <input type="radio" id="radioS3" name="radioButton3" value="S" />
+                <label for="radioS3">S</label>
+            </td>
+            <td >__
+                <input type="radio" id="radioN4" name="radioButton4" value="N" />
+                <label for="radioN4">N</label>
+                <input type="radio" id="radioS4" name="radioButton4" value="S" />
+                <label for="radioS4">S</label>
+            </td>
+            <td >__
+                <input type="radio" id="radioN5" name="radioButton5" value="N" />
+                <label for="radioN5">N</label>
+                <input type="radio" id="radioS5" name="radioButton5" value="S" />
+                <label for="radioS5">S</label>
+            </td>
+            <td >__
+                <input type="radio" id="radioN6" name="radioButton6" value="N" />
+                <label for="radioN6">N</label>
+                <input type="radio" id="radioS6" name="radioButton6" value="S" />
+                <label for="radioS6">S</label>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

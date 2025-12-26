@@ -1,0 +1,50 @@
+<!-- Section Sélection Client -->
+<div class="client-section">
+  <div class="section-header">
+    <ion-icon name="person" class="section-icon"></ion-icon>
+    <span class="section-title">{{ title }}</span>
+  </div>
+
+  <ion-card class="client-card" [class.selected]="selectedClient">
+    <ion-card-content>
+      <div class="client-content" *ngIf="!selectedClient">
+        <div class="empty-client">
+          <ion-icon name="person-outline" class="empty-icon"></ion-icon>
+          <h3>Aucun client sélectionné</h3>
+          <p>Veuillez sélectionner un client pour continuer</p>
+        </div>
+        <ion-button
+          *ngIf="allowChange"
+          fill="solid"
+          color="primary"
+          (click)="onSelectClient()"
+          class="select-client-button">
+          Sélectionner un Client
+        </ion-button>
+      </div>
+
+      <div class="client-content" *ngIf="selectedClient">
+        <div class="client-info">
+          <div class="client-avatar">
+            <div class="avatar-circle" [style.background-color]="getAvatarColor(selectedClient.firstname)">
+              {{ getInitials(selectedClient.firstname, selectedClient.lastname) }}
+            </div>
+          </div>
+          <div class="client-details">
+            <h3>{{ selectedClient.firstname }} {{ selectedClient.lastname }}</h3>
+            <p class="address">{{ selectedClient.address }}</p>
+            <p class="phone">{{ selectedClient.phone }}</p>
+          </div>
+          <ion-button
+            *ngIf="allowChange"
+            fill="outline"
+            color="primary"
+            size="small"
+            (click)="onSelectClient()">
+            Changer
+          </ion-button>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</div>

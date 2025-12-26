@@ -1,0 +1,30 @@
+<mat-card class="kpi-card" [ngClass]="cardColorClass">
+  <mat-card-content class="kpi-card-content">
+
+    <!-- LIGNE DU HAUT : Icône et Titre -->
+    <div class="kpi-header"><br>
+
+      <mat-icon class="kpi-icon">{{ icon }}</mat-icon>
+      <h3 class="kpi-title">{{ title }}</h3>
+    </div>
+    <br><br>
+
+    <!-- LIGNE DU BAS : Valeur et Sous-titre -->
+    <div class="kpi-body">
+      <!-- S'affiche uniquement si le chargement est terminé -->
+      <div *ngIf="!loading; else loadingState" class="kpi-body-content">
+        <span class="kpi-value">{{ formattedValue }}</span>
+        <span class="kpi-subtitle" *ngIf="subtitle">{{ subtitle }}</span>
+      </div>
+
+      <!-- S'affiche pendant le chargement -->
+      <ng-template #loadingState>
+        <div class="kpi-loading-spinner">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+      </ng-template>
+    </div>
+
+  </mat-card-content>
+</mat-card>
+

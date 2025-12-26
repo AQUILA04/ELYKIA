@@ -1,0 +1,37 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/more"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Localités</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="ionViewWillEnter()">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="loading$ | async" class="ion-text-center ion-padding-top">
+    <ion-spinner></ion-spinner>
+  </div>
+
+  <ion-list *ngIf="((localities$ | async) ?? []).length > 0">
+    <ion-item *ngFor="let locality of localities$ | async">
+      <ion-label>
+        <h2>{{ locality.name }}</h2>
+        <p>{{ locality?.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <div *ngIf="!(loading$ | async) && (localities$ | async)?.length === 0" class="ion-text-center ion-padding-top">
+    <p>Aucune localité trouvée.</p>
+  </div>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="navigateToAddLocality()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

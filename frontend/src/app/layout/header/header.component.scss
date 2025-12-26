@@ -1,0 +1,24 @@
+.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #333; /* Couleur de fond opaque */
+    color: white;
+    z-index: 1000; 
+    padding: 10px 20px; 
+
+  }
+
+  .app-header{
+    top: 0;
+  }
+  .message-body{
+    background-color: white;
+  }
+  .username {
+    color: #003366; 
+    font-weight: bold; 
+  }
+  

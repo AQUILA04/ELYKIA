@@ -1,0 +1,146 @@
+ion-header {
+  box-shadow: none;
+}
+
+ion-toolbar {
+  --background: var(--ion-color-light);
+  --border-width: 0 !important;
+}
+
+ion-title {
+  font-weight: 600;
+}
+
+.profile-header {
+  text-align: center;
+  padding: 24px 0;
+  margin-bottom: 24px;
+}
+
+ion-avatar {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+  background-color: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.initials {
+  font-size: 32px;
+  font-weight: 600;
+}
+
+h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+
+p {
+  color: var(--ion-color-medium);
+  margin: 4px 0 16px;
+}
+
+.stats-grid {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 16px;
+  border-top: 1px solid var(--ion-color-step-200, #e0e0e0);
+  border-bottom: 1px solid var(--ion-color-step-200, #e0e0e0);
+  padding-top: 16px;
+  padding-bottom: 16px;
+  margin-top: 16px;
+}
+
+.stat-item {
+  h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+    margin: 0;
+  }
+  p {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+ion-content {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+}
+
+ion-card {
+  margin: 8px;
+}
+
+ion-list-header {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ion-color-medium);
+  padding-left: 16px;
+}
+
+ion-item {
+  --border-color: var(--ion-color-step-200, #e0e0e0);
+  h3 {
+    font-size: 16px;
+    font-weight: 500;
+  }
+  p {
+    font-size: 14px;
+    color: var(--ion-color-medium);
+  }
+}
+
+ion-item ion-icon {
+  color: var(--ion-color-primary);
+  margin-right: 16px;
+}
+
+ion-button[color="danger"] {
+  margin-top: 16px;
+}
+
+// Styles pour la gestion mémoire
+.memory-details {
+  font-size: 12px !important;
+  color: var(--ion-color-medium) !important;
+  margin-top: 2px !important;
+}
+
+.memory-warning {
+  font-size: 12px !important;
+  color: var(--ion-color-danger) !important;
+  font-weight: 500 !important;
+  margin-top: 2px !important;
+}
+
+// Animation pour l'icône mémoire critique
+ion-icon[color="danger"] {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+// Badge mémoire critique
+ion-badge[color="danger"] {
+  font-size: 10px;
+  font-weight: 600;
+}

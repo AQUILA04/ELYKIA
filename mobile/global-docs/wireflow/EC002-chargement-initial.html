@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC002 - Chargement Initial | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styles spécifiques à l'écran de chargement initial */
+        .loading-container {
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: 1;
+        }
+
+        .loading-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: var(--spacing-sections);
+            width: 280px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            position: relative;
+            z-index: 2;
+            animation: cardFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-5px) scale(1.02); }
+        }
+
+        .loading-logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: var(--text-on-primary);
+            animation: logoRotate 3s linear infinite;
+            box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3);
+        }
+
+        @keyframes logoRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+            font-size: var(--font-size-h3);
+            color: var(--primary-color);
+            font-weight: bold;
+            text-align: center;
+            margin: var(--margin-internal) 0;
+        }
+
+        .progress-container {
+            width: 100%;
+            margin: var(--margin-internal) 0;
+        }
+
+        .progress-bar-loading {
+            width: 200px;
+            height: 6px;
+            background-color: #E0E0E0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0 auto var(--spacing-elements);
+            position: relative;
+        }
+
+        .progress-fill-loading {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-variant));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill-loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-image: linear-gradient(
+                -45deg,
+                rgba(255, 255, 255, 0.2) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.2) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 20px 20px;
+            animation: progressStripes 1s linear infinite;
+        }
+
+        @keyframes progressStripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 0; }
+        }
+
+        .status-text {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: var(--spacing-elements);
+            min-height: 20px;
+            animation: textPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes textPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .percentage-text {
+            font-size: var(--font-size-secondary);
+            color: var(--secondary-color);
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Particules d'arrière-plan */
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: particleFloat 6s ease-in-out infinite;
+        }
+
+        .particle:nth-child(1) {
+            width: 4px;
+            height: 4px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .particle:nth-child(2) {
+            width: 6px;
+            height: 6px;
+            top: 60%;
+            left: 80%;
+            animation-delay: 1s;
+        }
+
+        .particle:nth-child(3) {
+            width: 3px;
+            height: 3px;
+            top: 80%;
+            left: 20%;
+            animation-delay: 2s;
+        }
+
+        .particle:nth-child(4) {
+            width: 5px;
+            height: 5px;
+            top: 30%;
+            left: 70%;
+            animation-delay: 3s;
+        }
+
+        .particle:nth-child(5) {
+            width: 4px;
+            height: 4px;
+            top: 70%;
+            left: 50%;
+            animation-delay: 4s;
+        }
+
+        @keyframes particleFloat {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+                opacity: 0.8;
+            }
+        }
+
+        /* Animation de succès */
+        .success-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--success-color);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            z-index: 3;
+            animation: successPop 0.6s ease-out;
+        }
+
+        @keyframes successPop {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .completion-message {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-on-primary);
+            font-size: var(--font-size-secondary);
+            text-align: center;
+            opacity: 0;
+            animation: fadeInUp 0.5s ease-out 0.3s forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="loading-container">
+            <!-- Particules d'arrière-plan -->
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+
+            <!-- Card principale de chargement -->
+            <div class="loading-card">
+                <div class="loading-logo">📱</div>
+                
+                <div class="loading-title">Initialisation en cours...</div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar-loading">
+                        <div class="progress-fill-loading" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <div class="status-text" id="statusText">Préparation...</div>
+                    <div class="percentage-text" id="percentageText">0%</div>
+                </div>
+            </div>
+
+            <!-- Animation de succès -->
+            <div class="success-animation" id="successAnimation">
+                ✓
+            </div>
+
+            <!-- Message de fin -->
+            <div class="completion-message" id="completionMessage" style="display: none;">
+                Initialisation terminée avec succès !<br>
+                Redirection en cours...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Étapes d'initialisation
+        const initSteps = [
+            { text: "Connexion au serveur...", duration: 1000 },
+            { text: "Récupération des articles...", duration: 1500 },
+            { text: "Synchronisation des clients...", duration: 1200 },
+            { text: "Chargement des localités...", duration: 800 },
+            { text: "Récupération des commerciaux...", duration: 1000 },
+            { text: "Synchronisation des comptes...", duration: 1300 },
+            { text: "Chargement des sorties d'articles...", duration: 1100 },
+            { text: "Récupération des distributions...", duration: 900 },
+            { text: "Finalisation...", duration: 800 }
+        ];
+
+        let currentStep = 0;
+        let progress = 0;
+
+        // Éléments DOM
+        const progressFill = document.getElementById('progressFill');
+        const statusText = document.getElementById('statusText');
+        const percentageText = document.getElementById('percentageText');
+        const successAnimation = document.getElementById('successAnimation');
+        const completionMessage = document.getElementById('completionMessage');
+
+        // Fonction pour mettre à jour la progression
+        function updateProgress(newProgress, statusMessage) {
+            progress = newProgress;
+            progressFill.style.width = progress + '%';
+            percentageText.textContent = Math.round(progress) + '%';
+            if (statusMessage) {
+                statusText.textContent = statusMessage;
+            }
+        }
+
+        // Fonction pour exécuter une étape
+        function executeStep(stepIndex) {
+            if (stepIndex >= initSteps.length) {
+                completeInitialization();
+                return;
+            }
+
+            const step = initSteps[stepIndex];
+            const stepProgress = ((stepIndex + 1) / initSteps.length) * 100;
+            
+            updateProgress(stepProgress, step.text);
+
+            // Simuler le temps de traitement de l'étape
+            setTimeout(() => {
+                currentStep++;
+                executeStep(currentStep);
+            }, step.duration);
+        }
+
+        // Fonction pour terminer l'initialisation
+        function completeInitialization() {
+            updateProgress(100, "Initialisation terminée !");
+            
+            // Afficher l'animation de succès après un court délai
+            setTimeout(() => {
+                successAnimation.style.display = 'flex';
+                
+                // Afficher le message de fin
+                setTimeout(() => {
+                    completionMessage.style.display = 'block';
+                    
+                    // Rediriger vers le tableau de bord après 2 secondes
+                    setTimeout(() => {
+                        window.location.href = 'EC003-tableau-de-bord.html';
+                    }, 2000);
+                }, 600);
+            }, 500);
+        }
+
+        // Fonction pour simuler des erreurs occasionnelles (optionnel)
+        function simulateNetworkDelay() {
+            // Ajouter un délai aléatoire pour simuler les conditions réseau
+            return Math.random() * 500 + 200;
+        }
+
+        // Démarrer l'initialisation au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Petit délai initial pour l'effet visuel
+            setTimeout(() => {
+                executeStep(0);
+            }, 500);
+        });
+
+        // Gestion des erreurs de réseau (simulation)
+        function handleNetworkError() {
+            statusText.textContent = "Erreur de connexion - Nouvelle tentative...";
+            statusText.style.color = var(--error-color);
+            
+            setTimeout(() => {
+                statusText.style.color = var(--text-secondary);
+                executeStep(currentStep);
+            }, 2000);
+        }
+
+        // Animation de pulsation pour le logo pendant le chargement
+        function pulseAnimation() {
+            const logo = document.querySelector('.loading-logo');
+            logo.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                logo.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Appliquer la pulsation périodiquement
+        setInterval(pulseAnimation, 3000);
+
+        // Sauvegarder l'état d'initialisation pour éviter de répéter le processus
+        function saveInitializationState() {
+            localStorage.setItem('appInitialized', 'true');
+            localStorage.setItem('initializationDate', new Date().toISOString());
+        }
+
+        // Vérifier si l'application a déjà été initialisée
+        function checkInitializationState() {
+            const initialized = localStorage.getItem('appInitialized');
+            const initDate = localStorage.getItem('initializationDate');
+            
+            if (initialized && initDate) {
+                const lastInit = new Date(initDate);
+                const now = new Date();
+                const hoursSinceInit = (now - lastInit) / (1000 * 60 * 60);
+                
+                // Si l'initialisation date de moins de 24 heures, passer directement au tableau de bord
+                if (hoursSinceInit < 24) {
+                    window.location.href = 'EC003-tableau-de-bord.html';
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Vérifier l'état au chargement (commenté pour la démonstration)
+        // if (!checkInitializationState()) {
+        //     // Procéder à l'initialisation normale
+        // }
+
+        // Sauvegarder l'état une fois l'initialisation terminée
+        window.addEventListener('beforeunload', function() {
+            if (progress === 100) {
+                saveInitializationState();
+            }
+        });
+    </script>
+</body>
+</html>
+

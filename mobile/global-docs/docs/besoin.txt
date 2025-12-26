@@ -1,0 +1,1314 @@
+le fichier json join est la spécification openAPI du backend d'une application qui permet à une société de gérer son stock, de vendre des articles à crédit et de faire les recouvrements journalier par les commerciaux qui vont sur le terrain. il dispose d'une partie frontend fait en angular. 
+
+Mon besoin actuelle est de developper une application frontend mobile pour permettre au commerciaux de pouvoir gérer certaines choses automatiquement sur le terrain. 
+
+En grande ligne, l'application doit permettre aux commerciaux: 
+
+- de pouvoir se connecter en se connectant au serveur en agence et après avoir quitté l'agence de pouvoir se connecter en offline. 
+
+- à la première connexion online (avec le serveur), les articles, les clients du commercial, les comptes des clients, et les sorties d'articles du commercial doivent s'initialiser dans la base de données local de l'application mobile
+
+-Faire la distribution des articles sorties du magasin, aux clients sur le terrain. 
+
+- Imprimer un reçu à la suite d'une distribution faite à un client (liste des articles, quantité, prix unitaire, montant total de la distribution, mise journalière à collecter pour cette vente)
+
+-Faire le recouvrement journalier chez les clients 
+
+- une fois rentré à l'agence, faire la synchronisation, des distributions, des recouvrements (collectes) vers le serveur,
+
+- enrigistrer un nouveau client et le solde de son compte sur le terrain et le synchroniser avec le serveur au retour. 
+
+- imprimer un rapport journalier des activités du commercial sur le terrain (les distribution, et les recouvrement)
+
+-Avoir un tablesau de bord donnant des indications des travaux du coimmercial aucours du mois. 
+
+
+
+En détail: 
+
+** connexion de l'utilisateur: 
+
+l'utilisateur ouvre l'application et un ecran de connexion se présente où il doit renseigner son username et password et cliquer le bouton connecter. 
+
+Au click sur le bouton, le username et le mot de passe sont récupérer et envoyer au backend via l'api
+
+-url: {{baseUrl}}/api/auth/signin
+
+-method: PSOT
+
+-request body :
+
+{
+
+	"password": "COM001",
+
+	"username": "SECRET"
+
+}
+
+-sucess response (200): 
+{
+    "id": 6,
+    "username": "mag001",
+    "email": "mag001@gmail.com",
+    "roles": [
+        "ROLE_STOREKEEPER_DASHBOARD",
+        "ROLE_STOREKEEPER"
+    ],
+    "refreshToken": "62b20b92-aab5-436a-a210-ceec9029a5ed",
+    "tokenType": "Bearer",
+    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYWcwMDEiLCJpYXQiOjE3NTMzNTA3MDAsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX1NUT1JFS0VFUEVSX0RBU0hCT0FSRCJ9LHsiYXV0aG9yaXR5IjoiUk9MRV9TVE9SRUtFRVBFUiJ9XSwiZXhwIjoxNzUzNDM3MTAwfQ.wBOTmudwKs9BnFLj9q1H5idN16f5ufIbNb3WOpJQl98"
+}
+
+
+-Error response (500, 400, 401, 403)
+{
+    "status": "INTERNAL_SERVER_ERROR",
+    "statusCode": 500,
+    "message": "Bad credentials",
+    "service": "OPTIMIZE-SERVICE",
+    "data": null
+}
+Pour une authentification réussie (succès), il faut enregistrer le username et le mot de passe crypter de l'utilisateur dans la base de l'application mobile, autres information dans la reponse de l'api comme l'email et les rôles
+peuvent être ajouter aux informations de l'utilisateur.
+Lors des connexion, le test de connexion vers le serveur ne passe pas, il faut authentifier l'utilisateur localement, si l'utilisateur n'est pas dans la base de données local, il faut 
+afficher un message d'erreur: "Utilisateur non configurer pour cet appareil!", s'il existe mais erreur de mot de passe alors on affiche le message: "nom d'utilisateur ou mot de passe incorrect".
+Toujours après l'authentification à succès de l'utilisateur il faut rediriger l'utilisateur vers le tableau de bord en gardant un spinner ou un progressbar pour effectuer les tâche suivantes:
+(garder un fond flou ou avec un effet glass pour le spinner ou le progressbar)
+* Faire appel à l'api des articles pour enregistrer tous les articles en local: 
+ - url: {{baseUrl}}/api/v1/articles/all
+ - method: GET
+ - succes response body  : 
+ {
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": [
+        {
+            "id": 1,
+            "purchasePrice": 4500.0,
+            "sellingPrice": 4700.0,
+            "creditSalePrice": 5000.0,
+            "name": "Rizière 5kg",
+            "marque": "Rizière",
+            "model": "5KG",
+            "type": "RIZ",
+            "stockQuantity": 98,
+            "commercialName": "RIZ: Rizière Rizière 5kg 5KG"
+        },
+        {
+            "id": 2,
+            "purchasePrice": 1100.0,
+            "sellingPrice": 1200.0,
+            "creditSalePrice": 1300.0,
+            "name": "Aromate 1L",
+            "marque": "Aromate",
+            "model": "1L",
+            "type": "HUILE",
+            "stockQuantity": 86,
+            "commercialName": "HUILE: Aromate Aromate 1L 1L"
+        }
+    ]
+}
+
+- Error response body: même structure que le success à difference que: la valeur du "status" ne seras pas "OK" mais un statut HTTP d'erreur, le "statusCode" ne sera pas 200 mais un HTTPStatusCode d'erreur (400, 401, 4013, 500)
+"message" contiendra le message d'erreur et "data" sera null 
+
+pas besoin d'enregistrer le "purchasePrice" et le "sellingPrice" dans la bdd local du mobile. 
+
+* récupérer la liste des localités pour enregistrer dans la bdd locale: 
+-URL: {{baseUrl}}/api/v1/localities/all
+Method: GET
+- success response body (200) :
+ {
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": [
+        {
+            "id": 1,
+            "name": "GOLFE 1"
+        },
+        {
+            "id": 2,
+            "name": "GOLFE 2"
+        },
+        {
+            "id": 3,
+            "name": "GOLFE 3"
+        },
+        {
+            "id": 4,
+            "name": "GOLFE 4"
+        },
+        {
+            "id": 5,
+            "name": "GOLFE 5"
+        },
+        {
+            "id": 6,
+            "name": "GOLFE 6"
+        }
+    ]
+}
+
+la liste à enregistrer se trouve directement dans "data".
+
+* récupérer la liste des commercials et enregistrer dans la bdd locale: 
+- url: {{baseUrl}}/api/v1/promoters/all
+- method: GET
+- success response body: 
+{
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": [
+        {
+            "id": 13,
+            "firstname": "COM001",
+            "lastname": "COM001",
+            "gender": "FEMALE",
+            "phone": "90000001",
+            "email": "com001@email.com",
+            "password": "$2a$10$BXQzDnb6Ze4W8p8nvmEdi.TTHkjDXXan9awvHmWGfBFzm43dWTOQu",
+            "username": "COM001",
+            "profilName": "PROMOTER",
+            "profil": {
+                "name": "PROMOTER",
+                "id": 3
+            }
+        }
+    ]
+}
+
+liste se trouve directement dans "data". enregistrer uniquement l'élement de la liste dont le "username" équivaut au username de l'utilisateur connecté. 
+
+* faire appel à l'api des clients du commercial connecté pour les enregistrer en local: 
+- url: {{baseUrl}}/api/v1/clients/by-commercial/{commercial-username}?page=0&size=2000&sort=id,desc
+- method: GET
+- success response body (200): 
+{
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": {
+        "content": [
+            {
+                "id": 13,
+                "firstname": "Jeff",
+                "lastname": "LATE",
+                "address": "Bè",
+                "phone": "98758969",
+                "cardID": "1236547895",
+                "cardType": "CENI",
+                "dateOfBirth": "1998-12-10",
+                "contactPersonName": "",
+                "contactPersonPhone": "",
+                "contactPersonAddress": "",
+                "collector": "COM001",
+                "quarter": "GOLFE 3",
+                "creditInProgress": true,
+                "occupation": "Technicien",
+                "clientType": "CLIENT",
+                "fullName": "Jeff LATE",
+                "accountId": 13
+            },
+            {
+                "id": 12,
+                "firstname": "Dzifa",
+                "lastname": "Kokou",
+                "address": "Tokoin",
+                "phone": "93566798",
+                "cardID": "EB685785",
+                "cardType": "Passport",
+                "dateOfBirth": "2003-01-29",
+                "contactPersonName": "",
+                "contactPersonPhone": "",
+                "contactPersonAddress": "",
+                "collector": "COM001",
+                "quarter": "GOLFE 4",
+                "creditInProgress": true,
+                "occupation": "Electricien",
+                "clientType": "CLIENT",
+                "fullName": "Dzifa Kokou",
+                "accountId": 12
+            },
+            {
+                "id": 11,
+                "firstname": "Abla joconde",
+                "lastname": "Dolipele",
+                "address": "Gbonssimé",
+                "phone": "97497965",
+                "cardID": "78569854569",
+                "cardType": "ID Card",
+                "dateOfBirth": "1981-06-11",
+                "contactPersonName": "",
+                "contactPersonPhone": "",
+                "contactPersonAddress": "",
+                "collector": "COM001",
+                "quarter": "GOLFE 6",
+                "creditInProgress": true,
+                "occupation": "Revendeuse Khom",
+                "clientType": "CLIENT",
+                "fullName": "Abla joconde Dolipele",
+                "accountId": 11
+            }
+        ],
+        "page": {
+            "size": 1000,
+            "number": 0,
+            "totalElements": 3,
+            "totalPages": 1
+        }
+    }
+}
+
+récupérer la liste dans "data.content" pour enregistrer dans la base local, (pour la base local, ajouter les attributs, latitude, longitude, mll (map location link) et profilPhoto. ces valeurs peuvent être null pour les données récupérer du serveur
+mais pour un enregistrement local sur l'application mobile c'est obligatoire. il faut utiliser openStreetView pour récupérer la longitude, la latitude et le lien google map pour la geolocalisation du client. prendre une photo du client qu'on enregistre)
+
+- error response: même chose que l'api précdent
+
+* Récupérer les comptes des clients du commercial et le stocker en local: 
+- url: {{baseUrl}}/api/v1/accounts?page=0&size=2000&sort=id,desc&username=<commercial-username>
+-method: GET
+- success response body (200) : 
+{
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": {
+        "content": [
+            {
+                "id": 13,
+                "accountNumber": "0021020013",
+                "client": {
+                    "id": 13,
+                    "firstname": "Jeff",
+                    "lastname": "LATE",
+                    "address": "Bè",
+                    "phone": "98758969",
+                    "cardID": "1236547895",
+                    "cardType": "CENI",
+                    "dateOfBirth": "1998-12-10",
+                    "contactPersonName": "",
+                    "contactPersonPhone": "",
+                    "contactPersonAddress": "",
+                    "collector": "COM001",
+                    "quarter": "GOLFE 3",
+                    "creditInProgress": true,
+                    "occupation": "Technicien",
+                    "clientType": "CLIENT",
+                    "fullName": "Jeff LATE",
+                    "accountId": 13
+                },
+                "accountBalance": 7000.0,
+                "status": "ACTIF"
+            },
+            {
+                "id": 12,
+                "accountNumber": "0021020012",
+                "client": {
+                    "id": 12,
+                    "firstname": "Dzifa",
+                    "lastname": "Kokou",
+                    "address": "Tokoin",
+                    "phone": "93566798",
+                    "cardID": "EB685785",
+                    "cardType": "Passport",
+                    "dateOfBirth": "2003-01-29",
+                    "contactPersonName": "",
+                    "contactPersonPhone": "",
+                    "contactPersonAddress": "",
+                    "collector": "COM001",
+                    "quarter": "GOLFE 4",
+                    "creditInProgress": true,
+                    "occupation": "Electricien",
+                    "clientType": "CLIENT",
+                    "fullName": "Dzifa Kokou",
+                    "accountId": 12
+                },
+                "accountBalance": 5000.0,
+                "status": "ACTIF"
+            },
+            {
+                "id": 11,
+                "accountNumber": "0021020011",
+                "client": {
+                    "id": 11,
+                    "firstname": "Abla joconde",
+                    "lastname": "Dolipele",
+                    "address": "Gbonssimé",
+                    "phone": "97497965",
+                    "cardID": "78569854569",
+                    "cardType": "ID Card",
+                    "dateOfBirth": "1981-06-11",
+                    "contactPersonName": "",
+                    "contactPersonPhone": "",
+                    "contactPersonAddress": "",
+                    "collector": "COM001",
+                    "quarter": "GOLFE 6",
+                    "creditInProgress": true,
+                    "occupation": "Revendeuse Khom",
+                    "clientType": "CLIENT",
+                    "fullName": "Abla joconde Dolipele",
+                    "accountId": 11
+                },
+                "accountBalance": 10000.0,
+                "status": "ACTIF"
+            }
+        ],
+        "page": {
+            "size": 2000,
+            "number": 0,
+            "totalElements": 3,
+            "totalPages": 1
+        }
+    }
+}
+Récupérer la liste de "data.content" pour enregistrer dans la bdd locale de l'application mobile. Il ne faut enregistrer toutes les information du client pour le compte mais juste son id "client.id" pour le CIF vers le client déjà enregistré
+Error response: même chose que les api précedent:
+
+* récupérer les sorties d'articles du magasin d'un commercial (ce qu'il peut distribuer sur le terrain):
+- url: {{baseUrl}}/api/v1/credits/sorties-history/by-commercial/{{commercial-username}}?page=0&size=1000&sort=id,desc
+- method: GET
+- success response body: 
+{
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": {
+        "content": [
+            {
+                "id": 6,
+                "client": {
+                    "id": 2,
+                    "firstname": "COM001",
+                    "lastname": "COM001",
+                    "address": "Lomé",
+                    "phone": "",
+                    "cardID": "",
+                    "cardType": null,
+                    "dateOfBirth": "1990-01-01",
+                    "contactPersonName": null,
+                    "contactPersonPhone": null,
+                    "contactPersonAddress": null,
+                    "collector": "COM001",
+                    "quarter": "Tokoin",
+                    "creditInProgress": true,
+                    "occupation": "Commercial",
+                    "clientType": "PROMOTER",
+                    "fullName": "COM001 COM001",
+                    "accountId": 2
+                },
+                "articles": [
+                    {
+                        "id": 13,
+                        "articles": {
+                            "id": 3,
+                            "purchasePrice": 250.0,
+                            "sellingPrice": 300.0,
+                            "creditSalePrice": 350.0,
+                            "name": "Rocco 250g",
+                            "marque": "Rocco",
+                            "model": "250g",
+                            "type": "TOMATE",
+                            "stockQuantity": 14,
+                            "commercialName": "TOMATE: Rocco Rocco 250g 250g"
+                        },
+                        "quantity": 8,
+                        "creditId": 6,
+                        "articlesId": 3
+                    }
+                ],
+                "beginDate": "2025-06-03",
+                "expectedEndDate": "2025-07-03",
+                "effectiveEndDate": null,
+                "solvencyNote": "ND",
+                "lateDaysCount": 0,
+                "totalAmount": 2800.0,
+                "totalAmountPaid": 0.0,
+                "totalAmountRemaining": 2800.0,
+                "dailyStake": 100.0,
+                "status": "INPROGRESS",
+                "remainingDaysCount": 30,
+                "collector": "COM001",
+                "type": "CREDIT",
+                "dailyPaid": false,
+                "clientType": "PROMOTER",
+                "parent": null,
+                "updatable": false,
+                "reference": "P2522782",
+                "clientId": 2,
+                "promoterCredit": true
+            },
+            {
+                "id": 1,
+                "client": {
+                    "id": 2,
+                    "firstname": "COM001",
+                    "lastname": "COM001",
+                    "address": "Lomé",
+                    "phone": "",
+                    "cardID": "",
+                    "cardType": null,
+                    "dateOfBirth": "1990-01-01",
+                    "contactPersonName": null,
+                    "contactPersonPhone": null,
+                    "contactPersonAddress": null,
+                    "collector": "COM001",
+                    "quarter": "Tokoin",
+                    "creditInProgress": true,
+                    "occupation": "Commercial",
+                    "clientType": "PROMOTER",
+                    "fullName": "COM001 COM001",
+                    "accountId": 2
+                },
+                "articles": [
+                    {
+                        "id": 2,
+                        "articles": {
+                            "id": 2,
+                            "purchasePrice": 1100.0,
+                            "sellingPrice": 1200.0,
+                            "creditSalePrice": 1300.0,
+                            "name": "Aromate 1L",
+                            "marque": "Aromate",
+                            "model": "1L",
+                            "type": "HUILE",
+                            "stockQuantity": 86,
+                            "commercialName": "HUILE: Aromate Aromate 1L 1L"
+                        },
+                        "quantity": 4,
+                        "creditId": 1,
+                        "articlesId": 2
+                    },
+                    {
+                        "id": 3,
+                        "articles": {
+                            "id": 1,
+                            "purchasePrice": 4500.0,
+                            "sellingPrice": 4700.0,
+                            "creditSalePrice": 5000.0,
+                            "name": "Rizière 5kg",
+                            "marque": "Rizière",
+                            "model": "5KG",
+                            "type": "RIZ",
+                            "stockQuantity": 98,
+                            "commercialName": "RIZ: Rizière Rizière 5kg 5KG"
+                        },
+                        "quantity": 5,
+                        "creditId": 1,
+                        "articlesId": 1
+                    },
+                    {
+                        "id": 1,
+                        "articles": {
+                            "id": 3,
+                            "purchasePrice": 250.0,
+                            "sellingPrice": 300.0,
+                            "creditSalePrice": 350.0,
+                            "name": "Rocco 250g",
+                            "marque": "Rocco",
+                            "model": "250g",
+                            "type": "TOMATE",
+                            "stockQuantity": 14,
+                            "commercialName": "TOMATE: Rocco Rocco 250g 250g"
+                        },
+                        "quantity": 8,
+                        "creditId": 1,
+                        "articlesId": 3
+                    }
+                ],
+                "beginDate": "2025-05-31",
+                "expectedEndDate": "2025-06-30",
+                "effectiveEndDate": null,
+                "solvencyNote": "ND",
+                "lateDaysCount": 0,
+                "totalAmount": 33000.0,
+                "totalAmountPaid": 2075.0,
+                "totalAmountRemaining": 30925.0,
+                "dailyStake": 1125.0,
+                "status": "INPROGRESS",
+                "remainingDaysCount": 30,
+                "collector": "COM001",
+                "type": "CREDIT",
+                "dailyPaid": false,
+                "clientType": "PROMOTER",
+                "parent": null,
+                "updatable": false,
+                "reference": "P2526927",
+                "clientId": 2,
+                "promoterCredit": true
+            }
+        ],
+        "page": {
+            "size": 1000,
+            "number": 0,
+            "totalElements": 2,
+            "totalPages": 1
+        }
+    }
+}
+Récupérer la liste de "data.content" puis enregistrer que les elements de la liste qui ont un "status" egal à "INPROGRESS" et "updatable" est à "true". De même enregistrer que les references des entités liées ("client.id", "articles.id")
+
+Error response: même chose que les précedents
+
+*Récupérer les distributions (ventes à credit des articles sorties de magasin au clients) existantes pour un commercial: 
+- url: {{baseUrl}}/api/v1/credits/by-commercial/{{commercial-username}}?page=0&size=10000&sort=id,desc
+- method: GET
+- Response body (200): 
+
+{
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": {
+        "content": [
+            {
+                "id": 3,
+                "client": {
+                    "id": 13,
+                    "firstname": "Jeff",
+                    "lastname": "LATE",
+                    "address": "Bè",
+                    "phone": "98758969",
+                    "cardID": "1236547895",
+                    "cardType": "CENI",
+                    "dateOfBirth": "1998-12-10",
+                    "contactPersonName": "",
+                    "contactPersonPhone": "",
+                    "contactPersonAddress": "",
+                    "collector": "COM001",
+                    "quarter": "GOLFE 3",
+                    "creditInProgress": true,
+                    "occupation": "Technicien",
+                    "clientType": "CLIENT",
+                    "fullName": "Jeff LATE",
+                    "accountId": 13
+                },
+                "articles": [
+                    {
+                        "id": 7,
+                        "articles": {
+                            "id": 3,
+                            "purchasePrice": 250.0,
+                            "sellingPrice": 300.0,
+                            "creditSalePrice": 350.0,
+                            "name": "Rocco 250g",
+                            "marque": "Rocco",
+                            "model": "250g",
+                            "type": "TOMATE",
+                            "stockQuantity": 14,
+                            "commercialName": "TOMATE: Rocco Rocco 250g 250g"
+                        },
+                        "quantity": 3,
+                        "creditId": 3,
+                        "articlesId": 3
+                    },
+                    {
+                        "id": 8,
+                        "articles": {
+                            "id": 1,
+                            "purchasePrice": 4500.0,
+                            "sellingPrice": 4700.0,
+                            "creditSalePrice": 5000.0,
+                            "name": "Rizière 5kg",
+                            "marque": "Rizière",
+                            "model": "5KG",
+                            "type": "RIZ",
+                            "stockQuantity": 98,
+                            "commercialName": "RIZ: Rizière Rizière 5kg 5KG"
+                        },
+                        "quantity": 2,
+                        "creditId": 3,
+                        "articlesId": 1
+                    },
+                    {
+                        "id": 9,
+                        "articles": {
+                            "id": 2,
+                            "purchasePrice": 1100.0,
+                            "sellingPrice": 1200.0,
+                            "creditSalePrice": 1300.0,
+                            "name": "Aromate 1L",
+                            "marque": "Aromate",
+                            "model": "1L",
+                            "type": "HUILE",
+                            "stockQuantity": 86,
+                            "commercialName": "HUILE: Aromate Aromate 1L 1L"
+                        },
+                        "quantity": 2,
+                        "creditId": 3,
+                        "articlesId": 2
+                    }
+                ],
+                "beginDate": "2025-06-01",
+                "expectedEndDate": "2025-07-01",
+                "effectiveEndDate": null,
+                "solvencyNote": "ND",
+                "lateDaysCount": 0,
+                "totalAmount": 13650.0,
+                "totalAmountPaid": 950.0,
+                "totalAmountRemaining": 12700.0,
+                "dailyStake": 475.0,
+                "status": "INPROGRESS",
+                "remainingDaysCount": 28,
+                "collector": "COM001",
+                "type": "CREDIT",
+                "dailyPaid": false,
+                "clientType": "CLIENT",
+                "parent": {
+                    "id": 1,
+                    "client": {
+                        "id": 2,
+                        "firstname": "COM001",
+                        "lastname": "COM001",
+                        "address": "Lomé",
+                        "phone": "",
+                        "cardID": "",
+                        "cardType": null,
+                        "dateOfBirth": "1990-01-01",
+                        "contactPersonName": null,
+                        "contactPersonPhone": null,
+                        "contactPersonAddress": null,
+                        "collector": "COM001",
+                        "quarter": "Tokoin",
+                        "creditInProgress": true,
+                        "occupation": "Commercial",
+                        "clientType": "PROMOTER",
+                        "fullName": "COM001 COM001",
+                        "accountId": 2
+                    },
+                    "articles": [
+                        {
+                            "id": 2,
+                            "articles": {
+                                "id": 2,
+                                "purchasePrice": 1100.0,
+                                "sellingPrice": 1200.0,
+                                "creditSalePrice": 1300.0,
+                                "name": "Aromate 1L",
+                                "marque": "Aromate",
+                                "model": "1L",
+                                "type": "HUILE",
+                                "stockQuantity": 86,
+                                "commercialName": "HUILE: Aromate Aromate 1L 1L"
+                            },
+                            "quantity": 4,
+                            "creditId": 1,
+                            "articlesId": 2
+                        },
+                        {
+                            "id": 1,
+                            "articles": {
+                                "id": 3,
+                                "purchasePrice": 250.0,
+                                "sellingPrice": 300.0,
+                                "creditSalePrice": 350.0,
+                                "name": "Rocco 250g",
+                                "marque": "Rocco",
+                                "model": "250g",
+                                "type": "TOMATE",
+                                "stockQuantity": 14,
+                                "commercialName": "TOMATE: Rocco Rocco 250g 250g"
+                            },
+                            "quantity": 8,
+                            "creditId": 1,
+                            "articlesId": 3
+                        },
+                        {
+                            "id": 3,
+                            "articles": {
+                                "id": 1,
+                                "purchasePrice": 4500.0,
+                                "sellingPrice": 4700.0,
+                                "creditSalePrice": 5000.0,
+                                "name": "Rizière 5kg",
+                                "marque": "Rizière",
+                                "model": "5KG",
+                                "type": "RIZ",
+                                "stockQuantity": 98,
+                                "commercialName": "RIZ: Rizière Rizière 5kg 5KG"
+                            },
+                            "quantity": 5,
+                            "creditId": 1,
+                            "articlesId": 1
+                        }
+                    ],
+                    "beginDate": "2025-05-31",
+                    "expectedEndDate": "2025-06-30",
+                    "effectiveEndDate": null,
+                    "solvencyNote": "ND",
+                    "lateDaysCount": 0,
+                    "totalAmount": 33000.0,
+                    "totalAmountPaid": 2075.0,
+                    "totalAmountRemaining": 30925.0,
+                    "dailyStake": 1125.0,
+                    "status": "INPROGRESS",
+                    "remainingDaysCount": 30,
+                    "collector": "COM001",
+                    "type": "CREDIT",
+                    "dailyPaid": false,
+                    "clientType": "PROMOTER",
+                    "parent": null,
+                    "updatable": false,
+                    "reference": "P2526927",
+                    "clientId": 2,
+                    "promoterCredit": true
+                },
+                "updatable": true,
+                "reference": "C25138631",
+                "clientId": 13,
+                "promoterCredit": false
+            }
+        ],
+        "page": {
+            "size": 1,
+            "number": 1,
+            "totalElements": 6,
+            "totalPages": 6
+        }
+    }
+}
+
+"data.content" pour récupérer la liste et en registrer les elements de la liste. Toujours gérer la reference avec les autres entités. "parent.id" est un id existant dans les sorties du commercial. 
+chaque distribution est lié à une sortie par le "parent.id". 
+Error response: même chose que les précedents. 
+
+Une fois toutes ces tâches réaliser avec succès, il faut arrêter le spinner ("Récupération des données du serveur en cours...") et afficher un modal ou une alerte de succès, "Récupération des 
+données du serveur effectuées avec succès" (icon d'alerte verte succès moderne).
+(utilisateur peut clicker sur "OK" et redir*iger vers son tableau de bord).
+
+En cas d'echec ajouter un bouton sur l'alerte de l'echec pour permettre à l'utilisateur de réessayer. 
+Tant que la première initialisation des données n'est pas un succès, l'utilisateur ne peut pas accéder aux fonctionnalités de l'application. il peut juste voir la dashboard qui lui indique que 
+l'initialisation des données à echoué avec le message d'erreur. lui permettre de se deconnecter ou de toujours essayer. 
+
+Pour gérer la mise à jour des données lors des prochaines synchronisation vers l'application mobile, et eviter les doublons, il faut introduire un système de hash pour chaque ligne enregistrer. 
+le hash doit contenir tous les champs de l'entité pouvant donnéer une unicité fiable. lors d'une prochaine mise à jour, si l'element existe par son id, alors on vérifie le hash de l'ancien et du nouveau,
+si c'est egale alors on en fait pas de mise à jour et on passe au suivant. si c'est different alors on fait la mise à jour de cette ligne. 
+un menu "Synchronisation"  avec un bouton, "mettre à jour les données locales" va permettre de faire une mise à jour des données. gérer les erreurs si le serveur n'est pas joignable et affiché un message claire à l'utilisateur qu'il n'est pas connecter au serveur.
+Toujours vérifier si le token qu'il avait récupéer du serveur est expiré, si c'est le cas, il faut lui demander de se recon,necter directement après du serveur en deconnectant l'utilisateur. 
+
+propose les elements du dashboard pour representé l'etat des données récupérer et aussi les données que le commercial aura à traité sur le terrain.
+
+pour eviter la duplication de code, les composants doivent être reutilisable, par exemple il faut un seul service d'alerte qu'on peut resutiliser partout dans l'application.
+
+
+** Distributions des articles à un client sur le terrain: 
+ Par le menu "Stock", le commercial accède à la liste des sorties d'articles de sa bdd. (afficher la date "beginDate", le montant total de la sortie "totalAmount", le statut "status" traduit en français, le nombre total d'articles "articles.size" ou "articles.length")
+ 
+ #un bouton "distribuer" sur chaque element de la liste, lui permet de distribuer dans ce lot. il est rediriger vers une page de distribution où : 
+ -il choisit un client de la liste de ces clients, (lui permettre d'ajouter un client et le compte du client avec un solde initial)
+ -il choisit un article dans les lots des articles de cette sortie, saisi la quantité que le client souhaite prendre et l'ajoute au panier. il peut reprende cela autant de fois qu'il y a d'article dans cette sortie et en fonction des quantités restantes des articles
+ de cette sortie. il ne peut pas selectionner deux fois le même article, il peut juste changer sa quantité dans le panier ou le retirer.
+ il faut calculer la mise journalière en divisant le montant total par 30 jours.
+ le montant total distribuer pour un client ne doit pas depasser le montant du solde de son compte multiplié par 6.il faut donc vérifier s'il a déjà des achats qui ne sont pas encore soldé et faire le cumul avec la vente en cours avant de valider l'opération. 
+ si son solde est insuffisant pour l'opération, il faut afficher une alerte avec un message claire. 
+ il  peut ensuite clicker sur un bouton valider pour enregistrer cette distribution dans sa base locale. le parent.id de cette distribution doit être l'id de la sortie.
+ pour vérifier le nombre de quantité restantes pour un article dans une sortie, il faut faire la somme des quantités de cet article dans les distributions (même "parent.id" et "article.id") et faire la difference avec le nombre total dans la sortie.
+ lors d'une distribution, si toutes les quantités d'articles sont déjà distribuer alors, on change "updatable" à "false" pour la sortie. la sortie ne sera plus visible parmis la liste des
+ sorties sur la page de "Stock" mais on peut les consulter en clickant sur un bouton "historique" sur la page de "Stock"
+ un bouton "imprimer" sur l'alerte de succès de distribution d'article à un client doit permettre d'imprimer le recap de cette distribution pour le client (utilisation des petites imprimantes compatible TPE ou mobile)
+ #un bouton "details" (un icon view ou un bouton avec le texte au choix) permet au commercial d'aller sur la page de details d'une sorties et de voir les details sur les articles de cette sorties et leurs quantités.
+ il peut egalement voir les distributions qui sont liés à cette sortie en clickant sur un bouton "voir les distributions" se trouvant sur la page de "détails".
+ le même flow doit être utilisé sur la liste des historiques de stock pour voir le détails et voir les distributions liées. (réutilisation de composants)
+ "voir les distributions" revient à voir les informations du client, la quantité par article acheter et le montant total de son achat.
+ 
+** Gestion des clients: 
+un menu "Client" permet d'acceder à la liste des clients.(nom prenom, occupation, telephone, localité, photo de profil)
+sur les elements de la liste: 
+#un bouton "map" (ça peut être un icon maps) permet de récupéer le "mll" et d'ouvrir Google maps sur le portable avec ce lien de geolocalisation.
+#un bouton "details" (ou icon) permet de voir les details du clients et de son compte.
+#un bouton "achats" permettant d'aller sur la liste de tous les achats (distributions) en cours du clients.
+#un bouton "details" sur la liste des achats permet d'afficher le details de la distributions selectionner avec les articles et quantité de la distribution (réutilisation de composants - détails de distribution). 
+la pagee details peut contenir aussi le bouton "mise"
+#un bouton "mise" sur les elements de la liste des achats, pour permettre au commercial d'enregistrer (collecter, recouvrir) la mise journalière
+chez un client. la mise peut être "normale" ou "speciale", le normal veut dire que le client à payé le montant dû pour la journée (exemple, si la mise est à 200 pour la distribution alors il donne 200). pas grande chose à faire, il click sur le bouton normal et 
+cela est compté que a fait sa mise journalière de la journée pour une distribution. la mise spécial consiste à payer un montant supérieur et multiple de la mise normal. (pour l'exemple de 200, le client peut chosir de payer, 400, 600, 800 ou 1000). proposer 3 à 4 bouton contenant les multiples successifs
+de la mise et permettre au commercial de saisir dans un champs si le montant collecter depasser les 4 premiers multiples. le champs doit toujours valider que c'est un multiple de la mise normal qui est saisi
+une entité "timeline" permet de d'enregistrer les mise journalière d'une vente au backend, on peut faire pareille au niveau de l'application mobile pour stocker, les mise de chaque jour.
+{
+  "id": 123, //l'identifiant de l'enregistrement dans la bdd
+  "amount": 1000.50, //le montant collecter automatiquement pris de la distribution si c'est une mise normale
+  "normalStake": true, //permet de definir si c'est une mise normal ou pas 
+  "remainingDaysCount": 30, //en fonction de la date de fin prévue pour distribution comaprer à la date de jour, on calcul le nombre de jour restant 
+  "totalAmountRemaining": 950.25, // En fonction du montant déjà collecté, on calcul le montant restant
+  "collector": "COM001", //le username du commercial qui est connecté
+  "CreditId": 13, //l'identifiant de la distribution dans la bdd
+  "accountingDate": "2025-07-24" // la date comptable ou la date du jour.
+}
+Imprimer un reçu de la mise à la suite de l'alerte succès de la mise. (nom du client, username du commercial, la date et heure du jour, reference de l'achat ou distribution, montant mise)
+
+**Synchronisation
+Le menu "Synchronisation" permet d'ouvrir la page des synchronisation.
+#disposer d'un bouton "Client" pour faire la synchronisation des nouveaux clients créer vers le serveur
+#Disposer d'un bouton "Distribution" pour faire la synchronisation des distribution de l'application mobile vers le serveur.
+#Disposer d'un bouton "Collecte" ou "Recouvrement" ou "Mise journalière" pour faire la synchronisation des recouvrement de l'application mobile vers le serveur.
+#Disposer d'un bouton "Tout Synchroniser vers le serveur"
+
+Avant de commencer les synchronisation d'une journée faire les vérifiactions suivante: 
+La caisse du commercial est-elle ouverte pour la journée?
+url: {{baseUrl}}/api/v1/cash-desks/is-opened
+method: GET
+success response body (200) :
+{
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": "boolean"
+}
+si "data" est egale à "true" alors, c'est bon, on peut procéder aux diverses synchronisations, sinon on fait l'appel suivante: 
+url: {{baseUrl}}/api/v1/cash-desks/open
+method: GET
+success response body (200):
+ {
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": {
+				"id": "number (Long)",                 // Exemple : 123
+				"systemBalance": "number (Double)",    // Exemple : 1500.75
+				"realBalance": "number (Double)",      // Exemple : 1500.75
+				"status": "string (Enum)",             // Exemple : "COMPLIANT" (valeurs possibles dépendent de l'énumération `AccountancyStatus`)
+				"balanceDifference": "number (Double)",// Exemple : 0.0 (différence entre `systemBalance` et `realBalance`)
+				"collector": "string",                 // Exemple : "COM001" (non modifiable après création) le username du commercial
+				"accountingDate": "string (ISO Date)", // Exemple : "2025-07-24" (format `yyyy-MM-dd`)
+				"ticketingJson": "string (JSON brut)", // Exemple : "{\"ticketId\": 456, \"status\": \"processed\"}"
+				"isOpened": "boolean"                  // Exemple : true si statusCode 200
+			}
+}
+
+si "data.isOpened" est à "true" alors on continue les synchro sinon on informe l'utilisateur qu'un problème est survenu lors de l'ouverture de sa caisse avec le message d'erreur "message"
+
+- synchronisation des clients:
+Au click sur le bouton "client" sur la page des synchronisations, une nouvelle page s'ouvre pour la synchronisation des clients. cette page contient la liste des client enregistrer par 
+le commercial et qui ne sont pas encore envoyé au serveur. un check box (case à cocher) sur chaque element de la liste permet de selectionner des client qu'on veut synchroniser en groupe. A partir d'une selection un bouton "synchroniser" (ça peut être un floating button Action)
+s'affiche sur l'ecran pour permettre au commercial d'envoyer les elements selectionnner vers le serveur. une case à cocher "slectionnez tout" en haut de la liste permet egalement de tout selectionner d'un coup et avoir accès au bouton synchroniser 
+pour envoyer toute la liste au serveur l'un après l'autre. il faut egalement un bouton "synchroniser" (un icon souhaitable) permettant de synchroniser directement l'element sans passer par les selection et le bouton synchroniser.
+pour toute action qui va envoyer les données vers le serveur, afficher une confirmation avant d'envoyer.
+Action "synchroniser": 
+Au click sur le bouton "synchroniser" (que ce soit pour les selection multiples ou un element), un spinner doit se declencher affichant "Synchronisation des données du client en cours".
+la méthode onSubmit récupères les données qui doivent être envoyer et fait une boucle pour appeler l'api suivante: 
+url: {{baseUrl}}/api/v1/clients
+method: POST
+request body: 
+{
+  "address": "String", //l'adresse du client ecrit à la main
+  "cardID": "string", //numéro de pièce d'identité
+  "cardType": "string", //le type de la pièce d'identité
+  "collector": "string", //le username du commercial connecté
+  "dateOfBirth": "2022-01-16", //La date de naissance du client
+  "firstname": "string", //Le prenom du client
+  "lastname": "string", //Le nom du client
+  "occupation": "string", //Le travail du client
+  "phone": "String", //Le numéro du téléphone du client
+  "quarter": "string", //selection d'une loclaité dans la liste des localités
+  "id": number, //l'identifiant, Envoyer null lors de la synchronisation
+  "contactPersonName": "string", //Nom et prenom d'une personne à contacter
+  "contactPersonPhone": "string", //Le numéro de téléphone de la personne à contacter
+  "contactPersonAddress": "string", //L'adresse de la personne à contacter
+  "clientType": "CLIENT", //Tojours envoyer 'CLIENT' en MAJUSCULE
+  "iddoc": "string", //La base64 de l'image de la pièce d'identité du client
+  "profilPhoto": "string", //la base64 de la photo de profil du client
+  "longitude": "number", // La longitude geographique du client. A récupérer automatiquement lors de son enregistrement sur le terrain
+  "latitude": "number", //La latitude geographique du client récupérer automatiquement lors de son enregistrement
+  "mll": "string", //un lien de geolocalisation qu'une application comme Google Maps peut utiliser pour afficher un emplacement. (Essayer de voir si OpenstreetView peut permettre de récupérer ce lien directement lors de l'enregistrement du client)
+  "code": "string" //code client généré automatiquement par l'appli mobile (readonly).il doit être généré sous le format suivant: les deux derniers caractères du username du commercial + (le nombre total de client existant + 1, formmatter sur 3 digit '000' ). Exemple pour le commercial 'COM001' ayant 2 clients, le nouveau client aura pour code: '01003'
+}
+
+Success response body (201):
+
+{
+    "status": "CREATED",
+    "statusCode": 201,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": {
+				"address": "String",
+				"cardID": "string", 
+				"cardType": "string",
+				"collector": "string",
+				"dateOfBirth": "2022-01-16",
+				"firstname": "string",
+				"lastname": "string",
+				"occupation": "string",
+				"phone": "String",
+				"quarter": "string",
+				"id": number,
+				"contactPersonName": "string", 
+				"contactPersonPhone": "string",
+				"contactPersonAddress": "string",
+				"clientType": "CLIENT",
+				"iddoc": "string",
+				"profilPhoto": "string",
+				"longitude": "number",
+				"latitude": "number",
+				"mll": "string"
+			}
+}
+
+pour chaque reponse reçue, il faut récupérer "data.id" pour ajouter au client de la bdd local et flager ce client comme déjà synchroniser vers le serveur et son hash pour les prochaines mise à jour from server. (pour toutes les opérations vers le serveur, c'est le id retourtner par le serveur qui doit être utiliser)
+Une fois tous les elements de la liste à synchroniser terminer avec succès, il faut afficher une alerte ou modale de "Synchronisation effectuées avec succès". (au cas où il y a eu des succès et des erreurs, afficher le nombre de succès et le nombre d'echec)
+Les element synchroniser ne s'afficheront plus sur la liste. ceux qui ont eu un echec reste sur la liste marqué d'un icon d'erreur et disposant d'un icon de message qui permettra de voir le 
+message d'erreur (donc il faut sauvegarder le message d'erreur pour chaque element de la synchronisation s'il y a eu une erreur) dans un modal. le message d'erreur sera dans "message" dans la response 
+Pour chaque client enregistrer sur le serveur, il faut utiliser son id du serveur, pour synchroniser le compte du client egalement avec l'api suivante: 
+url: {{baseUrl}}/api/v1/accounts
+method: POST
+request body: 
+{
+  "id": "number", //l'id du compte, envoyer une valeur null pour que le serveur créer le compte.
+  "accountNumber": "String", //Le numero de compte, ça doit être généré sous le format suivant, 0021020012, garder le 0021 + les deux dernier character à la fin du username du commercial + (le nombre total de compte dans la base du commercial + 1, formatter sur 4 digit, c'est à dire si le nombre est égale à 14 ça donne '0014'). pour l'exemple du commercial COM001 avec un nombre de compte 14 existant, un nouveau numero de compte sera: '0021010015'
+  "clientId": "number", //l'id du serveur du client (récupérer de "data.id" pour les clients synchroniser)
+  "accountBalance": "number", //le solde du compte, le depôt initial fait par le client sur son compte
+}
+success response body (201): 
+{
+    "status": "CREATED",
+    "statusCode": 201,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": {
+		"id": "number", //l'id du compte généré par le backend (serveur).
+		"accountNumber": "String", 
+		"clientId": "number", 
+		"accountBalance": "number", 
+		"status": "string" //[CREATED,ACTIF,CLOSED]
+	}
+}
+
+Flager le compte comme déjà synchroniser.
+- Synchronisation des Distributions: 
+Au click sur le bouton "Distribution", une nouvelle page s'ouvre pour la synchronisation des distributions 
+Les mêmes principes de selctions et des boutons "synchroniser" de la synchronisation des clients sont réapplicable ici. 
+nous allons donc passer directement au click sur le bouton "synchroniser":
+Une boucle sur la liste des elements faisant partie de la synchronisation constitue le request body puis envoi l'un après l'autre les élements via l'api suivante et une mise à jour local se fait automatiquement pour flager que les elements ont été synchroniser, 
+l'id du serveur a été récupérer et ajouter en local pour toutes communication vers le serveur, le message d'erreur a été ajouté en cas d'erreur:
+url: {{baseUrl}}/api/v1/credits/distribute-articles
+method: PATCH
+request body: 
+{
+  "articles": {
+    "articleEntries": [
+      {
+        "articleId": "number", //l'id de l'article
+        "quantity": "number" //La quantité de l'article
+      },
+      {
+        "articleId": "number",
+        "quantity": "number"
+      }
+    ]
+  },
+  "clientId": "number", //l'id du client (il faut utiliser l'id retourner par le serveur pour les clients synchroniser par le commercial)
+  "creditId": "number" //l'id de la sortie ou le "parent.id" de la distribution
+}
+
+succes response body (200): 
+
+{
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": {
+                "id": 3,
+                "client": {
+                    "id": 13,
+                    "firstname": "Jeff",
+                    "lastname": "LATE",
+                    "address": "Bè",
+                    "phone": "98758969",
+                    "cardID": "1236547895",
+                    "cardType": "CENI",
+                    "dateOfBirth": "1998-12-10",
+                    "contactPersonName": "",
+                    "contactPersonPhone": "",
+                    "contactPersonAddress": "",
+                    "collector": "COM001",
+                    "quarter": "GOLFE 3",
+                    "creditInProgress": true,
+                    "occupation": "Technicien",
+                    "clientType": "CLIENT",
+                    "fullName": "Jeff LATE",
+                    "accountId": 13
+                },
+                "articles": [
+                    {
+                        "id": 7,
+                        "articles": {
+                            "id": 3,
+                            "purchasePrice": 250.0,
+                            "sellingPrice": 300.0,
+                            "creditSalePrice": 350.0,
+                            "name": "Rocco 250g",
+                            "marque": "Rocco",
+                            "model": "250g",
+                            "type": "TOMATE",
+                            "stockQuantity": 14,
+                            "commercialName": "TOMATE: Rocco Rocco 250g 250g"
+                        },
+                        "quantity": 3,
+                        "creditId": 3,
+                        "articlesId": 3
+                    },
+                    {
+                        "id": 8,
+                        "articles": {
+                            "id": 1,
+                            "purchasePrice": 4500.0,
+                            "sellingPrice": 4700.0,
+                            "creditSalePrice": 5000.0,
+                            "name": "Rizière 5kg",
+                            "marque": "Rizière",
+                            "model": "5KG",
+                            "type": "RIZ",
+                            "stockQuantity": 98,
+                            "commercialName": "RIZ: Rizière Rizière 5kg 5KG"
+                        },
+                        "quantity": 2,
+                        "creditId": 3,
+                        "articlesId": 1
+                    },
+                    {
+                        "id": 9,
+                        "articles": {
+                            "id": 2,
+                            "purchasePrice": 1100.0,
+                            "sellingPrice": 1200.0,
+                            "creditSalePrice": 1300.0,
+                            "name": "Aromate 1L",
+                            "marque": "Aromate",
+                            "model": "1L",
+                            "type": "HUILE",
+                            "stockQuantity": 86,
+                            "commercialName": "HUILE: Aromate Aromate 1L 1L"
+                        },
+                        "quantity": 2,
+                        "creditId": 3,
+                        "articlesId": 2
+                    }
+                ],
+                "beginDate": "2025-06-01",
+                "expectedEndDate": "2025-07-01",
+                "effectiveEndDate": null,
+                "solvencyNote": "ND",
+                "lateDaysCount": 0,
+                "totalAmount": 13650.0,
+                "totalAmountPaid": 950.0,
+                "totalAmountRemaining": 12700.0,
+                "dailyStake": 475.0,
+                "status": "INPROGRESS",
+                "remainingDaysCount": 28,
+                "collector": "COM001",
+                "type": "CREDIT",
+                "dailyPaid": false,
+                "clientType": "CLIENT",
+                "parent": {
+                    "id": 1,
+                    "client": {
+                        "id": 2,
+                        "firstname": "COM001",
+                        "lastname": "COM001",
+                        "address": "Lomé",
+                        "phone": "",
+                        "cardID": "",
+                        "cardType": null,
+                        "dateOfBirth": "1990-01-01",
+                        "contactPersonName": null,
+                        "contactPersonPhone": null,
+                        "contactPersonAddress": null,
+                        "collector": "COM001",
+                        "quarter": "Tokoin",
+                        "creditInProgress": true,
+                        "occupation": "Commercial",
+                        "clientType": "PROMOTER",
+                        "fullName": "COM001 COM001",
+                        "accountId": 2
+                    },
+                    "articles": [
+                        {
+                            "id": 2,
+                            "articles": {
+                                "id": 2,
+                                "purchasePrice": 1100.0,
+                                "sellingPrice": 1200.0,
+                                "creditSalePrice": 1300.0,
+                                "name": "Aromate 1L",
+                                "marque": "Aromate",
+                                "model": "1L",
+                                "type": "HUILE",
+                                "stockQuantity": 86,
+                                "commercialName": "HUILE: Aromate Aromate 1L 1L"
+                            },
+                            "quantity": 4,
+                            "creditId": 1,
+                            "articlesId": 2
+                        },
+                        {
+                            "id": 1,
+                            "articles": {
+                                "id": 3,
+                                "purchasePrice": 250.0,
+                                "sellingPrice": 300.0,
+                                "creditSalePrice": 350.0,
+                                "name": "Rocco 250g",
+                                "marque": "Rocco",
+                                "model": "250g",
+                                "type": "TOMATE",
+                                "stockQuantity": 14,
+                                "commercialName": "TOMATE: Rocco Rocco 250g 250g"
+                            },
+                            "quantity": 8,
+                            "creditId": 1,
+                            "articlesId": 3
+                        },
+                        {
+                            "id": 3,
+                            "articles": {
+                                "id": 1,
+                                "purchasePrice": 4500.0,
+                                "sellingPrice": 4700.0,
+                                "creditSalePrice": 5000.0,
+                                "name": "Rizière 5kg",
+                                "marque": "Rizière",
+                                "model": "5KG",
+                                "type": "RIZ",
+                                "stockQuantity": 98,
+                                "commercialName": "RIZ: Rizière Rizière 5kg 5KG"
+                            },
+                            "quantity": 5,
+                            "creditId": 1,
+                            "articlesId": 1
+                        }
+                    ],
+                    "beginDate": "2025-05-31",
+                    "expectedEndDate": "2025-06-30",
+                    "effectiveEndDate": null,
+                    "solvencyNote": "ND",
+                    "lateDaysCount": 0,
+                    "totalAmount": 33000.0,
+                    "totalAmountPaid": 2075.0,
+                    "totalAmountRemaining": 30925.0,
+                    "dailyStake": 1125.0,
+                    "status": "INPROGRESS",
+                    "remainingDaysCount": 30,
+                    "collector": "COM001",
+                    "type": "CREDIT",
+                    "dailyPaid": false,
+                    "clientType": "PROMOTER",
+                    "parent": null,
+                    "updatable": false,
+                    "reference": "P2526927",
+                    "clientId": 2,
+                    "promoterCredit": true
+                },
+                "updatable": true,
+                "reference": "C25138631",
+                "clientId": 13,
+                "promoterCredit": false
+    }
+}
+
+Récupérer le "data.id" pour mettre à jour l'id du serveur pour la distribution (c'est ce id qui sera utilisé lors de la synchronisation des mises journalières)
+les distributions synchroniser ne s'affiche plus sur la liste de la synchronisation, ceux qui ont echoué reste avec une marque d'erreur et un icon permettant d'afficher le message dans un modal
+
+- Synchronisation des mises journalières: 
+Au click sur le bouton "Mise journalière", une nouvelle page s'ouvre pour la synchronisation des mises journalières 
+Les mêmes principes de selctions et des boutons "synchroniser" de la synchronisation des clients sont réapplicable ici. 
+nous allons faire deux step, la première pour les mises normales, et la seconde pour les mises spéciales
+nous allons donc passer directement au click sur le bouton "synchroniser" pour les mises noramales:
+boucle sur les elements de la liste pour constituer le request body et envoyer une seule fois vers l'API: 
+url: {{baseUrl}}/api/v1/credits/default-daily-stake
+method: POST
+request body: 
+{
+  "clientIds": ["number"], //un tableau des id des clients qui ont fait une mise normale (l'id du serveur doit être utilisé pour les clients créer par le commercial et synchroniser après vers le serveur)
+  "collector": "String", //le username du commercial connecté
+  "creditIds": ["number"] //un tableau des id de la distribution, (doit utiliser l'id du serveur pour les distributions créer et synchroniser par le commercial)
+}
+
+response body: 
+{
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": ["number"] //une liste d'id est retourner pour toutes les mises qui sont bien enregistrés.
+}
+
+si le "data.size" ou "data.length" est egale à la taille de liste des elements selectionner pour la synchronisation alors flager tous les elements selectionner comme synchroniser vers le serveur. 
+les elements synchroniser ne s'affiche plus sur la liste de synchronisations
+
+click sur le bouton "synchroniser" pour les mises speciales:
+faire une boucle pour constituer le request body puis une envoyer en une seule fois ver l'API:
+url: {{baseUrl}}/api/v1/credits/special-daily-stake
+method: POST
+request body: 
+{
+  "collector": "string", //le username du commercial
+  "stakeUnits": [
+    {
+      "amount": "number", //le montant donner pour la mise
+      "creditId": "number", //l'id de la distribution (toujours utilisé l'id du serveur pour les distribution créer et synchroniser par le commercial)
+      "clientId": "number" //l'id du client (toujours utilisé l'id du serveur pour les clients créer et synchroniser par le commercial)
+    },
+    {
+      "amount": "number",
+      "creditId": "number",
+      "clientId": "number"
+    }
+  ]
+}
+
+success response body (200) :
+{
+    "status": "OK",
+    "statusCode": 200,
+    "message": "default.message.success",
+    "service": "OPTIMIZE-SERVICE",
+    "data": ["number"] //une liste d'id est retourner pour toutes les mises qui sont bien enregistrés.
+}
+
+si le "data.size" ou "data.length" est egale à la taille de liste des elements selectionner pour la synchronisation alors flager tous les elements selectionner comme synchroniser vers le serveur. 
+les elements synchroniser ne s'affiche plus sur la liste de synchronisations
+
+- Tout Synchroniser vers le serveur. 
+Au click, sur ce bouton, un long process va se lancer et envoyer tout les clients, les distributions, les mise journalières, successivement vers le serveur. (La réutilisation des 3 actions précedentes sont importantes pour eviter la duplication de code. L'une des difference ici est qu'une seule alerte de succès sera afficher à la fin de toutes les synchronisation
+, au lieu d'afficher un message de succès après chaque type de synchronisation).
+
+**Etat ou Rapport
+Un menu "Rapport" ou "Etat" va permettre au commercial d'imprimer les rapports pour ces activités de la journée.
+- Rapport des client créer au cours de la journée
+Afficher la date du jour, le nombre total de client du jour, grouper les client par l'attribut "quarter"(qui est la localité selectionner) et afficher le nom d ela localité suivi des clients de la localité. 
+les informations suivantes doivent être afficher pour le client: 
+code, nom et prenom, téléphone, numero de compte, solde du compte.
+on doit pouvoir voir le display dans l'application avec un bouton imprimer permettant de lancer l'impression.
+
+- Rapport des distributions
+Afficher la date du jour, le montant total des distributions de la journée, grouper les distribution par localité ("quarter") du client puis afficher: 
+code client, nom et prenom du client, montant total de l'achat du client. 
+Le display avec un bouton imprimer qui lance l'impression sur l'imprimante connecté. si aucune imprimante connecté, afficher le message (alerte) "aucune imprimante connecté". proposer un bouton "enregistrer" pour enregistrer le pdf su rapportsur le telephone
+filename: type_rapport_date_du_jour.pdf
+
+- Rapport des mises journalières
+Afficher la date du jour, le nombre total de collecte de la journée, le montant total des mise de la journée, le solde total des comptes créer dans la journée,
+Afficher localité grouper par client puis les mises des clients par localité comme suit: 
+code client, montant mise, montant restant à date.
+Afficher le montant total à verser: (la somme du montant total des mises journalières et du solde total des comptes créer dans la journée)
+Display et imprimer (eventuellement enregistrer en pdf).
+
+**Dashbord
+Je te laisse analyser toutes les fonctionnalités puis proposer un tableau de bord incortounable et utile pour cette application pour avoir certains métrique clé (possibilité de le filtrer par jour, par semaine, par mois, par année)
+
+ça serait judicieux de toujours vérifier le statusCode isSuccessful (200, 201) de toutes les requêtes faites vers le backend afin d'être sûr que la requête est un succès avant d'afficher un message de succès à l'utilisateur. 
+A part la connexion, toutes les requêtes vers le serveur doivent inclure un Bearer token (access-token) dans Authorization du header de la requête. 
+Sur toutes les listes présentées dans l'application permettre une recherche elastic.

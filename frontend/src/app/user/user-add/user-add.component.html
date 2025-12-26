@@ -1,0 +1,112 @@
+<div class="container">
+    <div class="form-header">
+      <h1>Editer un utilisateur</h1>
+    </div>
+  
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <div class="col">
+          <div class="form-group">
+            <label for="username">Nom d'utilisateur<span class="text-danger">*</span></label>
+            <input id="username" formControlName="username" class="form-control" />
+            <div *ngIf="userForm.get('username')?.invalid && userForm.get('username')?.touched" class="error-message">
+              Le nom d'utilisateur est requis.
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="row">
+        <div class="col">
+          <div class="form-group">
+            <label for="lastname">Nom<span class="text-danger">*</span></label>
+            <input id="lastname" formControlName="lastname" class="form-control" />
+            <div *ngIf="userForm.get('lastname')?.invalid && userForm.get('lastname')?.touched" class="error-message">
+              Le nom est requis.
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <label for="firstname">Prénom<span class="text-danger">*</span></label>
+            <input id="firstname" formControlName="firstname" class="form-control" />
+            <div *ngIf="userForm.get('firstname')?.invalid && userForm.get('firstname')?.touched" class="error-message">
+              Le prénom est requis.
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="row">
+        <div class="col">
+          <div class="form-group">
+            <label for="email">Email<span class="text-danger">*</span></label>
+            <input id="email" formControlName="email" class="form-control" />
+            <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched" class="error-message">
+              <ng-container *ngIf="userForm.get('email')?.hasError('required')">L'email est requis.</ng-container>
+              <ng-container *ngIf="userForm.get('email')?.hasError('email')">Email invalide.</ng-container>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <label for="phone">Numéro de téléphone<span class="text-danger">*</span></label>
+            <input id="phone" formControlName="phone" class="form-control" pattern="[0-9]{8}$" />
+            <div *ngIf="userForm.get('phone')?.hasError('pattern') && userForm.get('phone')?.touched" class="error-message">
+              Numéro de téléphone doit être composé de 8 chiffres.
+            </div>
+            <div *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.touched" class="error-message">
+              Numéro de téléphone est requis.
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="row">
+        <div class="col">
+          <div class="form-group">
+            <label for="gender">Genre<span class="text-danger">*</span></label>
+            <select id="gender" formControlName="gender" class="form-control">
+              <option value="" disabled>Sélectionnez le genre</option>
+              <option value="male">Homme</option>
+              <option value="female">Femme</option>
+            </select>
+            <div *ngIf="userForm.get('gender')?.invalid && userForm.get('gender')?.touched" class="error-message">
+              Le genre est requis.
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <label for="profilId">Profil<span class="text-danger">*</span></label>
+            <select id="profilId" formControlName="profilId" class="form-control">
+              <option value="" disabled>Sélectionnez le profil</option>
+              <option *ngFor="let profile of profiles" [value]="profile.id">{{ profile.name }}</option>
+            </select>
+            <div *ngIf="userForm.get('profilId')?.invalid && userForm.get('profilId')?.touched" class="error-message">
+              Le profil est requis.
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="row">
+        <div class="col">
+          <div class="form-group">
+            <label for="password">Mot de passe<span class="text-danger">*</span></label>
+            <input id="password" type="password" formControlName="password" class="form-control" />
+            <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched" class="error-message">
+              <ng-container *ngIf="userForm.get('password')?.hasError('required')">Le mot de passe est requis.</ng-container>
+              <ng-container *ngIf="userForm.get('password')?.hasError('minlength')">Le mot de passe doit contenir au moins 6 caractères.</ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="actions">
+        <button type="button" class="btn btn-cancel" (click)="onCancel()">Annuler</button>
+        <button type="submit" class="btn btn-submit" [disabled]="userForm.invalid">Valider</button>
+      </div>
+    </form>
+  </div>
+  

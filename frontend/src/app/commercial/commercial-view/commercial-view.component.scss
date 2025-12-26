@@ -1,0 +1,191 @@
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #003366;
+}
+
+.container {
+  background-color: white;
+  border-radius: 5px;
+  padding-top: 40px;
+  text-align: center;
+}
+
+.header-fixed {
+  margin-bottom: 20px;
+}
+
+.commercial-details {
+  margin-top: 30px;
+  margin-left: 100px;
+  margin-right: 100px;
+  padding: 20px;
+  text-align: left;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.detail-line {
+  margin-bottom: 15px;
+}
+
+.detail-label {
+  font-weight: bold;
+  color: #003366;
+  margin-right: 10px;
+}
+
+.detail-value {
+  color: #333;
+}
+
+.placeholder-content {
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  padding: 15px;
+  margin-top: 15px;
+  min-height: 100px;
+}
+
+.tab-content {
+  padding: 20px 0;
+}
+
+// Styles pour chaque type de contenu d'onglet
+.ventes-content,
+.historiques-content,
+.clients-content,
+.sorties-content,
+.retour-stock-content,
+.distributions-content {
+  h3 {
+    color: #003366;
+    margin-bottom: 10px;
+  }
+  
+  p {
+    margin-bottom: 15px;
+  }
+}
+
+.tabs-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.tabs-container .mat-tab-group {
+  width: 100%;
+  max-width: 850px; /* Vous pouvez ajuster cette valeur selon vos besoins */
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.article-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.article-table th, .article-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  color: #003366;
+}
+
+.article-table th {
+  background-color: #f2f2f2;
+  text-align: left;
+}
+
+.d-flex.justify-content-end.align-items-center {
+  margin-bottom: 10px; // Ajoute un peu d'espace en dessous si nécessaire
+
+  mat-button-toggle-group {
+    margin-right: 10px; // Espace entre le groupe de boutons et le bouton Rafraîchir
+    height: 38px; // Ajustez pour correspondre à la hauteur du bouton Rafraîchir
+
+    .mat-button-toggle {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.875rem; // Taille de police similaire au bouton Rafraîchir
+      padding: 0 10px; // Ajustez le padding si nécessaire
+      line-height: normal; // Assure que le texte est bien centré verticalement
+    }
+  }
+
+  .refresh-button {
+    color: white;
+  background-color: #003366;
+  border: none; 
+  border-radius: 4px; 
+  padding: 8px 16px; 
+  font-size: 15px; 
+  cursor: pointer; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  }
+}
+.refresh-button mat-icon {
+  margin-right: 5px;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-success {
+  background-color: #28a745;
+}
+
+.badge-primary {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.badge-info {
+  background-color: #17a2b8;
+}
+
+.badge-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.badge-dark {
+  background-color: #343a40;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+}
+
+mat-button-toggle-group {
+  margin-left: 10px;
+  height: 36px; // Même hauteur que le bouton refresh
+  align-self: center;
+
+  mat-button-toggle {
+    line-height: 36px;
+    font-size: 14px;
+  }
+}
+.search-field {
+  margin-right: 10px;
+}
+
+.search-button, .clear-button {
+  margin-right: 10px;
+}

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC014 - Tableau de Bord Tontine | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 16px;
+            background-color: var(--background-color);
+        }
+
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 4px 0;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .search-container {
+            padding: 16px;
+            background-color: white;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 16px 16px;
+            overflow-x: auto;
+            background-color: white;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #E0E0E0;
+            background: white;
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chip.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .chip:hover {
+            border-color: var(--primary-color);
+        }
+
+        .members-list {
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .member-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .member-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .member-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+
+        .member-info {
+            flex: 1;
+        }
+
+        .member-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .member-details {
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .member-amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
+        .member-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .status-active {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-pending {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--warning-color);
+        }
+
+        .status-delivered {
+            background: rgba(33, 150, 243, 0.1);
+            color: var(--info-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 16px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="header">
+            <button class="header-icon" onclick="goBack()">←</button>
+            <div class="header-title">Gestion Tontine</div>
+            <button class="header-icon" onclick="showMenu()">⋮</button>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="totalMembers">0</div>
+                <div class="stat-label">Membres Actifs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value" id="totalCollections">0 F</div>
+                <div class="stat-label">Total Collecté</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📅</div>
+                <div class="stat-value" id="currentYear">2025</div>
+                <div class="stat-label">Session en cours</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value" id="pendingDeliveries">0</div>
+                <div class="stat-label">En attente livraison</div>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="input-with-icon">
+                <span class="input-icon">🔍</span>
+                <input type="text" class="input-field" placeholder="Rechercher un membre..." 
+                       id="searchInput" oninput="filterMembers()">
+            </div>
+        </div>
+
+        <!-- Filter Chips -->
+        <div class="filter-chips">
+            <div class="chip active" onclick="filterByStatus('all')">Tous</div>
+            <div class="chip" onclick="filterByStatus('active')">Actifs</div>
+            <div class="chip" onclick="filterByStatus('pending')">En attente</div>
+            <div class="chip" onclick="filterByStatus('delivered')">Livrés</div>
+        </div>
+
+        <!-- Members List -->
+        <div class="members-list" id="membersList">
+            <!-- Members will be dynamically loaded here -->
+        </div>
+
+        <!-- FAB Button -->
+        <button class="fab" onclick="registerNewMember()" title="Inscrire un nouveau membre">
+            +
+        </button>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-navigation">
+            <a href="EC003-tableau-de-bord.html" class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Tableau de Bord</div>
+            </a>
+            <a href="EC004-liste-clients.html" class="nav-item">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">Clients</div>
+            </a>
+            <a href="EC014-tableau-de-bord-tontine.html" class="nav-item active">
+                <div class="nav-icon">🎯</div>
+                <div class="nav-label">Tontine</div>
+            </a>
+            <a href="EC011-parametres.html" class="nav-item">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">Plus</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        const members = [
+            {
+                id: 1,
+                name: "Marie Kouassi",
+                phone: "0701234567",
+                frequency: "Hebdomadaire",
+                totalAmount: 45000,
+                lastCollection: "2025-09-25",
+                status: "active",
+                registrationDate: "2025-01-15"
+            },
+            {
+                id: 2,
+                name: "Jean Kouadio",
+                phone: "0709876543",
+                frequency: "Mensuel",
+                totalAmount: 120000,
+                lastCollection: "2025-09-01",
+                status: "active",
+                registrationDate: "2025-01-10"
+            },
+            {
+                id: 3,
+                name: "Aya Traoré",
+                phone: "0705551234",
+                frequency: "Quotidien",
+                totalAmount: 89500,
+                lastCollection: "2025-09-27",
+                status: "active",
+                registrationDate: "2025-01-20"
+            },
+            {
+                id: 4,
+                name: "Koffi Yao",
+                phone: "0707778888",
+                frequency: "Hebdomadaire",
+                totalAmount: 156000,
+                lastCollection: "2024-11-30",
+                status: "delivered",
+                registrationDate: "2024-01-05"
+            },
+            {
+                id: 5,
+                name: "Aminata Diallo",
+                phone: "0702223333",
+                frequency: "Mensuel",
+                totalAmount: 8000,
+                lastCollection: "2025-09-15",
+                status: "pending",
+                registrationDate: "2025-09-01"
+            }
+        ];
+
+        let currentFilter = 'all';
+
+        function initializePage() {
+            updateStats();
+            renderMembers();
+        }
+
+        function updateStats() {
+            const activeMembers = members.filter(m => m.status === 'active').length;
+            const totalCollected = members.reduce((sum, m) => sum + m.totalAmount, 0);
+            const pendingDeliveries = members.filter(m => m.status === 'pending' && m.totalAmount > 100000).length;
+            const currentYear = new Date().getFullYear();
+
+            document.getElementById('totalMembers').textContent = activeMembers;
+            document.getElementById('totalCollections').textContent = totalCollected.toLocaleString('fr-FR') + ' F';
+            document.getElementById('currentYear').textContent = currentYear;
+            document.getElementById('pendingDeliveries').textContent = pendingDeliveries;
+        }
+
+        function renderMembers(filteredMembers = members) {
+            const container = document.getElementById('membersList');
+            
+            if (filteredMembers.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🎯</div>
+                        <h3>Aucun membre trouvé</h3>
+                        <p>Aucun membre ne correspond à vos critères de recherche.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredMembers.map(member => `
+                <div class="member-card" onclick="viewMemberDetails(${member.id})">
+                    <div class="member-avatar">${member.name.charAt(0)}</div>
+                    <div class="member-info">
+                        <div class="member-name">${member.name}</div>
+                        <div class="member-details">
+                            <span>📱 ${member.phone}</span>
+                            <span>📅 ${member.frequency}</span>
+                        </div>
+                        <div class="member-amount">${member.totalAmount.toLocaleString('fr-FR')} FCFA</div>
+                        <span class="member-status status-${member.status}">
+                            ${getStatusLabel(member.status)}
+                        </span>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 20px;">›</div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'active': 'ACTIF',
+                'pending': 'EN ATTENTE',
+                'delivered': 'LIVRÉ'
+            };
+            return labels[status] || status.toUpperCase();
+        }
+
+        function filterByStatus(status) {
+            currentFilter = status;
+            
+            // Update chip active state
+            document.querySelectorAll('.chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Filter members
+            let filtered = members;
+            if (status !== 'all') {
+                filtered = members.filter(m => m.status === status);
+            }
+            
+            renderMembers(filtered);
+        }
+
+        function filterMembers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = members;
+
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(m => m.status === currentFilter);
+            }
+
+            if (searchTerm) {
+                filtered = filtered.filter(m => 
+                    m.name.toLowerCase().includes(searchTerm) ||
+                    m.phone.includes(searchTerm)
+                );
+            }
+
+            renderMembers(filtered);
+        }
+
+        function viewMemberDetails(memberId) {
+            localStorage.setItem('selectedMemberId', memberId);
+            window.location.href = 'EC016-detail-membre-tontine.html';
+        }
+
+        function registerNewMember() {
+            window.location.href = 'EC015-enregistrement-client-tontine.html';
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function showMenu() {
+            alert('Menu options:\n- Exporter les données\n- Paramètres tontine\n- Aide');
+        }
+
+        // Initialize page on load
+        window.onload = initializePage;
+    </script>
+</body>
+</html>

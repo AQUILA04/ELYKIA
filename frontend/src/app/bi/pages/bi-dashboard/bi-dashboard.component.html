@@ -1,0 +1,165 @@
+<div class="bi-dashboard">
+  <!-- Header -->
+  <div class="bi-dashboard__header">
+    <h1 class="bi-dashboard__title">Dashboard BI</h1>
+    <p class="bi-dashboard__subtitle">Vue d'ensemble des performances commerciales et financières</p>
+  </div>
+
+  <!-- Period Filter -->
+  <div class="bi-dashboard__period-filter">
+    <button 
+      class="period-button" 
+      [ngClass]="{'period-button--active': selectedPeriod === 'TODAY'}"
+      (click)="selectPeriod('TODAY')">
+      Aujourd'hui
+    </button>
+    <button 
+      class="period-button" 
+      [ngClass]="{'period-button--active': selectedPeriod === 'WEEK'}"
+      (click)="selectPeriod('WEEK')">
+      Cette semaine
+    </button>
+    <button 
+      class="period-button" 
+      [ngClass]="{'period-button--active': selectedPeriod === 'MONTH'}"
+      (click)="selectPeriod('MONTH')">
+      Ce mois
+    </button>
+    <button 
+      class="period-button" 
+      [ngClass]="{'period-button--active': selectedPeriod === 'YEAR'}"
+      (click)="selectPeriod('YEAR')">
+      Cette année
+    </button>
+    <button 
+      class="period-button" 
+      [ngClass]="{'period-button--active': selectedPeriod === 'CUSTOM'}"
+      (click)="selectPeriod('CUSTOM')">
+      Personnalisé
+    </button>
+
+    <!-- Custom Date Range -->
+    <div *ngIf="selectedPeriod === 'CUSTOM'" class="date-range">
+      <mat-form-field appearance="outline">
+        <mat-label>Date début</mat-label>
+        <input matInput [matDatepicker]="startPicker" [(ngModel)]="customStartDate" (dateChange)="onDateChange()">
+        <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+        <mat-datepicker #startPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date fin</mat-label>
+        <input matInput [matDatepicker]="endPicker" [(ngModel)]="customEndDate" (dateChange)="onDateChange()">
+        <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+        <mat-datepicker #endPicker></mat-datepicker>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="bi-dashboard__loading">
+    <mat-spinner diameter="60"></mat-spinner>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="bi-dashboard__error">
+    <mat-icon class="bi-dashboard__error-icon">error_outline</mat-icon>
+    <h2 class="bi-dashboard__error-title">Erreur de chargement</h2>
+    <p class="bi-dashboard__error-message">{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="loadDashboard()">
+      Réessayer
+    </button>
+  </div>
+
+  <!-- Dashboard Content -->
+  <ng-container *ngIf="!loading && !error && overview">
+    <!-- KPI Cards -->
+    <div class="bi-dashboard__kpi-section">
+      <app-bi-kpi-card [data]="salesKpi" [loading]="loading"></app-bi-kpi-card>
+      <app-bi-kpi-card [data]="profitKpi" [loading]="loading"></app-bi-kpi-card>
+      <app-bi-kpi-card [data]="collectionKpi" [loading]="loading"></app-bi-kpi-card>
+      <app-bi-kpi-card [data]="stockKpi" [loading]="loading"></app-bi-kpi-card>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="bi-dashboard__quick-links">
+      <a class="quick-link" routerLink="/bi/sales">
+        <mat-icon>trending_up</mat-icon>
+        <span>Analyse des Ventes</span>
+        <mat-icon class="arrow">arrow_forward</mat-icon>
+      </a>
+      <a class="quick-link" routerLink="/bi/collections">
+        <mat-icon>payments</mat-icon>
+        <span>Analyse des Recouvrements</span>
+        <mat-icon class="arrow">arrow_forward</mat-icon>
+      </a>
+      <a class="quick-link" routerLink="/bi/stock">
+        <mat-icon>inventory</mat-icon>
+        <span>Analyse du Stock</span>
+        <mat-icon class="arrow">arrow_forward</mat-icon>
+      </a>
+    </div>
+
+    <!-- Alerts Section -->
+    <div class="bi-dashboard__alerts-section">
+      <h2 class="bi-dashboard__section-title">Alertes et Notifications</h2>
+      <div class="bi-dashboard__alerts-grid">
+        <!-- Stock Alerts -->
+        <div class="alert-card alert-card--error" *ngIf="overview.stock.outOfStockCount > 0">
+          <div class="alert-card__icon alert-card__icon--error">
+            <mat-icon>inventory_2</mat-icon>
+          </div>
+          <div class="alert-card__content">
+            <h4 class="alert-card__title">Articles en rupture de stock</h4>
+            <p class="alert-card__message">
+              {{ overview.stock.outOfStockCount }} article(s) en rupture de stock
+            </p>
+            <a class="alert-card__action" [routerLink]="['/bi/stock']">Voir les détails</a>
+          </div>
+        </div>
+
+        <!-- Low Stock Alerts -->
+        <div class="alert-card alert-card--warning" *ngIf="overview.stock.lowStockCount > 0">
+          <div class="alert-card__icon alert-card__icon--warning">
+            <mat-icon>warning</mat-icon>
+          </div>
+          <div class="alert-card__content">
+            <h4 class="alert-card__title">Stock faible</h4>
+            <p class="alert-card__message">
+              {{ overview.stock.lowStockCount }} article(s) sous le seuil de réapprovisionnement
+            </p>
+            <a class="alert-card__action" [routerLink]="['/bi/stock']">Voir les détails</a>
+          </div>
+        </div>
+
+        <!-- Overdue Credits Alert -->
+        <div class="alert-card alert-card--error" *ngIf="overview.portfolio.totalOverdue > 0">
+          <div class="alert-card__icon alert-card__icon--error">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <div class="alert-card__content">
+            <h4 class="alert-card__title">Crédits en retard</h4>
+            <p class="alert-card__message">
+              {{ formatCurrency(overview.portfolio.totalOverdue) }} en retard
+            </p>
+            <a class="alert-card__action" [routerLink]="['/bi/collections']">Voir les détails</a>
+          </div>
+        </div>
+
+        <!-- Collection Rate Info -->
+        <div class="alert-card" [ngClass]="getCollectionAlertClass()">
+          <div class="alert-card__icon" [ngClass]="getCollectionIconClass()">
+            <mat-icon>{{ getCollectionIcon() }}</mat-icon>
+          </div>
+          <div class="alert-card__content">
+            <h4 class="alert-card__title">Taux de recouvrement</h4>
+            <p class="alert-card__message">
+              {{ overview.collections.collectionRate.toFixed(1) }}% du montant attendu collecté
+            </p>
+            <a class="alert-card__action" [routerLink]="['/bi/collections']">Voir les détails</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

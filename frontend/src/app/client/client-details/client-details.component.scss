@@ -1,0 +1,119 @@
+.details-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+  .form-header {
+    text-align: center;
+    margin-bottom: 20px;
+    h1 {
+      color: #003366;
+    }
+  }
+
+  // Style pour la photo de profil, intégré dans le nouveau design
+  .profile-photo-container {
+    text-align: center;
+    margin-bottom: 20px;
+
+    .profile-photo {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #003366;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .details-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; // Un espacement légèrement réduit pour un look plus compact
+  }
+
+  // Nouveau style pour les lignes de détails, comme vous l'avez demandé
+  .details-row {
+    display: flex;
+    justify-content: flex-start; // Aligner à gauche pour que le label définisse la position
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .details-label {
+      font-weight: bold;
+      color: #003366;
+      width: 250px; // Largeur fixe pour aligner les deux-points
+      flex-shrink: 0; // Empêche le label de se réduire
+      text-align: left;
+      position: relative;
+
+      &::after {
+        content: ":";
+        position: absolute;
+        right: 10px; // Positionnement des deux-points
+      }
+    }
+
+    .details-value {
+      flex: 1;
+      color: #333;
+      text-align: right;
+      margin-left: 15px;
+
+      // Style pour les liens, maintenant à l'intérieur de .details-value
+      .map-link, .document-link {
+        font-size: 0.9em;
+        font-weight: 500;
+        color: #007bff;
+        text-decoration: none;
+        transition: color 0.2s;
+
+        &:hover {
+          text-decoration: underline;
+          color: #0056b3;
+        }
+      }
+    }
+  }
+
+  // Style pour les actions, conservé de la version précédente
+  .form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+  }
+
+  .link-back, .link-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .link-edit {
+    color: #28a745;
+  }
+
+  .loading-container {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2em;
+    color: #555;
+  }
+}
+

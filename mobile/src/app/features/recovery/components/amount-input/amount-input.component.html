@@ -1,0 +1,86 @@
+<div class="amount-input-container">
+  <!-- Montant attendu -->
+  <div class="expected-amount">
+    <div class="expected-label">Montant attendu</div>
+    <div class="expected-value">{{ formatAmount(getExpectedAmount()) }} FCFA</div>
+  </div>
+
+  <!-- Boutons de sélection rapide -->
+  <div class="quick-selection">
+    <ion-button 
+      size="small" 
+      fill="outline" 
+      color="success"
+      (click)="setDailyAmount()"
+      [disabled]="!isMultipleAvailable(1)">
+      1× ({{ formatAmount(getExpectedAmount()) }})
+    </ion-button>
+    <ion-button 
+      size="small" 
+      fill="outline" 
+      color="success"
+      (click)="setMultipleAmount(2)"
+      [disabled]="!isMultipleAvailable(2)">
+      2× ({{ formatAmount(getExpectedAmount() * 2) }})
+    </ion-button>
+    <ion-button 
+      size="small" 
+      fill="outline" 
+      color="success"
+      (click)="setMultipleAmount(3)"
+      [disabled]="!isMultipleAvailable(3)">
+      3× ({{ formatAmount(getExpectedAmount() * 3) }})
+    </ion-button>
+    <ion-button 
+      size="small" 
+      fill="outline" 
+      color="success"
+      (click)="setMultipleAmount(4)"
+      [disabled]="!isMultipleAvailable(4)">
+      4× ({{ formatAmount(getExpectedAmount() * 4) }})
+    </ion-button>
+  </div>
+
+  <!-- Informations sur les limites -->
+  <div class="amount-limits">
+    <ion-note color="medium">
+      Maximum possible: {{ formatAmount(getMaxAmount()) }} FCFA 
+      ({{ getMaxMultiplier() }}× la mise journalière)
+    </ion-note>
+  </div>
+
+  <!-- Champ de saisie -->
+  <div class="amount-input-group">
+    <ion-item class="amount-input-item" [class.is-valid]="isValid">
+      <ion-input
+        type="number"
+        [formControl]="amountControl"
+        (ionInput)="onAmountInput($event)"
+        placeholder="0"
+        class="amount-input"
+        inputmode="numeric"
+        [max]="getMaxAmount()">
+      </ion-input>
+      <ion-note slot="end" class="currency-label">FCFA</ion-note>
+    </ion-item>
+  </div>
+
+  <!-- Message de validation -->
+  <div class="validation-message" 
+       [class.success]="isValid" 
+       [class.error]="!isValid && validationMessage"
+       *ngIf="validationMessage">
+    <ion-icon 
+      [name]="isValid ? 'checkmark-circle' : 'alert-circle'" 
+      [color]="isValid ? 'success' : 'danger'">
+    </ion-icon>
+    <span>{{ validationMessage }}</span>
+  </div>
+
+  <!-- Aide contextuelle -->
+  <div class="help-text" *ngIf="!validationMessage">
+    <ion-icon name="information-circle" color="medium"></ion-icon>
+    <span>Saisissez un montant ou utilisez les boutons de sélection rapide</span>
+  </div>
+</div>
+

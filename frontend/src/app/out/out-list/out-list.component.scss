@@ -1,0 +1,128 @@
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #003366;
+  }
+
+  .container {
+    background-color: white;
+    border-radius: 5px;
+    padding-top: 40px;
+    text-align: center;
+  }
+
+  .button-group {
+    display: flex;
+    justify-content: right;
+    gap: 5px;
+    margin-bottom: 20px;
+  }
+
+  .refresh-button, .add {
+    color: white;
+    background-color: #003366;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+
+    mat-icon {
+      font-size: 20px;
+      margin-right: 5px;
+      color: white;
+    }
+  }
+
+  .article-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+
+    thead {
+      background-color: #ddd;
+      color: #003366;
+      text-align: center;
+
+      th {
+        padding: 12px;
+        text-align: center;
+      }
+    }
+
+    tbody {
+      tr {
+        &:nth-child(even) {
+          background-color: #f2f2f2;
+        }
+
+        &:hover {
+          background-color: #ddd;
+        }
+
+        td {
+          padding: 12px;
+          border-bottom: 1px solid #ddd;
+          vertical-align: middle;
+          text-align: center;
+
+          button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+
+
+            &:nth-child(3) {
+              background-color: transparent;
+              color: #f44336;
+            }
+          }
+        }
+      }
+    }
+  }
+/* NOUVEAU STYLE pour réduire la taille des sélecteurs de date */
+.compact-datepicker {
+  width: 200px; /* Réduit la largeur du champ */
+}
+
+/* Les règles suivantes sont nécessaires pour surcharger les styles par défaut
+  d'Angular Material et réduire la hauteur des champs "outline".
+*/
+::ng-deep .compact-datepicker .mat-form-field-wrapper {
+  padding-bottom: 1.25em;
+}
+
+::ng-deep .compact-datepicker .mat-form-field-infix {
+  padding: 0.4em 0 !important;
+  border-top: 0.4em solid transparent;
+}
+
+::ng-deep .compact-datepicker .mat-form-field-label-wrapper {
+  top: -1.1em;
+}
+
+::ng-deep .compact-datepicker.mat-form-field-can-float.mat-form-field-should-float .mat-form-field-label,
+::ng-deep .compact-datepicker .mat-input-server:focus + .mat-form-field-label-wrapper .mat-form-field-label {
+  transform: translateY(-0.6em) scale(0.75);
+}
+
+/* NOUVEAU : Classe pour aligner proprement les contrôles de filtre */
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline; /* Aligne les éléments sur leur ligne de base (texte), c'est la clé ! */
+  gap: 16px; /* Crée un espacement régulier et moderne entre les éléments */
+}
+/* Cible le bouton "primary" pour le rendre conforme à votre thème */
+.filter-controls .mat-flat-button.mat-primary {
+  background-color: #003366; // Votre couleur bleue principale
+  color: white; // Texte en blanc
+}

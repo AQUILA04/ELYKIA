@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC010 - Rapport Journalier | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .report-container {
+            padding-bottom: 80px;
+        }
+
+        .report-header {
+            height: 80px;
+            background: linear-gradient(135deg, var(--info-color), #1976D2);
+            color: var(--text-on-primary);
+            padding: var(--margin-external);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-elements);
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .header-title {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+            flex: 1;
+            text-align: center;
+        }
+
+        .print-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .print-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .report-date {
+            font-size: var(--font-size-secondary);
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        .report-content {
+            padding: var(--margin-external);
+            background: var(--background-color);
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--margin-internal);
+            margin-bottom: var(--margin-external);
+        }
+
+        .summary-card {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 auto var(--margin-internal);
+        }
+
+        .distribution-card .card-icon {
+            background: rgba(25, 118, 210, 0.1);
+            color: var(--primary-color);
+        }
+
+        .recovery-card .card-icon {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .card-number {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+        }
+
+        .card-amount {
+            font-size: var(--font-size-h3);
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .distribution-card .card-amount {
+            color: var(--primary-color);
+        }
+
+        .recovery-card .card-amount {
+            color: var(--success-color);
+        }
+
+        .card-label {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .details-section {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            margin-bottom: var(--margin-external);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .tabs-container {
+            display: flex;
+            margin-bottom: var(--margin-external);
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: var(--margin-internal);
+            background: none;
+            border: none;
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            position: relative;
+        }
+
+        .tab-button.active {
+            color: var(--info-color);
+            border-bottom-color: var(--info-color);
+            font-weight: 500;
+        }
+
+        .tab-button:hover {
+            background: rgba(33, 150, 243, 0.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            padding: var(--margin-internal);
+            border: 1px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-elements);
+            transition: all 0.3s ease;
+        }
+
+        .transaction-item:hover {
+            border-color: var(--info-color);
+            background: rgba(33, 150, 243, 0.05);
+        }
+
+        .transaction-time {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            font-weight: 500;
+            min-width: 50px;
+            margin-right: var(--margin-internal);
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-client {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .transaction-details {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+        }
+
+        .transaction-amount {
+            font-size: var(--font-size-body);
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .amount-distribution {
+            color: var(--primary-color);
+        }
+
+        .amount-recovery {
+            color: var(--success-color);
+        }
+
+        .print-report-button {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            background: var(--info-color);
+            color: var(--text-on-primary);
+            border: none;
+            padding: var(--margin-external);
+            font-size: var(--font-size-body);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-elements);
+        }
+
+        .print-report-button:hover {
+            background: #1976D2;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-sections);
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: var(--margin-external);
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: var(--font-size-h3);
+            margin-bottom: var(--spacing-elements);
+            color: var(--text-primary);
+        }
+
+        .empty-message {
+            font-size: var(--font-size-secondary);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="report-container">
+            <!-- Header -->
+            <div class="report-header">
+                <div class="header-top">
+                    <button class="back-button" onclick="goBack()">←</button>
+                    <div class="header-title">Rapport Journalier</div>
+                    <button class="print-button" onclick="printReport()">🖨️</button>
+                </div>
+                <div class="report-date" id="reportDate">Mercredi 17 Janvier 2024</div>
+            </div>
+
+            <!-- Contenu -->
+            <div class="report-content">
+                <!-- Résumé -->
+                <div class="summary-cards">
+                    <div class="summary-card distribution-card">
+                        <div class="card-icon">🛒</div>
+                        <div class="card-number">3 distributions</div>
+                        <div class="card-amount">125,000 FCFA</div>
+                        <div class="card-label">Montant distribué</div>
+                    </div>
+                    <div class="summary-card recovery-card">
+                        <div class="card-icon">💰</div>
+                        <div class="card-number">8 recouvrements</div>
+                        <div class="card-amount">15,500 FCFA</div>
+                        <div class="card-label">Montant collecté</div>
+                    </div>
+                </div>
+
+                <!-- Détails -->
+                <div class="details-section">
+                    <div class="tabs-container">
+                        <button class="tab-button active" onclick="switchTab('distributions')">
+                            Distributions
+                        </button>
+                        <button class="tab-button" onclick="switchTab('recouvrements')">
+                            Recouvrements
+                        </button>
+                    </div>
+
+                    <!-- Onglet Distributions -->
+                    <div class="tab-content active" id="distributions">
+                        <div class="transaction-item">
+                            <div class="transaction-time">09:15</div>
+                            <div class="transaction-info">
+                                <div class="transaction-client">Marie Kouassi</div>
+                                <div class="transaction-details">Riz (2), Huile (1), Sucre (1)</div>
+                            </div>
+                            <div class="transaction-amount amount-distribution">50,000 FCFA</div>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div class="transaction-time">11:30</div>
+                            <div class="transaction-info">
+                                <div class="transaction-client">Jean Koffi</div>
+                                <div class="transaction-details">Lait (3), Savon (2)</div>
+                            </div>
+                            <div class="transaction-amount amount-distribution">35,000 FCFA</div>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div class="transaction-time">14:45</div>
+                            <div class="transaction-info">
+                                <div class="transaction-client">Fatou Traoré</div>
+                                <div class="transaction-details">Riz (1), Huile (2), Lait (1)</div>
+                            </div>
+                            <div class="transaction-amount amount-distribution">40,000 FCFA</div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Recouvrements -->
+                    <div class="tab-content" id="recouvrements">
+                        <div class="transaction-item">
+                            <div class="transaction-time">08:30</div>
+                            <div class="transaction-info">
+                                <div class="transaction-client">Marie Kouassi</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-001</div>
+                            </div>
+                            <div class="transaction-amount amount-recovery">1,000 FCFA</div>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div class="transaction-time">09:00</div>
+                            <div class="transaction-info">
+                                <div class="transaction-client">Amadou Bamba</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-005</div>
+                            </div>
+                            <div class="transaction-amount amount-recovery">1,500 FCFA</div>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div class="transaction-time">10:15</div>
+                            <div class="transaction-info">
+                                <div class="transaction-client">Aya Diabaté</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-008</div>
+                            </div>
+                            <div class="transaction-amount amount-recovery">2,000 FCFA</div>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div class="transaction-time">12:00</div>
+                            <div class="transaction-info">
+                                <div class="transaction-client">Jean Koffi</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-003</div>
+                            </div>
+                            <div class="transaction-amount amount-recovery">1,200 FCFA</div>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div class="transaction-time">13:30</div>
+                            <div class="transaction-info">
+                                <div class="transaction-client">Marie Kouassi</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-001</div>
+                            </div>
+                            <div class="transaction-amount amount-recovery">1,000 FCFA</div>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div class="transaction-time">15:45</div>
+                            <div class="transaction-info">
+                                <div class="transaction-client">Fatou Traoré</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-007</div>
+                            </div>
+                            <div class="transaction-amount amount-recovery">1,800 FCFA</div>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div class="transaction-time">16:20</div>
+                            <div class="transaction-info">
+                                <div class="transaction-client">Amadou Bamba</div>
+                                <div class="transaction-details">Solde crédit - CRED-2024-002</div>
+                            </div>
+                            <div class="transaction-amount amount-recovery">5,000 FCFA</div>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div class="transaction-time">17:00</div>
+                            <div class="transaction-info">
+                                <div class="transaction-client">Aya Diabaté</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-008</div>
+                            </div>
+                            <div class="transaction-amount amount-recovery">2,000 FCFA</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton d'impression -->
+        <button class="print-report-button" onclick="printReport()">
+            🖨️ IMPRIMER LE RAPPORT
+        </button>
+    </div>
+
+    <script>
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            setCurrentDate();
+            animateCards();
+        });
+
+        // Définir la date actuelle
+        function setCurrentDate() {
+            const today = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const dateString = today.toLocaleDateString('fr-FR', options);
+            document.getElementById('reportDate').textContent = dateString;
+        }
+
+        // Animer les cartes au chargement
+        function animateCards() {
+            const cards = document.querySelectorAll('.summary-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+
+            // Animer les éléments de transaction
+            setTimeout(() => {
+                const transactions = document.querySelectorAll('.transaction-item');
+                transactions.forEach((item, index) => {
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateX(-20px)';
+                    
+                    setTimeout(() => {
+                        item.style.transition = 'all 0.4s ease';
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateX(0)';
+                    }, index * 100);
+                });
+            }, 800);
+        }
+
+        // Changer d'onglet
+        function switchTab(tabName) {
+            // Désactiver tous les onglets
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Activer l'onglet sélectionné
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Imprimer le rapport
+        function printReport() {
+            // Créer une version imprimable
+            const printContent = generatePrintableReport();
+            
+            // Ouvrir une nouvelle fenêtre pour l'impression
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            
+            // Déclencher l'impression
+            printWindow.onload = function() {
+                printWindow.print();
+                printWindow.close();
+            };
+            
+            showNotification('Génération du rapport pour impression...', 'info');
+        }
+
+        // Générer le contenu imprimable
+        function generatePrintableReport() {
+            const today = new Date().toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            return `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Rapport Journalier - ${today}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1976D2; padding-bottom: 10px; }
+                        .summary { display: flex; justify-content: space-around; margin-bottom: 30px; }
+                        .summary-item { text-align: center; }
+                        .summary-number { font-size: 24px; font-weight: bold; color: #1976D2; }
+                        .section { margin-bottom: 30px; }
+                        .section-title { font-size: 18px; font-weight: bold; color: #1976D2; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+                        .transaction { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+                        .transaction-info { flex: 1; }
+                        .transaction-client { font-weight: bold; }
+                        .transaction-details { font-size: 12px; color: #666; }
+                        .amount { font-weight: bold; }
+                        .amount-distribution { color: #1976D2; }
+                        .amount-recovery { color: #4CAF50; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Rapport Journalier</h1>
+                        <p>${today}</p>
+                        <p>Commercial: Jean Dupont</p>
+                    </div>
+                    
+                    <div class="summary">
+                        <div class="summary-item">
+                            <div class="summary-number">3</div>
+                            <div>Distributions</div>
+                            <div class="amount-distribution">125,000 FCFA</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number">8</div>
+                            <div>Recouvrements</div>
+                            <div class="amount-recovery">15,500 FCFA</div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Distributions</div>
+                        <div class="transaction">
+                            <div class="transaction-info">
+                                <div class="transaction-client">09:15 - Marie Kouassi</div>
+                                <div class="transaction-details">Riz (2), Huile (1), Sucre (1)</div>
+                            </div>
+                            <div class="amount amount-distribution">50,000 FCFA</div>
+                        </div>
+                        <div class="transaction">
+                            <div class="transaction-info">
+                                <div class="transaction-client">11:30 - Jean Koffi</div>
+                                <div class="transaction-details">Lait (3), Savon (2)</div>
+                            </div>
+                            <div class="amount amount-distribution">35,000 FCFA</div>
+                        </div>
+                        <div class="transaction">
+                            <div class="transaction-info">
+                                <div class="transaction-client">14:45 - Fatou Traoré</div>
+                                <div class="transaction-details">Riz (1), Huile (2), Lait (1)</div>
+                            </div>
+                            <div class="amount amount-distribution">40,000 FCFA</div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Recouvrements</div>
+                        <div class="transaction">
+                            <div class="transaction-info">
+                                <div class="transaction-client">08:30 - Marie Kouassi</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-001</div>
+                            </div>
+                            <div class="amount amount-recovery">1,000 FCFA</div>
+                        </div>
+                        <div class="transaction">
+                            <div class="transaction-info">
+                                <div class="transaction-client">09:00 - Amadou Bamba</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-005</div>
+                            </div>
+                            <div class="amount amount-recovery">1,500 FCFA</div>
+                        </div>
+                        <div class="transaction">
+                            <div class="transaction-info">
+                                <div class="transaction-client">10:15 - Aya Diabaté</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-008</div>
+                            </div>
+                            <div class="amount amount-recovery">2,000 FCFA</div>
+                        </div>
+                        <div class="transaction">
+                            <div class="transaction-info">
+                                <div class="transaction-client">12:00 - Jean Koffi</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-003</div>
+                            </div>
+                            <div class="amount amount-recovery">1,200 FCFA</div>
+                        </div>
+                        <div class="transaction">
+                            <div class="transaction-info">
+                                <div class="transaction-client">13:30 - Marie Kouassi</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-001</div>
+                            </div>
+                            <div class="amount amount-recovery">1,000 FCFA</div>
+                        </div>
+                        <div class="transaction">
+                            <div class="transaction-info">
+                                <div class="transaction-client">15:45 - Fatou Traoré</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-007</div>
+                            </div>
+                            <div class="amount amount-recovery">1,800 FCFA</div>
+                        </div>
+                        <div class="transaction">
+                            <div class="transaction-info">
+                                <div class="transaction-client">16:20 - Amadou Bamba</div>
+                                <div class="transaction-details">Solde crédit - CRED-2024-002</div>
+                            </div>
+                            <div class="amount amount-recovery">5,000 FCFA</div>
+                        </div>
+                        <div class="transaction">
+                            <div class="transaction-info">
+                                <div class="transaction-client">17:00 - Aya Diabaté</div>
+                                <div class="transaction-details">Mise journalière - CRED-2024-008</div>
+                            </div>
+                            <div class="amount amount-recovery">2,000 FCFA</div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+        }
+
+        // Retour
+        function goBack() {
+            window.history.back();
+        }
+
+        // Fonction pour afficher les notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.zIndex = '2000';
+            notification.style.maxWidth = '90%';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+

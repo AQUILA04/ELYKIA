@@ -1,0 +1,36 @@
+<div class="details-container" *ngIf="!isLoading">
+  <div class="form-header">
+    <h1>Détails du Compte</h1>
+  </div>
+  <div class="details-content" *ngIf="account">
+    <div class="details-row">
+      <span class="details-label">Client:</span>
+      <div class="details-value">{{ account.client.firstname }} {{ account.client.lastname }}</div>
+    </div>
+    <div class="details-row">
+      <span class="details-label">Numéro de Compte:</span>
+      <div class="details-value">{{ account.accountNumber }}</div>
+    </div>
+    <div class="details-row">
+      <span class="details-label">Statut:</span>
+      <div class="details-value">{{ account.status }}</div>
+    </div>
+    <div class="details-row">
+      <span class="details-label">Solde du Compte:</span>
+      <div class="details-value">{{ account.accountBalance | currency }}</div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <a (click)="onCancel()" class="link-back">
+      <i class="ti ti-arrow-left"></i> Retour à la liste
+    </a>
+    
+    <div class="form-actions">
+      <a (click)="navigateToEdit(account!.id)" class="link-edit">
+        <i class="ti ti-pencil"></i> Modifier
+      </a>
+    </div>
+  </div>
+</div>
+<div *ngIf="isLoading" class="loading">Chargement...</div>

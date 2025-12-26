@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC015 - Enregistrement Client Tontine | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .form-container {
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--primary-color);
+            margin: 24px 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .info-card-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .info-card-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .client-selector {
+            background: white;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .client-selector:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.2);
+        }
+
+        .client-selector.selected {
+            border-color: var(--primary-color);
+            background: rgba(25, 118, 210, 0.05);
+        }
+
+        .client-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .client-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .client-details {
+            flex: 1;
+        }
+
+        .client-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .client-phone {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .frequency-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .frequency-option {
+            background: white;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            padding: 16px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .frequency-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .frequency-option.selected {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .frequency-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .frequency-label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .frequency-desc {
+            font-size: 11px;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        .info-box {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--info-color);
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        .info-box-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--info-color);
+            margin-bottom: 4px;
+        }
+
+        .info-box-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-save {
+            flex: 2;
+        }
+
+        .search-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-modal.active {
+            display: flex;
+        }
+
+        .search-modal-content {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-modal-header {
+            padding: 16px;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-modal-body {
+            padding: 16px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .client-list-item {
+            padding: 12px;
+            border-bottom: 1px solid #E0E0E0;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .client-list-item:hover {
+            background: rgba(25, 118, 210, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="header">
+            <button class="header-icon" onclick="goBack()">←</button>
+            <div class="header-title">Inscription Tontine</div>
+            <button class="header-icon" onclick="showHelp()">?</button>
+        </div>
+
+        <!-- Form Container -->
+        <div class="form-container">
+            <!-- Session Info Card -->
+            <div class="info-card">
+                <div class="info-card-title">📅 Session Tontine</div>
+                <div class="info-card-value" id="sessionYear">2025</div>
+                <div style="font-size: 14px; margin-top: 8px; opacity: 0.9;">
+                    Janvier - Novembre 2025
+                </div>
+            </div>
+
+            <!-- Client Selection -->
+            <div class="section-title">
+                <span>👤</span>
+                <span>Sélection du Client</span>
+            </div>
+
+            <div class="client-selector" id="clientSelector" onclick="openClientSearch()">
+                <div class="client-info" id="selectedClientInfo">
+                    <div style="color: var(--text-secondary);">
+                        <span style="font-size: 24px;">👥</span>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">
+                            Cliquez pour sélectionner un client
+                        </div>
+                    </div>
+                </div>
+                <div style="color: var(--primary-color); font-size: 20px;">›</div>
+            </div>
+
+            <!-- Frequency Selection -->
+            <div class="section-title">
+                <span>📅</span>
+                <span>Fréquence de Cotisation</span>
+            </div>
+
+            <div class="frequency-options">
+                <div class="frequency-option" onclick="selectFrequency('daily')">
+                    <div class="frequency-icon">☀️</div>
+                    <div class="frequency-label">Quotidien</div>
+                    <div class="frequency-desc">Chaque jour</div>
+                </div>
+                <div class="frequency-option" onclick="selectFrequency('weekly')">
+                    <div class="frequency-icon">📅</div>
+                    <div class="frequency-label">Hebdomadaire</div>
+                    <div class="frequency-desc">Chaque semaine</div>
+                </div>
+                <div class="frequency-option" onclick="selectFrequency('monthly')">
+                    <div class="frequency-icon">📆</div>
+                    <div class="frequency-label">Mensuel</div>
+                    <div class="frequency-desc">Chaque mois</div>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <div class="info-box-title">ℹ️ Information</div>
+                <div class="info-box-text">
+                    La tontine permet à vos clients d'épargner tout au long de l'année (Janvier à Novembre) 
+                    et de recevoir des articles en Décembre selon le montant total épargné.
+                </div>
+            </div>
+
+            <!-- Amount Suggestion -->
+            <div class="input-group">
+                <label class="input-label">💰 Montant suggéré par cotisation (optionnel)</label>
+                <input type="number" class="input-field" id="suggestedAmount" 
+                       placeholder="Ex: 5000 FCFA">
+            </div>
+
+            <!-- Notes -->
+            <div class="input-group">
+                <label class="input-label">📝 Notes (optionnel)</label>
+                <textarea class="input-field" id="notes" rows="3" 
+                          placeholder="Ajoutez des notes sur ce membre..."></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-cancel" onclick="goBack()">
+                    Annuler
+                </button>
+                <button class="btn btn-primary btn-save" onclick="saveMember()">
+                    Inscrire le Membre
+                </button>
+            </div>
+        </div>
+
+        <!-- Client Search Modal -->
+        <div class="search-modal" id="searchModal">
+            <div class="search-modal-content">
+                <div class="search-modal-header">
+                    <div style="font-size: 18px; font-weight: 500;">Sélectionner un Client</div>
+                    <button style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;" 
+                            onclick="closeClientSearch()">×</button>
+                </div>
+                <div style="padding: 16px; background: white;">
+                    <input type="text" class="input-field" id="clientSearchInput" 
+                           placeholder="Rechercher par nom ou téléphone..." 
+                           oninput="filterClients()">
+                </div>
+                <div class="search-modal-body" id="clientList">
+                    <!-- Clients will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample clients data
+        const clients = [
+            { id: 1, name: "Marie Kouassi", phone: "0701234567", quartier: "Cocody" },
+            { id: 2, name: "Jean Kouadio", phone: "0709876543", quartier: "Yopougon" },
+            { id: 3, name: "Aya Traoré", phone: "0705551234", quartier: "Adjamé" },
+            { id: 4, name: "Koffi Yao", phone: "0707778888", quartier: "Plateau" },
+            { id: 5, name: "Aminata Diallo", phone: "0702223333", quartier: "Abobo" },
+            { id: 6, name: "Ibrahim Touré", phone: "0706667777", quartier: "Marcory" }
+        ];
+
+        let selectedClient = null;
+        let selectedFrequency = null;
+
+        function initializePage() {
+            const currentYear = new Date().getFullYear();
+            document.getElementById('sessionYear').textContent = currentYear;
+        }
+
+        function openClientSearch() {
+            document.getElementById('searchModal').classList.add('active');
+            renderClientList(clients);
+        }
+
+        function closeClientSearch() {
+            document.getElementById('searchModal').classList.remove('active');
+        }
+
+        function renderClientList(clientsToShow) {
+            const container = document.getElementById('clientList');
+            container.innerHTML = clientsToShow.map(client => `
+                <div class="client-list-item" onclick="selectClient(${client.id})">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="client-avatar">${client.name.charAt(0)}</div>
+                        <div>
+                            <div class="client-name">${client.name}</div>
+                            <div class="client-phone">📱 ${client.phone} • 📍 ${client.quartier}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterClients() {
+            const searchTerm = document.getElementById('clientSearchInput').value.toLowerCase();
+            const filtered = clients.filter(c => 
+                c.name.toLowerCase().includes(searchTerm) ||
+                c.phone.includes(searchTerm)
+            );
+            renderClientList(filtered);
+        }
+
+        function selectClient(clientId) {
+            selectedClient = clients.find(c => c.id === clientId);
+            
+            // Update UI
+            const selector = document.getElementById('clientSelector');
+            selector.classList.add('selected');
+            selector.innerHTML = `
+                <div class="client-info">
+                    <div class="client-avatar">${selectedClient.name.charAt(0)}</div>
+                    <div class="client-details">
+                        <div class="client-name">${selectedClient.name}</div>
+                        <div class="client-phone">📱 ${selectedClient.phone}</div>
+                    </div>
+                </div>
+                <div style="color: var(--success-color); font-size: 24px;">✓</div>
+            `;
+            
+            closeClientSearch();
+        }
+
+        function selectFrequency(frequency) {
+            selectedFrequency = frequency;
+            
+            // Update UI
+            document.querySelectorAll('.frequency-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.closest('.frequency-option').classList.add('selected');
+        }
+
+        function saveMember() {
+            // Validation
+            if (!selectedClient) {
+                alert('⚠️ Veuillez sélectionner un client');
+                return;
+            }
+
+            if (!selectedFrequency) {
+                alert('⚠️ Veuillez sélectionner une fréquence de cotisation');
+                return;
+            }
+
+            const suggestedAmount = document.getElementById('suggestedAmount').value;
+            const notes = document.getElementById('notes').value;
+
+            // Simulate saving
+            const memberData = {
+                client: selectedClient,
+                frequency: selectedFrequency,
+                suggestedAmount: suggestedAmount,
+                notes: notes,
+                registrationDate: new Date().toISOString(),
+                sessionYear: new Date().getFullYear()
+            };
+
+            console.log('Saving member:', memberData);
+
+            // Show success message
+            alert(`✅ ${selectedClient.name} a été inscrit avec succès à la tontine ${memberData.sessionYear}!`);
+
+            // Redirect back
+            window.location.href = 'EC014-tableau-de-bord-tontine.html';
+        }
+
+        function goBack() {
+            if (confirm('Voulez-vous vraiment annuler? Les données non enregistrées seront perdues.')) {
+                window.history.back();
+            }
+        }
+
+        function showHelp() {
+            alert('Aide - Inscription Tontine:\n\n' +
+                  '1. Sélectionnez un client existant\n' +
+                  '2. Choisissez la fréquence de cotisation\n' +
+                  '3. Optionnel: Indiquez un montant suggéré\n' +
+                  '4. Cliquez sur "Inscrire le Membre"');
+        }
+
+        // Initialize page on load
+        window.onload = initializePage;
+    </script>
+</body>
+</html>

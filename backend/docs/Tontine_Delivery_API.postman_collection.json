@@ -1,0 +1,327 @@
+{
+  "info": {
+    "name": "Tontine Delivery API",
+    "description": "Collection pour tester l'API de gestion des livraisons de tontine",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN_HERE",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Tontine Deliveries",
+      "item": [
+        {
+          "name": "1. Create Delivery - Success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": 1,\n  \"items\": [\n    {\n      \"articleId\": 10,\n      \"quantity\": 2\n    },\n    {\n      \"articleId\": 15,\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries"]
+            },
+            "description": "Créer une livraison normale avec 2 articles"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create Delivery - Single Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": 2,\n  \"items\": [\n    {\n      \"articleId\": 10,\n      \"quantity\": 3\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries"]
+            },
+            "description": "Créer une livraison avec un seul article"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create Delivery - Multiple Items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": 3,\n  \"items\": [\n    {\n      \"articleId\": 1,\n      \"quantity\": 1\n    },\n    {\n      \"articleId\": 2,\n      \"quantity\": 2\n    },\n    {\n      \"articleId\": 3,\n      \"quantity\": 1\n    },\n    {\n      \"articleId\": 4,\n      \"quantity\": 3\n    },\n    {\n      \"articleId\": 5,\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries"]
+            },
+            "description": "Créer une livraison avec plusieurs articles"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get Delivery by Member ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries/member/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries", "member", "1"]
+            },
+            "description": "Consulter la livraison d'un membre"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "5. Create Delivery - Member Not Found",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": 9999,\n  \"items\": [\n    {\n      \"articleId\": 10,\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries"]
+            },
+            "description": "Erreur : Membre inexistant (404)"
+          },
+          "response": []
+        },
+        {
+          "name": "6. Create Delivery - Article Not Found",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": 1,\n  \"items\": [\n    {\n      \"articleId\": 9999,\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries"]
+            },
+            "description": "Erreur : Article inexistant (404)"
+          },
+          "response": []
+        },
+        {
+          "name": "7. Create Delivery - Invalid Quantity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": 1,\n  \"items\": [\n    {\n      \"articleId\": 10,\n      \"quantity\": 0\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries"]
+            },
+            "description": "Erreur : Quantité invalide (400)"
+          },
+          "response": []
+        },
+        {
+          "name": "8. Create Delivery - Empty Items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": 1,\n  \"items\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries"]
+            },
+            "description": "Erreur : Liste d'articles vide (400)"
+          },
+          "response": []
+        },
+        {
+          "name": "9. Create Delivery - Missing Member ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"articleId\": 10,\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries"]
+            },
+            "description": "Erreur : Member ID manquant (400)"
+          },
+          "response": []
+        },
+        {
+          "name": "10. Get Delivery - Not Found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries/member/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries", "member", "9999"]
+            },
+            "description": "Erreur : Livraison inexistante (404)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Security Tests",
+      "item": [
+        {
+          "name": "11. Create Delivery - No Auth",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": 1,\n  \"items\": [\n    {\n      \"articleId\": 10,\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries"]
+            },
+            "description": "Erreur : Pas d'authentification (401)"
+          },
+          "response": []
+        },
+        {
+          "name": "12. Get Delivery - No Auth",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tontines/deliveries/member/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tontines", "deliveries", "member", "1"]
+            },
+            "description": "Erreur : Pas d'authentification (401)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

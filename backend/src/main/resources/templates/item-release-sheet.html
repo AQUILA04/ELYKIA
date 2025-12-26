@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+    <title>Fiche de sortie d'articles - AMENOUVEVE - YAVEH</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        header {
+            background-color: #f5f5f5;
+            color: black;
+            padding: 20px 10px;
+            text-align: center;
+        }
+        header h1, header h2, header h3 {
+            margin: 10px 0;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: white;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1 th:text="'Nom commercial: ' + ${item.collector}"></h1>
+    <h2 th:text="'Date du jour: ' + ${item.date}"></h2>
+    <h3 th:text="'Prix total: ' + ${item.totalPrice} + ' FCFA'"></h3>
+</header>
+<main>
+    <table>
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Nom de l'article</th>
+            <th>Quantité</th>
+            <th>Prix unitaire</th>
+            <th>Prix total</th>
+        </tr>
+        </thead>
+        <tbody >
+        <tr th:each="article, iterStat : ${item.articles}">
+            <td th:text="${iterStat.count}"></td>
+            <td th:text="${article.name}"></td>
+            <td th:text="${article.quantity}"></td>
+            <td th:text="${article.creditSalePrice} + ' F'"></td>
+            <td th:text="${article.totalPrice} + ' F'"></td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

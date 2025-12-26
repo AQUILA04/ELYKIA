@@ -1,0 +1,99 @@
+<div class="details-container" *ngIf="!isLoading">
+    <div class="form-header">
+      <h1>Détails du crédit</h1>
+    </div>
+    <div class="details-content" *ngIf="credit">
+      <!-- Client Details -->
+      <div class="details-section">
+        <h2>Informations du client</h2>
+        <div class="details-row">
+          <span class="details-label">Nom:</span>
+          <div class="details-value">{{ credit.client.lastname }}</div>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Prénom:</span>
+          <div class="details-value">{{ credit.client.firstname }}</div>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Numéro de téléphone:</span>
+          <div class="details-value">{{ credit.client.phone }}</div>
+        </div>
+      </div>
+  
+      <!-- Articles Details -->
+      <div class="credit-list-section">
+        <h2>Information des articles</h2>
+        <table class="credit-table">
+          <thead>
+            <tr>
+              <th>Nom de l'article</th>
+              <th>Type de l'article</th>
+              <th>Quantité</th>
+              <th>Prix unitaire</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let articleItem of credit.articles">
+              <td>{{ articleItem.articles.name }}</td>
+              <td>{{ articleItem.articles.type }}</td>
+              <td>{{ articleItem.quantity }}</td>
+              <td>{{ articleItem.articles.creditSalePrice }}</td>
+              <td>{{ articleItem.quantity * articleItem.articles.creditSalePrice }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="details-row">
+          <span class="detail-label">Montant total:</span>
+          <div class="detail-value">{{ credit.totalAmount }}</div>
+        </div>
+      </div>
+  
+      <!-- Credits Details -->
+      <div class="details-section">
+        <h2>Informations sur le crédit</h2>
+        <div class="details-row">
+          <span class="details-label">Mise journalière:</span>
+          <div class="details-value">
+            <span>{{ credit.dailyStake }}</span> 
+            <span class="mx-4"></span>
+            <span class="badge" [ngClass]="getStatusClass(credit.status)">
+              {{ credit.status }}
+            </span>
+          </div>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Date de début du crédit:</span>
+          <div class="details-value">{{ credit.beginDate }}</div>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Date de fin prévu:</span>
+          <div class="details-value">{{ credit.expectedEndDate }}</div>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Montant total déjà payé:</span>
+          <div class="details-value">{{ credit.totalAmountPaid }}</div>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Nombre de jours restants:</span>
+          <div class="details-value">{{ credit.remainingDaysCount }}</div>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Montant total restant à payer:</span>
+          <div class="details-value">{{ credit.totalAmountRemaining }}</div>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Agent collecteur:</span>
+          <div class="details-value">{{ credit.collector }}</div>
+        </div>
+      </div>
+  
+      <div class="form-actions">
+        <a (click)="onCancel()" class="link-back">
+          <i class="ti ti-arrow-left"></i> Retour à la liste
+        </a>
+      </div>
+    </div>
+    <div *ngIf="isLoading">Chargement...</div>
+  </div>
+  

@@ -1,0 +1,92 @@
+
+.distribution-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--ion-color-step-150, #e0e0e0);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.distribution-item:last-child {
+  border-bottom: none;
+}
+
+.distribution-item:hover {
+  background: rgba(var(--ion-color-primary-rgb), 0.05);
+}
+
+.distribution-date {
+  width: 60px;
+  text-align: center;
+  margin-right: 16px;
+}
+
+.date-day {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--ion-color-primary);
+  line-height: 1;
+}
+
+.date-month {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  text-transform: uppercase;
+}
+
+.distribution-info {
+  flex: 1;
+  margin-right: 16px;
+}
+
+.distribution-reference {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ion-color-dark);
+  margin-bottom: 2px;
+}
+
+.distribution-client {
+  font-size: 14px;
+  color: var(--ion-color-primary);
+  margin-bottom: 2px;
+}
+
+.distribution-details {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+}
+
+.distribution-amount {
+  text-align: right;
+}
+
+.amount-value {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--ion-color-primary);
+  margin-bottom: 2px;
+}
+
+.amount-status {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.status-active {
+  background: rgba(var(--ion-color-success-rgb), 0.1);
+  color: var(--ion-color-success);
+}
+
+.status-completed {
+  background: rgba(var(--ion-color-medium-rgb), 0.1);
+  color: var(--ion-color-medium);
+}
+
+.status-overdue {
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
+  color: var(--ion-color-danger);
+}

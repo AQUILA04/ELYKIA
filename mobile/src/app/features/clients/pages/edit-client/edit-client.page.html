@@ -1,0 +1,262 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/clients"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Modifier le client</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="clientForm" (ngSubmit)="onSubmit()">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12">
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="camera-outline" ></ion-icon>
+                <span>Photo de Profil</span>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content class="photo-section">
+              <div class="photo-zone" (click)="takePicture()">
+                <img *ngIf="clientForm.get('profilPhoto')?.value" [src]="clientForm.get('profilPhoto')?.value" class="photo-preview" />
+                <div *ngIf="!clientForm.get('profilPhoto')?.value" class="photo-placeholder">📷</div>
+              </div>
+              <ion-button (click)="takePicture()" expand="block" fill="outline">
+                <ion-icon slot="start" name="camera"></ion-icon>
+                Prendre une photo
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="person-outline" ></ion-icon>
+                <span>Informations Personnelles</span>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="input-group required-field">
+                <ion-label>Prénom</ion-label>
+                <ion-item>
+                  <ion-input formControlName="firstname"></ion-input>
+                </ion-item>
+              </div>
+              <div class="input-group required-field">
+                <ion-label>Nom</ion-label>
+                <ion-item>
+                  <ion-input formControlName="lastname"></ion-input>
+                </ion-item>
+              </div>
+              <div class="input-group required-field">
+                <ion-label>Date de naissance</ion-label>
+                <ion-item>
+                  <ion-input type="date" formControlName="dateOfBirth"></ion-input>
+                </ion-item>
+                <div *ngIf="clientForm.get('dateOfBirth')?.errors && clientForm.get('dateOfBirth')?.touched" class="validation-errors">
+                  <ion-text color="danger" *ngIf="clientForm.get('dateOfBirth')?.hasError('required')">
+                    La date de naissance est requise.
+                  </ion-text>
+                  <ion-text color="danger" *ngIf="clientForm.get('dateOfBirth')?.hasError('minAge')">
+                    Vous devez avoir au moins 18 ans.
+                  </ion-text>
+                </div>
+              </div>
+              <div class="input-group required-field">
+                <ion-label>Profession</ion-label>
+                <ion-item>
+                  <ion-input formControlName="occupation"></ion-input>
+                </ion-item>
+              </div>
+              <div class="input-group required-field">
+                <ion-label>Téléphone</ion-label>
+                <ion-item>
+                  <ion-input type="tel" formControlName="phone"></ion-input>
+                </ion-item>
+                <div *ngIf="clientForm.get('phone')?.errors && (clientForm.get('phone')?.touched || clientForm.get('phone')?.dirty)" class="validation-errors">
+                  <ion-text color="danger" *ngIf="clientForm.get('phone')?.hasError('required')">
+                    Le numéro de téléphone est requis.
+                  </ion-text>
+                  <ion-text color="danger" *ngIf="clientForm.get('phone')?.hasError('pattern')">
+                    Le numéro de téléphone doit avoir 8 chiffres et commencer par un préfixe valide.
+                  </ion-text>
+                  <ion-text color="danger" *ngIf="clientForm.get('phone')?.hasError('uniquePhone')">
+                    Ce numéro de téléphone est déjà utilisé.
+                  </ion-text>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="card-outline" ></ion-icon>
+                <span>Pièce d'Identité</span>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="input-group required-field">
+                <ion-label>Type de pièce</ion-label>
+                <ion-item>
+                  <ion-select formControlName="cardType" placeholder="Sélectionner">
+                    <ion-select-option value="CNI">CNI</ion-select-option>
+                    <ion-select-option value="PASSPORT">Passeport</ion-select-option>
+                    <ion-select-option value="CENI">Carte d'électeur</ion-select-option>
+                    <ion-select-option value="NIU">Carte e-ID</ion-select-option>
+                  </ion-select>
+                </ion-item>
+              </div>
+              <div class="input-group required-field">
+                <ion-label>Numéro de pièce</ion-label>
+                <ion-item>
+                  <ion-input formControlName="cardID"></ion-input>
+                </ion-item>
+              </div>
+              <div class="photo-section">
+                <ion-button (click)="takeCardPicture()" expand="block" fill="outline">
+                  <ion-icon slot="start" name="camera"></ion-icon>
+                  Prendre une photo de la pièce
+                </ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="location-outline" ></ion-icon>
+                <span>Adresse et Localisation</span>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="input-group required-field">
+                <ion-label>Adresse complète</ion-label>
+                <ion-item>
+                  <ion-input formControlName="address"></ion-input>
+                </ion-item>
+              </div>
+              <div class="input-group required-field">
+                <ion-label>Zone</ion-label>
+                <ion-item (click)="openLocalityModal()">
+                  <ion-input formControlName="quarter" placeholder="Sélectionner" readonly></ion-input>
+                </ion-item>
+              </div>
+              <ion-item lines="none">
+                <ion-label>Saisie manuelle</ion-label>
+                <ion-toggle (ionChange)="manualGeolocation = $event.detail.checked"></ion-toggle>
+              </ion-item>
+              <div *ngIf="manualGeolocation">
+                <ion-item>
+                  <ion-label position="floating">Latitude</ion-label>
+                  <ion-input type="number" formControlName="latitude"></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="floating">Longitude</ion-label>
+                  <ion-input type="number" formControlName="longitude"></ion-input>
+                </ion-item>
+              </div>
+              <ion-button *ngIf="!manualGeolocation" expand="block" fill="outline" (click)="getGeolocation()">
+                <ion-icon slot="start" name="location"></ion-icon>
+                Obtenir la position GPS
+              </ion-button>
+              <div *ngIf="coordinates" class="ion-text-center ion-padding-top">
+                <b>Latitude:</b> {{ coordinates.latitude }} <br>
+                <b>Longitude:</b> {{ coordinates.longitude }}
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="call-outline"></ion-icon>
+                <span>Personne à Contacter </span>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="input-group">
+                <ion-label>Nom complet</ion-label>
+                <ion-item>
+                  <ion-input formControlName="contactPersonName"></ion-input>
+                </ion-item>
+              </div>
+              <div class="input-group">
+                <ion-label>Téléphone</ion-label>
+                <ion-item>
+                  <ion-input type="tel" formControlName="contactPersonPhone"></ion-input>
+                </ion-item>
+              </div>
+              <div class="input-group">
+                <ion-label>Adresse</ion-label>
+                <ion-item>
+                  <ion-input formControlName="contactPersonAddress"></ion-input>
+                </ion-item>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="wallet-outline"></ion-icon>
+                <span>Compte</span>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="input-group">
+                <ion-label>Solde initial</ion-label>
+                <ion-item>
+                  <ion-input type="number" formControlName="balance"></ion-input>
+                </ion-item>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </form>
+
+  <ion-modal [isOpen]="isLocalityModalOpen" (didDismiss)="closeLocalityModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Sélectionner une localité</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeLocalityModal()">Fermer</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+        <ion-toolbar>
+          <ion-searchbar (ionInput)="onSearch($event)"></ion-searchbar>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <ion-list>
+          <ion-item *ngFor="let locality of filteredLocalities$ | async" (click)="selectLocality(locality)">
+            {{ locality.name }}
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          <ion-button expand="block" fill="outline" color="danger" (click)="resetForm()">Annuler</ion-button>
+        </ion-col>
+        <ion-col>
+          <ion-button expand="block" (click)="onSubmit()" [disabled]="!clientForm.valid">Enregistrer</ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

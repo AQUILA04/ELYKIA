@@ -1,0 +1,84 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/sync-errors"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Détail de l'Erreur</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ng-container *ngIf="syncError$ | async as error; else loading">
+    <ion-card *ngIf="error">
+      <ion-card-header>
+        <ion-card-title>{{ error.entityDisplayName }}</ion-card-title>
+        <ion-card-subtitle>{{ error.entityType | titlecase }} - {{ error.operation }}</ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-list lines="full">
+          <ion-item>
+            <ion-label>Date</ion-label>
+            <ion-note slot="end">{{ error.syncDate | date:'dd/MM/yyyy HH:mm:ss' }}</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Message</ion-label>
+            <ion-text slot="end" color="danger" class="ion-text-wrap">{{ error.errorMessage }}</ion-text>
+          </ion-item>
+          <ion-item>
+            <ion-label>Code d'erreur</ion-label>
+            <ion-note slot="end">{{ error.errorCode || 'N/A' }}</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Tentatives</ion-label>
+            <ion-note slot="end">{{ error.retryCount }}</ion-note>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="error?.requestData">
+      <ion-card-header>
+        <ion-card-title>Données de la Requête</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <pre class="json-data">{{ error.requestData | json }}</pre>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="error?.responseData">
+      <ion-card-header>
+        <ion-card-title>Données de la Réponse</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <pre class="json-data">{{ error.responseData | json }}</pre>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="error?.entityDetails">
+      <ion-card-header>
+        <ion-card-title>Détails de l'Entité Locale</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <pre class="json-data">{{ error.entityDetails | json }}</pre>
+      </ion-card-content>
+    </ion-card>
+
+  </ng-container>
+
+  <ng-template #loading>
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title><ion-skeleton-text animated style="width: 60%"></ion-skeleton-text></ion-card-title>
+        <ion-card-subtitle><ion-skeleton-text animated style="width: 40%"></ion-skeleton-text></ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item *ngFor="let i of [1,2,3,4]">
+            <ion-label><ion-skeleton-text animated></ion-skeleton-text></ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+  </ng-template>
+</ion-content>

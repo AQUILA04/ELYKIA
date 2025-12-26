@@ -1,0 +1,87 @@
+
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <springProperty scope="context" name="springAppName" source="spring.application.name"/>
+    <springProperty scope="context" name="logFolder" source="logging.file.path"/>
+<!--    <springProperty scope="context" name="logstashServer" source="logging.logstash.server.url"/>-->
+
+    <!-- Define the timestamp format for the logs -->
+    <timestamp key="bySecond" datePattern="yyyy-MM-dd'T'HH:mm:ss.SSSZ"/>
+
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <!-- Minimum logging level to be presented in the console logs-->
+            <level>DEBUG</level>
+        </filter>
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <!-- MAIN ROLLING APPENDER FOR CONSOLE LOGS TO FILE main.json -->
+    <appender name="MainRolling" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- Path to your main log file (console logs) -->
+        <file>${logFolder}/main.json</file>
+
+        <!-- Rolling policy to rotate logs -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Log rotation policy: new file every day -->
+            <fileNamePattern>${logFolder}/main.%d{yyyy-MM-dd}.json</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+        <!-- JSON encoder with Logstash for structured logging -->
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <fieldName>timestamp</fieldName>
+                </timestamp>
+                <pattern>
+                    <pattern>{"level":"%level","logger":"%logger","thread":"%thread","message":"%msg","exception":"%ex"}</pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- APP ROLLING APPENDER FOR SLF4J EVENTS TO FILE app-events.json -->
+    <appender name="AppRolling" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- Path to your event log file -->
+        <file>${logFolder}/app-events.json</file>
+
+        <!-- Rolling policy to rotate logs -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Log rotation policy: new file every day -->
+            <fileNamePattern>${logFolder}/app-events.%d{yyyy-MM-dd}.json</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+        <!-- JSON encoder with Logstash for structured logging -->
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <fieldName>timestamp</fieldName>
+                </timestamp>
+                <pattern>
+                    <pattern>{"level":"%level","logger":"%logger","thread":"%thread","message":"%msg","exception":"%ex"}</pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- Root logger to log all events to MainRolling appender (console logs saved to file) -->
+    <root level="INFO">
+        <appender-ref ref="MainRolling"/>
+    </root>
+
+    <!-- Logger for Slf4j annotated classes, using the special AppRolling -->
+    <logger name="EventLog" level="INFO" additivity="false">
+        <appender-ref ref="AppRolling"/>
+    </logger>
+
+</configuration>
+

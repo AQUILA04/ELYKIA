@@ -1,0 +1,302 @@
+<div class="order-form-container">
+  <!-- En-tête -->
+  <div class="form-header">
+    <div class="header-content">
+      <button 
+        mat-icon-button 
+        (click)="onCancel()"
+        class="back-button"
+        matTooltip="Retour">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      
+      <div class="header-text">
+        <h1 class="form-title">{{ pageTitle }}</h1>
+        <p class="form-subtitle" *ngIf="currentOrder">
+          Commande #{{ currentOrder.id }} - {{ getClientName(currentOrder) }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Actions d'en-tête -->
+    <div class="header-actions">
+      <button 
+        mat-stroked-button 
+        color="primary"
+        (click)="onCancel()"
+        [disabled]="isSaving">
+        Annuler
+      </button>
+      
+      <button 
+        mat-raised-button 
+        color="primary"
+        (click)="onSubmit()"
+        [disabled]="!isFormValid || isSaving"
+        class="submit-button">
+        <mat-icon *ngIf="isSaving">hourglass_empty</mat-icon>
+        <span>{{ submitButtonText }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Indicateur de chargement -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Chargement de la commande...</p>
+  </div>
+
+  <!-- Formulaire -->
+  <form [formGroup]="orderForm" (ngSubmit)="onSubmit()" class="order-form" *ngIf="!isLoading">
+    
+    <!-- Section Client -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>person</mat-icon>
+          Informations Client
+        </mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <!-- Sélection du client -->
+        <div class="client-selection">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Rechercher un client</mat-label>
+            <input 
+              matInput
+              formControlName="clientSearch"
+              [matAutocomplete]="clientAuto"
+              placeholder="Tapez le nom ou code du client"
+              (focus)="onClientInputFocus()">
+            <mat-icon matSuffix>search</mat-icon>
+            
+            <mat-autocomplete 
+              #clientAuto="matAutocomplete"
+              [displayWith]="displayClient"
+              (optionSelected)="onClientSelected($event.option.value)">
+              <mat-option 
+                *ngFor="let client of filteredClients$ | async" 
+                [value]="client">
+                <div class="client-option">
+                  <span class="client-name">{{ client.firstname }} {{ client.lastname }}</span>
+                  <span class="client-code">{{ client.code }}</span>
+                </div>
+              </mat-option>
+            </mat-autocomplete>
+            
+            <mat-error *ngIf="hasError('clientId', 'required')">
+              {{ getErrorMessage('clientId') }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Client sélectionné -->
+          <div class="selected-client" *ngIf="orderForm.get('selectedClient')?.value as client">
+            <mat-chip-list>
+              <mat-chip 
+                [removable]="true" 
+                (removed)="clearClientSelection()"
+                color="primary"
+                selected>
+                <mat-icon matChipAvatar>person</mat-icon>
+                {{ client.firstname }} {{ client.lastname }} ({{ client.code }})
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            </mat-chip-list>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Section Articles -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>inventory_2</mat-icon>
+          Articles Commandés
+        </mat-card-title>
+        <mat-card-subtitle>
+          Ajoutez les articles et leurs quantités
+        </mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <!-- Liste des articles -->
+        <div class="items-list" formArrayName="items">
+          <div 
+            *ngFor="let itemControl of itemsFormArray.controls; let i = index; trackBy: trackByIndex"
+            [formGroupName]="i"
+            class="item-row">
+            
+            <mat-card class="item-card">
+              <mat-card-content>
+                <div class="item-form">
+                  <!-- Sélection d'article -->
+                  <mat-form-field appearance="outline" class="article-field">
+                    <mat-label>Article</mat-label>
+                    <input 
+                      matInput
+                      [matAutocomplete]="articleAuto"
+                      placeholder="Rechercher un article"
+                      (input)="onArticleSearch($event)"
+                      [value]="itemControl.get('article')?.value?.name || ''">
+                    <mat-icon matSuffix>search</mat-icon>
+                    
+                    <mat-autocomplete 
+                      #articleAuto="matAutocomplete"
+                      [displayWith]="displayArticle"
+                      (optionSelected)="onArticleSelected($event.option.value, itemControl)">
+                      <mat-option 
+                        *ngFor="let article of filteredArticles$ | async" 
+                        [value]="article">
+                        <div class="article-option">
+                          <span class="article-name">{{ article.name }}</span>
+                          <span class="article-code">{{ article.code }}</span>
+                          <span class="article-price">{{ getArticlePrice(article) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                        </div>
+                      </mat-option>
+                    </mat-autocomplete>
+                    
+                    <mat-error *ngIf="itemControl.get('articleId')?.hasError('required')">
+                      Veuillez sélectionner un article
+                    </mat-error>
+                  </mat-form-field>
+
+                  <!-- Quantité -->
+                  <mat-form-field appearance="outline" class="quantity-field">
+                    <mat-label>Quantité</mat-label>
+                    <input 
+                      matInput
+                      type="number"
+                      formControlName="quantity"
+                      min="1"
+                      placeholder="0">
+                    <mat-error *ngIf="itemControl.get('quantity')?.hasError('required')">
+                      Quantité requise
+                    </mat-error>
+                    <mat-error *ngIf="itemControl.get('quantity')?.hasError('min')">
+                      Quantité minimum: 1
+                    </mat-error>
+                  </mat-form-field>
+
+                  <!-- Prix unitaire (readonly) -->
+                  <mat-form-field appearance="outline" class="price-field">
+                    <mat-label>Prix unitaire</mat-label>
+                    <input 
+                      matInput
+                      type="number"
+                      formControlName="unitPrice"
+                      readonly
+                      placeholder="Sélectionnez un article">
+                    <span matSuffix>XOF</span>
+                    <mat-hint>Prix automatiquement défini par l'article</mat-hint>
+                  </mat-form-field>
+
+                  <!-- Total -->
+                  <div class="total-field">
+                    <span class="total-label">Total</span>
+                    <span class="total-value">
+                      {{ itemControl.get('totalPrice')?.value | currency:'XOF':'symbol':'1.0-0' }}
+                    </span>
+                  </div>
+
+                  <!-- Bouton supprimer -->
+                  <button 
+                    mat-icon-button
+                    color="warn"
+                    type="button"
+                    (click)="removeItem(i)"
+                    class="remove-button"
+                    matTooltip="Supprimer cet article">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <!-- Message si aucun article -->
+          <div class="no-items" *ngIf="itemsFormArray.length === 0">
+            <mat-icon>inventory_2</mat-icon>
+            <p>Aucun article ajouté</p>
+            <span>Cliquez sur "Ajouter un article" pour commencer</span>
+          </div>
+        </div>
+
+        <!-- Bouton ajouter article -->
+        <div class="add-item-section">
+          <button 
+            mat-stroked-button
+            color="primary"
+            type="button"
+            (click)="addItem()"
+            class="add-item-button">
+            <mat-icon>add</mat-icon>
+            <span>Ajouter un article</span>
+          </button>
+        </div>
+
+        <!-- Erreur si pas d'articles -->
+        <mat-error *ngIf="itemsFormArray.hasError('minItems') && itemsFormArray.touched">
+          {{ validationMessages.ITEMS_REQUIRED }}
+        </mat-error>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Section Résumé -->
+    <mat-card class="form-section summary-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>receipt</mat-icon>
+          Résumé de la Commande
+        </mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="summary-content">
+          <div class="summary-row">
+            <span class="summary-label">Nombre d'articles:</span>
+            <span class="summary-value">{{ itemsFormArray.length }}</span>
+          </div>
+          
+          <div class="summary-row">
+            <span class="summary-label">Quantité totale:</span>
+            <span class="summary-value">
+              {{ totalQuantity }}
+            </span>
+          </div>
+          
+          <div class="summary-row total-row">
+            <span class="summary-label">Montant total:</span>
+            <span class="summary-value total-amount">
+              {{ totalAmount | currency:'XOF':'symbol':'1.0-0' }}
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Actions du formulaire (mobile) -->
+    <div class="form-actions-mobile">
+      <button 
+        mat-stroked-button 
+        color="primary"
+        type="button"
+        (click)="onCancel()"
+        [disabled]="isSaving"
+        class="cancel-button-mobile">
+        Annuler
+      </button>
+      
+      <button 
+        mat-raised-button 
+        color="primary"
+        type="submit"
+        [disabled]="!isFormValid || isSaving"
+        class="submit-button-mobile">
+        <mat-icon *ngIf="isSaving">hourglass_empty</mat-icon>
+        <span>{{ submitButtonText }}</span>
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,178 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+<div class="container">
+  <div class="header-fixed">
+    <div class="d-flex justify-content-center">
+      <h1>Vue client</h1>
+    </div>
+  </div>
+  
+  <div class="client-details">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="detail-line">
+          <span class="detail-label">Nom du client:</span>
+          <span class="detail-value">{{this.clientDetails.name}}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Téléphone:</span>
+          <span class="detail-value">{{this.clientDetails.phone ?? 'xx-xx-xx-xx'}}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Adresse:</span>
+          <span class="detail-value">{{this.clientDetails.address ?? 'Non spécifié'}}</span>
+        </div>
+        <div class="detail-line">
+            <span class="detail-label">Occupation:</span>
+            <span class="detail-value">{{this.clientDetails.occupation ?? 'Non spécifié'}}</span>
+        </div>
+        <div class="detail-line">
+            <span class="detail-label">Commercial en charge:</span>
+            <span class="detail-value"><a [routerLink]="['/credit-view', this.clientId]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{this.clientDetails.collector ?? 'Non spécifié'}}</a> </span>
+        </div>
+        <div class="detail-line">
+            <span class="detail-label">Numéro de compte:</span>
+            <span class="detail-value">{{this.clientDetails.accountNumber ?? 'Non spécifié'}}</span>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="detail-line">
+          <span class="detail-label">Achats en cours:</span>
+          <span class="detail-value">{{this.clientDetails.totalInProgressCredit ?? 0}}</span>
+        </div>
+        <div class="detail-line">
+            <span class="detail-label">Montant total de l'achat en cours:</span>
+            <span class="detail-value">{{this.clientDetails.totalInProgressCreditAmount ?? 0}} {{' FCFA'}}</span>
+          </div>
+        <div class="detail-line">
+          <span class="detail-label">Montant total dû à date:</span>
+          <span class="detail-value">{{this.clientDetails.totalInProgressAmountDue ?? 0}} {{' FCFA'}}</span>
+        </div>
+        <div class="detail-line">
+            <span class="detail-label">Montant total payé à date:</span>
+            <span class="detail-value">{{this.clientDetails.totalInProgressAmountCollected ?? 0}} {{' FCFA'}}</span>
+          </div>
+        <div class="detail-line">
+          <span class="detail-label">Achats terminés:</span>
+          <span class="detail-value">{{this.clientDetails.totalCreditClosed ?? 0}}</span>
+        </div>
+        <div class="detail-line">
+            <span class="detail-label">Achats en retard:</span>
+            <span class="detail-value">{{this.clientDetails.totalCreditDelayed ?? 0}}</span>
+          </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Ajout des onglets avec ng-template -->
+  <div class="tabs-container">
+    <mat-tab-group (selectedTabChange)="onTabChange($event)">
+      <mat-tab label="Achats">
+        <ng-template matTabContent>
+          <div class="tab-content" *ngIf="selectedTabIndex === 0">
+            <ng-container *ngTemplateOutlet="achatsTemplate"></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+      <mat-tab label="Historiques">
+        <ng-template matTabContent>
+          <div class="tab-content" *ngIf="selectedTabIndex === 1">
+            <ng-container *ngTemplateOutlet="historiquesTemplate"></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+      <mat-tab label="En Attente">
+        <ng-template matTabContent>
+          <div class="tab-content" *ngIf="selectedTabIndex === 2">
+            <ng-container *ngTemplateOutlet="pendingTemplate"></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>
+
+<!-- Définition des ng-template pour chaque onglet -->
+<!-- Template réutilisable pour les listes de crédits -->
+<ng-template #creditListTemplate let-credits="credits" let-title="title" let-totalElements="totalElements" let-currentPage="currentPage" let-pageSize="pageSize" let-onPageChange="onPageChange" let-refreshAction="refreshAction">
+  <div class="credits-content">
+    <div class="header-fixed">
+      <div class="d-flex justify-content-start">
+        <h3>{{title}}</h3>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end">
+      <button class="btn refresh-button btn-sm" (click)="refreshAction()">
+        <mat-icon>refresh</mat-icon>
+        <span>Rafraîchir</span>
+      </button>
+    </div>
+    
+    <div class="table-container">
+      <table class="article-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Référence</th>
+            <th>Montant</th>
+            <th>Date de création</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let credit of credits; let i = index">
+            <td>{{(currentPage * pageSize) + (i + 1)}}</td>
+            <td><a [routerLink]="['/credit-view', credit.id, credit.clientType]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{credit.reference}}</a></td>
+            <td>{{credit.totalAmount | number:'1.0-0'}} FCFA</td>
+            <td>{{credit.beginDate | date:'dd/MM/yyyy'}}</td>
+            <td>
+              <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
+                {{ (credit.status | statusBadge).label }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPageChange($event)">
+    </mat-paginator>
+  </div>
+</ng-template>
+
+<!-- Utilisation du template pour l'onglet Achats -->
+<ng-template #achatsTemplate>
+  <ng-container *ngTemplateOutlet="creditListTemplate; context: { 
+    credits: credits, 
+    title: 'Achats du client', 
+    totalElements: totalCreditElements, 
+    currentPage: currentCreditPage, 
+    pageSize: creditPageSize, 
+    onPageChange: onCreditPageChange.bind(this),
+    refreshAction: refreshAchats.bind(this)
+  }"></ng-container>
+</ng-template>
+
+<!-- Utilisation du template pour l'onglet Historiques -->
+<ng-template #historiquesTemplate>
+  <ng-container *ngTemplateOutlet="creditListTemplate; context: { 
+    credits: historiques, 
+    title: 'Historique des achats', 
+    totalElements: totalHistoriqueElements, 
+    currentPage: currentHistoriquePage, 
+    pageSize: historiquePageSize, 
+    onPageChange: onHistoriquePageChange.bind(this),
+    refreshAction: refreshHistoriques.bind(this)
+  }"></ng-container>
+</ng-template>
+
+<!-- Utilisation du template pour l'onglet En Attente -->
+<ng-template #pendingTemplate>
+  <ng-container *ngTemplateOutlet="creditListTemplate; context: { 
+    credits: pendingCredits, 
+    title: 'Crédits en attente', 
+    totalElements: totalPendingElements, 
+    currentPage: currentPendingPage, 
+    pageSize: pendingPageSize, 
+    onPageChange: onPendingPageChange.bind(this),
+    refreshAction: refreshPending.bind(this)
+  }"></ng-container>
+</ng-template>

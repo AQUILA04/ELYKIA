@@ -1,0 +1,16 @@
+<div class="session-selector">
+  <mat-form-field appearance="outline" class="session-select">
+    <mat-label>Année</mat-label>
+    <mat-icon matPrefix>calendar_today</mat-icon>
+    <mat-select [(value)]="selectedSession" (selectionChange)="onSessionChange($event.value)">
+      <mat-option *ngFor="let session of sessions" [value]="session">
+        {{ session.year }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <span class="session-badge" [class.active]="isCurrentSession()" [class.historical]="!isCurrentSession()">
+    <mat-icon>{{ isCurrentSession() ? 'check_circle' : 'history' }}</mat-icon>
+    {{ isCurrentSession() ? 'Session en cours' : 'Session ' + selectedSession?.year }}
+  </span>
+</div>

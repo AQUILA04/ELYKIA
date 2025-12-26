@@ -1,0 +1,185 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { AuthState } from 'src/app/store/auth/auth.reducer';
+import * as AuthActions from 'src/app/store/auth/auth.actions';
+import * as AuthSelectors from 'src/app/store/auth/auth.selectors';
+import { AlertController, LoadingController, ModalController, ToastController, AlertInput } from '@ionic/angular';
+import { selectIsOnline } from 'src/app/store/health-check/health-check.selectors';
+import { LoggerService } from '../../../core/services/logger.service';
+import { LogModalComponent } from 'src/app/shared/components/log-modal/log-modal.component';
+import { Actions, ofType } from '@ngrx/effects';
+import { DataInitializationService } from 'src/app/core/services/data-initialization.service';
+import { DatabaseService } from 'src/app/core/services/database.service'; // Import DatabaseService
+import { environment } from 'src/environments/environment'; // Import environment
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.page.html',
+  styleUrls: ['./login.page.scss'],
+  standalone: false
+})
+export class LoginPage implements OnInit, OnDestroy {
+
+  username!: string;
+  password!: string;
+  passwordVisible: boolean = false;
+  appVersion: string = environment.version; // Expose version to template
+
+  isOnline$: Observable<boolean>;
+  error$: Observable<any>;
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private store: Store<AuthState>,
+    private alertController: AlertController,
+    private modalController: ModalController,
+    private actions$: Actions,
+    private toastController: ToastController,
+    private log: LoggerService,
+    private dataInitializationService: DataInitializationService,
+    private loadingController: LoadingController,
+    private dbService: DatabaseService // Inject DatabaseService
+  ) {
+    this.error$ = this.store.select(AuthSelectors.selectAuthError);
+    this.isOnline$ = this.store.select(selectIsOnline);
+  }
+
+  ngOnInit() {
+    // Listen for login failure to show an alert
+    this.actions$.pipe(
+      ofType(AuthActions.loginFailure),
+      takeUntil(this.destroy$)
+    ).subscribe(({ error }) => {
+      this.presentAlert('Erreur de connexion', error || 'Les identifiants fournis sont incorrects ou un problème est survenu.');
+    });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onLogin() {
+    this.store.dispatch(AuthActions.login({ request: { username: this.username, password: this.password } }));
+  }
+
+  async onRestore() {
+    const backupFiles = await this.dbService.findAllBackupFiles();
+
+    if (backupFiles.length === 0) {
+      await this.presentAlert('Aucune sauvegarde', 'Aucun fichier de sauvegarde n\'a été trouvé sur cet appareil.');
+      return;
+    }
+
+    const radioOptions: AlertInput[] = backupFiles.map(fileObj => {
+      // Extract timestamp from filename: db-backup-YYYY-MM-DDTHH-MM-SS.SSSZ.sql
+      const match = fileObj.path.match(/db-backup-(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})/);
+      let label = 'Sauvegarde inconnue';
+      if (match && match[1]) {
+        try {
+          // Convert to readable format: YYYY-MM-DD HH:MM:SS
+          const datePart = match[1].substring(0, 10);
+          const timePart = match[1].substring(11).replace(/-/g, ':');
+          
+          // Format file size
+          const fileSizeKB = (fileObj.size / 1024).toFixed(2); // Convert bytes to KB
+          label = `Sauvegarde du ${datePart} à ${timePart} (${fileSizeKB} KB)`;
+        } catch (e) {
+          console.error('Error parsing date from backup filename', e);
+        }
+      }
+
+      return {
+        name: fileObj.path,
+        type: 'radio',
+        label: label,
+        value: fileObj.path,
+        checked: fileObj.path === backupFiles[0].path // Check the latest one by default
+      };
+    });
+
+    const selectAlert = await this.alertController.create({
+      header: 'Sélectionner une sauvegarde',
+      message: 'Veuillez choisir le fichier de sauvegarde à restaurer. Cela remplacera les données non synchronisées actuelles par celles de la sauvegarde, puis lancera une synchronisation complète.',
+      inputs: radioOptions,
+      buttons: [
+        {
+          text: 'Annuler',
+          role: 'cancel'
+        },
+        {
+          text: 'Restaurer',
+          handler: async (selectedFilePath: string) => {
+            if (!selectedFilePath) {
+              await this.presentAlert('Erreur', 'Aucun fichier de sauvegarde sélectionné.');
+              return;
+            }
+
+            const loading = await this.loadingController.create({
+              message: `Restauration de ${selectedFilePath.split('/').pop()} en cours...`,
+            });
+            await loading.present();
+
+            try {
+              await this.dataInitializationService.restoreFromBackup(selectedFilePath);
+              await loading.dismiss();
+              const toast = await this.toastController.create({
+                message: 'Restauration terminée. Vous pouvez maintenant vous connecter.',
+                duration: 3000,
+                color: 'success',
+                position: 'top'
+              });
+              await toast.present();
+            } catch (error: any) {
+              await loading.dismiss();
+              await this.presentAlert('Erreur de restauration', error.message || 'Une erreur est survenue lors de la restauration.');
+            }
+          }
+        }
+      ]
+    });
+
+    await selectAlert.present();
+  }
+
+  togglePasswordVisibility() {
+    this.passwordVisible = !this.passwordVisible;
+  }
+
+  async presentAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: ['OK'],
+      cssClass: 'error-alert'
+    });
+    await alert.present();
+  }
+
+  async showLogs() {
+    const logs = await this.log.readLogs();
+    const modal = await this.modalController.create({
+      component: LogModalComponent,
+      componentProps: {
+        logs: logs
+      }
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data && data.clear) {
+      await this.log.clearLogFile();
+      this.log.clearLogs();
+      const toast = await this.toastController.create({
+        message: 'Logs effacés',
+        duration: 2000,
+        position: 'top',
+        color: 'success'
+      });
+      await toast.present();
+    }
+  }
+}

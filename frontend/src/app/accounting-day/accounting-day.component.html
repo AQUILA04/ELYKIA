@@ -1,0 +1,39 @@
+<div class="container">
+  <div class="h1">
+    <h1>Gestion de la journée comptable</h1>
+  </div>
+
+  <div class="form-group">
+    <!-- Section pour ouvrir la journée comptable si elle est fermée -->
+    <div *ngIf="!isOpen" class="action-row">
+      <label for="openDate">Date comptable :</label>
+      <input type="text" id="openDate" class="form-control date-input" [(ngModel)]="accountingDate" [disabled]="true">
+      <button *ngxPermissionsOnly="['ROLE_OPEN_ACCOUNTING_DAY']" class="btn btn-primary action-button" (click)="openDay()">Ouvrir</button>
+    </div>
+
+    <!-- Section pour fermer la journée comptable si elle est ouverte -->
+    <div *ngIf="isOpen" class="action-row">
+      <label for="closeDate">Date comptable :</label>
+      <input id="closeDate" type="text" class="form-control date-input" [(ngModel)]="accountingDate" [disabled]="true">
+      <button *ngxPermissionsOnly="['ROLE_OPEN_ACCOUNTING_DAY']" class="btn btn-danger action-button" (click)="closeDay()">Fermer</button>
+    </div>
+  </div>
+
+  <div *ngIf="isOpen && openCashDesks.length > 0" class="cash-desk-list">
+    <h2>Caisses Ouvertes</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Collecteur</th>
+          <th>Date d'ouverture</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cashDesk of openCashDesks">
+          <td>{{ cashDesk.collector }}</td>
+          <td>{{ cashDesk.createdDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

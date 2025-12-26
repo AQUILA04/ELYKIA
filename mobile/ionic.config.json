@@ -1,0 +1,7 @@
+{
+  "name": "\"elykia-mobile\"",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

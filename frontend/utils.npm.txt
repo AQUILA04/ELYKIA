@@ -1,0 +1,2 @@
+npm install file-saver
+npm install @types/file-saver --save-dev

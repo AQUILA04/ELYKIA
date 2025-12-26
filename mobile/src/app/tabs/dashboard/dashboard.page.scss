@@ -1,0 +1,520 @@
+/* Variables CSS pour la palette de couleurs */
+:root {
+  --primary-color: #1976D2;
+  --primary-variant: #1565C0;
+  --secondary-color: #FF9800;
+  --success-color: #4CAF50;
+  --info-color: #2196F3;
+  --surface-color: #FFFFFF;
+  --background-color: #F5F5F5;
+  --header-background: #EEEEEE;
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --text-on-primary: #FFFFFF;
+  --border-color: #E0E0E0;
+  --shadow-light: rgba(0, 0, 0, 0.08);
+  --shadow-medium: rgba(0, 0, 0, 0.12);
+  --shadow-strong: rgba(0, 0, 0, 0.16);
+}
+
+.dashboard-content {
+  --background: var(--background-color);
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+/* Header avec informations utilisateur - Material Design */
+.dashboard-header {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+  color: var(--text-on-primary);
+  padding: 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 100px;
+  /* Bordure inférieure avec ombre Material Design */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-light), 0 4px 8px var(--shadow-medium);
+  position: relative;
+  z-index: 2;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--surface-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  /* Ombre Material Design pour l'avatar */
+  box-shadow: 0 2px 4px var(--shadow-light);
+
+  ion-icon {
+    font-size: 24px;
+    color: var(--primary-color);
+  }
+}
+
+.user-details {
+  flex: 1;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    color: var(--text-on-primary);
+  }
+}
+
+.user-status {
+  font-size: 14px;
+  opacity: 0.9;
+  color: var(--text-on-primary);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sync-button,
+.menu-button {
+  --background: rgba(255, 255, 255, 0.2);
+  --color: var(--text-on-primary);
+  --border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  position: relative;
+  margin: 0;
+  /* Ombre Material Design pour les boutons */
+  box-shadow: 0 2px 4px var(--shadow-light);
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &.syncing {
+    ion-icon {
+      animation: rotate 1s linear infinite;
+    }
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  background: #F44336;
+  border-radius: 50%;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  border: 2px solid var(--primary-color);
+  /* Ombre pour le badge */
+  box-shadow: 0 2px 4px var(--shadow-medium);
+}
+
+/* Section KPIs - Material Design Cards */
+.kpis-section {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 12px;
+  background: var(--background-color);
+}
+
+.kpi-card {
+  background: var(--surface-color);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  /* Material Design elevation */
+  box-shadow:
+    0 1px 3px var(--shadow-light),
+    0 1px 2px var(--shadow-medium);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    /* Elevation plus forte au hover */
+    box-shadow:
+      0 2px 6px var(--shadow-light),
+      0 4px 12px var(--shadow-medium);
+    transform: translateY(-1px);
+  }
+}
+
+.kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.kpi-sales .kpi-icon {
+  background: rgba(255, 152, 0, 0.1);
+
+  ion-icon {
+    color: var(--secondary-color);
+  }
+}
+
+.kpi-recovery .kpi-icon {
+  background: rgba(76, 175, 80, 0.1);
+
+  ion-icon {
+    color: var(--success-color);
+  }
+}
+
+.kpi-stock-output .kpi-icon {
+  background: rgba(33, 150, 243, 0.1);
+
+  ion-icon {
+    color: var(--info-color);
+  }
+}
+
+.kpi-remaining .kpi-icon {
+  background: rgba(156, 39, 176, 0.1);
+
+  ion-icon {
+    color: #9C27B0;
+  }
+}
+
+.kpi-undistributed .kpi-icon {
+  background: rgba(244, 67, 54, 0.1);
+
+  ion-icon {
+    color: #F44336;
+  }
+}
+
+.kpi-tontine .kpi-icon {
+  background: rgba(103, 58, 183, 0.1);
+
+  ion-icon {
+    color: #673AB7;
+  }
+}
+
+.kpi-content {
+  flex: 1;
+
+  h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0 0 2px 0;
+  }
+
+  p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.3;
+  }
+}
+
+/* Section Graphiques - Material Design Card */
+.charts-section {
+  padding: 0 16px 16px;
+  background: var(--background-color);
+}
+
+.chart-card {
+  background: var(--surface-color);
+  border-radius: 12px;
+  padding: 16px;
+  /* Material Design elevation professionnelle */
+  box-shadow:
+    0 1px 3px var(--shadow-light),
+    0 1px 2px var(--shadow-medium);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    box-shadow:
+      0 2px 6px var(--shadow-light),
+      0 4px 12px var(--shadow-medium);
+  }
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.chart-title {
+  font-size: 16px;
+  color: var(--primary-color);
+  font-weight: 600;
+  margin: 0;
+}
+
+.chart-icon {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.chart-container {
+  height: 200px;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.legend-sales {
+  background: var(--primary-color);
+}
+
+.legend-recovery {
+  background: var(--success-color);
+}
+
+/* Section Actions Rapides - Material Design avec bordures colorées */
+.quick-actions-section {
+  padding: 0 16px 16px;
+  background: var(--background-color);
+}
+
+.section-title {
+  font-size: 18px;
+  color: var(--text-primary);
+  font-weight: 600;
+  margin: 0 0 16px 0;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.action-card {
+  background: var(--surface-color);
+  border-radius: 12px;
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Material Design elevation */
+  box-shadow:
+    0 1px 3px var(--shadow-light),
+    0 1px 2px var(--shadow-medium);
+  border: 2px solid transparent;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:hover {
+    box-shadow:
+      0 2px 6px var(--shadow-light),
+      0 4px 12px var(--shadow-medium);
+    transform: translateY(-1px);
+  }
+}
+
+.action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+/* Actions Rapides - Bordures colorées selon les icônes */
+.action-distribution {
+  border-color: var(--primary-color);
+
+  .action-icon {
+    background: rgba(25, 118, 210, 0.1);
+
+    ion-icon {
+      color: var(--primary-color);
+    }
+  }
+}
+
+.action-recovery {
+  border-color: var(--success-color);
+
+  .action-icon {
+    background: rgba(76, 175, 80, 0.1);
+
+    ion-icon {
+      color: var(--success-color);
+    }
+  }
+}
+
+.action-client {
+  border-color: var(--secondary-color);
+
+  .action-icon {
+    background: rgba(255, 152, 0, 0.1);
+
+    ion-icon {
+      color: var(--secondary-color);
+    }
+  }
+}
+
+.action-report {
+  border-color: var(--info-color);
+
+  .action-icon {
+    background: rgba(33, 150, 243, 0.1);
+
+    ion-icon {
+      color: var(--info-color);
+    }
+  }
+}
+
+.action-tontine {
+  border-color: #9C27B0; // Purple color for tontine
+
+  .action-icon {
+    background: rgba(156, 39, 176, 0.1);
+
+    ion-icon {
+      color: #9C27B0;
+    }
+  }
+}
+
+.action-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+/* Espace pour la navigation inférieure */
+.bottom-spacer {
+  height: 80px;
+  background: var(--background-color);
+}
+
+/* Section Filtres (Chips) */
+.filters-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  overflow-x: auto; // Allows horizontal scrolling on small screens
+  background: var(--background-color);
+
+  ion-chip {
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    font-weight: 500;
+    height: 36px; // Consistent height
+    --border-radius: 18px; // Fully rounded
+
+    &[outline="true"] {
+      --background: var(--surface-color);
+      --color: var(--primary-color);
+      --border-color: var(--primary-color);
+    }
+
+    &[outline="false"] {
+      --background: var(--primary-color);
+      --color: var(--text-on-primary);
+    }
+  }
+}
+
+/* Responsive design */
+@media (max-width: 375px) {
+  .dashboard-header {
+    padding: 16px 12px;
+  }
+
+  .kpis-section {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .charts-section {
+    padding: 0 12px 12px;
+  }
+
+  .quick-actions-section {
+    padding: 0 12px 12px;
+  }
+
+  .kpi-card {
+    padding: 12px;
+  }
+
+  .action-card {
+    padding: 16px 12px;
+  }
+}

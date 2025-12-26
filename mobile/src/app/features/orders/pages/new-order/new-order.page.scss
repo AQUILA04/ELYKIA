@@ -1,0 +1,14 @@
+// Assurer que la page occupe toute la hauteur disponible
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+// Le composant base-transaction doit occuper toute la hauteur
+app-base-transaction {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}

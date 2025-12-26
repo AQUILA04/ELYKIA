@@ -1,0 +1,71 @@
+.container {
+    padding: 20px;
+    max-width: 900px;  // Increased width to accommodate larger bills
+    margin: auto;
+  }
+  
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .content {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;  
+    margin-left: 20px;
+  }
+  
+  .billets, .pieces {
+    display: flex;
+    flex-direction: column;  // Align items vertically
+    width: 45%;  // Adjust width as needed
+  }
+  
+  .billets {
+    margin-right: 200px;  // Space between billets and pieces
+  }
+  
+  .billet, .piece {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  img.billet-img {
+    width: 200px;  // Increase size of the bills
+    height: auto;
+    margin-right: 20px;  // Adjust spacing as needed
+  }
+  
+  img.piece-img {
+    width: 80px;  // Keep size of the coins smaller
+    height: auto;
+    margin-right: 20px;
+  }
+  
+  input[type="number"] {
+    width: 100px;  // Fixed width for inputs
+    padding: 5px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .button-container {
+    display: flex;
+    justify-content: flex-end; /* Place le bouton à droite */
+    margin-top: 20px;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  p {
+    text-align: end;
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  

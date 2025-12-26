@@ -1,0 +1,129 @@
+<div class="row dashboard-summary">
+  <div class="col-sm-3">
+    <div class="card summary-card">
+      <div class="card-body">
+        <div class="icon bg-primary">
+          <span class="material-icons">analytics</span>
+        </div>
+        <div class="text">
+          <h2 class="card-value">{{ totalClients }}</h2>
+          <h3 class="card-title">Total Clients</h3>
+          <p class="card-subtitle">+10% depuis hier</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card summary-card">
+      <div class="card-body">
+        <div class="icon bg-success">
+          <span class="material-icons">account_balance_wallet</span>
+        </div>
+        <div class="text" href="/accountlist">
+          <h2 class="card-value">{{ totalAccounts }}</h2>
+          <h3 class="card-title">Total Accounts</h3>
+          <p class="card-subtitle">+8% depuis hier</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card summary-card">
+      <div class="card-body">
+        <div class="icon bg-warning">
+          <span class="material-icons">location_on</span>
+        </div>
+        <div class="text">
+          <h2 class="card-value">{{ totalLocalities }}</h2>
+          <h3 class="card-title">Total Localities</h3>
+          <p class="card-subtitle">+2% depuis hier</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card summary-card">
+      <div class="card-body">
+        <div class="icon bg-danger">
+          <span class="material-icons">shopping_cart</span>
+        </div>
+        <div class="text">
+          <h2 class="card-value">{{ totalArticles }}</h2>
+          <h3 class="card-title">Total Articles</h3>
+          <p class="card-subtitle">+3% depuis hier</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <app-dashboard-chart></app-dashboard-chart>
+  <div class="container" *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
+    <div class="header-fixed">
+      <div class="d-flex justify-content-center">
+        <h1>Liste des articles en rupture de stock</h1>
+      </div>
+    </div>
+  
+    <div class="table-container">
+      <table class="article-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nom</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let article of outOfStockArticles; let i = index">
+            <td>{{ (currentPageOutOfStock * pageSizeOutOfStock) + (i + 1) }}</td>
+            <td>{{ article.name }}</td>
+            <td>{{ article.type }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <mat-paginator [length]="totalOutOfStockElement"
+      [pageSize]="pageSizeOutOfStock"
+      [pageSizeOptions]="[5, 10, 25, 100]"
+      (page)="onOutOfStockPageChange($event)">
+</mat-paginator>
+
+    </div>
+  </div>
+  
+  <div class="container" *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
+    <div class="header-fixed">
+      <div class="d-flex justify-content-center">
+        <h1>Article en rupture imminente</h1>
+      </div>
+    </div>
+  
+    <div class="table-container">
+      <table class="article-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nom</th>
+            <th>Type</th>
+            <th>Quantité</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let article of imminentOutOfStockArticles; let i = index">
+            <td>{{ (currentPageImminent * pageSizeImminent) + (i + 1) }}</td>
+            <td>{{ article.name }}</td>
+            <td>{{ article.type }}</td>
+            <td>
+              <span class="badge" [ngClass]="getBadgeClass(article.stockQuantity)">
+                {{ article.stockQuantity !== null ? article.stockQuantity : 0 }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <mat-paginator [length]="totalImminentElement"
+                     [pageSize]="pageSizeImminent"
+                     [pageSizeOptions]="[2, 5, 10, 25, 100]"
+                     (page)="onImminentPageChange($event)">
+      </mat-paginator>
+    </div>
+  </div>
+  

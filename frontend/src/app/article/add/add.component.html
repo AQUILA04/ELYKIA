@@ -1,0 +1,106 @@
+<div class="container">
+  <div class="form-header">
+    <h1>Editer un article</h1>
+  </div>
+
+  <form [formGroup]="articleForm" (ngSubmit)="onSubmit()">
+
+    <div class="form-group">
+      <label for="name">Nom de l'article <span class="text-danger">*</span></label>
+      <input type="text" id="name" formControlName="name" class="form-control">
+      <mat-error *ngIf="articleForm.get('name')?.invalid && articleForm.get('name')?.touched">
+        Le nom de l'article est requis
+      </mat-error>
+    </div>
+
+    <div class="form-group">
+      <label for="marque">Marque <span class="text-danger">*</span></label>
+      <input type="text" id="marque" formControlName="marque" class="form-control">
+      <mat-error *ngIf="articleForm.get('marque')?.invalid && articleForm.get('marque')?.touched">
+        La marque de l'article est requise
+      </mat-error>
+    </div>
+
+    <div class="form-group">
+      <label for="model">Modèle <span class="text-danger">*</span></label>
+      <input type="text" id="model" formControlName="model" class="form-control">
+      <!-- Mat-error for model if needed -->
+    </div>
+
+    <div class="form-group">
+      <label for="type">Type <span class="text-danger">*</span></label>
+      <select id="type" formControlName="type" class="form-control">
+        <option *ngFor="let type of types" [value]="type.name">{{ type.name}}</option>
+      </select>
+      <mat-error *ngIf="articleForm.get('type')?.invalid && articleForm.get('type')?.touched">
+        Le type de l'article est requis
+      </mat-error>
+    </div>
+
+    <div class="form-group">
+      <label for="purchasePrice">Prix d'achat <span class="text-danger">*</span></label>
+      <input type="number" id="purchasePrice" formControlName="purchasePrice" class="form-control">
+      <mat-error *ngIf="articleForm.get('purchasePrice')?.invalid && articleForm.get('purchasePrice')?.touched">
+        Le prix d'achat est requis
+      </mat-error>
+    </div>
+
+    <div class="form-group">
+      <label for="sellingPrice">Prix de vente <span class="text-danger">*</span></label>
+      <input type="number" id="sellingPrice" formControlName="sellingPrice" class="form-control">
+      <mat-error *ngIf="articleForm.get('sellingPrice')?.invalid && articleForm.get('sellingPrice')?.touched">
+        Le prix de vente est requis !
+      </mat-error>
+    </div>
+
+    <div class="form-group">
+      <label for="creditSalePrice">Prix de vente à crédit <span class="text-danger">*</span></label>
+      <input type="number" id="creditSalePrice" formControlName="creditSalePrice" class="form-control">
+      <mat-error *ngIf="articleForm.get('creditSalePrice')?.invalid && articleForm.get('creditSalePrice')?.touched">
+        Le prix de vente à crédit est requis !
+      </mat-error>
+      <mat-error
+        *ngIf="articleForm.errors?.['priceOrderInvalid'] && (articleForm.get('purchasePrice')?.dirty || articleForm.get('sellingPrice')?.dirty || articleForm.get('creditSalePrice')?.dirty)">
+        Les prix doivent respecter l'ordre : Prix d'achat <= Prix de vente <=Prix de vente à crédit. </mat-error>
+    </div>
+
+    <div class="form-group">
+      <label for="reorderPoint">Point de commande <span class="text-danger">*</span></label>
+      <input type="number" id="reorderPoint" formControlName="reorderPoint" class="form-control">
+      <mat-error
+        *ngIf="articleForm.get('reorderPoint')?.hasError('required') && articleForm.get('reorderPoint')?.touched">
+        Le point de commande est requis.
+      </mat-error>
+      <mat-error *ngIf="articleForm.get('reorderPoint')?.hasError('min') && articleForm.get('reorderPoint')?.touched">
+        La valeur doit être supérieure ou égale à 0.
+      </mat-error>
+    </div>
+
+    <div class="form-group">
+      <label for="optimalStockLevel">Niveau de stock optimal <span class="text-danger">*</span></label>
+      <input type="number" id="optimalStockLevel" formControlName="optimalStockLevel" class="form-control">
+      <mat-error
+        *ngIf="articleForm.get('optimalStockLevel')?.hasError('required') && articleForm.get('optimalStockLevel')?.touched">
+        Le niveau de stock optimal est requis.
+      </mat-error>
+      <mat-error
+        *ngIf="articleForm.get('optimalStockLevel')?.hasError('min') && articleForm.get('optimalStockLevel')?.touched">
+        La valeur doit être supérieure ou égale à 0.
+      </mat-error>
+    </div>
+
+    <div class="form-group">
+      <label for="isSeasonal">Saisonnier ? <span class="text-danger">*</span></label>
+      <select id="isSeasonal" formControlName="isSeasonal" class="form-control">
+        <option [ngValue]="true">Oui</option>
+        <option [ngValue]="false">Non</option>
+      </select>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-cancel" (click)="onCancel()">Annuler</button>
+      <button type="submit" class="btn btn-submit" [disabled]="!articleForm.valid">Valider</button>
+    </div>
+
+  </form>
+</div>

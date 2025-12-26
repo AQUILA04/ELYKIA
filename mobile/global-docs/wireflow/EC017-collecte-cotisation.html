@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC017 - Collecte Cotisation | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .member-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 24px 16px;
+            color: white;
+        }
+
+        .member-info-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .member-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: white;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .member-details {
+            flex: 1;
+        }
+
+        .member-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .member-meta {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .current-total {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .current-total-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .current-total-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .form-container {
+            padding: 24px 16px;
+            padding-bottom: 80px;
+        }
+
+        .amount-input-container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .amount-input-label {
+            font-size: 16px;
+            color: var(--primary-color);
+            font-weight: 500;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .amount-input-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .amount-input {
+            width: 100%;
+            height: 80px;
+            border: 3px solid var(--primary-color);
+            border-radius: 12px;
+            padding: 0 24px;
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .amount-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.2);
+        }
+
+        .currency-label {
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .quick-amounts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .quick-amount-btn {
+            padding: 12px;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-amount-btn:hover {
+            border-color: var(--primary-color);
+            background: rgba(25, 118, 210, 0.05);
+        }
+
+        .quick-amount-btn:active {
+            transform: scale(0.95);
+        }
+
+        .collection-details {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .detail-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .new-total-row {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .new-total-label {
+            font-size: 14px;
+            color: var(--success-color);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .new-total-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
+        .notes-section {
+            margin-bottom: 24px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background: white;
+            border: 2px solid var(--error-color);
+            color: var(--error-color);
+        }
+
+        .btn-save {
+            flex: 2;
+        }
+
+        .btn-print {
+            background: var(--secondary-color);
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="header">
+            <button class="header-icon" onclick="goBack()">←</button>
+            <div class="header-title">Nouvelle Collecte</div>
+            <button class="header-icon" onclick="showHelp()">?</button>
+        </div>
+
+        <!-- Member Summary -->
+        <div class="member-summary">
+            <div class="member-info-card">
+                <div class="member-avatar" id="memberAvatar">M</div>
+                <div class="member-details">
+                    <div class="member-name" id="memberName">Marie Kouassi</div>
+                    <div class="member-meta">
+                        <span id="memberFrequency">📅 Hebdomadaire</span> • 
+                        <span id="memberPhone">📱 0701234567</span>
+                    </div>
+                </div>
+            </div>
+            <div class="current-total">
+                <div class="current-total-label">💰 Total Actuel</div>
+                <div class="current-total-value" id="currentTotal">45,000 FCFA</div>
+            </div>
+        </div>
+
+        <!-- Form Container -->
+        <div class="form-container">
+            <!-- Amount Input -->
+            <div class="amount-input-container">
+                <div class="amount-input-label">💵 Montant de la Cotisation</div>
+                <div class="amount-input-wrapper">
+                    <input type="number" class="amount-input" id="amountInput" 
+                           placeholder="0" oninput="updateNewTotal()">
+                    <span class="currency-label">FCFA</span>
+                </div>
+                <div class="quick-amounts">
+                    <button class="quick-amount-btn" onclick="setAmount(1000)">1,000</button>
+                    <button class="quick-amount-btn" onclick="setAmount(2000)">2,000</button>
+                    <button class="quick-amount-btn" onclick="setAmount(5000)">5,000</button>
+                    <button class="quick-amount-btn" onclick="setAmount(10000)">10,000</button>
+                    <button class="quick-amount-btn" onclick="setAmount(20000)">20,000</button>
+                    <button class="quick-amount-btn" onclick="setAmount(50000)">50,000</button>
+                </div>
+            </div>
+
+            <!-- Collection Details -->
+            <div class="collection-details">
+                <div class="detail-row">
+                    <span class="detail-label">📅 Date de collecte</span>
+                    <span class="detail-value" id="collectionDate">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">🕐 Heure</span>
+                    <span class="detail-value" id="collectionTime">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">👤 Commercial</span>
+                    <span class="detail-value" id="commercialName">Jean Dupont</span>
+                </div>
+                <div class="new-total-row">
+                    <div class="new-total-label">✨ Nouveau Total après Collecte</div>
+                    <div class="new-total-value" id="newTotal">45,000 FCFA</div>
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div class="notes-section">
+                <div class="input-group">
+                    <label class="input-label">📝 Notes (optionnel)</label>
+                    <textarea class="input-field" id="notes" rows="3" 
+                              placeholder="Ajoutez des notes sur cette collecte..."></textarea>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-cancel" onclick="cancelCollection()">
+                    Annuler
+                </button>
+                <button class="btn btn-primary btn-save" onclick="saveCollection()">
+                    💾 Enregistrer
+                </button>
+            </div>
+            <button class="btn btn-print btn-full-width" onclick="saveAndPrint()" style="display: none;" id="printBtn">
+                🖨️ Enregistrer et Imprimer Reçu
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Sample member data
+        const memberData = {
+            id: 1,
+            name: "Marie Kouassi",
+            phone: "0701234567",
+            frequency: "Hebdomadaire",
+            currentTotal: 45000
+        };
+
+        const commercialData = {
+            name: "Jean Dupont",
+            id: "COM001"
+        };
+
+        function initializePage() {
+            loadMemberData();
+            updateDateTime();
+            
+            // Update date/time every second
+            setInterval(updateDateTime, 1000);
+        }
+
+        function loadMemberData() {
+            document.getElementById('memberAvatar').textContent = memberData.name.charAt(0);
+            document.getElementById('memberName').textContent = memberData.name;
+            document.getElementById('memberFrequency').textContent = `📅 ${memberData.frequency}`;
+            document.getElementById('memberPhone').textContent = `📱 ${memberData.phone}`;
+            document.getElementById('currentTotal').textContent = 
+                memberData.currentTotal.toLocaleString('fr-FR') + ' FCFA';
+            document.getElementById('newTotal').textContent = 
+                memberData.currentTotal.toLocaleString('fr-FR') + ' FCFA';
+            document.getElementById('commercialName').textContent = commercialData.name;
+        }
+
+        function updateDateTime() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('fr-FR', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+            const timeStr = now.toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            document.getElementById('collectionDate').textContent = dateStr;
+            document.getElementById('collectionTime').textContent = timeStr;
+        }
+
+        function setAmount(amount) {
+            document.getElementById('amountInput').value = amount;
+            updateNewTotal();
+        }
+
+        function updateNewTotal() {
+            const amount = parseFloat(document.getElementById('amountInput').value) || 0;
+            const newTotal = memberData.currentTotal + amount;
+            
+            document.getElementById('newTotal').textContent = 
+                newTotal.toLocaleString('fr-FR') + ' FCFA';
+
+            // Show print button if amount is entered
+            const printBtn = document.getElementById('printBtn');
+            if (amount > 0) {
+                printBtn.style.display = 'block';
+            } else {
+                printBtn.style.display = 'none';
+            }
+        }
+
+        function saveCollection() {
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            
+            if (!amount || amount <= 0) {
+                alert('⚠️ Veuillez entrer un montant valide');
+                return;
+            }
+
+            const notes = document.getElementById('notes').value;
+            const collectionData = {
+                memberId: memberData.id,
+                memberName: memberData.name,
+                amount: amount,
+                date: new Date().toISOString(),
+                commercialId: commercialData.id,
+                commercialName: commercialData.name,
+                notes: notes,
+                previousTotal: memberData.currentTotal,
+                newTotal: memberData.currentTotal + amount
+            };
+
+            console.log('Saving collection:', collectionData);
+
+            // Show success message
+            alert(`✅ Collecte enregistrée avec succès!\n\n` +
+                  `Montant: ${amount.toLocaleString('fr-FR')} FCFA\n` +
+                  `Nouveau total: ${collectionData.newTotal.toLocaleString('fr-FR')} FCFA`);
+
+            // Redirect back to member details
+            window.location.href = 'EC016-detail-membre-tontine.html';
+        }
+
+        function saveAndPrint() {
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            
+            if (!amount || amount <= 0) {
+                alert('⚠️ Veuillez entrer un montant valide');
+                return;
+            }
+
+            const notes = document.getElementById('notes').value;
+            const collectionData = {
+                memberId: memberData.id,
+                memberName: memberData.name,
+                amount: amount,
+                date: new Date().toISOString(),
+                commercialId: commercialData.id,
+                commercialName: commercialData.name,
+                notes: notes,
+                previousTotal: memberData.currentTotal,
+                newTotal: memberData.currentTotal + amount
+            };
+
+            console.log('Saving collection and printing receipt:', collectionData);
+
+            // Store collection data for receipt
+            localStorage.setItem('receiptData', JSON.stringify(collectionData));
+
+            // Show success message
+            alert(`✅ Collecte enregistrée avec succès!\n\n` +
+                  `Montant: ${amount.toLocaleString('fr-FR')} FCFA\n` +
+                  `Nouveau total: ${collectionData.newTotal.toLocaleString('fr-FR')} FCFA\n\n` +
+                  `Redirection vers l'impression du reçu...`);
+
+            // Redirect to receipt page
+            window.location.href = 'EC018-recu-tontine.html';
+        }
+
+        function cancelCollection() {
+            if (confirm('Voulez-vous vraiment annuler? Les données non enregistrées seront perdues.')) {
+                window.history.back();
+            }
+        }
+
+        function goBack() {
+            cancelCollection();
+        }
+
+        function showHelp() {
+            alert('Aide - Collecte Cotisation:\n\n' +
+                  '1. Entrez le montant collecté\n' +
+                  '2. Utilisez les boutons rapides pour les montants courants\n' +
+                  '3. Ajoutez des notes si nécessaire\n' +
+                  '4. Enregistrez ou imprimez directement un reçu');
+        }
+
+        // Initialize page on load
+        window.onload = initializePage;
+    </script>
+</body>
+</html>

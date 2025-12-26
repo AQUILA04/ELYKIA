@@ -1,0 +1,44 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container mt-5">
+  <div class="card">
+    <div class="card-header">
+      <h2>Modifier la Mise Journalière</h2>
+    </div>
+    <!-- On n'affiche le corps de la carte qu'une fois le chargement terminé -->
+    <div class="card-body" *ngIf="!isLoading">
+
+      <!-- NOUVELLE SECTION pour afficher la mise actuelle -->
+      <div class="mb-4 current-stake-container">
+        <p class="current-stake-label">Mise Actuelle :</p>
+        <!-- Utilisation du pipe 'currency' pour un meilleur formatage -->
+        <p class="current-stake-value">{{ currentDailyStake | currency:'FCFA':'symbol':'1.0-0' }}</p>
+      </div>
+
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="dailyStake">Nouvelle Mise Journalière</label>
+          <input
+                  type="number"
+                  id="dailyStake"
+                  name="dailyStake"
+                  class="form-control"
+                  [(ngModel)]="newDailyStake"
+                  required
+                  placeholder="Entrez le nouveau montant"
+          />
+        </div>
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary" [disabled]="!newDailyStake">Enregistrer</button>
+          <button type="button" class="btn btn-secondary ms-2" (click)="goBack()">Annuler</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Message de chargement -->
+    <div class="card-body text-center p-5" *ngIf="isLoading">
+      <p>Chargement des informations du crédit...</p>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,533 @@
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #003366;
+}
+
+.container {
+  background-color: white;
+  border-radius: 5px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.refresh-button, .add {
+  color: white;
+  background-color: #003366;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #002244; // Un bleu un peu plus foncé au survol
+  }
+
+  mat-icon {
+    font-size: 20px;
+    margin-right: 8px;
+    color: white;
+  }
+}
+
+.table-container {
+  overflow-x: auto; // Pour la responsivité sur petits écrans
+}
+
+.article-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+
+  thead {
+    background-color: #f1f1f1;
+    color: #003366;
+    text-align: center;
+
+    th {
+      padding: 12px;
+      text-align: center;
+      font-weight: 600;
+    }
+  }
+
+  tbody {
+    tr {
+      &:nth-child(even) {
+        background-color: #f8f8f8;
+      }
+
+      &:hover {
+        background-color: #e9ecef;
+      }
+
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+        vertical-align: middle;
+        text-align: center;
+      }
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center; // Centre les boutons dans la cellule
+  align-items: center;
+  gap: 8px;
+}
+
+// Style de base pour le badge
+.badge {
+  padding: 0.5em 0.75em;
+  border-radius: 0.375rem;
+  font-size: 0.875em;
+  font-weight: 600;
+  text-align: center;
+  display: inline-block;
+  color: white;
+}
+
+.badge-success {
+  background-color: #28a745; // Vert
+}
+
+.badge-warning {
+  background-color: #ffc107; // Jaune
+  color: #212529; // Texte plus foncé pour la lisibilité
+}
+
+.badge-danger {
+  background-color: #dc3545; // Rouge
+}
+
+// Style pour l'icône du bouton "Changer la mise"
+button[matTooltip="Changer la mise"] {
+  mat-icon {
+    color: #6c757d; // Couleur grise
+  }
+}
+
+.search-input {
+  max-width: 300px;
+  min-width: 200px;
+  flex-shrink: 1;
+}
+
+// Groupe de boutons
+.button-group {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+// Styles communs pour tous les boutons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  mat-icon {
+    font-size: 1.25rem;
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Style spécifique pour le bouton tontine
+.btn.tontine {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+
+  &:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+  }
+
+  mat-icon {
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+// Responsive : sur mobile, passer les boutons en colonne
+@media (max-width: 992px) {
+  .search-input {
+    max-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .button-group {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    font-size: 0.875rem;
+    padding: 0.4rem 0.8rem;
+
+    span {
+      display: none; // Masquer le texte sur mobile, garder uniquement les icônes
+    }
+
+    mat-icon {
+      margin: 0;
+    }
+  }
+}
+
+// Animation pour l'icône du bouton tontine
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.search-input {
+  max-width: 300px;
+  min-width: 200px;
+  flex-shrink: 1;
+}
+
+// Bouton de recherche avancée
+.search-toggle-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  &:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  &.active {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+
+    mat-icon {
+      animation: rotateIcon 0.3s ease-out;
+    }
+  }
+
+  mat-icon {
+    position: relative;
+    z-index: 1;
+  }
+
+  span {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@keyframes rotateIcon {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(180deg);
+  }
+}
+
+// Groupe de boutons
+.button-group {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+// Styles communs pour tous les boutons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  mat-icon {
+    font-size: 1.25rem;
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Style spécifique pour le bouton tontine
+.btn.tontine {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+
+  &:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+  }
+
+  mat-icon {
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+// Responsive : sur mobile, passer les boutons en colonne
+@media (max-width: 992px) {
+  .search-input {
+    max-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .button-group {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    font-size: 0.875rem;
+    padding: 0.4rem 0.8rem;
+
+    span {
+      display: none; // Masquer le texte sur mobile, garder uniquement les icônes
+    }
+
+    mat-icon {
+      margin: 0;
+    }
+  }
+
+  .search-toggle-btn span {
+    display: inline; // Garder le texte pour le bouton de recherche
+  }
+}
+
+// Animation pour l'icône du bouton tontine
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.search-input {
+  max-width: 300px;
+  min-width: 200px;
+  flex-shrink: 1;
+}
+
+// Bouton de recherche avancée
+.search-toggle-btn {
+  background: #003366;
+  color: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 51, 102, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  &:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  &:hover {
+    background: #002244;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 51, 102, 0.4);
+  }
+
+  &.active {
+    background: #e91e63;
+
+    &:hover {
+      background: #c2185b;
+    }
+
+    mat-icon {
+      animation: rotateIcon 0.3s ease-out;
+    }
+  }
+
+  mat-icon {
+    position: relative;
+    z-index: 1;
+  }
+
+  span {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@keyframes rotateIcon {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(180deg);
+  }
+}
+
+// Groupe de boutons
+.button-group {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+// Styles communs pour tous les boutons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  mat-icon {
+    font-size: 1.25rem;
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Style spécifique pour le bouton tontine
+.btn.tontine {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+
+  &:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+  }
+
+  mat-icon {
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+// Responsive : sur mobile, passer les boutons en colonne
+@media (max-width: 992px) {
+  .search-input {
+    max-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .button-group {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    font-size: 0.875rem;
+    padding: 0.4rem 0.8rem;
+
+    span {
+      display: none; // Masquer le texte sur mobile, garder uniquement les icônes
+    }
+
+    mat-icon {
+      margin: 0;
+    }
+  }
+
+  .search-toggle-btn span {
+    display: inline; // Garder le texte pour le bouton de recherche
+  }
+}
+
+// Animation pour l'icône du bouton tontine
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}

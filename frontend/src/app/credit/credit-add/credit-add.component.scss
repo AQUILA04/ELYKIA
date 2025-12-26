@@ -1,0 +1,149 @@
+.container {
+  margin: 10px auto;
+  padding: 10px;
+  background-color: white;
+  border-radius: 5px;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.form-header h1 {
+  text-align: center;
+  margin: 0;
+  color: #003366;
+  height: calc(10vh - 30px);
+  margin-top: 30px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.article-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.form-field {
+  flex: 1;
+  position: relative; /* Ajouté pour le positionnement de l'erreur */
+}
+
+/* Retrait de .mat-form-field pour cibler les éléments de manière plus générique */
+.form-field input,
+.form-field mat-select {
+  width: 100%;
+}
+
+.quantity-field {
+  max-width: 100px;
+}
+
+.btn-remove {
+  background-color: #000000;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 8px 15px;
+}
+
+.btn-add {
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 8px 15px;
+  margin-top: 10px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 30px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.btn-cancel {
+  background-color: #c90a17;
+  color: white;
+}
+
+.btn-submit {
+  background-color: #003366;
+  color: white;
+}
+
+.btn-remove:disabled,
+.btn-add:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  margin-top: auto;
+  color: #000000;
+}
+
+.mat-error {
+  font-size: 0.75em;
+  color: #f44336;
+  /* Ajustement pour se positionner correctement sous ng-select */
+  display: block;
+  margin-top: 5px;
+}
+
+
+/* --- STYLES AJOUTÉS POUR L'INTÉGRATION DE NG-SELECT --- */
+
+.form-field ng-select {
+  // Applique une bordure de base pour imiter l'input
+  .ng-select-container {
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+    box-shadow: none;
+    background-color: transparent;
+    min-height: 36px; // Hauteur standard
+  }
+
+  // Style au survol
+  .ng-select-container:hover {
+    border-bottom-color: black;
+    border-bottom-width: 2px;
+  }
+
+  // Style au focus
+  &.ng-select-focused .ng-select-container {
+    border-color: #003366; // Utilise la couleur primaire du projet
+    border-width: 2px;
+    box-shadow: none;
+  }
+
+  // Style pour l'état d'erreur, correspondant à l'input de quantité
+  &.ng-invalid.ng-touched .ng-select-container {
+    border-bottom-color: #f44336;
+    border-bottom-width: 2px;
+  }
+}

@@ -1,0 +1,200 @@
+<!-- Écran de synchronisation automatique basé sur EC009 -->
+<div class="sync-container">
+  <!-- Fond avec effet de particules -->
+  <div class="sync-background">
+    <div class="particles"></div>
+  </div>
+
+  <!-- Card principale de synchronisation -->
+  <div class="sync-card" [class.success]="showSuccessAnimation">
+
+    <!-- En-tête avec icône -->
+    <div class="sync-header">
+      <div class="sync-icon"
+           [class.spinning]="isActive$ | async"
+           [class.success]="showSuccessAnimation"
+           [class.error]="(status$ | async) === 'error'">
+        <ion-icon
+          [name]="showSuccessAnimation ? 'checkmark' : (status$ | async) === 'error' ? 'close' : 'sync'"
+          [color]="showSuccessAnimation ? 'success' : (status$ | async) === 'error' ? 'danger' : 'primary'">
+        </ion-icon>
+      </div>
+
+      <h2 class="sync-title">
+        <ng-container *ngIf="showSuccessAnimation">Synchronisation terminée</ng-container>
+        <ng-container *ngIf="(status$ | async) === 'error'">Erreur de synchronisation</ng-container>
+        <ng-container *ngIf="(status$ | async) === 'running'">Synchronisation en cours</ng-container>
+        <ng-container *ngIf="(status$ | async) === 'cancelled'">Synchronisation annulée</ng-container>
+        <ng-container *ngIf="(status$ | async) === 'idle'">Prêt à synchroniser</ng-container>
+      </h2>
+    </div>
+
+    <!-- Vérification de caisse -->
+    <div class="cash-desk-status" *ngIf="(cashDeskChecking$ | async) || (cashDeskOpening$ | async) || !(cashDeskReady$ | async)">
+      <ion-item lines="none">
+        <ion-icon name="cash-outline" slot="start" color="warning"></ion-icon>
+        <ion-label>
+          <h3 *ngIf="cashDeskChecking$ | async">Vérification de la caisse...</h3>
+          <h3 *ngIf="cashDeskOpening$ | async">Ouverture de la caisse...</h3>
+          <h3 *ngIf="!(cashDeskReady$ | async) && !(cashDeskChecking$ | async) && !(cashDeskOpening$ | async)">
+            Caisse fermée
+          </h3>
+        </ion-label>
+        <ion-spinner *ngIf="(cashDeskChecking$ | async) || (cashDeskOpening$ | async)"
+                     name="crescent" slot="end"></ion-spinner>
+      </ion-item>
+    </div>
+
+    <!-- Étapes de synchronisation -->
+    <div class="sync-steps" *ngIf="syncSteps$ | async as steps">
+      <div class="sync-step"
+           *ngFor="let step of steps"
+           [class.step-pending]="step.status === 'pending'"
+           [class.step-active]="step.status === 'active'"
+           [class.step-completed]="step.status === 'completed'"
+           [class.step-error]="step.status === 'error'">
+
+        <div class="step-icon">
+          <ion-icon [name]="getStepIcon(step.status)"
+                    [color]="getStepColor(step.status)">
+          </ion-icon>
+        </div>
+
+        <div class="step-text">{{ step.name }}</div>
+      </div>
+    </div>
+
+    <!-- Barre de progression -->
+    <div class="progress-section" *ngIf="progress$ | async as progress">
+      <div class="progress-bar-sync">
+        <div class="progress-fill-sync"
+             [style.width.%]="progress.percentage">
+        </div>
+      </div>
+
+      <div class="progress-text">
+        <span>{{ progress.currentStep }}</span>
+        <span class="progress-percentage">{{ progress.percentage | number:'1.0-0' }}%</span>
+      </div>
+
+      <div class="progress-details" *ngIf="progress.totalItems > 0">
+        <small>{{ progress.processedItems }} / {{ progress.totalItems }} éléments traités</small>
+      </div>
+    </div>
+
+    <!-- Résultat de synchronisation -->
+    <div class="sync-result" *ngIf="result$ | async as result">
+      <div class="result-summary" [class.success]="result.success" [class.error]="!result.success">
+        <ion-icon [name]="result.success ? 'checkmark-circle' : 'warning'"
+                  [color]="result.success ? 'success' : 'warning'">
+        </ion-icon>
+        <p>{{ getResultMessage(result) }}</p>
+      </div>
+
+      <div class="result-details">
+        <div class="result-stat">
+          <span class="stat-label">Durée :</span>
+          <span class="stat-value">{{ formatDuration(result.duration) }}</span>
+        </div>
+        <div class="result-stat" *ngIf="result.errorCount > 0">
+          <span class="stat-label">Erreurs :</span>
+          <span class="stat-value error">{{ result.errorCount }}</span>
+        </div>
+      </div>
+
+      <ion-button *ngIf="result.errorCount > 0"
+                  fill="clear"
+                  size="small"
+                  (click)="viewErrors()">
+        <ion-icon name="list" slot="start"></ion-icon>
+        Voir les erreurs
+      </ion-button>
+    </div>
+
+    <!-- Erreur de synchronisation -->
+    <div class="sync-error" *ngIf="error$ | async as error">
+      <div class="error-summary">
+        <ion-icon name="alert-circle" color="danger"></ion-icon>
+        <p>Une erreur est survenue lors de la synchronisation</p>
+      </div>
+
+      <ion-button fill="clear"
+                  size="small"
+                  (click)="toggleErrorDetails()">
+        <ion-icon [name]="showErrorDetails ? 'chevron-up' : 'chevron-down'" slot="start"></ion-icon>
+        {{ showErrorDetails ? 'Masquer' : 'Voir' }} les détails
+      </ion-button>
+
+      <div class="error-details" *ngIf="showErrorDetails">
+        <pre>{{ error | json }}</pre>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="sync-actions">
+      <!-- Bouton démarrer (état initial) -->
+      <div class="action-buttons" *ngIf="(status$ | async) === 'idle'">
+        <ion-button *ngIf="(cashDeskReady$ | async)"
+                    expand="block"
+                    color="primary"
+                    (click)="startSync()">
+          <ion-icon name="sync" slot="start"></ion-icon>
+          Démarrer la synchronisation
+        </ion-button>
+        <ion-button expand="block"
+                    fill="outline"
+                    color="medium"
+                    (click)="navigateBack()">
+          <ion-icon name="arrow-back" slot="start"></ion-icon>
+          Retour
+        </ion-button>
+      </div>
+
+      <!-- Bouton ouvrir caisse -->
+      <ion-button *ngIf="!(cashDeskReady$ | async) && !(cashDeskChecking$ | async) && !(cashDeskOpening$ | async)"
+                  expand="block"
+                  color="warning"
+                  (click)="handleCashDeskNotReady()">
+        <ion-icon name="cash" slot="start"></ion-icon>
+        Ouvrir la caisse
+      </ion-button>
+
+      <!-- Bouton annuler (pendant la synchronisation) -->
+      <ion-button *ngIf="(canCancel$ | async) && (status$ | async) === 'running'"
+                  expand="block"
+                  fill="outline"
+                  color="danger"
+                  (click)="cancelSync()">
+        <ion-icon name="stop" slot="start"></ion-icon>
+        Annuler
+      </ion-button>
+
+      <!-- Boutons après synchronisation -->
+      <div class="action-buttons" *ngIf="(status$ | async) === 'completed' || (status$ | async) === 'error' || (status$ | async) === 'cancelled'">
+        <ion-button *ngIf="(status$ | async) === 'error' || (status$ | async) === 'cancelled'"
+                    expand="block"
+                    color="primary"
+                    (click)="retrySync()">
+          <ion-icon name="refresh" slot="start"></ion-icon>
+          Réessayer
+        </ion-button>
+
+        <ion-button expand="block"
+                    fill="outline"
+                    color="medium"
+                    (click)="navigateBack()">
+          <ion-icon name="arrow-back" slot="start"></ion-icon>
+          Retour
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Animation de succès -->
+  <div class="success-animation"
+       [class.show]="showSuccessAnimation">
+    <div class="success-circle">
+      <ion-icon name="checkmark" color="success"></ion-icon>
+    </div>
+  </div>
+</div>

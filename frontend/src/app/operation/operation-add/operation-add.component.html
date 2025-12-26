@@ -1,0 +1,33 @@
+<div class="container">
+    <div class="form-header">
+      <h1>Editer une opération</h1>
+    </div>
+    <form [formGroup]="operationForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="collection">Recouvrement </label>
+        <input id="collection" formControlName="collection" class="form-control" />
+        <mat-error *ngIf="operationForm.get('collection')?.invalid && operationForm.get('collection')?.touched">
+          Le recouvrement est requis.
+        </mat-error>
+      </div>
+      <div class="form-group">
+        <label for="spending">Dépense</label>
+        <input id="spending" formControlName="spending" class="form-control" />
+        <mat-error *ngIf="operationForm.get('spending')?.invalid && operationForm.get('spending')?.touched">
+          La dépense est requise.
+        </mat-error>
+      </div>
+      <div class="form-group">
+        <label for="balance">Solde </label>
+        <input id="balance" formControlName="balance" class="form-control" />
+        <mat-error *ngIf="operationForm.get('balance')?.invalid && operationForm.get('balance')?.touched">
+          Le solde est requis.
+        </mat-error>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-cancel" (click)="onCancel()">Annuler</button>
+        <button type="submit" class="btn btn-submit" [disabled]="operationForm.invalid">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+  

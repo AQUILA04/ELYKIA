@@ -1,0 +1,14 @@
+1: credit.status change de type in database to varchar
+
+un credit est créé pour un commercial
+il va au terrain pour distribuer
+il peut faire des retours en stock
+il doit reporter la distribution faite sur le terrain
+si toutes les distributions equivalent à toutes les quantités d'articles de le credit alors le credit n'est plus suceptible de subir un retour en stock,
+si la somme des retours en stock et des distributions equivalent également à toutes les quantités des articles dans le credit ainsi le crédit en peut plus être modifié
+
+La liste des sorties va regrouper tous les credits du commercial qui ont été boucler en termes de retour en stock et de distribution.
+Pour chaque sortie, si on clique sur une ligne, on doit voir les distributions (crédit) liées à cette sortie.
+
+
+2: il faut gérer les licences de l'application

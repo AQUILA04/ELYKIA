@@ -1,0 +1,125 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+                <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>Enregistrer une Cotisation</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+    <form [formGroup]="collectionForm" (ngSubmit)="onSubmit()">
+
+        <!-- Member Selection Section -->
+        <div class="section-header">
+            <ion-icon name="people-outline"></ion-icon>
+            <h2>Sélection du Membre</h2>
+        </div>
+
+        <!-- Search Bar -->
+        <ion-searchbar *ngIf="!selectedMember" placeholder="Rechercher un membre..." (ionInput)="onSearchChange($event)"
+            debounce="300">
+        </ion-searchbar>
+
+        <!-- Selected Member Card -->
+        <div class="selected-member-card" *ngIf="selectedMember">
+            <div class="member-info">
+                <div class="member-avatar">
+                    <span>{{(selectedMember.clientName || '').substring(0, 2).toUpperCase()}}</span>
+                </div>
+                <div class="member-details">
+                    <h3>{{selectedMember.clientName}}</h3>
+                    <p class="member-address" *ngIf="selectedMember.clientAddress || selectedMember.clientQuarter">
+                        <ion-icon name="location-outline"></ion-icon>
+                        {{selectedMember.clientAddress}} {{selectedMember.clientQuarter ? ' - ' +
+                        selectedMember.clientQuarter : ''}}
+                    </p>
+                    <p class="member-amount">Montant attendu: {{formatCurrency(selectedMember.amount)}}</p>
+                </div>
+            </div>
+            <ion-button fill="clear" color="danger" (click)="removeMember()">
+                <ion-icon slot="icon-only" name="close-circle"></ion-icon>
+            </ion-button>
+        </div>
+
+        <!-- Members List -->
+        <div *ngIf="!selectedMember" class="members-list">
+            <div *ngIf="loading" class="loading-state">
+                <ion-spinner></ion-spinner>
+                <p>Chargement des membres...</p>
+            </div>
+
+            <div *ngIf="!loading && filteredMembers.length === 0" class="empty-state">
+                <ion-icon name="people-outline"></ion-icon>
+                <p>Aucun membre trouvé</p>
+            </div>
+
+            <div *ngFor="let member of filteredMembers" class="member-item" (click)="selectMember(member)">
+                <div class="member-avatar-small">
+                    <span>{{(member.clientName || '').substring(0, 2).toUpperCase()}}</span>
+                </div>
+                <div class="member-info-compact">
+                    <h4>{{member.clientName}}</h4>
+                    <p class="member-subtext">{{member.clientQuarter}}</p>
+                    <p class="member-amount-small">Montant: {{formatCurrency(member.amount)}}</p>
+                </div>
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+        </div>
+
+        <!-- Collection Form (shown only when member is selected) -->
+        <div *ngIf="selectedMember">
+
+            <!-- Amount Section -->
+            <div class="section-header">
+                <ion-icon name="cash-outline"></ion-icon>
+                <h2>Montant de la Cotisation</h2>
+            </div>
+
+            <ion-item class="amount-input" lines="none">
+                <ion-input type="number" formControlName="amount" placeholder="Entrez le montant" min="200" max="1000000" step="100">
+                </ion-input>
+                <span class="currency" slot="end">FCFA</span>
+            </ion-item>
+
+            <div class="error-message"
+                *ngIf="collectionForm.get('amount')?.invalid && collectionForm.get('amount')?.touched">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                <span>Le montant est requis et doit être supérieur à 0</span>
+            </div>
+
+            <!-- Date Section (Readonly) -->
+            <div class="section-header">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <h2>Date de Cotisation</h2>
+            </div>
+
+            <div class="date-display">
+                <ion-icon name="today-outline"></ion-icon>
+                <span>{{formatDate(currentDate)}}</span>
+            </div>
+
+            <!-- Notes Section -->
+            <div class="section-header">
+                <ion-icon name="document-text-outline"></ion-icon>
+                <h2>Notes / Observations</h2>
+            </div>
+
+            <ion-item class="notes-input" lines="none">
+                <ion-textarea formControlName="notes" placeholder="Ajoutez des notes (optionnel)" rows="3"
+                    auto-grow="true">
+                </ion-textarea>
+            </ion-item>
+
+            <!-- Submit Button -->
+            <ion-button expand="block" type="submit" class="submit-button" [disabled]="collectionForm.invalid">
+                <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+                Enregistrer la Cotisation
+            </ion-button>
+
+        </div>
+
+    </form>
+</ion-content>

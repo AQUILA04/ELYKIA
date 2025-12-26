@@ -1,0 +1,111 @@
+<ion-header>
+  <ion-toolbar color="success">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/more"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">Recouvrements</ion-title>
+    <ion-buttons slot="end"></ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Section de recherche et filtres -->
+  <ion-card class="search-section">
+    <ion-searchbar placeholder="Rechercher par client, référence..."></ion-searchbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          <ion-item>
+            <ion-label>Type</ion-label>
+            <ion-select value="all">
+              <ion-select-option value="all">Tous</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-col>
+        <ion-col>
+          <ion-item>
+            <ion-label>Période</ion-label>
+            <ion-select [formControl]="periodFilterControl">
+              <ion-select-option value="all">Toutes</ion-select-option>
+              <ion-select-option value="today">Aujourd'hui</ion-select-option>
+              <ion-select-option value="week">Cette semaine</ion-select-option>
+              <ion-select-option value="month">Ce mois</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-card>
+
+  <!-- Section statistiques -->
+  <ion-grid class="stats-section">
+    <ion-row>
+      <ion-col>
+        <ion-card class="stat-card">
+          <ion-card-content>
+            <div class="stat-number">{{ stats.total }}</div>
+            <div class="stat-label">TOTAL</div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col>
+        <ion-card class="stat-card">
+          <ion-card-content>
+            <div class="stat-number">{{ stats.today }}</div>
+            <div class="stat-label">AUJOURD'HUI</div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col>
+        <ion-card class="stat-card">
+          <ion-card-content>
+            <div class="stat-number">{{ stats.totalAmount | formatNumber }}</div>
+            <div class="stat-label">FCFA</div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Liste des recouvrements -->
+  @if (recoveries.length > 0) {
+    <div class="recoveries-container">
+      <ion-list-header>
+        <ion-label>Historique des Recouvrements</ion-label>
+        <ion-badge color="success">{{ recoveries.length }}</ion-badge>
+      </ion-list-header>
+      <ion-list class="recouvrements-list">
+        <cdk-virtual-scroll-viewport itemSize="80" class="ion-content-scroll-host">
+          <ion-item *cdkVirtualFor="let recovery of recoveries; trackBy: trackByRecoveryId" (click)="openDetailModal(recovery)" class="recouvrement-item" button>
+            <div class="recouvrement-date">
+              <div class="date-day">{{ recovery.paymentDate | date:'dd' }}</div>
+              <div class="date-month">{{ recovery.paymentDate | date:'MMM' }}</div>
+            </div>
+            <div class="recouvrement-info">
+              <h2>{{ recovery.id }}</h2>
+              <p class="client-name">{{ recovery.client?.fullName || (recovery.client?.firstname + ' ' + recovery.client?.lastname) }}</p>
+              <p class="time-and-reference">{{ recovery.paymentDate | date:'HH:mm' }} - {{recovery.distribution?.reference}}</p>
+            </div>
+            <div class="recouvrement-amount">
+              <div class="amount-value">{{ recovery.amount | currency:'FCFA':'symbol':'1.0-0' }}</div>
+              <div class="amount-type">Recouvrement</div>
+            </div>
+          </ion-item>
+        </cdk-virtual-scroll-viewport>
+      </ion-list>
+    </div>
+  } @else {
+    <div class="empty-state-card">
+      <ion-icon name="receipt-outline" class="empty-state-icon"></ion-icon>
+      <h3 class="empty-state-title">Aucun recouvrement</h3>
+      <p class="empty-state-description">Il n'y a aucun recouvrement à afficher pour le moment.</p>
+    </div>
+  }
+
+  <!-- Bouton d'action flottant -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button routerLink="/tabs/more/recovery">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

@@ -1,0 +1,38 @@
+#receipt-content {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  width: 180px;
+  margin: 20px auto;
+  padding: 0;
+}
+
+.header {
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.separator {
+  border-top: 1px dashed #000;
+  margin: 10px 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.total-row {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 11px;
+}
+

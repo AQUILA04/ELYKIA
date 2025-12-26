@@ -1,0 +1,292 @@
+// Variables de couleurs basées sur les maquettes
+:root {
+  --recovery-success-color: #4CAF50;
+  --recovery-success-light: #E8F5E8;
+  --recovery-primary-blue: #2196F3;
+  --recovery-amount-total: #1976D2;
+  --recovery-amount-paid: #4CAF50;
+  --recovery-amount-remaining: #F44336;
+  --recovery-background: #F5F5F5;
+  --recovery-card-background: #FFFFFF;
+  --recovery-border-radius: 12px;
+  --recovery-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.recovery-content {
+  background-color: var(--recovery-background);
+
+  ion-header {
+    ion-toolbar {
+      --background: var(--recovery-success-color);
+      --color: white;
+
+      ion-title {
+        font-weight: 500;
+        font-size: 18px;
+      }
+
+      ion-button {
+        --color: white;
+      }
+    }
+  }
+}
+
+.recovery-container {
+  padding: 16px;
+  padding-bottom: 80px; // Espace pour le bouton fixe
+}
+
+// Section sélection client
+.client-section {
+  margin-bottom: 16px;
+
+  .empty-state-card {
+    background: var(--recovery-card-background);
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    box-shadow: var(--recovery-shadow);
+    border: 1px solid #E0E0E0;
+
+    .empty-state-icon {
+      font-size: 48px;
+      color: var(--recovery-success-color);
+      margin-bottom: 16px;
+    }
+
+    .empty-state-title {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .empty-state-description {
+      font-size: 14px;
+      color: #757575;
+      margin-bottom: 24px;
+    }
+
+    .select-client-btn {
+      --border-radius: 12px;
+      height: 48px;
+      font-weight: 500;
+    }
+  }
+}
+
+.client-selection {
+  background: var(--recovery-card-background);
+  border-radius: 16px; // Arrondi bien visible
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 2px solid #4CAF50; // Forcer la couleur verte
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column; // Pour empiler les éléments
+
+  .client-details-container {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    margin-bottom: 8px; // Espace avant le bouton
+  }
+
+  .section-icon {
+    font-size: 24px;
+    margin-right: 12px;
+    color: #333; // Couleur neutre comme sur l'image
+  }
+
+  .client-text-details {
+    .client-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--recovery-success-color); // Nom du client en vert
+      margin-bottom: 4px;
+    }
+
+    .client-info {
+      font-size: 14px;
+      color: #757575;
+    }
+  }
+
+  .change-client-btn {
+    --color: var(--recovery-success-color);
+    font-size: 12px;
+    align-self: center; // Centrer le bouton
+    margin-top: 8px; // Espace au-dessus du bouton
+  }
+}
+
+// Section crédits
+.credits-section {
+  .section-title {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 16px;
+    margin-top: 24px;
+
+    ion-icon {
+      margin-right: 8px;
+      font-size: 20px;
+      color: #FF9800;
+    }
+  }
+}
+
+.no-credits-card {
+  background: var(--recovery-card-background);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: var(--recovery-shadow);
+  border: 1px dashed #E0E0E0; // Bordure en pointillés pour la différencier
+  margin: 72px 0; // Ajout de marges verticales pour le centrage visuel
+
+  .empty-state-icon {
+    font-size: 48px;
+    color: #FF9800; // Couleur orange de la section
+    margin-bottom: 16px;
+  }
+
+  .empty-state-title {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .empty-state-description {
+    font-size: 14px;
+    color: #757575;
+    margin: 0;
+  }
+}
+
+.loading-container,
+.error-container,
+.no-credits {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+
+  ion-spinner,
+  ion-icon {
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: #757575;
+    margin: 0;
+  }
+}
+
+.credits-list {
+  flex: 1;
+  min-height: 0;
+  
+  cdk-virtual-scroll-viewport {
+    flex: 1;
+    min-height: 300px;
+    max-height: 400px;
+  }
+  
+  .credit-card {
+    margin-bottom: 16px;
+  }
+}
+
+.amount-section-card {
+  margin: 16px 0;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  ion-card-header {
+    ion-card-title {
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+
+      .section-icon {
+        margin-right: 8px;
+        font-size: 20px;
+        color: var(--recovery-success-color);
+      }
+    }
+  }
+}
+
+// Footer avec bouton de confirmation
+ion-footer {
+  ion-toolbar {
+    --background: transparent;
+    --border-width: 0;
+    padding: 8px 16px;
+
+    .confirm-button {
+      --border-radius: 12px;
+      height: 48px;
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: 0.5px;
+      margin: 0;
+
+      ion-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .recovery-container {
+    padding: 12px;
+  }
+
+  .client-selection,
+  .credits-section {
+    margin-bottom: 12px;
+  }
+}
+
+// Animation pour les transitions
+.credit-card {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+// États de chargement
+.loading-state {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+// Messages d'erreur
+.error-message {
+  background: #FFEBEE;
+  color: #C62828;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 8px 0;
+  font-size: 14px;
+
+  ion-icon {
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+}
+

@@ -1,0 +1,188 @@
+/* Styles globaux pour la page */
+:host {
+  height: 100%;
+  
+  ion-content {
+    --background: #f5f5f5;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .recoveries-container {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .recouvrements-list {
+    flex: 1;
+    min-height: 0;
+  }
+
+  cdk-virtual-scroll-viewport {
+    flex: 1;
+    min-height: 300px;
+  }
+}
+
+/* Section de recherche et filtres */
+.search-section {
+  margin-bottom: 8px;
+  border-radius: 16px;
+  padding: 8px;
+
+  ion-searchbar {
+    --box-shadow: none;
+    padding-bottom: 0;
+    border: 2px solid #e0e0e0;
+    border-radius: 16px;
+    margin-bottom: 8px;
+  }
+  ion-item {
+    --background: transparent;
+    border: 2px solid #e0e0e0;
+    border-radius: 16px;
+  }
+}
+
+/* Section statistiques */
+.stats-section {
+  ion-row {
+    display: flex;
+    justify-content: space-between;
+  }
+  ion-col {
+    padding: 4px;
+  }
+  .stat-card {
+    text-align: center;
+    border-radius: 16px;
+    margin: 0;
+    .stat-number {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: var(--ion-color-success);
+    }
+    .stat-label {
+      font-size: 0.8em;
+      text-transform: uppercase;
+      color: #757575;
+      font-weight: bold;
+    }
+  }
+}
+
+/* En-tête de la liste */
+ion-list-header {
+  font-weight: 500;
+  ion-label {
+    color: #333;
+  }
+}
+
+/* Liste des recouvrements */
+.recouvrements-list {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.recouvrement-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.recouvrement-date {
+  width: 60px;
+  text-align: center;
+  padding-right: 16px;
+  border-right: 1px solid #e0e0e0;
+  margin-right: 16px;
+
+  .date-day {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--ion-color-success);
+  }
+
+  .client-name {
+    color: var(--ion-color-success);
+  }
+
+  .time-and-reference {
+    color: #666;
+  }
+
+  .date-month {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    color: #666;
+  }
+}
+
+.recouvrement-info {
+  flex: 1;
+
+  h2 {
+    font-size: 1em;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  p {
+    margin: 2px 0 0 0;
+    font-size: 0.8em;
+    color: #666;
+  }
+}
+
+.recouvrement-amount {
+  text-align: right;
+
+  .amount-value {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--ion-color-success);
+  }
+
+  .amount-type {
+    font-size: 0.7em;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 500;
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--ion-color-success);
+  }
+}
+
+/* État vide */
+.empty-state-card {
+  margin: 24px;
+  padding: 32px 24px;
+  text-align: center;
+  border: 1px dashed #dcdcdc;
+  border-radius: 16px;
+
+  .empty-state-icon {
+    font-size: 48px;
+    color: var(--ion-color-success);
+    margin-bottom: 16px;
+  }
+
+  .empty-state-title {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .empty-state-description {
+    font-size: 14px;
+    color: #757575;
+    margin: 0;
+  }
+}

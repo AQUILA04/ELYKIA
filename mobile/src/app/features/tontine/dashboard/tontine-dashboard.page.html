@@ -1,0 +1,90 @@
+<ion-header class="ion-no-border">
+    <div class="header">
+        <button class="header-icon" (click)="goBack()">←</button>
+        <div class="header-title">Gestion Tontine</div>
+        <button class="header-icon" (click)="showMenu()">⋮</button>
+    </div>
+</ion-header>
+
+<ion-content class="mobile-content">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value">{{ totalMembers$ | async }}</div>
+            <div class="stat-label">Membres Actifs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value">{{ (totalCollected$ | async) | number:'1.0-0':'fr-FR' }} F</div>
+            <div class="stat-label">Total Collecté</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div class="stat-value">{{ currentYear$ | async }}</div>
+            <div class="stat-label">Session en cours</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value">{{ pendingDeliveries$ | async }}</div>
+            <div class="stat-label">En attente livraison</div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <div class="input-with-icon">
+            <span class="input-icon">🔍</span>
+            <input type="text" class="input-field" placeholder="Rechercher un membre..." (input)="onSearch($event)">
+        </div>
+    </div>
+
+    <!-- Filter Chips -->
+    <div class="filter-chips">
+        <div class="chip" [class.active]="(statusFilter$ | async) === 'all'" (click)="filterByStatus('all')">Tous</div>
+        <div class="chip" [class.active]="(statusFilter$ | async) === 'active'" (click)="filterByStatus('active')">
+            Actifs</div>
+        <div class="chip" [class.active]="(statusFilter$ | async) === 'pending'" (click)="filterByStatus('pending')">En
+            attente</div>
+        <div class="chip" [class.active]="(statusFilter$ | async) === 'delivered'"
+            (click)="filterByStatus('delivered')">Livrés</div>
+    </div>
+
+    <!-- Members List -->
+    <div class="members-list">
+        <ng-container *ngIf="(displayedMembers$ | async) as members">
+            <div *ngIf="members.length === 0 && (filteredMembers$ | async)?.length === 0" class="empty-state">
+                <div class="empty-icon">🎯</div>
+                <h3>Aucun membre trouvé</h3>
+                <p>Aucun membre ne correspond à vos critères de recherche.</p>
+            </div>
+
+            <div class="member-card" *ngFor="let member of members" (click)="viewMemberDetails(member.id)">
+                <div class="member-avatar">{{ member.clientName?.charAt(0) || '?' }}</div>
+                <div class="member-info">
+                    <div class="member-name">{{ member.clientName || 'Client Inconnu' }}</div>
+                    <div class="member-details">
+                        <span>📱 {{ member.clientPhone || '-' }}</span>
+                        <!-- Frequency is not in DB yet, placeholder -->
+                        <span>📅 Hebdomadaire</span>
+                    </div>
+                    <div class="member-amount">{{ member.totalContribution | number:'1.0-0':'fr-FR' }} FCFA</div>
+                    <span class="member-status" [ngClass]="getStatusClass(member.deliveryStatus || member.status)">
+                        {{ getStatusLabel(member.deliveryStatus || member.status) }}
+                    </span>
+                </div>
+                <div style="color: var(--text-secondary); font-size: 20px;">›</div>
+            </div>
+        </ng-container>
+
+        <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreMembers($event)">
+            <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement plus de membres...">
+            </ion-infinite-scroll-content>
+        </ion-infinite-scroll>
+        <!-- FAB Button -->
+        <button class="fab" *ngIf="(session$ | async)?.status === 'ACTIVE'" (click)="registerNewMember()"
+            title="Inscrire un nouveau membre">
+            +
+        </button>
+    </div>
+</ion-content>

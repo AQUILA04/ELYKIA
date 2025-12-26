@@ -1,0 +1,148 @@
+<div class="comparison-container">
+  <div class="page-header">
+    <h1>Comparaison des Sessions Tontine</h1>
+    <button mat-button routerLink="/tontine">
+      <mat-icon>arrow_back</mat-icon>
+      Retour au Dashboard
+    </button>
+  </div>
+
+  <!-- Sélection des années -->
+  <mat-card class="selection-card">
+    <mat-card-header>
+      <mat-card-title>Sélectionner les années à comparer (2 à 5)</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="year-chips">
+        <mat-chip-list>
+          <mat-chip 
+            *ngFor="let session of sessions"
+            [selected]="isYearSelected(session.year)"
+            (click)="toggleYear(session.year)"
+            [class.selected-chip]="isYearSelected(session.year)">
+            {{ session.year }}
+          </mat-chip>
+        </mat-chip-list>
+      </div>
+      <button mat-raised-button color="primary" 
+              [disabled]="!canCompare()" 
+              (click)="compare()"
+              class="compare-button">
+        <mat-icon>compare_arrows</mat-icon>
+        Comparer
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Résultats de la comparaison -->
+  <div *ngIf="comparison" class="results-section">
+    <!-- Tableau comparatif -->
+    <mat-card class="comparison-table-card">
+      <mat-card-header>
+        <mat-card-title>Tableau Comparatif</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Métrique</th>
+              <th *ngFor="let session of comparison.sessions">{{ session.year }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="metric-label">Membres actifs</td>
+              <td *ngFor="let session of comparison.sessions; let i = index">
+                {{ session.totalMembers }}
+                <span *ngIf="i > 0" [class]="getGrowthClass(session.totalMembers - comparison.sessions[i-1].totalMembers)">
+                  <mat-icon>{{ getGrowthIcon(session.totalMembers - comparison.sessions[i-1].totalMembers) }}</mat-icon>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td class="metric-label">Montant collecté</td>
+              <td *ngFor="let session of comparison.sessions; let i = index">
+                {{ formatCurrency(session.totalCollected) }}
+                <span *ngIf="i > 0" [class]="getGrowthClass(session.totalCollected - comparison.sessions[i-1].totalCollected)">
+                  <mat-icon>{{ getGrowthIcon(session.totalCollected - comparison.sessions[i-1].totalCollected) }}</mat-icon>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td class="metric-label">Contribution moyenne</td>
+              <td *ngFor="let session of comparison.sessions; let i = index">
+                {{ formatCurrency(session.averageContribution) }}
+                <span *ngIf="i > 0" [class]="getGrowthClass(session.averageContribution - comparison.sessions[i-1].averageContribution)">
+                  <mat-icon>{{ getGrowthIcon(session.averageContribution - comparison.sessions[i-1].averageContribution) }}</mat-icon>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td class="metric-label">Taux de livraison</td>
+              <td *ngFor="let session of comparison.sessions; let i = index">
+                {{ session.deliveryRate.toFixed(1) }}%
+                <span *ngIf="i > 0" [class]="getGrowthClass(session.deliveryRate - comparison.sessions[i-1].deliveryRate)">
+                  <mat-icon>{{ getGrowthIcon(session.deliveryRate - comparison.sessions[i-1].deliveryRate) }}</mat-icon>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Métriques de comparaison -->
+    <div class="metrics-grid">
+      <mat-card class="metric-card">
+        <mat-card-content>
+          <div class="metric-icon">
+            <mat-icon>trending_up</mat-icon>
+          </div>
+          <div class="metric-info">
+            <div class="metric-label">Croissance des membres</div>
+            <div class="metric-value" [class]="getGrowthClass(comparison.comparisonMetrics.memberGrowth)">
+              {{ comparison.comparisonMetrics.memberGrowth.toFixed(1) }}%
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="metric-card">
+        <mat-card-content>
+          <div class="metric-icon">
+            <mat-icon>attach_money</mat-icon>
+          </div>
+          <div class="metric-info">
+            <div class="metric-label">Croissance des collectes</div>
+            <div class="metric-value" [class]="getGrowthClass(comparison.comparisonMetrics.collectionGrowth)">
+              {{ comparison.comparisonMetrics.collectionGrowth.toFixed(1) }}%
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="metric-card">
+        <mat-card-content>
+          <div class="metric-icon">
+            <mat-icon>star</mat-icon>
+          </div>
+          <div class="metric-info">
+            <div class="metric-label">Meilleure année</div>
+            <div class="metric-value">{{ comparison.comparisonMetrics.bestYear }}</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="error-message">
+    <mat-icon>error</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+</div>

@@ -1,0 +1,440 @@
+--- Log File Recreated at 2025-09-09T17:58:53.201Z ---
+[2025-09-09T17:58:52.186Z] [AuthEffects] presentLoading called with message: "Connexion en cours..."
+[2025-09-09T17:58:53.438Z] [AuthEffects] New loading indicator presented.
+[2025-09-09T17:58:53.501Z] === LOGIN PROCESS STARTED ===
+[2025-09-09T17:58:53.502Z] Login attempt for: COM003
+[2025-09-09T17:58:53.502Z] Environment API URL: http://192.168.1.77:8081
+[2025-09-09T17:58:53.503Z] === REQUEST DETAILS ===
+[2025-09-09T17:58:53.504Z] {
+  "timestamp": "2025-09-09T17:58:53.503Z",
+  "method": "GET",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "environment": "PRODUCTION",
+  "apiUrl": "http://192.168.1.77:8081",
+  "userAgent": "Mozilla/5.0 (Linux; Android 8.1.0; Infinix X624B Build/O11019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36",
+  "platform": "Linux armv7l",
+  "language": "fr-FR",
+  "onLine": true,
+  "connection": {
+    "effectiveType": "4g",
+    "type": "wifi",
+    "downlink": 10,
+    "rtt": 0,
+    "saveData": false
+  }
+}
+[2025-09-09T17:58:53.956Z] === SUCCESS RESPONSE ===
+[2025-09-09T17:58:53.956Z] {
+  "timestamp": "2025-09-09T17:58:53.955Z",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "status": 200,
+  "statusText": "OK",
+  "duration": "452ms",
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "content-type": "application/json",
+    "expires": "0",
+    "pragma": "no-cache"
+  },
+  "body": {
+    "status": "UP"
+  },
+  "bodySize": 15
+}
+[2025-09-09T17:58:53.957Z] HEALTH CHECK RESULT: HEALTHY
+[2025-09-09T17:58:53.973Z] Backend is online, attempting API login.
+[2025-09-09T17:58:53.958Z] Health check result: ONLINE
+[2025-09-09T17:58:54.819Z] [AuthEffects] authService.login returned: true
+[2025-09-09T17:58:54.819Z] Online login successful.
+[2025-09-09T17:58:54.821Z] [AuthEffects] Login success, dispatching loginSuccess.
+[2025-09-09T17:58:54.825Z] [AuthEffects] loginSuccess$ triggered, navigating to /initial-loading.
+[2025-09-09T17:58:54.878Z] [AuthEffects] dismissLoading called.
+[2025-09-09T17:58:54.877Z] [AuthEffects] Finalize in login stream, dismissing loading.
+[2025-09-09T17:58:55.194Z] [InitialLoadingPage] ngOnInit: Page initialized.
+[2025-09-09T17:58:54.878Z] [AuthEffects] Loading indicator found, dismissing.
+[2025-09-09T17:58:55.223Z] === REQUEST DETAILS ===
+[2025-09-09T17:58:55.223Z] {
+  "timestamp": "2025-09-09T17:58:55.223Z",
+  "method": "GET",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "environment": "PRODUCTION",
+  "apiUrl": "http://192.168.1.77:8081",
+  "userAgent": "Mozilla/5.0 (Linux; Android 8.1.0; Infinix X624B Build/O11019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36",
+  "platform": "Linux armv7l",
+  "language": "fr-FR",
+  "onLine": true,
+  "connection": {
+    "effectiveType": "4g",
+    "type": "wifi",
+    "downlink": 10,
+    "rtt": 0,
+    "saveData": false
+  }
+}
+[2025-09-09T17:58:55.944Z] === SUCCESS RESPONSE ===
+[2025-09-09T17:58:55.944Z] {
+  "timestamp": "2025-09-09T17:58:55.943Z",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "status": 200,
+  "statusText": "OK",
+  "duration": "721ms",
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "content-type": "application/json",
+    "expires": "0",
+    "pragma": "no-cache"
+  },
+  "body": {
+    "status": "UP"
+  },
+  "bodySize": 15
+}
+[2025-09-09T17:58:55.944Z] HEALTH CHECK RESULT: HEALTHY
+[2025-09-09T17:58:56.025Z] [InitialLoadingPage] Starting step: Récupération des articles...
+[2025-09-09T17:58:57.282Z] [AuthEffects] Loading indicator dismissed and set to null.
+[2025-09-09T17:58:58.225Z] [InitialLoadingPage] Step successful: Récupération des articles...
+[2025-09-09T17:58:58.227Z] {
+  "timestamp": "2025-09-09T17:58:58.226Z",
+  "method": "GET",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "environment": "PRODUCTION",
+  "apiUrl": "http://192.168.1.77:8081",
+  "userAgent": "Mozilla/5.0 (Linux; Android 8.1.0; Infinix X624B Build/O11019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36",
+  "platform": "Linux armv7l",
+  "language": "fr-FR",
+  "onLine": true,
+  "connection": {
+    "effectiveType": "4g",
+    "type": "wifi",
+    "downlink": 10,
+    "rtt": 0,
+    "saveData": false
+  }
+}
+[2025-09-09T17:58:58.226Z] === REQUEST DETAILS ===
+[2025-09-09T17:58:58.724Z] === SUCCESS RESPONSE ===
+[2025-09-09T17:58:58.787Z] [InitialLoadingPage] Starting step: Récupération des commerciaux...
+[2025-09-09T17:58:58.724Z] HEALTH CHECK RESULT: HEALTHY
+[2025-09-09T17:58:58.724Z] {
+  "timestamp": "2025-09-09T17:58:58.723Z",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "status": 200,
+  "statusText": "OK",
+  "duration": "497ms",
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "content-type": "application/json",
+    "expires": "0",
+    "pragma": "no-cache"
+  },
+  "body": {
+    "status": "UP"
+  },
+  "bodySize": 15
+}
+[2025-09-09T17:58:59.614Z] [InitialLoadingPage] Step successful: Récupération des commerciaux...
+[2025-09-09T17:58:59.615Z] === REQUEST DETAILS ===
+[2025-09-09T17:58:59.616Z] {
+  "timestamp": "2025-09-09T17:58:59.615Z",
+  "method": "GET",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "environment": "PRODUCTION",
+  "apiUrl": "http://192.168.1.77:8081",
+  "userAgent": "Mozilla/5.0 (Linux; Android 8.1.0; Infinix X624B Build/O11019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36",
+  "platform": "Linux armv7l",
+  "language": "fr-FR",
+  "onLine": true,
+  "connection": {
+    "effectiveType": "4g",
+    "type": "wifi",
+    "downlink": 10,
+    "rtt": 0,
+    "saveData": false
+  }
+}
+[2025-09-09T17:58:59.946Z] === SUCCESS RESPONSE ===
+[2025-09-09T17:58:59.971Z] [InitialLoadingPage] Starting step: Récupération des localités...
+[2025-09-09T17:58:59.947Z] HEALTH CHECK RESULT: HEALTHY
+[2025-09-09T17:58:59.947Z] {
+  "timestamp": "2025-09-09T17:58:59.946Z",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "status": 200,
+  "statusText": "OK",
+  "duration": "331ms",
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "content-type": "application/json",
+    "expires": "0",
+    "pragma": "no-cache"
+  },
+  "body": {
+    "status": "UP"
+  },
+  "bodySize": 15
+}
+[2025-09-09T17:59:00.937Z] [InitialLoadingPage] Step successful: Récupération des localités...
+[2025-09-09T17:59:00.938Z] === REQUEST DETAILS ===
+[2025-09-09T17:59:00.939Z] {
+  "timestamp": "2025-09-09T17:59:00.938Z",
+  "method": "GET",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "environment": "PRODUCTION",
+  "apiUrl": "http://192.168.1.77:8081",
+  "userAgent": "Mozilla/5.0 (Linux; Android 8.1.0; Infinix X624B Build/O11019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36",
+  "platform": "Linux armv7l",
+  "language": "fr-FR",
+  "onLine": true,
+  "connection": {
+    "effectiveType": "4g",
+    "type": "wifi",
+    "downlink": 10,
+    "rtt": 0,
+    "saveData": false
+  }
+}
+[2025-09-09T17:59:01.204Z] === SUCCESS RESPONSE ===
+[2025-09-09T17:59:01.204Z] {
+  "timestamp": "2025-09-09T17:59:01.203Z",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "status": 200,
+  "statusText": "OK",
+  "duration": "266ms",
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "content-type": "application/json",
+    "expires": "0",
+    "pragma": "no-cache"
+  },
+  "body": {
+    "status": "UP"
+  },
+  "bodySize": 15
+}
+[2025-09-09T17:59:01.204Z] HEALTH CHECK RESULT: HEALTHY
+[2025-09-09T17:59:01.235Z] [InitialLoadingPage] Starting step: Récupération des clients...
+[2025-09-09T17:59:02.216Z] [InitialLoadingPage] Step successful: Récupération des clients...
+[2025-09-09T17:59:02.217Z] === REQUEST DETAILS ===
+[2025-09-09T17:59:02.218Z] {
+  "timestamp": "2025-09-09T17:59:02.217Z",
+  "method": "GET",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "environment": "PRODUCTION",
+  "apiUrl": "http://192.168.1.77:8081",
+  "userAgent": "Mozilla/5.0 (Linux; Android 8.1.0; Infinix X624B Build/O11019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36",
+  "platform": "Linux armv7l",
+  "language": "fr-FR",
+  "onLine": true,
+  "connection": {
+    "effectiveType": "4g",
+    "type": "wifi",
+    "downlink": 10,
+    "rtt": 0,
+    "saveData": false
+  }
+}
+[2025-09-09T17:59:02.689Z] === SUCCESS RESPONSE ===
+[2025-09-09T17:59:02.691Z] {
+  "timestamp": "2025-09-09T17:59:02.689Z",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "status": 200,
+  "statusText": "OK",
+  "duration": "472ms",
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "content-type": "application/json",
+    "expires": "0",
+    "pragma": "no-cache"
+  },
+  "body": {
+    "status": "UP"
+  },
+  "bodySize": 15
+}
+[2025-09-09T17:59:02.691Z] HEALTH CHECK RESULT: HEALTHY
+[2025-09-09T17:59:02.750Z] [InitialLoadingPage] Starting step: Récupération du sorties d'articles...
+[2025-09-09T17:59:03.375Z] [InitialLoadingPage] Step successful: Récupération du sorties d'articles...
+[2025-09-09T17:59:03.377Z] {
+  "timestamp": "2025-09-09T17:59:03.376Z",
+  "method": "GET",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "environment": "PRODUCTION",
+  "apiUrl": "http://192.168.1.77:8081",
+  "userAgent": "Mozilla/5.0 (Linux; Android 8.1.0; Infinix X624B Build/O11019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36",
+  "platform": "Linux armv7l",
+  "language": "fr-FR",
+  "onLine": true,
+  "connection": {
+    "effectiveType": "4g",
+    "type": "wifi",
+    "downlink": 10,
+    "rtt": 0,
+    "saveData": false
+  }
+}
+[2025-09-09T17:59:03.377Z] === REQUEST DETAILS ===
+[2025-09-09T17:59:03.721Z] {
+  "timestamp": "2025-09-09T17:59:03.720Z",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "status": 200,
+  "statusText": "OK",
+  "duration": "344ms",
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "content-type": "application/json",
+    "expires": "0",
+    "pragma": "no-cache"
+  },
+  "body": {
+    "status": "UP"
+  },
+  "bodySize": 15
+}
+[2025-09-09T17:59:03.720Z] === SUCCESS RESPONSE ===
+[2025-09-09T17:59:03.721Z] HEALTH CHECK RESULT: HEALTHY
+[2025-09-09T17:59:03.756Z] [InitialLoadingPage] Starting step: Récupération des distributions...
+[2025-09-09T17:59:04.625Z] {
+  "timestamp": "2025-09-09T17:59:04.624Z",
+  "method": "GET",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "environment": "PRODUCTION",
+  "apiUrl": "http://192.168.1.77:8081",
+  "userAgent": "Mozilla/5.0 (Linux; Android 8.1.0; Infinix X624B Build/O11019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36",
+  "platform": "Linux armv7l",
+  "language": "fr-FR",
+  "onLine": true,
+  "connection": {
+    "effectiveType": "4g",
+    "type": "wifi",
+    "downlink": 10,
+    "rtt": 0,
+    "saveData": false
+  }
+}
+[2025-09-09T17:59:04.624Z] === REQUEST DETAILS ===
+[2025-09-09T17:59:04.622Z] [InitialLoadingPage] Step successful: Récupération des distributions...
+[2025-09-09T17:59:04.870Z] {
+  "timestamp": "2025-09-09T17:59:04.869Z",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "status": 200,
+  "statusText": "OK",
+  "duration": "245ms",
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "content-type": "application/json",
+    "expires": "0",
+    "pragma": "no-cache"
+  },
+  "body": {
+    "status": "UP"
+  },
+  "bodySize": 15
+}
+[2025-09-09T17:59:04.898Z] [InitialLoadingPage] Starting step: Récupération des comptes client...
+[2025-09-09T17:59:04.870Z] HEALTH CHECK RESULT: HEALTHY
+[2025-09-09T17:59:04.869Z] === SUCCESS RESPONSE ===
+[2025-09-09T17:59:05.824Z] [InitialLoadingPage] Step successful: Récupération des comptes client...
+[2025-09-09T17:59:05.826Z] === REQUEST DETAILS ===
+[2025-09-09T17:59:05.828Z] {
+  "timestamp": "2025-09-09T17:59:05.826Z",
+  "method": "GET",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "environment": "PRODUCTION",
+  "apiUrl": "http://192.168.1.77:8081",
+  "userAgent": "Mozilla/5.0 (Linux; Android 8.1.0; Infinix X624B Build/O11019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36",
+  "platform": "Linux armv7l",
+  "language": "fr-FR",
+  "onLine": true,
+  "connection": {
+    "effectiveType": "4g",
+    "type": "wifi",
+    "downlink": 10,
+    "rtt": 0,
+    "saveData": false
+  }
+}
+[2025-09-09T17:59:06.216Z] === SUCCESS RESPONSE ===
+[2025-09-09T17:59:06.216Z] {
+  "timestamp": "2025-09-09T17:59:06.215Z",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "status": 200,
+  "statusText": "OK",
+  "duration": "389ms",
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "content-type": "application/json",
+    "expires": "0",
+    "pragma": "no-cache"
+  },
+  "body": {
+    "status": "UP"
+  },
+  "bodySize": 15
+}
+[2025-09-09T17:59:06.216Z] HEALTH CHECK RESULT: HEALTHY
+[2025-09-09T17:59:06.237Z] [InitialLoadingPage] Starting step: Finalisation...
+[2025-09-09T17:59:06.238Z] [DataInitializationService] Starting calculateArticleStocks.
+[2025-09-09T17:59:06.244Z] [DataInitializationService] Getting articles and stock output items from DB.
+[2025-09-09T17:59:06.244Z] [DataInitializationService] Starting calculateAndUpdateStocks.
+[2025-09-09T17:59:07.226Z] [DataInitializationService] Found 0 articles and 0 stock output items.
+[2025-09-09T17:59:07.226Z] [DataInitializationService] Initializing article stock map.
+[2025-09-09T17:59:07.226Z] [DataInitializationService] Calculating stock quantities from stock output items.
+[2025-09-09T17:59:07.227Z] [DataInitializationService] Stock calculation complete.
+[2025-09-09T17:59:07.227Z] [DataInitializationService] articleStockMap: []
+[2025-09-09T17:59:07.227Z] [DataInitializationService] Mapping updated stock quantities to articles.
+[2025-09-09T17:59:07.227Z] [DataInitializationService] Saving updated articles to DB.
+[2025-09-09T17:59:07.228Z] [DataInitializationService] updatedArticles to save: []
+[2025-09-09T17:59:08.084Z] [DataInitializationService] Article stocks updated successfully.
+[2025-09-09T17:59:08.102Z] [DataInitializationService] calculateArticleStocks successful.
+[2025-09-09T17:59:08.106Z] {
+  "timestamp": "2025-09-09T17:59:08.106Z",
+  "method": "GET",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "environment": "PRODUCTION",
+  "apiUrl": "http://192.168.1.77:8081",
+  "userAgent": "Mozilla/5.0 (Linux; Android 8.1.0; Infinix X624B Build/O11019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.180 Mobile Safari/537.36",
+  "platform": "Linux armv7l",
+  "language": "fr-FR",
+  "onLine": true,
+  "connection": {
+    "effectiveType": "4g",
+    "type": "wifi",
+    "downlink": 10,
+    "rtt": 0,
+    "saveData": false
+  }
+}
+[2025-09-09T17:59:08.297Z] === SUCCESS RESPONSE ===
+[2025-09-09T17:59:08.104Z] [InitialLoadingPage] Step successful: Finalisation...
+[2025-09-09T17:59:08.106Z] === REQUEST DETAILS ===
+[2025-09-09T17:59:08.298Z] HEALTH CHECK RESULT: HEALTHY
+[2025-09-09T17:59:08.297Z] {
+  "timestamp": "2025-09-09T17:59:08.297Z",
+  "url": "http://192.168.1.77:8081/actuator/health",
+  "status": 200,
+  "statusText": "OK",
+  "duration": "191ms",
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "content-type": "application/json",
+    "expires": "0",
+    "pragma": "no-cache"
+  },
+  "body": {
+    "status": "UP"
+  },
+  "bodySize": 15
+}
+[2025-09-09T17:59:11.987Z] [DashboardPage] User entered dashboard.
+[2025-09-09T17:59:27.407Z] [RecoveryPage] User entered recovery page.
+[2025-09-09T17:59:29.314Z] [RecoveryPage] Creating modal with ModalController.
+[2025-09-09T17:59:29.312Z] [RecoveryPage] openClientSelector called.
+[2025-09-09T17:59:29.648Z] [RecoveryPage] Presenting modal.
+[2025-09-09T17:59:29.648Z] [RecoveryPage] Modal created successfully.
+[2025-09-09T17:59:29.732Z] [ClientSelectorModal] ngOnInit: Initializing component.
+[2025-09-09T17:59:30.073Z] [ClientSelectorModal] Searching for term: ""
+[2025-09-09T17:59:43.203Z] [ClientSelectorModal] Search term changed: "t"
+[2025-09-09T17:59:45.985Z] [ClientSelectorModal] Search term changed: "ti"
+[2025-09-09T17:59:49.148Z] [ClientSelectorModal] Search term changed: "tig"
+[2025-09-09T17:59:49.957Z] [ClientSelectorModal] Search term changed: "tigr"
+[2025-09-09T17:59:51.456Z] [ClientSelectorModal] Search term changed: "tigre"
+[2025-09-09T18:00:32.440Z] [RecoveryPage] Modal dismissed.

@@ -1,0 +1,291 @@
+.order-table-container {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.table-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 16px;
+
+  p {
+    margin: 0;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+  }
+}
+
+.table-wrapper {
+  position: relative;
+  overflow-x: auto;
+
+  &.loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.order-table {
+  width: 100%;
+  min-width: 800px;
+
+  // En-têtes
+  .mat-mdc-header-cell {
+    background-color: #fafafa;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.87);
+    border-bottom: 1px solid #e0e0e0;
+    padding: 16px 12px;
+    font-size: 14px;
+  }
+
+  // Cellules
+  .mat-mdc-cell {
+    padding: 16px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  // Lignes
+  .mat-mdc-row {
+    transition: background-color 0.2s ease;
+
+    &.clickable {
+      cursor: pointer;
+
+      &:hover {
+        background-color: #f5f5f5;
+      }
+    }
+
+    &.selected {
+      background-color: rgba(25, 118, 210, 0.08);
+    }
+  }
+}
+
+// Colonnes spécifiques
+.selection-column {
+  width: 48px;
+  padding: 8px 12px !important;
+  text-align: center;
+}
+
+.id-column {
+  width: 120px;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.date-column {
+  width: 120px;
+}
+
+.amount-column {
+  width: 140px;
+  text-align: right;
+}
+
+.status-column {
+  width: 120px;
+}
+
+.actions-column {
+  width: 120px;
+  text-align: center;
+}
+
+// Contenu des cellules
+.order-id {
+  font-weight: 500;
+  color: #1976d2;
+}
+
+.client-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.client-name {
+  font-weight: 500;
+}
+
+.client-code {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.amount {
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+// État vide
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.6);
+
+  .empty-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    color: rgba(0, 0, 0, 0.3);
+  }
+
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+// Pagination
+.order-paginator {
+  border-top: 1px solid #e0e0e0;
+  background-color: #fafafa;
+}
+
+// Responsive design
+@media (max-width: 1024px) {
+  .order-table {
+    min-width: 700px;
+  }
+
+  .mat-mdc-header-cell,
+  .mat-mdc-cell {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+
+  .client-info {
+    .client-name {
+      font-size: 13px;
+    }
+    
+    .client-code {
+      font-size: 11px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .order-table {
+    min-width: 600px;
+  }
+
+  .mat-mdc-header-cell,
+  .mat-mdc-cell {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+
+  .id-column {
+    width: 100px;
+  }
+
+  .date-column {
+    width: 100px;
+  }
+
+  .amount-column {
+    width: 120px;
+  }
+
+  .status-column {
+    width: 100px;
+  }
+
+  .actions-column {
+    width: 80px;
+  }
+
+  .empty-state {
+    padding: 48px 16px;
+
+    .empty-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+    }
+
+    h3 {
+      font-size: 16px;
+    }
+
+    p {
+      font-size: 13px;
+    }
+  }
+}
+
+// Accessibilité
+@media (prefers-reduced-motion: reduce) {
+  .mat-mdc-row,
+  .table-wrapper {
+    transition: none;
+  }
+}
+
+// Mode sombre (si supporté)
+@media (prefers-color-scheme: dark) {
+  .order-table-container {
+    background: #303030;
+    color: white;
+  }
+
+  .order-table {
+    .mat-mdc-header-cell {
+      background-color: #424242;
+      color: white;
+      border-bottom-color: #616161;
+    }
+
+    .mat-mdc-cell {
+      border-bottom-color: #424242;
+      color: rgba(255, 255, 255, 0.87);
+    }
+
+    .mat-mdc-row {
+      &:hover {
+        background-color: #424242;
+      }
+
+      &.selected {
+        background-color: rgba(144, 202, 249, 0.16);
+      }
+    }
+  }
+
+  .order-paginator {
+    background-color: #424242;
+    border-top-color: #616161;
+  }
+
+  .empty-state {
+    color: rgba(255, 255, 255, 0.6);
+
+    h3 {
+      color: rgba(255, 255, 255, 0.87);
+    }
+  }
+}

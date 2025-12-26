@@ -1,0 +1,79 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Aperçu du Reçu</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Fermer</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" *ngIf="recovery && distribution && client">
+  <div id="receipt-content">
+    <!-- Header -->
+    <div class="header">
+      AMENOUVEVE-YAVEH<br>
+      REÇU DE RECOUVREMENT
+    </div>
+
+    <div class="separator"></div>
+
+    <!-- Info -->
+    <div class="row">
+      <span>Date:</span>
+      <span>{{ recovery.paymentDate | date: 'dd/MM/yyyy HH:mm' }}</span>
+    </div>
+    <div class="row">
+      <span>Client:</span>
+      <span>{{ client.fullName }}</span>
+    </div>
+    <div class="row">
+      <span>Commercial:</span>
+      <span>{{ recovery.commercialId }}</span> <!-- Assuming commercialId is the name for now -->
+    </div>
+    <div class="row">
+      <span>Crédit Réf:</span>
+      <span>{{ distribution.reference }}</span>
+    </div>
+
+    <div class="separator"></div>
+
+    <!-- Body -->
+    <div class="row total-row">
+      <span>MONTANT PAYÉ:</span>
+      <span>{{ recovery.amount | number:'1.0-0' }} FCFA</span>
+    </div>
+    <div class="row">
+      <span>Ancien Solde:</span>
+      <span>{{ ((distribution.remainingAmount || 0) + recovery.amount) | number:'1.0-0' }} FCFA</span>
+    </div>
+    <div class="row">
+      <span>Nouveau Solde:</span>
+      <span>{{ (distribution.remainingAmount || 0) | number:'1.0-0' }} FCFA</span>
+    </div>
+
+    <div class="separator"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="qr-code-container" *ngIf="qrCodeData">
+        <qrcode
+          [qrdata]="qrCodeData"
+          [width]="120"
+          [errorCorrectionLevel]="'M'">
+        </qrcode>
+      </div>
+      <br>
+      Merci pour votre fidélité!<br>
+      AMENOUVEVE-YAVEH, votre partenaire de confiance.
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-button expand="block" (click)="print()">
+      <ion-icon name="print-outline" slot="start"></ion-icon>
+      Imprimer
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,64 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container">
+  <div class="header-fixed d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+      <mat-form-field>
+        <mat-label>Période</mat-label>
+        <mat-select [(value)]="selectedPeriod">
+          <mat-option *ngFor="let period of availablePeriods" [value]="period.code">
+            {{ period.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button (click)="onGetReport()" mat-icon-button class="icon-button ml-2">
+        <mat-icon>search</mat-icon>
+      </button>
+    </div>
+  </div>
+  <div class="summary d-flex justify-content-between align-items-center">
+    <p>DU <strong>{{ dateFrom }}</strong> AU <strong>{{ dateTo }}</strong></p>
+    <p><strong>Total recouvrement:</strong> {{ totalAmount }} </p>
+  </div>
+  <div class="summary d-flex justify-content-end align-items-end">
+    <p><strong>Total sorties:</strong> {{ releasedTotalAmount }}</p>
+  </div>
+  <div class="table-container">
+    <h1>Rapports</h1>
+    <div class="d-flex justify-content-end">
+      <button class="btn refresh-button btn-sm" (click)="refresh()">
+        <mat-icon>refresh</mat-icon>
+        <span>Rafraîchir</span>
+      </button>
+    </div>
+    <table class="article-table">
+      <thead>
+      <tr>
+        <th>#</th>
+        <th>Noms de l'agent</th>
+        <th>Montant système</th>
+        <th>Montant réel</th>
+        <th>Status</th>
+        <th>Total Sortie</th>
+        <th>Écart</th> </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let rapport of rapports; let i = index">
+        <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+        <td>{{ rapport.collector }}</td>
+        <td>{{ rapport.systemBalance}}</td>
+        <td>{{ rapport.realBalance }}</td>
+        <td>{{ rapport.status }}</td>
+        <td>{{ rapport.releasedTotalAmount }}</td>
+
+        <td [ngClass]="{
+              'surplus-color': (rapport.realBalance - rapport.systemBalance) > 0,
+              'manquant-color': (rapport.realBalance - rapport.systemBalance) < 0
+            }">
+          {{ rapport.realBalance - rapport.systemBalance }}
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

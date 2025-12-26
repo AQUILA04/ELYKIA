@@ -1,0 +1,140 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/tontine/member-detail"></ion-back-button>
+        </ion-buttons>
+        <ion-title>Livraison Fin d'Année</ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="showHelp()">
+                <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding-bottom">
+    <!-- Budget Header -->
+    <div class="budget-header" *ngIf="vm.member && vm.client">
+        <div class="member-info">
+            <div class="member-avatar">{{vm.client.firstname.charAt(0)}}</div>
+            <div>
+                <div class="member-name">{{vm.client.fullName || vm.client.firstname + ' ' + vm.client.lastname}}</div>
+                <div class="session-info">Session Tontine {{vm.session?.year}}</div>
+            </div>
+        </div>
+
+        <div class="budget-display">
+            <div class="budget-item">
+                <div class="budget-label">💰 Total Épargné</div>
+                <div class="budget-value total">{{vm.totalBudget | number}}</div>
+            </div>
+            <div class="budget-item">
+                <div class="budget-label">📦 Sélectionné</div>
+                <div class="budget-value used">{{vm.usedBudget | number}}</div>
+            </div>
+            <div class="budget-item">
+                <div class="budget-label">✨ Restant</div>
+                <div class="budget-value remaining" [class.negative]="vm.remainingBudget < 0">
+                    {{vm.remainingBudget | number}}
+                </div>
+                <div class="budget-surplus" *ngIf="vm.remainingBudget < 0">
+                    (Surplus: {{vm.remainingBudget * -1 | number}})
+                </div>
+            </div>
+        </div>
+
+        <!-- Compléter le solde button -->
+        <div class="complete-balance-section" *ngIf="vm.remainingBudget < 0">
+            <ion-button fill="outline" expand="block" (click)="navigateToCollection()">
+                <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+                Compléter le solde ({{vm.remainingBudget * -1 | number}} F)
+            </ion-button>
+        </div>
+    </div>
+
+    <!-- Warning Message -->
+    <div class="warning-message">
+        <ion-icon name="warning-outline"></ion-icon>
+        <span>Le montant total ne doit pas dépasser le budget épargné.</span>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-section">
+        <ion-searchbar placeholder="Rechercher un article..." [debounce]="500" (ionInput)="onSearch($event)">
+        </ion-searchbar>
+    </div>
+
+    <!-- Articles List -->
+    <div class="articles-container">
+        <div class="section-title">
+            <ion-icon name="cube-outline"></ion-icon>
+            <span>Articles Disponibles</span>
+        </div>
+
+        <div class="empty-state" *ngIf="vm.stocks.length === 0 && !vm.loading">
+            <ion-icon name="cube-outline" class="empty-icon"></ion-icon>
+            <h3>Aucun stock disponible</h3>
+            <p>Aucun article en stock pour cette session</p>
+        </div>
+
+        <div class="article-card" *ngFor="let stock of vm.stocks">
+            <div class="article-image">
+                <ion-icon name="cube-outline"></ion-icon>
+            </div>
+            <div class="article-info">
+                <div>
+                    <div class="article-name">{{stock.articleName || 'Article'}}</div>
+                    <div class="article-price">{{stock.unitPrice | number}} FCFA</div>
+                    <div class="article-stock">Disponible: {{stock.availableQuantity}} unités</div>
+                </div>
+
+                <div class="article-actions">
+                    <div class="quantity-control">
+                        <button class="quantity-btn" (click)="decreaseQuantity(stock)"
+                            [disabled]="getQuantity(stock.id) === 0">
+                            <ion-icon name="remove"></ion-icon>
+                        </button>
+                        <div class="quantity-display">{{getQuantity(stock.id)}}</div>
+                        <button class="quantity-btn" (click)="increaseQuantity(stock)"
+                            [disabled]="getQuantity(stock.id) >= stock.availableQuantity">
+                            <ion-icon name="add"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ion-content>
+
+<!-- Footer Summary -->
+<ion-footer class="ion-no-border">
+    <div class="selected-articles">
+        <div class="selected-summary">
+            <div class="summary-item">
+                <div class="summary-label">Articles</div>
+                <div class="summary-value">{{vm.selectedCount}}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Total</div>
+                <div class="summary-value">{{vm.usedBudget | number}} F</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Restant</div>
+                <div class="summary-value remaining" [class.exceeded]="vm.remainingBudget < 0">
+                    {{vm.remainingBudget | number}} F
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <ion-button fill="outline" color="danger" class="btn-cancel" (click)="cancel()">
+                Annuler
+            </ion-button>
+            <ion-button expand="block" color="success" class="btn-validate"
+                [disabled]="vm.selectedCount === 0 || vm.remainingBudget < 0" (click)="validateDelivery()">
+                <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+                Valider la Livraison
+            </ion-button>
+        </div>
+    </div>
+</ion-footer>

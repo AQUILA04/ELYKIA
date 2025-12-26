@@ -1,0 +1,130 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Commandes</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="createNewOrder()">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Search Bar -->
+  <div class="search-container">
+    <ion-searchbar
+      placeholder="Rechercher par référence ou client..."
+      (ionInput)="onSearchChange($event)"
+      debounce="300">
+    </ion-searchbar>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Chargement des commandes...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && filteredOrders.length === 0 && !searchTerm) {
+    <div class="empty-state">
+      <ion-icon name="receipt-outline" class="empty-icon"></ion-icon>
+      <h3>Aucune commande</h3>
+      <p>Vous n'avez pas encore créé de commandes.</p>
+      <ion-button fill="solid" color="primary" (click)="createNewOrder()">
+        Créer une commande
+      </ion-button>
+    </div>
+  }
+
+  <!-- No Results -->
+  @if (!isLoading && filteredOrders.length === 0 && searchTerm) {
+    <div class="empty-state">
+      <ion-icon name="search-outline" class="empty-icon"></ion-icon>
+      <h3>Aucun résultat</h3>
+      <p>Aucune commande ne correspond à votre recherche.</p>
+    </div>
+  }
+
+  <!-- Orders List -->
+  @if (!isLoading && filteredOrders.length > 0) {
+    <div class="orders-list">
+      <cdk-virtual-scroll-viewport itemSize="180" class="ion-content-scroll-host">
+        <ion-card *cdkVirtualFor="let order of filteredOrders; trackBy: trackByOrderId" class="order-card">
+          <ion-card-content>
+            <div class="order-header">
+              <div class="order-info">
+                <h3 class="order-reference">{{ order.reference }}</h3>
+                <ion-chip [color]="getStatusColor(order.status)" class="status-chip">
+                  {{ getStatusText(order.status) }}
+                </ion-chip>
+              </div>
+              <div class="order-actions">
+                <ion-button fill="clear" size="small" (click)="editOrder(order)">
+                  <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="deleteOrder(order)">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+
+            <div class="order-content">
+              <!-- Client Info -->
+              @if (order.client) {
+                <div class="client-info">
+                  <div class="client-avatar">
+                    <div class="avatar-circle" [style.background-color]="getAvatarColor(order.client.firstname)">
+                      {{ getInitials(order.client.firstname, order.client.lastname) }}
+                    </div>
+                  </div>
+                  <div class="client-details">
+                    <p class="client-name">{{ order.client.firstname }} {{ order.client.lastname }}</p>
+                    <p class="client-phone">{{ order.client.phone }}</p>
+                  </div>
+                </div>
+              }
+
+              <!-- Order Details -->
+              <div class="order-details">
+                <div class="detail-row">
+                  <span class="label">Articles :</span>
+                  <span class="value">{{ order.articleCount || 0 }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Montant total :</span>
+                  <span class="value amount">{{ order.totalAmount | number:'1.0-0' }} FCFA</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Date :</span>
+                  <span class="value">{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                @if (!order.isSync) {
+                  <div class="detail-row">
+                    <span class="label">Synchronisation :</span>
+                    <ion-chip color="warning" size="small">
+                      <ion-icon name="cloud-upload-outline"></ion-icon>
+                      En attente
+                    </ion-chip>
+                  </div>
+                }
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </cdk-virtual-scroll-viewport>
+    </div>
+  }
+
+  <!-- Floating Action Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="primary" (click)="createNewOrder()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

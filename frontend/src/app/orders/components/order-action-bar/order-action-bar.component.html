@@ -1,0 +1,41 @@
+<div class="action-bar" [class.visible]="shouldShow" [class.loading]="loading">
+  <div class="action-bar-content">
+    <!-- Informations de sélection -->
+    <div class="selection-info">
+      <mat-icon class="selection-icon">check_circle</mat-icon>
+      <span class="selection-text">{{ selectionText }}</span>
+    </div>
+
+    <!-- Actions disponibles -->
+    <div class="actions-container">
+      <button
+        mat-raised-button
+        *ngFor="let action of availableActions"
+        [color]="getActionColor(action)"
+        [disabled]="loading"
+        (click)="onBulkAction(action)"
+        class="action-button">
+        <mat-icon>{{ getActionIcon(action) }}</mat-icon>
+        <span>{{ getActionLabel(action) }}</span>
+      </button>
+
+      <!-- Bouton d'annulation -->
+      <button
+        mat-stroked-button
+        color="primary"
+        [disabled]="loading"
+        (click)="onClearSelection()"
+        class="clear-button"
+        matTooltip="Annuler la sélection">
+        <mat-icon>clear</mat-icon>
+        <span class="clear-text">Annuler</span>
+      </button>
+    </div>
+
+    <!-- Indicateur de chargement -->
+    <div class="loading-indicator" *ngIf="loading">
+      <mat-spinner diameter="24"></mat-spinner>
+      <span>Traitement en cours...</span>
+    </div>
+  </div>
+</div>

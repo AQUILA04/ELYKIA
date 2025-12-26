@@ -1,0 +1,167 @@
+<div class="stock-dashboard">
+  <div class="stock-dashboard__header">
+    <h1 class="stock-dashboard__title">Analyse du Stock</h1>
+    <p class="stock-dashboard__subtitle">Gestion des alertes et analyse de rotation</p>
+  </div>
+
+  <div *ngIf="loading" class="stock-dashboard__loading">
+    <mat-spinner diameter="60"></mat-spinner>
+  </div>
+
+  <div *ngIf="error && !loading" class="stock-dashboard__error">
+    <mat-icon>error_outline</mat-icon>
+    <h3>{{ error }}</h3>
+    <button mat-raised-button color="primary" (click)="loadData()">Réessayer</button>
+  </div>
+
+  <ng-container *ngIf="!loading && !error">
+    <!-- KPI Cards -->
+    <div class="stock-dashboard__kpis">
+      <app-bi-kpi-card [data]="valueKpi"></app-bi-kpi-card>
+      <app-bi-kpi-card [data]="itemsKpi"></app-bi-kpi-card>
+      <app-bi-kpi-card [data]="outOfStockKpi"></app-bi-kpi-card>
+      <app-bi-kpi-card [data]="lowStockKpi"></app-bi-kpi-card>
+    </div>
+
+    <!-- Out of Stock -->
+    <div class="stock-dashboard__section" *ngIf="outOfStockItems.length > 0">
+      <div class="section-card">
+        <div class="section-header">
+          <h3 class="section-title">Articles en Rupture de Stock</h3>
+          <span class="badge badge--danger">{{ outOfStockItems.length }}</span>
+        </div>
+
+        <table mat-table [dataSource]="outOfStockItems" class="stock-table">
+          <ng-container matColumnDef="article">
+            <th mat-header-cell *matHeaderCellDef>Article</th>
+            <td mat-cell *matCellDef="let row">{{ row.articleName }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Catégorie</th>
+            <td mat-cell *matCellDef="let row">{{ row.category }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="avgSales">
+            <th mat-header-cell *matHeaderCellDef>Ventes Moy/Mois</th>
+            <td mat-cell *matCellDef="let row">{{ formatNumber(row.averageMonthlySales) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="recommended">
+            <th mat-header-cell *matHeaderCellDef>Qté Recommandée</th>
+            <td mat-cell *matCellDef="let row">
+              <strong>{{ formatNumber(row.recommendedQuantity) }}</strong>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="urgency">
+            <th mat-header-cell *matHeaderCellDef>Urgence</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="urgency-badge" [ngClass]="getUrgencyClass(row.urgency)">
+                {{ getUrgencyLabel(row.urgency) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="['article', 'category', 'avgSales', 'recommended', 'urgency']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['article', 'category', 'avgSales', 'recommended', 'urgency']"></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Low Stock -->
+    <div class="stock-dashboard__section" *ngIf="lowStockItems.length > 0">
+      <div class="section-card">
+        <div class="section-header">
+          <h3 class="section-title">Articles en Stock Faible</h3>
+          <span class="badge badge--warning">{{ lowStockItems.length }}</span>
+        </div>
+
+        <table mat-table [dataSource]="lowStockItems" class="stock-table">
+          <ng-container matColumnDef="article">
+            <th mat-header-cell *matHeaderCellDef>Article</th>
+            <td mat-cell *matCellDef="let row">{{ row.articleName }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="current">
+            <th mat-header-cell *matHeaderCellDef>Stock Actuel</th>
+            <td mat-cell *matCellDef="let row">{{ formatNumber(row.currentStock) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="reorder">
+            <th mat-header-cell *matHeaderCellDef>Seuil</th>
+            <td mat-cell *matCellDef="let row">{{ formatNumber(row.reorderPoint) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="days">
+            <th mat-header-cell *matHeaderCellDef>Jours Restants</th>
+            <td mat-cell *matCellDef="let row">
+              <span [class.text-danger]="row.daysOfStockRemaining < 7">
+                {{ formatNumber(row.daysOfStockRemaining) }} jours
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="recommended">
+            <th mat-header-cell *matHeaderCellDef>Qté Recommandée</th>
+            <td mat-cell *matCellDef="let row">
+              <strong>{{ formatNumber(row.recommendedQuantity) }}</strong>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="urgency">
+            <th mat-header-cell *matHeaderCellDef>Urgence</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="urgency-badge" [ngClass]="getUrgencyClass(row.urgency)">
+                {{ getUrgencyLabel(row.urgency) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="['article', 'current', 'reorder', 'days', 'recommended', 'urgency']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['article', 'current', 'reorder', 'days', 'recommended', 'urgency']"></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- All Alerts -->
+    <div class="stock-dashboard__section">
+      <div class="section-card">
+        <h3 class="section-title">Toutes les Alertes de Stock</h3>
+        <table mat-table [dataSource]="stockAlerts" class="stock-table">
+          <ng-container matColumnDef="article">
+            <th mat-header-cell *matHeaderCellDef>Article</th>
+            <td mat-cell *matCellDef="let row">{{ row.articleName }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Catégorie</th>
+            <td mat-cell *matCellDef="let row">{{ row.category }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="current">
+            <th mat-header-cell *matHeaderCellDef>Stock</th>
+            <td mat-cell *matCellDef="let row">{{ formatNumber(row.currentStock) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="recommended">
+            <th mat-header-cell *matHeaderCellDef>Qté Recommandée</th>
+            <td mat-cell *matCellDef="let row">{{ formatNumber(row.recommendedQuantity) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="urgency">
+            <th mat-header-cell *matHeaderCellDef>Urgence</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="urgency-badge" [ngClass]="getUrgencyClass(row.urgency)">
+                {{ getUrgencyLabel(row.urgency) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="['article', 'category', 'current', 'recommended', 'urgency']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['article', 'category', 'current', 'recommended', 'urgency']"></tr>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+</div>

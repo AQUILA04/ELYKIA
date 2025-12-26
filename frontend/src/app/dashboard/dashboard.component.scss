@@ -1,0 +1,206 @@
+.dashboard-summary {
+  margin-top: 30px;
+  padding-top: 35px;
+  .summary-card {
+    background-color: #ffffff; /* Utilisez vos couleurs préférées ici */
+    border-radius: 8px; /* Réduit le rayon des bords arrondis */
+    padding: 10px; /* Réduit l'espace à l'intérieur de la carte */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Réduit l'intensité de l'ombre */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    flex: 1; /* Réduit la taille des cartes */
+    margin-bottom: 100px;
+
+    &:hover {
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(-3px);
+    }
+
+    .card-body {
+      display: flex;
+      align-items: center;
+
+      .icon {
+        background-color: #e7e7e7;
+        width: 40px; /* Réduit la taille de l'icône */
+        height: 40px; /* Réduit la taille de l'icône */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        margin-right: 8px; /* Réduit l'espacement entre l'icône et le texte */
+
+        span {
+          color: #ffffff;
+          font-size: 18px; /* Réduit la taille du texte de l'icône */
+        }
+      }
+
+      .text {
+        display: flex;
+        flex-direction: column;
+
+        .card-value {
+          font-size: 1.2rem; /* Réduit la taille du texte principal */
+          font-weight: bold;
+          margin: 0;
+        }
+
+        .card-title {
+          font-size: 0.8rem; /* Réduit la taille du titre */
+          font-weight: 300;
+          margin-bottom: 0;
+        }
+
+        .card-subtitle {
+          font-size: 0.7rem; /* Réduit la taille du sous-titre */
+          color: #6c757d;
+          margin-top: 2px; /* Réduit l'espacement entre les textes */
+        }
+      }
+    }
+  }
+}
+
+.card-container {
+  display: flex;
+  gap: 10px; /* Réduit l'espacement entre les cartes */
+  margin-bottom: 60px; /* Augmente l'espace entre les cartes et le graphique */
+}
+
+#chart1, #chart2 {
+  flex:1;
+  margin-top: 20px; /* Ajuste l'espace au-dessus du graphique */
+}
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #003366;
+}
+
+.container {
+  background-color: white;
+  border-radius: 5px;
+  padding-top: 40px;
+  text-align: center;
+}
+
+.button-group {
+  display: flex;
+  justify-content: right; 
+  gap: 5px;
+  margin-bottom: 20px; 
+}
+
+.refresh-button, .add {
+  color: white;
+  background-color: #003366;
+  border: none; 
+  border-radius: 4px; 
+  padding: 8px 16px; 
+  font-size: 15px; 
+  cursor: pointer; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+
+  mat-icon {
+    font-size: 20px;
+    margin-right: 5px; 
+    color: white; 
+  }
+}
+
+.table-container {
+  width: 55%; /* Réduit la taille globale des tableaux */
+  margin: 0 auto; /* Centre les tableaux */
+  margin-bottom: 20px;
+}
+
+.article-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+
+  thead {
+    background-color: #ddd;
+    color: #003366;
+    text-align: center;
+
+    th {
+      padding: 4px; /* Réduit l'espacement interne des en-têtes */
+      font-size: 0.85rem; /* Réduit la taille du texte des en-têtes */
+    }
+  }
+
+  tbody {
+    tr {
+      &:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      &:hover {
+        background-color: #ddd;
+      }
+
+      td {
+        padding: 6px; /* Réduit l'espacement interne des cellules */
+        font-size: 0.8rem; /* Réduit la taille du texte dans les cellules */
+        border-bottom: 1px solid #ddd;
+        vertical-align: middle;
+        text-align: center;
+
+        button {
+          margin-right: 4px;
+          padding: 4px 6px; /* Réduit la taille des boutons */
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+          font-size: 12px; /* Réduit encore la taille de la police des boutons */
+
+
+          &:nth-child(3) { 
+            background-color: transparent;
+            color: #f44336; 
+          }
+        }
+      }
+    }
+  }
+}
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px; 
+}
+
+.badge {
+  padding: 0.5em;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  text-align: center;
+  display: inline-block;
+}
+
+.badge-blue {
+  background-color: #003366;
+  color: white;
+}
+
+.badge-red {
+  background-color: red;
+  color: white;
+}
+
+.badge-orange {
+  background-color: orange;
+  color: white;
+}
+
+.badge-green {
+  background-color: green;
+  color: white;
+}

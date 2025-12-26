@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC019 - Livraison Fin d'Année | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .budget-header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            padding: 24px 16px;
+            color: white;
+        }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .member-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: white;
+            color: #4CAF50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .member-name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .budget-display {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .budget-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .budget-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .budget-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .budget-value.total {
+            font-size: 24px;
+        }
+
+        .budget-value.remaining {
+            color: #FFD700;
+        }
+
+        .budget-value.used {
+            color: #FF6B6B;
+        }
+
+        .search-section {
+            padding: 16px;
+            background: white;
+        }
+
+        .articles-container {
+            padding: 16px;
+            padding-bottom: 180px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .article-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .article-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .article-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .article-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .article-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .article-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .article-stock {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .article-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--background-color);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            background: var(--primary-color);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quantity-btn:hover {
+            background: var(--primary-variant);
+        }
+
+        .quantity-btn:disabled {
+            background: #E0E0E0;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .quantity-display {
+            min-width: 32px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .selected-articles {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            background: white;
+            border-top: 2px solid #E0E0E0;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .selected-summary {
+            padding: 16px;
+            background: var(--background-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .summary-value.remaining {
+            color: var(--success-color);
+        }
+
+        .summary-value.exceeded {
+            color: var(--error-color);
+        }
+
+        .action-buttons {
+            padding: 12px 16px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-validate {
+            flex: 2;
+            background: var(--success-color);
+        }
+
+        .btn-validate:disabled {
+            background: #E0E0E0;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background: white;
+            border: 2px solid var(--error-color);
+            color: var(--error-color);
+        }
+
+        .warning-message {
+            background: rgba(255, 152, 0, 0.1);
+            border-left: 4px solid var(--warning-color);
+            padding: 12px;
+            margin: 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 16px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Header -->
+        <div class="header">
+            <button class="header-icon" onclick="goBack()">←</button>
+            <div class="header-title">Livraison Fin d'Année</div>
+            <button class="header-icon" onclick="showHelp()">?</button>
+        </div>
+
+        <!-- Budget Header -->
+        <div class="budget-header">
+            <div class="member-info">
+                <div class="member-avatar" id="memberAvatar">M</div>
+                <div>
+                    <div class="member-name" id="memberName">Marie Kouassi</div>
+                    <div style="font-size: 14px; opacity: 0.9;">Session Tontine 2025</div>
+                </div>
+            </div>
+            <div class="budget-display">
+                <div class="budget-item">
+                    <div class="budget-label">💰 Total Épargné</div>
+                    <div class="budget-value total" id="totalBudget">150,000</div>
+                </div>
+                <div class="budget-item">
+                    <div class="budget-label">📦 Sélectionné</div>
+                    <div class="budget-value used" id="usedBudget">0</div>
+                </div>
+                <div class="budget-item">
+                    <div class="budget-label">✨ Restant</div>
+                    <div class="budget-value remaining" id="remainingBudget">150,000</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warning Message -->
+        <div class="warning-message">
+            ⚠️ <strong>Important:</strong> Le montant total des articles sélectionnés ne doit pas dépasser le montant épargné par le client.
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="input-with-icon">
+                <span class="input-icon">🔍</span>
+                <input type="text" class="input-field" placeholder="Rechercher un article..." 
+                       id="searchInput" oninput="filterArticles()">
+            </div>
+        </div>
+
+        <!-- Articles Container -->
+        <div class="articles-container">
+            <div class="section-title">
+                <span>📦</span>
+                <span>Articles Disponibles</span>
+            </div>
+            <div id="articlesList">
+                <!-- Articles will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Selected Articles Summary -->
+        <div class="selected-articles">
+            <div class="selected-summary">
+                <div class="summary-item">
+                    <div class="summary-label">Articles</div>
+                    <div class="summary-value" id="selectedCount">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Total</div>
+                    <div class="summary-value" id="selectedTotal">0 F</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Restant</div>
+                    <div class="summary-value remaining" id="remainingAmount">150,000 F</div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-cancel" onclick="cancelDelivery()">
+                    Annuler
+                </button>
+                <button class="btn btn-primary btn-validate" id="validateBtn" onclick="validateDelivery()">
+                    ✓ Valider la Livraison
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        const memberData = {
+            id: 1,
+            name: "Marie Kouassi",
+            totalBudget: 150000
+        };
+
+        const articles = [
+            { id: 1, name: "Riz (Sac 25kg)", price: 15000, stock: 50, icon: "🌾" },
+            { id: 2, name: "Huile (Bidon 5L)", price: 8000, stock: 30, icon: "🛢️" },
+            { id: 3, name: "Sucre (Sac 10kg)", price: 6000, stock: 40, icon: "🧂" },
+            { id: 4, name: "Farine (Sac 10kg)", price: 5500, stock: 35, icon: "🌾" },
+            { id: 5, name: "Lait en Poudre (Boîte)", price: 12000, stock: 25, icon: "🥛" },
+            { id: 6, name: "Savon (Carton)", price: 4000, stock: 60, icon: "🧼" },
+            { id: 7, name: "Pâtes Alimentaires (Carton)", price: 7000, stock: 45, icon: "🍝" },
+            { id: 8, name: "Tomate Concentrée (Carton)", price: 9000, stock: 30, icon: "🍅" },
+            { id: 9, name: "Sardines (Carton)", price: 11000, stock: 20, icon: "🐟" },
+            { id: 10, name: "Cube Maggi (Carton)", price: 3500, stock: 70, icon: "🧊" }
+        ];
+
+        let selectedArticles = {};
+
+        function initializePage() {
+            document.getElementById('memberAvatar').textContent = memberData.name.charAt(0);
+            document.getElementById('memberName').textContent = memberData.name;
+            updateBudgetDisplay();
+            renderArticles(articles);
+        }
+
+        function renderArticles(articlesToShow) {
+            const container = document.getElementById('articlesList');
+            
+            if (articlesToShow.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <h3>Aucun article trouvé</h3>
+                        <p>Aucun article ne correspond à votre recherche.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = articlesToShow.map(article => {
+                const quantity = selectedArticles[article.id] || 0;
+                const maxQuantity = Math.floor(getRemainingBudget() / article.price) + quantity;
+                
+                return `
+                    <div class="article-card">
+                        <div class="article-image">${article.icon}</div>
+                        <div class="article-info">
+                            <div>
+                                <div class="article-name">${article.name}</div>
+                                <div class="article-price">${article.price.toLocaleString('fr-FR')} FCFA</div>
+                                <div class="article-stock">Stock: ${article.stock} unités</div>
+                            </div>
+                            <div class="article-actions">
+                                <div class="quantity-control">
+                                    <button class="quantity-btn" onclick="decreaseQuantity(${article.id})" 
+                                            ${quantity === 0 ? 'disabled' : ''}>−</button>
+                                    <div class="quantity-display">${quantity}</div>
+                                    <button class="quantity-btn" onclick="increaseQuantity(${article.id}, ${article.price}, ${article.stock})"
+                                            ${quantity >= article.stock || quantity >= maxQuantity ? 'disabled' : ''}>+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function increaseQuantity(articleId, price, stock) {
+            const currentQty = selectedArticles[articleId] || 0;
+            const remainingBudget = getRemainingBudget();
+            
+            if (remainingBudget >= price && currentQty < stock) {
+                selectedArticles[articleId] = currentQty + 1;
+                updateDisplay();
+            }
+        }
+
+        function decreaseQuantity(articleId) {
+            if (selectedArticles[articleId] > 0) {
+                selectedArticles[articleId]--;
+                if (selectedArticles[articleId] === 0) {
+                    delete selectedArticles[articleId];
+                }
+                updateDisplay();
+            }
+        }
+
+        function getRemainingBudget() {
+            const usedBudget = Object.keys(selectedArticles).reduce((sum, articleId) => {
+                const article = articles.find(a => a.id === parseInt(articleId));
+                return sum + (article.price * selectedArticles[articleId]);
+            }, 0);
+            return memberData.totalBudget - usedBudget;
+        }
+
+        function updateDisplay() {
+            updateBudgetDisplay();
+            updateSummary();
+            renderArticles(articles);
+        }
+
+        function updateBudgetDisplay() {
+            const usedBudget = memberData.totalBudget - getRemainingBudget();
+            const remaining = getRemainingBudget();
+            
+            document.getElementById('totalBudget').textContent = 
+                memberData.totalBudget.toLocaleString('fr-FR');
+            document.getElementById('usedBudget').textContent = 
+                usedBudget.toLocaleString('fr-FR');
+            document.getElementById('remainingBudget').textContent = 
+                remaining.toLocaleString('fr-FR');
+        }
+
+        function updateSummary() {
+            const selectedCount = Object.values(selectedArticles).reduce((sum, qty) => sum + qty, 0);
+            const selectedTotal = memberData.totalBudget - getRemainingBudget();
+            const remaining = getRemainingBudget();
+            
+            document.getElementById('selectedCount').textContent = selectedCount;
+            document.getElementById('selectedTotal').textContent = 
+                selectedTotal.toLocaleString('fr-FR') + ' F';
+            
+            const remainingEl = document.getElementById('remainingAmount');
+            remainingEl.textContent = remaining.toLocaleString('fr-FR') + ' F';
+            
+            if (remaining < 0) {
+                remainingEl.classList.remove('remaining');
+                remainingEl.classList.add('exceeded');
+            } else {
+                remainingEl.classList.remove('exceeded');
+                remainingEl.classList.add('remaining');
+            }
+
+            // Enable/disable validate button
+            const validateBtn = document.getElementById('validateBtn');
+            validateBtn.disabled = selectedCount === 0 || remaining < 0;
+        }
+
+        function filterArticles() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = articles.filter(a => 
+                a.name.toLowerCase().includes(searchTerm)
+            );
+            renderArticles(filtered);
+        }
+
+        function validateDelivery() {
+            const selectedCount = Object.values(selectedArticles).reduce((sum, qty) => sum + qty, 0);
+            const selectedTotal = memberData.totalBudget - getRemainingBudget();
+            
+            if (selectedCount === 0) {
+                alert('⚠️ Veuillez sélectionner au moins un article');
+                return;
+            }
+
+            if (getRemainingBudget() < 0) {
+                alert('⚠️ Le montant total dépasse le budget disponible');
+                return;
+            }
+
+            // Build delivery summary
+            const deliveryItems = Object.keys(selectedArticles).map(articleId => {
+                const article = articles.find(a => a.id === parseInt(articleId));
+                return {
+                    article: article,
+                    quantity: selectedArticles[articleId],
+                    subtotal: article.price * selectedArticles[articleId]
+                };
+            });
+
+            const deliveryData = {
+                memberId: memberData.id,
+                memberName: memberData.name,
+                items: deliveryItems,
+                totalAmount: selectedTotal,
+                remainingBudget: getRemainingBudget(),
+                deliveryDate: new Date().toISOString()
+            };
+
+            console.log('Delivery data:', deliveryData);
+
+            // Show confirmation
+            const itemsList = deliveryItems.map(item => 
+                `- ${item.article.name} x${item.quantity} = ${item.subtotal.toLocaleString('fr-FR')} F`
+            ).join('\n');
+
+            if (confirm(
+                `Confirmer la livraison?\n\n` +
+                `Client: ${memberData.name}\n\n` +
+                `Articles:\n${itemsList}\n\n` +
+                `Total: ${selectedTotal.toLocaleString('fr-FR')} FCFA\n` +
+                `Restant: ${getRemainingBudget().toLocaleString('fr-FR')} FCFA`
+            )) {
+                alert('✅ Livraison validée avec succès!\n\nLe statut du membre a été mis à jour.');
+                window.location.href = 'EC016-detail-membre-tontine.html';
+            }
+        }
+
+        function cancelDelivery() {
+            if (Object.keys(selectedArticles).length > 0) {
+                if (confirm('Voulez-vous vraiment annuler? Les articles sélectionnés seront perdus.')) {
+                    window.history.back();
+                }
+            } else {
+                window.history.back();
+            }
+        }
+
+        function goBack() {
+            cancelDelivery();
+        }
+
+        function showHelp() {
+            alert('Aide - Livraison Fin d\'Année:\n\n' +
+                  '1. Sélectionnez les articles en utilisant les boutons + et -\n' +
+                  '2. Le total ne doit pas dépasser le budget épargné\n' +
+                  '3. Validez la livraison une fois la sélection terminée\n' +
+                  '4. Le statut du membre sera mis à jour automatiquement');
+        }
+
+        // Initialize page on load
+        window.onload = initializePage;
+    </script>
+</body>
+</html>

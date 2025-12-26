@@ -1,0 +1,44 @@
+<div class="kpi-card" [ngClass]="getColorClass()">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="kpi-card__loading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading" class="kpi-card__content">
+    <!-- Header -->
+    <div class="kpi-card__header">
+      <span class="kpi-card__title">{{ data.title }}</span>
+      <mat-icon *ngIf="data.icon" class="kpi-card__icon">{{ data.icon }}</mat-icon>
+    </div>
+
+    <!-- Value -->
+    <div class="kpi-card__value">
+      {{ getFormattedValue() }}
+    </div>
+
+    <!-- Subtitle -->
+    <div *ngIf="data.subtitle" class="kpi-card__subtitle">
+      {{ data.subtitle }}
+    </div>
+
+    <!-- Evolution -->
+    <div *ngIf="data.evolution !== undefined" class="kpi-card__evolution" [ngClass]="getEvolutionClass()">
+      <mat-icon class="evolution__icon">{{ getEvolutionIcon() }}</mat-icon>
+      <span class="evolution__value">{{ data.evolution > 0 ? '+' : '' }}{{ data.evolution }}%</span>
+    </div>
+
+    <!-- Sparkline (mini graphique) -->
+    <div *ngIf="data.trend && data.trend.length > 0" class="kpi-card__sparkline">
+      <!-- Placeholder pour un mini graphique -->
+      <svg class="sparkline" viewBox="0 0 100 20" preserveAspectRatio="none">
+        <polyline
+          [attr.points]="getSparklinePoints()"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        />
+      </svg>
+    </div>
+  </div>
+</div>

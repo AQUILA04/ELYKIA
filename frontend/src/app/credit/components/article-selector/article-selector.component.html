@@ -1,0 +1,118 @@
+<div [formGroup]="articleForm">
+  <div formArrayName="articles" class="article-selector">
+    <div *ngFor="let articleCtrl of articlesArray.controls; let i = index"
+         [formGroupName]="i"
+         class="article-group"
+         [class.simple-layout]="!shouldShowPriceColumns()"
+         [class.stock-exceeded]="validateStock && isStockExceeded(i)"
+         [class.with-validation]="validateStock">
+
+      <div class="form-field article-field">
+        <label [attr.for]="'articleId-' + i">Article</label>
+        <ng-select
+          [id]="'articleId-' + i"
+          formControlName="articleId"
+          [items]="availableArticlesPerRow[i]"
+          bindValue="id"
+          [searchFn]="searchArticle"
+          [disabled]="readonly"
+          placeholder="Rechercher et sélectionner un article"
+          notFoundText="Aucun article trouvé">
+
+          <ng-template ng-label-tmp let-item="item">
+            <div class="selected-article">
+              {{ item.commercialName }}
+              <span *ngIf="showStock" class="stock-badge" [ngClass]="getStockClass(item.id)">
+                Stock: {{ item.stockQuantity || 0 }}
+              </span>
+            </div>
+          </ng-template>
+
+          <ng-template ng-option-tmp let-item="item">
+            <div class="article-option">
+              <div class="option-title">{{ item.commercialName }}</div>
+              <small class="option-details">
+                Marque: {{ item.marque }} | Modèle: {{ item.model }}
+                <span *ngIf="showStock" class="stock-info" [ngClass]="getStockClass(item.id)">
+                  | Stock: {{ item.stockQuantity || 0 }}
+                </span>
+              </small>
+            </div>
+          </ng-template>
+        </ng-select>
+
+        <mat-error *ngIf="articleCtrl.get('articleId')?.invalid && articleCtrl.get('articleId')?.touched">
+          L'article est requis.
+        </mat-error>
+      </div>
+
+      <div class="form-field quantity-field">
+        <label [attr.for]="'quantity-' + i">Quantité</label>
+        <div class="quantity-input-wrapper">
+          <input
+            [id]="'quantity-' + i"
+            type="number"
+            formControlName="quantity"
+            [readonly]="readonly"
+            class="form-control"
+            [class.stock-warning]="validateStock && isStockExceeded(i)">
+
+          <span *ngIf="showStock && articleCtrl.get('articleId')?.value"
+                class="stock-indicator"
+                [ngClass]="getStockClass(articleCtrl.get('articleId')?.value)">
+            / {{ getArticleStock(articleCtrl.get('articleId')?.value) }}
+          </span>
+        </div>
+
+        <mat-error *ngIf="articleCtrl.get('quantity')?.hasError('required') && articleCtrl.get('quantity')?.touched">
+          La quantité est requise.
+        </mat-error>
+        <mat-error *ngIf="articleCtrl.get('quantity')?.hasError('min') && articleCtrl.get('quantity')?.touched">
+          La quantité doit être supérieure à zéro.
+        </mat-error>
+        <mat-error *ngIf="articleCtrl.get('quantity')?.hasError('stockExceeded')">
+          Stock insuffisant ! Disponible: {{ articleCtrl.get('quantity')?.errors?.['stockExceeded'].available }}
+        </mat-error>
+      </div>
+
+      <!-- Colonnes de prix - affichées conditionnellement -->
+      <div class="form-field price-field" *ngIf="shouldShowPriceColumns()">
+        <label>Prix unitaire</label>
+        <div class="price-display">
+          {{ getArticlePrice(articleCtrl.get('articleId')?.value) | currency }}
+        </div>
+      </div>
+
+      <div class="form-field subtotal-field" *ngIf="shouldShowPriceColumns()">
+        <label>Sous-total</label>
+        <div class="subtotal-display">
+          {{ getLineTotal(i) | currency }}
+        </div>
+      </div>
+
+      <button
+        *ngIf="!readonly"
+        type="button"
+        class="btn btn-remove"
+        (click)="deleteArticle(i)"
+        [disabled]="articlesArray.length === 1">
+        <mat-icon>remove_circle</mat-icon>
+      </button>
+    </div>
+
+    <button
+      *ngIf="!readonly"
+      type="button"
+      class="btn btn-add"
+      (click)="addArticle()">
+      <mat-icon>add_circle</mat-icon>
+      <span>Ajouter un article</span>
+    </button>
+
+    <!-- Affichage du montant total - seulement si on affiche les prix -->
+    <div class="total-section" *ngIf="shouldShowPriceColumns()">
+      <div class="total-label">Montant Total</div>
+      <div class="total-amount">{{ totalAmount | currency }}</div>
+    </div>
+  </div>
+</div>

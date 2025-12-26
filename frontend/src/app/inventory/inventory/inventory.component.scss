@@ -1,0 +1,129 @@
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #003366;
+  }
+
+  .container {
+    background-color: white;
+    border-radius: 5px;
+    padding-top: 40px;
+    text-align: center;
+  }
+
+  .button-group {
+    display: flex;
+    justify-content: right;
+    gap: 1px;
+    margin-bottom: 20px;
+  }
+
+  .refresh-button, .add {
+    color: white;
+    background-color: #003366;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+
+    mat-icon {
+      font-size: 20px;
+      margin-right: 5px;
+      color: white;
+    }
+  }
+
+  .article-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+
+    thead {
+      background-color: #ddd;
+      color: #003366;
+      text-align: center;
+
+      th {
+        padding: 12px;
+        text-align: center;
+      }
+    }
+    .search-bar {
+      width: 100px; /* Ajustez la largeur selon vos besoins */
+      height: 38px; /* Doit correspondre à la hauteur des boutons */
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 8px;
+      font-size: 15px;
+      justify-content: left;
+    }
+
+    tbody {
+      tr {
+        &:nth-child(even) {
+          background-color: #f2f2f2;
+        }
+
+        &:hover {
+          background-color: #ddd;
+        }
+
+        td {
+          padding: 12px;
+          border-bottom: 1px solid #ddd;
+          vertical-align: middle;
+          text-align: center;
+
+          button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+
+
+            &:nth-child(3) {
+              background-color: transparent;
+              color: #f44336;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .stock-summary-container {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .summary-card {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    flex: 1;
+  }
+
+  .card-title {
+    font-weight: bold;
+    color: #495057;
+    margin-bottom: 8px;
+  }
+
+  .card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .purchase-value { color: #007bff; }
+  .credit-value { color: #fd7e14; }
+  .combined-value { color: #28a745; }

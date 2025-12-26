@@ -1,0 +1,60 @@
+.details-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  
+    .form-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  
+    h1 {
+      color: #003366;
+      position: -webkit-sticky; /* For Safari */
+      position: sticky;
+      top: 0;
+      background-color: white;
+      padding: 10px;
+      z-index: 10;
+    }
+  
+    .details-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+  
+    .details-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+  
+      .details-label {
+        font-weight: bold;
+        color: #003366;
+        width: 150px; /* Ajustez la largeur pour aligner les deux-points */
+        text-align: left;
+        position: relative;
+        white-space: nowrap; /* Évite la coupure de texte */
+  
+        &::after {
+          content: ":";
+          position: absolute;
+          right: +50px; /* Ajustez cette valeur pour positionner les deux-points */
+        }
+      }
+  
+      .details-value {
+        flex: 1;
+        color: #333;
+        text-align: right;
+        margin-left: 10px;
+      }
+    }
+  }
+  

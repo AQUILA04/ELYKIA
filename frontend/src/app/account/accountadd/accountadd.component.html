@@ -1,0 +1,59 @@
+<div class="container">
+  <div class="form-header">
+    <h1>Editer un Compte</h1>
+  </div>
+  <form [formGroup]="accountForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="clientId">Client<span class="text-danger">*</span></label>
+      <ng-select
+        formControlName="clientId"
+        [items]="clients"
+        bindValue="id"
+        [searchFn]="searchClient"
+        placeholder="Rechercher et sélectionner un client"
+        notFoundText="Aucun client trouvé">
+        <ng-template ng-label-tmp let-item="item">
+          {{ item.firstname }} {{ item.lastname }}
+        </ng-template>
+        <ng-template ng-option-tmp let-item="item" let-search="searchTerm">
+          <div>{{ item.firstname }} {{ item.lastname }}</div>
+        </ng-template>
+      </ng-select>
+      <mat-error *ngIf="accountForm.get('clientId')?.invalid && accountForm.get('clientId')?.touched">
+        Le client est requis.
+      </mat-error>
+    </div>
+    <div class="form-group">
+      <label for="accountNumber">Numéro de Compte <span class="text-danger">*</span></label>
+      <input id="accountNumber" formControlName="accountNumber" class="form-control" />
+      <div *ngIf="accountForm.get('accountNumber')?.invalid && accountForm.get('accountNumber')?.touched">
+        <mat-error *ngIf="accountForm.get('accountNumber')?.errors?.['required']">
+          Le numéro de compte est requis.
+        </mat-error>
+        <mat-error *ngIf="accountForm.get('accountNumber')?.errors?.['minlength']">
+          Le numéro de compte doit contenir au moins 4 chiffres.
+        </mat-error>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="accountBalance">Solde du Compte<span class="text-danger">*</span></label>
+      <input id="accountBalance" formControlName="accountBalance" class="form-control" />
+      <div *ngIf="accountForm.get('accountBalance')?.invalid && accountForm.get('accountBalance')?.touched" class="error-message">
+        <mat-error *ngIf="accountForm.get('accountBalance')?.errors?.['required']">
+          Le solde du compte est requis.
+        </mat-error>
+        <mat-error *ngIf="accountForm.get('accountBalance')?.errors?.['min']">
+          Le solde du compte doit être au minimum de 500.
+        </mat-error>
+        <mat-error *ngIf="accountForm.get('accountBalance')?.errors?.['max']">
+          Le solde du compte ne doit pas dépasser 100000.
+        </mat-error>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-cancel" (click)="onCancel()">Annuler</button>
+      <button type="submit" class="btn btn-submit" [disabled]="accountForm.invalid">Enregistrer</button>
+    </div>
+  </form>
+</div>

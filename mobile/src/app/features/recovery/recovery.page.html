@@ -1,0 +1,145 @@
+<ion-content class="recovery-content">
+  <!-- Header -->
+  <ion-header class="recovery-header">
+    <ion-toolbar color="success">
+      <ion-buttons slot="start">
+        <ion-button (click)="goBack()" fill="clear" color="light">
+          <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title>Nouveau Recouvrement</ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/tabs/dashboard/recoveries/list">
+        <ion-icon slot="icon-only" name="list-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="recovery-container">
+    <!-- Section sélection client -->
+    @if (!vm.client) {
+      <div class="client-section">
+        <div class="empty-state-card">
+          <ion-icon name="people-outline" class="empty-state-icon"></ion-icon>
+          <h3 class="empty-state-title">Aucun client sélectionné</h3>
+          <p class="empty-state-description">Veuillez sélectionner un client pour démarrer.</p>
+          <ion-button
+            expand="block"
+            color="success"
+            (click)="openClientSelector()"
+            class="select-client-btn">
+            <ion-icon name="person-add" slot="start"></ion-icon>
+            Sélectionner un Client
+          </ion-button>
+        </div>
+      </div>
+    }
+
+    <!-- Section client sélectionné -->
+    @if (vm.client) {
+      <div class="client-selection">
+        <div class="client-details-container">
+          <ion-icon name="person" class="section-icon"></ion-icon>
+          <div class="client-text-details">
+            <div class="client-name">Client: {{ vm.client.fullName || (vm.client.firstname + ' ' + vm.client.lastname) }}</div>
+            <div class="client-info">{{ vm.client.address }} • {{ vm.client.phone }}</div>
+          </div>
+        </div>
+        <ion-button
+          fill="clear"
+          color="success"
+          size="small"
+          (click)="openClientSelector()"
+          class="change-client-btn">
+          Changer de client
+        </ion-button>
+      </div>
+    }
+
+    <!-- Section crédits du client -->
+    @if (vm.client) {
+      <div class="credits-section">
+        <div class="section-title">
+          <ion-icon name="card" class="section-icon"></ion-icon>
+          Crédits Actifs
+        </div>
+
+        <!-- Loading state -->
+        @if (vm.isLoading) {
+          <div class="loading-container">
+            <ion-spinner name="crescent" color="success"></ion-spinner>
+            <p>Chargement des crédits...</p>
+          </div>
+        }
+
+        <!-- Error state -->
+        @if (vm.error) {
+          <div class="error-container">
+            <ion-icon name="alert-circle" color="danger"></ion-icon>
+            <p>{{ vm.error }}</p>
+          </div>
+        }
+
+        <!-- Credits list -->
+        @if (!vm.isLoading) {
+          <div class="credits-list">
+            @if (vm.credits.length === 0) {
+              <div class="no-credits-card">
+                <ion-icon name="file-tray-stacked-outline" class="empty-state-icon"></ion-icon>
+                <h3 class="empty-state-title">Aucun crédit actif</h3>
+                <p class="empty-state-description">Ce client n'a aucun crédit en cours de remboursement.</p>
+              </div>
+            }
+
+            @if (vm.credits.length > 0) {
+              <cdk-virtual-scroll-viewport itemSize="200" class="ion-content-scroll-host">
+                <app-credit-card
+                  *cdkVirtualFor="let credit of vm.credits; trackBy: trackByCreditId"
+                  [credit]="credit"
+                  [isSelected]="vm.selectedCredit?.id === credit.id"
+                  (creditSelected)="onCreditSelected($event)">
+                </app-credit-card>
+              </cdk-virtual-scroll-viewport>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Section saisie montant -->
+    @if (vm.selectedCredit) {
+      <ion-card class="amount-section-card">
+        <ion-card-header>
+          <ion-card-title>
+            <ion-icon name="cash-outline" class="section-icon"></ion-icon>
+            Montant à Collecter
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <app-amount-input
+            [selectedCredit]="vm.selectedCredit"
+            [currentAmount]="recoveryAmount"
+            (amountChanged)="onAmountChanged($event)">
+          </app-amount-input>
+        </ion-card-content>
+      </ion-card>
+    }
+  </div>
+
+  <!-- Bouton de confirmation fixe -->
+  @if (canConfirmRecovery(vm)) {
+    <ion-footer>
+      <ion-toolbar>
+        <ion-button
+          expand="block"
+          color="success"
+          (click)="onConfirmRecovery()"
+          class="confirm-button">
+          <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+          CONFIRMER LE RECOUVREMENT
+        </ion-button>
+      </ion-toolbar>
+    </ion-footer>
+  }
+</ion-content>

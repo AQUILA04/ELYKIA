@@ -1,0 +1,8 @@
+<app-base-transaction 
+  [config]="config"
+  [availableArticles]="availableArticles"
+  [selectedClient]="selectedClient"
+  [initialData]="initialData"
+  (clientSelect)="openClientSelector()"
+  (submit)="onSubmitTransaction($event)">
+</app-base-transaction>

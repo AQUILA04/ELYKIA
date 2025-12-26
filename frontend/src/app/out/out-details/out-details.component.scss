@@ -1,0 +1,181 @@
+.details-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #003366;
+      position: -webkit-sticky; /* For Safari */
+      position: sticky;
+      top: 0;
+      background-color: white;
+      padding: 10px;
+      z-index: 10;
+    }
+  
+    .details-content {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+  
+    .details-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+  
+      .details-label {
+        font-weight: bold;
+        color: #003366;
+        width: 150px; /* Ajustez la largeur pour aligner les deux-points */
+        text-align: left;
+        position: relative;
+        white-space: nowrap; /* Évite la coupure de texte */
+  
+        &::after {
+          content: ":";
+          position: absolute;
+          right: -20px; /* Ajustez cette valeur pour positionner les deux-points */
+        }
+      
+      }
+      
+  
+      .details-value {
+        flex: 2;
+        color: #333;
+        text-align: left auto;
+        margin-left: 10px;
+        display: flex;
+        justify-content: flex-end; 
+      }
+    }
+  }
+  .details-section {
+    margin: 20px;
+  }
+  /* credit-list.component.scss */
+  
+  .credit-list-section {
+    width: 100%;
+    padding: 20px;
+  }
+  
+  .credit-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  .credit-table th, .credit-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    color: #003366;
+  }
+  
+  .credit-table th {
+    background-color: #f2f2f2;
+    text-align: left;
+  }
+  
+  .detail-value {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+    text-align: left;
+  }
+  
+  .detail-label {
+    font-weight: bold;
+    margin-right: 10px;
+   text-align: left;
+  }
+  
+  
+  .refresh-button, .add {
+    color: white;
+    background-color: #003366;
+    border: none; 
+    border-radius: 4px; 
+    padding: 8px 16px; 
+    font-size: 15px; 
+    cursor: pointer; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .validate-button {
+    background-color: green;
+    color: white;
+    padding: 6px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .start-button {
+    background-color: #003366;
+    color: white;
+    padding: 6px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .badge{
+  border-radius:30px ;
+  }
+  .badge-success {
+    background-color: green;
+    color: white;
+  }
+  
+  .badge-primary {
+    background-color: rgb(0, 47, 255);
+    color: white;
+  }
+  
+  .badge-info {
+    background-color: rgb(1, 192, 255);
+    color: white;
+  }
+  
+  .badge-warning {
+    background-color: orange;
+    color: white;
+  }
+  
+  .badge-dark {
+    background-color: black;
+    color: white;
+  }
+  
+  .badge-secondary {
+    background-color: gray;
+    color: white;
+  }
+  

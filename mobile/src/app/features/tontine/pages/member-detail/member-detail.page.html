@@ -1,0 +1,193 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+                <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>Détail du Membre</ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="showActions()">
+                <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <!-- Loading State -->
+    <div *ngIf="vm.loading" class="loading-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Chargement...</p>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!vm.loading && vm.member" class="content-wrapper">
+
+        <!-- Member Header Card - Centered Modern Design -->
+        <div class="member-header-card">
+            <div class="member-avatar">
+                <span>{{getClientDisplayName().substring(0, 2).toUpperCase()}}</span>
+            </div>
+
+            <ion-badge [color]="getStatusColor(vm.member.deliveryStatus)" class="status-badge">
+                {{getStatusLabel(vm.member.deliveryStatus)}}
+            </ion-badge>
+
+            <h1 class="member-name">{{getClientDisplayName()}}</h1>
+
+            <div class="member-meta">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <span>Membre depuis le {{formatDate(vm.member.registrationDate)}}</span>
+            </div>
+        </div>
+
+        <!-- Tontine Information Card -->
+        <div class="info-card">
+            <div class="card-header">
+                <ion-icon name="wallet-outline"></ion-icon>
+                <h2>Informations Tontine</h2>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="label">Fréquence</span>
+                    <span class="value">{{getFrequencyLabel(vm.member.frequency)}}</span>
+                </div>
+
+                <div class="info-item">
+                    <span class="label">Montant par échéance</span>
+                    <span class="value highlight">{{formatCurrency(vm.member.amount)}}</span>
+                </div>
+
+                <div class="info-item">
+                    <span class="label">Total cotisé</span>
+                    <span class="value success">{{formatCurrency(vm.totalCollected)}}</span>
+                </div>
+
+                <div class="info-item">
+                    <span class="label">Contribution attendue</span>
+                    <span class="value">{{formatCurrency(vm.member.totalContribution)}}</span>
+                </div>
+            </div>
+
+            <div *ngIf="vm.member.notes" class="notes-section">
+                <div class="notes-header">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                    <span>Notes</span>
+                </div>
+                <p class="notes-content">{{vm.member.notes}}</p>
+            </div>
+        </div>
+
+        <!-- Client Information Card -->
+        <div class="info-card">
+            <div class="card-header">
+                <ion-icon name="person-outline"></ion-icon>
+                <h2>Informations Client</h2>
+            </div>
+
+            <div class="client-details" *ngIf="vm.client">
+                <div class="detail-row" *ngIf="vm.client.phone">
+                    <ion-icon name="call-outline"></ion-icon>
+                    <div class="detail-content">
+                        <span class="detail-label">Téléphone</span>
+                        <span class="detail-value">{{vm.client.phone}}</span>
+                    </div>
+                </div>
+
+                <div class="detail-row" *ngIf="vm.client.address">
+                    <ion-icon name="location-outline"></ion-icon>
+                    <div class="detail-content">
+                        <span class="detail-label">Adresse</span>
+                        <span class="detail-value">{{vm.client.address}}</span>
+                    </div>
+                </div>
+
+                <div class="detail-row" *ngIf="vm.client.quarter">
+                    <ion-icon name="map-outline"></ion-icon>
+                    <div class="detail-content">
+                        <span class="detail-label">Quartier</span>
+                        <span class="detail-value">{{vm.client.quarter}}</span>
+                    </div>
+                </div>
+
+                <div class="detail-row" *ngIf="vm.client.occupation">
+                    <ion-icon name="briefcase-outline"></ion-icon>
+                    <div class="detail-content">
+                        <span class="detail-label">Profession</span>
+                        <span class="detail-value">{{vm.client.occupation}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Information Card -->
+        <div class="info-card" *ngIf="vm.delivery">
+            <div class="card-header">
+                <ion-icon name="cube-outline"></ion-icon>
+                <h2>Livraison</h2>
+                <ion-badge [color]="getStatusColor(vm.delivery.status)" class="status-badge-small">
+                    {{getStatusLabel(vm.delivery.status)}}
+                </ion-badge>
+            </div>
+
+            <div class="delivery-meta">
+                <div class="meta-item">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <span>Demandée le {{formatDate(vm.delivery.requestDate)}}</span>
+                </div>
+                <div class="meta-item" *ngIf="vm.delivery.deliveryDate">
+                    <ion-icon name="checkmark-done-outline"></ion-icon>
+                    <span>Livrée le {{formatDate(vm.delivery.deliveryDate)}}</span>
+                </div>
+            </div>
+
+            <div class="delivery-items" *ngIf="vm.deliveryItems.length > 0">
+                <h3>Articles</h3>
+                <div class="item-row" *ngFor="let item of vm.deliveryItems">
+                    <div class="item-info">
+                        <span class="item-name">{{item.articleName}}</span>
+                        <span class="item-qty">x{{item.quantity}}</span>
+                    </div>
+                    <span class="item-price">{{formatCurrency(item.totalPrice)}}</span>
+                </div>
+                <div class="total-row">
+                    <span>Total</span>
+                    <span class="total-amount">{{formatCurrency(vm.delivery.totalAmount)}}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collections History Card -->
+        <div class="info-card">
+            <div class="card-header">
+                <ion-icon name="time-outline"></ion-icon>
+                <h2>Historique des Cotisations</h2>
+                <span class="count-badge">{{vm.collections.length}}</span>
+            </div>
+
+            <div *ngIf="vm.collections.length === 0" class="empty-state">
+                <ion-icon name="calendar-clear-outline"></ion-icon>
+                <p>Aucune cotisation enregistrée</p>
+                <ion-button size="small" fill="outline" (click)="recordCollection()">
+                    <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+                    Enregistrer une cotisation
+                </ion-button>
+            </div>
+
+            <div *ngIf="vm.collections.length > 0" class="collections-list">
+                <div *ngFor="let collection of vm.collections; let i = index" class="collection-item">
+                    <div class="collection-number">{{i + 1}}</div>
+                    <div class="collection-info">
+                        <span class="collection-date">{{formatDate(collection.collectionDate)}}</span>
+                        <span class="collection-amount">{{formatCurrency(collection.amount)}}</span>
+                    </div>
+                    <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</ion-content>

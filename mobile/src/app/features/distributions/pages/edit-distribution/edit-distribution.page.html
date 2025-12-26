@@ -1,0 +1,154 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/distributions"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Modifier Distribution</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+@if (vm$ | async; as vm) {
+  <!-- Section Sélection Client -->
+  <div class="client-section">
+    <div class="section-header">
+      <ion-icon name="person" class="section-icon"></ion-icon>
+      <span class="section-title">Client Sélectionné</span>
+    </div>
+
+    <ion-card class="client-card" [class.selected]="vm.client">
+      <ion-card-content>
+        @if (!vm.client) {
+          <div class="client-content">
+            <div class="empty-client">
+              <ion-icon name="person-outline" class="empty-icon"></ion-icon>
+              <h3>Aucun client sélectionné</h3>
+            </div>
+          </div>
+        }
+
+        @if (vm.client) {
+          <div class="client-content">
+            <div class="client-info">
+              <div class="client-avatar">
+                <!-- Add avatar logic if needed -->
+              </div>
+              <div class="client-details">
+                <h3>{{ vm.client.firstname }} {{ vm.client.lastname }}</h3>
+                <p class="address">{{ vm.client.address }}</p>
+                <p class="phone">{{ vm.client.phone }}</p>
+              </div>
+              <!-- In edit mode, we might not want to change the client -->
+            </div>
+          </div>
+        }
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Section Articles Disponibles -->
+  <div class="articles-section">
+    <div class="section-header">
+      <ion-icon name="cube" class="section-icon"></ion-icon>
+      <span class="section-title">Articles Disponibles</span>
+      <span class="articles-count">{{ vm.articles.length }} articles</span>
+    </div>
+
+    <div class="search-container">
+      <ion-searchbar 
+        placeholder="Rechercher par nom, référence..."
+        (ionInput)="onSearchInput($event)"
+        debounce="300">
+      </ion-searchbar>
+    </div>
+
+    <div class="articles-list">
+      <ion-card
+        *ngFor="let article of vm.articles"
+        class="article-card"
+        [class.selected]="(vm.quantities[article.id] || 0) > 0">
+        <ion-card-content>
+          <div class="article-content">
+            <div class="article-info">
+              <h3 class="article-name">{{ article.commercialName || article.name }}</h3>
+              <p class="article-details">{{ article.type }} • {{ article.marque }}</p>
+              <p class="stock-info">Stock disponible: {{ article.stockQuantity }} unités</p>
+              <div class="price-info">
+                <span class="unit-price">{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
+                @if ((vm.quantities[article.id] || 0) > 0) {
+                  <span class="total-price">
+                    {{ (article.creditSalePrice * vm.quantities[article.id]) | number:'1.0-0' }} FCFA
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="quantity-controls">
+              <ion-button fill="outline" size="small" (click)="updateQuantity(article, -1)" [disabled]="(vm.quantities[article.id] || 0) <= 0">
+                <ion-icon slot="icon-only" name="remove"></ion-icon>
+              </ion-button>
+
+              <ion-input type="number" [value]="vm.quantities[article.id] || 0" (ionBlur)="onQuantityChange(article, $event)" min="0" [max]="article.stockQuantity" class="quantity-input"></ion-input>
+
+              <ion-button fill="outline" size="small" (click)="updateQuantity(article, 1)" [disabled]="(vm.quantities[article.id] || 0) >= article.stockQuantity">
+                <ion-icon slot="icon-only" name="add"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+
+  <!-- Section Résumé -->
+  @if (Object.keys(vm.quantities).length > 0) {
+    <div class="summary-section">
+    <ion-card class="summary-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="receipt" class="summary-icon"></ion-icon>
+          Résumé de la Distribution
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form [formGroup]="distributionForm">
+          <div class="summary-details">
+            <div class="summary-row">
+              <span class="label">Articles sélectionnés :</span>
+              <span class="value">{{ Object.keys(vm.quantities).length }}</span>
+            </div>
+            <div class="summary-row total-row">
+              <span class="label">Montant total :</span>
+              <span class="value total-amount">{{ vm.totalAmount | number:'1.0-0' }} FCFA</span>
+            </div>
+
+            <ion-item class="advance-item">
+              <ion-label position="floating">Avance (FCFA)</ion-label>
+              <ion-input type="number" formControlName="advance" placeholder="0"></ion-input>
+            </ion-item>
+
+            @if (vm.adjustedAdvance > 0) {
+              <div class="summary-row calculated-row">
+                <span class="label">Avance ajustée :</span>
+                <span class="value adjusted-advance">{{ vm.adjustedAdvance | number:'1.0-0' }} FCFA</span>
+              </div>
+            }
+            <div class="summary-row daily-payment-row">
+              <span class="label">Mise journalière :</span>
+              <span class="value daily-payment">{{ vm.dailyPayment | number:'1.0-0' }} FCFA</span>
+            </div>
+          </div>
+        </form>
+      </ion-card-content>
+    </ion-card>
+    </div>
+  }
+
+  <!-- Bouton de Confirmation -->
+  <div class="confirm-section">
+    <ion-button expand="block" size="large" [disabled]="!vm.client || Object.keys(vm.quantities).length === 0" (click)="confirmDistribution()" class="confirm-button">
+      MODIFIER LA DISTRIBUTION
+    </ion-button>
+  </div>
+}
+</ion-content>

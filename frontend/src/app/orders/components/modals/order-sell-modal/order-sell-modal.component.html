@@ -1,0 +1,79 @@
+<div class="sell-modal">
+  <!-- En-tête -->
+  <div class="modal-header">
+    <div class="header-icon">
+      <mat-icon>monetization_on</mat-icon>
+    </div>
+    <h2 class="modal-title">Transformer en Vente</h2>
+  </div>
+
+  <!-- Contenu -->
+  <div class="modal-content">
+    <p class="modal-message">
+      Êtes-vous sûr de vouloir transformer cette commande en vente ?
+    </p>
+
+    <!-- Résumé de la commande -->
+    <div class="order-summary">
+      <div class="summary-header">
+        <h3>Résumé de la Commande #{{ data.order.id }}</h3>
+      </div>
+
+      <div class="summary-details">
+        <div class="detail-row">
+          <span class="detail-label">Client:</span>
+          <span class="detail-value">{{ getClientName(data.order) }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Date de commande:</span>
+          <span class="detail-value">{{ formatDateTime(data.order.orderDate) }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Nombre d'articles:</span>
+          <span class="detail-value">{{ (data.order.items || []).length }} type(s)</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Quantité totale:</span>
+          <span class="detail-value">{{ totalItems }} article(s)</span>
+        </div>
+        
+        <div class="detail-row total-row">
+          <span class="detail-label">Montant total:</span>
+          <span class="detail-value total-amount">{{ formatCurrency(data.order.totalAmount) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Avertissement -->
+    <div class="warning-box">
+      <mat-icon class="warning-icon">warning</mat-icon>
+      <div class="warning-text">
+        <strong>Attention :</strong> Cette action créera un crédit et ne peut pas être annulée.
+        La commande passera au statut "Vendue" définitivement.
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="modal-actions">
+    <button 
+      mat-stroked-button 
+      color="primary"
+      (click)="onCancel()"
+      class="cancel-button">
+      Annuler
+    </button>
+    
+    <button 
+      mat-raised-button 
+      color="primary"
+      (click)="onConfirm()"
+      class="confirm-button">
+      <mat-icon>monetization_on</mat-icon>
+      <span>Transformer en Vente</span>
+    </button>
+  </div>
+</div>

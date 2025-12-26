@@ -1,0 +1,54 @@
+<h2 mat-dialog-title>Ajouter un Membre à la Tontine</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Rechercher un client</mat-label>
+      <input matInput formControlName="clientSearch" placeholder="Nom ou code client...">
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Sélectionner un client *</mat-label>
+      <mat-select formControlName="clientId" required>
+        <mat-option *ngFor="let client of filteredClients" [value]="client.id">
+          {{ getClientDisplay(client) }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('clientId')?.hasError('required')">
+        Veuillez sélectionner un client
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Fréquence de cotisation</mat-label>
+      <mat-select formControlName="frequency">
+        <mat-option value="DAILY">Journalier</mat-option>
+        <mat-option value="WEEKLY">Hebdomadaire</mat-option>
+        <mat-option value="MONTHLY">Mensuel</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Montant souhaité</mat-label>
+      <input matInput type="number" formControlName="amount" placeholder="0">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Notes</mat-label>
+      <textarea matInput formControlName="notes" placeholder="Observations..."></textarea>
+    </mat-form-field>
+
+    <mat-error *ngIf="error" class="error-message">
+      {{ error }}
+    </mat-error>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="loading">Annuler</button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="loading || form.invalid">
+    <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+    <span *ngIf="!loading">Ajouter</span>
+  </button>
+</mat-dialog-actions>

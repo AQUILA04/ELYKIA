@@ -1,0 +1,128 @@
+<!-- Header moderne avec glassmorphism -->
+<ion-header class="modern-header">
+  <ion-toolbar class="glass-toolbar">
+    <ion-title class="header-title">Recouvrement REC-2024-001</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        fill="clear"
+        class="close-button"
+        (click)="dismiss()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<!-- Contenu avec design moderne -->
+<ion-content class="modern-content">
+  <div class="content-wrapper">
+    <ng-container *ngIf="recovery$ | async as recovery">
+
+      <!-- Card date et heure -->
+      <div class="info-card">
+        <div class="card-header">
+          <ion-icon name="calendar" class="header-icon"></ion-icon>
+          <span class="header-title">Date et heure</span>
+        </div>
+        <div class="card-content">
+          <div class="info-row">
+            <span class="info-value">{{ recovery.paymentDate | date:'fullDate' }} à {{ recovery.paymentDate | date:'shortTime' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card client -->
+      <div class="info-card">
+        <div class="card-header">
+          <ion-icon name="person" class="header-icon"></ion-icon>
+          <span class="header-title">Client</span>
+        </div>
+        <div class="card-content">
+          <div class="info-row">
+            <span class="info-value">{{ recovery.client?.fullName || 'Marie Kouassi' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card type de paiement -->
+      <div class="info-card">
+        <div class="card-header">
+          <ion-icon name="card" class="header-icon"></ion-icon>
+          <span class="header-title">Type de paiement</span>
+        </div>
+        <div class="card-content">
+          <div class="info-row">
+            <span class="info-value" style="color: #4CAF50;">{{ recovery.paymentMethod || 'Mise journalière' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card montant collecté -->
+      <div class="info-card">
+        <div class="card-header">
+          <ion-icon name="wallet" class="header-icon"></ion-icon>
+          <span class="header-title">Montant collecté</span>
+        </div>
+        <div class="card-content">
+          <div class="info-row">
+            <span class="info-value" style="font-size: 18px; font-weight: 700;">{{ recovery.amount | currency:'':'symbol':'1.0-0' }} FCFA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card crédit associé -->
+      <div class="info-card">
+        <div class="card-header">
+          <ion-icon name="document-text" class="header-icon"></ion-icon>
+          <span class="header-title">Crédit associé</span>
+        </div>
+        <div class="card-content">
+          <div class="info-row">
+            <span class="info-value">{{ recovery.distribution?.reference || 'CRED-2024-001' }}</span>
+          </div>
+
+          <!-- Tableau des montants -->
+          <div style="margin-top: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: #2196F3; font-weight: 600;">Total</span>
+              <span style="color: #2196F3; font-weight: 600;">Payé</span>
+              <span style="color: #e74c3c; font-weight: 600;">Restant</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 700;">
+              <span style="color: #2196F3;">{{ recovery.distribution?.totalAmount | currency:'FCFA':'symbol':'1.0-0' }}</span>
+              <span style="color: #4CAF50;">{{ recovery.distribution?.paidAmount | currency:'FCFA':'symbol':'1.0-0' }}</span>
+              <span style="color: #e74c3c;">{{ (recovery.distribution?.totalAmount || 0) - (recovery.distribution?.paidAmount || 0) | currency:'FCFA':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+
+          <!-- Barre de progression -->
+          <div class="progress-section">
+            <div class="progress-header">
+              <span class="progress-label">Progression du crédit</span>
+              <span class="progress-value">{{ ((recovery.distribution?.paidAmount || 0) / (recovery.distribution?.totalAmount || 1)) * 100 | number:'1.0-0' }}%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="((recovery.distribution?.paidAmount || 0) / (recovery.distribution?.totalAmount || 1)) * 100"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- Fallback si pas de données -->
+    <ng-container *ngIf="!(recovery$ | async)">
+      <div class="info-card">
+        <div class="card-header">
+          <ion-icon name="information-circle" class="header-icon"></ion-icon>
+          <span class="header-title">Chargement...</span>
+        </div>
+        <div class="card-content">
+          <div class="info-row">
+            <span class="info-value">Récupération des données en cours...</span>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

@@ -1,0 +1,274 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container">
+  <div class="header-fixed">
+    <div class="d-flex justify-content-center">
+      <h1>Vue commercial</h1>
+    </div>
+  </div>
+
+  <div class="commercial-details">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="detail-line">
+          <span class="detail-label">Nom du commercial:</span>
+          <span class="detail-value">{{ commercialDetails.name }}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Téléphone:</span>
+          <span class="detail-value">{{ commercialDetails.phone }}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Client total:</span>
+          <span class="detail-value">{{ commercialDetails.totalClient ?? 0 }}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Ventes total en cours:</span>
+          <span class="detail-value">{{ commercialDetails.totalInProgressCredit ?? 0 }}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Total ventes clôturées:</span>
+          <span class="detail-value">{{ commercialDetails.totalCreditClosed ?? 0 }}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Total ventes en retard:</span>
+          <span class="detail-value">{{ commercialDetails.totalCreditDelayed ?? 0 }}</span>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="detail-line">
+          <span class="detail-label">Montant total en cours:</span>
+          <span class="detail-value">{{ (commercialDetails.totalInProgressCreditAmount || 0) | currency:'XOF':'symbol':'1.0-0' }}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Montant total restant:</span>
+          <span class="detail-value">{{ (commercialDetails.totalInProgressRemainingAmount || 0) | currency:'XOF':'symbol':'1.0-0'}}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Montant total à encaisser à date:</span>
+          <span class="detail-value">{{ (commercialDetails.totalAmountDue || 0) | currency:'XOF':'symbol':'1.0-0' }}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Montant total collecté:</span>
+          <span class="detail-value">{{ (commercialDetails.totalAmountCollected || 0) | currency:'XOF':'symbol':'1.0-0' }}</span>
+        </div>
+
+        <div class="detail-line">
+          <span class="detail-label">Total des Avances Encaissées:</span>
+          <span class="detail-value">{{ commercialDetails.totalAdvance | currency:'XOF':'symbol':'1.0-0' }}</span>
+        </div>
+        <div class="detail-line">
+          <span class="detail-label">Montant Total Non Distribué:</span>
+          <span class="detail-value">{{ commercialDetails.totalNotDistributed | currency:'XOF':'symbol':'1.0-0' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs-container">
+    <mat-tab-group (selectedTabChange)="onTabChange($event)">
+      <mat-tab label="Ventes">
+        <ng-template matTabContent>
+          <div *ngIf="selectedTabIndex === 0">
+            <ng-container *ngTemplateOutlet="ventesTemplate"></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+      <mat-tab label="Historiques">
+        <ng-template matTabContent>
+          <div *ngIf="selectedTabIndex === 1">
+            <ng-container *ngTemplateOutlet="historiquesTemplate"></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+      <mat-tab label="Clients">
+        <ng-template matTabContent>
+          <div *ngIf="selectedTabIndex === 2">
+            <ng-container *ngTemplateOutlet="clientsTemplate"></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+      <mat-tab label="Sorties en attente">
+        <ng-template matTabContent>
+          <div *ngIf="selectedTabIndex === 3">
+            <ng-container *ngTemplateOutlet="sortiesTemplate"></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+      <mat-tab label="Historiques Sorties">
+        <ng-template matTabContent>
+          <div *ngIf="selectedTabIndex === 4">
+            <ng-container *ngTemplateOutlet="sortiesHistoriqueTemplate"></ng-container>
+          </div>
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>
+
+<ng-template #creditListTemplate let-credits="credits" let-title="title" let-totalElements="totalElements" let-currentPage="currentPage" let-pageSize="pageSize" let-onPageChange="onPageChange" let-refreshAction="refreshAction">
+  <div class="credits-content">
+    <div class="header-fixed">
+      <div class="d-flex justify-content-start">
+        <h2>{{ title }}</h2>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end align-items-center">
+      <mat-form-field class="search-field">
+        <input matInput [(ngModel)]="searchTerm" placeholder="Rechercher..." (keyup.enter)="search()">
+      </mat-form-field>
+      <button class="btn search-button btn-sm" (click)="search()">
+        <mat-icon>search</mat-icon>
+        <span>Rechercher</span>
+      </button>
+      <button class="btn clear-button btn-sm" (click)="searchTerm = ''; search()">
+        <mat-icon>clear</mat-icon>
+        <span>Effacer</span>
+      </button>
+      <mat-button-toggle-group name="Filter" aria-label="Filter">
+        <mat-button-toggle value="finition" (click)="loadEndingdCredit()">En Fin d'échéance</mat-button-toggle>
+        <mat-button-toggle value="retard" (click)="loadDelayedCredit()">En retard</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <button class="btn refresh-button btn-sm" (click)="refreshAction()">
+        <mat-icon>refresh</mat-icon>
+        <span>Rafraîchir</span>
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table class="article-table">
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>Référence</th>
+          <th>Client</th>
+          <th>Montant</th>
+          <th>Date de création</th>
+          <th>Statut</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let credit of credits; let i = index">
+          <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+          <td><a [routerLink]="['/credit-view', credit.id, credit.clientType]" class="table-link">{{ credit.reference }}</a></td>
+          <td><a [routerLink]="['/client-view', credit.client?.id]" class="table-link">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</a></td>
+          <td>{{ credit.totalAmount | number:'1.0-0' }} FCFA</td>
+          <td>{{ credit.beginDate | date:'dd/MM/yyyy' }}</td>
+          <td>
+              <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
+                {{ (credit.status | statusBadge).label }}
+              </span>
+          </td>
+        </tr>
+        <tr *ngIf="!credits || credits.length === 0">
+          <td colspan="6" class="no-data-cell">Aucune donnée à afficher.</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPageChange($event)"></mat-paginator>
+  </div>
+</ng-template>
+
+<ng-template #ventesTemplate>
+  <ng-container *ngTemplateOutlet="creditListTemplate; context: {
+    credits: credits,
+    title: 'Ventes du commercial',
+    totalElements: totalCreditElements,
+    currentPage: currentCreditPage,
+    pageSize: creditPageSize,
+    onPageChange: onCreditPageChange.bind(this),
+    refreshAction: refreshVentes.bind(this)
+  }"></ng-container>
+</ng-template>
+
+<ng-template #historiquesTemplate>
+  <ng-container *ngTemplateOutlet="creditListTemplate; context: {
+    credits: historiques,
+    title: 'Historique des ventes',
+    totalElements: totalHistoriqueElements,
+    currentPage: currentHistoriquePage,
+    pageSize: historiquePageSize,
+    onPageChange: onHistoriquePageChange.bind(this),
+    refreshAction: refreshHistoriques.bind(this)
+  }"></ng-container>
+</ng-template>
+
+<ng-template #clientsTemplate>
+  <div class="clients-content">
+    <div class="header-fixed">
+      <div class="d-flex justify-content-start">
+        <h2>Clients gérés</h2>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end align-items-center">
+      <mat-form-field class="search-field">
+        <input matInput [(ngModel)]="searchTerm" placeholder="Rechercher..." (keyup.enter)="search()">
+      </mat-form-field>
+      <button class="btn search-button btn-sm" (click)="search()">
+        <mat-icon>search</mat-icon>
+        <span>Rechercher</span>
+      </button>
+      <button class="btn clear-button btn-sm" (click)="searchTerm = ''; search()">
+        <mat-icon>clear</mat-icon>
+        <span>Effacer</span>
+      </button>
+      <button class="btn refresh-button btn-sm" (click)="refreshClients()">
+        <mat-icon>refresh</mat-icon>
+        <span>Rafraîchir</span>
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table class="article-table">
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>Localité</th>
+          <th>Numéro de téléphone</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let client of clients; let i = index">
+          <td>{{ (currentClientPage * clientPageSize) + (i + 1) }}</td>
+          <td>{{ client.lastname }}</td>
+          <td>{{ client.firstname }}</td>
+          <td>{{ client.address }}</td>
+          <td>{{ client.phone }}</td>
+        </tr>
+        <tr *ngIf="!clients || clients.length === 0">
+          <td colspan="5" class="no-data-cell">Aucun client à afficher.</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <mat-paginator [length]="totalClientElements" [pageSize]="clientPageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onClientPageChange($event)"></mat-paginator>
+  </div>
+</ng-template>
+
+<ng-template #sortiesTemplate>
+  <ng-container *ngTemplateOutlet="creditListTemplate; context: {
+    credits: sorties,
+    title: 'Sorties en attente du commercial',
+    totalElements: totalSortieElements,
+    currentPage: currentSortiePage,
+    pageSize: sortiePageSize,
+    onPageChange: onSortiePageChange.bind(this),
+    refreshAction: refreshSorties.bind(this)
+  }"></ng-container>
+</ng-template>
+
+<ng-template #sortiesHistoriqueTemplate>
+  <ng-container *ngTemplateOutlet="creditListTemplate; context: {
+    credits: sortiesHistorique,
+    title: 'Historique des sorties du commercial',
+    totalElements: totalSortieHistoriqueElements,
+    currentPage: currentSortieHistoriquePage,
+    pageSize: sortieHistoriquePageSize,
+    onPageChange: onSortieHistoriquePageChange.bind(this),
+    refreshAction: refreshSortiesHistorique.bind(this)
+  }"></ng-container>
+</ng-template>

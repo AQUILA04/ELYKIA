@@ -1,0 +1,372 @@
+.rapport-container {
+  --background: #F5F5F5;
+  padding-bottom: 80px;
+}
+
+.rapport-header {
+  height: 100px;
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.back-button,
+.print-button {
+  --background: rgba(255, 255, 255, 0.2);
+  --color: white;
+  --border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:hover {
+    --background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 500;
+  flex: 1;
+  text-align: center;
+  color: white;
+}
+
+.rapport-date {
+  font-size: 14px;
+  text-align: center;
+  opacity: 0.9;
+  color: white;
+}
+
+.rapport-content {
+  padding: 16px;
+  background: #F5F5F5;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.new-clients-card .card-icon {
+  background: rgba(156, 39, 176, 0.1);
+  color: #9C27B0;
+}
+
+.new-clients-card .card-amount {
+  color: #9C27B0;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin: 0 auto 12px;
+
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+.distribution-card .card-icon {
+  background: rgba(25, 118, 210, 0.1);
+  color: #1976D2;
+}
+
+.recovery-card .card-icon {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
+}
+
+.card-number {
+  font-size: 14px;
+  color: #757575;
+  margin-bottom: 2px;
+}
+
+.card-amount {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.distribution-card .card-amount {
+  color: #1976D2;
+}
+
+.recovery-card .card-amount {
+  color: #4CAF50;
+}
+
+.card-label {
+  font-size: 12px;
+  color: #757575;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.details-section {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tabs-container {
+  display: flex;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #E0E0E0;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #757575;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  position: relative;
+
+  &.active {
+    color: #2196F3;
+    border-bottom-color: #2196F3;
+    font-weight: 500;
+  }
+
+  &:hover {
+    background: rgba(33, 150, 243, 0.05);
+  }
+}
+
+.tab-content {
+  display: none;
+
+  &.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: #2196F3;
+    background: rgba(33, 150, 243, 0.05);
+  }
+}
+
+.transaction-time {
+  font-size: 12px;
+  color: #757575;
+  font-weight: 500;
+  min-width: 50px;
+  margin-right: 12px;
+}
+
+.transaction-info {
+  flex: 1;
+}
+
+.transaction-client {
+  font-size: 16px;
+  font-weight: 500;
+  color: #212121;
+  margin-bottom: 2px;
+}
+
+.transaction-details {
+  font-size: 14px;
+  color: #757575;
+}
+
+.transaction-amount {
+  font-size: 16px;
+  font-weight: bold;
+  text-align: right;
+}
+
+.amount-distribution {
+  color: #1976D2;
+}
+
+.amount-recovery {
+  color: #4CAF50;
+}
+
+.amount-new-client {
+  color: #9C27B0;
+}
+
+.print-report-button {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  --background: #2196F3;
+  --color: white;
+  --border-radius: 0;
+  height: 60px;
+  font-size: 16px;
+  font-weight: bold;
+  z-index: 1000;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:hover {
+    --background: #1976D2;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #757575;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+
+  ion-icon {
+    font-size: 48px;
+  }
+}
+
+.empty-title {
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: #212121;
+}
+
+.empty-message {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.total-card-container {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.total-to-pay-card {
+  background: linear-gradient(135deg, #4CAF50, #388E3C);
+  color: white;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+
+  .total-label {
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.9;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .total-amount {
+    font-size: 28px;
+    font-weight: bold;
+  }
+}
+
+.advance-card .card-icon {
+  background: rgba(0, 121, 107, 0.1); // Teal darken-2
+  color: #00796b; // Teal darken-2
+}
+
+.advance-card .card-amount {
+  color: #00796b; // Teal darken-2
+}
+
+.tontine-card .card-icon {
+  background: rgba(255, 152, 0, 0.1); // Orange
+  color: #FF9800; // Orange
+}
+
+.tontine-card .card-amount {
+  color: #FF9800; // Orange
+}
+
+// Styles pour le virtual scrolling
+.transaction-list-viewport {
+  height: 400px; // Hauteur fixe pour le virtual scrolling
+  width: 100%;
+
+  .cdk-virtual-scroll-content-wrapper {
+    width: 100%;
+  }
+}
+
+// Optimisation pour les listes longues
+.tab-content {
+  max-height: 500px;
+  overflow: hidden;
+
+  &.active {
+    overflow: visible;
+  }
+}

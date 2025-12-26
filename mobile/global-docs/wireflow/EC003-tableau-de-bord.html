@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC003 - Tableau de Bord | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Styles spécifiques au tableau de bord */
+        .dashboard-container {
+            padding-bottom: 72px; /* Espace pour la navigation inférieure */
+        }
+
+        .dashboard-header {
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            color: var(--text-on-primary);
+            padding: var(--margin-external);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--surface-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--primary-color);
+            margin-right: var(--margin-internal);
+            border: 2px solid var(--surface-color);
+        }
+
+        .user-details h3 {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .user-status {
+            font-size: var(--font-size-caption);
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-color);
+            margin-right: 4px;
+            animation: pulse 2s infinite;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--margin-internal);
+        }
+
+        .sync-button {
+            position: relative;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sync-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .sync-button.syncing {
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 16px;
+            height: 16px;
+            background: var(--error-color);
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Section KPIs */
+        .kpis-section {
+            padding: var(--margin-external);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--margin-internal);
+        }
+
+        .kpi-card {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            box-shadow: 0 var(--card-elevation) 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: var(--margin-internal);
+        }
+
+        .kpi-sales .kpi-icon {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .kpi-recovery .kpi-icon {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .kpi-content h4 {
+            font-size: var(--font-size-h2);
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 2px;
+        }
+
+        .kpi-content p {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Section Graphiques */
+        .charts-section {
+            padding: 0 var(--margin-external) var(--margin-external);
+        }
+
+        .chart-card {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            box-shadow: 0 var(--card-elevation) 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-size: var(--font-size-body);
+            color: var(--primary-color);
+            font-weight: 500;
+            margin-bottom: var(--margin-external);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chart-container {
+            height: 200px;
+            position: relative;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: var(--margin-external);
+            margin-top: var(--margin-internal);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: var(--font-size-caption);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        .legend-sales { background: var(--primary-color); }
+        .legend-recovery { background: var(--success-color); }
+
+        /* Section Actions Rapides */
+        .quick-actions-section {
+            padding: 0 var(--margin-external) var(--margin-external);
+        }
+
+        .section-title {
+            font-size: var(--font-size-h3);
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: var(--margin-external);
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--margin-internal);
+        }
+
+        .action-card {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 var(--card-elevation) 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-distribution {
+            border-color: var(--primary-color);
+        }
+
+        .action-distribution:hover {
+            background: rgba(25, 118, 210, 0.05);
+        }
+
+        .action-recovery {
+            border-color: var(--success-color);
+        }
+
+        .action-recovery:hover {
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .action-client {
+            border-color: var(--secondary-color);
+        }
+
+        .action-client:hover {
+            background: rgba(255, 152, 0, 0.05);
+        }
+
+        .action-report {
+            border-color: var(--info-color);
+        }
+
+        .action-report:hover {
+            background: rgba(33, 150, 243, 0.05);
+        }
+
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 auto var(--margin-internal);
+        }
+
+        .action-distribution .action-icon {
+            background: rgba(25, 118, 210, 0.1);
+            color: var(--primary-color);
+        }
+
+        .action-recovery .action-icon {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .action-client .action-icon {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .action-report .action-icon {
+            background: rgba(33, 150, 243, 0.1);
+            color: var(--info-color);
+        }
+
+        .action-text {
+            font-size: var(--font-size-secondary);
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Navigation inférieure */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            height: 56px;
+            background: var(--surface-color);
+            border-top: 1px solid #E0E0E0;
+            display: flex;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .nav-item-icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .nav-item-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="dashboard-container">
+            <!-- Header avec informations utilisateur -->
+            <div class="dashboard-header">
+                <div class="user-info">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-details">
+                        <h3 id="userName">Jean Dupont</h3>
+                        <div class="user-status">
+                            <div class="status-dot"></div>
+                            <span id="userStatus">En ligne</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="sync-button" id="syncButton" onclick="performSync()">
+                        🔄
+                        <div class="notification-badge" id="syncBadge">3</div>
+                    </button>
+                    <button class="sync-button" onclick="showMenu()">
+                        ☰
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section KPIs -->
+            <div class="kpis-section">
+                <div class="kpi-card kpi-sales">
+                    <div class="kpi-icon">💰</div>
+                    <div class="kpi-content">
+                        <h4 id="salesAmount">125,000</h4>
+                        <p>Ventes du mois (FCFA)</p>
+                    </div>
+                </div>
+                <div class="kpi-card kpi-recovery">
+                    <div class="kpi-icon">💵</div>
+                    <div class="kpi-content">
+                        <h4 id="recoveryAmount">98,500</h4>
+                        <p>Recouvrements du mois (FCFA)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Graphiques -->
+            <div class="charts-section">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <span>Tendances (30 derniers jours)</span>
+                        <span style="font-size: 12px; color: var(--text-secondary);">📊</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color legend-sales"></div>
+                            <span>Ventes</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color legend-recovery"></div>
+                            <span>Recouvrements</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Actions Rapides -->
+            <div class="quick-actions-section">
+                <h2 class="section-title">Actions Rapides</h2>
+                <div class="actions-grid">
+                    <a href="EC007-distribution.html" class="action-card action-distribution">
+                        <div class="action-icon">🛒</div>
+                        <div class="action-text">Nouvelle Distribution</div>
+                    </a>
+                    <a href="EC008-recouvrement.html" class="action-card action-recovery">
+                        <div class="action-icon">💸</div>
+                        <div class="action-text">Recouvrement</div>
+                    </a>
+                    <a href="EC006-nouveau-client.html" class="action-card action-client">
+                        <div class="action-icon">👥</div>
+                        <div class="action-text">Nouveau Client</div>
+                    </a>
+                    <a href="EC010-rapport-journalier.html" class="action-card action-report">
+                        <div class="action-icon">📄</div>
+                        <div class="action-text">Rapport</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation inférieure -->
+        <div class="bottom-nav">
+            <a href="EC003-tableau-de-bord.html" class="nav-item active">
+                <div class="nav-item-icon">🏠</div>
+                <div class="nav-item-label">Tableau de Bord</div>
+            </a>
+            <a href="EC004-liste-clients.html" class="nav-item">
+                <div class="nav-item-icon">👥</div>
+                <div class="nav-item-label">Clients</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-item-icon">📦</div>
+                <div class="nav-item-label">Distributions</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-item-icon">⚙️</div>
+                <div class="nav-item-label">Plus</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Données simulées pour le graphique
+        const chartData = {
+            labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+            datasets: [
+                {
+                    label: 'Ventes',
+                    data: [30000, 45000, 35000, 50000],
+                    borderColor: '#1976D2',
+                    backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Recouvrements',
+                    data: [25000, 38000, 32000, 42000],
+                    borderColor: '#4CAF50',
+                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        };
+
+        // Configuration du graphique
+        const chartConfig = {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' F';
+                            }
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        radius: 4,
+                        hoverRadius: 6
+                    }
+                }
+            }
+        };
+
+        // Initialisation du graphique
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+            new Chart(ctx, chartConfig);
+            
+            // Charger les données utilisateur
+            loadUserData();
+            
+            // Animer les KPIs
+            animateKPIs();
+        });
+
+        // Fonction pour charger les données utilisateur
+        function loadUserData() {
+            // Simuler le chargement des données depuis le stockage local
+            const userData = {
+                name: 'Jean Dupont',
+                status: 'En ligne',
+                salesAmount: 125000,
+                recoveryAmount: 98500
+            };
+            
+            document.getElementById('userName').textContent = userData.name;
+            document.getElementById('userStatus').textContent = userData.status;
+            
+            // Animer les montants
+            animateNumber('salesAmount', userData.salesAmount);
+            animateNumber('recoveryAmount', userData.recoveryAmount);
+        }
+
+        // Fonction pour animer les nombres
+        function animateNumber(elementId, targetValue) {
+            const element = document.getElementById(elementId);
+            const startValue = 0;
+            const duration = 2000;
+            const startTime = Date.now();
+            
+            function updateNumber() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
+                
+                element.textContent = currentValue.toLocaleString();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                }
+            }
+            
+            updateNumber();
+        }
+
+        // Fonction pour animer les KPIs au chargement
+        function animateKPIs() {
+            const kpiCards = document.querySelectorAll('.kpi-card');
+            kpiCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        }
+
+        // Fonction de synchronisation
+        function performSync() {
+            const syncButton = document.getElementById('syncButton');
+            const syncBadge = document.getElementById('syncBadge');
+            
+            syncButton.classList.add('syncing');
+            syncBadge.style.display = 'none';
+            
+            // Simuler la synchronisation
+            setTimeout(() => {
+                syncButton.classList.remove('syncing');
+                
+                // Afficher une notification de succès
+                showNotification('Synchronisation terminée avec succès', 'success');
+                
+                // Mettre à jour les données
+                updateDashboardData();
+            }, 3000);
+        }
+
+        // Fonction pour mettre à jour les données du tableau de bord
+        function updateDashboardData() {
+            // Simuler de nouvelles données
+            const newSalesAmount = 127500;
+            const newRecoveryAmount = 101200;
+            
+            animateNumber('salesAmount', newSalesAmount);
+            animateNumber('recoveryAmount', newRecoveryAmount);
+        }
+
+        // Fonction pour afficher les notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.zIndex = '2000';
+            notification.style.maxWidth = '90%';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Fonction pour afficher le menu
+        function showMenu() {
+            // Simuler l'ouverture d'un menu
+            showNotification('Menu en cours de développement', 'info');
+        }
+
+        // Gestion du statut réseau
+        function updateNetworkStatus() {
+            const statusElement = document.getElementById('userStatus');
+            const statusDot = document.querySelector('.status-dot');
+            
+            if (navigator.onLine) {
+                statusElement.textContent = 'En ligne';
+                statusDot.style.background = '#4CAF50';
+            } else {
+                statusElement.textContent = 'Hors ligne';
+                statusDot.style.background = '#FF9800';
+            }
+        }
+
+        // Écouter les changements de statut réseau
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+
+        // Mise à jour périodique des données (toutes les 5 minutes)
+        setInterval(() => {
+            if (navigator.onLine) {
+                // Vérifier s'il y a de nouvelles données à synchroniser
+                const syncBadge = document.getElementById('syncBadge');
+                const pendingSync = Math.floor(Math.random() * 5);
+                
+                if (pendingSync > 0) {
+                    syncBadge.textContent = pendingSync;
+                    syncBadge.style.display = 'flex';
+                }
+            }
+        }, 300000); // 5 minutes
+
+        // Animation des cartes d'action au survol
+        document.querySelectorAll('.action-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,119 @@
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #003366;
+}
+
+.container {
+  background-color: white;
+  border-radius: 5px;
+  padding: 40px 20px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-start;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+.refresh-button, .add {
+  color: white;
+  background-color: #003366;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refresh-button mat-icon {
+  font-size: 20px;
+  margin-right: 5px;
+  color: white;
+}
+
+.article-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+
+  thead {
+    background-color: #ddd;
+    color: #003366;
+    text-align: center;
+
+    th {
+      padding: 12px;
+      text-align: center;
+    }
+  }
+
+  tbody {
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    tr:hover {
+      background-color: #ddd;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      vertical-align: middle;
+      text-align: center;
+    }
+  }
+}
+
+.header-fixed {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.table-container {
+  margin-bottom: 20px;
+}
+
+.mat-form-field {
+  margin-right: 20px;
+}
+
+.summary {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
+
+.summary p {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+}
+.align-right {
+  text-align: right;
+}
+
+
+.summary p strong {
+  margin-left: 7px;
+  margin-right: 7px;
+  color: #003366;
+}
+.surplus-color {
+  color: #28a745; // Vert
+  font-weight: bold;
+}
+
+.manquant-color {
+  color: #dc3545; // Rouge
+  font-weight: bold;
+}

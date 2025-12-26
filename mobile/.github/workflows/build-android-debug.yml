@@ -1,0 +1,207 @@
+name: Build Android Debug APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'elykia-mobile/package-lock.json'
+        
+    - name: Setup Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Clean npm cache
+      working-directory: ./elykia-mobile
+      run: npm cache clean --force
+      
+    - name: Install dependencies
+      working-directory: ./elykia-mobile
+      run: npm install --legacy-peer-deps
+      
+    - name: Install Ionic CLI
+      run: npm install -g @ionic/cli
+      
+    - name: Install Capacitor CLI
+      run: npm install -g @capacitor/cli
+      
+    - name: Build Ionic app
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Ionic Info ==="
+        ionic info
+        
+        echo "=== Checking Ionic project structure ==="
+        ls -la
+        cat package.json | grep -A 5 -B 5 "ionic" || echo "No ionic config in package.json"
+        
+        echo "=== Building Ionic app ==="
+        ionic build --prod
+        
+        echo "=== Verifying build output ==="
+        ls -la www/ || echo "www directory not found"
+      
+    - name: Add Android platform
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Current directory structure ==="
+        ls -la
+        
+        echo "=== Force clean Android platform generation ==="
+        # Supprimer complètement le dossier android s'il existe mais est incomplet
+        if [ -d "android" ]; then
+          echo "Removing existing incomplete Android platform..."
+          rm -rf android
+        fi
+        
+        echo "Adding fresh Android platform..."
+        npx cap add android
+        
+        echo "=== Verifying Android structure after add ==="
+        ls -la android/ || echo "Android directory still not found"
+        ls -la android/gradlew || echo "gradlew not found in android/"
+        
+    - name: Sync Capacitor
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Syncing Capacitor ==="
+        npx cap sync android
+        
+        echo "=== Verifying Android structure after sync ==="
+        ls -la android/
+        
+        echo "=== Checking for essential Android files ==="
+        ls -la android/gradlew || echo "gradlew missing"
+        ls -la android/build.gradle || echo "build.gradle missing"
+        ls -la android/app/build.gradle || echo "app/build.gradle missing"
+        
+        if [ ! -f "android/gradlew" ]; then
+          echo "WARNING: gradlew not found after sync, Android platform may be incomplete"
+        fi
+
+    - name: Prepare Android Configuration
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Preparing Android configuration files ==="
+        
+        # Vérifier que les fichiers source existent
+        echo "Checking source files..."
+        ls -la ../.github/workflows/android-config/ || echo "android-config directory not found"
+        
+        # Créer les dossiers nécessaires (au cas où)
+        mkdir -p android/app/src/main/res/xml
+        
+        echo "Configuration files ready for post-sync copy"
+
+    - name: Final Capacitor Sync
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Final sync after configuration ==="
+        npx cap sync android
+        
+        echo "=== Capacitor sync completed, now re-applying our configurations ==="
+        
+        # Re-copier nos fichiers APRÈS le sync qui les a écrasés
+        echo "Re-copying AndroidManifest.xml (simplified version) after sync..."
+        cp ../.github/workflows/android-config/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+        
+        echo "Re-copying config.xml after sync..."
+        cp ../.github/workflows/android-config/config.xml android/app/src/main/res/xml/config.xml
+        
+        echo "Re-copying network_security_config.xml after sync..."
+        cp ../.github/workflows/android-config/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml
+        
+        echo "Re-copying file_paths.xml after sync..."
+        cp ../.github/workflows/android-config/file_paths.xml android/app/src/main/res/xml/file_paths.xml
+        
+        echo "=== Final verification after re-copy ==="
+        echo "Checking permissions count:"
+        grep -c "uses-permission" android/app/src/main/AndroidManifest.xml || echo "No permissions found!"
+        
+        echo "Checking application tag:"
+        grep -A 5 "usesCleartextTraffic" android/app/src/main/AndroidManifest.xml || echo "No cleartext traffic config found!"
+        
+        echo "Checking package attribute:"
+        grep "package=" android/app/src/main/AndroidManifest.xml || echo "No package attribute found (this is OK)"
+        
+        echo "Checking target API:"
+        grep "targetApi" android/app/src/main/AndroidManifest.xml || echo "No targetApi found"
+        
+        echo "Files in xml directory:"
+        ls -la android/app/src/main/res/xml/
+        
+        echo "=== Complete AndroidManifest.xml content ==="
+        cat android/app/src/main/AndroidManifest.xml
+
+    - name: Grant execute permission for gradlew
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Checking Android structure ==="
+        ls -la android/ || echo "Android directory not found"
+        ls -la android/gradlew || echo "gradlew not found"
+        
+        if [ -f "android/gradlew" ]; then
+          echo "Setting gradlew permissions..."
+          chmod +x android/gradlew
+        else
+          echo "gradlew not found, trying to regenerate Android platform..."
+          echo "Removing existing android directory..."
+          rm -rf android
+          echo "Adding Android platform fresh..."
+          npx cap add android
+          echo "Syncing Android platform..."
+          npx cap sync android
+          
+          if [ -f "android/gradlew" ]; then
+            chmod +x android/gradlew
+            echo "gradlew permissions set after regeneration"
+          else
+            echo "ERROR: gradlew still not found after regeneration"
+            echo "=== Android directory contents ==="
+            ls -la android/
+            echo "=== Looking for gradle wrapper ==="
+            find android/ -name "gradlew*" -type f || echo "No gradlew files found"
+            exit 1
+          fi
+        fi
+      
+    - name: Build Android Debug APK
+      working-directory: ./elykia-mobile
+      run: |
+        echo "=== Starting Android build ==="
+        cd android
+        ls -la gradlew
+        ./gradlew assembleDebug
+      
+    - name: Upload APK as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: elykia-mobile-debug-apk
+        path: elykia-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 3
+        
+    - name: Upload APK to GitHub Packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: elykia-mobile-debug-${{ github.sha }}
+        path: elykia-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 6

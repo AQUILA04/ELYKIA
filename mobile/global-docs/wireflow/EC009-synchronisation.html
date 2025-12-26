@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC009 - Synchronisation | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .sync-container {
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sync-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"><animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite"/></circle><circle cx="80" cy="30" r="1.5" fill="rgba(255,255,255,0.1)"><animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite" begin="1s"/></circle><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"><animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" begin="2s"/></circle></svg>');
+        }
+
+        .sync-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: var(--spacing-sections);
+            width: 300px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            position: relative;
+            z-index: 2;
+            animation: cardPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes cardPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .sync-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: var(--text-on-primary);
+            animation: syncRotate 2s linear infinite;
+            box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3);
+        }
+
+        @keyframes syncRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .sync-title {
+            font-size: var(--font-size-h2);
+            color: var(--primary-color);
+            font-weight: bold;
+            text-align: center;
+            margin: var(--margin-internal) 0;
+        }
+
+        .sync-steps {
+            flex: 1;
+            width: 100%;
+            margin: var(--margin-external) 0;
+        }
+
+        .sync-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--margin-internal);
+            padding: var(--spacing-elements);
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: var(--margin-internal);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .step-pending {
+            background: rgba(117, 117, 117, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .step-pending .step-icon {
+            background: #E0E0E0;
+            color: var(--text-secondary);
+        }
+
+        .step-active {
+            background: rgba(25, 118, 210, 0.1);
+            color: var(--primary-color);
+            animation: stepPulse 1s ease-in-out infinite;
+        }
+
+        .step-active .step-icon {
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+            animation: rotate 1s linear infinite;
+        }
+
+        .step-completed {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .step-completed .step-icon {
+            background: var(--success-color);
+            color: var(--text-on-primary);
+        }
+
+        .step-error {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error-color);
+        }
+
+        .step-error .step-icon {
+            background: var(--error-color);
+            color: var(--text-on-primary);
+        }
+
+        @keyframes stepPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .step-text {
+            font-size: var(--font-size-secondary);
+            font-weight: 500;
+        }
+
+        .progress-section {
+            width: 100%;
+            margin-bottom: var(--margin-external);
+        }
+
+        .progress-bar-sync {
+            width: 100%;
+            height: 8px;
+            background: #E0E0E0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: var(--spacing-elements);
+        }
+
+        .progress-fill-sync {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-variant));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill-sync::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-image: linear-gradient(
+                -45deg,
+                rgba(255, 255, 255, 0.2) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.2) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 20px 20px;
+            animation: progressStripes 1s linear infinite;
+        }
+
+        @keyframes progressStripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 0; }
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+        }
+
+        .progress-percentage {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .cancel-button {
+            background: transparent;
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+            border-radius: var(--border-radius);
+            padding: 8px 16px;
+            font-size: var(--font-size-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cancel-button:hover {
+            background: var(--error-color);
+            color: var(--text-on-primary);
+        }
+
+        .success-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--success-color);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            z-index: 3;
+            animation: successPop 0.8s ease-out;
+        }
+
+        @keyframes successPop {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="sync-container">
+            <div class="sync-card">
+                <div class="sync-icon" id="syncIcon">🔄</div>
+                
+                <div class="sync-title">Synchronisation en cours</div>
+                
+                <div class="sync-steps">
+                    <div class="sync-step step-pending" id="step1">
+                        <div class="step-icon">1</div>
+                        <div class="step-text">Connexion au serveur</div>
+                    </div>
+                    <div class="sync-step step-pending" id="step2">
+                        <div class="step-icon">2</div>
+                        <div class="step-text">Envoi des distributions</div>
+                    </div>
+                    <div class="sync-step step-pending" id="step3">
+                        <div class="step-icon">3</div>
+                        <div class="step-text">Envoi des recouvrements</div>
+                    </div>
+                    <div class="sync-step step-pending" id="step4">
+                        <div class="step-icon">4</div>
+                        <div class="step-text">Envoi des nouveaux clients</div>
+                    </div>
+                    <div class="sync-step step-pending" id="step5">
+                        <div class="step-icon">5</div>
+                        <div class="step-text">Mise à jour des données</div>
+                    </div>
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-bar-sync">
+                        <div class="progress-fill-sync" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Progression</span>
+                        <span class="progress-percentage" id="progressPercentage">0%</span>
+                    </div>
+                </div>
+                
+                <button class="cancel-button" id="cancelButton" onclick="cancelSync()">
+                    ANNULER
+                </button>
+            </div>
+
+            <div class="success-animation" id="successAnimation">
+                ✓
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const syncSteps = [
+            { id: 'step1', text: 'Connexion au serveur', duration: 2000 },
+            { id: 'step2', text: 'Envoi des distributions', duration: 3000 },
+            { id: 'step3', text: 'Envoi des recouvrements', duration: 2500 },
+            { id: 'step4', text: 'Envoi des nouveaux clients', duration: 2000 },
+            { id: 'step5', text: 'Mise à jour des données', duration: 1500 }
+        ];
+
+        let currentStepIndex = 0;
+        let syncCancelled = false;
+
+        // Démarrer la synchronisation
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(startSync, 1000);
+        });
+
+        function startSync() {
+            executeStep(0);
+        }
+
+        function executeStep(stepIndex) {
+            if (syncCancelled || stepIndex >= syncSteps.length) {
+                if (!syncCancelled) {
+                    completeSync();
+                }
+                return;
+            }
+
+            const step = syncSteps[stepIndex];
+            const stepElement = document.getElementById(step.id);
+            
+            // Marquer l'étape comme active
+            stepElement.classList.remove('step-pending');
+            stepElement.classList.add('step-active');
+            
+            // Mettre à jour la progression
+            const progress = ((stepIndex + 1) / syncSteps.length) * 100;
+            updateProgress(progress);
+            
+            // Simuler le traitement de l'étape
+            setTimeout(() => {
+                if (!syncCancelled) {
+                    // Marquer l'étape comme terminée
+                    stepElement.classList.remove('step-active');
+                    stepElement.classList.add('step-completed');
+                    stepElement.querySelector('.step-icon').textContent = '✓';
+                    
+                    // Passer à l'étape suivante
+                    executeStep(stepIndex + 1);
+                }
+            }, step.duration);
+        }
+
+        function updateProgress(percentage) {
+            const progressFill = document.getElementById('progressFill');
+            const progressPercentage = document.getElementById('progressPercentage');
+            
+            progressFill.style.width = percentage + '%';
+            progressPercentage.textContent = Math.round(percentage) + '%';
+        }
+
+        function completeSync() {
+            const syncIcon = document.getElementById('syncIcon');
+            const successAnimation = document.getElementById('successAnimation');
+            const cancelButton = document.getElementById('cancelButton');
+            
+            // Arrêter l'animation de rotation
+            syncIcon.style.animation = 'none';
+            syncIcon.textContent = '✓';
+            syncIcon.style.background = var(--success-color);
+            
+            // Masquer le bouton d'annulation
+            cancelButton.style.display = 'none';
+            
+            // Afficher l'animation de succès
+            setTimeout(() => {
+                successAnimation.style.display = 'flex';
+                
+                // Redirection après 2 secondes
+                setTimeout(() => {
+                    window.location.href = 'EC003-tableau-de-bord.html';
+                }, 2000);
+            }, 500);
+        }
+
+        function cancelSync() {
+            if (confirm('Êtes-vous sûr de vouloir annuler la synchronisation ?')) {
+                syncCancelled = true;
+                
+                // Marquer l'étape actuelle comme erreur
+                const activeStep = document.querySelector('.step-active');
+                if (activeStep) {
+                    activeStep.classList.remove('step-active');
+                    activeStep.classList.add('step-error');
+                    activeStep.querySelector('.step-icon').textContent = '✗';
+                }
+                
+                // Arrêter l'animation
+                const syncIcon = document.getElementById('syncIcon');
+                syncIcon.style.animation = 'none';
+                syncIcon.textContent = '✗';
+                syncIcon.style.background = var(--error-color);
+                
+                // Changer le bouton
+                const cancelButton = document.getElementById('cancelButton');
+                cancelButton.textContent = 'RETOUR';
+                cancelButton.onclick = () => window.history.back();
+                
+                showNotification('Synchronisation annulée', 'error');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.zIndex = '2000';
+            notification.style.maxWidth = '90%';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+

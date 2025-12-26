@@ -1,0 +1,37 @@
+<div class="container">
+    <h2>Gestion des Billets et Pièces</h2>
+  
+    <div class="content">
+      <!-- Billets Section -->
+      <div class="billets">
+        <div class="billet" *ngFor="let billet of billets">
+          <img [src]="'assets/images/money/billets/' + billet + '.jpg'" alt="{{ billet }} bill" class="billet-img">
+          <input 
+            type="number" 
+            [attr.data-value]="getBilletValue(billet)" 
+            [(ngModel)]="ticketingData[billet]" 
+            (ngModelChange)="updateTotal(getBilletValue(billet), $event)" 
+            placeholder="Quantité">
+        </div>
+      </div>
+  
+      <!-- Pièces Section -->
+      <div class="pieces">
+        <div class="piece" *ngFor="let piece of pieces">
+          <img [src]="'assets/images/money/pieces/' + piece + '.jpeg'" alt="{{ piece }}" class="piece-img">
+          <input 
+            type="number" 
+            [attr.data-value]="getPieceValue(piece)" 
+            [(ngModel)]="ticketingData[piece]" 
+            (ngModelChange)="updateTotal(getPieceValue(piece), $event)" 
+            placeholder="Quantité">
+        </div>
+      </div>
+    </div>
+    
+    <p>Total: {{ totalAmount }}</p>
+    <div class="button-container">
+        <button mat-raised-button color="primary" (click)="submitBilletage()">Suivant</button>
+    </div>
+
+  </div>

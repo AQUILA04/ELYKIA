@@ -1,0 +1,539 @@
+@import "@ng-select/ng-select/themes/default.theme.css";
+
+@import "~material-icons/iconfont/material-icons.css";
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  .page-wrapper {
+    display: flex;
+  }
+
+  .sidebar {
+    width: 250px; /* Ajuster la largeur selon vos besoins */
+    height: 100vh;
+    position: fixed;
+  }
+
+  .content {
+    margin-left: 250px; /* Doit correspondre à la largeur de la barre latérale */
+    padding: 20px;
+    width: calc(100% - 250px); /* Réduire la largeur de la barre latérale */
+  }
+
+  .table-container {
+    margin-top: 20px;
+  }
+
+  .add-button {
+    display: block;
+    margin-left: auto;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #45a049;
+    }
+  }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+input.ng-invalid {
+    border-color: #f44336; /* Rouge */
+  }
+
+
+  .error-text {
+    color: #f44336; /* Rouge */
+    font-size: 0.875rem;
+  }
+.details-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #003366;
+    position: -webkit-sticky; /* For Safari */
+    position: sticky;
+    top: 0;
+    background-color: white;
+    padding: 10px;
+    z-index: 10;
+  }
+
+  .details-content {
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+  }
+
+  .details-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+
+    .details-label {
+      font-weight: bold;
+      color: #003366;
+      flex: 2;
+      text-align:start;
+      margin-right: 30px;
+
+      &::after {
+        content: ":";
+        align-items: center;
+        margin-left: 120px;
+
+      }
+    }
+    .required{
+      color: red;
+      margin-left: 0.25em;
+    }
+
+    .details-value {
+      flex: 2;
+      color: #333;
+      text-align: left auto;
+      margin-left: 10px;
+    }
+  }
+}
+.form-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.link-back, .link-edit {
+  color: #003366;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  // font-weight: bold;
+
+}
+
+.link-back i, .link-edit i {
+  margin-right: 5px;
+}
+
+.link-back:hover, .link-edit:hover {
+  text-decoration: underline;
+}
+
+.badge {
+  padding: 0.5em 0.75em;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  display: inline-block;
+}
+
+.badge-success {
+  background-color: #0c4e1b;
+  color: white;
+}
+
+.badge-primary {
+  background-color: #003366;
+  color: white;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.validate, .start {
+  color: white;
+  background-color: #003366; /* Même couleur de fond que les autres boutons */
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 20px;
+    margin-right: 5px;
+    color: white;
+  }
+}
+.header-fixed {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  top: 0;
+  background-color: #fff; /* Couleur de fond pour s'assurer que le texte reste lisible */
+  z-index: 1000; /* Assure que l'en-tête reste au-dessus du contenu défilant */
+  padding: 10px;
+
+}
+
+// Styles pour le modal de déconnexion personnalisé
+.custom-swal-popup {
+  border-radius: 15px !important;
+  padding: 25px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+.custom-swal-title {
+  font-size: 24px !important; // La taille est déjà dans le HTML, mais peut être ajustée ici aussi
+  font-weight: 600 !important;
+  color: #2c3e50 !important; // Une couleur de titre plus foncée et moderne
+  margin-bottom: 10px !important;
+}
+
+.custom-swal-html-container {
+  font-size: 16px !important;
+  color: #555e68 !important; // Couleur de texte plus douce
+  margin-top: 0 !important;
+  margin-bottom: 25px !important;
+}
+
+// Style de base pour les boutons (si vous n'utilisez pas Bootstrap ou similaire)
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  margin: 0 5px; // Ajoute un peu d'espace entre les boutons
+}
+
+.custom-swal-confirm-button {
+  background-color: #3498db !important; // Bleu moderne
+  color: white !important;
+  border: 1px solid #3498db !important;
+
+  &:hover {
+    background-color: #2980b9 !important;
+    border-color: #2980b9 !important;
+  }
+}
+
+.custom-swal-cancel-button {
+  background-color: #e8e8e8 !important; // Gris clair pour annuler
+  color: #333 !important;
+  border: 1px solid #d4d4d4 !important;
+
+  &:hover {
+    background-color: #d4d4d4 !important;
+  }
+}
+
+// Ajustement pour l'icône si vous utilisez une icône standard
+.swal2-icon.swal2-question {
+  border-color: #3498db !important;
+  color: #3498db !important;
+}
+
+.swal2-icon.swal2-warning {
+  border-color: #f1c40f !important;
+  color: #f1c40f !important;
+}
+
+// Si vous utilisez une image personnalisée, vous pouvez styler le conteneur de l'image
+.swal2-image {
+  margin: 20px auto !important;
+  // Ajoutez d'autres styles si nécessaire
+}
+
+
+// Elykia Modern Modal Styles
+.elykia-modal-container {
+  .elykia-modal-popup {
+    border-radius: 15px; // Rounded corners for the modal
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+
+    .elykia-modal-title {
+      font-size: 1.5em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .elykia-modal-html-container {
+      font-size: 1em;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    // General button styling (can be overridden by specific types)
+    .elykia-modal-confirm-button,
+    .elykia-modal-cancel-button {
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 1em;
+      font-weight: 500;
+      margin: 0 5px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+      }
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    // Specific button styles
+    .elykia-button-primary {
+      background-color: #007bff; // Example primary blue
+      color: white;
+      &:hover {
+        background-color: darken(#007bff, 10%);
+      }
+    }
+
+    .elykia-button-secondary {
+      background-color: #6c757d; // Example secondary gray
+      color: white;
+      &:hover {
+        background-color: darken(#6c757d, 10%);
+      }
+    }
+
+    .elykia-button-success {
+      background-color: #28a745; // Green for success
+      color: white;
+      &:hover {
+        background-color: darken(#28a745, 10%);
+      }
+    }
+
+    .elykia-button-error {
+      background-color: #dc3545; // Red for error
+      color: white;
+      &:hover {
+        background-color: darken(#dc3545, 10%);
+      }
+    }
+
+    .elykia-button-warning {
+      background-color: #ffc107; // Yellow for warning
+      color: #212529; // Dark text for better contrast on yellow
+      &:hover {
+        background-color: darken(#ffc107, 10%);
+      }
+    }
+  }
+
+  // Icon styling (SweetAlert2 uses ::before for icons)
+  .elykia-success-modal {
+    .swal2-icon.swal2-success {
+      border-color: #28a745 !important;
+      .swal2-success-line-tip,
+      .swal2-success-line-long {
+        background-color: #28a745 !important;
+      }
+    }
+  }
+
+  .elykia-error-modal {
+    .swal2-icon.swal2-error {
+      border-color: #dc3545 !important;
+      .swal2-x-mark-line-left,
+      .swal2-x-mark-line-right {
+        background-color: #dc3545 !important;
+      }
+    }
+  }
+
+  .elykia-warning-modal {
+    .swal2-icon.swal2-warning {
+      border-color: #ffc107 !important;
+      color: #ffc107 !important; // For the '!' symbol
+    }
+  }
+
+  .elykia-confirmation-modal {
+    .swal2-icon.swal2-question {
+        border-color: #007bff !important;
+        color: #007bff !important;
+    }
+  }
+}
+
+// Ensure SweetAlert2 icons are styled correctly with custom classes
+.swal2-icon {
+  &.swal2-success {
+    border-color: #a5dc86;
+    .swal2-success-line-tip,
+    .swal2-success-line-long {
+      background-color: #a5dc86;
+    }
+  }
+  &.swal2-error {
+    border-color: #f27474;
+    .swal2-x-mark-line-left,
+    .swal2-x-mark-line-right {
+      background-color: #f27474;
+    }
+  }
+  &.swal2-warning {
+    border-color: #f8bb86;
+    color: #f8bb86;
+  }
+   &.swal2-question {
+    border-color: #87adbd; // Default question icon color
+    color: #87adbd;
+  }
+}
+
+// Styles pour le modal de déconnexion personnalisé (et maintenant AlertService)
+.custom-swal-popup {
+  border-radius: 15px !important;
+  padding: 25px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+.custom-swal-title {
+  font-size: 22px !important; // Harmonisé avec confirmLogout
+  font-weight: 600 !important;
+  color: #333 !important; // Harmonisé avec confirmLogout
+  margin-bottom: 10px !important;
+}
+
+.custom-swal-html-container {
+  font-size: 16px !important; // Harmonisé avec confirmLogout
+  color: #555 !important; // Harmonisé avec confirmLogout
+  margin-top: 0 !important;
+  margin-bottom: 25px !important;
+  line-height: 1.6;
+}
+
+// Style de base pour les boutons (si vous n'utilisez pas Bootstrap ou similaire)
+// Ces classes .btn peuvent déjà exister si vous utilisez un framework CSS.
+// Assurez-vous qu'elles ne créent pas de conflit ou ajustez-les.
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  margin: 0 5px; // Ajoute un peu d'espace entre les boutons
+}
+
+.custom-swal-confirm-button {
+  // Styles de base pour le bouton de confirmation, la couleur sera surchargée par .btn-primary, .btn-success, etc.
+  color: white !important;
+  border: 1px solid transparent !important; // Rendre la bordure transparente par défaut
+
+  &.btn-primary {
+    background-color: #3498db !important; // Bleu moderne (confirmLogout)
+    border-color: #3498db !important;
+    &:hover {
+      background-color: #2980b9 !important;
+      border-color: #2980b9 !important;
+    }
+  }
+
+  &.btn-success {
+    background-color: #28a745 !important; // Vert pour succès
+    border-color: #28a745 !important;
+    &:hover {
+      background-color: darken(#28a745, 10%) !important;
+      border-color: darken(#28a745, 10%) !important;
+    }
+  }
+
+  &.btn-danger {
+    background-color: #dc3545 !important; // Rouge pour erreur
+    border-color: #dc3545 !important;
+    &:hover {
+      background-color: darken(#dc3545, 10%) !important;
+      border-color: darken(#dc3545, 10%) !important;
+    }
+  }
+
+  &.btn-warning {
+    background-color: #ffc107 !important; // Jaune pour avertissement
+    border-color: #ffc107 !important;
+    color: #212529 !important; // Texte foncé pour contraste sur jaune
+    &:hover {
+      background-color: darken(#ffc107, 10%) !important;
+      border-color: darken(#ffc107, 10%) !important;
+    }
+  }
+}
+
+.custom-swal-cancel-button {
+  background-color: #e8e8e8 !important; // Gris clair pour annuler (confirmLogout)
+  color: #333 !important;
+  border: 1px solid #d4d4d4 !important;
+
+  &:hover {
+    background-color: #d4d4d4 !important;
+  }
+}
+
+// Ajustement pour les icônes SweetAlert2 pour correspondre aux couleurs des boutons
+.swal2-icon {
+  &.swal2-success {
+    border-color: #28a745 !important;
+    .swal2-success-line-tip,
+    .swal2-success-line-long {
+      background-color: #28a745 !important;
+    }
+  }
+  &.swal2-error {
+    border-color: #dc3545 !important;
+    .swal2-x-mark-line-left,
+    .swal2-x-mark-line-right {
+      background-color: #dc3545 !important;
+    }
+  }
+  &.swal2-warning {
+    border-color: #ffc107 !important;
+    color: #ffc107 !important;
+  }
+   &.swal2-question {
+    border-color: #3498db !important; // Bleu pour question (confirmLogout)
+    color: #3498db !important;
+  }
+}
+
+// Supprimer les styles .elykia-modal-* car nous utilisons .custom-swal-* maintenant
+/*
+.elykia-modal-container {
+  // ... anciens styles elykia ...
+}
+*/

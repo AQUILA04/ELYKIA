@@ -1,0 +1,168 @@
+:host {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.articles-section {
+  margin: 16px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 8px;
+
+  .section-icon {
+    font-size: 20px;
+    margin-right: 8px;
+    color: var(--ion-color-primary);
+  }
+
+  .section-title {
+    font-weight: 600;
+    font-size: 16px;
+    flex: 1;
+  }
+
+  .articles-count {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+    background: var(--ion-color-light);
+    padding: 4px 8px;
+    border-radius: 12px;
+  }
+}
+
+.search-container {
+  margin-bottom: 16px;
+}
+
+.articles-list {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+cdk-virtual-scroll-viewport {
+  flex: 1;
+  min-height: 300px;
+}
+
+.article-card {
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &.selected {
+    border: 2px solid var(--ion-color-primary);
+    box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.2);
+  }
+
+  &.low-stock {
+    border-left: 4px solid var(--ion-color-warning);
+  }
+
+  ion-card-content {
+    padding: 16px;
+  }
+}
+
+.article-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.article-info {
+  flex: 1;
+
+  .article-name {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+  }
+
+  .article-details {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: var(--ion-color-medium);
+  }
+
+  .stock-info {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    ion-icon {
+      font-size: 14px;
+    }
+  }
+
+  .price-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .unit-price {
+      font-size: 14px;
+      color: var(--ion-color-primary);
+      font-weight: 500;
+    }
+
+    .total-price {
+      font-size: 16px;
+      color: var(--ion-color-success);
+      font-weight: 600;
+    }
+  }
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+
+  ion-button {
+    --border-radius: 8px;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    height: 32px;
+    width: 32px;
+  }
+
+  .quantity-input {
+    width: 60px;
+    text-align: center;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --border-radius: 8px;
+    --background: var(--ion-color-light);
+    font-weight: 600;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .article-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .quantity-controls {
+    justify-content: center;
+    min-width: auto;
+  }
+}

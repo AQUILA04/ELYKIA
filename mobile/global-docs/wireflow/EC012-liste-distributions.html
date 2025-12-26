@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC012 - Liste des Distributions | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styles spécifiques à la liste des distributions */
+        .distributions-container {
+            padding-bottom: 80px;
+        }
+
+        .distributions-header {
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            color: var(--text-on-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--margin-external);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .header-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .header-title {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+        }
+
+        .distributions-content {
+            padding: var(--margin-external);
+            background: var(--background-color);
+        }
+
+        /* Section de recherche et filtres */
+        .search-section {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            margin-bottom: var(--margin-external);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: var(--margin-internal);
+        }
+
+        .search-input {
+            width: 100%;
+            height: var(--input-height);
+            border: 2px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            padding: 0 var(--margin-external) 0 48px;
+            font-size: var(--font-size-body);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+
+        .filters-container {
+            display: flex;
+            gap: var(--margin-internal);
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            flex: 1;
+            min-width: 120px;
+            height: 40px;
+            border: 1px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            padding: 0 var(--margin-internal);
+            font-size: var(--font-size-secondary);
+            background: var(--surface-color);
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Section statistiques */
+        .stats-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--margin-internal);
+            margin-bottom: var(--margin-external);
+        }
+
+        .stat-card {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: var(--font-size-h2);
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* Liste des distributions */
+        .distributions-list {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .list-header {
+            background: rgba(25, 118, 210, 0.05);
+            padding: var(--margin-internal) var(--margin-external);
+            border-bottom: 1px solid #E0E0E0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-title {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .list-count {
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: var(--font-size-caption);
+            font-weight: bold;
+        }
+
+        .distribution-item {
+            display: flex;
+            align-items: center;
+            padding: var(--margin-external);
+            border-bottom: 1px solid #E0E0E0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .distribution-item:last-child {
+            border-bottom: none;
+        }
+
+        .distribution-item:hover {
+            background: rgba(25, 118, 210, 0.05);
+        }
+
+        .distribution-date {
+            width: 60px;
+            text-align: center;
+            margin-right: var(--margin-internal);
+        }
+
+        .date-day {
+            font-size: var(--font-size-h3);
+            font-weight: bold;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+
+        .date-month {
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .distribution-info {
+            flex: 1;
+            margin-right: var(--margin-internal);
+        }
+
+        .distribution-reference {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .distribution-client {
+            font-size: var(--font-size-secondary);
+            color: var(--primary-color);
+            margin-bottom: 2px;
+        }
+
+        .distribution-details {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+        }
+
+        .distribution-amount {
+            text-align: right;
+        }
+
+        .amount-value {
+            font-size: var(--font-size-body);
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 2px;
+        }
+
+        .amount-status {
+            font-size: var(--font-size-caption);
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-completed {
+            background: rgba(117, 117, 117, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .status-overdue {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error-color);
+        }
+
+        /* Bouton d'action flottant */
+        .fab-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: var(--secondary-color);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .fab-button:hover {
+            background: var(--secondary-variant);
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* État vide */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-sections);
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: var(--margin-external);
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: var(--font-size-h3);
+            margin-bottom: var(--spacing-elements);
+            color: var(--text-primary);
+        }
+
+        .empty-message {
+            font-size: var(--font-size-secondary);
+            line-height: 1.5;
+            margin-bottom: var(--margin-external);
+        }
+
+        .empty-action {
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 12px 24px;
+            font-size: var(--font-size-body);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .empty-action:hover {
+            background: var(--primary-variant);
+            transform: translateY(-1px);
+        }
+
+        /* Modal de détail */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: var(--spacing-sections);
+            margin: var(--margin-external);
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--margin-external);
+            padding-bottom: var(--margin-internal);
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .modal-title {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .detail-section {
+            margin-bottom: var(--margin-external);
+        }
+
+        .detail-label {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: var(--font-size-body);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .articles-list {
+            background: rgba(25, 118, 210, 0.05);
+            border-radius: var(--border-radius);
+            padding: var(--margin-internal);
+        }
+
+        .article-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: var(--font-size-secondary);
+        }
+
+        .article-line:not(:last-child) {
+            border-bottom: 1px solid rgba(25, 118, 210, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="distributions-container">
+            <!-- Header -->
+            <div class="distributions-header">
+                <button class="header-button" onclick="goBack()">←</button>
+                <div class="header-title">Distributions</div>
+                <button class="header-button" onclick="showFilters()">🔍</button>
+            </div>
+
+            <!-- Contenu -->
+            <div class="distributions-content">
+                <!-- Section de recherche -->
+                <div class="search-section">
+                    <div class="search-container">
+                        <div class="search-icon">🔍</div>
+                        <input 
+                            type="text" 
+                            class="search-input" 
+                            placeholder="Rechercher par client, référence..."
+                            id="searchInput"
+                            oninput="filterDistributions()"
+                        >
+                    </div>
+                    
+                    <div class="filters-container">
+                        <select class="filter-select" id="statusFilter" onchange="filterDistributions()">
+                            <option value="">Tous les statuts</option>
+                            <option value="active">En cours</option>
+                            <option value="completed">Terminé</option>
+                            <option value="overdue">En retard</option>
+                        </select>
+                        
+                        <select class="filter-select" id="periodFilter" onchange="filterDistributions()">
+                            <option value="">Toutes les périodes</option>
+                            <option value="today">Aujourd'hui</option>
+                            <option value="week">Cette semaine</option>
+                            <option value="month">Ce mois</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Section statistiques -->
+                <div class="stats-section">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalDistributions">24</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="activeDistributions">12</div>
+                        <div class="stat-label">En cours</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalAmount">2.4M</div>
+                        <div class="stat-label">FCFA</div>
+                    </div>
+                </div>
+
+                <!-- Liste des distributions -->
+                <div class="distributions-list">
+                    <div class="list-header">
+                        <div class="list-title">Historique des Distributions</div>
+                        <div class="list-count" id="listCount">24</div>
+                    </div>
+                    
+                    <div id="distributionsList">
+                        <!-- Les distributions seront chargées dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton d'action flottant -->
+        <button class="fab-button" onclick="newDistribution()" title="Nouvelle Distribution">
+            ➕
+        </button>
+
+        <!-- Modal de détail -->
+        <div class="modal" id="detailModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title" id="modalTitle">Détail Distribution</div>
+                    <button class="close-modal" onclick="closeModal()">&times;</button>
+                </div>
+                <div id="modalBody">
+                    <!-- Le contenu sera chargé dynamiquement -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Données simulées des distributions
+        let distributions = [
+            {
+                id: 'DIST-2024-001',
+                date: '2024-01-17',
+                client: 'Marie Kouassi',
+                clientId: 1,
+                articles: [
+                    { name: 'Riz Parfumé', quantity: 2, price: 2500 },
+                    { name: 'Huile de Palme', quantity: 1, price: 3500 },
+                    { name: 'Sucre Blanc', quantity: 1, price: 800 }
+                ],
+                totalAmount: 9300,
+                status: 'active',
+                paymentProgress: 65,
+                dailyPayment: 310
+            },
+            {
+                id: 'DIST-2024-002',
+                date: '2024-01-17',
+                client: 'Jean Koffi',
+                clientId: 2,
+                articles: [
+                    { name: 'Lait en Poudre', quantity: 3, price: 1200 },
+                    { name: 'Savon de Marseille', quantity: 2, price: 1500 }
+                ],
+                totalAmount: 6600,
+                status: 'active',
+                paymentProgress: 40,
+                dailyPayment: 220
+            },
+            {
+                id: 'DIST-2024-003',
+                date: '2024-01-16',
+                client: 'Fatou Traoré',
+                clientId: 3,
+                articles: [
+                    { name: 'Riz Parfumé', quantity: 1, price: 2500 },
+                    { name: 'Huile de Palme', quantity: 2, price: 3500 },
+                    { name: 'Lait en Poudre', quantity: 1, price: 1200 }
+                ],
+                totalAmount: 10700,
+                status: 'active',
+                paymentProgress: 75,
+                dailyPayment: 357
+            },
+            {
+                id: 'DIST-2024-004',
+                date: '2024-01-15',
+                client: 'Amadou Bamba',
+                clientId: 4,
+                articles: [
+                    { name: 'Sucre Blanc', quantity: 5, price: 800 },
+                    { name: 'Savon de Marseille', quantity: 3, price: 1500 }
+                ],
+                totalAmount: 8500,
+                status: 'completed',
+                paymentProgress: 100,
+                dailyPayment: 0
+            },
+            {
+                id: 'DIST-2024-005',
+                date: '2024-01-14',
+                client: 'Aya Diabaté',
+                clientId: 5,
+                articles: [
+                    { name: 'Riz Parfumé', quantity: 3, price: 2500 },
+                    { name: 'Lait en Poudre', quantity: 2, price: 1200 }
+                ],
+                totalAmount: 9900,
+                status: 'overdue',
+                paymentProgress: 30,
+                dailyPayment: 330
+            }
+        ];
+
+        let filteredDistributions = [...distributions];
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDistributions();
+            updateStats();
+            animateElements();
+        });
+
+        // Charger les distributions
+        function loadDistributions() {
+            const distributionsList = document.getElementById('distributionsList');
+            distributionsList.innerHTML = '';
+            
+            if (filteredDistributions.length === 0) {
+                distributionsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <div class="empty-title">Aucune distribution trouvée</div>
+                        <div class="empty-message">
+                            Aucune distribution ne correspond à vos critères de recherche.
+                            Essayez de modifier vos filtres ou créez une nouvelle distribution.
+                        </div>
+                        <button class="empty-action" onclick="newDistribution()">
+                            Nouvelle Distribution
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredDistributions.forEach(distribution => {
+                const distributionElement = createDistributionElement(distribution);
+                distributionsList.appendChild(distributionElement);
+            });
+            
+            document.getElementById('listCount').textContent = filteredDistributions.length;
+        }
+
+        // Créer un élément distribution
+        function createDistributionElement(distribution) {
+            const div = document.createElement('div');
+            div.className = 'distribution-item';
+            div.onclick = () => showDistributionDetail(distribution);
+            
+            const date = new Date(distribution.date);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = date.toLocaleDateString('fr-FR', { month: 'short' }).toUpperCase();
+            
+            const articlesCount = distribution.articles.length;
+            const articlesText = articlesCount === 1 ? 'article' : 'articles';
+            
+            let statusClass = 'status-active';
+            let statusText = 'En cours';
+            
+            if (distribution.status === 'completed') {
+                statusClass = 'status-completed';
+                statusText = 'Terminé';
+            } else if (distribution.status === 'overdue') {
+                statusClass = 'status-overdue';
+                statusText = 'En retard';
+            }
+            
+            div.innerHTML = `
+                <div class="distribution-date">
+                    <div class="date-day">${day}</div>
+                    <div class="date-month">${month}</div>
+                </div>
+                <div class="distribution-info">
+                    <div class="distribution-reference">${distribution.id}</div>
+                    <div class="distribution-client">${distribution.client}</div>
+                    <div class="distribution-details">${articlesCount} ${articlesText} • ${distribution.paymentProgress}% payé</div>
+                </div>
+                <div class="distribution-amount">
+                    <div class="amount-value">${distribution.totalAmount.toLocaleString()} FCFA</div>
+                    <div class="amount-status ${statusClass}">${statusText}</div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Filtrer les distributions
+        function filterDistributions() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const periodFilter = document.getElementById('periodFilter').value;
+            
+            filteredDistributions = distributions.filter(distribution => {
+                // Filtre de recherche
+                const matchesSearch = !searchTerm || 
+                    distribution.client.toLowerCase().includes(searchTerm) ||
+                    distribution.id.toLowerCase().includes(searchTerm);
+                
+                // Filtre de statut
+                const matchesStatus = !statusFilter || distribution.status === statusFilter;
+                
+                // Filtre de période
+                let matchesPeriod = true;
+                if (periodFilter) {
+                    const distributionDate = new Date(distribution.date);
+                    const today = new Date();
+                    
+                    switch (periodFilter) {
+                        case 'today':
+                            matchesPeriod = distributionDate.toDateString() === today.toDateString();
+                            break;
+                        case 'week':
+                            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            matchesPeriod = distributionDate >= weekAgo;
+                            break;
+                        case 'month':
+                            const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            matchesPeriod = distributionDate >= monthAgo;
+                            break;
+                    }
+                }
+                
+                return matchesSearch && matchesStatus && matchesPeriod;
+            });
+            
+            loadDistributions();
+            updateStats();
+        }
+
+        // Mettre à jour les statistiques
+        function updateStats() {
+            const total = filteredDistributions.length;
+            const active = filteredDistributions.filter(d => d.status === 'active').length;
+            const totalAmount = filteredDistributions.reduce((sum, d) => sum + d.totalAmount, 0);
+            
+            document.getElementById('totalDistributions').textContent = total;
+            document.getElementById('activeDistributions').textContent = active;
+            document.getElementById('totalAmount').textContent = (totalAmount / 1000000).toFixed(1) + 'M';
+        }
+
+        // Afficher le détail d'une distribution
+        function showDistributionDetail(distribution) {
+            const modal = document.getElementById('detailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.textContent = `Distribution ${distribution.id}`;
+            
+            const date = new Date(distribution.date).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            let statusText = 'En cours';
+            let statusColor = 'var(--success-color)';
+            
+            if (distribution.status === 'completed') {
+                statusText = 'Terminé';
+                statusColor = 'var(--text-secondary)';
+            } else if (distribution.status === 'overdue') {
+                statusText = 'En retard';
+                statusColor = 'var(--error-color)';
+            }
+            
+            modalBody.innerHTML = `
+                <div class="detail-section">
+                    <div class="detail-label">Date de distribution</div>
+                    <div class="detail-value">${date}</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-label">Client</div>
+                    <div class="detail-value">${distribution.client}</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-label">Statut</div>
+                    <div class="detail-value" style="color: ${statusColor}">${statusText}</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-label">Progression du paiement</div>
+                    <div class="detail-value">${distribution.paymentProgress}%</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-label">Mise journalière</div>
+                    <div class="detail-value">${distribution.dailyPayment.toLocaleString()} FCFA</div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-label">Articles distribués</div>
+                    <div class="articles-list">
+                        ${distribution.articles.map(article => `
+                            <div class="article-line">
+                                <span>${article.name} (x${article.quantity})</span>
+                                <span>${(article.quantity * article.price).toLocaleString()} FCFA</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-label">Montant total</div>
+                    <div class="detail-value" style="font-size: var(--font-size-h3); color: var(--primary-color);">
+                        ${distribution.totalAmount.toLocaleString()} FCFA
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+
+        // Fermer le modal
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // Nouvelle distribution
+        function newDistribution() {
+            window.location.href = 'EC007-distribution.html';
+        }
+
+        // Afficher les filtres (pour mobile)
+        function showFilters() {
+            showNotification('Filtres avancés', 'info');
+        }
+
+        // Retour
+        function goBack() {
+            window.history.back();
+        }
+
+        // Animer les éléments au chargement
+        function animateElements() {
+            const elements = document.querySelectorAll('.stat-card, .search-section, .distributions-list');
+            elements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    element.style.transition = 'all 0.6s ease';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        }
+
+        // Fonction pour afficher les notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.zIndex = '2000';
+            notification.style.maxWidth = '90%';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Fermer le modal en cliquant à l'extérieur
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Gestion du bouton retour sur mobile
+        window.addEventListener('popstate', function(e) {
+            if (document.getElementById('detailModal').style.display === 'flex') {
+                closeModal();
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
+

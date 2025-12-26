@@ -1,0 +1,31 @@
+::ng-deep .image-preview-modal .modal-wrapper {
+  width: 90%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+ion-modal::part(backdrop) {
+  backdrop-filter: blur(10px);
+}
+
+.preview-title {
+  color: #ADD8E6; // Lighter Sky Blue
+  font-weight: 400; // Lighter font weight
+  font-size: 1.1rem;
+}
+
+.preview-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+ion-toolbar {
+  --background: transparent;
+}
+
+ion-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(5px);
+}

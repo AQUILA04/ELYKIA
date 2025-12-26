@@ -1,0 +1,368 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CreditService } from '../service/credit.service';
+import { Router } from '@angular/router';
+import { NgxPermissionsService } from 'ngx-permissions';
+import { NgxSpinnerService } from 'ngx-spinner';
+import { PageEvent } from '@angular/material/paginator';
+import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
+import { AlertService } from 'src/app/shared/service/alert.service';
+import { UserService } from 'src/app/user/service/user.service';
+import { ClientService } from 'src/app/client/service/client.service';
+import { Subscription } from 'rxjs';
+import { Collector } from '../types/credit-merge.types';
+import {CreditSearchDto} from "../components/advanced-search/advanced-search.types";
+import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
+import { ErrorHandlingMixin } from 'src/app/shared/mixins/error-handling.mixin';
+
+
+
+@Component({
+  selector: 'app-credit-list',
+  templateUrl: './credit-list.component.html',
+  styleUrls: ['./credit-list.component.scss']
+})
+export class CreditListComponent extends ErrorHandlingMixin implements OnInit {
+  credits: any[] = [];
+  // La variable filteredCredits est toujours utilisée pour l'affichage
+  filteredCredits: any[] = [];
+  searchTerm: string = '';
+  pageSize: number = 5;
+  currentPage: number = 0;
+  isLoading = true;
+  totalElement = 0;
+  showMergeModal: boolean = false;
+  collectors: Collector[] = [];
+
+  private subscriptions: Subscription[] = [];
+
+  showAdvancedSearch: boolean = false;
+  currentSearchDto: CreditSearchDto | null = null;
+
+  constructor(
+    private creditService: CreditService,
+    private router: Router,
+    private permissionsService: NgxPermissionsService,
+    private spinner: NgxSpinnerService,
+    private tokenStorage : TokenStorageService,
+    private alertService: AlertService,
+    private userService: UserService,
+    private clientService: ClientService,
+    errorHandler: ErrorHandlerService
+  ) {
+    super(errorHandler);
+    this.tokenStorage.checkConnectedUser();
+  }
+
+  ngOnInit(): void {
+    this.loadCredits();
+  }
+
+  ngOnDestroy(): void {
+    // Clean up all subscriptions
+    this.subscriptions.forEach(sub => {
+      if (sub && !sub.closed) {
+        sub.unsubscribe();
+      }
+    });
+    this.subscriptions = [];
+  }
+
+  loadCredits(): void {
+    this.spinner.show();
+    this.isLoading = true;
+
+    // Si une recherche avancée est active, l'utiliser
+    if (this.currentSearchDto) {
+      this.performAdvancedSearch(this.currentSearchDto);
+      return;
+    }
+
+    // Sinon, recherche simple
+    const sanitizedSearchTerm = this.sanitizeSearchTerm(this.searchTerm);
+
+    const subscription = this.creditService.getCredit(this.currentPage, this.pageSize, sanitizedSearchTerm).subscribe({
+      next: (response: any) => {
+        if (response.statusCode === 200) {
+          this.credits = response.data.content || [];
+          this.filteredCredits = [...this.credits];
+          this.totalElement = response.data.page.totalElements || 0;
+        } else {
+          this.alertService.showError(response.message || 'Réponse inattendue du serveur.');
+          this.credits = [];
+          this.filteredCredits = [];
+          this.totalElement = 0;
+        }
+        this.spinner.hide();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des crédits:', error);
+        const errorMessage = error?.error?.message || 'Erreur lors du chargement des crédits.';
+        this.alertService.showError(errorMessage);
+        this.credits = [];
+        this.filteredCredits = [];
+        this.totalElement = 0;
+        this.spinner.hide();
+        this.isLoading = false;
+      }
+    });
+
+    this.subscriptions.push(subscription);
+  }
+
+  // NOUVELLE MÉTHODE : Recherche avancée
+  performAdvancedSearch(searchDto: CreditSearchDto): void {
+    this.spinner.show();
+    this.isLoading = true;
+
+    const subscription = this.creditService.searchCredits(searchDto, this.currentPage, this.pageSize).subscribe({
+      next: (response: any) => {
+        if (response.statusCode === 200) {
+          this.credits = response.data.content || [];
+          this.filteredCredits = [...this.credits];
+          this.totalElement = response.data.totalElements || 0;
+        } else {
+          this.alertService.showError(response.message || 'Réponse inattendue du serveur.');
+          this.credits = [];
+          this.filteredCredits = [];
+          this.totalElement = 0;
+        }
+        this.spinner.hide();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors de la recherche:', error);
+        this.alertService.showError('Erreur lors de la recherche des crédits.');
+        this.credits = [];
+        this.filteredCredits = [];
+        this.totalElement = 0;
+        this.spinner.hide();
+        this.isLoading = false;
+      }
+    });
+
+    this.subscriptions.push(subscription);
+  }
+
+  // NOUVELLE MÉTHODE : Toggle recherche avancée
+  toggleAdvancedSearch(): void {
+    this.loadCollectors();
+    this.showAdvancedSearch = !this.showAdvancedSearch;
+    if (!this.showAdvancedSearch) {
+      // Si on ferme, réinitialiser la recherche
+      this.onSearchReset();
+    }
+  }
+
+  // NOUVELLE MÉTHODE : Handler de recherche avancée
+  onAdvancedSearch(searchDto: CreditSearchDto): void {
+    this.currentSearchDto = searchDto;
+    this.currentPage = 0;
+    this.performAdvancedSearch(searchDto);
+  }
+
+  // NOUVELLE MÉTHODE : Reset de la recherche
+  onSearchReset(): void {
+    this.currentSearchDto = null;
+    this.currentPage = 0;
+    this.loadCredits();
+  }
+
+  // NOUVELLE MÉTHODE : Fermeture de la recherche avancée
+  onCloseAdvancedSearch(): void {
+    this.showAdvancedSearch = false;
+  }
+
+
+  // MODIFIÉ : La pagination recharge les données depuis le serveur
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadCredits();
+  }
+
+  // MODIFIÉ : La recherche recharge les données depuis le serveur
+  filterCredits(): void {
+    this.currentPage = 0; // On retourne à la première page
+    this.loadCredits();
+  }
+
+  refresh(): void {
+    this.searchTerm = ''; // On vide aussi la recherche
+    this.currentPage = 0;
+    this.loadCredits();
+  }
+
+  // --- Le reste de vos méthodes (add, delete, etc.) reste identique car elles appellent déjà loadCredits() ---
+
+  addCredit(): void {
+    this.router.navigate(['/credit-add']);
+  }
+
+  viewDetails(id: number): void {
+    this.router.navigate(['/credit-details', id]);
+  }
+
+  editCredit(id: number): void {
+    this.router.navigate(['/credit-add', id]);
+  }
+
+  validateCredit(id: number): void {
+    this.alertService.showConfirmation('Confirmation de validation', 'Voulez-vous vraiment valider cette vente?', 'Valider', 'Annuler')
+    .then(result => {
+      if (result) {
+        this.creditService.validateCredit(id).subscribe(
+          () => {
+            this.alertService.showSuccess('La vente a été validée avec succès.', 'success');
+            this.loadCredits();
+          },
+          error => {
+            const errorMessage = error?.error?.message || 'Erreur lors de la validation du crédit';
+            this.alertService.showError(errorMessage, 'error');
+          }
+        );
+      }
+    });
+  }
+
+  startCredit(id: number): void {
+    this.creditService.startCredit(id).subscribe({
+      next: (response: any) => {
+        if (response.statusCode === 500) {
+          this.alertService.showError(response.message, 'Erreur');
+        } else {
+          this.alertService.showSuccess('La sortie effectuée avec succès', 'Opération réussie');
+          this.loadCredits();
+        }
+      },
+      error: (error: any) => {
+        // Utiliser le message spécifique du backend
+        this.handleError(error);
+      }
+    });
+  }
+
+  distributeCredit(id: number): void {
+    this.router.navigate(['/distribute', id]);
+  }
+
+  deleteCredit(id: number): void {
+    this.alertService.showConfirmation('Confirmation de suppression', 'Voulez-vous vraiment supprimer cette vente?', 'Supprimer', 'Annuler')
+    .then(result => {
+      if (result) {
+        this.creditService.deleteCredit(id).subscribe({
+          next: () => {
+            this.alertService.showSuccess('La vente a été supprimée avec succès.', 'Opération réussie');
+            this.loadCredits();
+          },
+          error: (error) => {
+            this.alertService.showError('Erreur lors de la suppression du crédit', 'Opération échouée!');
+            console.error(error);
+          }
+        });
+      }
+    });
+  }
+
+  getBadgeClass(remainingDaysCount: number): string {
+    if (remainingDaysCount === 0) {
+      return 'badge-danger';
+    } else if (remainingDaysCount <= 5) {
+      return 'badge-warning';
+    } else {
+      return 'badge-success';
+    }
+  }
+
+  addTontineDelivery(): void {
+    this.router.navigate(['/create-tontine']);
+  }
+
+  openMergeModal(): void {
+    console.log('Opening merge modal...');
+    this.loadCollectors();
+    this.showMergeModal = true;
+    console.log('Modal should be visible now, showMergeModal:', this.showMergeModal);
+  }
+
+  loadCollectors(): void {
+    console.log('Loading collectors...');
+    this.spinner.show();
+    const subscription = this.clientService.getAgents().subscribe({
+      next: (data: any) => {
+        this.collectors = data;
+        console.log("listes des commerciaux", this.collectors);
+        console.log("collectors length:", this.collectors?.length);
+        this.spinner.hide();
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des commerciaux', error);
+        this.alertService.showError('Erreur lors du chargement des commerciaux');
+        this.collectors = [];
+        this.spinner.hide();
+      }
+    });
+
+    this.subscriptions.push(subscription);
+  }
+
+  closeMergeModal(): void {
+    this.showMergeModal = false;
+  }
+
+  onMergeSuccess(newCreditReference: string): void {
+    // Validate the new credit reference
+    const sanitizedReference = this.sanitizeInput(newCreditReference);
+    if (!sanitizedReference) {
+      this.alertService.showError('Référence de crédit invalide reçue');
+      return;
+    }
+
+    this.alertService.showSuccess(
+      `Fusion réussie ! Nouvelle référence : ${sanitizedReference}`,
+      'Fusion des crédits'
+    );
+    this.loadCredits(); // Refresh the credit list
+    this.closeMergeModal();
+  }
+
+  // Input validation and sanitization methods
+  private sanitizeInput(input: string): string {
+    if (!input) return '';
+
+    return input
+      .trim()
+      .replace(/[<>\"'&]/g, '') // Remove HTML/script injection characters
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .substring(0, 100); // Limit length
+  }
+
+  private sanitizeSearchTerm(searchTerm: string): string {
+    if (!searchTerm) return '';
+
+    return searchTerm
+      .trim()
+      .replace(/[<>\"'&]/g, '') // Remove potentially dangerous characters
+      .substring(0, 50); // Limit search term length
+  }
+
+  private isValidCollector(user: any): boolean {
+    return user &&
+           user.username &&
+           user.firstname &&
+           user.lastname &&
+           typeof user.username === 'string' &&
+           typeof user.firstname === 'string' &&
+           typeof user.lastname === 'string' &&
+           user.username.length > 0 &&
+           user.firstname.length > 0 &&
+           user.lastname.length > 0;
+  }
+
+  // NOUVELLE MÉTHODE AJOUTÉE
+  // Cette méthode est appelée par le nouveau bouton et redirige l'utilisateur
+  // vers la page de modification, en passant l'ID du crédit dans l'URL.
+  changeDailyStake(id: number): void {
+    this.router.navigate(['/change-daily-stake', id]);
+  }
+}

@@ -1,0 +1,154 @@
+// Header moderne avec glassmorphism
+.modern-header {
+  --background: transparent;
+  
+  .glass-toolbar {
+    --background: rgba(255, 255, 255, 0.95);
+    --color: #2196F3;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(33, 150, 243, 0.1);
+    
+    .header-title {
+      color: #2196F3;
+      font-weight: 600;
+      font-size: 18px;
+    }
+    
+    .close-button {
+      --color: #666;
+      --background-hover: rgba(0, 0, 0, 0.05);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      
+      ion-icon {
+        font-size: 24px;
+      }
+    }
+  }
+}
+
+// Contenu moderne
+.modern-content {
+  --background: #f8f9fa;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.content-wrapper {
+  padding: 20px;
+}
+
+// Cards d'information
+.info-card {
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  
+  .card-header {
+    padding: 16px 20px;
+    background: rgba(33, 150, 243, 0.05);
+    border-bottom: 1px solid rgba(33, 150, 243, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    .header-icon {
+      font-size: 20px;
+      color: #2196F3;
+    }
+    
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+  }
+  
+  .card-content {
+    padding: 20px;
+  }
+}
+
+// Lignes d'information
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+  
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  
+  .info-label {
+    font-size: 14px;
+    color: #7f8c8d;
+    font-weight: 500;
+  }
+  
+  .info-value {
+    font-size: 14px;
+    color: #2c3e50;
+    font-weight: 600;
+    text-align: right;
+    max-width: 100%;
+    word-break: break-word;
+  }
+}
+
+// Barre de progression
+.progress-section {
+  margin-top: 16px;
+  
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    
+    .progress-label {
+      font-size: 14px;
+      color: #7f8c8d;
+      font-weight: 500;
+    }
+    
+    .progress-value {
+      font-size: 14px;
+      color: #2196F3;
+      font-weight: 600;
+    }
+  }
+  
+  .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #45a049);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 480px) {
+  .content-wrapper {
+    padding: 16px;
+  }
+  
+  .info-card .card-content {
+    padding: 16px;
+  }
+}

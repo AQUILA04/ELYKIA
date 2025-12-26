@@ -1,0 +1,132 @@
+<div class="dashboard-container">
+  <!-- En-tête du tableau de bord (Titre uniquement) -->
+  <div class="dashboard-header">
+    <div class="header-content"><br><br>
+      <h1 class="dashboard-title">Gestion des Commandes</h1>
+      <p class="dashboard-subtitle">Supervisez et gérez le flux de commandes entrantes</p>
+    </div>
+  </div>
+
+  <!-- Actions principales (maintenant sur leur propre ligne) -->
+  <div class="header-actions">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="createOrder()"
+      class="create-button">
+      <mat-icon>add</mat-icon>
+      <span>Créer une Commande</span>
+    </button>
+
+    <button
+      mat-stroked-button
+      color="primary"
+      (click)="viewReports()"
+      [matMenuTriggerFor]="reportsMenu"
+      class="reports-button">
+      <mat-icon>assessment</mat-icon>
+      <span>Voir les Rapports</span>
+      <mat-icon>arrow_drop_down</mat-icon>
+    </button>
+
+    <mat-menu #reportsMenu="matMenu">
+      <button mat-menu-item (click)="viewReports()">
+        <mat-icon>bar_chart</mat-icon>
+        <span>Rapport de performance</span>
+      </button>
+      <button mat-menu-item (click)="viewReports()">
+        <mat-icon>inventory</mat-icon>
+        <span>Rapport de réapprovisionnement</span>
+      </button>
+    </mat-menu>
+  </div>
+
+  <!-- Cartes KPI -->
+  <div class="kpi-section">
+    <div class="kpi-grid">
+      <app-order-kpi-card
+        *ngFor="let kpi of (kpiCards$ | async) || []; trackBy: trackByKpiTitle"
+        [title]="kpi.title || ''"
+        [value]="kpi.value"
+        [icon]="kpi.icon || 'info'"
+        [color]="kpi.color || 'primary'"
+        [subtitle]="kpi.subtitle"
+        [trend]="kpi.trend"
+        [loading]="(state$ | async)?.loading || false">
+      </app-order-kpi-card>
+    </div>
+  </div>
+
+  <!-- Navigation par onglets -->
+  <div class="tabs-section">
+    <mat-tab-group
+      [selectedIndex]="0"
+      (selectedIndexChange)="onTabChange(statusTabs[$event])"
+      class="status-tabs"
+      animationDuration="300ms">
+
+      <!-- CORRECTION : Remplacement de trackByKpiStatus par trackByTabStatus -->
+      <mat-tab
+        *ngFor="let tab of (statusTabs$ | async); trackBy: trackByTabStatus"
+        [label]="getTabLabel(tab)">
+
+        <!-- Template de l'onglet avec badge -->
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <mat-icon class="tab-icon" [style.color]="getTabColor(tab)">{{ tab.icon }}</mat-icon>
+            <span class="tab-text">{{ tab.label }}</span>
+            <mat-chip
+              *ngIf="tab.count !== undefined && tab.count > 0"
+              class="tab-badge"
+              [style.background-color]="getTabColor(tab)">
+              {{ tab.count }}
+            </mat-chip>
+          </div>
+        </ng-template>
+
+        <!-- Contenu de l'onglet -->
+        <div class="tab-content">
+          <div class="table-container">
+            <!-- Tableau des commandes -->
+            <app-order-table
+              [orders]="(filteredOrders$ | async) || []"
+              [loading]="(state$ | async)?.loading || false"
+              [selectable]="true"
+              [selectedOrderIds]="selectedOrderIds"
+              (selectionChange)="onSelectionChange($event)"
+              (actionClick)="onOrderAction($event)"
+              (rowClick)="onRowClick($event)">
+            </app-order-table>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <!-- ... (Le reste du fichier est inchangé) ... -->
+  <app-order-action-bar
+    [selectedOrders]="selectedOrders"
+    [visible]="selectedOrders.length > 0"
+    [loading]="(state$ | async)?.loading || false"
+    (bulkAction)="onBulkAction($event)"
+    (clearSelection)="onClearSelection()">
+  </app-order-action-bar>
+  <div class="global-loading" *ngIf="(state$ | async)?.loading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+  <div class="global-error" *ngIf="(state$ | async)?.error as error">
+    <mat-card class="error-card">
+      <mat-card-content>
+        <div class="error-content">
+          <mat-icon class="error-icon">error</mat-icon>
+          <div class="error-text">
+            <h3>Une erreur s'est produite</h3>
+            <p>{{ error }}</p>
+          </div>
+          <button mat-raised-button color="primary" (click)="loadInitialData()">Réessayer</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+

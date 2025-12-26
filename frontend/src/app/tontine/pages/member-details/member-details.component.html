@@ -1,0 +1,162 @@
+<div class="member-details" *ngIf="member">
+  <!-- Header -->
+  <div class="details-header">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="details-title">{{ getClientName() }}</h1>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="onRecordCollection()" *ngIf="isSessionActive">
+        <mat-icon>add</mat-icon>
+        Enregistrer une Collecte
+      </button>
+      <button mat-raised-button color="accent" (click)="onPrepareDelivery()"
+              *ngIf="currentSessionStatus === 'CLOSED' && member?.deliveryStatus === 'PENDING'">
+        <mat-icon>local_shipping</mat-icon>
+        Préparer la Livraison
+      </button>
+      <ng-container *ngxPermissionsOnly="['ROLE_REPORT', 'ROLE_ADMIN']">
+        <button mat-raised-button color="warn" (click)="onValidateDelivery()"
+                *ngIf="member?.deliveryStatus === 'PENDING'">
+          <mat-icon>check_circle</mat-icon>
+          Valider la Livraison
+        </button>
+      </ng-container>
+      <ng-container *ngxPermissionsOnly="['ROLE_MAGASINIER', 'ROLE_REPORT']">
+        <button mat-raised-button color="primary" (click)="onMarkAsDelivered()"
+                *ngIf="member?.deliveryStatus === 'VALIDATED'">
+          <mat-icon>done_all</mat-icon>
+          Marquer comme Livré
+        </button>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Member Summary -->
+  <mat-card class="summary-card">
+    <mat-card-content>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="summary-label">Code Client</span>
+          <span class="summary-value">{{ member.client.code || 'N/A' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Total Contribué</span>
+          <span class="summary-value highlight">{{ formatCurrency(member.totalContribution) }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Statut Session</span>
+          <span class="summary-value">{{ member.tontineSession?.status }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Statut de Livraison</span>
+          <mat-chip [color]="getStatusColor(member.deliveryStatus)">
+            {{ getStatusLabel(member.deliveryStatus) }}
+          </mat-chip>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Date d'Inscription</span>
+          <span class="summary-value">{{ formatDateTime(member.registrationDate) }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Delivery Section -->
+  <mat-card class="delivery-card" *ngIf="member.deliveryStatus !== 'SESSION_INPROGRESS'">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>local_shipping</mat-icon>
+        Livraison de Fin d'Année
+      </mat-card-title>
+      <mat-chip class="delivered-badge" *ngIf="member.deliveryStatus === 'DELIVERED'">
+        <mat-icon>check_circle</mat-icon>
+        LIVRÉ
+      </mat-chip>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="delivery-info">
+        <div class="info-row">
+          <span class="label">Date de livraison:</span>
+          <span class="value">{{ formatDateTime(member.delivery?.deliveryDate ?? '') }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Commercial:</span>
+          <span class="value">{{ member.delivery?.commercialUsername }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Montant total:</span>
+          <span class="value highlight">{{ formatCurrency(member.delivery?.totalAmount ?? 0) }}</span>
+        </div>
+        <div class="info-row" *ngIf="member?.delivery?.remainingBalance ?? 0 > 0">
+          <span class="label">Solde non utilisé:</span>
+          <span class="value">{{ formatCurrency(member.delivery?.remainingBalance ?? 0) }}</span>
+        </div>
+      </div>
+
+      <h4>Articles livrés</h4>
+      <table class="delivery-items-table">
+        <thead>
+          <tr>
+            <th>Article</th>
+            <th>Prix unitaire</th>
+            <th>Quantité</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of member?.delivery?.items">
+            <td>
+              <div class="article-info">
+                <span class="code">{{ item.articleCode }}</span>
+                <span class="name">{{ item.articleName }}</span>
+              </div>
+            </td>
+            <td>{{ formatCurrency(item.unitPrice) }}</td>
+            <td>{{ item.quantity }}</td>
+            <td class="total">{{ formatCurrency(item.totalPrice) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Collections History -->
+  <mat-card class="collections-card">
+    <mat-card-header>
+      <mat-card-title>Historique des Collectes</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="collections.length === 0" class="empty-state">
+        <mat-icon>receipt_long</mat-icon>
+        <p>Aucune collecte enregistrée</p>
+      </div>
+
+      <table mat-table [dataSource]="collections" *ngIf="collections.length > 0" class="collections-table">
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>Date</th>
+          <td mat-cell *matCellDef="let collection">{{ formatDateTime(collection.collectionDate) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="amount">
+          <th mat-header-cell *matHeaderCellDef>Montant</th>
+          <td mat-cell *matCellDef="let collection">
+            <span class="amount">{{ formatCurrency(collection.amount) }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="commercial">
+          <th mat-header-cell *matHeaderCellDef>Perçu par</th>
+          <td mat-cell *matCellDef="let collection">{{ collection.commercialUsername }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="['date', 'amount', 'commercial']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['date', 'amount', 'commercial'];"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<div *ngIf="loading" class="loading-container">
+  <mat-spinner></mat-spinner>
+</div>

@@ -1,0 +1,26 @@
+<div class="pdf-list-container">
+  <div class="header-fixed">
+    <div class="d-flex justify-content-center">
+      <h1>Liste des anciennes sorties d'articles</h1>
+    </div>
+  </div>
+  <table class="pdf-table">
+    <thead>
+    <tr>
+      <th>Nom du fichier</th>
+      <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let file of oldReleaseFolder">
+      <td>{{ file }}</td>
+      <td>
+        <button mat-icon-button (click)="downloadFile(file)">
+          <mat-icon>download</mat-icon>
+        </button>
+      </td>
+    </tr>
+    <tr *ngIf="oldReleaseFolder.length < 1 "> <td colspan="3">Aucune ancienne sortie d'article existante</td></tr>
+    </tbody>
+  </table>
+</div>

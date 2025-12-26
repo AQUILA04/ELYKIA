@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC007 - Distribution | Commercial App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styles spécifiques à l'écran de distribution */
+        .distribution-container {
+            padding-bottom: 80px; /* Espace pour le bouton de confirmation */
+        }
+
+        .distribution-header {
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            color: var(--text-on-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--margin-external);
+        }
+
+        .header-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .header-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .header-title {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+        }
+
+        .distribution-content {
+            padding: var(--margin-external);
+            background: var(--background-color);
+        }
+
+        /* Section sélection client */
+        .client-selection {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            margin-bottom: var(--margin-external);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 2px solid var(--primary-color);
+        }
+
+        .section-title {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-bottom: var(--margin-internal);
+            display: flex;
+            align-items: center;
+        }
+
+        .section-icon {
+            margin-right: var(--spacing-elements);
+            font-size: 20px;
+        }
+
+        .selected-client {
+            display: flex;
+            align-items: center;
+            padding: var(--margin-internal);
+            background: rgba(25, 118, 210, 0.05);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(25, 118, 210, 0.2);
+        }
+
+        .client-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-on-primary);
+            font-size: 18px;
+            font-weight: bold;
+            margin-right: var(--margin-internal);
+        }
+
+        .client-info {
+            flex: 1;
+        }
+
+        .client-name {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .client-details {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+        }
+
+        .change-client-btn {
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 8px 16px;
+            font-size: var(--font-size-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .change-client-btn:hover {
+            background: var(--primary-variant);
+            transform: translateY(-1px);
+        }
+
+        .no-client-selected {
+            text-align: center;
+            padding: var(--spacing-sections);
+            color: var(--text-secondary);
+        }
+
+        .select-client-btn {
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 12px 24px;
+            font-size: var(--font-size-body);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: var(--margin-internal);
+        }
+
+        .select-client-btn:hover {
+            background: var(--primary-variant);
+            transform: translateY(-1px);
+        }
+
+        /* Section articles disponibles */
+        .articles-section {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            margin-bottom: var(--margin-external);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .articles-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--margin-internal);
+        }
+
+        .articles-counter {
+            background: rgba(25, 118, 210, 0.1);
+            color: var(--primary-color);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: var(--font-size-caption);
+            font-weight: bold;
+        }
+
+        .article-item {
+            display: flex;
+            align-items: center;
+            padding: var(--margin-internal);
+            border: 1px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            margin-bottom: var(--margin-internal);
+            transition: all 0.3s ease;
+        }
+
+        .article-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+        }
+
+        .article-item.selected {
+            border-color: var(--primary-color);
+            background: rgba(25, 118, 210, 0.05);
+        }
+
+        .article-info {
+            flex: 1;
+            margin-right: var(--margin-internal);
+        }
+
+        .article-name {
+            font-size: var(--font-size-body);
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-bottom: 2px;
+        }
+
+        .article-details {
+            font-size: var(--font-size-secondary);
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .article-stock {
+            font-size: var(--font-size-caption);
+            color: var(--success-color);
+            font-weight: 500;
+        }
+
+        .article-pricing {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-right: var(--margin-internal);
+        }
+
+        .article-price {
+            font-size: var(--font-size-body);
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .article-subtotal {
+            font-size: var(--font-size-secondary);
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-elements);
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--primary-color);
+            background: var(--surface-color);
+            color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .quantity-btn:hover {
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+        }
+
+        .quantity-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .quantity-input {
+            width: 50px;
+            height: 32px;
+            text-align: center;
+            border: 1px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-secondary);
+            font-weight: bold;
+        }
+
+        .quantity-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Section résumé */
+        .summary-section {
+            background: rgba(25, 118, 210, 0.1);
+            border-radius: var(--border-radius);
+            padding: var(--margin-external);
+            margin-bottom: var(--margin-external);
+            border: 1px solid rgba(25, 118, 210, 0.2);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-elements);
+        }
+
+        .summary-row:last-child {
+            margin-bottom: 0;
+            padding-top: var(--spacing-elements);
+            border-top: 1px solid rgba(25, 118, 210, 0.2);
+        }
+
+        .summary-label {
+            font-size: var(--font-size-body);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: var(--font-size-body);
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .summary-total {
+            font-size: var(--font-size-h3);
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .daily-payment {
+            color: var(--secondary-color);
+        }
+
+        /* Bouton de confirmation */
+        .confirm-button {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            background: var(--secondary-color);
+            color: var(--text-on-primary);
+            border: none;
+            padding: var(--margin-external);
+            font-size: var(--font-size-body);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .confirm-button:hover {
+            background: var(--secondary-variant);
+        }
+
+        .confirm-button:disabled {
+            background: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        /* Modal de sélection client */
+        .client-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: var(--spacing-sections);
+            margin: var(--margin-external);
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--margin-external);
+            padding-bottom: var(--margin-internal);
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .modal-title {
+            font-size: var(--font-size-h3);
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .client-list-item {
+            display: flex;
+            align-items: center;
+            padding: var(--margin-internal);
+            border: 1px solid #E0E0E0;
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-elements);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .client-list-item:hover {
+            border-color: var(--primary-color);
+            background: rgba(25, 118, 210, 0.05);
+        }
+
+        /* État vide */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-sections);
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: var(--margin-external);
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: var(--font-size-h3);
+            margin-bottom: var(--spacing-elements);
+            color: var(--text-primary);
+        }
+
+        .empty-message {
+            font-size: var(--font-size-secondary);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="distribution-container">
+            <!-- Header -->
+            <div class="distribution-header">
+                <button class="header-button" onclick="goBack()">←</button>
+                <div class="header-title">Nouvelle Distribution</div>
+                <button class="header-button" onclick="validateDistribution()">✓</button>
+            </div>
+
+            <!-- Contenu -->
+            <div class="distribution-content">
+                <!-- Section sélection client -->
+                <div class="client-selection">
+                    <div class="section-title">
+                        <span class="section-icon">👤</span>
+                        Client Sélectionné
+                    </div>
+                    
+                    <div id="selectedClientContainer">
+                        <div class="no-client-selected">
+                            <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">👤</div>
+                            <div style="font-size: 16px; margin-bottom: 8px;">Aucun client sélectionné</div>
+                            <div style="font-size: 14px; margin-bottom: 16px;">Veuillez sélectionner un client pour continuer</div>
+                            <button class="select-client-btn" onclick="openClientModal()">
+                                Sélectionner un Client
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section articles disponibles -->
+                <div class="articles-section">
+                    <div class="articles-header">
+                        <div class="section-title">
+                            <span class="section-icon">📦</span>
+                            Articles Disponibles
+                        </div>
+                        <div class="articles-counter" id="articlesCounter">
+                            5 articles
+                        </div>
+                    </div>
+                    
+                    <div id="articlesList">
+                        <!-- Les articles seront chargés dynamiquement -->
+                    </div>
+                </div>
+
+                <!-- Section résumé -->
+                <div class="summary-section" id="summarySection" style="display: none;">
+                    <div class="section-title">
+                        <span class="section-icon">📊</span>
+                        Résumé de la Distribution
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Articles sélectionnés :</span>
+                        <span class="summary-value" id="selectedItemsCount">0</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Montant total :</span>
+                        <span class="summary-value" id="totalAmount">0 FCFA</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Mise journalière :</span>
+                        <span class="summary-value daily-payment" id="dailyPayment">0 FCFA</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton de confirmation -->
+        <button class="confirm-button" id="confirmButton" onclick="confirmDistribution()" disabled>
+            Confirmer la Distribution
+        </button>
+
+        <!-- Modal de sélection client -->
+        <div class="client-modal" id="clientModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">Sélectionner un Client</div>
+                    <button class="close-modal" onclick="closeClientModal()">×</button>
+                </div>
+                <div id="clientsList">
+                    <!-- La liste des clients sera chargée dynamiquement -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Données simulées
+        let selectedClient = null;
+        let availableArticles = [
+            {
+                id: 1,
+                name: "Riz Parfumé",
+                type: "Alimentaire",
+                brand: "Uncle Ben's",
+                model: "Basmati",
+                creditSalePrice: 2500,
+                stockQuantity: 50,
+                selectedQuantity: 0
+            },
+            {
+                id: 2,
+                name: "Huile de Palme",
+                type: "Alimentaire",
+                brand: "Palmier",
+                model: "5L",
+                creditSalePrice: 3500,
+                stockQuantity: 30,
+                selectedQuantity: 0
+            },
+            {
+                id: 3,
+                name: "Sucre Blanc",
+                type: "Alimentaire",
+                brand: "Sosucam",
+                model: "1kg",
+                creditSalePrice: 800,
+                stockQuantity: 100,
+                selectedQuantity: 0
+            },
+            {
+                id: 4,
+                name: "Lait en Poudre",
+                type: "Alimentaire",
+                brand: "Nido",
+                model: "400g",
+                creditSalePrice: 1200,
+                stockQuantity: 25,
+                selectedQuantity: 0
+            },
+            {
+                id: 5,
+                name: "Savon de Marseille",
+                type: "Hygiène",
+                brand: "Le Chat",
+                model: "Pack 4",
+                creditSalePrice: 1500,
+                stockQuantity: 40,
+                selectedQuantity: 0
+            }
+        ];
+
+        let clients = [
+            {
+                id: 1,
+                firstName: "Marie",
+                lastName: "Kouassi",
+                address: "Cocody, Riviera 3",
+                phone: "+225 07 12 34 56 78"
+            },
+            {
+                id: 2,
+                firstName: "Jean",
+                lastName: "Koffi",
+                address: "Yopougon, Niangon",
+                phone: "+225 05 98 76 54 32"
+            },
+            {
+                id: 3,
+                firstName: "Fatou",
+                lastName: "Traoré",
+                address: "Adjamé, Bracodi",
+                phone: "+225 01 23 45 67 89"
+            }
+        ];
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            loadArticles();
+            loadClients();
+        });
+
+        // Charger les articles
+        function loadArticles() {
+            const articlesList = document.getElementById('articlesList');
+            articlesList.innerHTML = '';
+            
+            availableArticles.forEach(article => {
+                const articleElement = createArticleElement(article);
+                articlesList.appendChild(articleElement);
+            });
+        }
+
+        // Créer un élément article
+        function createArticleElement(article) {
+            const div = document.createElement('div');
+            div.className = 'article-item';
+            div.id = `article-${article.id}`;
+            
+            const initials = article.name.split(' ').map(word => word.charAt(0)).join('').substring(0, 2);
+            
+            div.innerHTML = `
+                <div class="article-info">
+                    <div class="article-name">${article.name}</div>
+                    <div class="article-details">${article.type} • ${article.brand} • ${article.model}</div>
+                    <div class="article-stock">Stock disponible: ${article.stockQuantity} unités</div>
+                </div>
+                <div class="article-pricing">
+                    <div class="article-price">${article.creditSalePrice.toLocaleString()} FCFA</div>
+                    <div class="article-subtotal" id="subtotal-${article.id}">0 FCFA</div>
+                </div>
+                <div class="quantity-controls">
+                    <button class="quantity-btn" onclick="decreaseQuantity(${article.id})" id="decrease-${article.id}" disabled>-</button>
+                    <input type="number" class="quantity-input" value="0" min="0" max="${article.stockQuantity}" 
+                           id="quantity-${article.id}" onchange="updateQuantity(${article.id}, this.value)">
+                    <button class="quantity-btn" onclick="increaseQuantity(${article.id})" id="increase-${article.id}">+</button>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Augmenter la quantité
+        function increaseQuantity(articleId) {
+            const article = availableArticles.find(a => a.id === articleId);
+            if (article && article.selectedQuantity < article.stockQuantity) {
+                article.selectedQuantity++;
+                updateArticleDisplay(articleId);
+                updateSummary();
+            }
+        }
+
+        // Diminuer la quantité
+        function decreaseQuantity(articleId) {
+            const article = availableArticles.find(a => a.id === articleId);
+            if (article && article.selectedQuantity > 0) {
+                article.selectedQuantity--;
+                updateArticleDisplay(articleId);
+                updateSummary();
+            }
+        }
+
+        // Mettre à jour la quantité
+        function updateQuantity(articleId, value) {
+            const article = availableArticles.find(a => a.id === articleId);
+            const quantity = Math.max(0, Math.min(parseInt(value) || 0, article.stockQuantity));
+            
+            article.selectedQuantity = quantity;
+            updateArticleDisplay(articleId);
+            updateSummary();
+        }
+
+        // Mettre à jour l'affichage d'un article
+        function updateArticleDisplay(articleId) {
+            const article = availableArticles.find(a => a.id === articleId);
+            const quantityInput = document.getElementById(`quantity-${articleId}`);
+            const subtotalElement = document.getElementById(`subtotal-${articleId}`);
+            const decreaseBtn = document.getElementById(`decrease-${articleId}`);
+            const increaseBtn = document.getElementById(`increase-${articleId}`);
+            const articleElement = document.getElementById(`article-${articleId}`);
+            
+            quantityInput.value = article.selectedQuantity;
+            subtotalElement.textContent = (article.selectedQuantity * article.creditSalePrice).toLocaleString() + ' FCFA';
+            
+            decreaseBtn.disabled = article.selectedQuantity === 0;
+            increaseBtn.disabled = article.selectedQuantity >= article.stockQuantity;
+            
+            if (article.selectedQuantity > 0) {
+                articleElement.classList.add('selected');
+            } else {
+                articleElement.classList.remove('selected');
+            }
+        }
+
+        // Mettre à jour le résumé
+        function updateSummary() {
+            const selectedArticles = availableArticles.filter(a => a.selectedQuantity > 0);
+            const totalAmount = selectedArticles.reduce((sum, article) => 
+                sum + (article.selectedQuantity * article.creditSalePrice), 0);
+            const dailyPayment = Math.round(totalAmount / 30); // Simulation: remboursement sur 30 jours
+            
+            const summarySection = document.getElementById('summarySection');
+            const selectedItemsCount = document.getElementById('selectedItemsCount');
+            const totalAmountElement = document.getElementById('totalAmount');
+            const dailyPaymentElement = document.getElementById('dailyPayment');
+            const confirmButton = document.getElementById('confirmButton');
+            
+            if (selectedArticles.length > 0) {
+                summarySection.style.display = 'block';
+                selectedItemsCount.textContent = selectedArticles.length;
+                totalAmountElement.textContent = totalAmount.toLocaleString() + ' FCFA';
+                dailyPaymentElement.textContent = dailyPayment.toLocaleString() + ' FCFA';
+                
+                confirmButton.disabled = !selectedClient;
+            } else {
+                summarySection.style.display = 'none';
+                confirmButton.disabled = true;
+            }
+        }
+
+        // Ouvrir le modal de sélection client
+        function openClientModal() {
+            document.getElementById('clientModal').style.display = 'flex';
+        }
+
+        // Fermer le modal de sélection client
+        function closeClientModal() {
+            document.getElementById('clientModal').style.display = 'none';
+        }
+
+        // Charger les clients
+        function loadClients() {
+            const clientsList = document.getElementById('clientsList');
+            clientsList.innerHTML = '';
+            
+            clients.forEach(client => {
+                const clientElement = createClientListItem(client);
+                clientsList.appendChild(clientElement);
+            });
+        }
+
+        // Créer un élément client pour la liste
+        function createClientListItem(client) {
+            const div = document.createElement('div');
+            div.className = 'client-list-item';
+            div.onclick = () => selectClient(client);
+            
+            const initials = client.firstName.charAt(0) + client.lastName.charAt(0);
+            const fullName = `${client.firstName} ${client.lastName}`;
+            
+            div.innerHTML = `
+                <div class="client-avatar">${initials}</div>
+                <div class="client-info">
+                    <div class="client-name">${fullName}</div>
+                    <div class="client-details">${client.address}</div>
+                    <div class="client-details">${client.phone}</div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Sélectionner un client
+        function selectClient(client) {
+            selectedClient = client;
+            updateSelectedClientDisplay();
+            closeClientModal();
+            updateSummary();
+        }
+
+        // Mettre à jour l'affichage du client sélectionné
+        function updateSelectedClientDisplay() {
+            const container = document.getElementById('selectedClientContainer');
+            
+            if (selectedClient) {
+                const initials = selectedClient.firstName.charAt(0) + selectedClient.lastName.charAt(0);
+                const fullName = `${selectedClient.firstName} ${selectedClient.lastName}`;
+                
+                container.innerHTML = `
+                    <div class="selected-client">
+                        <div class="client-avatar">${initials}</div>
+                        <div class="client-info">
+                            <div class="client-name">${fullName}</div>
+                            <div class="client-details">${selectedClient.address}</div>
+                            <div class="client-details">${selectedClient.phone}</div>
+                        </div>
+                        <button class="change-client-btn" onclick="openClientModal()">
+                            Changer
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Valider la distribution
+        function validateDistribution() {
+            if (!selectedClient) {
+                showNotification('Veuillez sélectionner un client', 'warning');
+                return;
+            }
+            
+            const selectedArticles = availableArticles.filter(a => a.selectedQuantity > 0);
+            if (selectedArticles.length === 0) {
+                showNotification('Veuillez sélectionner au moins un article', 'warning');
+                return;
+            }
+            
+            confirmDistribution();
+        }
+
+        // Confirmer la distribution
+        function confirmDistribution() {
+            const selectedArticles = availableArticles.filter(a => a.selectedQuantity > 0);
+            const totalAmount = selectedArticles.reduce((sum, article) => 
+                sum + (article.selectedQuantity * article.creditSalePrice), 0);
+            
+            const distributionData = {
+                client: selectedClient,
+                articles: selectedArticles,
+                totalAmount: totalAmount,
+                dailyPayment: Math.round(totalAmount / 30),
+                date: new Date().toISOString()
+            };
+            
+            // Afficher une confirmation
+            const confirmMessage = `
+                Confirmer la distribution ?
+                
+                Client: ${selectedClient.firstName} ${selectedClient.lastName}
+                Articles: ${selectedArticles.length}
+                Montant total: ${totalAmount.toLocaleString()} FCFA
+                Mise journalière: ${Math.round(totalAmount / 30).toLocaleString()} FCFA
+            `;
+            
+            if (confirm(confirmMessage)) {
+                // Simuler l'enregistrement
+                showNotification('Distribution enregistrée avec succès !', 'success');
+                
+                // Réinitialiser le formulaire
+                setTimeout(() => {
+                    resetForm();
+                }, 2000);
+            }
+        }
+
+        // Réinitialiser le formulaire
+        function resetForm() {
+            selectedClient = null;
+            availableArticles.forEach(article => {
+                article.selectedQuantity = 0;
+            });
+            
+            document.getElementById('selectedClientContainer').innerHTML = `
+                <div class="no-client-selected">
+                    <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">👤</div>
+                    <div style="font-size: 16px; margin-bottom: 8px;">Aucun client sélectionné</div>
+                    <div style="font-size: 14px; margin-bottom: 16px;">Veuillez sélectionner un client pour continuer</div>
+                    <button class="select-client-btn" onclick="openClientModal()">
+                        Sélectionner un Client
+                    </button>
+                </div>
+            `;
+            
+            loadArticles();
+            updateSummary();
+        }
+
+        // Retour
+        function goBack() {
+            if (confirm('Êtes-vous sûr de vouloir quitter ? Les données non sauvegardées seront perdues.')) {
+                window.history.back();
+            }
+        }
+
+        // Fonction pour afficher les notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.zIndex = '2000';
+            notification.style.maxWidth = '90%';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Fermer le modal en cliquant à l'extérieur
+        document.getElementById('clientModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeClientModal();
+            }
+        });
+    </script>
+</body>
+</html>
+

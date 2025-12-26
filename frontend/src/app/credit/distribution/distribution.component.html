@@ -1,0 +1,93 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container">
+  <div class="form-header">
+    <h1>Distribution d'articles</h1>
+  </div>
+
+  <form [formGroup]="distributionForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="clientId">Client<span class="text-danger">*</span></label>
+      <ng-select
+        formControlName="clientId"
+        [items]="clients"
+        bindValue="id"
+        [searchFn]="searchClient"
+        placeholder="Rechercher et sélectionner un client"
+        notFoundText="Aucun client trouvé">
+        <ng-template ng-label-tmp let-item="item">
+          {{ item.firstname }} {{ item.lastname }}
+        </ng-template>
+        <ng-template ng-option-tmp let-item="item" let-search="searchTerm">
+          <div>{{ item.firstname }} {{ item.lastname }}</div>
+        </ng-template>
+      </ng-select>
+      <mat-error *ngIf="distributionForm.get('clientId')?.invalid">
+        Le client est requis.
+      </mat-error>
+    </div>
+
+    <div class="form-group">
+      <label for="advance">Avance (Optionnel)</label>
+      <input id="advance" type="number" formControlName="advance" class="form-control" />
+      <mat-error *ngIf="distributionForm.get('advance')?.invalid && distributionForm.get('advance')?.touched">
+        L'avance doit être un nombre positif.
+      </mat-error>
+    </div>
+
+    <div formArrayName="articles" class="form-group">
+      <div>
+        <div *ngFor="let articleCtrl of articlesArray.controls; let i = index" [formGroupName]="i" class="article-group">
+          <div class="form-field">
+            <label for="articleId">Article</label>
+            <ng-select
+              formControlName="articleId"
+              [items]="availableArticlesPerRow[i]"
+              bindValue="id"
+              [searchFn]="searchArticle"
+              placeholder="Rechercher et sélectionner un article"
+              notFoundText="Aucun article trouvé">
+
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.commercialName }} - {{ item.name }}
+              </ng-template>
+
+              <ng-template ng-option-tmp let-item="item" let-search="searchTerm">
+                <div title="Marque: {{ item.marque }} | Modèle: {{ item.model }} | Stock: {{ item.stockQuantity || 0 }}">
+                  <div class="option-title">{{ item.commercialName }}</div>
+                  <small class="option-details">
+                    Marque: {{ item.marque }} | Modèle: {{ item.model }} | Stock: {{ item.stockQuantity || 0 }}
+                  </small>
+                </div>
+              </ng-template>
+
+            </ng-select>
+            <mat-error *ngIf="articleCtrl.get('articleId')?.invalid">
+              L'article est requis.
+            </mat-error>
+          </div>
+
+          <div class="form-field">
+            <label for="quantity">Quantité</label>
+            <input matInput type="number" formControlName="quantity" class="form-control" min="1">
+            <mat-error *ngIf="articleCtrl.get('quantity')?.invalid && articleCtrl.get('quantity')?.touched">
+              <span *ngIf="articleCtrl.get('quantity')?.errors?.['required']">La quantité est requise.</span>
+              <span *ngIf="articleCtrl.get('quantity')?.errors?.['min']">La quantité doit être supérieure à zéro.</span>
+              <span *ngIf="articleCtrl.get('quantity')?.errors?.['max']">La quantité ne peut pas dépasser {{getMaxQuantityForError(i)}}.</span>
+            </mat-error>
+          </div>
+
+          <button type="button" class="btn btn-remove" (click)="deleteArticle(i)">Retirer</button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-add" (click)="addArticle()" [disabled]="articlesArray.length >= (articles.length || 0)">
+        Ajouter un article
+      </button>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-cancel" (click)="onCancel()">Annuler</button>
+      <button type="submit" class="btn btn-submit" [disabled]="distributionForm.invalid">Valider</button>
+    </div>
+  </form>
+</div>

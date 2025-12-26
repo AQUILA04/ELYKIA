@@ -1,0 +1,124 @@
+@use "sass:math";
+
+// Variables pour les couleurs et les espacements pour une maintenance facile
+$primary-color: #003366; // Bleu marine
+$secondary-color: #6c757d;
+$background-color: #f8f9fa;
+$card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+$border-radius: 0.5rem;
+
+// Le centrage est maintenant appliqué directement au conteneur principal
+.container {
+  display: flex;
+  justify-content: center; // Centre horizontalement le contenu (la carte)
+  align-items: center;     // Centre verticalement le contenu
+  min-height: 80vh;        // Hauteur minimale pour que le centrage vertical fonctionne
+  width: 100%;             // Assure que le conteneur prend toute la largeur disponible
+  padding: 20px;
+  box-sizing: border-box;  // Important pour que le padding n'affecte pas la largeur totale
+}
+
+// Style de la carte principale
+.card {
+  width: 100%;
+  max-width: 500px; // La carte elle-même a une largeur max
+  border: none;
+  border-radius: $border-radius;
+  box-shadow: $card-shadow;
+  transition: transform 0.3s ease;
+
+  // On retire la marge de la classe .mt-5 de Bootstrap qui pouvait causer un décalage
+  margin-top: 0 !important;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+// En-tête de la carte
+.card-header {
+  border-top-left-radius: $border-radius;
+  border-top-right-radius: $border-radius;
+  background-color: #f1f1f1;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: $primary-color;
+  }
+}
+
+// Corps de la carte
+.card-body {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+// Section pour afficher la mise actuelle
+.current-stake-container {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #e9ecef;
+  border-radius: math.div($border-radius, 2);
+}
+
+.current-stake-label {
+  font-size: 1rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.current-stake-value {
+  // CORRECTION : Taille de la police à nouveau diminuée pour correspondre au titre
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $primary-color;
+  margin: 0;
+}
+
+
+// Étiquette du champ de formulaire
+.form-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+// Champ de formulaire
+.form-control {
+  padding: 0.75rem 1rem;
+  border-radius: math.div($border-radius, 2);
+  border: 1px solid #ced4da;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 0.2rem rgba($primary-color, 0.25);
+    outline: none;
+  }
+}
+
+// Style des boutons
+.btn {
+  padding: 0.6rem 1.5rem;
+  font-weight: 600;
+  border-radius: math.div($border-radius, 2);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &.btn-primary {
+    background-color: $primary-color;
+    border-color: $primary-color;
+  }
+
+  &.btn-secondary {
+    background-color: $secondary-color;
+    border-color: $secondary-color;
+  }
+}
+

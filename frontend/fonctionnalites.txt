@@ -1,0 +1,892 @@
+Plan de Formation Elykia UI (2 Jours)
+
+**Jour 1 : Fondamentaux et Opérations Courantes**
+
+*   **Matin : Prise en main et Gestion des Données de Base**
+    *   Partie 1 : Connexion et Accueil
+        *   Étape 1 : Connexion à l'application
+        *   Étape 2 : Le Tableau de Bord
+    *   Partie 2 : Gestion des Entités de Base
+        *   Étape 3 : Créer un nouveau client
+        *   Étape 4 : Créer un compte pour un client
+        *   Étape 20 : Gestion des Articles
+        *   Étape 22 : Gérer les Localités
+
+*   **Après-midi : Processus de Vente et Suivi**
+    *   Partie 3 : Opérations de Vente et de Crédit
+        *   Étape 5 : Créer une vente à crédit
+        *   Étape 6 : La Vue Commerciale
+        *   Étape 18 : Historique des Ventes
+        *   Étape 25 : Gestion des Sorties (Décaissements)
+    *   Partie 4 : Gestion de la Caisse (Bases)
+        *   Étape 10 : Ouvrir et Clôturer la Caisse
+        *   Étape 11 : Effectuer les Opérations Journalières
+
+**Jour 2 : Modules Avancés et Administration**
+
+*   **Matin : Gestion de Caisse Avancée et Modules Spécifiques**
+    *   Partie 4 : Gestion de la Caisse et des Transactions (Suite)
+        *   Étape 12 : Effectuer le Billetage (Comptage de la Caisse)
+        *   Étape 13 : Clôturer la Caisse (Fin de Journée)
+        *   Étape 14 : Effectuer le TFJ (Total Facture Journalière)
+        *   Étape 16 : Ajouter un Dépôt
+        *   Étape 23 : Ajouter une Opération
+    *   Partie 5 : Modules Spécifiques
+        *   Étape 19 : Gestion de l'Inventaire
+        *   Étape 26 : Gestion des Tontines
+
+*   **Après-midi : Administration et Maintenance**
+    *   Partie 3 : Opérations de Vente et de Crédit (Suite)
+        *   Étape 8 : Fusionner des crédits
+        *   Étape 9 : Changer la mise journalière d'un crédit
+    *   Partie 5 : Modules Spécifiques (Suite)
+        *   Étape 24 : Gestion des Commandes (Tableau de Bord)
+    *   Partie 6 : Administration et Maintenance
+        *   Étape 7 : La Section Rapports
+        *   Étape 17 : Gérer les Agences (Gestion)
+        *   Étape 27 : Gestion des Utilisateurs
+        *   Étape 21 : Activation de la Licence
+
+---
+
+### Guide d'utilisation : Étape 1 - Connexion à l'application
+
+1.  Accéder à la page de connexion : Au lancement, l'application affiche un formulaire de connexion.
+2.  Saisir les identifiants : L'utilisateur doit renseigner :
+    *   Son Nom d'utilisateur.
+    *   Son Mot de passe.
+3.  Cliquer sur "Se connecter" : L'application vérifie alors les informations.
+
+#### Que se passe-t-il ensuite ?
+
+*   Si les identifiants sont corrects : L'utilisateur est connecté et redirigé vers la page d'accueil (le tableau de bord).
+*   Si les identifiants sont incorrects : Un message d'erreur s'affiche, l'invitant à vérifier ses informations.
+*   Cas particulier de la licence : Si la licence d'utilisation de l'application a expiré, un message l'indique et l'utilisateur est guidé vers une page pour la réactiver.
+
+---
+
+### Guide d'utilisation : Étape 2 - Le Tableau de Bord
+
+Le tableau de bord est la première page que l'utilisateur voit après s'être connecté. Il offre une vue d'ensemble rapide des informations clés et des alertes importantes.
+
+1.  Vue d'ensemble des indicateurs clés (Cartes récapitulatives)**:
+    *   En haut de la page, des cartes affichent des chiffres importants :
+        *   Total Clients : Le nombre total de clients enregistrés.
+        *   Total Comptes : Le nombre total de comptes gérés.
+        *   Total Localités : Le nombre total de localités couvertes.
+        *   Total Articles : Le nombre total d'articles disponibles.
+    *   Chaque carte indique également l'évolution de ce chiffre par rapport à la veille (par exemple, "+10% depuis hier").
+
+2.  Graphiques de performance :
+    *   Une section est dédiée à l'affichage de graphiques, permettant une visualisation rapide des tendances et des performances (par exemple, ventes, crédits accordés, etc.).
+
+3.  Alertes de stock (pour les Responsables de Stock) :
+    *   Si l'utilisateur a le rôle de "Responsable de Stock" (`ROLE_STOREKEEPER`), deux sections spécifiques sont affichées :
+        *   Articles en rupture de stock : Une liste des articles qui ne sont plus disponibles.
+        *   Articles en rupture imminente : Une liste des articles dont le stock est faible (par exemple, moins de 5 unités). Un code couleur aide à identifier l'urgence :
+            *   **Rouge** : Stock à 0.
+            *   **Orange** : Stock entre 1 et 5.
+            *   **Vert** : Stock suffisant (plus de 5).
+    *   Ces listes sont paginées pour faciliter la consultation des nombreux articles.
+
+---
+
+### Guide d'utilisation : Étape 3 - Créer un nouveau client
+
+1.  **Accéder au formulaire** : Depuis le menu de navigation (probablement dans une section "Clients"), l'utilisateur clique sur une option comme "Ajouter un client" ou un bouton "+". Cela l'amène à la page "Nouveau Client".
+2.  **Remplir les informations du client** : L'utilisateur remplit le formulaire en plusieurs sections. Les champs marqués d'un astérisque `*` sont obligatoires.
+    *   **Informations Personnelles** : Nom, prénom, adresse, téléphone, date de naissance, et profession. Une photo peut être ajoutée.
+    *   **Pièce d'Identité** : Type de pièce (ex: Carte d'électeur), numéro de la pièce. Une copie scannée peut être jointe.
+    *   **Localisation** :
+        *   **Automatique** : Cliquer sur "Obtenir la position GPS" pour enregistrer les coordonnées actuelles.
+        *   **Manuelle** : Activer la "Saisie manuelle" et entrer la latitude et la longitude si le client n'est pas sur place.
+        *   **Localité** : Sélectionner la localité du client dans la liste déroulante.
+    *   **Contact d'Urgence** : Remplir les informations de la personne à contacter (optionnel).
+    *   **Informations Internes** :
+        *   **Commercial associé** : Assigner un commercial au client en le sélectionnant dans la liste.
+        *   **Type de client** : Définir s'il s'agit d'un "Client" standard ou d'un "Commercial".
+3.  **Enregistrer le client** :
+    *   Une fois tous les champs obligatoires remplis, le bouton "Enregistrer" devient actif.
+    *   En cliquant on "Enregistrer", les informations sont sauvegardées.
+4.  **Confirmation et Redirection** :
+    *   Un message de succès ("Nouveau client ajouté avec succès") apparaît.
+    *   L'utilisateur est automatiquement redirigé vers la liste des clients, où le nouveau client devrait maintenant apparaître.
+
+---
+
+### L'importance de la création de compte
+
+Dans l'application, un "client" est une fiche d'information (nom, adresse, etc.), mais il ne peut pas réaliser d'opérations financières sans un "compte". Le compte est l'entité qui :
+*   Possède un **numéro de compte unique**.
+*   Détient le **solde financier** du client.
+*   Sert de **point central** pour toutes les transactions : les crédits sont accordés sur ce compte, les dépôts y sont versés, et les remboursements en sont déduits.
+
+La création d'un compte est donc l'étape indispensable pour activer un client financièrement.
+
+### Guide d'utilisation : Étape 4 - Créer un compte pour un client
+
+1.  **Accéder au formulaire** :
+    *   Depuis le menu "Comptes", l'utilisateur choisit "Ajouter un compte".
+
+2.  **Remplir le formulaire de création de compte** :
+    *   **Génération du Numéro de Compte** : Le **Numéro de Compte** est généré automatiquement par le système pour garantir son unicité. Il n'est pas modifiable.
+    *   **Sélectionner le Client** : L'utilisateur recherche et sélectionne le client (créé à l'étape précédente) à qui ce compte sera associé. C'est un champ obligatoire.
+    *   **Saisir le Solde Initial** : L'utilisateur doit définir un **Solde du Compte** de départ. Ce montant doit respecter les limites définies par l'établissement (par exemple, entre 500 et 2 000 000).
+
+3.  **Enregistrer le compte** :
+    *   Une fois le client sélectionné et le solde saisi, le bouton "Enregistrer" devient actif.
+    *   En cliquant on "Enregistrer", le compte est créé et lié au client.
+
+4.  **Confirmation et Redirection** :
+    *   Un message de succès ("Compte ajouté avec succès") s'affiche.
+    *   L'utilisateur est redirigé vers la liste des comptes, où le nouveau compte est désormais visible.
+
+---
+
+### Guide d'utilisation : Étape 5 - Créer une vente à crédit
+
+1.  **Accéder au formulaire** : Dans le menu "Crédit", l'utilisateur choisit "Ajouter un crédit" (ou une option similaire) pour ouvrir le formulaire de vente.
+2.  **Sélectionner le client** :
+    *   Dans le champ "Client", l'utilisateur recherche et sélectionne le client concerné. La recherche peut se faire par nom ou prénom. Ce champ est obligatoire.
+3.  **Saisir une avance (Optionnel)** :
+    *   Si le client paie une partie du montant immédiatement, l'utilisateur peut saisir ce montant dans le champ "Avance".
+4.  **Ajouter des articles à la vente** :
+    *   Le formulaire commence avec une ligne pour un article.
+    *   **Choisir l'article** : L'utilisateur recherche et sélectionne un produit dans la liste déroulante. La liste affiche le nom, la marque, le modèle et, surtout, la **quantité en stock** pour aider à la décision.
+    *   **Préciser la quantité** : Il saisit la quantité désirée pour cet article.
+    *   **Ajouter d'autres articles** : En cliquant sur "Ajouter un article", il peut répéter l'opération pour inclure plusieurs produits dans la même vente. Un article ne peut pas être sélectionné plus d'une fois.
+    *   **Retirer un article** : Si besoin, il peut cliquer sur "Retirer" pour enlever un article de la liste.
+5.  **Valider la vente** :
+    *   Une fois le client et au moins un article avec sa quantité renseignés, le bouton "Valider" devient actif.
+    *   En cliquant sur "Valider", la vente à crédit est enregistrée.
+6.  **Confirmation et Redirection** :
+    *   Un message de succès ("Crédit ajouté avec succès") s'affiche.
+    *   L'utilisateur est redirigé vers la liste des crédits, où cette nouvelle vente apparaît.
+
+---
+
+### Guide d'utilisation : Étape 6 - La Vue Commerciale
+
+La "Vue Commerciale" offre un tableau de bord détaillé pour chaque agent commercial, permettant de suivre ses performances et activités de manière centralisée.
+
+1.  **Accéder à la Vue Commerciale** :
+    *   Depuis la liste des commerciaux (probablement via le menu "Commerciaux"), l'utilisateur sélectionne un commercial spécifique pour afficher sa vue détaillée.
+
+2.  **Vue d'ensemble des performances** :
+    *   En haut de la page, un résumé affiche les indicateurs clés du commercial :
+        *   **Nom et Téléphone** du commercial.
+        *   **Client total** : Nombre de clients gérés.
+        *   **Ventes total en cours, clôturées, en retard** : Statistiques sur les crédits.
+        *   **Montants financiers** : Montant total en cours, restant à collecter, à encaisser à date, collecté, avances encaissées, et montant non distribué.
+
+3.  **Onglets d'informations détaillées** :
+    *   **Ventes** : Liste des ventes (crédits) actuelles du commercial. Des filtres permettent de voir les ventes "En Fin d'échéance" ou "En retard". Chaque vente peut être consultée en détail.
+    *   **Historiques** : Historique complet des ventes réalisées par le commercial.
+    *   **Clients** : Liste de tous les clients attribués à ce commercial, avec leurs informations de base. Chaque client peut être consulté en détail.
+    *   **Sorties en attente** : Liste des articles ou produits en attente de "sortie" (livraison/retrait) pour les ventes de ce commercial.
+    *   **Historiques Sorties** : Historique des "sorties" effectuées par le commercial.
+
+4.  **Utilité** :
+    *   **Suivi de Performance** : Évaluer rapidement l'efficacité du commercial.
+    *   **Gestion de la Charge de Travail** : Comprendre le volume d'activités en cours.
+    *   **Suivi Financier** : Obtenir une image claire des flux financiers générés et gérés par le commercial.
+    *   **Supervision Opérationnelle** : Suivre les détails des ventes, des clients et des livraisons.
+    *   **Identification des Problèmes** : Détecter rapidement les ventes en retard ou les anomalies.
+
+---
+
+### Guide d'utilisation : Étape 7 - La Section Rapports
+
+La section "Rapport" est un outil de réconciliation financière conçu pour fournir une vue d'ensemble claire et périodique des activités des agents de collecte.
+
+1.  **Accéder aux Rapports** :
+    *   L'utilisateur navigue vers la section "Rapports" de l'application.
+
+2.  **Générer un Rapport** :
+    *   **Sélectionner une Période** : L'utilisateur choisit une période d'analyse dans une liste prédéfinie (ex: "Aujourd'hui", "Hier", "Cette semaine", "Le mois dernier"). Par défaut, le rapport pour "Hier" est affiché.
+    *   **Lancer la recherche** : En cliquant sur l'icône de recherche, le rapport pour la période sélectionnée est généré.
+
+3.  **Analyser le Rapport** :
+    *   **Résumé Financier** : En haut de la page, un résumé indique :
+        *   La période exacte couverte (date de début et de fin).
+        *   Le **Total recouvrement** : La somme totale d'argent collectée par tous les agents pendant cette période.
+        *   Le **Total sorties** : La somme totale des articles/valeurs décaissés.
+    *   **Tableau de Réconciliation par Agent** : Le tableau principal détaille la situation financière pour chaque agent :
+        *   **Montant système** : Ce que l'agent aurait dû collecter selon les données de l'application.
+        *   **Montant réel** : Ce que l'agent a effectivement rapporté.
+        *   **Total Sortie** : Le montant total des sorties effectuées par cet agent.
+        *   **Écart** : La différence entre le montant réel et le montant système. C'est l'indicateur clé de ce rapport.
+            *   Une valeur **positive** (en vert) indique un **surplus**.
+            *   Une valeur **négative** (en rouge) indique un **manquant**.
+            *   Une valeur de **zéro** indique une réconciliation parfaite.
+
+4.  **Utilité** :
+    *   **Contrôle Financier** : Permet de vérifier rapidement la caisse de chaque agent.
+    *   **Détection d'Anomalies** : Met en évidence instantanément les écarts (surplus ou manques) pour identifier erreurs ou problèmes.
+    *   **Prise de Décision** : Fournit des données claires pour faire le point avec les agents et assurer la bonne santé financière des opérations.
+
+---
+
+### Guide d'utilisation : Étape 8 - Fusionner des crédits
+
+La fonctionnalité de fusion de crédits permet de regrouper plusieurs crédits d'un même client en un seul, afin de simplifier la gestion et les remboursements.
+
+1.  **Accéder à la fonctionnalité** :
+    *   La fusion est généralement initiée depuis une liste de crédits ou la vue d'un client, où un bouton "Fusionner les crédits" serait présent.
+
+2.  **Ouvrir le panneau de fusion** :
+    *   En cliquant sur le bouton, un panneau (ou une fenêtre modale) intitulé "Fusion des Crédits" s'ouvre.
+
+3.  **Sélectionner le commercial** :
+    *   La première étape est de choisir le commercial qui gère les crédits à fusionner dans la liste déroulante.
+
+4.  **Choisir les crédits à fusionner** :
+    *   Une fois le commercial sélectionné, l'application affiche la liste des "crédits fusionnables". Ces crédits appartiennent probablement à un même client et sont dans un état qui permet la fusion (par exemple, encore actifs).
+    *   L'utilisateur coche les cases des crédits qu'il souhaite regrouper. Il faut sélectionner **au moins deux** crédits.
+    *   Chaque ligne de crédit affiche sa référence, sa date de début et son montant pour faciliter l'identification.
+
+5.  **Lancer la fusion** :
+    *   Le bouton "Fusionner" devient actif dès que deux crédits ou plus sont sélectionnés. Il indique également le nombre de crédits choisis (ex: "Fusionner (3)").
+    *   En cliquant sur ce bouton, l'application procède à la fusion.
+
+6.  **Résultat de la fusion** :
+    *   **Succès** : Les crédits sélectionnés sont remplacés par un **nouveau crédit unique** qui consolide leur dette. Un message de succès s'affiche avec la référence de ce nouveau crédit. Les anciens crédits sont probablement marqués comme "Fusionné" ou "Clôturé".
+    *   **Échec** : Si la fusion est impossible (par exemple, si les crédits ne sont pas éligibles), un message d'erreur l'explique.
+
+7.  **Utilité de la fusion** :
+    *   **Simplification pour le client** : Le client n'a plus qu'un seul remboursement à gérer au lieu de plusieurs.
+    *   **Efficacité administrative** : Réduit le nombre de dossiers de crédit actifs, ce qui allège le suivi pour le commercial et la comptabilité.
+    *   **Restructuration de dette** : Permet de réorganiser la dette d'un client en un seul bloc.
+
+---
+
+### Guide d'utilisation : Étape 9 - Changer la mise journalière d'un crédit
+
+Cette fonctionnalité permet d'ajuster le montant du remboursement journalier (la "mise") pour un crédit en cours. C'est utile pour corriger une erreur ou pour adapter le crédit à la situation financière d'un client.
+
+1.  **Accéder à la fonctionnalité** :
+    *   Depuis la liste des crédits ou la vue détaillée d'un crédit, l'utilisateur doit trouver et cliquer sur une option "Changer la mise" ou une icône correspondante.
+
+2.  **Ouvrir la page de modification** :
+    *   L'utilisateur est redirigé vers la page "Modifier la Mise Journalière".
+    *   La page affiche d'abord la **Mise Actuelle** pour ce crédit, afin que l'utilisateur connaisse la valeur existante.
+
+3.  **Saisir la nouvelle mise** :
+    *   Dans le champ "Nouvelle Mise Journalière", l'utilisateur entre le nouveau montant souhaité.
+
+4.  **Enregistrer la modification** :
+    *   En cliquant sur "Enregistrer", l'application valide la nouvelle valeur (elle doit être positive et différente de l'ancienne).
+    *   La demande de modification est envoyée au serveur.
+
+5.  **Confirmation et Redirection** :
+    *   **Succès** : Un message de succès ("La mise journalière a été modifiée avec succès !") s'affiche. L'utilisateur est ensuite redirigé vers la liste des crédits.
+    *   **Échec** : Si la modification est impossible (par exemple, à cause de règles métier côté serveur), un message d'erreur l'explique.
+
+6.  **Utilité de la fonctionnalité** :
+    *   **Flexibilité** : Permet d'ajuster les plans de remboursement sans avoir à recréer un crédit.
+    *   **Correction d'erreurs** : Offre un moyen simple de corriger une erreur de saisie sur le montant du remboursement journalier.
+    *   **Gestion Client** : Aide à répondre aux besoins changeants des clients, en augmentant ou diminuant leur charge de remboursement quotidienne.
+
+---
+
+### Guide d'utilisation : Gestion de la Caisse
+
+La gestion de la caisse est une étape fondamentale qui rythme la journée de travail d'un utilisateur habilité (généralement un caissier ou un commercial). Elle consiste à "ouvrir" la caisse en début de journée pour pouvoir enregistrer des transactions et à la "clôturer" en fin de journée.
+
+#### Étape 10 - Ouvrir et Clôturer la Caisse
+
+1.  **Accéder à la page de gestion de caisse** :
+    *   L'utilisateur navigue vers la section "Gestion de la caisse".
+    *   La page détecte automatiquement si sa caisse est déjà ouverte ou fermée.
+
+2.  **Ouvrir la Caisse (Début de journée)** :
+    *   Si la caisse est fermée, la page affiche : "Ouvrir la caisse de l'utilisateur : [votre nom]".
+    *   L'utilisateur clique sur le bouton **"Ouvrir Caisse"**.
+    *   L'application enregistre l'ouverture de la caisse pour la journée. Un message de succès s'affiche.
+    *   Le bouton se transforme alors en "Fermer Caisse". L'utilisateur est maintenant prêt à effectuer des opérations financières.
+
+3.  **Clôturer la Caisse (Fin de journée)** :
+    *   À la fin de la journée, après avoir terminé toutes les transactions, l'utilisateur retourne sur cette même page.
+    *   La page affiche : "Fermer la caisse de l'utilisateur : [votre nom]".
+    *   L'utilisateur clique sur le bouton **"Fermer Caisse"**.
+    *   Une fenêtre de confirmation apparaît pour éviter une clôture accidentelle.
+    *   Après confirmation, l'application clôture la session de caisse. Un message de succès s'affiche.
+    *   Le bouton redevient "Ouvrir Caisse", prêt pour le lendemain.
+
+4.  **Importance** :
+    *   **Traçabilité** : L'ouverture et la clôture marquent le début et la fin de la période de responsabilité financière de l'utilisateur pour une journée.
+    *   **Sécurité** : Empêche les transactions d'être enregistrées en dehors des heures de travail officielles.
+    *   **Rapports** : Les opérations enregistrées entre l'ouverture et la clôture servent de base pour les rapports financiers journaliers.
+
+#### Étape 11 - Effectuer les Opérations Journalières
+
+Après avoir ouvert la caisse, l'utilisateur accède à la page des opérations journalières, qui est le centre de ses activités de collecte de crédits pour la journée.
+
+1.  **Accéder aux Opérations Journalières** :
+    *   L'utilisateur navigue vers la section "Opérations Journalières".
+    *   **Pré-requis** : La caisse doit impérativement être ouverte. Si ce n'est pas le cas, l'application redirigera l'utilisateur vers la page d'ouverture de caisse.
+
+2.  **Visualiser les Crédits à Gérer** :
+    *   La page affiche un tableau listant tous les crédits associés à l'utilisateur (commercial) qui nécessitent une attention pour la journée (par exemple, les crédits dont la mise journalière est due).
+    *   Pour chaque crédit, l'utilisateur peut voir :
+        *   Le nom complet du client.
+        *   La localité du client.
+        *   La **Mise Journalière** (le montant à collecter pour ce crédit aujourd'hui).
+        *   Le **Reste à payer** sur le crédit total.
+
+3.  **Consulter les Détails d'un Crédit** :
+    *   Pour obtenir plus d'informations sur un crédit spécifique, l'utilisateur peut cliquer sur l'icône "Détails" (œil) dans la colonne "Action". Cela le redirigera vers la vue détaillée de ce crédit.
+
+4.  **Actions Spécifiques à la Journée** :
+    *   **Télécharger le Rapport PDF** : Un bouton "Télécharger PDF" permet de générer et de télécharger un rapport PDF des opérations journalières, utile pour la documentation ou la réconciliation.
+    *   **Accéder au TFJ (Total Facture Journalière)** : Le bouton "TFJ" redirige l'utilisateur vers une section dédiée au "Total Facture Journalière". Cette fonctionnalité est cruciale pour la clôture ou la synthèse des activités financières de la journée.
+
+5.  **Utilité** :
+    *   **Gestion Quotidienne** : Fournit une vue d'ensemble des tâches de collecte à effectuer.
+    *   **Suivi des Recouvrements** : Permet de suivre les montants dus et restants pour chaque crédit.
+    *   **Rapports et Traçabilité** : Facilite la génération de rapports pour la réconciliation et la preuve des activités.
+    *   **Préparation à la Clôture** : Le bouton TFJ est une étape clé avant la clôture de la caisse.
+
+#### Étape 12 - Effectuer le Billetage (Comptage de la Caisse)
+
+Le billetage est le processus de comptage physique des billets et des pièces en caisse. Il est généralement effectué à la fin de la journée, avant la clôture de la caisse, pour vérifier l'exactitude du solde.
+
+1.  **Accéder à la section Billetage** :
+    *   Cette section est probablement accessible depuis la page de clôture de caisse ou une page de gestion des opérations journalières.
+
+2.  **Saisir les quantités de billets et pièces** :
+    *   L'écran présente des sections distinctes pour les billets et les pièces, avec des images pour chaque dénomination (par exemple, billets de 10 000 FCFA, pièces de 500 FCFA).
+    *   Pour chaque dénomination, l'utilisateur saisit la **quantité** de billets ou de pièces qu'il a physiquement comptée.
+
+3.  **Vérifier le total en temps réel** :
+    *   Au fur et à mesure de la saisie des quantités, l'application calcule et affiche automatiquement le **Total** de l'argent compté. Cela permet une vérification immédiate.
+
+4.  **Valider le billetage** :
+    *   Une fois toutes les quantités saisies et le total vérifié, l'utilisateur clique sur le bouton **"Suivant"**.
+    *   Les données du billetage (le total compté et le détail par dénomination) sont alors transmises à l'étape suivante du processus de gestion de caisse (par exemple, la clôture de caisse).
+
+5.  **Utilité du Billetage** :
+    *   **Réconciliation** : Permet de comparer le montant physique compté avec le solde théorique de la caisse.
+    *   **Détection d'écarts** : Aide à identifier rapidement les surplus ou les manques d'argent.
+    *   **Fiabilité des données** : Assure que les rapports financiers sont basés sur des chiffres précis et vérifiés.
+    *   **Préparation à la clôture** : Fournit le montant final pour la clôture de la caisse.
+
+#### Étape 13 - Clôturer la Caisse (Fin de Journée)
+
+La clôture de la caisse est l'étape finale de la gestion journalière. Elle marque la fin de la période de travail et finalise les opérations financières pour la journée.
+
+1.  **Accéder à la page de clôture de caisse** :
+    *   L'utilisateur navigue vers la section dédiée à la clôture de caisse.
+    *   Cette page affiche un message simple indiquant que la caisse est prête à être fermée pour l'utilisateur actuel.
+
+2.  **Lancer la clôture** :
+    *   L'utilisateur clique sur le bouton **"Fermer Caisse"**.
+
+3.  **Confirmer la clôture** :
+    *   Une boîte de dialogue de confirmation apparaît, demandant à l'utilisateur de confirmer son intention de fermer la caisse. Ceci est une mesure de sécurité pour éviter les fermetures accidentelles.
+
+4.  **Résultat de la clôture** :
+    *   **Succès** : Si la clôture est réussie, un message de succès ("La caisse a été fermée avec succès !") s'affiche. La caisse est alors officiellement fermée pour la journée.
+    *   **Échec** : En cas d'erreur (par exemple, si des opérations sont encore en suspens ou si un problème de réconciliation est détecté côté serveur), un message d'erreur est affiché.
+
+5.  **Utilité** :
+    *   **Finalisation des Opérations** : Marque la fin officielle des transactions financières pour la journée.
+    *   **Sécurité et Intégrité** : Assure que toutes les opérations sont bien enregistrées et que la caisse est "scellée" pour la journée.
+    *   **Préparation aux Rapports** : La clôture est souvent un pré-requis pour la génération des rapports financiers finaux de la journée.
+
+#### Étape 14 - Effectuer le TFJ (Total Facture Journalière)
+
+Le TFJ est un processus guidé en plusieurs étapes qui permet à un commercial de réconcilier ses collectes de la journée avec l'argent physique qu'il a en caisse. C'est une étape cruciale avant la clôture définitive de la caisse.
+
+1.  **Accéder au TFJ** :
+    *   Depuis la page des "Opérations Journalières", l'utilisateur clique sur le bouton **"TFJ"**.
+
+2.  **Étape 1: Collecte des mises** :
+    *   **Objectif** : Enregistrer les montants réellement collectés auprès des clients.
+    *   **Recherche** : Utiliser la barre de recherche pour trouver rapidement des crédits par localité, nom ou prénom du client.
+    *   **Tableau des crédits** : La page affiche une liste des crédits à gérer, regroupés par localité. Pour chaque crédit, l'utilisateur voit :
+        *   Le nom du client, la référence du crédit, la mise journalière standard et le reste à payer.
+    *   **Enregistrer les paiements** : Pour chaque crédit, l'utilisateur sélectionne un **multiplicateur** (0x, 1x, 2x, etc.) pour indiquer combien de fois la mise journalière a été payée.
+        *   `0x` : Le client n'a pas payé.
+        *   `1x` : Le client a payé la mise journalière standard.
+        *   `2x` ou plus : Le client a payé un multiple de la mise journalière.
+        *   L'application affiche le montant calculé et le signale si le montant dépasse le "reste à payer".
+    *   **Récapitulatif des sélections** : Un résumé en bas de page montre le nombre de mises normales, spéciales et le total estimé collecté.
+    *   **Passer à l'étape suivante** : Une fois toutes les collectes enregistrées et validées, cliquer sur **"Suivant"**.
+
+3.  **Étape 2: Billetage** :
+    *   **Objectif** : Compter physiquement l'argent collecté.
+    *   L'utilisateur est dirigé vers l'interface de billetage (décrite à l'Étape 12). Il saisit les quantités de billets et de pièces qu'il a en sa possession.
+    *   Le total est calculé en temps réel.
+    *   Cliquer sur **"Suivant"** pour valider le comptage.
+
+4.  **Étape 3: Récapitulatif** :
+    *   **Objectif** : Afficher la réconciliation finale.
+    *   La page présente un résumé comparatif :
+        *   **Total collecté** : Le montant total que le système a enregistré à l'Étape 1.
+        *   **Total Billetage** : Le montant total que l'utilisateur a physiquement compté à l'Étape 2.
+        *   **Statut** : Indique si la caisse est en "Équilibre", en "Manquant" (déficit) ou en "Surplus" (excédent). Ce statut est visuellement indiqué (par exemple, par une couleur).
+    *   **Finaliser** : Cliquer sur **"Terminer"** pour finaliser le processus TFJ. Cela déclenche la clôture automatique de la caisse de l'utilisateur et le redirige vers la page d'ouverture de caisse pour le lendemain.
+
+5.  **Utilité du TFJ** :
+    *   **Réconciliation Complète** : Assure une correspondance entre les transactions enregistrées et l'argent physique.
+    *   **Responsabilité** : Fournit une preuve détaillée des collectes et du comptage pour chaque agent.
+    *   **Détection d'Écarts** : Identifie immédiatement les différences, permettant une correction rapide ou une investigation.
+    *   **Intégrité Financière** : Garantit la précision des registres financiers quotidiens.
+    *   **Processus de Fin de Journée** : Guide l'agent à travers toutes les étapes nécessaires pour une clôture de caisse rigoureuse.
+
+---
+
+### Guide d'utilisation : Étape 15 - Gestion de la Journée Comptable
+
+La "Journée Comptable" est un concept central dans l'application, définissant la période officielle pendant laquelle les transactions financières peuvent être enregistrées. Sa gestion est une fonction administrative clé, généralement réservée aux utilisateurs ayant des privilèges spécifiques.
+
+1.  **Accéder à la Gestion de la Journée Comptable** :
+    *   L'utilisateur navigue vers la section "Gestion de la journée comptable".
+    *   La page affiche la date comptable actuelle et indique si la journée est "Ouverte" ou "Fermée".
+
+2.  **Ouvrir la Journée Comptable (Début de Période)** :
+    *   **Pré-requis** : La journée doit être fermée.
+    *   Si la journée est fermée, un bouton **"Ouvrir"** est disponible (pour les utilisateurs autorisés).
+    *   En cliquant sur "Ouvrir", l'application enregistre l'ouverture de la journée comptable pour la date affichée (généralement la date du jour).
+    *   Un message de succès confirme l'opération, et le statut de la journée passe à "Ouverte".
+
+3.  **Fermer la Journée Comptable (Fin de Période)** :
+    *   **Pré-requis** : La journée doit être ouverte.
+    *   Si la journée est ouverte, un bouton **"Fermer"** est disponible (pour les utilisateurs autorisés).
+    *   En cliquant sur "Fermer", l'application clôture la journée comptable.
+    *   Un message de succès confirme l'opération, et le statut de la journée passe à "Fermée".
+
+4.  **Importance de la Gestion de la Journée Comptable** :
+    *   **Définition des Périodes** : Établit clairement les limites temporelles pour l'enregistrement de toutes les transactions (crédits, dépôts, opérations de caisse, etc.).
+    *   **Intégrité des Données** : Garantit que toutes les opérations sont attribuées à la bonne période comptable, évitant les erreurs et les incohérences.
+    *   **Réconciliation et Rapports** : Facilite les processus de réconciliation financière quotidiens et la génération de rapports précis en fournissant un cadre temporel défini.
+    *   **Contrôle Administratif** : Permet aux administrateurs de contrôler le flux des opérations financières et d'assurer la conformité.
+
+---
+
+### Guide d'utilisation : Étape 16 - Ajouter un Dépôt
+
+Cette fonctionnalité permet d'enregistrer un dépôt financier dans le système. Elle est conçue pour gérer les entrées d'argent et leur réconciliation, même en cas de légères différences.
+
+1.  **Accéder au formulaire** :
+    *   L'utilisateur navigue vers la section "Dépôts" et choisit "Ajouter un dépôt".
+
+2.  **Remplir les informations du dépôt** :
+    *   **Agence** : Sélectionner l'agence à laquelle le dépôt est rattaché dans la liste déroulante. Ce champ est obligatoire.
+    *   **Montant total** : Saisir le montant total du dépôt. Ce champ est obligatoire.
+    *   **Statut du dépôt** : Choisir le statut du dépôt parmi les options :
+        *   `Normal` : Le dépôt correspond aux attentes.
+        *   `Surplus` : Le montant déposé est supérieur à l'attendu.
+        *   `Manquant` : Le montant déposé est inférieur à l'attendu.
+        Ce champ est obligatoire.
+    *   **Montant d'irrégularité** : Si le statut est "Surplus" ou "Manquant", l'utilisateur peut saisir le montant de l'irrégularité. Ce champ est optionnel.
+    *   **Solde** : Saisir le solde final après le dépôt. Ce champ est obligatoire.
+
+3.  **Valider le dépôt** :
+    *   Une fois tous les champs obligatoires remplis, le bouton "Valider" devient actif.
+    *   En cliquant sur "Valider", les informations du dépôt sont enregistrées dans le système.
+
+4.  **Confirmation et Redirection** :
+    *   Normalement, un message de succès ou d'erreur devrait s'afficher, et l'utilisateur serait redirigé vers une liste de dépôts ou d'opérations. (Note: Le comportement exact après soumission n'est pas clairement défini dans le code actuel pour l'utilisateur final).
+
+5.  **Utilité de la fonctionnalité** :
+    *   **Enregistrement des Flux de Trésorerie** : Permet de suivre toutes les entrées d'argent dans l'entreprise.
+    *   **Gestion des Écarts** : Les champs de statut et d'irrégularité sont essentiels pour documenter et gérer les différences entre les montants attendus et les montants réels.
+    *   **Réconciliation Financière** : Contribue à la réconciliation des comptes et à la vérification de l'exactitude des transactions.
+    *   **Traçabilité** : Fournit une trace des dépôts effectués, y compris les détails des agences et les éventuelles irrégularités.
+
+---
+
+### Guide d'utilisation : Étape 17 - Gérer les Agences (Gestion)
+
+La section "Gestion" est dédiée à la création et à la maintenance des différentes agences ou entités opérationnelles de l'entreprise. Ces agences servent de points de rattachement pour de nombreuses opérations financières (comme les dépôts) et pour l'organisation générale.
+
+1.  **Accéder au formulaire de gestion d'agence** :
+    *   L'utilisateur navigue vers la section "Gestion" et choisit "Ajouter une agence" ou sélectionne une agence existante pour la modifier.
+
+2.  **Remplir les informations de l'agence** :
+    *   **Nom** : (Obligatoire) Le nom de l'agence (sera automatiquement converti en majuscules).
+    *   **Code** : (Obligatoire) Un code unique pour l'agence.
+    *   **Téléphone** : (Obligatoire) Le numéro de téléphone principal de l'agence.
+    *   **Nom de la secrétaire / Numéro de la secrétaire** : (Optionnel) Informations de contact de la secrétaire de l'agence.
+    *   **Nom du superviseur / Numéro du superviseur** : (Optionnel) Informations de contact du superviseur de l'agence.
+
+3.  **Enregistrer l'agence** :
+    *   Une fois tous les champs obligatoires remplis, le bouton "Enregistrer" devient actif.
+    *   En cliquant sur "Enregistrer", les informations de l'agence sont sauvegardées.
+
+4.  **Confirmation et Redirection** :
+    *   **Succès** : Un message de succès ("Gestion ajoutée/mise à jour avec succès") s'affiche. L'utilisateur est redirigé vers la liste des agences (`/gestion-list`).
+    *   **Échec** : Un message d'erreur est affiché si l'opération échoue.
+
+5.  **Utilité de la gestion des agences** :
+    *   **Structure Organisationnelle** : Permet de définir et d'organiser les différentes branches ou points de service de l'entreprise.
+    *   **Centralisation des Informations** : Stocke les coordonnées clés du personnel administratif et de supervision de chaque agence.
+    *   **Filtrage et Rapports** : Les agences sont utilisées comme critère pour filtrer et générer des rapports sur les opérations (dépôts, crédits, etc.) spécifiques à une entité.
+    *   **Gestion des Accès** : Peut être utilisée pour définir les droits d'accès et les responsabilités des utilisateurs par agence.
+
+---
+
+### Guide d'utilisation : Étape 18 - Historique des Ventes
+
+La section "Historique des Ventes" offre une vue d'ensemble complète de toutes les ventes à crédit enregistrées dans le système. Elle permet de consulter les détails, de suivre les statuts et d'effectuer des actions spécifiques sur les ventes passées.
+
+1.  **Accéder à l'Historique des Ventes** :
+    *   L'utilisateur navigue vers la section "Historique" de l'application.
+
+2.  **Consulter le Tableau des Ventes** :
+    *   La page affiche un tableau listant toutes les ventes à crédit. Pour chaque vente, les informations suivantes sont visibles :
+        *   Un numéro d'ordre.
+        *   Le nom du client associé à la vente.
+        *   La date de début du crédit.
+        *   Le montant total de la vente.
+        *   Le statut actuel du crédit.
+    *   Le tableau est paginé, permettant de naviguer entre les différentes pages de résultats et de choisir le nombre d'éléments affichés par page.
+
+3.  **Rafraîchir les Données** :
+    *   Un bouton "Rafraîchir" (avec une icône de rafraîchissement) permet de recharger les données de l'historique pour s'assurer d'avoir les informations les plus récentes.
+
+4.  **Actions Disponibles pour chaque Vente** :
+    *   **Voir les Détails** : En cliquant sur l'icône "Détails" (œil), l'utilisateur est redirigé vers une page affichant toutes les informations détaillées de la vente à crédit sélectionnée.
+    *   **Retour en Stock** : Si la vente est éligible à une modification (`updatable`) et que l'utilisateur possède le rôle de "Responsable de Stock" (`ROLE_STOREKEEPER`), un bouton "Retour en stock" (avec une icône de flèches) est disponible. Cette action permet d'annuler la vente et de remettre les articles concernés dans l'inventaire. L'utilisateur est alors dirigé vers un formulaire spécifique pour cette opération.
+
+5.  **Utilité de l'Historique des Ventes** :
+    *   **Suivi et Audit** : Permet de suivre l'évolution des ventes, de vérifier les transactions passées et de fournir des pistes d'audit.
+    *   **Gestion des Retours** : La fonctionnalité "Retour en stock" est cruciale pour la gestion des annulations de ventes et la mise à jour de l'inventaire.
+    *   **Analyse des Performances** : Fournit des données historiques pour l'analyse des tendances de vente et la performance des commerciaux.
+    *   **Support Client** : Permet de retrouver rapidement les informations d'une vente pour répondre aux questions des clients.
+
+---
+
+### Guide d'utilisation : Étape 19 - Gestion de l'Inventaire
+
+La section "Inventaires" est le centre de gestion des stocks de l'entreprise. Elle permet de visualiser les articles disponibles, de suivre leur valeur financière et d'effectuer des ajustements de stock.
+
+1.  **Accéder à la section Inventaires** :
+    *   L'utilisateur navigue vers la section "Inventaires" de l'application.
+
+2.  **Vue d'ensemble du Stock (pour les Gestionnaires)** :
+    *   Si l'utilisateur a le rôle de "Gestionnaire" (`ROLE_REPORT`), un résumé financier du stock est affiché en haut de page :
+        *   **Prix Total Achat** : La valeur totale d'achat de tous les articles en stock.
+        *   **Prix total Vente** : La valeur totale potentielle de vente de tous les articles en stock.
+        *   **Total écart** : La différence entre le prix total de vente et le prix total d'achat, indiquant la marge potentielle ou les écarts.
+
+3.  **Rechercher des Articles** :
+    *   Utiliser la barre de recherche "Rechercher..." pour filtrer la liste des articles par nom, marque, modèle ou type. La recherche s'effectue en temps réel.
+
+4.  **Actions Générales** :
+    *   **Rafraîchir** : Un bouton "Rafraîchir" permet de recharger la liste des inventaires pour s'assurer d'avoir les données les plus récentes.
+    *   **Entrées** : Le bouton "Entrées" redirige vers un formulaire pour ajouter de nouveaux articles à l'inventaire ou enregistrer des réceptions de stock.
+    *   **Réinitialiser tout le Stock (pour les Gestionnaires)** : Un bouton "Reset Stock" (visible uniquement pour les utilisateurs `ROLE_REPORT`) permet de réinitialiser la quantité en stock de *tous* les articles à zéro. Cette action est irréversible et nécessite une confirmation.
+
+5.  **Tableau des Articles en Stock** :
+    *   La page affiche un tableau paginé de tous les articles en inventaire, avec les colonnes suivantes :
+        *   Un numéro d'ordre.
+        *   Le nom de l'article.
+        *   La marque de l'article.
+        *   Le modèle de l'article.
+        *   Le type de l'article.
+        *   La quantité actuellement en stock.
+
+6.  **Actions Spécifiques par Article (pour les Gestionnaires)** :
+    *   **Réinitialiser le Stock d'un Article** : Pour chaque article, un bouton "Reset stock article" (visible uniquement pour les utilisateurs `ROLE_REPORT`) permet de réinitialiser la quantité en stock de cet article spécifique à zéro. Cette action est irréversible et nécessite une confirmation.
+
+7.  **Pagination** :
+    *   Le tableau est paginé, permettant de naviguer entre les différentes pages de résultats et de choisir le nombre d'éléments affichés par page.
+
+8.  **Utilité de la Gestion de l'Inventaire** :
+    *   **Contrôle des Stocks** : Permet de maintenir un suivi précis des quantités disponibles pour chaque produit.
+    *   **Optimisation des Achats et Ventes** : Les données financières du stock aident à prendre des décisions éclairées sur les approvisionnements et les stratégies de vente.
+    *   **Réconciliation et Audit** : Les fonctions de réinitialisation de stock sont essentielles pour corriger les écarts après des inventaires physiques et pour assurer l'intégrité des données.
+    *   **Efficacité Opérationnelle** : Assure que les produits sont disponibles pour les ventes et les livraisons, évitant les ruptures de stock.
+
+---
+
+### Guide d'utilisation : Étape 20 - Gestion des Articles
+
+La section "Articles" permet de gérer le catalogue des produits ou services offerts par l'entreprise. Elle offre des fonctionnalités de consultation, de recherche, d'ajout, de modification et de suppression des articles.
+
+1.  **Accéder à la Liste des Articles** :
+    *   L'utilisateur navigue vers la section "Articles" de l'application.
+
+2.  **Rechercher un Article** :
+    *   Utiliser la barre de recherche "Rechercher un article..." pour filtrer la liste par nom, marque, modèle ou type. La recherche s'effectue en temps réel.
+
+3.  **Actions Générales (selon les permissions)** :
+    *   **Rafraîchir** : Un bouton "Rafraîchir" permet de recharger la liste des articles.
+    *   **Ajouter** : Un bouton "Ajouter" (visible si l'utilisateur a les permissions `ROLE_EDIT_ARTICLE` ou `ROLE_STOREKEEPER`) redirige vers un formulaire pour créer un nouvel article.
+
+4.  **Tableau des Articles** :
+    *   La page affiche un tableau paginé de tous les articles, avec les colonnes suivantes :
+        *   Un numéro d'ordre.
+        *   Le nom de l'article.
+        *   La marque de l'article.
+        *   Le modèle de l'article.
+        *   Le type de l'article.
+
+5.  **Actions Spécifiques par Article** :
+    *   **Voir les Détails** : En cliquant sur l'icône "Détails" (œil), l'utilisateur est redirigé vers une page affichant toutes les informations détaillées de l'article sélectionné.
+    *   **Modifier** : Un bouton "Modifier" (visible si l'utilisateur a le rôle de "Gestionnaire", identifié par la permission `ROLE_VALIDATE_CREDIT`) permet d'éditer les informations d'un article existant.
+    *   **Supprimer** : Un bouton "Supprimer" (visible si l'utilisateur a la permission `ROLE_DEL_ARTICLE`) permet de retirer un article du catalogue après confirmation.
+
+6.  **Pagination** :
+    *   Le tableau est paginé, permettant de naviguer entre les différentes pages de résultats et de choisir le nombre d'éléments affichés par page.
+
+7.  **Utilité de la Gestion des Articles** :
+    *   **Catalogue Centralisé** : Maintient une base de données complète et à jour de tous les produits.
+    *   **Gestion des Stocks** : Les articles listés ici sont la base de l'inventaire et des ventes.
+    *   **Opérations Commerciales** : Facilite la sélection des produits lors de la création de ventes ou de crédits.
+    *   **Traçabilité** : Permet de suivre les informations détaillées de chaque article.
+
+---
+
+### Guide d'utilisation : Étape 21 - Activation de la Licence
+
+La fonctionnalité d'activation de la licence est essentielle pour garantir le bon fonctionnement et l'accès complet à l'application. Elle permet de valider l'utilisation légale du logiciel en saisissant une clé d'activation.
+
+1.  **Accéder à la page d'activation de la licence** :
+    *   Cette page est généralement affichée si la licence est expirée ou si l'application n'a jamais été activée.
+
+2.  **Saisir la Clé d'Activation** :
+    *   Dans le champ prévu à cet effet, l'utilisateur doit saisir la clé de licence fournie.
+    *   La clé doit respecter un format spécifique (par exemple, `XXXXX-XXXXX-XXXXX-XXXXX-XXXXX`, où X sont des lettres majuscules ou des chiffres). L'application peut automatiquement formater la saisie et la convertir en majuscules.
+
+3.  **Valider la Clé** :
+    *   Le bouton "Suivant" devient actif une fois qu'une clé de licence valide est saisie.
+    *   En cliquant sur "Suivant", la clé est envoyée au serveur pour vérification et activation.
+
+4.  **Résultat de l'Activation** :
+    *   **Succès** : Si la clé est valide et l'activation réussie, un message de succès s'affiche. L'application enregistre l'état de la licence comme "active" et redirige l'utilisateur vers la page de connexion.
+    *   **Échec** : Si la clé est invalide, expirée ou si une erreur survient lors de l'activation, un message d'erreur clair est affiché, indiquant la raison de l'échec.
+
+5.  **Assistance** :
+    *   Un message rappelle à l'utilisateur de contacter le support en cas de besoin d'aide pour l'activation.
+
+6.  **Utilité de l'Activation de la Licence** :
+    *   **Accès aux Fonctionnalités** : Permet de débloquer toutes les fonctionnalités de l'application.
+    *   **Conformité Légale** : Assure que l'utilisation du logiciel est conforme aux termes de la licence.
+    *   **Sécurité** : Contrôle l'accès à l'application, garantissant que seuls les utilisateurs autorisés peuvent l'utiliser.
+
+---
+
+### Guide d'utilisation : Étape 22 - Gérer les Localités
+
+La section "Localités" permet de définir et de gérer les différentes zones géographiques ou localités pertinentes pour les opérations de l'entreprise. Ces localités sont utilisées pour organiser et filtrer les données des clients, des crédits et d'autres entités.
+
+1.  **Accéder au formulaire de gestion de localité** :
+    *   L'utilisateur navigue vers la section "Localités" et choisit "Ajouter une localité" ou sélectionne une localité existante pour la modifier.
+
+2.  **Remplir les informations de la localité** :
+    *   **Nom de la localité** : (Obligatoire) Saisir le nom de la localité. Le texte sera automatiquement converti en majuscules.
+
+3.  **Enregistrer la localité** :
+    *   Une fois le nom de la localité saisi, le bouton "Valider" devient actif.
+    *   En cliquant sur "Valider", les informations de la localité sont sauvegardées.
+
+4.  **Confirmation et Redirection** :
+    *   **Succès** : Un message de succès ("Localité ajoutée/mise à jour avec succès") s'affiche. L'utilisateur est redirigé vers la liste des localités (`/localitylist`).
+    *   **Échec** : Un message d'erreur est affiché si l'opération échoue.
+
+5.  **Utilité de la gestion des localités** :
+    *   **Organisation Géographique** : Permet de structurer les données de l'entreprise en fonction de leur emplacement géographique.
+    *   **Filtrage et Segmentation** : Facilite la recherche et l'analyse des informations par zone géographique (par exemple, clients d'une ville spécifique, crédits accordés dans une région).
+    *   **Rapports Localisés** : Essentiel pour générer des rapports et des statistiques basés sur la répartition géographique des activités.
+    *   **Cohérence des Données** : Assure une nomenclature uniforme pour les localités utilisées dans l'application.
+
+---
+
+### Guide d'utilisation : Étape 23 - Ajouter une Opération
+
+La section "Opérations" permet d'enregistrer les mouvements financiers quotidiens, tels que les recouvrements (collections) et les dépenses. Elle aide à suivre le solde résultant de ces activités.
+
+1.  **Accéder au formulaire d'ajout d'opération** :
+    *   L'utilisateur navigue vers la section "Opérations" et choisit "Ajouter une opération".
+
+2.  **Remplir les informations de l'opération** :
+    *   **Recouvrement** : (Obligatoire) Saisir le montant total des fonds collectés.
+    *   **Dépense** : (Optionnel) Saisir le montant total des dépenses effectuées.
+    *   **Solde** : (Obligatoire) Saisir le solde final après la prise en compte du recouvrement et de la dépense.
+
+3.  **Enregistrer l'opération** :
+    *   Une fois tous les champs obligatoires remplis, le bouton "Enregistrer" devient actif.
+    *   En cliquant sur "Enregistrer", les informations de l'opération sont sauvegardées dans le système.
+
+4.  **Confirmation et Redirection** :
+    *   **Succès** : Un message de succès ("Données enregistrées avec succès.") s'affiche. L'utilisateur est redirigé vers la liste des opérations (`/operation-list`).
+    *   **Échec** : Un message d'erreur est affiché si l'opération échoue.
+
+5.  **Utilité de la gestion des opérations** :
+    *   **Suivi Financier Quotidien** : Permet d'enregistrer et de suivre les flux d'argent (entrées et sorties) au jour le jour.
+    *   **Gestion de la Trésorerie** : Aide à maintenir un aperçu clair du solde disponible après chaque transaction.
+    *   **Traçabilité des Mouvements** : Fournit un enregistrement détaillé de toutes les collections et dépenses.
+    *   **Préparation aux Rapports** : Les données saisies ici sont fondamentales pour la génération de rapports financiers.
+
+---
+
+### Guide d'utilisation : Étape 24 - Gestion des Commandes (Tableau de Bord)
+
+Le tableau de bord des commandes est le point central pour la supervision et la gestion de toutes les commandes clients. Il offre une vue d'ensemble des indicateurs clés, permet de suivre les commandes par statut et d'effectuer diverses actions.
+
+1.  **Accéder au Tableau de Bord des Commandes** :
+    *   L'utilisateur navigue vers la section "Commandes" de l'application.
+
+2.  **Vue d'ensemble des Indicateurs Clés (KPI)** :
+    *   En haut de la page, des cartes affichent des indicateurs de performance clés (KPI) tels que :
+        *   **Commandes en Attente** : Nombre de commandes en attente de traitement.
+        *   **Valeur Potentielle** : Montant total des commandes en attente.
+        *   **Taux d'Acceptation** : Pourcentage de commandes acceptées.
+        *   **Bénéfice Potentiel** : Marge estimée sur les commandes.
+        *   **Pipeline Accepté** : Valeur des commandes prêtes à être vendues.
+    *   Ces cartes fournissent un aperçu rapide de la santé et de l'activité des commandes.
+
+3.  **Actions Principales** :
+    *   **Créer une Commande** : Un bouton permet de créer une nouvelle commande, redirigeant vers un formulaire dédié.
+    *   **Voir les Rapports** : Un bouton avec un menu déroulant offre l'accès à différents types de rapports (performance, réapprovisionnement) pour une analyse approfondie.
+
+4.  **Navigation par Statut (Onglets)** :
+    *   Les commandes sont organisées par onglets, chacun représentant un statut spécifique (par exemple, "En Attente", "Acceptée", "Refusée", "Annulée").
+    *   Chaque onglet affiche un badge indiquant le nombre de commandes dans ce statut, facilitant la priorisation.
+    *   Cliquer sur un onglet filtre la liste des commandes affichées.
+
+5.  **Tableau des Commandes** :
+    *   Dans chaque onglet, un tableau liste les commandes correspondant au statut sélectionné.
+    *   Le tableau permet de sélectionner une ou plusieurs commandes pour des actions groupées.
+
+6.  **Actions Spécifiques sur les Commandes** :
+    *   **Actions Individuelles (via le tableau)** :
+        *   **Voir les Détails** : Consulter toutes les informations d'une commande spécifique.
+        *   **Modifier** : Apporter des modifications à une commande existante.
+        *   **Supprimer** : Supprimer une commande (avec confirmation).
+        *   **Accepter / Refuser** : Changer le statut d'une commande.
+        *   **Transformer en Vente** : Convertir une commande acceptée en vente effective (avec confirmation).
+        *   **Annuler** : Annuler une commande.
+    *   **Actions Groupées (Barre d'Actions)** :
+        *   Lorsqu'une ou plusieurs commandes sont sélectionnées, une barre d'actions apparaît en bas de l'écran, permettant d'effectuer des opérations (Accepter, Refuser, Supprimer, Transformer en Vente, Annuler) sur toutes les commandes sélectionnées simultanément.
+
+7.  **Utilité de la Gestion des Commandes** :
+    *   **Suivi Complet du Cycle de Vie** : Permet de suivre une commande de sa création à sa finalisation (vente, annulation, refus).
+    *   **Prise de Décision Rapide** : Les KPIs et la vue par statut aident à identifier rapidement les goulots d'étranglement ou les opportunités.
+    *   **Efficacité Opérationnelle** : Les actions groupées et la navigation intuitive améliorent la productivité.
+    *   **Analyse et Rapports** : Fournit les données nécessaires pour évaluer la performance des ventes et la gestion des stocks.
+
+---
+
+### Guide d'utilisation : Étape 25 - Gestion des Sorties (Décaissements)
+
+La section "Liste des sorties" est dédiée à la gestion des crédits qui ont été décaissés ou "sortis" du système. Elle permet de suivre ces décaissements, de calculer des totaux sur des périodes spécifiques, de générer des rapports et d'effectuer des actions sur les crédits individuels.
+
+1.  **Accéder à la Liste des Sorties** :
+    *   L'utilisateur navigue vers la section "Sorties" de l'application.
+
+2.  **Calculer les Sorties par Période** :
+    *   **Sélectionner une période** : Utiliser les sélecteurs de date "Date de début" et "Date de fin" pour définir la période d'intérêt.
+    *   **Calculer** : Cliquer sur le bouton "Calculer" pour obtenir le montant total des décaissements effectués pendant la période sélectionnée. Le résultat est affiché en gras.
+
+3.  **Actions Générales** :
+    *   **Rafraîchir** : Un bouton "Rafraîchir" permet de recharger la liste des sorties.
+    *   **Générer PDF** : Permet de générer un rapport PDF des sorties.
+    *   **List PDF** : Redirige vers une page listant les rapports PDF générés.
+    *   **Archive** : Redirige vers une liste des anciennes "releases" ou archives de sorties.
+    *   **Historique** : Redirige vers la page d'historique général (ou un historique spécifique aux sorties).
+
+4.  **Tableau des Sorties (Crédits Décaissés)** :
+    *   La page affiche un tableau paginé de tous les crédits décaissés, avec les colonnes suivantes :
+        *   Un numéro d'ordre.
+        *   Le nom complet du client.
+        *   La date de validation du crédit.
+        *   Le montant du crédit.
+        *   Le statut actuel du crédit.
+
+5.  **Actions Spécifiques par Sortie** :
+    *   **Démarrer le Crédit** : Pour les crédits dont le statut est "VALIDATED" (Validé) et si l'utilisateur a la permission `ROLE_STOREKEEPER`, un bouton "play_arrow" permet de "démarrer" le crédit. Cette action enregistre la sortie effective de la vente.
+    *   **Voir les Détails** : En cliquant sur l'icône "Détails" (œil), l'utilisateur est redirigé vers une page affichant toutes les informations détaillées du crédit décaissé.
+    *   **Supprimer** : Un bouton "Supprimer" (visible si l'utilisateur a la permission `ROLE_EDIT_CREDIT`) permet de supprimer un crédit décaissé après confirmation.
+
+6.  **Pagination** :
+    *   Le tableau est paginé, permettant de naviguer entre les différentes pages de résultats et de choisir le nombre d'éléments affichés par page.
+
+7.  **Utilité de la Gestion des Sorties** :
+    *   **Suivi des Décaissements** : Permet de suivre précisément tous les crédits qui ont été remis aux clients.
+    *   **Contrôle Financier** : Le calcul des totaux par période est essentiel pour la réconciliation et le reporting financier.
+    *   **Reporting et Archivage** : Facilite la génération de documents officiels et la consultation des historiques.
+    *   **Gestion du Workflow** : L'action "Démarrer le Crédit" permet de marquer l'étape finale du processus de décaissement.
+
+---
+
+### Guide d'utilisation : Étape 26 - Gestion des Tontines
+
+La section "Gestion des Tontines" est un tableau de bord complet pour la création, la gestion et le suivi des tontines et de leurs membres. Elle permet de superviser les sessions, d'enregistrer les collectes et de marquer les livraisons.
+
+1.  **Accéder au Tableau de Bord des Tontines** :
+    *   L'utilisateur navigue vers la section "Tontines" de l'application.
+
+2.  **Vue d'ensemble des Indicateurs Clés (KPI)** :
+    *   En haut de la page, des cartes affichent des indicateurs de performance clés (KPI) tels que :
+        *   **Montant Total Collecté** : Somme totale des contributions.
+        *   **Membres Actifs** : Nombre de participants.
+        *   **Taux de Complétion** : Progression moyenne des tontines.
+        *   **Livraisons en Attente** : Nombre de livraisons à effectuer.
+    *   Ces cartes fournissent un aperçu rapide de l'état et de l'activité des tontines.
+
+3.  **Actions Principales** :
+    *   **Ajouter un Membre** : Permet d'ajouter un nouveau participant à une session de tontine active. Si aucune session n'est active, l'application propose d'en créer une.
+    *   **Paramètres de la Session** : Ouvre une fenêtre pour configurer les paramètres de la session de tontine actuelle (par exemple, montant des cotisations, fréquence). Si aucune session n'existe, l'application propose d'en créer une.
+    *   **Rafraîchir** : Met à jour les données affichées sur le tableau de bord.
+
+4.  **Filtrage et Recherche** :
+    *   Une barre de filtres avancée permet de rechercher des membres ou des commerciaux, et de filtrer la liste par année, commercial ou statut de livraison (En attente, Livré, Annulé).
+
+5.  **Tableau des Membres de la Tontine** :
+    *   Un tableau paginé liste tous les membres de la tontine avec des informations telles que :
+        *   Le nom du client (membre).
+        *   Le commercial associé.
+        *   Le montant total contribué.
+        *   Le pourcentage de complétion.
+        *   Le statut de livraison (En attente, Livré, Annulé).
+    *   Le tableau peut être trié par différentes colonnes.
+
+6.  **Actions Spécifiques sur les Membres** :
+    *   **Voir les Détails** : Cliquer sur un membre ou sur l'action "Voir" permet d'accéder à sa fiche détaillée.
+    *   **Enregistrer une Collecte** : Ouvre une fenêtre pour enregistrer un paiement (collecte) effectué par le membre.
+    *   **Marquer comme Livré** : Permet de marquer un membre comme ayant reçu sa part de la tontine (avec confirmation).
+
+7.  **Utilité de la Gestion des Tontines** :
+    *   **Organisation Complète** : Gère tous les aspects des tontines, de l'adhésion des membres à la distribution des fonds.
+    *   **Suivi Financier** : Permet de suivre les contributions, les collectes et les montants restants.
+    *   **Transparence** : Les KPIs et les statuts de livraison offrent une vue claire de la progression des tontines.
+    *   **Efficacité Opérationnelle** : Les outils de filtrage, de recherche et les actions rapides facilitent la gestion quotidienne.
+
+---
+
+### Guide d'utilisation : Étape 27 - Gestion des Utilisateurs
+
+La section "Liste des utilisateurs" est l'interface principale pour les administrateurs afin de gérer les comptes utilisateurs de l'application. Elle permet de visualiser, ajouter, modifier et supprimer des utilisateurs, avec un contrôle d'accès basé sur les rôles.
+
+1.  **Accéder à la Liste des Utilisateurs** :
+    *   L'utilisateur navigue vers la section "Utilisateurs" de l'application.
+
+2.  **Actions Générales** :
+    *   **Rafraîchir** : Un bouton "Rafraîchir" permet de recharger la liste des utilisateurs pour s'assurer d'avoir les données les plus récentes.
+    *   **Ajouter** : Un bouton "Ajouter" redirige vers un formulaire dédié à la création d'un nouvel utilisateur.
+
+3.  **Tableau des Utilisateurs** :
+    *   La page affiche un tableau paginé de tous les utilisateurs enregistrés, avec les colonnes suivantes :
+        *   Un numéro d'ordre.
+        *   Le nom d'utilisateur (`username`).
+        *   Le nom et le prénom de l'utilisateur.
+        *   L'adresse e-mail.
+        *   Le numéro de téléphone.
+
+4.  **Actions Spécifiques par Utilisateur** :
+    *   **Voir les Détails** : En cliquant sur l'icône "Détails" (œil), l'utilisateur est redirigé vers une page affichant toutes les informations détaillées du profil de l'utilisateur sélectionné.
+    *   **Modifier** : Un bouton "Modifier" (visible uniquement si l'utilisateur a la permission `ROLE_EDIT_USER`) permet d'éditer les informations d'un utilisateur existant. Le formulaire d'ajout est réutilisé pour cette opération.
+    *   **Supprimer** : Un bouton "Supprimer" (visible uniquement si l'utilisateur a la permission `ROLE_DEL_USER`) permet de retirer un utilisateur du système après une confirmation.
+
+5.  **Pagination** :
+    *   Le tableau est paginé, permettant de naviguer entre les différentes pages de résultats et de choisir le nombre d'éléments affichés par page.
+
+6.  **Utilité de la Gestion des Utilisateurs** :
+    *   **Administration des Comptes** : Permet aux administrateurs de gérer l'accès et les informations de tous les utilisateurs.
+    *   **Sécurité et Permissions** : Le contrôle d'accès basé sur les rôles (`ROLE_EDIT_USER`, `ROLE_DEL_USER`) garantit que seules les personnes autorisées peuvent effectuer des modifications sensibles.
+    *   **Centralisation des Données** : Fournit un point unique pour consulter et maintenir les informations des utilisateurs.

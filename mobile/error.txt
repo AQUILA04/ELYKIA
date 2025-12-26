@@ -1,0 +1,111 @@
+[ng] Error: src/app/features/articles/pages/article-list/article-list.page.ts:16:3 - error TS2564: Property 'articles$' has no initializer and is not definitely assigned in the constructor.
+[ng] 16   articles$: Observable<Article[]>;
+[ng]      ~~~~~~~~~
+[ng] Error: src/app/features/articles/pages/article-list/article-list.page.ts:17:3 - error TS2564: Property 'articleCount$' has no initializer and is not definitely assigned in the constructor.
+[ng] 17   articleCount$: Observable<number>;
+[ng]      ~~~~~~~~~~~~~
+[ng] Error: src/app/features/clients/new-client/new-client.page.ts:44:3 - error TS2564: Property 'filteredLocalities$' has no initializer and is not definitely assigned in the constructor.
+[ng] 44   filteredLocalities$: Observable<Locality[]>;
+[ng]      ~~~~~~~~~~~~~~~~~~~
+[ng] Error: src/app/features/clients/pages/client-detail/client-detail.page.ts:32:3 - error TS2564: Property 'client$' has no initializer and is not definitely assigned in the constructor.
+[ng] 32   client$: Observable<any>;
+[ng]      ~~~~~~~
+[ng] Error: src/app/features/clients/pages/client-detail/client-detail.page.ts:33:3 - error TS2564: Property 'credits$' has no initializer and is not definitely assigned in the constructor.
+[ng] 33   credits$: Observable<any[]>;
+[ng]      ~~~~~~~~
+[ng] Error: src/app/features/clients/pages/client-detail/client-detail.page.ts:34:3 - error TS2564: Property 'history$' has no initializer and is not definitely assigned in the constructor.
+[ng] 34   history$: Observable<any[]>;
+[ng]      ~~~~~~~~
+[ng] Error: src/app/features/distributions/pages/edit-distribution/edit-distribution.page.html:98:39 - error TS2339: Property 'Object' does not exist on type 'EditDistributionPage'.
+[ng] 98   <div class="summary-section" *ngIf="Object.keys(vm.quantities).length > 0">
+[ng]                                          ~~~~~~
+[ng]   src/app/features/distributions/pages/edit-distribution/edit-distribution.page.ts:35:16
+[ng]     35   templateUrl: './edit-distribution.page.html',
+[ng]                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ng]     Error occurs in the template of component EditDistributionPage.
+[ng] Error: src/app/features/distributions/pages/edit-distribution/edit-distribution.page.html:111:38 - error TS2339: Property 'Object' does not exist on type 'EditDistributionPage'.
+[ng] 111               <span class="value">{{ Object.keys(vm.quantities).length }}</span>
+[ng]                                          ~~~~~~
+[ng]   src/app/features/distributions/pages/edit-distribution/edit-distribution.page.ts:35:16
+[ng]     35   templateUrl: './edit-distribution.page.html',
+[ng]                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ng]     Error occurs in the template of component EditDistributionPage.
+[ng] Error: src/app/features/distributions/pages/edit-distribution/edit-distribution.page.html:139:71 - error TS2339: Property 'Object' does not exist on type 'EditDistributionPage'.
+[ng] 139     <ion-button expand="block" size="large" [disabled]="!vm.client || Object.keys(vm.quantities).length === 0" (click)="confirmDistribution()" class="confirm-button">
+[ng]                                                                           ~~~~~~
+[ng]   src/app/features/distributions/pages/edit-distribution/edit-distribution.page.ts:35:16
+[ng]     35   templateUrl: './edit-distribution.page.html',
+[ng]                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ng]     Error occurs in the template of component EditDistributionPage.
+[ng] Error: src/app/features/distributions/pages/edit-distribution/edit-distribution.page.ts:47:3 - error TS2564: Property 'vm$' has no initializer and is not definitely assigned in the constructor.
+[ng] 47   vm$: Observable<DistributionViewModel>;
+[ng]      ~~~
+[ng] Error: src/app/features/distributions/pages/edit-distribution/edit-distribution.page.ts:199:19 - error TS2304: Cannot find name 'take'.
+[ng] 199     this.vm$.pipe(take(1)).subscribe(vm => {
+[ng]                       ~~~~
+[ng] Error: src/app/features/distributions/pages/edit-distribution/edit-distribution.page.ts:200:31 - error TS18046: 'vm' is of type 'unknown'.
+[ng] 200       const currentQuantity = vm.quantities[article.id] || 0;
+[ng]                                   ~~
+[ng] Error: src/app/features/distributions/pages/edit-distribution/edit-distribution.page.ts:237:26 - error TS2304: Cannot find name 'take'.
+[ng] 237     return this.vm$.pipe(take(1), switchMap(vm => {
+[ng]                              ~~~~
+[ng] Error: src/app/features/distributions/pages/edit-distribution/edit-distribution.page.ts:238:45 - error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'DistributionViewModel'.
+[ng] 238       const hasChanges = this.detectChanges(vm);
+[ng]                                                 ~~
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.html:112:39 - error TS2339: Property 'Object' does not exist on type 'NewDistributionPage'.
+[ng] 112   <div class="summary-section" *ngIf="Object.keys(vm.quantities).length > 0">
+[ng]                                           ~~~~~~
+[ng]   src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:35:16
+[ng]     35   templateUrl: './new-distribution.page.html',
+[ng]                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ng]     Error occurs in the template of component NewDistributionPage.
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.html:125:38 - error TS2339: Property 'Object' does not exist on type 'NewDistributionPage'.
+[ng] 125               <span class="value">{{ Object.keys(vm.quantities).length }}</span>
+[ng]                                          ~~~~~~
+[ng]   src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:35:16
+[ng]     35   templateUrl: './new-distribution.page.html',
+[ng]                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ng]     Error occurs in the template of component NewDistributionPage.
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.html:153:71 - error TS2339: Property 'Object' does not exist on type 'NewDistributionPage'.
+[ng] 153     <ion-button expand="block" size="large" [disabled]="!vm.client || Object.keys(vm.quantities).length === 0" (click)="confirmDistribution()" class="confirm-button">
+[ng]                                                                           ~~~~~~
+[ng]   src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:35:16
+[ng]     35   templateUrl: './new-distribution.page.html',
+[ng]                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ng]     Error occurs in the template of component NewDistributionPage.
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:43:3 - error TS2564: Property 'vm$' has no initializer and is not definitely assigned in the constructor.
+[ng] 43   vm$: Observable<DistributionViewModel>;
+[ng]      ~~~
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:160:86 - error TS2304: Cannot find name 'take'.
+[ng] 160     const currentQuantity = this.vm$.pipe(map(vm => vm.quantities[article.id] || 0), take(1));
+[ng]                                                                                          ~~~~
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:162:27 - error TS18046: 'qty' is of type 'unknown'.
+[ng] 162       const newQuantity = qty + change;
+[ng]                               ~~~
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:188:29 - error TS2304: Cannot find name 'take'.
+[ng] 188     return hasChanges$.pipe(take(1), switchMap(hasChanges => {
+[ng]                                 ~~~~
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:188:38 - error TS2304: Cannot find name 'switchMap'.
+[ng] 188     return hasChanges$.pipe(take(1), switchMap(hasChanges => {
+[ng]                                          ~~~~~~~~~
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:188:48 - error TS7006: Parameter 'hasChanges' implicitly has an 'any' type.
+[ng] 188     return hasChanges$.pipe(take(1), switchMap(hasChanges => {
+[ng]                                                    ~~~~~~~~~~
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:189:31 - error TS2304: Cannot find name 'of'.
+[ng] 189       if (!hasChanges) return of(true);
+[ng]                                   ~~
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:191:14 - error TS2551: Property 'alertController' does not exist on type 'NewDistributionPage'. Did you mean 'modalController'?
+[ng] 191         this.alertController.create({
+[ng]                  ~~~~~~~~~~~~~~~
+[ng]   src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:52:5
+[ng]     52     private modalController: ModalController,
+[ng]            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ng]     'modalController' is declared here.
+[ng] Error: src/app/features/distributions/pages/new-distribution/new-distribution.page.ts:198:17 - error TS7006: Parameter 'alert' implicitly has an 'any' type.
+[ng] 198         }).then(alert => alert.present());
+[ng]                     ~~~~~
+[ng] Error: src/app/features/recovery/recovery.page.ts:36:3 - error TS2564: Property 'vm$' has no initializer and is not definitely assigned in the constructor.
+[ng] 36   vm$: Observable<RecoveryViewModel>;
+[ng]      ~~~
+[ng]
+[ng] × Failed to compile.

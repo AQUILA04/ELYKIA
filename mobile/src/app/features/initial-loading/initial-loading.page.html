@@ -1,0 +1,36 @@
+<ion-content [fullscreen]="true">
+  <div class="loading-container">
+    <!-- Particules d'arrière-plan -->
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+
+    <!-- Card principale de chargement -->
+    <div class="loading-card">
+      <div class="loading-logo">📱</div>
+
+      <div class="loading-title">Initialisation en cours...</div>
+
+      <div class="progress-container">
+        <div class="progress-bar-loading">
+          <div class="progress-fill-loading" [style.width]="progress + '%'"></div>
+        </div>
+        <div class="status-text">{{ statusText }}</div>
+        <div class="percentage-text">{{ progress | number:'1.0-0' }}%</div>
+      </div>
+    </div>
+
+    <!-- Animation de succès -->
+    <div class="success-animation" [class.show]="showSuccessAnimation">
+      ✓
+    </div>
+
+    <!-- Message de fin -->
+    <div class="completion-message" [class.show]="showCompletionMessage">
+      Initialisation terminée avec succès !<br>
+      Redirection en cours...
+    </div>
+  </div>
+</ion-content>

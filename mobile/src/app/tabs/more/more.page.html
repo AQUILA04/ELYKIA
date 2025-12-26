@@ -1,0 +1,303 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title class="ion-text-center">Paramètres</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-content class="ion-padding">
+    <ion-card class="profile-header">
+      <ion-avatar>
+        <span class="initials">{{ (user$ | async)?.username | initials }}</span>
+      </ion-avatar>
+      <h2>{{ (user$ | async)?.username }}</h2>
+      <p>Commercial - Zone --</p>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <h3>{{ totalClients$ | async }}</h3>
+          <p>CLIENTS</p>
+        </div>
+        <div class="stat-item">
+          <h3>{{ activeCreditsCount$ | async }}</h3>
+          <p>CRÉDITS ACTIFS</p>
+        </div>
+        <div class="stat-item">
+          <h3>{{ collectionRate$ | async }}%</h3>
+          <p>TAUX COLLECTE</p>
+        </div>
+      </div>
+    </ion-card>
+
+    <ion-card>
+      <ion-list-header>Synchronisation</ion-list-header>
+      <ion-list>
+        <ion-item>
+          <ion-icon name="sync-circle-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Synchronisation automatique</h3>
+            <p>Synchroniser les données automatiquement</p>
+          </ion-label>
+          <ion-toggle slot="end"></ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="person-circle-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Activer la synchronisation des photos de profil</h3>
+            <p>Télécharger automatiquement les photos de profil des clients</p>
+          </ion-label>
+          <ion-toggle slot="end" [(ngModel)]="enableProfilePhotoSync"
+            (ionChange)="onProfilePhotoSyncToggleChange()"></ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="card-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Activer la synchronisation des pièces d'identité</h3>
+            <p>Télécharger automatiquement les photos des cartes d'identité</p>
+          </ion-label>
+          <ion-toggle slot="end" [(ngModel)]="enableCardPhotoSync"
+            (ionChange)="onCardPhotoSyncToggleChange()"></ion-toggle>
+        </ion-item>
+        <ion-item button>
+          <ion-icon name="time-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Fréquence de synchronisation</h3>
+            <p>Toutes les 2 heures</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+        <ion-item button [routerLink]="['/sync-errors']" detail="true">
+          <ion-icon name="warning-outline" slot="start" color="danger"></ion-icon>
+          <ion-label>
+            <h3>Erreurs de synchronisation</h3>
+            <p>Voir les détails des erreurs</p>
+          </ion-label>
+          <ion-badge color="danger" slot="end">{{ pendingErrorsCount$ | async }}</ion-badge>
+        </ion-item>
+      </ion-list>
+    </ion-card>
+
+    <!--  <ion-card>-->
+    <!--    <ion-list-header>Notifications</ion-list-header>-->
+    <!--    <ion-list>-->
+    <!--      <ion-item>-->
+    <!--        <ion-icon name="notifications-outline" slot="start"></ion-icon>-->
+    <!--        <ion-label>-->
+    <!--          <h3>Notifications push</h3>-->
+    <!--          <p>Recevoir les notifications importantes</p>-->
+    <!--        </ion-label>-->
+    <!--        <ion-toggle slot="end"></ion-toggle>-->
+    <!--      </ion-item>-->
+    <!--      <ion-item>-->
+    <!--        <ion-icon name="volume-medium-outline" slot="start"></ion-icon>-->
+    <!--        <ion-label>-->
+    <!--          <h3>Sons de notification</h3>-->
+    <!--          <p>Jouer un son pour les notifications</p>-->
+    <!--        </ion-label>-->
+    <!--        <ion-toggle slot="end"></ion-toggle>-->
+    <!--      </ion-item>-->
+    <!--      <ion-item>-->
+    <!--        <ion-icon name="pulse-outline" slot="start"></ion-icon>-->
+    <!--        <ion-label>-->
+    <!--          <h3>Vibration</h3>-->
+    <!--          <p>Vibrer lors des notifications</p>-->
+    <!--        </ion-label>-->
+    <!--        <ion-toggle slot="end"></ion-toggle>-->
+    <!--      </ion-item>-->
+    <!--    </ion-list>-->
+    <!--  </ion-card>-->
+
+    <ion-card>
+      <ion-list-header>Tontine</ion-list-header>
+      <ion-list>
+        <ion-item button routerLink="/tontine/dashboard">
+          <ion-icon name="wallet-outline" slot="start"></ion-icon>
+          <ion-label>Tableau de bord Tontine</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </ion-card>
+
+    <ion-card>
+      <ion-list-header>Rapports</ion-list-header>
+      <ion-list>
+        <ion-item button routerLink="/tabs/dashboard/recoveries/list">
+          <ion-icon name="cash-outline" slot="start"></ion-icon>
+          <ion-label>Recouvrements</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+        <ion-item button routerLink="/report">
+          <ion-icon name="document-text-outline" slot="start"></ion-icon>
+          <ion-label>Rapport journalier</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </ion-card>
+
+    <ion-card>
+      <ion-list-header>Commandes</ion-list-header>
+      <ion-list>
+        <ion-item button routerLink="#/tabs/orders">
+          <ion-icon name="receipt-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Liste des commandes</h3>
+            <p>Voir et gérer toutes les commandes</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+        <ion-item button routerLink="#/tabs/orders/new">
+          <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Nouvelle commande</h3>
+            <p>Créer une nouvelle commande client</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </ion-card>
+
+    <ion-card>
+      <ion-list-header>Données</ion-list-header>
+      <ion-list>
+        <ion-item button routerLink="/tabs/localities">
+          <ion-icon name="map-outline" slot="start"></ion-icon>
+          <ion-label>Localités</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+        <ion-item button routerLink="/tabs/article-list">
+          <ion-icon name="list-outline" slot="start"></ion-icon>
+          <ion-label>Articles</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </ion-card>
+
+    <ion-card>
+      <ion-list-header>Sécurité</ion-list-header>
+      <ion-list>
+        <ion-item button (click)="changePassword()">
+          <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Changer le mot de passe</h3>
+            <p>Modifier votre mot de passe</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="phone-portrait-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Verrouillage automatique</h3>
+            <p>Verrouiller après une période d'inactivité</p>
+          </ion-label>
+          <ion-toggle slot="end" [(ngModel)]="autoLock" (ionChange)="onAutoLockToggleChange()"></ion-toggle>
+        </ion-item>
+        @if (autoLock) {
+        <ion-item>
+          <ion-label>Durée d'inactivité</ion-label>
+          <ion-select [(ngModel)]="autoLockDuration" (ionChange)="onAutoLockDurationChange()">
+            <ion-select-option [value]="2">2 minutes</ion-select-option>
+            <ion-select-option [value]="5">5 minutes</ion-select-option>
+            <ion-select-option [value]="10">10 minutes</ion-select-option>
+          </ion-select>
+        </ion-item>
+        }
+      </ion-list>
+    </ion-card>
+
+    <ion-card>
+      <ion-list-header>Stockage et Performance</ion-list-header>
+      <ion-list>
+        <ion-item button>
+          <ion-icon name="server-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Utilisation du stockage</h3>
+            <p>45 MB utilisés sur 100 MB</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+
+        <!-- Nouvel item pour l'utilisation mémoire -->
+        <ion-item>
+          <ion-icon name="hardware-chip-outline" slot="start" [color]="getMemoryAlertColor()"></ion-icon>
+          <ion-label>
+            <h3>Utilisation mémoire RAM</h3>
+            <p>{{ getMemoryStatusText() }}</p>
+            @if (currentMemoryStats) {
+            <p class="memory-details">
+              {{ currentMemoryStats.formattedUsed }} / {{ currentMemoryStats.formattedLimit }}
+            </p>
+            }
+          </ion-label>
+          @if (isMemoryCritical) {
+          <ion-badge [color]="getMemoryAlertColor()" slot="end">
+            Critique
+          </ion-badge>
+          }
+        </ion-item>
+
+        <!-- Item modifié pour vider le cache et libérer la mémoire -->
+        <ion-item button (click)="clearMemoryCache()">
+          <ion-icon name="refresh-circle-outline" slot="start"
+            [color]="isMemoryCritical ? 'danger' : 'primary'"></ion-icon>
+          <ion-label>
+            <h3>Libérer la mémoire RAM</h3>
+            <p>Vider le cache et optimiser les performances</p>
+            @if (isMemoryCritical) {
+            <p class="memory-warning">⚠️ Mémoire critique - Nettoyage recommandé</p>
+            }
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+
+        <ion-item button (click)="restoreBackup()">
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Restaurer la sauvegarde</h3>
+            <p>Restaurer la dernière sauvegarde de la base de données</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+        <ion-item button (click)="backupDatabase()">
+          <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Sauvegarder les données</h3>
+            <p>Lancer une sauvegarde manuelle de la base de données</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </ion-card>
+
+    <ion-card>
+      <ion-list-header>Aide et Support</ion-list-header>
+      <ion-list>
+        <ion-item button>
+          <ion-icon name="book-outline" slot="start"></ion-icon>
+          <ion-label>Guide d'utilisation</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+        <ion-item button>
+          <ion-icon name="help-buoy-outline" slot="start"></ion-icon>
+          <ion-label>Contacter le support</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </ion-card>
+
+    <ion-card>
+      <ion-list-header>À propos</ion-list-header>
+      <ion-list>
+        <ion-item>
+          <ion-icon name="information-circle-outline" slot="start"></ion-icon>
+          <ion-label>Version {{ appVersion }}</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card>
+
+    <div class="ion-padding">
+      <ion-button expand="block" fill="clear" color="danger" (click)="logout()">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        Se déconnecter
+      </ion-button>
+    </div>
+  </ion-content>
+</ion-content>

@@ -1,0 +1,60 @@
+<div class="details-container" *ngIf="!isLoading">
+    <div class="form-header">
+      <h1>Détail de l'agence</h1>
+    </div>
+  
+    <div class="details-content" *ngIf="agency">
+        <div class="details-row">
+            <div class="details-label">Nom</div>
+            <div class="details-value">{{ agency.name }}</div>
+          </div>
+      
+          <!-- Code de l'agence -->
+          <div class="details-row">
+            <div class="details-label">Code</div>
+            <div class="details-value">{{ agency.code }}</div>
+          </div>
+      
+          <!-- Téléphone -->
+          <div class="details-row">
+            <div class="details-label">Téléphone</div>
+            <div class="details-value">{{ agency.phone }}</div>
+          </div>
+      
+          <!-- Secrétaire -->
+          <div class="details-row">
+            <div class="details-label">Nom de la secrétaire</div>
+            <div class="details-value">{{ agency.secretaryName }}</div>
+          </div>
+      
+          <!-- Contact de la secrétaire -->
+          <div class="details-row">
+            <div class="details-label">Contact de la secrétaire</div>
+            <div class="details-value">{{ agency.secretaryContact }}</div>
+          </div>
+      
+          <!-- Superviseur -->
+          <div class="details-row">
+            <div class="details-label">Nom du superviseur</div>
+            <div class="details-value">{{ agency.superviserName }}</div>
+          </div>
+      
+          <!-- Contact du superviseur -->
+          <div class="details-row">
+            <div class="details-label">Contact du superviseur</div>
+            <div class="details-value">{{ agency.superviserContact }}</div>
+          </div>
+        </div>
+  
+    <div class="form-actions">
+      <a (click)="onCancel()" class="link-back">
+        <i class="ti ti-arrow-left"></i> Retour à la liste
+      </a>
+      <a (click)="navigateToEdit(agency!.id)" class="link-edit">
+        <i class="ti ti-pencil"></i> Modifier
+      </a>
+    </div>
+  </div>
+  
+  <div *ngIf="isLoading">Chargement...</div>
+  

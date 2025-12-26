@@ -1,0 +1,152 @@
+<div class="order-table-container">
+  <!-- Indicateur de chargement -->
+  <div class="table-loading" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Chargement des commandes...</p>
+  </div>
+
+  <!-- Tableau -->
+  <div class="table-wrapper" [class.loading]="loading">
+    <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange()" class="order-table">
+      
+      <!-- Colonne de sélection -->
+      <ng-container matColumnDef="selection" *ngIf="selectable">
+        <th mat-header-cell *matHeaderCellDef class="selection-column">
+          <mat-checkbox 
+            [checked]="isAllSelected()"
+            [indeterminate]="isIndeterminate()"
+            (change)="masterToggle()"
+            [disabled]="loading">
+          </mat-checkbox>
+        </th>
+        <td mat-cell *matCellDef="let order" class="selection-column">
+          <mat-checkbox 
+            [checked]="isSelected(order)"
+            (change)="onRowSelectionChange(order)"
+            (click)="$event.stopPropagation()"
+            [disabled]="loading">
+          </mat-checkbox>
+        </td>
+      </ng-container>
+
+      <!-- Colonne ID -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="id-column">
+          N° Commande
+        </th>
+        <td mat-cell *matCellDef="let order" class="id-column">
+          <span class="order-id">#{{ order.id }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Colonne Client -->
+      <ng-container matColumnDef="clientName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          Client
+        </th>
+        <td mat-cell *matCellDef="let order">
+          <div class="client-info">
+            <span class="client-name">{{ getClientName(order) }}</span>
+            <span class="client-code" *ngIf="getClientCode(order)">{{ getClientCode(order) }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Colonne Commercial -->
+      <ng-container matColumnDef="commercial">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          Commercial
+        </th>
+        <td mat-cell *matCellDef="let order">
+          {{ order.commercial || order.client?.collector || '-' }}
+        </td>
+      </ng-container>
+
+      <!-- Colonne Date -->
+      <ng-container matColumnDef="orderDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="date-column">
+          Date
+        </th>
+        <td mat-cell *matCellDef="let order" class="date-column">
+          {{ formatCellValue(order, {key: 'orderDate', label: '', sortable: true, type: 'date'}) }}
+        </td>
+      </ng-container>
+
+      <!-- Colonne Montant -->
+      <ng-container matColumnDef="totalAmount">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="amount-column">
+          Montant
+        </th>
+        <td mat-cell *matCellDef="let order" class="amount-column">
+          <span class="amount">
+            {{ formatCellValue(order, {key: 'totalAmount', label: '', sortable: true, type: 'currency'}) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Colonne Statut -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="status-column">
+          Statut
+        </th>
+        <td mat-cell *matCellDef="let order" class="status-column">
+          <app-order-status-badge [status]="order.status"></app-order-status-badge>
+        </td>
+      </ng-container>
+
+      <!-- Colonne Actions -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="actions-column">
+          Actions
+        </th>
+        <td mat-cell *matCellDef="let order" class="actions-column">
+          <button 
+            mat-icon-button 
+            [matMenuTriggerFor]="actionsMenu"
+            [disabled]="loading"
+            (click)="$event.stopPropagation()"
+            matTooltip="Actions">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          
+          <mat-menu #actionsMenu="matMenu">
+            <button 
+              mat-menu-item 
+              *ngFor="let action of getOrderActions(order); trackBy: trackByAction"
+              (click)="onActionClick(order, action, $event)">
+              <mat-icon>{{ getActionIcon(action) }}</mat-icon>
+              <span>{{ getActionLabel(action) }}</span>
+            </button>
+          </mat-menu>
+        </td>
+      </ng-container>
+
+      <!-- En-têtes et lignes -->
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr 
+        mat-row 
+        *matRowDef="let order; columns: displayedColumns"
+        class="order-row"
+        [class.selected]="isSelected(order)"
+        [class.clickable]="!loading"
+        (click)="onRowClick(order, $event)">
+      </tr>
+    </table>
+
+    <!-- Message d'état vide -->
+    <div class="empty-state" *ngIf="!loading && orders.length === 0">
+      <mat-icon class="empty-icon">inbox</mat-icon>
+      <h3>Aucune commande trouvée</h3>
+      <p>Il n'y a pas de commandes correspondant à vos critères.</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <mat-paginator 
+    *ngIf="showPagination && !loading && orders.length > 0"
+    [pageSizeOptions]="pageSizeOptions"
+    [pageSize]="pageSize"
+    showFirstLastButtons
+    class="order-paginator">
+  </mat-paginator>
+</div>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport de Réapprovisionnement</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Rapport de Réapprovisionnement</h1>
+    <p>Date: <span th:text="${#temporals.format(#temporals.now(), 'dd/MM/yyyy HH:mm')}"></span></p>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Article</th>
+        <th>Quantité Commandée (Acceptée)</th>
+        <th>Stock Actuel</th>
+        <th>Achat Nécessaire</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item : ${restockItems}">
+        <td th:text="${item.article.commercialName}"></td>
+        <td th:text="${item.totalOrderedQuantity}"></td>
+        <td th:text="${item.currentStock}"></td>
+        <td th:text="${item.difference}"></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
