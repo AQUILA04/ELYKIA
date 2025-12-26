@@ -2,7 +2,7 @@
   data-sidebar-position="fixed" data-header-position="fixed">
 
   <!-- Sidebar -->
-  <div *ngIf="showHeaderAndSidebar" class="sidebar">
+  <div *ngIf="showHeaderAndSidebar" class="sidebar" [class.show-sidebar]="layoutService.isSidebarOpen$ | async">
     <app-sidebar></app-sidebar>
   </div>
 
@@ -14,7 +14,7 @@
     <!-- Breadcrumb -->
     <div class="table-container">
       <app-breadcrumb *ngIf="showHeaderAndSidebar"></app-breadcrumb>
-      
+
       <!-- Main Router Outlet for Pages -->
       <router-outlet></router-outlet>
     </div>

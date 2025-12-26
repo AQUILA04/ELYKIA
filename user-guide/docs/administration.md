@@ -83,3 +83,37 @@ Depuis la liste :
 *   **Supprimer** (Corbeille rouge) : Retire l'article (impossible si déjà vendu).
 
 ![Capture d'écran - Formulaire Article](images/admin-article-form.png)
+
+---
+
+## 🏷️ Gestion des Types d'Articles
+
+Les types d'articles permettent de catégoriser vos produits (ex: Alimentaire, Electroménager) pour faciliter la recherche et les rapports.
+
+### 1. Accéder aux types
+Dans le menu latéral gauche, cliquez sur **Type d'Article** (sous le menu Articles).
+L'écran **Liste des types d'article** s'affiche.
+
+![Capture d'écran - Liste des Types Articles](images/admin-article-type-list.png)
+
+### 2. Liste et recherche
+Le tableau affiche l'ID, le nom, le code et la description de chaque type.
+*   **Recherche** : Utilisez la barre de recherche en haut pour filtrer par nom.
+*   **Rafraîchir** : Recharge la liste depuis le serveur.
+
+> [!NOTE]
+> Des types par défaut sont déjà pré-chargés dans le système (ex: RIZ, HUILE, SUCRE, etc.).
+
+### 3. Créer un nouveau type
+1.  Cliquez sur le bouton **+ Ajouter**.
+2.  Remplissez le formulaire :
+    *   **Nom** (Requis) : Le libellé du type. Doit être unique.
+    *   **Code** (Requis) : Un code court unique (ex: `ELEC` pour Electroménager).
+    *   **Description** : Information optionnelle.
+3.  Cliquez sur **Enregistrer**.
+
+![Capture d'écran - Formulaire Type Article](images/admin-article-type-form.png)
+
+### 4. Modifier ou Supprimer
+*   **Modifier** (Crayon bleu) : Pour corriger une faute de frappe ou changer la description.
+*   **Supprimer** (Corbeille rouge) : Supprime le type.

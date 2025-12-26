@@ -3,23 +3,29 @@ import { Router } from '@angular/router';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import Swal from 'sweetalert2';
-import {AuthService} from "../../auth/service/auth.service";
+import { AuthService } from "../../auth/service/auth.service";
+import { LayoutService } from 'src/app/shared/service/layout.service';
 
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
-export class HeaderComponent implements OnInit  {
-  username: string| null = '';
+export class HeaderComponent implements OnInit {
+  username: string | null = '';
 
-  constructor(private router : Router,
-              private tokenStorage : TokenStorageService,
-              private authService: AuthService,
-              private alertService: AlertService
+  constructor(private router: Router,
+    private tokenStorage: TokenStorageService,
+    private authService: AuthService,
+    private alertService: AlertService,
+    private layoutService: LayoutService
   ) {
 
-   }
+  }
+
+  toggleSidebar() {
+    this.layoutService.toggleSidebar();
+  }
   ngOnInit(): void {
 
     this.username = this.authService.getUsername();
@@ -27,11 +33,11 @@ export class HeaderComponent implements OnInit  {
 
   confirmLogout(): void {
     this.alertService.showConfirmation('Confirmation de deconnexion', 'Voulez-vous vraiment vous déconnecter?', 'Oui', 'Non')
-    .then((result) => {
-      if (result) {
-        this.logout();
-      }
-    });
+      .then((result) => {
+        if (result) {
+          this.logout();
+        }
+      });
   }
 
   logout(): void {

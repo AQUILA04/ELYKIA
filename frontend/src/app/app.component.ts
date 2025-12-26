@@ -43,6 +43,7 @@ import { TokenStorageService } from './shared/service/token-storage.service';
 import { AuthService } from './auth/service/auth.service';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
+import { LayoutService } from './shared/service/layout.service';
 
 @Component({
   selector: 'app-root',
@@ -58,7 +59,8 @@ export class AppComponent implements OnInit {
     private router: Router,
     private permissionsService: NgxPermissionsService,
     private tokenStorageService: TokenStorageService,
-    private authService: AuthService
+    private authService: AuthService,
+    public layoutService: LayoutService
   ) { }
 
   ngOnInit(): void {

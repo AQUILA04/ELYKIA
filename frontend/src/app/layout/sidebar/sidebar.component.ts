@@ -5,7 +5,8 @@ import { filter } from 'rxjs/operators';
 
 import { NgxPermissionsService } from 'ngx-permissions';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import {AuthService} from "../../auth/service/auth.service";
+import { AuthService } from "../../auth/service/auth.service";
+import { LayoutService } from 'src/app/shared/service/layout.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -25,7 +26,7 @@ export class SidebarComponent implements OnInit {
     // Pour toutes les autres routes, utiliser une correspondance exacte ou avec un slash
     // Cela évite les conflits entre routes similaires
     return this.activeRoute === route || this.activeRoute === route + '/' ||
-           (this.activeRoute.startsWith(route + '/') && !this.hasConflictingRoute(route));
+      (this.activeRoute.startsWith(route + '/') && !this.hasConflictingRoute(route));
   }
 
   // Méthode pour détecter les routes qui peuvent entrer en conflit
@@ -51,10 +52,11 @@ export class SidebarComponent implements OnInit {
   }
 
   constructor(private router: Router,
-              private tokenStorageService: TokenStorageService,
-              private permissionsService: NgxPermissionsService,
-              private tokenStorage: TokenStorageService,
-              private authService: AuthService) {
+    private tokenStorageService: TokenStorageService,
+    private permissionsService: NgxPermissionsService,
+    private tokenStorage: TokenStorageService,
+    private authService: AuthService,
+    public layoutService: LayoutService) {
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
@@ -117,5 +119,9 @@ export class SidebarComponent implements OnInit {
     localStorage.removeItem('currentUser');
     this.tokenStorageService.signOut();
     this.router.navigate(['/login']);
+  }
+
+  closeSidebar() {
+    this.layoutService.closeSidebar();
   }
 }
