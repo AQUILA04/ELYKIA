@@ -99,6 +99,7 @@ import { ChangeDailyStakeComponent } from './credit/change-daily-stake/change-da
 import { ArticleSelectorComponent } from './credit/components/article-selector/article-selector.component';
 import { CreateTontineComponent } from './credit/components/create-tontine/create-tontine.component';
 import { AdvancedSearchComponent } from './credit/components/advanced-search/advanced-search.component';
+import { SharedComponentsModule } from './shared/components/shared-components.module';
 
 @NgModule({
   declarations: [
@@ -199,7 +200,8 @@ import { AdvancedSearchComponent } from './credit/components/advanced-search/adv
     MatAutocompleteModule,
     // Tontine module is lazy loaded, not imported here
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    SharedComponentsModule
   ],
   providers: [
     // --- CORRECTION DES PROVIDERS ---

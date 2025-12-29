@@ -1,0 +1,15 @@
+table {
+    width: 100%;
+}
+
+.mat-column-actions {
+    text-align: right;
+    white-space: nowrap;
+    width: 1px;
+    /* Shrinks to fit content */
+}
+
+/* Ensure the actions header is also aligned right */
+th.mat-column-actions {
+    text-align: right;
+}

@@ -1,5 +1,5 @@
 .details-container {
-  max-width: 600px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
   background-color: white;
@@ -13,7 +13,8 @@
 
   h1 {
     color: #003366;
-    position: -webkit-sticky; /* For Safari */
+    position: -webkit-sticky;
+    /* For Safari */
     position: sticky;
     top: 0;
     background-color: white;
@@ -37,15 +38,18 @@
     .details-label {
       font-weight: bold;
       color: #003366;
-      width: 150px; /* Ajustez la largeur pour aligner les deux-points */
+      width: 150px;
+      /* Ajustez la largeur pour aligner les deux-points */
       text-align: left;
       position: relative;
-      white-space: nowrap; /* Évite la coupure de texte */
+      white-space: nowrap;
+      /* Évite la coupure de texte */
 
       &::after {
         content: ":";
         position: absolute;
-        right: +50px; /* Ajustez cette valeur pour positionner les deux-points */
+        right: +50px;
+        /* Ajustez cette valeur pour positionner les deux-points */
       }
     }
 

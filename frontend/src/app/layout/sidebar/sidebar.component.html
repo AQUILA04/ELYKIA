@@ -133,6 +133,22 @@
             <span class="hide-menu">Comptes</span>
           </a>
         </li>
+        <li class="sidebar-item" [ngClass]="{ 'active': isRouteActive('/expense') }">
+          <a class="sidebar-link" routerLink="/expense" aria-expanded="false">
+            <span>
+              <mat-icon>money_off</mat-icon>
+            </span>
+            <span class="hide-menu">Dépenses</span>
+          </a>
+        </li>
+        <li class="sidebar-item" [ngClass]="{ 'active': isRouteActive('/expense/types') }">
+          <a class="sidebar-link" routerLink="/expense/types" aria-expanded="false">
+            <span>
+              <mat-icon>style</mat-icon>
+            </span>
+            <span class="hide-menu">Types de Dépense</span>
+          </a>
+        </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT']"
           [ngClass]="{ 'active': isRouteActive('/client-list') }">
           <a class="sidebar-link" routerLink="/client-list" aria-expanded="false">
@@ -206,6 +222,31 @@
             </span>
             <span class="hide-menu">Utilisateurs</span>
           </a>
+        </li>
+
+        <!-- Pour l'élément Sécurité -->
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_USER']"
+          [ngClass]="{ 'active': isRouteActive('/security') }">
+          <a class="sidebar-link has-arrow" (click)="onSecurityClick()" aria-expanded="false">
+            <span>
+              <mat-icon>security</mat-icon>
+            </span>
+            <span class="hide-menu">Sécurité</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isSecurityOpen }">
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/security/profils">
+                <span class="material-icons">badge</span>
+                <span class="hide-menu">Profils</span>
+              </a>
+            </li>
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/security/permissions">
+                <span class="material-icons">vpn_key</span>
+                <span class="hide-menu">Permissions</span>
+              </a>
+            </li>
+          </ul>
         </li>
 
         <!-- Pour l'élément Commercial -->

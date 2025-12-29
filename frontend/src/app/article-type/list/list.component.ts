@@ -32,7 +32,7 @@ export class ListComponent implements OnInit {
       res => {
         if (res.statusCode === 200) {
           this.types = res.data.content;
-          this.totalElements = res.data.totalElements;
+          this.totalElements = res.data.page.totalElements;
         }
         this.spinner.hide();
       },

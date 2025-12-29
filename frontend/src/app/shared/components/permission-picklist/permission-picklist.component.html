@@ -1,0 +1,34 @@
+<div class="picklist-container">
+    <div class="list-container">
+        <h4 class="list-header">Permissions disponibles</h4>
+        <mat-selection-list #sourceListComp [(ngModel)]="selectedSource" class="custom-list">
+            <mat-list-option *ngFor="let perm of sourceList" [value]="perm">
+                {{ perm.name || perm }}
+            </mat-list-option>
+        </mat-selection-list>
+    </div>
+
+    <div class="controls-container">
+        <button mat-mini-fab color="primary" (click)="moveToTarget()" [disabled]="selectedSource.length === 0">
+            <mat-icon>chevron_right</mat-icon>
+        </button>
+        <button mat-mini-fab color="primary" (click)="moveAllToTarget()" [disabled]="sourceList.length === 0">
+            <mat-icon>last_page</mat-icon>
+        </button>
+        <button mat-mini-fab color="warn" (click)="moveToSource()" [disabled]="selectedTarget.length === 0">
+            <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button mat-mini-fab color="warn" (click)="moveAllToSource()" [disabled]="targetList.length === 0">
+            <mat-icon>first_page</mat-icon>
+        </button>
+    </div>
+
+    <div class="list-container">
+        <h4 class="list-header">Permissions affectées</h4>
+        <mat-selection-list #targetListComp [(ngModel)]="selectedTarget" class="custom-list">
+            <mat-list-option *ngFor="let perm of targetList" [value]="perm">
+                {{ perm.name || perm }}
+            </mat-list-option>
+        </mat-selection-list>
+    </div>
+</div>

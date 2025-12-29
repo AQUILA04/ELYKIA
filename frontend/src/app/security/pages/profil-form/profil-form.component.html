@@ -1,0 +1,48 @@
+<div class="container p-4">
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>{{ isEditMode ? 'Modifier le Profil' : 'Nouveau Profil' }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="pt-3">
+            <form [formGroup]="profilForm" (ngSubmit)="onSubmit()">
+                <div class="row">
+                    <div class="col-md-6">
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Nom du profil</mat-label>
+                            <input matInput formControlName="name" placeholder="Ex: ADMINISTRATEUR">
+                            <mat-error *ngIf="profilForm.get('name')?.hasError('required')">
+                                Le nom est obligatoire
+                            </mat-error>
+                        </mat-form-field>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Description</mat-label>
+                            <textarea matInput formControlName="description" rows="3"></textarea>
+                        </mat-form-field>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 mt-4">
+                        <h4>Permissions associées</h4>
+                        <app-permission-picklist [allPermissions]="allPermissions"
+                            [assignedPermissions]="assignedPermissions"
+                            (assignedPermissionsChange)="onPermissionsChange($event)">
+                        </app-permission-picklist>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button mat-button class="me-2" [routerLink]="['/security/profils']">Annuler</button>
+                    <button mat-raised-button color="primary" type="submit" [disabled]="profilForm.invalid">
+                        {{ isEditMode ? 'Modifier' : 'Ajouter' }}
+                    </button>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+</div>

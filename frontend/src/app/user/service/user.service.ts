@@ -20,11 +20,11 @@ export interface User {
 })
 export class UserService {
   private baseUrl = `${environment.apiUrl}/api/v1/users`;
-  private apiurl= `${environment.apiUrl}/api/auth/signup`;
+  private apiurl = `${environment.apiUrl}/api/auth/signup`;
   private promotersUrl = `${environment.apiUrl}/api/v1/promoters`;
-  private username: string= '';
+  private username: string = '';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   setUsername(username: string): void {
     this.username = username;
@@ -66,6 +66,18 @@ export class UserService {
   }
   updateUser(id: number, user: any): Observable<any> {
     return this.http.put(`${this.baseUrl}/${id}`, user);
+  }
+
+  assignProfile(id: number, profilId: number): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/${id}/assign-profile/${profilId}`, {});
+  }
+
+  addPermission(id: number, permission: string): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/${id}/permissions/add?permission=${permission}`, {});
+  }
+
+  removePermission(id: number, permission: string): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/${id}/permissions/remove?permission=${permission}`, {});
   }
 
 }

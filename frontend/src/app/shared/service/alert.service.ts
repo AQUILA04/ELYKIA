@@ -10,8 +10,8 @@ export class AlertService {
   showSuccess(message: string, title: string = 'Succès'): void {
     Swal.fire({
       icon: 'success',
-      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">'+ title +'</span>',
-      html: '<span style="font-size: 16px; color: #555;">'+ message +'</span>',
+      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">' + title + '</span>',
+      html: '<span style="font-size: 16px; color: #555;">' + message + '</span>',
       confirmButtonText: 'OK',
       buttonsStyling: false,
       customClass: {
@@ -33,8 +33,8 @@ export class AlertService {
   showError(message: string, title: string = 'Erreur'): void {
     Swal.fire({
       icon: 'error',
-      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">'+ title +'</span>',
-      html: '<span style="font-size: 16px; color: #555;">'+ message +'</span>',
+      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">' + title + '</span>',
+      html: '<span style="font-size: 16px; color: #555;">' + message + '</span>',
       confirmButtonText: 'OK',
       buttonsStyling: false,
       customClass: {
@@ -56,8 +56,8 @@ export class AlertService {
   showWarning(message: string, title: string = 'Avertissement'): void {
     Swal.fire({
       icon: 'question',
-      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">'+ title +'</span>',
-      html: '<span style="font-size: 16px; color: #555;">'+ message +'</span>',
+      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">' + title + '</span>',
+      html: '<span style="font-size: 16px; color: #555;">' + message + '</span>',
       confirmButtonText: 'OK',
       cancelButtonText: 'Annuler',
       buttonsStyling: false,
@@ -82,8 +82,8 @@ export class AlertService {
   showConfirmation(title: string, text: string, confirmButtonText: string = 'Oui', cancelButtonText: string = 'Annuler'): Promise<boolean> {
     return Swal.fire({
       icon: 'question',
-      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">'+ title +'</span>',
-      html: '<span style="font-size: 16px; color: #555;">'+ text +'</span>',
+      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">' + title + '</span>',
+      html: '<span style="font-size: 16px; color: #555;">' + text + '</span>',
       showCancelButton: true,
       confirmButtonText: confirmButtonText,
       cancelButtonText: cancelButtonText,
@@ -116,6 +116,29 @@ export class AlertService {
 
   showDefaultError(message: string): void {
     this.showError(message, 'Opération échouée');
+  }
+
+  showInfo(message: string, title: string = 'Information'): void {
+    Swal.fire({
+      icon: 'info', // Use info icon
+      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">' + title + '</span>',
+      html: '<span style="font-size: 16px; color: #555;">' + message + '</span>',
+      confirmButtonText: 'OK',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'custom-swal-popup',
+        title: 'custom-swal-title',
+        htmlContainer: 'custom-swal-html-container',
+        confirmButton: 'custom-swal-confirm-button btn btn-info', // Use btn-info
+        cancelButton: 'custom-swal-cancel-button btn btn-outline-secondary'
+      },
+      backdrop: `
+        rgba(0,0,123,0.4)
+        url("assets/images/nyan-cat.gif") 
+        left top
+        no-repeat
+      `
+    });
   }
 
 }

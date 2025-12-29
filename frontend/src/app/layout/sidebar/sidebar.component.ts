@@ -15,12 +15,17 @@ import { LayoutService } from 'src/app/shared/service/layout.service';
 })
 export class SidebarComponent implements OnInit {
   isCaisseOpen: boolean = false;
+  isSecurityOpen: boolean = false;
   activeRoute: string = '';
 
   isRouteActive(route: string): boolean {
     // Gestion spécifique pour le menu Caisse et ses sous-menus
     if (route === '/open-cashDesk') {
       return this.activeRoute.startsWith('/open-cashDesk') || this.activeRoute.startsWith('/daily-operation');
+    }
+
+    if (route === '/security') {
+      return this.activeRoute.startsWith('/security');
     }
 
     // Pour toutes les autres routes, utiliser une correspondance exacte ou avec un slash
@@ -51,6 +56,15 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  onSecurityClick() {
+    if (this.activeRoute.startsWith('/security')) {
+      this.isSecurityOpen = !this.isSecurityOpen;
+    } else {
+      this.router.navigate(['/security/profils']);
+      this.isSecurityOpen = true;
+    }
+  }
+
   constructor(private router: Router,
     private tokenStorageService: TokenStorageService,
     private permissionsService: NgxPermissionsService,
@@ -67,6 +81,12 @@ export class SidebarComponent implements OnInit {
       } else {
         this.isCaisseOpen = false;
       }
+
+      if (this.activeRoute.startsWith('/security')) {
+        this.isSecurityOpen = true;
+      } else {
+        this.isSecurityOpen = false;
+      }
     });
   }
 
@@ -74,6 +94,7 @@ export class SidebarComponent implements OnInit {
     const currentUser = this.authService.getCurrentUser();
     this.permissionsService.loadPermissions(currentUser.roles);
     this.isCaisseOpen = false;
+    this.isSecurityOpen = false;
 
     // Initialiser activeRoute avec la route actuelle au démarrage
     this.activeRoute = this.router.url;

@@ -4,14 +4,17 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.ArticlesDto;
+import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.dto.StockEntryDto;
 import com.optimize.elykia.core.dto.StockValuesDto;
 import com.optimize.elykia.core.dto.bi.StockMetricsDto;
 import com.optimize.elykia.core.entity.ArticleHistory;
 import com.optimize.elykia.core.entity.Articles;
 import com.optimize.elykia.core.entity.CreditArticles;
+import com.optimize.elykia.core.entity.ExpenseType;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
 import com.optimize.elykia.core.repository.ArticlesRepository;
+import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,8 +22,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Transactional(readOnly = true)
@@ -29,15 +34,21 @@ public class ArticlesService extends GenericService<Articles, Long> {
     private final UserService userService;
     @Getter
     private final ArticleHistoryService articleHistoryService;
+    private final ExpenseService expenseService;
+    private final ExpenseTypeRepository expenseTypeRepository;
 
     protected ArticlesService(ArticlesRepository repository,
                               ArticlesMapper articlesMapper,
                               UserService userService,
-                              ArticleHistoryService articleHistoryService) {
+                              ArticleHistoryService articleHistoryService,
+                              ExpenseService expenseService,
+                              ExpenseTypeRepository expenseTypeRepository) {
         super(repository);
         this.articlesMapper = articlesMapper;
         this.userService = userService;
         this.articleHistoryService = articleHistoryService;
+        this.expenseService = expenseService;
+        this.expenseTypeRepository = expenseTypeRepository;
     }
 
     @Transactional
@@ -91,6 +102,10 @@ public class ArticlesService extends GenericService<Articles, Long> {
     @Transactional
     public String makeStockEntries(StockEntryDto stockEntryDto) {
         final String connectedUser = userService.getCurrentUser().getUsername();
+        
+        AtomicReference<Double> totalCheck = new AtomicReference<>(0.0);
+        StringBuilder descriptionBuilder = new StringBuilder();
+
         stockEntryDto.getArticleEntries().forEach(stockEntry -> {
             Articles articles = getById(stockEntry.getArticleId());
             ArticleHistory articleHistory = ArticleHistory.buildEntryHistory(articles, stockEntry, connectedUser);
@@ -98,7 +113,37 @@ public class ArticlesService extends GenericService<Articles, Long> {
             articles.makeEntry(stockEntry.getQuantity());
             articles.setLastRestockDate(LocalDate.now());
             update(articles);
+            
+            // Expense Calculation
+            double unitPrice = stockEntry.getUnitPrice() != null ? stockEntry.getUnitPrice() : articles.getPurchasePrice();
+            double totalLinePrice = unitPrice * stockEntry.getQuantity();
+            totalCheck.updateAndGet(v -> v + totalLinePrice);
+            
+            if (descriptionBuilder.length() > 0) {
+                descriptionBuilder.append(" | ");
+            }
+            descriptionBuilder.append(articles.getCommercialName())
+                    .append(" ").append(articles.getName())
+                    .append(" Qte:").append(stockEntry.getQuantity())
+                    .append(" PU:").append(unitPrice)
+                    .append(" Total:").append(totalLinePrice);
         });
+        
+        // Create Expense if amount > 0
+        if (totalCheck.get() > 0) {
+            ExpenseType expenseType = expenseTypeRepository.findByName("Approvisionnement")
+                    .orElseThrow(() -> new RuntimeException("Expense Type 'Approvisionnement' not found"));
+            
+            ExpenseDto expenseDto = new ExpenseDto();
+            expenseDto.setExpenseTypeId(expenseType.getId());
+            expenseDto.setAmount(BigDecimal.valueOf(totalCheck.get()));
+            expenseDto.setExpenseDate(LocalDate.now());
+            expenseDto.setDescription("Commande : " + descriptionBuilder.toString());
+            expenseDto.setReference("STOCK-" + System.currentTimeMillis()); 
+            
+            expenseService.createExpense(expenseDto);
+        }
+        
         return "success:true";
     }
 

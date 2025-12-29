@@ -1,0 +1,30 @@
+<div class="container p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Tableau de bord des Dépenses</h1>
+        <div class="button-group">
+            <button mat-raised-button color="primary" routerLink="/expense/list">
+                <mat-icon>list</mat-icon>
+                <span class="ms-2">Liste</span>
+            </button>
+            <button mat-raised-button color="accent" routerLink="/expense/add" class="ms-2">
+                <mat-icon>add</mat-icon>
+                <span class="ms-2">Ajouter</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4" *ngFor="let kpi of kpis">
+            <mat-card class="h-100 dashboard-card">
+                <mat-card-header>
+                    <mat-card-title>{{ kpi.periodLabel }}</mat-card-title>
+                </mat-card-header>
+                <mat-card-content class="d-flex flex-column justify-content-center align-items-center pt-3">
+                    <h2 class="kpi-amount text-primary">{{ kpi.totalAmount | currency:'XOF':'symbol':'1.0-0' }}</h2>
+                    <p class="text-muted">Du {{ kpi.startDate | date:'dd/MM/yyyy' }} au {{ kpi.endDate |
+                        date:'dd/MM/yyyy' }}</p>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+</div>

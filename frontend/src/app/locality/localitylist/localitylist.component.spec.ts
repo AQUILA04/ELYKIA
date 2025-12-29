@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LocalitylistComponent } from './localitylist.component';
+import { LocalityListComponent } from './localitylist.component';
 
-describe('LocalitylistComponent', () => {
-  let component: LocalitylistComponent;
-  let fixture: ComponentFixture<LocalitylistComponent>;
+describe('LocalityListComponent', () => {
+  let component: LocalityListComponent;
+  let fixture: ComponentFixture<LocalityListComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LocalitylistComponent ]
+      declarations: [LocalityListComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(LocalitylistComponent);
+    fixture = TestBed.createComponent(LocalityListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

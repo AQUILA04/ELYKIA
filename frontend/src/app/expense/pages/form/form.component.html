@@ -1,0 +1,68 @@
+<div class="container p-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>{{ isEditMode ? 'Modifier' : 'Ajouter' }} une Dépense</mat-card-title>
+                </mat-card-header>
+                <mat-card-content class="pt-3">
+                    <form [formGroup]="expenseForm" (ngSubmit)="onSubmit()" class="d-flex flex-column gap-3">
+
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Type de Dépense</mat-label>
+                            <mat-select formControlName="expenseTypeId">
+                                <mat-option *ngFor="let type of expenseTypes" [value]="type.id">
+                                    {{type.name}}
+                                </mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="expenseForm.get('expenseTypeId')?.hasError('required')">Requis</mat-error>
+                        </mat-form-field>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <mat-form-field appearance="outline" class="w-100">
+                                    <mat-label>Montant</mat-label>
+                                    <input matInput type="number" formControlName="amount">
+                                    <span matPrefix>XOF&nbsp;</span>
+                                    <mat-error *ngIf="expenseForm.get('amount')?.hasError('required')">Requis
+                                    </mat-error>
+                                    <mat-error *ngIf="expenseForm.get('amount')?.hasError('min')">Doit être positif
+                                    </mat-error>
+                                </mat-form-field>
+                            </div>
+                            <div class="col-md-6">
+                                <mat-form-field appearance="outline" class="w-100">
+                                    <mat-label>Date</mat-label>
+                                    <input matInput [matDatepicker]="picker" formControlName="expenseDate">
+                                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                    <mat-error *ngIf="expenseForm.get('expenseDate')?.hasError('required')">Requis
+                                    </mat-error>
+                                </mat-form-field>
+                            </div>
+                        </div>
+
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Description</mat-label>
+                            <textarea matInput formControlName="description" rows="3"></textarea>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Référence</mat-label>
+                            <input matInput formControlName="reference">
+                        </mat-form-field>
+
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <button mat-button type="button" routerLink="/expense/list">Annuler</button>
+                            <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid">
+                                <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+                                <span class="ms-2">{{ isEditMode ? 'Modifier' : 'Enregistrer' }}</span>
+                            </button>
+                        </div>
+
+                    </form>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+</div>

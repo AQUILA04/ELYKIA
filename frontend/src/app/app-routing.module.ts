@@ -478,7 +478,17 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     data: { breadcrumb: '' }
   },
-  { path: 'article-type', loadChildren: () => import('./article-type/article-type.module').then(m => m.ArticleTypeModule) }
+  { path: 'article-type', loadChildren: () => import('./article-type/article-type.module').then(m => m.ArticleTypeModule) },
+  {
+    path: 'expense',
+    loadChildren: () => import('./expense/expense.module').then(m => m.ExpenseModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'security',
+    loadChildren: () => import('./security/security.module').then(m => m.SecurityModule),
+    canActivate: [AuthGuard]
+  }
 ];
 
 @NgModule({
