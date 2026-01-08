@@ -33,6 +33,9 @@
           </td>
 
           <td class="action-buttons text-right">
+            <button mat-icon-button (click)="showDetails(req)" matTooltip="Détails">
+              <mat-icon>visibility</mat-icon>
+            </button>
             <button *ngIf="isManager && req.status === 'CREATED'" mat-icon-button (click)="validate(req)"
               matTooltip="Valider">
               <mat-icon style="color: green;">check_circle</mat-icon>
@@ -48,5 +51,62 @@
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- Modal Détails -->
+<div class="modal" tabindex="-1" role="dialog" [ngStyle]="{'display': selectedRequest ? 'block' : 'none'}" style="background: rgba(0,0,0,0.5)">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Détails de la Demande : {{ selectedRequest?.reference }}</h5>
+        <button type="button" class="close" (click)="closeDetails()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="selectedRequest">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p><strong>Commercial:</strong> {{ selectedRequest.collector }}</p>
+            <p><strong>Date:</strong> {{ selectedRequest.requestDate | date:'dd/MM/yyyy' }}</p>
+          </div>
+          <div class="col-md-6 text-right">
+            <p><strong>Statut:</strong> <span class="badge" [ngClass]="getStatusBadge(selectedRequest.status!)">{{ selectedRequest.status }}</span></p>
+          </div>
+        </div>
+
+        <h6 class="mt-4">Articles de la demande</h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Article</th>
+                <th>Quantité</th>
+                <th>Prix Vente Unitaire</th>
+                <th>Prix Achat Unitaire</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of selectedRequest.items">
+                <td>{{ item.itemName }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.unitPrice | number:'1.0-0' }} FCFA</td>
+                <td>{{ item.purchasePrice | number:'1.0-0' }} FCFA</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="font-weight-bold">
+                <td colspan="2" class="text-right">Total :</td>
+                <td>{{ selectedRequest.totalCreditSalePrice | number:'1.0-0' }} FCFA</td>
+                <td>{{ selectedRequest.totalPurchasePrice | number:'1.0-0' }} FCFA</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn add btn-sm" (click)="closeDetails()">Fermer</button>
+      </div>
+    </div>
   </div>
 </div>

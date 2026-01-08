@@ -31,6 +31,14 @@ public class StockRequest extends Auditable<String> {
     
     private LocalDate deliveryDate;
 
+    private LocalDate accountingDate;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalCreditSalePrice;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalPurchasePrice;
+
     @Enumerated(EnumType.STRING)
     private StockRequestStatus status = StockRequestStatus.CREATED;
 

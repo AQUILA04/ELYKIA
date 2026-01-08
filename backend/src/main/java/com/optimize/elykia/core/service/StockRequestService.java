@@ -29,15 +29,18 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private final ArticlesService articlesService;
     private final CommercialMonthlyStockRepository monthlyStockRepository;
     private final UserService userService;
+    private final AccountingDayService accountingDayService;
 
     public StockRequestService(StockRequestRepository repository,
                                ArticlesService articlesService,
                                CommercialMonthlyStockRepository monthlyStockRepository,
-                               UserService userService) {
+                               UserService userService,
+                               AccountingDayService accountingDayService) {
         super(repository);
         this.articlesService = articlesService;
         this.monthlyStockRepository = monthlyStockRepository;
         this.userService = userService;
+        this.accountingDayService = accountingDayService;
     }
 
     public StockRequest createRequest(StockRequest request) {
@@ -58,6 +61,9 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         String reference = "#" + collectorSuffix + nextId + timestamp;
         request.setReference(reference);
         
+        double totalCreditSalePrice = 0.0;
+        double totalPurchasePrice = 0.0;
+
         // Initialiser les prix des articles au moment de la création
         for (StockRequestItem item : request.getItems()) {
             Articles article = articlesService.getById(item.getArticle().getId());
@@ -66,7 +72,13 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             item.setUnitPrice(article.getCreditSalePrice());
             item.setPurchasePrice(article.getPurchasePrice());
             item.setStockRequest(request); // Lier l'item à la requête
+            
+            totalCreditSalePrice += (item.getUnitPrice() != null ? item.getUnitPrice() : 0.0) * item.getQuantity();
+            totalPurchasePrice += (item.getPurchasePrice() != null ? item.getPurchasePrice() : 0.0) * item.getQuantity();
         }
+        
+        request.setTotalCreditSalePrice(totalCreditSalePrice);
+        request.setTotalPurchasePrice(totalPurchasePrice);
         
         return repository.save(request);
     }
@@ -111,6 +123,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
 
         request.setStatus(StockRequestStatus.DELIVERED);
         request.setDeliveryDate(LocalDate.now());
+        request.setAccountingDate(accountingDayService.getCurrentAccountingDate());
         return repository.save(request);
     }
 

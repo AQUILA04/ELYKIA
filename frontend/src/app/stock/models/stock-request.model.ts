@@ -11,6 +11,7 @@ export interface StockRequestItem {
   quantity: number;
   unitPrice?: number;
   purchasePrice?: number;
+  itemName?: string;
 }
 
 export interface StockRequest {
@@ -22,4 +23,7 @@ export interface StockRequest {
   deliveryDate?: string;
   status?: StockRequestStatus;
   items: StockRequestItem[];
+  totalCreditSalePrice?: number;
+  totalPurchasePrice?: number;
+  accountingDate?: string;
 }

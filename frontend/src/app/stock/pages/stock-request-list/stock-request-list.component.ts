@@ -22,6 +22,7 @@ export class StockRequestListComponent implements OnInit {
   isStoreKeeper = false; // Changed declaration
   isPromoter = false; // Changed declaration
   currentUser: any;
+  selectedRequest: StockRequest | null = null; // Pour la modale de détails
 
   constructor(
     private stockRequestService: StockRequestService,
@@ -55,37 +56,6 @@ export class StockRequestListComponent implements OnInit {
           this.spinner.hide();
         }
       });
-    // if (this.isPromoter) {
-    //   this.stockRequestService.getAll(null, this.page, this.size)
-    //     .subscribe({
-    //       next: (page) => {
-    //         this.handlePage(page);
-    //         this.spinner.hide();
-    //       },
-    //       error: () => {
-    //         this.toastr.error('Erreur lors du chargement des demandes', 'Erreur');
-    //         this.spinner.hide();
-    //       }
-    //     });
-    // } else if (this.isStoreKeeper) {
-    //   // Magasinier voit les demandes validées prêtes à livrer
-    //   this.stockRequestService.getByStatus(StockRequestStatus.VALIDATED, this.page, this.size)
-    //     .subscribe({
-    //       next: (page) => {
-    //         this.handlePage(page);
-    //         this.spinner.hide();
-    //       },
-    //       error: () => {
-    //         this.toastr.error('Erreur lors du chargement des demandes');
-    //         this.spinner.hide();
-    //       }
-    //     });
-    // } else {
-    //   // Manager voit tout (ou filtré par statut CREATED pour validation)
-    //   // Pour simplifier ici on charge tout ou par statut
-    //   this.stockRequestService.getByStatus(StockRequestStatus.CREATED, this.page, this.size)
-    //     .subscribe(page => this.handlePage(page));
-    // }
   }
 
   handlePage(page: Page<StockRequest>) {
@@ -115,6 +85,14 @@ export class StockRequestListComponent implements OnInit {
         error: (err) => this.toastr.error(err.error?.message || 'Erreur lors de la livraison')
       });
     }
+  }
+
+  showDetails(request: StockRequest) {
+    this.selectedRequest = request;
+  }
+
+  closeDetails() {
+    this.selectedRequest = null;
   }
 
   getStatusBadge(status: string): string {
