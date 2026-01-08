@@ -16,6 +16,7 @@ import { LayoutService } from 'src/app/shared/service/layout.service';
 export class SidebarComponent implements OnInit {
   isCaisseOpen: boolean = false;
   isSecurityOpen: boolean = false;
+  isStockOpen: boolean = false; // AJOUTÉ
   activeRoute: string = '';
 
   isRouteActive(route: string): boolean {
@@ -26,6 +27,11 @@ export class SidebarComponent implements OnInit {
 
     if (route === '/security') {
       return this.activeRoute.startsWith('/security');
+    }
+
+    // AJOUTÉ : Gestion pour le menu Stock
+    if (route === '/stock') {
+      return this.activeRoute.startsWith('/stock');
     }
 
     // Pour toutes les autres routes, utiliser une correspondance exacte ou avec un slash
@@ -65,6 +71,18 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  // AJOUTÉ : Gestionnaire de clic pour le menu Stock
+  onStockClick() {
+    if (this.activeRoute.startsWith('/stock')) {
+      this.isStockOpen = !this.isStockOpen;
+    } else {
+      // Rediriger vers la première page logique du module stock
+      // Par exemple, la liste des demandes
+      this.router.navigate(['/stock/request']);
+      this.isStockOpen = true;
+    }
+  }
+
   constructor(private router: Router,
     private tokenStorageService: TokenStorageService,
     private permissionsService: NgxPermissionsService,
@@ -87,6 +105,13 @@ export class SidebarComponent implements OnInit {
       } else {
         this.isSecurityOpen = false;
       }
+
+      // AJOUTÉ : Gestion de l'état ouvert/fermé pour Stock
+      if (this.activeRoute.startsWith('/stock')) {
+        this.isStockOpen = true;
+      } else {
+        this.isStockOpen = false;
+      }
     });
   }
 
@@ -95,6 +120,7 @@ export class SidebarComponent implements OnInit {
     this.permissionsService.loadPermissions(currentUser.roles);
     this.isCaisseOpen = false;
     this.isSecurityOpen = false;
+    this.isStockOpen = false; // AJOUTÉ
 
     // Initialiser activeRoute avec la route actuelle au démarrage
     this.activeRoute = this.router.url;

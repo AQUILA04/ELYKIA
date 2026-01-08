@@ -95,11 +95,9 @@ import { OldReleaseListComponent } from './out/old-release-list/old-release-list
 import { CreditMergeModalComponent } from './credit/credit-merge-modal/credit-merge-modal.component';
 // Tontine module is lazy loaded, no need to import here
 // --- NOUVELLE IMPORTATION ---
-import { ChangeDailyStakeComponent } from './credit/change-daily-stake/change-daily-stake.component';
-import { ArticleSelectorComponent } from './credit/components/article-selector/article-selector.component';
-import { CreateTontineComponent } from './credit/components/create-tontine/create-tontine.component';
 import { AdvancedSearchComponent } from './credit/components/advanced-search/advanced-search.component';
 import { SharedComponentsModule } from './shared/components/shared-components.module';
+import { ToastrModule } from 'ngx-toastr';
 
 @NgModule({
   declarations: [
@@ -164,10 +162,8 @@ import { SharedComponentsModule } from './shared/components/shared-components.mo
     OldReleaseListComponent,
     CreditMergeModalComponent,
     // --- NOUVELLE DÉCLARATION ---
-    ChangeDailyStakeComponent,
-    ArticleSelectorComponent,
-    CreateTontineComponent,
-    AdvancedSearchComponent
+    CreditMergeModalComponent
+    // --- NOUVELLES COMPOSANTS DÉPLACÉS DANS SHARED ---
   ],
   imports: [
     BrowserModule,
@@ -201,7 +197,8 @@ import { SharedComponentsModule } from './shared/components/shared-components.mo
     // Tontine module is lazy loaded, not imported here
     MatDatepickerModule,
     MatNativeDateModule,
-    SharedComponentsModule
+    SharedComponentsModule,
+    ToastrModule.forRoot()
   ],
   providers: [
     // --- CORRECTION DES PROVIDERS ---

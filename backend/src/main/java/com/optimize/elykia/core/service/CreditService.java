@@ -20,6 +20,7 @@ import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
 import com.optimize.elykia.core.enumaration.StockOperation;
 import com.optimize.elykia.core.mapper.CreditMapper;
+import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.util.DateUtils;
@@ -56,6 +57,7 @@ public class CreditService extends GenericService<Credit, Long> {
     private final CreditReturnHistoryService creditReturnHistoryService;
     private CreditTimelineRepository creditTimelineRepository;
     private SharedService sharedService;
+    private final CommercialMonthlyStockRepository commercialMonthlyStockRepository;
 
     // Services BI pour enrichissement automatique
     private CreditEnrichmentService creditEnrichmentService;
@@ -77,7 +79,8 @@ public class CreditService extends GenericService<Credit, Long> {
                             DailyAccountancyService dailyAccountancyService,
                             CreditReturnHistoryService creditReturnHistoryService,
                             CreditDistributionViewRepository creditDistributionViewRepository,
-                            CreditDistributionMapper creditDistributionMapper) {
+                            CreditDistributionMapper creditDistributionMapper,
+                            CommercialMonthlyStockRepository commercialMonthlyStockRepository) {
         super(repository);
         this.creditMapper = creditMapper;
         this.clientService = clientService;
@@ -88,6 +91,7 @@ public class CreditService extends GenericService<Credit, Long> {
         this.creditReturnHistoryService = creditReturnHistoryService;
         this.creditDistributionViewRepository = creditDistributionViewRepository;
         this.creditDistributionMapper = creditDistributionMapper;
+        this.commercialMonthlyStockRepository = commercialMonthlyStockRepository;
     }
 
     @Autowired
@@ -429,6 +433,77 @@ public class CreditService extends GenericService<Credit, Long> {
             credit.setUpdatable(false);
             repository.saveAndFlush(credit);
         }
+        return clientCredit;
+    }
+
+    @Transactional
+    public Credit distributeArticlesV2(DistributeArticleDto dto) {
+        dto.validateEntryArticles();
+        // Dans la V2, on ne dépend plus d'un crédit parent (sortie stock)
+        // On vérifie directement le stock mensuel du commercial
+        
+        Client client = clientService.getById(dto.getClientId());
+        if (ClientType.PROMOTER.equals(client.getClientType())) {
+            throw new CustomValidationException("Opération non disponible pour ce type de client !");
+        }
+
+        String collector = client.getCollector();
+        LocalDate now = LocalDate.now();
+        
+        // Récupérer le stock mensuel du commercial
+        CommercialMonthlyStock monthlyStock = commercialMonthlyStockRepository
+                .findByCollectorAndMonthAndYear(collector, now.getMonthValue(), now.getYear())
+                .orElseThrow(() -> new CustomValidationException("Aucun stock trouvé pour ce commercial ce mois-ci."));
+
+        Credit clientCredit = new Credit();
+        clientCredit.setClient(client);
+        clientCredit.setArticles(CreditArticles.from(dto.getArticles()));
+        // Pas de parent dans la V2 car on décorrèle de la sortie stock spécifique
+        clientCredit.setParent(null); 
+        
+        clientCredit.setCreditToCreditArticles();
+        clientCredit.setAdvance(dto.getAdvance());
+        
+        creditControlProcess(clientCredit);
+        creditUnicity(clientCredit);
+
+        // Vérification et mise à jour du stock commercial
+        clientCredit.getArticles().forEach(creditArticles -> {
+            CommercialMonthlyStockItem stockItem = monthlyStock.getItems().stream()
+                    .filter(item -> item.getArticle().getId().equals(creditArticles.getArticlesId()))
+                    .findFirst()
+                    .orElseThrow(() -> new CustomValidationException("Article non trouvé dans le stock du commercial : " + creditArticles.getArticles().getCommercialName()));
+
+            if (stockItem.getQuantityRemaining() < creditArticles.getQuantity()) {
+                throw new CustomValidationException("Stock insuffisant chez le commercial pour l'article : " + creditArticles.getArticles().getCommercialName());
+            }
+
+            // Mise à jour des compteurs
+            stockItem.setQuantitySold(stockItem.getQuantitySold() + creditArticles.getQuantity());
+            stockItem.updateRemaining();
+        });
+        
+        // Sauvegarde du stock mis à jour
+        commercialMonthlyStockRepository.save(monthlyStock);
+
+        // Configuration finale du crédit
+        if (Objects.nonNull(dto.getMobile()) && dto.getMobile()) {
+            clientCredit.setTotalAmount(dto.getTotalAmount());
+            clientCredit.setDailyStake(dto.getDailyStake());
+            clientCredit.setTotalAmountRemaining(dto.getTotalAmount()-dto.getAdvance());
+            clientCredit.setTotalAmountPaid(dto.getAdvance());
+            clientCredit.setBeginDate(dto.getStartDate());
+            clientCredit.setExpectedEndDate(dto.getEndDate());
+            clientCredit.setRemainingDaysCount(Long.valueOf(ChronoUnit.DAYS.between(LocalDate.now(), dto.getEndDate())).intValue());
+        }
+        
+        repository.saveAndFlush(clientCredit);
+
+        // Mettre à jour le statut du client
+        clientService.updateCreditStatus(client.getId(), Boolean.TRUE);
+        validateCredit(clientCredit.getId());
+        startCredit(clientCredit.getId(), Boolean.TRUE);
+        
         return clientCredit;
     }
 
@@ -1106,5 +1181,3 @@ public class CreditService extends GenericService<Credit, Long> {
         }
     }
 }
-
-

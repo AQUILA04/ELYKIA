@@ -122,6 +122,16 @@ const routes: Routes = [
     }
   },
 
+  // === ROUTES STOCK (Nouveau Module) ===
+  {
+    path: 'stock',
+    loadChildren: () => import('./stock/stock.module').then(m => m.StockModule),
+    canActivate: [AuthGuard],
+    data: {
+      breadcrumb: 'Gestion Stock Commercial'
+    }
+  },
+
   // Articles/Items
   {
     path: 'add',

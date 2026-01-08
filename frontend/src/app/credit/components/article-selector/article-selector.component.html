@@ -1,23 +1,14 @@
 <div [formGroup]="articleForm">
   <div formArrayName="articles" class="article-selector">
-    <div *ngFor="let articleCtrl of articlesArray.controls; let i = index"
-         [formGroupName]="i"
-         class="article-group"
-         [class.simple-layout]="!shouldShowPriceColumns()"
-         [class.stock-exceeded]="validateStock && isStockExceeded(i)"
-         [class.with-validation]="validateStock">
+    <div *ngFor="let articleCtrl of articlesArray.controls; let i = index" [formGroupName]="i" class="article-group"
+      [class.simple-layout]="!shouldShowPriceColumns()" [class.stock-exceeded]="validateStock && isStockExceeded(i)"
+      [class.with-validation]="validateStock">
 
       <div class="form-field article-field">
         <label [attr.for]="'articleId-' + i">Article</label>
-        <ng-select
-          [id]="'articleId-' + i"
-          formControlName="articleId"
-          [items]="availableArticlesPerRow[i]"
-          bindValue="id"
-          [searchFn]="searchArticle"
-          [disabled]="readonly"
-          placeholder="Rechercher et sélectionner un article"
-          notFoundText="Aucun article trouvé">
+        <ng-select class="article-select-wrap" [id]="'articleId-' + i" formControlName="articleId"
+          [items]="availableArticlesPerRow[i]" bindValue="id" [searchFn]="searchArticle" [disabled]="readonly"
+          placeholder="Rechercher et sélectionner un article" notFoundText="Aucun article trouvé">
 
           <ng-template ng-label-tmp let-item="item">
             <div class="selected-article">
@@ -49,17 +40,11 @@
       <div class="form-field quantity-field">
         <label [attr.for]="'quantity-' + i">Quantité</label>
         <div class="quantity-input-wrapper">
-          <input
-            [id]="'quantity-' + i"
-            type="number"
-            formControlName="quantity"
-            [readonly]="readonly"
-            class="form-control"
-            [class.stock-warning]="validateStock && isStockExceeded(i)">
+          <input [id]="'quantity-' + i" type="number" formControlName="quantity" [readonly]="readonly"
+            class="form-control" [class.stock-warning]="validateStock && isStockExceeded(i)">
 
-          <span *ngIf="showStock && articleCtrl.get('articleId')?.value"
-                class="stock-indicator"
-                [ngClass]="getStockClass(articleCtrl.get('articleId')?.value)">
+          <span *ngIf="showStock && articleCtrl.get('articleId')?.value" class="stock-indicator"
+            [ngClass]="getStockClass(articleCtrl.get('articleId')?.value)">
             / {{ getArticleStock(articleCtrl.get('articleId')?.value) }}
           </span>
         </div>
@@ -90,21 +75,13 @@
         </div>
       </div>
 
-      <button
-        *ngIf="!readonly"
-        type="button"
-        class="btn btn-remove"
-        (click)="deleteArticle(i)"
+      <button *ngIf="!readonly" type="button" class="btn btn-remove" (click)="deleteArticle(i)"
         [disabled]="articlesArray.length === 1">
         <mat-icon>remove_circle</mat-icon>
       </button>
     </div>
 
-    <button
-      *ngIf="!readonly"
-      type="button"
-      class="btn btn-add"
-      (click)="addArticle()">
+    <button *ngIf="!readonly" type="button" class="btn btn-add" (click)="addArticle()">
       <mat-icon>add_circle</mat-icon>
       <span>Ajouter un article</span>
     </button>

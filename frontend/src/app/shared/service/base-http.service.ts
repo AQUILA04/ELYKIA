@@ -4,17 +4,19 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TokenStorageService } from './token-storage.service';
 import { ErrorHandlerService } from './error-handler.service';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BaseHttpService {
+  protected baseUrl = environment.apiUrl;
 
   constructor(
     protected http: HttpClient,
     protected tokenStorage: TokenStorageService,
     protected errorHandler: ErrorHandlerService
-  ) {}
+  ) { }
 
   /**
    * Génère les headers avec le token d'authentification

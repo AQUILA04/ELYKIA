@@ -124,6 +124,38 @@
             <span class="hide-menu">Tontines</span>
           </a>
         </li>
+
+        <!-- NOUVEAU MENU STOCK COMMERCIAL -->
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT', 'ROLE_STOREKEEPER']"
+            [ngClass]="{ 'active': isRouteActive('/stock') }">
+          <a class="sidebar-link has-arrow" (click)="onStockClick()" aria-expanded="false">
+            <span>
+              <mat-icon>inventory_2</mat-icon>
+            </span>
+            <span class="hide-menu">Stock Commercial</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isStockOpen }">
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/stock/request">
+                <span class="material-icons">add_shopping_cart</span>
+                <span class="hide-menu">Demandes Sortie</span>
+              </a>
+            </li>
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/stock/my-stock">
+                <span class="material-icons">dashboard</span>
+                <span class="hide-menu">Mon Stock</span>
+              </a>
+            </li>
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/stock/return">
+                <span class="material-icons">undo</span>
+                <span class="hide-menu">Retours</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ACCOUNT', 'ROLE_EDIT_ACCOUNT']"
           [ngClass]="{ 'active': isRouteActive('/accountlist') }">
           <a class="sidebar-link" routerLink="/accountlist" aria-expanded="false">

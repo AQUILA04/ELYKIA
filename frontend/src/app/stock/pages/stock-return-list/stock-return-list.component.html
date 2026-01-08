@@ -1,0 +1,50 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container">
+  <div class="header-fixed">
+    <h1>Retours Stock</h1>
+  </div>
+
+  <div class="action-bar">
+    <button *ngIf="isPromoter" class="btn-add" routerLink="/stock/return/create">
+      <mat-icon>undo</mat-icon> Nouveau Retour
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table class="article-table">
+      <thead>
+        <tr>
+          <th>Date Retour</th>
+          <th>Commercial</th>
+          <th>Statut</th>
+          <th>Articles</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ret of returns">
+          <td>{{ ret.returnDate | date:'dd/MM/yyyy' }}</td>
+          <td>{{ ret.collector }}</td>
+          <td>
+            <span class="badge" [ngClass]="getStatusBadge(ret.status!)">{{ ret.status }}</span>
+          </td>
+          <td>
+            <div *ngFor="let item of ret.items" class="article-item-mini">
+              {{ item.article.name }} <span class="qty">x {{ item.quantity }}</span>
+            </div>
+          </td>
+          <td class="text-right">
+            <button *ngIf="isStoreKeeper && ret.status === 'CREATED'" class="btn-action validate"
+              (click)="validate(ret)" matTooltip="Réceptionner le retour">
+              <mat-icon>check_circle</mat-icon>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="returns.length === 0">
+          <td colspan="5" class="text-center empty-message">Aucun retour trouvé</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

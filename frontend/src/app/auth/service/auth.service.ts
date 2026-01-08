@@ -85,6 +85,11 @@ export class AuthService {
     return this.permissionsService.hasPermission(permission);
   }
 
+  hasRole(role: string): boolean {
+    const user = this.getCurrentUser();
+    return user && user.roles && user.roles.includes(role);
+  }
+
   login(username: string, password: string): Observable<any> {
     return this.http.post<any>(this.apiUrlLogin, { username, password }).pipe(
       tap(response => {

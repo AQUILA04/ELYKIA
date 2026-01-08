@@ -144,7 +144,12 @@
   background-color: #dc3545;
   color: white;
   align-self: center;
-  padding: 0.5rem;
+  padding: 6px;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover:not(:disabled) {
     background-color: #c82333;
@@ -154,6 +159,9 @@
 
   mat-icon {
     margin: 0;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
   }
 }
 
@@ -404,27 +412,43 @@
 
 // Animations
 @keyframes pulse-red {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
   }
+
   50% {
     box-shadow: 0 0 0 4px rgba(220, 53, 69, 0);
   }
 }
 
 @keyframes pulse-yellow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
   }
+
   50% {
     box-shadow: 0 0 0 4px rgba(255, 193, 7, 0);
   }
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 // Classes de couleur individuelles (pour usage direct)
@@ -542,5 +566,29 @@ mat-error {
     font-size: 0.65rem;
     padding: 0.15rem 0.4rem;
     top: -10px;
+  }
+}
+
+// ============================================
+// FIX WRAPPING CSS
+// ============================================
+
+::ng-deep .ng-select.article-select-wrap {
+  .ng-select-container {
+    height: auto !important;
+    min-height: 38px;
+  }
+
+  .ng-value-container {
+    .ng-value {
+      white-space: normal !important;
+    }
+  }
+
+  .selected-article {
+    white-space: normal;
+    line-height: 1.4;
+    padding-top: 2px;
+    padding-bottom: 2px;
   }
 }
