@@ -7,6 +7,7 @@ import { Subject, merge } from 'rxjs';
 import { startWith, switchMap, catchError, map, takeUntil } from 'rxjs/operators';
 import { TontineDeliveryService } from '../../services/tontine-delivery.service';
 import { AuthService } from 'src/app/auth/service/auth.service';
+import { AlertService } from 'src/app/shared/service/alert.service';
 import {
   TontineDelivery,
   PaginatedResponse,
@@ -26,20 +27,21 @@ import {
 export class TontineMagasinierDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = ['clientName', 'deliveryDate', 'totalAmount', 'commercialUsername', 'status', 'actions'];
   dataSource = new MatTableDataSource<TontineDelivery>([]);
-  
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   resultsLength = 0;
   isLoadingResults = true;
   isRateLimitReached = false;
-  
+
   private destroy$ = new Subject<void>();
 
   constructor(
     private deliveryService: TontineDeliveryService,
     private authService: AuthService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private alertService: AlertService
   ) { }
 
   ngOnInit(): void {
@@ -104,21 +106,23 @@ export class TontineMagasinierDashboardComponent implements OnInit, AfterViewIni
   }
 
   onMarkAsDelivered(deliveryId: number): void {
-    if (confirm('Êtes-vous sûr de vouloir marquer cette livraison comme livrée ?')) {
-      this.isLoadingResults = true;
-      this.deliveryService.markDeliveryAsDelivered(deliveryId).pipe(
-        takeUntil(this.destroy$)
-      ).subscribe({
-        next: () => {
-          this.showSuccess('Livraison marquée comme livrée avec succès.');
-          this.refreshTable();
-        },
-        error: (err) => {
-          this.showError(err.message || 'Erreur lors du marquage de la livraison.');
-          this.isLoadingResults = false;
-        }
-      });
-    }
+    this.alertService.showConfirmation('Confirmation', 'Êtes-vous sûr de vouloir marquer cette livraison comme livrée ?').then((confirmed) => {
+      if (confirmed) {
+        this.isLoadingResults = true;
+        this.deliveryService.markDeliveryAsDelivered(deliveryId).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe({
+          next: () => {
+            this.showSuccess('Livraison marquée comme livrée avec succès.');
+            this.refreshTable();
+          },
+          error: (err) => {
+            this.showError(err.message || 'Erreur lors du marquage de la livraison.');
+            this.isLoadingResults = false;
+          }
+        });
+      }
+    });
   }
 
   refreshTable(): void {

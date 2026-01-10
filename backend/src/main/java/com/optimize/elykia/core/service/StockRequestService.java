@@ -4,8 +4,8 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.common.securities.util.ProfilConstant;
 import com.optimize.elykia.core.entity.*;
+import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.StockRequestRepository;
@@ -18,9 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -30,17 +32,20 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private final CommercialMonthlyStockRepository monthlyStockRepository;
     private final UserService userService;
     private final AccountingDayService accountingDayService;
+    private final StockMovementService stockMovementService;
 
     public StockRequestService(StockRequestRepository repository,
                                ArticlesService articlesService,
                                CommercialMonthlyStockRepository monthlyStockRepository,
                                UserService userService,
-                               AccountingDayService accountingDayService) {
+                               AccountingDayService accountingDayService,
+                               StockMovementService stockMovementService) {
         super(repository);
         this.articlesService = articlesService;
         this.monthlyStockRepository = monthlyStockRepository;
         this.userService = userService;
         this.accountingDayService = accountingDayService;
+        this.stockMovementService = stockMovementService;
     }
 
     public StockRequest createRequest(StockRequest request) {
@@ -99,12 +104,34 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             throw new CustomValidationException("La demande doit être validée avant livraison.");
         }
 
-        // 1. Vérifier et décrémenter le stock magasin
+        User currentUser = userService.getCurrentUser();
+        List<String> insufficientStockItems = new ArrayList<>();
+
+        // 1. Vérifier le stock magasin pour tous les articles
         for (StockRequestItem item : request.getItems()) {
             Articles article = articlesService.getById(item.getArticle().getId());
             if (article.getStockQuantity() < item.getQuantity()) {
-                throw new CustomValidationException("Stock insuffisant pour l'article : " + article.getCommercialName());
+                insufficientStockItems.add(article.getCommercialName() + " " + article.getName() + " : " + article.getCreditSalePrice() + " (Demandé: " + item.getQuantity() + ", Dispo: " + article.getStockQuantity() + ")");
             }
+        }
+
+        if (!insufficientStockItems.isEmpty()) {
+            throw new CustomValidationException("Stock insuffisant pour les articles suivants : " + String.join("| ", insufficientStockItems));
+        }
+
+        // Si tout est OK, procéder aux mouvements
+        for (StockRequestItem item : request.getItems()) {
+            Articles article = articlesService.getById(item.getArticle().getId());
+
+            stockMovementService.recordMovement(
+                    article,
+                    MovementType.RELEASE,
+                    item.getQuantity(),
+                    "Livraison demande " + request.getReference(),
+                    currentUser.getUsername(),
+                    null
+            );
+
             article.makeRelease(item.getQuantity());
             articlesService.update(article);
             
@@ -185,19 +212,19 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     public Page<StockRequest> getAll(String collector, Pageable pageable) {
 
         if (Objects.nonNull(collector)) {
-            return ((StockRequestRepository) repository).findByCollectorOrderByRequestDateDesc(collector, pageable);
+            return ((StockRequestRepository) repository).findByCollectorOrderByIdDesc(collector, pageable);
         }
 
         User user = userService.getCurrentUser();
 
         if (user.is(UserProfilConstant.PROMOTER)) {
-            return ((StockRequestRepository) repository).findByCollectorOrderByRequestDateDesc(user.getUsername(), pageable);
+            return ((StockRequestRepository) repository).findByCollectorOrderByIdDesc(user.getUsername(), pageable);
         }
 
         if (user.is(UserProfilConstant.MAGASINIER)) {
-            return ((StockRequestRepository) repository).findByStatusInOrderByRequestDateDesc(List.of(StockRequestStatus.VALIDATED), pageable);
+            return ((StockRequestRepository) repository).findByStatusInOrderByIdDesc(List.of(StockRequestStatus.VALIDATED, StockRequestStatus.DELIVERED), pageable);
         }
 
-        return ((StockRequestRepository) repository).findByStatusInOrderByRequestDateDesc(List.of(StockRequestStatus.CREATED), pageable);
+        return ((StockRequestRepository) repository).findByStatusInOrderByIdDesc(List.of(StockRequestStatus.CREATED, StockRequestStatus.DELIVERED), pageable);
     }
 }

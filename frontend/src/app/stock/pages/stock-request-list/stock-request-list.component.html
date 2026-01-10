@@ -29,7 +29,7 @@
           <td>{{ req.requestDate | date:'dd/MM/yyyy' }}</td>
           <td>{{ req.collector }}</td>
           <td>
-            <span [ngClass]="getStatusBadge(req.status!)">{{ req.status }}</span>
+            <span class="badge" [ngClass]="getStatusBadge(req.status!)">{{ getStatusLabel(req.status) }}</span>
           </td>
 
           <td class="action-buttons text-right">
@@ -56,10 +56,12 @@
 
 <!-- Modal Détails -->
 <div class="modal" tabindex="-1" role="dialog" [ngStyle]="{'display': selectedRequest ? 'block' : 'none'}" style="background: rgba(0,0,0,0.5)">
-  <div class="modal-dialog modal-lg" role="document">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Détails de la Demande : {{ selectedRequest?.reference }}</h5>
+      <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+        <h3 class="modal-title w-100 text-center" style="color: #343a40; font-weight: 600;">
+          Détails de la Demande : {{ selectedRequest?.reference }}
+        </h3>
         <button type="button" class="close" (click)="closeDetails()" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>

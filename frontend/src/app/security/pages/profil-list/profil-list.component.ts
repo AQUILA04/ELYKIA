@@ -3,6 +3,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProfilService, UserProfil } from '../../services/profil.service';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
     selector: 'app-profil-list',
@@ -16,7 +17,7 @@ export class ProfilListComponent implements OnInit {
 
     @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-    constructor(private profilService: ProfilService, private snackBar: MatSnackBar) { }
+    constructor(private profilService: ProfilService, private snackBar: MatSnackBar, private alertService: AlertService) { }
 
     ngOnInit(): void {
         this.loadProfils();
@@ -32,11 +33,13 @@ export class ProfilListComponent implements OnInit {
     }
 
     deleteProfil(profil: UserProfil) {
-        if (confirm(`Êtes-vous sûr de vouloir supprimer le profil "${profil.name}" ?`)) {
-            this.profilService.delete(profil.id!).subscribe(() => {
-                this.snackBar.open('Profil supprimé', 'Fermer', { duration: 3000 });
-                this.loadProfils();
-            });
-        }
+        this.alertService.showConfirmation('Confirmation', `Êtes-vous sûr de vouloir supprimer le profil "${profil.name}" ?`).then((confirmed) => {
+            if (confirmed) {
+                this.profilService.delete(profil.id!).subscribe(() => {
+                    this.snackBar.open('Profil supprimé', 'Fermer', { duration: 3000 });
+                    this.loadProfils();
+                });
+            }
+        });
     }
 }

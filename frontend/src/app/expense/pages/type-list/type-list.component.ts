@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { ExpenseService } from '../../services/expense.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ExpenseType } from '../../models/expense.model';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
     selector: 'app-expense-type-list',
@@ -24,7 +25,8 @@ export class ExpenseTypeListComponent implements OnInit {
     constructor(
         private expenseService: ExpenseService,
         private router: Router,
-        private snackBar: MatSnackBar
+        private snackBar: MatSnackBar,
+        private alertService: AlertService
     ) { }
 
     ngOnInit(): void {
@@ -59,17 +61,19 @@ export class ExpenseTypeListComponent implements OnInit {
     }
 
     deleteType(type: ExpenseType): void {
-        if (confirm(`Êtes-vous sûr de vouloir supprimer le type "${type.name}" ?`)) {
-            this.expenseService.deleteExpenseType(type.id!).subscribe({
-                next: () => {
-                    this.snackBar.open('Type de dépense supprimé avec succès', 'Fermer', { duration: 3000 });
-                    this.loadTypes();
-                },
-                error: (err) => {
-                    console.error('Error deleting expense type', err);
-                    this.snackBar.open('Erreur lors de la suppression du type', 'Fermer', { duration: 3000 });
-                }
-            });
-        }
+        this.alertService.showConfirmation('Confirmation', `Êtes-vous sûr de vouloir supprimer le type "${type.name}" ?`).then((confirmed) => {
+            if (confirmed) {
+                this.expenseService.deleteExpenseType(type.id!).subscribe({
+                    next: () => {
+                        this.snackBar.open('Type de dépense supprimé avec succès', 'Fermer', { duration: 3000 });
+                        this.loadTypes();
+                    },
+                    error: (err) => {
+                        console.error('Error deleting expense type', err);
+                        this.snackBar.open('Erreur lors de la suppression du type', 'Fermer', { duration: 3000 });
+                    }
+                });
+            }
+        });
     }
 }

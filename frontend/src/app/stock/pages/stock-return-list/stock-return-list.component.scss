@@ -134,31 +134,64 @@
     }
 }
 
+/* --- ACTIONS COLUMN STYLING --- */
+
+.actions-column {
+    width: 120px; /* Fixed width to prevent stretching */
+    text-align: right;
+    white-space: nowrap;
+}
+
+.action-buttons-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px; /* Consistent gap between buttons */
+}
+
 .btn-action {
     border: none;
     background: transparent;
     cursor: pointer;
-    padding: 8px;
+    padding: 0; /* Reset padding */
     border-radius: 50%;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; /* Fixed width */
+    height: 36px; /* Fixed height */
+    flex-shrink: 0; /* Prevent shrinking */
 
     &.validate {
-        color: #38a169;
+        color: white;
+        background-color: #28a745;
+        box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+        opacity: 1 !important;
 
         &:hover {
-            background-color: #f0fff4;
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+        }
+    }
+
+    &.details {
+        color: #003366;
+        background-color: rgba(0, 51, 102, 0.1);
+
+        &:hover {
+            background-color: rgba(0, 51, 102, 0.2);
+            transform: translateY(-2px);
         }
     }
 
     mat-icon {
-        font-size: 24px;
-        width: 24px;
-        height: 24px;
+        font-size: 20px; /* Slightly smaller icon */
+        width: 20px;
+        height: 20px;
+        opacity: 1 !important;
     }
-}
-
-.text-right {
-    text-align: right;
 }
 
 .text-center {
@@ -169,4 +202,25 @@
     padding: 40px 20px !important;
     color: #718096;
     font-style: italic;
+}
+
+/* --- MODAL BUTTON STYLING --- */
+.btn-close-modal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    background-color: #003366; /* Same as btn-add */
+    color: white;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: #004080;
+        box-shadow: 0 2px 4px rgba(0, 51, 102, 0.2);
+    }
 }

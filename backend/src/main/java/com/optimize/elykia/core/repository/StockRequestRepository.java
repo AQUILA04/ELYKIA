@@ -11,10 +11,10 @@ import java.util.List;
 
 public interface StockRequestRepository extends GenericRepository<StockRequest, Long> {
     Page<StockRequest> findByCollector(String collector, Pageable pageable);
-    Page<StockRequest> findByCollectorOrderByRequestDateDesc(String collector, Pageable pageable);
+    Page<StockRequest> findByCollectorOrderByIdDesc(String collector, Pageable pageable);
     Page<StockRequest> findByStatus(StockRequestStatus status, Pageable pageable);
     Page<StockRequest> findByStatusIn(List<StockRequestStatus> statuses, Pageable pageable);
-    Page<StockRequest> findByStatusInOrderByRequestDateDesc(List<StockRequestStatus> statuses, Pageable pageable);
+    Page<StockRequest> findByStatusInOrderByIdDesc(List<StockRequestStatus> statuses, Pageable pageable);
 
     @Query("SELECT MAX(s.id) FROM StockRequest s")
     Long findMaxId();

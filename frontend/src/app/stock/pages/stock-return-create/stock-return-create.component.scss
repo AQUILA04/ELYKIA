@@ -149,9 +149,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: transparent;
-    border: 1px dashed #cbd5e0;
-    color: #4a5568;
+    background: #003366; /* Changed from transparent to a visible color */
+    border: 1px solid #003366; /* Changed border style */
+    color: white; /* Changed text color */
     padding: 10px 24px;
     border-radius: 8px;
     font-weight: 500;
@@ -159,9 +159,9 @@
     transition: all 0.2s;
 
     &:hover {
-        background-color: #f7fafc;
-        border-color: #003366;
-        color: #003366;
+        background-color: #004080; /* Darker shade on hover */
+        border-color: #004080;
+        color: white;
     }
 
     mat-icon {

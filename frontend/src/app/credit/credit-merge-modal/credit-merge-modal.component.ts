@@ -203,11 +203,12 @@ export class CreditMergeModalComponent implements OnInit, OnDestroy {
     const operationType = this.loading ? 'chargement' : 'fusion';
     const message = `Une opération de ${operationType} est en cours. Voulez-vous vraiment fermer le modal ?`;
 
-    // Using a simple confirm for now - in a real app, you'd use the AlertService
-    if (confirm(message)) {
-      this.resetModalState();
-      this.onClose.emit();
-    }
+    this.alertService.showConfirmation('Confirmation', message).then((confirmed) => {
+      if (confirmed) {
+        this.resetModalState();
+        this.onClose.emit();
+      }
+    });
   }
 
   private resetModalState(): void {

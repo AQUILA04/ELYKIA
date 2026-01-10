@@ -166,15 +166,16 @@
 }
 
 .btn-add {
-  background-color: #28a745;
+  background-color: #003366; /* Changed from #28a745 to #003366 */
   color: white;
   align-self: flex-start;
   margin-top: 0.5rem;
+  border: 1px solid #003366; /* Added border */
 
   &:hover:not(:disabled) {
-    background-color: #218838;
+    background-color: #004080; /* Changed hover color */
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 51, 102, 0.3); /* Changed shadow color */
   }
 }
 

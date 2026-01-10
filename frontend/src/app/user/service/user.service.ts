@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 
 export interface User {
   id: number;
@@ -24,7 +26,7 @@ export class UserService {
   private promotersUrl = `${environment.apiUrl}/api/v1/promoters`;
   private username: string = '';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private tokenStorage: TokenStorageService) { }
 
   setUsername(username: string): void {
     this.username = username;
@@ -33,6 +35,12 @@ export class UserService {
   getUsername(): string | null {
     return localStorage.getItem('username');
   }
+
+  hasProfile(profile: UserProfile | string): boolean {
+    const user = this.tokenStorage.getUser();
+    return user && user.profil === profile;
+  }
+
   // Add a new user
   addUser(user: any): Observable<any> {
     return this.http.post(`${this.apiurl}`, user);

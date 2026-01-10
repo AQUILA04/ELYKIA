@@ -3,6 +3,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PermissionService, UserPermission } from '../../services/permission.service';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
     selector: 'app-permission-list',
@@ -16,7 +17,7 @@ export class PermissionListComponent implements OnInit {
 
     @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-    constructor(private permissionService: PermissionService, private snackBar: MatSnackBar) { }
+    constructor(private permissionService: PermissionService, private snackBar: MatSnackBar, private alertService: AlertService) { }
 
     ngOnInit(): void {
         this.loadPermissions();
@@ -31,11 +32,13 @@ export class PermissionListComponent implements OnInit {
     }
 
     deletePermission(permission: UserPermission) {
-        if (confirm(`Êtes-vous sûr de vouloir supprimer la permission "${permission.name}" ?`)) {
-            this.permissionService.delete(permission.id!).subscribe(() => {
-                this.snackBar.open('Permission supprimée', 'Fermer', { duration: 3000 });
-                this.loadPermissions();
-            });
-        }
+        this.alertService.showConfirmation('Confirmation', `Êtes-vous sûr de vouloir supprimer la permission "${permission.name}" ?`).then((confirmed) => {
+            if (confirmed) {
+                this.permissionService.delete(permission.id!).subscribe(() => {
+                    this.snackBar.open('Permission supprimée', 'Fermer', { duration: 3000 });
+                    this.loadPermissions();
+                });
+            }
+        });
     }
 }

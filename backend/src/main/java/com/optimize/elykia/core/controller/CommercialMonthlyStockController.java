@@ -1,11 +1,13 @@
 package com.optimize.elykia.core.controller;
 
+import com.optimize.elykia.core.dto.CommercialStockItemDto;
 import com.optimize.elykia.core.entity.CommercialMonthlyStock;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/commercial-stocks")
@@ -29,5 +31,11 @@ public class CommercialMonthlyStockController {
             @PathVariable Integer year,
             @PathVariable Integer month) {
         return ResponseEntity.of(repository.findByCollectorAndMonthAndYear(collector, month, year));
+    }
+
+    @GetMapping("/available/{collector}")
+    public ResponseEntity<List<CommercialStockItemDto>> getAvailableItems(@PathVariable String collector) {
+        LocalDate now = LocalDate.now();
+        return ResponseEntity.ok(repository.findAvailableItemsByCollector(collector, now.getMonthValue(), now.getYear()));
     }
 }

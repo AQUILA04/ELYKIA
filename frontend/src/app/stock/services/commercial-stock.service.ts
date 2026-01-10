@@ -17,7 +17,7 @@ export class CommercialStockService extends BaseHttpService {
     protected override errorHandler: ErrorHandlerService
   ) {
     super(http, tokenStorage, errorHandler);
-    this.baseUrl += '/commercial-stocks';
+    this.baseUrl += '/api/commercial-stocks';
   }
 
   getCurrentStock(collector: string): Observable<CommercialMonthlyStock> {
@@ -26,5 +26,9 @@ export class CommercialStockService extends BaseHttpService {
 
   getStockByDate(collector: string, year: number, month: number): Observable<CommercialMonthlyStock> {
     return this.http.get<CommercialMonthlyStock>(`${this.baseUrl}/${collector}/${year}/${month}`);
+  }
+
+  getAvailableItems(collector: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/available/${collector}`);
   }
 }

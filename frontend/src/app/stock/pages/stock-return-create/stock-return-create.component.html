@@ -23,42 +23,19 @@
       </div>
     </div>
 
-    <div formArrayName="items" class="return-items-list">
-      <div *ngFor="let item of items.controls; let i = index" [formGroupName]="i" class="return-item-row">
-        <div class="row align-items-end">
-          <div class="col-md-7">
-            <div class="form-group mb-0">
-              <label [for]="'stockItem'+i">Article (Stock disponible)</label>
-              <select [id]="'stockItem'+i" formControlName="stockItem" class="custom-select">
-                <option [ngValue]="null" disabled>Sélectionner un article</option>
-                <option *ngFor="let sItem of availableStockItems" [ngValue]="sItem">
-                  {{ sItem.article.name }} — Reste: {{ sItem.quantityRemaining }}
-                </option>
-              </select>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="form-group mb-0">
-              <label [for]="'quantity'+i">Quantité</label>
-              <input [id]="'quantity'+i" type="number" formControlName="quantity" class="custom-input">
-            </div>
-          </div>
-          <div class="col-md-2">
-            <button type="button" class="btn-icon delete" (click)="removeItem(i)" matTooltip="Supprimer cet article">
-              <mat-icon>delete_outline</mat-icon>
-            </button>
-          </div>
-        </div>
-        <div *ngIf="item.get('quantity')?.hasError('max')" class="error-hint">
-          <mat-icon>error_outline</mat-icon> La quantité dépasse le stock disponible.
-        </div>
-      </div>
-    </div>
-
-    <div class="add-action-container">
-      <button type="button" class="btn-add-item" (click)="addItem()">
-        <mat-icon>add_circle_outline</mat-icon> Ajouter un autre article
-      </button>
+    <div class="form-group" *ngIf="selectedCommercial || !isStoreKeeper">
+      <label>Articles à retourner<span class="text-danger">*</span></label>
+      <app-article-selector
+        formControlName="items"
+        [articles]="availableStockItems"
+        [priceType]="'inventory'"
+        [showStock]="true"
+        [validateStock]="true"
+      >
+      </app-article-selector>
+      <mat-error *ngIf="form.get('items')?.invalid && form.get('items')?.touched">
+        Au moins un article doit être sélectionné.
+      </mat-error>
     </div>
 
     <div class="actions">

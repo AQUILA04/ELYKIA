@@ -6,7 +6,7 @@
   </div>
 
   <div class="action-bar">
-    <button *ngIf="isPromoter" class="btn-add" routerLink="/stock/return/create">
+    <button *ngIf="isStoreKeeper" class="btn-add" routerLink="/stock/return/create">
       <mat-icon>undo</mat-icon> Nouveau Retour
     </button>
   </div>
@@ -18,8 +18,7 @@
           <th>Date Retour</th>
           <th>Commercial</th>
           <th>Statut</th>
-          <th>Articles</th>
-          <th class="text-right">Actions</th>
+          <th class="actions-column">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -27,24 +26,72 @@
           <td>{{ ret.returnDate | date:'dd/MM/yyyy' }}</td>
           <td>{{ ret.collector }}</td>
           <td>
-            <span class="badge" [ngClass]="getStatusBadge(ret.status!)">{{ ret.status }}</span>
+            <span class="badge" [ngClass]="getStatusBadge(ret.status!)">{{ getStatusLabel(ret.status) }}</span>
           </td>
-          <td>
-            <div *ngFor="let item of ret.items" class="article-item-mini">
-              {{ item.article.name }} <span class="qty">x {{ item.quantity }}</span>
+          <td class="actions-column">
+            <div class="action-buttons-wrapper">
+              <button mat-icon-button (click)="showDetails(ret)" matTooltip="Détails" class="btn-action details">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button *ngIf="isStoreKeeper && ret.status === 'CREATED'" class="btn-action validate"
+                (click)="validate(ret)" matTooltip="Réceptionner le retour">
+                <mat-icon>check_circle</mat-icon>
+              </button>
             </div>
-          </td>
-          <td class="text-right">
-            <button *ngIf="isStoreKeeper && ret.status === 'CREATED'" class="btn-action validate"
-              (click)="validate(ret)" matTooltip="Réceptionner le retour">
-              <mat-icon>check_circle</mat-icon>
-            </button>
           </td>
         </tr>
         <tr *ngIf="returns.length === 0">
-          <td colspan="5" class="text-center empty-message">Aucun retour trouvé</td>
+          <td colspan="4" class="text-center empty-message">Aucun retour trouvé</td>
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- Modal Détails -->
+<div class="modal" tabindex="-1" role="dialog" [ngStyle]="{'display': selectedReturn ? 'block' : 'none'}" style="background: rgba(0,0,0,0.5)">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+        <h3 class="modal-title w-100 text-center" style="color: #343a40; font-weight: 600;">
+          Détails du Retour
+        </h3>
+        <button type="button" class="close" (click)="closeDetails()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="selectedReturn">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p><strong>Commercial:</strong> {{ selectedReturn.collector }}</p>
+            <p><strong>Date:</strong> {{ selectedReturn.returnDate | date:'dd/MM/yyyy' }}</p>
+          </div>
+          <div class="col-md-6 text-right">
+            <p><strong>Statut:</strong> <span class="badge" [ngClass]="getStatusBadge(selectedReturn.status!)">{{ getStatusLabel(selectedReturn.status) }}</span></p>
+          </div>
+        </div>
+
+        <h6 class="mt-4">Articles retournés</h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Article</th>
+                <th>Quantité</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of selectedReturn.items">
+                <td>{{ item.article.commercialName }} {{ ' ' + item.article.name }}</td>
+                <td>{{ item.quantity }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-close-modal" (click)="closeDetails()">Fermer</button>
+      </div>
+    </div>
   </div>
 </div>

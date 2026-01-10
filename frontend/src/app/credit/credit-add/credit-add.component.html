@@ -6,6 +6,45 @@
   </div>
 
   <form [formGroup]="creditForm" (ngSubmit)="onSubmit()">
+
+    <!-- Toggle Type de Vente -->
+    <div class="sale-type-toggle">
+      <div class="btn-group btn-group-toggle" data-toggle="buttons">
+        <label class="btn btn-outline-primary" [class.active]="saleType === 'CREDIT'">
+          <input type="radio" formControlName="saleType" value="CREDIT"> Crédit
+        </label>
+        <label class="btn btn-outline-primary" [class.active]="saleType === 'CASH'">
+          <input type="radio" formControlName="saleType" value="CASH"> Comptant
+        </label>
+      </div>
+    </div>
+
+    <!-- Sélection Commercial (Visible uniquement en mode Crédit) -->
+    <div class="form-group" *ngIf="saleType === 'CREDIT'">
+      <label for="commercial">Commercial <span class="text-danger">*</span></label>
+      <ng-select
+        id="commercial"
+        formControlName="commercial"
+        [items]="commercials"
+        bindLabel="username"
+        bindValue="username"
+        [searchFn]="searchCommercial"
+        (change)="onCommercialChange()"
+        placeholder="Sélectionner un commercial"
+        [clearable]="false"
+        [readonly]="isPromoter">
+        <ng-template ng-option-tmp let-item="item">
+          <div class="commercial-option">
+            <strong>{{ item.username }}</strong>
+            <span class="commercial-name">{{ item.firstname }} {{ item.lastname }}</span>
+          </div>
+        </ng-template>
+      </ng-select>
+      <mat-error *ngIf="creditForm.get('commercial')?.invalid && creditForm.get('commercial')?.touched">
+        Le commercial est requis pour une vente à crédit.
+      </mat-error>
+    </div>
+
     <div class="form-group">
       <label for="clientId">Client<span class="text-danger">*</span></label>
       <ng-select
@@ -29,21 +68,13 @@
       </mat-error>
     </div>
 
-    <div class="form-group">
-      <label for="advance">Avance (Optionnel)</label>
-      <input id="advance" type="number" formControlName="advance" class="form-control" />
-      <mat-error *ngIf="creditForm.get('advance')?.invalid && creditForm.get('advance')?.touched">
-        L'avance doit être un nombre positif.
-      </mat-error>
-    </div>
-
     <!-- Utilisation du nouveau composant réutilisable -->
     <div class="form-group">
       <label>Articles<span class="text-danger">*</span></label>
       <app-article-selector
         formControlName="articles"
         [articles]="articles"
-        [priceType]="'credit'"
+        [priceType]="saleType === 'CREDIT' ? 'credit' : 'inventory'"
         [showPrices]="true"
         [showStock]="true"
         (totalAmountChange)="onTotalAmountChange($event)"
@@ -51,6 +82,14 @@
       </app-article-selector>
       <mat-error *ngIf="creditForm.get('articles')?.invalid && creditForm.get('articles')?.touched">
         Au moins un article doit être sélectionné.
+      </mat-error>
+    </div>
+
+    <div class="form-group">
+      <label for="advance">Avance (Optionnel)</label>
+      <input id="advance" type="number" formControlName="advance" class="form-control" />
+      <mat-error *ngIf="creditForm.get('advance')?.invalid && creditForm.get('advance')?.touched">
+        L'avance doit être un nombre positif.
       </mat-error>
     </div>
 

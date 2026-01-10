@@ -12,12 +12,16 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 
 public interface ArticlesRepository extends GenericRepository<Articles, Long> {
 
     Page<Articles> findByStockQuantityEquals(Integer stockQuantity, Pageable pageable);
 
     Page<Articles> findByStockQuantityLessThanEqualAndStockQuantityGreaterThan(Integer stockQuantity, Integer zeroValue, Pageable pageable);
+
+    Optional<Articles> findByName(String name);
 
     default Page<Articles> elasticsearch(String keyword, Pageable pageable) {
         return findAll(getElasticsearchCriteria(keyword), pageable);

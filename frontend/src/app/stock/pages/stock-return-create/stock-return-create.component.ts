@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StockReturnService } from '../../services/stock-return.service';
 import { CommercialStockService } from '../../services/commercial-stock.service';
 import { AuthService } from '../../../auth/service/auth.service';
+import { UserService } from '../../../user/service/user.service';
+import { UserProfile } from '../../../shared/models/user-profile.enum';
 import { ToastrService } from 'ngx-toastr';
-import { CommercialMonthlyStockItem } from '../../models/commercial-stock.model';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ClientService } from '../../../client/service/client.service';
 
@@ -17,7 +18,7 @@ import { ClientService } from '../../../client/service/client.service';
 export class StockReturnCreateComponent implements OnInit {
 
   form: FormGroup;
-  availableStockItems: CommercialMonthlyStockItem[] = [];
+  availableStockItems: any[] = [];
   currentUser: any;
   commercials: any[] = [];
   selectedCommercial: string | null = null;
@@ -28,19 +29,20 @@ export class StockReturnCreateComponent implements OnInit {
     private stockReturnService: StockReturnService,
     private commercialStockService: CommercialStockService,
     private authService: AuthService,
+    private userService: UserService,
     private router: Router,
     private toastr: ToastrService,
     private spinner: NgxSpinnerService,
     private clientService: ClientService
   ) {
     this.form = this.fb.group({
-      items: this.fb.array([])
+      items: [[], Validators.required]
     });
   }
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
-    this.isStoreKeeper = this.authService.hasRole('ROLE_STOREKEEPER') || this.authService.hasRole('ROLE_ADMIN');
+    this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER) || this.userService.hasProfile(UserProfile.ADMIN);
 
     if (this.isStoreKeeper) {
       this.loadCommercials();
@@ -48,8 +50,6 @@ export class StockReturnCreateComponent implements OnInit {
       this.selectedCommercial = this.currentUser.username;
       this.loadAvailableStock(this.currentUser.username);
     }
-
-    this.addItem();
   }
 
   loadCommercials(): void {
@@ -81,11 +81,20 @@ export class StockReturnCreateComponent implements OnInit {
 
   loadAvailableStock(username: string): void {
     this.spinner.show();
-    this.commercialStockService.getCurrentStock(username).subscribe({
-      next: (stock) => {
-        if (stock && stock.items) {
-          this.availableStockItems = stock.items.filter(item => item.quantityRemaining > 0);
-        }
+    this.commercialStockService.getAvailableItems(username).subscribe({
+      next: (items) => {
+        // Mapping pour le composant article-selector
+        this.availableStockItems = items.map(item => ({
+          id: item.articleId, // Utilisation de l'ID réel
+          articleName: item.articleName, // Sauvegarde du nom pour référence
+          commercialName: item.commercialName,
+          sellingPrice: item.sellingPrice,
+          creditSalePrice: item.creditSalePrice,
+          stockQuantity: item.quantityRemaining,
+          // Champs additionnels pour l'affichage
+          marque: '',
+          model: ''
+        }));
         this.spinner.hide();
       },
       error: () => {
@@ -93,31 +102,6 @@ export class StockReturnCreateComponent implements OnInit {
         this.spinner.hide();
       }
     });
-  }
-
-  get items(): FormArray {
-    return this.form.get('items') as FormArray;
-  }
-
-  addItem() {
-    const itemGroup = this.fb.group({
-      stockItem: [null, Validators.required],
-      quantity: [1, [Validators.required, Validators.min(1)]]
-    });
-
-    // Validation dynamique pour ne pas dépasser le stock restant
-    itemGroup.get('quantity')?.valueChanges.subscribe(val => {
-      const stockItem = itemGroup.get('stockItem')?.value as unknown as CommercialMonthlyStockItem;
-      if (stockItem && stockItem.quantityRemaining !== undefined && val != null && val > stockItem.quantityRemaining) {
-        itemGroup.get('quantity')?.setErrors({ max: true });
-      }
-    });
-
-    this.items.push(itemGroup);
-  }
-
-  removeItem(index: number) {
-    this.items.removeAt(index);
   }
 
   onSubmit() {
@@ -128,10 +112,14 @@ export class StockReturnCreateComponent implements OnInit {
     const formValue = this.form.value;
     const stockReturn = {
       collector: this.selectedCommercial || this.currentUser.username,
-      items: formValue.items.map((item: any) => ({
-        article: item.stockItem.article,
-        quantity: item.quantity
-      }))
+      items: formValue.items.map((item: any) => {
+        // Retrouver l'article original pour avoir les détails corrects
+        const originalItem = this.availableStockItems.find(i => i.id === item.articleId);
+        return {
+          article: { id: item.articleId }, // Envoi de l'ID de l'article
+          quantity: item.quantity
+        };
+      })
     };
 
     this.spinner.show();

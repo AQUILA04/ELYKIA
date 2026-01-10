@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { CreditService } from '../service/credit.service';
@@ -9,7 +9,11 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 import { NgxSpinnerService } from 'ngx-spinner';
 import { forkJoin, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
-import {AuthService} from "../../auth/service/auth.service";
+import { AuthService } from "../../auth/service/auth.service";
+import { UserService } from '../../user/service/user.service';
+import { UserProfile } from '../../shared/models/user-profile.enum';
+import { CommercialStockService } from 'src/app/stock/services/commercial-stock.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-credit-add',
@@ -20,8 +24,12 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   creditForm!: FormGroup;
   clients: any[] = [];
   articles: any[] = [];
+  commercials: any[] = [];
   isLoading = false;
   creditId?: number;
+  isPromoter = false;
+  currentUser: any;
+  saleType: 'CREDIT' | 'CASH' = 'CREDIT';
 
   private subscriptions: Subscription[] = [];
 
@@ -35,33 +43,41 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     private alertService: AlertService,
     private tokenStorage: TokenStorageService,
     private spinner: NgxSpinnerService,
-    private authService: AuthService
+    private authService: AuthService,
+    private userService: UserService,
+    private commercialStockService: CommercialStockService,
+    private toastr: ToastrService
   ) {
     this.tokenStorage.checkConnectedUser();
     this.creditForm = this.formBuilder.group({
       clientId: ['', Validators.required],
+      commercial: [null], // Pour le mode Crédit
       articles: [[], Validators.required],
       advance: [0, [Validators.required, Validators.min(0)]],
       beginDate: [new Date().toISOString().split('T')[0]],
       expectedEndDate: [null],
       totalAmount: [0],
+      saleType: ['CREDIT']
     });
   }
 
   ngOnInit(): void {
     this.spinner.show();
     this.creditId = this.route.snapshot.params['id'] ? +this.route.snapshot.params['id'] : undefined;
-    const currentUser = this.authService.getCurrentUser();
+    this.currentUser = this.authService.getCurrentUser();
+    this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
 
     const loadSub = forkJoin({
-      clients: this.clientService.getClients(0, 10000, 'id,desc', currentUser.username)
+      clients: this.clientService.getClients(0, 10000, 'id,desc', this.currentUser.username)
         .pipe(map(response => response.data.content)),
-      articles: this.itemService.getAllArticles()
-        .pipe(map(response => response.data.content))
+      commercials: this.clientService.getAgents()
     }).subscribe({
-      next: ({ clients, articles }) => {
-        this.clients = clients;
-        this.articles = articles;
+      next: ({ clients, commercials }) => {
+        // Filtrer les clients pour ne garder que ceux de type 'CLIENT'
+        this.clients = clients.filter((client: any) => client.clientType === 'CLIENT');
+        this.commercials = commercials;
+
+        this.setupInitialState();
 
         if (this.creditId) {
           this.loadCredit(this.creditId);
@@ -75,6 +91,91 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(loadSub);
+  }
+
+  setupInitialState() {
+    if (this.isPromoter) {
+      this.creditForm.patchValue({ commercial: this.currentUser.username });
+      this.creditForm.get('commercial')?.disable();
+      this.loadCommercialStock(this.currentUser.username);
+    }
+
+    // Ecouter les changements de type de vente
+    this.creditForm.get('saleType')?.valueChanges.subscribe(type => {
+      this.saleType = type;
+      this.onSaleTypeChange(type);
+    });
+
+    // Initialiser l'état par défaut (CREDIT)
+    this.onSaleTypeChange('CREDIT');
+  }
+
+  onSaleTypeChange(type: 'CREDIT' | 'CASH') {
+    if (type === 'CASH') {
+      this.creditForm.get('commercial')?.clearValidators();
+      this.creditForm.get('commercial')?.updateValueAndValidity();
+      this.loadGeneralStock();
+    } else {
+      this.creditForm.get('commercial')?.setValidators(Validators.required);
+      this.creditForm.get('commercial')?.updateValueAndValidity();
+
+      // Si on est promoter, on garde notre username, sinon on attend la sélection
+      if (this.isPromoter) {
+          this.loadCommercialStock(this.currentUser.username);
+      } else {
+          const commercial = this.creditForm.get('commercial')?.value;
+          if (commercial) {
+            this.loadCommercialStock(commercial);
+          } else {
+            this.articles = []; // Reset articles if no commercial selected
+          }
+      }
+    }
+  }
+
+  onCommercialChange() {
+    const commercial = this.creditForm.get('commercial')?.value;
+    if (commercial) {
+      this.loadCommercialStock(commercial);
+    }
+  }
+
+  loadCommercialStock(username: string) {
+    this.spinner.show();
+    this.commercialStockService.getAvailableItems(username).subscribe({
+      next: (items) => {
+        this.articles = items.map(item => ({
+          id: item.articleId,
+          commercialName: item.commercialName,
+          sellingPrice: item.sellingPrice,
+          creditSalePrice: item.creditSalePrice,
+          stockQuantity: item.quantityRemaining,
+          marque: '',
+          model: ''
+        }));
+        this.spinner.hide();
+      },
+      error: () => {
+        this.toastr.error('Erreur chargement stock commercial');
+        this.spinner.hide();
+      }
+    });
+  }
+
+  loadGeneralStock() {
+    this.spinner.show();
+    this.itemService.getAllArticles().pipe(
+      map(response => response.data.content)
+    ).subscribe({
+      next: (articles) => {
+        this.articles = articles;
+        this.spinner.hide();
+      },
+      error: () => {
+        this.toastr.error('Erreur chargement stock général');
+        this.spinner.hide();
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -92,7 +193,8 @@ export class CreditAddComponent implements OnInit, OnDestroy {
         if (data) {
           this.creditForm.patchValue({
             clientId: data.client.id,
-            advance: data.advance || 0
+            advance: data.advance || 0,
+            // TODO: Gérer le type de vente et le commercial si stocké dans le backend
           });
 
           // Prepare articles for the article selector component
@@ -124,7 +226,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
     this.spinner.show();
     this.isLoading = true;
-    const formValue = this.creditForm.value;
+    const formValue = this.creditForm.getRawValue(); // getRawValue pour inclure les champs disabled
 
     const payload = {
       clientId: formValue.clientId,
@@ -135,7 +237,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       advance: formValue.advance,
       beginDate: formValue.beginDate,
       expectedEndDate: formValue.expectedEndDate,
-      totalAmount: formValue.totalAmount
+      totalAmount: formValue.totalAmount,
+      // saleType: formValue.saleType, // A décommenter si le backend supporte ce champ
+      // commercial: formValue.saleType === 'CREDIT' ? formValue.commercial : null // A décommenter si le backend supporte ce champ
     };
 
     const apiCall = this.creditId
@@ -149,8 +253,8 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
         if (body.statusCode === 200 || body.statusCode === 201) {
           const successMessage = this.creditId
-            ? 'Crédit mis à jour avec succès'
-            : 'Crédit ajouté avec succès';
+            ? 'Vente mise à jour avec succès'
+            : 'Vente ajoutée avec succès';
           this.alertService.showSuccess(successMessage);
           this.router.navigate(['/credit-list']);
         } else {
@@ -160,7 +264,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         this.spinner.hide();
-        this.alertService.showError('Erreur lors de la soumission du crédit : ' + err.message);
+        this.alertService.showError('Erreur lors de la soumission : ' + err.message);
         this.isLoading = false;
         console.error(err);
       }
@@ -179,6 +283,10 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     term = term.toLowerCase();
     const fullName = `${item.firstname} ${item.lastname}`.toLowerCase();
     return fullName.includes(term);
+  }
+
+  searchCommercial = (term: string, item: any) => {
+    return item.username.toLowerCase().includes(term.toLowerCase());
   }
 
   onCancel(): void {

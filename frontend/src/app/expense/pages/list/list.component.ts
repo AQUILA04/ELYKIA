@@ -4,6 +4,7 @@ import { Expense } from '../../models/expense.model';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
   selector: 'app-expense-list',
@@ -17,7 +18,7 @@ export class ExpenseListComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  constructor(private expenseService: ExpenseService, private snackBar: MatSnackBar) { }
+  constructor(private expenseService: ExpenseService, private snackBar: MatSnackBar, private alertService: AlertService) { }
 
   ngOnInit(): void {
     this.loadExpenses();
@@ -42,11 +43,13 @@ export class ExpenseListComponent implements OnInit {
   }
 
   deleteExpense(expense: Expense) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette dépense ?')) {
-      this.expenseService.deleteExpense(expense.id!).subscribe(() => {
-        this.snackBar.open('Dépense supprimée', 'Fermer', { duration: 3000 });
-        this.loadExpenses();
-      });
-    }
+    this.alertService.showConfirmation('Confirmation', 'Êtes-vous sûr de vouloir supprimer cette dépense ?').then((confirmed) => {
+      if (confirmed) {
+        this.expenseService.deleteExpense(expense.id!).subscribe(() => {
+          this.snackBar.open('Dépense supprimée', 'Fermer', { duration: 3000 });
+          this.loadExpenses();
+        });
+      }
+    });
   }
 }

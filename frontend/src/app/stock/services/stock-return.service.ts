@@ -18,7 +18,7 @@ export class StockReturnService extends BaseHttpService {
     protected override errorHandler: ErrorHandlerService
   ) {
     super(http, tokenStorage, errorHandler);
-    this.baseUrl += '/stock-returns';
+    this.baseUrl += '/api/stock-returns';
   }
 
   create(stockReturn: StockReturn): Observable<StockReturn> {
@@ -31,5 +31,12 @@ export class StockReturnService extends BaseHttpService {
 
   getByCollector(collector: string, page: number = 0, size: number = 20): Observable<Page<StockReturn>> {
     return this.http.get<Page<StockReturn>>(`${this.baseUrl}/collector/${collector}?page=${page}&size=${size}`);
+  }
+
+  getAll(collector: string | null, page: number = 0, size: number = 20): Observable<Page<StockReturn>> {
+   if (collector) {
+     return this.http.get<Page<StockReturn>>(`${this.baseUrl}?collector=${collector}&page=${page}&size=${size}`);
+   }
+    return this.http.get<Page<StockReturn>>(`${this.baseUrl}?page=${page}&size=${size}`);
   }
 }

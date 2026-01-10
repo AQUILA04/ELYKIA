@@ -3,9 +3,11 @@ import { StockRequestService } from '../../services/stock-request.service';
 import { StockRequest, StockRequestStatus } from '../../models/stock-request.model';
 import { Page } from '../../../shared/models/page.model';
 import { AuthService } from '../../../auth/service/auth.service';
-import { UserProfilConstant } from '../../../shared/constants/user-profil.constant';
+import { UserService } from '../../../user/service/user.service';
+import { UserProfile } from '../../../shared/models/user-profile.enum';
 import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
   selector: 'app-stock-request-list',
@@ -27,31 +29,29 @@ export class StockRequestListComponent implements OnInit {
   constructor(
     private stockRequestService: StockRequestService,
     private authService: AuthService,
+    private userService: UserService,
     private toastr: ToastrService,
-    private spinner: NgxSpinnerService // Added NgxSpinnerService
+    private spinner: NgxSpinnerService, // Added NgxSpinnerService
+    private alertService: AlertService
   ) { }
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
-    this.isManager = this.authService.hasRole('ROLE_GESTIONNAIRE') || this.authService.hasRole('ROLE_REPORT'); // Changed role check
-    this.isStoreKeeper = this.authService.hasRole('ROLE_STOREKEEPER'); // Changed role check
-    this.isPromoter = this.authService.hasRole('ROLE_PROMOTER'); // Changed role check
-    console.log('REQUEST LIST LOAD ...');
+    this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE) || this.userService.hasProfile(UserProfile.ADMIN) || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
+    this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER);
+    this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.loadRequests();
   }
 
   loadRequests() {
-    console.log('REQUEST LIST LOAD 2 ...');
     this.spinner.show(); // Added spinner
     this.stockRequestService.getAll(null, this.page, this.size)
       .subscribe({
         next: (page) => {
-          console.log('SUCCESS RESPONSE', page)
           this.handlePage(page);
           this.spinner.hide();
         },
         error: (err) => {
-          console.log('ERROR RESPONSE ', err)
           this.toastr.error('Erreur lors du chargement des demandes', 'Erreur');
           this.spinner.hide();
         }
@@ -64,27 +64,36 @@ export class StockRequestListComponent implements OnInit {
   }
 
   validate(request: StockRequest) {
-    if (confirm('Valider cette demande ?')) {
-      this.stockRequestService.validate(request.id!).subscribe({
-        next: () => {
-          this.toastr.success('Demande validée');
-          this.loadRequests();
-        },
-        error: () => this.toastr.error('Erreur lors de la validation')
-      });
-    }
+    this.alertService.showConfirmation('Confirmation', 'Valider cette demande ?').then((confirmed) => {
+      if (confirmed) {
+        this.stockRequestService.validate(request.id!).subscribe({
+          next: () => {
+            this.toastr.success('Demande validée');
+            this.loadRequests();
+          },
+          error: (err) => {
+            console.error('Error', err);
+            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors de validation de la demande', 'Erreur de validation de livraison');
+          }
+        });
+      }
+    });
   }
 
   deliver(request: StockRequest) {
-    if (confirm('Confirmer la livraison de cette demande ?')) {
-      this.stockRequestService.deliver(request.id!).subscribe({
-        next: () => {
-          this.toastr.success('Demande livrée');
-          this.loadRequests();
-        },
-        error: (err) => this.toastr.error(err.error?.message || 'Erreur lors de la livraison')
-      });
-    }
+    this.alertService.showConfirmation('Confirmation', 'Confirmer la livraison de cette demande ?').then((confirmed) => {
+      if (confirmed) {
+        this.stockRequestService.deliver(request.id!).subscribe({
+          next: () => {
+            this.toastr.success('Demande livrée');
+            this.loadRequests();
+          },
+          error: (err) => {
+            console.error('Error', err);
+            this.alertService.showError(err.error?.message ?? 'Erreur de livraison', 'Erreur de livraison');
+          } });
+      }
+    });
   }
 
   showDetails(request: StockRequest) {
@@ -97,11 +106,21 @@ export class StockRequestListComponent implements OnInit {
 
   getStatusBadge(status: string): string {
     switch (status) {
-      case 'CREATED': return 'badge-warning';
-      case 'VALIDATED': return 'badge-info';
+      case 'CREATED': return 'badge-secondary';
+      case 'VALIDATED': return 'badge-success';
       case 'DELIVERED': return 'badge-success';
       case 'CANCELLED': return 'badge-danger';
-      default: return 'badge-secondary';
+      default: return 'badge-danger';
+    }
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'CREATED': return 'Créé';
+      case 'VALIDATED': return 'Validé';
+      case 'DELIVERED': return 'Livré';
+      case 'CANCELLED': return 'Annulé';
+      default: return 'badge-danger';
     }
   }
 }

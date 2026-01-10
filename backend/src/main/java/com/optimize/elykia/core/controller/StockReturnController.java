@@ -31,4 +31,9 @@ public class StockReturnController  {
     public ResponseEntity<Page<StockReturn>> getByCollector(@PathVariable String collector, Pageable pageable) {
         return ResponseEntity.ok(((com.optimize.elykia.core.repository.StockReturnRepository)service.getRepository()).findByCollector(collector, pageable));
     }
+
+    @GetMapping
+    public ResponseEntity<Page<StockReturn>> getAll(String collector, Pageable pageable) {
+        return ResponseEntity.ok(service.getAll(collector, pageable));
+    }
 }
