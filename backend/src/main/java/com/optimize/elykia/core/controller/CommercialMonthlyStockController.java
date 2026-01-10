@@ -3,6 +3,9 @@ package com.optimize.elykia.core.controller;
 import com.optimize.elykia.core.dto.CommercialStockItemDto;
 import com.optimize.elykia.core.entity.CommercialMonthlyStock;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
+import com.optimize.elykia.core.service.CommercialMonthlyStockService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +17,12 @@ import java.util.List;
 public class CommercialMonthlyStockController {
 
     private final CommercialMonthlyStockRepository repository;
+    private final CommercialMonthlyStockService monthlyStockService;
 
-    public CommercialMonthlyStockController(CommercialMonthlyStockRepository repository) {
+    public CommercialMonthlyStockController(CommercialMonthlyStockRepository repository,
+                                            CommercialMonthlyStockService monthlyStockService) {
         this.repository = repository;
+        this.monthlyStockService = monthlyStockService;
     }
 
     @GetMapping("/current/{collector}")
@@ -37,5 +43,11 @@ public class CommercialMonthlyStockController {
     public ResponseEntity<List<CommercialStockItemDto>> getAvailableItems(@PathVariable String collector) {
         LocalDate now = LocalDate.now();
         return ResponseEntity.ok(repository.findAvailableItemsByCollector(collector, now.getMonthValue(), now.getYear()));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<CommercialMonthlyStock>> getAll(String collector, Pageable pageable, Boolean historic) {
+        LocalDate now = LocalDate.now();
+        return ResponseEntity.ok(monthlyStockService.getAll(collector, pageable, historic));
     }
 }

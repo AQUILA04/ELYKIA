@@ -3,6 +3,8 @@ package com.optimize.elykia.core.repository;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.dto.CommercialStockItemDto;
 import com.optimize.elykia.core.entity.CommercialMonthlyStock;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -11,6 +13,14 @@ import java.util.Optional;
 
 public interface CommercialMonthlyStockRepository extends GenericRepository<CommercialMonthlyStock, Long> {
     Optional<CommercialMonthlyStock> findByCollectorAndMonthAndYear(String collector, Integer month, Integer year);
+
+    Page<CommercialMonthlyStock> findByCollectorAndMonthAndYearOrderByIdDesc(String collector, Integer month, Integer year, Pageable pageable);
+
+    Page<CommercialMonthlyStock> findByMonthAndYearOrderByIdDesc(Integer month, Integer year, Pageable pageable);
+
+    Page<CommercialMonthlyStock> findByCollectorAndMonthNotAndYearNotOrderByIdDesc(String collector, Integer month, Integer year, Pageable pageable);
+
+    Page<CommercialMonthlyStock> findByMonthNotAndYearNotOrderByIdDesc(Integer month, Integer year, Pageable pageable);
 
     @Query("SELECT new com.optimize.elykia.core.dto.CommercialStockItemDto(" +
            "i.article.id, " +

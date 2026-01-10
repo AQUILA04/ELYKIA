@@ -17,6 +17,7 @@ export class SidebarComponent implements OnInit {
   isCaisseOpen: boolean = false;
   isSecurityOpen: boolean = false;
   isStockOpen: boolean = false; // AJOUTÉ
+  isConfigurationOpen: boolean = false; // AJOUTÉ
   activeRoute: string = '';
 
   isRouteActive(route: string): boolean {
@@ -34,6 +35,13 @@ export class SidebarComponent implements OnInit {
       return this.activeRoute.startsWith('/stock');
     }
 
+    // AJOUTÉ : Gestion pour le menu Configuration
+    if (route === '/configuration') {
+      return this.activeRoute.startsWith('/localitylist') ||
+             this.activeRoute.startsWith('/article-type') ||
+             this.activeRoute.startsWith('/expense/types');
+    }
+
     // Pour toutes les autres routes, utiliser une correspondance exacte ou avec un slash
     // Cela évite les conflits entre routes similaires
     return this.activeRoute === route || this.activeRoute === route + '/' ||
@@ -46,7 +54,8 @@ export class SidebarComponent implements OnInit {
       '/home', '/accounting-day', '/open-cashDesk', '/daily-operation',
       '/list', '/localitylist', '/credit-list', '/out-list', '/tontine-list',
       '/accountlist', '/client-list', '/report', '/inventory', '/gestion-list',
-      '/operation-list', '/deposit-list', '/user-list', '/commercial-list'
+      '/operation-list', '/deposit-list', '/user-list', '/commercial-list',
+      '/article-type', '/expense/types'
     ];
 
     // Vérifier si une autre route commence par la même base
@@ -83,6 +92,20 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  // AJOUTÉ : Gestionnaire de clic pour le menu Configuration
+  onConfigurationClick() {
+    const isConfigActive = this.activeRoute.startsWith('/localitylist') ||
+                           this.activeRoute.startsWith('/article-type') ||
+                           this.activeRoute.startsWith('/expense/types');
+
+    if (isConfigActive) {
+      this.isConfigurationOpen = !this.isConfigurationOpen;
+    } else {
+      // On ouvre simplement le menu sans navigation automatique pour éviter les problèmes de permissions
+      this.isConfigurationOpen = true;
+    }
+  }
+
   constructor(private router: Router,
     private tokenStorageService: TokenStorageService,
     private permissionsService: NgxPermissionsService,
@@ -112,6 +135,15 @@ export class SidebarComponent implements OnInit {
       } else {
         this.isStockOpen = false;
       }
+
+      // AJOUTÉ : Gestion de l'état ouvert/fermé pour Configuration
+      if (this.activeRoute.startsWith('/localitylist') ||
+          this.activeRoute.startsWith('/article-type') ||
+          this.activeRoute.startsWith('/expense/types')) {
+        this.isConfigurationOpen = true;
+      } else {
+        this.isConfigurationOpen = false;
+      }
     });
   }
 
@@ -121,6 +153,7 @@ export class SidebarComponent implements OnInit {
     this.isCaisseOpen = false;
     this.isSecurityOpen = false;
     this.isStockOpen = false; // AJOUTÉ
+    this.isConfigurationOpen = false; // AJOUTÉ
 
     // Initialiser activeRoute avec la route actuelle au démarrage
     this.activeRoute = this.router.url;

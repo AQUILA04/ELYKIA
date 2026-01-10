@@ -16,6 +16,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 
 @NgModule({
@@ -38,7 +40,9 @@ import { NgSelectModule } from '@ng-select/ng-select';
     MatTooltipModule,
     NgxSpinnerModule,
     MatFormFieldModule,
-    NgSelectModule
+    NgSelectModule,
+    MatExpansionModule,
+    MatPaginatorModule
   ]
 })
 export class StockModule { }
