@@ -44,15 +44,17 @@ public class OrderService extends GenericService<Order, Long> {
     private final UserService userService;
     private final CreditService creditService;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     protected OrderService(OrderRepository repository,
-                           OrderItemRepository orderItemRepository,
-                           ClientService clientService,
-                           ArticlesService articlesService,
-                           OrderStatusHistoryService historyService,
-                           UserService userService,
-                           CreditService creditService,
-                           OrderStatusHistoryRepository orderStatusHistoryRepository) {
+            OrderItemRepository orderItemRepository,
+            ClientService clientService,
+            ArticlesService articlesService,
+            OrderStatusHistoryService historyService,
+            UserService userService,
+            CreditService creditService,
+            OrderStatusHistoryRepository orderStatusHistoryRepository,
+            org.springframework.context.ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.orderItemRepository = orderItemRepository;
         this.clientService = clientService;
@@ -61,6 +63,7 @@ public class OrderService extends GenericService<Order, Long> {
         this.userService = userService;
         this.creditService = creditService;
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -68,12 +71,12 @@ public class OrderService extends GenericService<Order, Long> {
     public Order getById(Long id) {
         Order order = super.getById(id);
         if (order != null) {
-            // CORRECTION : Force le chargement de la collection "items" pour la page de détail.
+            // CORRECTION : Force le chargement de la collection "items" pour la page de
+            // détail.
             Hibernate.initialize(order.getItems());
         }
         return order;
     }
-
 
     public DashboardKpiDto getOrderKpis() {
         DashboardKpiDto dto = new DashboardKpiDto();
@@ -89,9 +92,12 @@ public class OrderService extends GenericService<Order, Long> {
         double acceptedPipelineValue = getRepository().sumTotalAmountByStatus(OrderStatus.ACCEPTED);
         dto.setAcceptedPipelineValue(acceptedPipelineValue);
 
-        long acceptedInPeriod = orderStatusHistoryRepository.countByNewStatusAndChangeTimestampBetween(OrderStatus.ACCEPTED, thirtyDaysAgo, now);
-        long deniedInPeriod = orderStatusHistoryRepository.countByNewStatusAndChangeTimestampBetween(OrderStatus.DENIED, thirtyDaysAgo, now);
-        long cancelledInPeriod = orderStatusHistoryRepository.countByNewStatusAndChangeTimestampBetween(OrderStatus.CANCEL, thirtyDaysAgo, now);
+        long acceptedInPeriod = orderStatusHistoryRepository
+                .countByNewStatusAndChangeTimestampBetween(OrderStatus.ACCEPTED, thirtyDaysAgo, now);
+        long deniedInPeriod = orderStatusHistoryRepository.countByNewStatusAndChangeTimestampBetween(OrderStatus.DENIED,
+                thirtyDaysAgo, now);
+        long cancelledInPeriod = orderStatusHistoryRepository
+                .countByNewStatusAndChangeTimestampBetween(OrderStatus.CANCEL, thirtyDaysAgo, now);
         long totalProcessed = acceptedInPeriod + deniedInPeriod + cancelledInPeriod;
 
         if (totalProcessed > 0) {
@@ -108,7 +114,8 @@ public class OrderService extends GenericService<Order, Long> {
             dto.setAverageOrderValue(0);
         }
 
-        double soldValueLast30Days = orderStatusHistoryRepository.sumTotalAmountForNewStatusBetween(OrderStatus.SOLD, thirtyDaysAgo, now);
+        double soldValueLast30Days = orderStatusHistoryRepository.sumTotalAmountForNewStatusBetween(OrderStatus.SOLD,
+                thirtyDaysAgo, now);
         dto.setSoldValueLast30Days(soldValueLast30Days);
 
         double potentialPurchaseValue = getRepository().sumTotalPurchasePriceByStatus(OrderStatus.PENDING);
@@ -116,7 +123,6 @@ public class OrderService extends GenericService<Order, Long> {
 
         return dto;
     }
-
 
     @Transactional
     public Credit soldOrder(Long orderId) throws Exception {
@@ -149,7 +155,6 @@ public class OrderService extends GenericService<Order, Long> {
         return creditService.getById(newCredit.getId());
     }
 
-
     public List<Order> updateOrderStatus(UpdateOrderStatusDto dto) {
         String username = userService.getCurrentUser().getUsername();
         List<Order> updatedOrders = new ArrayList<>();
@@ -174,8 +179,10 @@ public class OrderService extends GenericService<Order, Long> {
     private void validateStatusTransition(OrderStatus oldStatus, OrderStatus newStatus) {
         switch (oldStatus) {
             case PENDING:
-                if (newStatus != OrderStatus.ACCEPTED && newStatus != OrderStatus.DENIED && newStatus != OrderStatus.CANCEL) {
-                    throw new CustomValidationException("Une commande en attente ne peut être qu'acceptée, refusée ou annulée.");
+                if (newStatus != OrderStatus.ACCEPTED && newStatus != OrderStatus.DENIED
+                        && newStatus != OrderStatus.CANCEL) {
+                    throw new CustomValidationException(
+                            "Une commande en attente ne peut être qu'acceptée, refusée ou annulée.");
                 }
                 break;
             case ACCEPTED:
@@ -186,7 +193,8 @@ public class OrderService extends GenericService<Order, Long> {
             case DENIED:
             case CANCEL:
                 if (newStatus != OrderStatus.PENDING) {
-                    throw new CustomValidationException("Une commande refusée ou annulée ne peut que repasser en attente.");
+                    throw new CustomValidationException(
+                            "Une commande refusée ou annulée ne peut que repasser en attente.");
                 }
                 break;
             default:
@@ -196,7 +204,8 @@ public class OrderService extends GenericService<Order, Long> {
 
     public Page<ArticleOrderSummaryDto> getAcceptedArticleSummary(String commercialUsername, Pageable pageable) {
         if (StringUtils.hasText(commercialUsername)) {
-            return orderItemRepository.findAggregatedByArticleAndStatusAndCommercial(OrderStatus.ACCEPTED, commercialUsername, pageable);
+            return orderItemRepository.findAggregatedByArticleAndStatusAndCommercial(OrderStatus.ACCEPTED,
+                    commercialUsername, pageable);
         } else {
             return orderItemRepository.findAggregatedByArticleAndStatus(OrderStatus.ACCEPTED, pageable);
         }
@@ -211,7 +220,8 @@ public class OrderService extends GenericService<Order, Long> {
         OrderStatus finalStatus = (status == null) ? OrderStatus.PENDING : status;
         Page<Order> ordersPage = getRepository().findByStatus(finalStatus, pageable);
 
-        // CORRECTION : Force le chargement de la collection "items" pour chaque commande de la page.
+        // CORRECTION : Force le chargement de la collection "items" pour chaque
+        // commande de la page.
         ordersPage.getContent().forEach(order -> Hibernate.initialize(order.getItems()));
 
         return ordersPage;
@@ -245,7 +255,16 @@ public class OrderService extends GenericService<Order, Long> {
         order.setTotalAmount(totalAmount);
         order.setTotalPurchasePrice(totalPurchasePrice);
 
-        return this.create(order);
+        Order savedOrder = this.create(order);
+
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new com.optimize.elykia.core.event.OrderCreatedEvent(
+                    this,
+                    savedOrder.getTotalAmount(),
+                    savedOrder.getClient().getCollector()));
+        }
+
+        return savedOrder;
     }
 
     public Order updatePendingOrder(Long orderId, OrderDto dto) {
@@ -285,4 +304,3 @@ public class OrderService extends GenericService<Order, Long> {
         return (OrderRepository) repository;
     }
 }
-

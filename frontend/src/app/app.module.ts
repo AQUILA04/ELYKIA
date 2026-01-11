@@ -98,6 +98,8 @@ import { CreditMergeModalComponent } from './credit/credit-merge-modal/credit-me
 import { AdvancedSearchComponent } from './credit/components/advanced-search/advanced-search.component';
 import { SharedComponentsModule } from './shared/components/shared-components.module';
 import { ToastrModule } from 'ngx-toastr';
+import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
+import { ParameterEditComponent } from './parameters/parameter-edit/parameter-edit.component';
 
 @NgModule({
   declarations: [
@@ -162,7 +164,9 @@ import { ToastrModule } from 'ngx-toastr';
     OldReleaseListComponent,
     CreditMergeModalComponent,
     // --- NOUVELLE DÉCLARATION ---
-    CreditMergeModalComponent
+    CreditMergeModalComponent,
+    ParameterListComponent,
+    ParameterEditComponent
     // --- NOUVELLES COMPOSANTS DÉPLACÉS DANS SHARED ---
   ],
   imports: [

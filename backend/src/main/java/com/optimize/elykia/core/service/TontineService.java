@@ -47,17 +47,20 @@ public class TontineService extends GenericService<TontineMember, Long> {
     private final TontineCollectionRepository tontineCollectionRepository;
     private final ClientService clientService;
     private final UserService userService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     protected TontineService(TontineMemberRepository repository,
             TontineSessionRepository tontineSessionRepository,
             TontineCollectionRepository tontineCollectionRepository,
             ClientService clientService,
-            UserService userService) {
+            UserService userService,
+            org.springframework.context.ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.tontineSessionRepository = tontineSessionRepository;
         this.tontineCollectionRepository = tontineCollectionRepository;
         this.clientService = clientService;
         this.userService = userService;
+        this.eventPublisher = eventPublisher;
     }
 
     public TontineSession getActiveSession() {
@@ -127,7 +130,16 @@ public class TontineService extends GenericService<TontineMember, Long> {
         newMember.setRegistrationDate(LocalDateTime.now());
         newMember.setAmount(dto.getAmount());
 
-        return this.create(newMember);
+        TontineMember savedMember = this.create(newMember);
+
+        // Publish Event
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineMemberEnrolledEvent(
+                    this,
+                    savedMember.getClient().getCollector()));
+        }
+
+        return savedMember;
     }
 
     public TontineCollection recordCollection(TontineCollectionDto dto) {
@@ -159,7 +171,17 @@ public class TontineService extends GenericService<TontineMember, Long> {
         TontineSession session = member.getTontineSession();
         updateSessionRevenue(session);
 
-        return tontineCollectionRepository.save(collection);
+        TontineCollection savedCollection = tontineCollectionRepository.save(collection);
+
+        // Publish Event
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineCollectionEvent(
+                    this,
+                    savedCollection.getAmount(),
+                    savedCollection.getCommercialUsername()));
+        }
+
+        return savedCollection;
     }
 
     private void calculateMemberStatus(TontineMember member) {

@@ -411,3 +411,14 @@ optimize:
 
 app:
   folder: ${user.home}/.optimize-elykia-core/operations/
+  security:
+    parameter:
+      init-enabled: true
+      init-data[0]:
+        key: ENABLED_ACCOUNT_BALANCE_CONTROL
+        value: true
+        description: Activer la vérification du solde du compte du client pour limiter le montant de crédit qu'il peut prendre
+      init-data[1]:
+        key: AGENCY_COLLECTOR
+        value: COM001
+        description: Le Username du commercial qui comptabilise les opération de vente en agence

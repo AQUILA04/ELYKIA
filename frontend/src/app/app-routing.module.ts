@@ -54,6 +54,7 @@ import { OldReleaseListComponent } from "./out/old-release-list/old-release-list
 import { ChangeDailyStakeComponent } from './credit/change-daily-stake/change-daily-stake.component';
 import { CreateTontineComponent } from "./credit/components/create-tontine/create-tontine.component";
 import { AuthGuard } from "./auth/guards/auth.guard";
+import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 
 const routes: Routes = [
   // Route publique - Login
@@ -498,6 +499,12 @@ const routes: Routes = [
     path: 'security',
     loadChildren: () => import('./security/security.module').then(m => m.SecurityModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'parameters',
+    component: ParameterListComponent,
+    canActivate: [AuthGuard],
+    data: { breadcrumb: 'Paramètres' }
   }
 ];
 

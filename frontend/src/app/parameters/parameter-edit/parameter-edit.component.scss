@@ -1,0 +1,48 @@
+.dialog-container {
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  font-weight: 500;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.text-danger {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.mr-2 {
+  margin-right: 10px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: #003366;
+  color: white;
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  &:hover {
+    background-color: #002244;
+  }
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}

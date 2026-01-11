@@ -33,39 +33,46 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private final UserService userService;
     private final AccountingDayService accountingDayService;
     private final StockMovementService stockMovementService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     public StockRequestService(StockRequestRepository repository,
                                ArticlesService articlesService,
                                CommercialMonthlyStockRepository monthlyStockRepository,
                                UserService userService,
                                AccountingDayService accountingDayService,
-                               StockMovementService stockMovementService) {
+                               StockMovementService stockMovementService,
+                               org.springframework.context.ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.articlesService = articlesService;
         this.monthlyStockRepository = monthlyStockRepository;
         this.userService = userService;
         this.accountingDayService = accountingDayService;
         this.stockMovementService = stockMovementService;
+        this.eventPublisher = eventPublisher;
     }
+
+
+
+
 
     public StockRequest createRequest(StockRequest request) {
         request.setStatus(StockRequestStatus.CREATED);
         request.setRequestDate(LocalDate.now());
-        
+
         // Générer référence
         String collector = request.getCollector();
-        String collectorSuffix = (collector != null && collector.length() >= 3) 
-                ? collector.substring(collector.length() - 3) 
+        String collectorSuffix = (collector != null && collector.length() >= 3)
+                ? collector.substring(collector.length() - 3)
                 : (collector != null ? collector : "UNK");
-        
+
         Long maxId = ((StockRequestRepository) repository).findMaxId();
         long nextId = (maxId != null ? maxId : 0) + 1;
-        
+
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyyHHmmss"));
-        
+
         String reference = "#" + collectorSuffix + nextId + timestamp;
         request.setReference(reference);
-        
+
         double totalCreditSalePrice = 0.0;
         double totalPurchasePrice = 0.0;
 
@@ -77,14 +84,15 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             item.setUnitPrice(article.getCreditSalePrice());
             item.setPurchasePrice(article.getPurchasePrice());
             item.setStockRequest(request); // Lier l'item à la requête
-            
+
             totalCreditSalePrice += (item.getUnitPrice() != null ? item.getUnitPrice() : 0.0) * item.getQuantity();
-            totalPurchasePrice += (item.getPurchasePrice() != null ? item.getPurchasePrice() : 0.0) * item.getQuantity();
+            totalPurchasePrice += (item.getPurchasePrice() != null ? item.getPurchasePrice() : 0.0)
+                    * item.getQuantity();
         }
-        
+
         request.setTotalCreditSalePrice(totalCreditSalePrice);
         request.setTotalPurchasePrice(totalPurchasePrice);
-        
+
         return repository.save(request);
     }
 
@@ -111,12 +119,15 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         for (StockRequestItem item : request.getItems()) {
             Articles article = articlesService.getById(item.getArticle().getId());
             if (article.getStockQuantity() < item.getQuantity()) {
-                insufficientStockItems.add(article.getCommercialName() + " " + article.getName() + " : " + article.getCreditSalePrice() + " (Demandé: " + item.getQuantity() + ", Dispo: " + article.getStockQuantity() + ")");
+                insufficientStockItems.add(
+                        article.getCommercialName() + " " + article.getName() + " : " + article.getCreditSalePrice()
+                                + " (Demandé: " + item.getQuantity() + ", Dispo: " + article.getStockQuantity() + ")");
             }
         }
 
         if (!insufficientStockItems.isEmpty()) {
-            throw new CustomValidationException("Stock insuffisant pour les articles suivants : " + String.join("| ", insufficientStockItems));
+            throw new CustomValidationException(
+                    "Stock insuffisant pour les articles suivants : " + String.join("| ", insufficientStockItems));
         }
 
         // Si tout est OK, procéder aux mouvements
@@ -129,14 +140,15 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                     item.getQuantity(),
                     "Livraison demande " + request.getReference(),
                     currentUser.getUsername(),
-                    null
-            );
+                    null);
 
             article.makeRelease(item.getQuantity());
             articlesService.update(article);
-            
-            // S'assurer que les prix sont bien fixés (au cas où ils n'auraient pas été mis à la création ou auraient changé)
-            // Note: Idéalement, on garde ceux de la création, mais si null, on prend les actuels
+
+            // S'assurer que les prix sont bien fixés (au cas où ils n'auraient pas été mis
+            // à la création ou auraient changé)
+            // Note: Idéalement, on garde ceux de la création, mais si null, on prend les
+            // actuels
             if (item.getUnitPrice() == null || item.getUnitPrice() == 0) {
                 item.setUnitPrice(article.getCreditSalePrice());
             }
@@ -151,7 +163,17 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         request.setStatus(StockRequestStatus.DELIVERED);
         request.setDeliveryDate(LocalDate.now());
         request.setAccountingDate(accountingDayService.getCurrentAccountingDate());
-        return repository.save(request);
+        StockRequest savedRequest = repository.save(request);
+
+        // Publish Event
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new com.optimize.elykia.core.event.StockRequestDeliveredEvent(
+                    this,
+                    savedRequest.getTotalCreditSalePrice(),
+                    savedRequest.getCollector()));
+        }
+
+        return savedRequest;
     }
 
     private void updateCommercialMonthlyStock(StockRequest request) {
@@ -176,22 +198,23 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
 
             if (existingItem.isPresent()) {
                 CommercialMonthlyStockItem item = existingItem.get();
-                
+
                 // Calcul du nouveau prix moyen pondéré
                 double currentTotalValue = item.getQuantityTaken() * item.getWeightedAverageUnitPrice();
                 double newRequestValue = reqItem.getQuantity() * reqItem.getUnitPrice();
                 int newTotalQuantity = item.getQuantityTaken() + reqItem.getQuantity();
-                
+
                 if (newTotalQuantity > 0) {
                     item.setWeightedAverageUnitPrice((currentTotalValue + newRequestValue) / newTotalQuantity);
                 }
-                
+
                 // Idem pour le prix d'achat
                 double currentTotalPurchaseValue = item.getQuantityTaken() * item.getWeightedAveragePurchasePrice();
                 double newRequestPurchaseValue = reqItem.getQuantity() * reqItem.getPurchasePrice();
-                
+
                 if (newTotalQuantity > 0) {
-                    item.setWeightedAveragePurchasePrice((currentTotalPurchaseValue + newRequestPurchaseValue) / newTotalQuantity);
+                    item.setWeightedAveragePurchasePrice(
+                            (currentTotalPurchaseValue + newRequestPurchaseValue) / newTotalQuantity);
                 }
 
                 item.setQuantityTaken(newTotalQuantity);
@@ -222,9 +245,11 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         }
 
         if (user.is(UserProfilConstant.MAGASINIER)) {
-            return ((StockRequestRepository) repository).findByStatusInOrderByIdDesc(List.of(StockRequestStatus.VALIDATED, StockRequestStatus.DELIVERED), pageable);
+            return ((StockRequestRepository) repository).findByStatusInOrderByIdDesc(
+                    List.of(StockRequestStatus.VALIDATED, StockRequestStatus.DELIVERED), pageable);
         }
 
-        return ((StockRequestRepository) repository).findByStatusInOrderByIdDesc(List.of(StockRequestStatus.CREATED, StockRequestStatus.DELIVERED), pageable);
+        return ((StockRequestRepository) repository).findByStatusInOrderByIdDesc(
+                List.of(StockRequestStatus.CREATED, StockRequestStatus.DELIVERED), pageable);
     }
 }

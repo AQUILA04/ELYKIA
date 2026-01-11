@@ -44,6 +44,7 @@ public class TontineDeliveryService {
     private final CreditService creditService;
     private final ClientAccountService clientAccountService;
     private final AccountService accountService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public TontineDeliveryDto createDelivery(CreateDeliveryDto dto) {
@@ -52,10 +53,11 @@ public class TontineDeliveryService {
         TontineMember member = memberRepository.findById(dto.getTontineMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException("Membre de tontine non trouvé"));
 
-//        if (member.getTontineSession().getStatus() != TontineSessionStatus.CLOSED) {
-//            throw new CustomValidationException("La session de tontine doit être CLOTUREE pour créer une livraison.");
-//        }
-        
+        // if (member.getTontineSession().getStatus() != TontineSessionStatus.CLOSED) {
+        // throw new CustomValidationException("La session de tontine doit être CLOTUREE
+        // pour créer une livraison.");
+        // }
+
         if (deliveryRepository.existsByTontineMemberId(dto.getTontineMemberId())) {
             throw new CustomValidationException("Ce membre a déjà une livraison.");
         }
@@ -65,14 +67,16 @@ public class TontineDeliveryService {
 
         for (DeliveryItemDto itemDto : dto.getItems()) {
             Articles article = articlesRepository.findById(itemDto.getArticleId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Article non trouvé avec l'ID: " + itemDto.getArticleId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Article non trouvé avec l'ID: " + itemDto.getArticleId()));
 
             // TODO: Validate stock here before creating delivery
             // if (article.getStockQuantity() < itemDto.getQuantity()) {
-            //     throw new CustomValidationException(
-            //         String.format("Stock insuffisant pour l'article '%s'. Disponible: %d, Demandé: %d",
-            //             article.getName(), article.getStockQuantity(), itemDto.getQuantity())
-            //     );
+            // throw new CustomValidationException(
+            // String.format("Stock insuffisant pour l'article '%s'. Disponible: %d,
+            // Demandé: %d",
+            // article.getName(), article.getStockQuantity(), itemDto.getQuantity())
+            // );
             // }
 
             TontineDeliveryItem item = new TontineDeliveryItem();
@@ -89,10 +93,11 @@ public class TontineDeliveryService {
         }
 
         if (totalAmount > member.getAvailableContribution()) {
-            throw new CustomValidationException(String.format("Le montant total (%.2f) dépasse le montant disponible (%.2f)",
-                    totalAmount, member.getAvailableContribution()));
+            throw new CustomValidationException(
+                    String.format("Le montant total (%.2f) dépasse le montant disponible (%.2f)",
+                            totalAmount, member.getAvailableContribution()));
         }
-        
+
         double remainingBalance = member.getAvailableContribution() - totalAmount;
 
         TontineDelivery delivery = new TontineDelivery();
@@ -102,15 +107,15 @@ public class TontineDeliveryService {
         delivery.setRemainingBalance(remainingBalance);
         delivery.setCommercialUsername(member.getClient().getCollector());
         delivery.setRequestDate(dto.getRequestDate());
-        
+
         items.forEach(delivery::addItem);
-        
+
         User currentUser = userService.getCurrentUser();
         // Assuming 'GESTIONNAIRE' is a role or profile name
         if (currentUser.is("GESTIONNAIRE") || currentUser.is("ADMIN")) {
             member.setDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED);
             TontineDelivery savedDelivery = deliveryRepository.save(delivery);
-            //creditService.createTontineCredit(savedDelivery);
+            // creditService.createTontineCredit(savedDelivery);
             log.info("Delivery for member {} created and auto-validated.", member.getId());
             return mapToDto(savedDelivery);
         } else {
@@ -133,9 +138,10 @@ public class TontineDeliveryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Livraison non trouvée"));
         TontineMember member = delivery.getTontineMember();
 
-//        if (member.getDeliveryStatus() != TontineMemberDeliveryStatus.PENDING) {
-//            throw new CustomValidationException("La livraison doit être en statut PENDING pour être validée.");
-//        }
+        // if (member.getDeliveryStatus() != TontineMemberDeliveryStatus.PENDING) {
+        // throw new CustomValidationException("La livraison doit être en statut PENDING
+        // pour être validée.");
+        // }
 
         member.setDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED);
         memberRepository.save(member);
@@ -143,20 +149,21 @@ public class TontineDeliveryService {
         log.info("Delivery {} validated.", delivery.getId());
         return mapToDto(delivery);
     }
-    
+
     public Page<TontineDeliveryDto> getValidatedDeliveries(Pageable pageable) {
-        Page<TontineMember> membersPage = memberRepository.findByDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED, pageable);
-        
+        Page<TontineMember> membersPage = memberRepository.findByDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED,
+                pageable);
+
         List<TontineDeliveryDto> content = membersPage.stream()
-            .map(member -> {
-                if (member.getDelivery() != null) {
-                    return mapToDto(member.getDelivery());
-                }
-                log.warn("Member {} has VALIDATED status but no associated delivery found.", member.getId());
-                return null;
-            })
-            .filter(java.util.Objects::nonNull)
-            .collect(Collectors.toList());
+                .map(member -> {
+                    if (member.getDelivery() != null) {
+                        return mapToDto(member.getDelivery());
+                    }
+                    log.warn("Member {} has VALIDATED status but no associated delivery found.", member.getId());
+                    return null;
+                })
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toList());
 
         return new PageImpl<>(content, pageable, membersPage.getTotalElements());
     }
@@ -167,9 +174,10 @@ public class TontineDeliveryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Livraison non trouvée"));
         TontineMember member = delivery.getTontineMember();
 
-//        if (member.getDeliveryStatus() != TontineMemberDeliveryStatus.VALIDATED) {
-//            throw new CustomValidationException("La livraison doit être en statut VALIDATED pour être servie.");
-//        }
+        // if (member.getDeliveryStatus() != TontineMemberDeliveryStatus.VALIDATED) {
+        // throw new CustomValidationException("La livraison doit être en statut
+        // VALIDATED pour être servie.");
+        // }
 
         creditService.createTontineCredit(delivery);
         member.setDeliveryStatus(TontineMemberDeliveryStatus.DELIVERED);
@@ -179,22 +187,27 @@ public class TontineDeliveryService {
         if (delivery.getRemainingBalance() > 0) {
             Account clientAccount = member.getClient().getAccount();
             if (clientAccount == null) {
-                // Fetch account if not eager loaded or throw if client must always have an account
+                // Fetch account if not eager loaded or throw if client must always have an
+                // account
                 // clientAccount = accountService.findByClientId(member.getClient().getId())
-                //     .orElseThrow(() -> new CustomValidationException("Le client n'a pas de compte pour y verser le solde."));
-                throw new CustomValidationException("Le client n'a pas de compte pour y verser le solde. (AccountService not implemented or findByClientId missing)");
+                // .orElseThrow(() -> new CustomValidationException("Le client n'a pas de compte
+                // pour y verser le solde."));
+                throw new CustomValidationException(
+                        "Le client n'a pas de compte pour y verser le solde. (AccountService not implemented or findByClientId missing)");
             }
             clientAccount.setAccountBalance(clientAccount.getAccountBalance() + delivery.getRemainingBalance());
             accountService.update(clientAccount); // Assuming update method exists and saves
-            log.warn("AccountService.update(clientAccount) is commented out as AccountService.findByClientId is missing.");
-            clientAccountService.recordMovement(member.getClient(), delivery.getRemainingBalance(), "TONTINE_DELIVERY_DEPOSIT", delivery);
+            log.warn(
+                    "AccountService.update(clientAccount) is commented out as AccountService.findByClientId is missing.");
+            clientAccountService.recordMovement(member.getClient(), delivery.getRemainingBalance(),
+                    "TONTINE_DELIVERY_DEPOSIT", delivery);
         }
 
         // Check if all members of the session are delivered
         TontineSession session = member.getTontineSession();
         // Reload session to ensure 'members' collection is initialized if LAZY fetched
         session = sessionRepository.findById(session.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Tontine Session non trouvée pour le membre."));
+                .orElseThrow(() -> new ResourceNotFoundException("Tontine Session non trouvée pour le membre."));
 
         boolean allDelivered = session.getMembers().stream()
                 .allMatch(m -> m.getDeliveryStatus() == TontineMemberDeliveryStatus.DELIVERED);
@@ -205,6 +218,14 @@ public class TontineDeliveryService {
             log.info("Tontine session {} has been ENDED as all members are delivered.", session.getId());
         }
 
+        // Publish Event
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineDeliveryEvent(
+                    this,
+                    delivery.getTotalAmount(),
+                    delivery.getCommercialUsername()));
+        }
+
         log.info("Delivery {} marked as DELIVERED.", delivery.getId());
         return mapToDto(delivery);
     }
@@ -212,7 +233,7 @@ public class TontineDeliveryService {
     public TontineDeliveryDto getDeliveryByMemberId(Long tontineMemberId) {
         log.info("Fetching delivery for tontine member ID: {}", tontineMemberId);
         TontineDelivery delivery = deliveryRepository.findByTontineMemberId(tontineMemberId)
-            .orElseThrow(() -> new ResourceNotFoundException("Aucune livraison trouvée pour ce membre"));
+                .orElseThrow(() -> new ResourceNotFoundException("Aucune livraison trouvée pour ce membre"));
         return mapToDto(delivery);
     }
 
@@ -221,28 +242,31 @@ public class TontineDeliveryService {
             return null;
         }
         List<TontineDeliveryItemDto> itemDtos = delivery.getItems().stream()
-            .map(item -> TontineDeliveryItemDto.builder()
-                .id(item.getId())
-                .articleId(item.getArticles().getId())
-                .articleName(item.getArticles().getCommercialName()) // Changed from item.getArticles().getName() or getCommercialName()
-                .articleCode(item.getArticles().getType() + "-" + item.getArticles().getMarque()) // Changed from item.getArticles().getReference()
-                .quantity(item.getQuantity())
-                .unitPrice(item.getUnitPrice())
-                .totalPrice(item.getTotalPrice())
-                .build())
-            .collect(Collectors.toList());
+                .map(item -> TontineDeliveryItemDto.builder()
+                        .id(item.getId())
+                        .articleId(item.getArticles().getId())
+                        .articleName(item.getArticles().getCommercialName()) // Changed from
+                                                                             // item.getArticles().getName() or
+                                                                             // getCommercialName()
+                        .articleCode(item.getArticles().getType() + "-" + item.getArticles().getMarque()) // Changed
+                                                                                                          // from
+                                                                                                          // item.getArticles().getReference()
+                        .quantity(item.getQuantity())
+                        .unitPrice(item.getUnitPrice())
+                        .totalPrice(item.getTotalPrice())
+                        .build())
+                .collect(Collectors.toList());
 
         return TontineDeliveryDto.builder()
-            .id(delivery.getId())
-            .tontineMemberId(delivery.getTontineMember().getId())
-            .clientName(delivery.getTontineMember().getClient().getFullName())
-            .deliveryDate(delivery.getDeliveryDate())
-            .totalAmount(delivery.getTotalAmount())
-            .remainingBalance(delivery.getRemainingBalance())
-            .commercialUsername(delivery.getCommercialUsername())
-            .deliveryStatus(delivery.getTontineMember().getDeliveryStatus())
-            .items(itemDtos)
-            .build();
+                .id(delivery.getId())
+                .tontineMemberId(delivery.getTontineMember().getId())
+                .clientName(delivery.getTontineMember().getClient().getFullName())
+                .deliveryDate(delivery.getDeliveryDate())
+                .totalAmount(delivery.getTotalAmount())
+                .remainingBalance(delivery.getRemainingBalance())
+                .commercialUsername(delivery.getCommercialUsername())
+                .deliveryStatus(delivery.getTontineMember().getDeliveryStatus())
+                .items(itemDtos)
+                .build();
     }
 }
-

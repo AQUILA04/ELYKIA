@@ -1,0 +1,51 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>{{ mode === 'create' ? 'Ajouter un paramètre' : 'Modifier le paramètre' }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div mat-dialog-content>
+      <div class="form-group">
+        <label for="key">Clé <span class="text-danger">*</span></label>
+        <input id="key" type="text" class="form-control" formControlName="key" [readonly]="mode === 'edit'">
+        <div *ngIf="form.get('key')?.invalid && form.get('key')?.touched" class="text-danger">
+          La clé est requise.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" id="isBoolean" [checked]="isBooleanValue" (change)="onValueTypeChange($event)">
+          <label class="form-check-label" for="isBoolean">
+            Valeur booléenne (OUI/NON)
+          </label>
+        </div>
+
+        <label for="value">Valeur <span class="text-danger">*</span></label>
+
+        <div *ngIf="isBooleanValue">
+          <select id="value" class="form-control" formControlName="value">
+            <option value="true">OUI</option>
+            <option value="false">NON</option>
+          </select>
+        </div>
+
+        <div *ngIf="!isBooleanValue">
+          <input id="value" type="text" class="form-control" formControlName="value">
+        </div>
+
+        <div *ngIf="form.get('value')?.invalid && form.get('value')?.touched" class="text-danger">
+          La valeur est requise.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" class="form-control" formControlName="description" rows="3"></textarea>
+      </div>
+    </div>
+
+    <div mat-dialog-actions align="end">
+      <button type="button" class="btn btn-secondary mr-2" (click)="onCancel()">Annuler</button>
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Enregistrer</button>
+    </div>
+  </form>
+</div>

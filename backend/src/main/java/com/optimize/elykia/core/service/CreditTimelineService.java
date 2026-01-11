@@ -12,6 +12,7 @@ import com.optimize.elykia.core.entity.DailyAccountancy;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.mapper.CreditMapper;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.core.event.CreditCollectionEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,26 +26,29 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     private final CreditService creditService;
     private final ClientService clientService;
     private final DailyAccountancyService dailyAccountancyService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private CreditPaymentEventService creditPaymentEventService;
     private CreditEnrichmentService creditEnrichmentService;
 
     protected CreditTimelineService(CreditTimelineRepository repository,
-                                    CreditMapper creditMapper,
-                                    CreditService creditService,
-                                    ClientService clientService,
-                                    DailyAccountancyService dailyAccountancyService) {
+            CreditMapper creditMapper,
+            CreditService creditService,
+            ClientService clientService,
+            DailyAccountancyService dailyAccountancyService,
+            org.springframework.context.ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.creditMapper = creditMapper;
         this.creditService = creditService;
         this.clientService = clientService;
         this.dailyAccountancyService = dailyAccountancyService;
+        this.eventPublisher = eventPublisher;
     }
-    
+
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setCreditPaymentEventService(CreditPaymentEventService creditPaymentEventService) {
         this.creditPaymentEventService = creditPaymentEventService;
     }
-    
+
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setCreditEnrichmentService(CreditEnrichmentService creditEnrichmentService) {
         this.creditEnrichmentService = creditEnrichmentService;
@@ -70,18 +74,26 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         creditTimeline.setDailyAccountancy(dailyAccountancy);
         creditService.update(credit);
         create(creditTimeline);
-        
+
         // === INTÉGRATION BI : Enregistrement de l'événement de paiement ===
         if (creditPaymentEventService != null) {
             creditPaymentEventService.recordPayment(credit, creditTimeline.getAmount(), "CASH");
         }
-        
+
         // === INTÉGRATION BI : Mise à jour des métriques du crédit ===
         if (creditEnrichmentService != null) {
             creditEnrichmentService.enrichCredit(credit);
             creditService.update(credit);
         }
-        
+
+        // Publish CreditCollectionEvent
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new CreditCollectionEvent(
+                    this,
+                    creditTimeline.getAmount(),
+                    creditTimeline.getCollector()));
+        }
+
         if (CreditStatus.SETTLED.equals(credit.getStatus())) {
             clientService.updateCreditStatus(credit.getClientId(), Boolean.FALSE);
         }
@@ -119,12 +131,14 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
                         // VÉRIFICATION 1 : Le montant spécial doit être supérieur à la mise normale
                         if (stakeUnit.getAmount() <= credit.getDailyStake()) {
-                            throw new CustomValidationException("Le montant de la mise spéciale doit être supérieur à la mise journalière !");
+                            throw new CustomValidationException(
+                                    "Le montant de la mise spéciale doit être supérieur à la mise journalière !");
                         }
 
                         // AJOUT DE LA VÉRIFICATION 2 : Le montant ne doit pas dépasser le reste à payer
                         if (stakeUnit.getAmount() > credit.getTotalAmountRemaining()) {
-                            throw new CustomValidationException("Le montant de la mise spéciale ne peut pas dépasser le montant restant à payer !");
+                            throw new CustomValidationException(
+                                    "Le montant de la mise spéciale ne peut pas dépasser le montant restant à payer !");
                         }
 
                         CreditTimeline creditTimeline = new CreditTimeline();
