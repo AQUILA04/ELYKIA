@@ -2,5 +2,6 @@ package com.optimize.elykia.core.enumaration;
 
 public enum OperationType {
     CREDIT,
-    TONTINE
+    TONTINE,
+    CASH
 }

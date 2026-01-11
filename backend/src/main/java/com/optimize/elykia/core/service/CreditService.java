@@ -111,6 +111,9 @@ public class CreditService extends GenericService<Credit, Long> {
 
     @Transactional
     public Credit createCredit(CreditDto creditDto) throws Exception {
+        if (Objects.nonNull(creditDto.getType()) && OperationType.CASH.equals(creditDto.getType())) {
+            return createCashSale(creditDto);
+        }
         Credit credit = creditMapper.toEntity(creditDto);
         creditControlProcess(credit);
 
@@ -121,25 +124,58 @@ public class CreditService extends GenericService<Credit, Long> {
             throw new CustomValidationException("Vente directe au client non autoriser. Merci de passer par la distribution");
 
         }
-
-        //if (ClientType.PROMOTER.equals(credit.getClientType()) && getRepository().existsByCollectorAndClientTypeAndStatusAndState(credit.getCollector(), credit.getClientType(), CreditStatus.INPROGRESS, State.ENABLED)) {
-          //  Optional<Credit> existingOne = getRepository().findByCollectorAndClientTypeAndStatusAndState(credit.getCollector(), credit.getClientType(), CreditStatus.INPROGRESS, State.ENABLED);
-
-           // if (existingOne.isPresent() && Boolean.TRUE.equals(existingOne.get().getUpdatable())) {
-               // Credit oldOne = existingOne.get();
-               // oldOne.addNewArticles(credit.getArticles());
-               // oldOne.getArticles().forEach(creditArticlesService::delete);
-              //  oldOne.setUpdatable(true);
-                //oldOne = update(oldOne);
-               // oldOne.getArticles().forEach(creditArticlesService::create);
-               // return oldOne;
-           // } else {
-              //  return createAndProcessCredit(credit, creditDto.getClientId());
-          //  }
-      //  } else {
-        //    return createAndProcessCredit(credit, creditDto.getClientId());
-       // }
+        
         return createAndProcessCredit(credit, creditDto.getClientId());
+    }
+
+    @Transactional
+    public Credit createCashSale(CreditDto creditDto) {
+        Credit credit = creditMapper.toEntity(creditDto);
+        Client client = clientService.getById(credit.getClientId());
+
+        credit.setClient(client);
+        if (StringUtils.hasText(client.getAgencyCollector())) {
+            credit.setAgencyCommercial(client.getAgencyCollector());
+            credit.setCollector(client.getAgencyCollector());
+        } else {
+            credit.setCollector(client.getCollector());
+        }
+        credit.setClientType(ClientType.CLIENT);
+        credit.setType(OperationType.CASH);
+
+        if (!StringUtils.hasText(credit.getReference())) {
+            credit.setReference(generateReference(client.getId().toString(), credit.getClientType()));
+        }
+
+        if (Objects.isNull(credit.getId())) {
+            credit.getArticles().forEach(article -> {
+                article.setArticles(articlesService.getById(article.getArticlesId()));
+                article.setUnitPrice(article.getArticles().getSellingPrice());
+            });
+        }
+
+        credit.setTotalAmount(credit.getTotalAmountByCalcul());
+        credit.setAdvance(0.0);
+        credit.setTotalAmountPaid(credit.getTotalAmount());
+        credit.setTotalAmountRemaining(0.0);
+        credit.setDailyStake(0.0);
+        credit.setRemainingDaysCount(0);
+        credit.setBeginDate(LocalDate.now());
+        credit.setExpectedEndDate(LocalDate.now());
+        credit.setEffectiveEndDate(LocalDate.now());
+        credit.setStatus(CreditStatus.VALIDATED);
+        credit.setUpdatable(true);
+
+        credit = this.create(credit);
+        credit.setCreditToCreditArticles();
+        credit.getArticles().forEach(creditArticlesService::create);
+
+        if (creditEnrichmentService != null) {
+            creditEnrichmentService.enrichCredit(credit);
+            credit = update(credit);
+        }
+
+        return credit;
     }
 
     @Transactional
@@ -250,8 +286,13 @@ public class CreditService extends GenericService<Credit, Long> {
     @Transactional
     public Credit updateCredit(CreditDto creditDto, Long id) {
         creditDto.setId(id);
-        Credit credit = creditMapper.toEntity(creditDto);
         final Credit oldOne = getById(id);
+
+        if (OperationType.CASH.equals(oldOne.getType())) {
+            return updateCashSale(creditDto, id);
+        }
+
+        Credit credit = creditMapper.toEntity(creditDto);
         if (!List.of(CreditStatus.CREATED, CreditStatus.VALIDATED).contains(oldOne.getStatus())) {
             throw new CustomValidationException("Cette vente ne peut plus être modifier à ce stade !");
         }
@@ -271,6 +312,71 @@ public class CreditService extends GenericService<Credit, Long> {
         credit = update(credit);
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
+        return credit;
+    }
+
+    @Transactional
+    public Credit updateCashSale(CreditDto creditDto, Long id) {
+        creditDto.setId(id);
+        Credit credit = creditMapper.toEntity(creditDto);
+        final Credit oldOne = getById(id);
+
+        if (!CreditStatus.VALIDATED.equals(oldOne.getStatus())) {
+            throw new CustomValidationException("Cette vente au comptant ne peut plus être modifiée !");
+        }
+
+        if (!OperationType.CASH.equals(oldOne.getType())) {
+            throw new CustomValidationException("Cette méthode ne permet de modifier que les ventes au comptant !");
+        }
+
+        Client client = clientService.getById(credit.getClientId());
+        credit.setClient(client);
+        if (StringUtils.hasText(client.getAgencyCollector())) {
+            credit.setAgencyCommercial(client.getAgencyCollector());
+            credit.setCollector(client.getAgencyCollector());
+        } else {
+            credit.setCollector(client.getCollector());
+        }
+
+        credit.setClientType(ClientType.CLIENT);
+        credit.setType(OperationType.CASH);
+
+        if (!StringUtils.hasText(credit.getReference())) {
+            credit.setReference(oldOne.getReference());
+        }
+
+        credit.getArticles().forEach(article -> {
+            article.setArticles(articlesService.getById(article.getArticlesId()));
+            article.setUnitPrice(article.getArticles().getSellingPrice());
+        });
+
+        credit.setTotalAmount(credit.getTotalAmountByCalcul());
+        credit.setTotalAmountPaid(credit.getTotalAmount());
+        credit.setTotalAmountRemaining(0.0);
+        credit.setAdvance(0.0);
+        credit.setDailyStake(0.0);
+        credit.setRemainingDaysCount(0);
+
+        if (credit.getBeginDate() == null) {
+            credit.setBeginDate(oldOne.getBeginDate());
+        }
+        credit.setExpectedEndDate(credit.getBeginDate());
+        credit.setEffectiveEndDate(credit.getBeginDate());
+
+        credit.setStatus(CreditStatus.VALIDATED);
+        credit.setUpdatable(true);
+
+        oldOne.getArticles().forEach(creditArticlesService::delete);
+
+        credit = update(credit);
+        credit.setCreditToCreditArticles();
+        credit.getArticles().forEach(creditArticlesService::create);
+
+        if (creditEnrichmentService != null) {
+            creditEnrichmentService.enrichCredit(credit);
+            credit = update(credit);
+        }
+
         return credit;
     }
 
@@ -624,6 +730,47 @@ public class CreditService extends GenericService<Credit, Long> {
                     );
                 });
             }
+
+            // Gestion du stock commercial pour les ventes CASH
+            if (OperationType.CASH.equals(credit.getType())) {
+                final Credit cashCredit = credit;
+                LocalDate now = LocalDate.now();
+                
+                // Utiliser agencyCommercial s'il est défini, sinon le collector du crédit
+                String commercialUsername = StringUtils.hasText(cashCredit.getAgencyCommercial()) 
+                        ? cashCredit.getAgencyCommercial()
+                        : cashCredit.getCollector();
+                
+                CommercialMonthlyStock monthlyStock = commercialMonthlyStockRepository
+                        .findByCollectorAndMonthAndYear(commercialUsername, now.getMonthValue(), now.getYear())
+                        .orElseGet(() -> {
+                            CommercialMonthlyStock newStock = new CommercialMonthlyStock();
+                            newStock.setCollector(commercialUsername);
+                            newStock.setMonth(now.getMonthValue());
+                            newStock.setYear(now.getYear());
+                            return commercialMonthlyStockRepository.save(newStock);
+                        });
+
+                cashCredit.getArticles().forEach(creditArticle -> {
+                    CommercialMonthlyStockItem stockItem = monthlyStock.getItems().stream()
+                            .filter(item -> item.getArticle().getId().equals(creditArticle.getArticlesId()))
+                            .findFirst()
+                            .orElseGet(() -> {
+                                CommercialMonthlyStockItem newItem = new CommercialMonthlyStockItem();
+                                newItem.setArticle(creditArticle.getArticles());
+                                newItem.setMonthlyStock(monthlyStock);
+                                monthlyStock.addItem(newItem);
+                                return newItem;
+                            });
+
+                    // Pour une vente CASH, on considère que c'est pris du stock ET vendu
+                    stockItem.setQuantityTaken(stockItem.getQuantityTaken() + creditArticle.getQuantity());
+                    stockItem.setQuantitySold(stockItem.getQuantitySold() + creditArticle.getQuantity());
+                    stockItem.updateRemaining();
+                });
+                commercialMonthlyStockRepository.save(monthlyStock);
+            }
+
             if (OperationType.TONTINE.equals(credit.getType())) {
                 credit = mergeTontine(credit);
             }

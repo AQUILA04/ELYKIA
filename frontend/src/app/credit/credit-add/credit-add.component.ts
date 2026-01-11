@@ -228,49 +228,87 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     const formValue = this.creditForm.getRawValue(); // getRawValue pour inclure les champs disabled
 
-    const payload = {
-      clientId: formValue.clientId,
-      articles: formValue.articles.map((article: any) => ({
-        articleId: article.articleId,
-        quantity: article.quantity
-      })),
-      advance: formValue.advance,
-      beginDate: formValue.beginDate,
-      expectedEndDate: formValue.expectedEndDate,
-      totalAmount: formValue.totalAmount,
-      // saleType: formValue.saleType, // A décommenter si le backend supporte ce champ
-      // commercial: formValue.saleType === 'CREDIT' ? formValue.commercial : null // A décommenter si le backend supporte ce champ
-    };
+    if (formValue.saleType === 'CREDIT') {
+        const payload = {
+          clientId: formValue.clientId,
+          articles: formValue.articles.map((article: any) => ({
+            articleId: article.articleId,
+            quantity: article.quantity
+          })),
+          advance: formValue.advance,
+          beginDate: formValue.beginDate,
+          expectedEndDate: formValue.expectedEndDate,
+          totalAmount: formValue.totalAmount,
+          commercial: formValue.commercial
+        };
 
-    const apiCall = this.creditId
-      ? this.creditService.updateCredit(this.creditId, payload)
-      : this.creditService.addCredit(payload);
+        // Utilisation de distributeArticles pour les ventes à crédit
+        const submitSub = this.creditService.distributeArticles(payload).subscribe({
+          next: (response) => {
+            this.spinner.hide();
+            const body = response.body || response;
 
-    const submitSub = apiCall.subscribe({
-      next: (response) => {
-        this.spinner.hide();
-        const body = response.body || response;
+            if (body.statusCode === 200 || body.statusCode === 201) {
+              this.alertService.showSuccess('Vente à crédit effectuée avec succès');
+              this.router.navigate(['/credit-list']);
+            } else {
+              this.alertService.showError(body.message || 'Une erreur est survenue');
+            }
+            this.isLoading = false;
+          },
+          error: (err: any) => {
+            this.spinner.hide();
+            this.alertService.showError('Erreur lors de la soumission : ' + err.message);
+            this.isLoading = false;
+            console.error(err);
+          }
+        });
+        this.subscriptions.push(submitSub);
 
-        if (body.statusCode === 200 || body.statusCode === 201) {
-          const successMessage = this.creditId
-            ? 'Vente mise à jour avec succès'
-            : 'Vente ajoutée avec succès';
-          this.alertService.showSuccess(successMessage);
-          this.router.navigate(['/credit-list']);
-        } else {
-          this.alertService.showError(body.message || 'Une erreur est survenue');
-        }
-        this.isLoading = false;
-      },
-      error: (err: any) => {
-        this.spinner.hide();
-        this.alertService.showError('Erreur lors de la soumission : ' + err.message);
-        this.isLoading = false;
-        console.error(err);
-      }
-    });
+    } else {
+        // Logique pour la vente au comptant (CASH)
+        const payload = {
+            clientId: formValue.clientId,
+            articles: formValue.articles.map((article: any) => ({
+              articleId: article.articleId,
+              quantity: article.quantity
+            })),
+            advance: formValue.advance,
+            beginDate: formValue.beginDate,
+            expectedEndDate: formValue.expectedEndDate,
+            totalAmount: formValue.totalAmount,
+            type: 'CASH' // Ajout de la propriété type: 'CASH'
+        };
 
-    this.subscriptions.push(submitSub);
+        const apiCall = this.creditId
+          ? this.creditService.updateCredit(this.creditId, payload)
+          : this.creditService.addCredit(payload);
+
+        const submitSub = apiCall.subscribe({
+          next: (response) => {
+            this.spinner.hide();
+            const body = response.body || response;
+
+            if (body.statusCode === 200 || body.statusCode === 201) {
+              const successMessage = this.creditId
+                ? 'Vente mise à jour avec succès'
+                : 'Vente ajoutée avec succès';
+              this.alertService.showSuccess(successMessage);
+              this.router.navigate(['/credit-list']);
+            } else {
+              this.alertService.showError(body.message || 'Une erreur est survenue');
+            }
+            this.isLoading = false;
+          },
+          error: (err: any) => {
+            this.spinner.hide();
+            this.alertService.showError('Erreur lors de la soumission : ' + err.message);
+            this.isLoading = false;
+            console.error(err);
+          }
+        });
+        this.subscriptions.push(submitSub);
+    }
   }
 
   onTotalAmountChange(totalAmount: number): void {

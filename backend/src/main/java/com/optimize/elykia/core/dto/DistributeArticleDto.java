@@ -12,7 +12,6 @@ import java.util.Objects;
 @Data
 @Validated
 public class DistributeArticleDto {
-    @NotNull
     private Long creditId;
     @NotNull
     private Long clientId;

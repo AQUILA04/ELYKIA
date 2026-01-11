@@ -77,6 +77,7 @@ public class Credit extends BaseEntity<String> {
     @Column(columnDefinition = "boolean default false")
     private Boolean releasePrinted;
     private String oldReference;
+    private String agencyCommercial;
 
 
     // AJOUTÉ : Le champ 'advance' avec une valeur par défaut de 0
@@ -151,6 +152,12 @@ public class Credit extends BaseEntity<String> {
                                             getUnitPrice() * creditArticles.getQuantity()))
                             .sum();
                 }
+            } else if (OperationType.CASH.equals(this.type)) {
+                return articles.stream()
+                        .mapToDouble(creditArticles ->
+                                (creditArticles.
+                                        getUnitPrice() * creditArticles.getQuantity()))
+                        .sum();
             } else {
                 return articles.stream()
                         .mapToDouble(creditArticles ->
@@ -220,6 +227,16 @@ public class Credit extends BaseEntity<String> {
             if(this.beginDate == null){
                 this.beginDate = LocalDate.now();
             }
+
+            if (OperationType.CASH.equals(this.type)) {
+                this.totalAmountPaid = this.totalAmount;
+                this.totalAmountRemaining = 0.0;
+                this.advance = 0.0;
+                this.remainingDaysCount = 0;
+                this.expectedEndDate = this.beginDate;
+                return;
+            }
+
             this.advance = (this.advance != null && this.advance > 0) ? this.advance : 0.0;
 
             // 2. Le montant restant est le total MOINS l'avance

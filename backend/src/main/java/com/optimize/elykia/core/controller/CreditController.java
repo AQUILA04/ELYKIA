@@ -140,7 +140,7 @@ public class CreditController {
 
     @PatchMapping(value = "distribute-articles")
     public ResponseEntity<Response> distributeArticle(@RequestBody @Valid DistributeArticleDto dto) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.distributeArticles(dto)), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.distributeArticlesV2(dto)), HttpStatus.OK);
     }
 
     @PatchMapping(value = "start/{creditId}")
