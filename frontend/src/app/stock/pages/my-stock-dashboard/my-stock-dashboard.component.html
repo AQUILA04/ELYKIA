@@ -79,7 +79,7 @@
             </thead>
             <tbody>
               <tr *ngFor="let item of stock.items">
-                <td>{{ item.article.name }}</td>
+                <td>{{ item.article.commercialName + ' ' + item.article.name }}</td>
                 <td class="text-center">{{ item.quantityTaken }}</td>
                 <td class="text-center">{{ item.quantitySold }}</td>
                 <td class="text-center">{{ item.quantityReturned }}</td>

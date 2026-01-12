@@ -32,6 +32,15 @@ public class DailyReportEventListener {
 
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handleStockReturned(StockReturnedEvent event) {
+        log.info("Processing StockReturnedEvent for collector: {}", event.getCollector());
+        DailyCommercialReport report = getOrCreateReport(event.getCollector());
+        report.setTotalStockRequestAmount(report.getTotalStockRequestAmount() - event.getAmount());
+        repository.save(report);
+    }
+
+    @EventListener
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleCreditStarted(CreditStartedEvent event) {
         log.info("Processing CreditStartedEvent for collector: {}", event.getCollector());
         DailyCommercialReport report = getOrCreateReport(event.getCollector());

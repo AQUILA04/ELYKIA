@@ -39,6 +39,7 @@ import { DepositAddComponent } from './deposit/deposit-add/deposit-add.component
 import { DepositListComponent } from './deposit/deposit-list/deposit-list.component';
 import { DepositDetailsComponent } from './deposit/deposit-details/deposit-details.component';
 import { ReportComponent } from './report/report/report.component';
+import { DailyReportComponent } from './report/pages/daily-report/daily-report.component';
 import { ReactivateLicenseComponent } from './license/reactivate-license/reactivate-license.component';
 import { OutListComponent } from './out/out-list/out-list.component';
 import { HistoryComponent } from './history/history.component';
@@ -488,6 +489,12 @@ const routes: Routes = [
     component: ReportComponent,
     canActivate: [AuthGuard],
     data: { breadcrumb: '' }
+  },
+  {
+    path: 'daily-report',
+    component: DailyReportComponent,
+    canActivate: [AuthGuard],
+    data: { breadcrumb: 'Rapport Journalier' }
   },
   { path: 'article-type', loadChildren: () => import('./article-type/article-type.module').then(m => m.ArticleTypeModule) },
   {

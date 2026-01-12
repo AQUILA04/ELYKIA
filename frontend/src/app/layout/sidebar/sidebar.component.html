@@ -70,7 +70,7 @@
           </ul>
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT']"
-            [ngClass]="{ 'active': isRouteActive('/client-list') }">
+          [ngClass]="{ 'active': isRouteActive('/client-list') }">
           <a class="sidebar-link" routerLink="/client-list" aria-expanded="false">
             <span>
               <mat-icon>account_circle</mat-icon>
@@ -79,7 +79,7 @@
           </a>
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ACCOUNT', 'ROLE_EDIT_ACCOUNT']"
-            [ngClass]="{ 'active': isRouteActive('/accountlist') }">
+          [ngClass]="{ 'active': isRouteActive('/accountlist') }">
           <a class="sidebar-link" routerLink="/accountlist" aria-expanded="false">
             <span>
               <mat-icon>account_balance</mat-icon>
@@ -99,7 +99,7 @@
         </li>
         <!-- NOUVEAU MENU STOCK COMMERCIAL -->
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT', 'ROLE_STOREKEEPER']"
-            [ngClass]="{ 'active': isRouteActive('/stock') }">
+          [ngClass]="{ 'active': isRouteActive('/stock') }">
           <a class="sidebar-link has-arrow" (click)="onStockClick()" aria-expanded="false">
             <span>
               <mat-icon>inventory_2</mat-icon>
@@ -156,7 +156,8 @@
             <span class="hide-menu">Tontines</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT','ROLE_EDIT_CREDIT']" [ngClass]="{ 'active': isRouteActive('/orders') }">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT','ROLE_EDIT_CREDIT']"
+          [ngClass]="{ 'active': isRouteActive('/orders') }">
           <a class="sidebar-link" routerLink="/orders" aria-expanded="false">
             <span>
               <mat-icon>shopping_cart</mat-icon>
@@ -174,7 +175,7 @@
         </li>
         <!-- Pour l'élément Commercial -->
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']"
-            [ngClass]="{ 'active': isRouteActive('/commercial-list') }">
+          [ngClass]="{ 'active': isRouteActive('/commercial-list') }">
           <a class="sidebar-link" routerLink="/commercial-list">
             <span>
               <mat-icon>business_center</mat-icon>
@@ -210,13 +211,22 @@
                 <span class="hide-menu">Types de Dépense</span>
               </a>
             </li>
-            <li class="sidebar-item submenu-item">
+            <li class="sidebar-item submenu-item" *ngIf="hasAccessToParameters()">
               <a class="sidebar-link" routerLink="/parameters">
                 <span class="material-icons">tune</span>
                 <span class="hide-menu">Paramètres</span>
               </a>
             </li>
           </ul>
+        </li>
+
+        <li class="sidebar-item" [ngClass]="{ 'active': isRouteActive('/daily-report') }">
+          <a class="sidebar-link" routerLink="/daily-report" aria-expanded="false">
+            <span>
+              <mat-icon>today</mat-icon>
+            </span>
+            <span class="hide-menu">Rapport Journalier</span>
+          </a>
         </li>
 
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']"

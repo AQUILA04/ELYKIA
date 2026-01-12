@@ -1,0 +1,87 @@
+.container {
+    margin: 80px auto 20px auto;
+    padding: 24px;
+    background-color: white;
+    border-radius: 12px;
+    max-width: 1200px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.header-fixed {
+    margin-bottom: 30px;
+    text-align: center;
+
+    h1 {
+        color: #003366;
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0;
+    }
+}
+
+.filters-container {
+    padding: 10px 0;
+
+    button {
+        margin-right: 8px;
+    }
+}
+
+.agent-select {
+    width: 300px;
+    margin-right: 16px;
+}
+
+.custom-date-field {
+    font-size: 14px;
+    width: 250px;
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.reports-list {
+    margin-top: 20px;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 16px 0;
+}
+
+.kpi-card {
+    background-color: #f9f9f9;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    .kpi-label {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 4px;
+        font-weight: 500;
+    }
+
+    .kpi-value {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #333;
+    }
+}
+
+mat-expansion-panel-header {
+    background-color: #f4f4f4;
+}
+
+mat-panel-title {
+    font-size: 1.1rem;
+}

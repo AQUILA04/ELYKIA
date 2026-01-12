@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
+import { ParameterService } from 'src/app/parameters/parameter.service';
 
 @Component({
   selector: 'app-client-add',
@@ -44,7 +45,8 @@ export class ClientAddComponent implements OnInit {
     private alertService: AlertService,
     private spinner: NgxSpinnerService,
     private tokenStorage: TokenStorageService,
-    private accountService: AccountService
+    private accountService: AccountService,
+    private parameterService: ParameterService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
@@ -53,6 +55,7 @@ export class ClientAddComponent implements OnInit {
     this.initForm();
     this.loadLocalities();
     this.loadAgents();
+    this.loadAgencyCollector();
 
     this.route.params.subscribe(params => {
       this.clientId = +params['id'];
@@ -82,7 +85,7 @@ export class ClientAddComponent implements OnInit {
       quarter: ['', Validators.required],
       collector: ['', Validators.required],
       tontineCollector: ['', Validators.required],
-      agencyCollector: ['', Validators.required],
+      agencyCollector: [{value: '', disabled: true}, Validators.required],
       clientType: ['', Validators.required],
       latitude: [null],
       longitude: [null]
@@ -128,6 +131,19 @@ export class ClientAddComponent implements OnInit {
         this.alertService.showError('Erreur lors du chargement des agents');
       }
     );
+  }
+
+  loadAgencyCollector(): void {
+    this.parameterService.getByKey('AGENCY_COLLECTOR').subscribe({
+      next: (param) => {
+        if (param && param.value) {
+          this.clientForm.patchValue({ agencyCollector: param.value });
+        }
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement du paramètre AGENCY_COLLECTOR', err);
+      }
+    });
   }
 
   loadLocalities(): void {
@@ -189,7 +205,7 @@ export class ClientAddComponent implements OnInit {
       this.spinner.show();
       this.isLoading = true;
       const formData: any = {
-        ...this.clientForm.value,
+        ...this.clientForm.getRawValue(), // Use getRawValue to include disabled fields
         iddoc: this.idDocBase64 || null,
         profilPhoto: this.profilePhotoBase64 || null,
       };
@@ -350,4 +366,3 @@ export class ClientAddComponent implements OnInit {
     };
   }
 }
-

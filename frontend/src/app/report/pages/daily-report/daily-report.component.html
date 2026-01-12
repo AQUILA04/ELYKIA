@@ -1,0 +1,120 @@
+<div class="container">
+    <div class="header-fixed">
+        <h1>Rapport Journalier</h1>
+    </div>
+
+    <!-- Filters Toolbar -->
+    <div class="filters-container d-flex flex-wrap align-items-center gap-2 mb-4">
+        <button mat-stroked-button [color]="selectedFilter === 'today' ? 'primary' : ''"
+            (click)="setFilter('today')">Aujourd'hui</button>
+        <button mat-stroked-button [color]="selectedFilter === 'week' ? 'primary' : ''"
+            (click)="setFilter('week')">Cette Semaine</button>
+        <button mat-stroked-button [color]="selectedFilter === 'month' ? 'primary' : ''" (click)="setFilter('month')">Ce
+            Mois</button>
+        <button mat-stroked-button [color]="selectedFilter === 'custom' ? 'primary' : ''"
+            (click)="selectedFilter = 'custom'">Personnaliser</button>
+
+        <!-- Custom Date Range -->
+        <mat-form-field appearance="outline" *ngIf="selectedFilter === 'custom'" class="custom-date-field">
+            <mat-label>Période</mat-label>
+            <mat-date-range-input [formGroup]="range" [rangePicker]="picker" [max]="today">
+                <input matStartDate formControlName="start" placeholder="Début">
+                <input matEndDate formControlName="end" placeholder="Fin" (dateChange)="applyCustomFilter()">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+
+        <!-- Commercial Selector (Admin Only) -->
+        <div class="agent-select" *ngIf="!isPromoter">
+            <ng-select [items]="agents" bindLabel="username" bindValue="username"
+                placeholder="Sélectionner un commercial" [searchFn]="searchAgent" [(ngModel)]="selectedAgent"
+                (change)="onAgentChange($event)">
+                <ng-template ng-option-tmp let-item="item">
+                    {{item.username}} <small class="text-muted">({{item.firstname}}
+                        {{item.lastname}})</small>
+                </ng-template>
+            </ng-select>
+        </div>
+
+        <button mat-button color="warn" (click)="resetFilters()" *ngIf="selectedFilter === 'custom' || selectedAgent">
+            Réinitialiser
+        </button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+    </div>
+
+    <!-- Content: List of Commercial Reports -->
+    <div class="reports-list" *ngIf="!isLoading">
+        <mat-accordion multi>
+            <mat-expansion-panel *ngFor="let report of reports" expanded="true">
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                        <strong>{{ report.commercialUsername | uppercase }}</strong>
+                    </mat-panel-title>
+                    <mat-panel-description>
+                        Total Ventes: {{ report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }} |
+                        Total Collectes: {{ report.collectionsAmount | currency:'XOF':'symbol':'1.0-0'
+                        }}
+                    </mat-panel-description>
+                </mat-expansion-panel-header>
+
+                <!-- KPIs Grid -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <span class="kpi-label">Sortie Stock</span>
+                        <span class="kpi-value">{{ report.totalStockRequestAmount |
+                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Ventes à Crédit</span>
+                        <span class="kpi-value">{{ report.creditSalesCount }} ({{
+                            report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Nouveaux Clients</span>
+                        <span class="kpi-value">{{ report.newClientsCount }}</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Solde Nx Comptes</span>
+                        <span class="kpi-value">{{ report.newAccountsBalance |
+                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Recouvrements</span>
+                        <span class="kpi-value">{{ report.collectionsCount }} ({{
+                            report.collectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Commandes</span>
+                        <span class="kpi-value">{{ report.ordersCount }} ({{ report.ordersAmount |
+                            currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Tontine Adhésions</span>
+                        <span class="kpi-value">{{ report.tontineMembersCount }}</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Tontine Collectes</span>
+                        <span class="kpi-value">{{ report.tontineCollectionsCount }} ({{
+                            report.tontineCollectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Tontine Livraisons</span>
+                        <span class="kpi-value">{{ report.tontineDeliveriesCount }} ({{
+                            report.tontineDeliveriesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                </div>
+
+            </mat-expansion-panel>
+        </mat-accordion>
+
+        <div *ngIf="reports.length === 0" class="text-center p-4 text-muted">
+            Aucune donnée trouvée pour cette période.
+        </div>
+    </div>
+
+</div>

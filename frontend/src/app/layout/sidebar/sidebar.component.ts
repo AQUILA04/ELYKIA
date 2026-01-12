@@ -7,6 +7,7 @@ import { NgxPermissionsService } from 'ngx-permissions';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AuthService } from "../../auth/service/auth.service";
 import { LayoutService } from 'src/app/shared/service/layout.service';
+import { UserService } from 'src/app/user/service/user.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -39,7 +40,8 @@ export class SidebarComponent implements OnInit {
     if (route === '/configuration') {
       return this.activeRoute.startsWith('/localitylist') ||
              this.activeRoute.startsWith('/article-type') ||
-             this.activeRoute.startsWith('/expense/types');
+             this.activeRoute.startsWith('/expense/types') ||
+             this.activeRoute.startsWith('/parameters');
     }
 
     // Pour toutes les autres routes, utiliser une correspondance exacte ou avec un slash
@@ -55,7 +57,7 @@ export class SidebarComponent implements OnInit {
       '/list', '/localitylist', '/credit-list', '/out-list', '/tontine-list',
       '/accountlist', '/client-list', '/report', '/inventory', '/gestion-list',
       '/operation-list', '/deposit-list', '/user-list', '/commercial-list',
-      '/article-type', '/expense/types'
+      '/article-type', '/expense/types', '/parameters'
     ];
 
     // Vérifier si une autre route commence par la même base
@@ -96,7 +98,8 @@ export class SidebarComponent implements OnInit {
   onConfigurationClick() {
     const isConfigActive = this.activeRoute.startsWith('/localitylist') ||
                            this.activeRoute.startsWith('/article-type') ||
-                           this.activeRoute.startsWith('/expense/types');
+                           this.activeRoute.startsWith('/expense/types') ||
+                           this.activeRoute.startsWith('/parameters');
 
     if (isConfigActive) {
       this.isConfigurationOpen = !this.isConfigurationOpen;
@@ -111,7 +114,8 @@ export class SidebarComponent implements OnInit {
     private permissionsService: NgxPermissionsService,
     private tokenStorage: TokenStorageService,
     private authService: AuthService,
-    public layoutService: LayoutService) {
+    public layoutService: LayoutService,
+    private userService: UserService) {
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
@@ -139,7 +143,8 @@ export class SidebarComponent implements OnInit {
       // AJOUTÉ : Gestion de l'état ouvert/fermé pour Configuration
       if (this.activeRoute.startsWith('/localitylist') ||
           this.activeRoute.startsWith('/article-type') ||
-          this.activeRoute.startsWith('/expense/types')) {
+          this.activeRoute.startsWith('/expense/types') ||
+          this.activeRoute.startsWith('/parameters')) {
         this.isConfigurationOpen = true;
       } else {
         this.isConfigurationOpen = false;
@@ -157,6 +162,12 @@ export class SidebarComponent implements OnInit {
 
     // Initialiser activeRoute avec la route actuelle au démarrage
     this.activeRoute = this.router.url;
+  }
+
+  hasAccessToParameters(): boolean {
+    return this.userService.hasProfile('GESTIONNAIRE') ||
+           this.userService.hasProfile('MANAGER') ||
+           this.userService.hasProfile('SUPER_ADMIN');
   }
 
 

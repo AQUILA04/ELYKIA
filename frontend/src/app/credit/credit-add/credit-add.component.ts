@@ -231,10 +231,11 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     if (formValue.saleType === 'CREDIT') {
         const payload = {
           clientId: formValue.clientId,
-          articles: formValue.articles.map((article: any) => ({
+          articles: { articleEntries: formValue.articles.map((article: any) => ({
             articleId: article.articleId,
-            quantity: article.quantity
-          })),
+            quantity: article.quantity,
+            unitPrice: article.creditSalePrice
+          }))},
           advance: formValue.advance,
           beginDate: formValue.beginDate,
           expectedEndDate: formValue.expectedEndDate,
@@ -258,7 +259,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
           },
           error: (err: any) => {
             this.spinner.hide();
-            this.alertService.showError('Erreur lors de la soumission : ' + err.message);
+            this.alertService.showError('Erreur lors de la soumission : ' + err.error?.message || err.message);
             this.isLoading = false;
             console.error(err);
           }

@@ -6,7 +6,7 @@
   </div>
 
   <div class="d-flex justify-content-end mb-3">
-    <button *ngIf="isPromoter" class="btn add btn-sm" routerLink="/stock/request/create">
+    <button *ngIf="isPromoter || isManager" class="btn add btn-sm" routerLink="/stock/request/create">
       <mat-icon>add</mat-icon>
       <span>Nouvelle Demande</span>
     </button>

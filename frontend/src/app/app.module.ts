@@ -67,6 +67,7 @@ import { DepositAddComponent } from './deposit/deposit-add/deposit-add.component
 import { DepositListComponent } from './deposit/deposit-list/deposit-list.component';
 import { DepositDetailsComponent } from './deposit/deposit-details/deposit-details.component';
 import { ReportComponent } from './report/report/report.component';
+import { DailyReportComponent } from './report/pages/daily-report/daily-report.component';
 import { LicenseInterceptorService } from './interceptors/license-interceptor.service';
 import { ReactivateLicenseComponent } from './license/reactivate-license/reactivate-license.component';
 import { MatCardModule } from '@angular/material/card';
@@ -91,6 +92,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 // MODULES MANQUANTS AJOUTÉS ICI
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { OldReleaseListComponent } from './out/old-release-list/old-release-list.component';
 import { CreditMergeModalComponent } from './credit/credit-merge-modal/credit-merge-modal.component';
 // Tontine module is lazy loaded, no need to import here
@@ -147,6 +149,7 @@ import { ParameterEditComponent } from './parameters/parameter-edit/parameter-ed
     DepositListComponent,
     DepositDetailsComponent,
     ReportComponent,
+    DailyReportComponent,
     ReactivateLicenseComponent,
     OutListComponent,
     HistoryComponent,
@@ -202,7 +205,8 @@ import { ParameterEditComponent } from './parameters/parameter-edit/parameter-ed
     MatDatepickerModule,
     MatNativeDateModule,
     SharedComponentsModule,
-    ToastrModule.forRoot()
+    ToastrModule.forRoot(),
+    MatExpansionModule
   ],
   providers: [
     // --- CORRECTION DES PROVIDERS ---

@@ -7,6 +7,7 @@ import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.client.dto.ClientRespDto;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
@@ -65,10 +66,9 @@ public class CreditService extends GenericService<Credit, Long> {
     private StockMovementService stockMovementService;
     private final CreditDistributionViewRepository creditDistributionViewRepository;
     private final CreditDistributionMapper creditDistributionMapper;
-    @Autowired
     private TontineStockService tontineStockService;
-    @Autowired
     private TontineService tontineService;
+    private ParameterService parameterService;
 
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
@@ -126,12 +126,6 @@ public class CreditService extends GenericService<Credit, Long> {
             throw new CustomValidationException("Le client " + credit.getClient().getFullName()
                     + " possède déjà une vente en cours et ne peut donc pas bénéficier d'une autre vente !");
         }
-        if (ClientType.CLIENT.equals(credit.getClientType())
-                && (Objects.isNull(credit.getParent()) || Objects.isNull(credit.getParent().getId()))) {
-            throw new CustomValidationException(
-                    "Vente directe au client non autoriser. Merci de passer par la distribution");
-
-        }
 
         return createAndProcessCredit(credit, creditDto.getClientId());
     }
@@ -152,7 +146,8 @@ public class CreditService extends GenericService<Credit, Long> {
         credit.setType(OperationType.CASH);
 
         if (!StringUtils.hasText(credit.getReference())) {
-            credit.setReference(generateReference(client.getId().toString(), credit.getClientType()));
+            String ref = generateReference(client.getId().toString(), credit.getClientType());
+            credit.setReference("CSH-" + ref);
         }
 
         if (Objects.isNull(credit.getId())) {
@@ -178,12 +173,7 @@ public class CreditService extends GenericService<Credit, Long> {
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
 
-        if (creditEnrichmentService != null) {
-            creditEnrichmentService.enrichCredit(credit);
-            credit = update(credit);
-        }
-
-        return credit;
+        return creditEnrichment(credit);
     }
 
     @Transactional
@@ -260,12 +250,6 @@ public class CreditService extends GenericService<Credit, Long> {
                 && getRepository().hasCreditInProgress(credit.getClientId())) {
             throw new CustomValidationException("Le client " + credit.getClient().getFullName()
                     + " possède déjà une vente en cours et ne peut donc pas bénéficier d'une autre vente !");
-        }
-        if (ClientType.CLIENT.equals(credit.getClientType())
-                && (Objects.isNull(credit.getParent()) || Objects.isNull(credit.getParent().getId()))) {
-            throw new CustomValidationException(
-                    "Vente directe au client non autoriser. Merci de passer par la distribution");
-
         }
     }
 
@@ -381,17 +365,12 @@ public class CreditService extends GenericService<Credit, Long> {
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
 
-        if (creditEnrichmentService != null) {
-            creditEnrichmentService.enrichCredit(credit);
-            credit = update(credit);
-        }
-
-        return credit;
+        return creditEnrichment(credit);
     }
 
     public void creditControlProcess(Credit credit) {
         Client client = clientService.getById(credit.getClientId());
-        client.hasValidAccount();
+
         if (Objects.isNull(credit.getId())) {
             credit.getArticles().forEach(article -> {
                 article.setArticles(articlesService.getById(article.getArticlesId()));
@@ -418,7 +397,11 @@ public class CreditService extends GenericService<Credit, Long> {
         }
 
         credit.setUp();
-        client.allowCreditAmountControl(credit.getTotalAmount(), dividend);
+        if (parameterService.isEnabled("ENABLED_ACCOUNT_BALANCE_CONTROL")) {
+            client.hasValidAccount();
+            client.allowCreditAmountControl(credit.getTotalAmount(), dividend);
+        }
+
         credit.setClient(client);
         credit.setType(OperationType.CREDIT);
         credit.setCollector(client.getCollector());
@@ -1369,5 +1352,21 @@ public class CreditService extends GenericService<Credit, Long> {
 
             return tontine;
         }
+    }
+
+
+    @Autowired
+    public void setTontineStockService(TontineStockService tontineStockService) {
+        this.tontineStockService = tontineStockService;
+    }
+
+    @Autowired
+    public void setTontineService(TontineService tontineService) {
+        this.tontineService = tontineService;
+    }
+
+    @Autowired
+    public void setParameterService(ParameterService parameterService) {
+        this.parameterService = parameterService;
     }
 }

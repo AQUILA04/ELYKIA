@@ -31,19 +31,22 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     private final CommercialMonthlyStockItemRepository monthlyStockItemRepository;
     private final UserService userService;
     private final StockMovementService stockMovementService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     public StockReturnService(StockReturnRepository repository,
-                              ArticlesService articlesService,
-                              CommercialMonthlyStockRepository monthlyStockRepository,
-                              CommercialMonthlyStockItemRepository monthlyStockItemRepository,
-                              UserService userService,
-                              StockMovementService stockMovementService) {
+            ArticlesService articlesService,
+            CommercialMonthlyStockRepository monthlyStockRepository,
+            CommercialMonthlyStockItemRepository monthlyStockItemRepository,
+            UserService userService,
+            StockMovementService stockMovementService,
+            org.springframework.context.ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.articlesService = articlesService;
         this.monthlyStockRepository = monthlyStockRepository;
         this.monthlyStockItemRepository = monthlyStockItemRepository;
         this.userService = userService;
         this.stockMovementService = stockMovementService;
+        this.eventPublisher = eventPublisher;
     }
 
     public StockReturn createReturn(StockReturn stockReturn) {
@@ -57,13 +60,16 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
             item.setStockReturn(stockReturn);
             if (item.getArticle() != null && item.getArticle().getId() != null) {
                 Articles article = articlesService.getOne(item.getArticle().getId())
-                        .orElseThrow(() -> new CustomValidationException("Article non trouvé avec l'ID : " + item.getArticle().getId()));
+                        .orElseThrow(() -> new CustomValidationException(
+                                "Article non trouvé avec l'ID : " + item.getArticle().getId()));
                 item.setArticle(article);
             } else if (item.getArticle() != null && item.getArticle().getName() != null) {
-                // Recherche par nom car le frontend envoie le nom dans l'objet article pour l'instant
+                // Recherche par nom car le frontend envoie le nom dans l'objet article pour
+                // l'instant
                 // Idéalement, le frontend devrait envoyer l'ID
                 Articles article = articlesService.getRepository().findByName(item.getArticle().getName())
-                        .orElseThrow(() -> new CustomValidationException("Article non trouvé : " + item.getArticle().getName()));
+                        .orElseThrow(() -> new CustomValidationException(
+                                "Article non trouvé : " + item.getArticle().getName()));
                 item.setArticle(article);
             }
         }
@@ -85,6 +91,9 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         // 1. Mettre à jour le stock mensuel du commercial
         updateCommercialMonthlyStock(stockReturn);
 
+        // Calculate total return amount
+        double totalReturnAmount = 0.0;
+
         // 2. Réintégrer les articles dans le stock magasin
         for (StockReturnItem item : stockReturn.getItems()) {
             Articles article = articlesService.getById(item.getArticle().getId());
@@ -95,15 +104,23 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                     item.getQuantity(),
                     "Validation retour stock " + stockReturn.getId(),
                     currentUser.getUsername(),
-                    null
-            );
+                    null);
 
             article.makeEntry(item.getQuantity());
             articlesService.update(article);
+
+            // Sum amount using creditSalePrice
+            totalReturnAmount += item.getQuantity() * article.getCreditSalePrice();
         }
 
         stockReturn.setStatus(StockReturnStatus.RECEIVED);
-        return repository.save(stockReturn);
+        StockReturn saved = repository.save(stockReturn);
+
+        // Publish event
+        eventPublisher.publishEvent(new com.optimize.elykia.core.event.StockReturnedEvent(this, totalReturnAmount,
+                stockReturn.getCollector()));
+
+        return saved;
     }
 
     private void updateCommercialMonthlyStock(StockReturn stockReturn) {
@@ -124,13 +141,16 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                 CommercialMonthlyStockItem item = existingItem.get();
                 // Vérifier que le commercial a assez de stock à retourner
                 if (item.getQuantityRemaining() < returnItem.getQuantity()) {
-                    throw new CustomValidationException("Quantité retournée supérieure au stock restant pour l'article : " + item.getArticle().getCommercialName());
+                    throw new CustomValidationException(
+                            "Quantité retournée supérieure au stock restant pour l'article : "
+                                    + item.getArticle().getCommercialName());
                 }
                 item.setQuantityReturned(item.getQuantityReturned() + returnItem.getQuantity());
                 item.updateRemaining();
                 monthlyStockItemRepository.save(item);
             } else {
-                throw new CustomValidationException("Article non trouvé dans le stock du commercial : " + returnItem.getArticle().getCommercialName());
+                throw new CustomValidationException("Article non trouvé dans le stock du commercial : "
+                        + returnItem.getArticle().getCommercialName());
             }
         }
         monthlyStockRepository.save(monthlyStock);
@@ -146,6 +166,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         if (currentUser.is(UserProfilConstant.PROMOTER)) {
             return ((StockReturnRepository) repository).findByCollector(currentUser.getUsername(), pageable);
         }
-        return ((StockReturnRepository) repository).findByStatusIn(List.of(StockReturnStatus.CREATED, StockReturnStatus.RECEIVED), pageable);
+        return ((StockReturnRepository) repository)
+                .findByStatusIn(List.of(StockReturnStatus.CREATED, StockReturnStatus.RECEIVED), pageable);
     }
 }
