@@ -1,6 +1,17 @@
 package com.optimize.elykia.core.enumaration;
 
 public enum OperationType {
+    CREDIT_COLLECTION,
+    TONTINE_COLLECTION,
+    ORDER,
+    NEW_ACCOUNT,
+    CASH_DEPOSIT,
+    STOCK_RETURN,
+    STOCK_REQUEST,
+    TONTINE_DELIVERY,
+    CREDIT_SALES,
+    NEW_CLIENT,
+    TONTINE_MEMBER_ENROLLMENT,
     CREDIT,
     TONTINE,
     CASH

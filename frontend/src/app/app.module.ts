@@ -102,6 +102,7 @@ import { SharedComponentsModule } from './shared/components/shared-components.mo
 import { ToastrModule } from 'ngx-toastr';
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 import { ParameterEditComponent } from './parameters/parameter-edit/parameter-edit.component';
+import { CashDepositModalComponent } from './report/components/cash-deposit-modal/cash-deposit-modal.component';
 
 @NgModule({
   declarations: [
@@ -169,7 +170,8 @@ import { ParameterEditComponent } from './parameters/parameter-edit/parameter-ed
     // --- NOUVELLE DÉCLARATION ---
     CreditMergeModalComponent,
     ParameterListComponent,
-    ParameterEditComponent
+    ParameterEditComponent,
+    CashDepositModalComponent
     // --- NOUVELLES COMPOSANTS DÉPLACÉS DANS SHARED ---
   ],
   imports: [

@@ -75,6 +75,13 @@ public class DailyCommercialReport extends BaseEntity<String> {
     @Column(columnDefinition = "double precision default 0")
     private Double tontineDeliveriesAmount = 0.0;
 
+    // Cash Management
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalAmountToDeposit = 0.0; // Recettes total (Cash-in)
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalAmountDeposited = 0.0; // Somme des versements effectués
+
     public DailyCommercialReport(String commercialUsername, Double totalStockRequestAmount, Long creditSalesCount,
             Double creditSalesAmount, Long newClientsCount, Double newAccountsBalance, Long collectionsCount,
             Double collectionsAmount, Long ordersCount, Double ordersAmount, Long tontineMembersCount,

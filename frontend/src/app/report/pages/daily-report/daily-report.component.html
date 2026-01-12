@@ -42,79 +42,209 @@
         </button>
     </div>
 
-    <!-- Loading Spinner -->
-    <div *ngIf="isLoading" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-    </div>
-
-    <!-- Content: List of Commercial Reports -->
-    <div class="reports-list" *ngIf="!isLoading">
-        <mat-accordion multi>
-            <mat-expansion-panel *ngFor="let report of reports" expanded="true">
-                <mat-expansion-panel-header>
-                    <mat-panel-title>
-                        <strong>{{ report.commercialUsername | uppercase }}</strong>
-                    </mat-panel-title>
-                    <mat-panel-description>
-                        Total Ventes: {{ report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }} |
-                        Total Collectes: {{ report.collectionsAmount | currency:'XOF':'symbol':'1.0-0'
-                        }}
-                    </mat-panel-description>
-                </mat-expansion-panel-header>
-
-                <!-- KPIs Grid -->
-                <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <span class="kpi-label">Sortie Stock</span>
-                        <span class="kpi-value">{{ report.totalStockRequestAmount |
-                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                    </div>
-                    <div class="kpi-card">
-                        <span class="kpi-label">Ventes à Crédit</span>
-                        <span class="kpi-value">{{ report.creditSalesCount }} ({{
-                            report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
-                    </div>
-                    <div class="kpi-card">
-                        <span class="kpi-label">Nouveaux Clients</span>
-                        <span class="kpi-value">{{ report.newClientsCount }}</span>
-                    </div>
-                    <div class="kpi-card">
-                        <span class="kpi-label">Solde Nx Comptes</span>
-                        <span class="kpi-value">{{ report.newAccountsBalance |
-                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                    </div>
-                    <div class="kpi-card">
-                        <span class="kpi-label">Recouvrements</span>
-                        <span class="kpi-value">{{ report.collectionsCount }} ({{
-                            report.collectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
-                    </div>
-                    <div class="kpi-card">
-                        <span class="kpi-label">Commandes</span>
-                        <span class="kpi-value">{{ report.ordersCount }} ({{ report.ordersAmount |
-                            currency:'XOF':'symbol':'1.0-0' }})</span>
-                    </div>
-                    <div class="kpi-card">
-                        <span class="kpi-label">Tontine Adhésions</span>
-                        <span class="kpi-value">{{ report.tontineMembersCount }}</span>
-                    </div>
-                    <div class="kpi-card">
-                        <span class="kpi-label">Tontine Collectes</span>
-                        <span class="kpi-value">{{ report.tontineCollectionsCount }} ({{
-                            report.tontineCollectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
-                    </div>
-                    <div class="kpi-card">
-                        <span class="kpi-label">Tontine Livraisons</span>
-                        <span class="kpi-value">{{ report.tontineDeliveriesCount }} ({{
-                            report.tontineDeliveriesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
-                    </div>
+    <!-- TABS -->
+    <mat-tab-group class="mt-4" animationDuration="0ms">
+        <mat-tab label="VUE D'ENSEMBLE">
+            <div class="p-4">
+                <!-- Loading Spinner -->
+                <div *ngIf="isLoading" class="loading-container">
+                    <mat-spinner diameter="50"></mat-spinner>
                 </div>
 
-            </mat-expansion-panel>
-        </mat-accordion>
+                <div *ngIf="!isLoading">
+                    <!-- Content: List of Commercial Reports -->
+                    <div class="reports-list mb-4">
+                        <mat-accordion multi>
+                            <mat-expansion-panel *ngFor="let report of reports" expanded="true">
+                                <mat-expansion-panel-header>
+                                    <mat-panel-title>
+                                        <strong>{{ report.commercialUsername | uppercase }}</strong>
+                                    </mat-panel-title>
+                                    <mat-panel-description>
+                                        Total Ventes: {{ report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }} |
+                                        Total Collectes: {{ report.collectionsAmount | currency:'XOF':'symbol':'1.0-0'
+                                        }}
+                                    </mat-panel-description>
+                                </mat-expansion-panel-header>
 
-        <div *ngIf="reports.length === 0" class="text-center p-4 text-muted">
-            Aucune donnée trouvée pour cette période.
-        </div>
+                                <!-- KPIs Grid -->
+                                <div class="kpi-grid">
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Sortie Stock</span>
+                                        <span class="kpi-value">{{ report.totalStockRequestAmount |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Ventes à Crédit</span>
+                                        <span class="kpi-value">{{ report.creditSalesCount }} ({{
+                                            report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Nouveaux Clients</span>
+                                        <span class="kpi-value">{{ report.newClientsCount }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Solde Nx Comptes</span>
+                                        <span class="kpi-value">{{ report.newAccountsBalance |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Recouvrements</span>
+                                        <span class="kpi-value">{{ report.collectionsCount }} ({{
+                                            report.collectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Commandes</span>
+                                        <span class="kpi-value">{{ report.ordersCount }} ({{ report.ordersAmount |
+                                            currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Tontine Adhésions</span>
+                                        <span class="kpi-value">{{ report.tontineMembersCount }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Tontine Collectes</span>
+                                        <span class="kpi-value">{{ report.tontineCollectionsCount }} ({{
+                                            report.tontineCollectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Tontine Livraisons</span>
+                                        <span class="kpi-value">{{ report.tontineDeliveriesCount }} ({{
+                                            report.tontineDeliveriesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">A Verser</span>
+                                        <span class="kpi-value">{{ (report.totalAmountToDeposit || 0) |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Versé</span>
+                                        <span class="kpi-value">{{ (report.totalAmountDeposited || 0) |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Reste</span>
+                                        <span class="kpi-value"
+                                            [ngClass]="{'text-danger': ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0)) > 0, 'text-success': ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0)) <= 0}">
+                                            {{ ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0))
+                                            | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mt-3"
+                                    *ngIf="(report.totalAmountToDeposit || 0) > 0 && ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0)) > 0">
+                                    <button mat-raised-button color="primary" class="w-100 py-3 text-lg"
+                                        (click)="openDepositModal(report)">
+                                        <mat-icon class="mr-2">payment</mat-icon> FAIRE UN VERSEMENT
+                                    </button>
+                                </div>
+
+                            </mat-expansion-panel>
+                        </mat-accordion>
+
+                        <div *ngIf="reports.length === 0" class="text-center p-4 text-muted">
+                            Aucune donnée trouvée pour cette période.
+                        </div>
+                    </div>
+
+                    <!-- TOTAUX ET ACTIONS (Visibles seulement si un commercial est sélectionné ou pour le promoteur) -->
+
+                </div>
+            </div>
+        </mat-tab>
+
+        <mat-tab label="JOURNAL DES OPÉRATIONS">
+            <div class="p-4">
+                <div *ngIf="operations.length > 0; else noOps">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Heure</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Commercial</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Type</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Sujet</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Description</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let op of operations" class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-2 px-4 text-sm">{{ op.timestamp | date:'HH:mm' }}</td>
+                                <td class="py-2 px-4 text-sm text-gray-700 font-medium">{{ op.commercialUsername }}</td>
+                                <td class="py-2 px-4 text-sm font-semibold text-primary-600">{{ op.operationType }}</td>
+                                <td class="py-2 px-4 text-sm">{{ op.subject }}</td>
+                                <td class="py-2 px-4 text-sm text-gray-600">{{ op.description }}</td>
+                                <td class="py-2 px-4 text-sm font-mono text-right font-medium">
+                                    <span [class.text-green-600]="op.amount > 0"
+                                        [class.text-gray-400]="op.amount === 0">
+                                        {{ op.amount | currency:'XOF':'symbol':'1.0-0' }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="mt-4">
+                        <mat-paginator [length]="operationsTotal" [pageSize]="operationsPageSize"
+                            [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)">
+                        </mat-paginator>
+                    </div>
+                </div>
+                <ng-template #noOps>
+                    <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+                        <mat-icon class="text-4xl h-12 w-12 mb-2">history_edu</mat-icon>
+                        <p>Aucune opération enregistrée pour cette période.</p>
+                    </div>
+                </ng-template>
+            </div>
+        </mat-tab>
+
+        <mat-tab label="HISTORIQUE DES VERSEMENTS">
+            <div class="p-4">
+                <div *ngIf="deposits.length > 0; else noDeps">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Heure</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Commercial</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Reçu par</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let dep of deposits" class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-2 px-4 text-sm">{{ dep.date | date:'dd/MM' }} {{ dep.createdAt |
+                                    date:'HH:mm' }}</td>
+                                <td class="py-2 px-4 text-sm text-gray-700 font-medium">{{ dep.commercialUsername }}
+                                </td>
+                                <td class="py-2 px-4 text-sm font-semibold text-gray-700">{{ dep.receivedBy }}</td>
+                                <td class="py-2 px-4 text-sm font-mono text-right font-medium text-green-600">
+                                    {{ dep.amount | currency:'XOF':'symbol':'1.0-0' }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="mt-4">
+                        <mat-paginator [length]="depositsTotal" [pageSize]="depositsPageSize"
+                            [pageSizeOptions]="[10, 20, 50]" (page)="onDepositsPageChange($event)">
+                        </mat-paginator>
+                    </div>
+                </div>
+                <ng-template #noDeps>
+                    <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+                        <mat-icon class="text-4xl h-12 w-12 mb-2">payments</mat-icon>
+                        <p>Aucun versement enregistré pour cette période.</p>
+                    </div>
+                </ng-template>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
+
+    <div *ngIf="!isLoading && reports.length === 0" class="alert alert-info mt-3">
+        Aucun rapport trouvé pour la période sélectionnée.
     </div>
 
+    <div *ngIf="!selectedAgent && !isLoading" class="alert alert-warning mt-3">
+        Veuillez sélectionner un commercial pour voir les détails et effectuer des versements.
+    </div>
 </div>
