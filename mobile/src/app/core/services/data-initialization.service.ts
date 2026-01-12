@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { concatMap, from, Observable, of, switchMap } from 'rxjs';
 import { catchError, filter, map, take } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { ArticleService } from './article.service';
 import { LocalityService } from './locality.service';
 import { Store } from '@ngrx/store';
@@ -45,7 +47,8 @@ export class DataInitializationService {
     private recoveryService: RecoveryService,
     private transactionService: TransactionService,
     private log: LoggerService,
-    private tontineService: TontineService
+    private tontineService: TontineService,
+    private http: HttpClient
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -182,6 +185,7 @@ export class DataInitializationService {
       filter(user => !!user),
       switchMap(user => {
         return this.recoveryService.initializeRecoveries().pipe(
+          switchMap(() => this.initializeMobileRecoveriesFromBackend(user.username)),
           map(() => {
             this.store.dispatch(RecoveryActions.loadRecoveries({ commercialUsername: user.username }));
             return true;
@@ -196,8 +200,23 @@ export class DataInitializationService {
   }
 
   initializeTransactions(): Observable<boolean> {
-    this.store.dispatch(TransactionActions.loadTransactions());
-    return of(true);
+    return this.store.select(selectAuthUser).pipe(
+      take(1),
+      filter(user => !!user),
+      switchMap(user => {
+        return this.initializeMobileTransactionsFromBackend(user.username).pipe(
+          map(() => {
+            this.store.dispatch(TransactionActions.loadTransactions());
+            return true;
+          }),
+          catchError((error) => {
+            console.error('Error initializing transactions:', error);
+            return of(false);
+          })
+        );
+      })
+    );
+  }
   }
 
   initializeTontine(): Observable<boolean> {
@@ -360,3 +379,67 @@ export class DataInitializationService {
 
 }
 
+
+  // ==================== MÉTHODES POUR RÉCUPÉRATION DEPUIS LE BACKEND ====================
+
+  /**
+   * Initialiser les recouvrements mobiles depuis le backend
+   */
+  private initializeMobileRecoveriesFromBackend(commercialUsername: string): Observable<boolean> {
+    const url = `${environment.apiUrl}/api/v1/mobiles/recoveries/${commercialUsername}`;
+    
+    return this.http.get<any>(url).pipe(
+      switchMap(async (response) => {
+        if (response.success && response.data) {
+          // Filtrer pour ne récupérer que les données du mois en cours
+          const currentMonthRecoveries = this.filterCurrentMonthData(response.data, 'paymentDate');
+          await this.dbService.saveMobileRecoveriesFromBackend(currentMonthRecoveries);
+          this.log.log(`[DataInitializationService] Initialized ${currentMonthRecoveries.length} mobile recoveries from backend`);
+        }
+        return true;
+      }),
+      catchError((error) => {
+        this.log.log(`[DataInitializationService] Error initializing mobile recoveries: ${error.message}`);
+        console.error('Error initializing mobile recoveries from backend:', error);
+        return of(true); // Continue même en cas d'erreur
+      })
+    );
+  }
+
+  /**
+   * Initialiser les transactions mobiles depuis le backend
+   */
+  private initializeMobileTransactionsFromBackend(commercialUsername: string): Observable<boolean> {
+    const url = `${environment.apiUrl}/api/v1/mobiles/transactions/${commercialUsername}`;
+    
+    return this.http.get<any>(url).pipe(
+      switchMap(async (response) => {
+        if (response.success && response.data) {
+          // Filtrer pour ne récupérer que les données du mois en cours
+          const currentMonthTransactions = this.filterCurrentMonthData(response.data, 'date');
+          await this.dbService.saveMobileTransactionsFromBackend(currentMonthTransactions);
+          this.log.log(`[DataInitializationService] Initialized ${currentMonthTransactions.length} mobile transactions from backend`);
+        }
+        return true;
+      }),
+      catchError((error) => {
+        this.log.log(`[DataInitializationService] Error initializing mobile transactions: ${error.message}`);
+        console.error('Error initializing mobile transactions from backend:', error);
+        return of(true); // Continue même en cas d'erreur
+      })
+    );
+  }
+
+  /**
+   * Filtrer les données pour ne garder que celles du mois en cours
+   */
+  private filterCurrentMonthData(data: any[], dateField: string): any[] {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    
+    return data.filter(item => {
+      const itemDate = new Date(item[dateField]);
+      return itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear;
+    });
+  }

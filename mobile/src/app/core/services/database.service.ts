@@ -68,7 +68,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 8;
+        const targetVersion = 10;
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -2878,3 +2878,167 @@ export class DatabaseService {
     return result.values || [];
   }
 }
+
+  // ==================== MÉTHODES POUR RECOUVREMENTS MOBILES ====================
+
+  /**
+   * Récupérer les recouvrements mobiles non synchronisés pour un commercial
+   */
+  async getUnsyncedMobileRecoveries(commercialUsername: string): Promise<Recovery[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const query = `
+      SELECT * FROM recoveries 
+      WHERE commercialId = ? AND isLocal = 1 AND isSync = 0
+      ORDER BY createdAt DESC
+    `;
+    
+    const result = await this.db.query(query, [commercialUsername]);
+    return result.values || [];
+  }
+
+  /**
+   * Marquer un recouvrement comme synchronisé
+   */
+  async markRecoveryAsSynced(recoveryId: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const query = `
+      UPDATE recoveries 
+      SET isSync = 1, syncDate = ? 
+      WHERE id = ?
+    `;
+    
+    await this.db.run(query, [new Date().toISOString(), recoveryId]);
+  }
+
+  // ==================== MÉTHODES POUR TRANSACTIONS MOBILES ====================
+
+  /**
+   * Récupérer les transactions mobiles non synchronisées pour un commercial
+   */
+  async getUnsyncedMobileTransactions(commercialUsername: string): Promise<any[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const query = `
+      SELECT * FROM transactions 
+      WHERE commercialId = ? AND isLocal = 1 AND isSync = 0
+      ORDER BY date DESC
+    `;
+    
+    const result = await this.db.query(query, [commercialUsername]);
+    return result.values || [];
+  }
+
+  /**
+   * Marquer une transaction comme synchronisée
+   */
+  async markTransactionAsSynced(transactionId: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const query = `
+      UPDATE transactions 
+      SET isSync = 1, syncDate = ? 
+      WHERE id = ?
+    `;
+    
+    await this.db.run(query, [new Date().toISOString(), transactionId]);
+  }
+
+  /**
+   * Sauvegarder les recouvrements récupérés du backend
+   */
+  async saveMobileRecoveriesFromBackend(recoveries: Recovery[]): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    for (const recovery of recoveries) {
+      const query = `
+        INSERT OR REPLACE INTO recoveries 
+        (id, amount, paymentDate, paymentMethod, notes, distributionId, clientId, commercialId, isLocal, isSync, syncDate, createdAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 1, ?, ?)
+      `;
+      
+      await this.db.run(query, [
+        recovery.id,
+        recovery.amount,
+        recovery.paymentDate,
+        recovery.paymentMethod,
+        recovery.notes,
+        recovery.distributionId,
+        recovery.clientId,
+        recovery.commercialId,
+        new Date().toISOString(),
+        recovery.createdAt || new Date().toISOString()
+      ]);
+    }
+  }
+
+  /**
+   * Sauvegarder les transactions récupérées du backend
+   */
+  async saveMobileTransactionsFromBackend(transactions: any[]): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    for (const transaction of transactions) {
+      const query = `
+        INSERT OR REPLACE INTO transactions 
+        (id, clientId, referenceId, type, amount, details, date, commercialId, isLocal, isSync)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 1)
+      `;
+      
+      await this.db.run(query, [
+        transaction.id,
+        transaction.clientId,
+        transaction.referenceId,
+        transaction.type,
+        transaction.amount,
+        transaction.details,
+        transaction.date,
+        transaction.commercialId
+      ]);
+    }
+  }
+
+  /**
+   * Récupérer les recouvrements du mois en cours pour un commercial
+   */
+  async getCurrentMonthRecoveries(commercialUsername: string): Promise<Recovery[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const currentDate = new Date();
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString();
+    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString();
+    
+    const query = `
+      SELECT * FROM recoveries 
+      WHERE commercialId = ? 
+      AND paymentDate >= ? 
+      AND paymentDate <= ?
+      ORDER BY paymentDate DESC
+    `;
+    
+    const result = await this.db.query(query, [commercialUsername, firstDayOfMonth, lastDayOfMonth]);
+    return result.values || [];
+  }
+
+  /**
+   * Récupérer les transactions du mois en cours pour un commercial
+   */
+  async getCurrentMonthTransactions(commercialUsername: string): Promise<any[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const currentDate = new Date();
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString();
+    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString();
+    
+    const query = `
+      SELECT * FROM transactions 
+      WHERE commercialId = ? 
+      AND date >= ? 
+      AND date <= ?
+      ORDER BY date DESC
+    `;
+    
+    const result = await this.db.query(query, [commercialUsername, firstDayOfMonth, lastDayOfMonth]);
+    return result.values || [];
+  }

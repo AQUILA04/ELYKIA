@@ -49,6 +49,8 @@ export interface SyncBatchResult {
   tontineMembersSync: { success: number; errors: number };
   tontineCollectionsSync: { success: number; errors: number };
   tontineDeliveriesSync: { success: number; errors: number };
+  mobileRecoveriesSync: { success: number; errors: number };
+  mobileTransactionsSync: { success: number; errors: number };
 }
 
 export interface IdMapping {
