@@ -23,18 +23,39 @@ public class TontineStock extends BaseEntity<String> {
     private Long id;
     @Column(name = "commercial", nullable = false)
     private String commercial;
+    
+    // Ce champ deviendra obsolète avec la nouvelle gestion, mais on le garde pour compatibilité temporaire
     private Long creditId;
+    
     @Column(name = "article_id", nullable = false)
     private Long articleId;
     private String articleName;
+    
+    // Prix unitaire de référence (peut évoluer vers un PMP)
     private Double unitPrice;
+    
+    // Quantité totale sortie du magasin (Approvisionnement)
     private Integer totalQuantity;
+    
+    // Quantité disponible pour distribution (Restant)
     private Integer availableQuantity;
+    
+    // Quantité distribuée aux clients
     private Integer distributedQuantity;
+    
+    // NOUVEAU : Quantité retournée au magasin
+    @Column(columnDefinition = "integer default 0")
+    private Integer quantityReturned = 0;
+
+    // NOUVEAU : Prix Moyen Pondéré (PMP) pour valorisation
+    @Column(columnDefinition = "double precision default 0")
+    private Double weightedAverageUnitPrice = 0.0;
+
     @Column(name = "year", nullable = false)
     private Integer year;
     private Long tontineSessionId;
 
+    // Méthode utilitaire pour construire depuis l'ancienne logique (Credit)
     public static TontineStock build(Credit tontine, CreditArticles articles, TontineSession tontineSession) {
         TontineStock tontineStock = new TontineStock();
         tontineStock.articleId = articles.getArticlesId();
@@ -44,11 +65,12 @@ public class TontineStock extends BaseEntity<String> {
         tontineStock.creditId = tontine.getId();
         tontineStock.availableQuantity = articles.getQuantity();
         tontineStock.distributedQuantity = 0;
+        tontineStock.quantityReturned = 0;
+        tontineStock.weightedAverageUnitPrice = articles.getUnitPrice(); // Initialisation PMP
         tontineStock.setCommercial(tontine.getCollector());
         tontineStock.tontineSessionId = tontineSession.getId();
         tontineStock.year = tontineSession.getYear();
         return tontineStock;
-
     }
 
     public void addQuantity(Integer quantity) {
@@ -63,5 +85,12 @@ public class TontineStock extends BaseEntity<String> {
         this.availableQuantity -= quantity;
         this.distributedQuantity += quantity;
     }
-
+    
+    public void returnQuantity(Integer quantity) {
+        if (this.availableQuantity < quantity) {
+            throw new CustomValidationException("Impossible de retourner plus que le stock disponible ! \n Stock Restant: " + this.availableQuantity);
+        }
+        this.availableQuantity -= quantity;
+        this.quantityReturned += quantity;
+    }
 }

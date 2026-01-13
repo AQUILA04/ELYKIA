@@ -8,6 +8,8 @@ public enum OperationType {
     CASH_DEPOSIT,
     STOCK_RETURN,
     STOCK_REQUEST,
+    STOCK_TONTINE_REQUEST, // Nouveau
+    STOCK_TONTINE_RETURN,  // Nouveau
     TONTINE_DELIVERY,
     CREDIT_SALES,
     NEW_CLIENT,

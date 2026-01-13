@@ -24,9 +24,13 @@ public class DailyCommercialReport extends BaseEntity<String> {
     @Column(nullable = false)
     private String commercialUsername;
 
-    // Stock Request
+    // Stock Request (Vente à Crédit)
     @Column(columnDefinition = "double precision default 0")
     private Double totalStockRequestAmount = 0.0;
+    
+    // Stock Tontine Request (NOUVEAU)
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalTontineStockRequestAmount = 0.0;
 
     // Credit Sales
     @Column(columnDefinition = "integer default 0")

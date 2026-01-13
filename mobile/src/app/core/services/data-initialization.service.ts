@@ -14,6 +14,8 @@ import { CommercialService } from './commercial.service';
 import * as CommercialActions from '../../store/commercial/commercial.actions';
 import { StockOutputService } from './stock-output.service';
 import * as StockOutputActions from '../../store/stock-output/stock-output.actions';
+import { CommercialStockService } from './commercial-stock.service';
+import * as CommercialStockActions from '../../store/commercial-stock/commercial-stock.actions';
 import { DistributionService } from './distribution.service';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import { AccountService } from './account.service';
@@ -40,6 +42,7 @@ export class DataInitializationService {
     private clientService: ClientService,
     private commercialService: CommercialService,
     private stockOutputService: StockOutputService,
+    private commercialStockService: CommercialStockService,
     private distributionService: DistributionService,
     private accountService: AccountService,
     private store: Store,
@@ -129,6 +132,26 @@ export class DataInitializationService {
     );
   }
 
+
+  initializeCommercialStock(): Observable<boolean> {
+    return this.store.select(selectAuthUser).pipe(
+      take(1),
+      filter(user => !!user),
+      switchMap(user => {
+        const commercialUsername = user.username;
+        return this.commercialStockService.initializeCommercialStock(commercialUsername).pipe(
+          map(() => {
+            this.store.dispatch(CommercialStockActions.loadCommercialStock({ commercialUsername }));
+            return true;
+          }),
+          catchError(error => {
+            console.error('Error initializing commercial stock:', error);
+            return of(false);
+          })
+        );
+      })
+    );
+  }
 
   initializeStockOutputs(): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
@@ -232,6 +255,29 @@ export class DataInitializationService {
     );
   }
 
+  // NOUVELLE MÉTHODE : Calcul direct des stocks depuis CommercialStockItems
+  calculateArticleStocksFromCommercialStock(): Observable<boolean> {
+    return this.store.select(selectAuthUser).pipe(
+      take(1),
+      filter(user => !!user),
+      switchMap(user => {
+        return from(this.calculateAndUpdateStocksFromCommercialStock(user.username)).pipe(
+          map(() => {
+            // Reload articles in store to reflect updated stock quantities
+            this.store.dispatch(ArticleActions.loadArticles());
+            return true;
+          }),
+          catchError((error) => {
+            this.log.log(`[DataInitializationService] calculateArticleStocksFromCommercialStock failed: ${JSON.stringify(error)}`);
+            console.error('Error calculating article stocks from commercial stock:', error);
+            return of(false);
+          })
+        );
+      })
+    );
+  }
+
+  // ANCIENNE MÉTHODE : Maintenue pour compatibilité temporaire
   calculateArticleStocks(): Observable<boolean> {
     return from(this.calculateAndUpdateStocks()).pipe(
       map(() => {
@@ -245,6 +291,42 @@ export class DataInitializationService {
         return of(false);
       })
     );
+  }
+
+  private async calculateAndUpdateStocksFromCommercialStock(commercialUsername: string): Promise<void> {
+    try {
+      // Get all articles and commercial stock items
+      const articles = await this.dbService.getArticles();
+      const commercialStockItems = await this.commercialStockService.getCommercialStock(commercialUsername).toPromise();
+
+      // Create a map to store quantities per article
+      const articleStockMap = new Map<string, number>();
+
+      // Initialize all articles with 0 stock
+      articles.forEach(article => {
+        articleStockMap.set(article.id, 0);
+      });
+
+      // Set quantities from commercial stock items
+      commercialStockItems?.forEach(item => {
+        articleStockMap.set(item.articleId.toString(), item.quantityRemaining);
+      });
+
+      // Update articles with stock quantities
+      const updatedArticles = articles.map(article => ({
+        ...article,
+        stockQuantity: articleStockMap.get(article.id) || 0
+      }));
+
+      // Save updated articles back to database
+      await this.dbService.saveArticles(updatedArticles);
+      console.log('Article stocks updated successfully from commercial stock');
+    } catch (error: any) {
+      const errorMessage = `[DataInitializationService] Error in calculateAndUpdateStocksFromCommercialStock. Message: ${error.message}, Stack: ${error.stack}`;
+      this.log.log(errorMessage);
+      console.error('Error in calculateAndUpdateStocksFromCommercialStock:', error);
+      throw error;
+    }
   }
 
   private async calculateAndUpdateStocks(): Promise<void> {
@@ -368,11 +450,13 @@ export class DataInitializationService {
       concatMap(() => this.initializeCommercial()),
       concatMap(() => this.initializeLocalities()),
       concatMap(() => this.initializeClients()),
-      concatMap(() => this.initializeStockOutputs()),
+      concatMap(() => this.initializeCommercialStock()), // NOUVEAU : Initialiser les stocks commerciaux
+      concatMap(() => this.initializeStockOutputs()), // MAINTENU : Pour compatibilité temporaire
       concatMap(() => this.initializeDistributions()),
       concatMap(() => this.initializeAccounts()),
       concatMap(() => this.initializeRecoveries()),
       concatMap(() => this.initializeTontine()),
+      concatMap(() => this.calculateArticleStocksFromCommercialStock()), // NOUVEAU : Calcul depuis commercial stock
       concatMap(() => from(this.validateInitialData()))
     );
   }

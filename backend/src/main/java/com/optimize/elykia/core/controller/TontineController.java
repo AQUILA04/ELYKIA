@@ -82,14 +82,17 @@ public class TontineController {
     public ResponseEntity<Response> getCollectionHistory(@PathVariable Long memberId, Pageable pageable) {
         return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.getTontineCollectionRepository().findByTontineMember_Id(memberId, pageable)), HttpStatus.OK);
     }
+    
     @GetMapping("/stock")
-    public ResponseEntity<Response> getStock() {
-        return new ResponseEntity<>(ResponseUtil.successResponse(tontineStockService.getStock()), HttpStatus.OK);
+    public ResponseEntity<Response> getStock(
+            @RequestParam(required = false) String commercial,
+            @RequestParam(required = false) Boolean historic,
+            Pageable pageable) {
+        
+        // Si pageable est présent (size/page), on retourne une Page
+        // Sinon on garde le comportement liste pour compatibilité (si nécessaire, mais ici on va migrer vers Page)
+        // Spring Data Web Support injecte un Pageable par défaut si non fourni.
+        
+        return new ResponseEntity<>(ResponseUtil.successResponse(tontineStockService.getAll(commercial, pageable, historic)), HttpStatus.OK);
     }
-
-
-//    @PatchMapping("/members/{memberId}/deliver")
-//    public ResponseEntity<Response> markAsDelivered(@PathVariable Long memberId) {
-//        return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.setAsDelivered(memberId)), HttpStatus.OK);
-//    }
 }

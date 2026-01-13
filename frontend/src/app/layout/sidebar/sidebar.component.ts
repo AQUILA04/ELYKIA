@@ -17,8 +17,9 @@ import { UserService } from 'src/app/user/service/user.service';
 export class SidebarComponent implements OnInit {
   isCaisseOpen: boolean = false;
   isSecurityOpen: boolean = false;
-  isStockOpen: boolean = false; // AJOUTÉ
-  isConfigurationOpen: boolean = false; // AJOUTÉ
+  isStockOpen: boolean = false;
+  isStockTontineOpen: boolean = false; // AJOUTÉ
+  isConfigurationOpen: boolean = false;
   activeRoute: string = '';
 
   isRouteActive(route: string): boolean {
@@ -31,12 +32,17 @@ export class SidebarComponent implements OnInit {
       return this.activeRoute.startsWith('/security');
     }
 
-    // AJOUTÉ : Gestion pour le menu Stock
+    // Gestion pour le menu Stock Commercial
     if (route === '/stock') {
-      return this.activeRoute.startsWith('/stock');
+      return this.activeRoute.startsWith('/stock') && !this.activeRoute.startsWith('/stock-tontine');
     }
 
-    // AJOUTÉ : Gestion pour le menu Configuration
+    // AJOUTÉ : Gestion pour le menu Stock Tontine
+    if (route === '/stock-tontine') {
+      return this.activeRoute.startsWith('/stock-tontine');
+    }
+
+    // Gestion pour le menu Configuration
     if (route === '/configuration') {
       return this.activeRoute.startsWith('/localitylist') ||
              this.activeRoute.startsWith('/article-type') ||
@@ -57,7 +63,7 @@ export class SidebarComponent implements OnInit {
       '/list', '/localitylist', '/credit-list', '/out-list', '/tontine-list',
       '/accountlist', '/client-list', '/report', '/inventory', '/gestion-list',
       '/operation-list', '/deposit-list', '/user-list', '/commercial-list',
-      '/article-type', '/expense/types', '/parameters'
+      '/article-type', '/expense/types', '/parameters', '/stock', '/stock-tontine'
     ];
 
     // Vérifier si une autre route commence par la même base
@@ -82,19 +88,27 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  // AJOUTÉ : Gestionnaire de clic pour le menu Stock
+  // Gestionnaire de clic pour le menu Stock Commercial
   onStockClick() {
-    if (this.activeRoute.startsWith('/stock')) {
+    if (this.activeRoute.startsWith('/stock') && !this.activeRoute.startsWith('/stock-tontine')) {
       this.isStockOpen = !this.isStockOpen;
     } else {
-      // Rediriger vers la première page logique du module stock
-      // Par exemple, la liste des demandes
       this.router.navigate(['/stock/request']);
       this.isStockOpen = true;
     }
   }
 
-  // AJOUTÉ : Gestionnaire de clic pour le menu Configuration
+  // AJOUTÉ : Gestionnaire de clic pour le menu Stock Tontine
+  onStockTontineClick() {
+    if (this.activeRoute.startsWith('/stock-tontine')) {
+      this.isStockTontineOpen = !this.isStockTontineOpen;
+    } else {
+      this.router.navigate(['/stock-tontine/request']);
+      this.isStockTontineOpen = true;
+    }
+  }
+
+  // Gestionnaire de clic pour le menu Configuration
   onConfigurationClick() {
     const isConfigActive = this.activeRoute.startsWith('/localitylist') ||
                            this.activeRoute.startsWith('/article-type') ||
@@ -133,14 +147,21 @@ export class SidebarComponent implements OnInit {
         this.isSecurityOpen = false;
       }
 
-      // AJOUTÉ : Gestion de l'état ouvert/fermé pour Stock
-      if (this.activeRoute.startsWith('/stock')) {
+      // Gestion de l'état ouvert/fermé pour Stock Commercial
+      if (this.activeRoute.startsWith('/stock') && !this.activeRoute.startsWith('/stock-tontine')) {
         this.isStockOpen = true;
       } else {
         this.isStockOpen = false;
       }
 
-      // AJOUTÉ : Gestion de l'état ouvert/fermé pour Configuration
+      // AJOUTÉ : Gestion de l'état ouvert/fermé pour Stock Tontine
+      if (this.activeRoute.startsWith('/stock-tontine')) {
+        this.isStockTontineOpen = true;
+      } else {
+        this.isStockTontineOpen = false;
+      }
+
+      // Gestion de l'état ouvert/fermé pour Configuration
       if (this.activeRoute.startsWith('/localitylist') ||
           this.activeRoute.startsWith('/article-type') ||
           this.activeRoute.startsWith('/expense/types') ||
@@ -157,8 +178,9 @@ export class SidebarComponent implements OnInit {
     this.permissionsService.loadPermissions(currentUser.roles);
     this.isCaisseOpen = false;
     this.isSecurityOpen = false;
-    this.isStockOpen = false; // AJOUTÉ
-    this.isConfigurationOpen = false; // AJOUTÉ
+    this.isStockOpen = false;
+    this.isStockTontineOpen = false; // AJOUTÉ
+    this.isConfigurationOpen = false;
 
     // Initialiser activeRoute avec la route actuelle au démarrage
     this.activeRoute = this.router.url;

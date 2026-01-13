@@ -97,7 +97,7 @@
             <span class="hide-menu">Articles</span>
           </a>
         </li>
-        <!-- NOUVEAU MENU STOCK COMMERCIAL -->
+        <!-- MENU STOCK COMMERCIAL -->
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT', 'ROLE_STOREKEEPER']"
           [ngClass]="{ 'active': isRouteActive('/stock') }">
           <a class="sidebar-link has-arrow" (click)="onStockClick()" aria-expanded="false">
@@ -121,6 +121,37 @@
             </li>
             <li class="sidebar-item submenu-item">
               <a class="sidebar-link" routerLink="/stock/return">
+                <span class="material-icons">undo</span>
+                <span class="hide-menu">Retours</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <!-- NOUVEAU MENU STOCK TONTINE -->
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_TONTINE', 'ROLE_STOREKEEPER', 'ROLE_REPORT']"
+          [ngClass]="{ 'active': isRouteActive('/stock-tontine') }">
+          <a class="sidebar-link has-arrow" (click)="onStockTontineClick()" aria-expanded="false">
+            <span>
+              <mat-icon>savings</mat-icon>
+            </span>
+            <span class="hide-menu">Stock Tontine</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isStockTontineOpen }">
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/stock-tontine/request">
+                <span class="material-icons">add_shopping_cart</span>
+                <span class="hide-menu">Demandes Sortie</span>
+              </a>
+            </li>
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/stock-tontine/my-stock">
+                <span class="material-icons">dashboard</span>
+                <span class="hide-menu">Stock</span>
+              </a>
+            </li>
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/stock-tontine/return">
                 <span class="material-icons">undo</span>
                 <span class="hide-menu">Retours</span>
               </a>
@@ -184,7 +215,7 @@
           </a>
         </li>
 
-        <!-- NOUVEAU MENU CONFIGURATION -->
+        <!-- MENU CONFIGURATION -->
         <li class="sidebar-item" [ngClass]="{ 'active': isRouteActive('/configuration') }">
           <a class="sidebar-link has-arrow" (click)="onConfigurationClick()" aria-expanded="false">
             <span>

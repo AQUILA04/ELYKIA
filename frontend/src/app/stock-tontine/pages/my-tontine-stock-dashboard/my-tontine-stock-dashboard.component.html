@@ -1,0 +1,110 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container">
+  <div class="header-fixed">
+    <h1>Stock Tontine Annuel</h1>
+  </div>
+
+  <div class="filter-row">
+    <div class="agent-select">
+      <ng-select [items]="agents" bindLabel="username" bindValue="username" placeholder="Sélectionner un commercial"
+        [searchFn]="searchAgent" (change)="onAgentChange($event)">
+        <ng-template ng-option-tmp let-item="item">
+          {{item.username}} <small class="text-muted">({{item.firstname}} {{item.lastname}})</small>
+        </ng-template>
+      </ng-select>
+    </div>
+
+    <button mat-raised-button class="historic-btn" [class.active]="isHistoric" (click)="toggleHistoric()">
+      <mat-icon>history</mat-icon>
+      {{ isHistoric ? 'Masquer Historique' : 'Historique' }}
+    </button>
+  </div>
+
+  <div *ngIf="groupedStocks && groupedStocks.length > 0">
+    <mat-accordion>
+      <mat-expansion-panel *ngFor="let stock of groupedStocks">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{ stock.collector }} - Année {{ stock.year }}
+          </mat-panel-title>
+          <mat-panel-description>
+            Valeur Stock Restant: {{ getTotalStockValue(stock) | number:'1.0-0' }} FCFA
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="stats-row mb-4">
+          <div class="stats-card">
+            <div class="stats-icon bg-info">
+              <mat-icon>inventory_2</mat-icon>
+            </div>
+            <div class="stats-info">
+              <p class="stats-label">Valeur Stock Restant</p>
+              <p class="stats-value">{{ getTotalStockValue(stock) | number:'1.0-0' }} FCFA</p>
+            </div>
+          </div>
+
+          <div class="stats-card">
+            <div class="stats-icon bg-success">
+              <mat-icon>monetization_on</mat-icon>
+            </div>
+            <div class="stats-info">
+              <p class="stats-label">Valeur Stock Vendu</p>
+              <p class="stats-value">{{ getTotalSoldValue(stock) | number:'1.0-0' }} FCFA</p>
+            </div>
+          </div>
+
+          <div class="stats-card">
+            <div class="stats-icon bg-warning">
+              <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="stats-info">
+              <p class="stats-label">Valeur Total Dû</p>
+              <p class="stats-value">{{ getTotalDueValue(stock) | number:'1.0-0' }} FCFA</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="article-table">
+            <thead>
+              <tr>
+                <th>Article</th>
+                <th class="text-center">Pris (Magasin)</th>
+                <th class="text-center">Vendu (Clients)</th>
+                <th class="text-center">Retourné</th>
+                <th class="text-center">Restant</th>
+                <th class="text-right">Valeur Restante</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of stock.items">
+                <td>{{ item.articleName }}</td>
+                <td class="text-center">{{ item.totalQuantity }}</td>
+                <td class="text-center">{{ item.distributedQuantity }}</td>
+                <td class="text-center">{{ item.quantityReturned }}</td>
+                <td class="text-center font-weight-bold">{{ item.availableQuantity }}</td>
+                <td class="text-right">{{ (item.availableQuantity * item.weightedAverageUnitPrice) | number:'1.0-0' }}
+                  FCFA
+                </td>
+              </tr>
+              <tr *ngIf="stock.items.length === 0">
+                <td colspan="6" class="text-center p-4">Aucun article en stock cette année</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </mat-expansion-panel>
+    </mat-accordion>
+
+    <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 20, 50]"
+      (page)="onPageChange($event)" showFirstLastButtons aria-label="Select page">
+    </mat-paginator>
+  </div>
+
+  <div *ngIf="!groupedStocks || groupedStocks.length === 0" class="empty-state">
+    <mat-icon class="empty-icon">inventory</mat-icon>
+    <p>Aucune donnée de stock trouvée.</p>
+  </div>
+</div>

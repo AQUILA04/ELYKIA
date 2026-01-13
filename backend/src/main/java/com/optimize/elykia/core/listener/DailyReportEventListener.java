@@ -57,6 +57,38 @@ public class DailyReportEventListener {
 
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handleStockTontineRequestDelivered(StockTontineRequestDeliveredEvent event) {
+        log.info("Processing StockTontineRequestDeliveredEvent for collector: {}", event.getCollector());
+        DailyCommercialReport report = getOrCreateReport(event.getCollector());
+        report.setTotalTontineStockRequestAmount(report.getTotalTontineStockRequestAmount() + event.getAmount());
+        repository.save(report);
+
+        dailyOperationService.logOperation(
+                event.getCollector(),
+                com.optimize.elykia.core.enumaration.OperationType.STOCK_TONTINE_REQUEST,
+                event.getAmount(),
+                "Stock Tontine Request",
+                "Sortie de stock Tontine");
+    }
+
+    @EventListener
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handleStockTontineReturned(StockTontineReturnedEvent event) {
+        log.info("Processing StockTontineReturnedEvent for collector: {}", event.getCollector());
+        DailyCommercialReport report = getOrCreateReport(event.getCollector());
+        report.setTotalTontineStockRequestAmount(report.getTotalTontineStockRequestAmount() - event.getAmount());
+        repository.save(report);
+
+        dailyOperationService.logOperation(
+                event.getCollector(),
+                com.optimize.elykia.core.enumaration.OperationType.STOCK_TONTINE_RETURN,
+                event.getAmount(),
+                "Stock Tontine Return",
+                "Retour de stock Tontine");
+    }
+
+    @EventListener
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleCreditStarted(CreditStartedEvent event) {
         log.info("Processing CreditStartedEvent for collector: {}", event.getCollector());
         DailyCommercialReport report = getOrCreateReport(event.getCollector());

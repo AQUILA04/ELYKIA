@@ -124,13 +124,23 @@ const routes: Routes = [
     }
   },
 
-  // === ROUTES STOCK (Nouveau Module) ===
+  // === ROUTES STOCK (Module Stock Commercial) ===
   {
     path: 'stock',
     loadChildren: () => import('./stock/stock.module').then(m => m.StockModule),
     canActivate: [AuthGuard],
     data: {
       breadcrumb: 'Gestion Stock Commercial'
+    }
+  },
+
+  // === ROUTES STOCK TONTINE (Nouveau Module) ===
+  {
+    path: 'stock-tontine',
+    loadChildren: () => import('./stock-tontine/stock-tontine.module').then(m => m.StockTontineModule),
+    canActivate: [AuthGuard],
+    data: {
+      breadcrumb: 'Gestion Stock Tontine'
     }
   },
 

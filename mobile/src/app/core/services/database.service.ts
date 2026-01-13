@@ -488,6 +488,18 @@ export class DatabaseService {
             FOREIGN KEY(articleId) REFERENCES articles(id)
         );
 
+        -- Table des stocks commerciaux (nouvelle structure simplifiée)
+        CREATE TABLE IF NOT EXISTS commercial_stock_items (
+            articleId INTEGER PRIMARY KEY,
+            articleName TEXT,
+            commercialName TEXT,
+            sellingPrice REAL,
+            creditSalePrice REAL,
+            quantityRemaining INTEGER,
+            commercialUsername TEXT,
+            lastUpdated DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
         -- Table des stocks de tontine
         CREATE TABLE IF NOT EXISTS tontine_stocks (
             id TEXT PRIMARY KEY,
@@ -3041,4 +3053,113 @@ export class DatabaseService {
     
     const result = await this.db.query(query, [commercialUsername, firstDayOfMonth, lastDayOfMonth]);
     return result.values || [];
+  }
+
+  // ==================== MÉTHODES POUR COMMERCIAL STOCK ITEMS ====================
+
+  /**
+   * Sauvegarder les articles de stock commercial
+   */
+  async saveCommercialStockItems(stockItems: any[]): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const statements: any[] = [];
+    
+    for (const item of stockItems) {
+      const query = `
+        INSERT OR REPLACE INTO commercial_stock_items 
+        (articleId, articleName, commercialName, sellingPrice, creditSalePrice, quantityRemaining, commercialUsername, lastUpdated)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      
+      statements.push({
+        statement: query,
+        values: [
+          item.articleId,
+          item.articleName,
+          item.commercialName,
+          item.sellingPrice,
+          item.creditSalePrice,
+          item.quantityRemaining,
+          item.commercialUsername || '',
+          new Date().toISOString()
+        ]
+      });
+    }
+    
+    if (statements.length > 0) {
+      await this.db.executeSet(statements);
+      console.log(`Saved ${statements.length} commercial stock items`);
+    }
+  }
+
+  /**
+   * Récupérer les articles de stock commercial
+   */
+  async getCommercialStockItems(commercialUsername: string): Promise<any[]> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return [];
+    }
+    
+    const query = `SELECT * FROM commercial_stock_items WHERE commercialUsername = ?`;
+    const ret = await this.db.query(query, [commercialUsername]);
+    return ret.values || [];
+  }
+
+  /**
+   * Mettre à jour la quantité restante d'un article
+   */
+  async updateCommercialStockQuantity(articleId: number, newQuantity: number): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const query = `
+      UPDATE commercial_stock_items 
+      SET quantityRemaining = ?, lastUpdated = ? 
+      WHERE articleId = ?
+    `;
+    
+    await this.db.run(query, [newQuantity, new Date().toISOString(), articleId]);
+  }
+
+  /**
+   * Réduire la quantité d'un article après distribution
+   */
+  async reduceCommercialStockQuantity(articleId: number, quantityUsed: number): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const query = `
+      UPDATE commercial_stock_items 
+      SET quantityRemaining = quantityRemaining - ?, lastUpdated = ? 
+      WHERE articleId = ? AND quantityRemaining >= ?
+    `;
+    
+    const result = await this.db.run(query, [quantityUsed, new Date().toISOString(), articleId, quantityUsed]);
+    
+    if (result.changes === 0) {
+      throw new Error(`Insufficient stock for article ${articleId}. Requested: ${quantityUsed}`);
+    }
+  }
+
+  /**
+   * Vérifier la disponibilité des articles pour une distribution
+   */
+  async checkStockAvailability(articles: Array<{articleId: number, quantity: number}>): Promise<boolean> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    for (const article of articles) {
+      const query = `SELECT quantityRemaining FROM commercial_stock_items WHERE articleId = ?`;
+      const result = await this.db.query(query, [article.articleId]);
+      
+      if (!result.values || result.values.length === 0) {
+        return false; // Article not found
+      }
+      
+      const availableQuantity = result.values[0].quantityRemaining;
+      if (availableQuantity < article.quantity) {
+        return false; // Insufficient stock
+      }
+    }
+    
+    return true;
   }

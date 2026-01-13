@@ -5,7 +5,7 @@ import { DistributionItem } from './distribution-item.model';
 export interface Distribution {
   id: string;
   reference: string;
-  creditId: string;
+  creditId?: string; // RENDU OPTIONNEL pour la migration
   totalAmount: number;
   paidAmount?: number;
   advance?: number;
@@ -25,5 +25,4 @@ export interface Distribution {
   syncHash?: string;
   articleCount?: number;
   items?: DistributionItem[];
-
 }

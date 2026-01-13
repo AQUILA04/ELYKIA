@@ -1,0 +1,226 @@
+.container {
+    margin: 80px auto 20px auto;
+    padding: 24px;
+    background-color: white;
+    border-radius: 12px;
+    max-width: 1200px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.header-fixed {
+    margin-bottom: 30px;
+    text-align: center;
+
+    h1 {
+        color: #003366;
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0;
+    }
+}
+
+.action-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 25px;
+}
+
+.btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 15px;
+    cursor: pointer;
+    border: none;
+    background-color: #003366;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 51, 102, 0.15);
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: #004080;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 12px rgba(0, 51, 102, 0.2);
+    }
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.table-container {
+    margin-top: 20px;
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #edf2f7;
+}
+
+.article-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+        background-color: #f8fafc;
+    }
+
+    th {
+        color: #003366;
+        padding: 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 14px;
+        border-bottom: 2px solid #edf2f7;
+    }
+
+    td {
+        padding: 16px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+        color: #4a5568;
+        font-size: 14px;
+    }
+
+    tbody tr {
+        transition: background-color 0.15s ease;
+
+        &:hover {
+            background-color: #f7fafc;
+        }
+
+        &:last-child td {
+            border-bottom: none;
+        }
+    }
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &.badge-success {
+        background-color: #c6f6d5;
+        color: #22543d;
+    }
+
+    &.badge-warning {
+        background-color: #feebc8;
+        color: #744210;
+    }
+}
+
+.article-item-mini {
+    font-size: 13px;
+    margin-bottom: 6px;
+    line-height: 1.5;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    .qty {
+        font-weight: 600;
+        color: #003366;
+        margin-left: 4px;
+    }
+}
+
+/* --- ACTIONS COLUMN STYLING --- */
+
+.actions-column {
+    width: 120px; /* Fixed width to prevent stretching */
+    text-align: right;
+    white-space: nowrap;
+}
+
+.action-buttons-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px; /* Consistent gap between buttons */
+}
+
+.btn-action {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0; /* Reset padding */
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; /* Fixed width */
+    height: 36px; /* Fixed height */
+    flex-shrink: 0; /* Prevent shrinking */
+
+    &.validate {
+        color: white;
+        background-color: #28a745;
+        box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+        opacity: 1 !important;
+
+        &:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+        }
+    }
+
+    &.details {
+        color: #003366;
+        background-color: rgba(0, 51, 102, 0.1);
+
+        &:hover {
+            background-color: rgba(0, 51, 102, 0.2);
+            transform: translateY(-2px);
+        }
+    }
+
+    mat-icon {
+        font-size: 20px; /* Slightly smaller icon */
+        width: 20px;
+        height: 20px;
+        opacity: 1 !important;
+    }
+}
+
+.text-center {
+    text-align: center;
+}
+
+.empty-message {
+    padding: 40px 20px !important;
+    color: #718096;
+    font-style: italic;
+}
+
+/* --- MODAL BUTTON STYLING --- */
+.btn-close-modal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    background-color: #003366; /* Same as btn-add */
+    color: white;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: #004080;
+        box-shadow: 0 2px 4px rgba(0, 51, 102, 0.2);
+    }
+}
