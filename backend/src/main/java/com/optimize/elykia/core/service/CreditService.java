@@ -794,7 +794,7 @@ public class CreditService extends GenericService<Credit, Long> {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.CreditStartedEvent(
                     this,
                     credit.getTotalAmount(),
-                    credit.getCollector()));
+                    credit.getCollector(), credit.getAdvance()));
         }
 
         return Boolean.TRUE;

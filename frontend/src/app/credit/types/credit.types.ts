@@ -9,3 +9,9 @@ export interface CreditDistributionDetail {
   distributedQuantity: number;
   undistributedQuantity: number;
 }
+
+export interface CreditTimelineDto {
+  creditId: number;
+  amount: number;
+  date?: string; // Optionnel, peut être géré par le backend
+}

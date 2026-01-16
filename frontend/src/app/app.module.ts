@@ -57,6 +57,8 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 // Tontine components removed - now using lazy loaded module
 import { InventoryComponent } from './inventory/inventory/inventory.component';
 import { AddInventoryComponent } from './inventory/inventory-add/inventory-add.component';
+import { InventoryReconciliationComponent } from './inventory/inventory-reconciliation/inventory-reconciliation.component';
+import { PhysicalQuantityModalComponent } from './inventory/physical-quantity-modal/physical-quantity-modal.component';
 import { GestionAddComponent } from './gestion/gestion-add/gestion-add.component';
 import { GestionListComponent } from './gestion/gestion-list/gestion-list.component';
 import { GestionDetailsComponent } from './gestion/gestion-details/gestion-details.component';
@@ -103,6 +105,7 @@ import { ToastrModule } from 'ngx-toastr';
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 import { ParameterEditComponent } from './parameters/parameter-edit/parameter-edit.component';
 import { CashDepositModalComponent } from './report/components/cash-deposit-modal/cash-deposit-modal.component';
+import { DailyStakeModalComponent } from './credit/components/daily-stake-modal/daily-stake-modal.component';
 
 @NgModule({
   declarations: [
@@ -140,6 +143,8 @@ import { CashDepositModalComponent } from './report/components/cash-deposit-moda
     DashboardChartComponent,
     InventoryComponent,
     AddInventoryComponent,
+    InventoryReconciliationComponent,
+    PhysicalQuantityModalComponent,
     GestionAddComponent,
     GestionListComponent,
     GestionDetailsComponent,
@@ -168,10 +173,10 @@ import { CashDepositModalComponent } from './report/components/cash-deposit-moda
     OldReleaseListComponent,
     CreditMergeModalComponent,
     // --- NOUVELLE DÉCLARATION ---
-    CreditMergeModalComponent,
     ParameterListComponent,
     ParameterEditComponent,
-    CashDepositModalComponent
+    CashDepositModalComponent,
+    DailyStakeModalComponent
     // --- NOUVELLES COMPOSANTS DÉPLACÉS DANS SHARED ---
   ],
   imports: [

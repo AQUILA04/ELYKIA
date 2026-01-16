@@ -14,8 +14,14 @@ h1 {
   .button-group {
     display: flex;
     justify-content: right;
-    gap: 1px;
+    gap: 8px;
     margin-bottom: 20px;
+    align-items: center;
+  }
+
+  .search-input {
+    width: 30%;
+    max-width: 300px;
   }
 
   .refresh-button, .add {

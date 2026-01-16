@@ -94,6 +94,7 @@ public class DailyReportEventListener {
         DailyCommercialReport report = getOrCreateReport(event.getCollector());
         report.setCreditSalesCount(report.getCreditSalesCount() + 1);
         report.setCreditSalesAmount(report.getCreditSalesAmount() + event.getAmount());
+        report.addAmountToDeposit(event.getAdvance());
         repository.save(report);
 
         dailyOperationService.logOperation(

@@ -1,0 +1,43 @@
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Effectuer une mise</h2>
+      <button class="close-btn" (click)="close()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="modal-body" *ngIf="credit">
+      <div class="credit-info">
+        <p><strong>Client :</strong> {{ credit.client?.firstname }} {{ credit.client?.lastname }}</p>
+        <p><strong>Référence :</strong> {{ credit.reference }}</p>
+        <p><strong>Mise journalière :</strong> {{ credit.dailyStake | currency }}</p>
+        <p><strong>Montant restant :</strong> {{ (credit.remainingAmount ?? credit.totalAmount) | currency }}</p>
+      </div>
+
+      <form [formGroup]="stakeForm" (ngSubmit)="submit()">
+        <div class="form-group">
+          <label for="amount">Montant de la mise</label>
+          <input
+            type="number"
+            id="amount"
+            formControlName="amount"
+            class="form-control"
+            [min]="minAmount"
+            [max]="credit.remainingAmount ?? credit.totalAmount">
+
+          <div *ngIf="amountControl?.invalid && (amountControl?.dirty || amountControl?.touched)" class="error-message">
+            <small *ngIf="amountControl?.errors?.['required']">Le montant est requis.</small>
+            <small *ngIf="amountControl?.errors?.['min']">Le montant doit être supérieur ou égal à {{ minAmount }}.</small>
+            <small *ngIf="amountControl?.errors?.['max']">Le montant ne peut pas dépasser le montant restant.</small>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="close()">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="stakeForm.invalid">Valider</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

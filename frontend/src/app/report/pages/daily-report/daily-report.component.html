@@ -55,7 +55,8 @@
                     <!-- Content: List of Commercial Reports -->
                     <div class="reports-list mb-4">
                         <mat-accordion multi>
-                            <mat-expansion-panel *ngFor="let report of reports" expanded="true">
+                            <mat-expansion-panel *ngFor="let report of reports" expanded="true"
+                                [ngClass]="getDepositStatus(report)">
                                 <mat-expansion-panel-header>
                                     <mat-panel-title>
                                         <strong>{{ report.commercialUsername | uppercase }}</strong>
@@ -171,8 +172,8 @@
                             <tr *ngFor="let op of operations" class="border-b border-gray-100 hover:bg-gray-50">
                                 <td class="py-2 px-4 text-sm">{{ op.timestamp | date:'HH:mm' }}</td>
                                 <td class="py-2 px-4 text-sm text-gray-700 font-medium">{{ op.commercialUsername }}</td>
-                                <td class="py-2 px-4 text-sm font-semibold text-primary-600">{{ op.operationType }}</td>
-                                <td class="py-2 px-4 text-sm">{{ op.subject }}</td>
+                                <td class="py-2 px-4 text-sm font-semibold text-primary-600">{{ op.type }}</td>
+                                <td class="py-2 px-4 text-sm">{{ op.reference }}</td>
                                 <td class="py-2 px-4 text-sm text-gray-600">{{ op.description }}</td>
                                 <td class="py-2 px-4 text-sm font-mono text-right font-medium">
                                     <span [class.text-green-600]="op.amount > 0"

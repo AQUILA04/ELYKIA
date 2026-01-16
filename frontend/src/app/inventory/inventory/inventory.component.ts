@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { InventoryService } from '../service/inventory.service';
-import { Inventory, ApiResponse } from '../service/inventory.service';
+import { InventoryService, Inventory, ApiResponse, InventoryDto, InventoryItemDto } from '../service/inventory.service';
 import { Router } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { PageEvent } from '@angular/material/paginator';
@@ -9,6 +8,9 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 import { ItemService, StockValues } from '../../article/service/item.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import {AuthService} from "../../auth/service/auth.service"; // AJOUTÉ : Importation de AlertService
+import { saveAs } from 'file-saver';
+import { MatDialog } from '@angular/material/dialog';
+import { PhysicalQuantityModalComponent } from '../physical-quantity-modal/physical-quantity-modal.component';
 
 
 
@@ -28,6 +30,9 @@ export class InventoryComponent implements OnInit {
    stockValues: StockValues | null = null;
    isGestionnaire: boolean = false;
 
+   // Nouvelles propriétés pour la gestion d'inventaire
+   currentInventory: InventoryDto | null = null;
+
   constructor(
     private inventoryService: InventoryService,
     private router: Router,
@@ -35,7 +40,8 @@ export class InventoryComponent implements OnInit {
     private tokenStorage: TokenStorageService,
     private itemService: ItemService, // AJOUTÉ : Injection de ItemService
     private alertService: AlertService, // AJOUTÉ : Injection de AlertService
-    private authService: AuthService
+    private authService: AuthService,
+    private dialog: MatDialog
   ) {
     this.tokenStorage.checkConnectedUser();
     // AJOUTÉ : Logique pour vérifier si l'utilisateur est un gestionnaire
@@ -52,6 +58,7 @@ export class InventoryComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadInventories();
+    this.loadCurrentInventory();
     // AJOUTÉ : On charge les valeurs du stock si l'utilisateur est un gestionnaire
         if (this.isGestionnaire) {
           this.loadStockValues();
@@ -169,5 +176,104 @@ export class InventoryComponent implements OnInit {
     this.currentPage = event.pageIndex; // Index de la page actuelle
     this.pageSize = event.pageSize; // Taille de la page
     this.loadInventories(); // Recharger les inventaires
+  }
+
+  // Nouvelles méthodes pour la gestion d'inventaire
+  loadCurrentInventory(): void {
+    this.inventoryService.getCurrentInventory().subscribe({
+      next: (inventory: any) => {
+        if (inventory) {
+          this.currentInventory = inventory;
+        } else {
+          this.currentInventory = null;
+        }
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement de l\'inventaire en cours', err);
+        this.currentInventory = null;
+      }
+    });
+  }
+
+  createInventory(): void {
+    this.alertService.showConfirmation('Confirmation de création d\'inventaire',
+      'Voulez-vous créer un nouvel inventaire ? Cette action créera un point de contrôle pour tous les articles.'
+    ).then((result: boolean) => {
+      if (result) {
+        this.spinner.show();
+        this.inventoryService.createInventory().subscribe({
+          next: (inventory: any) => {
+            this.spinner.hide();
+            if (inventory) {
+              this.currentInventory = inventory;
+              this.alertService.showDefaultSucces('Inventaire créé avec succès.');
+            }
+          },
+          error: (err) => {
+            this.spinner.hide();
+            const errorMessage = err?.error?.message || 'Une erreur est survenue lors de la création de l\'inventaire.';
+            this.alertService.showError(errorMessage);
+            console.error(err);
+          }
+        });
+      }
+    });
+  }
+
+
+  downloadInventoryPdf(): void {
+    if (!this.currentInventory || !this.currentInventory.id) {
+      this.alertService.showError('Aucun inventaire disponible pour télécharger.');
+      return;
+    }
+
+    if (!this.currentInventory || !this.currentInventory.id) {
+      this.alertService.showError('Aucun inventaire disponible pour télécharger.');
+      return;
+    }
+
+    const inventoryId = this.currentInventory.id;
+    this.spinner.show();
+    this.inventoryService.downloadInventoryPdf(inventoryId).subscribe({
+      next: (blob: Blob) => {
+        this.spinner.hide();
+        const filename = `fiche_controle_inventaire_${inventoryId}.pdf`;
+        saveAs(blob, filename);
+        this.alertService.showDefaultSucces('PDF téléchargé avec succès.');
+      },
+      error: (err) => {
+        this.spinner.hide();
+        this.alertService.showError('Erreur lors du téléchargement du PDF.');
+        console.error(err);
+      }
+    });
+  }
+
+  togglePhysicalInput(): void {
+    if (!this.currentInventory || !this.currentInventory.id) {
+      this.alertService.showError('Aucun inventaire disponible.');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(PhysicalQuantityModalComponent, {
+      width: '90%',
+      maxWidth: '1200px',
+      maxHeight: '90vh',
+      data: { inventoryId: this.currentInventory.id },
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe((result: boolean) => {
+      if (result) {
+        // Recharger l'inventaire pour mettre à jour les données
+        this.loadCurrentInventory();
+      }
+    });
+  }
+
+  navigateToReconciliation(): void {
+    if (this.currentInventory && this.currentInventory.id) {
+      this.router.navigate(['/inventory-reconciliation', this.currentInventory.id]);
+    }
   }
 }

@@ -64,7 +64,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
     @Transactional
     public void dailyStakeFactor(Credit credit, CreditTimeline creditTimeline) {
-        DailyAccountancy dailyAccountancy = dailyAccountancyService.getByCollector(credit.getCollector(), Boolean.TRUE);
+        DailyAccountancy dailyAccountancy = dailyAccountancyService.getByCollectorOrCreateNew(credit.getCollector());
         credit.checkInProgressStatus();
 
         // C'est ici que se trouve l'ancienne vérification
@@ -72,6 +72,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
         creditTimeline = credit.dailyStakeOperation(creditTimeline);
         creditTimeline.setDailyAccountancy(dailyAccountancy);
+        creditTimeline.setCollector(credit.getCollector());
         creditService.update(credit);
         create(creditTimeline);
 

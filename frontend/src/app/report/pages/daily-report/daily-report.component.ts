@@ -163,7 +163,7 @@ export class DailyReportComponent implements OnInit {
         this.dailyOperationService.getOperations(start, end, collector, this.operationsPage, this.operationsPageSize).subscribe({
             next: (res) => {
                 this.operations = res.content;
-                this.operationsTotal = res.totalElements;
+                this.operationsTotal = res.page.totalElements;
             },
             error: (err) => console.error('Error loading operations', err)
         });
@@ -174,7 +174,7 @@ export class DailyReportComponent implements OnInit {
         this.cashDepositService.getDeposits(start, end, collector, this.depositsPage, this.depositsPageSize).subscribe({
             next: (res) => {
                 this.deposits = res.content;
-                this.depositsTotal = res.totalElements;
+                this.depositsTotal = res.page.totalElements;
             },
             error: (err) => console.error('Error loading deposits', err)
         });
@@ -238,5 +238,17 @@ export class DailyReportComponent implements OnInit {
                 this.loadReports();
             }
         });
+    }
+    getDepositStatus(report: DailyCommercialReport): 'status-red' | 'status-green' | 'status-orange' {
+        const toDeposit = report.totalAmountToDeposit || 0;
+        const deposited = report.totalAmountDeposited || 0;
+
+        if (toDeposit > deposited) {
+            return 'status-red';
+        } else if (toDeposit === deposited) {
+            return 'status-green';
+        } else {
+            return 'status-orange';
+        }
     }
 }

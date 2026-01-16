@@ -7,7 +7,7 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 
 // Enhanced interfaces with proper typing
-import { CreditDistributionDetail } from '../types/credit.types';
+import { CreditDistributionDetail, CreditTimelineDto } from '../types/credit.types';
 // Interface pour les articles dans les réponses du serveur (avec id)
 interface CreditArticleResponse {
   readonly id: number;
@@ -255,6 +255,10 @@ export class CreditService extends BaseHttpService {
     }
 
     return this.post(`${this.apiUrl}/merge`, sanitizedMergeData);
+  }
+
+  makeDailyStake(dto: CreditTimelineDto): Observable<any> {
+    return this.post(`${this.apiUrl}/daily-stake`, dto);
   }
 
 

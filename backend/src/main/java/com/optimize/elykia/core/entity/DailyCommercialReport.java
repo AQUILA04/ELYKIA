@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -90,7 +91,7 @@ public class DailyCommercialReport extends BaseEntity<String> {
             Double creditSalesAmount, Long newClientsCount, Double newAccountsBalance, Long collectionsCount,
             Double collectionsAmount, Long ordersCount, Double ordersAmount, Long tontineMembersCount,
             Long tontineCollectionsCount, Double tontineCollectionsAmount, Long tontineDeliveriesCount,
-            Double tontineDeliveriesAmount) {
+            Double tontineDeliveriesAmount, Double totalAmountToDeposit, Double totalAmountDeposited) {
         this.commercialUsername = commercialUsername;
         this.totalStockRequestAmount = totalStockRequestAmount != null ? totalStockRequestAmount : 0.0;
         this.creditSalesCount = creditSalesCount != null ? creditSalesCount.intValue() : 0;
@@ -106,5 +107,14 @@ public class DailyCommercialReport extends BaseEntity<String> {
         this.tontineCollectionsAmount = tontineCollectionsAmount != null ? tontineCollectionsAmount : 0.0;
         this.tontineDeliveriesCount = tontineDeliveriesCount != null ? tontineDeliveriesCount.intValue() : 0;
         this.tontineDeliveriesAmount = tontineDeliveriesAmount != null ? tontineDeliveriesAmount : 0.0;
+        this.totalAmountToDeposit = totalAmountToDeposit != null ? totalAmountToDeposit : 0.0;
+        this.totalAmountDeposited = totalAmountDeposited != null ? totalAmountDeposited : 0.0;
+    }
+
+    public void addAmountToDeposit(Double amount) {
+        if (Objects.nonNull(amount)) {
+            this.totalAmountToDeposit += amount;
+        }
+
     }
 }

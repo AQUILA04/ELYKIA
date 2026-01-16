@@ -85,3 +85,29 @@ mat-expansion-panel-header {
 mat-panel-title {
     font-size: 1.1rem;
 }
+
+mat-expansion-panel {
+    &.status-red {
+        border: 1px solid #f44336; // Material Red
+
+        ::ng-deep .mat-expansion-panel-header {
+            background-color: #ffebee !important; // Red 50
+        }
+    }
+
+    &.status-green {
+        border: 1px solid #4caf50; // Material Green
+
+        ::ng-deep .mat-expansion-panel-header {
+            background-color: #e8f5e9 !important; // Green 50
+        }
+    }
+
+    &.status-orange {
+        border: 1px solid #ff9800; // Material Orange
+
+        ::ng-deep .mat-expansion-panel-header {
+            background-color: #fff3e0 !important; // Orange 50
+        }
+    }
+}

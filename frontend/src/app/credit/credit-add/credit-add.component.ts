@@ -7,7 +7,7 @@ import { ItemService } from 'src/app/article/service/item.service';
 import { ClientService } from 'src/app/client/service/client.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
-import { forkJoin, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AuthService } from "../../auth/service/auth.service";
 import { UserService } from '../../user/service/user.service';
@@ -67,25 +67,19 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     this.currentUser = this.authService.getCurrentUser();
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
 
-    const loadSub = forkJoin({
-      clients: this.clientService.getClients(0, 10000, 'id,desc', this.currentUser.username)
-        .pipe(map(response => response.data.content)),
-      commercials: this.clientService.getAgents()
-    }).subscribe({
-      next: ({ clients, commercials }) => {
-        // Filtrer les clients pour ne garder que ceux de type 'CLIENT'
-        this.clients = clients.filter((client: any) => client.clientType === 'CLIENT');
+    const loadSub = this.clientService.getAgents().subscribe({
+      next: (commercials) => {
         this.commercials = commercials;
-
         this.setupInitialState();
 
         if (this.creditId) {
           this.loadCredit(this.creditId);
+        } else {
+          this.spinner.hide();
         }
-        this.spinner.hide();
       },
       error: (error) => {
-        this.alertService.showError('Erreur de chargement des données');
+        this.alertService.showError('Erreur de chargement des commerciaux');
         this.spinner.hide();
       }
     });
@@ -98,6 +92,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       this.creditForm.patchValue({ commercial: this.currentUser.username });
       this.creditForm.get('commercial')?.disable();
       this.loadCommercialStock(this.currentUser.username);
+      this.loadClientsForCommercial(this.currentUser.username);
     }
 
     // Ecouter les changements de type de vente
@@ -111,33 +106,79 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   }
 
   onSaleTypeChange(type: 'CREDIT' | 'CASH') {
+    // Reset fields when changing sale type
+    this.articles = [];
+    this.clients = [];
+    this.creditForm.get('clientId')?.reset();
+    this.creditForm.get('articles')?.reset([]);
+
     if (type === 'CASH') {
       this.creditForm.get('commercial')?.clearValidators();
       this.creditForm.get('commercial')?.updateValueAndValidity();
       this.loadGeneralStock();
-    } else {
+      this.loadAllClients(); // Load all clients for cash sale
+    } else { // CREDIT
       this.creditForm.get('commercial')?.setValidators(Validators.required);
       this.creditForm.get('commercial')?.updateValueAndValidity();
 
-      // Si on est promoter, on garde notre username, sinon on attend la sélection
-      if (this.isPromoter) {
-          this.loadCommercialStock(this.currentUser.username);
-      } else {
-          const commercial = this.creditForm.get('commercial')?.value;
-          if (commercial) {
-            this.loadCommercialStock(commercial);
-          } else {
-            this.articles = []; // Reset articles if no commercial selected
-          }
+      // If a commercial is already selected, load their data
+      const commercial = this.creditForm.get('commercial')?.value;
+      if (commercial) {
+        this.loadCommercialStock(commercial);
+        this.loadClientsForCommercial(commercial);
       }
     }
   }
 
+  loadAllClients() {
+    this.spinner.show();
+    const clientsSub = this.clientService.getClients(0, 10000, 'id,desc', this.currentUser)
+        .pipe(map(response => response.data.content))
+        .subscribe({
+            next: (clients) => {
+                this.clients = clients.filter((client: any) => client.clientType === 'CLIENT');
+                this.spinner.hide();
+            },
+            error: () => {
+                this.toastr.error('Erreur chargement des clients');
+                this.spinner.hide();
+            }
+        });
+    this.subscriptions.push(clientsSub);
+  }
+
   onCommercialChange() {
     const commercial = this.creditForm.get('commercial')?.value;
+    this.creditForm.get('clientId')?.reset();
+    this.creditForm.get('articles')?.reset([]);
+
     if (commercial) {
       this.loadCommercialStock(commercial);
+      this.loadClientsForCommercial(commercial);
+    } else {
+      this.articles = [];
+      this.clients = [];
     }
+  }
+
+  loadClientsForCommercial(username: string) {
+    this.spinner.show();
+    this.clients = [];
+    this.creditForm.get('clientId')?.reset();
+
+    const clientsSub = this.clientService.getClientByCommercial(username, 0, 10000, 'id,desc')
+        .pipe(map(response => response.data.content))
+        .subscribe({
+            next: (clients) => {
+                this.clients = clients.filter((client: any) => client.clientType === 'CLIENT');
+                this.spinner.hide();
+            },
+            error: () => {
+                this.toastr.error('Erreur chargement des clients du commercial');
+                this.spinner.hide();
+            }
+        });
+    this.subscriptions.push(clientsSub);
   }
 
   loadCommercialStock(username: string) {

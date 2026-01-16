@@ -26,18 +26,18 @@
 
       <button class="btn add btn-sm" (click)="addCredit()">
         <mat-icon>add</mat-icon>
-        <span>Ajouter</span>
+        <span>Nouvelle Vente</span>
       </button>
 
-      <button class="btn tontine btn-sm" (click)="addTontineDelivery()">
-        <mat-icon>local_shipping</mat-icon>
-        <span>+ Livraison tontine</span>
-      </button>
+<!--      <button class="btn tontine btn-sm" (click)="addTontineDelivery()">-->
+<!--        <mat-icon>local_shipping</mat-icon>-->
+<!--        <span>+ Livraison tontine</span>-->
+<!--      </button>-->
 
-      <button class="btn add btn-sm" (click)="openMergeModal()">
-        <mat-icon>merge_type</mat-icon>
-        <span>Fusion</span>
-      </button>
+<!--      <button class="btn add btn-sm" (click)="openMergeModal()">-->
+<!--        <mat-icon>merge_type</mat-icon>-->
+<!--        <span>Fusion</span>-->
+<!--      </button>-->
     </div>
   </div>
 
@@ -102,6 +102,15 @@
             <mat-icon>monetization_on</mat-icon>
           </button>
 
+          <!-- Bouton de mise journalière -->
+          <button
+            *ngIf="credit.status === 'INPROGRESS' && credit.type === 'CREDIT' && credit.clientType === 'CLIENT'"
+            mat-icon-button
+            matTooltip="Faire une mise"
+            (click)="openDailyStakeModal(credit)">
+            <mat-icon style="color: #28a745;">attach_money</mat-icon>
+          </button>
+
           <span *ngIf="credit.updatable === true && credit.status === 'INPROGRESS' && credit.type === 'CREDIT'">
               <button *ngIf="credit.clientType === 'PROMOTER'" mat-icon-button matTooltip="Distribuer" (click)="distributeCredit(credit.id)">
                 <mat-icon>share</mat-icon>
@@ -136,3 +145,11 @@
   (onMergeSuccess)="onMergeSuccess($event)"
   (onClose)="closeMergeModal()">
 </app-credit-merge-modal>
+
+<!-- Daily Stake Modal -->
+<app-daily-stake-modal
+  *ngIf="showDailyStakeModal"
+  [credit]="selectedCreditForStake"
+  (onSubmit)="onDailyStakeSubmit($event)"
+  (onClose)="closeDailyStakeModal()">
+</app-daily-stake-modal>

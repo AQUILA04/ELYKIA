@@ -121,6 +121,18 @@ public class DailyAccountancyService extends GenericService<DailyAccountancy, Lo
         return getRepository().findByDailyAccounting_idAndCollectorAndIsOpened(dailyAccounting.getId(), username, isOpened).orElseThrow(() -> new ResourceNotFoundException("accountancy.not.found"));
     }
 
+    public DailyAccountancy getByCollectorOrCreateNew (String username) {
+        DailyAccounting dailyAccounting = dailyAccountingRepository.getCurrentDailyAccounting();
+        return getRepository().findByDailyAccounting_idAndCollectorAndIsOpened(dailyAccounting.getId(), username, Boolean.TRUE).orElseGet(() -> {
+            DailyAccountancy dailyAccountancy = new DailyAccountancy();
+            dailyAccountancy.setCollector(username);
+            dailyAccountancy.setDailyAccounting(dailyAccounting);
+            dailyAccountancy.setAccountingDate(dailyAccounting.getAccountingDate());
+
+            return create(dailyAccountancy);
+        });
+    }
+
     public boolean isExistsOpenedCashDesk () {
         return getRepository().existsByIsOpenedIsTrue();
     }

@@ -2,9 +2,9 @@ export interface DailyOperationLog {
     id: number;
     timestamp: string;
     commercialUsername: string;
-    operationType: string;
+    type: string;
     amount: number;
-    subject: string;
+    reference: string;
     description: string;
     date: string;
 }

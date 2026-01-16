@@ -1,0 +1,67 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="modal-container">
+  <div class="modal-header">
+    <h2>Saisie des quantités physiques</h2>
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="modal-content">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Article</th>
+            <th>Quantité Système</th>
+            <th>Quantité Physique</th>
+            <th>Écart</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of inventoryItems; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ item.articleName }} - {{ item.articleMarque }} {{ item.articleModel }}</td>
+            <td>{{ item.systemQuantity }}</td>
+            <td>
+              <input type="number"
+                     class="form-control physical-quantity-input"
+                     [ngModel]="physicalQuantities[item.articleId]"
+                     (ngModelChange)="physicalQuantities[item.articleId] = +$event"
+                     min="0"
+                     step="1"
+                     placeholder="0">
+            </td>
+            <td>
+              <span [ngClass]="{
+                'text-danger': calculateDifference(item.articleId, item.systemQuantity) < 0,
+                'text-success': calculateDifference(item.articleId, item.systemQuantity) > 0,
+                'text-muted': calculateDifference(item.articleId, item.systemQuantity) === 0
+              }">
+                {{ calculateDifference(item.articleId, item.systemQuantity) }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="inventoryItems.length === 0" class="no-items">
+      <p>Aucun article à afficher.</p>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-secondary" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+      <span>Annuler</span>
+    </button>
+    <button class="btn btn-success" (click)="onSubmit()">
+      <mat-icon>save</mat-icon>
+      <span>Soumettre les quantités</span>
+    </button>
+  </div>
+</div>
+

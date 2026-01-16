@@ -13,6 +13,7 @@ import { Collector } from '../types/credit-merge.types';
 import {CreditSearchDto} from "../components/advanced-search/advanced-search.types";
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 import { ErrorHandlingMixin } from 'src/app/shared/mixins/error-handling.mixin';
+import { CreditTimelineDto } from '../types/credit.types';
 
 
 
@@ -32,6 +33,10 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit {
   totalElement = 0;
   showMergeModal: boolean = false;
   collectors: Collector[] = [];
+
+  // Variables pour le modal de mise
+  showDailyStakeModal = false;
+  selectedCreditForStake: any = null;
 
   private subscriptions: Subscription[] = [];
 
@@ -364,5 +369,38 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit {
   // vers la page de modification, en passant l'ID du crédit dans l'URL.
   changeDailyStake(id: number): void {
     this.router.navigate(['/change-daily-stake', id]);
+  }
+
+  // --- Gestion du modal de mise ---
+
+  openDailyStakeModal(credit: any): void {
+    this.selectedCreditForStake = credit;
+    this.showDailyStakeModal = true;
+  }
+
+  closeDailyStakeModal(): void {
+    this.showDailyStakeModal = false;
+    this.selectedCreditForStake = null;
+  }
+
+  onDailyStakeSubmit(dto: CreditTimelineDto): void {
+    this.spinner.show();
+    this.creditService.makeDailyStake(dto).subscribe({
+      next: (response: any) => {
+        this.spinner.hide();
+        if (response.statusCode === 201 || response.statusCode === 200) {
+          this.alertService.showSuccess('Mise effectuée avec succès');
+          this.closeDailyStakeModal();
+          this.loadCredits(); // Rafraîchir la liste
+        } else {
+          this.alertService.showError(response.message || 'Erreur lors de la mise');
+        }
+      },
+      error: (error) => {
+        this.spinner.hide();
+        console.error('Erreur lors de la mise:', error);
+        this.alertService.showError(error.error?.message || 'Erreur lors de la mise');
+      }
+    });
   }
 }

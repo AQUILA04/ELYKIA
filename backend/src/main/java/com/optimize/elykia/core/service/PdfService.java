@@ -6,8 +6,10 @@ import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.util.DateUtils;
 import com.optimize.elykia.client.enumeration.ClientType;
+import com.optimize.elykia.core.dto.InventoryControlPdfDto;
 import com.optimize.elykia.core.dto.ItemReleaseSheetDto;
 import com.optimize.elykia.core.dto.PrintOperationDto;
+import com.optimize.elykia.core.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,7 @@ public class PdfService {
     private final ReportService reportService;
     private final AccountingDayService accountingDayService;
     private final OrderService orderService; // Injected OrderService
+    private final InventoryService inventoryService;
     @Value(value = "${app.folder}")
     private String folder;
 
@@ -208,5 +211,44 @@ public class PdfService {
         releaseDates.stream()
                 .filter(date -> LocalDate.now().isEqual(date))
                 .forEach(this::generateItemReleasePDfForReleaseDate);
+    }
+
+    public String generateInventoryControlHtmlFromTemplate(InventoryControlPdfDto dto) {
+        if (Objects.isNull(dto) || Objects.isNull(dto.getItems()) || dto.getItems().isEmpty()) {
+            throw new ResourceNotFoundException("Aucune donnée disponible pour télécharger !");
+        }
+        Context context = new Context();
+        context.setVariable("inventory", dto);
+        return templateEngine.process("inventory-control-sheet", context);
+    }
+
+    public InputStream generateInventoryControlPdf(Long inventoryId) throws DocumentException {
+        com.optimize.elykia.core.entity.Inventory inventory = inventoryService.getInventoryById(inventoryId);
+        List<com.optimize.elykia.core.dto.InventoryItemDto> items = inventoryService.getInventoryItems(inventoryId);
+
+        InventoryControlPdfDto dto = new InventoryControlPdfDto();
+        dto.setInventoryId(inventory.getId());
+        dto.setInventoryDate(inventory.getInventoryDate());
+        dto.setCreatedBy(inventory.getCreatedByUser());
+
+        List<InventoryControlPdfDto.InventoryItemPdfDto> pdfItems = new java.util.ArrayList<>();
+        int index = 1;
+        for (com.optimize.elykia.core.dto.InventoryItemDto item : items) {
+            InventoryControlPdfDto.InventoryItemPdfDto pdfItem = new InventoryControlPdfDto.InventoryItemPdfDto();
+            pdfItem.setIndex(index++);
+            pdfItem.setArticleName(item.getArticleName());
+            pdfItem.setMarque(item.getArticleMarque());
+            pdfItem.setModel(item.getArticleModel());
+            pdfItem.setType(item.getArticleType());
+            pdfItem.setSystemQuantity(item.getSystemQuantity());
+            pdfItem.setPhysicalQuantity(item.getPhysicalQuantity());
+            pdfItem.setDifference(item.getDifference());
+            pdfItem.setStatus(item.getStatus() != null ? item.getStatus().toString() : "");
+            pdfItems.add(pdfItem);
+        }
+        dto.setItems(pdfItems);
+
+        String html = generateInventoryControlHtmlFromTemplate(dto);
+        return generatePdfFromHtml(html, "FICHE_CONTROLE_INVENTAIRE_" + inventoryId);
     }
 }

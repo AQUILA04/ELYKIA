@@ -68,11 +68,8 @@ public class UserPermissionConstant {
 
     public static final String REPORT = "ROLE_REPORT";
 
-
-
-
-
-
-
+    public static final String CREATE_INVENTORY = "ROLE_CREATE_INVENTORY";
+    public static final String RECONCILE_INVENTORY = "ROLE_RECONCILE_INVENTORY";
+    public static final String FINALIZE_INVENTORY = "ROLE_FINALIZE_INVENTORY";
 
 }

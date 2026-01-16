@@ -39,8 +39,14 @@ public class CreditTimeline extends BaseEntity<String> {
 
         // La nouvelle vérification (montant > mise normale) se fait maintenant dans le CreditTimelineService.
         // On peut garder celle-ci comme sécurité additionnelle pour les mises spéciales.
-        if (Boolean.FALSE.equals(normalStake) && amount <= stake) {
-            throw new ApplicationException("La valeur de la mise journalielle spéciale doit être supérieur à " + stake);
+//        if (Boolean.FALSE.equals(normalStake) && amount <= stake) {
+//            throw new ApplicationException("La valeur de la mise journalière spéciale doit être supérieur à " + stake);
+//        }
+
+        if (Objects.isNull(normalStake) && Objects.equals(amount, stake)) {
+            this.normalStake = Boolean.TRUE;
+        } else {
+            this.normalStake = Boolean.FALSE;
         }
     }
 

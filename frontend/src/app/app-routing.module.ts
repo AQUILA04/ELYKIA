@@ -29,6 +29,7 @@ import { BilletageComponent } from './cash-desk/billetage/billetage.component';
 import { DashboardChartComponent } from './dashboard-chart/dashboard-chart.component';
 import { InventoryComponent } from './inventory/inventory/inventory.component';
 import { AddInventoryComponent } from './inventory/inventory-add/inventory-add.component';
+import { InventoryReconciliationComponent } from './inventory/inventory-reconciliation/inventory-reconciliation.component';
 import { GestionAddComponent } from './gestion/gestion-add/gestion-add.component';
 import { GestionListComponent } from './gestion/gestion-list/gestion-list.component';
 import { GestionDetailsComponent } from './gestion/gestion-details/gestion-details.component';
@@ -368,6 +369,18 @@ const routes: Routes = [
     component: AddInventoryComponent,
     canActivate: [AuthGuard],
     data: { breadcrumb: '' }
+  },
+  {
+    path: 'inventory-reconciliation/:id',
+    component: InventoryReconciliationComponent,
+    canActivate: [AuthGuard, NgxPermissionsGuard],
+    data: {
+      permissions: {
+        only: ['ROLE_RECONCILE_INVENTORY', 'ROLE_REPORT'],
+        redirectTo: '/home'
+      },
+      breadcrumb: 'Réconciliation d\'inventaire'
+    }
   },
 
   // Gestion

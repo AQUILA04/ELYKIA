@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+    <title>Fiche de contrôle d'inventaire - ELYKIA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        header {
+            background-color: #f5f5f5;
+            color: black;
+            padding: 20px 10px;
+            text-align: center;
+        }
+        header h1, header h2, header h3 {
+            margin: 10px 0;
+        }
+        table {
+            width: 95%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: white;
+            font-size: 12px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #333;
+            color: white;
+        }
+        .physical-quantity {
+            background-color: #fffacd;
+            font-weight: bold;
+        }
+        footer {
+            margin-top: 30px;
+            padding: 20px;
+            text-align: left;
+            font-size: 11px;
+        }
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4f8;
+            border-left: 4px solid #2196F3;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>FICHE DE CONTRÔLE D'INVENTAIRE</h1>
+    <h2 th:text="'Date de l\'inventaire: ' + ${#temporals.format(inventory.inventoryDate, 'dd/MM/yyyy')}"></h2>
+    <h3 th:text="'Créé par: ' + ${inventory.createdBy}"></h3>
+    <h3 th:text="'Numéro d\'inventaire: #' + ${inventory.inventoryId}"></h3>
+</header>
+<main>
+    <table>
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Nom</th>
+            <th>Marque</th>
+            <th>Modèle</th>
+            <th>Type</th>
+            <th>Quantité Système</th>
+            <th>Quantité Physique</th>
+            <th>Écart</th>
+            <th>Statut</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item, iterStat : ${inventory.items}">
+            <td th:text="${item.index}"></td>
+            <td th:text="${item.articleName}"></td>
+            <td th:text="${item.marque}"></td>
+            <td th:text="${item.model}"></td>
+            <td th:text="${item.type}"></td>
+            <td th:text="${item.systemQuantity}"></td>
+            <td class="physical-quantity"></td>
+            <td th:text="${item.difference != null ? item.difference : ''}"></td>
+            <td th:text="${item.status}"></td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+<footer>
+    <div class="instructions">
+        <h4>Instructions pour le contrôle physique :</h4>
+        <ol>
+            <li>Comptez physiquement chaque article dans le magasin.</li>
+            <li>Inscrivez la quantité physique dans la colonne "Quantité Physique".</li>
+            <li>Vérifiez que toutes les quantités sont correctement renseignées.</li>
+            <li>Signez et datez cette fiche après le contrôle.</li>
+            <li>Rapportez les quantités physiques dans le système pour validation.</li>
+        </ol>
+        <p><strong>Note :</strong> En cas d'écart entre la quantité système et la quantité physique, 
+        le gestionnaire devra procéder à une réconciliation.</p>
+    </div>
+    <div style="margin-top: 30px;">
+        <p>Contrôle effectué par : _________________________</p>
+        <p>Date du contrôle : _________________________</p>
+        <p>Signature : _________________________</p>
+    </div>
+</footer>
+</body>
+</html>
+

@@ -34,7 +34,7 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
         
         // Mise à jour du stock selon le type de mouvement
         int stockAfter = 0;
-        if (type == MovementType.ENTRY || type == MovementType.RETURN) {
+        if (type == MovementType.ENTRY || type == MovementType.RETURN || type == MovementType.INVENTORY_ADJUSTMENT) {
             stockAfter = article.getStockQuantity() + quantity;
         } else if (type == MovementType.RELEASE || type == MovementType.LOSS) {
             stockAfter = article.getStockQuantity() - quantity;

@@ -13,7 +13,7 @@ public class CreditTimelineDto {
     private Long creditId;
     @NotNull(message = "Le montant de la mise journalière est obligatoire !")
     private Double amount;
-    @NotNull(message = "Le type de mise journalière est obligatoire !")
+    //@NotNull(message = "Le type de mise journalière est obligatoire !")
     private Boolean normalStake;
 
     //private Integer remainingDaysCount;
