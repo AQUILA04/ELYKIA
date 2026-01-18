@@ -46,7 +46,7 @@
             <span class="hide-menu">Journée comptable</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_OPEN_CASH_DESK', 'ROLE_CLOSE_CASH_DESK']"
+        <li class="sidebar-item" *ngIf="hasCaisseAccess()"
           [ngClass]="{ 'active': isRouteActive('/open-cashDesk') }">
           <a class="sidebar-link has-arrow" (click)="onCaisseClick()" aria-expanded="false">
             <span>
@@ -204,16 +204,6 @@
             <span class="hide-menu">Dépenses</span>
           </a>
         </li>
-        <!-- Pour l'élément Commercial -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']"
-          [ngClass]="{ 'active': isRouteActive('/commercial-list') }">
-          <a class="sidebar-link" routerLink="/commercial-list">
-            <span>
-              <mat-icon>business_center</mat-icon>
-            </span>
-            <span class="hide-menu">Commercial</span>
-          </a>
-        </li>
 
         <!-- MENU CONFIGURATION -->
         <li class="sidebar-item" [ngClass]="{ 'active': isRouteActive('/configuration') }">
@@ -257,16 +247,6 @@
               <mat-icon>today</mat-icon>
             </span>
             <span class="hide-menu">Rapport Journalier</span>
-          </a>
-        </li>
-
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']"
-          [ngClass]="{ 'active': isRouteActive('/report') }">
-          <a class="sidebar-link" routerLink="/report" aria-expanded="false">
-            <span>
-              <mat-icon>insert_chart</mat-icon>
-            </span>
-            <span class="hide-menu">Rapports</span>
           </a>
         </li>
 

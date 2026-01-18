@@ -8,6 +8,7 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 import { AuthService } from "../../auth/service/auth.service";
 import { LayoutService } from 'src/app/shared/service/layout.service';
 import { UserService } from 'src/app/user/service/user.service';
+import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
 
 @Component({
   selector: 'app-sidebar',
@@ -192,6 +193,9 @@ export class SidebarComponent implements OnInit {
            this.userService.hasProfile('SUPER_ADMIN');
   }
 
+  hasCaisseAccess(): boolean {
+    return this.userService.hasProfile(UserProfilConstant.PROMOTER);
+  }
 
   confirmLogout(): void {
     Swal.fire({

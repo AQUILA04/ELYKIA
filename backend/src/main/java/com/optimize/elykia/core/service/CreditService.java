@@ -64,6 +64,7 @@ public class CreditService extends GenericService<Credit, Long> {
     private CreditEnrichmentService creditEnrichmentService;
     private CreditPaymentEventService creditPaymentEventService;
     private StockMovementService stockMovementService;
+    private BiAggregationService biAggregationService;  // Added for real-time aggregation
     private final CreditDistributionViewRepository creditDistributionViewRepository;
     private final CreditDistributionMapper creditDistributionMapper;
     private TontineStockService tontineStockService;
@@ -111,6 +112,11 @@ public class CreditService extends GenericService<Credit, Long> {
     @Autowired
     public void setStockMovementService(StockMovementService stockMovementService) {
         this.stockMovementService = stockMovementService;
+    }
+
+    @Autowired
+    public void setBiAggregationService(BiAggregationService biAggregationService) {
+        this.biAggregationService = biAggregationService;
     }
 
     @Transactional
@@ -796,6 +802,18 @@ public class CreditService extends GenericService<Credit, Long> {
                     credit.getTotalAmount(),
                     credit.getCollector(), credit.getAdvance()));
         }
+
+        // Real-time aggregation update for BI performance optimization
+        if (biAggregationService != null) {
+            try {
+                biAggregationService.updateSalesAggregation(credit);
+            } catch (Exception e) {
+                e.printStackTrace();
+                // Log error but don't fail the main credit operation
+                // This ensures aggregation errors don't impact business operations
+            }
+        }
+
 
         return Boolean.TRUE;
     }

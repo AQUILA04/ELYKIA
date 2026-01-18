@@ -26,6 +26,10 @@ export interface TontineMember {
     frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
     amount?: number;
     notes?: string;
+    societyShare?: number;
+    availableContribution?: number;
+    validatedMonths?: number;
+    currentMonthDays?: number;
 }
 
 export interface TontineMemberView extends TontineMember {

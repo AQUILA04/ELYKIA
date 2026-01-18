@@ -45,6 +45,14 @@
           <span class="summary-value highlight">{{ formatCurrency(member.totalContribution) }}</span>
         </div>
         <div class="summary-item">
+          <span class="summary-label">Part Société</span>
+          <span class="summary-value">{{ formatCurrency(member.societyShare || 0) }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Solde Disponible</span>
+          <span class="summary-value">{{ formatCurrency(member.availableContribution || 0) }}</span>
+        </div>
+        <div class="summary-item">
           <span class="summary-label">Statut Session</span>
           <span class="summary-value">{{ member.tontineSession?.status }}</span>
         </div>
@@ -57,6 +65,27 @@
         <div class="summary-item">
           <span class="summary-label">Date d'Inscription</span>
           <span class="summary-value">{{ formatDateTime(member.registrationDate) }}</span>
+        </div>
+      </div>
+
+      <!-- Validated Months Progress -->
+      <div class="progress-section" *ngIf="member.validatedMonths !== undefined">
+        <h3>Progression des Mois ({{member.validatedMonths}}/10)</h3>
+        <div class="months-grid">
+          <div *ngFor="let month of monthsList; let i = index"
+               class="month-item"
+               [class.validated]="i < (member.validatedMonths || 0)"
+               [class.current]="i === (member.validatedMonths || 0)"
+               [class.pending]="i > (member.validatedMonths || 0)">
+            <span class="month-name">{{month}}</span>
+            <mat-icon *ngIf="i < (member.validatedMonths || 0)" class="validated-icon">check_circle</mat-icon>
+
+            <!-- Current Month Progress Bar -->
+            <div *ngIf="i === (member.validatedMonths || 0)" class="current-month-progress">
+              <mat-progress-bar mode="determinate" [value]="((member.currentMonthDays || 0) / 31) * 100"></mat-progress-bar>
+              <span class="days-count">{{member.currentMonthDays || 0}}/31j</span>
+            </div>
+          </div>
         </div>
       </div>
     </mat-card-content>

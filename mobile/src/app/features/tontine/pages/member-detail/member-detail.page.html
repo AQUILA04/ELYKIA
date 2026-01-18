@@ -69,6 +69,39 @@
                     <span class="label">Contribution attendue</span>
                     <span class="value">{{formatCurrency(vm.member.totalContribution)}}</span>
                 </div>
+
+                <div class="info-item">
+                    <span class="label">Part Société</span>
+                    <span class="value">{{formatCurrency(vm.member.societyShare)}}</span>
+                </div>
+
+                <div class="info-item">
+                    <span class="label">Solde Disponible</span>
+                    <span class="value">{{formatCurrency(vm.member.availableContribution)}}</span>
+                </div>
+            </div>
+
+            <!-- Validated Months Progress -->
+            <div class="progress-section" *ngIf="vm.member.validatedMonths !== undefined">
+                <h3>Progression des Mois ({{vm.member.validatedMonths}}/10)</h3>
+                <div class="months-grid">
+                    <div *ngFor="let month of monthsList; let i = index"
+                         class="month-item"
+                         [class.validated]="i < ((vm.member.validatedMonths || 1) - 1)"
+                         [class.current]="i === ((vm.member.validatedMonths || 1) - 1)"
+                         [class.pending]="i > ((vm.member.validatedMonths || 1) - 1)">
+                        <span class="month-name">{{month}}</span>
+                        <ion-icon *ngIf="i < ((vm.member.validatedMonths || 1) - 1)" name="checkmark-circle"></ion-icon>
+
+                        <!-- Current Month Progress Bar -->
+                        <div *ngIf="i === ((vm.member.validatedMonths || 1) - 1)" class="current-month-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" [style.width.%]="((vm.member.currentMonthDays || 0) / 31) * 100"></div>
+                            </div>
+                            <span class="days-count">{{vm.member.currentMonthDays || 0}}/31j</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div *ngIf="vm.member.notes" class="notes-section">

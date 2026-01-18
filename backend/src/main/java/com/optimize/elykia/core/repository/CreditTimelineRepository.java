@@ -32,7 +32,7 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
     @Query(value = "select sum(ct.amount) from credit_timeline ct join daily_accountancy da on ct.daily_accountancy_id=da.id where  cast(da.accounting_date as date) >= cast(:dateFrom as date) and cast(da.accounting_date as date) <= cast(:dateTo as date)", nativeQuery = true)
     Double sumAmountByDate( @Param(value = "dateFrom") LocalDateTime dateFrom, @Param(value = "dateTo") LocalDateTime dateTo);
 
-    @Query(value = "select sum(ct.amount) from credit_timeline ct join credit c on ct.credit_id = c.id join daily_accountancy da on ct.daily_accountancy_id=da.id where cast(da.accounting_date as date) >= cast(:dateFrom as date) and cast(da.accounting_date as date) <= cast(:dateTo as date) and c.type = :type", nativeQuery = true)
+    @Query(value = "select sum(ct.amount) from credit_timeline ct join credit c on ct.credit_id = c.id join daily_accountancy da on ct.daily_accountancy_id=da.id where cast(da.date_reg as date) >= cast(:dateFrom as date) and cast(da.date_reg as date) <= cast(:dateTo as date) and c.type = :type", nativeQuery = true)
     Double sumAmountByDateAndCreditType(@Param(value = "dateFrom") LocalDateTime dateFrom, @Param(value = "dateTo") LocalDateTime dateTo, @Param("type") String type);
 
     @Query(value = "select sum(amount) from credit_timeline where daily_accountancy_id = :dailyAccountancyId", nativeQuery = true)

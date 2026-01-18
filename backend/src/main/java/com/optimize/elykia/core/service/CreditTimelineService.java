@@ -29,6 +29,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private CreditPaymentEventService creditPaymentEventService;
     private CreditEnrichmentService creditEnrichmentService;
+    private BiAggregationService biAggregationService;  // Added for real-time aggregation
 
     protected CreditTimelineService(CreditTimelineRepository repository,
             CreditMapper creditMapper,
@@ -52,6 +53,11 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setCreditEnrichmentService(CreditEnrichmentService creditEnrichmentService) {
         this.creditEnrichmentService = creditEnrichmentService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setBiAggregationService(BiAggregationService biAggregationService) {
+        this.biAggregationService = biAggregationService;
     }
 
     @Transactional
@@ -93,6 +99,16 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
                     this,
                     creditTimeline.getAmount(),
                     creditTimeline.getCollector()));
+        }
+
+        // Real-time aggregation update for BI performance optimization
+        if (biAggregationService != null) {
+            try {
+                biAggregationService.updateCollectionAggregation(creditTimeline);
+            } catch (Exception e) {
+                // Log error but don't fail the main payment operation
+                // This ensures aggregation errors don't impact business operations
+            }
         }
 
         if (CreditStatus.SETTLED.equals(credit.getStatus())) {

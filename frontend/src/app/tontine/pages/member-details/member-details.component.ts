@@ -36,6 +36,11 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   currentSessionStatus: TontineSessionStatus | null = null; // New property
   isSessionActive: boolean = false; // New property
 
+  monthsList = [
+    'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre'
+  ];
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,

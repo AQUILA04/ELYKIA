@@ -6,6 +6,7 @@ import com.optimize.elykia.core.entity.Credit;
 import com.optimize.elykia.core.entity.CreditArticles;
 import com.optimize.elykia.core.repository.CreditRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,118 +17,107 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Slf4j
 public class BiSalesAnalyticsService {
     
     private final CreditRepository creditRepository;
     
     /**
-     * Tendances des ventes par jour
+     * Tendances des ventes par jour - Optimized with native queries
      */
     public List<SalesTrendDto> getSalesTrends(LocalDate startDate, LocalDate endDate) {
-        List<Credit> credits = creditRepository.findByAccountingDateBetweenAndClientType(startDate, endDate, ClientType.CLIENT);
+        long startTime = System.currentTimeMillis();
         
-        Map<LocalDate, List<Credit>> creditsByDate = credits.stream()
-            .collect(Collectors.groupingBy(Credit::getAccountingDate));
+        // Use optimized native query instead of loading all credits and grouping in memory
+        List<SalesTrendProjection> projections = creditRepository.getSalesTrends(startDate, endDate);
         
-        return creditsByDate.entrySet().stream()
-            .map(entry -> {
-                LocalDate date = entry.getKey();
-                List<Credit> dayCredits = entry.getValue();
-                
-                Integer count = dayCredits.size();
-                Double totalAmount = dayCredits.stream().mapToDouble(Credit::getTotalAmount).sum();
-                Double totalProfit = dayCredits.stream()
-                    .mapToDouble(c -> c.getTotalAmount() - c.getTotalPurchase())
-                    .sum();
-                Double avgAmount = count > 0 ? totalAmount / count : 0.0;
-                
-                return new SalesTrendDto(date, count, totalAmount, totalProfit, avgAmount);
-            })
-            .sorted(Comparator.comparing(SalesTrendDto::getDate))
+        List<SalesTrendDto> result = projections.stream()
+            .map(proj -> new SalesTrendDto(
+                proj.getDate(),
+                proj.getSalesCount(),
+                proj.getTotalAmount(),
+                proj.getTotalProfit(),
+                proj.getAvgAmount()
+            ))
             .collect(Collectors.toList());
+        
+        long endTime = System.currentTimeMillis();
+        log.debug("getSalesTrends executed in {} ms for period {} to {}", (endTime - startTime), startDate, endDate);
+        
+        return result;
     }
     
     /**
-     * Performance des commerciaux
+     * Performance des commerciaux - Optimized with native queries
      */
     public List<CommercialPerformanceDto> getCommercialRanking(LocalDate startDate, LocalDate endDate) {
-        List<String> collectors = creditRepository.findDistinctCollectors();
+        long startTime = System.currentTimeMillis();
         
-        return collectors.stream()
-            .map(collector -> {
-                List<Credit> credits = creditRepository
-                    .findByCollectorAndAccountingDateBetweenAndClientType(collector, startDate, endDate, ClientType.CLIENT);
-                
+        // Use optimized native query instead of multiple database calls and Stream operations
+        List<CommercialSalesProjection> projections = creditRepository.getSalesByCommercial(startDate, endDate);
+        
+        List<CommercialPerformanceDto> result = projections.stream()
+            .map(proj -> {
                 CommercialPerformanceDto dto = new CommercialPerformanceDto();
-                dto.setCollector(collector);
+                dto.setCollector(proj.getCollector());
                 dto.setPeriodStart(startDate);
                 dto.setPeriodEnd(endDate);
-                dto.setTotalSalesCount(credits.size());
-                dto.setTotalSalesAmount(credits.stream().mapToDouble(Credit::getTotalAmount).sum());
-                dto.setTotalProfit(credits.stream()
-                    .mapToDouble(c -> c.getTotalAmount() - c.getTotalPurchase())
-                    .sum());
-                dto.setAverageSaleAmount(credits.size() > 0 ? dto.getTotalSalesAmount() / credits.size() : 0.0);
-                dto.setTotalCollected(credits.stream().mapToDouble(Credit::getTotalAmountPaid).sum());
-                dto.setCollectionRate(dto.getTotalSalesAmount() > 0 ? 
-                    (dto.getTotalCollected() / dto.getTotalSalesAmount()) * 100 : 0.0);
-                
+                dto.setTotalSalesCount(proj.getSalesCount());
+                dto.setTotalSalesAmount(proj.getTotalAmount());
+                dto.setTotalProfit(proj.getTotalProfit());
+                dto.setAverageSaleAmount(proj.getAvgAmount());
+                dto.setTotalCollected(proj.getTotalCollected());
+                dto.setCollectionRate(proj.getTotalAmount() > 0 ? 
+                    (proj.getTotalCollected() / proj.getTotalAmount()) * 100 : 0.0);
                 return dto;
             })
-            .sorted(Comparator.comparing(CommercialPerformanceDto::getTotalSalesAmount).reversed())
             .collect(Collectors.toList());
+        
+        long endTime = System.currentTimeMillis();
+        log.debug("getCommercialRanking executed in {} ms for period {} to {}", (endTime - startTime), startDate, endDate);
+        
+        return result;
     }
     
     /**
-     * Performance des articles
+     * Performance des articles - Optimized with native queries
      */
     public List<ArticlePerformanceDto> getArticlePerformance(LocalDate startDate, LocalDate endDate) {
-        List<Credit> credits = creditRepository.findByAccountingDateBetweenAndClientType(startDate, endDate, ClientType.CLIENT);
+        long startTime = System.currentTimeMillis();
         
-        Map<Long, List<CreditArticles>> articleSales = new HashMap<>();
-        credits.forEach(credit -> {
-            if (credit.getArticles() != null) {
-                credit.getArticles().forEach(ca -> {
-                    articleSales.computeIfAbsent(ca.getArticles().getId(), k -> new ArrayList<>()).add(ca);
-                });
-            }
-        });
+        // Use optimized native query with JOINs instead of manual aggregation
+        List<ArticlePerformanceProjection> projections = creditRepository.getArticlePerformance(startDate, endDate);
         
-        Double totalRevenue = credits.stream().mapToDouble(Credit::getTotalAmount).sum();
+        // Calculate total revenue for contribution percentage
+        Double totalRevenue = projections.stream()
+            .mapToDouble(ArticlePerformanceProjection::getTotalRevenue)
+            .sum();
         
-        return articleSales.entrySet().stream()
-            .map(entry -> {
-                Long articleId = entry.getKey();
-                List<CreditArticles> sales = entry.getValue();
-                
-                if (sales.isEmpty()) return null;
-                
-                var firstArticle = sales.get(0).getArticles();
-                Integer quantitySold = sales.stream().mapToInt(CreditArticles::getQuantity).sum();
-                Double revenue = sales.stream()
-                    .mapToDouble(ca -> ca.getQuantity() * ca.getUnitPrice())
-                    .sum();
-                Double profit = sales.stream()
-                    .mapToDouble(ca -> ca.getQuantity() * (ca.getUnitPrice() - ca.getArticles().getPurchasePrice()))
-                    .sum();
-                Double profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0.0;
-                Double contribution = totalRevenue > 0 ? (revenue / totalRevenue) * 100 : 0.0;
+        List<ArticlePerformanceDto> result = projections.stream()
+            .map(proj -> {
+                Double profitMargin = proj.getTotalRevenue() > 0 ? 
+                    (proj.getTotalProfit() / proj.getTotalRevenue()) * 100 : 0.0;
+                Double contribution = totalRevenue > 0 ? 
+                    (proj.getTotalRevenue() / totalRevenue) * 100 : 0.0;
                 
                 return new ArticlePerformanceDto(
-                    articleId,
-                    firstArticle.getCommercialName(),
-                    firstArticle.getCategory(),
-                    quantitySold,
-                    revenue,
-                    profit,
+                    proj.getArticleId(),
+                    proj.getArticleName(),
+                    proj.getCategory(),
+                    proj.getQuantitySold(),
+                    proj.getTotalRevenue(),
+                    proj.getTotalProfit(),
                     profitMargin,
-                    firstArticle.getStockTurnoverRate(),
-                    firstArticle.getStockQuantity(),
+                    proj.getTurnoverRate(),
+                    proj.getStockQuantity(),
                     contribution
                 );
             })
-            .filter(Objects::nonNull)
-            .sorted(Comparator.comparing(ArticlePerformanceDto::getTotalRevenue).reversed())
             .collect(Collectors.toList());
+        
+        long endTime = System.currentTimeMillis();
+        log.debug("getArticlePerformance executed in {} ms for period {} to {}", (endTime - startTime), startDate, endDate);
+        
+        return result;
     }
 }

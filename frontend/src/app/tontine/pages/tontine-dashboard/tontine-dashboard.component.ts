@@ -108,10 +108,13 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
 
   private createKPICards(state: TontineState): KPICardConfig[] {
     const kpis = state.kpis;
+    const session = state.currentSession;
+
     if (!kpis) {
       return [
         { title: 'Membres Actifs', value: 0, icon: 'people', color: 'primary' },
         { title: 'Montant Total Collecté', value: '0 XOF', icon: 'account_balance_wallet', color: 'success' },
+        { title: 'Revenu Total', value: '0 XOF', icon: 'monetization_on', color: 'accent' },
         { title: 'En Attente de Livraison', value: 0, icon: 'schedule', color: 'warning' },
         { title: 'Contribution Moyenne', value: '0 XOF', icon: 'trending_up', color: 'info' }
       ];
@@ -131,6 +134,13 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
         icon: 'account_balance_wallet',
         color: 'success',
         subtitle: 'Épargne totale'
+      },
+      {
+        title: 'Revenu Total',
+        value: `${(session?.totalRevenue || kpis.totalRevenue || 0).toLocaleString('fr-FR')} XOF`,
+        icon: 'monetization_on',
+        color: 'accent',
+        subtitle: 'Part société'
       },
       {
         title: 'En Attente de Livraison',

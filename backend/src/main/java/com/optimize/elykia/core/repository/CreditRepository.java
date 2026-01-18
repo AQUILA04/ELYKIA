@@ -346,4 +346,170 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     Optional<Credit> findByTypeAndCollectorAndStatusInAndClientTypeAndBeginDateBetween(OperationType type, String commercial, List<CreditStatus> statusList, ClientType clientType, LocalDate startDate, LocalDate endDate);
     Optional<Credit> findByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(OperationType type, String commercial, CreditStatus status, ClientType clientType, LocalDate startDate, LocalDate endDate);
 
+    // ===== OPTIMIZED NATIVE QUERY METHODS FOR BI PERFORMANCE =====
+    
+    /**
+     * Get aggregated sales metrics for a date range
+     * Optimized to prevent OutOfMemoryException by doing aggregation in database
+     */
+    @Query(value = """
+        SELECT 
+            COUNT(c.id) as salesCount,
+            COALESCE(SUM(c.total_amount), 0) as totalAmount,
+            COALESCE(SUM(c.total_amount - c.total_purchase), 0) as totalProfit,
+            COALESCE(AVG(c.total_amount), 0) as avgAmount
+        FROM credit c
+        WHERE c.date_reg BETWEEN :startDate AND :endDate
+        AND c.type = 'CREDIT'
+        AND c.client_type = 'CLIENT'
+        """, nativeQuery = true)
+    com.optimize.elykia.core.dto.bi.SalesMetricsProjection getSalesMetrics(
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate
+    );
+    
+    /**
+     * Get sales trends grouped by date
+     * Returns daily aggregations ordered by date
+     */
+    @Query(value = """
+        SELECT 
+            c.date_reg as date,
+            COUNT(c.id) as salesCount,
+            COALESCE(SUM(c.total_amount), 0) as totalAmount,
+            COALESCE(SUM(c.total_amount - c.total_purchase), 0) as totalProfit,
+            COALESCE(AVG(c.total_amount), 0) as avgAmount
+        FROM credit c
+        WHERE c.accounting_date BETWEEN :startDate AND :endDate
+        AND c.type = 'CREDIT'
+        AND c.client_type = 'CLIENT'
+        GROUP BY c.date_reg
+        ORDER BY c.date_reg
+        """, nativeQuery = true)
+    java.util.List<com.optimize.elykia.core.dto.bi.SalesTrendProjection> getSalesTrends(
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate
+    );
+    
+    /**
+     * Get sales performance by commercial
+     * Groups sales metrics by collector and orders by total amount descending
+     */
+    @Query(value = """
+        SELECT 
+            c.collector,
+            COUNT(c.id) as salesCount,
+            COALESCE(SUM(c.total_amount), 0) as totalAmount,
+            COALESCE(SUM(c.total_amount - c.total_purchase), 0) as totalProfit,
+            COALESCE(AVG(c.total_amount), 0) as avgAmount,
+            COALESCE(SUM(c.total_amount_paid), 0) as totalCollected
+        FROM credit c
+        WHERE c.date_reg BETWEEN :startDate AND :endDate
+        AND c.type = 'CREDIT'
+        AND c.client_type = 'CLIENT'
+        GROUP BY c.collector
+        ORDER BY totalAmount DESC
+        """, nativeQuery = true)
+    java.util.List<com.optimize.elykia.core.dto.bi.CommercialSalesProjection> getSalesByCommercial(
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate
+    );
+    
+    /**
+     * Get portfolio metrics with single query
+     * Calculates all portfolio metrics including PAR in one database query
+     */
+    @Query(value = """
+        SELECT 
+            COUNT(CASE WHEN c.status = 'INPROGRESS' THEN 1 END) as activeCount,
+            COALESCE(SUM(CASE WHEN c.status = 'INPROGRESS' THEN c.total_amount_remaining ELSE 0 END), 0) as totalOutstanding,
+            COALESCE(SUM(CASE WHEN c.status = 'INPROGRESS' AND c.expected_end_date < CURRENT_DATE THEN c.total_amount_remaining ELSE 0 END), 0) as totalOverdue,
+            COALESCE(SUM(CASE WHEN c.status = 'INPROGRESS' AND c.expected_end_date < CURRENT_DATE - INTERVAL '7 days' THEN c.total_amount_remaining ELSE 0 END), 0) as par7,
+            COALESCE(SUM(CASE WHEN c.status = 'INPROGRESS' AND c.expected_end_date < CURRENT_DATE - INTERVAL '15 days' THEN c.total_amount_remaining ELSE 0 END), 0) as par15,
+            COALESCE(SUM(CASE WHEN c.status = 'INPROGRESS' AND c.expected_end_date < CURRENT_DATE - INTERVAL '30 days' THEN c.total_amount_remaining ELSE 0 END), 0) as par30
+        FROM credit c
+        WHERE c.type = 'CREDIT'
+        AND c.client_type = 'CLIENT'
+        """, nativeQuery = true)
+    com.optimize.elykia.core.dto.bi.PortfolioMetricsProjection getPortfolioMetrics();
+    
+    /**
+     * Get overdue analysis by date ranges
+     * Groups overdue credits into 4 ranges: 0-7, 8-15, 16-30, >30 days
+     */
+    @Query(value = """
+        SELECT 
+            CASE 
+                WHEN (CURRENT_DATE - c.expected_end_date) BETWEEN 0 AND 7 THEN '0-7 jours'
+                WHEN (CURRENT_DATE - c.expected_end_date) BETWEEN 8 AND 15 THEN '8-15 jours'
+                WHEN (CURRENT_DATE - c.expected_end_date) BETWEEN 16 AND 30 THEN '16-30 jours'
+                ELSE '>30 jours'
+            END as range,
+            COUNT(c.id) as creditsCount,
+            COALESCE(SUM(c.total_amount_remaining), 0) as totalAmount
+        FROM credit c
+        WHERE c.status = 'INPROGRESS'
+        AND c.type = 'CREDIT'
+        AND c.client_type = 'CLIENT'
+        AND c.expected_end_date < CURRENT_DATE
+        GROUP BY 
+            CASE 
+                WHEN (CURRENT_DATE - c.expected_end_date) BETWEEN 0 AND 7 THEN '0-7 jours'
+                WHEN (CURRENT_DATE - c.expected_end_date) BETWEEN 8 AND 15 THEN '8-15 jours'
+                WHEN (CURRENT_DATE - c.expected_end_date) BETWEEN 16 AND 30 THEN '16-30 jours'
+                ELSE '>30 jours'
+            END
+        ORDER BY 
+            MIN(CURRENT_DATE - c.expected_end_date)
+        """, nativeQuery = true)
+    java.util.List<com.optimize.elykia.core.dto.bi.OverdueRangeProjection> getOverdueAnalysis();
+    
+    /**
+     * Get article performance with JOIN aggregation
+     * Joins articles, credit_articles, and credit tables to calculate performance metrics
+     */
+    @Query(value = """
+        SELECT 
+            a.id as articleId,
+            CONCAT(a.type, ': ', a.marque, ' ', a.model) as articleName,
+            a.category,
+            COALESCE(SUM(ca.quantity), 0) as quantitySold,
+            COALESCE(SUM(ca.quantity * ca.unit_price), 0) as totalRevenue,
+            COALESCE(SUM(ca.quantity * (ca.unit_price - a.purchase_price)), 0) as totalProfit,
+            a.stock_turnover_rate as turnoverRate,
+            a.stock_quantity as stockQuantity
+        FROM articles a
+        LEFT JOIN credit_articles ca ON ca.articles_id = a.id
+        LEFT JOIN credit c ON ca.credit_id = c.id
+        WHERE c.date_reg BETWEEN :startDate AND :endDate
+        AND c.type = 'CREDIT'
+        AND c.client_type = 'CLIENT'
+        GROUP BY a.id, a.type, a.marque, a.model, a.category, a.stock_turnover_rate, a.stock_quantity
+        HAVING SUM(ca.quantity) > 0
+        ORDER BY totalRevenue DESC
+        """, nativeQuery = true)
+    java.util.List<com.optimize.elykia.core.dto.bi.ArticlePerformanceProjection> getArticlePerformance(
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate
+    );
+    
+    /**
+     * Get total expected amount for active credits
+     * Optimized to prevent OutOfMemoryException by doing aggregation in database
+     */
+    @Query(value = """
+        SELECT 
+            COALESCE(SUM(c.total_amount), 0) as totalExpected
+        FROM credit c
+        WHERE c.status = 'INPROGRESS'
+        AND c.type = 'CREDIT'
+        AND c.client_type = 'CLIENT'
+        """, nativeQuery = true)
+    Double getTotalExpectedAmountForActiveCredits();
+    
+    /**
+     * Find all credits by type and client type for migration purposes
+     */
+    List<Credit> findByTypeAndClientType(OperationType type, ClientType clientType);
+
 }

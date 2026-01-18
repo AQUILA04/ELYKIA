@@ -8,6 +8,7 @@ import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Slf4j
 public class BiDashboardService {
     
     private final CreditRepository creditRepository;
@@ -35,48 +37,46 @@ public class BiDashboardService {
     }
     
     public SalesMetricsDto getSalesMetrics(LocalDate startDate, LocalDate endDate) {
-        List<Credit> credits = creditRepository.findByAccountingDateBetweenAndTypeAndClientType(startDate, endDate, OperationType.CREDIT, ClientType.CLIENT);
+        long startTime = System.currentTimeMillis();
         
-        Double totalAmount = credits.stream()
-            .mapToDouble(Credit::getTotalAmount)
-            .sum();
-            
-        Double totalProfit = credits.stream()
-            .mapToDouble(c -> c.getTotalAmount() - c.getTotalPurchase())
-            .sum();
-            
+        // Use optimized native query instead of loading all credits into memory
+        var projection = creditRepository.getSalesMetrics(startDate, endDate);
+        
+        Double totalAmount = projection.getTotalAmount();
+        Double totalProfit = projection.getTotalProfit();
+        Integer count = projection.getSalesCount();
+        Double averageSaleAmount = projection.getAvgAmount();
+        
         Double profitMargin = totalAmount > 0 ? (totalProfit / totalAmount) * 100 : 0.0;
-        
-        Integer count = credits.size();
-        
-        Double averageSaleAmount = count > 0 ? totalAmount / count : 0.0;
         
         // Calcul de l'évolution (comparaison avec période précédente)
         long daysDiff = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
         LocalDate previousStart = startDate.minusDays(daysDiff);
         LocalDate previousEnd = startDate.minusDays(1);
         
-        List<Credit> previousCredits = creditRepository.findByAccountingDateBetweenAndTypeAndClientType(previousStart, previousEnd, OperationType.CREDIT, ClientType.CLIENT);
-        Double previousTotal = previousCredits.stream().mapToDouble(Credit::getTotalAmount).sum();
+        var previousProjection = creditRepository.getSalesMetrics(previousStart, previousEnd);
+        Double previousTotal = previousProjection.getTotalAmount();
         
         Double evolution = previousTotal > 0 ? ((totalAmount - previousTotal) / previousTotal) * 100 : 0.0;
+        
+        long endTime = System.currentTimeMillis();
+        log.debug("getSalesMetrics executed in {} ms for period {} to {}", (endTime - startTime), startDate, endDate);
         
         return new SalesMetricsDto(totalAmount, totalProfit, profitMargin, count, evolution, averageSaleAmount);
     }
     
     public CollectionMetricsDto getCollectionMetrics(LocalDate startDate, LocalDate endDate) {
+        long startTime = System.currentTimeMillis();
+        
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         
         Double totalCollected = creditTimelineRepository.sumAmountByDateAndCreditType(startDateTime, endDateTime, "CREDIT");
         if (totalCollected == null) totalCollected = 0.0;
         
-        // Calcul du taux de recouvrement
-        List<Credit> activeCredits = creditRepository.findByStatusAndTypeAndClientType(CreditStatus.INPROGRESS, OperationType.CREDIT, ClientType.CLIENT);
-        Double totalExpected = activeCredits.stream()
-            .mapToDouble(Credit::getTotalAmount)
-            .sum();
-            
+        // Use optimized native query instead of loading all active credits into memory
+        Double totalExpected = creditRepository.getTotalExpectedAmountForActiveCredits();
+        
         Double collectionRate = totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0.0;
         
         // Évolution
@@ -89,6 +89,9 @@ public class BiDashboardService {
         
         Double evolution = previousCollected > 0 ? ((totalCollected - previousCollected) / previousCollected) * 100 : 0.0;
         
+        long endTime = System.currentTimeMillis();
+        log.debug("getCollectionMetrics executed in {} ms for period {} to {}", (endTime - startTime), startDate, endDate);
+        
         return new CollectionMetricsDto(totalCollected, collectionRate, evolution, 0, 0);
     }
     
@@ -98,35 +101,20 @@ public class BiDashboardService {
     }
     
     public PortfolioMetricsDto getPortfolioMetrics() {
-        List<Credit> activeCredits = creditRepository.findByStatusAndTypeAndClientType(CreditStatus.INPROGRESS, OperationType.CREDIT, ClientType.CLIENT);
+        long startTime = System.currentTimeMillis();
         
-        Integer activeCount = activeCredits.size();
-
-        Double totalOutstanding = activeCredits.stream()
-                .mapToDouble(credit -> credit.getTotalAmountRemaining())
-                .sum();
-            
-        LocalDate now = LocalDate.now();
+        // Use optimized native query instead of loading all active credits into memory
+        var projection = creditRepository.getPortfolioMetrics();
         
-        Double totalOverdue = activeCredits.stream()
-            .filter(c -> c.getExpectedEndDate() != null && c.getExpectedEndDate().isBefore(now))
-            .mapToDouble(Credit::getTotalAmountRemaining)
-            .sum();
-            
-        Double par7 = activeCredits.stream()
-            .filter(c -> c.getExpectedEndDate() != null && c.getExpectedEndDate().isBefore(now.minusDays(7)))
-            .mapToDouble(Credit::getTotalAmountRemaining)
-            .sum();
-            
-        Double par15 = activeCredits.stream()
-            .filter(c -> c.getExpectedEndDate() != null && c.getExpectedEndDate().isBefore(now.minusDays(15)))
-            .mapToDouble(Credit::getTotalAmountRemaining)
-            .sum();
-            
-        Double par30 = activeCredits.stream()
-            .filter(c -> c.getExpectedEndDate() != null && c.getExpectedEndDate().isBefore(now.minusDays(30)))
-            .mapToDouble(Credit::getTotalAmountRemaining)
-            .sum();
+        Integer activeCount = projection.getActiveCount();
+        Double totalOutstanding = projection.getTotalOutstanding();
+        Double totalOverdue = projection.getTotalOverdue();
+        Double par7 = projection.getPar7();
+        Double par15 = projection.getPar15();
+        Double par30 = projection.getPar30();
+        
+        long endTime = System.currentTimeMillis();
+        log.debug("getPortfolioMetrics executed in {} ms", (endTime - startTime));
         
         return new PortfolioMetricsDto(activeCount, totalOutstanding, totalOverdue, par7, par15, par30);
     }

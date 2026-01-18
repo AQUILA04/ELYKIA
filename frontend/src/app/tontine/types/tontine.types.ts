@@ -29,6 +29,10 @@ export interface TontineMember {
   readonly frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
   readonly amount?: number;
   readonly notes?: string;
+  readonly societyShare?: number;
+  readonly availableContribution?: number;
+  readonly validatedMonths?: number;
+  readonly currentMonthDays?: number;
 }
 
 export interface TontineCollection {
@@ -221,7 +225,7 @@ export interface KPICardConfig {
   readonly title: string;
   readonly value: string | number;
   readonly icon: string;
-  readonly color: 'primary' | 'success' | 'warning' | 'info' | 'danger';
+  readonly color: 'primary' | 'success' | 'warning' | 'info' | 'danger' | 'accent';
   readonly subtitle?: string;
 }
 

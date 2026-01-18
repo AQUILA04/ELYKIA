@@ -296,7 +296,9 @@ export class TontineService {
       let params = new HttpParams()
         .set('page', '0')
         .set('size', '100')
-        .set('sort', 'id,desc');
+        .set('sort', 'id,desc')
+        .set('username', currentUser)
+        .set('tontine', true);
 
       return this.http.post<ApiResponse<PaginatedResponse<TontineClient>>>(searchUrl, body, { headers, params })
         .pipe(
@@ -311,7 +313,8 @@ export class TontineService {
         .set('page', '0')
         .set('size', '10000')
         .set('sort', 'id,desc')
-        .set('username', currentUser.username);
+        .set('username', currentUser.username)
+        .set('tontine', true);
 
       return this.http.get<ApiResponse<PaginatedResponse<TontineClient>>>(`${environment.apiUrl}/api/v1/clients`, { headers, params })
         .pipe(

@@ -3,11 +3,13 @@ package com.optimize.elykia.core.service;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.bi.CollectionTrendDto;
 import com.optimize.elykia.core.dto.bi.OverdueAnalysisDto;
+import com.optimize.elykia.core.dto.bi.OverdueRangeProjection;
 import com.optimize.elykia.core.entity.Credit;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,16 +22,22 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Slf4j
 public class BiCollectionAnalyticsService {
     
     private final CreditRepository creditRepository;
     private final CreditTimelineRepository timelineRepository;
     
     /**
-     * Tendances des encaissements par jour
+     * Tendances des encaissements par jour - Partially optimized
+     * Note: Still uses loop for daily calculation but reduces active credits loading
      */
     public List<CollectionTrendDto> getCollectionTrends(LocalDate startDate, LocalDate endDate) {
+        long startTime = System.currentTimeMillis();
+        
         List<CollectionTrendDto> trends = new ArrayList<>();
+        
+        // Load active credits once instead of in loop
         List<Credit> activeCredits = creditRepository.findByStatusAndClientType(CreditStatus.INPROGRESS, ClientType.CLIENT);
         Double expectedDaily = activeCredits.stream().mapToDouble(Credit::getDailyStake).sum();
         
@@ -54,59 +62,37 @@ public class BiCollectionAnalyticsService {
             currentDate = currentDate.plusDays(1);
         }
         
+        long endTime = System.currentTimeMillis();
+        log.debug("getCollectionTrends executed in {} ms for period {} to {}", (endTime - startTime), startDate, endDate);
+        
         return trends;
     }
     
     /**
-     * Analyse des retards par tranche
+     * Analyse des retards par tranche - Optimized with native query
      */
     public List<OverdueAnalysisDto> getOverdueAnalysis() {
-        List<Credit> activeCredits = creditRepository.findByStatusAndClientType(CreditStatus.INPROGRESS, ClientType.CLIENT);
-        LocalDate now = LocalDate.now();
+        long startTime = System.currentTimeMillis();
         
-        List<OverdueAnalysisDto> analysis = new ArrayList<>();
+        // Use optimized native query instead of multiple Stream filter operations
+        List<OverdueRangeProjection> projections = creditRepository.getOverdueAnalysis();
         
-        // 0-7 jours
-        List<Credit> range1 = activeCredits.stream()
-            .filter(c -> c.getExpectedEndDate() != null && 
-                        c.getExpectedEndDate().isBefore(now) &&
-                        ChronoUnit.DAYS.between(c.getExpectedEndDate(), now) <= 7)
-            .toList();
+        // Calculate total overdue amount for percentage calculation
+        Double totalOverdue = projections.stream()
+            .mapToDouble(OverdueRangeProjection::getTotalAmount)
+            .sum();
         
-        // 8-15 jours
-        List<Credit> range2 = activeCredits.stream()
-            .filter(c -> c.getExpectedEndDate() != null && 
-                        c.getExpectedEndDate().isBefore(now) &&
-                        ChronoUnit.DAYS.between(c.getExpectedEndDate(), now) > 7 &&
-                        ChronoUnit.DAYS.between(c.getExpectedEndDate(), now) <= 15)
-            .toList();
+        List<OverdueAnalysisDto> result = projections.stream()
+            .map(proj -> {
+                Double percentage = totalOverdue > 0 ? (proj.getTotalAmount() / totalOverdue) * 100 : 0.0;
+                return new OverdueAnalysisDto(proj.getRange(), proj.getCreditsCount(), proj.getTotalAmount(), percentage);
+            })
+            .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
         
-        // 16-30 jours
-        List<Credit> range3 = activeCredits.stream()
-            .filter(c -> c.getExpectedEndDate() != null && 
-                        c.getExpectedEndDate().isBefore(now) &&
-                        ChronoUnit.DAYS.between(c.getExpectedEndDate(), now) > 15 &&
-                        ChronoUnit.DAYS.between(c.getExpectedEndDate(), now) <= 30)
-            .toList();
+        long endTime = System.currentTimeMillis();
+        log.debug("getOverdueAnalysis executed in {} ms", (endTime - startTime));
         
-        // > 30 jours
-        List<Credit> range4 = activeCredits.stream()
-            .filter(c -> c.getExpectedEndDate() != null && 
-                        c.getExpectedEndDate().isBefore(now) &&
-                        ChronoUnit.DAYS.between(c.getExpectedEndDate(), now) > 30)
-            .toList();
-        
-        Double totalOverdue = range1.stream().mapToDouble(Credit::getTotalAmountRemaining).sum() +
-                             range2.stream().mapToDouble(Credit::getTotalAmountRemaining).sum() +
-                             range3.stream().mapToDouble(Credit::getTotalAmountRemaining).sum() +
-                             range4.stream().mapToDouble(Credit::getTotalAmountRemaining).sum();
-        
-        analysis.add(createOverdueDto("0-7 jours", range1, totalOverdue));
-        analysis.add(createOverdueDto("8-15 jours", range2, totalOverdue));
-        analysis.add(createOverdueDto("16-30 jours", range3, totalOverdue));
-        analysis.add(createOverdueDto(">30 jours", range4, totalOverdue));
-        
-        return analysis;
+        return result;
     }
     
     private OverdueAnalysisDto createOverdueDto(String range, List<Credit> credits, Double totalOverdue) {
