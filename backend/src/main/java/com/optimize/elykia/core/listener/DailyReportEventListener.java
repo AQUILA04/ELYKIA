@@ -29,6 +29,7 @@ public class DailyReportEventListener {
         log.info("Processing StockRequestDeliveredEvent for collector: {}", event.getCollector());
         DailyCommercialReport report = getOrCreateReport(event.getCollector());
         report.setTotalStockRequestAmount(report.getTotalStockRequestAmount() + event.getAmount());
+        report.setStockRequestMargin(report.getStockRequestMargin() + (event.getMargin() != null ? event.getMargin() : 0.0));
         repository.save(report);
 
         dailyOperationService.logOperation(
@@ -45,6 +46,8 @@ public class DailyReportEventListener {
         log.info("Processing StockReturnedEvent for collector: {}", event.getCollector());
         DailyCommercialReport report = getOrCreateReport(event.getCollector());
         report.setTotalStockRequestAmount(report.getTotalStockRequestAmount() - event.getAmount());
+        // Note: Margin adjustment on return might be complex depending on business logic. 
+        // Assuming simple reversal or no margin impact on return for now unless specified.
         repository.save(report);
 
         dailyOperationService.logOperation(
@@ -94,6 +97,7 @@ public class DailyReportEventListener {
         DailyCommercialReport report = getOrCreateReport(event.getCollector());
         report.setCreditSalesCount(report.getCreditSalesCount() + 1);
         report.setCreditSalesAmount(report.getCreditSalesAmount() + event.getAmount());
+        report.setCreditSalesMargin(report.getCreditSalesMargin() + (event.getMargin() != null ? event.getMargin() : 0.0));
         report.addAmountToDeposit(event.getAdvance());
         repository.save(report);
 

@@ -18,4 +18,6 @@ export interface DailyCommercialReport {
     tontineDeliveriesAmount: number;
     totalAmountToDeposit: number;
     totalAmountDeposited: number;
+    creditSalesMargin?: number;
+    stockRequestMargin?: number;
 }

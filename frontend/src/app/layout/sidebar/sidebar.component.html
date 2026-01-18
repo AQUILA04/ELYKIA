@@ -196,7 +196,7 @@
             <span class="hide-menu">Commandes</span>
           </a>
         </li>
-        <li class="sidebar-item" [ngClass]="{ 'active': isRouteActive('/expense') }">
+        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isPromoter()" [ngClass]="{ 'active': isRouteActive('/expense') }">
           <a class="sidebar-link" routerLink="/expense" aria-expanded="false">
             <span>
               <mat-icon>money_off</mat-icon>
@@ -206,7 +206,7 @@
         </li>
 
         <!-- MENU CONFIGURATION -->
-        <li class="sidebar-item" [ngClass]="{ 'active': isRouteActive('/configuration') }">
+        <li class="sidebar-item" *ngIf="!isStorekeeper()" [ngClass]="{ 'active': isRouteActive('/configuration') }">
           <a class="sidebar-link has-arrow" (click)="onConfigurationClick()" aria-expanded="false">
             <span>
               <mat-icon>settings</mat-icon>
@@ -232,7 +232,7 @@
                 <span class="hide-menu">Types de Dépense</span>
               </a>
             </li>
-            <li class="sidebar-item submenu-item" *ngIf="hasAccessToParameters()">
+            <li class="sidebar-item submenu-item" *ngIf="hasAccessToParameters() && !isPromoter()">
               <a class="sidebar-link" routerLink="/parameters">
                 <span class="material-icons">tune</span>
                 <span class="hide-menu">Paramètres</span>
@@ -241,7 +241,7 @@
           </ul>
         </li>
 
-        <li class="sidebar-item" [ngClass]="{ 'active': isRouteActive('/daily-report') }">
+        <li class="sidebar-item" *ngIf="!isStorekeeper()" [ngClass]="{ 'active': isRouteActive('/daily-report') }">
           <a class="sidebar-link" routerLink="/daily-report" aria-expanded="false">
             <span>
               <mat-icon>today</mat-icon>

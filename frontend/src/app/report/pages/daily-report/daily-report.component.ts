@@ -37,6 +37,7 @@ export class DailyReportComponent implements OnInit {
     // UI State
     isLoading = false;
     isPromoter = false;
+    showMargins = false; // Toggle for margin visibility
 
     // Operations Log
     operations: DailyOperationLog[] = [];
@@ -182,6 +183,8 @@ export class DailyReportComponent implements OnInit {
             tontineDeliveriesAmount: this.reports.reduce((sum, r) => sum + (r.tontineDeliveriesAmount || 0), 0),
             totalAmountToDeposit: this.reports.reduce((sum, r) => sum + (r.totalAmountToDeposit || 0), 0),
             totalAmountDeposited: this.reports.reduce((sum, r) => sum + (r.totalAmountDeposited || 0), 0),
+            creditSalesMargin: this.reports.reduce((sum, r) => sum + (r.creditSalesMargin || 0), 0),
+            stockRequestMargin: this.reports.reduce((sum, r) => sum + (r.stockRequestMargin || 0), 0),
         };
     }
 
@@ -226,6 +229,10 @@ export class DailyReportComponent implements OnInit {
     resetFilters() {
         this.selectedAgent = null;
         this.setFilter('today');
+    }
+
+    toggleMargins() {
+        this.showMargins = !this.showMargins;
     }
 
     // --- Cash Management ---

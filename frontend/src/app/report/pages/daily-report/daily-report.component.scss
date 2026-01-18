@@ -76,6 +76,13 @@
         font-weight: bold;
         color: #333;
     }
+
+    .kpi-margin {
+        font-size: 0.8rem;
+        color: #2e7d32; /* Green for profit */
+        margin-top: 4px;
+        font-weight: 600;
+    }
 }
 
 mat-expansion-panel-header {

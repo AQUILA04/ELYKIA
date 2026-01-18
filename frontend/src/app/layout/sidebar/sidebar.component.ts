@@ -9,6 +9,7 @@ import { AuthService } from "../../auth/service/auth.service";
 import { LayoutService } from 'src/app/shared/service/layout.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
+import {UserProfile} from "../../shared/models/user-profile.enum";
 
 @Component({
   selector: 'app-sidebar',
@@ -194,7 +195,15 @@ export class SidebarComponent implements OnInit {
   }
 
   hasCaisseAccess(): boolean {
-    return this.userService.hasProfile(UserProfilConstant.PROMOTER);
+    return this.userService.hasProfile(UserProfile.PROMOTER);
+  }
+
+  isStorekeeper(): boolean {
+    return this.userService.hasProfile(UserProfile.STOREKEEPER);
+  }
+
+  isPromoter(): boolean {
+    return this.userService.hasProfile(UserProfile.PROMOTER);
   }
 
   confirmLogout(): void {

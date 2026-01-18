@@ -40,6 +40,11 @@
         <button mat-button color="warn" (click)="resetFilters()" *ngIf="selectedFilter === 'custom' || selectedAgent">
             Réinitialiser
         </button>
+
+        <!-- Margin Toggle Button -->
+        <button mat-icon-button (click)="toggleMargins()" matTooltip="Afficher/Masquer les marges">
+            <mat-icon>{{ showMargins ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
     </div>
 
     <!-- TABS -->
@@ -67,10 +72,12 @@
                                     <div class="kpi-card">
                                         <span class="kpi-label">Sortie Stock</span>
                                         <span class="kpi-value">{{ aggregatedReportData.totalStockRequestAmount | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-margin" *ngIf="showMargins">Marge: {{ aggregatedReportData.stockRequestMargin | currency:'XOF':'symbol':'1.0-0' }}</span>
                                     </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">Ventes à Crédit</span>
                                         <span class="kpi-value">{{ aggregatedReportData.creditSalesCount }} ({{ aggregatedReportData.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                        <span class="kpi-margin" *ngIf="showMargins">Marge: {{ aggregatedReportData.creditSalesMargin | currency:'XOF':'symbol':'1.0-0' }}</span>
                                     </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">Nouveaux Clients</span>
@@ -142,11 +149,13 @@
                                         <span class="kpi-label">Sortie Stock</span>
                                         <span class="kpi-value">{{ report.totalStockRequestAmount |
                                             currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-margin" *ngIf="showMargins">Marge: {{ report.stockRequestMargin | currency:'XOF':'symbol':'1.0-0' }}</span>
                                     </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">Ventes à Crédit</span>
                                         <span class="kpi-value">{{ report.creditSalesCount }} ({{
                                             report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                        <span class="kpi-margin" *ngIf="showMargins">Marge: {{ report.creditSalesMargin | currency:'XOF':'symbol':'1.0-0' }}</span>
                                     </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">Nouveaux Clients</span>

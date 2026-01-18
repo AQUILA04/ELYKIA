@@ -795,12 +795,16 @@ public class CreditService extends GenericService<Credit, Long> {
         credit.start();
         repository.saveAndFlush(credit);
 
+        // Calculate margin
+        Double margin = (credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0) - 
+                        (credit.getTotalPurchase() != null ? credit.getTotalPurchase() : 0.0);
+
         // Publish Event
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.CreditStartedEvent(
                     this,
                     credit.getTotalAmount(),
-                    credit.getCollector(), credit.getAdvance()));
+                    credit.getCollector(), credit.getAdvance(), margin));
         }
 
         // Real-time aggregation update for BI performance optimization

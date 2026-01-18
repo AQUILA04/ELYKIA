@@ -165,12 +165,16 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         request.setAccountingDate(accountingDayService.getCurrentAccountingDate());
         StockRequest savedRequest = repository.save(request);
 
+        // Calculate margin
+        Double margin = (savedRequest.getTotalCreditSalePrice() != null ? savedRequest.getTotalCreditSalePrice() : 0.0) - 
+                        (savedRequest.getTotalPurchasePrice() != null ? savedRequest.getTotalPurchasePrice() : 0.0);
+
         // Publish Event
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.StockRequestDeliveredEvent(
                     this,
                     savedRequest.getTotalCreditSalePrice(),
-                    savedRequest.getCollector()));
+                    savedRequest.getCollector(), margin));
         }
 
         return savedRequest;

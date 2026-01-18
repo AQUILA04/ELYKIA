@@ -8,11 +8,13 @@ public class CreditStartedEvent extends ApplicationEvent {
     private final Double amount;
     private final String collector;
     private final Double advance;
+    private final Double margin;
 
-    public CreditStartedEvent(Object source, Double amount, String collector, Double advance) {
+    public CreditStartedEvent(Object source, Double amount, String collector, Double advance, Double margin) {
         super(source);
         this.amount = amount;
         this.collector = collector;
         this.advance = advance;
+        this.margin = margin;
     }
 }
