@@ -52,6 +52,8 @@ export class DailyReportComponent implements OnInit {
     depositsPage = 0;
     depositsPageSize = 20;
 
+    aggregatedReportData: any = null;
+
     constructor(
         private dailyReportService: DailyReportService,
         private tokenStorage: TokenStorageService,
@@ -140,10 +142,11 @@ export class DailyReportComponent implements OnInit {
         this.dailyReportService.getReports(startStr, endStr, collector).subscribe({
             next: (data) => {
                 this.reports = data;
+                this.calculateAggregatedReport();
                 this.isLoading = false;
 
                 // Also load operations if a specific day is selected (start == end) or logic allows
-                // Currently only loading operations if single day or handling range? 
+                // Currently only loading operations if single day or handling range?
                 // The API supports single date. If range, maybe default to start date or end date?
                 // Let's load for the 'end' date which is 'today' in default view.
                 this.loadOperations();
@@ -153,6 +156,33 @@ export class DailyReportComponent implements OnInit {
                 this.isLoading = false;
             }
         });
+    }
+
+    calculateAggregatedReport() {
+        const uniqueCommercials = new Set(this.reports.map(r => r.commercialUsername)).size;
+
+        if (uniqueCommercials <= 1) {
+            this.aggregatedReportData = null;
+            return;
+        }
+        this.aggregatedReportData = {
+            creditSalesAmount: this.reports.reduce((sum, r) => sum + (r.creditSalesAmount || 0), 0),
+            collectionsAmount: this.reports.reduce((sum, r) => sum + (r.collectionsAmount || 0), 0),
+            totalStockRequestAmount: this.reports.reduce((sum, r) => sum + (r.totalStockRequestAmount || 0), 0),
+            creditSalesCount: this.reports.reduce((sum, r) => sum + (r.creditSalesCount || 0), 0),
+            newClientsCount: this.reports.reduce((sum, r) => sum + (r.newClientsCount || 0), 0),
+            newAccountsBalance: this.reports.reduce((sum, r) => sum + (r.newAccountsBalance || 0), 0),
+            collectionsCount: this.reports.reduce((sum, r) => sum + (r.collectionsCount || 0), 0),
+            ordersCount: this.reports.reduce((sum, r) => sum + (r.ordersCount || 0), 0),
+            ordersAmount: this.reports.reduce((sum, r) => sum + (r.ordersAmount || 0), 0),
+            tontineMembersCount: this.reports.reduce((sum, r) => sum + (r.tontineMembersCount || 0), 0),
+            tontineCollectionsCount: this.reports.reduce((sum, r) => sum + (r.tontineCollectionsCount || 0), 0),
+            tontineCollectionsAmount: this.reports.reduce((sum, r) => sum + (r.tontineCollectionsAmount || 0), 0),
+            tontineDeliveriesCount: this.reports.reduce((sum, r) => sum + (r.tontineDeliveriesCount || 0), 0),
+            tontineDeliveriesAmount: this.reports.reduce((sum, r) => sum + (r.tontineDeliveriesAmount || 0), 0),
+            totalAmountToDeposit: this.reports.reduce((sum, r) => sum + (r.totalAmountToDeposit || 0), 0),
+            totalAmountDeposited: this.reports.reduce((sum, r) => sum + (r.totalAmountDeposited || 0), 0),
+        };
     }
 
     loadOperations() {

@@ -5,13 +5,13 @@
 
     <!-- Filters Toolbar -->
     <div class="filters-container d-flex flex-wrap align-items-center gap-2 mb-4">
-        <button mat-stroked-button [color]="selectedFilter === 'today' ? 'primary' : ''"
+        <button mat-stroked-button [color]="selectedFilter === 'today' ? 'primary' : undefined"
             (click)="setFilter('today')">Aujourd'hui</button>
-        <button mat-stroked-button [color]="selectedFilter === 'week' ? 'primary' : ''"
+        <button mat-stroked-button [color]="selectedFilter === 'week' ? 'primary' : undefined"
             (click)="setFilter('week')">Cette Semaine</button>
-        <button mat-stroked-button [color]="selectedFilter === 'month' ? 'primary' : ''" (click)="setFilter('month')">Ce
+        <button mat-stroked-button [color]="selectedFilter === 'month' ? 'primary' : undefined" (click)="setFilter('month')">Ce
             Mois</button>
-        <button mat-stroked-button [color]="selectedFilter === 'custom' ? 'primary' : ''"
+        <button mat-stroked-button [color]="selectedFilter === 'custom' ? 'primary' : undefined"
             (click)="selectedFilter = 'custom'">Personnaliser</button>
 
         <!-- Custom Date Range -->
@@ -52,6 +52,74 @@
                 </div>
 
                 <div *ngIf="!isLoading">
+                    <!-- Aggregated Report Panel -->
+                    <div class="aggregated-report mb-4" *ngIf="aggregatedReportData && !isPromoter">
+                        <mat-card class="example-card">
+                            <mat-card-header>
+                                <mat-card-title>TOTAL GÉNÉRAL</mat-card-title>
+                                <mat-card-subtitle>
+                                    Total Ventes: {{ aggregatedReportData.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }} |
+                                    Total Collectes: {{ aggregatedReportData.collectionsAmount | currency:'XOF':'symbol':'1.0-0' }}
+                                </mat-card-subtitle>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <div class="kpi-grid">
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Sortie Stock</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.totalStockRequestAmount | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Ventes à Crédit</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.creditSalesCount }} ({{ aggregatedReportData.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Nouveaux Clients</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.newClientsCount }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Solde Nx Comptes</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.newAccountsBalance | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Recouvrements</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.collectionsCount }} ({{ aggregatedReportData.collectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Commandes</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.ordersCount }} ({{ aggregatedReportData.ordersAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Tontine Adhésions</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.tontineMembersCount }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Tontine Collectes</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.tontineCollectionsCount }} ({{ aggregatedReportData.tontineCollectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Tontine Livraisons</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.tontineDeliveriesCount }} ({{ aggregatedReportData.tontineDeliveriesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">A Verser</span>
+                                        <span class="kpi-value">{{ (aggregatedReportData.totalAmountToDeposit || 0) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Versé</span>
+                                        <span class="kpi-value">{{ (aggregatedReportData.totalAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Reste</span>
+                                        <span class="kpi-value"
+                                            [ngClass]="{'text-danger': ((aggregatedReportData.totalAmountToDeposit || 0) - (aggregatedReportData.totalAmountDeposited || 0)) > 0, 'text-success': ((aggregatedReportData.totalAmountToDeposit || 0) - (aggregatedReportData.totalAmountDeposited || 0)) <= 0}">
+                                            {{ ((aggregatedReportData.totalAmountToDeposit || 0) - (aggregatedReportData.totalAmountDeposited || 0)) | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+
                     <!-- Content: List of Commercial Reports -->
                     <div class="reports-list mb-4">
                         <mat-accordion multi>
@@ -164,7 +232,7 @@
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Commercial</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Type</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Sujet</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Description</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-600">Description</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Montant</th>
                             </tr>
                         </thead>
