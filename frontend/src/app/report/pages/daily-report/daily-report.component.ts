@@ -1,16 +1,17 @@
-import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
-import { DailyReportService } from '../../service/daily-report.service';
-import { DailyCommercialReport } from '../../models/daily-commercial-report.model';
-import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { ClientService } from 'src/app/client/service/client.service';
-import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
-import { DatePipe } from '@angular/common';
-import { MatDialog } from '@angular/material/dialog';
-import { CashDepositModalComponent } from '../../components/cash-deposit-modal/cash-deposit-modal.component';
-import { DailyOperationLog } from '../../models/daily-operation-log.model';
-import { DailyOperationService } from '../../service/daily-operation.service';
-import { CashDepositService } from '../../service/cash-deposit.service';
+import {Component, OnInit} from '@angular/core';
+import {FormControl, FormGroup} from '@angular/forms';
+import {DailyReportService} from '../../service/daily-report.service';
+import {DailyCommercialReport} from '../../models/daily-commercial-report.model';
+import {TokenStorageService} from 'src/app/shared/service/token-storage.service';
+import {ClientService} from 'src/app/client/service/client.service';
+import {DatePipe} from '@angular/common';
+import {MatDialog} from '@angular/material/dialog';
+import {CashDepositModalComponent} from '../../components/cash-deposit-modal/cash-deposit-modal.component';
+import {DailyOperationLog} from '../../models/daily-operation-log.model';
+import {DailyOperationService} from '../../service/daily-operation.service';
+import {CashDepositService} from '../../service/cash-deposit.service';
+import {UserService} from "../../../user/service/user.service";
+import {UserProfile} from "../../../shared/models/user-profile.enum";
 
 @Component({
     selector: 'app-daily-report',
@@ -62,13 +63,13 @@ export class DailyReportComponent implements OnInit {
         private datePipe: DatePipe,
         private dialog: MatDialog,
         private dailyOperationService: DailyOperationService,
-        private cashDepositService: CashDepositService
+        private cashDepositService: CashDepositService,
+        private userService : UserService
     ) { }
 
     ngOnInit(): void {
-        const currentUser = this.tokenStorage.getUser();
         // Check if profil is object with name or just string, handling both just in case
-        this.isPromoter = (currentUser?.profil?.name === UserProfilConstant.PROMOTER) || (currentUser?.profil === UserProfilConstant.PROMOTER);
+        this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
 
         if (!this.isPromoter) {
             this.loadAgents();

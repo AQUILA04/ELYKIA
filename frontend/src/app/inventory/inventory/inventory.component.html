@@ -52,6 +52,11 @@
           <mat-icon>sync</mat-icon>
           <span>Réconcilier les écarts</span>
         </button>
+        <button *ngIf="isGestionnaire && currentInventory.status === 'IN_PROGRESS'"
+                class="btn refresh-button btn-sm ml-2" (click)="finalizeInventory()">
+          <mat-icon>check_circle</mat-icon>
+          <span>Clôturer l'inventaire</span>
+        </button>
       </div>
     </div>
 

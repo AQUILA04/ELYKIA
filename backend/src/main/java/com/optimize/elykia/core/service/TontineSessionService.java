@@ -6,6 +6,7 @@ import com.optimize.elykia.core.dto.*;
 import com.optimize.elykia.core.entity.TontineMember;
 import com.optimize.elykia.core.entity.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
+import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class TontineSessionService {
 
         private final TontineSessionRepository sessionRepository;
         private final TontineMemberRepository memberRepository;
+        private final TontineCollectionRepository collectionRepository;
 
         /**
          * Récupère toutes les sessions avec leurs statistiques de base
@@ -97,6 +99,11 @@ public class TontineSessionService {
                                 ? (deliveredCount * 100.0) / totalMembers
                                 : 0.0;
 
+                Double totalDeliveryCollections = collectionRepository.sumDeliveryCollectionsBySession(sessionId, State.ENABLED);
+                if (totalDeliveryCollections == null) {
+                        totalDeliveryCollections = 0.0;
+                }
+
                 // Top commerciaux via DB query
                 List<TopCommercialDto> topCommercials = memberRepository.findTopCommercials(sessionId, State.ENABLED,
                                 org.springframework.data.domain.PageRequest.of(0, 5));
@@ -111,6 +118,7 @@ public class TontineSessionService {
                                 .pendingCount(pendingCount)
                                 .deliveryRate(deliveryRate)
                                 .totalRevenue(session.getTotalRevenue())
+                                .totalDeliveryCollections(totalDeliveryCollections)
                                 .topCommercials(topCommercials)
                                 .build();
         }

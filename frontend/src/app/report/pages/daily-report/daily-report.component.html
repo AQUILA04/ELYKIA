@@ -42,7 +42,7 @@
         </button>
 
         <!-- Margin Toggle Button -->
-        <button mat-icon-button (click)="toggleMargins()" matTooltip="Afficher/Masquer les marges">
+        <button mat-icon-button (click)="toggleMargins()" matTooltip="Afficher/Masquer les marges" *ngIf="!isPromoter">
             <mat-icon>{{ showMargins ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
     </div>
@@ -322,7 +322,7 @@
         Aucun rapport trouvé pour la période sélectionnée.
     </div>
 
-    <div *ngIf="!selectedAgent && !isLoading" class="alert alert-warning mt-3">
+    <div *ngIf="!selectedAgent && !isLoading && !isPromoter" class="alert alert-warning mt-3">
         Veuillez sélectionner un commercial pour voir les détails et effectuer des versements.
     </div>
 </div>

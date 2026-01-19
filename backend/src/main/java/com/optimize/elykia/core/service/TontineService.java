@@ -301,6 +301,14 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     @Override
+    public TontineMember getById(Long id) {
+        TontineMember member = super.getById(id);
+        Double totalDeliveryCollections = tontineCollectionRepository.sumDeliveryCollectionsByMember(id, State.ENABLED);
+        member.setTotalDeliveryCollections(totalDeliveryCollections != null ? totalDeliveryCollections : 0.0);
+        return member;
+    }
+
+    @Override
     public TontineMemberRepository getRepository() {
         return (TontineMemberRepository) repository;
     }

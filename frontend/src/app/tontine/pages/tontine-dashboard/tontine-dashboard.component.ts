@@ -116,7 +116,8 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
         { title: 'Montant Total Collecté', value: '0 XOF', icon: 'account_balance_wallet', color: 'success' },
         { title: 'Revenu Total', value: '0 XOF', icon: 'monetization_on', color: 'accent' },
         { title: 'En Attente de Livraison', value: 0, icon: 'schedule', color: 'warning' },
-        { title: 'Contribution Moyenne', value: '0 XOF', icon: 'trending_up', color: 'info' }
+        { title: 'Contribution Moyenne', value: '0 XOF', icon: 'trending_up', color: 'info' },
+        { title: 'Collectes à la livraison', value: '0 XOF', icon: 'local_shipping', color: 'primary' }
       ];
     }
 
@@ -155,6 +156,13 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
         icon: 'trending_up',
         color: 'info',
         subtitle: 'Par membre'
+      },
+      {
+        title: 'Collectes à la livraison',
+        value: `${(kpis.totalDeliveryCollections || 0).toLocaleString('fr-FR')} XOF`,
+        icon: 'local_shipping',
+        color: 'primary',
+        subtitle: 'Lors de la livraison'
       }
     ];
   }

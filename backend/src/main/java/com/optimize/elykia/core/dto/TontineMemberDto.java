@@ -15,4 +15,5 @@ public class TontineMemberDto {
     private Double availableContribution;
     private Integer validatedMonths;
     private Integer currentMonthDays;
+    private Double totalDeliveryCollections;
 }

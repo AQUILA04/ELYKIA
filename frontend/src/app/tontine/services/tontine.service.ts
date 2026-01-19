@@ -255,7 +255,8 @@ export class TontineService {
                 pendingDeliveries: stats.pendingCount,
                 completedDeliveries: stats.deliveredCount,
                 averageContribution: stats.averageContribution,
-                monthlyGrowth: 0 // Placeholder
+                monthlyGrowth: 0, // Placeholder
+                totalDeliveryCollections: stats.totalDeliveryCollections
               },
               loading: false,
               error: null

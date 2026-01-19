@@ -33,6 +33,7 @@ export interface TontineMember {
   readonly availableContribution?: number;
   readonly validatedMonths?: number;
   readonly currentMonthDays?: number;
+  readonly totalDeliveryCollections?: number;
 }
 
 export interface TontineCollection {
@@ -43,6 +44,7 @@ export interface TontineCollection {
   readonly commercialUsername: string;
   readonly createdBy?: string;
   readonly createdDate?: string;
+  readonly isDeliveryCollection?: boolean;
 }
 
 export interface TontineClient {
@@ -152,6 +154,7 @@ export interface SessionStats {
   readonly pendingCount: number;
   readonly deliveryRate: number;
   readonly totalRevenue: number; // Added totalRevenue
+  readonly totalDeliveryCollections: number;
   readonly topCommercials?: readonly TopCommercial[];
 }
 
@@ -218,6 +221,7 @@ export interface TontineKPI {
   readonly completedDeliveries: number;
   readonly averageContribution: number;
   readonly monthlyGrowth: number;
+  readonly totalDeliveryCollections: number;
 }
 
 // Configuration des KPIs

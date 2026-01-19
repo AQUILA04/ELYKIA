@@ -64,4 +64,7 @@ public class TontineMember extends BaseEntity<String> {
 
     @Column(columnDefinition = "integer default 0")
     private Integer currentMonthDays = 0;
+
+    @Transient
+    private Double totalDeliveryCollections = 0.0;
 }

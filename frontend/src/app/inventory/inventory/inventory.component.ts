@@ -182,7 +182,7 @@ export class InventoryComponent implements OnInit {
   loadCurrentInventory(): void {
     this.inventoryService.getCurrentInventory().subscribe({
       next: (inventory: any) => {
-        if (inventory) {
+        if (inventory && (inventory.status === 'IN_PROGRESS' || inventory.status === 'DRAFT')) {
           this.currentInventory = inventory;
         } else {
           this.currentInventory = null;
@@ -275,5 +275,35 @@ export class InventoryComponent implements OnInit {
     if (this.currentInventory && this.currentInventory.id) {
       this.router.navigate(['/inventory-reconciliation', this.currentInventory.id]);
     }
+  }
+
+  finalizeInventory(): void {
+    if (!this.currentInventory || !this.currentInventory.id) {
+      this.alertService.showError('Aucun inventaire disponible à clôturer.');
+      return;
+    }
+
+    this.alertService.showConfirmation(
+      'Confirmation de clôture d\'inventaire',
+      'Êtes-vous sûr de vouloir clôturer cet inventaire ? Cette action est définitive et empêchera toute modification future.'
+    ).then((result: boolean) => {
+      if (result) {
+        this.spinner.show();
+        this.inventoryService.finalizeInventory(this.currentInventory!.id).subscribe({
+          next: (response: any) => {
+            this.spinner.hide();
+            this.alertService.showDefaultSucces('Inventaire clôturé avec succès.');
+            // Recharger l'inventaire pour mettre à jour le statut
+            this.loadCurrentInventory();
+          },
+          error: (err) => {
+            this.spinner.hide();
+            const errorMessage = err?.error?.message || 'Une erreur est survenue lors de la clôture de l\'inventaire.';
+            this.alertService.showError(errorMessage);
+            console.error(err);
+          }
+        });
+      }
+    });
   }
 }

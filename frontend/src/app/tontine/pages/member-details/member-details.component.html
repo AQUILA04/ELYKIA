@@ -66,6 +66,10 @@
           <span class="summary-label">Date d'Inscription</span>
           <span class="summary-value">{{ formatDateTime(member.registrationDate) }}</span>
         </div>
+        <div class="summary-item">
+          <span class="summary-label">Collectes à la livraison</span>
+          <span class="summary-value">{{ formatCurrency(member.totalDeliveryCollections || 0) }}</span>
+        </div>
       </div>
 
       <!-- Validated Months Progress -->

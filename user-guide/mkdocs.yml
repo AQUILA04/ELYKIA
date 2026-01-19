@@ -11,12 +11,13 @@ theme:
 
 nav:
   - Accueil: index.md
-  - Cycle de Vie Journalier: daily-cycle.md
-  - Administration: administration.md
-  - Gestion Commerciale: commercial.md
-  - Gestion Tontine: tontine.md
-  - Logistique: logistics.md
-  - Reporting: reporting.md
+  - Guide Gestionnaire:
+    - Introduction & Connexion: manager/index.md
+    - Tableaux de Bord: manager/dashboard.md
+    - Opérations Quotidiennes: manager/operations.md
+    - Stocks & Ventes: manager/stock_sales.md
+    - Finances & Tontines: manager/finance.md
+    - Rapports & Configuration: manager/reporting_config.md
 
 markdown_extensions:
   - admonition

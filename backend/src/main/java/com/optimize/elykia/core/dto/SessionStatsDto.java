@@ -18,5 +18,6 @@ public class SessionStatsDto {
     private Integer pendingCount;
     private Double deliveryRate;
     private Double totalRevenue;
+    private Double totalDeliveryCollections;
     private List<TopCommercialDto> topCommercials;
 }

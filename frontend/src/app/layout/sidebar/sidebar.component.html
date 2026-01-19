@@ -113,7 +113,7 @@
                 <span class="hide-menu">Demandes Sortie</span>
               </a>
             </li>
-            <li class="sidebar-item submenu-item">
+            <li class="sidebar-item submenu-item" *ngIf="!isStorekeeper()">
               <a class="sidebar-link" routerLink="/stock/my-stock">
                 <span class="material-icons">dashboard</span>
                 <span class="hide-menu">Stock</span>
@@ -129,7 +129,7 @@
         </li>
 
         <!-- NOUVEAU MENU STOCK TONTINE -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_TONTINE', 'ROLE_STOREKEEPER', 'ROLE_REPORT']"
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_TONTINE', 'ROLE_STOREKEEPER', 'ROLE_REPORT']"
           [ngClass]="{ 'active': isRouteActive('/stock-tontine') }">
           <a class="sidebar-link has-arrow" (click)="onStockTontineClick()" aria-expanded="false">
             <span>
@@ -144,7 +144,7 @@
                 <span class="hide-menu">Demandes Sortie</span>
               </a>
             </li>
-            <li class="sidebar-item submenu-item">
+            <li class="sidebar-item submenu-item" *ngIf="!isStorekeeper()">
               <a class="sidebar-link" routerLink="/stock-tontine/my-stock">
                 <span class="material-icons">dashboard</span>
                 <span class="hide-menu">Stock</span>
@@ -169,15 +169,15 @@
           </a>
         </li>
 
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER']"
-          [ngClass]="{ 'active': isRouteActive('/out-list') }">
-          <a class="sidebar-link" routerLink="/out-list" aria-expanded="false">
-            <span>
-              <mat-icon>exit_to_app</mat-icon>
-            </span>
-            <span class="hide-menu">Sortie</span>
-          </a>
-        </li>
+<!--        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER']"-->
+<!--          [ngClass]="{ 'active': isRouteActive('/out-list') }">-->
+<!--          <a class="sidebar-link" routerLink="/out-list" aria-expanded="false">-->
+<!--            <span>-->
+<!--              <mat-icon>exit_to_app</mat-icon>-->
+<!--            </span>-->
+<!--            <span class="hide-menu">Sortie</span>-->
+<!--          </a>-->
+<!--        </li>-->
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_TONTINE','ROLE_EDIT_TONTINE']"
           [ngClass]="{ 'active': isRouteActive('/tontine') }">
           <a class="sidebar-link" routerLink="/tontine" aria-expanded="false">
