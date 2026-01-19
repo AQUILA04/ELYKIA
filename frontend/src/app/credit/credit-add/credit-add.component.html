@@ -31,8 +31,7 @@
         [searchFn]="searchCommercial"
         (change)="onCommercialChange()"
         placeholder="Sélectionner un commercial"
-        [clearable]="false"
-        [readonly]="isPromoter">
+        [clearable]="false">
         <ng-template ng-option-tmp let-item="item">
           <div class="commercial-option">
             <strong>{{ item.username }}</strong>

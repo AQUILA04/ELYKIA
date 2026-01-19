@@ -132,27 +132,13 @@ public class OrderService extends GenericService<Order, Long> {
         if (order.getStatus() != OrderStatus.ACCEPTED) {
             throw new CustomValidationException("Seules les commandes acceptées peuvent être vendues.");
         }
-
-        CreditDto creditDto = new CreditDto();
-        creditDto.setClientId(order.getClient().getId());
-        Set<CreditArticlesDto> creditArticles = order.getItems().stream()
-                .map(orderItem -> {
-                    CreditArticlesDto articlesDto = new CreditArticlesDto();
-                    articlesDto.setArticleId(orderItem.getArticle().getId());
-                    articlesDto.setQuantity(orderItem.getQuantity());
-                    return articlesDto;
-                })
-                .collect(Collectors.toSet());
-        creditDto.setArticles(creditArticles);
-
-        Credit newCredit = creditService.createCredit(creditDto);
-        creditService.validateCredit(newCredit.getId());
+        Long newCreditId = creditService.transformOrderToCredit(order);
 
         order.setStatus(OrderStatus.SOLD);
         this.update(order);
         historyService.createHistory(order, OrderStatus.ACCEPTED, OrderStatus.SOLD, username);
 
-        return creditService.getById(newCredit.getId());
+        return creditService.getById(newCreditId);
     }
 
     public List<Order> updateOrderStatus(UpdateOrderStatusDto dto) {

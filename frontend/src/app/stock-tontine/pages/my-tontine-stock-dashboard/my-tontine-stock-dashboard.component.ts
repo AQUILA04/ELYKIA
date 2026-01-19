@@ -75,9 +75,15 @@ export class MyTontineStockDashboardComponent implements OnInit {
   loadCurrentStock() {
     this.spinner.show();
     this.tontineStockService.getAll(this.selectedAgent, this.pageIndex, this.pageSize, this.isHistoric).subscribe({
-      next: (data) => {
-        this.groupStocksByYear(data.content);
-        this.totalElements = data.totalElements;
+      next: (data: any) => {
+        if (!data) {
+          this.groupStocksByYear([]);
+          this.totalElements = 0;
+        } else {
+          const content = data.content || (Array.isArray(data) ? data : []);
+          this.groupStocksByYear(content);
+          this.totalElements = data.totalElements || content.length;
+        }
         this.spinner.hide();
       },
       error: (err) => {
@@ -89,6 +95,11 @@ export class MyTontineStockDashboardComponent implements OnInit {
 
   groupStocksByYear(stocks: TontineStock[]) {
     const groups = new Map<string, any>();
+
+    if (!stocks) {
+      this.groupedStocks = [];
+      return;
+    }
 
     stocks.forEach(stock => {
       const key = `${stock.commercial}-${stock.year}`;

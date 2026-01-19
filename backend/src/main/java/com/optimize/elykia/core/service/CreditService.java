@@ -27,6 +27,7 @@ import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.util.DateUtils;
 import com.optimize.elykia.core.util.MoneyUtil;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -134,6 +135,14 @@ public class CreditService extends GenericService<Credit, Long> {
         }
 
         return createAndProcessCredit(credit, creditDto.getClientId());
+    }
+
+    @SneakyThrows
+    @Transactional
+    public Long transformOrderToCredit(Order order) {
+        DistributeArticleDto distributeArticleDto = DistributeArticleDto.fromOrder(order);
+        Credit credit = distributeArticlesV2(distributeArticleDto);
+        return credit.getId();
     }
 
     @Transactional
@@ -473,6 +482,7 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     @Transactional
+    @Deprecated
     public Credit distributeArticles(DistributeArticleDto dto) {
         dto.validateEntryArticles();
         Credit credit = getById(dto.getCreditId());
