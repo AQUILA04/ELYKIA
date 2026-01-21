@@ -1,0 +1,64 @@
+spring:
+  main:
+    allow-circular-references: 'true'
+  datasource:
+    username: francis
+    url: jdbc:postgresql://localhost:5432/cssdb
+    password: Anid2022
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: 'true'
+    hibernate:
+      ddl-auto: update
+bezkoder:
+  app:
+    jwtExpirationMs: '86400000'
+    jwtRefreshExpirationMs: '86400000'
+    jwtSecret: ======================BezKoder=Spring===========================
+
+
+security:
+  licence:
+    prod:
+      active: 1
+      society: "Optimize"
+  config:
+    auto-initialize:
+      enabled: false
+    profiles: ADMIN,USER
+    permissions: ROLE_ADMIN,ROLE_USER
+    profil-permissions:
+      ADMIN: ROLE_ADMIN
+      USER: ROLE_USER
+    users:
+      accounts:
+        account1:
+          username: username1
+          password: password1
+          profil: ADMIN
+          user-details:
+            firstname: admin_firstname
+            lastname: admin_lastname
+            phone: 90000001
+            gender: MALE
+            email: admin@email.com
+server:
+  ssl:
+    enabled: false
+app:
+  security:
+    parameter:
+      init-enabled: true
+      init-data[0]:
+        key: ENABLED_ACCOUNT_BALANCE_CONTROL
+        value: true
+        description: Activer la vérification du solde du compte du client pour limiter le montant de crédit qu'il peut prendre
+      init-data[1]:
+        key: AGENCY_COLLECTOR
+        value: COM001
+        description: Le Username du commercial qui comptabilise les opération de vente en agence
+
