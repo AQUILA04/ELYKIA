@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: elykia-postgres
+    environment:
+      POSTGRES_DB: oec_v2
+      POSTGRES_USER: francis
+      POSTGRES_PASSWORD: Africa2025
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - elykia-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: elykia-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/oec_v2
+      SPRING_DATASOURCE_USERNAME: francis
+      SPRING_DATASOURCE_PASSWORD: Africa2025
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - postgres
+    networks:
+      - elykia-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: elykia-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - elykia-network
+
+networks:
+  elykia-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
