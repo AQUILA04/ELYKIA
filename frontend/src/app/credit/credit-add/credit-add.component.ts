@@ -107,24 +107,19 @@ export class CreditAddComponent implements OnInit, OnDestroy {
         this.alertService.showError('Erreur lors du chargement de la page');
       }
     }));
-    console.log('CreditID: ', this.creditId);
   }
 
   // Charge les données du crédit et initialise les dépendances
   private loadCreditData(id: number): Observable<any> {
-    console.log(`[loadCreditData] Début chargement crédit ID: ${id}`);
     return this.creditService.getCreditById(id).pipe(
       switchMap(response => {
-        console.log('[loadCreditData] Réponse API reçue:', response);
         const data = response.data;
         if (!data) {
-            console.warn('[loadCreditData] Aucune donnée trouvée pour ce crédit');
             return of(null);
         }
 
         // 1. Déterminer le type et configurer le formulaire
         const type = data.type === 'CASH' ? 'CASH' : 'CREDIT';
-        console.log(`[loadCreditData] Type de vente détecté: ${type}`);
         this.saleType = type;
         this.creditForm.patchValue({ saleType: type }, { emitEvent: false });
 
@@ -133,7 +128,6 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
         if (type === 'CREDIT') {
           const commercialUsername = typeof data.collector === 'object' ? data.collector.username : data.collector;
-          console.log(`[loadCreditData] Commercial détecté: ${commercialUsername}`);
 
           this.creditForm.patchValue({ commercial: commercialUsername });
           this.creditForm.get('commercial')?.setValidators(Validators.required);
@@ -163,7 +157,6 @@ export class CreditAddComponent implements OnInit, OnDestroy {
         // 3. Exécuter le chargement des dépendances puis remplir le formulaire
         return dependencies$.pipe(
           tap((results) => {
-            console.log('[loadCreditData] Dépendances chargées:', results);
             // Une fois les listes chargées, on remplit les valeurs
             this.creditForm.patchValue({
               clientId: data.client?.id,
@@ -174,12 +167,10 @@ export class CreditAddComponent implements OnInit, OnDestroy {
             });
 
             if (data.articles && Array.isArray(data.articles)) {
-              console.log('[loadCreditData] Articles bruts:', data.articles);
               const articlesData = data.articles.map((article: any) => ({
                 articleId: article.articles?.id || article.articleId,
                 quantity: article.quantity || 0
               }));
-              console.log('[loadCreditData] Articles formatés pour le formulaire:', articlesData);
               this.creditForm.patchValue({ articles: articlesData });
             } else {
                 console.warn('[loadCreditData] Aucun article trouvé ou format incorrect');
@@ -210,7 +201,6 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     if (!username) return of([]);
     return this.commercialStockService.getAvailableItems(username).pipe(
       tap(items => {
-        console.log(`[getCommercialStockObservable] Stock chargé pour ${username}:`, items?.length);
         this.articles = items.map(item => ({
           id: item.articleId,
           commercialName: item.commercialName,
@@ -233,7 +223,6 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     return this.itemService.getAllArticles().pipe(
       map(response => response.data.content),
       tap(articles => {
-          console.log('[getGeneralStockObservable] Stock général chargé:', articles?.length);
           this.articles = articles;
       }),
       catchError((err) => {
@@ -249,7 +238,6 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     return this.clientService.getClientByCommercial(username, 0, 10000, 'id,desc').pipe(
       map(response => response.data.content),
       tap(clients => {
-        console.log(`[getClientsForCommercialObservable] Clients chargés pour ${username}:`, clients?.length);
         this.clients = clients.filter((client: any) => client.clientType === 'CLIENT');
       }),
       catchError((err) => {
@@ -264,7 +252,6 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     return this.clientService.getClients(0, 10000, 'id,desc', this.currentUser).pipe(
       map(response => response.data.content),
       tap(clients => {
-        console.log('[getAllClientsObservable] Tous les clients chargés:', clients?.length);
         this.clients = clients.filter((client: any) => client.clientType === 'CLIENT');
       }),
       catchError((err) => {

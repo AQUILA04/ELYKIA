@@ -82,9 +82,10 @@ export class StockTontineReturnCreateComponent implements OnInit {
   loadAvailableStock(username: string): void {
     this.spinner.show();
     this.tontineStockService.getStockByCommercial(username).subscribe({
-      next: (items) => {
+      next: (response: any) => {
+        const items = Array.isArray(response) ? response : (response && response.content) || [];
         // Mapping pour le composant article-selector
-        this.availableStockItems = items.map(item => ({
+        this.availableStockItems = items.map((item: any) => ({
           id: item.articleId, // Utilisation de l'ID réel de l'article
           articleName: item.articleName,
           commercialName: item.commercial,

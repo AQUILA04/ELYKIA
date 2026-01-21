@@ -206,6 +206,19 @@ export class SidebarComponent implements OnInit {
     return this.userService.hasProfile(UserProfile.PROMOTER);
   }
 
+  getUserGuideLink(): string {
+    if (this.userService.hasProfile(UserProfile.SECRETARY) || this.userService.hasProfile(UserProfile.GESTIONNAIRE)) {
+      return '/user-guide/manager/index.html';
+    }
+    if (this.userService.hasProfile(UserProfile.PROMOTER)) {
+      return '/user-guide/commercial/index.html';
+    }
+    if (this.userService.hasProfile(UserProfile.STOREKEEPER)) {
+      return '/user-guide/storekeeper/index.html';
+    }
+    return '/user-guide/index.html';
+  }
+
   confirmLogout(): void {
     Swal.fire({
       title: '<span style="font-size: 22px; font-weight: 600; color: #333;">Êtes-vous sûr ?</span>',

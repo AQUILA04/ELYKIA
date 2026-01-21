@@ -40,7 +40,7 @@ export class MorePage implements OnInit, OnDestroy {
   collectionRate$: Observable<number>;
   pendingErrorsCount$!: Observable<number>;
   appVersion: string = environment.version; // Expose version to template
-  
+
   // Propriétés pour la gestion mémoire
   memoryStats$: Observable<MemoryStats | null>;
   currentMemoryStats: MemoryStats | null = null;
@@ -72,7 +72,7 @@ export class MorePage implements OnInit, OnDestroy {
     this.autoSync = await this.storage.get('autoSync') || false;
     this.autoLock = await this.storage.get('autoLock') || false;
     this.autoLockDuration = await this.storage.get('autoLockDuration') || 2;
-    
+
     // Charger les préférences de synchronisation des photos
     const photoPrefs = await this.photoSyncService.getPhotoSyncPreferences();
     this.enableProfilePhotoSync = photoPrefs.enableProfilePhotoSync;
@@ -232,12 +232,12 @@ export class MorePage implements OnInit, OnDestroy {
 
     try {
       const result = await this.memoryManagementService.clearMemoryCache();
-      
+
       await loading.dismiss();
 
       if (result.success) {
         await this.presentToast(result.message, 'success', 'top');
-        
+
         // Afficher les détails si disponibles
         if (result.beforeStats && result.afterStats) {
           const memoryFreed = result.beforeStats.usedJSHeapSize - result.afterStats.usedJSHeapSize;
@@ -283,10 +283,10 @@ export class MorePage implements OnInit, OnDestroy {
    */
   getMemoryStatusText(): string {
     if (!this.currentMemoryStats) return 'Calcul en cours...';
-    
+
     const level = this.memoryManagementService.getMemoryAlertLevel();
     const percentage = this.currentMemoryStats.usedPercentage;
-    
+
     switch (level) {
       case 'low': return `Optimal (${percentage}%)`;
       case 'medium': return `Correct (${percentage}%)`;
@@ -301,11 +301,11 @@ export class MorePage implements OnInit, OnDestroy {
    */
   private formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B';
-    
+
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
@@ -319,4 +319,7 @@ export class MorePage implements OnInit, OnDestroy {
     toast.present();
   }
 
+  openUserGuide() {
+    window.location.href = '/user-guide/commercial/index.html';
+  }
 }

@@ -30,8 +30,6 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     { text: "Récupération du sorties d'articles...", method: () => this.dataInitService.initializeStockOutputs() },
     { text: "Récupération des distributions...", method: () => this.dataInitService.initializeDistributions() },
     { text: "Récupération des comptes client...", method: () => this.dataInitService.initializeAccounts() },
-    { text: "Récupération des recouvrements...", method: () => this.dataInitService.initializeRecoveries() },
-    { text: "Récupération des transactions...", method: () => this.dataInitService.initializeTransactions() },
     { text: "Récupération des tontines...", method: () => this.dataInitService.initializeTontine() },
     { text: "Finalisation...", method: () => this.dataInitService.calculateArticleStocks() },
   ];

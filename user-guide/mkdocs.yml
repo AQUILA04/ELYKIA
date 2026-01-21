@@ -18,8 +18,30 @@ nav:
     - Stocks & Ventes: manager/stock_sales.md
     - Finances & Tontines: manager/finance.md
     - Rapports & Configuration: manager/reporting_config.md
+  - Guide Magasinier:
+    - Vue d'ensemble: storekeeper/index.md
+    - Gestion des Articles: storekeeper/articles.md
+    - Inventaire: storekeeper/inventory.md
+    - Stock Tontine: storekeeper/stock_tontine.md
+    - Stock Commercial: storekeeper/stock_commercial.md
+  - Guide Commercial:
+    - Vue d'ensemble: commercial/index.md
+    - Clients & Comptes: commercial/clients_accounts.md
+    - Stocks: commercial/stock.md
+    - Ventes & Commandes: commercial/sales_orders.md
+    - Tontines: commercial/tontine.md
+    - Application Mobile: commercial/mobile_app.md
 
 markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+
+plugins:
+  - with-pdf:
+      author: Francis ADLER
+      copyright: (c) Elykia 2026. All right reserved
+      cover: true
+      back_cover: true
+      toc_title: Table des matières
+      render_js: true

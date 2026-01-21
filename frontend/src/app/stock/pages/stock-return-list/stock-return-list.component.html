@@ -6,7 +6,7 @@
   </div>
 
   <div class="action-bar">
-    <button *ngIf="isStoreKeeper" class="btn-add" routerLink="/stock/return/create">
+    <button *ngIf="isStoreKeeper || isPromoter" class="btn-add" routerLink="/stock/return/create">
       <mat-icon>undo</mat-icon> Nouveau Retour
     </button>
   </div>

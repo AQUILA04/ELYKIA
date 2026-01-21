@@ -96,12 +96,10 @@ export class AppComponent implements OnInit {
 
       // 3. Charger les permissions. Utiliser un tableau vide si 'roles' n'existe pas.
       this.permissionsService.loadPermissions(currentUser.roles || []);
-      console.log('Utilisateur connecté. Rôles chargés :', currentUser.roles);
 
     } else {
       // 4. Si aucun utilisateur n'est connecté, vider toutes les permissions
       this.permissionsService.flushPermissions();
-      console.log('Aucun utilisateur connecté. Permissions réinitialisées.');
     }
   }
 

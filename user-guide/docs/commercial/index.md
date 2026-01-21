@@ -18,3 +18,6 @@ Votre rôle est central : vous faites le lien entre l'entreprise et les clients.
 *   **Stock (Commercial & Tontine)** : Gestion de votre "magasin mobile".
 *   **Ventes / Commandes** : Enregistrement des contrats.
 *   **Tontines** : Gestion des épargnes produits.
+
+## Application Mobile
+Pour les opérations sur le terrain (hors ligne), consultez le [Guide de l'Application Mobile](./mobile_app.md).

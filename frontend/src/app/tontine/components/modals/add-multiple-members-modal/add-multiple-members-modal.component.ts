@@ -3,6 +3,9 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { ClientService } from 'src/app/client/service/client.service';
 import { TontineService } from '../../../services/tontine.service';
 import { CreateTontineMemberDto } from '../../../types/tontine.types';
+import { AuthService } from 'src/app/auth/service/auth.service';
+import { UserService } from 'src/app/user/service/user.service';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 
 @Component({
   selector: 'app-add-multiple-members-modal',
@@ -28,14 +31,20 @@ export class AddMultipleMembersModalComponent implements OnInit {
 
   submitting = false;
   apiError: string|null = null;
+  isPromoter = false;
+  currentUser: any;
 
   constructor(
     private dialogRef: MatDialogRef<AddMultipleMembersModalComponent>,
     private clientService: ClientService,
-    private tontineService: TontineService
+    private tontineService: TontineService,
+    private authService: AuthService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
+    this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.globalAmount = 200;
     this.globalFrequency = 'DAILY';
     this.loadAgents();
@@ -44,6 +53,13 @@ export class AddMultipleMembersModalComponent implements OnInit {
   loadAgents() {
     this.clientService.getAgents().subscribe(data => {
       this.agents = data;
+      if (this.isPromoter && this.currentUser) {
+        const currentAgent = this.agents.find(a => a.username === this.currentUser.username);
+        if (currentAgent) {
+          this.selectedAgent = currentAgent;
+          this.onAgentChange(currentAgent);
+        }
+      }
     });
   }
 

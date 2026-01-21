@@ -9,7 +9,7 @@
     <div class="form-group">
       <label>Commercial <span class="text-danger">*</span></label>
       <ng-select [items]="agents" bindLabel="username" bindValue="username" [searchFn]="searchAgent"
-        formControlName="collector" placeholder="Sélectionner un commercial">
+        formControlName="collector" placeholder="Sélectionner un commercial" [clearable]="false">
         <ng-template ng-option-tmp let-item="item">
           {{item.username}} <small *ngIf="item.firstname || item.lastname">({{item.firstname}}
             {{item.lastname}})</small>

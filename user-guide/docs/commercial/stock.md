@@ -3,7 +3,7 @@
 En tant que commercial, vous êtes responsable d'un stock "ambulant" ou personnel que vous distribuez aux clients. Ce module vous permet de gérer ce stock.
 
 ## 1. Mon Stock (Consultation)
-Allez dans **Stock Commercial > Stock** (ou *My Stock*).
+Allez dans **Stock Commercial > Stock**.
 ![Dashboard mon stock](../images/commercial_my_stock.png)
 
 Ce tableau de bord vous montre l'état de votre stock par mois.

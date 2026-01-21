@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { concatMap, from, Observable, of, switchMap } from 'rxjs';
 import { catchError, filter, map, take } from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
 import { ArticleService } from './article.service';
 import { LocalityService } from './locality.service';
 import { Store } from '@ngrx/store';
@@ -14,8 +12,6 @@ import { CommercialService } from './commercial.service';
 import * as CommercialActions from '../../store/commercial/commercial.actions';
 import { StockOutputService } from './stock-output.service';
 import * as StockOutputActions from '../../store/stock-output/stock-output.actions';
-import { CommercialStockService } from './commercial-stock.service';
-import * as CommercialStockActions from '../../store/commercial-stock/commercial-stock.actions';
 import { DistributionService } from './distribution.service';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import { AccountService } from './account.service';
@@ -42,7 +38,6 @@ export class DataInitializationService {
     private clientService: ClientService,
     private commercialService: CommercialService,
     private stockOutputService: StockOutputService,
-    private commercialStockService: CommercialStockService,
     private distributionService: DistributionService,
     private accountService: AccountService,
     private store: Store,
@@ -50,8 +45,7 @@ export class DataInitializationService {
     private recoveryService: RecoveryService,
     private transactionService: TransactionService,
     private log: LoggerService,
-    private tontineService: TontineService,
-    private http: HttpClient
+    private tontineService: TontineService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -133,26 +127,6 @@ export class DataInitializationService {
   }
 
 
-  initializeCommercialStock(): Observable<boolean> {
-    return this.store.select(selectAuthUser).pipe(
-      take(1),
-      filter(user => !!user),
-      switchMap(user => {
-        const commercialUsername = user.username;
-        return this.commercialStockService.initializeCommercialStock(commercialUsername).pipe(
-          map(() => {
-            this.store.dispatch(CommercialStockActions.loadCommercialStock({ commercialUsername }));
-            return true;
-          }),
-          catchError(error => {
-            console.error('Error initializing commercial stock:', error);
-            return of(false);
-          })
-        );
-      })
-    );
-  }
-
   initializeStockOutputs(): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
       take(1),
@@ -208,7 +182,6 @@ export class DataInitializationService {
       filter(user => !!user),
       switchMap(user => {
         return this.recoveryService.initializeRecoveries().pipe(
-          switchMap(() => this.initializeMobileRecoveriesFromBackend(user.username)),
           map(() => {
             this.store.dispatch(RecoveryActions.loadRecoveries({ commercialUsername: user.username }));
             return true;
@@ -223,23 +196,8 @@ export class DataInitializationService {
   }
 
   initializeTransactions(): Observable<boolean> {
-    return this.store.select(selectAuthUser).pipe(
-      take(1),
-      filter(user => !!user),
-      switchMap(user => {
-        return this.initializeMobileTransactionsFromBackend(user.username).pipe(
-          map(() => {
-            this.store.dispatch(TransactionActions.loadTransactions());
-            return true;
-          }),
-          catchError((error) => {
-            console.error('Error initializing transactions:', error);
-            return of(false);
-          })
-        );
-      })
-    );
-  }
+    this.store.dispatch(TransactionActions.loadTransactions());
+    return of(true);
   }
 
   initializeTontine(): Observable<boolean> {
@@ -255,29 +213,6 @@ export class DataInitializationService {
     );
   }
 
-  // NOUVELLE MÉTHODE : Calcul direct des stocks depuis CommercialStockItems
-  calculateArticleStocksFromCommercialStock(): Observable<boolean> {
-    return this.store.select(selectAuthUser).pipe(
-      take(1),
-      filter(user => !!user),
-      switchMap(user => {
-        return from(this.calculateAndUpdateStocksFromCommercialStock(user.username)).pipe(
-          map(() => {
-            // Reload articles in store to reflect updated stock quantities
-            this.store.dispatch(ArticleActions.loadArticles());
-            return true;
-          }),
-          catchError((error) => {
-            this.log.log(`[DataInitializationService] calculateArticleStocksFromCommercialStock failed: ${JSON.stringify(error)}`);
-            console.error('Error calculating article stocks from commercial stock:', error);
-            return of(false);
-          })
-        );
-      })
-    );
-  }
-
-  // ANCIENNE MÉTHODE : Maintenue pour compatibilité temporaire
   calculateArticleStocks(): Observable<boolean> {
     return from(this.calculateAndUpdateStocks()).pipe(
       map(() => {
@@ -291,42 +226,6 @@ export class DataInitializationService {
         return of(false);
       })
     );
-  }
-
-  private async calculateAndUpdateStocksFromCommercialStock(commercialUsername: string): Promise<void> {
-    try {
-      // Get all articles and commercial stock items
-      const articles = await this.dbService.getArticles();
-      const commercialStockItems = await this.commercialStockService.getCommercialStock(commercialUsername).toPromise();
-
-      // Create a map to store quantities per article
-      const articleStockMap = new Map<string, number>();
-
-      // Initialize all articles with 0 stock
-      articles.forEach(article => {
-        articleStockMap.set(article.id, 0);
-      });
-
-      // Set quantities from commercial stock items
-      commercialStockItems?.forEach(item => {
-        articleStockMap.set(item.articleId.toString(), item.quantityRemaining);
-      });
-
-      // Update articles with stock quantities
-      const updatedArticles = articles.map(article => ({
-        ...article,
-        stockQuantity: articleStockMap.get(article.id) || 0
-      }));
-
-      // Save updated articles back to database
-      await this.dbService.saveArticles(updatedArticles);
-      console.log('Article stocks updated successfully from commercial stock');
-    } catch (error: any) {
-      const errorMessage = `[DataInitializationService] Error in calculateAndUpdateStocksFromCommercialStock. Message: ${error.message}, Stack: ${error.stack}`;
-      this.log.log(errorMessage);
-      console.error('Error in calculateAndUpdateStocksFromCommercialStock:', error);
-      throw error;
-    }
   }
 
   private async calculateAndUpdateStocks(): Promise<void> {
@@ -450,80 +349,14 @@ export class DataInitializationService {
       concatMap(() => this.initializeCommercial()),
       concatMap(() => this.initializeLocalities()),
       concatMap(() => this.initializeClients()),
-      concatMap(() => this.initializeCommercialStock()), // NOUVEAU : Initialiser les stocks commerciaux
-      concatMap(() => this.initializeStockOutputs()), // MAINTENU : Pour compatibilité temporaire
+      concatMap(() => this.initializeStockOutputs()),
       concatMap(() => this.initializeDistributions()),
       concatMap(() => this.initializeAccounts()),
       concatMap(() => this.initializeRecoveries()),
       concatMap(() => this.initializeTontine()),
-      concatMap(() => this.calculateArticleStocksFromCommercialStock()), // NOUVEAU : Calcul depuis commercial stock
       concatMap(() => from(this.validateInitialData()))
     );
   }
 
 }
 
-
-  // ==================== MÉTHODES POUR RÉCUPÉRATION DEPUIS LE BACKEND ====================
-
-  /**
-   * Initialiser les recouvrements mobiles depuis le backend
-   */
-  private initializeMobileRecoveriesFromBackend(commercialUsername: string): Observable<boolean> {
-    const url = `${environment.apiUrl}/api/v1/mobiles/recoveries/${commercialUsername}`;
-    
-    return this.http.get<any>(url).pipe(
-      switchMap(async (response) => {
-        if (response.success && response.data) {
-          // Filtrer pour ne récupérer que les données du mois en cours
-          const currentMonthRecoveries = this.filterCurrentMonthData(response.data, 'paymentDate');
-          await this.dbService.saveMobileRecoveriesFromBackend(currentMonthRecoveries);
-          this.log.log(`[DataInitializationService] Initialized ${currentMonthRecoveries.length} mobile recoveries from backend`);
-        }
-        return true;
-      }),
-      catchError((error) => {
-        this.log.log(`[DataInitializationService] Error initializing mobile recoveries: ${error.message}`);
-        console.error('Error initializing mobile recoveries from backend:', error);
-        return of(true); // Continue même en cas d'erreur
-      })
-    );
-  }
-
-  /**
-   * Initialiser les transactions mobiles depuis le backend
-   */
-  private initializeMobileTransactionsFromBackend(commercialUsername: string): Observable<boolean> {
-    const url = `${environment.apiUrl}/api/v1/mobiles/transactions/${commercialUsername}`;
-    
-    return this.http.get<any>(url).pipe(
-      switchMap(async (response) => {
-        if (response.success && response.data) {
-          // Filtrer pour ne récupérer que les données du mois en cours
-          const currentMonthTransactions = this.filterCurrentMonthData(response.data, 'date');
-          await this.dbService.saveMobileTransactionsFromBackend(currentMonthTransactions);
-          this.log.log(`[DataInitializationService] Initialized ${currentMonthTransactions.length} mobile transactions from backend`);
-        }
-        return true;
-      }),
-      catchError((error) => {
-        this.log.log(`[DataInitializationService] Error initializing mobile transactions: ${error.message}`);
-        console.error('Error initializing mobile transactions from backend:', error);
-        return of(true); // Continue même en cas d'erreur
-      })
-    );
-  }
-
-  /**
-   * Filtrer les données pour ne garder que celles du mois en cours
-   */
-  private filterCurrentMonthData(data: any[], dateField: string): any[] {
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    
-    return data.filter(item => {
-      const itemDate = new Date(item[dateField]);
-      return itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear;
-    });
-  }

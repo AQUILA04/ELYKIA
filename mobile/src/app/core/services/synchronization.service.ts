@@ -100,8 +100,6 @@ export class SynchronizationService {
       tontineMembersSync: { success: 0, errors: 0 },
       tontineCollectionsSync: { success: 0, errors: 0 },
       tontineDeliveriesSync: { success: 0, errors: 0 },
-      mobileRecoveriesSync: { success: 0, errors: 0 },
-      mobileTransactionsSync: { success: 0, errors: 0 },
     };
 
     const unsyncedLocalities = await this.databaseService.getUnsyncedLocalities();
@@ -167,12 +165,6 @@ export class SynchronizationService {
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'recoveries' } }));
       processedItems = await this.syncAllRecoveries(result, processedItems, totalItems);
 
-      // 6.5 Synchroniser les recouvrements mobiles vers le backend
-      processedItems = await this.syncMobileRecoveriesToBackend(result, processedItems, totalItems);
-
-      // 6.6 Synchroniser les transactions mobiles vers le backend  
-      processedItems = await this.syncMobileTransactionsToBackend(result, processedItems, totalItems);
-
       // 6.1 Synchroniser les membres de tontine
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-members' } }));
       processedItems = await this.syncAllTontineMembers(result, unsyncedTontineMembers, processedItems, totalItems);
@@ -192,8 +184,8 @@ export class SynchronizationService {
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'completed' } }));
 
       const duration = Date.now() - startTime;
-      const totalSuccess = result.localitiesSync.success + result.clientsSync.success + result.updatedClientsSync.success + result.updatedPhotoClientsSync.success + result.updatedPhotoUrlClientsSync.success + result.distributionsSync.success + result.recoveriesSync.success + result.accountsSync.success + result.ordersSync.success + result.tontineMembersSync.success + result.tontineCollectionsSync.success + result.tontineDeliveriesSync.success + result.mobileRecoveriesSync.success + result.mobileTransactionsSync.success;
-      const totalErrors = result.localitiesSync.errors + result.clientsSync.errors + result.updatedClientsSync.errors + result.updatedPhotoClientsSync.errors + result.updatedPhotoUrlClientsSync.errors + result.distributionsSync.errors + result.recoveriesSync.errors + result.accountsSync.errors + result.ordersSync.errors + result.tontineMembersSync.errors + result.tontineCollectionsSync.errors + result.tontineDeliveriesSync.errors + result.mobileRecoveriesSync.errors + result.mobileTransactionsSync.errors;
+      const totalSuccess = result.localitiesSync.success + result.clientsSync.success + result.updatedClientsSync.success + result.updatedPhotoClientsSync.success + result.updatedPhotoUrlClientsSync.success + result.distributionsSync.success + result.recoveriesSync.success + result.accountsSync.success + result.ordersSync.success + result.tontineMembersSync.success + result.tontineCollectionsSync.success + result.tontineDeliveriesSync.success;
+      const totalErrors = result.localitiesSync.errors + result.clientsSync.errors + result.updatedClientsSync.errors + result.updatedPhotoClientsSync.errors + result.updatedPhotoUrlClientsSync.errors + result.distributionsSync.errors + result.recoveriesSync.errors + result.accountsSync.errors + result.ordersSync.errors + result.tontineMembersSync.errors + result.tontineCollectionsSync.errors + result.tontineDeliveriesSync.errors;
 
       return {
         success: totalErrors === 0,
@@ -1942,152 +1934,3 @@ export class SynchronizationService {
     return processedItems;
   }
 }
-
-  // ==================== SYNCHRONISATION RECOUVREMENTS MOBILES ====================
-
-  /**
-   * Synchroniser les recouvrements mobiles vers le backend
-   */
-  private async syncMobileRecoveriesToBackend(result: SyncBatchResult, processedItems: number, totalItems: number): Promise<number> {
-    const unsyncedRecoveries = await this.getUnsyncedMobileRecoveries();
-    
-    for (const recovery of unsyncedRecoveries) {
-      try {
-        await this.syncSingleMobileRecovery(recovery);
-        result.mobileRecoveriesSync.success++;
-      } catch (error) {
-        result.mobileRecoveriesSync.errors++;
-        await this.logSyncError('recovery', recovery.id, 'CREATE', error, recovery, `Recouvrement ${recovery.id}`, recovery);
-      }
-      
-      processedItems++;
-      this.store.dispatch(updateSyncProgress({ progress: { processedItems, percentage: (processedItems / totalItems) * 100 } }));
-    }
-    
-    return processedItems;
-  }
-
-  /**
-   * Récupérer les recouvrements mobiles non synchronisés
-   */
-  private async getUnsyncedMobileRecoveries(): Promise<Recovery[]> {
-    const commercialUsername = await this.getCurrentCommercialUsername();
-    if (!commercialUsername) return [];
-    
-    return await this.databaseService.getUnsyncedMobileRecoveries(commercialUsername);
-  }
-
-  /**
-   * Synchroniser un recouvrement mobile vers le backend
-   */
-  private async syncSingleMobileRecovery(recovery: Recovery): Promise<void> {
-    const headers = this.getAuthHeaders();
-    const recoveryDto = this.mapRecoveryToDto(recovery);
-    
-    const response = await firstValueFrom(
-      this.http.post<ApiResponse<any>>(`${this.baseUrl}/api/v1/mobiles/recoveries`, recoveryDto, { headers })
-    );
-    
-    if (response.success) {
-      // Marquer comme synchronisé
-      await this.databaseService.markRecoveryAsSynced(recovery.id);
-    } else {
-      throw new Error(response.message || 'Erreur lors de la synchronisation du recouvrement');
-    }
-  }
-
-  /**
-   * Mapper un recouvrement vers DTO pour l'API
-   */
-  private mapRecoveryToDto(recovery: Recovery): any {
-    return {
-      id: null, // Le backend génère l'ID
-      amount: recovery.amount,
-      paymentDate: recovery.paymentDate,
-      paymentMethod: recovery.paymentMethod,
-      notes: recovery.notes,
-      distributionId: recovery.distributionId,
-      clientId: recovery.clientId,
-      commercialId: recovery.commercialId,
-      createdAt: recovery.createdAt,
-      syncDate: null // Sera défini par le backend
-    };
-  }
-
-  // ==================== SYNCHRONISATION TRANSACTIONS MOBILES ====================
-
-  /**
-   * Synchroniser les transactions mobiles vers le backend
-   */
-  private async syncMobileTransactionsToBackend(result: SyncBatchResult, processedItems: number, totalItems: number): Promise<number> {
-    const unsyncedTransactions = await this.getUnsyncedMobileTransactions();
-    
-    for (const transaction of unsyncedTransactions) {
-      try {
-        await this.syncSingleMobileTransaction(transaction);
-        result.mobileTransactionsSync.success++;
-      } catch (error) {
-        result.mobileTransactionsSync.errors++;
-        await this.logSyncError('transaction', transaction.id, 'CREATE', error, transaction, `Transaction ${transaction.id}`, transaction);
-      }
-      
-      processedItems++;
-      this.store.dispatch(updateSyncProgress({ progress: { processedItems, percentage: (processedItems / totalItems) * 100 } }));
-    }
-    
-    return processedItems;
-  }
-
-  /**
-   * Récupérer les transactions mobiles non synchronisées
-   */
-  private async getUnsyncedMobileTransactions(): Promise<any[]> {
-    const commercialUsername = await this.getCurrentCommercialUsername();
-    if (!commercialUsername) return [];
-    
-    return await this.databaseService.getUnsyncedMobileTransactions(commercialUsername);
-  }
-
-  /**
-   * Synchroniser une transaction mobile vers le backend
-   */
-  private async syncSingleMobileTransaction(transaction: any): Promise<void> {
-    const headers = this.getAuthHeaders();
-    const transactionDto = await this.mapTransactionToDto(transaction);
-    
-    const response = await firstValueFrom(
-      this.http.post<ApiResponse<any>>(`${this.baseUrl}/api/v1/mobiles/transactions`, transactionDto, { headers })
-    );
-    
-    if (response.success) {
-      // Marquer comme synchronisé
-      await this.databaseService.markTransactionAsSynced(transaction.id);
-    } else {
-      throw new Error(response.message || 'Erreur lors de la synchronisation de la transaction');
-    }
-  }
-
-  /**
-   * Mapper une transaction vers DTO pour l'API
-   */
-  private async mapTransactionToDto(transaction: any): Promise<any> {
-    const commercialUsername = await this.getCurrentCommercialUsername();
-    return {
-      id: null, // Le backend génère l'ID
-      clientId: transaction.clientId,
-      referenceId: transaction.referenceId,
-      type: transaction.type,
-      amount: transaction.amount,
-      details: transaction.details,
-      date: transaction.date,
-      commercialId: transaction.commercialId || commercialUsername
-    };
-  }
-
-  /**
-   * Obtenir le nom d'utilisateur commercial actuel
-   */
-  private async getCurrentCommercialUsername(): Promise<string | null> {
-    const user = await firstValueFrom(this.authService.getCurrentUser());
-    return user?.username || null;
-  }

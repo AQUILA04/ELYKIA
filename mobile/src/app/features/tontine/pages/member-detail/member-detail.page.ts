@@ -50,11 +50,6 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         loading: true
     };
 
-    monthsList = [
-        'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre'
-    ];
-
     constructor(
         private route: ActivatedRoute,
         private navCtrl: NavController,

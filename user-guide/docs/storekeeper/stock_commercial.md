@@ -43,10 +43,3 @@ Gère le matériel rapporté par les commerciaux au magasin (Ex: invendus, produ
 Une fois le retour créé (Statut *Créé*), vous devez confirmer la réception physique :
 1.  Dans la liste, cliquez sur le bouton de validation (Coche verte <i class="material-icons" style="font-size:1em; vertical-align:middle;">check_circle</i>).
 2.  Les articles réintègrent votre stock principal.
-
-## 3. Dashboard Stock
-![Dashboard stock commercial](../images/storekeeper_stock_dashboard.png)
-
-Le menu **Stock Commercial > Stock** vous donne une vision du stock détenu par les commerciaux.
-*   Vous pouvez voir la valeur et la quantité de marchandises actuellement "dehors" (chez les agents).
-*   Utilisez les filtres pour vérifier l'état des stocks d'un commercial spécifique.

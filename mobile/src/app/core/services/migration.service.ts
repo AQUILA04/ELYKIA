@@ -48,9 +48,6 @@ export class MigrationService {
       case 9:
         await this.migrateToV9(db);
         break;
-      case 10:
-        await this.migrateToV10(db);
-        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -336,36 +333,3 @@ export class MigrationService {
     }
   }
 }
-  private async migrateToV10(db: SQLiteDBConnection): Promise<void> {
-    try {
-      this.log.log('Running migration to v10: Adding commercialId to transactions table...');
-      console.log('Running migration to v10...');
-
-      // Add commercialId column to transactions table
-      const alterTable = `
-        ALTER TABLE transactions ADD COLUMN commercialId TEXT;
-      `;
-
-      await db.execute(alterTable);
-      
-      // Create index for better query performance
-      const createIndex = `
-        CREATE INDEX IF NOT EXISTS idx_transactions_commercialId ON transactions(commercialId);
-      `;
-      
-      await db.execute(createIndex);
-      
-      this.log.log('Migration to v10 successful: commercialId added to transactions table with index.');
-
-    } catch (error: any) {
-      // Check if the error is due to a duplicate column, which is expected on subsequent runs.
-      if ((error.message && error.message.toLowerCase().includes('duplicate column')) || 
-          (error.toString && error.toString().toLowerCase().includes('duplicate column'))) {
-        this.log.log('Migration to v10 already applied: commercialId column exists.');
-      } else {
-        this.log.log(`Error in migration v10: ${error}`);
-        console.error('Error in migration v10', error);
-        throw error; // Re-throw other unexpected errors
-      }
-    }
-  }

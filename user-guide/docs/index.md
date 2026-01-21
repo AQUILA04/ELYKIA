@@ -39,33 +39,25 @@ Le stock suit un chemin précis :
 
 Choisissez votre profil pour accéder aux instructions qui vous concernent :
 
-=== "👔 Gestionnaire"
+"👔 Gestionnaire"
     Vous avez une vue d'ensemble et la responsabilité du cycle comptable.
     
-    *   [Ouvrir/Fermer la Journée Comptable](daily-cycle.md#gestion-de-la-journee-comptable)
-    *   [Paramétrer les Articles et Localités](administration.md)
-    *   [Consulter les Rapports de Synthèse](reporting.md)
+    [Accéder au Guide Gestionnaire](manager/index.md)
 
-=== "🚛 Magasinier"
+"🚛 Magasinier"
     Vous êtes le garant des stocks physiques.
     
-    *   [Valider une Entrée de Stock](logistics.md)
-    *   [Effectuer une Sortie vers un Commercial](commercial.md)
-    *   [Réaliser un Inventaire](logistics.md)
+    [Accéder au Guide Magasinier](storekeeper/index.md)
 
-=== "💼 Commercial"
+"💼 Commercial"
     Vous êtes sur le terrain au contact des clients.
     
-    *   [Ouvrir ma Caisse](daily-cycle.md#gestion-de-la-caisse-commercial)
-    *   [Enregistrer une Vente à Crédit](commercial.md)
-    *   [Encaisser une Cotisation Tontine](tontine.md)
-    *   [Fermer ma Caisse](daily-cycle.md#fermeture-de-la-caisse)
+    [Accéder au Guide Commercial](commercial/index.md)
 
-=== "📝 Secrétaire"
+"📝 Secrétaire"
     Vous assistez la gestion administrative.
     
-    *   [Gestion des Clients](administration.md)
-    *   [Suivi des Recouvrements](commercial.md)
+    [Accéder au Guide du Secretaire](manager/index.md)
 
 ---
 

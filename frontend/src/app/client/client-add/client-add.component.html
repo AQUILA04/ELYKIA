@@ -200,7 +200,8 @@
         bindValue="username"
         [searchFn]="searchAgent"
         placeholder="Rechercher et sélectionner un commercial"
-        notFoundText="Aucun commercial trouvé">
+        notFoundText="Aucun commercial trouvé"
+        [clearable]="false">
       </ng-select>
       <div *ngIf="clientForm.get('collector')?.invalid && clientForm.get('collector')?.touched" class="error-message">
         L'agent associé est requis.
@@ -216,7 +217,8 @@
         bindValue="username"
         [searchFn]="searchAgent"
         placeholder="Rechercher et sélectionner un commercial"
-        notFoundText="Aucun commercial trouvé">
+        notFoundText="Aucun commercial trouvé"
+        [clearable]="false">
       </ng-select>
       <div *ngIf="clientForm.get('collector')?.invalid && clientForm.get('collector')?.touched" class="error-message">
         L'agent associé est requis.
@@ -280,4 +282,3 @@
     </div>
   </form>
 </div>
-

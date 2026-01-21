@@ -2,7 +2,7 @@
 <mat-dialog-content>
   <mat-form-field class="full-width">
     <mat-label>Choisir le commercial</mat-label>
-    <mat-select [(value)]="selectedAgent" (selectionChange)="onAgentChange($event.value)">
+    <mat-select [(value)]="selectedAgent" (selectionChange)="onAgentChange($event.value)" [disabled]="isPromoter">
       <mat-option *ngFor="let agent of agents" [value]="agent">{{agent.username}}</mat-option>
     </mat-select>
   </mat-form-field>

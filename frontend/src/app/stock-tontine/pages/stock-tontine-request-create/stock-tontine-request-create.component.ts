@@ -7,6 +7,8 @@ import { AuthService } from '../../../auth/service/auth.service';
 import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ClientService } from '../../../client/service/client.service';
+import { UserService } from 'src/app/user/service/user.service';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 
 @Component({
   selector: 'app-stock-tontine-request-create',
@@ -28,7 +30,8 @@ export class StockTontineRequestCreateComponent implements OnInit {
     private clientService: ClientService,
     private router: Router,
     private toastr: ToastrService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
+    private userService: UserService
   ) {
     this.form = this.fb.group({
       items: [[], Validators.required],
@@ -40,6 +43,11 @@ export class StockTontineRequestCreateComponent implements OnInit {
     this.currentUser = this.authService.getCurrentUser();
     this.loadArticles();
     this.loadAgents();
+
+    if (this.userService.hasProfile(UserProfile.PROMOTER)) {
+      this.form.patchValue({ collector: this.currentUser.username });
+      this.form.get('collector')?.disable();
+    }
   }
 
   loadArticles() {
@@ -78,7 +86,7 @@ export class StockTontineRequestCreateComponent implements OnInit {
       return;
     }
 
-    const formValue = this.form.value;
+    const formValue = this.form.getRawValue();
 
     const items = formValue.items.map((item: any) => {
       const articleObj = this.articles.find(a => a.id === item.articleId);

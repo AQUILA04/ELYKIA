@@ -7,8 +7,8 @@ Ce guide est destiné aux utilisateurs ayant le profil **Gestionnaire (Admin)**.
 Pour accéder à l'application, vous devez vous authentifier avec vos identifiants.
 
 1.  Rendez-vous sur la page de connexion.
-2.  Saisissez votre **Identifiant** (ex: `ges003`).
-3.  Saisissez votre **Mot de passe** (ex: `Abcd1234`).
+2.  Saisissez votre **Identifiant** (ex: `username`).
+3.  Saisissez votre **Mot de passe** (ex: `Password`).
 4.  Cliquez sur le bouton **SE CONNECTER**.
 
 ![Page de Connexion](../images/manager/01_login.png)

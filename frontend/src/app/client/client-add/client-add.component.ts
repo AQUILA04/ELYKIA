@@ -9,6 +9,9 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ParameterService } from 'src/app/parameters/parameter.service';
+import { AuthService } from 'src/app/auth/service/auth.service';
+import { UserService } from 'src/app/user/service/user.service';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 
 @Component({
   selector: 'app-client-add',
@@ -36,6 +39,9 @@ export class ClientAddComponent implements OnInit {
   accountNumber: string = '';
   isAccountSectionVisible: boolean = false;
 
+  isPromoter = false;
+  currentUser: any;
+
   constructor(
     private formBuilder: FormBuilder,
     private clientService: ClientService,
@@ -46,12 +52,17 @@ export class ClientAddComponent implements OnInit {
     private spinner: NgxSpinnerService,
     private tokenStorage: TokenStorageService,
     private accountService: AccountService,
-    private parameterService: ParameterService
+    private parameterService: ParameterService,
+    private authService: AuthService,
+    private userService: UserService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
 
   ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
+    this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
+
     this.initForm();
     this.loadLocalities();
     this.loadAgents();
@@ -65,6 +76,15 @@ export class ClientAddComponent implements OnInit {
         // Mode Ajout : Initialiser le formulaire de compte
         this.isAccountSectionVisible = true;
         this.initAccountForm();
+
+        if (this.isPromoter) {
+          this.clientForm.patchValue({
+            collector: this.currentUser.username,
+            tontineCollector: this.currentUser.username
+          });
+          this.clientForm.get('collector')?.disable();
+          this.clientForm.get('tontineCollector')?.disable();
+        }
       }
     });
   }
@@ -184,6 +204,11 @@ export class ClientAddComponent implements OnInit {
         });
         this.profilePhotoBase64 = client.profilPhoto || null;
         this.idDocBase64 = client.iddoc || null;
+
+        if (this.isPromoter) {
+          this.clientForm.get('collector')?.disable();
+          this.clientForm.get('tontineCollector')?.disable();
+        }
       },
       error => {
         console.error('Erreur lors du chargement du client', error);
