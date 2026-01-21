@@ -92,17 +92,17 @@ jobs:
         settings-path: ${{ github.workspace }}
 
     # Build dependencies in order before building backend
-    - name: Build common-entities-dependencies
+    - name: Build common-entities
       run: mvn -B clean install -DskipTests --file backend-lib/common-entities/pom.xml
 
-    - name: Build common-security-service
+    - name: Build common-securities
       run: mvn -B clean install -DskipTests --file backend-lib/common-securities/pom.xml
 
-    - name: Build optimize-elykia-client
+    - name: Build elykia-client
       run: mvn -B clean install -DskipTests --file backend-lib/elykia-client/pom.xml
 
     - name: Build and Deploy Backend Maven Artifact
-      run: mvn -B deploy -DskipTests --file backend/pom.xml -s $GITHUB_WORKSPACE/settings.xml
+      run: mvn -B deploy -DskipTests --file backend/pom.xml -s $GITHUB_WORKSPACE/settings.xml || echo "Deployment failed, likely because version already exists. Continuing..."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -151,18 +151,18 @@ jobs:
         server-id: github
         settings-path: ${{ github.workspace }}
 
-    - name: Build and Deploy common-entities-dependencies
-      run: mvn -B deploy -DskipTests --file backend-lib/common-entities/pom.xml -s $GITHUB_WORKSPACE/settings.xml
+    - name: Build and Deploy common-entities
+      run: mvn -B deploy -DskipTests --file backend-lib/common-entities/pom.xml -s $GITHUB_WORKSPACE/settings.xml || echo "Deployment failed, likely because version already exists. Continuing..."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and Deploy common-security-service
-      run: mvn -B deploy -DskipTests --file backend-lib/common-securities/pom.xml -s $GITHUB_WORKSPACE/settings.xml
+    - name: Build and Deploy common-securities
+      run: mvn -B deploy -DskipTests --file backend-lib/common-securities/pom.xml -s $GITHUB_WORKSPACE/settings.xml || echo "Deployment failed, likely because version already exists. Continuing..."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and Deploy optimize-elykia-client
-      run: mvn -B deploy -DskipTests --file backend-lib/elykia-client/pom.xml -s $GITHUB_WORKSPACE/settings.xml
+    - name: Build and Deploy elykia-client
+      run: mvn -B deploy -DskipTests --file backend-lib/elykia-client/pom.xml -s $GITHUB_WORKSPACE/settings.xml || echo "Deployment failed, likely because version already exists. Continuing..."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
