@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 
 @Repository
-public interface StockReceptionRepository extends BaseRepository<StockReception, Long> {
+public interface StockReceptionRepository extends BaseRepository<StockReception, Long, Long> {
     Page<StockReception> findByReceptionDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
 }

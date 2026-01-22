@@ -13,9 +13,11 @@ import org.mapstruct.Named;
 public interface StockReceptionMapper extends BaseMapper<StockReception, StockReceptionDto> {
 
     @Override
+    @Named("toDto")
     @Mapping(target = "items", ignore = true) // Par défaut, on ignore les items pour la liste
     StockReceptionDto toDto(StockReception entity);
 
+    @Named("toDtoWithItems")
     @Mapping(target = "items", source = "items") // Pour le détail, on inclut les items
     StockReceptionDto toDtoWithItems(StockReception entity);
 
