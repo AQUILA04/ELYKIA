@@ -5,5 +5,5 @@ import com.optimize.elykia.core.entity.StockReceptionItem;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface StockReceptionItemRepository extends BaseRepository<StockReceptionItem, Long> {
+public interface StockReceptionItemRepository extends BaseRepository<StockReceptionItem, Long, Long> {
 }
