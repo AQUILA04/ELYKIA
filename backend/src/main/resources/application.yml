@@ -1,18 +1,19 @@
 spring:
   profiles:
-    active: prod
+    active: jeff
   application:
     name: optimize-elykia-core
 
   # Configuration Flyway pour la gestion des migrations de base de données
   flyway:
-    enabled: true
+    enabled: false  # Désactivé temporairement pour éviter les problèmes de migration
     baseline-on-migrate: true
     baseline-version: 0
     locations: classpath:db/migration
-    validate-on-migrate: true
-    out-of-order: false
+    validate-on-migrate: false
+    out-of-order: true
     placeholder-replacement: true
+    clean-disabled: false
     placeholders:
       project: optimize-elykia-core
 debug: true
@@ -23,7 +24,7 @@ security:
       society: "AMENOUVEVE-YAVEH"
   config:
     auto-initialize:
-      enabled: false
+      enabled: true
     profiles: SUPER_ADMIN,ADMIN,USER,PROMOTER,GESTIONNAIRE,STOREKEEPER,SECRETARY
     permissions: ROLE_ADMIN,ROLE_USER,ROLE_SUPER_ADMIN,ROLE_CONSULT_CLIENT,ROLE_CONSULT_LOCALITY,ROLE_CONSULT_CREDIT,ROLE_CONSULT_TONTINE,ROLE_CONSULT_ACCOUNT,
       ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY,
