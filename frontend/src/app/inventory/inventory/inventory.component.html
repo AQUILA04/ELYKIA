@@ -42,7 +42,7 @@
           <mat-icon>download</mat-icon>
           <span>Télécharger PDF</span>
         </button>
-        <button *ngIf="currentInventory.status === 'IN_PROGRESS' || currentInventory.status === 'DRAFT'"
+        <button *ngIf="isGestionnaire && currentInventory.status === 'IN_PROGRESS' || currentInventory.status === 'DRAFT'"
                 class="btn refresh-button btn-sm ml-2" (click)="togglePhysicalInput()">
           <mat-icon>edit</mat-icon>
           <span>Saisir quantités physiques</span>

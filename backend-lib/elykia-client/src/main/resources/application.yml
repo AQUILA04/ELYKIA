@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: optimize-elykia-client
+  datasource:
+    url: jdbc:postgresql://localhost:5432/elykiadb
+    username: francis
+    password: Anid2022
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+optimize:
+  client:
+    auto-init:
+      enabled: true
+    info:
+      "COM001":
+          firstname: "Promoter"
+          lastname: "Promoter type for COM001"
+          phone: "1234567890"
+          address: "123 Promoter St, City, Country"
+          cardID: "PROMOTER-COM001"
+          cardType: "CNI"
+          dateOfBirth: "1990-01-01"
+          collector: "collector1"
+          quarter: "Q1"
+          occupation: "Promoter Occupation"
+          type: PROMOTER
+          account:
+            accountNumber: "1234567890"
+            accountBalance: 100000.00
+

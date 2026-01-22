@@ -1,69 +1,76 @@
-# Opérations Quotidiennes
+# Les Opérations Quotidiennes
 
-## 1. Journée Comptable
+Ici, nous allons voir comment gérer le quotidien : ouvrir la boutique, accueillir les clients et surveiller leurs comptes.
 
-Le menu **Journée comptable** permet de gérer le cycle de vie financier de l'activité. Il est impératif d'avoir une journée ouverte pour effectuer des transactions.
+---
 
-### Liste des Journées
-*   **Aperçu** : Affiche l'historique des journées comptables.
-*   **Actions** : Ouvrir une nouvelle journée ou fermer la journée en cours.
+## 1. La Journée Comptable (Le "Top Départ")
+
+Imaginez que vous ouvrez le rideau de fer du magasin. Dans l'application, c'est pareil.
+**Règle d'or** : Aucune vente ni encaissement n'est possible si la journée n'est pas ouverte.
+
+Allez dans **Journée comptable**.
+*   Le matin : Cliquez sur **Ouvrir une nouvelle journée**.
+*   Le soir (après avoir tout vérifié) : Cliquez sur **Fermer la journée**.
 
 ![Journée Comptable](../images/manager/05_accounting_day_list.png)
 
-## 2. Clients
+La journée est ouverte, vous êtes prêt à recevoir les clients.
 
-Le module **Clients** est le cœur de votre gestion commerciale. Vous y enregistrez toutes les personnes avec qui vous faites affaire.
+---
 
-### a. Rechercher un Client
-Avant de créer un nouveau dossier, vérifiez toujours si le client n'existe pas déjà.
-1.  Accédez au menu **Clients**.
-2.  Utilisez le champ de recherche au dessus du tableau.
-3.  Vous pouvez filtrer par Nom ou Numéro de téléphone.
+## 2. Gérer vos Clients
+
+Le client est roi, et son dossier doit être impeccable. C'est dans le menu **Clients** que ça se passe.
+
+### a. Rechercher avant de créer
+Avant d'ajouter quelqu'un, ayez le réflexe de vérifier s'il n'est pas déjà là.
+Utilisez la barre de recherche avec son nom ou son numéro de téléphone. Ça évite les doublons !
 
 ![Liste des Clients](../images/manager/06_client_list.png)
 
-### b. Créer un Nouveau Client
-Si le client est nouveau, suivez cette procédure pour créer son dossier :
-
-1.  Cliquez sur le bouton **Ajouter** en haut à droite.
-2.  **Remplissez le formulaire** avec soin (les champs marqués d'une étoile * sont obligatoires) :
-    *   **Identité** : Chargez une photo si possible, complétez Nom et Prénom.
-    *   **Localisation** : Saisissez l'adresse et utilisez le bouton de géolocalisation si vous êtes sur place.
-    *   **Finance** : Définissez un **Solde Initial** (souvent 0 FCFA pour un début) et assignez les **Commerciaux** responsables (Crédit, Tontine).
-3.  Cliquez sur **Enregistrer**.
+### b. Accueillir un Nouveau Client
+C'est un nouveau ? Bienvenue à lui !
+1.  Cliquez sur **Ajouter**.
+2.  Prenez le temps de bien remplir sa fiche :
+    *   **Qui est-il ?** Nom, Prénom, Photo.
+    *   **Où habite-t-il ?** Adresse précise (la géolocalisation aide beaucoup).
+    *   **Qui s'occupe de lui ?** Assignez-lui ses Commerciaux responsables (pour le Crédit et la Tontine).
+    *   **Finance** : Définissez son solde initial.
+3.  Validez.
 
 ![Nouveau Client](../images/manager/07_client_add_form.png)
 
-### c. Gérer un Dossier Client
-Une fois le client créé, vous pouvez effectuer plusieurs actions depuis la liste (colonne Actions) :
-*   **Voir Détails** (Bouton Œil) : Ouvre la fiche complète (achats, solde, infos perso).
-*   **Modifier** (Bouton Crayon) : Permet de mettre à jour une adresse ou un téléphone.
-*   **Supprimer** (Bouton Corbeille) : *Attention, cette action est irréversible.*
+### c. Mettre à jour un dossier
+Le client a déménagé ? Il a changé de numéro ?
+Dans la liste, utilisez les petits boutons à droite :
+*   L'**Œil** pour voir tout son historique.
+*   Le **Crayon** pour modifier ses infos.
+*   La **Corbeille** pour supprimer (Attention, c'est irréversible !).
 
 ![Détails Client](../images/manager/08_client_details.png)
 
-## 3. Comptes
+Votre base client est propre. Voyons maintenant leur situation financière.
 
-Le menu **Comptes** est l'espace de suivi de la santé financière de vos clients. Il vous permet de répondre à des questions telles que : *"Combien ce client me doit-il ?"* ou *"Ce compte est-il bloqué ?"*.
+---
 
-### a. Consulter les Soldes (Vue Liste)
-En accédant au menu, vous voyez instantanément la liste de tous les comptes.
-*   **Recherche** : Utilisez la barre de recherche pour trouver un client par son nom.
-*   **Vérification Rapide** : La colonne **Solde du compte** vous indique immédiatement l'argent disponible ou la dette.
-*   **Statut** : La colonne **Statut** vous alerte si un compte est suspendu.
+## 3. Surveiller les Comptes (L'Argent)
+
+Le menu **Comptes** est votre tour de contrôle financière. Il répond à la question : *"Est-ce que ce client est solvable ?"*
+
+### a. Coup d'œil rapide
+Dans la liste, regardez la colonne **Solde**.
+*   Positif ? Il a de l'avance.
+*   Négatif ? Il nous doit de l'argent.
+
+Regardez aussi le **Statut**. Si un compte est **Bloqué**, le client ne pourra plus rien acheter à crédit tant que vous ne l'aurez pas débloqué.
 
 ![Liste des Comptes](../images/manager/09_accounts_list.png)
 
-### b. Analyser un Compte (Vue Détails)
-Pour aller plus loin, cliquez sur l'icône **Détails** (l'œil) située à droite de chaque ligne.
+### b. Analyser en détail
+Cliquez sur l'**Œil** d'un compte pour voir sa fiche.
+C'est ici que vous pouvez intervenir manuellement si besoin (par exemple pour corriger une erreur ou bloquer le compte d'un mauvais payeur).
 
 ![Détails du Compte](../images/manager/09b_account_details.png)
 
-Sur cette page, vous accédez à la fiche synthétique du compte :
-1.  **Identité** : Vérifiez qu'il s'agit bien du bon client.
-2.  **Situation Financière** : Le **Solde du Compte** est affiché en évidence.
-3.  **Actions** :
-    *   **Modifier** : Permet de corriger des informations erronées (si vous avez les droits).
-    *   **Retour** : Lien pour revenir à la liste globale.
-
-*Note : Cette vue est actuellement synthétique. Pour consulter l'historique précis des transactions (dépôts/retraits), veuillez vous référer aux rapports ou relevés spécifiques dans le module Reporting.*
+Vous maîtrisez la gestion des clients. Passons maintenant à la gestion des stocks et des ventes.
