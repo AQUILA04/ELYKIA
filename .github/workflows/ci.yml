@@ -106,6 +106,14 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    # Debug step to list files
+    - name: List backend directory
+      run: |
+        echo "Listing backend directory:"
+        ls -la backend
+        echo "Listing backend/target directory:"
+        ls -la backend/target || echo "backend/target does not exist"
+
     # Docker Build & Push for Backend
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
