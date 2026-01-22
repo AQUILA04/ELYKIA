@@ -1,43 +1,50 @@
-# Guide Gestionnaire - Introduction
+# Bienvenue dans votre Espace de Gestion
 
-Ce guide est destiné aux utilisateurs ayant le profil **Gestionnaire (Admin)**. Il détaille l'utilisation de l'application **Gestion Elykia** pour la supervision complète des opérations.
+Bonjour et bienvenue dans le guide dédié au **Gestionnaire**.
 
-## 1. Connexion
+En tant que Gestionnaire (ou Administrateur), vous êtes le capitaine du navire. Votre rôle est de superviser l'ensemble des opérations : de l'ouverture de la journée comptable à la validation des stocks, en passant par le contrôle des ventes et des tontines.
 
-Pour accéder à l'application, vous devez vous authentifier avec vos identifiants.
+Ce guide est conçu pour vous accompagner pas à pas dans le pilotage de l'application **Gestion Elykia**.
 
-1.  Rendez-vous sur la page de connexion.
-2.  Saisissez votre **Identifiant** (ex: `username`).
-3.  Saisissez votre **Mot de passe** (ex: `Password`).
-4.  Cliquez sur le bouton **SE CONNECTER**.
+## 1. Se Connecter
+
+Tout commence ici. Pour accéder à votre tableau de bord :
+
+1.  Allez sur la page de connexion.
+2.  Entrez votre **Identifiant** et votre **Mot de passe**.
+3.  Cliquez sur **SE CONNECTER**.
 
 ![Page de Connexion](../images/manager/01_login.png)
 
-## 2. Présentation de l'interface
+Vous voilà connecté. Découvrons votre environnement de travail.
 
-Une fois connecté, vous accédez à l'interface principale. Celle-ci est composée de deux zones majeures :
+## 2. Votre Interface de Pilotage
 
-1.  **Le Menu Latéral (Sidebar)** : Situé à gauche, il permet de naviguer entre les différentes fonctionnalités.
-2.  **La Zone Principale** : Située au centre, elle affiche le contenu de la fonctionnalité sélectionnée.
+Une fois connecté, l'écran se divise en deux parties simples :
+
+1.  **À gauche : Le Menu de Navigation**. C'est votre boîte à outils. Tout ce dont vous avez besoin est listé ici.
+2.  **Au centre : Votre Espace de Travail**. C'est là que les informations s'affichent.
 
 ![Menu Latéral](../images/manager/03_sidebar.png)
 
-### Structure du Menu Gestionnaire
+### Que trouve-t-on dans votre menu ?
 
-Le menu est organisé comme suit (ordre d'apparition) :
+Voici un tour rapide de vos outils, dans l'ordre où vous les verrez :
 
-*   **Dashboard** : Vue d'ensemble des indicateurs clés.
-*   **Dashboard BI** : Analyses graphiques avancées.
-*   **Journée comptable** : Gestion de l'ouverture et fermeture des journées.
-*   **Clients** : Gestion du portefeuille client (Création, Modification, Détails).
-*   **Comptes** : Gestion des comptes financiers.
-*   **Articles** : Catalogue des produits et services.
-*   **Stock Commercial** : Suivi des stocks par commercial.
-*   **Stock Tontine** : Suivi des stocks liés aux tontines.
-*   **Ventes** : Historique et gestion des ventes.
-*   **Tontines** : Gestion des carnets de tontine.
-*   **Commandes** : Suivi des commandes fournisseurs/clients.
-*   **Dépenses** : Enregistrement et suivi des charges.
-*   **Configuration** : Paramètres globaux de l'application.
-*   **Rapport Journalier** : Bilan quotidien de l'activité.
-*   **Inventaires** : Gestion des inventaires physiques de stock.
+*   **Dashboard** : Votre météo du jour (chiffres clés, alertes).
+*   **Dashboard BI** : Pour aller plus loin dans l'analyse financière.
+*   **Journée comptable** : L'interrupteur ON/OFF de l'activité quotidienne.
+*   **Clients** : Votre base de données clients.
+*   **Comptes** : La santé financière de vos clients.
+*   **Articles** : Votre catalogue de produits.
+*   **Stock Commercial** : Pour savoir où est la marchandise.
+*   **Stock Tontine** : Le stock dédié à l'épargne.
+*   **Ventes** : Le cœur du business.
+*   **Tontines** : La gestion de l'épargne.
+*   **Commandes** : Le sas de validation avant vente.
+*   **Dépenses** : Pour suivre les sorties de caisse.
+*   **Configuration** : Les réglages de l'application.
+*   **Rapport Journalier** : Pour faire le bilan et fermer la caisse.
+*   **Inventaires** : Pour vérifier que le stock virtuel correspond à la réalité.
+
+Prêt à prendre les commandes ? Commençons par découvrir votre Tableau de Bord.

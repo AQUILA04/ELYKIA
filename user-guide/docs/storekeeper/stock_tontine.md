@@ -1,16 +1,28 @@
-# Gestion Stock Tontine
+# Le Stock Tontine
 
-Le module **Stock Tontine** fonctionne exactement sur le même principe que le Stock Commercial, mais il concerne spécifiquement les produits destinés aux contrats de Tontine.
+Le principe est **exactement le même** que pour le Stock Commercial, mais attention : ce sont des stocks séparés !
 
-## Fonctionnalités
+Ce menu concerne uniquement les marchandises destinées aux contrats de Tontine (livraisons de fin d'année).
 
-### 1. Demandes Sortie
+---
+
+## 1. Livrer pour la Tontine
+
+Allez dans **Stock Tontine > Demandes Sortie**.
+
+*   Comme pour le stock commercial, vous ne voyez que les demandes **Validées** par le manager.
+*   Préparez les lots tontine.
+*   Cliquez sur le **Camion** pour livrer au commercial qui ira distribuer aux clients.
+
 ![Demandes sortie Tontine](../images/storekeeper_tontine_requests.png)
 
-*   Permet de livrer les articles Tontine aux commerciaux pour qu'ils les distribuent aux clients finaux.
-*   **Visibilité** : Le magasinier ne voit et ne traite que les demandes **Validé** par un gestionnaire. Les demandes non validées sont invisibles.
-*   Action : Cliquez sur l'icône **Livrer** (Camion) pour déstocker.
+---
 
-### 2. Retours
-*   Permet de réintégrer au magasin central des articles Tontine non distribués ou retournés par un commercial.
-*   Nécessite une création de retour puis une validation pour mise à jour du stock.
+## 2. Retours Tontine
+
+Si une livraison tontine échoue et que la marchandise revient :
+1.  Allez dans **Stock Tontine > Retours**.
+2.  Vérifiez le matériel.
+3.  Validez pour le remettre dans votre stock Tontine central.
+
+Voilà, vous maîtrisez maintenant tous les mouvements de stock de l'entrepôt !

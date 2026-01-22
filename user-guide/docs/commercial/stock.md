@@ -1,43 +1,73 @@
-# Gestion de votre Stock
+# Maîtriser votre Stock
 
-En tant que commercial, vous êtes responsable d'un stock "ambulant" ou personnel que vous distribuez aux clients. Ce module vous permet de gérer ce stock.
+En tant que commercial, vous êtes un véritable "magasin ambulant". Vous partez en tournée avec de la marchandise, et vous en êtes responsable jusqu'à ce qu'elle soit vendue ou ramenée.
 
-## 1. Mon Stock (Consultation)
-Allez dans **Stock Commercial > Stock**.
+Ce module **Stock Commercial** est là pour vous aider à suivre ce que vous avez dans les mains.
+
+---
+
+## 1. Qu'avez-vous en stock aujourd'hui ?
+
+Pour le savoir, allez dans **Stock Commercial > Stock**.
+
+Ce tableau de bord est votre inventaire personnel. Il se met à jour en temps réel à chaque fois que vous faites une vente ou que vous passez au magasin.
+
 ![Dashboard mon stock](../images/commercial_my_stock.png)
 
-Ce tableau de bord vous montre l'état de votre stock par mois.
-En haut, trois cartes résument la situation financière :
-*   **Valeur Stock Restant** : Ce que vous avez en main.
-*   **Valeur Stock Vendu** : Ce que vous avez déjà écoulé.
-*   **Valeur Total Dû** : Ce que vous devez reverser.
+Regardez les cartes en haut, elles parlent d'argent :
+*   **Valeur Stock Restant** : C'est la valeur de la marchandise que vous transportez actuellement.
+*   **Valeur Total Dû** : C'est ce que vous devez "rendre" à l'entreprise (soit en argent issu des ventes, soit en marchandise).
 
-Le tableau détaille ensuite par article :
-*   **Article** : Nom du produit.
-*   **Pris (Magasin)** : Quantité totale récupérée chez le magasinier.
-*   **Vendu (Clients)** : Quantité vendue.
-*   **Retourné** : Quantité que vous avez ramenée au stock central.
-*   **Restant** : Ce qu'il vous reste physiquement.
-*   **Valeur Restante** : Valorisation de ce stock restant.
+Dans le tableau, pour chaque article, vous pouvez suivre son parcours :
+*   Combien vous en avez **Pris** au magasin.
+*   Combien vous en avez déjà **Vendu**.
+*   Combien il vous en **Reste** physiquement.
 
-## 2. Se Réapprovisionner (Demandes)
-Lorsque votre stock baisse, vous devez demander du matériel au magasin central.
+*Conseil : Jetez un œil à cet écran chaque matin avant de partir pour être sûr de ne manquer de rien.*
+
+Vous avez une vision claire de votre stock. Voyons comment le remplir.
+
+---
+
+## 2. Comment se réapprovisionner ?
+
+Votre stock baisse ? Il est temps de demander du réassort au magasinier.
 
 1.  Allez dans **Stock Commercial > Demandes Sortie**.
 2.  Cliquez sur **Nouvelle Demande**.
-    ![Formulaire demande stock](../images/commercial_request_create.png)
-3.  **Articles** : Sélectionnez les produits et les quantités souhaitées.
-4.  **Envoyer** : La demande part chez le Gestionnaire pour validation.
-    *   *Statut Créé* : En attente de validation manager.
-    *   *Statut Validé* : Validé, en attente que le Magasinier vous livre.
-    *   *Statut Livré* : Le magasinier a validé la sortie, votre stock personnel est augmenté.
+3.  C'est comme faire votre liste de courses : choisissez les articles dont vous avez besoin et indiquez les quantités.
+4.  Cliquez sur **Envoyer**.
 
-## 3. Retourner du Matériel
-Si vous avez des invendus ou des produits défectueux :
+**Et ensuite ?**
+Votre demande part chez le Gestionnaire. Une fois qu'il l'a validée, le Magasinier prépare votre commande. Quand vous irez récupérer la marchandise physiquement, le magasinier validera la "Livraison" dans le système, et votre stock personnel augmentera automatiquement.
+
+![Formulaire demande stock](../images/commercial_request_create.png)
+
+Votre demande est partie ! N'oubliez pas d'aller chercher vos produits une fois validée.
+
+---
+
+## 3. Retourner de la marchandise
+
+Parfois, vous devez rendre des articles (invendus, produits abîmés, ou fin de contrat).
+
+La procédure est la même, mais dans l'autre sens :
 1.  Allez dans **Stock Commercial > Retours**.
-2.  Créez un retour en sélectionnant les articles.
-3.  Rapportez physiquement le matériel au magasinier.
-4.  Le magasinier validera le retour, ce qui déduira ces articles de votre responsabilité.
+2.  Créez un **Nouveau Retour** en listant ce que vous rendez.
+3.  Rapportez physiquement les articles au magasin.
 
-## 4. Stock Tontine
-Le menu **Stock Tontine** fonctionne exactement de la même manière, mais concerne uniquement les produits réservés aux contrats Tontine. Veillez à ne pas mélanger les deux stocks.
+Dès que le magasinier accepte le retour, ces articles disparaissent de votre responsabilité. C'est aussi simple que ça.
+
+---
+
+## 4. Une petite précision sur la Tontine
+
+Vous verrez un menu appelé **Stock Tontine**.
+
+Le principe est **exactement le même** que pour votre stock commercial classique. Cependant, il est crucial de ne pas mélanger les deux !
+*   Le **Stock Commercial** sert aux ventes à crédit classiques.
+*   Le **Stock Tontine** est réservé aux livraisons de fin d'année pour les membres de la tontine.
+
+Gardez bien ces deux stocks séparés physiquement et dans l'application pour éviter les erreurs de comptabilité.
+
+Vous maîtrisez maintenant les flux de marchandises. Il est temps de vendre !

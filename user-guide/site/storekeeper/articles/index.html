@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#gestion-des-articles" class="md-skip">
+        <a href="#gerer-le-catalogue-articles" class="md-skip">
           Aller au contenu
         </a>
       
@@ -602,38 +602,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-liste-des-articles" class="md-nav__link">
+  <a href="#1-consulter-le-catalogue" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Liste des Articles
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. Liste des Articles">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#recherche" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Recherche
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-ajouter-un-article" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Ajouter un Article
+        1. Consulter le Catalogue
       
     </span>
   </a>
@@ -641,10 +613,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-modifier-ou-supprimer" class="md-nav__link">
+  <a href="#2-ajouter-un-nouveau-produit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Modifier ou Supprimer
+        2. Ajouter un Nouveau Produit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-mettre-a-jour-un-produit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Mettre à jour un produit
       
     </span>
   </a>
@@ -1007,38 +990,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-liste-des-articles" class="md-nav__link">
+  <a href="#1-consulter-le-catalogue" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Liste des Articles
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. Liste des Articles">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#recherche" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Recherche
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-ajouter-un-article" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Ajouter un Article
+        1. Consulter le Catalogue
       
     </span>
   </a>
@@ -1046,10 +1001,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-modifier-ou-supprimer" class="md-nav__link">
+  <a href="#2-ajouter-un-nouveau-produit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Modifier ou Supprimer
+        2. Ajouter un Nouveau Produit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-mettre-a-jour-un-produit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Mettre à jour un produit
       
     </span>
   </a>
@@ -1073,45 +1039,38 @@
 
 
 
-<h1 id="gestion-des-articles">Gestion des Articles</h1>
-<p>Le menu <strong>Articles</strong> permet au magasinier de gérer le catalogue des produits disponibles à la vente.</p>
-<h2 id="1-liste-des-articles">1. Liste des Articles</h2>
+<h1 id="gerer-le-catalogue-articles">Gérer le Catalogue (Articles)</h1>
+<p>Le menu <strong>Articles</strong> est votre bible. C'est ici que sont listés tous les produits que l'entreprise vend.</p>
+<hr />
+<h2 id="1-consulter-le-catalogue">1. Consulter le Catalogue</h2>
+<p>L'écran principal vous montre tout ce qui existe en rayon.
+Pour chaque produit, vous voyez son Nom, sa Marque, son modèle, et son Type.</p>
+<p><em>Astuce : Utilisez la barre de recherche en haut pour trouver un produit rapidement par son nom.</em></p>
 <p><img alt="Liste des articles" src="../../images/storekeeper_articles_list.png" /></p>
-<p>L'écran principal affiche la liste de tous les produits enregistrés :
-*   <strong>#</strong> : Index.
-*   <strong>Nom</strong> : Désignation commerciale.
-*   <strong>Marque</strong> &amp; <strong>Modèle</strong>.
-*   <strong>Type</strong> : Catégorie du produit (ex: MOTO, ELECTRO).
-*   <strong>Quantité</strong> : Stock système actuel.
-*   <strong>Prix</strong> : Prix de vente standard.</p>
-<h3 id="recherche">Recherche</h3>
-<p>Utilisez la barre de recherche en haut pour filtrer rapidement par nom ou référence.</p>
-<h2 id="2-ajouter-un-article">2. Ajouter un Article</h2>
-<p><img alt="Formulaire ajout article" src="../../images/storekeeper_article_add.png" /></p>
-<p>Pour référencer un nouveau produit :</p>
+<hr />
+<h2 id="2-ajouter-un-nouveau-produit">2. Ajouter un Nouveau Produit</h2>
+<p>Vous avez reçu une nouvelle référence ? Il faut la créer dans le système.</p>
 <ol>
 <li>Cliquez sur le bouton <strong>Ajouter</strong>.</li>
-<li>Remplissez le formulaire de création :<ul>
-<li><strong>Nom</strong> (Requis) : Le nom du produit.</li>
-<li><strong>Marque</strong> &amp; <strong>Modèle</strong> (Requis) : Informations fabricant.</li>
-<li><strong>Type</strong> : Sélectionnez une catégorie existante.</li>
-<li><strong>Prix d'achat</strong> : Coût d'acquisition fournisseur.</li>
-<li><strong>Prix de vente</strong> : Prix public standard.</li>
-<li><strong>Prix de vente à crédit</strong> : Prix majoré pour les ventes à crédit.
-    &gt; [!WARNING]
-    &gt; Règle de prix obligatoire : <strong>Prix d'achat &lt;= Prix de vente &lt;= Prix de vente à crédit</strong>.</li>
-<li><strong>Point de commande</strong> : Niveau de stock minimum avant alerte (Stock Critique).</li>
-<li><strong>Niveau de stock optimal</strong> : Quantité idéale à maintenir.</li>
-<li><strong>Saisonnier ?</strong> : Oui/Non.</li>
+<li>Remplissez la fiche d'identité du produit :<ul>
+<li><strong>C'est quoi ?</strong> (Nom, Marque, Modèle).</li>
+<li><strong>Quel type ?</strong> (Moto, TV...).</li>
+<li><strong>Combien ça coûte ?</strong> (Prix d'achat et Prix de vente).
+    &gt; <strong>Règle d'or</strong> : Le Prix de vente doit toujours être supérieur au Prix d'achat !</li>
+<li><strong>Quand s'inquiéter ?</strong> (Point de commande) : C'est le seuil en dessous duquel l'alerte "Stock bas" se déclenchera.</li>
 </ul>
 </li>
-<li>Cliquez sur <strong>Valider</strong> pour enregistrer.</li>
+<li>Cliquez sur <strong>Valider</strong>.</li>
 </ol>
-<h2 id="3-modifier-ou-supprimer">3. Modifier ou Supprimer</h2>
-<p>Dans la colonne <strong>Actions</strong> du tableau :
-*   <strong>Modifier (Crayon rouge)</strong> : Ouvre le formulaire pour corriger des informations.
-*   <strong>Détails (Œil vert)</strong> : Affiche la fiche complète de l'article.
-*   <strong>Supprimer (Corbeille)</strong> : Retire l'article du catalogue (Action irréversible).</p>
+<p><img alt="Formulaire ajout article" src="../../images/storekeeper_article_add.png" /></p>
+<hr />
+<h2 id="3-mettre-a-jour-un-produit">3. Mettre à jour un produit</h2>
+<p>Un prix a changé ? Une erreur de saisie ?
+Dans la liste, utilisez les boutons d'action à droite :
+*   Le <strong>Crayon</strong> pour modifier.
+*   L'<strong>Œil</strong> pour voir tous les détails.
+*   La <strong>Corbeille</strong> pour supprimer (Attention, ne supprimez pas un article qui a déjà du stock ou des ventes !).</p>
+<p>Votre catalogue est à jour. Voyons maintenant comment faire entrer et sortir la marchandise.</p>
 
 
 

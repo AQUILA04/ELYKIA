@@ -1,66 +1,58 @@
-# Inventaires & Approvisionnements
+# Inventaires et Approvisionnements
 
-Ce module est le cœur de l'activité logistique. Il permet de gérer les entrées de stock et d'effectuer les contrôles d'inventaire périodiques.
-
-> [!NOTE]
-> Certaines fonctionnalités de contrôle (Valorisation, Clôture) sont réservées au **Gestionnaire** et ne sont pas visibles pour le Magasinier.
-
-## 1. Approvisionnement (Entrées de Stock)
-![Formulaire entrées stock](../images/storekeeper_supply_entry.png)
-
-Cette fonction permet d'ajouter des produits au stock suite à une réception fournisseur.
-
-1.  Cliquez sur le bouton **+ Entrées**.
-2.  Dans le formulaire **Entrée de stock** :
-    *   **Articles à approvisionner** : Cliquez pour ouvrir la liste déroulante et cochez tous les produits reçus.
-    *   Pour chaque article sélectionné, saisissez la **Quantité** physique reçue.
-3.  Cliquez sur **Valider l'entrée** (Icône bleue).
-    *   *Le stock est immédiatement mis à jour.*
-
-## 2. Cycle d'Inventaire (Magasinier)
-![Liste des inventaires](../images/storekeeper_inventory_list.png)
-
-Le rôle du magasinier est de compter et de saisir les quantités réelles.
-
-### a. Lancer un inventaire
-Si aucun inventaire n'est en cours, cliquez sur le bouton **Créer un inventaire**.
-*   Cela crée un "point de contrôle" figeant l'image du stock système à cet instant.
-
-### b. Comptage Physique
-![Saisie des quantités physiques](../images/storekeeper_inventory_count.png)
-
-Une fois l'inventaire créé (Statut: *IN_PROGRESS*) :
-
-1.  **Imprimer la fiche** : Cliquez sur **Télécharger PDF**.
-    *   Ce document liste tous les articles pour faciliter le comptage manuel dans l'entrepôt.
-2.  **Saisir les résultats** : Cliquez sur **Saisir quantités physiques**.
-    *   Un tableau s'ouvre affichant la *Quantité Système*.
-    *   Remplissez la colonne **Quantité Physique** avec vos comptages.
-    *   **Code Couleur** :
-        *   <span style="color:red">Rouge</span> : Manquant (Physique < Système).
-        *   <span style="color:green">Vert</span> : Surplus (Physique > Système).
-        *   Gris : Ok.
-3.  Cliquez sur **Soumettre les quantités** pour sauvegarder votre saisie.
+C'est le cœur de votre métier : s'assurer que le stock est juste et bien rempli.
 
 ---
 
-## 3. Contrôle & Clôture (Réservé au Gestionnaire)
+## 1. Faire entrer de la marchandise (Approvisionnement)
+
+Le camion du fournisseur est là ? Il faut enregistrer ce qui rentre.
+
+1.  Cliquez sur le bouton **+ Entrées**.
+2.  Le formulaire s'ouvre :
+    *   **Quoi ?** Sélectionnez les articles reçus dans la liste.
+    *   **Combien ?** Tapez la quantité exacte que vous avez comptée au déchargement.
+3.  Cliquez sur **Valider l'entrée** (Icône bleue).
+
+Le stock augmente instantanément.
+
+![Formulaire entrées stock](../images/storekeeper_supply_entry.png)
+
+---
+
+## 2. Faire un Inventaire (L'Heure de Vérité)
+
+Régulièrement, il faut vérifier que le stock de l'ordinateur correspond au stock réel de l'entrepôt.
+
+### a. Lancer l'opération
+Cliquez sur **Créer un inventaire**.
+Le système prend une "photo" du stock théorique à cet instant précis.
+
+### b. Compter sur le terrain
+1.  **Imprimer** : Cliquez sur **Télécharger PDF**. C'est votre feuille de comptage.
+2.  **Compter** : Allez dans l'entrepôt avec votre feuille et comptez physiquement chaque article.
+    *   *Conseil de pro : Ne regardez pas les quantités de l'ordinateur avant de compter, pour ne pas être influencé.*
+
+### c. Saisir les résultats
+Revenez devant l'écran :
+1.  Cliquez sur **Saisir quantités physiques**.
+2.  Remplissez la colonne **Quantité Physique** avec vos chiffres.
+    *   Le système vous montre tout de suite les écarts en couleur (Rouge = Manquant, Vert = Surplus).
+3.  Cliquez sur **Soumettre les quantités**.
+
+![Saisie des quantités physiques](../images/storekeeper_inventory_count.png)
+
+---
+
+## 3. Clôturer (Pour le Gestionnaire)
+
+Cette partie est souvent réservée au Gestionnaire, mais il est bon que vous sachiez ce qui se passe.
+
+Une fois votre comptage terminé, le Gestionnaire va :
+1.  Analyser les écarts (Pourquoi il manque 2 laits ?).
+2.  **Réconcilier** : Ajuster le stock informatique pour qu'il colle à votre comptage réel.
+3.  **Clôturer** : Valider l'inventaire. C'est fini pour ce mois-ci !
+
 ![Détails réconciliation inventaire](../images/manager_inventory_reconcile.png)
 
-Ces actions apparaissent uniquement pour les utilisateurs ayant des droits de validation financière.
-
-### a. Valorisation du Stock
-En haut de page, trois cartes résument la valeur financière du stock :
-*   **Prix Total Achat** : Valeur de l'actif stock.
-*   **Prix Total Vente** : Chiffre d'affaires potentiel.
-*   **Total Écart** : Perte ou Gain financier détecté lors de l'inventaire.
-
-### b. Réconciliation et Clôture
-Une fois le comptage du magasinier terminé :
-1.  **Réconcilier les écarts** : Permet d'ajuster le stock système pour qu'il corresponde à la réalité physique saisie.
-2.  **Clôturer l'inventaire** : Valide définitivement la période. L'inventaire passe en statut terminé et ne peut plus être modifié.
-
-### c. Reset Stock (Maintenance)
-Le bouton **Reset Stock** (Cercle fléché) permet de remettre brutalement les stocks à zéro.
-> [!CAUTION]
-> Cette action est destructrice et irréversible. À utiliser uniquement en cas de redémarrage complet ou d'erreur système majeure.
+Votre stock central est carré. Voyons maintenant comment servir les commerciaux.

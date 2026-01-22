@@ -23,7 +23,7 @@ PROFILES = {
         'commercial/stock.md',
         'commercial/sales_orders.md',
         'commercial/tontine.md',
-        'commercial/mobile_app.md'
+        'commercial/mobile.md'
     ]
 }
 
