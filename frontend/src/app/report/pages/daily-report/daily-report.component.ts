@@ -38,6 +38,7 @@ export class DailyReportComponent implements OnInit {
     // UI State
     isLoading = false;
     isPromoter = false;
+    isManager = false;
     showMargins = false; // Toggle for margin visibility
 
     // Operations Log
@@ -70,10 +71,12 @@ export class DailyReportComponent implements OnInit {
     ngOnInit(): void {
         // Check if profil is object with name or just string, handling both just in case
         this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
+        this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
 
         if (!this.isPromoter) {
             this.loadAgents();
         }
+
 
         // Initial Load (Today)
         this.setFilter('today');

@@ -76,13 +76,13 @@ export class MyTontineStockDashboardComponent implements OnInit {
     this.spinner.show();
     this.tontineStockService.getAll(this.selectedAgent, this.pageIndex, this.pageSize, this.isHistoric).subscribe({
       next: (data: any) => {
-        if (!data) {
+        if (!data.data) {
           this.groupStocksByYear([]);
           this.totalElements = 0;
         } else {
-          const content = data.content || (Array.isArray(data) ? data : []);
+          const content = data.data.content || (Array.isArray(data) ? data : []);
           this.groupStocksByYear(content);
-          this.totalElements = data.totalElements || content.length;
+          this.totalElements = data.data.page.totalElements || content.length;
         }
         this.spinner.hide();
       },

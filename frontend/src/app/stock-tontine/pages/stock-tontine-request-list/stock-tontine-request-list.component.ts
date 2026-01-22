@@ -92,10 +92,18 @@ export class StockTontineRequestListComponent implements OnInit {
       if (confirmed) {
         this.spinner.show();
         this.requestService.deliver(request.id!).subscribe({
-          next: () => {
-            this.toastr.success('Demande livrée');
-            this.loadRequests();
-            this.spinner.hide();
+          next: (response: any) => {
+            if (response.statusCode){
+               console.error('Error', response.message);
+                                           this.alertService.showError(response.message ?? 'Erreur de livraison', 'Erreur de livraison');
+                                           this.spinner.hide();
+
+              }else{
+                   this.toastr.success('Demande livrée');
+                                            this.loadRequests();
+                                            this.spinner.hide();
+                }
+
           },
           error: (err) => {
             console.error('Error', err);

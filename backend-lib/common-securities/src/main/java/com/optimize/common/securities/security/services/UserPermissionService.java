@@ -60,7 +60,7 @@ public class UserPermissionService extends GenericService<UserPermission, Long> 
     }
 
     public UserPermission getByName (String name) {
-        return getRepository().findByName(name).orElseThrow(() -> new ResourceNotFoundException("permission.not.found"));
+        return getRepository().findByName(name).orElseThrow(() -> new ResourceNotFoundException("permission.not.found: " +name));
     }
 
     public boolean existsByName (String name) {
