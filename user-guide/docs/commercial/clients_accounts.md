@@ -1,68 +1,65 @@
-# Gestion Clients & Comptes
+# Gérer vos Clients et leurs Comptes
 
-Le cœur de votre métier est la gestion de votre portefeuille clients. Ce menu vous permet d'enregistrer de nouveaux prospects et de gérer leurs comptes.
+Le cœur de votre métier, c'est votre relation avec le client. Dans cette section, nous allons voir comment enregistrer proprement un nouveau prospect et comment gérer son compte financier pour qu'il puisse acheter à crédit.
 
-## 1. Gestion des Clients (« Clients »)
-L'écran affiche la liste alphabétique de vos clients et prospects.
+L'accès se fait tout simplement via les menus **Clients** ou **Comptes** dans la barre latérale.
 
-### a. Liste des Clients
+---
+
+## 1. Votre Carnet de Clients
+
+Rendez-vous dans le menu **Clients**. Ici, vous retrouvez la liste complète de toutes les personnes que vous avez enregistrées.
+
+C'est votre base de données personnelle. Vous pouvez y rechercher un client par son nom ou son numéro de téléphone pour vérifier ses informations ou le contacter rapidement.
+
 ![Liste des clients](../images/commercial_client_list.png)
 
-Chaque ligne présente :
-*   **Nom/Prénom** du client.
-*   **Téléphone**.
-*   **Localité** (Quartier).
-*   **Actions** : Modifier ou Voir Détails.
+### Comment enregistrer un nouveau client ?
 
-### b. Créer un Nouveau Client
+C'est une étape cruciale. Plus les informations sont précises, plus le recouvrement sera facile plus tard.
+
+1.  Cliquez sur le bouton **+ Nouveau** en haut à droite.
+2.  Le formulaire s'ouvre. Prenons le temps de bien le remplir :
+    *   **Qui est-ce ?** Commencez par son Nom, Prénom et une photo si possible (c'est toujours plus convivial).
+    *   **Où habite-t-il ?** Notez son adresse et son numéro de téléphone.
+    *   **Géolocalisation** : C'est très important pour retrouver le client. Si vous êtes sur mobile ou tablette, cliquez simplement sur "Obtenir la position GPS". Sinon, vous pouvez le faire manuellement.
+    *   **Papiers d'identité** : Pour sécuriser le crédit, nous avons besoin d'une preuve. Sélectionnez le type de pièce et prenez une photo du document.
+    *   **Associations** : C'est ici que vous dites au système "C'est mon client". Sélectionnez-vous dans les champs *Commercial Crédit* et *Commercial Tontine*.
+    *   **Le premier versement** : Pour valider l'ouverture du dossier, le client doit verser un solde initial (minimum 500 FCFA).
+
+Une fois que tout est bon, cliquez sur **Enregistrer**. Bravo, votre portefeuille s'agrandit !
+
 ![Formulaire nouveau client](../images/commercial_client_add.png)
 
-Pour inscrire un client, cliquez sur le bouton **+ Nouveau** et remplissez les sections :
+Votre client est maintenant bien enregistré. Voyons comment gérer son argent.
 
-1.  **Profil** : Photo (Optionnel), Nom, Prénom.
-2.  **Contact** : Adresse physique, Téléphone (8 chiffres).
-3.  **Géolocalisation** :
-    *   **Auto** : Cliquez sur "Obtenir la position GPS" (recommandé sur mobile).
-    *   **Manuel** : Activez l'interrupteur pour saisir Latitude/Longitude si le GPS échoue.
-4.  **Identité** : Type de pièce (Carte électeur, Passeport...), Numéro, et **Photo du document** (Obligatoire).
-5.  **Détails** : Date de naissance (Min 16 ans), Occupation (Métier), Localité (Liste déroulante).
-6.  **Référents** : Personne à contacter (Nom, Adresse, Tel).
-7.  **Associations (Commerciaux)** :
-    *   Sélectionnez-vous vous-même (ou le commercial responsable) pour les champs *Commercial Crédit*, *Commercial Tontine*, et *Agence*.
-8.  **Type** : Choisissez "Client".
-9.  **Compte Initial** :
-    *   Le système crée automatiquement un compte. Saisissez le **Solde Initial** (Min 500 FCFA).
+---
 
-Cliquez sur **Enregistrer**.
+## 2. La Gestion des Comptes Financiers
 
-## 2. Gestion des Comptes (« Comptes »)
-Cet écran centralise la situation financière de tous vos clients. Il permet de voir qui peut acheter à crédit et qui doit régulariser sa situation.
+Maintenant que le client existe, il lui faut un "compte" pour pouvoir acheter à crédit. C'est un peu comme lui ouvrir un compte en banque chez nous.
 
-### a. Liste des Comptes
+Allez dans le menu **Comptes**.
+
+### Comprendre le tableau des comptes
+
+Ici, vous avez une vision financière. Pour chaque client, vous voyez :
+*   Son **Numéro de Compte** (unique).
+*   Son **Solde** actuel.
+*   Son **Statut** : C'est le point le plus important.
+    *   Si le statut est **Actif**, tout va bien, vous pouvez lui vendre à crédit.
+    *   Si le statut est **Bloqué** (ou désactivé), le système refusera toute nouvelle vente.
+
 ![Liste des comptes](../images/commercial_account_list.png)
-L'écran présente un tableau avec :
-*   **Nom du Client** : Le titulaire.
-*   **Numéro de Compte** : Identifiant unique.
-*   **Solde** : Montant disponible ou dû.
-*   **Statut** :
-    *   *Créé/Actif* : Le compte est opérationnel.
-    *   *Fermé/Bloqué* : Aucune opération possible.
 
-**Fonctionnalités :**
-*   **Recherche** : Filtrez par nom ou numéro de compte via la barre en haut.
-*   **Créer** : Si un client n'a pas de compte, cliquez sur **Ajouter**.
+### Que pouvez-vous faire ici ?
 
-### b. Créer/Associer un Compte
-Si vous devez créer un compte manuellement :
-1.  Cliquez sur **Ajouter**.
-2.  **Client** : Recherchez le client dans la liste.
-3.  **Numéro** : Attribuez un numéro de compte unique.
-4.  **Solde Initial** : Définissez le montant de départ (Minimum 500 FCFA, Maximum 100 000 FCFA).
-5.  **Enregistrer**.
+Au bout de chaque ligne, vous avez des petits boutons d'action :
 
-### c. Actions sur les Comptes
-Au bout de chaque ligne, des icônes vous permettent d'agir :
-*   **(De)Activer** (Icône Power/Blocage) : Change le statut du compte (Active ou Désactive).
-*   **Détails** (Œil) : Affiche la fiche complète.
-*   **Modifier** (Crayon) : Permet de corriger le solde ou le numéro.
-*   **Supprimer** (Corbeille) : Supprime définitivement le compte (Action irréversible).
+*   **Besoin de bloquer un mauvais payeur ?** Cliquez sur l'icône "Power" (Activer/Désactiver). Cela gèle son compte instantanément.
+*   **Une erreur de saisie ?** Le crayon vous permet de corriger le solde ou le numéro de compte.
+*   **Voir l'historique ?** L'icône "Œil" vous permet de voir tous les mouvements sur ce compte.
+
+**Note importante** : Généralement, le compte est créé automatiquement lors de l'inscription du client. Mais si vous avez besoin d'en ajouter un manuellement pour un ancien client, utilisez le bouton **Ajouter** et suivez les instructions.
+
+Vous savez maintenant gérer vos clients de A à Z. Passons à la gestion de votre stock.

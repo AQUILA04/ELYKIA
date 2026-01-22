@@ -101,7 +101,10 @@ jobs:
     - name: Build elykia-client
       run: mvn -B clean install -DskipTests --file backend-lib/elykia-client/pom.xml
 
-    - name: Build and Deploy Backend Maven Artifact
+    - name: Package Backend
+      run: mvn -B package -DskipTests --file backend/pom.xml
+
+    - name: Deploy Backend Maven Artifact
       run: mvn -B deploy -DskipTests --file backend/pom.xml -s $GITHUB_WORKSPACE/settings.xml || echo "Deployment failed, likely because version already exists. Continuing..."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

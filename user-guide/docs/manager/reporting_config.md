@@ -1,150 +1,93 @@
-# Rapports & Configuration
+# Rapports et Configuration
 
-Cette section vous aide à clôturer vos journées et à gérer les paramètres fondamentaux de l'application.
+C'est la fin de la journée, ou le moment de régler la machine.
 
-## 1. Clôturer la Journée (Rapport Journalier)
+---
 
-Le **Rapport Journalier** est votre outil de contrôle quotidien. Il centralise toutes les opérations (Ventes, Recouvrements, Tontines) et permet de valider la caisse.
+## 1. Le Rapport Journalier (L'Heure du Bilan)
 
-### a. Filtres et Recherche
-En haut de page, utilisez la barre d'outils pour cibler les données :
-*   **Périodes** : Cliquez sur *Aujourd'hui*, *Cette Semaine*, *Ce Mois* ou *Personnaliser* (pour choisir des dates précises).
-*   **Sélection Commercial** : (Admin) Permet de filtrer tout le rapport pour un agent spécifique.
-*   **Marges** : Un bouton œil permet d'afficher ou masquer les marges bénéficiaires (visible selon vos droits).
+C'est sans doute l'écran le plus important de votre fin de journée. Il vous permet de contrôler la caisse de chaque commercial et de fermer la boutique sereinement.
+
+Allez dans **Rapport Journalier**.
+
+### a. La Vue d'Ensemble
+Le premier onglet vous donne les grands chiffres de la journée (ou de la période choisie). Utilisez les filtres en haut pour changer de date ou cibler un commercial.
 
 ![Filtres Rapport](../images/manager/18a_daily_report_filters.png)
 
-### b. Vue d'Ensemble (Onglet 1)
-Cet onglet présente la synthèse financière globale et détaillée.
-
-**Total Général (Panneau du haut)**
-Un bloc récapitulatif affiche les performances cumulées de toute l'équipe :
-*   **Sortie Stock** : Valeur des marchandises sorties du magasin.
-*   **Ventes à Crédit** : Montant total des dettes créées.
-*   **Nouveaux Clients** & **Solde Nx Comptes**.
-*   **Recouvrements** : Montant total des dettes récupérées.
-*   **Tontine** : Synthèse complète (Adhésions, Collectes, Livraisons).
-*   **Caisse (A Verser / Versé / Reste)** : KPI critique.
-    *   **A Verser** : L'argent théorique que les commerciaux ont encaissé.
-    *   **Versé** : L'argent qu'ils vous ont déjà remis.
-    *   **Reste** : L'écart à combler. Si positif (Rouge), l'argent est encore dehors.
+Regardez surtout le bloc **Caisse** :
+*   **A Verser** : C'est ce que les commerciaux *devraient* avoir dans leurs poches (selon l'ordi).
+*   **Versé** : C'est ce qu'ils vous ont *réellement* donné.
+*   **Reste** : C'est la différence. Si c'est rouge, il manque de l'argent !
 
 ![Vue d'Ensemble](../images/manager/18b_daily_report_overview.png)
 
-**Détail par Commercial**
-Une liste déroulante détaille la performance individuelle de chaque agent.
-*   **Statut Caisse** : Le cadre de l'agent change de couleur.
-    *   *Rouge* : Doit de l'argent.
-    *   *Vert* : A jour (Tout versé).
-    *   *Orange* : Situation intermédiaire.
-*   **Action "FAIRE UN VERSEMENT"** : Si un agent a de l'argent à rendre, ce bouton apparaît dans son détail. Cliquez dessus pour enregistrer la remise d'espèces physique.
+### b. Contrôler un Commercial
+Déroulez la liste pour voir le détail par agent.
+Le cadre de couleur vous parle :
+*   **Rouge** ? Il doit de l'argent.
+*   **Vert** ? Il est à jour, tout va bien.
+
+**Il vous tend des billets ?**
+Cliquez sur le bouton **FAIRE UN VERSEMENT** dans sa case. Entrez le montant que vous prenez. Le système mettra sa dette à jour instantanément.
 
 ![Détail Commercial](../images/manager/18c_daily_report_commercial.png)
 
-### c. Journal des Opérations (Onglet 2)
-Ce tableau offre une traçabilité totale (Audit). Il liste chronologiquement chaque action :
-*   **Heure** : Moment précis de l'action.
-*   **Commercial** : L'auteur de l'opération.
-*   **Type** : Nature de l'opération (Vente, Paiement, Collecte...).
-*   **Montant** : Impact financier.
+### c. L'Audit (Qui a fait quoi ?)
+L'onglet **Journal des Opérations** est votre mouchard. Il liste tout : chaque vente, chaque suppression, chaque encaissement, avec l'heure et l'auteur. Utile en cas de litige.
 
 ![Journal des Opérations](../images/manager/18d_daily_report_operations.png)
 
-### d. Historique des Versements (Onglet 3)
-Liste des remises d'espèces validées entre les commerciaux et le gestionnaire :
-*   **Heure** et **Date**.
-*   **Commercial** (Celui qui verse).
-*   **Reçu par** (Le gestionnaire qui valide).
-*   **Montant** encaissé.
+### d. Historique des Versements
+L'onglet **Versements** garde la trace de toutes les remises d'espèces que vous avez validées.
 
 ![Historique Versements](../images/manager/18e_daily_report_deposits.png)
 
-## 2. Gestion des Localités (Zones)
+La caisse est juste ? Vous pouvez fermer la journée comptable.
 
-Pour géolocaliser vos clients, vous devez définir les zones géographiques (Villes, Quartiers).
+---
 
-### a. Ajouter une Localité
-1.  Allez dans le menu **Configuration > Localités**.
-2.  Cliquez sur le bouton **Ajouter** (+).
-3.  Remplissez le formulaire :
-    *   **Nom** : Le nom de la ville ou du quartier (ex: "Lomé - Adidogomé").
-4.  Cliquez sur **Enregistrer**.
+## 2. Configurer l'Application
 
-![Ajout Localité](../images/manager/17b_locality_add.png)
+Le menu **Configuration** est réservé aux experts. C'est ici qu'on paramètre le moteur.
 
-### b. Consulter la liste
-La liste affiche toutes les zones configurées avec :
-*   **#** : Numéro d'ordre.
-*   **Nom** : Libellé de la localité.
-*   **Action** : Boutons pour voir, modifier ou supprimer.
+### a. Les Localités (Zones)
+Pour que la géolocalisation serve à quelque chose, il faut définir vos zones.
+Ajoutez vos Villes et Quartiers ici.
 
 ![Liste des Localités](../images/manager/17a_localities_list.png)
 
-## 3. Gestion des Types d'Article (Catégories)
+Pour ajouter une zone, cliquez sur **Ajouter** et donnez-lui un nom.
 
-Organisez votre catalogue produit en familles (ex: "Moto", "Appareil Électroménager").
+![Ajout Localité](../images/manager/17b_locality_add.png)
 
-### a. Créer un Type
-1.  Allez dans **Configuration > Type d'Article**.
-2.  Cliquez sur **Ajouter** (+).
-3.  Saisissez les informations :
-    *   **Nom** (Requis) : Libellé de la catégorie.
-    *   **Code** (Requis) : Abréviation unique (ex: "MOTO").
-    *   **Description** : Détails optionnels.
-4.  Validez par **Enregistrer**.
+### b. Les Catégories (Articles & Dépenses)
+Pour avoir des rapports propres, classez vos données.
 
-![Création Type Article](../images/manager/17d_article_type_add.png)
-
-### b. Suivre les Catégories
-Le tableau présente :
-*   **ID** : Identifiant système.
-*   **Nom** & **Code**.
-*   **Description**.
-*   **Actions** : Modifier (Crayon) ou Supprimer (Corbeille).
+**Types d'Article** : Créez des familles (Motos, TV, Téléphones...).
 
 ![Liste Types Article](../images/manager/17c_article_types_list.png)
 
-## 4. Gestion des Types de Dépense
+Pour créer une famille, cliquez sur **Ajouter**, donnez un nom et un code (ex: MOTO).
 
-Catégorisez vos sorties de caisse pour une comptabilité précise.
+![Création Type Article](../images/manager/17d_article_type_add.png)
 
-### a. Définir une Catégorie de Dépense
-1.  Accédez à **Configuration > Types de Dépense**.
-2.  Cliquez sur **Nouveau Type**.
-3.  Indiquez le **Nom** de la charge (ex: "Transport", "Loyer", "Électricité").
-4.  Sauvegardez.
-
-![Ajout Type Dépense](../images/manager/17f_expense_types_add.png)
-
-### b. Liste des Charges
-Visualisez les catégories disponibles :
-*   **Nom** : Intitulé de la dépense.
-*   **Actions** : Modifier, Supprimer.
+**Types de Dépense** : Créez vos postes de charges (Loyer, Carburant, Salaires...).
 
 ![Liste Types Dépense](../images/manager/17e_expense_types_list.png)
 
-## 5. Paramètres Globaux
+Pour ajouter un type de dépense, cliquez sur **Nouveau Type**.
 
-Ce menu permet de modifier des constantes clés de l'application (ex: Taux de change, Activation de fonctionnalités).
+![Ajout Type Dépense](../images/manager/17f_expense_types_add.png)
 
-### a. Ajouter/Modifier un Paramètre
-1.  Menu **Configuration > Paramètres**.
-2.  Cliquez sur **Ajouter un paramètre** ou sur l'icône **Éditer**.
-3.  Configuration :
-    *   **Clé** : Identifiant technique (ex: `APP_CURRENCY`).
-    *   **Valeur Booléenne** : Cochez pour un choix OUI/NON.
-    *   **Valeur** : La donnée (ex: "FCFA" ou "Select OUI").
-    *   **Description** : Explication de l'impact de ce paramètre.
+### c. Les Paramètres Globaux (Attention !)
+Ici, on touche au cœur du système (Taux de change, Options cachées...).
+
+![Liste Paramètres](../images/manager/17g_parameters_list.png)
+
+Pour modifier une valeur, cliquez sur le crayon.
+**Conseil d'ami** : Ne modifiez rien ici si vous n'êtes pas sûr à 100% de ce que vous faites. Une mauvaise manipulation peut changer le comportement de toute l'application.
 
 ![Formulaire Paramètre](../images/manager/17h_parameter_edit.png)
 
-*Attention : Ne modifiez ces valeurs que si vous maîtrisez leur impact.*
-
-### b. Consulter la liste
-La table des paramètres affiche :
-*   **Clé** : Le nom technique du paramètre.
-*   **Valeur** : La configuration actuelle.
-*   **Description** : Information sur l'usage.
-*   **Action** : Modifier (Crayon) ou Supprimer (Corbeille).
-
-![Liste Paramètres](../images/manager/17g_parameters_list.png)
+Vous avez maintenant toutes les clés pour administrer l'application comme un pro.

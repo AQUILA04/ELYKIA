@@ -4,31 +4,33 @@ _Ce document est une compilation de la documentation pour impression._
 
 \newpage
 
-# Guide Magasinier
+# Bienvenue dans votre Espace Magasinier
 
-Bienvenue dans le guide utilisateur dédié au profil **Magasinier**.
-Votre rôle est d'assurer la fiabilité du stock physique, de gérer les réceptions de marchandises et de servir les commerciaux.
+Bonjour et bienvenue dans le guide dédié au **Magasinier**.
 
-## Dashboard (Tableau de Bord)
-Dès votre connexion, le tableau de bord vous présente une vue synthétique de l'activité.
+Votre rôle est essentiel : vous êtes le gardien du temple. C'est vous qui assurez que le stock physique correspond à ce qui est dans l'ordinateur, qui réceptionnez les marchandises et qui servez les commerciaux pour qu'ils puissent vendre.
 
-### 1. Indicateurs Clés
-Les cartes en haut de page vous informent sur la base de données actuelle :
-*   **Total Articles** : Nombre de références produits gérées.
-*   (Autres indicateurs : Clients, Comptes, Localités).
+Ce guide est là pour vous aider à maîtriser vos outils au quotidien.
 
-### 2. Alertes Stock (Critique)
-En tant que magasinier, cette section est votre priorité quotidienne. Elle affiche les produits nécessitant un réapprovisionnement immédiat.
+## Votre Tableau de Bord (Dashboard)
 
-*   **Liste des articles en rupture de stock** :
-    *   Produits dont la quantité est strictement à **0**.
-    *   *Action* : Priorité absolue pour approvisionnement.
-*   **Article en rupture imminente** :
-    *   Produits dont le stock a atteint le seuil d'alerte (Point de commande).
-    *   Le code couleur vous aide à prioriser (Rouge = Critique, Orange = Faible).
+Dès que vous vous connectez, vous arrivez sur votre **Tableau de Bord**. C'est votre tour de contrôle. Il vous dit tout de suite s'il y a le feu ou si tout va bien.
 
 ![Dashboard Magasinier](../images/storekeeper_dashboard.png)
 
+### 1. La Vue d'Ensemble
+Les cartes en haut vous donnent les grands chiffres :
+*   **Total Articles** : Combien de références différentes gérons-nous ?
+*   D'autres indicateurs (Clients, etc.) pour info.
+
+### 2. Les Alertes Stock (Votre priorité !)
+C'est la partie la plus importante pour vous. Elle vous crie ce qu'il faut faire :
+
+*   **Rupture de stock (Rouge)** : Ces produits sont à 0. Il n'y en a plus ! Il faut réapprovisionner d'urgence.
+*   **Rupture imminente (Orange)** : Attention, le stock est bas. Préparez une commande fournisseur.
+
+Vous avez vérifié les alertes ? Passons à la gestion de votre catalogue.
+
 
 \newpage
 
@@ -36,49 +38,49 @@ En tant que magasinier, cette section est votre priorité quotidienne. Elle affi
 
 ---
 
-# Gestion des Articles
+# Gérer le Catalogue (Articles)
 
-Le menu **Articles** permet au magasinier de gérer le catalogue des produits disponibles à la vente.
+Le menu **Articles** est votre bible. C'est ici que sont listés tous les produits que l'entreprise vend.
 
-## 1. Liste des Articles
+---
+
+## 1. Consulter le Catalogue
+
+L'écran principal vous montre tout ce qui existe en rayon.
+Pour chaque produit, vous voyez son Nom, sa Marque, son modèle, et son Type.
+
+*Astuce : Utilisez la barre de recherche en haut pour trouver un produit rapidement par son nom.*
+
 ![Liste des articles](../images/storekeeper_articles_list.png)
 
-L'écran principal affiche la liste de tous les produits enregistrés :
-*   **#** : Index.
-*   **Nom** : Désignation commerciale.
-*   **Marque** & **Modèle**.
-*   **Type** : Catégorie du produit (ex: MOTO, ELECTRO).
-*   **Quantité** : Stock système actuel.
-*   **Prix** : Prix de vente standard.
+---
 
-### Recherche
-Utilisez la barre de recherche en haut pour filtrer rapidement par nom ou référence.
+## 2. Ajouter un Nouveau Produit
 
-## 2. Ajouter un Article
-![Formulaire ajout article](../images/storekeeper_article_add.png)
-
-Pour référencer un nouveau produit :
+Vous avez reçu une nouvelle référence ? Il faut la créer dans le système.
 
 1.  Cliquez sur le bouton **Ajouter**.
-2.  Remplissez le formulaire de création :
-    *   **Nom** (Requis) : Le nom du produit.
-    *   **Marque** & **Modèle** (Requis) : Informations fabricant.
-    *   **Type** : Sélectionnez une catégorie existante.
-    *   **Prix d'achat** : Coût d'acquisition fournisseur.
-    *   **Prix de vente** : Prix public standard.
-    *   **Prix de vente à crédit** : Prix majoré pour les ventes à crédit.
-        > [!WARNING]
-        > Règle de prix obligatoire : **Prix d'achat <= Prix de vente <= Prix de vente à crédit**.
-    *   **Point de commande** : Niveau de stock minimum avant alerte (Stock Critique).
-    *   **Niveau de stock optimal** : Quantité idéale à maintenir.
-    *   **Saisonnier ?** : Oui/Non.
-3.  Cliquez sur **Valider** pour enregistrer.
+2.  Remplissez la fiche d'identité du produit :
+    *   **C'est quoi ?** (Nom, Marque, Modèle).
+    *   **Quel type ?** (Moto, TV...).
+    *   **Combien ça coûte ?** (Prix d'achat et Prix de vente).
+        > **Règle d'or** : Le Prix de vente doit toujours être supérieur au Prix d'achat !
+    *   **Quand s'inquiéter ?** (Point de commande) : C'est le seuil en dessous duquel l'alerte "Stock bas" se déclenchera.
+3.  Cliquez sur **Valider**.
 
-## 3. Modifier ou Supprimer
-Dans la colonne **Actions** du tableau :
-*   **Modifier (Crayon rouge)** : Ouvre le formulaire pour corriger des informations.
-*   **Détails (Œil vert)** : Affiche la fiche complète de l'article.
-*   **Supprimer (Corbeille)** : Retire l'article du catalogue (Action irréversible).
+![Formulaire ajout article](../images/storekeeper_article_add.png)
+
+---
+
+## 3. Mettre à jour un produit
+
+Un prix a changé ? Une erreur de saisie ?
+Dans la liste, utilisez les boutons d'action à droite :
+*   Le **Crayon** pour modifier.
+*   L'**Œil** pour voir tous les détails.
+*   La **Corbeille** pour supprimer (Attention, ne supprimez pas un article qui a déjà du stock ou des ventes !).
+
+Votre catalogue est à jour. Voyons maintenant comment faire entrer et sortir la marchandise.
 
 
 \newpage
@@ -87,72 +89,64 @@ Dans la colonne **Actions** du tableau :
 
 ---
 
-# Inventaires & Approvisionnements
+# Inventaires et Approvisionnements
 
-Ce module est le cœur de l'activité logistique. Il permet de gérer les entrées de stock et d'effectuer les contrôles d'inventaire périodiques.
+C'est le cœur de votre métier : s'assurer que le stock est juste et bien rempli.
 
-> [!NOTE]
-> Certaines fonctionnalités de contrôle (Valorisation, Clôture) sont réservées au **Gestionnaire** et ne sont pas visibles pour le Magasinier.
+---
 
-## 1. Approvisionnement (Entrées de Stock)
-![Formulaire entrées stock](../images/storekeeper_supply_entry.png)
+## 1. Faire entrer de la marchandise (Approvisionnement)
 
-Cette fonction permet d'ajouter des produits au stock suite à une réception fournisseur.
+Le camion du fournisseur est là ? Il faut enregistrer ce qui rentre.
 
 1.  Cliquez sur le bouton **+ Entrées**.
-2.  Dans le formulaire **Entrée de stock** :
-    *   **Articles à approvisionner** : Cliquez pour ouvrir la liste déroulante et cochez tous les produits reçus.
-    *   Pour chaque article sélectionné, saisissez la **Quantité** physique reçue.
+2.  Le formulaire s'ouvre :
+    *   **Quoi ?** Sélectionnez les articles reçus dans la liste.
+    *   **Combien ?** Tapez la quantité exacte que vous avez comptée au déchargement.
 3.  Cliquez sur **Valider l'entrée** (Icône bleue).
-    *   *Le stock est immédiatement mis à jour.*
 
-## 2. Cycle d'Inventaire (Magasinier)
-![Liste des inventaires](../images/storekeeper_inventory_list.png)
+Le stock augmente instantanément.
 
-Le rôle du magasinier est de compter et de saisir les quantités réelles.
+![Formulaire entrées stock](../images/storekeeper_supply_entry.png)
 
-### a. Lancer un inventaire
-Si aucun inventaire n'est en cours, cliquez sur le bouton **Créer un inventaire**.
-*   Cela crée un "point de contrôle" figeant l'image du stock système à cet instant.
+---
 
-### b. Comptage Physique
+## 2. Faire un Inventaire (L'Heure de Vérité)
+
+Régulièrement, il faut vérifier que le stock de l'ordinateur correspond au stock réel de l'entrepôt.
+
+### a. Lancer l'opération
+Cliquez sur **Créer un inventaire**.
+Le système prend une "photo" du stock théorique à cet instant précis.
+
+### b. Compter sur le terrain
+1.  **Imprimer** : Cliquez sur **Télécharger PDF**. C'est votre feuille de comptage.
+2.  **Compter** : Allez dans l'entrepôt avec votre feuille et comptez physiquement chaque article.
+    *   *Conseil de pro : Ne regardez pas les quantités de l'ordinateur avant de compter, pour ne pas être influencé.*
+
+### c. Saisir les résultats
+Revenez devant l'écran :
+1.  Cliquez sur **Saisir quantités physiques**.
+2.  Remplissez la colonne **Quantité Physique** avec vos chiffres.
+    *   Le système vous montre tout de suite les écarts en couleur (Rouge = Manquant, Vert = Surplus).
+3.  Cliquez sur **Soumettre les quantités**.
+
 ![Saisie des quantités physiques](../images/storekeeper_inventory_count.png)
 
-Une fois l'inventaire créé (Statut: *IN_PROGRESS*) :
-
-1.  **Imprimer la fiche** : Cliquez sur **Télécharger PDF**.
-    *   Ce document liste tous les articles pour faciliter le comptage manuel dans l'entrepôt.
-2.  **Saisir les résultats** : Cliquez sur **Saisir quantités physiques**.
-    *   Un tableau s'ouvre affichant la *Quantité Système*.
-    *   Remplissez la colonne **Quantité Physique** avec vos comptages.
-    *   **Code Couleur** :
-        *   <span style="color:red">Rouge</span> : Manquant (Physique < Système).
-        *   <span style="color:green">Vert</span> : Surplus (Physique > Système).
-        *   Gris : Ok.
-3.  Cliquez sur **Soumettre les quantités** pour sauvegarder votre saisie.
-
 ---
 
-## 3. Contrôle & Clôture (Réservé au Gestionnaire)
+## 3. Clôturer (Pour le Gestionnaire)
+
+Cette partie est souvent réservée au Gestionnaire, mais il est bon que vous sachiez ce qui se passe.
+
+Une fois votre comptage terminé, le Gestionnaire va :
+1.  Analyser les écarts (Pourquoi il manque 2 laits ?).
+2.  **Réconcilier** : Ajuster le stock informatique pour qu'il colle à votre comptage réel.
+3.  **Clôturer** : Valider l'inventaire. C'est fini pour ce mois-ci !
+
 ![Détails réconciliation inventaire](../images/manager_inventory_reconcile.png)
 
-Ces actions apparaissent uniquement pour les utilisateurs ayant des droits de validation financière.
-
-### a. Valorisation du Stock
-En haut de page, trois cartes résument la valeur financière du stock :
-*   **Prix Total Achat** : Valeur de l'actif stock.
-*   **Prix Total Vente** : Chiffre d'affaires potentiel.
-*   **Total Écart** : Perte ou Gain financier détecté lors de l'inventaire.
-
-### b. Réconciliation et Clôture
-Une fois le comptage du magasinier terminé :
-1.  **Réconcilier les écarts** : Permet d'ajuster le stock système pour qu'il corresponde à la réalité physique saisie.
-2.  **Clôturer l'inventaire** : Valide définitivement la période. L'inventaire passe en statut terminé et ne peut plus être modifié.
-
-### c. Reset Stock (Maintenance)
-Le bouton **Reset Stock** (Cercle fléché) permet de remettre brutalement les stocks à zéro.
-> [!CAUTION]
-> Cette action est destructrice et irréversible. À utiliser uniquement en cas de redémarrage complet ou d'erreur système majeure.
+Votre stock central est carré. Voyons maintenant comment servir les commerciaux.
 
 
 \newpage
@@ -161,22 +155,34 @@ Le bouton **Reset Stock** (Cercle fléché) permet de remettre brutalement les s
 
 ---
 
-# Gestion Stock Tontine
+# Le Stock Tontine
 
-Le module **Stock Tontine** fonctionne exactement sur le même principe que le Stock Commercial, mais il concerne spécifiquement les produits destinés aux contrats de Tontine.
+Le principe est **exactement le même** que pour le Stock Commercial, mais attention : ce sont des stocks séparés !
 
-## Fonctionnalités
+Ce menu concerne uniquement les marchandises destinées aux contrats de Tontine (livraisons de fin d'année).
 
-### 1. Demandes Sortie
+---
+
+## 1. Livrer pour la Tontine
+
+Allez dans **Stock Tontine > Demandes Sortie**.
+
+*   Comme pour le stock commercial, vous ne voyez que les demandes **Validées** par le manager.
+*   Préparez les lots tontine.
+*   Cliquez sur le **Camion** pour livrer au commercial qui ira distribuer aux clients.
+
 ![Demandes sortie Tontine](../images/storekeeper_tontine_requests.png)
 
-*   Permet de livrer les articles Tontine aux commerciaux pour qu'ils les distribuent aux clients finaux.
-*   **Visibilité** : Le magasinier ne voit et ne traite que les demandes **Validé** par un gestionnaire. Les demandes non validées sont invisibles.
-*   Action : Cliquez sur l'icône **Livrer** (Camion) pour déstocker.
+---
 
-### 2. Retours
-*   Permet de réintégrer au magasin central des articles Tontine non distribués ou retournés par un commercial.
-*   Nécessite une création de retour puis une validation pour mise à jour du stock.
+## 2. Retours Tontine
+
+Si une livraison tontine échoue et que la marchandise revient :
+1.  Allez dans **Stock Tontine > Retours**.
+2.  Vérifiez le matériel.
+3.  Validez pour le remettre dans votre stock Tontine central.
+
+Voilà, vous maîtrisez maintenant tous les mouvements de stock de l'entrepôt !
 
 
 \newpage
@@ -185,51 +191,54 @@ Le module **Stock Tontine** fonctionne exactement sur le même principe que le S
 
 ---
 
-# Gestion Stock Commercial
+# Servir les Commerciaux (Stock Commercial)
 
-Ce menu permet de gérer les flux de marchandises entre le magasin central et les commerciaux (Agents).
+Les commerciaux ont besoin de marchandises pour aller vendre. C'est vous qui les approvisionnez via ce menu.
 
-## 1. Demandes Sortie (Livraisons)
+---
+
+## 1. Livrer un Commercial (Demandes Sortie)
+
+Quand un commercial (ou le manager) fait une demande de matériel, c'est ici qu'elle arrive.
+
+### La Règle d'Or de la Visibilité
+> **Important** : Vous ne voyez dans votre liste **QUE** les demandes qui ont été **VALIDÉES** par un Manager.
+> Si un commercial vous dit "J'ai fait une demande" mais que vous ne la voyez pas, c'est qu'elle est encore en attente de validation chez le patron.
+
+### Comment livrer ?
+1.  Allez dans **Stock Commercial > Demandes Sortie**.
+2.  Repérez la demande (elle a le statut vert **Validé**).
+3.  Préparez physiquement la marchandise.
+4.  Quand vous remettez le matériel au commercial, cliquez sur le bouton **Livrer** (le petit camion bleu).
+
+Hop ! La marchandise sort de votre stock et passe sous la responsabilité du commercial.
+
 ![Liste des demandes de sortie](../images/storekeeper_stock_requests.png)
 
-C'est ici que vous traitez les demandes de matériel validées par l'administration.
+### Créer une demande vous-même
+Parfois, c'est vous qui initiez la demande pour le commercial (s'il est devant vous).
+1.  Cliquez sur **Nouvelle Demande**.
+2.  Choisissez le commercial et les articles.
+3.  Envoyez. (Elle devra quand même être validée par un manager avant que vous puissiez la livrer !).
 
-### Processus de Livraison
-> [!IMPORTANT]
-> **Règle de Visibilité** : En tant que magasinier, vous ne voyez apparaître dans votre liste **QUE** les demandes ayant déjà été validées par un Gestionnaire. Une demande en attente (`Créé`) est un brouillon invisible pour vous.
-
-1.  Allez dans **Stock Commercial > Demandes Sortie**.
-2.  Vous ne verrez que les demandes avec le statut <span style="background-color:#d4edda; color:#155724; padding:2px 5px; border-radius:3px;">Validé</span>.
-    *   Cela confirme que le manager a donné son feu vert.
-3.  Cliquez sur le bouton **Livrer** (Icône camion bleu foncé <i class="material-icons" style="font-size:1em; vertical-align:middle;">local_shipping</i>).
-4.  La marchandise est déduite de votre stock principal et transférée sur le stock du commercial.
-
-### Créer une demande (Cas exceptionnel)
 ![Formulaire création demande](../images/storekeeper_request_create.png)
 
-Si nécessaire, vous pouvez initier une demande pour un commercial :
-1.  Cliquez sur **Nouvelle Demande**.
-2.  **Commercial** : Sélectionnez le bénéficiaire.
-3.  **Articles** : Ajoutez les produits et quantités.
-4.  Cliquez sur **Envoyer**. La demande devra ensuite être validée par un manager.
+---
 
-## 2. Retours Stock
+## 2. Réceptionner les Retours
+
+Parfois, les commerciaux ramènent du matériel (invendus, fin de journée). Il faut le remettre en stock.
+
+1.  Allez dans **Stock Commercial > Retours**.
+2.  Vous voyez la liste des retours déclarés.
+3.  Vérifiez physiquement le matériel rapporté.
+4.  Si tout est là, cliquez sur le bouton **Valider** (la coche verte).
+
+Les articles réintègrent immédiatement votre stock central.
+
 ![Liste des retours](../images/storekeeper_stock_returns.png)
 
-Gère le matériel rapporté par les commerciaux au magasin (Ex: invendus, produits défectueux).
-
-### Enregistrer un Retour
-1.  Allez dans **Stock Commercial > Retours**.
-2.  Cliquez sur **Nouveau Retour**.
-3.  Remplissez le formulaire :
-    *   **Commercial** : Sélectionnez l'agent qui rapporte le matériel.
-    *   **Articles à retourner** : Sélectionnez les produits. Le système vérifie que l'agent possède bien ces articles en stock.
-4.  Validez le retour.
-
-### Réceptionner (Validation)
-Une fois le retour créé (Statut *Créé*), vous devez confirmer la réception physique :
-1.  Dans la liste, cliquez sur le bouton de validation (Coche verte <i class="material-icons" style="font-size:1em; vertical-align:middle;">check_circle</i>).
-2.  Les articles réintègrent votre stock principal.
+Vous savez gérer les flux avec les commerciaux. C'est la même chose pour la Tontine.
 
 
 \newpage

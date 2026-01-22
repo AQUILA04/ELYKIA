@@ -1,79 +1,69 @@
-# Gestion des Tontines
+# La Gestion des Tontines
 
-Le module Tontine permet de gérer les programmes d'épargne produits pour vos clients. Il offre une vue complète sur les cotisations et les livraisons.
+La Tontine est un produit très populaire. C'est un système d'épargne programmée qui permet à vos clients de cotiser petit à petit pour s'offrir des produits en fin d'année.
 
-## 1. Tableau de Bord Tontine
+Votre rôle est d'inscrire les membres, de collecter leurs mises régulières, et d'assurer la livraison finale. Tout se passe dans le menu **Tontines**.
+
+---
+
+## 1. Piloter votre Tontine
+
+Le **Tableau de Bord Tontine** vous donne la température de votre session en cours.
+
+Vous pouvez voir immédiatement :
+*   Combien de **Membres Actifs** cotisent actuellement.
+*   Le **Montant Total** que vous avez déjà collecté.
+*   Qui a fini de payer et attend sa livraison (**En Attente de Livraison**).
+
+C'est aussi d'ici que vous pouvez basculer pour voir les archives des années précédentes si besoin.
+
 ![Dashboard tontine](../images/commercial_tontine_list.png)
 
-### a. En-tête et Sessions
-*   **Sélecteur de Session** : Permet de basculer entre la session en cours et les sessions passées (Historique).
-*   **Comparer les Sessions** : Outil pour analyser la performance par rapport aux cycles précédents.
-*   **Paramètres de Session** : Configuration du cycle actuel.
+Vous avez la vue d'ensemble. Voyons comment faire grandir ce groupe.
 
-### b. Indicateurs Clés (KPIs)
-Des cartes en haut de page résument la santé de la tontine :
-*   **Membres Actifs** : Nombre de souscripteurs.
-*   **Montant Total Collecté** : Somme des cotisations perçues.
-*   **Revenu Total** : Part revenant à la société.
-*   **En Attente de Livraison** : Nombre de membres ayant terminé leur cycle et attendant leur lot.
+---
 
-### c. Actions Principales
-Trois boutons d'action sont disponibles en haut à droite :
-1.  **Ajouter un Membre** : Inscription individuelle classique.
-2.  **Ajout Multiple** : Inscription en masse (utile pour initialiser un groupe).
-3.  **Comparer** : Accès aux statistiques comparatives.
+## 2. Gérer vos Membres
 
-## 2. Gestion des Membres
+### Inscrire un nouveau membre
 
-### a. Liste et Filtres
-Le tableau central liste tous les souscripteurs. Vous pouvez filtrer cette liste via la barre d'outils :
-*   **Recherche** : Par nom de client.
-*   **Statut de Livraison** : Filtrer pour voir uniquement les "Validés" ou "En attente".
-*   **Commercial** : Filtrer par agent responsable.
-
-### b. Créer une Souscription (Ajout Membre)
-![Formulaire ajout membre tontine](../images/commercial_tontine_add.png)
+Un client veut rejoindre la tontine ?
 1.  Cliquez sur **Ajouter un Membre**.
-2.  **Client** : Sélectionnez le souscripteur.
-3.  **Fréquence** : Journalier, Hebdomadaire, etc.
-4.  **Montant de la mise** : Somme à verser périodiquement.
-5.  **Nombre de Mises** : Durée du cycle (ex: 30 mises).
-6.  Cliquez sur **Enregistrer**.
+2.  Choisissez le client.
+3.  Définissez les règles du jeu avec lui :
+    *   **Combien ?** (Montant de la mise).
+    *   **Tous les quand ?** (Fréquence : tous les jours, toutes les semaines...).
+    *   **Pendant combien de temps ?** (Nombre de mises).
+4.  Enregistrez. Le voilà inscrit !
 
-### c. Ajout Multiple (Bulk)
-![Ajout multiple membres](../images/commercial_tontine_bulk_add.png)
-Pour aller plus vite :
-1.  Cliquez sur **Ajout Multiple**.
-2.  Définissez des paramètres globaux (Mise par défaut, Fréquence).
-3.  Sélectionnez une liste de clients à inscrire en une seule fois.
-4.  Ajustez si nécessaire pour chaque ligne avant de valider.
+*Astuce : Si vous démarrez un nouveau groupe, utilisez le bouton **Ajout Multiple** pour inscrire plein de monde d'un coup avec les mêmes paramètres.*
 
-4.  Ajustez si nécessaire pour chaque ligne avant de valider.
+![Formulaire ajout membre tontine](../images/commercial_tontine_add.png)
 
-### d. Suivi Détaillé (Fiche Membre)
-En cliquant sur un membre dans la liste, vous accédez à sa fiche détaillée. Elle est divisée en plusieurs zones :
+### Suivre les cotisations
 
-1.  **Résumé Financier** (Carte du haut) :
-    *   *Total Contribué* : Ce que le client a versé à ce jour.
-    *   *Solde Disponible* : Le montant utilisable pour la livraison.
-    *   *Part Société* : La retenue pour frais de gestion.
-    *   *Statut* : Indique si le cycle est en cours ou terminé.
-2.  **Progression** :
-    *   Une grille visuelle montre les mois validés (Vert) et le mois en cours (Barre de progression).
-    *   Cela permet de voir instantanément si le membre est à jour de ses cotisations.
-3.  **Historique des Collectes** :
-    *   Liste de tous les versements effectués avec la date et le nom du percepteur.
-4.  **Actions Rapides** (Haut de page) :
-    *   **Enregistrer une Collecte** : Pour ajouter manuellement un paiement hors tournée.
+Pour savoir où en est un client, cliquez sur son nom dans la liste. Sa fiche détaillée est très visuelle :
+*   Une **grille de progression** vous montre les cases vertes (payées) et grises (restantes).
+*   Vous avez l'historique précis de chaque versement avec la date.
 
-## 3. Livraison Tontine (Fin de Cycle)
-Lorsque la session est clôturée et que le membre est éligible (statut *En attente*) :
+Si un client vous donne de l'argent hors de votre tournée habituelle, vous pouvez utiliser le bouton **Enregistrer une Collecte** directement depuis cette fiche.
+
+Vos membres cotisent régulièrement, c'est parfait. Arrive enfin le moment tant attendu : la livraison.
+
+---
+
+## 3. La Livraison (La récompense !)
+
+C'est le moment préféré des clients : la fin du cycle. Quand un membre a payé toutes ses mises, il est temps de transformer son épargne en produits.
+
+**Comment faire ?**
+1.  Allez sur la fiche du membre.
+2.  Si tout est payé, un bouton **Préparer la Livraison** apparaît. Cliquez dessus.
+3.  Avec le client, choisissez les articles qu'il veut pour le montant de son épargne.
+4.  Validez la demande.
+
+La demande part alors en validation. Une fois approuvée par le gestionnaire, vous pourrez récupérer les produits dans votre **Stock Tontine** et les remettre au client heureux.
 
 ![Détails membre tontine](../images/commercial_tontine_member_details.png)
 
-1.  Allez sur la fiche du membre (**Détails**).
-2.  Cliquez sur le bouton **Préparer la Livraison**.
-    *   *Note : Ce bouton n'apparaît que si la session est terminée.*
-3.  Une fenêtre s'ouvre : sélectionnez les **Articles** correspondant au montant cotisé.
-4.  Validez.
-5.  La demande passe en statut *En attente de validation*. Le gestionnaire validera la demande, puis le magasinier effectuera la sortie de stock.
+Voilà, le cycle de la tontine est bouclé !

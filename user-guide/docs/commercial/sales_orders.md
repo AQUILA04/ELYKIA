@@ -1,60 +1,60 @@
-# Ventes & Commandes
+# Ventes et Commandes
 
-Ce module vous permet de réaliser les actes de vente et de passer des commandes pour vos clients.
+C'est ici que tout se concrétise ! Nous allons voir comment enregistrer vos contrats de vente et gérer les commandes de vos clients.
 
-## 1. Réaliser une Vente (« Ventes »)
-Ce menu gère principalement les **Ventes à Crédit** (Contrats).
+Il y a une distinction importante à faire :
+*   Une **Vente** est un contrat ferme : le client part avec la marchandise, et la dette est créée.
+*   Une **Commande** est une réservation : le client veut le produit, mais la transaction n'est pas encore finalisée.
 
-### a. Liste des Ventes
-![Liste des ventes](../images/commercial_sales_list.png)
-Vous y retrouvez l'historique de vos contrats :
-*   **Référence** du contrat.
-*   **Client** bénéficiaire.
-*   **Montant Total**.
-*   **Reste à Payer**.
-*   **Statut** (En cours, Soldé, En retard).
+---
 
-### b. Nouvelle Vente (Contrat)
+## 1. Réaliser une Vente (Le Contrat)
+
+C'est l'opération que vous ferez le plus souvent. Allez dans le menu **Ventes**.
+
+Vous arrivez sur la liste de tous vos contrats passés. Vous pouvez voir rapidement qui a payé (**Soldé**) et qui est encore en train de rembourser (**En cours**).
+
+### Comment créer un nouveau contrat ?
+
+1.  Cliquez sur le bouton **Ajouter**.
+2.  Le formulaire de vente s'ouvre.
+    *   **Type de Vente** : Choisissez "Crédit" (c'est le plus courant) ou "Comptant".
+    *   **Qui vend ?** Sélectionnez votre nom dans la liste des commerciaux.
+    *   **A qui ?** Cherchez votre client.
+    *   **Quoi ?** Ajoutez les articles. Le système vous montrera le prix correspondant au mode de vente choisi.
+        *   *Attention : Vous ne pouvez vendre que ce que vous avez réellement dans votre stock personnel !*
+    *   **L'Avance** : Si le client verse un premier acompte tout de suite, notez-le ici.
+
+3.  Tout est bon ? Cliquez sur **Valider**.
+
+Le système s'occupe du reste : il génère le contrat, calcule l'échéancier de paiement pour le client, et retire les produits de votre stock.
+
 ![Formulaire nouvelle vente](../images/commercial_sale_add.png)
-1.  Cliquez sur **Ajouter**.
-2.  **Type de Vente** : Sélectionnez "Crédit" ou "Comptant" (Par défaut Crédit).
-3.  **Commercial** : Sélectionnez le commercial responsable (Obligatoire pour une vente à Crédit).
-4.  **Client** : Recherchez le client par nom.
-5.  **Articles** :
-    *   Sélectionnez les produits dans la liste.
-    *   Le prix affiché dépend du type de vente (Prix Crédit vs Prix Comptant).
-    *   *Note : Le système vérifie que vous avez ces articles dans votre Stock Personnel.*
-6.  **Avance** : Saisissez le montant versé immédiatement par le client (Optionnel).
-7.  Cliquez sur **Valider**.
-    *   Cela génère le contrat et édite l'échéancier de paiement.
 
-## 2. Commandes (« Commandes »)
-Utilisez ce menu pour enregistrer une intention d'achat ou une réservation.
+Félicitations, votre vente est enregistrée !
 
-### a. Tableau de Bord Commandes
-![Dashboard commandes](../images/commercial_orders_dashboard.png)
-L'interface vous présente :
-*   **KPIs** : Indicateurs de performance en haut de page.
-*   **Onglets Statuts** : Naviguez entre "En attente", "Validé", "Annulé" pour filtrer vos commandes.
-*   **Actions** : Boutonne **+ Créer une Commande** et accès aux rapports.
+---
 
-### b. Créer une Commande
-![Formulaire commande](../images/commercial_order_create.png)
+## 2. Gérer les Commandes
+
+Parfois, un client veut réserver un produit que vous n'avez pas encore, ou il réfléchit. Utilisez le menu **Commandes** pour cela.
+
+### Prendre une commande
+
 1.  Cliquez sur **Créer une Commande**.
-2.  **Client** :
-    *   Recherchez votre client par nom ou code.
-    *   Si sélectionné, il apparaît sous forme de "puce" (Chip).
-3.  **Articles** :
-    *   Recherchez un article (Nom/Code).
-    *   Saisissez la **Quantité**.
-    *   Cliquez sur **Ajouter un article**. Répétez pour chaque produit.
-5.  Cliquez sur **Valider**.
-    *   Un message de succès **"Commande créée avec succès"** apparaît.
-    *   Vous êtes automatiquement redirigé vers la liste des commandes où votre nouvelle commande s'affiche avec le statut *Créé*.
+2.  C'est très simple : trouvez le client, ajoutez les articles qu'il souhaite, et validez.
+3.  La commande est enregistrée avec le statut *Créé*. Elle n'impacte pas encore votre stock ni le compte du client.
 
-### c. Traitement (Transformer en Vente)
-Une fois la commande créée, vous pouvez la visualiser en détail.
-1.  Cliquez sur une commande pour voir les **Détails** (Infos, Articles, Historique).
-2.  **Transformer en Vente** :
-    *   Utilisez le menu d'actions pour convertir la commande en contrat de vente effectif.
-    *   Un message de confirmation vous avertira que cette action est définitive et génère un crédit.
+![Formulaire commande](../images/commercial_order_create.png)
+
+### Transformer l'essai
+
+Le client est prêt à conclure ? Parfait ! Vous n'avez pas besoin de tout ressaisir.
+
+1.  Ouvrez la commande en question.
+2.  Dans le menu d'actions, choisissez **Transformer en Vente**.
+3.  Confirmez.
+
+La commande devient instantanément un contrat de vente officiel. C'est un gain de temps précieux sur le terrain.
+
+Vous savez maintenant gérer tout le cycle de vente. Passons à un produit spécifique : la Tontine.
