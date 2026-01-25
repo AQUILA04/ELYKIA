@@ -75,7 +75,7 @@ public class DeploymentLicenceService {
             List<Licence> licences = new ArrayList<>();
             if (activeProfile.contains("dev") || activeProfile.contains("local") || activeProfile.contains("francis")  || activeProfile.contains("jeff")) { //|| activeProfile.contains("francis")
                 licences = licenceService.initializeLicences(1, "IL", "425170760269839727");
-            } else if (activeProfile.contains("recette") || activeProfile.contains("preprod") || activeProfile.contains("test")
+            } else if (activeProfile.contains("recette") || activeProfile.contains("preprod") || activeProfile.contains("test" ) || activeProfile.contains("formation" )
                     || activeProfile.contains("uat") || activeProfile.contains("poc")) {
                 licences = licenceService.initializeLicences(1, "6M", "425170760269839727");
             } else {
