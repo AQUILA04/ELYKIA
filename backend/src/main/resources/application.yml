@@ -6,7 +6,7 @@ spring:
 
   # Configuration Flyway pour la gestion des migrations de base de données
   flyway:
-    enabled: false  # Désactivé temporairement pour éviter les problèmes de migration
+    enabled: true  # Désactivé temporairement pour éviter les problèmes de migration
     baseline-on-migrate: true
     baseline-version: 0
     locations: classpath:db/migration
