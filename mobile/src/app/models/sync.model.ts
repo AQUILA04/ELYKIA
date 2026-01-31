@@ -16,7 +16,7 @@ export interface SyncError {
   entityType: 'locality' | 'client' | 'distribution' | 'recovery' | 'account' | 'order' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery';
   entityId: string;
   entityDisplayName: string;
-  operation: 'CREATE' | 'UPDATE' | 'DELETE' | 'UPDATE_LOCATION' | 'UPDATE_PHOTO' | 'SKIP';
+  operation: 'CREATE' | 'UPDATE' | 'DELETE' | 'UPDATE_LOCATION' | 'UPDATE_PHOTO' | 'UPDATE_PHOTO_URL' | 'SKIP';
   errorMessage: string;
   errorCode?: string;
   syncDate: Date;
@@ -291,4 +291,3 @@ export interface TontineDeliverySyncResponse {
   status: string;
   requestDate: string;
 }
-

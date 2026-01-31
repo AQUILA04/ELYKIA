@@ -30,13 +30,25 @@ export class SyncErrorService {
     const errorCode = this.extractErrorCode(error);
     const today = new Date();
 
+    console.log('--- logSyncError START ---');
+    console.log('entityType:', entityType);
+    console.log('entityId:', entityId);
+    console.log('operation:', operation);
+    console.log('error object:', error);
+    console.log('extracted errorMessage:', errorMessage);
+    console.log('extracted errorCode:', errorCode);
+    console.log('requestData:', requestData);
+    console.log('entityDisplayName:', entityDisplayName);
+    console.log('entityDetails:', entityDetails);
+
     try {
-      await this.databaseService.execute(`
+      const sql = `
         INSERT INTO sync_logs
         (id, entityType, entityId, operation, status, errorMessage, errorCode,
          requestData, responseData, syncDate, retryCount, entityDisplayName, entityDetails)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [
+      `;
+      const params = [
         errorId,
         entityType,
         entityId,
@@ -45,12 +57,18 @@ export class SyncErrorService {
         errorMessage,
         errorCode,
         JSON.stringify(requestData),
-        JSON.stringify(error.response || {}),
+        JSON.stringify(error.response || error),
         today.toISOString(),
         0,
         entityDisplayName,
         JSON.stringify(entityDetails)
-      ]);
+      ];
+
+      console.log('Executing SQL:', sql);
+      console.log('With params:', params);
+
+      await this.databaseService.execute(sql, params);
+      console.log('--- logSyncError END (Success) ---');
     } catch (dbError) {
       console.error('Erreur lors de l\'enregistrement de l\'erreur de sync:', dbError);
     }
@@ -357,7 +375,7 @@ export class SyncErrorService {
         SET errorMessage = ?, errorCode = ?, responseData = ?,
             retryCount = retryCount + 1, lastRetryDate = datetime('now'), status = 'ERROR'
         WHERE id = ?
-      `, [errorMessage, errorCode, JSON.stringify(error.response || {}), errorId]);
+      `, [errorMessage, errorCode, JSON.stringify(error.response || error), errorId]);
     } catch (dbError) {
       console.error('Erreur lors de la mise à jour de l\'erreur:', dbError);
     }
@@ -367,20 +385,36 @@ export class SyncErrorService {
    * Mapper une ligne de base de données vers un objet SyncError
    */
   private mapRowToSyncError(row: any[]): SyncError {
+    // Ordre des colonnes dans CREATE TABLE sync_logs :
+    // 0: id
+    // 1: entityType
+    // 2: entityId
+    // 3: operation
+    // 4: status
+    // 5: errorCode
+    // 6: requestData
+    // 7: responseData
+    // 8: entityDisplayName
+    // 9: entityDetails
+    // 10: errorMessage
+    // 11: syncDate
+    // 12: retryCount
+
     return {
       id: row[0],
       entityType: row[1] as any,
       entityId: row[2],
       operation: row[3],
-      errorMessage: row[5] || 'Erreur inconnue',
-      errorCode: row[6],
-      syncDate: new Date(row[9]),
-      retryCount: row[10] || 0,
-      entityDisplayName: row[13] || 'Élément inconnu',
-      entityDetails: JSON.parse(row[14] || '{}'),
-      canRetry: (row[10] || 0) < 3, // Maximum 3 tentatives
-      requestData: row[7] ? JSON.parse(row[7]) : null,
-      responseData: row[8] ? JSON.parse(row[8]) : null
+      // status: row[4]
+      errorCode: row[5],
+      requestData: row[6] ? JSON.parse(row[6]) : null,
+      responseData: row[7] ? JSON.parse(row[7]) : null,
+      entityDisplayName: row[8] || 'Élément inconnu',
+      entityDetails: row[9] ? JSON.parse(row[9]) : {},
+      errorMessage: row[10] || 'Erreur inconnue',
+      syncDate: new Date(row[11]),
+      retryCount: row[12] || 0,
+      canRetry: (row[12] || 0) < 3
     };
   }
 
@@ -388,9 +422,43 @@ export class SyncErrorService {
    * Extraire le message d'erreur
    */
   private extractErrorMessage(error: any): string {
-    if (error?.error?.message) return error.error.message;
-    if (error?.message) return error.message;
-    if (typeof error === 'string') return error;
+    // Cas où l'erreur est dans error.error (réponse API structurée)
+    if (error?.error) {
+      // Si error.error est un objet avec un message
+      if (typeof error.error === 'object') {
+        if (error.error.message) {
+            return error.error.message;
+        }
+        // Parfois l'erreur est imbriquée dans error.error.error
+        if (error.error.error && typeof error.error.error === 'object' && error.error.error.message) {
+             return error.error.error.message;
+        }
+      }
+
+      // Si error.error est une chaîne (peut-être du JSON stringifié)
+      if (typeof error.error === 'string') {
+        try {
+          const parsed = JSON.parse(error.error);
+          if (parsed && parsed.message) {
+            return parsed.message;
+          }
+        } catch (e) {
+          // Ce n'est pas du JSON, on retourne la chaîne telle quelle
+          return error.error;
+        }
+      }
+    }
+
+    // Cas standard HttpErrorResponse ou Error
+    if (error?.message) {
+      return error.message;
+    }
+
+    // Cas où l'erreur est une simple chaîne
+    if (typeof error === 'string') {
+      return error;
+    }
+
     return 'Erreur inconnue lors de la synchronisation';
   }
 
@@ -399,6 +467,7 @@ export class SyncErrorService {
    */
   private extractErrorCode(error: any): string | undefined {
     if (error?.error?.statusCode) return error.error.statusCode.toString();
+    if (error?.error?.status) return error.error.status.toString();
     if (error?.status) return error.status.toString();
     if (error?.code) return error.code.toString();
     return undefined;
