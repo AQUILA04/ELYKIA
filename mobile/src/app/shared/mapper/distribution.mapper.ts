@@ -61,7 +61,8 @@ export class DistributionMapper {
       dailyPaid: false,
       clientType: 'PROMOTER',
       promoterCredit: false,
-      updatable: false
+      updatable: false,
+      advance: localData.advance || 0
     };
   }
 

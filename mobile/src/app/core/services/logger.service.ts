@@ -79,6 +79,16 @@ export class LoggerService {
     this.saveToFileAsync(logMessage);
   }
 
+  async error(message: string, error?: any) {
+      const errorMessage = error ? `${message}: ${JSON.stringify(error)}` : message;
+      console.error(errorMessage);
+      const timestamp = new Date().toISOString();
+      const logMessage = `[${timestamp}] ERROR: ${errorMessage}\n`;
+
+      LoggerService.inMemoryLogs.push(logMessage);
+      this.saveToFileAsync(logMessage);
+  }
+
   private async saveToFileAsync(logMessage: string) {
     try {
       await Filesystem.appendFile({

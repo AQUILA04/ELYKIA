@@ -25,7 +25,8 @@ export class SyncErrorListPage {
 
   loadErrors(event?: any) {
     this.syncErrors$ = from(this.syncErrorService.getSyncErrors());
-    this.syncErrors$.subscribe(() => {
+    this.syncErrors$.subscribe((data) => {
+      console.log('Raw sync errors:', data);
       if (event) {
         event.target.complete();
       }

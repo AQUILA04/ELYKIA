@@ -13,6 +13,7 @@ import { DistributionItem } from '../../models/distribution-item.model';
 import { HealthCheckService } from './health-check.service';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import { DistributionMapper } from '../../shared/mapper/distribution.mapper';
+import { CommercialStockRepository } from '../repositories/commercial-stock.repository';
 
 interface CreateDistributionData {
   clientId: string;
@@ -23,7 +24,7 @@ interface CreateDistributionData {
   paidAmount?: number;
   remainingAmount?: number;
   client?: any;
-  creditId: string;
+  creditId?: string; // Made optional
   type?: string; // 'CLIENT' ou 'COMMERCIAL'
 }
 
@@ -36,7 +37,8 @@ export class DistributionService {
   constructor(private http: HttpClient,
     private dbService: DatabaseService,
     private store: Store,
-    private healthCheckService: HealthCheckService
+    private healthCheckService: HealthCheckService,
+    private commercialStockRepository: CommercialStockRepository
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -171,7 +173,10 @@ export class DistributionService {
     return from(this.dbService.getArticles()).pipe(
       map(articles => {
         // Filter only articles with stock > 0
-        return articles.filter(article => article.stockQuantity > 0);
+        // NOTE: This logic might need to be updated to check CommercialStockItems instead of article.stockQuantity
+        // if article.stockQuantity is not kept in sync with CommercialStockItems.
+        // For now, assuming article.stockQuantity is updated via DataInitializationService or similar.
+        return articles; // Removed filter to allow all articles, filtering will be done in component based on CommercialStock
       }),
       catchError(error => {
         console.error('Failed to load articles from local database:', error);
@@ -271,6 +276,14 @@ export class DistributionService {
 
   private async updateArticleStock(articleQuantities: Array<{ articleId: string; quantity: number }>): Promise<void> {
     try {
+      // Update CommercialStockItems
+      if (this.commercialUsername) {
+          for (const item of articleQuantities) {
+              await this.commercialStockRepository.updateStockQuantity(item.articleId, this.commercialUsername, -item.quantity);
+          }
+      }
+
+      // Also update legacy article stock for compatibility if needed
       const articles = await this.dbService.getArticles();
       const updatedArticles = articles.map(article => {
         const usedQuantity = articleQuantities.find(aq => aq.articleId === article.id);
@@ -520,6 +533,14 @@ export class DistributionService {
 
   private async restoreArticleStock(items: DistributionItem[]): Promise<void> {
     try {
+      // Restore CommercialStockItems
+      if (this.commercialUsername) {
+          for (const item of items) {
+              await this.commercialStockRepository.updateStockQuantity(item.articleId, this.commercialUsername, item.quantity);
+          }
+      }
+
+      // Restore legacy article stock
       const articles = await this.dbService.getArticles();
       const updatedArticles = articles.map(article => {
         const restoredQuantity = items
@@ -721,4 +742,3 @@ export class DistributionService {
   //   }
   // }
 }
-

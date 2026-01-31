@@ -21,6 +21,7 @@ import { BulkAction } from '../../components/order-action-bar/order-action-bar.c
 import { OrderDeleteModalComponent } from '../../components/modals/order-delete-modal/order-delete-modal.component';
 // CORRECTION : Import manquant ajouté ici
 import { OrderConfirmationModalComponent } from '../../components/modals/order-confirmation-modal/order-confirmation-modal.component';
+import {ToastrService} from "ngx-toastr";
 
 @Component({
   selector: 'app-order-dashboard',
@@ -46,7 +47,8 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
     private orderService: OrderService,
     private router: Router,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private toastr: ToastrService
   ) {
     this.state$ = this.orderService.state$;
     this.setupObservables();
@@ -292,8 +294,8 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
                   this.showSuccess(`${orders.length} commande(s) transformée(s) en vente avec succès`);
                   this.loadOrders();
                   this.onClearSelection();
-              }).catch(() => {
-                  this.showError('Erreur lors de la transformation en ventes');
+              }).catch((err: any) => {
+                  this.showError(err.error?.messgae ?? err.message ?? 'Erreur lors de la transformation en ventes');
               });
           }
       });
@@ -331,10 +333,7 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   }
 
   private showError(message: string): void {
-    this.snackBar.open(message, 'Fermer', {
-      duration: 5000,
-      panelClass: ['error-snackbar']
-    });
+    this.toastr.error(message, 'Erreur');
   }
 
   createOrder(): void {

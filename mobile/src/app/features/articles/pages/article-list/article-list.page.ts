@@ -5,6 +5,9 @@ import { map, distinctUntilChanged, startWith, takeUntil, debounceTime } from 'r
 import { Article } from '../../../../models/article.model';
 import { selectAllArticles } from '../../../../store/article/article.selectors';
 import * as ArticleActions from '../../../../store/article/article.actions';
+import * as CommercialStockActions from '../../../../store/commercial-stock/commercial-stock.actions';
+import { selectAvailableStockItems } from '../../../../store/commercial-stock/commercial-stock.selectors';
+import { CommercialStockItem } from '../../../../models/commercial-stock-item.model';
 
 // L'événement peut être typé 'any' pour plus de simplicité, car il est géré par le module.
 // import { InfiniteScrollCustomEvent } from '@ionic/angular';
@@ -40,11 +43,27 @@ export class ArticleListPage implements OnInit, OnDestroy {
   ionViewWillEnter() {
     // Dispatch l'action pour recharger les articles à chaque fois que la vue est active
     this.store.dispatch(ArticleActions.loadArticles());
+    // On pourrait aussi recharger le stock commercial ici si nécessaire, mais il est généralement chargé au démarrage
   }
 
   private setupDataStreams() {
-    const availableArticles$ = this.store.select(selectAllArticles).pipe(
-      map(articles => articles.filter(a => a.stockQuantity > 0))
+    const articles$ = this.store.select(selectAllArticles);
+    const stockItems$ = this.store.select(selectAvailableStockItems);
+
+    const availableArticles$ = combineLatest([articles$, stockItems$]).pipe(
+      map(([articles, stockItems]) => {
+        // Filter articles based on available stock in CommercialStockItems
+        // Only show articles that have quantityRemaining > 0 in stockItems
+        // Also update the stockQuantity property of the article object to reflect the actual available stock
+
+        return articles.map(article => {
+            const stockItem = stockItems.find(item => item.articleId === article.id);
+            return {
+                ...article,
+                stockQuantity: stockItem ? stockItem.quantityRemaining : 0
+            };
+        }).filter(article => article.stockQuantity > 0);
+      })
     );
 
     const searchTermAction$ = this.searchTerm$.asObservable().pipe(
@@ -113,4 +132,3 @@ export class ArticleListPage implements OnInit, OnDestroy {
     return article.id;
   }
 }
-

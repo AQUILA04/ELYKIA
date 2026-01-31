@@ -13,16 +13,21 @@ import * as StockOutputActions from '../../store/stock-output/stock-output.actio
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import * as RecoveryActions from '../../store/recovery/recovery.actions';
 import * as TontineActions from '../../store/tontine/tontine.actions';
+import * as CommercialStockActions from '../../store/commercial-stock/commercial-stock.actions';
 import { selectSyncErrorsCount, selectAutomaticSyncIsActive } from '../../store/sync/sync.selectors';
 import { selectAllDistributions, selectDistributionsByCommercialUsername } from '../../store/distribution/distribution.selectors';
 import { selectAllRecoveries, selectRecoveryViewsByCommercialUsername } from '../../store/recovery/recovery.selectors';
 import { selectAllStockOutputs, selectStockOutputsByCommercialUsername } from '../../store/stock-output/stock-output.selectors';
 import { selectTontineCollections } from '../../store/tontine/tontine.selectors';
+import { selectAllCommercialStockItems } from '../../store/commercial-stock/commercial-stock.selectors';
 import { Distribution } from '../../models/distribution.model';
 import { Recovery } from '../../models/recovery.model';
 import { RecoveryView } from '../../models/recovery-view.model';
 import { StockOutput } from '../../models/stock-output.model';
+import { CommercialStockItem } from '../../models/commercial-stock-item.model';
 import { LoggerService } from '../../core/services/logger.service';
+import { Article } from '../../models/article.model';
+import { selectAllArticles } from '../../store/article/article.selectors';
 
 Chart.register(...registerables);
 
@@ -94,7 +99,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     ).subscribe(user => {
       const username = user!.username;
       this.store.dispatch(CommercialActions.loadCommercial({ commercialUsername: username }));
-      this.store.dispatch(StockOutputActions.loadStockOutputs({ commercialUsername: username }));
+      // this.store.dispatch(StockOutputActions.loadStockOutputs({ commercialUsername: username })); // Deprecated
+      this.store.dispatch(CommercialStockActions.loadCommercialStock({ commercialUsername: username }));
       this.store.dispatch(DistributionActions.loadDistributions({ commercialUsername: username }));
       // Recharger aussi les recouvrements pour les KPIs
       this.store.dispatch(RecoveryActions.loadRecoveries({ commercialUsername: username }));
@@ -128,24 +134,34 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       filter(user => !!user),
       switchMap(user => this.store.select(selectRecoveryViewsByCommercialUsername(user!.username)))
     );
-    const stockOutputs$ = this.store.select(selectAuthUser).pipe(
-      filter(user => !!user),
-      switchMap(user => this.store.select(selectStockOutputsByCommercialUsername(user!.username)))
-    );
+    // const stockOutputs$ = this.store.select(selectAuthUser).pipe(
+    //   filter(user => !!user),
+    //   switchMap(user => this.store.select(selectStockOutputsByCommercialUsername(user!.username)))
+    // );
+    const commercialStockItems$ = this.store.select(selectAllCommercialStockItems);
+    const articles$ = this.store.select(selectAllArticles);
+
     const tontineCollections$ = this.store.select(selectTontineCollections);
 
     const filteredData$ = this.periodFilter$.pipe(map(period => this.getStartDate(period)));
+
+    // Create salesAmount observable first so it can be reused
+    const salesAmount$ = combineLatest([distributions$, filteredData$]).pipe(
+        map(([d, sd]) => (d as Distribution[]).filter(i => new Date(i.createdAt) >= sd).reduce((s: number, i: Distribution) => s + i.totalAmount, 0))
+    );
 
     this.vm$ = combineLatest({
       commercial: commercial$,
       isOnline: this.store.select(selectIsOnline),
       isSyncing: this.store.select(selectAutomaticSyncIsActive),
       syncNotifications: this.store.select(selectSyncErrorsCount),
-      salesAmount: combineLatest([distributions$, filteredData$]).pipe(map(([d, sd]) => (d as Distribution[]).filter(i => new Date(i.createdAt) >= sd).reduce((s: number, i: Distribution) => s + i.totalAmount, 0))),
+      salesAmount: salesAmount$,
       recoveryAmount: combineLatest([recoveries$, filteredData$]).pipe(map(([r, sd]) => (r as RecoveryView[]).filter(i => new Date(i.paymentDate) >= sd).reduce((s: number, i: RecoveryView) => s + i.amount, 0))),
-      stockOutputAmount: combineLatest([stockOutputs$, this.periodFilter$]).pipe(map(([so, p]) => this.calculateStockOutputAmount(so as StockOutput[], p))),
+      // stockOutputAmount: combineLatest([stockOutputs$, this.periodFilter$]).pipe(map(([so, p]) => this.calculateStockOutputAmount(so as StockOutput[], p))),
+      stockOutputAmount: combineLatest([commercialStockItems$, articles$, salesAmount$]).pipe(map(([items, articles, sales]) => this.calculateTotalStockValue(items, articles, sales))),
       remainingAmount: combineLatest([distributions$, recoveries$, this.periodFilter$]).pipe(map(([d, r, p]) => this.calculateRemainingAmount(d as Distribution[], r as RecoveryView[], p))),
-      undistributedAmount: combineLatest([stockOutputs$, distributions$, filteredData$]).pipe(map(([so, d, sd]) => this.calculateUndistributedAmount(so as StockOutput[], d as Distribution[], sd))),
+      // undistributedAmount: combineLatest([stockOutputs$, distributions$, filteredData$]).pipe(map(([so, d, sd]) => this.calculateUndistributedAmount(so as StockOutput[], d as Distribution[], sd))),
+      undistributedAmount: combineLatest([commercialStockItems$, articles$]).pipe(map(([items, articles]) => this.calculateUndistributedStockValue(items, articles))),
       tontineAmount: combineLatest([tontineCollections$, filteredData$]).pipe(map(([tc, sd]) => this.calculateTontineAmount(tc, sd)))
     });
 
@@ -158,6 +174,13 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       this.vm = vm;
       this.log.log(`[Dashboard] KPIs updated - Period: ${this.activePeriod}, Sales: ${vm.salesAmount}, Recovery: ${vm.recoveryAmount}, StockOutput: ${vm.stockOutputAmount}, Remaining: ${vm.remainingAmount}, Undistributed: ${vm.undistributedAmount}, Tontine: ${vm.tontineAmount}`);
       this.cdr.markForCheck();
+    });
+
+    // Debug log for raw stock items
+    commercialStockItems$.pipe(takeUntil(this.destroy$)).subscribe(items => {
+        console.log('--- RAW COMMERCIAL STOCK ITEMS FROM STORE ---');
+        console.log(JSON.stringify(items, null, 2));
+        console.log('---------------------------------------------');
     });
   }
 
@@ -195,47 +218,32 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   // Calculation helpers to keep the stream clean
   private calculateStockOutputAmount(stockOutputs: StockOutput[], period: string): number {
-    const now = new Date();
+    // DEPRECATED: This logic was based on stock outputs history.
+    // The new requirement is to show current stock value based on CommercialStockItems.
+    // See calculateTotalStockValue below.
+    return 0;
+  }
 
-    switch (period) {
-      case 'today': {
-        // Pour le jour: createdAt pendant les heures de travail (7h-19h) - cohérent avec le graphique
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 0, 0); // 7h AM
-        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 19, 0, 0); // 7h PM
+  private calculateTotalStockValue(items: CommercialStockItem[], articles: Article[], salesAmount: number): number {
+      if (!items || !articles) return 0;
 
-        return stockOutputs
-          .filter(so => {
-            const createdDate = new Date(so.createdAt);
-            return createdDate >= todayStart && createdDate <= todayEnd;
-          })
-          .reduce((sum, so) => sum + so.totalAmount, 0);
-      }
+      // Calculate undistributed value
+      const undistributed = this.calculateUndistributedStockValue(items, articles);
 
-      case 'week': {
-        // Pour la semaine: createdAt dans les 7 derniers jours
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      // Total Stock Output = Total Sales (from KPI) + Undistributed
+      return salesAmount + undistributed;
+  }
 
-        return stockOutputs
-          .filter(so => new Date(so.createdAt) >= weekAgo)
-          .reduce((sum, so) => sum + so.totalAmount, 0);
-      }
+  private calculateUndistributedStockValue(items: CommercialStockItem[], articles: Article[]): number {
+      if (!items || !articles) return 0;
 
-      case 'month':
-      case 'year':
-      default: {
-        // Pour le mois et l'année: logique par défaut (filtrage par période de création)
-        let startDate: Date;
-        if (period === 'year') {
-          startDate = new Date(now.getFullYear(), 0, 1);
-        } else {
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        }
-
-        return stockOutputs
-          .filter(so => new Date(so.createdAt) >= startDate)
-          .reduce((sum, so) => sum + so.totalAmount, 0);
-      }
-    }
+      return items.reduce((total, item) => {
+          const article = articles.find(a => a.id === item.articleId);
+          if (article) {
+              return total + (item.quantityRemaining * article.creditSalePrice);
+          }
+          return total;
+      }, 0);
   }
 
   private calculateRemainingAmount(distributions: Distribution[], recoveries: RecoveryView[], period: string): number {
@@ -295,15 +303,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private calculateUndistributedAmount(stockOutputs: StockOutput[], distributions: Distribution[], startDate: Date): number {
-    const totalStockOutput = stockOutputs
-      .filter(so => new Date(so.createdAt) >= startDate)
-      .reduce((sum, so) => sum + so.totalAmount, 0);
-
-    const totalDistributed = distributions
-      .filter(d => d.creditId && d.creditId.length > 0 && new Date(d.createdAt) >= startDate)
-      .reduce((sum, d) => sum + d.totalAmount, 0);
-
-    return totalStockOutput > totalDistributed ? totalStockOutput - totalDistributed : 0;
+    // DEPRECATED
+    return 0;
   }
 
   private calculateTontineAmount(collections: any[], startDate: Date): number {

@@ -14,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/commercial-stocks")
+@CrossOrigin
 public class CommercialMonthlyStockController {
 
     private final CommercialMonthlyStockRepository repository;

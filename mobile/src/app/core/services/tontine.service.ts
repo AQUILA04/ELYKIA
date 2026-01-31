@@ -387,7 +387,15 @@ export class TontineService {
         return this.getHeaders().pipe(
             switchMap(headers => this.http.get<any>(`${this.apiUrl}/tontines/stock`, { headers })),
             switchMap(response => {
+                // Handle case where response.data is null or undefined
                 const stocks = response.data || [];
+
+                // Ensure stocks is an array before checking length or mapping
+                if (!Array.isArray(stocks)) {
+                    console.warn('TontineService: Stocks response data is not an array:', stocks);
+                    return of(null);
+                }
+
                 console.log(`TontineService: ${stocks.length} stocks found`);
 
                 if (stocks.length === 0) {

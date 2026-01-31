@@ -25,6 +25,9 @@ import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { LoggerService } from './logger.service';
 import { TontineService } from './tontine.service';
 import * as TontineActions from '../../store/tontine/tontine.actions';
+import * as CommercialStockActions from '../../store/commercial-stock/commercial-stock.actions';
+import { CommercialStockService } from './commercial-stock.service';
+import { User } from '../../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -45,7 +48,8 @@ export class DataInitializationService {
     private recoveryService: RecoveryService,
     private transactionService: TransactionService,
     private log: LoggerService,
-    private tontineService: TontineService
+    private tontineService: TontineService,
+    private commercialStockService: CommercialStockService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -80,11 +84,10 @@ export class DataInitializationService {
 
   initializeClients(forceRefresh: boolean = false): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
-      take(1), // On prend la valeur une seule fois et on se désabonne
-      filter(user => !!user), // On s'assure que l'utilisateur existe
+      take(1),
+      filter((user): user is User => !!user),
       switchMap(user => {
         const commercialUsername = user.username;
-        // On a maintenant la certitude d'avoir le username
         return this.clientService.initializeClients(commercialUsername, forceRefresh).pipe(
           map(() => {
             this.store.dispatch(ClientActions.loadClients({ commercialUsername }));
@@ -112,7 +115,7 @@ export class DataInitializationService {
   initializeCommercial(): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
       take(1),
-      filter(user => !!user),
+      filter((user): user is User => !!user),
       switchMap(user => {
         const commercialUsername = user.username;
         return this.commercialService.initializeCommercial(commercialUsername).pipe(
@@ -130,7 +133,7 @@ export class DataInitializationService {
   initializeStockOutputs(): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
       take(1),
-      filter(user => !!user),
+      filter((user): user is User => !!user),
       switchMap(user => {
         const commercialUsername = user.username;
         return this.stockOutputService.initializeStockOutputs(commercialUsername).pipe(
@@ -144,10 +147,30 @@ export class DataInitializationService {
     );
   }
 
+  initializeCommercialStock(): Observable<boolean> {
+      return this.store.select(selectAuthUser).pipe(
+          take(1),
+          filter((user): user is User => !!user),
+          switchMap(user => {
+              const commercialUsername = user.username;
+              return this.commercialStockService.syncCommercialStock(commercialUsername).pipe(
+                  map(() => {
+                      this.store.dispatch(CommercialStockActions.loadCommercialStock({ commercialUsername }));
+                      return true;
+                  }),
+                  catchError(error => {
+                      console.error('Error initializing commercial stock:', error);
+                      return of(false);
+                  })
+              );
+          })
+      );
+  }
+
   initializeDistributions(): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
       take(1),
-      filter(user => !!user),
+      filter((user): user is User => !!user),
       switchMap(user => {
         return this.distributionService.initializeDistributions().pipe(
           map(() => {
@@ -179,7 +202,7 @@ export class DataInitializationService {
   initializeRecoveries(): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
       take(1),
-      filter(user => !!user),
+      filter((user): user is User => !!user),
       switchMap(user => {
         return this.recoveryService.initializeRecoveries().pipe(
           map(() => {
@@ -350,13 +373,13 @@ export class DataInitializationService {
       concatMap(() => this.initializeLocalities()),
       concatMap(() => this.initializeClients()),
       concatMap(() => this.initializeStockOutputs()),
+      concatMap(() => this.initializeCommercialStock()),
       concatMap(() => this.initializeDistributions()),
       concatMap(() => this.initializeAccounts()),
       concatMap(() => this.initializeRecoveries()),
       concatMap(() => this.initializeTontine()),
       concatMap(() => from(this.validateInitialData()))
-    );
+    ) as Observable<boolean>;
   }
 
 }
-

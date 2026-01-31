@@ -15,6 +15,7 @@ import { selectAuthUser } from '../auth/auth.selectors';
 import { selectDistributionsByClientId } from './distribution.selectors';
 import { deleteRecoveriesByDistributionIds } from '../recovery/recovery.actions';
 import * as ArticleActions from '../article/article.actions';
+import * as CommercialStockActions from '../commercial-stock/commercial-stock.actions';
 
 @Injectable()
 export class DistributionEffects {
@@ -165,10 +166,24 @@ export class DistributionEffects {
     this.actions$.pipe(
       ofType(DistributionActions.createDistributionSuccess),
       withLatestFrom(this.store.select(selectAuthUser)),
-      switchMap(([action, user]) => [
-        ClientActions.updateClientCreditStatus({ clientId: action.distribution.clientId, creditInProgress: true }),
-        ClientActions.loadClients({ commercialUsername: user?.username || '' })
-      ])
+      switchMap(([action, user]) => {
+          const actions: Action[] = [
+              ClientActions.updateClientCreditStatus({ clientId: action.distribution.clientId, creditInProgress: true }),
+              ClientActions.loadClients({ commercialUsername: user?.username || '' })
+          ];
+
+          // Update local stock for each item in the distribution
+          if (action.distribution.items) {
+              action.distribution.items.forEach(item => {
+                  actions.push(CommercialStockActions.updateStockQuantity({
+                      articleId: item.articleId,
+                      quantityChange: -item.quantity
+                  }));
+              });
+          }
+
+          return actions;
+      })
     )
   );
 

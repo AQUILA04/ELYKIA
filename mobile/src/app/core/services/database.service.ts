@@ -68,7 +68,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 8;
+        const targetVersion = 10; // Incremented for commercial_stock_items update
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -87,6 +87,13 @@ export class DatabaseService {
     } catch (error) {
       console.error('Database initialization error:', error);
     }
+  }
+
+  async executeSql(sql: string, params: any[] = []): Promise<any> {
+      if (!this.db) {
+          throw new Error('Database not initialized');
+      }
+      return await this.db.run(sql, params);
   }
 
   private generateHash(data: any, keysToInclude: string[]): string {
@@ -142,6 +149,21 @@ export class DatabaseService {
             isSync BOOLEAN DEFAULT 0,
             lastUpdate DATETIME,
             syncHash TEXT
+        );
+
+        -- Table des stocks commerciaux (NOUVEAU)
+        CREATE TABLE IF NOT EXISTS commercial_stock_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            articleId TEXT NOT NULL,
+            quantityRemaining INTEGER NOT NULL,
+            quantityTaken INTEGER DEFAULT 0,
+            quantitySold INTEGER DEFAULT 0,
+            quantityReturned INTEGER DEFAULT 0,
+            commercialUsername TEXT NOT NULL,
+            month INTEGER,
+            year INTEGER,
+            updatedAt DATETIME,
+            FOREIGN KEY(articleId) REFERENCES articles(id)
         );
 
         -- Table des localités
@@ -511,7 +533,7 @@ export class DatabaseService {
 
   private async verifyTables(): Promise<void> {
     try {
-      const expectedTables = ['users', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items'];
+      const expectedTables = ['users', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items'];
       const result = await this.db?.query(`SELECT name FROM sqlite_master WHERE type='table'`);
       const existingTables = result?.values?.map(row => row.name) || [];
       const missingTables = expectedTables.filter(table => !existingTables.includes(table));
@@ -2745,7 +2767,7 @@ export class DatabaseService {
 
     // Utilise JOIN pour supporter les données existantes (sans commercialUsername) et nouvelles
     const query = `
-      SELECT tc.* 
+      SELECT tc.*
       FROM tontine_collections tc
       INNER JOIN tontine_members tm ON tc.tontineMemberId = tm.id
       WHERE tm.commercialUsername = ? OR tc.commercialUsername = ?
@@ -2856,7 +2878,7 @@ export class DatabaseService {
 
     const query = `
       INSERT OR REPLACE INTO tontine_stocks(
-        id, commercial, creditId, articleId, articleName, unitPrice, 
+        id, commercial, creditId, articleId, articleName, unitPrice,
         totalQuantity, availableQuantity, distributedQuantity, year, tontineSessionId
       ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
