@@ -30,25 +30,13 @@ export class SyncErrorService {
     const errorCode = this.extractErrorCode(error);
     const today = new Date();
 
-    console.log('--- logSyncError START ---');
-    console.log('entityType:', entityType);
-    console.log('entityId:', entityId);
-    console.log('operation:', operation);
-    console.log('error object:', error);
-    console.log('extracted errorMessage:', errorMessage);
-    console.log('extracted errorCode:', errorCode);
-    console.log('requestData:', requestData);
-    console.log('entityDisplayName:', entityDisplayName);
-    console.log('entityDetails:', entityDetails);
-
     try {
-      const sql = `
+      await this.databaseService.execute(`
         INSERT INTO sync_logs
         (id, entityType, entityId, operation, status, errorMessage, errorCode,
          requestData, responseData, syncDate, retryCount, entityDisplayName, entityDetails)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      const params = [
+      `, [
         errorId,
         entityType,
         entityId,
@@ -62,13 +50,7 @@ export class SyncErrorService {
         0,
         entityDisplayName,
         JSON.stringify(entityDetails)
-      ];
-
-      console.log('Executing SQL:', sql);
-      console.log('With params:', params);
-
-      await this.databaseService.execute(sql, params);
-      console.log('--- logSyncError END (Success) ---');
+      ]);
     } catch (dbError) {
       console.error('Erreur lors de l\'enregistrement de l\'erreur de sync:', dbError);
     }
@@ -84,6 +66,9 @@ export class SyncErrorService {
         WHERE status = 'ERROR'
         ORDER BY syncDate DESC
       `);
+
+      // LOG AJOUTÉ POUR LE DÉBOGAGE
+      console.log('Raw DB result from getSyncErrors:', result.values);
 
       return result.values?.map((row: any) => this.mapRowToSyncError(row)) || [];
     } catch (error) {
@@ -384,8 +369,40 @@ export class SyncErrorService {
   /**
    * Mapper une ligne de base de données vers un objet SyncError
    */
-  private mapRowToSyncError(row: any[]): SyncError {
+  private mapRowToSyncError(row: any): SyncError {
+    // Si row est un objet (ce qui est le cas avec CapacitorSQLite quand on utilise query),
+    // on accède aux propriétés par leur nom.
+    // Si c'est un tableau (ce qui peut arriver avec certaines configurations), on utilise les index.
+
+    // Détection du type de row
+    if (row && typeof row === 'object' && !Array.isArray(row)) {
+        // Cas objet (nom des colonnes)
+        return {
+            id: row.id,
+            entityType: row.entityType,
+            entityId: row.entityId,
+            operation: row.operation,
+            errorMessage: row.errorMessage || 'Erreur inconnue',
+            errorCode: row.errorCode,
+            syncDate: new Date(row.syncDate),
+            retryCount: row.retryCount || 0,
+            entityDisplayName: row.entityDisplayName || 'Élément inconnu',
+            entityDetails: row.entityDetails ? JSON.parse(row.entityDetails) : {},
+            canRetry: (row.retryCount || 0) < 3,
+            requestData: row.requestData ? JSON.parse(row.requestData) : null,
+            responseData: row.responseData ? JSON.parse(row.responseData) : null
+        };
+    }
+
+    // Cas tableau (index) - Fallback si jamais le plugin retourne des tableaux
     // Ordre des colonnes dans CREATE TABLE sync_logs :
+    // 0: id, 1: entityType, 2: entityId, 3: operation, 4: status, 5: errorMessage, 6: errorCode,
+    // 7: requestData, 8: responseData, 9: syncDate, 10: retryCount, 11: entityDisplayName, 12: entityDetails
+    // ATTENTION: L'ordre dépend de la requête SELECT *
+    // Dans CREATE TABLE:
+    // id, entityType, entityId, operation, status, errorCode, requestData, responseData, entityDisplayName, entityDetails, errorMessage, syncDate, retryCount
+
+    // Si on utilise SELECT *, l'ordre est celui de la création.
     // 0: id
     // 1: entityType
     // 2: entityId
@@ -400,21 +417,21 @@ export class SyncErrorService {
     // 11: syncDate
     // 12: retryCount
 
+    const r = row as any[];
     return {
-      id: row[0],
-      entityType: row[1] as any,
-      entityId: row[2],
-      operation: row[3],
-      // status: row[4]
-      errorCode: row[5],
-      requestData: row[6] ? JSON.parse(row[6]) : null,
-      responseData: row[7] ? JSON.parse(row[7]) : null,
-      entityDisplayName: row[8] || 'Élément inconnu',
-      entityDetails: row[9] ? JSON.parse(row[9]) : {},
-      errorMessage: row[10] || 'Erreur inconnue',
-      syncDate: new Date(row[11]),
-      retryCount: row[12] || 0,
-      canRetry: (row[12] || 0) < 3
+      id: r[0],
+      entityType: r[1],
+      entityId: r[2],
+      operation: r[3],
+      errorCode: r[5],
+      requestData: r[6] ? JSON.parse(r[6]) : null,
+      responseData: r[7] ? JSON.parse(r[7]) : null,
+      entityDisplayName: r[8] || 'Élément inconnu',
+      entityDetails: r[9] ? JSON.parse(r[9]) : {},
+      errorMessage: r[10] || 'Erreur inconnue',
+      syncDate: new Date(r[11]),
+      retryCount: r[12] || 0,
+      canRetry: (r[12] || 0) < 3
     };
   }
 
