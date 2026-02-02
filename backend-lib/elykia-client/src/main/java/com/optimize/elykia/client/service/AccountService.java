@@ -40,14 +40,7 @@ public class AccountService extends GenericService<Account, Long> {
         account.setStatus(AccountStatus.CREATED);
         Account savedAccount = create(account);
 
-        if (eventPublisher != null && savedAccount.getClient() != null) {
-            Client client = clientRepository.findById(account.getClient().getId()).orElseThrow(() -> new ResourceNotFoundException("Client non trouvé avec l'id: " + account.getClient().getId()));
-
-            eventPublisher.publishEvent(new com.optimize.elykia.client.event.AccountCreatedEvent(
-                    this,
-                    savedAccount.getAccountBalance(),
-                    client.getCollector()));
-        }
+       publishAccountCreationEvent(savedAccount);
 
         return savedAccount;
     }
@@ -58,14 +51,20 @@ public class AccountService extends GenericService<Account, Long> {
         account.setStatus(AccountStatus.ACTIF);
         Account savedAccount = create(account);
 
-        if (eventPublisher != null && savedAccount.getClient() != null) {
-            eventPublisher.publishEvent(new com.optimize.elykia.client.event.AccountCreatedEvent(
-                    this,
-                    savedAccount.getAccountBalance(),
-                    savedAccount.getClient().getCollector()));
-        }
+        publishAccountCreationEvent(savedAccount);
 
         return savedAccount;
+    }
+
+    private void publishAccountCreationEvent(Account account) {
+        if (eventPublisher != null && account.getClient() != null) {
+            Client client = clientRepository.findById(account.getClient().getId()).orElseThrow(() -> new ResourceNotFoundException("Client non trouvé avec l'id: " + account.getClient().getId()));
+
+            eventPublisher.publishEvent(new com.optimize.elykia.client.event.AccountCreatedEvent(
+                    this,
+                    account.getAccountBalance(),
+                    client.getCollector()));
+        }
     }
 
     // MODIFIÉ : La méthode utilise maintenant le searchTerm pour filtrer les
