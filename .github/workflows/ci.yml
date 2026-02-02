@@ -101,7 +101,10 @@ jobs:
     - name: Build elykia-client
       run: mvn -B clean install -DskipTests --file backend-lib/elykia-client/pom.xml
 
-    - name: Build and Deploy Backend Maven Artifact
+    - name: Package Backend
+      run: mvn -B package -DskipTests --file backend/pom.xml
+
+    - name: Deploy Backend Maven Artifact
       run: mvn -B deploy -DskipTests --file backend/pom.xml -s $GITHUB_WORKSPACE/settings.xml || echo "Deployment failed, likely because version already exists. Continuing..."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -216,6 +219,39 @@ jobs:
     - name: Sync Capacitor
       run: |
         npx cap sync android
+
+    - name: Prepare Android Configuration
+      run: |
+        echo "=== Preparing Android configuration files ==="
+        mkdir -p android/app/src/main/res/xml
+        echo "Configuration files ready for post-sync copy"
+
+    - name: Final Capacitor Sync
+      run: |
+        echo "=== Final sync after configuration ==="
+        npx cap sync android
+        
+        echo "=== Capacitor sync completed, now re-applying our configurations ==="
+        
+        # Re-copier nos fichiers APRÈS le sync qui les a écrasés
+        echo "Re-copying AndroidManifest.xml (simplified version) after sync..."
+        cp .github/workflows/android-config/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+        
+        echo "Re-copying config.xml after sync..."
+        cp .github/workflows/android-config/config.xml android/app/src/main/res/xml/config.xml
+        
+        echo "Re-copying network_security_config.xml after sync..."
+        cp .github/workflows/android-config/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml
+        
+        echo "Re-copying file_paths.xml after sync..."
+        cp .github/workflows/android-config/file_paths.xml android/app/src/main/res/xml/file_paths.xml
+        
+        echo "=== Final verification after re-copy ==="
+        echo "Checking permissions count:"
+        grep -c "uses-permission" android/app/src/main/AndroidManifest.xml || echo "No permissions found!"
+        
+        echo "Checking application tag:"
+        grep -A 5 "usesCleartextTraffic" android/app/src/main/AndroidManifest.xml || echo "No cleartext traffic config found!"
 
     - name: Grant execute permission for gradlew
       run: |
