@@ -348,7 +348,8 @@ export class ClientService {
       commercial: commercialUsername,
       code: clientCode,
       createdAt: localTime.toISOString().slice(0, -5),
-      syncDate: ''
+      syncDate: '',
+      tontineCollector: commercialUsername
     };
 
     const newAccount = {
