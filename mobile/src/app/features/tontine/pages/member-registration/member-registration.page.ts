@@ -79,7 +79,10 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
 
     async selectClient() {
         const modal = await this.modalCtrl.create({
-            component: ClientSelectorModalComponent
+            component: ClientSelectorModalComponent,
+            componentProps: {
+                filterByTontineCollector: this.commercialUsername
+            }
         });
 
         await modal.present();

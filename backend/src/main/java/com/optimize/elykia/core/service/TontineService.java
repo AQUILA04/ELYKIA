@@ -136,7 +136,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineMemberEnrolledEvent(
                     this,
-                    savedMember.getClient().getCollector()));
+                    savedMember.getClient().getTontineCollector()));
         }
 
         return savedMember;
@@ -240,11 +240,11 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
             // Filter by promoter if the current user is a promoter
             if (currentUser.is(UserProfilConstant.PROMOTER)) {
-                predicates.add(cb.equal(root.get("client").get("collector"), currentUser.getUsername()));
+                predicates.add(cb.equal(root.get("client").get("tontineCollector"), currentUser.getUsername()));
             }
 
             if (StringUtils.hasText(commercial)) {
-                predicates.add(cb.equal(root.get("client").get("collector"), commercial));
+                predicates.add(cb.equal(root.get("client").get("tontineCollector"), commercial));
             }
 
             // Search by client fields

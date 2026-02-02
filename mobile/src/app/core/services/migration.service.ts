@@ -48,6 +48,13 @@ export class MigrationService {
       case 9:
         await this.migrateToV9(db);
         break;
+      case 10:
+        // Version 10 was skipped/empty in previous deployments
+        this.log.log('Migration v10 is empty/skipped.');
+        break;
+      case 11:
+        await this.migrateToV11(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -267,37 +274,37 @@ export class MigrationService {
       const createIndexes = `
         -- Index pour tontine_members: recherche par session
         CREATE INDEX IF NOT EXISTS idx_tontine_members_sessionId ON tontine_members(tontineSessionId);
-        
+
         -- Index pour tontine_members: recherche par commercial
         CREATE INDEX IF NOT EXISTS idx_tontine_members_commercial ON tontine_members(commercialUsername);
-        
+
         -- Index pour tontine_members: recherche par client
         CREATE INDEX IF NOT EXISTS idx_tontine_members_clientId ON tontine_members(clientId);
-        
+
         -- Index pour tontine_collections: recherche par membre
         CREATE INDEX IF NOT EXISTS idx_tontine_collections_memberId ON tontine_collections(tontineMemberId);
-        
+
         -- Index pour tontine_collections: recherche par commercial
         CREATE INDEX IF NOT EXISTS idx_tontine_collections_commercial ON tontine_collections(commercialUsername);
-        
+
         -- Index pour tontine_collections: filtre par date
         CREATE INDEX IF NOT EXISTS idx_tontine_collections_date ON tontine_collections(collectionDate);
-        
+
         -- Index composite pour tontine_collections: commercial + date (pour le dashboard KPI)
         CREATE INDEX IF NOT EXISTS idx_tontine_collections_commercial_date ON tontine_collections(commercialUsername, collectionDate);
-        
+
         -- Index pour tontine_deliveries: recherche par membre
         CREATE INDEX IF NOT EXISTS idx_tontine_deliveries_memberId ON tontine_deliveries(tontineMemberId);
-        
+
         -- Index pour tontine_deliveries: recherche par commercial
         CREATE INDEX IF NOT EXISTS idx_tontine_deliveries_commercial ON tontine_deliveries(commercialUsername);
-        
+
         -- Index pour tontine_deliveries: filtre par statut
         CREATE INDEX IF NOT EXISTS idx_tontine_deliveries_status ON tontine_deliveries(status);
-        
+
         -- Index pour tontine_delivery_items: recherche par livraison
         CREATE INDEX IF NOT EXISTS idx_tontine_delivery_items_deliveryId ON tontine_delivery_items(tontineDeliveryId);
-        
+
         -- Index pour tontine_delivery_items: recherche par article
         CREATE INDEX IF NOT EXISTS idx_tontine_delivery_items_articleId ON tontine_delivery_items(articleId);
       `;
@@ -328,6 +335,26 @@ export class MigrationService {
       } else {
         this.log.log(`Error in migration v9: ${error}`);
         console.error('Error in migration v9', error);
+        throw error;
+      }
+    }
+  }
+
+  private async migrateToV11(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v11: Adding tontineCollector to clients...');
+
+      await db.execute("ALTER TABLE clients ADD COLUMN tontineCollector TEXT;");
+      await db.execute("CREATE INDEX IF NOT EXISTS idx_clients_tontineCollector ON clients(tontineCollector);");
+
+      this.log.log('Migration to v11 successful.');
+
+    } catch (error: any) {
+      if ((error.message && error.message.toLowerCase().includes('duplicate column')) || (error.toString && error.toString().toLowerCase().includes('duplicate column'))) {
+        this.log.log('Migration to v11 already applied.');
+      } else {
+        this.log.log(`Error in migration v11: ${error}`);
+        console.error('Error in migration v11', error);
         throw error;
       }
     }

@@ -134,12 +134,18 @@ public class ClientService extends GenericService<Client, Long> {
         }
     }
 
-    public Page<ClientRespDto> getAll(String username, Boolean tontine, Pageable pageable) {
+    public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, Pageable pageable) {
         if (username != null && username.startsWith("COM")) {
             if (Objects.nonNull(tontine) && tontine) {
                 return getRepository().findByTontineCollectorAndClientTypeAndState(username, ClientType.CLIENT, State.ENABLED,
                         pageable);
             }
+
+            if (Objects.nonNull(mobile) && mobile) {
+                return getRepository().findByCollectorAndTontineCollectorAndClientTypeAndState(username, ClientType.CLIENT, State.ENABLED,
+                        pageable);
+            }
+
             return getRepository().findByCollectorAndClientTypeAndState(username, ClientType.CLIENT, State.ENABLED,
                     pageable);
         }

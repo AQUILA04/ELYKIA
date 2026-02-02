@@ -33,7 +33,8 @@ public record ClientRespDto(Long id,
         Double longitude,
         String mll,
         LocalDate syncDate,
-        String code, String profilPhotoUrl, String cardPhotoUrl
+        String code, String profilPhotoUrl, String cardPhotoUrl,
+                            String tontineCollector
 
 ) {
 
@@ -42,7 +43,7 @@ public record ClientRespDto(Long id,
         return new ClientRespDto(id, null, null, null, null, null, null,
                 null, null, null, null, null,
                 null, null, null, null, null, null, null,
-                null, null, null, null);
+                null, null, null, null, null);
     }
 
     @JsonIgnore
@@ -53,6 +54,6 @@ public record ClientRespDto(Long id,
         return new ClientRespDto(client.getId(), client.getFirstname(), client.getLastname(), client.getAddress(), client.getPhone(), client.getCardID(), client.getCardType(),
                 client.getDateOfBirth(), null, null, null, client.getCollector(),
                 client.getQuarter(), client.getCreditInProgress(), client.getOccupation(), client.getClientType(), null, null, null,
-                null, null, null, null);
+                null, null, null, null, null);
     }
 }

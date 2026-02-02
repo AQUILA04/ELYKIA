@@ -68,7 +68,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 10; // Incremented for commercial_stock_items update
+        const targetVersion = 11; // Incremented for tontineCollector update
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -213,7 +213,8 @@ export class DatabaseService {
             cardPhoto TEXT,
             profilPhotoUrl TEXT,
             cardPhotoUrl TEXT,
-            updatedPhotoUrl BOOLEAN DEFAULT 0
+            updatedPhotoUrl BOOLEAN DEFAULT 0,
+            tontineCollector TEXT
         );
 
         -- Table des comptes clients
@@ -413,6 +414,7 @@ export class DatabaseService {
         CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
         CREATE INDEX IF NOT EXISTS idx_order_items_orderId ON order_items(orderId);
         CREATE INDEX IF NOT EXISTS idx_order_items_articleId ON order_items(articleId);
+        CREATE INDEX IF NOT EXISTS idx_clients_tontineCollector ON clients(tontineCollector);
 
         -- ==========================================
         -- TABLES TONTINE
@@ -813,7 +815,7 @@ export class DatabaseService {
     }
 
     // L'étape de préparation des données est correcte, nous la gardons
-    const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress', 'profilPhotoUrl', 'cardPhotoUrl'];
+    const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress', 'profilPhotoUrl', 'cardPhotoUrl', 'tontineCollector'];
     const existingRows = await this.db.query('SELECT id, syncHash FROM clients');
     const existingClientMap = new Map<string, string>(
       existingRows.values?.map(row => [String(row.id), row.syncHash]) ?? []
@@ -833,7 +835,7 @@ export class DatabaseService {
       const needsUpdate = isExisting && existingClientMap.has(clientIdStr) && existingClientMap.get(clientIdStr) !== newHash;
 
       if (needsUpdate) {
-        const sql = `UPDATE clients SET firstname = ?, lastname = ?, fullName = ?, phone = ?, address = ?, dateOfBirth = ?, occupation = ?, clientType = ?, cardType = ?, cardID = ?, quarter = ?, commercial = ?, isLocal = ?, isSync = ?, syncDate = ?, syncHash = ?, latitude = ?, longitude = ?, mll = ?, contactPersonName = ?, contactPersonPhone = ?, contactPersonAddress = ?, code = ?, profilPhoto = ?, creditInProgress = ?, cardPhoto = ?, profilPhotoUrl = ?, cardPhotoUrl = ?, updatedPhotoUrl = ? WHERE id = ?`;
+        const sql = `UPDATE clients SET firstname = ?, lastname = ?, fullName = ?, phone = ?, address = ?, dateOfBirth = ?, occupation = ?, clientType = ?, cardType = ?, cardID = ?, quarter = ?, commercial = ?, isLocal = ?, isSync = ?, syncDate = ?, syncHash = ?, latitude = ?, longitude = ?, mll = ?, contactPersonName = ?, contactPersonPhone = ?, contactPersonAddress = ?, code = ?, profilPhoto = ?, creditInProgress = ?, cardPhoto = ?, profilPhotoUrl = ?, cardPhotoUrl = ?, updatedPhotoUrl = ?, tontineCollector = ? WHERE id = ?`;
         const updateParams = [
           localClient.firstname ?? null, localClient.lastname ?? null, localClient.fullName ?? null,
           localClient.phone ?? null, localClient.address ?? null, localClient.dateOfBirth ?? null,
@@ -845,12 +847,13 @@ export class DatabaseService {
           localClient.contactPersonAddress ?? null, localClient.code ?? null, localClient.profilPhoto ?? null,
           localClient.creditInProgress ? 1 : 0, localClient.cardPhoto ?? null, // <-- CORRECTION BOOLEAN
           localClient.profilPhotoUrl ?? null, localClient.cardPhotoUrl ?? null, localClient.updatedPhotoUrl ? 1 : 0,
+          localClient.tontineCollector ?? null,
           clientIdStr
         ];
         clientsToUpdate.push({ statement: sql, values: updateParams });
 
       } else if (!isExisting) {
-        const sql = `INSERT INTO clients (id, firstname, lastname, fullName, phone, address, dateOfBirth, occupation, clientType, cardType, cardID, quarter, commercial, isLocal, isSync, syncDate, syncHash, latitude, longitude, mll, contactPersonName, contactPersonPhone, contactPersonAddress, code, profilPhoto, creditInProgress, cardPhoto, profilPhotoUrl, cardPhotoUrl, updatedPhotoUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const sql = `INSERT INTO clients (id, firstname, lastname, fullName, phone, address, dateOfBirth, occupation, clientType, cardType, cardID, quarter, commercial, isLocal, isSync, syncDate, syncHash, latitude, longitude, mll, contactPersonName, contactPersonPhone, contactPersonAddress, code, profilPhoto, creditInProgress, cardPhoto, profilPhotoUrl, cardPhotoUrl, updatedPhotoUrl, tontineCollector, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const insertParams = [
           clientIdStr, localClient.firstname ?? null, localClient.lastname ?? null, localClient.fullName ?? null,
           localClient.phone ?? null, localClient.address ?? null, localClient.dateOfBirth ?? null,
@@ -861,7 +864,9 @@ export class DatabaseService {
           localClient.mll ?? null, localClient.contactPersonName ?? null, localClient.contactPersonPhone ?? null,
           localClient.contactPersonAddress ?? null, localClient.code ?? null, localClient.profilPhoto ?? null,
           localClient.creditInProgress ? 1 : 0, localClient.cardPhoto ?? null, // <-- CORRECTION BOOLEAN
-          localClient.profilPhotoUrl ?? null, localClient.cardPhotoUrl ?? null, localClient.updatedPhotoUrl ? 1 : 0, localClient.createdAt ?? new Date()
+          localClient.profilPhotoUrl ?? null, localClient.cardPhotoUrl ?? null, localClient.updatedPhotoUrl ? 1 : 0,
+          localClient.tontineCollector ?? null,
+          localClient.createdAt ?? new Date()
         ];
         clientsToInsert.push({ statement: sql, values: insertParams });
       }
@@ -2262,7 +2267,7 @@ export class DatabaseService {
     }
 
     // Generate new syncHash
-    const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress'];
+    const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress', 'tontineCollector'];
     const newSyncHash = this.generateHash(client, keysToInclude);
 
     const sql = `UPDATE clients SET
@@ -2292,7 +2297,8 @@ export class DatabaseService {
       createdAt = ?,
       syncHash = ?,
       code = ?,
-      cardPhoto = ?
+      cardPhoto = ?,
+      tontineCollector = ?
       WHERE id = ?`;
 
     const fullName = `${client.firstname} ${client.lastname}`;
@@ -2325,6 +2331,7 @@ export class DatabaseService {
       newSyncHash, // <-- Use the new hash
       client.code,
       client.cardPhoto,
+      (client as any).tontineCollector ?? null,
       client.id
     ]);
 
@@ -2366,8 +2373,9 @@ export class DatabaseService {
       syncHash: row.syncHash,
       code: row.code,
       cardPhoto: row.cardPhoto,
-      updated: row.updated === 1
-    };
+      updated: row.updated === 1,
+      tontineCollector: row.tontineCollector
+    } as Client;
   }
 
   // ==================== ORDER METHODS ====================

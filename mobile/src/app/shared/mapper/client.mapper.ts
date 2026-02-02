@@ -33,7 +33,8 @@ export class ClientMapper {
       code: clientBackend.code,
       cardPhoto: clientBackend.cardPhoto || clientBackend.iddoc || '',
       profilPhotoUrl: clientBackend.profilPhotoUrl || '',
-      cardPhotoUrl: clientBackend.cardPhotoUrl || ''
+      cardPhotoUrl: clientBackend.cardPhotoUrl || '',
+      tontineCollector: clientBackend.tontineCollector
     };
   }
   static toBackend(clientLocal: Client, base64Photo: string | null): any {
