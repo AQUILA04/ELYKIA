@@ -2108,9 +2108,12 @@ export class DatabaseService {
 
       console.log(`✅ File selected: ${file.name} (${file.size} bytes)`);
 
+      // FilePicker returns data as Base64 when readData is true
+      const content = file.data ? atob(file.data) : '';
+
       return {
         path: file.path || file.name,
-        content: file.data || ''
+        content: content
       };
 
     } catch (error) {
