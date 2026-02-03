@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection, capSQLiteSet } from '@capacitor-community/sqlite';
 import { Account } from 'src/app/models/account.model';
@@ -19,6 +20,8 @@ import { ClientMapper } from '../../shared/mapper/client.mapper';
 import { LoggerService } from './logger.service';
 import { MigrationService } from './migration.service';
 import { User } from '../../models/auth.model';
+import { Preferences } from '@capacitor/preferences';
+
 interface DbRowWithHash {
   id: any;
   syncHash: string;
@@ -30,7 +33,11 @@ export class DatabaseService {
   private sqlite: SQLiteConnection = new SQLiteConnection(CapacitorSQLite);
   private db: SQLiteDBConnection | null = null;
 
-  constructor(private log: LoggerService, private migrationService: MigrationService) { }
+  constructor(
+    private log: LoggerService,
+    private migrationService: MigrationService,
+    private http: HttpClient
+  ) { }
 
   async initializeDatabase(): Promise<void> {
     try {
@@ -47,12 +54,6 @@ export class DatabaseService {
         }
       }
 
-      // NOTE: Le callback onUpgrade n'est pas utilisé dans votre logique actuelle,
-      // ce qui est acceptable car vous gérez la migration manuellement.
-      // const onUpgrade = async (db: SQLiteDBConnection, fromVersion: number, toVersion: number) => {
-      //   await this.migrationService.runMigrations(db, fromVersion, toVersion);
-      // };
-
       this.db = await this.sqlite.createConnection(
         'elykia_mobile_app.db',
         false,
@@ -62,10 +63,13 @@ export class DatabaseService {
       );
       await this.db.open();
 
-      // 1. Créer les tables pour s'assurer qu'elles existent pour les nouveaux utilisateurs
+      // 1. Importer les données du backup SQL au premier démarrage
+      await this.importFromSql();
+
+      // 2. Créer les tables pour s'assurer qu'elles existent pour les nouveaux utilisateurs
       await this.createTables();
 
-      // 2. Exécuter les migrations sur le schéma existant
+      // 3. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
         const targetVersion = 11; // Incremented for tontineCollector update
@@ -83,9 +87,33 @@ export class DatabaseService {
         }
       }
 
-
     } catch (error) {
       console.error('Database initialization error:', error);
+    }
+  }
+
+  private async importFromSql(): Promise<void> {
+    try {
+      const { value } = await Preferences.get({ key: 'db_imported_from_sql' });
+      if (value === 'true') {
+        console.log('SQL data already imported. Skipping.');
+        return;
+      }
+
+      console.log('Starting SQL data import from backup file...');
+      const sqlScript = await this.http.get('/assets/sql/db-backup.sql', { responseType: 'text' }).toPromise();
+
+      if (sqlScript) {
+        // execute() peut gérer un script avec plusieurs commandes
+        const changes = await this.db?.execute(sqlScript);
+        console.log(`SQL script executed. Changes: ${changes?.changes?.changes}`);
+
+        await Preferences.set({ key: 'db_imported_from_sql', value: 'true' });
+        console.log('SQL data import successful.');
+      }
+    } catch (error) {
+      console.error('Error importing data from SQL file:', error);
+      // Ne pas bloquer le démarrage de l'app si l'import échoue
     }
   }
 
