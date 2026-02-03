@@ -28,6 +28,7 @@ import * as TontineActions from '../../store/tontine/tontine.actions';
 import * as CommercialStockActions from '../../store/commercial-stock/commercial-stock.actions';
 import { CommercialStockService } from './commercial-stock.service';
 import { User } from '../../models/auth.model';
+import { RestoreResult } from '../models/restore.models';
 
 @Injectable({
   providedIn: 'root'
@@ -148,23 +149,23 @@ export class DataInitializationService {
   }
 
   initializeCommercialStock(): Observable<boolean> {
-      return this.store.select(selectAuthUser).pipe(
-          take(1),
-          filter((user): user is User => !!user),
-          switchMap(user => {
-              const commercialUsername = user.username;
-              return this.commercialStockService.syncCommercialStock(commercialUsername).pipe(
-                  map(() => {
-                      this.store.dispatch(CommercialStockActions.loadCommercialStock({ commercialUsername }));
-                      return true;
-                  }),
-                  catchError(error => {
-                      console.error('Error initializing commercial stock:', error);
-                      return of(false);
-                  })
-              );
+    return this.store.select(selectAuthUser).pipe(
+      take(1),
+      filter((user): user is User => !!user),
+      switchMap(user => {
+        const commercialUsername = user.username;
+        return this.commercialStockService.syncCommercialStock(commercialUsername).pipe(
+          map(() => {
+            this.store.dispatch(CommercialStockActions.loadCommercialStock({ commercialUsername }));
+            return true;
+          }),
+          catchError(error => {
+            console.error('Error initializing commercial stock:', error);
+            return of(false);
           })
-      );
+        );
+      })
+    );
   }
 
   initializeDistributions(): Observable<boolean> {
@@ -348,7 +349,7 @@ export class DataInitializationService {
 
   }
 
-  async restoreFromBackup(backupFilePath?: string): Promise<void> {
+  async restoreFromBackup(backupFilePath?: string): Promise<RestoreResult> {
     this.log.log('[DataInitializationService] Starting restore from backup...');
 
     let fileToRestore: string | null | undefined = backupFilePath;
@@ -362,8 +363,9 @@ export class DataInitializationService {
     }
 
     this.log.log(`[DataInitializationService] Found backup file: ${fileToRestore}, starting restore.`);
-    await this.dbService.restoreFromBackup(fileToRestore);
-    this.log.log('[DataInitializationService] Restore complete.');
+    const result = await this.dbService.restoreFromBackup(fileToRestore);
+    this.log.log(`[DataInitializationService] Restore complete. Success: ${result.success}, Statements: ${result.successfulStatements}/${result.totalStatements}`);
+    return result;
   }
 
 
