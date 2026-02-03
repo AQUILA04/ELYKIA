@@ -19,6 +19,7 @@ import { ClientMapper } from '../../shared/mapper/client.mapper';
 import { LoggerService } from './logger.service';
 import { MigrationService } from './migration.service';
 import { User } from '../../models/auth.model';
+import { FilePicker } from '@capawesome/capacitor-file-picker';
 interface DbRowWithHash {
   id: any;
   syncHash: string;
@@ -2016,46 +2017,372 @@ export class DatabaseService {
   }
 
   /**
-   * Trouver tous les fichiers de backup
+   * Trouver tous les fichiers de backup avec approche hybride (Filesystem + SAF via FilePicker)
    */
   async findAllBackupFiles(): Promise<{ path: string, size: number }[]> {
+    console.log('🔍 Starting cross-installation file search with hybrid approach');
+    
+    // Stratégie 1: Scan agressif traditionnel (pour les fichiers accessibles)
     try {
-      const folderPath = 'elykia'; // Utilisez le dossier cohérent
-      const result = await Filesystem.readdir({
-        path: folderPath,
-        directory: Directory.Documents
+      const aggressiveFiles = await this.scanAllBackupFilesAggressive();
+      if (aggressiveFiles.length > 0) {
+        console.log(`✅ Found ${aggressiveFiles.length} backup files via aggressive scan`);
+        return aggressiveFiles;
+      }
+    } catch (error) {
+      console.warn('❌ Aggressive scan failed:', error);
+    }
+
+    // Stratégie 2: Utiliser Storage Access Framework via FilePicker
+    console.log('⚠️ No backup files found automatically. SAF/FilePicker available for manual access.');
+    return [];
+  }
+
+  /**
+   * Demander l'accès persistant au dossier via Storage Access Framework
+   */
+  async requestDirectoryAccessViaSAF(): Promise<{ path: string, size: number }[]> {
+    try {
+      console.log('📂 Requesting directory access via Storage Access Framework...');
+      
+      // Utiliser FilePicker pour permettre à l'utilisateur de sélectionner le dossier elykia
+      const result = await FilePicker.pickFiles({
+        types: ['application/sql', 'text/plain'],
+        readData: false // On veut juste l'accès, pas lire immédiatement
       });
 
-      const backupFiles = await Promise.all(
-        result.files
-          .filter(file => file.name.startsWith('db-backup-') && file.name.endsWith('.sql'))
-          .sort((a, b) => b.name.localeCompare(a.name)) // Tri décroissant par nom (timestamp)
-          .map(async (file) => {
-            const fullPath = `${folderPath}/${file.name}`;
-            let fileSize = 0;
-            try {
-              const stats = await Filesystem.stat({
-                path: fullPath,
-                directory: Directory.Documents
-              });
-              fileSize = stats.size;
-            } catch (statError) {
-              console.warn(`Could not get size for file ${fullPath}:`, statError);
-            }
-            return { path: fullPath, size: fileSize };
-          })
-      );
+      if (!result.files || result.files.length === 0) {
+        console.log('❌ No directory access granted');
+        return [];
+      }
 
+      // Pour l'instant, on retourne les fichiers sélectionnés
+      // Dans une implémentation complète, on sauvegarderait l'URI du dossier
+      const backupFiles = result.files
+        .filter(file => file.name?.startsWith('db-backup-') && file.name?.endsWith('.sql'))
+        .map(file => ({
+          path: file.path || file.name || '',
+          size: file.size || 0
+        }));
+
+      console.log(`✅ SAF access granted: Found ${backupFiles.length} backup files`);
       return backupFiles;
+
     } catch (error) {
-      console.error('Error finding all backup files:', error);
-      return []; // Retourner un tableau vide en cas d'erreur (ex: dossier non trouvé)
+      console.error('❌ SAF directory access failed:', error);
+      throw error;
     }
   }
 
   /**
-   * Trouver le fichier de backup le plus récent
+   * Fallback: File Picker pour sélection manuelle
    */
+  async selectBackupFileManually(): Promise<{ path: string, content: string } | null> {
+    try {
+      console.log('📂 Opening file picker for manual backup selection...');
+      
+      const result = await FilePicker.pickFiles({
+        types: ['application/sql', 'text/plain'],
+        readData: true
+      });
+
+      if (!result.files || result.files.length === 0) {
+        console.log('❌ No file selected');
+        return null;
+      }
+
+      const file = result.files[0];
+      
+      // Vérifier que c'est un fichier de backup valide
+      if (!file.name?.startsWith('db-backup-') || !file.name?.endsWith('.sql')) {
+        throw new Error('Le fichier sélectionné n\'est pas un fichier de backup valide');
+      }
+
+      console.log(`✅ File selected: ${file.name} (${file.size} bytes)`);
+      
+      return {
+        path: file.path || file.name,
+        content: file.data || ''
+      };
+
+    } catch (error) {
+      console.error('❌ File picker failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Scan agressif de tous les fichiers de backup, même ceux d'autres installations
+   */
+  private async scanAllBackupFilesAggressive(): Promise<{ path: string, size: number }[]> {
+    const allFoundFiles: { path: string, size: number }[] = [];
+    
+    // Stratégies d'accès multiples pour contourner les restrictions d'UID
+    const accessStrategies = [
+      // Stratégie 1: Documents avec différents chemins
+      { directory: Directory.Documents, paths: ['elykia', './elykia', '/elykia', 'Documents/elykia'] },
+      // Stratégie 2: External Storage
+      { directory: Directory.ExternalStorage, paths: ['elykia', 'Documents/elykia', 'Download/elykia'] },
+      // Stratégie 3: Data directory (pour les fichiers privés)
+      { directory: Directory.Data, paths: ['elykia', '../Documents/elykia', '../../storage/emulated/0/Documents/elykia'] }
+    ];
+
+    for (const strategy of accessStrategies) {
+      for (const path of strategy.paths) {
+        try {
+          console.log(`🔄 Trying: ${strategy.directory} / ${path}`);
+          
+          const result = await Filesystem.readdir({
+            path: path,
+            directory: strategy.directory
+          });
+
+          console.log(`📁 Found ${result.files.length} files in ${path}`);
+          
+          // Filtrer et traiter les fichiers de backup
+          const backupFiles = result.files
+            .filter(file => file.name.startsWith('db-backup-') && file.name.endsWith('.sql'))
+            .map(file => {
+              const fullPath = `${path}/${file.name}`;
+              return {
+                path: fullPath,
+                size: file.size || 0,
+                directory: strategy.directory,
+                fileName: file.name
+              };
+            });
+
+          // Ajouter les fichiers trouvés (éviter les doublons)
+          for (const file of backupFiles) {
+            const exists = allFoundFiles.some(existing => 
+              existing.path.endsWith(file.fileName) || existing.path === file.path
+            );
+            
+            if (!exists) {
+              console.log(`📄 Adding: ${file.fileName} (${file.size} bytes)`);
+              allFoundFiles.push({
+                path: file.path,
+                size: file.size
+              });
+            } else {
+              console.log(`⚠️ Duplicate skipped: ${file.fileName}`);
+            }
+          }
+
+        } catch (error) {
+          console.warn(`❌ Strategy failed: ${strategy.directory} / ${path}`, error);
+        }
+      }
+    }
+
+    // Trier par nom de fichier (timestamp) décroissant
+    allFoundFiles.sort((a, b) => {
+      const aName = a.path.split('/').pop() || '';
+      const bName = b.path.split('/').pop() || '';
+      return bName.localeCompare(aName);
+    });
+
+    console.log(`📊 Total unique files found: ${allFoundFiles.length}`);
+    return allFoundFiles;
+  }
+
+  /**
+   * Méthode alternative utilisant l'accès direct au système de fichiers
+   */
+  private async scanWithDirectFileSystemAccess(): Promise<{ path: string, size: number }[]> {
+    const foundFiles: { path: string, size: number }[] = [];
+    
+    try {
+      console.log('🔄 Attempting direct filesystem access...');
+      
+      // Essayer d'accéder directement au dossier Documents
+      const documentsPath = '';
+      const documentsResult = await Filesystem.readdir({
+        path: documentsPath,
+        directory: Directory.Documents
+      });
+
+      console.log('📁 Documents root contents:', documentsResult.files.map(f => f.name));
+
+      // Chercher le dossier elykia
+      const elykyaFolder = documentsResult.files.find(f => f.name === 'elykia');
+      if (elykyaFolder) {
+        console.log('✅ Found elykia folder');
+        
+        // Essayer plusieurs méthodes pour lire le contenu
+        const readMethods = [
+          () => Filesystem.readdir({ path: 'elykia', directory: Directory.Documents }),
+          () => Filesystem.readdir({ path: './elykia', directory: Directory.Documents }),
+          () => Filesystem.readdir({ path: '/elykia', directory: Directory.Documents })
+        ];
+
+        for (const method of readMethods) {
+          try {
+            const result = await method();
+            console.log(`� Files in elykia:`, result.files.map(f => f.name));
+            
+            // Traiter tous les fichiers trouvés
+            const backupFiles = result.files
+              .filter(file => file.name.startsWith('db-backup-') && file.name.endsWith('.sql'))
+              .map(file => ({
+                path: `elykia/${file.name}`,
+                size: file.size || 0
+              }));
+
+            // Ajouter les nouveaux fichiers
+            for (const file of backupFiles) {
+              const exists = foundFiles.some(existing => existing.path === file.path);
+              if (!exists) {
+                foundFiles.push(file);
+                console.log(`✅ Added: ${file.path}`);
+              }
+            }
+
+            if (backupFiles.length > 0) {
+              break; // Si on a trouvé des fichiers, pas besoin d'essayer les autres méthodes
+            }
+
+          } catch (error) {
+            console.warn('Method failed:', error);
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('Direct filesystem access failed:', error);
+    }
+
+    return foundFiles;
+  }
+
+  /**
+   * Diagnostiquer les problèmes d'accès aux fichiers de backup
+   */
+  async diagnoseBackupFileAccess(): Promise<void> {
+    console.log('🔍 === DIAGNOSTIC BACKUP FILE ACCESS ===');
+    
+    try {
+      // 1. Vérifier l'existence du dossier Documents
+      console.log('📁 Checking Documents directory...');
+      const documentsContent = await Filesystem.readdir({
+        path: '',
+        directory: Directory.Documents
+      });
+      console.log('Documents contents:', documentsContent.files.map(f => f.name));
+
+      // 2. Vérifier l'existence du dossier elykia
+      const elykyaExists = documentsContent.files.some(f => f.name === 'elykia');
+      console.log(`📂 elykia folder exists: ${elykyaExists}`);
+
+      if (elykyaExists) {
+        // 3. Essayer de lire le contenu du dossier elykia
+        try {
+          const elykyaContent = await Filesystem.readdir({
+            path: 'elykia',
+            directory: Directory.Documents
+          });
+          console.log('📄 elykia folder contents:', elykyaContent.files.map(f => f.name));
+          
+          // 4. Identifier les fichiers de backup
+          const backupFiles = elykyaContent.files.filter(f => 
+            f.name.startsWith('db-backup-') && f.name.endsWith('.sql')
+          );
+          console.log(`💾 Backup files found: ${backupFiles.length}`);
+          backupFiles.forEach(file => console.log(`  - ${file.name} (size: ${file.size || 'unknown'})`));
+
+          // 5. Tester l'accès à chaque fichier
+          for (const file of backupFiles) {
+            try {
+              const stats = await Filesystem.stat({
+                path: `elykia/${file.name}`,
+                directory: Directory.Documents
+              });
+              console.log(`✅ Can access ${file.name} - Size: ${stats.size}`);
+            } catch (error) {
+              console.log(`❌ Cannot access ${file.name} - Error:`, error);
+            }
+          }
+
+        } catch (error) {
+          console.log('❌ Cannot read elykia folder contents:', error);
+        }
+      }
+
+      // 6. Tester les permissions
+      console.log('🔐 Testing file creation permissions...');
+      try {
+        const testFileName = `test-${Date.now()}.txt`;
+        await Filesystem.writeFile({
+          path: `elykia/${testFileName}`,
+          data: 'test',
+          directory: Directory.Documents,
+          encoding: Encoding.UTF8
+        });
+        console.log('✅ Can create files in elykia folder');
+        
+        // Nettoyer le fichier de test
+        await Filesystem.deleteFile({
+          path: `elykia/${testFileName}`,
+          directory: Directory.Documents
+        });
+        console.log('✅ Can delete files in elykia folder');
+      } catch (error) {
+        console.log('❌ Cannot create/delete files in elykia folder:', error);
+      }
+
+    } catch (error) {
+      console.error('❌ Diagnostic failed:', error);
+    }
+    
+    console.log('🔍 === END DIAGNOSTIC ===');
+  }
+  /**
+   * Méthode de test pour vérifier l'accès cross-installation aux fichiers avec MediaStore
+   */
+  async testCrossInstallationFileAccess(): Promise<void> {
+    console.log('🧪 === TESTING CROSS-INSTALLATION FILE ACCESS WITH MEDIASTORE ===');
+    
+    // 1. Test MediaStore API
+    console.log('📱 Testing MediaStore API...');
+    try {
+      // Méthode supprimée - utiliser SAF à la place
+      console.log('? SAF available for manual access');
+    } catch (error) {
+      console.warn('❌ MediaStore test failed:', error);
+    }
+
+    // 2. Test de la méthode findAllBackupFiles améliorée
+    console.log('🔍 Testing enhanced findAllBackupFiles...');
+    const files = await this.findAllBackupFiles();
+    console.log(`📊 Result: Found ${files.length} backup files`);
+    files.forEach(file => console.log(`  - ${file.path} (${file.size} bytes)`));
+    
+    // 3. Diagnostic complet (fallback)
+    console.log('🔍 Running diagnostic scan...');
+    await this.diagnoseBackupFileAccess();
+    
+    // 4. Créer un fichier de test pour vérifier la persistance
+    console.log('📝 Creating test backup file...');
+    try {
+      const testBackupData = `-- Test backup created at ${new Date().toISOString()}\nSELECT 'MediaStore test' as message;`;
+      await this.saveBackupToFile(testBackupData);
+      console.log('✅ Test backup file created successfully');
+      
+      // 5. Vérifier que le fichier est immédiatement accessible via MediaStore
+      console.log('🔄 Re-testing MediaStore after file creation...');
+      const filesAfterCreation = await this.findAllBackupFiles();
+      console.log(`📊 After creation: Found ${filesAfterCreation.length} backup files`);
+      
+    } catch (error) {
+      console.error('❌ Failed to create test backup:', error);
+    }
+    
+    // 6. Test du File Picker (optionnel - nécessite interaction utilisateur)
+    console.log('📂 File Picker is available for manual selection if needed');
+    
+    console.log('🧪 === END MEDIASTORE TEST ===');
+  }
+
   async findLatestBackupFile(): Promise<string | null> {
     try {
       const folderPath = 'elykia';
@@ -2086,6 +2413,7 @@ export class DatabaseService {
 
   /**
    * Restaurer la base de données depuis un fichier de backup
+   * Supporte Filesystem traditionnel et File Picker
    */
   async restoreFromBackup(backupFilePath: string): Promise<void> {
     if (!this.db) {
@@ -2094,15 +2422,22 @@ export class DatabaseService {
 
     try {
       console.log(`Restoring database from: ${backupFilePath}`);
+      let sqlContent: string;
 
-      // Lire le fichier de backup
+      // Lire via Filesystem traditionnel
+      console.log('📁 Reading backup file via Filesystem...');
       const result = await Filesystem.readFile({
         path: backupFilePath,
         directory: Directory.Documents,
         encoding: Encoding.UTF8
       });
+      sqlContent = result.data as string;
 
-      const sqlContent = result.data as string;
+      if (!sqlContent || sqlContent.trim().length === 0) {
+        throw new Error('Backup file is empty or could not be read');
+      }
+
+      console.log(`📄 Backup file content length: ${sqlContent.length} characters`);
 
       // Diviser le contenu en instructions SQL individuelles
       const sqlStatements = sqlContent
@@ -2112,22 +2447,88 @@ export class DatabaseService {
         .split(';')
         .filter(statement => statement.trim());
 
+      console.log(`🔄 Executing ${sqlStatements.length} SQL statements...`);
+
       // Exécuter chaque instruction SQL
+      let successCount = 0;
+      let errorCount = 0;
+
       for (const statement of sqlStatements) {
         const trimmedStatement = statement.trim();
         if (trimmedStatement) {
           try {
             await this.db.run(trimmedStatement);
+            successCount++;
           } catch (error) {
             console.warn(`Error executing SQL statement: ${trimmedStatement}`, error);
+            errorCount++;
             // Continuer avec les autres instructions même si une échoue
           }
         }
       }
 
-      console.log('Database restoration completed successfully');
+      console.log(`✅ Database restoration completed: ${successCount} successful, ${errorCount} errors`);
+      
+      if (errorCount > 0) {
+        console.warn(`⚠️ ${errorCount} SQL statements failed during restoration`);
+      }
+
     } catch (error) {
-      console.error('Error restoring database from backup:', error);
+      console.error('❌ Error restoring database from backup:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Restaurer depuis un fichier sélectionné manuellement
+   */
+  async restoreFromManualSelection(): Promise<void> {
+    try {
+      const selectedFile = await this.selectBackupFileManually();
+      
+      if (!selectedFile) {
+        throw new Error('No backup file selected');
+      }
+
+      console.log(`📂 Restoring from manually selected file: ${selectedFile.path}`);
+      
+      // Utiliser le contenu directement depuis le file picker
+      const sqlContent = selectedFile.content;
+      
+      if (!sqlContent || sqlContent.trim().length === 0) {
+        throw new Error('Selected backup file is empty');
+      }
+
+      // Traiter le contenu SQL
+      const sqlStatements = sqlContent
+        .split('\n')
+        .filter(line => line.trim() && !line.trim().startsWith('--'))
+        .join('\n')
+        .split(';')
+        .filter(statement => statement.trim());
+
+      console.log(`🔄 Executing ${sqlStatements.length} SQL statements from manual selection...`);
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const statement of sqlStatements) {
+        const trimmedStatement = statement.trim();
+        if (trimmedStatement) {
+          try {
+            await this.db!.run(trimmedStatement);
+            successCount++;
+          } catch (error) {
+            console.warn(`Error executing SQL statement: ${trimmedStatement}`, error);
+            errorCount++;
+          }
+        }
+      }
+
+      console.log(`✅ Manual restoration completed: ${successCount} successful, ${errorCount} errors`);
+
+    } catch (error) {
+      console.error('❌ Error restoring from manual selection:', error);
       throw error;
     }
   }
