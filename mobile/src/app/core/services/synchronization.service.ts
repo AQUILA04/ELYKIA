@@ -885,8 +885,8 @@ export class SynchronizationService {
 
       const result = await this.databaseService.query(
         `
-        SELECT a.* FROM accounts a 
-        JOIN clients c ON a.clientId = c.id 
+        SELECT a.* FROM accounts a
+        JOIN clients c ON a.clientId = c.id
         WHERE a.isSync = 0 AND a.isLocal = 1 AND c.commercial = ?
       `,
         [user.username]
@@ -905,8 +905,8 @@ export class SynchronizationService {
 
       const result = await this.databaseService.query(
         `
-        SELECT a.* FROM accounts a 
-        JOIN clients c ON a.clientId = c.id 
+        SELECT a.* FROM accounts a
+        JOIN clients c ON a.clientId = c.id
         WHERE a.updated = 1 AND c.commercial = ?
       `,
         [user.username]
@@ -1002,6 +1002,8 @@ export class SynchronizationService {
       cardID: client.cardID || '',
       cardType: client.cardType || '',
       collector: client.commercial || '',
+      tontineCollector: client.commercial || '',
+      agencyCollector: 'COM001',
       dateOfBirth: client.dateOfBirth || '',
       firstname: client.firstname || '',
       lastname: client.lastname || '',

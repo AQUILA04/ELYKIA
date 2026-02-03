@@ -113,6 +113,8 @@ export interface ClientSyncRequest {
   code: string;
   profilPhotoUrl: string;
   cardPhotoUrl: string;
+  tontineCollector: string;
+  agencyCollector?: string;
 }
 
 export interface AccountSyncRequest {
