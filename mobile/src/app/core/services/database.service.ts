@@ -1904,7 +1904,8 @@ export class DatabaseService {
       const tables = [
         'users', 'commercials', 'articles', 'localities', 'clients',
         'accounts', 'stock_outputs', 'stock_output_items', 'distributions',
-        'distribution_items', 'recoveries', 'sync_logs', 'daily_reports', 'transactions'
+        'distribution_items', 'recoveries', 'sync_logs', 'daily_reports', 'transactions',
+        'id_mappings', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'tontine_stocks'
       ];
 
       for (const tableName of tables) {
