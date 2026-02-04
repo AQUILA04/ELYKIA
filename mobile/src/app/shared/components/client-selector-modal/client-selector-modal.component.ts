@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, Input } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { Observable, Subject, BehaviorSubject, combineLatest } from 'rxjs';
 import { takeUntil, map, startWith, distinctUntilChanged, switchMap, filter } from 'rxjs/operators';
@@ -25,6 +25,8 @@ interface ClientSelectorViewModel {
   standalone: false
 })
 export class ClientSelectorModalComponent implements OnInit, OnDestroy {
+  @Input() filterByTontineCollector: string | null = null;
+
   private destroy$ = new Subject<void>();
   private searchSubject = new BehaviorSubject<string>('');
 
@@ -48,7 +50,13 @@ export class ClientSelectorModalComponent implements OnInit, OnDestroy {
 
     const clients$ = this.store.select(selectAuthUser).pipe(
       filter((user: User | null): user is User => !!user),
-      switchMap(user => this.store.select(selectClientsByCommercialUsername(user.username)))
+      switchMap(user => this.store.select(selectClientsByCommercialUsername(user.username))),
+      map(clients => {
+        if (this.filterByTontineCollector) {
+          return clients.filter(client => client.tontineCollector === this.filterByTontineCollector);
+        }
+        return clients;
+      })
     );
 
     const search$ = this.searchSubject.asObservable().pipe(

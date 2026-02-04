@@ -162,16 +162,32 @@ export class RecoveryEffects {
 
             console.log('[EFFECT] processRecovery$: Dispatching actions', { newTransaction, newPaidAmount, newRemainingAmount });
 
-            // Retourne toutes les actions nécessaires pour mettre l'état à jour
-            return [
-              RecoveryActions.createRecoverySuccess({ recovery: createdRecovery }),
-              TransactionActions.addTransaction({ transaction: newTransaction }),
-              DistributionActions.updateDistributionAmounts({
-                distributionId: createdRecovery.distributionId,
-                paidAmount: newPaidAmount,
-                remainingAmount: newRemainingAmount,
-              }),
-            ];
+            // Vérifier s'il reste d'autres crédits actifs pour ce client
+            return from(this.recoveryService.getClientActiveCredits(createdRecovery.clientId)).pipe(
+              switchMap(activeCredits => {
+                // On filtre pour exclure la distribution actuelle si elle est soldée
+                const remainingCredits = activeCredits.filter(c => c.id !== createdRecovery.distributionId || newRemainingAmount > 0);
+                const hasActiveCredits = remainingCredits.length > 0;
+
+                const actions: any[] = [
+                  RecoveryActions.createRecoverySuccess({ recovery: createdRecovery }),
+                  TransactionActions.addTransaction({ transaction: newTransaction }),
+                  DistributionActions.updateDistributionAmounts({
+                    distributionId: createdRecovery.distributionId,
+                    paidAmount: newPaidAmount,
+                    remainingAmount: newRemainingAmount,
+                  }),
+                ];
+
+                if (!hasActiveCredits) {
+                  actions.push(ClientActions.updateClientCreditStatus({ clientId: createdRecovery.clientId, creditInProgress: false }));
+                } else {
+                  actions.push(ClientActions.loadClientViewsUpdate());
+                }
+
+                return actions;
+              })
+            );
           }),
           catchError(error => {
             console.error('[EFFECT] processRecovery$: Error inside switchMap', error);

@@ -27,7 +27,8 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     { text: "Récupération des commerciaux...", method: () => this.dataInitService.initializeCommercial() },
     { text: "Récupération des localités...", method: () => this.dataInitService.initializeLocalities() },
     { text: "Récupération des clients...", method: () => this.dataInitService.initializeClients() },
-    { text: "Récupération du sorties d'articles...", method: () => this.dataInitService.initializeStockOutputs() },
+    // { text: "Récupération du sorties d'articles...", method: () => this.dataInitService.initializeStockOutputs() }, // Deprecated
+    { text: "Récupération du stock commercial...", method: () => this.dataInitService.initializeCommercialStock() }, // New step
     { text: "Récupération des distributions...", method: () => this.dataInitService.initializeDistributions() },
     { text: "Récupération des comptes client...", method: () => this.dataInitService.initializeAccounts() },
     { text: "Récupération des tontines...", method: () => this.dataInitService.initializeTontine() },

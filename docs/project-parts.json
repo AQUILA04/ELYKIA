@@ -1,0 +1,40 @@
+{
+  "repository_type": "monorepo",
+  "parts": [
+    {
+      "id": "backend",
+      "name": "Backend Service",
+      "type": "backend",
+      "root_path": "backend/",
+      "tech_stack": "Spring Boot, Java"
+    },
+    {
+      "id": "frontend",
+      "name": "Web Frontend",
+      "type": "web",
+      "root_path": "frontend/",
+      "tech_stack": "Angular, TypeScript"
+    },
+    {
+      "id": "mobile",
+      "name": "Mobile App",
+      "type": "mobile",
+      "root_path": "mobile/",
+      "tech_stack": "Ionic, Angular, Capacitor"
+    }
+  ],
+  "integration_points": [
+    {
+      "from": "frontend",
+      "to": "backend",
+      "type": "REST API",
+      "details": "HTTPS JSON"
+    },
+    {
+      "from": "mobile",
+      "to": "backend",
+      "type": "REST API",
+      "details": "HTTPS JSON with Offline Sync"
+    }
+  ]
+}

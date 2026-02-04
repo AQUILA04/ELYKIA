@@ -111,11 +111,11 @@ export class RecoveryPage implements OnInit, OnDestroy {
         // Recharger toutes les données nécessaires
         this.store.dispatch(RecoveryActions.showRecoverySummary({ recovery, client: vm.client, distribution: vm.selectedCredit }));
         this.store.dispatch(RecoveryActions.loadRecoveries({ commercialUsername: user.username }));
-        this.store.dispatch(ClientActions.loadClientViewsUpdate());
-        
+        // this.store.dispatch(ClientActions.loadClientViewsUpdate()); // Géré par RecoveryEffects
+
         // Recharger les distributions pour mettre à jour les KPIs du dashboard
         this.store.dispatch({ type: '[Distribution] Load Distributions', payload: { commercialUsername: user.username } });
-        
+
         // Forcer la mise à jour de la vue
         this.cdr.markForCheck();
       }

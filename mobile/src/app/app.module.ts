@@ -37,6 +37,8 @@ import { syncReducer } from './store/sync/sync.reducer';
 import { SyncEffects } from './store/sync/sync.effects';
 import { reducer as tontineReducer } from './store/tontine/tontine.reducer';
 import { TontineEffects } from './store/tontine/tontine.effects';
+import { commercialStockReducer } from './store/commercial-stock/commercial-stock.reducer';
+import { CommercialStockEffects } from './store/commercial-stock/commercial-stock.effects';
 import { DataInitializationService } from './core/services/data-initialization.service';
 import { DatabaseService } from './core/services/database.service';
 import { Drivers, Storage } from '@ionic/storage';
@@ -44,6 +46,7 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import localeFrExtra from '@angular/common/locales/extra/fr';
 import { TimeoutInterceptor } from './core/interceptors/timeout.interceptor';
+import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { metaReducers } from './store/meta-reducers';
 
 function initializeDatabase(databaseService: DatabaseService) {
@@ -65,8 +68,8 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
       ]
     }),
     AppRoutingModule,
-    StoreModule.forRoot({ auth: authReducer, client: clientReducer, article: articleReducer, commercial: commercialReducer, stockOutput: stockOutputReducer, distribution: distributionReducer, account: accountReducer, healthCheck: healthCheckReducer, recovery: recoveryReducer, transaction: transactionReducer, sync: syncReducer, tontine: tontineReducer }, { metaReducers }),
-    EffectsModule.forRoot([AuthEffects, ClientEffects, ArticleEffects, CommercialEffects, StockOutputEffects, DistributionEffects, AccountEffects, HealthCheckEffects, RecoveryEffects, TransactionEffects, SyncEffects, TontineEffects]),
+    StoreModule.forRoot({ auth: authReducer, client: clientReducer, article: articleReducer, commercial: commercialReducer, stockOutput: stockOutputReducer, distribution: distributionReducer, account: accountReducer, healthCheck: healthCheckReducer, recovery: recoveryReducer, transaction: transactionReducer, sync: syncReducer, tontine: tontineReducer, commercialStock: commercialStockReducer }, { metaReducers }),
+    EffectsModule.forRoot([AuthEffects, ClientEffects, ArticleEffects, CommercialEffects, StockOutputEffects, DistributionEffects, AccountEffects, HealthCheckEffects, RecoveryEffects, TransactionEffects, SyncEffects, TontineEffects, CommercialStockEffects]),
     StoreDevtoolsModule.instrument({
       maxAge: 25,
       logOnly: !isDevMode(),
@@ -86,6 +89,11 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
     {
       provide: HTTP_INTERCEPTORS,
       useClass: TimeoutInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
       multi: true,
     },
   ],

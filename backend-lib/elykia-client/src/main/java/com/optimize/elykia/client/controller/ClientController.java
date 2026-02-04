@@ -71,8 +71,11 @@ public class ClientController {
     }
 
     @GetMapping
-    public ResponseEntity<Response> getAll(Pageable pageable, @RequestParam(required = false) String username, @RequestParam(required = false) Boolean tontine) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getAll(username, tontine, pageable)), HttpStatus.OK);
+    public ResponseEntity<Response> getAll(Pageable pageable,
+                                           @RequestParam(required = false) String username,
+                                           @RequestParam(required = false) Boolean tontine,
+                                           @RequestParam(required = false) Boolean mobile) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getAll(username, tontine, mobile, pageable)), HttpStatus.OK);
     }
 
     @GetMapping(value = "all")

@@ -34,4 +34,5 @@ export interface Client {
   profilPhotoUrl?: string;
   cardPhotoUrl?: string;
   updatedPhotoUrl?: boolean;
+  tontineCollector?: string;
 }

@@ -19,6 +19,11 @@ import { ClientMapper } from '../../shared/mapper/client.mapper';
 import { LoggerService } from './logger.service';
 import { MigrationService } from './migration.service';
 import { User } from '../../models/auth.model';
+import { FilePicker } from '@capawesome/capacitor-file-picker';
+import { RestoreMonitor, TransactionManager, DataIntegrityValidator, RestoreException } from './restore-utils';
+import { RestoreResult, SqlStatement, TableCounts, RestoreError } from '../models/restore.models';
+import { RestoreValidator } from './restore-validator.service';
+
 interface DbRowWithHash {
   id: any;
   syncHash: string;
@@ -30,7 +35,11 @@ export class DatabaseService {
   private sqlite: SQLiteConnection = new SQLiteConnection(CapacitorSQLite);
   private db: SQLiteDBConnection | null = null;
 
-  constructor(private log: LoggerService, private migrationService: MigrationService) { }
+  constructor(
+    private log: LoggerService,
+    private migrationService: MigrationService,
+    private restoreValidator: RestoreValidator
+  ) { }
 
   async initializeDatabase(): Promise<void> {
     try {
@@ -68,7 +77,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 8;
+        const targetVersion = 11; // Incremented for tontineCollector update
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -87,6 +96,13 @@ export class DatabaseService {
     } catch (error) {
       console.error('Database initialization error:', error);
     }
+  }
+
+  async executeSql(sql: string, params: any[] = []): Promise<any> {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+    return await this.db.run(sql, params);
   }
 
   private generateHash(data: any, keysToInclude: string[]): string {
@@ -144,6 +160,21 @@ export class DatabaseService {
             syncHash TEXT
         );
 
+        -- Table des stocks commerciaux (NOUVEAU)
+        CREATE TABLE IF NOT EXISTS commercial_stock_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            articleId TEXT NOT NULL,
+            quantityRemaining INTEGER NOT NULL,
+            quantityTaken INTEGER DEFAULT 0,
+            quantitySold INTEGER DEFAULT 0,
+            quantityReturned INTEGER DEFAULT 0,
+            commercialUsername TEXT NOT NULL,
+            month INTEGER,
+            year INTEGER,
+            updatedAt DATETIME,
+            FOREIGN KEY(articleId) REFERENCES articles(id)
+        );
+
         -- Table des localités
         CREATE TABLE IF NOT EXISTS localities (
             id TEXT PRIMARY KEY,
@@ -191,7 +222,8 @@ export class DatabaseService {
             cardPhoto TEXT,
             profilPhotoUrl TEXT,
             cardPhotoUrl TEXT,
-            updatedPhotoUrl BOOLEAN DEFAULT 0
+            updatedPhotoUrl BOOLEAN DEFAULT 0,
+            tontineCollector TEXT
         );
 
         -- Table des comptes clients
@@ -391,6 +423,7 @@ export class DatabaseService {
         CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
         CREATE INDEX IF NOT EXISTS idx_order_items_orderId ON order_items(orderId);
         CREATE INDEX IF NOT EXISTS idx_order_items_articleId ON order_items(articleId);
+        CREATE INDEX IF NOT EXISTS idx_clients_tontineCollector ON clients(tontineCollector);
 
         -- ==========================================
         -- TABLES TONTINE
@@ -511,7 +544,7 @@ export class DatabaseService {
 
   private async verifyTables(): Promise<void> {
     try {
-      const expectedTables = ['users', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items'];
+      const expectedTables = ['users', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items'];
       const result = await this.db?.query(`SELECT name FROM sqlite_master WHERE type='table'`);
       const existingTables = result?.values?.map(row => row.name) || [];
       const missingTables = expectedTables.filter(table => !existingTables.includes(table));
@@ -791,7 +824,7 @@ export class DatabaseService {
     }
 
     // L'étape de préparation des données est correcte, nous la gardons
-    const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress', 'profilPhotoUrl', 'cardPhotoUrl'];
+    const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress', 'profilPhotoUrl', 'cardPhotoUrl', 'tontineCollector'];
     const existingRows = await this.db.query('SELECT id, syncHash FROM clients');
     const existingClientMap = new Map<string, string>(
       existingRows.values?.map(row => [String(row.id), row.syncHash]) ?? []
@@ -811,7 +844,7 @@ export class DatabaseService {
       const needsUpdate = isExisting && existingClientMap.has(clientIdStr) && existingClientMap.get(clientIdStr) !== newHash;
 
       if (needsUpdate) {
-        const sql = `UPDATE clients SET firstname = ?, lastname = ?, fullName = ?, phone = ?, address = ?, dateOfBirth = ?, occupation = ?, clientType = ?, cardType = ?, cardID = ?, quarter = ?, commercial = ?, isLocal = ?, isSync = ?, syncDate = ?, syncHash = ?, latitude = ?, longitude = ?, mll = ?, contactPersonName = ?, contactPersonPhone = ?, contactPersonAddress = ?, code = ?, profilPhoto = ?, creditInProgress = ?, cardPhoto = ?, profilPhotoUrl = ?, cardPhotoUrl = ?, updatedPhotoUrl = ? WHERE id = ?`;
+        const sql = `UPDATE clients SET firstname = ?, lastname = ?, fullName = ?, phone = ?, address = ?, dateOfBirth = ?, occupation = ?, clientType = ?, cardType = ?, cardID = ?, quarter = ?, commercial = ?, isLocal = ?, isSync = ?, syncDate = ?, syncHash = ?, latitude = ?, longitude = ?, mll = ?, contactPersonName = ?, contactPersonPhone = ?, contactPersonAddress = ?, code = ?, profilPhoto = ?, creditInProgress = ?, cardPhoto = ?, profilPhotoUrl = ?, cardPhotoUrl = ?, updatedPhotoUrl = ?, tontineCollector = ? WHERE id = ?`;
         const updateParams = [
           localClient.firstname ?? null, localClient.lastname ?? null, localClient.fullName ?? null,
           localClient.phone ?? null, localClient.address ?? null, localClient.dateOfBirth ?? null,
@@ -823,12 +856,13 @@ export class DatabaseService {
           localClient.contactPersonAddress ?? null, localClient.code ?? null, localClient.profilPhoto ?? null,
           localClient.creditInProgress ? 1 : 0, localClient.cardPhoto ?? null, // <-- CORRECTION BOOLEAN
           localClient.profilPhotoUrl ?? null, localClient.cardPhotoUrl ?? null, localClient.updatedPhotoUrl ? 1 : 0,
+          localClient.tontineCollector ?? null,
           clientIdStr
         ];
         clientsToUpdate.push({ statement: sql, values: updateParams });
 
       } else if (!isExisting) {
-        const sql = `INSERT INTO clients (id, firstname, lastname, fullName, phone, address, dateOfBirth, occupation, clientType, cardType, cardID, quarter, commercial, isLocal, isSync, syncDate, syncHash, latitude, longitude, mll, contactPersonName, contactPersonPhone, contactPersonAddress, code, profilPhoto, creditInProgress, cardPhoto, profilPhotoUrl, cardPhotoUrl, updatedPhotoUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const sql = `INSERT INTO clients (id, firstname, lastname, fullName, phone, address, dateOfBirth, occupation, clientType, cardType, cardID, quarter, commercial, isLocal, isSync, syncDate, syncHash, latitude, longitude, mll, contactPersonName, contactPersonPhone, contactPersonAddress, code, profilPhoto, creditInProgress, cardPhoto, profilPhotoUrl, cardPhotoUrl, updatedPhotoUrl, tontineCollector, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const insertParams = [
           clientIdStr, localClient.firstname ?? null, localClient.lastname ?? null, localClient.fullName ?? null,
           localClient.phone ?? null, localClient.address ?? null, localClient.dateOfBirth ?? null,
@@ -839,7 +873,9 @@ export class DatabaseService {
           localClient.mll ?? null, localClient.contactPersonName ?? null, localClient.contactPersonPhone ?? null,
           localClient.contactPersonAddress ?? null, localClient.code ?? null, localClient.profilPhoto ?? null,
           localClient.creditInProgress ? 1 : 0, localClient.cardPhoto ?? null, // <-- CORRECTION BOOLEAN
-          localClient.profilPhotoUrl ?? null, localClient.cardPhotoUrl ?? null, localClient.updatedPhotoUrl ? 1 : 0, localClient.createdAt ?? new Date()
+          localClient.profilPhotoUrl ?? null, localClient.cardPhotoUrl ?? null, localClient.updatedPhotoUrl ? 1 : 0,
+          localClient.tontineCollector ?? null,
+          localClient.createdAt ?? new Date()
         ];
         clientsToInsert.push({ statement: sql, values: insertParams });
       }
@@ -1877,7 +1913,8 @@ export class DatabaseService {
       const tables = [
         'users', 'commercials', 'articles', 'localities', 'clients',
         'accounts', 'stock_outputs', 'stock_output_items', 'distributions',
-        'distribution_items', 'recoveries', 'sync_logs', 'daily_reports', 'transactions'
+        'distribution_items', 'recoveries', 'sync_logs', 'daily_reports', 'transactions',
+        'id_mappings', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'tontine_stocks'
       ];
 
       for (const tableName of tables) {
@@ -1988,46 +2025,375 @@ export class DatabaseService {
   }
 
   /**
-   * Trouver tous les fichiers de backup
+   * Trouver tous les fichiers de backup avec approche hybride (Filesystem + SAF via FilePicker)
    */
   async findAllBackupFiles(): Promise<{ path: string, size: number }[]> {
+    console.log('🔍 Starting cross-installation file search with hybrid approach');
+
+    // Stratégie 1: Scan agressif traditionnel (pour les fichiers accessibles)
     try {
-      const folderPath = 'elykia'; // Utilisez le dossier cohérent
-      const result = await Filesystem.readdir({
-        path: folderPath,
-        directory: Directory.Documents
+      const aggressiveFiles = await this.scanAllBackupFilesAggressive();
+      if (aggressiveFiles.length > 0) {
+        console.log(`✅ Found ${aggressiveFiles.length} backup files via aggressive scan`);
+        return aggressiveFiles;
+      }
+    } catch (error) {
+      console.warn('❌ Aggressive scan failed:', error);
+    }
+
+    // Stratégie 2: Utiliser Storage Access Framework via FilePicker
+    console.log('⚠️ No backup files found automatically. SAF/FilePicker available for manual access.');
+    return [];
+  }
+
+  /**
+   * Demander l'accès persistant au dossier via Storage Access Framework
+   */
+  async requestDirectoryAccessViaSAF(): Promise<{ path: string, size: number }[]> {
+    try {
+      console.log('📂 Requesting directory access via Storage Access Framework...');
+
+      // Utiliser FilePicker pour permettre à l'utilisateur de sélectionner le dossier elykia
+      const result = await FilePicker.pickFiles({
+        types: ['application/sql', 'text/plain'],
+        readData: false // On veut juste l'accès, pas lire immédiatement
       });
 
-      const backupFiles = await Promise.all(
-        result.files
-          .filter(file => file.name.startsWith('db-backup-') && file.name.endsWith('.sql'))
-          .sort((a, b) => b.name.localeCompare(a.name)) // Tri décroissant par nom (timestamp)
-          .map(async (file) => {
-            const fullPath = `${folderPath}/${file.name}`;
-            let fileSize = 0;
-            try {
-              const stats = await Filesystem.stat({
-                path: fullPath,
-                directory: Directory.Documents
-              });
-              fileSize = stats.size;
-            } catch (statError) {
-              console.warn(`Could not get size for file ${fullPath}:`, statError);
-            }
-            return { path: fullPath, size: fileSize };
-          })
-      );
+      if (!result.files || result.files.length === 0) {
+        console.log('❌ No directory access granted');
+        return [];
+      }
 
+      // Pour l'instant, on retourne les fichiers sélectionnés
+      // Dans une implémentation complète, on sauvegarderait l'URI du dossier
+      const backupFiles = result.files
+        .filter(file => file.name?.startsWith('db-backup-') && file.name?.endsWith('.sql'))
+        .map(file => ({
+          path: file.path || file.name || '',
+          size: file.size || 0
+        }));
+
+      console.log(`✅ SAF access granted: Found ${backupFiles.length} backup files`);
       return backupFiles;
+
     } catch (error) {
-      console.error('Error finding all backup files:', error);
-      return []; // Retourner un tableau vide en cas d'erreur (ex: dossier non trouvé)
+      console.error('❌ SAF directory access failed:', error);
+      throw error;
     }
   }
 
   /**
-   * Trouver le fichier de backup le plus récent
+   * Fallback: File Picker pour sélection manuelle
    */
+  async selectBackupFileManually(): Promise<{ path: string, content: string } | null> {
+    try {
+      console.log('📂 Opening file picker for manual backup selection...');
+
+      const result = await FilePicker.pickFiles({
+        types: ['application/sql', 'text/plain'],
+        readData: true
+      });
+
+      if (!result.files || result.files.length === 0) {
+        console.log('❌ No file selected');
+        return null;
+      }
+
+      const file = result.files[0];
+
+      // Vérifier que c'est un fichier de backup valide
+      if (!file.name?.startsWith('db-backup-') || !file.name?.endsWith('.sql')) {
+        throw new Error('Le fichier sélectionné n\'est pas un fichier de backup valide');
+      }
+
+      console.log(`✅ File selected: ${file.name} (${file.size} bytes)`);
+
+      // FilePicker returns data as Base64 when readData is true
+      const content = file.data ? atob(file.data) : '';
+
+      return {
+        path: file.path || file.name,
+        content: content
+      };
+
+    } catch (error) {
+      console.error('❌ File picker failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Scan agressif de tous les fichiers de backup, même ceux d'autres installations
+   */
+  private async scanAllBackupFilesAggressive(): Promise<{ path: string, size: number }[]> {
+    const allFoundFiles: { path: string, size: number }[] = [];
+
+    // Stratégies d'accès multiples pour contourner les restrictions d'UID
+    const accessStrategies = [
+      // Stratégie 1: Documents avec différents chemins
+      { directory: Directory.Documents, paths: ['elykia', './elykia', '/elykia', 'Documents/elykia'] },
+      // Stratégie 2: External Storage
+      { directory: Directory.ExternalStorage, paths: ['elykia', 'Documents/elykia', 'Download/elykia'] },
+      // Stratégie 3: Data directory (pour les fichiers privés)
+      { directory: Directory.Data, paths: ['elykia', '../Documents/elykia', '../../storage/emulated/0/Documents/elykia'] }
+    ];
+
+    for (const strategy of accessStrategies) {
+      for (const path of strategy.paths) {
+        try {
+          console.log(`🔄 Trying: ${strategy.directory} / ${path}`);
+
+          const result = await Filesystem.readdir({
+            path: path,
+            directory: strategy.directory
+          });
+
+          console.log(`📁 Found ${result.files.length} files in ${path}`);
+
+          // Filtrer et traiter les fichiers de backup
+          const backupFiles = result.files
+            .filter(file => file.name.startsWith('db-backup-') && file.name.endsWith('.sql'))
+            .map(file => {
+              const fullPath = `${path}/${file.name}`;
+              return {
+                path: fullPath,
+                size: file.size || 0,
+                directory: strategy.directory,
+                fileName: file.name
+              };
+            });
+
+          // Ajouter les fichiers trouvés (éviter les doublons)
+          for (const file of backupFiles) {
+            const exists = allFoundFiles.some(existing =>
+              existing.path.endsWith(file.fileName) || existing.path === file.path
+            );
+
+            if (!exists) {
+              console.log(`📄 Adding: ${file.fileName} (${file.size} bytes)`);
+              allFoundFiles.push({
+                path: file.path,
+                size: file.size
+              });
+            } else {
+              console.log(`⚠️ Duplicate skipped: ${file.fileName}`);
+            }
+          }
+
+        } catch (error) {
+          console.warn(`❌ Strategy failed: ${strategy.directory} / ${path}`, error);
+        }
+      }
+    }
+
+    // Trier par nom de fichier (timestamp) décroissant
+    allFoundFiles.sort((a, b) => {
+      const aName = a.path.split('/').pop() || '';
+      const bName = b.path.split('/').pop() || '';
+      return bName.localeCompare(aName);
+    });
+
+    console.log(`📊 Total unique files found: ${allFoundFiles.length}`);
+    return allFoundFiles;
+  }
+
+  /**
+   * Méthode alternative utilisant l'accès direct au système de fichiers
+   */
+  private async scanWithDirectFileSystemAccess(): Promise<{ path: string, size: number }[]> {
+    const foundFiles: { path: string, size: number }[] = [];
+
+    try {
+      console.log('🔄 Attempting direct filesystem access...');
+
+      // Essayer d'accéder directement au dossier Documents
+      const documentsPath = '';
+      const documentsResult = await Filesystem.readdir({
+        path: documentsPath,
+        directory: Directory.Documents
+      });
+
+      console.log('📁 Documents root contents:', documentsResult.files.map(f => f.name));
+
+      // Chercher le dossier elykia
+      const elykyaFolder = documentsResult.files.find(f => f.name === 'elykia');
+      if (elykyaFolder) {
+        console.log('✅ Found elykia folder');
+
+        // Essayer plusieurs méthodes pour lire le contenu
+        const readMethods = [
+          () => Filesystem.readdir({ path: 'elykia', directory: Directory.Documents }),
+          () => Filesystem.readdir({ path: './elykia', directory: Directory.Documents }),
+          () => Filesystem.readdir({ path: '/elykia', directory: Directory.Documents })
+        ];
+
+        for (const method of readMethods) {
+          try {
+            const result = await method();
+            console.log(`� Files in elykia:`, result.files.map(f => f.name));
+
+            // Traiter tous les fichiers trouvés
+            const backupFiles = result.files
+              .filter(file => file.name.startsWith('db-backup-') && file.name.endsWith('.sql'))
+              .map(file => ({
+                path: `elykia/${file.name}`,
+                size: file.size || 0
+              }));
+
+            // Ajouter les nouveaux fichiers
+            for (const file of backupFiles) {
+              const exists = foundFiles.some(existing => existing.path === file.path);
+              if (!exists) {
+                foundFiles.push(file);
+                console.log(`✅ Added: ${file.path}`);
+              }
+            }
+
+            if (backupFiles.length > 0) {
+              break; // Si on a trouvé des fichiers, pas besoin d'essayer les autres méthodes
+            }
+
+          } catch (error) {
+            console.warn('Method failed:', error);
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('Direct filesystem access failed:', error);
+    }
+
+    return foundFiles;
+  }
+
+  /**
+   * Diagnostiquer les problèmes d'accès aux fichiers de backup
+   */
+  async diagnoseBackupFileAccess(): Promise<void> {
+    console.log('🔍 === DIAGNOSTIC BACKUP FILE ACCESS ===');
+
+    try {
+      // 1. Vérifier l'existence du dossier Documents
+      console.log('📁 Checking Documents directory...');
+      const documentsContent = await Filesystem.readdir({
+        path: '',
+        directory: Directory.Documents
+      });
+      console.log('Documents contents:', documentsContent.files.map(f => f.name));
+
+      // 2. Vérifier l'existence du dossier elykia
+      const elykyaExists = documentsContent.files.some(f => f.name === 'elykia');
+      console.log(`📂 elykia folder exists: ${elykyaExists}`);
+
+      if (elykyaExists) {
+        // 3. Essayer de lire le contenu du dossier elykia
+        try {
+          const elykyaContent = await Filesystem.readdir({
+            path: 'elykia',
+            directory: Directory.Documents
+          });
+          console.log('📄 elykia folder contents:', elykyaContent.files.map(f => f.name));
+
+          // 4. Identifier les fichiers de backup
+          const backupFiles = elykyaContent.files.filter(f =>
+            f.name.startsWith('db-backup-') && f.name.endsWith('.sql')
+          );
+          console.log(`💾 Backup files found: ${backupFiles.length}`);
+          backupFiles.forEach(file => console.log(`  - ${file.name} (size: ${file.size || 'unknown'})`));
+
+          // 5. Tester l'accès à chaque fichier
+          for (const file of backupFiles) {
+            try {
+              const stats = await Filesystem.stat({
+                path: `elykia/${file.name}`,
+                directory: Directory.Documents
+              });
+              console.log(`✅ Can access ${file.name} - Size: ${stats.size}`);
+            } catch (error) {
+              console.log(`❌ Cannot access ${file.name} - Error:`, error);
+            }
+          }
+
+        } catch (error) {
+          console.log('❌ Cannot read elykia folder contents:', error);
+        }
+      }
+
+      // 6. Tester les permissions
+      console.log('🔐 Testing file creation permissions...');
+      try {
+        const testFileName = `test-${Date.now()}.txt`;
+        await Filesystem.writeFile({
+          path: `elykia/${testFileName}`,
+          data: 'test',
+          directory: Directory.Documents,
+          encoding: Encoding.UTF8
+        });
+        console.log('✅ Can create files in elykia folder');
+
+        // Nettoyer le fichier de test
+        await Filesystem.deleteFile({
+          path: `elykia/${testFileName}`,
+          directory: Directory.Documents
+        });
+        console.log('✅ Can delete files in elykia folder');
+      } catch (error) {
+        console.log('❌ Cannot create/delete files in elykia folder:', error);
+      }
+
+    } catch (error) {
+      console.error('❌ Diagnostic failed:', error);
+    }
+
+    console.log('🔍 === END DIAGNOSTIC ===');
+  }
+  /**
+   * Méthode de test pour vérifier l'accès cross-installation aux fichiers avec MediaStore
+   */
+  async testCrossInstallationFileAccess(): Promise<void> {
+    console.log('🧪 === TESTING CROSS-INSTALLATION FILE ACCESS WITH MEDIASTORE ===');
+
+    // 1. Test MediaStore API
+    console.log('📱 Testing MediaStore API...');
+    try {
+      // Méthode supprimée - utiliser SAF à la place
+      console.log('? SAF available for manual access');
+    } catch (error) {
+      console.warn('❌ MediaStore test failed:', error);
+    }
+
+    // 2. Test de la méthode findAllBackupFiles améliorée
+    console.log('🔍 Testing enhanced findAllBackupFiles...');
+    const files = await this.findAllBackupFiles();
+    console.log(`📊 Result: Found ${files.length} backup files`);
+    files.forEach(file => console.log(`  - ${file.path} (${file.size} bytes)`));
+
+    // 3. Diagnostic complet (fallback)
+    console.log('🔍 Running diagnostic scan...');
+    await this.diagnoseBackupFileAccess();
+
+    // 4. Créer un fichier de test pour vérifier la persistance
+    console.log('📝 Creating test backup file...');
+    try {
+      const testBackupData = `-- Test backup created at ${new Date().toISOString()}\nSELECT 'MediaStore test' as message;`;
+      await this.saveBackupToFile(testBackupData);
+      console.log('✅ Test backup file created successfully');
+
+      // 5. Vérifier que le fichier est immédiatement accessible via MediaStore
+      console.log('🔄 Re-testing MediaStore after file creation...');
+      const filesAfterCreation = await this.findAllBackupFiles();
+      console.log(`📊 After creation: Found ${filesAfterCreation.length} backup files`);
+
+    } catch (error) {
+      console.error('❌ Failed to create test backup:', error);
+    }
+
+    // 6. Test du File Picker (optionnel - nécessite interaction utilisateur)
+    console.log('📂 File Picker is available for manual selection if needed');
+
+    console.log('🧪 === END MEDIASTORE TEST ===');
+  }
+
   async findLatestBackupFile(): Promise<string | null> {
     try {
       const folderPath = 'elykia';
@@ -2056,53 +2422,7 @@ export class DatabaseService {
     }
   }
 
-  /**
-   * Restaurer la base de données depuis un fichier de backup
-   */
-  async restoreFromBackup(backupFilePath: string): Promise<void> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
 
-    try {
-      console.log(`Restoring database from: ${backupFilePath}`);
-
-      // Lire le fichier de backup
-      const result = await Filesystem.readFile({
-        path: backupFilePath,
-        directory: Directory.Documents,
-        encoding: Encoding.UTF8
-      });
-
-      const sqlContent = result.data as string;
-
-      // Diviser le contenu en instructions SQL individuelles
-      const sqlStatements = sqlContent
-        .split('\n')
-        .filter(line => line.trim() && !line.trim().startsWith('--')) // Ignorer les commentaires et lignes vides
-        .join('\n')
-        .split(';')
-        .filter(statement => statement.trim());
-
-      // Exécuter chaque instruction SQL
-      for (const statement of sqlStatements) {
-        const trimmedStatement = statement.trim();
-        if (trimmedStatement) {
-          try {
-            await this.db.run(trimmedStatement);
-          } catch (error) {
-            console.warn(`Error executing SQL statement: ${trimmedStatement}`, error);
-            // Continuer avec les autres instructions même si une échoue
-          }
-        }
-      }
-
-      console.log('Database restoration completed successfully');
-    } catch (error) {
-      console.error('Error restoring database from backup:', error);
-      throw error;
-    }
-  }
 
   async deleteClientAndRelatedData(clientId: string): Promise<void> {
     if (!this.db) {
@@ -2240,7 +2560,7 @@ export class DatabaseService {
     }
 
     // Generate new syncHash
-    const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress'];
+    const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress', 'tontineCollector'];
     const newSyncHash = this.generateHash(client, keysToInclude);
 
     const sql = `UPDATE clients SET
@@ -2270,7 +2590,8 @@ export class DatabaseService {
       createdAt = ?,
       syncHash = ?,
       code = ?,
-      cardPhoto = ?
+      cardPhoto = ?,
+      tontineCollector = ?
       WHERE id = ?`;
 
     const fullName = `${client.firstname} ${client.lastname}`;
@@ -2303,6 +2624,7 @@ export class DatabaseService {
       newSyncHash, // <-- Use the new hash
       client.code,
       client.cardPhoto,
+      (client as any).tontineCollector ?? null,
       client.id
     ]);
 
@@ -2344,8 +2666,9 @@ export class DatabaseService {
       syncHash: row.syncHash,
       code: row.code,
       cardPhoto: row.cardPhoto,
-      updated: row.updated === 1
-    };
+      updated: row.updated === 1,
+      tontineCollector: row.tontineCollector
+    } as Client;
   }
 
   // ==================== ORDER METHODS ====================
@@ -2745,7 +3068,7 @@ export class DatabaseService {
 
     // Utilise JOIN pour supporter les données existantes (sans commercialUsername) et nouvelles
     const query = `
-      SELECT tc.* 
+      SELECT tc.*
       FROM tontine_collections tc
       INNER JOIN tontine_members tm ON tc.tontineMemberId = tm.id
       WHERE tm.commercialUsername = ? OR tc.commercialUsername = ?
@@ -2856,7 +3179,7 @@ export class DatabaseService {
 
     const query = `
       INSERT OR REPLACE INTO tontine_stocks(
-        id, commercial, creditId, articleId, articleName, unitPrice, 
+        id, commercial, creditId, articleId, articleName, unitPrice,
         totalQuantity, availableQuantity, distributedQuantity, year, tontineSessionId
       ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
@@ -2876,5 +3199,222 @@ export class DatabaseService {
     if (!this.db) throw new Error('Database not initialized.');
     const result = await this.db.query('SELECT * FROM tontine_stocks WHERE commercial = ? AND tontineSessionId = ?', [commercial, sessionId]);
     return result.values || [];
+  }
+
+  // ==========================================
+  // IMPROVED BACKUP RESTORATION SYSTEM
+  // ==========================================
+
+  // ==========================================
+  // IMPROVED BACKUP RESTORATION SYSTEM
+  // ==========================================
+
+  /**
+   * Core restoration logic using transactions and validation
+   * Acts as the single source of truth for all restore operations
+   */
+  async restoreFromSql(sqlContent: string): Promise<RestoreResult> {
+    if (!this.db) {
+      throw new Error('Database not initialized.');
+    }
+
+    const startTime = Date.now();
+    const monitor = new RestoreMonitor();
+    // Use the injected validator
+    const transactionManager = new TransactionManager(this.db);
+    const integrityValidator = new DataIntegrityValidator(this.db);
+
+    try {
+      console.log(`🔄 Starting SQL restoration...`);
+
+      if (!sqlContent || sqlContent.trim().length === 0) {
+        throw new RestoreException('CRITICAL', '', 'SQL content is empty');
+      }
+
+      // Phase 1: Parse and validate SQL statements
+      const validation = this.restoreValidator.validateBackupFile(sqlContent);
+      if (!validation.isValid) {
+        throw new RestoreException('CRITICAL', '', `Invalid backup format: ${validation.errors.join(', ')}`);
+      }
+
+      const statements = this.restoreValidator.parseSqlStatements(sqlContent);
+      const expectedCounts = this.calculateExpectedCounts(statements);
+
+      monitor.startMonitoring(statements.length);
+      console.log(`📊 Parsed ${statements.length} SQL statements`);
+
+      // Phase 2: Execute in transaction with monitoring
+      await transactionManager.beginTransaction();
+
+      // Temporarily disable foreign keys for restoration if needed, though usually better to respect them
+      // await this.db.run('PRAGMA foreign_keys = OFF;'); 
+
+      try {
+        await this.executeStatementsWithProgress(statements, monitor);
+
+        // Phase 3: Validate integrity before commit
+        const integrityCheck = await integrityValidator.validateIntegrity(expectedCounts);
+
+        if (integrityCheck.isValid) {
+          await transactionManager.commitTransaction();
+          console.log('✅ Transaction committed successfully');
+        } else {
+          console.warn('⚠️ Integrity check failed:', integrityCheck.summary);
+          // Decided policy: Commit anyway if only counts mismatch? Or strictly rollback?
+          // Given the requirement "gerer bien des erreur", safety is key.
+          await transactionManager.rollbackTransaction();
+          throw new RestoreException('CRITICAL', '', 'Integrity check failed: ' + integrityCheck.summary);
+        }
+
+        const duration = Date.now() - startTime;
+        const result = monitor.generateReport();
+        result.duration = duration;
+        result.integrityCheck = integrityCheck;
+
+        console.log(`🎉 Restoration completed in ${duration}ms: ${result.successfulStatements}/${result.totalStatements} successful`);
+
+        return result;
+
+      } catch (innerError: any) {
+        // Capture inner execution errors
+        if (innerError instanceof RestoreException) throw innerError;
+        throw new RestoreException('CRITICAL', '', innerError.message || 'Error executing statements');
+      }
+
+    } catch (error: any) {
+      await transactionManager.rollbackTransaction();
+      console.error('❌ Restoration failed:', error);
+
+      const duration = Date.now() - startTime;
+      const restoreError = error instanceof RestoreException
+        ? error
+        : new RestoreException('CRITICAL', '', error.message || 'Unexpected error');
+
+      return {
+        success: false,
+        totalStatements: monitor ? monitor.generateReport().totalStatements : 0,
+        successfulStatements: monitor ? monitor.generateReport().successfulStatements : 0,
+        failedStatements: monitor ? monitor.generateReport().failedStatements + 1 : 1,
+        errors: [restoreError],
+        duration: duration,
+        tablesRestored: [],
+        integrityCheck: { isValid: false, results: [], summary: 'Restoration failed' }
+      };
+    } finally {
+      // await this.db.run('PRAGMA foreign_keys = ON;');
+    }
+  }
+
+  /**
+   * Helper to execute parsed statements
+   */
+  private async executeStatementsWithProgress(statements: SqlStatement[], monitor: RestoreMonitor): Promise<void> {
+    let errorCount = 0;
+
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i];
+
+      try {
+        await this.db!.run(statement.content);
+        monitor.updateProgress(i + 1, errorCount, statement.table);
+
+        if (i > 0 && i % 100 === 0) {
+          console.log(`📈 Progress: ${i + 1}/${statements.length} statements processed`);
+        }
+
+      } catch (error: any) {
+        const severity = this.classifyError(error);
+        const restoreError: RestoreError = {
+          type: severity,
+          statement: statement.content,
+          error: error.message || 'Unknown DB error',
+          table: statement.table,
+          lineNumber: statement.lineNumber
+        };
+
+        monitor.recordError(restoreError);
+
+        if (severity === 'CRITICAL') {
+          throw new RestoreException(severity, statement.content, error.message, statement.table, statement.lineNumber);
+        }
+
+        errorCount++;
+        console.warn(`⚠️ Non-critical error in statement ${i + 1} (${statement.table}):`, error.message);
+      }
+    }
+  }
+
+  /**
+   * Restore from a file path (legacy/auto-found)
+   */
+  async restoreFromBackup(backupFilePath: string): Promise<RestoreResult> {
+    try {
+      console.log(`📂 Reading backup file from: ${backupFilePath}`);
+      const result = await Filesystem.readFile({
+        path: backupFilePath,
+        directory: Directory.Documents,
+        encoding: Encoding.UTF8
+      });
+      const sqlContent = result.data as string;
+      return this.restoreFromSql(sqlContent);
+    } catch (error: any) {
+      console.error('Failed to read backup file for restore:', error);
+      throw new Error(`Failed to read backup file: ${error.message}`);
+    }
+  }
+
+  /**
+   * Restore from manually selected file via SAF
+   */
+  async restoreFromManualSelection(): Promise<RestoreResult> {
+    try {
+      const selectedFile = await this.selectBackupFileManually();
+
+      if (!selectedFile) {
+        throw new Error('No backup file selected');
+      }
+
+      console.log(`📂 Processing manual selection: ${selectedFile.path}`);
+      return this.restoreFromSql(selectedFile.content);
+
+    } catch (error: any) {
+      console.error('❌ Error in manual restoration flow:', error);
+      throw error;
+    }
+  }
+
+  private classifyError(error: any): 'CRITICAL' | 'WARNING' | 'INFO' {
+    const errorMessage = (error.message || '').toLowerCase();
+
+    // Define error patterns
+    if (errorMessage.includes('syntax error') || errorMessage.includes('no such table')) {
+      return 'CRITICAL';
+    }
+
+    if (errorMessage.includes('unique constraint failed')) {
+      // Often acceptable in restoration if we are overwriting/merging
+      return 'WARNING';
+    }
+
+    if (errorMessage.includes('foreign key constraint failed')) {
+      return 'CRITICAL';
+    }
+
+    if (errorMessage.includes('database is locked')) {
+      return 'CRITICAL';
+    }
+
+    return 'WARNING';
+  }
+
+  private calculateExpectedCounts(statements: SqlStatement[]): TableCounts {
+    const counts: TableCounts = {};
+    for (const statement of statements) {
+      if (statement.type === 'INSERT') {
+        const table = statement.table || 'unknown';
+        counts[table] = (counts[table] || 0) + 1;
+      }
+    }
+    return counts;
   }
 }

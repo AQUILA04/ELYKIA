@@ -13,7 +13,7 @@
         </processorPath>
         <module name="common-entities" />
       </profile>
-      <profile name="Annotation profile for optimize-elykia-client" enabled="true">
+      <profile name="Annotation profile for common-security-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />

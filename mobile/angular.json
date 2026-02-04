@@ -40,11 +40,6 @@
                 "glob": "**/*",
                 "input": "node_modules/leaflet/dist/images",
                 "output": "assets/leaflet/"
-              },
-              {
-                "glob": "**/*",
-                "input": "../user-guide/site",
-                "output": "user-guide"
               }
             ],
             "styles": [

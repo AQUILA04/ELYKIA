@@ -61,9 +61,9 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
         c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
         c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
         c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
-        c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl)
+        c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
         FROM Client c
-        WHERE c.collector = :collector AND c.clientType = :clientType AND c.state = :state
+        WHERE (c.collector = :collector OR c.tontineCollector = :collector) AND c.clientType = :clientType AND c.state = :state
     """)
     Page<ClientRespDto> findByCollectorAndClientTypeAndState(String collector, ClientType clientType, State state , Pageable pageable);
 
@@ -73,7 +73,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
         c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
         c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.tontineCollector,
         c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
-        c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl)
+        c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
         FROM Client c
         WHERE c.tontineCollector = :collector AND c.clientType = :clientType AND c.state = :state
     """)
@@ -84,7 +84,18 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
         c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
         c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
         c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
-        c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl)
+        c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
+        FROM Client c
+        WHERE (c.tontineCollector = :collector OR c.collector = :collector) AND c.clientType = :clientType AND c.state = :state
+    """)
+    Page<ClientRespDto> findByCollectorAndTontineCollectorAndClientTypeAndState(String collector, ClientType clientType, State state , Pageable pageable);
+
+    @Query(value = """
+        SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
+        c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
+        c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
+        c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
+        c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
         FROM Client c
         WHERE c.state <> :state
 

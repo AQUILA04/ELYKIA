@@ -49,6 +49,12 @@
             Restaurer une sauvegarde
           </ion-button>
 
+          <!-- Bouton de test d'accès aux fichiers (pour debug) -->
+          <ion-button expand="block" color="warning" fill="outline" class="btn-test" (click)="onTestFileAccess()" *ngIf="!environment.production">
+            <ion-icon name="bug-outline" slot="start"></ion-icon>
+            Test d'accès aux fichiers
+          </ion-button>
+
           <!-- Statut de connexion -->
           @if (isOnline$ | async; as isOnline) {
             <div class="connection-status">

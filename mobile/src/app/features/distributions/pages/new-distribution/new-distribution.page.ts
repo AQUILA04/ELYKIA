@@ -23,6 +23,8 @@ import { LoggerService } from '../../../../core/services/logger.service';
 import { DistributionService } from '../../../../core/services/distribution.service';
 import { AccountService } from '../../../../core/services/account.service';
 import { DatabaseService } from '../../../../core/services/database.service';
+import { selectAvailableStockItems } from '../../../../store/commercial-stock/commercial-stock.selectors';
+import { CommercialStockItem } from '../../../../models/commercial-stock-item.model';
 
 interface DistributionViewModel {
   client: Client | null;
@@ -91,13 +93,15 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
 
     const availableArticles$ = this.store.select(selectAvailableArticles);
     const articleQuantities$ = this.store.select(selectArticleQuantities);
+    const availableStockItems$ = this.store.select(selectAvailableStockItems);
 
     const filteredArticles$ = combineLatest([
       availableArticles$,
       articleQuantities$,
-      this.searchTerm$.pipe(startWith(''), distinctUntilChanged())
+      this.searchTerm$.pipe(startWith(''), distinctUntilChanged()),
+      availableStockItems$
     ]).pipe(
-      map(([articles, quantities, searchTerm]) => this.filterArticles(articles, quantities, searchTerm))
+      map(([articles, quantities, searchTerm, stockItems]) => this.filterArticles(articles, quantities, searchTerm, stockItems))
     );
 
     this.vm$ = combineLatest({
@@ -150,23 +154,23 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
         takeUntil(this.destroy$),
         map(([totalAmount, userAdvance]) => {
           if (totalAmount <= 0) {
-            return { 
-              dailyPayment: 0, 
-              adjustedAdvance: 0, 
-              paymentPeriod: 30, 
+            return {
+              dailyPayment: 0,
+              adjustedAdvance: 0,
+              paymentPeriod: 30,
               isSpecialCase: false,
-              canEditAdvance: true 
+              canEditAdvance: true
             };
           }
 
           // Étape 1: Calcul automatique du système (sans avance utilisateur)
           const systemCalculation = this.calculateSystemAdvance(totalAmount);
-          
+
           // Étape 2: Si l'utilisateur a saisi une avance, recalculer
           if (userAdvance > 0 && userAdvance !== systemCalculation.adjustedAdvance) {
             const userCalculation = this.calculateWithUserAdvance(totalAmount, userAdvance);
-            
-            // Si le calcul avec l'avance utilisateur donne une avance négative, 
+
+            // Si le calcul avec l'avance utilisateur donne une avance négative,
             // on revient au calcul système et on bloque l'édition
             if (userCalculation.adjustedAdvance < 0) {
               return {
@@ -174,7 +178,7 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
                 canEditAdvance: false
               };
             }
-            
+
             return {
               ...userCalculation,
               canEditAdvance: true
@@ -212,24 +216,24 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     // Calcul de base: mise = totalAmount / 30, arrondie au multiple de 50 supérieur
     const baseDailyPayment = totalAmount / 30;
     let roundedDailyPayment = Math.ceil(baseDailyPayment / 50) * 50;
-    
+
     // RÈGLE IMPORTANTE: La mise ne doit jamais être inférieure à 200 FCFA
     if (roundedDailyPayment < 200) {
       roundedDailyPayment = 200;
     }
-    
+
     // Nombre de jours = combien de fois la mise rentre dans le total (arrondi par défaut)
     const paymentDays = Math.floor(totalAmount / roundedDailyPayment);
-    
+
     // Montant couvert par les paiements journaliers
     const coveredAmount = paymentDays * roundedDailyPayment;
-    
+
     // L'avance est ce qui reste
     const systemAdvance = totalAmount - coveredAmount;
-    
+
     // Déterminer si c'est un crédit spécial (mise = 200 car < calculé)
     const isSpecialCase = baseDailyPayment < 200;
-    
+
     return {
       dailyPayment: roundedDailyPayment,
       adjustedAdvance: systemAdvance,
@@ -241,7 +245,7 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
   private calculateWithUserAdvance(totalAmount: number, userAdvance: number) {
     // Montant restant après l'avance utilisateur
     const remainingAmount = totalAmount - userAdvance;
-    
+
     if (remainingAmount <= 0) {
       return {
         dailyPayment: 0,
@@ -250,31 +254,31 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
         isSpecialCase: true
       };
     }
-    
+
     // Calcul de la mise sur le montant restant
     const baseDailyPayment = remainingAmount / 30;
     let roundedDailyPayment = Math.ceil(baseDailyPayment / 50) * 50;
-    
+
     // RÈGLE IMPORTANTE: La mise ne doit jamais être inférieure à 200 FCFA
     if (roundedDailyPayment < 200) {
       roundedDailyPayment = 200;
     }
-    
+
     // Nombre de jours = combien de fois la mise rentre dans le montant restant
     const paymentDays = Math.floor(remainingAmount / roundedDailyPayment);
-    
+
     // Montant couvert par les paiements journaliers
     const coveredAmount = paymentDays * roundedDailyPayment;
-    
+
     // Ajustement = ce qui reste après les paiements journaliers
     const adjustment = remainingAmount - coveredAmount;
-    
+
     // Avance finale = avance utilisateur + ajustement
     const finalAdvance = userAdvance + adjustment;
-    
+
     // Déterminer si c'est un crédit spécial (mise forcée à 200)
     const isSpecialCase = baseDailyPayment < 200;
-    
+
     return {
       dailyPayment: roundedDailyPayment,
       adjustedAdvance: finalAdvance,
@@ -364,39 +368,12 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     }
 
     // Récupérer le creditId
-    const inProgressStockOutputs = await this.databaseService.getStockOutputsByStatus('INPROGRESS');
-    let creditId: string | undefined;
+    // NOTE: Avec la nouvelle migration, creditId devient optionnel ou n'est plus lié à StockOutput de la même manière.
+    // Cependant, pour la compatibilité, on peut laisser vide ou gérer différemment.
+    // Le plan de migration dit: "Supprimer la dépendance creditId dans la création de distribution".
+    // Donc on peut passer null ou une valeur par défaut si le backend l'accepte.
 
-    if (inProgressStockOutputs.length === 1) {
-      creditId = inProgressStockOutputs[0].id;
-    } else if (inProgressStockOutputs.length > 1) {
-      const distributionArticles = Object.entries(vm.quantities)
-        .filter(([, quantity]) => quantity > 0)
-        .map(([articleId, quantity]) => ({ articleId, quantity }));
-
-      for (const stockOutput of inProgressStockOutputs) {
-        const stockOutputItems = await this.databaseService.getStockOutputItemsByStockId(stockOutput.id);
-        let isMatch = true;
-
-        for (const distArticle of distributionArticles) {
-          const stockItem = stockOutputItems.find(item => item.articleId === distArticle.articleId);
-          if (!stockItem || stockItem.quantity < distArticle.quantity) {
-            isMatch = false;
-            break;
-          }
-        }
-
-        if (isMatch) {
-          creditId = stockOutput.id;
-          break;
-        }
-      }
-    }
-
-    if (!creditId) {
-      await this.presentErrorAlert('Stock non disponible', 'Aucun stock en cours ne correspond aux articles de cette distribution.');
-      return;
-    }
+    const creditId = undefined; // Plus besoin de matcher avec StockOutput
 
     // Si tout est OK, on continue
     const dailyPayment = vm.dailyPayment;
@@ -445,18 +422,34 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     }));
   }
 
-  private filterArticles(articles: Article[], quantities: { [key: string]: number }, searchTerm: string): Article[] {
+  private filterArticles(articles: Article[], quantities: { [key: string]: number }, searchTerm: string, stockItems: CommercialStockItem[]): Article[] {
+    console.log(`[NewDistributionPage] Filtering articles. Total articles: ${articles.length}, Stock items: ${stockItems.length}`);
+
+    // Filter articles based on available stock in CommercialStockItems
+    // Only show articles that have quantityRemaining > 0 in stockItems
+    // Also update the stockQuantity property of the article object to reflect the actual available stock
+
+    const availableArticles = articles.map(article => {
+        const stockItem = stockItems.find(item => item.articleId === article.id);
+        return {
+            ...article,
+            stockQuantity: stockItem ? stockItem.quantityRemaining : 0
+        };
+    }).filter(article => article.stockQuantity > 0);
+
+    console.log(`[NewDistributionPage] Available articles after stock check: ${availableArticles.length}`);
+
     const selectedArticleIds = Object.keys(quantities).filter(id => quantities[id] > 0);
     const searchTermLower = searchTerm.toLowerCase();
 
     if (!searchTerm.trim()) {
       // Pour le virtual scrolling, on retourne tous les articles disponibles
-      const unselected = articles.filter(a => !selectedArticleIds.includes(a.id));
-      const selected = articles.filter(a => selectedArticleIds.includes(a.id));
+      const unselected = availableArticles.filter(a => !selectedArticleIds.includes(a.id));
+      const selected = availableArticles.filter(a => selectedArticleIds.includes(a.id));
       return [...selected, ...unselected]; // Articles sélectionnés en premier
     }
 
-    return articles.filter(article =>
+    return availableArticles.filter(article =>
       article.name.toLowerCase().includes(searchTermLower) ||
       article.commercialName?.toLowerCase().includes(searchTermLower) ||
       article.reference?.toLowerCase().includes(searchTermLower)
