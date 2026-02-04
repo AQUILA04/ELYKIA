@@ -17,7 +17,8 @@
           <!-- Champ nom d'utilisateur -->
           <ion-item lines="none" class="input-group">
             <ion-label position="stacked" class="input-label">Nom d'utilisateur *</ion-label>
-            <ion-input type="text" placeholder="Saisissez votre nom d'utilisateur" [(ngModel)]="username" name="username" required>
+            <ion-input type="text" placeholder="Saisissez votre nom d'utilisateur" [(ngModel)]="username"
+              name="username" required>
               <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
             </ion-input>
           </ion-item>
@@ -25,9 +26,11 @@
           <!-- Champ mot de passe -->
           <ion-item lines="none" class="input-group">
             <ion-label position="stacked" class="input-label">Mot de passe *</ion-label>
-            <ion-input [type]="passwordVisible ? 'text' : 'password'" placeholder="Saisissez votre mot de passe" [(ngModel)]="password" name="password" required>
+            <ion-input [type]="passwordVisible ? 'text' : 'password'" placeholder="Saisissez votre mot de passe"
+              [(ngModel)]="password" name="password" required>
               <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
-              <ion-button fill="clear" size="small" slot="end" class="password-toggle" (click)="togglePasswordVisibility()">
+              <ion-button fill="clear" size="small" slot="end" class="password-toggle"
+                (click)="togglePasswordVisibility()">
                 <ion-icon [name]="passwordVisible ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
               </ion-button>
             </ion-input>
@@ -50,22 +53,22 @@
           </ion-button>
 
           <!-- Bouton de test d'accès aux fichiers (pour debug) -->
-          <ion-button expand="block" color="warning" fill="outline" class="btn-test" (click)="onTestFileAccess()" *ngIf="!environment.production">
+          <!-- <ion-button expand="block" color="warning" fill="outline" class="btn-test" (click)="onTestFileAccess()" *ngIf="!environment.production">
             <ion-icon name="bug-outline" slot="start"></ion-icon>
             Test d'accès aux fichiers
-          </ion-button>
+          </ion-button> -->
 
           <!-- Statut de connexion -->
           @if (isOnline$ | async; as isOnline) {
-            <div class="connection-status">
-              <div class="status-indicator status-online"></div>
-              <span>Connecté</span>
-            </div>
+          <div class="connection-status">
+            <div class="status-indicator status-online"></div>
+            <span>Connecté</span>
+          </div>
           } @else {
-            <div class="connection-status">
-              <div class="status-indicator status-offline"></div>
-              <span>Hors ligne</span>
-            </div>
+          <div class="connection-status">
+            <div class="status-indicator status-offline"></div>
+            <span>Hors ligne</span>
+          </div>
           }
 
         </form>

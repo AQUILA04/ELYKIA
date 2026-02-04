@@ -38,7 +38,7 @@ export class ClientsPage implements OnInit, OnDestroy {
     private log: LoggerService,
     private actionSheetCtrl: ActionSheetController,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit() {
     const user$ = this.store.select(selectAuthUser).pipe(
@@ -76,10 +76,10 @@ export class ClientsPage implements OnInit, OnDestroy {
 
   private loadClientData() {
     this.store.select(selectAuthUser).pipe(take(1)).subscribe(user => {
-        if (user && user.username) {
-            this.store.dispatch(ClientActions.loadClients({ commercialUsername: user.username }));
-            this.store.dispatch(loadAccounts());
-        }
+      if (user && user.username) {
+        this.store.dispatch(ClientActions.loadClients({ commercialUsername: user.username }));
+        this.store.dispatch(loadAccounts());
+      }
     });
   }
 
@@ -88,20 +88,20 @@ export class ClientsPage implements OnInit, OnDestroy {
     let filtered = clients;
 
     if (lowerCaseSearchTerm) {
-        filtered = clients.filter(client => 
-            (client.fullName || `${client.firstname} ${client.lastname}`).toLowerCase().includes(lowerCaseSearchTerm)
-        );
+      filtered = clients.filter(client =>
+        (client.fullName || `${client.firstname} ${client.lastname}`).toLowerCase().includes(lowerCaseSearchTerm)
+      );
     }
 
     switch (activeFilter) {
-        case 'credit':
-            return filtered.filter(client => client.creditInProgress);
-        case 'new':
-            return filtered.filter(client => client.isLocal);
-        case 'quartier':
-            return [...filtered].sort((a, b) => (a.quarter || '').localeCompare(b.quarter || ''));
-        default:
-            return filtered;
+      case 'credit':
+        return filtered.filter(client => client.creditInProgress);
+      case 'new':
+        return filtered.filter(client => client.isLocal);
+      case 'quartier':
+        return [...filtered].sort((a, b) => (a.quarter || '').localeCompare(b.quarter || ''));
+      default:
+        return filtered;
     }
   }
 
@@ -120,15 +120,28 @@ export class ClientsPage implements OnInit, OnDestroy {
 
     const photo$ = from(Filesystem.readFile({
       path: localPath,
-      directory: Directory.Data
+      directory: Directory.ExternalStorage
     })).pipe(
       map(file => {
-        this.log.log(`[PhotoDebug-List] Successfully read localFile: ${localPath}`);
+        this.log.log(`[PhotoDebug-List] Successfully read localFile from ExternalStorage: ${localPath}`);
         return this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`);
       }),
       catchError((error) => {
-        this.log.log(`[PhotoDebug-List] Failed to read localFile ${localPath}. Error: ${error}`);
-        return of('assets/icon/person-circle-outline.svg');
+        this.log.log(`[PhotoDebug-List] Failed to read from ExternalStorage, trying Data: ${localPath}`);
+        // Fallback to Data directory
+        return from(Filesystem.readFile({
+          path: localPath,
+          directory: Directory.Data
+        })).pipe(
+          map(file => {
+            this.log.log(`[PhotoDebug-List] Successfully read localFile from Data: ${localPath}`);
+            return this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`);
+          }),
+          catchError((err) => {
+            this.log.log(`[PhotoDebug-List] Failed to read from Data as well: ${localPath}`);
+            return of('assets/icon/person-circle-outline.svg');
+          })
+        );
       }),
       shareReplay(1)
     );

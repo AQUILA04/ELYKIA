@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { Locality } from 'src/app/models/locality.model';
 import { selectAllLocalities } from 'src/app/store/locality/locality.selectors';
 import { Geolocation } from '@capacitor/geolocation';
-import {Camera, CameraResultType} from '@capacitor/camera';
+import { Camera, CameraResultType } from '@capacitor/camera';
 import * as ClientActions from 'src/app/store/client/client.actions';
 import * as ClientSelectors from 'src/app/store/client/client.selectors';
 import { AlertController, NavController, ToastController } from '@ionic/angular';
@@ -89,7 +89,7 @@ export class EditClientPage implements OnInit, OnDestroy {
         ]],
       cardType: ['', Validators.required],
       cardID: ['', [Validators.required, Validators.minLength(6), Validators.
-      maxLength(26)]],
+        maxLength(26)]],
       address: ['', Validators.required],
       quarter: [''],
       contactPersonName: [''],
@@ -99,7 +99,7 @@ export class EditClientPage implements OnInit, OnDestroy {
       longitude: [null, Validators.required],
       profilPhoto: [null],
       cardPhoto: [null],
-      balance: [{value: 0, disabled: true}]
+      balance: [{ value: 0, disabled: true }]
     });
 
     this.localities$ = this.store.select(selectAllLocalities);
@@ -122,22 +122,22 @@ export class EditClientPage implements OnInit, OnDestroy {
 
     this.clientId = this.route.snapshot.paramMap.get('id') || '';
     if (this.clientId) {
-        this.store.select(ClientSelectors.selectClientById(this.clientId)).pipe(
-            filter(client => !!client),
-            take(1)
-        ).subscribe(client => {
-            this.originalClient = client;
-            this.clientForm.patchValue(client);
-        });
+      this.store.select(ClientSelectors.selectClientById(this.clientId)).pipe(
+        filter(client => !!client),
+        take(1)
+      ).subscribe(client => {
+        this.originalClient = client;
+        this.clientForm.patchValue(client);
+      });
 
-        this.store.select(selectAccountByClientId(this.clientId)).pipe(
-            filter(account => !!account),
-            take(1)
-        ).subscribe(account => {
-            this.clientForm.patchValue({ balance: account.accountBalance });
-            this.initialBalance = account.accountBalance;
-            this.clientForm.get('balance')?.enable();
-        });
+      this.store.select(selectAccountByClientId(this.clientId)).pipe(
+        filter(account => !!account),
+        take(1)
+      ).subscribe(account => {
+        this.clientForm.patchValue({ balance: account.accountBalance });
+        this.initialBalance = account.accountBalance;
+        this.clientForm.get('balance')?.enable();
+      });
     }
 
     this.subscriptions.push(
@@ -163,7 +163,7 @@ export class EditClientPage implements OnInit, OnDestroy {
     }
 
     const formValue = this.clientForm.getRawValue();
-    
+
     // Merge form values into the original client object to preserve all fields
     const updatedClient: Client = {
       ...this.originalClient,
@@ -176,10 +176,10 @@ export class EditClientPage implements OnInit, OnDestroy {
 
     // Update balance only if it changed
     if (formValue.balance !== this.initialBalance) {
-        this.store.dispatch(ClientActions.updateClientBalance({
-            clientId: this.clientId,
-            balance: formValue.balance
-        }));
+      this.store.dispatch(ClientActions.updateClientBalance({
+        clientId: this.clientId,
+        balance: formValue.balance
+      }));
     }
 
     // Update client info
@@ -207,19 +207,32 @@ export class EditClientPage implements OnInit, OnDestroy {
 
   async takePicture() {
     const image = await Camera.getPhoto({
-      quality: 90,
+      quality: 50,
+      width: 800,
+      height: 800,
       allowEditing: false,
       resultType: CameraResultType.Uri
     });
 
     if (image.path) {
       const file = await Filesystem.readFile({ path: image.path });
-      const newFileName = new Date().getTime() + '.jpeg';
+      const newFileName = `Pictures/Elykia/client_photos/${new Date().getTime()}.jpeg`;
+
+      // Create directory if it doesn't exist (optional but good practice)
+      try {
+        await Filesystem.mkdir({
+          path: 'Pictures/Elykia/client_photos',
+          directory: Directory.ExternalStorage,
+          recursive: true
+        });
+      } catch (e) {
+        // Ignore if exists
+      }
 
       await Filesystem.writeFile({
         path: newFileName,
         data: file.data,
-        directory: Directory.Data
+        directory: Directory.ExternalStorage
       });
 
       this.clientForm.patchValue({ profilPhoto: newFileName });
@@ -229,19 +242,32 @@ export class EditClientPage implements OnInit, OnDestroy {
 
   async takeCardPicture() {
     const image = await Camera.getPhoto({
-      quality: 90,
+      quality: 50,
+      width: 800,
+      height: 800,
       allowEditing: false,
       resultType: CameraResultType.Uri
     });
 
     if (image.path) {
       const file = await Filesystem.readFile({ path: image.path });
-      const newFileName = 'card_' + new Date().getTime() + '.jpeg';
+      const newFileName = `Pictures/Elykia/card_photos/card_${new Date().getTime()}.jpeg`;
+
+      // Create directory if it doesn't exist
+      try {
+        await Filesystem.mkdir({
+          path: 'Pictures/Elykia/card_photos',
+          directory: Directory.ExternalStorage,
+          recursive: true
+        });
+      } catch (e) {
+        // Ignore if exists
+      }
 
       await Filesystem.writeFile({
         path: newFileName,
         data: file.data,
-        directory: Directory.Data
+        directory: Directory.ExternalStorage
       });
 
       this.clientForm.patchValue({ cardPhoto: newFileName });
