@@ -2129,14 +2129,25 @@ export class DatabaseService {
     const allFoundFiles: { path: string, size: number }[] = [];
 
     // Stratégies d'accès multiples pour contourner les restrictions d'UID
-    const accessStrategies = [
-      // Stratégie 1: Documents avec différents chemins
-      { directory: Directory.Documents, paths: ['elykia', './elykia', '/elykia', 'Documents/elykia'] },
-      // Stratégie 2: External Storage
-      { directory: Directory.ExternalStorage, paths: ['elykia', 'Documents/elykia', 'Download/elykia'] },
-      // Stratégie 3: Data directory (pour les fichiers privés)
-      { directory: Directory.Data, paths: ['elykia', '../Documents/elykia', '../../storage/emulated/0/Documents/elykia'] }
-    ];
+    // Stratégies d'accès multiples pour contourner les restrictions d'UID
+    let accessStrategies = [];
+
+    if (Capacitor.getPlatform() === 'web') {
+      // Sur le web, on reste sur le standard
+      accessStrategies = [
+        { directory: Directory.Documents, paths: ['elykia'] }
+      ];
+    } else {
+      // Sur Android, on tente plusieurs chemins pour retrouver les fichiers après réinstallation
+      accessStrategies = [
+        // Stratégie 1: Documents avec différents chemins
+        { directory: Directory.Documents, paths: ['elykia', './elykia', '/elykia', 'Documents/elykia'] },
+        // Stratégie 2: External Storage
+        { directory: Directory.ExternalStorage, paths: ['elykia', 'Documents/elykia', 'Download/elykia'] },
+        // Stratégie 3: Data directory (pour les fichiers privés)
+        { directory: Directory.Data, paths: ['elykia', '../Documents/elykia', '../../storage/emulated/0/Documents/elykia'] }
+      ];
+    }
 
     for (const strategy of accessStrategies) {
       for (const path of strategy.paths) {
