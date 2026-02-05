@@ -512,4 +512,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
      */
     List<Credit> findByTypeAndClientType(OperationType type, ClientType clientType);
 
+    boolean existsByReference(String reference);
+    Optional<Credit> findByReference(String reference);
+
 }

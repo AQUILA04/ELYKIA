@@ -618,6 +618,13 @@ public class CreditService extends GenericService<Credit, Long> {
                     Long.valueOf(ChronoUnit.DAYS.between(LocalDate.now(), dto.getEndDate())).intValue());
         }
 
+        if (StringUtils.hasText(dto.getReference())) {
+            if (getRepository().existsByReference(dto.getReference())) {
+                return getRepository().findByReference(dto.getReference()).orElseThrow();
+            }
+            clientCredit.setReference(dto.getReference());
+        }
+
         repository.saveAndFlush(clientCredit);
 
         // Mettre à jour le statut du client

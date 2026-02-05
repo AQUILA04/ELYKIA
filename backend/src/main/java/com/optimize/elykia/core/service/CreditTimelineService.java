@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service;
 
-import com.optimize.common.entities.exception.CustomValidationException; // Assurez-vous que cet import est présent
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.CollectorDailyStakeDto;
@@ -98,7 +98,10 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
             eventPublisher.publishEvent(new CreditCollectionEvent(
                     this,
                     creditTimeline.getAmount(),
-                    creditTimeline.getCollector()));
+                    creditTimeline.getCollector(),
+                    credit.getReference(),
+                    creditTimeline.getReference()
+            ));
         }
 
         // Real-time aggregation update for BI performance optimization
@@ -118,56 +121,54 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     }
 
     @Transactional
-    public List<Long> defaultDailyStakeByCollector(CollectorDailyStakeDto dto) {
-        List<Long> successPerformCreditIds = new ArrayList<Long>();
-        dto.getCreditIds().forEach(creditId -> {
-            creditService.getRepository()
-                    .findByIdAndStatus(creditId, CreditStatus.INPROGRESS)
-                    .ifPresent(credit -> {
-                        CreditTimeline creditTimeline = new CreditTimeline();
-                        creditTimeline.setCredit(credit);
-                        creditTimeline.setCollector(credit.getCollector());
-                        creditTimeline.setNormalStake(Boolean.TRUE);
-                        creditTimeline.setAmount(credit.getDailyStake());
-                        dailyStakeFactor(credit, creditTimeline);
-                        successPerformCreditIds.add(creditId);
-                    });
+    public List<String> defaultDailyStakeByCollector(CollectorDailyStakeDto dto) {
+        List<String> successRecoveryIds = new ArrayList<>();
+        dto.getStakeUnits().forEach(stakeUnit -> {
+            processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), null, true, successRecoveryIds);
         });
-        return successPerformCreditIds;
+        return successRecoveryIds;
     }
 
-    // Dans CreditTimelineService.java
 
     @Transactional
-    public List<Long> specialDailyStakeByCollector(SpecialDailyStakeDto dto) {
-        List<Long> successPerformCreditIds = new ArrayList<Long>();
+    public List<String> specialDailyStakeByCollector(SpecialDailyStakeDto dto) {
+        List<String> successRecoveryIds = new ArrayList<>();
         dto.getStakeUnits().forEach(stakeUnit -> {
-            creditService.getRepository()
-                    .findByIdAndStatus(stakeUnit.getCreditId(), CreditStatus.INPROGRESS)
-                    .ifPresent(credit -> {
+            processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), stakeUnit.getAmount(), false, successRecoveryIds);
+        });
+        return successRecoveryIds;
+    }
 
-                        // VÉRIFICATION 1 : Le montant spécial doit être supérieur à la mise normale
-                        if (stakeUnit.getAmount() <= credit.getDailyStake()) {
-                            throw new CustomValidationException(
-                                    "Le montant de la mise spéciale doit être supérieur à la mise journalière !");
-                        }
+    private void processDailyStake(Long creditId, String recoveryId, Double amount, boolean isNormalStake, List<String> successRecoveryIds) {
+        // Check for duplicate reference
+        if (getRepository().existsByReference(recoveryId)) {
+            successRecoveryIds.add(recoveryId);
+            return;
+        }
 
-                        // AJOUT DE LA VÉRIFICATION 2 : Le montant ne doit pas dépasser le reste à payer
-                        if (stakeUnit.getAmount() > credit.getTotalAmountRemaining()) {
+        creditService.getRepository()
+                .findByIdAndStatus(creditId, CreditStatus.INPROGRESS)
+                .ifPresent(credit -> {
+                    Double stakeAmount = amount;
+                    if (isNormalStake) {
+                        stakeAmount = credit.getDailyStake();
+                    } else {
+                        // Validation for special stake
+                        if (stakeAmount > credit.getTotalAmountRemaining()) {
                             throw new CustomValidationException(
                                     "Le montant de la mise spéciale ne peut pas dépasser le montant restant à payer !");
                         }
+                    }
 
-                        CreditTimeline creditTimeline = new CreditTimeline();
-                        creditTimeline.setCredit(credit);
-                        creditTimeline.setCollector(credit.getCollector());
-                        creditTimeline.setNormalStake(Boolean.FALSE);
-                        creditTimeline.setAmount(stakeUnit.getAmount());
-                        dailyStakeFactor(credit, creditTimeline);
-                        successPerformCreditIds.add(stakeUnit.getCreditId());
-                    });
-        });
-        return successPerformCreditIds;
+                    CreditTimeline creditTimeline = new CreditTimeline();
+                    creditTimeline.setCredit(credit);
+                    creditTimeline.setCollector(credit.getCollector());
+                    creditTimeline.setNormalStake(isNormalStake);
+                    creditTimeline.setAmount(stakeAmount);
+                    creditTimeline.setReference(recoveryId);
+                    dailyStakeFactor(credit, creditTimeline);
+                    successRecoveryIds.add(recoveryId);
+                });
     }
 
     public List<CreditTimeline> getAllByCredit(Long creditId) {

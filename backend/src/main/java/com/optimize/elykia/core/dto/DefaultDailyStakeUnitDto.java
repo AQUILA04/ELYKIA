@@ -5,11 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class SpecialDailyStakeUnitDto {
-    private Long clientId;
-    @NotNull(message = "Le montant de la mise est obligatoire")
-    private Double amount;
-    @NotNull(message = "L'identifiant du credit ne peut être nulle")
+public class DefaultDailyStakeUnitDto {
+    @NotNull(message = "L'ID du crédit est obligatoire !")
     private Long creditId;
     @NotBlank(message = "La référence du recouvrement est obligatoire !")
     private String recoveryId; // Mobile recovery ID

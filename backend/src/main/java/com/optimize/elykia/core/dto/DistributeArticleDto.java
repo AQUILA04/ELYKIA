@@ -30,6 +30,7 @@ public class DistributeArticleDto {
     private Double totalAmountPaid;
     private Double totalAmountRemaining;
     private Boolean mobile;
+    private String reference;
 
     public void validateEntryArticles() {
         if (Objects.isNull(articles) || articles.getArticleEntries().isEmpty()) {

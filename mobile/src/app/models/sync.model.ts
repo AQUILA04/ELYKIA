@@ -149,7 +149,7 @@ export interface DistributionSyncRequest {
   totalAmountPaid: number;
   totalAmountRemaining: number;
   mobile: boolean;
-
+  reference?: string;
 }
 
 export interface OrderSyncRequest {
@@ -167,9 +167,11 @@ export interface OrderSyncResponse {
 
 
 export interface DefaultDailyStakeRequest {
-  clientIds: number[]; // IDs serveur des clients
   collector: string;
-  creditIds: number[]; // IDs serveur des distributions
+  stakeUnits: Array<{
+    creditId: number; // ID serveur de la distribution
+    recoveryId: string; // ID local du recouvrement (mobile)
+  }>;
 }
 
 export interface SpecialDailyStakeRequest {
@@ -178,6 +180,7 @@ export interface SpecialDailyStakeRequest {
     amount: number;
     creditId: number; // ID serveur de la distribution
     clientId: number; // ID serveur du client
+    recoveryId: string; // ID local du recouvrement (mobile)
   }>;
 }
 

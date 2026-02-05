@@ -687,38 +687,35 @@ export class SynchronizationService {
    * Synchroniser les mises journalières normales
    */
   private async syncDefaultDailyStakes(recoveries: Recovery[]): Promise<void> {
-    const clientIds: number[] = [];
-    const creditIds: number[] = [];
+    const stakeUnits = [];
     const currentUser = this.authService.currentUser;
 
     for (const recovery of recoveries) {
-      const clientServerId = await this.getServerIdForEntity(recovery.clientId, 'client');
       const distributionServerId = await this.getServerIdForEntity(recovery.distributionId, 'distribution');
 
-      console.log('clientServerId: ', clientServerId);
-      console.log('distributionServerId: ', distributionServerId);
-
-      if (clientServerId && distributionServerId) {
-        clientIds.push(parseInt(clientServerId));
-        creditIds.push(parseInt(distributionServerId));
+      if (distributionServerId) {
+        stakeUnits.push({
+            creditId: parseInt(distributionServerId),
+            recoveryId: recovery.id
+        });
       }
     }
 
     const syncRequest: DefaultDailyStakeRequest = {
-      clientIds,
       collector: currentUser?.username || '',
-      creditIds
+      stakeUnits
     };
 
     const headers = this.getAuthHeaders();
 
     try {
-      const response = await this.http.post<ApiResponse<number[]>>(`${this.baseUrl}/api/v1/credits/default-daily-stake`, syncRequest, { headers }).toPromise();
+      const response = await this.http.post<ApiResponse<string[]>>(`${this.baseUrl}/api/v1/credits/default-daily-stake`, syncRequest, { headers }).toPromise();
 
-      if (response?.data.length === recoveries.length) {
-        // Marquer tous les recouvrements comme synchronisés
-        for (const recovery of recoveries) {
-          await this.markRecoveryAsSynced(recovery.id);
+      if (response?.data && Array.isArray(response.data)) {
+        const syncedRecoveryIds = response.data;
+        // Marquer tous les recouvrements retournés comme synchronisés
+        for (const recoveryId of syncedRecoveryIds) {
+          await this.markRecoveryAsSynced(recoveryId);
         }
       }
     } catch (error) {
@@ -750,7 +747,8 @@ export class SynchronizationService {
             stakeUnits.push({
               amount: recovery.amount,
               creditId: parsedCreditId,
-              clientId: parsedClientId
+              clientId: parsedClientId,
+              recoveryId: recovery.id
             });
           } else {
             console.error(`Skipping special stake for recovery ${recovery.id} due to invalid parent server ID. Client ID: ${clientServerId}, Distribution ID: ${distributionServerId}`);
@@ -768,12 +766,13 @@ export class SynchronizationService {
     const headers = this.getAuthHeaders();
     if (stakeUnits.length > 0) {
       try {
-        const response = await this.http.post<ApiResponse<number[]>>(`${this.baseUrl}/api/v1/credits/special-daily-stake`, syncRequest, { headers }).toPromise();
+        const response = await this.http.post<ApiResponse<string[]>>(`${this.baseUrl}/api/v1/credits/special-daily-stake`, syncRequest, { headers }).toPromise();
 
-        if (response?.data.length === recoveries.length) {
-          // Marquer tous les recouvrements comme synchronisés
-          for (const recovery of recoveries) {
-            await this.markRecoveryAsSynced(recovery.id);
+        if (response?.data && Array.isArray(response.data)) {
+          const syncedRecoveryIds = response.data;
+          // Marquer tous les recouvrements retournés comme synchronisés
+          for (const recoveryId of syncedRecoveryIds) {
+            await this.markRecoveryAsSynced(recoveryId);
           }
         }
       } catch (error) {
@@ -1067,7 +1066,8 @@ export class SynchronizationService {
       totalAmount: distribution.totalAmount || 0,
       totalAmountPaid: distribution.paidAmount || 0,
       totalAmountRemaining: distribution.remainingAmount || 0,
-      mobile: true
+      mobile: true,
+      reference: distribution.reference || distribution.id // Ajout de la référence
     };
   }
 

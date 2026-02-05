@@ -158,12 +158,16 @@ public class DailyReportEventListener {
 
         repository.save(report);
 
+        String description = String.format("Recouvrement crédit (Ref: %s, Rec: %s)",
+                event.getCreditReference() != null ? event.getCreditReference() : "N/A",
+                event.getRecoveryReference() != null ? event.getRecoveryReference() : "N/A");
+
         dailyOperationService.logOperation(
                 event.getCollector(),
                 com.optimize.elykia.core.enumaration.OperationType.CREDIT_COLLECTION,
                 event.getAmount(),
                 "Recouvrement",
-                "Recouvrement crédit");
+                description);
     }
 
     @EventListener

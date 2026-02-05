@@ -27,6 +27,10 @@ public class CreditTimeline extends BaseEntity<String> {
     private Integer remainingDaysCount;
     private Double totalAmountRemaining;
     private String collector;
+    
+    @Column(unique = true)
+    private String reference; // This will store the mobile recovery ID
+
     @ManyToOne
     @JsonIgnore
     private DailyAccountancy dailyAccountancy;
