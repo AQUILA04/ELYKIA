@@ -95,11 +95,12 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
         // Publish CreditCollectionEvent
         if (eventPublisher != null) {
+            String ref = credit.getReference() + " | Client : " + credit.getClient().getFullName();
             eventPublisher.publishEvent(new CreditCollectionEvent(
                     this,
                     creditTimeline.getAmount(),
                     creditTimeline.getCollector(),
-                    credit.getReference(),
+                    ref,
                     creditTimeline.getReference()
             ));
         }
