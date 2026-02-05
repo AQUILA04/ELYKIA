@@ -81,20 +81,37 @@ export class TransactionManager {
 
     async beginTransaction(): Promise<void> {
         if (!this.db) throw new Error('Database not initialized');
+
+        // Check if transaction is already active to prevent "cannot start a transaction within a transaction"
+        const isTransactionActive = await this.db.isTransactionActive();
+        if (isTransactionActive) {
+            console.warn('Transaction is already active. Skipping beginTransaction.');
+            return;
+        }
+
         await this.db.execute('BEGIN TRANSACTION');
     }
 
     async commitTransaction(): Promise<void> {
         if (!this.db) throw new Error('Database not initialized');
-        await this.db.execute('COMMIT');
+        try {
+            await this.db.execute('COMMIT');
+        } catch (error: any) {
+            // Ignore if no transaction is active (e.g. if we skipped begin)
+            if (error.message && error.message.includes('no transaction is active')) {
+                console.warn('No transaction to commit.');
+                return;
+            }
+            throw error;
+        }
     }
 
     async rollbackTransaction(): Promise<void> {
-        if (!this.db) return; // Can't rollback if db is null
+        if (!this.db) return;
         try {
             await this.db.execute('ROLLBACK');
-        } catch (e) {
-            console.warn('Failed to rollback transaction:', e);
+        } catch (e: any) {
+            console.warn('Failed to rollback transaction:', e.message);
         }
     }
 }

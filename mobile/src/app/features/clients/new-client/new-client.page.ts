@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable, Subscription, combineLatest, Subject } fro
 import { Locality } from 'src/app/models/locality.model';
 import { selectAllLocalities } from 'src/app/store/locality/locality.selectors';
 import { Geolocation } from '@capacitor/geolocation';
-import {Camera, CameraResultType} from '@capacitor/camera';
+import { Camera, CameraResultType } from '@capacitor/camera';
 import * as ClientActions from 'src/app/store/client/client.actions';
 import * as ClientSelectors from 'src/app/store/client/client.selectors';
 import { AlertController, NavController } from '@ionic/angular';
@@ -163,19 +163,19 @@ export class NewClientPage implements OnInit, OnDestroy {
       take(1)
     ).subscribe(async (existingClient) => {
       if (existingClient) {
-        this.presentAlert('Donnée Invalide', phone+' est déjà utilisé !');
+        this.presentAlert('Donnée Invalide', phone + ' est déjà utilisé !');
         return;
       }
       let profilPhotoPath = null;
       if (this.photoToSave && this.photoToSave.dataUrl) {
         const profilPhotoName = `profile_${Date.now()}.png`;
-        profilPhotoPath = `client_photos/${profilPhotoName}`;
+        profilPhotoPath = `Pictures/Elykia/client_photos/${profilPhotoName}`;
         this.log.log('[ClientPage]: build profilPhotoPath: ' + profilPhotoPath);
 
         try {
           await Filesystem.mkdir({
-            path: 'client_photos',
-            directory: Directory.Data,
+            path: 'Pictures/Elykia/client_photos',
+            directory: Directory.ExternalStorage,
             recursive: true
           });
         } catch (e) {
@@ -187,19 +187,19 @@ export class NewClientPage implements OnInit, OnDestroy {
         await Filesystem.writeFile({
           path: profilPhotoPath,
           data: base64Data,
-          directory: Directory.Data
+          directory: Directory.ExternalStorage
         });
       }
 
       let cardPhotoPath = null;
       if (this.cardPhotoToSave && this.cardPhotoToSave.dataUrl) {
         const cardPhotoName = `card_${Date.now()}.png`;
-        cardPhotoPath = `card_photos/${cardPhotoName}`;
+        cardPhotoPath = `Pictures/Elykia/card_photos/${cardPhotoName}`;
 
         try {
           await Filesystem.mkdir({
-            path: 'card_photos',
-            directory: Directory.Data,
+            path: 'Pictures/Elykia/card_photos',
+            directory: Directory.ExternalStorage,
             recursive: true
           });
         } catch (e) {
@@ -211,7 +211,7 @@ export class NewClientPage implements OnInit, OnDestroy {
         await Filesystem.writeFile({
           path: cardPhotoPath,
           data: cardBase64Data,
-          directory: Directory.Data
+          directory: Directory.ExternalStorage
         });
       }
 
@@ -294,7 +294,9 @@ export class NewClientPage implements OnInit, OnDestroy {
       }
 
       const image = await Camera.getPhoto({
-        quality: 90,
+        quality: 50,
+        width: 800,
+        height: 800,
         allowEditing: true,
         resultType: CameraResultType.DataUrl
       });
@@ -319,7 +321,9 @@ export class NewClientPage implements OnInit, OnDestroy {
       }
 
       const image = await Camera.getPhoto({
-        quality: 90,
+        quality: 50,
+        width: 800,
+        height: 800,
         allowEditing: true,
         resultType: CameraResultType.DataUrl
       });

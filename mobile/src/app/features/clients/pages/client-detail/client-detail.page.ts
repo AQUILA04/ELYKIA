@@ -47,7 +47,7 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     private alertController: AlertController,
     private toastController: ToastController,
     private actions$: Actions
-  ) {}
+  ) { }
 
   ngOnInit() {
     const clientId = this.route.snapshot.paramMap.get('id');
@@ -79,11 +79,11 @@ export class ClientDetailPage implements OnInit, OnDestroy {
         const cardPhoto$ = this.getLocalPhotoUrl(client.cardPhoto || client.cardPhotoUrl, '');
 
         return combineLatest([profilePhoto$, cardPhoto$]).pipe(
-            map(([photoUrl, cardPhotoSafeUrl]) => ({
-                ...client,
-                photoUrl,
-                cardPhotoSafeUrl
-            }))
+          map(([photoUrl, cardPhotoSafeUrl]) => ({
+            ...client,
+            photoUrl,
+            cardPhotoSafeUrl
+          }))
         );
       }),
       filter(client => client !== null) // Ne pas émettre si le client est null
@@ -171,14 +171,23 @@ export class ClientDetailPage implements OnInit, OnDestroy {
       return of(defaultAsset);
     }
     console.log(`[PhotoDebug] Attempting to load local photo from path: ${localPath}`);
-    return from(Filesystem.readFile({ path: localPath, directory: Directory.Data })).pipe(
+    return from(Filesystem.readFile({ path: localPath, directory: Directory.ExternalStorage })).pipe(
       map(file => {
-        console.log(`[PhotoDebug] Successfully read localFile: ${localPath}`);
+        console.log(`[PhotoDebug] Successfully read localFile from ExternalStorage: ${localPath}`);
         return this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`);
       }),
       catchError((error) => {
-        console.error(`[PhotoDebug] Failed to read localFile ${localPath}. Error:`, error);
-        return of(defaultAsset);
+        console.log(`[PhotoDebug] Failed to read from ExternalStorage, trying Data: ${localPath}`);
+        return from(Filesystem.readFile({ path: localPath, directory: Directory.Data })).pipe(
+          map(file => {
+            console.log(`[PhotoDebug] Successfully read localFile from Data: ${localPath}`);
+            return this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`);
+          }),
+          catchError((err) => {
+            console.error(`[PhotoDebug] Failed to read localFile ${localPath}. Error:`, err);
+            return of(defaultAsset);
+          })
+        );
       })
     );
   }
@@ -230,19 +239,29 @@ export class ClientDetailPage implements OnInit, OnDestroy {
       let cardPhotoPath: string | null = client.cardPhoto;
 
       if (data.newProfilePhoto) {
-        profilePhotoPath = `client_photos/profile_${Date.now()}.png`;
-        await Filesystem.writeFile({ path: profilePhotoPath, data: data.newProfilePhoto.base64, directory: Directory.Data });
+        profilePhotoPath = `Pictures/Elykia/client_photos/profile_${Date.now()}.png`;
+
+        try {
+          await Filesystem.mkdir({ path: 'Pictures/Elykia/client_photos', directory: Directory.ExternalStorage, recursive: true });
+        } catch (e) { }
+
+        await Filesystem.writeFile({ path: profilePhotoPath, data: data.newProfilePhoto.base64, directory: Directory.ExternalStorage });
       }
       if (data.newCardPhoto) {
-        cardPhotoPath = `card_photos/card_${Date.now()}.png`;
-        await Filesystem.writeFile({ path: cardPhotoPath, data: data.newCardPhoto.base64, directory: Directory.Data });
+        cardPhotoPath = `Pictures/Elykia/card_photos/card_${Date.now()}.png`;
+
+        try {
+          await Filesystem.mkdir({ path: 'Pictures/Elykia/card_photos', directory: Directory.ExternalStorage, recursive: true });
+        } catch (e) { }
+
+        await Filesystem.writeFile({ path: cardPhotoPath, data: data.newCardPhoto.base64, directory: Directory.ExternalStorage });
       }
 
-      this.store.dispatch(ClientActions.updateClientPhotosAndInfo({ 
-        clientId: client.id, 
-        cardType: data.cardType, 
-        cardID: data.cardID, 
-        profilPhoto: profilePhotoPath, 
+      this.store.dispatch(ClientActions.updateClientPhotosAndInfo({
+        clientId: client.id,
+        cardType: data.cardType,
+        cardID: data.cardID,
+        profilPhoto: profilePhotoPath,
         cardPhoto: cardPhotoPath,
         profilPhotoUrl: profilePhotoPath, // Initialiser avec le même chemin
         cardPhotoUrl: cardPhotoPath       // Initialiser avec le même chemin
@@ -263,7 +282,8 @@ export class ClientDetailPage implements OnInit, OnDestroy {
       message: 'Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.',
       buttons: [
         { text: 'Annuler', role: 'cancel' },
-        { text: 'Supprimer', handler: () => {
+        {
+          text: 'Supprimer', handler: () => {
             const clientId = this.route.snapshot.paramMap.get('id');
             if (clientId) this.store.dispatch(ClientActions.deleteClient({ id: clientId }));
           }
@@ -284,9 +304,10 @@ export class ClientDetailPage implements OnInit, OnDestroy {
       inputs: [{ name: 'balance', type: 'number', placeholder: 'Nouveau solde' }],
       buttons: [
         { text: 'Annuler', role: 'cancel' },
-        { text: 'Mettre à jour', handler: (data) => {
+        {
+          text: 'Mettre à jour', handler: (data) => {
             const clientId = this.route.snapshot.paramMap.get('id');
-            if(clientId) this.store.dispatch(ClientActions.updateClientBalance({ clientId: clientId, balance: data.balance }));
+            if (clientId) this.store.dispatch(ClientActions.updateClientBalance({ clientId: clientId, balance: data.balance }));
           }
         }
       ]
