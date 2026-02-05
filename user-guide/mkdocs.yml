@@ -37,11 +37,11 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
 
-plugins:
-  - with-pdf:
-      author: Francis ADLER
-      copyright: (c) Elykia 2026. All right reserved
-      cover: true
-      back_cover: true
-      toc_title: Table des matières
-      render_js: true
+#plugins:
+#  - with-pdf:
+#      author: Francis ADLER
+#      copyright: (c) Elykia 2026. All right reserved
+#      cover: true
+#      back_cover: true
+#      toc_title: Table des matières
+#      render_js: true

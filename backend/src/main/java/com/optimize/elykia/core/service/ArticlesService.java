@@ -8,13 +8,11 @@ import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.dto.StockEntryDto;
 import com.optimize.elykia.core.dto.StockValuesDto;
 import com.optimize.elykia.core.dto.bi.StockMetricsDto;
-import com.optimize.elykia.core.entity.ArticleHistory;
-import com.optimize.elykia.core.entity.Articles;
-import com.optimize.elykia.core.entity.CreditArticles;
-import com.optimize.elykia.core.entity.ExpenseType;
+import com.optimize.elykia.core.entity.*;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
 import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
+import com.optimize.elykia.core.repository.StockReceptionRepository;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,19 +34,22 @@ public class ArticlesService extends GenericService<Articles, Long> {
     private final ArticleHistoryService articleHistoryService;
     private final ExpenseService expenseService;
     private final ExpenseTypeRepository expenseTypeRepository;
+    private final StockReceptionRepository stockReceptionRepository;
 
     protected ArticlesService(ArticlesRepository repository,
                               ArticlesMapper articlesMapper,
                               UserService userService,
                               ArticleHistoryService articleHistoryService,
                               ExpenseService expenseService,
-                              ExpenseTypeRepository expenseTypeRepository) {
+                              ExpenseTypeRepository expenseTypeRepository,
+                              StockReceptionRepository stockReceptionRepository) {
         super(repository);
         this.articlesMapper = articlesMapper;
         this.userService = userService;
         this.articleHistoryService = articleHistoryService;
         this.expenseService = expenseService;
         this.expenseTypeRepository = expenseTypeRepository;
+        this.stockReceptionRepository = stockReceptionRepository;
     }
 
     @Transactional
@@ -106,6 +107,12 @@ public class ArticlesService extends GenericService<Articles, Long> {
         AtomicReference<Double> totalCheck = new AtomicReference<>(0.0);
         StringBuilder descriptionBuilder = new StringBuilder();
 
+        // Create StockReception
+        StockReception stockReception = new StockReception();
+        stockReception.setReceptionDate(LocalDate.now());
+        stockReception.setReceivedBy(connectedUser);
+        stockReception.setReference("RCP-" + System.currentTimeMillis());
+
         stockEntryDto.getArticleEntries().forEach(stockEntry -> {
             Articles articles = getById(stockEntry.getArticleId());
             ArticleHistory articleHistory = ArticleHistory.buildEntryHistory(articles, stockEntry, connectedUser);
@@ -127,7 +134,18 @@ public class ArticlesService extends GenericService<Articles, Long> {
                     .append(" Qte:").append(stockEntry.getQuantity())
                     .append(" PU:").append(unitPrice)
                     .append(" Total:").append(totalLinePrice);
+
+            // Add item to StockReception
+            StockReceptionItem item = new StockReceptionItem();
+            item.setArticle(articles);
+            item.setQuantity(stockEntry.getQuantity());
+            item.setUnitPrice(unitPrice);
+            item.setTotalPrice(totalLinePrice);
+            stockReception.addItem(item);
         });
+
+        stockReception.setTotalAmount(totalCheck.get());
+        stockReceptionRepository.save(stockReception);
         
         // Create Expense if amount > 0
         if (totalCheck.get() > 0) {
