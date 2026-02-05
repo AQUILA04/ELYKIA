@@ -359,13 +359,13 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     const adjustedAdvance = vm.adjustedAdvance;
     const remainingAmount = vm.totalAmount - adjustedAdvance;
 
-    if (remainingAmount > (accountBalance * 6)) {
-      await this.presentErrorAlert(
-        'Plafond de Crédit Dépassé',
-        `Le montant de ce crédit (${remainingAmount.toLocaleString('fr-FR')} FCFA) dépasse le plafond autorisé pour ce client (6 x ${accountBalance.toLocaleString('fr-FR')} = ${(accountBalance * 6).toLocaleString('fr-FR')} FCFA). Réduisez le nombre d\'articles.`
-      );
-      return;
-    }
+    // if (remainingAmount > (accountBalance * 6)) {
+    //   await this.presentErrorAlert(
+    //     'Plafond de Crédit Dépassé',
+    //     `Le montant de ce crédit (${remainingAmount.toLocaleString('fr-FR')} FCFA) dépasse le plafond autorisé pour ce client (6 x ${accountBalance.toLocaleString('fr-FR')} = ${(accountBalance * 6).toLocaleString('fr-FR')} FCFA). Réduisez le nombre d\'articles.`
+    //   );
+    //   return;
+    // }
 
     // Récupérer le creditId
     // NOTE: Avec la nouvelle migration, creditId devient optionnel ou n'est plus lié à StockOutput de la même manière.
