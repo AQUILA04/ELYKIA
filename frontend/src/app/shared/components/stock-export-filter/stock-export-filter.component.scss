@@ -1,0 +1,7 @@
+.card-header {
+    user-select: none;
+
+    &:hover {
+        background-color: #e9ecef !important;
+    }
+}

@@ -44,6 +44,14 @@ export class StockTontineRequestService extends BaseHttpService {
   // getMyRequests n'est plus nécessaire car getAll gère le contexte utilisateur côté backend
   // Mais si le composant l'utilise, je peux le rediriger vers getAll
   getMyRequests(page: number = 0, size: number = 20): Observable<Page<StockTontineRequest>> {
-     return this.getAll(null, page, size);
+    return this.getAll(null, page, size);
+  }
+
+  exportPdf(startDate: string, endDate: string, collector: string | null): Observable<Blob> {
+    let url = `${this.baseUrl}/export/pdf?startDate=${startDate}&endDate=${endDate}`;
+    if (collector) {
+      url += `&collector=${collector}`;
+    }
+    return this.get(url, { responseType: 'blob' });
   }
 }

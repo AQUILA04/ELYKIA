@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { ExportFilter } from 'src/app/shared/components/stock-export-filter/stock-export-filter.component';
+import { User } from 'src/app/user/service/user.service';
 import { StockRequestService } from '../../services/stock-request.service';
 import { StockRequest, StockRequestStatus } from '../../models/stock-request.model';
 import { Page } from '../../../shared/models/page.model';
@@ -23,6 +25,8 @@ export class StockRequestListComponent implements OnInit {
   isManager = false; // Changed declaration
   isStoreKeeper = false; // Changed declaration
   isPromoter = false; // Changed declaration
+  isSecretary = false;
+  promoters: User[] = [];
   currentUser: any;
   selectedRequest: StockRequest | null = null; // Pour la modale de détails
 
@@ -40,7 +44,48 @@ export class StockRequestListComponent implements OnInit {
     this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE) || this.userService.hasProfile(UserProfile.ADMIN) || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
     this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER);
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
+    this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
+
+    if (this.canSelectPromoter) {
+      this.loadPromoters();
+    }
     this.loadRequests();
+  }
+
+  get canSelectPromoter(): boolean {
+    return this.isManager || this.isSecretary;
+  }
+
+  loadPromoters() {
+    this.userService.getPromoters(0, 1000).subscribe({
+      next: (page) => {
+        this.promoters = page.content;
+      },
+      error: (err) => console.error('Error loading promoters', err)
+    });
+  }
+
+  onExportPdf(filter: ExportFilter) {
+    this.spinner.show();
+    this.stockRequestService.exportPdf(filter.startDate, filter.endDate, filter.collector)
+      .subscribe({
+        next: (data) => {
+          const blob = new Blob([data], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `rapport_stock_${filter.startDate}_${filter.endDate}.pdf`;
+          link.click();
+          window.URL.revokeObjectURL(url);
+          this.spinner.hide();
+          this.toastr.success('Export PDF téléchargé avec succès');
+        },
+        error: (err) => {
+          console.error('Export error', err);
+          this.toastr.error('Erreur lors du téléchargement du PDF');
+          this.spinner.hide();
+        }
+      });
   }
 
   loadRequests() {
@@ -91,7 +136,8 @@ export class StockRequestListComponent implements OnInit {
           error: (err) => {
             console.error('Error', err);
             this.alertService.showError(err.error?.message ?? 'Erreur de livraison', 'Erreur de livraison');
-          } });
+          }
+        });
       }
     });
   }

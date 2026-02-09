@@ -17,6 +17,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { MatInputModule } from '@angular/material/input';
+import { StockExportFilterComponent } from './stock-export-filter/stock-export-filter.component';
 
 @NgModule({
     declarations: [
@@ -24,7 +25,8 @@ import { MatInputModule } from '@angular/material/input';
         ArticleSelectorComponent,
         ChangeDailyStakeComponent,
         CreateTontineComponent,
-        AdvancedSearchComponent
+        AdvancedSearchComponent,
+        StockExportFilterComponent
     ],
     imports: [
         CommonModule,
@@ -46,7 +48,8 @@ import { MatInputModule } from '@angular/material/input';
         ArticleSelectorComponent,
         ChangeDailyStakeComponent,
         CreateTontineComponent,
-        AdvancedSearchComponent
+        AdvancedSearchComponent,
+        StockExportFilterComponent
     ]
 })
 export class SharedComponentsModule { }

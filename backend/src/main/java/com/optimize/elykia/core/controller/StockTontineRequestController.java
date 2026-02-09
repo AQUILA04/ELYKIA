@@ -7,6 +7,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/api/v1/stock-tontine-request")
@@ -36,7 +40,25 @@ public class StockTontineRequestController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<StockTontineRequest>> getAll(@RequestParam(required = false) String collector, Pageable pageable) {
+    public ResponseEntity<Page<StockTontineRequest>> getAll(@RequestParam(required = false) String collector,
+            Pageable pageable) {
         return ResponseEntity.ok(service.getAll(collector, pageable));
+    }
+
+    @GetMapping("/export/pdf")
+    public ResponseEntity<byte[]> exportPdf(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String collector) {
+
+        byte[] pdfContent = service.generatePdfExport(startDate, endDate, collector);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        String filename = "stock-tontine-export-" + LocalDate.now() + ".pdf";
+        headers.setContentDispositionFormData("attachment", filename);
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+        return new ResponseEntity<>(pdfContent, headers, org.springframework.http.HttpStatus.OK);
     }
 }

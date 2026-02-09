@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { ExportFilter } from 'src/app/shared/components/stock-export-filter/stock-export-filter.component';
+import { User } from 'src/app/user/service/user.service';
 import { StockTontineRequestService } from '../../services/stock-tontine-request.service';
 import { StockTontineRequest, StockRequestStatus } from '../../models/stock-tontine-request.model';
 import { NgxSpinnerService } from 'ngx-spinner';
@@ -25,6 +27,8 @@ export class StockTontineRequestListComponent implements OnInit {
   isManager = false;
   isStoreKeeper = false;
   isPromoter = false;
+  isSecretary = false;
+  promoters: User[] = [];
   currentUser: any;
   selectedRequest: StockTontineRequest | null = null;
 
@@ -43,8 +47,49 @@ export class StockTontineRequestListComponent implements OnInit {
     this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE) || this.userService.hasProfile(UserProfile.ADMIN) || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
     this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER);
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
+    this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
+
+    if (this.canSelectPromoter) {
+      this.loadPromoters();
+    }
 
     this.loadRequests();
+  }
+
+  get canSelectPromoter(): boolean {
+    return this.isManager || this.isSecretary;
+  }
+
+  loadPromoters() {
+    this.userService.getPromoters(0, 1000).subscribe({
+      next: (page) => {
+        this.promoters = page.content;
+      },
+      error: (err) => console.error('Error loading promoters', err)
+    });
+  }
+
+  onExportPdf(filter: ExportFilter) {
+    this.spinner.show();
+    this.requestService.exportPdf(filter.startDate, filter.endDate, filter.collector)
+      .subscribe({
+        next: (data) => {
+          const blob = new Blob([data], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `rapport_stock_tontine_${filter.startDate}_${filter.endDate}.pdf`;
+          link.click();
+          window.URL.revokeObjectURL(url);
+          this.spinner.hide();
+          this.toastr.success('Export PDF téléchargé avec succès');
+        },
+        error: (err) => {
+          console.error('Export error', err);
+          this.toastr.error('Erreur lors du téléchargement du PDF');
+          this.spinner.hide();
+        }
+      });
   }
 
   loadRequests(): void {

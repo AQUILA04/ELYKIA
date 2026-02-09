@@ -50,4 +50,12 @@ export class StockRequestService extends BaseHttpService {
   getByStatus(status: StockRequestStatus, page: number = 0, size: number = 20): Observable<Page<StockRequest>> {
     return this.http.get<Page<StockRequest>>(`${this.baseUrl}/status/${status}?page=${page}&size=${size}`);
   }
+
+  exportPdf(startDate: string, endDate: string, collector: string | null): Observable<Blob> {
+    let url = `${this.baseUrl}/export/pdf?startDate=${startDate}&endDate=${endDate}`;
+    if (collector) {
+      url += `&collector=${collector}`;
+    }
+    return this.http.get(url, { responseType: 'blob' });
+  }
 }

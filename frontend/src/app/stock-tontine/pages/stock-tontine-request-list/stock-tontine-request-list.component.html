@@ -5,6 +5,10 @@
     <h1>Demandes de Stock Tontine</h1>
   </div>
 
+  <app-stock-export-filter [canSelectPromoter]="canSelectPromoter" [promoters]="promoters"
+    (export)="onExportPdf($event)">
+  </app-stock-export-filter>
+
   <div class="d-flex justify-content-end mb-3">
     <button *ngIf="isPromoter || isManager" class="btn add btn-sm" routerLink="/stock-tontine/request/create">
       <mat-icon>add</mat-icon>
@@ -52,17 +56,15 @@
       </tbody>
     </table>
 
-    <mat-paginator [length]="totalPages * size"
-              [pageSize]="size"
-              [pageSizeOptions]="[5, 10, 20, 50]"
-              (page)="onPageChange($event)"
-              aria-label="Select page">
+    <mat-paginator [length]="totalPages * size" [pageSize]="size" [pageSizeOptions]="[5, 10, 20, 50]"
+      (page)="onPageChange($event)" aria-label="Select page">
     </mat-paginator>
   </div>
 </div>
 
 <!-- Modal Détails -->
-<div class="modal" tabindex="-1" role="dialog" [ngStyle]="{'display': selectedRequest ? 'block' : 'none'}" style="background: rgba(0,0,0,0.5)">
+<div class="modal" tabindex="-1" role="dialog" [ngStyle]="{'display': selectedRequest ? 'block' : 'none'}"
+  style="background: rgba(0,0,0,0.5)">
   <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
@@ -80,7 +82,8 @@
             <p><strong>Date:</strong> {{ selectedRequest.requestDate | date:'dd/MM/yyyy' }}</p>
           </div>
           <div class="col-md-6 text-right">
-            <p><strong>Statut:</strong> <span class="badge" [ngClass]="getStatusBadge(selectedRequest.status!)">{{ selectedRequest.status }}</span></p>
+            <p><strong>Statut:</strong> <span class="badge" [ngClass]="getStatusBadge(selectedRequest.status!)">{{
+                selectedRequest.status }}</span></p>
           </div>
         </div>
 

@@ -1,0 +1,42 @@
+<div class="card mb-3">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center" (click)="toggleExpand()"
+        style="cursor: pointer;">
+        <h6 class="mb-0 text-primary">
+            <mat-icon style="vertical-align: middle; margin-right: 5px;">picture_as_pdf</mat-icon>
+            Export PDF des Sorties
+        </h6>
+        <mat-icon>{{ isExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+    </div>
+
+    <div class="card-body" *ngIf="isExpanded">
+        <div class="row align-items-end">
+
+            <div class="col-md-4">
+                <div class="form-group mb-0">
+                    <label for="period">Période</label>
+                    <select id="period" class="form-control" [(ngModel)]="selectedPeriod">
+                        <option value="TODAY">Aujourd'hui</option>
+                        <option value="WEEK">Cette Semaine</option>
+                        <option value="MONTH">Ce Mois</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-4" *ngIf="canSelectPromoter">
+                <div class="form-group mb-0">
+                    <label>Commercial</label>
+                    <ng-select [items]="promoters" bindLabel="username" bindValue="username"
+                        placeholder="Tous les commerciaux" [(ngModel)]="selectedCollector">
+                    </ng-select>
+                </div>
+            </div>
+
+            <div class="col-md-4 text-right">
+                <button class="btn btn-primary" (click)="onExport()">
+                    <mat-icon>cloud_download</mat-icon> Télécharger PDF
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
