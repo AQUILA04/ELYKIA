@@ -27,6 +27,9 @@ import java.util.Objects;
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
 import com.itextpdf.html2pdf.HtmlConverter;
 import java.io.ByteArrayOutputStream;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import com.optimize.elykia.core.dto.StockExportPdfContextDto;
 
 @Service
 @Transactional
@@ -38,6 +41,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     private final ArticlesService articlesService;
     private final StockMovementService stockMovementService;
     private final AccountingDayService accountingDayService;
+    private final TemplateEngine templateEngine;
 
     protected StockTontineRequestService(StockTontineRequestRepository repository,
             UserService userService,
@@ -45,7 +49,8 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             ApplicationEventPublisher eventPublisher,
             ArticlesService articlesService,
             StockMovementService stockMovementService,
-            AccountingDayService accountingDayService) {
+            AccountingDayService accountingDayService,
+            TemplateEngine templateEngine) {
         super(repository);
         this.userService = userService;
         this.tontineStockService = tontineStockService;
@@ -53,6 +58,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         this.articlesService = articlesService;
         this.stockMovementService = stockMovementService;
         this.accountingDayService = accountingDayService;
+        this.templateEngine = templateEngine;
     }
 
     public StockTontineRequest save(StockTontineRequest request) {
@@ -217,7 +223,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     }
 
     public byte[] generatePdfExport(LocalDate startDate, LocalDate endDate, String collector) {
-        List<StockRequestStatus> statuses = List.of(StockRequestStatus.VALIDATED, StockRequestStatus.DELIVERED);
+        List<StockRequestStatus> statuses = List.of(StockRequestStatus.DELIVERED);
 
         // Security check: if promoter, force collector to be current user
         User user = userService.getCurrentUser();
@@ -228,55 +234,25 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         List<StockRequestExportDTO> data = ((StockTontineRequestRepository) getRepository())
                 .findAggregatedStockRequests(startDate, endDate, collector, statuses);
 
-        StringBuilder html = new StringBuilder();
-        html.append("<html><head><style>");
-        html.append("body { font-family: sans-serif; }");
-        html.append("h1 { text-align: center; color: #333; }");
-        html.append(".header { margin-bottom: 20px; }");
-        html.append("table { width: 100%; border-collapse: collapse; margin-top: 20px; }");
-        html.append("th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }");
-        html.append("th { background-color: #f2f2f2; }");
-        html.append(".footer { margin-top: 30px; text-align: right; font-size: 0.9em; color: #777; }");
-        html.append("</style></head><body>");
+        long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
 
-        html.append("<h1>Rapport des Sorties de Stock Tontine</h1>");
+        StockExportPdfContextDto contextDto = StockExportPdfContextDto.builder()
+                .title("Rapport des Sorties de Stock Tontine")
+                .startDate(startDate != null ? startDate.toString() : "Début")
+                .endDate(endDate != null ? endDate.toString() : "Fin")
+                .collector(collector != null ? collector : "Tous")
+                .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
+                .items(data)
+                .totalQuantity(totalQuantity)
+                .build();
 
-        html.append("<div class='header'>");
-        html.append("<p><strong>Période :</strong> ").append(startDate != null ? startDate : "Début").append(" au ")
-                .append(endDate != null ? endDate : "Fin").append("</p>");
-        html.append("<p><strong>Commercial :</strong> ").append(collector != null ? collector : "Tous").append("</p>");
-        html.append("<p><strong>Date de génération :</strong> ")
-                .append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))).append("</p>");
-        html.append("</div>");
+        Context context = new Context();
+        context.setVariable("context", contextDto);
 
-        html.append("<table>");
-        html.append("<thead><tr><th>Article</th><th>Quantité Totale</th></tr></thead>");
-        html.append("<tbody>");
-
-        if (data.isEmpty()) {
-            html.append(
-                    "<tr><td colspan='2' style='text-align:center'>Aucune donnée trouvée pour cette période.</td></tr>");
-        } else {
-            for (StockRequestExportDTO item : data) {
-                html.append("<tr>");
-                html.append("<td>").append(item.getArticleName()).append("</td>");
-                html.append("<td>").append(item.getTotalQuantity()).append("</td>");
-                html.append("</tr>");
-            }
-        }
-
-        html.append("</tbody></table>");
-
-        // Footer with totals?
-        long sumQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
-        html.append("<div class='footer'>");
-        html.append("<p><strong>Total Articles : </strong>").append(sumQuantity).append("</p>");
-        html.append("</div>");
-
-        html.append("</body></html>");
+        String html = templateEngine.process("stock-export", context);
 
         ByteArrayOutputStream target = new ByteArrayOutputStream();
-        HtmlConverter.convertToPdf(html.toString(), target);
+        HtmlConverter.convertToPdf(html, target);
         return target.toByteArray();
     }
 }
