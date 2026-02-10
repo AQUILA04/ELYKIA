@@ -5,3 +5,33 @@
         background-color: #e9ecef !important;
     }
 }
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+
+    &.btn-download {
+        background-color: #003366;
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 51, 102, 0.1);
+
+        &:hover {
+            background-color: #004080;
+            box-shadow: 0 6px 12px rgba(0, 51, 102, 0.2);
+        }
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+            margin: 0; // Ensure no default margin interferes with gap
+        }
+    }
+}

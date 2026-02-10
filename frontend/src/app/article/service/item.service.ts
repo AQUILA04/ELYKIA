@@ -23,7 +23,9 @@ export interface Article {
   creditSalePrice?: number;
   reorderPoint?: number;
   optimalStockLevel?: number;
+
   isSeasonal?: boolean;
+  status?: 'ENABLED' | 'DISABLED' | 'DELETED';
 }
 
 export interface NewArticleData {
@@ -55,9 +57,9 @@ export class ItemService {
 
   constructor(private http: HttpClient,
     private tokenStorage: TokenStorageService
-  ) {}
+  ) { }
 
-  getHeader(){
+  getHeader() {
     const token = this.tokenStorage.getToken();
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`
@@ -69,6 +71,12 @@ export class ItemService {
     const headers = this.getHeader();
     const params = new HttpParams().set('size', '10000');
     return this.http.get<ArticleResponse>(this.apiUrl, { params, headers });
+  }
+
+  getAllEnabledArticles(): Observable<ArticleResponse> {
+    const headers = this.getHeader();
+    const params = new HttpParams().set('size', '10000');
+    return this.http.get<ArticleResponse>(`${this.apiUrl}/enabled`, { params, headers });
   }
 
   // #### MÉTHODE ADAPTÉE POUR L'OPTION B ####
@@ -93,27 +101,47 @@ export class ItemService {
 
   getArticle(page: number, size: number): Observable<any> {
     const headers = this.getHeader();
-    return this.http.get(`${this.apiUrl}?page=${page}&size=${size}`, {headers});
+    return this.http.get(`${this.apiUrl}?page=${page}&size=${size}`, { headers });
   }
   getDetailedStockValues(): Observable<StockValues> {
-      const headers = this.getHeader();
-      const url = `${this.apiUrl}/detailed-stock-value`; // l'endpoint Spring Boot
-      return this.http.get<StockValues>(url, { headers });
-    }
+    const headers = this.getHeader();
+    const url = `${this.apiUrl}/detailed-stock-value`; // l'endpoint Spring Boot
+    return this.http.get<StockValues>(url, { headers });
+  }
 
   // AJOUTEZ CETTE MÉTHODE
-    resetAllStock(): Observable<any> {
-      const headers = this.getHeader();
-      const url = `${this.apiUrl}/reset-stock`;
-      return this.http.post(url, {}, { headers });
-    }
+  resetAllStock(): Observable<any> {
+    const headers = this.getHeader();
+    const url = `${this.apiUrl}/reset-stock`;
+    return this.http.post(url, {}, { headers });
+  }
 
-    // AJOUTEZ CETTE MÉTHODE
-    resetStockForArticle(articleId: number): Observable<any> {
-      const headers = this.getHeader();
-      const url = `${this.apiUrl}/${articleId}/reset-stock`;
-      return this.http.post(url, {}, { headers });
-    }
+  // AJOUTEZ CETTE MÉTHODE
+  resetStockForArticle(articleId: number): Observable<any> {
+    const headers = this.getHeader();
+    const url = `${this.apiUrl}/${articleId}/reset-stock`;
+    return this.http.post(url, {}, { headers });
+  }
+
+  disableArticle(id: number): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.post(`${this.apiUrl}/${id}/disable`, {}, { headers });
+  }
+
+  enableArticle(id: number): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.post(`${this.apiUrl}/${id}/enable`, {}, { headers });
+  }
+
+  disableArticles(ids: number[]): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.post(`${this.apiUrl}/disable-batch`, ids, { headers });
+  }
+
+  enableArticles(ids: number[]): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.post(`${this.apiUrl}/enable-batch`, ids, { headers });
+  }
 
   outOfStock(page: number, size: number): Observable<any> {
     const headers = this.getHeader();
@@ -125,7 +153,7 @@ export class ItemService {
   }
 
   nextOutOfStock(page: number, size: number): Observable<any> {
-    const headers= this.getHeader();
+    const headers = this.getHeader();
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
@@ -150,29 +178,29 @@ export class ItemService {
       isSeasonal: article.isSeasonal
     };
 
-    return this.http.put<Article>(url, payload, {headers});
+    return this.http.put<Article>(url, payload, { headers });
   }
 
   addArticle(article: NewArticleData): Observable<Article> {
     const headers = this.getHeader();
-    return this.http.post<Article>(this.apiUrl, article, {headers});
+    return this.http.post<Article>(this.apiUrl, article, { headers });
   }
 
   getArticleById(id: number): Observable<any> {
     const headers = this.getHeader();
     const url = `${this.apiUrl}/${id}`;
-    return this.http.get<any>(url, {headers});
+    return this.http.get<any>(url, { headers });
   }
 
   deleteArticle(id: number): Observable<any> {
     const headers = this.getHeader();
     const url = `${this.apiUrl}/${id}`;
-    return this.http.delete(url, {headers});
+    return this.http.delete(url, { headers });
   }
 
   getTotalArticles(): Observable<number> {
-    const headers= this.getHeader();
-    return this.http.get<any[]>(this.apiUrl, {headers}).pipe(
+    const headers = this.getHeader();
+    return this.http.get<any[]>(this.apiUrl, { headers }).pipe(
       map(items => items.length)
     );
   }

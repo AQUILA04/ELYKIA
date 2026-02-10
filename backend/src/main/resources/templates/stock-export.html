@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: right;
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1 th:text="${context.title}">Rapport de Stock</h1>
+
+    <div class="header">
+        <p><strong>Période :</strong> <span th:text="${context.startDate}"></span> au <span
+                th:text="${context.endDate}"></span></p>
+        <p><strong>Commercial :</strong> <span th:text="${context.collector}"></span></p>
+        <p><strong>Date de génération :</strong> <span th:text="${context.generationDate}"></span></p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Quantité Totale</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:if="${#lists.isEmpty(context.items)}">
+                <td colspan="2" class="no-data">Aucune donnée trouvée pour cette période.</td>
+            </tr>
+            <tr th:each="item : ${context.items}">
+                <td th:text="${item.articleName}"></td>
+                <td th:text="${item.totalQuantity}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer" th:if="${!#lists.isEmpty(context.items)}">
+        <p><strong>Total Articles : </strong><span th:text="${context.totalQuantity}"></span></p>
+    </div>
+
+</body>
+
+</html>

@@ -58,6 +58,10 @@ export class SidebarComponent implements OnInit {
       (this.activeRoute.startsWith(route + '/') && !this.hasConflictingRoute(route));
   }
 
+  isSubRouteActive(route: string): boolean {
+    return this.activeRoute === route || this.activeRoute.startsWith(route + '/');
+  }
+
   // Méthode pour détecter les routes qui peuvent entrer en conflit
   private hasConflictingRoute(route: string): boolean {
     const allRoutes = [

@@ -99,8 +99,9 @@
         opacity: $link-disabled;
       }
 
+      // Seule la classe .active (gérée par Angular) doit contrôler la mise en forme
+      // pour éviter que des .selected résiduels gardent un ancien menu visuellement actif.
       &.selected>.sidebar-link.active,
-      &.selected>.sidebar-link,
       >.sidebar-link.active {
         background-color: $primary;
         color: $white;

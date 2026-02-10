@@ -41,8 +41,9 @@ export class HeaderComponent implements OnInit {
   }
 
   logout(): void {
-
-    localStorage.removeItem('currentUser');
-    this.router.navigate(['/login']);
+    // Utiliser le même mécanisme de déconnexion centralisé que le reste de l'application
+    this.authService.logout();
+    // Propage explicitement la déconnexion aux autres onglets via l'événement logout-event
+    localStorage.setItem('logout-event', Date.now().toString());
   }
 }

@@ -20,35 +20,36 @@
           <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
           <span class="hide-menu">Menu</span>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_DASHBOARD', 'ROLE_STOREKEEPER_DASHBOARD']"
-          [ngClass]="{ 'active': isRouteActive('/home') }">
-          <a class="sidebar-link" routerLink="/home" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_DASHBOARD', 'ROLE_STOREKEEPER_DASHBOARD']">
+          <a class="sidebar-link" routerLink="/home" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/home') }">
             <span>
               <i class="ti ti-home"></i>
             </span>
             <span class="hide-menu">Dashboard</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']" [ngClass]="{ 'active': isRouteActive('/bi') }">
-          <a class="sidebar-link" routerLink="/bi" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']">
+          <a class="sidebar-link" routerLink="/bi" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/bi') }">
             <span>
               <mat-icon>analytics</mat-icon>
             </span>
             <span class="hide-menu">Dashboard BI</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_OPEN_ACCOUNTING_DAY', 'ROLE_CLOSE_ACCOUNTING_DAY']"
-          [ngClass]="{ 'active': isRouteActive('/accounting-day') }">
-          <a class="sidebar-link" routerLink="/accounting-day" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_OPEN_ACCOUNTING_DAY', 'ROLE_CLOSE_ACCOUNTING_DAY']">
+          <a class="sidebar-link" routerLink="/accounting-day" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/accounting-day') }">
             <span>
               <i class="material-icons">calendar_today</i>
             </span>
             <span class="hide-menu">Journée comptable</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngIf="hasCaisseAccess()"
-          [ngClass]="{ 'active': isRouteActive('/open-cashDesk') }">
-          <a class="sidebar-link has-arrow" (click)="onCaisseClick()" aria-expanded="false">
+        <li class="sidebar-item" *ngIf="hasCaisseAccess()">
+          <a class="sidebar-link has-arrow" (click)="onCaisseClick()" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/open-cashDesk') }">
             <span>
               <mat-icon>point_of_sale</mat-icon>
             </span>
@@ -56,31 +57,33 @@
           </a>
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isCaisseOpen }">
             <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_OPEN_CASH_DESK', 'ROLE_CLOSE_CASH_DESK']">
-              <a class="sidebar-link" routerLink="/open-cashDesk">
+              <a class="sidebar-link" routerLink="/open-cashDesk"
+                 [ngClass]="{ 'active': isSubRouteActive('/open-cashDesk') }">
                 <span class="material-icons">add_box</span>
                 <span class="hide-menu">Ouverture / Fermeture</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="daily-operation">
+              <a class="sidebar-link" routerLink="daily-operation"
+                 [ngClass]="{ 'active': isSubRouteActive('/daily-operation') }">
                 <span class="material-icons">receipt</span>
                 <span class="hide-menu">Opération Journalière</span>
               </a>
             </li>
           </ul>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT']"
-          [ngClass]="{ 'active': isRouteActive('/client-list') }">
-          <a class="sidebar-link" routerLink="/client-list" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT']">
+          <a class="sidebar-link" routerLink="/client-list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/client-list') }">
             <span>
               <mat-icon>account_circle</mat-icon>
             </span>
             <span class="hide-menu">Clients</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ACCOUNT', 'ROLE_EDIT_ACCOUNT']"
-          [ngClass]="{ 'active': isRouteActive('/accountlist') }">
-          <a class="sidebar-link" routerLink="/accountlist" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ACCOUNT', 'ROLE_EDIT_ACCOUNT']">
+          <a class="sidebar-link" routerLink="/accountlist" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/accountlist') }">
             <span>
               <mat-icon>account_balance</mat-icon>
             </span>
@@ -88,9 +91,9 @@
           </a>
         </li>
 
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_ARTICLE', 'ROLE_STOREKEEPER']"
-          [ngClass]="{ 'active': isRouteActive('/list') }">
-          <a class="sidebar-link" routerLink="/list" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_ARTICLE', 'ROLE_STOREKEEPER']">
+          <a class="sidebar-link" routerLink="/list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/list') }">
             <span>
               <mat-icon>shopping_bag</mat-icon>
             </span>
@@ -98,9 +101,9 @@
           </a>
         </li>
         <!-- MENU STOCK COMMERCIAL -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT', 'ROLE_STOREKEEPER']"
-          [ngClass]="{ 'active': isRouteActive('/stock') }">
-          <a class="sidebar-link has-arrow" (click)="onStockClick()" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT', 'ROLE_STOREKEEPER']">
+          <a class="sidebar-link has-arrow" (click)="onStockClick()" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/stock') }">
             <span>
               <mat-icon>inventory_2</mat-icon>
             </span>
@@ -108,19 +111,22 @@
           </a>
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isStockOpen }">
             <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/stock/request">
+              <a class="sidebar-link" routerLink="/stock/request"
+                 [ngClass]="{ 'active': isSubRouteActive('/stock/request') }">
                 <span class="material-icons">add_shopping_cart</span>
                 <span class="hide-menu">Demandes Sortie</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item" *ngIf="!isStorekeeper()">
-              <a class="sidebar-link" routerLink="/stock/my-stock">
+              <a class="sidebar-link" routerLink="/stock/my-stock"
+                 [ngClass]="{ 'active': isSubRouteActive('/stock/my-stock') }">
                 <span class="material-icons">dashboard</span>
                 <span class="hide-menu">Stock</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/stock/return">
+              <a class="sidebar-link" routerLink="/stock/return"
+                 [ngClass]="{ 'active': isSubRouteActive('/stock/return') }">
                 <span class="material-icons">undo</span>
                 <span class="hide-menu">Retours</span>
               </a>
@@ -129,9 +135,9 @@
         </li>
 
         <!-- NOUVEAU MENU STOCK TONTINE -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_TONTINE', 'ROLE_STOREKEEPER', 'ROLE_REPORT']"
-          [ngClass]="{ 'active': isRouteActive('/stock-tontine') }">
-          <a class="sidebar-link has-arrow" (click)="onStockTontineClick()" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_TONTINE', 'ROLE_STOREKEEPER', 'ROLE_REPORT']">
+          <a class="sidebar-link has-arrow" (click)="onStockTontineClick()" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/stock-tontine') }">
             <span>
               <mat-icon>savings</mat-icon>
             </span>
@@ -139,19 +145,22 @@
           </a>
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isStockTontineOpen }">
             <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/stock-tontine/request">
+            <a class="sidebar-link" routerLink="/stock-tontine/request"
+               [ngClass]="{ 'active': isSubRouteActive('/stock-tontine/request') }">
                 <span class="material-icons">add_shopping_cart</span>
                 <span class="hide-menu">Demandes Sortie</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item" *ngIf="!isStorekeeper()">
-              <a class="sidebar-link" routerLink="/stock-tontine/my-stock">
+              <a class="sidebar-link" routerLink="/stock-tontine/my-stock"
+                 [ngClass]="{ 'active': isSubRouteActive('/stock-tontine/my-stock') }">
                 <span class="material-icons">dashboard</span>
                 <span class="hide-menu">Stock</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/stock-tontine/return">
+              <a class="sidebar-link" routerLink="/stock-tontine/return"
+                 [ngClass]="{ 'active': isSubRouteActive('/stock-tontine/return') }">
                 <span class="material-icons">undo</span>
                 <span class="hide-menu">Retours</span>
               </a>
@@ -159,9 +168,9 @@
           </ul>
         </li>
 
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT']"
-          [ngClass]="{ 'active': isRouteActive('/credit-list') }">
-          <a class="sidebar-link" routerLink="/credit-list" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT']">
+          <a class="sidebar-link" routerLink="/credit-list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/credit-list') }">
             <span>
               <mat-icon>monetization_on</mat-icon>
             </span>
@@ -178,26 +187,27 @@
 <!--            <span class="hide-menu">Sortie</span>-->
 <!--          </a>-->
 <!--        </li>-->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_TONTINE','ROLE_EDIT_TONTINE']"
-          [ngClass]="{ 'active': isRouteActive('/tontine') }">
-          <a class="sidebar-link" routerLink="/tontine" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_TONTINE','ROLE_EDIT_TONTINE']">
+          <a class="sidebar-link" routerLink="/tontine" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/tontine') }">
             <span>
               <mat-icon>savings</mat-icon>
             </span>
             <span class="hide-menu">Tontines</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT','ROLE_EDIT_CREDIT']"
-          [ngClass]="{ 'active': isRouteActive('/orders') }">
-          <a class="sidebar-link" routerLink="/orders" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT','ROLE_EDIT_CREDIT']">
+          <a class="sidebar-link" routerLink="/orders" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/orders') }">
             <span>
               <mat-icon>shopping_cart</mat-icon>
             </span>
             <span class="hide-menu">Commandes</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isPromoter()" [ngClass]="{ 'active': isRouteActive('/expense') }">
-          <a class="sidebar-link" routerLink="/expense" aria-expanded="false">
+        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isPromoter()">
+          <a class="sidebar-link" routerLink="/expense" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/expense') }">
             <span>
               <mat-icon>money_off</mat-icon>
             </span>
@@ -206,8 +216,9 @@
         </li>
 
         <!-- MENU CONFIGURATION -->
-        <li class="sidebar-item" *ngIf="!isStorekeeper()" [ngClass]="{ 'active': isRouteActive('/configuration') }">
-          <a class="sidebar-link has-arrow" (click)="onConfigurationClick()" aria-expanded="false">
+        <li class="sidebar-item" *ngIf="!isStorekeeper()">
+          <a class="sidebar-link has-arrow" (click)="onConfigurationClick()" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/configuration') }">
             <span>
               <mat-icon>settings</mat-icon>
             </span>
@@ -215,25 +226,29 @@
           </a>
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isConfigurationOpen }">
             <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_LOCALITY','ROLE_EDIT_LOCALITY']">
-              <a class="sidebar-link" routerLink="/localitylist">
+              <a class="sidebar-link" routerLink="/localitylist"
+                 [ngClass]="{ 'active': isSubRouteActive('/localitylist') }">
                 <i class="ti ti-map"></i>
                 <span class="hide-menu">Localités</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_EDIT_ARTICLE', 'ROLE_STOREKEEPER']">
-              <a class="sidebar-link" routerLink="/article-type">
+              <a class="sidebar-link" routerLink="/article-type"
+                 [ngClass]="{ 'active': isSubRouteActive('/article-type') }">
                 <span class="material-icons">category</span>
                 <span class="hide-menu">Type d'Article</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/expense/types">
+              <a class="sidebar-link" routerLink="/expense/types"
+                 [ngClass]="{ 'active': isSubRouteActive('/expense/types') }">
                 <span class="material-icons">style</span>
                 <span class="hide-menu">Types de Dépense</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item" *ngIf="hasAccessToParameters() && !isPromoter()">
-              <a class="sidebar-link" routerLink="/parameters">
+              <a class="sidebar-link" routerLink="/parameters"
+                 [ngClass]="{ 'active': isSubRouteActive('/parameters') }">
                 <span class="material-icons">tune</span>
                 <span class="hide-menu">Paramètres</span>
               </a>
@@ -241,8 +256,9 @@
           </ul>
         </li>
 
-        <li class="sidebar-item" *ngIf="!isStorekeeper()" [ngClass]="{ 'active': isRouteActive('/daily-report') }">
-          <a class="sidebar-link" routerLink="/daily-report" aria-expanded="false">
+        <li class="sidebar-item" *ngIf="!isStorekeeper()">
+          <a class="sidebar-link" routerLink="/daily-report" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/daily-report') }">
             <span>
               <mat-icon>today</mat-icon>
             </span>
@@ -250,9 +266,9 @@
           </a>
         </li>
 
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER','ROLE_REPORT']"
-          [ngClass]="{ 'active': isRouteActive('/inventory') }">
-          <a class="sidebar-link" routerLink="/inventory" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER','ROLE_REPORT']">
+          <a class="sidebar-link" routerLink="/inventory" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/inventory') }">
             <span>
               <mat-icon>inventory</mat-icon>
             </span>
@@ -260,27 +276,27 @@
           </a>
         </li>
 
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']"
-          [ngClass]="{ 'active': isRouteActive('/gestion-list') }">
-          <a class="sidebar-link" routerLink="/gestion-list" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']">
+          <a class="sidebar-link" routerLink="/gestion-list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/gestion-list') }">
             <span>
               <mat-icon>business</mat-icon>
             </span>
             <span class="hide-menu">Agences</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_REPORT','ROLE_EDIT_AGENCY_REPORT']"
-          [ngClass]="{ 'active': isRouteActive('/operation-list') }">
-          <a class="sidebar-link" routerLink="/operation-list" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_REPORT','ROLE_EDIT_AGENCY_REPORT']">
+          <a class="sidebar-link" routerLink="/operation-list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/operation-list') }">
             <span>
               <mat-icon>event</mat-icon>
             </span>
             <span class="hide-menu">Opération</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']"
-          [ngClass]="{ 'active': isRouteActive('/deposit-list') }">
-          <a class="sidebar-link" routerLink="/deposit-list" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']">
+          <a class="sidebar-link" routerLink="/deposit-list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/deposit-list') }">
             <span>
               <mat-icon>savings</mat-icon>
             </span>
@@ -288,9 +304,9 @@
           </a>
         </li>
         <!-- Pour l'élément Utilisateurs -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_USER','ROLE_DEL_USER']"
-          [ngClass]="{ 'active': isRouteActive('/user-list') }">
-          <a class="sidebar-link" routerLink="/user-list" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_USER','ROLE_DEL_USER']">
+          <a class="sidebar-link" routerLink="/user-list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/user-list') }">
             <span>
               <mat-icon>person</mat-icon>
             </span>
@@ -299,9 +315,9 @@
         </li>
 
         <!-- Pour l'élément Sécurité -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_USER']"
-          [ngClass]="{ 'active': isRouteActive('/security') }">
-          <a class="sidebar-link has-arrow" (click)="onSecurityClick()" aria-expanded="false">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+          <a class="sidebar-link has-arrow" (click)="onSecurityClick()" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/security') }">
             <span>
               <mat-icon>security</mat-icon>
             </span>
@@ -309,13 +325,15 @@
           </a>
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isSecurityOpen }">
             <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/security/profils">
+              <a class="sidebar-link" routerLink="/security/profils"
+                 [ngClass]="{ 'active': isSubRouteActive('/security/profils') }">
                 <span class="material-icons">badge</span>
                 <span class="hide-menu">Profils</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/security/permissions">
+              <a class="sidebar-link" routerLink="/security/permissions"
+                 [ngClass]="{ 'active': isSubRouteActive('/security/permissions') }">
                 <span class="material-icons">vpn_key</span>
                 <span class="hide-menu">Permissions</span>
               </a>

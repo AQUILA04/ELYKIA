@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
+import { InitializationGuard } from './core/guards/initialization.guard';
 
 const routes: Routes = [
   {
@@ -38,7 +39,8 @@ const routes: Routes = [
   },
   {
     path: 'initial-loading',
-    loadChildren: () => import('./features/initial-loading/initial-loading.module').then(m => m.InitialLoadingPageModule)
+    loadChildren: () => import('./features/initial-loading/initial-loading.module').then(m => m.InitialLoadingPageModule),
+    canActivate: [AuthGuard, InitializationGuard]
   },
   {
     path: 'client-detail/:id',

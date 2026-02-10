@@ -62,7 +62,7 @@ export interface ApiResponse {
   service: string;
   data: {
     page: any;
-    content:any[];
+    content: any[];
   };
 }
 
@@ -75,9 +75,9 @@ export class InventoryService {
   private reconciliationApiUrl = `${environment.apiUrl}/api/v1/inventory-reconciliation`;
 
   constructor(private http: HttpClient,
-    private tokenStorage : TokenStorageService,
-  ) {}
-  getHeader(){
+    private tokenStorage: TokenStorageService,
+  ) { }
+  getHeader() {
     const token = this.tokenStorage.getToken();
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`
@@ -86,12 +86,18 @@ export class InventoryService {
   }
 
   getInventories(page: number, size: number): Observable<ApiResponse> {
-    const headers= this.getHeader();
-    return this.http.get<ApiResponse>(`${this.apiUrl}?page=${page}&size=${size}`, {headers});
+    const headers = this.getHeader();
+    // Utiliser l'endpoint /enabled pour ne récupérer que les articles actifs
+    return this.http.get<ApiResponse>(`${this.apiUrl}/enabled?page=${page}&size=${size}`, { headers });
+  }
+
+  getEnabledArticles(page: number, size: number): Observable<ApiResponse> {
+    const headers = this.getHeader();
+    return this.http.get<ApiResponse>(`${this.apiUrl}/enabled?page=${page}&size=${size}`, { headers });
   }
   addInventories(payload: any): Observable<any> {
-    const headers= this.getHeader();
-    return this.http.patch(`${this.apiUrl}/make-stock-entries`, payload, {headers});
+    const headers = this.getHeader();
+    return this.http.patch(`${this.apiUrl}/make-stock-entries`, payload, { headers });
   }
   searchInventories(keyword: string, page: number, size: number): Observable<ApiResponse> {
     const headers = this.getHeader();
@@ -101,8 +107,9 @@ export class InventoryService {
       .set('page', page)
       .set('size', size);
 
+    // Utiliser l'endpoint /elasticsearch/enabled pour la recherche filtrée
     return this.http.post<ApiResponse>(
-      `${this.apiUrl}/elasticsearch`,
+      `${this.apiUrl}/elasticsearch/enabled`,
       body,
       { headers, params }
     );

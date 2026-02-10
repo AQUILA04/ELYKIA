@@ -63,7 +63,7 @@ export class StockTontineRequestListComponent implements OnInit {
   loadPromoters() {
     this.userService.getPromoters(0, 1000).subscribe({
       next: (page) => {
-        this.promoters = page.content;
+        this.promoters = page.data.content;
       },
       error: (err) => console.error('Error loading promoters', err)
     });

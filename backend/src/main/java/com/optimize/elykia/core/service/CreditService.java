@@ -536,8 +536,7 @@ public class CreditService extends GenericService<Credit, Long> {
             clientCredit.setTotalAmountPaid(dto.getAdvance());
             clientCredit.setBeginDate(dto.getStartDate());
             clientCredit.setExpectedEndDate(dto.getEndDate());
-            clientCredit.setRemainingDaysCount(
-                    Long.valueOf(ChronoUnit.DAYS.between(LocalDate.now(), dto.getEndDate())).intValue());
+            clientCredit.setRemainingDaysCount((int) Math.ceil(clientCredit.getTotalAmountRemaining() / clientCredit.getDailyStake()));
         }
         repository.saveAndFlush(clientCredit);
 
@@ -614,8 +613,7 @@ public class CreditService extends GenericService<Credit, Long> {
             clientCredit.setTotalAmountPaid(dto.getAdvance());
             clientCredit.setBeginDate(dto.getStartDate());
             clientCredit.setExpectedEndDate(dto.getEndDate());
-            clientCredit.setRemainingDaysCount(
-                    Long.valueOf(ChronoUnit.DAYS.between(LocalDate.now(), dto.getEndDate())).intValue());
+            clientCredit.setRemainingDaysCount((int) Math.ceil(clientCredit.getTotalAmountRemaining() / clientCredit.getDailyStake()));
         }
 
         if (StringUtils.hasText(dto.getReference())) {

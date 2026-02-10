@@ -8,34 +8,37 @@ import { InitializationStateService } from '../../core/services/initialization-s
 import { Storage } from '@ionic/storage-angular';
 import { LoggerService } from '../../core/services/logger.service';
 import { HealthCheckService } from '../../core/services/health-check.service';
+import { resetAppData } from '../../store/app.actions';
+import { Store } from '@ngrx/store';
+import { MemoryManagementService } from '../../core/services/memory-management.service';
 
 @Component({
   selector: 'app-initial-loading',
   templateUrl: './initial-loading.page.html',
   styleUrls: ['./initial-loading.page.scss'],
-  standalone: false
 })
 export class InitialLoadingPage implements OnInit, OnDestroy {
-  progress: number = 0;
-  statusText: string = 'Préparation...';
-  showSuccessAnimation: boolean = false;
-  showCompletionMessage: boolean = false;
+  progress = 0;
+  statusText = 'Démarrage...';
+  showSuccessAnimation = false;
+  showCompletionMessage = false;
   private destroy$ = new Subject<void>();
+  currentStepIndex = 0;
 
-  private initSteps = [
-    { text: "Récupération des articles...", method: () => this.dataInitService.initializeArticles() },
-    { text: "Récupération des commerciaux...", method: () => this.dataInitService.initializeCommercial() },
-    { text: "Récupération des localités...", method: () => this.dataInitService.initializeLocalities() },
-    { text: "Récupération des clients...", method: () => this.dataInitService.initializeClients() },
-    // { text: "Récupération du sorties d'articles...", method: () => this.dataInitService.initializeStockOutputs() }, // Deprecated
-    { text: "Récupération du stock commercial...", method: () => this.dataInitService.initializeCommercialStock() }, // New step
-    { text: "Récupération des distributions...", method: () => this.dataInitService.initializeDistributions() },
-    { text: "Récupération des comptes client...", method: () => this.dataInitService.initializeAccounts() },
-    { text: "Récupération des tontines...", method: () => this.dataInitService.initializeTontine() },
-    { text: "Finalisation...", method: () => this.dataInitService.calculateArticleStocks() },
+  initSteps: { text: string; method: () => any }[] = [
+    { text: 'Vérification de la connexion...', method: () => this.healthCheckService.pingBackend() },
+    { text: 'Chargement des articles...', method: () => this.dataInitService.initializeArticles() },
+    { text: 'Chargement des infos commerciales...', method: () => this.dataInitService.initializeCommercial() },
+    { text: 'Chargement des localités...', method: () => this.dataInitService.initializeLocalities() },
+    { text: 'Chargement des clients...', method: () => this.dataInitService.initializeClients() },
+    { text: 'Chargement des sorties de stock...', method: () => this.dataInitService.initializeStockOutputs() },
+    { text: 'Sync du stock commercial...', method: () => this.dataInitService.initializeCommercialStock() },
+    { text: 'Chargement des distributions...', method: () => this.dataInitService.initializeDistributions() },
+    { text: 'Chargement des comptes...', method: () => this.dataInitService.initializeAccounts() },
+    { text: 'Chargement des recouvrements...', method: () => this.dataInitService.initializeRecoveries() },
+    { text: 'Chargement de la tontine...', method: () => this.dataInitService.initializeTontine() },
+    { text: 'Calcul des stocks...', method: () => this.dataInitService.calculateArticleStocks() },
   ];
-  private currentStepIndex: number = 0;
-  private initializationComplete?: boolean;
 
   constructor(
     private router: Router,
@@ -43,20 +46,14 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     private alertController: AlertController,
     private storage: Storage,
     private log: LoggerService,
-    private healthCheckService: HealthCheckService
+    private healthCheckService: HealthCheckService,
+    private memoryManagementService: MemoryManagementService,
+    private store: Store
   ) { }
 
   ngOnInit() {
-    this.loadInitializationStatus();
-    this.startInitialization();
     this.pulseAnimation();
-  }
-
-  private async loadInitializationStatus(): Promise<void> {
-    this.initializationComplete = await this.storage.get('initialization_complete');
-  }
-  isInitializationComplete(): boolean {
-    return this.initializationComplete ?? false;
+    this.startInitialization();
   }
 
   ngOnDestroy() {
@@ -65,13 +62,30 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
   }
 
   private async startInitialization() {
+    // Nettoyage de la mémoire avant le début de l'initialisation (uniquement au début)
+    if (this.currentStepIndex === 0) {
+      try {
+        // 1. Réinitialiser le store (sauf auth)
+        this.store.dispatch(resetAppData());
+        this.log.log('[InitialLoadingPage] App data state reset (auth preserved)');
+
+        // 2. Nettoyer la mémoire cache
+        this.statusText = "Optimisation de la mémoire...";
+        await this.memoryManagementService.clearMemoryCache();
+        this.log.log('[InitialLoadingPage] Memory cache cleared successfully');
+      } catch (error) {
+        this.log.log(`[InitialLoadingPage] Failed to clear memory/state: ${error}`);
+        console.warn('Failed to clear memory cache:', error);
+      }
+    }
+
     const isOnline = await this.healthCheckService.pingBackend().pipe(take(1)).toPromise();
 
     if (!isOnline) {
       this.skipInitializationForOfflineMode();
       return;
     }
-// ...
+
     if (this.currentStepIndex < this.initSteps.length) {
       const step = this.initSteps[this.currentStepIndex];
       this.statusText = step.text;
@@ -79,7 +93,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
       this.progress = stepProgress;
 
       step.method().pipe(take(1)).subscribe({
-        next: (success) => {
+        next: (success: boolean) => {
           if (success) {
             this.currentStepIndex++;
             this.startInitialization();
@@ -89,7 +103,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
             this.presentErrorAlert(`Échec de l'initialisation: ${step.text.replace('...', '')}`);
           }
         },
-        error: (err) => {
+        error: (err: any) => {
           this.log.log(`[InitialLoadingPage] Step failed with error: ${step.text} - ${JSON.stringify(err)}`);
           this.presentErrorAlert(`Erreur lors de l'initialisation: ${step.text.replace('...', '')}. Détails: ${err.message || err}`);
         }
@@ -114,7 +128,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
         {
           text: 'Continuer (données limitées)',
           handler: () => {
-            this.router.navigateByUrl('/tabs');
+            this.router.navigateByUrl('/tabs', { replaceUrl: true });
           },
         },
       ],
@@ -133,7 +147,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
         setTimeout(() => {
           this.showCompletionMessage = true;
           setTimeout(() => {
-            this.router.navigateByUrl('/tabs');
+            this.router.navigateByUrl('/tabs', { replaceUrl: true });
           }, 1000);
         }, 300);
       }, 500);
@@ -152,7 +166,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
       setTimeout(() => {
         this.showCompletionMessage = true;
         setTimeout(() => {
-          this.router.navigateByUrl('/tabs');
+          this.router.navigateByUrl('/tabs', { replaceUrl: true });
         }, 2000);
       }, 600);
     }, 500);

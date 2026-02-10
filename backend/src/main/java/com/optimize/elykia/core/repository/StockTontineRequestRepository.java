@@ -31,9 +31,9 @@ public interface StockTontineRequestRepository extends GenericRepository<StockTo
     @Query("SELECT new com.optimize.elykia.core.dto.StockRequestExportDTO(i.itemName, SUM(i.quantity)) " +
             "FROM StockTontineRequest s JOIN s.items i " +
             "WHERE s.status IN :statuses " +
-            "AND (:collector IS NULL OR s.collector = :collector) " +
-            "AND (:startDate IS NULL OR s.deliveryDate >= :startDate) " +
-            "AND (:endDate IS NULL OR s.deliveryDate <= :endDate) " +
+            "AND (:#{#collector == null} = true OR s.collector = :collector) " +
+            "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
             "GROUP BY i.itemName " +
             "ORDER BY i.itemName")
     List<com.optimize.elykia.core.dto.StockRequestExportDTO> findAggregatedStockRequests(

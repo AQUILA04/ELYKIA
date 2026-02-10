@@ -115,7 +115,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       switchMap(response => {
         const data = response.data;
         if (!data) {
-            return of(null);
+          return of(null);
         }
 
         // 1. Déterminer le type et configurer le formulaire
@@ -133,9 +133,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
           this.creditForm.get('commercial')?.setValidators(Validators.required);
 
           if (this.isPromoter) {
-             this.creditForm.get('commercial')?.disable();
+            this.creditForm.get('commercial')?.disable();
           } else {
-             this.creditForm.get('commercial')?.enable();
+            this.creditForm.get('commercial')?.enable();
           }
 
           dependencies$ = forkJoin({
@@ -173,7 +173,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
               }));
               this.creditForm.patchValue({ articles: articlesData });
             } else {
-                console.warn('[loadCreditData] Aucun article trouvé ou format incorrect');
+              console.warn('[loadCreditData] Aucun article trouvé ou format incorrect');
             }
           })
         );
@@ -220,10 +220,10 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   }
 
   private getGeneralStockObservable(): Observable<any[]> {
-    return this.itemService.getAllArticles().pipe(
+    return this.itemService.getAllEnabledArticles().pipe(
       map(response => response.data.content),
       tap(articles => {
-          this.articles = articles;
+        this.articles = articles;
       }),
       catchError((err) => {
         console.error('[getGeneralStockObservable] Erreur:', err);
@@ -286,9 +286,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       this.creditForm.get('commercial')?.updateValueAndValidity();
 
       if (this.isPromoter) {
-         this.creditForm.get('commercial')?.disable();
+        this.creditForm.get('commercial')?.disable();
       } else {
-         this.creditForm.get('commercial')?.enable();
+        this.creditForm.get('commercial')?.enable();
       }
 
       const commercial = this.creditForm.get('commercial')?.value;
@@ -371,37 +371,39 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     let submitObservable: Observable<any>;
 
     if (formValue.saleType === 'CREDIT') {
-        const payload = {
-          clientId: formValue.clientId,
-          articles: { articleEntries: formValue.articles.map((article: any) => ({
+      const payload = {
+        clientId: formValue.clientId,
+        articles: {
+          articleEntries: formValue.articles.map((article: any) => ({
             articleId: article.articleId,
             quantity: article.quantity,
             unitPrice: article.creditSalePrice
-          }))},
-          advance: formValue.advance,
-          beginDate: formValue.beginDate,
-          expectedEndDate: formValue.expectedEndDate,
-          totalAmount: formValue.totalAmount,
-          commercial: formValue.commercial
-        };
-        submitObservable = this.creditService.distributeArticles(payload);
+          }))
+        },
+        advance: formValue.advance,
+        beginDate: formValue.beginDate,
+        expectedEndDate: formValue.expectedEndDate,
+        totalAmount: formValue.totalAmount,
+        commercial: formValue.commercial
+      };
+      submitObservable = this.creditService.distributeArticles(payload);
     } else {
-        const payload = {
-            clientId: formValue.clientId,
-            articles: formValue.articles.map((article: any) => ({
-              articleId: article.articleId,
-              quantity: article.quantity
-            })),
-            advance: formValue.advance,
-            beginDate: formValue.beginDate,
-            expectedEndDate: formValue.expectedEndDate,
-            totalAmount: formValue.totalAmount,
-            type: 'CASH'
-        };
+      const payload = {
+        clientId: formValue.clientId,
+        articles: formValue.articles.map((article: any) => ({
+          articleId: article.articleId,
+          quantity: article.quantity
+        })),
+        advance: formValue.advance,
+        beginDate: formValue.beginDate,
+        expectedEndDate: formValue.expectedEndDate,
+        totalAmount: formValue.totalAmount,
+        type: 'CASH'
+      };
 
-        submitObservable = this.creditId
-          ? this.creditService.updateCredit(this.creditId, payload)
-          : this.creditService.addCredit(payload);
+      submitObservable = this.creditId
+        ? this.creditService.updateCredit(this.creditId, payload)
+        : this.creditService.addCredit(payload);
     }
 
     this.subscriptions.push(

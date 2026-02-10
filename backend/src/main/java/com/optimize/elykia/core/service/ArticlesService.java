@@ -10,6 +10,7 @@ import com.optimize.elykia.core.dto.StockValuesDto;
 import com.optimize.elykia.core.dto.bi.StockMetricsDto;
 import com.optimize.elykia.core.entity.*;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
+import com.optimize.elykia.core.repository.ArticleStateHistoryRepository;
 import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import com.optimize.elykia.core.repository.StockReceptionRepository;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -33,16 +35,19 @@ public class ArticlesService extends GenericService<Articles, Long> {
     @Getter
     private final ArticleHistoryService articleHistoryService;
     private final ExpenseService expenseService;
+
     private final ExpenseTypeRepository expenseTypeRepository;
     private final StockReceptionRepository stockReceptionRepository;
+    private final ArticleStateHistoryRepository articleStateHistoryRepository;
 
     protected ArticlesService(ArticlesRepository repository,
-                              ArticlesMapper articlesMapper,
-                              UserService userService,
-                              ArticleHistoryService articleHistoryService,
-                              ExpenseService expenseService,
-                              ExpenseTypeRepository expenseTypeRepository,
-                              StockReceptionRepository stockReceptionRepository) {
+            ArticlesMapper articlesMapper,
+            UserService userService,
+            ArticleHistoryService articleHistoryService,
+            ExpenseService expenseService,
+            ExpenseTypeRepository expenseTypeRepository,
+            StockReceptionRepository stockReceptionRepository,
+            ArticleStateHistoryRepository articleStateHistoryRepository) {
         super(repository);
         this.articlesMapper = articlesMapper;
         this.userService = userService;
@@ -50,6 +55,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
         this.expenseService = expenseService;
         this.expenseTypeRepository = expenseTypeRepository;
         this.stockReceptionRepository = stockReceptionRepository;
+        this.articleStateHistoryRepository = articleStateHistoryRepository;
     }
 
     @Transactional
@@ -66,7 +72,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
         Page<Articles> articlesPage;
         do {
             articlesPage = getAll(PageRequest.of(page, 100));
-            articlesPage.getContent().forEach(article -> articleHistoryService.create(ArticleHistory.buildResetHistory(article, userService.getCurrentUser().getUsername())));
+            articlesPage.getContent().forEach(article -> articleHistoryService
+                    .create(ArticleHistory.buildResetHistory(article, userService.getCurrentUser().getUsername())));
             page++;
         } while (articlesPage.hasNext());
         getRepository().resetAllStockQuantities();
@@ -76,7 +83,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
     public Articles resetStockForArticle(Long id) {
         Articles article = getById(id); // Trouve l'article ou lève une exception s'il n'existe pas
         article.setStockQuantity(0); // Met la quantité à zéro
-        articleHistoryService.create(ArticleHistory.buildResetHistory(article, userService.getCurrentUser().getUsername()));
+        articleHistoryService
+                .create(ArticleHistory.buildResetHistory(article, userService.getCurrentUser().getUsername()));
         return update(article); // Sauvegarde les changements
     }
 
@@ -91,9 +99,57 @@ public class ArticlesService extends GenericService<Articles, Long> {
         return getRepository().elasticsearch(keyword, pageable);
     }
 
+    public Page<Articles> elasticSearchEnabled(String keyword, Pageable pageable) {
+        return getRepository().elasticsearchEnabled(keyword, pageable);
+    }
+
     @Override
     public Page<Articles> getAll(Pageable pageable) {
+        return getRepository().findAll(pageable); // Retourne tous les articles (sauf DELETED) pour la vue de gestion
+    }
+
+    public Page<Articles> getAllEnabled(Pageable pageable) {
         return getRepository().findByState(State.ENABLED, pageable);
+    }
+
+    public List<Articles> getAllEnabledList() {
+        return getRepository().findByState(State.ENABLED);
+    }
+
+    @Transactional
+    public void disableArticle(Long id) {
+        Articles article = getById(id);
+        if (article.getStockQuantity() > 0) {
+            throw new RuntimeException("Impossible de désactiver un article dont le stock est positif ("
+                    + article.getStockQuantity() + ")");
+        }
+        if (article.getState() != State.DISABLED) {
+            State oldState = article.getState();
+            article.setState(State.DISABLED);
+            update(article);
+            articleStateHistoryRepository.save(new ArticleStateHistory(article, oldState, State.DISABLED));
+        }
+    }
+
+    @Transactional
+    public void enableArticle(Long id) {
+        Articles article = getById(id);
+        if (article.getState() != State.ENABLED) {
+            State oldState = article.getState();
+            article.setState(State.ENABLED);
+            update(article);
+            articleStateHistoryRepository.save(new ArticleStateHistory(article, oldState, State.ENABLED));
+        }
+    }
+
+    @Transactional
+    public void disableArticles(List<Long> ids) {
+        ids.forEach(this::disableArticle);
+    }
+
+    @Transactional
+    public void enableArticles(List<Long> ids) {
+        ids.forEach(this::enableArticle);
     }
 
     public ArticlesRepository getRepository() {
@@ -103,7 +159,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
     @Transactional
     public String makeStockEntries(StockEntryDto stockEntryDto) {
         final String connectedUser = userService.getCurrentUser().getUsername();
-        
+
         AtomicReference<Double> totalCheck = new AtomicReference<>(0.0);
         StringBuilder descriptionBuilder = new StringBuilder();
 
@@ -120,12 +176,13 @@ public class ArticlesService extends GenericService<Articles, Long> {
             articles.makeEntry(stockEntry.getQuantity());
             articles.setLastRestockDate(LocalDate.now());
             update(articles);
-            
+
             // Expense Calculation
-            double unitPrice = stockEntry.getUnitPrice() != null ? stockEntry.getUnitPrice() : articles.getPurchasePrice();
+            double unitPrice = stockEntry.getUnitPrice() != null ? stockEntry.getUnitPrice()
+                    : articles.getPurchasePrice();
             double totalLinePrice = unitPrice * stockEntry.getQuantity();
             totalCheck.updateAndGet(v -> v + totalLinePrice);
-            
+
             if (descriptionBuilder.length() > 0) {
                 descriptionBuilder.append(" | ");
             }
@@ -146,22 +203,22 @@ public class ArticlesService extends GenericService<Articles, Long> {
 
         stockReception.setTotalAmount(totalCheck.get());
         stockReceptionRepository.save(stockReception);
-        
+
         // Create Expense if amount > 0
         if (totalCheck.get() > 0) {
             ExpenseType expenseType = expenseTypeRepository.findByName("Approvisionnement")
                     .orElseThrow(() -> new RuntimeException("Expense Type 'Approvisionnement' not found"));
-            
+
             ExpenseDto expenseDto = new ExpenseDto();
             expenseDto.setExpenseTypeId(expenseType.getId());
             expenseDto.setAmount(BigDecimal.valueOf(totalCheck.get()));
             expenseDto.setExpenseDate(LocalDate.now());
             expenseDto.setDescription("Commande : " + descriptionBuilder.toString());
-            expenseDto.setReference("STOCK-" + System.currentTimeMillis()); 
-            
+            expenseDto.setReference("STOCK-" + System.currentTimeMillis());
+
             expenseService.createExpense(expenseDto);
         }
-        
+
         return "success:true";
     }
 
@@ -169,7 +226,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
     public String makeStockRelease(CreditArticles creditArticles) {
         final String connectedUser = userService.getCurrentUser().getUsername();
         Articles articles = getById(creditArticles.getArticlesId());
-        ArticleHistory articleHistory = ArticleHistory.buildReleaseHistory(articles, creditArticles.getQuantity(), connectedUser);
+        ArticleHistory articleHistory = ArticleHistory.buildReleaseHistory(articles, creditArticles.getQuantity(),
+                connectedUser);
         articleHistoryService.create(articleHistory);
         articles.makeRelease(creditArticles.getQuantity());
         update(articles);
@@ -183,6 +241,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
     public Page<Articles> getNextOutOfStock(Pageable pageable) {
         return getRepository().findByStockQuantityLessThanEqualAndStockQuantityGreaterThan(6, 0, pageable);
     }
+
     public Map<String, Double> getDetailedStockValues() {
         // 1. On récupère directement l'objet DTO, plus de tableau !
         StockValuesDto valuesDto = getRepository().getDetailedStockValues();
@@ -198,10 +257,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
         return Map.of(
                 "purchaseTotal", purchaseTotal,
                 "creditSaleTotal", creditSaleTotal,
-                "combinedTotal", combinedTotal
-        );
+                "combinedTotal", combinedTotal);
     }
-
 
     @Transactional(readOnly = true)
     public StockMetricsDto getStockMetrics() {
@@ -219,10 +276,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
                 (int) totalItems,
                 (int) lowStock,
                 (int) outOfStock,
-                avgTurnover != null ? avgTurnover : 0.0
-        );
+                avgTurnover != null ? avgTurnover : 0.0);
     }
-
-
 
 }

@@ -52,7 +52,8 @@ public class StockRequestController {
 
     @GetMapping("/status/{status}")
     public ResponseEntity<Page<StockRequest>> getByStatus(@PathVariable StockRequestStatus status, Pageable pageable) {
-        return ResponseEntity.ok(((com.optimize.elykia.core.repository.StockRequestRepository)service.getRepository()).findByStatus(status, pageable));
+        return ResponseEntity.ok(((com.optimize.elykia.core.repository.StockRequestRepository) service.getRepository()).findByStatus(status, pageable));
+    }
 
     @GetMapping("/export/pdf")
     public ResponseEntity<byte[]> exportPdf(

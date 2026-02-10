@@ -53,7 +53,7 @@ export class StockRequestCreateComponent implements OnInit {
 
   loadArticles() {
     this.spinner.show();
-    this.itemService.getAllArticles().subscribe({
+    this.itemService.getAllEnabledArticles().subscribe({
       next: (response: any) => {
         // According to reference: response.data.content
         this.articles = response.data?.content || response.data || [];

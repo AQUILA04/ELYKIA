@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -32,24 +33,30 @@ public class ArticlesController {
 
     @PostMapping
     public ResponseEntity<Response> createArticle(@RequestBody @Valid ArticlesDto dto) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.createArticles(dto)), HttpStatus.CREATED);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.createArticles(dto)),
+                HttpStatus.CREATED);
     }
 
     @PostMapping("/reset-stock")
     public ResponseEntity<Response> resetStock() {
         articlesService.resetAllStockQuantities();
-        return new ResponseEntity<>(ResponseUtil.successResponse("Toutes les quantités en stock ont été réinitialisées à zéro."), HttpStatus.OK);
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse("Toutes les quantités en stock ont été réinitialisées à zéro."),
+                HttpStatus.OK);
     }
+
     // AJOUTEZ CET ENDPOINT
     @PostMapping("/{id}/reset-stock")
     public ResponseEntity<Response> resetStockForSingleArticle(@PathVariable Long id) {
         articlesService.resetStockForArticle(id);
-        return new ResponseEntity<>(ResponseUtil.successResponse("La quantité en stock de l'article a été réinitialisée."), HttpStatus.OK);
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse("La quantité en stock de l'article a été réinitialisée."), HttpStatus.OK);
     }
 
     @PutMapping(value = "{id}")
-    public ResponseEntity<Response> updateArticle(@RequestBody  @Valid ArticlesDto dto, @PathVariable Long id) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.updateArticles(dto, id)), HttpStatus.OK);
+    public ResponseEntity<Response> updateArticle(@RequestBody @Valid ArticlesDto dto, @PathVariable Long id) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.updateArticles(dto, id)),
+                HttpStatus.OK);
     }
 
     @GetMapping(value = "{id}")
@@ -59,12 +66,50 @@ public class ArticlesController {
 
     @PatchMapping(value = "make-stock-entries")
     public ResponseEntity<Response> makeStockEntries(@RequestBody StockEntryDto dto) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.makeStockEntries(dto)), HttpStatus.OK);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.makeStockEntries(dto)),
+                HttpStatus.OK);
     }
 
     @GetMapping
     public ResponseEntity<Response> getAll(Pageable pageable) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getAll(pageable)), HttpStatus.OK);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getAll(pageable)),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/enabled")
+    public ResponseEntity<Response> getAllEnabled(Pageable pageable) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getAllEnabled(pageable)),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/enabled/all")
+    public ResponseEntity<Response> getAllEnabledList() {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getAllEnabledList()),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/{id}/disable")
+    public ResponseEntity<Response> disableArticle(@PathVariable Long id) {
+        articlesService.disableArticle(id);
+        return new ResponseEntity<>(ResponseUtil.successResponse("Article désactivé avec succès."), HttpStatus.OK);
+    }
+
+    @PostMapping("/{id}/enable")
+    public ResponseEntity<Response> enableArticle(@PathVariable Long id) {
+        articlesService.enableArticle(id);
+        return new ResponseEntity<>(ResponseUtil.successResponse("Article activé avec succès."), HttpStatus.OK);
+    }
+
+    @PostMapping("/disable-batch")
+    public ResponseEntity<Response> disableArticles(@RequestBody List<Long> ids) {
+        articlesService.disableArticles(ids);
+        return new ResponseEntity<>(ResponseUtil.successResponse("Articles désactivés avec succès."), HttpStatus.OK);
+    }
+
+    @PostMapping("/enable-batch")
+    public ResponseEntity<Response> enableArticles(@RequestBody List<Long> ids) {
+        articlesService.enableArticles(ids);
+        return new ResponseEntity<>(ResponseUtil.successResponse("Articles activés avec succès."), HttpStatus.OK);
     }
 
     @GetMapping(value = "all")
@@ -74,28 +119,43 @@ public class ArticlesController {
 
     @DeleteMapping(value = "{id}")
     public ResponseEntity<Response> delete(@PathVariable Long id) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.deleteSoft(id)), HttpStatus.OK);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.deleteSoft(id)),
+                HttpStatus.OK);
     }
 
     @PostMapping(value = "elasticsearch")
     public ResponseEntity<Response> elasticSearch(@RequestBody ElasticSearchWrapper wrapper, Pageable pageable) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.elasticSearch(wrapper.getKeyword(), pageable)), HttpStatus.OK);
+        return new ResponseEntity<Response>(
+                ResponseUtil.successResponse(articlesService.elasticSearch(wrapper.getKeyword(), pageable)),
+                HttpStatus.OK);
+    }
+
+    @PostMapping(value = "elasticsearch/enabled")
+    public ResponseEntity<Response> elasticSearchEnabled(@RequestBody ElasticSearchWrapper wrapper, Pageable pageable) {
+        return new ResponseEntity<Response>(
+                ResponseUtil.successResponse(articlesService.elasticSearchEnabled(wrapper.getKeyword(), pageable)),
+                HttpStatus.OK);
     }
 
     @GetMapping(value = "out-of-stock")
     public ResponseEntity<Response> getAllOutOfTheStock(Pageable pageable) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getOutOfStock(pageable)), HttpStatus.OK);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getOutOfStock(pageable)),
+                HttpStatus.OK);
     }
 
     @GetMapping(value = "next-out-of-stock")
     public ResponseEntity<Response> getNextOutOfTheStock(Pageable pageable) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getNextOutOfStock(pageable)), HttpStatus.OK);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getNextOutOfStock(pageable)),
+                HttpStatus.OK);
     }
 
     @GetMapping(value = "top-ten-articles")
     public ResponseEntity<Response> getTopTenSellArticle() {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(creditArticlesService.getTop10ArticlesWithHighestQuantity()), HttpStatus.OK);
+        return new ResponseEntity<Response>(
+                ResponseUtil.successResponse(creditArticlesService.getTop10ArticlesWithHighestQuantity()),
+                HttpStatus.OK);
     }
+
     @GetMapping("/detailed-stock-value")
     public ResponseEntity<Map<String, Double>> getDetailedStockValues() {
         Map<String, Double> totals = articlesService.getDetailedStockValues();

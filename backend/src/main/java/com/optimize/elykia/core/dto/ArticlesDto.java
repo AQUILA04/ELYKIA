@@ -11,6 +11,7 @@ import lombok.ToString;
 @Data
 @ToString
 public class ArticlesDto {
+    private com.optimize.common.entities.enums.State state;
     private Long id;
     @NotNull(message = "Le prix d'achat est obligatoire !")
     @Positive

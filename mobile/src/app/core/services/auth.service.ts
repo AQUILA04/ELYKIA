@@ -12,6 +12,8 @@ import { HealthCheckService } from './health-check.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '../../store/app.state';
 import * as AuthActions from '../../store/auth/auth.actions';
+import { Storage } from '@ionic/storage-angular';
+import { MemoryManagementService } from './memory-management.service';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +27,9 @@ export class AuthService {
     private dbService: DatabaseService,
     private log: LoggerService,
     private healthCheckService: HealthCheckService,
-    private store: Store<AppState>
+    private store: Store<AppState>,
+    private storage: Storage,
+    private memoryManagementService: MemoryManagementService
   ) {
     this.loadUserFromPreferences();
   }
@@ -91,6 +95,8 @@ export class AuthService {
     this._user = null;
     this._isAuthenticated = false;
     await Preferences.remove({ key: 'currentUser' });
+    await this.storage.remove('initialization_complete');
+    await this.memoryManagementService.clearMemoryCache();
     this.log.log('User logged out and local state reset.');
   }
 

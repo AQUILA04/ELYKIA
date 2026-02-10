@@ -14,11 +14,13 @@ import java.util.Optional;
 public interface CommercialMonthlyStockRepository extends GenericRepository<CommercialMonthlyStock, Long> {
     Optional<CommercialMonthlyStock> findByCollectorAndMonthAndYear(String collector, Integer month, Integer year);
 
-    Page<CommercialMonthlyStock> findByCollectorAndMonthAndYearOrderByIdDesc(String collector, Integer month, Integer year, Pageable pageable);
+    Page<CommercialMonthlyStock> findByCollectorAndMonthAndYearOrderByIdDesc(String collector, Integer month,
+            Integer year, Pageable pageable);
 
     Page<CommercialMonthlyStock> findByMonthAndYearOrderByIdDesc(Integer month, Integer year, Pageable pageable);
 
-    Page<CommercialMonthlyStock> findByCollectorAndMonthNotAndYearNotOrderByIdDesc(String collector, Integer month, Integer year, Pageable pageable);
+    Page<CommercialMonthlyStock> findByCollectorAndMonthNotAndYearNotOrderByIdDesc(String collector, Integer month,
+            Integer year, Pageable pageable);
 
     Page<CommercialMonthlyStock> findByMonthNotAndYearNotOrderByIdDesc(Integer month, Integer year, Pageable pageable);
 
