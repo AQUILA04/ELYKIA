@@ -49,4 +49,28 @@ public class DailyOperationController {
             }
         }
     }
+
+    @GetMapping("/export/pdf")
+    public ResponseEntity<byte[]> exportPdf(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String commercialUsername) {
+
+        LocalDate start = startDate != null ? startDate : LocalDate.now();
+        LocalDate end = endDate != null ? endDate : LocalDate.now();
+
+        // Security check: if promoter, force collector to be current user
+        User currentUser = userService.getCurrentUser();
+        if (currentUser.is(UserProfilConstant.PROMOTER)) {
+            commercialUsername = currentUser.getUsername();
+        }
+
+        byte[] pdfBytes = dailyOperationService.generatePdfExport(start, end, commercialUsername);
+
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=journal_operations_" + start + "_" + end + ".pdf")
+                .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
+    }
 }

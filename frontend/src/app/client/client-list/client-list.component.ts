@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
-import {AuthService} from "../../auth/service/auth.service";
+import { AuthService } from "../../auth/service/auth.service";
 
 @Component({
   selector: 'app-client-list',
@@ -34,7 +34,7 @@ export class ClientListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-     this.loadClient();
+    this.loadClient();
   }
 
   loadClient(): void {
@@ -42,9 +42,9 @@ export class ClientListComponent implements OnInit {
     const currentUser = this.authService.getCurrentUser();
 
     // MODIFIÉ: On passe le searchTerm au service
-    this.clientService.getClients(this.currentPage, this.pageSize, this.sortField, currentUser, this.searchTerm).subscribe({
+    this.clientService.getClients(this.currentPage, this.pageSize, this.sortField, currentUser.username, this.searchTerm).subscribe({
       next: (data) => {
-        if(data.statusCode === 200){
+        if (data.statusCode === 200) {
           this.clients = data.data.content;
           this.totalElement = data.data.page.totalElements;
         } else {
@@ -84,13 +84,13 @@ export class ClientListComponent implements OnInit {
         if (result) {
           this.clientService.deleteClient(id).subscribe({
             next: (resp: any) => {
-              if(resp.statusCode === 200){
+              if (resp.statusCode === 200) {
                 this.alertService.showSuccess('Le client a été supprimé avec succès.', 'Suppression réussie!');
-                              this.loadClient(); //
-                }else{
-                  this.alertService.showError('Erreur lors de la suppression du client : '+ resp.message );
-                                console.error('Erreur lors de la suppression du client', resp);
-                  }
+                this.loadClient(); //
+              } else {
+                this.alertService.showError('Erreur lors de la suppression du client : ' + resp.message);
+                console.error('Erreur lors de la suppression du client', resp);
+              }
             },
             error: (error) => {
               this.alertService.showError('Erreur lors de la suppression du client');
@@ -106,7 +106,7 @@ export class ClientListComponent implements OnInit {
   }
 
   viewDetails(clientId: number): void {
-  console.log('Client details avec id :' ,clientId );
+    console.log('Client details avec id :', clientId);
     this.router.navigate(['/client-details', clientId]);
   }
 

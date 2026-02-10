@@ -1,17 +1,17 @@
-import {Component, OnInit} from '@angular/core';
-import {FormControl, FormGroup} from '@angular/forms';
-import {DailyReportService} from '../../service/daily-report.service';
-import {DailyCommercialReport} from '../../models/daily-commercial-report.model';
-import {TokenStorageService} from 'src/app/shared/service/token-storage.service';
-import {ClientService} from 'src/app/client/service/client.service';
-import {DatePipe} from '@angular/common';
-import {MatDialog} from '@angular/material/dialog';
-import {CashDepositModalComponent} from '../../components/cash-deposit-modal/cash-deposit-modal.component';
-import {DailyOperationLog} from '../../models/daily-operation-log.model';
-import {DailyOperationService} from '../../service/daily-operation.service';
-import {CashDepositService} from '../../service/cash-deposit.service';
-import {UserService} from "../../../user/service/user.service";
-import {UserProfile} from "../../../shared/models/user-profile.enum";
+import { Component, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
+import { DailyReportService } from '../../service/daily-report.service';
+import { DailyCommercialReport } from '../../models/daily-commercial-report.model';
+import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
+import { ClientService } from 'src/app/client/service/client.service';
+import { DatePipe } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { CashDepositModalComponent } from '../../components/cash-deposit-modal/cash-deposit-modal.component';
+import { DailyOperationLog } from '../../models/daily-operation-log.model';
+import { DailyOperationService } from '../../service/daily-operation.service';
+import { CashDepositService } from '../../service/cash-deposit.service';
+import { UserService } from "../../../user/service/user.service";
+import { UserProfile } from "../../../shared/models/user-profile.enum";
 
 @Component({
     selector: 'app-daily-report',
@@ -64,7 +64,7 @@ export class DailyReportComponent implements OnInit {
         private dialog: MatDialog,
         private dailyOperationService: DailyOperationService,
         private cashDepositService: CashDepositService,
-        private userService : UserService
+        private userService: UserService
     ) { }
 
     ngOnInit(): void {
@@ -288,5 +288,24 @@ export class DailyReportComponent implements OnInit {
         } else {
             return 'status-orange';
         }
+    }
+
+    onExportJournal() {
+        const start = this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd') || '';
+        const end = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '';
+        const collector = this.selectedAgent || (this.isPromoter ? this.tokenStorage.getUser().username : undefined);
+
+        this.dailyOperationService.exportPdf(start, end, collector).subscribe({
+            next: (data: Blob) => {
+                const blob = new Blob([data], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `journal_operations_${start}_${end}.pdf`;
+                link.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: (err) => console.error('Error downloading PDF', err)
+        });
     }
 }

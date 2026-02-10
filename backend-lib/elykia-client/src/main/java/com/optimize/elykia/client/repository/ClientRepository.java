@@ -19,8 +19,8 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
 
     List<Client> findByCollectorAndCreditInProgressIsTrueAndStateOrderByQuarterAsc(String username, State state);
 
-
-    Page<Client> findByCollectorAndCreditInProgressIsTrueAndStateOrderByQuarterAsc(String username, State state, Pageable pageable);
+    Page<Client> findByCollectorAndCreditInProgressIsTrueAndStateOrderByQuarterAsc(String username, State state,
+            Pageable pageable);
 
     default Page<Client> elasticsearch(String keyword, String username, Boolean tontine, Pageable pageable) {
         return findAll(getElasticsearchCriteria(keyword, username, tontine), pageable);
@@ -41,11 +41,11 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                     cb.like(cb.lower(root.get("contactPersonAddress")), searchKeyword),
                     cb.like(cb.lower(root.get("collector")), searchKeyword),
                     cb.like(cb.lower(root.get("quarter")), searchKeyword),
-                    cb.like(cb.lower(root.get("cardType")), searchKeyword)
-            );
+                    cb.like(cb.lower(root.get("cardType")), searchKeyword));
             if (Objects.nonNull(username) && username.startsWith("COM")) {
-                if (tontine) {
-                    jakarta.persistence.criteria.Predicate p2 = cb.and(p, cb.equal(root.get("tontineCollector"), username));
+                if (Objects.nonNull(tontine) && tontine) {
+                    jakarta.persistence.criteria.Predicate p2 = cb.and(p,
+                            cb.equal(root.get("tontineCollector"), username));
                     return cb.and(p2, cb.notEqual(root.get("state"), State.DELETED));
                 }
                 jakarta.persistence.criteria.Predicate p2 = cb.and(p, cb.equal(root.get("collector"), username));
@@ -57,49 +57,51 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
     }
 
     @Query(value = """
-        SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
-        c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
-        c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
-        c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
-        c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
-        FROM Client c
-        WHERE (c.collector = :collector OR c.tontineCollector = :collector) AND c.clientType = :clientType AND c.state = :state
-    """)
-    Page<ClientRespDto> findByCollectorAndClientTypeAndState(String collector, ClientType clientType, State state , Pageable pageable);
-
-
-    @Query(value = """
-        SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
-        c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
-        c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.tontineCollector,
-        c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
-        c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
-        FROM Client c
-        WHERE c.tontineCollector = :collector AND c.clientType = :clientType AND c.state = :state
-    """)
-    Page<ClientRespDto> findByTontineCollectorAndClientTypeAndState(String collector, ClientType clientType, State state , Pageable pageable);
+                SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
+                c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
+                c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
+                c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
+                FROM Client c
+                WHERE (c.collector = :collector OR c.tontineCollector = :collector) AND c.clientType = :clientType AND c.state = :state
+            """)
+    Page<ClientRespDto> findByCollectorAndClientTypeAndState(String collector, ClientType clientType, State state,
+            Pageable pageable);
 
     @Query(value = """
-        SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
-        c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
-        c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
-        c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
-        c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
-        FROM Client c
-        WHERE (c.tontineCollector = :collector OR c.collector = :collector) AND c.clientType = :clientType AND c.state = :state
-    """)
-    Page<ClientRespDto> findByCollectorAndTontineCollectorAndClientTypeAndState(String collector, ClientType clientType, State state , Pageable pageable);
+                SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
+                c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
+                c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.tontineCollector,
+                c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
+                FROM Client c
+                WHERE c.tontineCollector = :collector AND c.clientType = :clientType AND c.state = :state
+            """)
+    Page<ClientRespDto> findByTontineCollectorAndClientTypeAndState(String collector, ClientType clientType,
+            State state, Pageable pageable);
 
     @Query(value = """
-        SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
-        c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
-        c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
-        c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
-        c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
-        FROM Client c
-        WHERE c.state <> :state
+                SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
+                c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
+                c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
+                c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
+                FROM Client c
+                WHERE (c.tontineCollector = :collector OR c.collector = :collector) AND c.clientType = :clientType AND c.state = :state
+            """)
+    Page<ClientRespDto> findByCollectorAndTontineCollectorAndClientTypeAndState(String collector, ClientType clientType,
+            State state, Pageable pageable);
 
-    """)
+    @Query(value = """
+                SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
+                c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
+                c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
+                c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
+                FROM Client c
+                WHERE c.state <> :state
+
+            """)
     Page<ClientRespDto> getByStateNot(State state, Pageable pageable);
 
     @Query(value = "SELECT c.profilPhoto FROM Client c WHERE c.id = :id")
@@ -112,5 +114,6 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
 
     // AJOUTÉ : Méthodes pour la vérification de l'unicité
     boolean existsByPhoneAndIdNot(String phone, Long id);
+
     boolean existsByCardIDAndIdNot(String cardID, Long id);
 }

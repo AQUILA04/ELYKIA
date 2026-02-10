@@ -20,4 +20,9 @@ public interface DailyOperationLogRepository extends GenericRepository<DailyOper
                         String commercialUsername, Pageable pageable);
 
         Page<DailyOperationLog> findByDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
+
+        List<DailyOperationLog> findByDateBetween(LocalDate startDate, LocalDate endDate);
+
+        List<DailyOperationLog> findByDateBetweenAndCommercialUsername(LocalDate startDate, LocalDate endDate,
+                        String commercialUsername);
 }
