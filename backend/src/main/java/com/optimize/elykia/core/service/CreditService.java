@@ -65,7 +65,7 @@ public class CreditService extends GenericService<Credit, Long> {
     private CreditEnrichmentService creditEnrichmentService;
     private CreditPaymentEventService creditPaymentEventService;
     private StockMovementService stockMovementService;
-    private BiAggregationService biAggregationService;  // Added for real-time aggregation
+    private BiAggregationService biAggregationService; // Added for real-time aggregation
     private final CreditDistributionViewRepository creditDistributionViewRepository;
     private final CreditDistributionMapper creditDistributionMapper;
     private TontineStockService tontineStockService;
@@ -536,7 +536,8 @@ public class CreditService extends GenericService<Credit, Long> {
             clientCredit.setTotalAmountPaid(dto.getAdvance());
             clientCredit.setBeginDate(dto.getStartDate());
             clientCredit.setExpectedEndDate(dto.getEndDate());
-            clientCredit.setRemainingDaysCount((int) Math.ceil(clientCredit.getTotalAmountRemaining() / clientCredit.getDailyStake()));
+            clientCredit.setRemainingDaysCount(
+                    (int) Math.ceil(clientCredit.getTotalAmountRemaining() / clientCredit.getDailyStake()));
         }
         repository.saveAndFlush(clientCredit);
 
@@ -613,7 +614,8 @@ public class CreditService extends GenericService<Credit, Long> {
             clientCredit.setTotalAmountPaid(dto.getAdvance());
             clientCredit.setBeginDate(dto.getStartDate());
             clientCredit.setExpectedEndDate(dto.getEndDate());
-            clientCredit.setRemainingDaysCount((int) Math.ceil(clientCredit.getTotalAmountRemaining() / clientCredit.getDailyStake()));
+            clientCredit.setRemainingDaysCount(
+                    (int) Math.ceil(clientCredit.getTotalAmountRemaining() / clientCredit.getDailyStake()));
         }
 
         if (StringUtils.hasText(dto.getReference())) {
@@ -811,15 +813,17 @@ public class CreditService extends GenericService<Credit, Long> {
         repository.saveAndFlush(credit);
 
         // Calculate margin
-        Double margin = (credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0) - 
-                        (credit.getTotalPurchase() != null ? credit.getTotalPurchase() : 0.0);
+        Double margin = (credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0) -
+                (credit.getTotalPurchase() != null ? credit.getTotalPurchase() : 0.0);
 
         // Publish Event
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.CreditStartedEvent(
                     this,
                     credit.getTotalAmount(),
-                    credit.getCollector(), credit.getAdvance(), margin));
+                    credit.getCollector(), credit.getAdvance(), margin,
+                    credit.getClient().getFullName(),
+                    credit.getReference()));
         }
 
         // Real-time aggregation update for BI performance optimization
@@ -832,7 +836,6 @@ public class CreditService extends GenericService<Credit, Long> {
                 // This ensures aggregation errors don't impact business operations
             }
         }
-
 
         return Boolean.TRUE;
     }
@@ -1390,7 +1393,6 @@ public class CreditService extends GenericService<Credit, Long> {
             return tontine;
         }
     }
-
 
     @Autowired
     public void setTontineStockService(TontineStockService tontineStockService) {

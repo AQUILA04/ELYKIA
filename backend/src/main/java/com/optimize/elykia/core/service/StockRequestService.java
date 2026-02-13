@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
 import com.itextpdf.html2pdf.HtmlConverter;
 import java.io.ByteArrayOutputStream;
@@ -180,7 +179,9 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.StockRequestDeliveredEvent(
                     this,
                     savedRequest.getTotalCreditSalePrice(),
-                    savedRequest.getCollector(), margin));
+                    savedRequest.getCollector(),
+                    margin,
+                    savedRequest.getReference()));
         }
 
         return savedRequest;

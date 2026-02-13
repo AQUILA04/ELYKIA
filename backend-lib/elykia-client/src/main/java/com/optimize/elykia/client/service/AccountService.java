@@ -27,7 +27,7 @@ public class AccountService extends GenericService<Account, Long> {
     private final ClientRepository clientRepository;
 
     protected AccountService(AccountRepository repository, AccountMapper accountMapper,
-                             org.springframework.context.ApplicationEventPublisher eventPublisher, ClientRepository clientRepository) {
+            org.springframework.context.ApplicationEventPublisher eventPublisher, ClientRepository clientRepository) {
         super(repository);
         this.accountMapper = accountMapper;
         this.eventPublisher = eventPublisher;
@@ -40,7 +40,7 @@ public class AccountService extends GenericService<Account, Long> {
         account.setStatus(AccountStatus.CREATED);
         Account savedAccount = create(account);
 
-       publishAccountCreationEvent(savedAccount);
+        publishAccountCreationEvent(savedAccount);
 
         return savedAccount;
     }
@@ -58,12 +58,14 @@ public class AccountService extends GenericService<Account, Long> {
 
     private void publishAccountCreationEvent(Account account) {
         if (eventPublisher != null && account.getClient() != null) {
-            Client client = clientRepository.findById(account.getClient().getId()).orElseThrow(() -> new ResourceNotFoundException("Client non trouvé avec l'id: " + account.getClient().getId()));
+            Client client = clientRepository.findById(account.getClient().getId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Client non trouvé avec l'id: " + account.getClient().getId()));
 
             eventPublisher.publishEvent(new com.optimize.elykia.client.event.AccountCreatedEvent(
                     this,
                     account.getAccountBalance(),
-                    client.getCollector()));
+                    client.getCollector(),
+                    account.getAccountNumber()));
         }
     }
 

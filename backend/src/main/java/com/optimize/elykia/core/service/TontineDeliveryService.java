@@ -218,12 +218,21 @@ public class TontineDeliveryService {
             log.info("Tontine session {} has been ENDED as all members are delivered.", session.getId());
         }
 
-        // Publish Event
         if (eventPublisher != null) {
+            // Publier l'événement de livraison tontine
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineDeliveryEvent(
                     this,
                     delivery.getTotalAmount(),
-                    delivery.getCommercialUsername()));
+                    delivery.getCommercialUsername(),
+                    member.getClient().getFullName()));
+
+            // Publier l'événement de collecte tontine (car une livraison implique une
+            // collecte du montant total)
+            eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineCollectionEvent(
+                    this,
+                    delivery.getTotalAmount(),
+                    delivery.getCommercialUsername(),
+                    member.getClient().getFullName()));
         }
 
         log.info("Delivery {} marked as DELIVERED.", delivery.getId());

@@ -6,7 +6,6 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.entity.StockTontineReturn;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
-import com.optimize.elykia.core.event.StockTontineReturnedEvent;
 import com.optimize.elykia.core.repository.StockTontineReturnRepository;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -30,9 +28,9 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
     private final ApplicationEventPublisher eventPublisher;
 
     protected StockTontineReturnService(StockTontineReturnRepository repository,
-                                        UserService userService,
-                                        TontineStockService tontineStockService,
-                                        ApplicationEventPublisher eventPublisher) {
+            UserService userService,
+            TontineStockService tontineStockService,
+            ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.userService = userService;
         this.tontineStockService = tontineStockService;
@@ -47,25 +45,25 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
                     || currentUser.is(UserProfilConstant.ADMIN)
                     || currentUser.is(UserProfilConstant.GESTIONNAIRE)
                     || currentUser.is(UserProfilConstant.SU);
-            
+
             if (isStoreKeeper) {
                 if (entity.getCollector() == null) {
-                     entity.setCollector(userService.getCurrentUser().getUsername());
+                    entity.setCollector(userService.getCurrentUser().getUsername());
                 }
                 entity.setStatus(StockReturnStatus.RECEIVED);
             } else {
                 entity.setCollector(userService.getCurrentUser().getUsername());
                 entity.setStatus(StockReturnStatus.CREATED);
             }
-            
+
             entity.getItems().forEach(item -> item.setStockTontineReturn(entity));
-            
+
             StockTontineReturn saved = super.create(entity);
-            
+
             if (isStoreKeeper) {
                 processValidationLogic(saved);
             }
-            
+
             return saved;
         }
         return super.create(entity);
@@ -90,17 +88,17 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
                 .mapToDouble(item -> item.getQuantity() * item.getArticle().getSellingPrice())
                 .sum();
 
-        eventPublisher.publishEvent(new StockTontineReturnedEvent(
+        eventPublisher.publishEvent(new com.optimize.elykia.core.event.StockTontineReturnedEvent(
                 this,
                 totalAmount,
-                returnRequest.getCollector()
-        ));
+                returnRequest.getCollector(),
+                returnRequest.getId()));
     }
 
     public Page<StockTontineReturn> getByCollector(String collector, Pageable pageable) {
         return ((StockTontineReturnRepository) getRepository()).findByCollector(collector, pageable);
     }
-    
+
     public Page<StockTontineReturn> getAll(String collector, Pageable pageable) {
         Sort sort = Sort.by(Sort.Direction.DESC, "id");
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);

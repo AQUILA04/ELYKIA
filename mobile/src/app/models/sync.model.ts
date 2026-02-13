@@ -259,6 +259,7 @@ export interface TontineCollectionSyncRequest {
   memberId: number;
   amount: number;
   isDeliveryCollection?: boolean;
+  reference?: string;
 }
 
 export interface TontineDeliverySyncRequest {

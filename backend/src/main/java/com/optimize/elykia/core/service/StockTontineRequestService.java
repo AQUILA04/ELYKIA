@@ -179,7 +179,8 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         eventPublisher.publishEvent(new StockTontineRequestDeliveredEvent(
                 this,
                 savedRequest.getTotalSalePrice(),
-                savedRequest.getCollector()));
+                savedRequest.getCollector(),
+                savedRequest.getReference()));
 
         return savedRequest;
     }

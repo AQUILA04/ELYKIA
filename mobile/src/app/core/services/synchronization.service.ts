@@ -1693,7 +1693,8 @@ export class SynchronizationService {
     return {
       memberId: serverMemberId,
       amount: collection.amount,
-      isDeliveryCollection: collection.isDeliveryCollection
+      isDeliveryCollection: collection.isDeliveryCollection,
+      reference: collection.id // Utiliser l'ID local comme référence
     };
   }
 

@@ -92,7 +92,6 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         updateCommercialMonthlyStock(stockReturn);
 
         // Calculate total return amount
-        double totalReturnAmount = 0.0;
 
         // 2. Réintégrer les articles dans le stock magasin
         for (StockReturnItem item : stockReturn.getItems()) {
@@ -109,16 +108,23 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
             article.makeEntry(item.getQuantity());
             articlesService.update(article);
 
-            // Sum amount using creditSalePrice
-            totalReturnAmount += item.getQuantity() * article.getCreditSalePrice();
         }
 
         stockReturn.setStatus(StockReturnStatus.RECEIVED);
         StockReturn saved = repository.save(stockReturn);
 
+        double totalReturnAmount = stockReturn.getItems().stream()
+                .mapToDouble(item -> item.getQuantity() * item.getArticle().getSellingPrice())
+                .sum();
+
         // Publish event
-        eventPublisher.publishEvent(new com.optimize.elykia.core.event.StockReturnedEvent(this, totalReturnAmount,
-                stockReturn.getCollector()));
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new com.optimize.elykia.core.event.StockReturnedEvent(
+                    this,
+                    totalReturnAmount,
+                    stockReturn.getCollector(),
+                    stockReturn.getId()));
+        }
 
         return saved;
     }

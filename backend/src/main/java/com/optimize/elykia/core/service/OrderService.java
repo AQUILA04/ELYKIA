@@ -26,10 +26,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.optimize.elykia.core.entity.Credit;
-import com.optimize.elykia.core.dto.CreditDto;
-import com.optimize.elykia.core.dto.CreditArticlesDto;
-
-import java.util.stream.Collectors;
 
 import com.optimize.elykia.core.repository.OrderStatusHistoryRepository;
 
@@ -247,7 +243,8 @@ public class OrderService extends GenericService<Order, Long> {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.OrderCreatedEvent(
                     this,
                     savedOrder.getTotalAmount(),
-                    savedOrder.getClient().getCollector()));
+                    savedOrder.getCreatedBy(),
+                    savedOrder.getId()));
         }
 
         return savedOrder;

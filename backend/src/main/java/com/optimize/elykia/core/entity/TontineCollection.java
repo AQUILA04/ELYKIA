@@ -30,4 +30,7 @@ public class TontineCollection extends BaseEntity<String> {
     @Column(nullable = false)
     private String commercialUsername;
     private Boolean isDeliveryCollection = Boolean.FALSE;
+
+    @Column(unique = true)
+    private String reference;
 }

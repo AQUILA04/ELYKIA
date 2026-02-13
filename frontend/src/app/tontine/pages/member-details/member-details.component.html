@@ -45,8 +45,10 @@
           <span class="summary-value highlight">{{ formatCurrency(member.totalContribution) }}</span>
         </div>
         <div class="summary-item">
-          <span class="summary-label">Part Société</span>
-          <span class="summary-value">{{ formatCurrency(member.societyShare || 0) }}</span>
+          <span class="summary-label">Part Société (Payé / Dû)</span>
+          <span class="summary-value" [class.text-warn]="getSocietyShareStatusColor() === 'warn'">
+            {{ formatCurrency(member.societyShare || 0) }} / {{ formatCurrency(getTheoreticalSocietyShare()) }}
+          </span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Solde Disponible</span>

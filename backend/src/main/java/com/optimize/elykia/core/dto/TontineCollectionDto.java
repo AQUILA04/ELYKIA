@@ -13,4 +13,5 @@ public class TontineCollectionDto {
     @Positive(message = "Le montant doit être positif.")
     private Double amount;
     private Boolean isDeliveryCollection = Boolean.FALSE;
+    private String reference;
 }

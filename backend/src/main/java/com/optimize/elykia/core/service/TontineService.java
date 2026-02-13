@@ -6,6 +6,7 @@ import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.TontineCollectionDto;
@@ -29,7 +30,6 @@ import org.springframework.util.StringUtils;
 import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
 
 import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Join;
 
 import java.time.LocalDate;
@@ -47,6 +47,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     private final TontineCollectionRepository tontineCollectionRepository;
     private final ClientService clientService;
     private final UserService userService;
+    private final ParameterService parameterService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     protected TontineService(TontineMemberRepository repository,
@@ -54,12 +55,14 @@ public class TontineService extends GenericService<TontineMember, Long> {
             TontineCollectionRepository tontineCollectionRepository,
             ClientService clientService,
             UserService userService,
+            ParameterService parameterService,
             org.springframework.context.ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.tontineSessionRepository = tontineSessionRepository;
         this.tontineCollectionRepository = tontineCollectionRepository;
         this.clientService = clientService;
         this.userService = userService;
+        this.parameterService = parameterService;
         this.eventPublisher = eventPublisher;
     }
 
@@ -136,7 +139,8 @@ public class TontineService extends GenericService<TontineMember, Long> {
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineMemberEnrolledEvent(
                     this,
-                    savedMember.getClient().getTontineCollector()));
+                    savedMember.getCreatedBy(),
+                    savedMember.getClient().getFullName()));
         }
 
         return savedMember;
@@ -148,6 +152,14 @@ public class TontineService extends GenericService<TontineMember, Long> {
             throw new CustomValidationException(
                     "La session de cette année est déjà clôturer, Vous ne pouvez plus enregistrer de collecte !");
         }
+
+        // Check for duplicate reference
+        if (StringUtils.hasText(dto.getReference())) {
+            if (tontineCollectionRepository.existsByReference(dto.getReference())) {
+                return tontineCollectionRepository.findByReference(dto.getReference()).orElseThrow();
+            }
+        }
+
         TontineMember member = this.getById(dto.getMemberId());
         String commercialUsername = userService.getCurrentUser().getUsername();
 
@@ -159,11 +171,12 @@ public class TontineService extends GenericService<TontineMember, Long> {
         collection.setCollectionDate(LocalDateTime.now());
         collection.setCommercialUsername(commercialUsername);
 
-        // Update the member's total contribution
-        member.setTotalContribution(member.getTotalContribution() + dto.getAmount());
+        if (StringUtils.hasText(dto.getReference())) {
+            collection.setReference(dto.getReference());
+        }
 
-        // Calculate member status (society share, validated months, etc.)
-        calculateMemberStatus(member);
+        // Process financial logic (Society Share vs Capital)
+        processCollectionAllocation(member, dto.getAmount());
 
         this.update(member);
 
@@ -177,11 +190,71 @@ public class TontineService extends GenericService<TontineMember, Long> {
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineCollectionEvent(
                     this,
-                    savedCollection.getAmount(),
-                    savedCollection.getCommercialUsername()));
+                    collection.getAmount(),
+                    collection.getCommercialUsername(),
+                    member.getClient().getFullName()));
         }
 
         return savedCollection;
+    }
+
+    private void processCollectionAllocation(TontineMember member, Double amountCollected) {
+        Double dailyAmount = member.getAmount();
+        Double currentSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
+        Double currentTotalContribution = member.getTotalContribution() != null ? member.getTotalContribution() : 0.0;
+
+        // 1. Calculate Target Society Share based on Time (Months started since session
+        // start OR registration date)
+        LocalDate startDate = member.getTontineSession().getStartDate();
+
+        // Check parameter to decide whether to use Session Start Date or Member
+        // Registration Date
+        boolean useRegistrationDate = parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE");
+        if (useRegistrationDate && member.getRegistrationDate() != null) {
+            LocalDate regDate = member.getRegistrationDate().toLocalDate();
+            // If registration is after session start, use registration date
+            if (regDate.isAfter(startDate)) {
+                startDate = regDate;
+            }
+        }
+
+        LocalDate now = LocalDate.now();
+
+        int monthsStarted = 0;
+        if (!now.isBefore(startDate)) {
+            // Calculate months elapsed since start (inclusive of current month)
+            monthsStarted = (now.getYear() - startDate.getYear()) * 12
+                    + (now.getMonthValue() - startDate.getMonthValue()) + 1;
+        }
+
+        int MAX_MONTHS = 10;
+        if (monthsStarted > MAX_MONTHS) {
+            monthsStarted = MAX_MONTHS;
+        }
+        if (monthsStarted < 0) {
+            monthsStarted = 0;
+        }
+
+        Double targetSocietyShare = monthsStarted * dailyAmount;
+
+        // 2. Calculate Deficit (What is owed to society up to today)
+        double societyShareDeficit = targetSocietyShare - currentSocietyShare;
+        if (societyShareDeficit < 0)
+            societyShareDeficit = 0.0;
+
+        // 3. Allocate Collection Amount
+        double amountForSociety = 0.0;
+
+        if (societyShareDeficit > 0) {
+            amountForSociety = Math.min(amountCollected, societyShareDeficit);
+        }
+
+        // 4. Update Member State
+        member.setSocietyShare(currentSocietyShare + amountForSociety);
+        member.setTotalContribution(currentTotalContribution + amountCollected);
+
+        // 5. Recalculate derived status (validated months) based on remaining capital
+        calculateMemberStatus(member);
     }
 
     private void calculateMemberStatus(TontineMember member) {
@@ -190,34 +263,32 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
 
         Double dailyAmount = member.getAmount();
-        Double totalContrib = member.getTotalContribution();
+        Double totalContrib = member.getTotalContribution() != null ? member.getTotalContribution() : 0.0;
+        Double societyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
 
-        // Calculate total days equivalent paid
-        int totalDaysPaid = (int) (totalContrib / dailyAmount);
+        // Capital available for validation is Total - SocietyShare
+        Double availableContribution = totalContrib - societyShare;
+        if (availableContribution < 0)
+            availableContribution = 0.0;
 
         // Constants for logic
         int DAYS_PER_MONTH = 31;
         int MAX_MONTHS = 10;
 
-        int validatedMonths = totalDaysPaid / DAYS_PER_MONTH;
-        int remainderDays = totalDaysPaid % DAYS_PER_MONTH;
+        // Calculate total days equivalent available in capital
+        int totalDaysAvailable = (int) (availableContribution / dailyAmount);
+
+        int validatedMonths = totalDaysAvailable / DAYS_PER_MONTH;
+        int remainderDays = totalDaysAvailable % DAYS_PER_MONTH;
 
         // Cap at 10 months
         if (validatedMonths >= MAX_MONTHS) {
             validatedMonths = MAX_MONTHS;
-            // After 10 months, all extra goes to member?
-            // Based on req: "Si les 10 mois sont tous validés et que le membre fait encore
-            // des collecte alors on ne prends plus de marge sur ce qu'il cotise."
-            // So society share is capped at 10 * dailyAmount.
-            remainderDays = 0; // Or just ignore remainder for society share calc
+            // If 10 months validated, remainder days are just extra capital
         }
-
-        Double societyShare = validatedMonths * dailyAmount;
-        Double availableContribution = totalContrib - societyShare;
 
         member.setValidatedMonths(validatedMonths);
         member.setCurrentMonthDays(remainderDays);
-        member.setSocietyShare(societyShare);
         member.setAvailableContribution(availableContribution);
     }
 
