@@ -59,9 +59,13 @@ export class RecoveryService {
       console.error('Recovery service: Commercial username not available for API fetch.');
       return of([]);
     }
-    const url = `${environment.apiUrl}/api/v1/credits/daily-stakes?commercialId=${this.commercialUsername}`;
+    // Utiliser le nouvel endpoint qui récupère les CreditTimeline des 30 derniers jours
+    const url = `${environment.apiUrl}/api/v1/mobiles/credit-timelines/${this.commercialUsername}`;
     return this.http.get<ApiResponse<Recovery[]>>(url).pipe(
-      map(response => response.data)
+      map(response => {
+        console.log(`[RecoveryService] Récupéré ${response.data.length} recouvrements depuis le serveur`);
+        return response.data;
+      })
     );
   }
 

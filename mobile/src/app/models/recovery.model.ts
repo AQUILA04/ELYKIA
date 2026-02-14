@@ -16,6 +16,7 @@ export interface Recovery {
   createdAt: string;
   syncHash?: string;
   isDefaultStake?: boolean;
+  reference?: string; // Référence du CreditTimeline (ID mobile si existe)
   distribution?: Distribution;
   client?: Client;
 }

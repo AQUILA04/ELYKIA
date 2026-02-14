@@ -29,6 +29,8 @@ public class MobileController {
     private final RecoveryService recoveryService;
     private final RecoveryMapper recoveryMapper;
     private final TransactionMapper transactionMapper;
+    private final com.optimize.elykia.core.service.CreditTimelineService creditTimelineService;
+    private final com.optimize.elykia.core.mapper.CreditTimelineMobileMapper creditTimelineMobileMapper;
 
     @GetMapping(value = "recoveries/{commercialId}")
     public ResponseEntity<Response> getRecoveriesByCommercial(@PathVariable String commercialId) {
@@ -53,5 +55,20 @@ public class MobileController {
     @GetMapping(value = "transactions/{commercialId}")
     public ResponseEntity<Response> getTransactionByCommercial(@PathVariable String commercialId) {
         return new ResponseEntity<>(ResponseUtil.successResponse(mobileTransactionService.getAllTransactionByCommercial(commercialId), "Les transactions sont récupérés récupérés avec succès !"), HttpStatus.OK);
+    }
+
+    /**
+     * Récupère les CreditTimeline (recouvrements) des 30 derniers jours pour un collector
+     * Utilisé par l'application mobile lors de l'initialisation
+     * @param commercialId Username du collector
+     * @return Liste des CreditTimeline mappés en format Recovery mobile
+     */
+    @GetMapping(value = "credit-timelines/{commercialId}")
+    public ResponseEntity<Response> getCreditTimelinesByCollector(@PathVariable String commercialId) {
+        log.info("Récupération des CreditTimeline des 30 derniers jours pour le collector: {}", commercialId);
+        var creditTimelines = creditTimelineService.getLast30DaysByCollector(commercialId);
+        var mobileDtos = creditTimelineMobileMapper.toMobileDtoList(creditTimelines);
+        log.info("Nombre de CreditTimeline récupérés: {}", mobileDtos.size());
+        return new ResponseEntity<>(ResponseUtil.successResponse(mobileDtos, "Les recouvrements sont récupérés avec succès !"), HttpStatus.OK);
     }
 }

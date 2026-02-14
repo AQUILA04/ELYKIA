@@ -179,4 +179,23 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     public CreditTimelineRepository getRepository() {
         return (CreditTimelineRepository) repository;
     }
+
+    /**
+     * Récupère les CreditTimeline des 30 derniers jours pour un collector
+     * Utilisé par l'application mobile pour l'initialisation
+     * @param collector Username du collector
+     * @return Liste des CreditTimeline des 30 derniers jours
+     */
+    public List<CreditTimeline> getLast30DaysByCollector(String collector) {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.LocalDateTime thirtyDaysAgo = now.minusDays(30);
+        
+        return getRepository()
+                .findByCollectorAndCreatedDateGreaterThanEqualAndCreatedDateLessThanEqual(
+                        collector, 
+                        thirtyDaysAgo, 
+                        now
+                )
+                .collect(java.util.stream.Collectors.toList());
+    }
 }
