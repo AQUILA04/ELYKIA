@@ -73,4 +73,24 @@ public class CommercialDataSummaryDto {
      * Nombre total de comptes du commercial
      */
     private Long totalAccounts;
+    
+    /**
+     * Nombre total d'items (lignes) dans le stock tontine
+     */
+    private Long totalTontineStockItems;
+    
+    /**
+     * Quantité totale disponible dans le stock tontine
+     */
+    private Long totalTontineStockAvailable;
+    
+    /**
+     * Nombre total d'items (lignes) dans le stock commercial mensuel
+     */
+    private Long totalCommercialStockItems;
+    
+    /**
+     * Quantité totale restante dans le stock commercial mensuel
+     */
+    private Long totalCommercialStockRemaining;
 }

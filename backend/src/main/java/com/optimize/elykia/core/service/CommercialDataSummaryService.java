@@ -105,12 +105,50 @@ public class CommercialDataSummaryService {
             summary.setTotalStockOutputs(0L);
             summary.setTotalAccounts(0L);
             
-            log.info("Summary generated for {}: {} clients, {} distributions, {} recoveries, {} tontine members", 
+            // Stock Tontine - Nombre d'items (lignes)
+            Long totalTontineStockItems = ((Number) entityManager.createNativeQuery(
+                "SELECT COUNT(*) FROM tontine_stock WHERE commercial = :collector")
+                .setParameter("collector", commercialUsername)
+                .getSingleResult()).longValue();
+            summary.setTotalTontineStockItems(totalTontineStockItems);
+            
+            // Stock Tontine - Somme des quantités disponibles
+            Long totalTontineStockAvailable = ((Number) entityManager.createNativeQuery(
+                "SELECT COALESCE(SUM(available_quantity), 0) FROM tontine_stock WHERE commercial = :collector")
+                .setParameter("collector", commercialUsername)
+                .getSingleResult()).longValue();
+            summary.setTotalTontineStockAvailable(totalTontineStockAvailable);
+            
+            // Stock Commercial - Nombre d'items (lignes)
+            Long totalCommercialStockItems = ((Number) entityManager.createNativeQuery(
+                "SELECT COUNT(*) " +
+                "FROM commercial_monthly_stock_item cms_item " +
+                "JOIN commercial_monthly_stock cms ON cms_item.monthly_stock_id = cms.id " +
+                "WHERE cms.commercial = :collector")
+                .setParameter("collector", commercialUsername)
+                .getSingleResult()).longValue();
+            summary.setTotalCommercialStockItems(totalCommercialStockItems);
+            
+            // Stock Commercial - Somme des quantités restantes
+            Long totalCommercialStockRemaining = ((Number) entityManager.createNativeQuery(
+                "SELECT COALESCE(SUM(cms_item.quantity_remaining), 0) " +
+                "FROM commercial_monthly_stock_item cms_item " +
+                "JOIN commercial_monthly_stock cms ON cms_item.monthly_stock_id = cms.id " +
+                "WHERE cms.commercial = :collector")
+                .setParameter("collector", commercialUsername)
+                .getSingleResult()).longValue();
+            summary.setTotalCommercialStockRemaining(totalCommercialStockRemaining);
+            
+            log.info("Summary generated for {}: {} clients, {} distributions, {} recoveries, {} tontine members, {} tontine stock items ({} qty), {} commercial stock items ({} qty)", 
                 commercialUsername,
                 summary.getTotalClients(), 
                 summary.getTotalDistributions(), 
                 summary.getTotalRecoveries(),
-                summary.getTotalTontineMembers()
+                summary.getTotalTontineMembers(),
+                summary.getTotalTontineStockItems(),
+                summary.getTotalTontineStockAvailable(),
+                summary.getTotalCommercialStockItems(),
+                summary.getTotalCommercialStockRemaining()
             );
             
         } catch (Exception e) {

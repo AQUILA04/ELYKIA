@@ -15,6 +15,10 @@ export interface DataSummary {
   totalLocalities: number;
   totalStockOutputs: number;
   totalAccounts: number;
+  totalTontineStockItems: number;
+  totalTontineStockAvailable: number;
+  totalCommercialStockItems: number;
+  totalCommercialStockRemaining: number;
 }
 
 /**
@@ -33,5 +37,9 @@ export interface DataComparisonResult {
     tontineDeliveries: number;
     articles: number;
     localities: number;
+    tontineStockItems: number;
+    tontineStockAvailable: number;
+    commercialStockItems: number;
+    commercialStockRemaining: number;
   };
 }

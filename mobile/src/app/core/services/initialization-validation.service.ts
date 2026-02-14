@@ -51,7 +51,11 @@ export class InitializationValidationService {
       tontineCollections: await this.dbService.countTontineCollections(commercialUsername, 30),
       tontineDeliveries: await this.dbService.countTontineDeliveries(commercialUsername, 30),
       articles: await this.dbService.countArticles(),
-      localities: await this.dbService.countLocalities()
+      localities: await this.dbService.countLocalities(),
+      tontineStockItems: await this.dbService.countTontineStockItems(commercialUsername),
+      tontineStockAvailable: await this.dbService.countTontineStockAvailable(commercialUsername),
+      commercialStockItems: await this.dbService.countCommercialStockItems(commercialUsername),
+      commercialStockRemaining: await this.dbService.countCommercialStockRemaining(commercialUsername)
     };
 
     console.log('[InitializationValidation] Local counts:', localCounts);
@@ -82,6 +86,22 @@ export class InitializationValidationService {
     
     if (!this.isWithinTolerance(localCounts.localities, serverSummary.totalLocalities)) {
       missingData.push(`Localités (local: ${localCounts.localities}, serveur: ${serverSummary.totalLocalities})`);
+    }
+    
+    if (!this.isWithinTolerance(localCounts.tontineStockItems, serverSummary.totalTontineStockItems)) {
+      missingData.push(`Items Stock Tontine (local: ${localCounts.tontineStockItems}, serveur: ${serverSummary.totalTontineStockItems})`);
+    }
+    
+    if (!this.isWithinTolerance(localCounts.tontineStockAvailable, serverSummary.totalTontineStockAvailable)) {
+      missingData.push(`Quantité Stock Tontine (local: ${localCounts.tontineStockAvailable}, serveur: ${serverSummary.totalTontineStockAvailable})`);
+    }
+    
+    if (!this.isWithinTolerance(localCounts.commercialStockItems, serverSummary.totalCommercialStockItems)) {
+      missingData.push(`Items Stock Commercial (local: ${localCounts.commercialStockItems}, serveur: ${serverSummary.totalCommercialStockItems})`);
+    }
+    
+    if (!this.isWithinTolerance(localCounts.commercialStockRemaining, serverSummary.totalCommercialStockRemaining)) {
+      missingData.push(`Quantité Stock Commercial (local: ${localCounts.commercialStockRemaining}, serveur: ${serverSummary.totalCommercialStockRemaining})`);
     }
 
     const isComplete = missingData.length === 0;

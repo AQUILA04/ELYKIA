@@ -3714,4 +3714,68 @@ export class DatabaseService {
     const result = await this.db.query(sql, []);
     return result.values && result.values.length > 0 ? result.values[0].count : 0;
   }
+
+  /**
+   * Compte le nombre d'items (lignes) dans le stock tontine pour un commercial
+   */
+  async countTontineStockItems(commercialUsername: string): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const sql = `SELECT COUNT(*) as count FROM tontine_stocks WHERE commercial = ?`;
+    const result = await this.db.query(sql, [commercialUsername]);
+    return result.values && result.values.length > 0 ? result.values[0].count : 0;
+  }
+
+  /**
+   * Compte la quantité totale disponible dans le stock tontine pour un commercial
+   */
+  async countTontineStockAvailable(commercialUsername: string): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const sql = `SELECT COALESCE(SUM(availableQuantity), 0) as total FROM tontine_stocks WHERE commercial = ?`;
+    const result = await this.db.query(sql, [commercialUsername]);
+    return result.values && result.values.length > 0 ? result.values[0].total : 0;
+  }
+
+  /**
+   * Compte le nombre d'items (lignes) dans le stock commercial pour un commercial
+   */
+  async countCommercialStockItems(commercialUsername: string): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const sql = `
+      SELECT COUNT(*) as count
+      FROM stock_output_items soi
+      JOIN stock_outputs so ON soi.stockOutputId = so.id
+      WHERE so.commercialId = ?
+    `;
+    const result = await this.db.query(sql, [commercialUsername]);
+    return result.values && result.values.length > 0 ? result.values[0].count : 0;
+  }
+
+  /**
+   * Compte la quantité totale restante dans le stock commercial (stock output items)
+   * Note: Sur mobile, on stocke les StockOutputItem avec quantity
+   * qui correspond au quantityRemaining du backend
+   */
+  async countCommercialStockRemaining(commercialUsername: string): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const sql = `
+      SELECT COALESCE(SUM(soi.quantity), 0) as total 
+      FROM stock_output_items soi
+      JOIN stock_outputs so ON soi.stockOutputId = so.id
+      WHERE so.commercialId = ?
+    `;
+    const result = await this.db.query(sql, [commercialUsername]);
+    return result.values && result.values.length > 0 ? result.values[0].total : 0;
+  }
 }
