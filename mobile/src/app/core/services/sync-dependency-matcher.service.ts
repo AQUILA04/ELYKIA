@@ -310,8 +310,32 @@ export class SyncDependencyMatcherService {
 
   /**
    * Trouver le meilleur client correspondant pour une distribution
+   * Utilise le clientId de la distribution pour trouver le client correspondant
+   * Le clientId local est non-numérique, le clientId serveur est numérique
    */
   private async findBestClientMatch(distribution: Distribution, clients: Client[]): Promise<{ client: Client, confidence: number, reason: string } | null> {
+    // Si le clientId de la distribution est non-numérique (local), chercher par référence
+    if (distribution.clientId && isNaN(Number(distribution.clientId))) {
+      // C'est un ID local, chercher le client avec le même ID local
+      const localClient = clients.find(c => c.id === distribution.clientId);
+      if (localClient) {
+        // Vérifier si ce client a été synchronisé (a un ID numérique du serveur)
+        const syncedClient = clients.find(c => 
+          c.phone === localClient.phone && 
+          !isNaN(Number(c.id)) && 
+          c.isSync === true
+        );
+        
+        if (syncedClient) {
+          return {
+            client: syncedClient,
+            confidence: 98,
+            reason: 'Correspondance par numéro de téléphone unique'
+          };
+        }
+      }
+    }
+    
     // Filtrer par date (même jour)
     const distributionDate = new Date(distribution.createdAt);
     const candidateClients = clients.filter(client => {
@@ -321,18 +345,44 @@ export class SyncDependencyMatcherService {
     });
     
     if (candidateClients.length === 0) return null;
-    
-    // Chercher par nom exact (si disponible dans distribution)
-    // Note: Adapter selon la structure réelle de Distribution
-    // Pour l'instant, on retourne null car Distribution ne contient pas le nom du client
+    if (candidateClients.length === 1) {
+      return {
+        client: candidateClients[0],
+        confidence: 75,
+        reason: 'Seul client créé le même jour'
+      };
+    }
     
     return null;
   }
 
   /**
    * Trouver la meilleure distribution correspondante pour un recouvrement
+   * Utilise la référence de distribution qui est identique local/serveur
    */
   private async findBestDistributionMatch(recovery: Recovery, distributions: Distribution[]): Promise<{ distribution: Distribution, confidence: number, reason: string } | null> {
+    // Si le recovery a un distributionId, essayer de trouver par référence
+    if (recovery.distributionId) {
+      // Chercher la distribution locale avec cet ID
+      const localDist = distributions.find(d => d.id === recovery.distributionId);
+      if (localDist && localDist.reference) {
+        // Chercher la distribution synchronisée avec la même référence
+        const syncedDist = distributions.find(d => 
+          d.reference === localDist.reference && 
+          !isNaN(Number(d.id)) && 
+          d.isSync === true
+        );
+        
+        if (syncedDist) {
+          return {
+            distribution: syncedDist,
+            confidence: 99,
+            reason: 'Correspondance par référence unique'
+          };
+        }
+      }
+    }
+    
     // Filtrer par date (même jour ou avant)
     const recoveryDate = new Date(recovery.createdAt);
     const candidateDistributions = distributions.filter(dist => {
@@ -360,34 +410,46 @@ export class SyncDependencyMatcherService {
 
   /**
    * Trouver le meilleur client correspondant pour un membre tontine
+   * Utilise le clientId du membre pour trouver le client correspondant
+   * Le numéro de téléphone est unique et permet la correspondance parfaite
    */
   private async findBestClientMatchForMember(member: TontineMember, clients: Client[]): Promise<{ client: Client, confidence: number, reason: string } | null> {
-    // Chercher par nom exact (utiliser fullName ou concat firstname + lastname)
-    const matchingClients = clients.filter(client => {
-      const clientFullName = client.fullName || `${client.firstname} ${client.lastname}`;
-      const memberName = member.clientId; // TontineMember n'a pas de nom, utiliser clientId pour le matching
-      return clientFullName.toLowerCase().trim() === memberName.toLowerCase().trim();
-    });
-    
-    if (matchingClients.length === 1) {
-      return {
-        client: matchingClients[0],
-        confidence: 95,
-        reason: 'Nom identique'
-      };
+    // Si le clientId du membre est non-numérique (local), chercher par téléphone
+    if (member.clientId && isNaN(Number(member.clientId))) {
+      // C'est un ID local, chercher le client avec le même ID local
+      const localClient = clients.find(c => c.id === member.clientId);
+      if (localClient) {
+        // Vérifier si ce client a été synchronisé (a un ID numérique du serveur)
+        const syncedClient = clients.find(c => 
+          c.phone === localClient.phone && 
+          !isNaN(Number(c.id)) && 
+          c.isSync === true
+        );
+        
+        if (syncedClient) {
+          return {
+            client: syncedClient,
+            confidence: 98,
+            reason: 'Correspondance par numéro de téléphone unique'
+          };
+        }
+      }
     }
     
-    // Chercher par similarité de nom
-    const similarClients = clients.filter(client => {
-      const clientFullName = client.fullName || `${client.firstname} ${client.lastname}`;
-      return this.calculateSimilarity(clientFullName, member.clientId) > 0.8;
+    // Filtrer par date (même période)
+    const memberDate = new Date(member.registrationDate);
+    const candidateClients = clients.filter(client => {
+      if (!client.createdAt) return false;
+      const clientDate = new Date(client.createdAt);
+      return this.isWithinDays(clientDate, memberDate, 30);
     });
     
-    if (similarClients.length === 1) {
+    if (candidateClients.length === 0) return null;
+    if (candidateClients.length === 1) {
       return {
-        client: similarClients[0],
-        confidence: 75,
-        reason: 'Nom similaire'
+        client: candidateClients[0],
+        confidence: 70,
+        reason: 'Seul client créé dans la période'
       };
     }
     
