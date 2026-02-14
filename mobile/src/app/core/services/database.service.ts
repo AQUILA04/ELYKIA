@@ -3596,4 +3596,122 @@ export class DatabaseService {
     await this.db.run(sql, [newMemberId, deliveryId]);
     console.log(`Tontine delivery ${deliveryId} updated with new memberId: ${newMemberId}`);
   }
+
+  // ========== Méthodes de comptage pour la validation de l'initialisation ==========
+
+  /**
+   * Compte le nombre de clients pour un commercial
+   */
+  async countClients(commercialUsername: string): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const sql = `SELECT COUNT(*) as count FROM clients WHERE commercialId = ?`;
+    const result = await this.db.query(sql, [commercialUsername]);
+    return result.values && result.values.length > 0 ? result.values[0].count : 0;
+  }
+
+  /**
+   * Compte le nombre de distributions pour un commercial
+   */
+  async countDistributions(commercialUsername: string): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const sql = `SELECT COUNT(*) as count FROM distributions WHERE commercialId = ?`;
+    const result = await this.db.query(sql, [commercialUsername]);
+    return result.values && result.values.length > 0 ? result.values[0].count : 0;
+  }
+
+  /**
+   * Compte le nombre de recouvrements pour un commercial (N derniers jours)
+   */
+  async countRecoveries(commercialUsername: string, days: number = 30): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - days);
+    const dateFrom = daysAgo.toISOString();
+    
+    const sql = `SELECT COUNT(*) as count FROM recoveries WHERE commercialId = ? AND createdAt >= ?`;
+    const result = await this.db.query(sql, [commercialUsername, dateFrom]);
+    return result.values && result.values.length > 0 ? result.values[0].count : 0;
+  }
+
+  /**
+   * Compte le nombre de membres de tontine pour un commercial
+   */
+  async countTontineMembers(commercialUsername: string): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const sql = `SELECT COUNT(*) as count FROM tontine_members WHERE commercialId = ?`;
+    const result = await this.db.query(sql, [commercialUsername]);
+    return result.values && result.values.length > 0 ? result.values[0].count : 0;
+  }
+
+  /**
+   * Compte le nombre de collectes de tontine pour un commercial (N derniers jours)
+   */
+  async countTontineCollections(commercialUsername: string, days: number = 30): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - days);
+    const dateFrom = daysAgo.toISOString();
+    
+    const sql = `SELECT COUNT(*) as count FROM tontine_collections WHERE commercialId = ? AND createdAt >= ?`;
+    const result = await this.db.query(sql, [commercialUsername]);
+    return result.values && result.values.length > 0 ? result.values[0].count : 0;
+  }
+
+  /**
+   * Compte le nombre de livraisons de tontine pour un commercial (N derniers jours)
+   */
+  async countTontineDeliveries(commercialUsername: string, days: number = 30): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - days);
+    const dateFrom = daysAgo.toISOString();
+    
+    const sql = `SELECT COUNT(*) as count FROM tontine_deliveries WHERE commercialId = ? AND createdAt >= ?`;
+    const result = await this.db.query(sql, [commercialUsername]);
+    return result.values && result.values.length > 0 ? result.values[0].count : 0;
+  }
+
+  /**
+   * Compte le nombre total d'articles
+   */
+  async countArticles(): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const sql = `SELECT COUNT(*) as count FROM articles`;
+    const result = await this.db.query(sql, []);
+    return result.values && result.values.length > 0 ? result.values[0].count : 0;
+  }
+
+  /**
+   * Compte le nombre total de localités
+   */
+  async countLocalities(): Promise<number> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return 0;
+    }
+    const sql = `SELECT COUNT(*) as count FROM localities`;
+    const result = await this.db.query(sql, []);
+    return result.values && result.values.length > 0 ? result.values[0].count : 0;
+  }
 }

@@ -31,6 +31,7 @@ public class MobileController {
     private final TransactionMapper transactionMapper;
     private final com.optimize.elykia.core.service.CreditTimelineService creditTimelineService;
     private final com.optimize.elykia.core.mapper.CreditTimelineMobileMapper creditTimelineMobileMapper;
+    private final com.optimize.elykia.core.service.CommercialDataSummaryService commercialDataSummaryService;
 
     @GetMapping(value = "recoveries/{commercialId}")
     public ResponseEntity<Response> getRecoveriesByCommercial(@PathVariable String commercialId) {
@@ -70,5 +71,19 @@ public class MobileController {
         var mobileDtos = creditTimelineMobileMapper.toMobileDtoList(creditTimelines);
         log.info("Nombre de CreditTimeline récupérés: {}", mobileDtos.size());
         return new ResponseEntity<>(ResponseUtil.successResponse(mobileDtos, "Les recouvrements sont récupérés avec succès !"), HttpStatus.OK);
+    }
+
+    /**
+     * Récupère le résumé des données d'un commercial
+     * Utilisé pour vérifier la complétude de l'initialisation mobile
+     * @param commercialId Username du commercial
+     * @return Résumé avec tous les totaux
+     */
+    @GetMapping(value = "data-summary/{commercialId}")
+    public ResponseEntity<Response> getDataSummary(@PathVariable String commercialId) {
+        log.info("Récupération du résumé des données pour le commercial: {}", commercialId);
+        var summary = commercialDataSummaryService.generateSummary(commercialId);
+        log.info("Résumé généré: {} clients, {} distributions", summary.getTotalClients(), summary.getTotalDistributions());
+        return new ResponseEntity<>(ResponseUtil.successResponse(summary, "Résumé des données récupéré avec succès !"), HttpStatus.OK);
     }
 }

@@ -8,10 +8,12 @@ import { InitializationStateService } from '../../core/services/initialization-s
 import { Storage } from '@ionic/storage-angular';
 import { LoggerService } from '../../core/services/logger.service';
 import { HealthCheckService } from '../../core/services/health-check.service';
+import { InitializationValidationService } from '../../core/services/initialization-validation.service';
 import { resetAppData } from '../../store/app.actions';
 import { Store } from '@ngrx/store';
 import { MemoryManagementService } from '../../core/services/memory-management.service';
 import { DatabaseService } from '../../core/services/database.service';
+import { selectAuthUser } from '../../store/auth/auth.selectors';
 
 @Component({
   selector: 'app-initial-loading',
@@ -40,7 +42,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     { text: 'Chargement des recouvrements...', method: () => this.dataInitService.initializeRecoveries() },
     { text: 'Chargement de la tontine...', method: () => this.dataInitService.initializeTontine() },
     { text: 'Calcul des stocks...', method: () => this.dataInitService.calculateArticleStocks() },
-    { text: 'Détection des correspondances...', method: () => this.detectOrphanedDependencies() },
+    { text: 'Détection des correspondances...', method: () => this.detectOrphanedDependencies() }
   ];
 
   constructor(
@@ -50,13 +52,13 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     private storage: Storage,
     private log: LoggerService,
     private healthCheckService: HealthCheckService,
-    private memoryManagementService: MemoryManagementService,
     private store: Store,
-    private databaseService: DatabaseService
+    private memoryManagementService: MemoryManagementService,
+    private dbService: DatabaseService,
+    private initValidationService: InitializationValidationService
   ) { }
 
   ngOnInit() {
-    this.pulseAnimation();
     this.startInitialization();
   }
 
@@ -158,10 +160,47 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     }, 500);
   }
 
-  private completeInitialization() {
-    this.storage.set('initialization_complete', true);
-    this.statusText = "Initialisation terminée !";
-    this.progress = 100;
+  private async completeInitialization() {
+    // Vérifier la complétude des données
+    this.statusText = "Vérification de la complétude des données...";
+    
+    try {
+      const user = await this.store.select(selectAuthUser).pipe(take(1)).toPromise();
+      if (user && user.username) {
+        this.log.log('[InitialLoadingPage] Validating data completeness...');
+        
+        const comparisonResult = await this.initValidationService.validateInitialization(user.username)
+          .pipe(take(1)).toPromise();
+        
+        if (comparisonResult && comparisonResult.isComplete) {
+          this.log.log('[InitialLoadingPage] ✅ Data validation successful - all data complete');
+          await this.initValidationService.markInitializationComplete();
+          await this.storage.set('initialization_complete', true);
+          this.statusText = "Initialisation terminée !";
+          this.progress = 100;
+        } else if (comparisonResult) {
+          this.log.log('[InitialLoadingPage] ⚠️ Data validation warning - some data missing: ' + JSON.stringify(comparisonResult.missingData));
+          // Afficher un avertissement mais continuer
+          await this.presentDataIncompleteWarning(comparisonResult.missingData);
+          // Marquer quand même comme complète pour permettre le travail
+          await this.storage.set('initialization_complete', true);
+          this.statusText = "Initialisation terminée (avec avertissements)";
+          this.progress = 100;
+        }
+      } else {
+        this.log.log('[InitialLoadingPage] No user found, skipping validation');
+        await this.storage.set('initialization_complete', true);
+        this.statusText = "Initialisation terminée !";
+        this.progress = 100;
+      }
+    } catch (error) {
+      this.log.log(`[InitialLoadingPage] Data validation failed: ${error}`);
+      console.error('Data validation error:', error);
+      // En cas d'erreur de validation, continuer quand même
+      await this.storage.set('initialization_complete', true);
+      this.statusText = "Initialisation terminée (validation ignorée)";
+      this.progress = 100;
+    }
 
     this.performBackgroundBackup();
 
@@ -200,7 +239,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
       // Import dynamique du service de matching
       const { SyncDependencyMatcherService } = await import('../../core/services/sync-dependency-matcher.service');
       
-      const matcherService = new SyncDependencyMatcherService(this.databaseService);
+      const matcherService = new SyncDependencyMatcherService(this.dbService);
 
       // Détecter les correspondances avec timeout de 5 secondes
       const summary = await matcherService.detectDependencyMatches();
@@ -235,5 +274,22 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
         });
       });
     }
+  }
+
+  /**
+   * Affiche un avertissement si les données sont incomplètes
+   */
+  private async presentDataIncompleteWarning(missingData: string[]) {
+    const alert = await this.alertController.create({
+      header: '⚠️ Données incomplètes',
+      message: `Certaines données ne correspondent pas au serveur :\n\n${missingData.join('\n')}\n\nVous pouvez continuer à travailler, mais certaines informations peuvent être manquantes.`,
+      buttons: [
+        {
+          text: 'Continuer',
+          role: 'cancel'
+        }
+      ]
+    });
+    await alert.present();
   }
 }

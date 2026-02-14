@@ -14,6 +14,7 @@ import { AppState } from '../../store/app.state';
 import * as AuthActions from '../../store/auth/auth.actions';
 import { Storage } from '@ionic/storage-angular';
 import { MemoryManagementService } from './memory-management.service';
+import { InitializationValidationService } from './initialization-validation.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +30,8 @@ export class AuthService {
     private healthCheckService: HealthCheckService,
     private store: Store<AppState>,
     private storage: Storage,
-    private memoryManagementService: MemoryManagementService
+    private memoryManagementService: MemoryManagementService,
+    private initValidationService: InitializationValidationService
   ) {
     this.loadUserFromPreferences();
   }
@@ -116,6 +118,19 @@ export class AuthService {
   }
 
   private async authenticateOffline(username: string, passwordPlain: string): Promise<boolean> {
+    // Vérifier si l'initialisation est complète pour aujourd'hui
+    const isInitComplete = await this.initValidationService.isInitializationCompleteForToday();
+    
+    if (!isInitComplete) {
+      console.warn('Offline login blocked: Initialization not complete for today');
+      await this.log.log('Offline login blocked: Initialization not complete for today');
+      throw new Error(
+        'Initialisation incomplète pour aujourd\'hui.\n\n' +
+        'Veuillez vous connecter au réseau de l\'entreprise pour initialiser vos données avant de travailler en mode hors ligne.\n\n' +
+        'Cela garantit que vous disposez de toutes les informations nécessaires pour votre journée de travail.'
+      );
+    }
+    
     try {
       // Vérifier si les tables critiques sont vides
       const tablesEmpty = await this.dbService.areTablesEmpty();
