@@ -85,7 +85,8 @@
         (toggleSelection)="onToggleSelection('distribution', $event)"
         (selectAll)="onSelectAll('distribution')"
         (clearSelection)="onClearSelection('distribution')"
-        (syncSingle)="onSyncSingle('distribution', $event)">
+        (syncSingle)="onSyncSingle('distribution', $event)"
+        (editParent)="onEditParent($event)">
       </app-entity-sync-list>
     </div>
 
@@ -99,7 +100,8 @@
         (toggleSelection)="onToggleSelection('recovery', $event)"
         (selectAll)="onSelectAll('recovery')"
         (clearSelection)="onClearSelection('recovery')"
-        (syncSingle)="onSyncSingle('recovery', $event)">
+        (syncSingle)="onSyncSingle('recovery', $event)"
+        (editParent)="onEditParent($event)">
       </app-entity-sync-list>
     </div>
 
@@ -113,7 +115,8 @@
         (toggleSelection)="onToggleSelection('tontine-member', $event)"
         (selectAll)="onSelectAll('tontine-member')"
         (clearSelection)="onClearSelection('tontine-member')"
-        (syncSingle)="onSyncSingle('tontine-member', $event)">
+        (syncSingle)="onSyncSingle('tontine-member', $event)"
+        (editParent)="onEditParent($event)">
       </app-entity-sync-list>
     </div>
 
@@ -127,7 +130,8 @@
         (toggleSelection)="onToggleSelection('tontine-collection', $event)"
         (selectAll)="onSelectAll('tontine-collection')"
         (clearSelection)="onClearSelection('tontine-collection')"
-        (syncSingle)="onSyncSingle('tontine-collection', $event)">
+        (syncSingle)="onSyncSingle('tontine-collection', $event)"
+        (editParent)="onEditParent($event)">
       </app-entity-sync-list>
     </div>
 
@@ -141,7 +145,8 @@
         (toggleSelection)="onToggleSelection('tontine-delivery', $event)"
         (selectAll)="onSelectAll('tontine-delivery')"
         (clearSelection)="onClearSelection('tontine-delivery')"
-        (syncSingle)="onSyncSingle('tontine-delivery', $event)">
+        (syncSingle)="onSyncSingle('tontine-delivery', $event)"
+        (editParent)="onEditParent($event)">
       </app-entity-sync-list>
     </div>
   </div>

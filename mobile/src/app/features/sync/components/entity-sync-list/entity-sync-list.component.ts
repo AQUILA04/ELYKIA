@@ -22,6 +22,7 @@ export class EntitySyncListComponent implements OnChanges {
   @Output() selectAll = new EventEmitter<void>();
   @Output() clearSelection = new EventEmitter<void>();
   @Output() syncSingle = new EventEmitter<string>();
+  @Output() editParent = new EventEmitter<string>();
 
   isAllSelected = false;
 
@@ -82,6 +83,22 @@ export class EntitySyncListComponent implements OnChanges {
   onSync(entityId: string, event: Event) {
     event.stopPropagation();
     this.syncSingle.emit(entityId);
+  }
+
+  /**
+   * Gérer la modification du parent
+   */
+  onEditParent(entityId: string, event: Event) {
+    event.stopPropagation();
+    this.editParent.emit(entityId);
+  }
+
+  /**
+   * Vérifier si l'entité peut avoir son parent modifié
+   */
+  canEditParent(): boolean {
+    // Seules les entités avec dépendances peuvent être modifiées
+    return ['distribution', 'recovery', 'tontine-member', 'tontine-collection', 'tontine-delivery'].includes(this.entityType);
   }
 
   /**

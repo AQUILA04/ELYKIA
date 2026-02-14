@@ -1,0 +1,81 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Sélectionner {{ getEntityTypeLabel() }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="modal-content">
+    <!-- Info sur l'entité à modifier -->
+    <div class="entity-info">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>Modification de : <strong>{{ entityName }}</strong></p>
+    </div>
+
+    <!-- Barre de recherche -->
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange($event)"
+      placeholder="Rechercher par nom ou ID..."
+      debounce="300"
+    ></ion-searchbar>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Chargement...</p>
+    </div>
+
+    <!-- Liste des parents -->
+    <ion-list *ngIf="!loading && filteredParents.length > 0">
+      <ion-item
+        *ngFor="let parent of filteredParents"
+        [class.selected]="parent.id === selectedParentId"
+        (click)="selectParent(parent)"
+        button
+      >
+        <ion-label>
+          <h2>{{ getParentName(parent) }}</h2>
+          <p>{{ getParentDetails(parent) }}</p>
+          <p class="parent-id">ID: {{ parent.id }}</p>
+        </ion-label>
+        <ion-icon
+          *ngIf="parent.id === selectedParentId"
+          name="checkmark-circle"
+          slot="end"
+          color="success"
+        ></ion-icon>
+      </ion-item>
+    </ion-list>
+
+    <!-- Aucun résultat -->
+    <div *ngIf="!loading && filteredParents.length === 0" class="no-results">
+      <ion-icon name="search-outline"></ion-icon>
+      <p>Aucun {{ getEntityTypeLabel() }} synchronisé trouvé</p>
+      <p class="hint">Essayez de synchroniser d'abord les {{ getEntityTypeLabel() }}s</p>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="footer-buttons">
+      <ion-button expand="block" fill="outline" (click)="dismiss()">
+        Annuler
+      </ion-button>
+      <ion-button
+        expand="block"
+        [disabled]="!selectedParentId"
+        (click)="validate()"
+      >
+        <ion-icon name="checkmark" slot="start"></ion-icon>
+        Valider
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

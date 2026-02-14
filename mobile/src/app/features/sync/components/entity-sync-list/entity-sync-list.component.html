@@ -60,6 +60,17 @@
         color="warning">
       </ion-spinner>
 
+      <!-- Bouton Modifier (uniquement pour entités avec dépendances) -->
+      <ion-button 
+        *ngIf="!isSyncing(entity.id) && canEditParent()"
+        slot="end" 
+        fill="clear" 
+        (click)="onEditParent(entity.id, $event)"
+        class="edit-button"
+        title="Modifier le parent">
+        <ion-icon name="create-outline"></ion-icon>
+      </ion-button>
+
       <!-- Bouton de synchronisation individuelle -->
       <ion-button 
         *ngIf="!isSyncing(entity.id)"

@@ -3438,4 +3438,162 @@ export class DatabaseService {
     }
     return counts;
   }
+
+  // ==================== DEPENDENCY MANAGEMENT ====================
+
+  /**
+   * Récupérer les distributions non synchronisées
+   */
+  async getUnsyncedDistributions(): Promise<Distribution[]> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return [];
+    }
+    const sql = `SELECT * FROM distributions WHERE isSync = 0 AND isLocal = 1`;
+    const ret = await this.db.query(sql);
+    return ret.values || [];
+  }
+
+  /**
+   * Récupérer les clients synchronisés
+   */
+  async getSyncedClients(): Promise<Client[]> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return [];
+    }
+    const sql = `SELECT * FROM clients WHERE isSync = 1`;
+    const ret = await this.db.query(sql);
+    return ret.values || [];
+  }
+
+  /**
+   * Récupérer les distributions synchronisées
+   */
+  async getSyncedDistributions(): Promise<Distribution[]> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return [];
+    }
+    const sql = `SELECT * FROM distributions WHERE isSync = 1`;
+    const ret = await this.db.query(sql);
+    return ret.values || [];
+  }
+
+  /**
+   * Récupérer les membres tontine non synchronisés
+   */
+  async getUnsyncedTontineMembers(): Promise<any[]> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return [];
+    }
+    const sql = `SELECT * FROM tontine_members WHERE isSync = 0 AND isLocal = 1`;
+    const ret = await this.db.query(sql);
+    return ret.values || [];
+  }
+
+  /**
+   * Récupérer les membres tontine synchronisés
+   */
+  async getSyncedTontineMembers(): Promise<any[]> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return [];
+    }
+    const sql = `SELECT * FROM tontine_members WHERE isSync = 1`;
+    const ret = await this.db.query(sql);
+    return ret.values || [];
+  }
+
+  /**
+   * Récupérer les collectes tontine non synchronisées
+   */
+  async getUnsyncedTontineCollections(): Promise<any[]> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return [];
+    }
+    const sql = `SELECT * FROM tontine_collections WHERE isSync = 0 AND isLocal = 1`;
+    const ret = await this.db.query(sql);
+    return ret.values || [];
+  }
+
+  /**
+   * Récupérer les livraisons tontine non synchronisées
+   */
+  async getUnsyncedTontineDeliveries(): Promise<any[]> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return [];
+    }
+    const sql = `SELECT * FROM tontine_deliveries WHERE isSync = 0 AND isLocal = 1`;
+    const ret = await this.db.query(sql);
+    return ret.values || [];
+  }
+
+  /**
+   * Mettre à jour l'ID du client pour une distribution
+   */
+  async updateDistributionClientId(distributionId: string, newClientId: string): Promise<void> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return;
+    }
+    const sql = `UPDATE distributions SET clientId = ? WHERE id = ?`;
+    await this.db.run(sql, [newClientId, distributionId]);
+    console.log(`Distribution ${distributionId} updated with new clientId: ${newClientId}`);
+  }
+
+  /**
+   * Mettre à jour l'ID de la distribution pour un recouvrement
+   */
+  async updateRecoveryDistributionId(recoveryId: string, newDistributionId: string): Promise<void> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return;
+    }
+    const sql = `UPDATE recoveries SET distributionId = ? WHERE id = ?`;
+    await this.db.run(sql, [newDistributionId, recoveryId]);
+    console.log(`Recovery ${recoveryId} updated with new distributionId: ${newDistributionId}`);
+  }
+
+  /**
+   * Mettre à jour l'ID du client pour un membre tontine
+   */
+  async updateTontineMemberClientId(memberId: string, newClientId: string): Promise<void> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return;
+    }
+    const sql = `UPDATE tontine_members SET clientId = ? WHERE id = ?`;
+    await this.db.run(sql, [newClientId, memberId]);
+    console.log(`Tontine member ${memberId} updated with new clientId: ${newClientId}`);
+  }
+
+  /**
+   * Mettre à jour l'ID du membre pour une collecte tontine
+   */
+  async updateTontineCollectionMemberId(collectionId: string, newMemberId: string): Promise<void> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return;
+    }
+    const sql = `UPDATE tontine_collections SET memberId = ? WHERE id = ?`;
+    await this.db.run(sql, [newMemberId, collectionId]);
+    console.log(`Tontine collection ${collectionId} updated with new memberId: ${newMemberId}`);
+  }
+
+  /**
+   * Mettre à jour l'ID du membre pour une livraison tontine
+   */
+  async updateTontineDeliveryMemberId(deliveryId: string, newMemberId: string): Promise<void> {
+    if (!this.db) {
+      console.error('Database not initialized.');
+      return;
+    }
+    const sql = `UPDATE tontine_deliveries SET memberId = ? WHERE id = ?`;
+    await this.db.run(sql, [newMemberId, deliveryId]);
+    console.log(`Tontine delivery ${deliveryId} updated with new memberId: ${newMemberId}`);
+  }
 }

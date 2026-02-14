@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, ToastController } from '@ionic/angular';
+import { AlertController, ToastController, ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { takeUntil, map, take } from 'rxjs/operators';
@@ -29,6 +29,7 @@ import { Distribution } from '../../../models/distribution.model';
 import { Recovery } from '../../../models/recovery.model';
 import { TontineMember, TontineCollection, TontineDelivery } from '../../../models/tontine.model';
 import { HealthCheckService } from '../../../core/services/health-check.service';
+import { DatabaseService } from '../../../core/services/database.service';
 
 @Component({
   selector: 'app-sync-manual',
@@ -70,7 +71,9 @@ export class SyncManualPage implements OnInit, OnDestroy {
     private router: Router,
     private alertController: AlertController,
     private toastController: ToastController,
-    private healthCheckService: HealthCheckService
+    private healthCheckService: HealthCheckService,
+    private modalController: ModalController,
+    private databaseService: DatabaseService
   ) {
     // Initialiser les observables pour les données
     this.clients$ = this.store.select(selectManualSyncClients);
@@ -336,6 +339,136 @@ export class SyncManualPage implements OnInit, OnDestroy {
     }
 
     return selectedIds;
+  }
+
+  /**
+   * Gérer la modification du parent d'une entité
+   */
+  async onEditParent(entityId: string) {
+    // Import dynamique de la modale pour éviter les dépendances circulaires
+    const { ParentSelectionModalComponent } = await import('../modals/parent-selection-modal/parent-selection-modal.component');
+
+    // Déterminer le type d'entité et le type de parent
+    let entityType: string;
+    let parentType: 'client' | 'distribution' | 'tontine-member';
+    let entityName: string = '';
+
+    switch (this.activeTab) {
+      case 'distributions':
+        entityType = 'distribution';
+        parentType = 'client';
+        const dist = await this.distributions$.pipe(take(1)).toPromise();
+        const distribution = dist?.find(d => d.id === entityId);
+        entityName = distribution ? `Distribution ${distribution.reference || distribution.id}` : '';
+        break;
+      case 'recoveries':
+        entityType = 'recovery';
+        parentType = 'distribution';
+        const recs = await this.recoveries$.pipe(take(1)).toPromise();
+        const recovery = recs?.find(r => r.id === entityId);
+        entityName = recovery ? `Recouvrement ${recovery.id}` : '';
+        break;
+      case 'tontine-members':
+        entityType = 'tontine-member';
+        parentType = 'client';
+        const members = await this.tontineMembers$.pipe(take(1)).toPromise();
+        const member = members?.find(m => m.id === entityId);
+        entityName = member ? `Membre ${(member as any).clientName || member.clientId}` : '';
+        break;
+      case 'tontine-collections':
+        entityType = 'tontine-collection';
+        parentType = 'tontine-member';
+        const collections = await this.tontineCollections$.pipe(take(1)).toPromise();
+        const collection = collections?.find(c => c.id === entityId);
+        entityName = collection ? `Collecte ${collection.id}` : '';
+        break;
+      case 'tontine-deliveries':
+        entityType = 'tontine-delivery';
+        parentType = 'tontine-member';
+        const deliveries = await this.tontineDeliveries$.pipe(take(1)).toPromise();
+        const delivery = deliveries?.find(d => d.id === entityId);
+        entityName = delivery ? `Livraison ${delivery.id}` : '';
+        break;
+      default:
+        return;
+    }
+
+    // Ouvrir la modale de sélection de parent
+    const modal = await this.modalController.create({
+      component: ParentSelectionModalComponent,
+      componentProps: {
+        entityId,
+        entityType,
+        entityName,
+        parentType
+      },
+      cssClass: 'parent-selection-modal'
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+
+    if (data && data.newParentId) {
+      // Mettre à jour le parent dans la base de données
+      await this.updateParentId(entityId, entityType, data.newParentId);
+    }
+  }
+
+  /**
+   * Mettre à jour l'ID du parent dans la base de données
+   */
+  private async updateParentId(entityId: string, entityType: string, newParentId: string) {
+    const loading = await this.toastController.create({
+      message: 'Mise à jour en cours...',
+      duration: 0
+    });
+    await loading.present();
+
+    try {
+      switch (entityType) {
+        case 'distribution':
+          await this.databaseService.updateDistributionClientId(entityId, newParentId);
+          break;
+        case 'recovery':
+          await this.databaseService.updateRecoveryDistributionId(entityId, newParentId);
+          break;
+        case 'tontine-member':
+          await this.databaseService.updateTontineMemberClientId(entityId, newParentId);
+          break;
+        case 'tontine-collection':
+          await this.databaseService.updateTontineCollectionMemberId(entityId, newParentId);
+          break;
+        case 'tontine-delivery':
+          await this.databaseService.updateTontineDeliveryMemberId(entityId, newParentId);
+          break;
+      }
+
+      await loading.dismiss();
+
+      // Afficher un message de succès
+      const toast = await this.toastController.create({
+        message: 'Parent mis à jour avec succès',
+        duration: 2000,
+        color: 'success',
+        icon: 'checkmark-circle'
+      });
+      await toast.present();
+
+      // Recharger les données
+      this.store.dispatch(SyncActions.loadManualSyncData());
+    } catch (error) {
+      await loading.dismiss();
+
+      const toast = await this.toastController.create({
+        message: 'Erreur lors de la mise à jour',
+        duration: 3000,
+        color: 'danger',
+        icon: 'alert-circle'
+      });
+      await toast.present();
+      console.error('Error updating parent ID:', error);
+    }
   }
 
   ngOnDestroy() {

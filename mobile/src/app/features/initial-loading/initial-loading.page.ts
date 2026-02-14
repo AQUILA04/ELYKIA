@@ -11,6 +11,7 @@ import { HealthCheckService } from '../../core/services/health-check.service';
 import { resetAppData } from '../../store/app.actions';
 import { Store } from '@ngrx/store';
 import { MemoryManagementService } from '../../core/services/memory-management.service';
+import { DatabaseService } from '../../core/services/database.service';
 
 @Component({
   selector: 'app-initial-loading',
@@ -39,6 +40,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     { text: 'Chargement des recouvrements...', method: () => this.dataInitService.initializeRecoveries() },
     { text: 'Chargement de la tontine...', method: () => this.dataInitService.initializeTontine() },
     { text: 'Calcul des stocks...', method: () => this.dataInitService.calculateArticleStocks() },
+    { text: 'Détection des correspondances...', method: () => this.detectOrphanedDependencies() },
   ];
 
   constructor(
@@ -49,7 +51,8 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     private log: LoggerService,
     private healthCheckService: HealthCheckService,
     private memoryManagementService: MemoryManagementService,
-    private store: Store
+    private store: Store,
+    private databaseService: DatabaseService
   ) { }
 
   ngOnInit() {
@@ -187,6 +190,35 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
         console.warn('Background backup failed:', error);
       }
     });
+  }
+
+  /**
+   * Détecter les dépendances orphelines et proposer des correspondances
+   */
+  private async detectOrphanedDependencies() {
+    try {
+      // Import dynamique du service de matching
+      const { SyncDependencyMatcherService } = await import('../../core/services/sync-dependency-matcher.service');
+      
+      const matcherService = new SyncDependencyMatcherService(this.databaseService);
+
+      // Détecter les correspondances avec timeout de 5 secondes
+      const summary = await matcherService.detectDependencyMatches();
+
+      // Stocker les résultats dans le storage pour affichage ultérieur
+      if (summary && summary.matches && summary.matches.length > 0) {
+        await this.storage.set('orphaned_dependencies_detected', summary.matches);
+        this.log.log(`[InitialLoadingPage] Detected ${summary.matches.length} orphaned dependencies with ${summary.highConfidenceMatches} high confidence matches`);
+      }
+
+      // Retourner Observable pour compatibilité avec initSteps
+      return new Promise(resolve => resolve(true));
+    } catch (error) {
+      this.log.log(`[InitialLoadingPage] Error detecting orphaned dependencies: ${error}`);
+      console.warn('Failed to detect orphaned dependencies:', error);
+      // Ne pas bloquer l'initialisation en cas d'erreur
+      return new Promise(resolve => resolve(true));
+    }
   }
 
   private pulseAnimation() {

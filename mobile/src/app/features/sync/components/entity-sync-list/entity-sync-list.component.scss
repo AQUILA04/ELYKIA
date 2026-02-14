@@ -85,6 +85,21 @@ ion-list {
       margin-right: 8px;
     }
 
+    .edit-button {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      --color: var(--ion-color-tertiary);
+      margin: 0;
+
+      ion-icon {
+        font-size: 22px;
+      }
+
+      &:hover {
+        --color: var(--ion-color-tertiary-shade);
+      }
+    }
+
     .sync-button {
       --padding-start: 8px;
       --padding-end: 8px;
