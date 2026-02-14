@@ -12,8 +12,10 @@ import com.optimize.elykia.client.entity.Account;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.AccountStatus;
 import com.optimize.elykia.client.enumeration.ClientType;
+import com.optimize.elykia.client.event.ClientCreatedEvent;
 import com.optimize.elykia.client.mapper.ClientMapper;
 import com.optimize.elykia.client.repository.ClientRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -30,12 +33,12 @@ public class ClientService extends GenericService<Client, Long> {
     private final ClientProperties clientProperties;
     private final ClientAutoInitProperties clientAutoInitProperties;
     private final AccountService accountService;
-    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     protected ClientService(ClientRepository repository, ClientMapper clientMapper,
             ClientProperties clientProperties,
             ClientAutoInitProperties clientAutoInitProperties, AccountService accountService,
-            org.springframework.context.ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.clientMapper = clientMapper;
         this.clientProperties = clientProperties;
@@ -45,23 +48,26 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
-    public Client addClient(ClientDto dto) {
+    public ClientRespDto addClient(ClientDto dto) {
         Client client = clientMapper.toEntity(dto);
-        validateClientUniqueness(client); // valitdation
+        Client existingClient = validateClientUniqueness(client); // validation
+        if (existingClient != null) {
+            return ClientRespDto.fromClient(existingClient);
+        }
         Client savedClient = create(client);
 
         if (eventPublisher != null) {
-            eventPublisher.publishEvent(new com.optimize.elykia.client.event.ClientCreatedEvent(
+            eventPublisher.publishEvent(new ClientCreatedEvent(
                     this,
                     savedClient.getCollector(),
                     savedClient.getFirstname() + " " + savedClient.getLastname()));
         }
 
-        return savedClient;
+        return ClientRespDto.fromClient(savedClient);
     }
 
     @Transactional
-    public Client updateclient(ClientDto dto, Long clientId) {
+    public ClientRespDto updateClient(ClientDto dto, Long clientId) {
         dto.setId(clientId);
         var old = getById(clientId);
         Client client = clientMapper.toEntity(dto);
@@ -69,7 +75,7 @@ public class ClientService extends GenericService<Client, Long> {
             client.setIDDoc(old.getIDDoc());
         }
         validateClientUniqueness(client); // validation
-        return update(client);
+        return ClientRespDto.fromClient(update(client));
     }
 
     @Transactional
@@ -100,7 +106,7 @@ public class ClientService extends GenericService<Client, Long> {
             throw new CustomValidationException("vous devez fournir au moins une photo pour la modification !!!");
         }
         Client client = getById(dto.clientId());
-        if (StringUtils.hasText(dto.cardPhoto())) {
+        if (StringUtils.hasText(dto.profilPhoto())) {
             client.setProfilPhoto(Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto())));
         }
         if (StringUtils.hasText(dto.cardPhoto())) {
@@ -119,20 +125,48 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     // Nouvelle méthode pour lavalidation
-    private void validateClientUniqueness(Client client) {
+    private Client validateClientUniqueness(Client client) {
         // Pour une mise à jour, l'ID existe. Pour une création, on utilise 0L pour que
         // la recherche fonctionne.
         Long clientId = (client.getId() != null) ? client.getId() : 0L;
+        String phoneErrorMsg = "Ce numéro de téléphone est déjà utilisé par un autre client.";
+        String cardIdErrorMsg = "Ce numéro de pièce d'identité est déjà utilisé par un autre client.";
+        
+        Client existingClient = null;
 
         // Vérification du numéro de téléphone
-        if (getRepository().existsByPhoneAndIdNot(client.getPhone(), clientId)) {
-            throw new CustomValidationException("Ce numéro de téléphone est déjà utilisé par un autre client.");
+        if (StringUtils.hasText(client.getPhone())) {
+            Optional<Client> phoneClientOpt = getRepository().findByPhoneAndIdNot(client.getPhone(), clientId);
+            if (phoneClientOpt.isPresent()) {
+                Client phoneClient = phoneClientOpt.get();
+                if (phoneClient.isSameClient(client)) {
+                    existingClient = phoneClient;
+                } else {
+                    throw new CustomValidationException(phoneErrorMsg + " (" + phoneClient.getFirstname() + " " + phoneClient.getLastname() + ")");
+                }
+            }
         }
 
         // Vérification du numéro de la pièce d'identité
-        if (getRepository().existsByCardIDAndIdNot(client.getCardID(), clientId)) {
-            throw new CustomValidationException("Ce numéro de pièce d'identité est déjà utilisé par un autre client.");
+        if (StringUtils.hasText(client.getCardID())) {
+            Optional<Client> cardClientOpt = getRepository().findByCardIDAndIdNot(client.getCardID(), clientId);
+            if (cardClientOpt.isPresent()) {
+                Client cardClient = cardClientOpt.get();
+                
+                // Si on a déjà trouvé un client via le téléphone, on doit s'assurer que c'est le même que celui de la carte
+                if (existingClient != null && !existingClient.getId().equals(cardClient.getId())) {
+                     throw new CustomValidationException("Incohérence : Le téléphone appartient à " + existingClient.getFullName() + " mais la carte appartient à " + cardClient.getFullName());
+                }
+
+                if (cardClient.isSameClient(client)) {
+                    existingClient = cardClient;
+                } else {
+                    throw new CustomValidationException(cardIdErrorMsg + " (" + cardClient.getFirstname() + " " + cardClient.getLastname() + ")");
+                }
+            }
         }
+
+        return existingClient;
     }
 
     public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, Pageable pageable) {

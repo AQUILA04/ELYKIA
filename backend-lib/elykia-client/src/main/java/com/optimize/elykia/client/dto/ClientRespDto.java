@@ -54,6 +54,6 @@ public record ClientRespDto(Long id,
         return new ClientRespDto(client.getId(), client.getFirstname(), client.getLastname(), client.getAddress(), client.getPhone(), client.getCardID(), client.getCardType(),
                 client.getDateOfBirth(), null, null, null, client.getCollector(),
                 client.getQuarter(), client.getCreditInProgress(), client.getOccupation(), client.getClientType(), null, null, null,
-                null, null, null, null, null);
+                null, client.getCode(), client.getProfilPhotoUrl(), client.getCardPhotoUrl(), client.getTontineCollector());
     }
 }

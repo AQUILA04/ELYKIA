@@ -16,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/clients")
@@ -42,7 +40,7 @@ public class ClientController {
 
     @PutMapping(value = "{id}")
     public ResponseEntity<Response> update(@RequestBody @Valid ClientDto dto, @PathVariable Long id) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.updateclient(dto, id)), HttpStatus.OK);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.updateClient(dto, id)), HttpStatus.OK);
     }
 
     @PatchMapping(value = "location-update")

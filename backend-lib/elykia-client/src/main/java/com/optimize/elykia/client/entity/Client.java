@@ -114,4 +114,12 @@ public class Client extends Auditable<String> {
     public void finishTontine() {
         this.isTontineMember = Boolean.FALSE;
     }
+    
+    public boolean isSameClient(Client client) {
+        if (client == null) {
+            return false;
+        }
+        return Objects.equals(this.firstname, client.getFirstname()) &&
+               Objects.equals(this.lastname, client.getLastname());
+    }
 }

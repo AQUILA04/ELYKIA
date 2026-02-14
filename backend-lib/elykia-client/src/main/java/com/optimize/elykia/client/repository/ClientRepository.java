@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.optimize.common.entities.repository.spec.BaseSpecifications.from;
 
@@ -114,6 +115,18 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
 
     // AJOUTÉ : Méthodes pour la vérification de l'unicité
     boolean existsByPhoneAndIdNot(String phone, Long id);
+    
+    boolean existsByPhoneAndFirstnameAndLastname(String phone, String firstname, String lastname);
+    
+    Optional<Client> findByPhoneAndFirstnameAndLastname(String phone, String firstname, String lastname);
 
     boolean existsByCardIDAndIdNot(String cardID, Long id);
+
+    boolean existsByCardIDAndFirstnameAndLastname(String cardID, String firstname, String lastname);
+    
+    Optional<Client> findByCardIDAndFirstnameAndLastname(String cardID, String firstname, String lastname);
+
+    Optional<Client> findByPhoneAndIdNot(String phone, Long id);
+
+    Optional<Client> findByCardIDAndIdNot(String cardID, Long id);
 }
