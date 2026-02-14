@@ -37,7 +37,10 @@ export const loadManualSyncDataSuccess = createAction(
   props<{ 
     clients: any[], 
     distributions: any[], 
-    recoveries: any[] 
+    recoveries: any[],
+    tontineMembers?: any[],
+    tontineCollections?: any[],
+    tontineDeliveries?: any[]
   }>()
 );
 
@@ -48,31 +51,31 @@ export const loadManualSyncDataFailure = createAction(
 
 export const setActiveTab = createAction(
   '[Sync] Set Active Tab',
-  props<{ tab: 'clients' | 'distributions' | 'recoveries' | 'all' }>()
+  props<{ tab: 'clients' | 'distributions' | 'recoveries' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries' | 'all' }>()
 );
 
 export const toggleEntitySelection = createAction(
   '[Sync] Toggle Entity Selection',
   props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
     entityId: string 
   }>()
 );
 
 export const selectAllEntities = createAction(
   '[Sync] Select All Entities',
-  props<{ entityType: 'client' | 'distribution' | 'recovery' }>()
+  props<{ entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery' }>()
 );
 
 export const clearEntitySelection = createAction(
   '[Sync] Clear Entity Selection',
-  props<{ entityType: 'client' | 'distribution' | 'recovery' }>()
+  props<{ entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery' }>()
 );
 
 export const startManualSync = createAction(
   '[Sync] Start Manual Sync',
   props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery' | 'clients' | 'distributions' | 'recoveries' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries',
     selectedIds: string[] 
   }>()
 );
@@ -80,7 +83,7 @@ export const startManualSync = createAction(
 export const manualSyncProgress = createAction(
   '[Sync] Manual Sync Progress',
   props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
     processed: number,
     total: number,
     currentItem: string
@@ -90,7 +93,7 @@ export const manualSyncProgress = createAction(
 export const manualSyncSuccess = createAction(
   '[Sync] Manual Sync Success',
   props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery' | 'clients' | 'distributions' | 'recoveries' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries',
     successCount: number,
     errorCount: number
   }>()
@@ -99,7 +102,7 @@ export const manualSyncSuccess = createAction(
 export const manualSyncFailure = createAction(
   '[Sync] Manual Sync Failure',
   props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery' | 'clients' | 'distributions' | 'recoveries' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries',
     error: any 
   }>()
 );
@@ -107,7 +110,7 @@ export const manualSyncFailure = createAction(
 export const syncSingleEntity = createAction(
   '[Sync] Sync Single Entity',
   props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
     entityId: string 
   }>()
 );
@@ -115,7 +118,7 @@ export const syncSingleEntity = createAction(
 export const syncSingleEntitySuccess = createAction(
   '[Sync] Sync Single Entity Success',
   props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
     entityId: string 
   }>()
 );
@@ -123,7 +126,7 @@ export const syncSingleEntitySuccess = createAction(
 export const syncSingleEntityFailure = createAction(
   '[Sync] Sync Single Entity Failure',
   props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
     entityId: string,
     error: any 
   }>()

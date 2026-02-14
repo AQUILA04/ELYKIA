@@ -58,6 +58,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'sync/manual',
+    loadChildren: () => import('./features/sync/sync-manual/sync-manual.module').then(m => m.SyncManualPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'sync-errors',
     canActivate: [AuthGuard],
     children: [

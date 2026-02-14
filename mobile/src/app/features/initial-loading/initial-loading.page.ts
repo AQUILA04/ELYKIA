@@ -16,6 +16,7 @@ import { MemoryManagementService } from '../../core/services/memory-management.s
   selector: 'app-initial-loading',
   templateUrl: './initial-loading.page.html',
   styleUrls: ['./initial-loading.page.scss'],
+  standalone: false
 })
 export class InitialLoadingPage implements OnInit, OnDestroy {
   progress = 0;

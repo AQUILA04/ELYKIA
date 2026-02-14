@@ -17,6 +17,9 @@ export interface SyncState {
     availableClients: any[];
     availableDistributions: any[];
     availableRecoveries: any[];
+    availableTontineMembers: any[];
+    availableTontineCollections: any[];
+    availableTontineDeliveries: any[];
     syncingEntities: string[];
   };
 
@@ -71,6 +74,24 @@ const initialManualSyncState: ManualSyncState = {
     totalCount: 0,
     isSelectAll: false
   },
+  tontineMembers: {
+    entityType: 'tontine-member',
+    selectedIds: [],
+    totalCount: 0,
+    isSelectAll: false
+  },
+  tontineCollections: {
+    entityType: 'tontine-collection',
+    selectedIds: [],
+    totalCount: 0,
+    isSelectAll: false
+  },
+  tontineDeliveries: {
+    entityType: 'tontine-delivery',
+    selectedIds: [],
+    totalCount: 0,
+    isSelectAll: false
+  },
   isLoading: false,
   activeTab: 'clients'
 };
@@ -88,6 +109,9 @@ const initialState: SyncState = {
     availableClients: [],
     availableDistributions: [],
     availableRecoveries: [],
+    availableTontineMembers: [],
+    availableTontineCollections: [],
+    availableTontineDeliveries: [],
     syncingEntities: []
   },
   errors: {
@@ -188,7 +212,7 @@ export const syncReducer = createReducer(
     }
   })),
 
-  on(SyncActions.loadManualSyncDataSuccess, (state, { clients, distributions, recoveries }) => ({
+  on(SyncActions.loadManualSyncDataSuccess, (state, { clients, distributions, recoveries, tontineMembers, tontineCollections, tontineDeliveries }) => ({
     ...state,
     manualSync: {
       ...state.manualSync,
@@ -196,6 +220,9 @@ export const syncReducer = createReducer(
       availableClients: clients,
       availableDistributions: distributions,
       availableRecoveries: recoveries,
+      availableTontineMembers: tontineMembers || [],
+      availableTontineCollections: tontineCollections || [],
+      availableTontineDeliveries: tontineDeliveries || [],
       clients: {
         ...state.manualSync.clients,
         totalCount: clients.length,
@@ -209,6 +236,21 @@ export const syncReducer = createReducer(
       recoveries: {
         ...state.manualSync.recoveries,
         totalCount: recoveries.length,
+        selectedIds: []
+      },
+      tontineMembers: {
+        ...state.manualSync.tontineMembers,
+        totalCount: (tontineMembers || []).length,
+        selectedIds: []
+      },
+      tontineCollections: {
+        ...state.manualSync.tontineCollections,
+        totalCount: (tontineCollections || []).length,
+        selectedIds: []
+      },
+      tontineDeliveries: {
+        ...state.manualSync.tontineDeliveries,
+        totalCount: (tontineDeliveries || []).length,
         selectedIds: []
       }
     }

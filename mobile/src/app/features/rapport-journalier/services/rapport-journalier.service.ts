@@ -22,6 +22,7 @@ export interface DailyReportData {
       clientName: string;
       details: string;
       amount: number;
+      isSync: boolean;
     }>;
   };
   recoveries: {
@@ -32,6 +33,7 @@ export interface DailyReportData {
       clientName: string;
       details: string;
       amount: number;
+      isSync: boolean;
     }>;
   };
   newClients: {
@@ -42,6 +44,7 @@ export interface DailyReportData {
       clientName: string;
       accountNumber: string;
       balance: number;
+      isSync: boolean;
     }>;
   };
   advances: {
@@ -51,6 +54,38 @@ export interface DailyReportData {
   tontine: {
     count: number;
     totalAmount: number;
+  };
+  tontineMembers?: {
+    count: number;
+    items: Array<{
+      time: string;
+      memberName: string;
+      details: string;
+      contribution: number;
+      isSync: boolean;
+    }>;
+  };
+  tontineCollections?: {
+    count: number;
+    totalAmount: number;
+    items: Array<{
+      time: string;
+      memberName: string;
+      details: string;
+      amount: number;
+      isSync: boolean;
+    }>;
+  };
+  tontineDeliveries?: {
+    count: number;
+    totalAmount: number;
+    items: Array<{
+      time: string;
+      memberName: string;
+      details: string;
+      amount: number;
+      isSync: boolean;
+    }>;
   };
 }
 
@@ -101,7 +136,8 @@ export class RapportJournalierService {
               time: d.createdAt ? new Date(d.createdAt).toLocaleTimeString('fr-FR') : '',
               clientName: clientMap.get(d.clientId) || 'Client inconnu',
               details: `Distribution #${d.reference}`,
-              amount: d.totalAmount
+              amount: d.totalAmount,
+              isSync: d.isSync || false
             }));
             const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
             return {
@@ -127,7 +163,8 @@ export class RapportJournalierService {
               time: new Date(r.createdAt).toLocaleTimeString('fr-FR'),
               clientName: clientMap.get(r.clientId) || 'Client inconnu',
               details: `Recouvrement #${r.id}`,
-              amount: r.amount
+              amount: r.amount,
+              isSync: r.isSync || false
             }));
             const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
             return {
@@ -159,14 +196,16 @@ export class RapportJournalierService {
           time: acc.createdAt ? new Date(acc.createdAt).toLocaleTimeString('fr-FR') : '',
           clientName: clientMap.get(acc.clientId) || 'Client inconnu',
           accountNumber: acc.accountNumber || 'N/A',
-          balance: acc.accountBalance || 0
+          balance: acc.accountBalance || 0,
+          isSync: acc.isSync || false
         }));
 
         const updatedAccountItems = todayUpdatedAccounts.map((acc: Account) => ({
           time: acc.syncDate ? new Date(acc.syncDate).toLocaleTimeString('fr-FR') : '',
           clientName: clientMap.get(acc.clientId) || 'Client inconnu',
           accountNumber: acc.accountNumber || 'N/A',
-          balance: (acc.accountBalance || 0) - (acc.old_balance || 0)
+          balance: (acc.accountBalance || 0) - (acc.old_balance || 0),
+          isSync: acc.isSync || false
         }));
 
         const items = [...newAccountItems, ...updatedAccountItems];
@@ -240,6 +279,486 @@ export class RapportJournalierService {
         };
       })
     );
+  }
+
+  /**
+   * Charge les données des membres tontine du jour (lazy loading)
+   */
+  getTontineMembersData(date?: Date): Observable<{ count: number; items: any[] }> {
+    if (!this.commercialUsername) {
+      return of({ count: 0, items: [] });
+    }
+    const currentCommercialId = this.commercialUsername;
+    const targetDate = date || new Date();
+    const dateString = targetDate.toISOString().split('T')[0];
+
+    return from(this.databaseService.getTontineMembers('', currentCommercialId)).pipe(
+      switchMap(members => {
+        const todayMembers = members.filter(m => m.createdAt && m.createdAt.startsWith(dateString));
+        if (todayMembers.length === 0) {
+          return of({ count: 0, items: [] });
+        }
+        const items = todayMembers.map(m => ({
+          time: m.createdAt ? new Date(m.createdAt).toLocaleTimeString('fr-FR') : '',
+          memberName: m.name || 'Membre inconnu',
+          details: `Contribution: ${m.contributionAmount || 0} FCFA`,
+          contribution: m.contributionAmount || 0,
+          isSync: m.isSync || false
+        }));
+        return of({ count: items.length, items });
+      })
+    );
+  }
+
+  /**
+   * Charge les données des collectes tontine du jour (lazy loading)
+   */
+  getTontineCollectionsData(date?: Date): Observable<{ count: number; totalAmount: number; items: any[] }> {
+    if (!this.commercialUsername) {
+      return of({ count: 0, totalAmount: 0, items: [] });
+    }
+    const currentCommercialId = this.commercialUsername;
+    const targetDate = date || new Date();
+    const dateString = targetDate.toISOString().split('T')[0];
+
+    return from(this.databaseService.getTontineCollectionsByCommercial(currentCommercialId)).pipe(
+      switchMap(collections => {
+        const todayCollections = collections.filter(c => c.createdAt && c.createdAt.startsWith(dateString));
+        if (todayCollections.length === 0) {
+          return of({ count: 0, totalAmount: 0, items: [] });
+        }
+        return from(this.databaseService.getTontineMembers('', currentCommercialId)).pipe(
+          map(members => {
+            const memberMap = new Map(members.map(m => [m.id, m.name]));
+            const items = todayCollections.map(c => ({
+              time: c.createdAt ? new Date(c.createdAt).toLocaleTimeString('fr-FR') : '',
+              memberName: memberMap.get(c.memberId) || 'Membre inconnu',
+              details: `Collecte #${c.id}`,
+              amount: c.amount || 0,
+              isSync: c.isSync || false
+            }));
+            const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+            return { count: items.length, totalAmount, items };
+          })
+        );
+      })
+    );
+  }
+
+  /**
+   * Charge les données des livraisons tontine du jour (lazy loading)
+   */
+  getTontineDeliveriesData(date?: Date): Observable<{ count: number; totalAmount: number; items: any[] }> {
+    if (!this.commercialUsername) {
+      return of({ count: 0, totalAmount: 0, items: [] });
+    }
+    const currentCommercialId = this.commercialUsername;
+    const targetDate = date || new Date();
+    const dateString = targetDate.toISOString().split('T')[0];
+
+    return from(this.databaseService.getTontineDeliveries('', currentCommercialId)).pipe(
+      switchMap(deliveries => {
+        const todayDeliveries = deliveries.filter(d => d.createdAt && d.createdAt.startsWith(dateString));
+        if (todayDeliveries.length === 0) {
+          return of({ count: 0, totalAmount: 0, items: [] });
+        }
+        return from(this.databaseService.getTontineMembers('', currentCommercialId)).pipe(
+          map(members => {
+            const memberMap = new Map(members.map(m => [m.id, m.name]));
+            const items = todayDeliveries.map(d => ({
+              time: d.createdAt ? new Date(d.createdAt).toLocaleTimeString('fr-FR') : '',
+              memberName: memberMap.get(d.memberId) || 'Membre inconnu',
+              details: `Livraison #${d.id}`,
+              amount: d.amount || 0,
+              isSync: d.isSync || false
+            }));
+            const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+            return { count: items.length, totalAmount, items };
+          })
+        );
+      })
+    );
+  }
+
+  /**
+   * Charge uniquement le count des tontines pour l'affichage initial des badges
+   */
+  getTontineCountsOnly(date?: Date): Observable<{ members: number; collections: number; deliveries: number }> {
+    if (!this.commercialUsername) {
+      return of({ members: 0, collections: 0, deliveries: 0 });
+    }
+    const currentCommercialId = this.commercialUsername;
+    const targetDate = date || new Date();
+    const dateString = targetDate.toISOString().split('T')[0];
+
+    const membersCount$ = from(this.databaseService.getTontineMembers('', currentCommercialId)).pipe(
+      map(members => members.filter(m => m.createdAt && m.createdAt.startsWith(dateString)).length)
+    );
+
+    const collectionsCount$ = from(this.databaseService.getTontineCollectionsByCommercial(currentCommercialId)).pipe(
+      map(collections => collections.filter(c => c.createdAt && c.createdAt.startsWith(dateString)).length)
+    );
+
+    const deliveriesCount$ = from(this.databaseService.getTontineDeliveries('', currentCommercialId)).pipe(
+      map(deliveries => deliveries.filter(d => d.createdAt && d.createdAt.startsWith(dateString)).length)
+    );
+
+    return forkJoin({
+      members: membersCount$,
+      collections: collectionsCount$,
+      deliveries: deliveriesCount$
+    });
+  }
+
+  /**
+   * ==================================================================
+   * GÉNÉRATION HTML POUR PDF (FORMAT COMPLET AVEC TABLEAUX)
+   * ==================================================================
+   */
+  generatePDFHTML(reportData: DailyReportData): string {
+    const formattedDate = new Date().toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    const formatPrice = (amount: number) => amount.toLocaleString('fr-FR');
+
+    // Générer les tableaux pour chaque entité
+    const distributionsTable = this.generateTableHTML(
+      'Distributions',
+      ['ID', 'Heure', 'Client', 'Détails', 'Montant', 'Statut'],
+      reportData.distributions.items.map((item: any, index: number) => [
+        (index + 1).toString(),
+        item.time,
+        item.clientName,
+        item.details,
+        `${formatPrice(item.amount)} FCFA`,
+        item.isSync ? 'Sync' : 'Local'
+      ])
+    );
+
+    const recoveriesTable = this.generateTableHTML(
+      'Recouvrements',
+      ['ID', 'Heure', 'Client', 'Détails', 'Montant', 'Statut'],
+      reportData.recoveries.items.map((item: any, index: number) => [
+        (index + 1).toString(),
+        item.time,
+        item.clientName,
+        item.details,
+        `${formatPrice(item.amount)} FCFA`,
+        item.isSync ? 'Sync' : 'Local'
+      ])
+    );
+
+    const clientsTable = this.generateTableHTML(
+      'Nouveaux Clients',
+      ['ID', 'Heure', 'Nom', 'N° Compte', 'Solde', 'Statut'],
+      reportData.newClients.items.map((item: any, index: number) => [
+        (index + 1).toString(),
+        item.time,
+        item.clientName,
+        item.accountNumber,
+        `${formatPrice(item.balance)} FCFA`,
+        item.isSync ? 'Sync' : 'Local'
+      ])
+    );
+
+    const tontineMembersTable = reportData.tontineMembers && reportData.tontineMembers.items.length > 0
+      ? this.generateTableHTML(
+          'Membres Tontine',
+          ['ID', 'Heure', 'Nom', 'Détails', 'Contribution', 'Statut'],
+          reportData.tontineMembers.items.map((item: any, index: number) => [
+            (index + 1).toString(),
+            item.time,
+            item.memberName,
+            item.details,
+            `${formatPrice(item.contribution)} FCFA`,
+            item.isSync ? 'Sync' : 'Local'
+          ])
+        )
+      : '';
+
+    const tontineCollectionsTable = reportData.tontineCollections && reportData.tontineCollections.items.length > 0
+      ? this.generateTableHTML(
+          'Collectes Tontine',
+          ['ID', 'Heure', 'Membre', 'Détails', 'Montant', 'Statut'],
+          reportData.tontineCollections.items.map((item: any, index: number) => [
+            (index + 1).toString(),
+            item.time,
+            item.memberName,
+            item.details,
+            `${formatPrice(item.amount)} FCFA`,
+            item.isSync ? 'Sync' : 'Local'
+          ])
+        )
+      : '';
+
+    const tontineDeliveriesTable = reportData.tontineDeliveries && reportData.tontineDeliveries.items.length > 0
+      ? this.generateTableHTML(
+          'Livraisons Tontine',
+          ['ID', 'Heure', 'Membre', 'Détails', 'Montant', 'Statut'],
+          reportData.tontineDeliveries.items.map((item: any, index: number) => [
+            (index + 1).toString(),
+            item.time,
+            item.memberName,
+            item.details,
+            `${formatPrice(item.amount)} FCFA`,
+            item.isSync ? 'Sync' : 'Local'
+          ])
+        )
+      : '';
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Rapport Journalier - ${reportData.date}</title>
+        <style>
+          body {
+            font-family: 'Arial', sans-serif;
+            font-size: 10pt;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+          }
+          .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #2196F3;
+          }
+          .header h1 {
+            margin: 0;
+            font-size: 24pt;
+            color: #2196F3;
+            text-transform: uppercase;
+          }
+          .header p {
+            margin: 5px 0;
+            font-size: 11pt;
+            color: #666;
+          }
+          .kpi-section {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+          }
+          .kpi-section h2 {
+            margin: 0 0 15px 0;
+            font-size: 14pt;
+            color: #2196F3;
+            text-transform: uppercase;
+          }
+          .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+          }
+          .kpi-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+          }
+          .kpi-label {
+            font-weight: bold;
+            color: #555;
+          }
+          .kpi-value {
+            color: #2196F3;
+            font-weight: bold;
+          }
+          .total-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #2196F3;
+          }
+          .total-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14pt;
+            font-weight: bold;
+            color: #2196F3;
+          }
+          .table-section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+          }
+          .table-section h3 {
+            margin: 0 0 10px 0;
+            font-size: 12pt;
+            color: #2196F3;
+            text-transform: uppercase;
+            border-bottom: 2px solid #2196F3;
+            padding-bottom: 5px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+          }
+          th {
+            background: #2196F3;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            font-size: 9pt;
+            font-weight: bold;
+          }
+          td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 9pt;
+          }
+          tr:nth-child(even) {
+            background: #f9f9f9;
+          }
+          .status-local {
+            color: #757575;
+            font-weight: bold;
+          }
+          .status-sync {
+            color: #4CAF50;
+            font-weight: bold;
+          }
+          .empty-message {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+          }
+          .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 9pt;
+            color: #999;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <!-- En-tête -->
+          <div class="header">
+            <h1>Rapport Journalier</h1>
+            <p><strong>Date:</strong> ${formattedDate}</p>
+            <p><strong>Commercial:</strong> ${reportData.commercialName}</p>
+          </div>
+
+          <!-- Section KPI -->
+          <div class="kpi-section">
+            <h2>Résumé du Jour</h2>
+            <div class="kpi-grid">
+              <div class="kpi-item">
+                <span class="kpi-label">Distributions:</span>
+                <span class="kpi-value">${reportData.distributions.count} (${formatPrice(reportData.distributions.totalAmount)} FCFA)</span>
+              </div>
+              <div class="kpi-item">
+                <span class="kpi-label">Recouvrements:</span>
+                <span class="kpi-value">${reportData.recoveries.count} (${formatPrice(reportData.recoveries.totalAmount)} FCFA)</span>
+              </div>
+              <div class="kpi-item">
+                <span class="kpi-label">Nouveaux Clients:</span>
+                <span class="kpi-value">${reportData.newClients.count} (${formatPrice(reportData.newClients.totalBalance)} FCFA)</span>
+              </div>
+              <div class="kpi-item">
+                <span class="kpi-label">Avances:</span>
+                <span class="kpi-value">${reportData.advances.count} (${formatPrice(reportData.advances.totalAmount)} FCFA)</span>
+              </div>
+              <div class="kpi-item">
+                <span class="kpi-label">Tontine:</span>
+                <span class="kpi-value">${reportData.tontine.count} (${formatPrice(reportData.tontine.totalAmount)} FCFA)</span>
+              </div>
+              <div class="kpi-item">
+                <span class="kpi-label">Membres Tontine:</span>
+                <span class="kpi-value">${reportData.tontineMembers?.count || 0}</span>
+              </div>
+              <div class="kpi-item">
+                <span class="kpi-label">Collectes Tontine:</span>
+                <span class="kpi-value">${reportData.tontineCollections?.count || 0} (${formatPrice(reportData.tontineCollections?.totalAmount || 0)} FCFA)</span>
+              </div>
+              <div class="kpi-item">
+                <span class="kpi-label">Livraisons Tontine:</span>
+                <span class="kpi-value">${reportData.tontineDeliveries?.count || 0} (${formatPrice(reportData.tontineDeliveries?.totalAmount || 0)} FCFA)</span>
+              </div>
+            </div>
+            <div class="total-section">
+              <div class="total-item">
+                <span>TOTAL À PAYER:</span>
+                <span>${formatPrice(reportData.totalToPay)} FCFA</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tableaux détaillés -->
+          ${distributionsTable}
+          ${recoveriesTable}
+          ${clientsTable}
+          ${tontineMembersTable}
+          ${tontineCollectionsTable}
+          ${tontineDeliveriesTable}
+
+          <!-- Pied de page -->
+          <div class="footer">
+            <p>Document généré le ${new Date().toLocaleString('fr-FR')}</p>
+            <p>© ELYKIA - Tous droits réservés</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Génère un tableau HTML pour une entité
+   */
+  private generateTableHTML(title: string, headers: string[], rows: string[][]): string {
+    if (rows.length === 0) {
+      return `
+        <div class="table-section">
+          <h3>${title}</h3>
+          <div class="empty-message">Aucune donnée disponible</div>
+        </div>
+      `;
+    }
+
+    const headerRow = headers.map(h => `<th>${h}</th>`).join('');
+    const dataRows = rows.map(row => {
+      const cells = row.map((cell, index) => {
+        // Appliquer un style spécial pour la colonne Statut
+        if (index === row.length - 1) {
+          const cssClass = cell === 'Sync' ? 'status-sync' : 'status-local';
+          return `<td class="${cssClass}">${cell}</td>`;
+        }
+        return `<td>${cell}</td>`;
+      }).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+
+    return `
+      <div class="table-section">
+        <h3>${title}</h3>
+        <table>
+          <thead>
+            <tr>${headerRow}</tr>
+          </thead>
+          <tbody>
+            ${dataRows}
+          </tbody>
+        </table>
+      </div>
+    `;
   }
 
   /**

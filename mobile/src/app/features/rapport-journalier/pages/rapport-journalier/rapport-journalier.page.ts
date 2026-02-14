@@ -1,17 +1,21 @@
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
+import { selectAutomaticSyncStatus } from '../../../../store/sync/sync.selectors';
 import { Observable } from 'rxjs';
 import { PrintingService } from '../../../../core/services/printing.service';
 import { RapportJournalierService, DailyReportData } from '../../services/rapport-journalier.service';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
-import { IonButton, IonContent, IonIcon } from '@ionic/angular/standalone';
+import { IonBadge, IonButton, IonContent, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonSpinner, ToastController } from '@ionic/angular/standalone';
 import { CommonModule, DecimalPipe, registerLocaleData } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Component, OnInit, LOCALE_ID, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import localeFr from '@angular/common/locales/fr';
 import localeFrExtra from '@angular/common/locales/extra/fr';
 import { DatabaseService } from '../../../../core/services/database.service';
 import * as html2pdf from 'html2pdf.js';
+import { PdfReportService } from '../../../../core/services/pdf-report.service';
+import { SyncStatus } from '../../../../models/sync.model';
 
 // Register French locale data
 registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
@@ -23,9 +27,15 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
   imports: [
     CommonModule,
     DecimalPipe,
+    FormsModule,
     IonContent,
     IonButton,
     IonIcon,
+    IonBadge,
+    IonSegment,
+    IonSegmentButton,
+    IonLabel,
+    IonSpinner,
     ScrollingModule
   ],
   providers: [
@@ -69,7 +79,9 @@ export class RapportJournalierPage {
     }
   };
 
-  activeTab: 'distributions' | 'recouvrements' | 'clients' = 'distributions';
+  activeTab: 'distributions' | 'recouvrements' | 'clients' | 'tontine-membres' | 'tontine-collectes' | 'tontine-livraisons' = 'distributions';
+  isLoadingTab = false;
+  private loadedTabs: Set<string> = new Set(['distributions', 'recouvrements', 'clients']); // Les 3 premiers onglets sont chargés au démarrage
 
   constructor(
     private router: Router,
@@ -77,17 +89,22 @@ export class RapportJournalierPage {
     private printingService: PrintingService,
     private rapportJournalierService: RapportJournalierService,
     private databaseService: DatabaseService,
+    private pdfReportService: PdfReportService,
+    private toastController: ToastController,
     private cdr: ChangeDetectorRef
   ) { }
 
   ionViewWillEnter() {
     this.loadReportData();
+    this.listenToSyncCompletion();
   }
 
   private loadReportData() {
     this.rapportJournalierService.getDailyReport().subscribe({
       next: (data) => {
         this.reportData = data;
+        // Charger uniquement les counts des tontines pour les badges
+        this.loadTontineCounts();
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -103,9 +120,91 @@ export class RapportJournalierPage {
     this.router.navigate(['/tabs/dashboard']);
   }
 
-  switchTab(tab: 'distributions' | 'recouvrements' | 'clients') {
-    this.activeTab = tab;
+  /**
+   * Charge uniquement les counts des tontines (optimisation)
+   */
+  private loadTontineCounts() {
+    this.rapportJournalierService.getTontineCountsOnly().subscribe({
+      next: (counts) => {
+        this.reportData.tontineMembers = { count: counts.members, items: [] };
+        this.reportData.tontineCollections = { count: counts.collections, totalAmount: 0, items: [] };
+        this.reportData.tontineDeliveries = { count: counts.deliveries, totalAmount: 0, items: [] };
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des counts tontine:', error);
+      }
+    });
+  }
+
+  /**
+   * Gère le changement d'onglet avec lazy loading
+   */
+  onSegmentChanged(event: any) {
+    const newTab = event.detail.value;
+    
+    // Si l'onglet est déjà chargé, on ne fait rien
+    if (this.loadedTabs.has(newTab)) {
+      return;
+    }
+
+    // Charger les données de l'onglet tontine
+    this.isLoadingTab = true;
     this.cdr.markForCheck();
+
+    switch (newTab) {
+      case 'tontine-membres':
+        this.rapportJournalierService.getTontineMembersData().subscribe({
+          next: (data) => {
+            this.reportData.tontineMembers = data;
+            this.loadedTabs.add(newTab);
+            this.isLoadingTab = false;
+            this.cdr.markForCheck();
+          },
+          error: (error) => {
+            console.error('Erreur lors du chargement des membres tontine:', error);
+            this.isLoadingTab = false;
+            this.cdr.markForCheck();
+          }
+        });
+        break;
+
+      case 'tontine-collectes':
+        this.rapportJournalierService.getTontineCollectionsData().subscribe({
+          next: (data) => {
+            this.reportData.tontineCollections = data;
+            this.loadedTabs.add(newTab);
+            this.isLoadingTab = false;
+            this.cdr.markForCheck();
+          },
+          error: (error) => {
+            console.error('Erreur lors du chargement des collectes tontine:', error);
+            this.isLoadingTab = false;
+            this.cdr.markForCheck();
+          }
+        });
+        break;
+
+      case 'tontine-livraisons':
+        this.rapportJournalierService.getTontineDeliveriesData().subscribe({
+          next: (data) => {
+            this.reportData.tontineDeliveries = data;
+            this.loadedTabs.add(newTab);
+            this.isLoadingTab = false;
+            this.cdr.markForCheck();
+          },
+          error: (error) => {
+            console.error('Erreur lors du chargement des livraisons tontine:', error);
+            this.isLoadingTab = false;
+            this.cdr.markForCheck();
+          }
+        });
+        break;
+
+      default:
+        this.isLoadingTab = false;
+        this.cdr.markForCheck();
+    }
   }
 
   // TrackBy functions pour optimiser le rendu des listes
@@ -119,6 +218,128 @@ export class RapportJournalierPage {
 
   trackByClientId(index: number, item: any): string {
     return item.id || `${item.clientName}-${item.time}-${index}`;
+  }
+
+  trackByTontineMemberId(index: number, item: any): string {
+    return item.id || `${item.memberName}-${item.time}-${index}`;
+  }
+
+  trackByTontineCollectionId(index: number, item: any): string {
+    return item.id || `${item.memberName}-${item.time}-${index}`;
+  }
+
+  trackByTontineDeliveryId(index: number, item: any): string {
+    return item.id || `${item.memberName}-${item.time}-${index}`;
+  }
+
+  /**
+   * Écoute la fin de la synchronisation pour générer automatiquement le PDF
+   */
+  private listenToSyncCompletion() {
+    this.store.select(selectAutomaticSyncStatus).subscribe(status => {
+      if (status === SyncStatus.COMPLETED) {
+        // Générer automatiquement le PDF après synchronisation
+        this.generatePDFAfterSync();
+      }
+    });
+  }
+
+  /**
+   * Génère automatiquement le PDF après synchronisation
+   */
+  private async generatePDFAfterSync() {
+    try {
+      console.log('Génération automatique du PDF après synchronisation...');
+      
+      // Recharger les données du rapport pour avoir les données synchronisées
+      this.rapportJournalierService.getDailyReport().subscribe(async (data) => {
+        this.reportData = data;
+        
+        // Générer le HTML pour PDF
+        const htmlContent = this.rapportJournalierService.generatePDFHTML(this.reportData);
+        
+        // Générer le nom de fichier
+        const filename = this.pdfReportService.generateFilename();
+        
+        // Générer le PDF
+        const pdfBase64 = await this.pdfReportService.generatePDF(htmlContent, filename);
+        
+        // Sauvegarder dans External Storage
+        await this.pdfReportService.savePDFToExternalStorage(pdfBase64, filename);
+        
+        console.log('PDF généré automatiquement avec succès:', filename);
+        
+        // Afficher un toast discret
+        const toast = await this.toastController.create({
+          message: `Rapport PDF généré automatiquement`,
+          duration: 2000,
+          color: 'success',
+          position: 'bottom'
+        });
+        await toast.present();
+      });
+      
+    } catch (error) {
+      console.error('Erreur lors de la génération automatique du PDF:', error);
+    }
+  }
+
+  /**
+   * Enregistre le rapport en PDF dans External Storage
+   */
+  async savePDF() {
+    try {
+      // Générer le HTML pour PDF (format complet avec tableaux)
+      const htmlContent = this.rapportJournalierService.generatePDFHTML(this.reportData);
+      
+      // Générer le nom de fichier avec date et heure
+      const filename = this.pdfReportService.generateFilename();
+      
+      // Afficher un toast de chargement
+      const loadingToast = await this.toastController.create({
+        message: 'Génération du PDF en cours...',
+        duration: 0, // Pas de fermeture automatique
+        position: 'bottom'
+      });
+      await loadingToast.present();
+      
+      // Générer le PDF
+      const pdfBase64 = await this.pdfReportService.generatePDF(htmlContent, filename);
+      
+      // Sauvegarder dans External Storage
+      const uri = await this.pdfReportService.savePDFToExternalStorage(pdfBase64, filename);
+      
+      // Fermer le toast de chargement
+      await loadingToast.dismiss();
+      
+      // Afficher un toast de confirmation
+      const successToast = await this.toastController.create({
+        message: `PDF sauvegardé : ${filename}`,
+        duration: 3000,
+        color: 'success',
+        position: 'bottom',
+        buttons: [
+          {
+            text: 'OK',
+            role: 'cancel'
+          }
+        ]
+      });
+      await successToast.present();
+      
+      console.log('PDF sauvegardé avec succès:', uri);
+      
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du PDF:', error);
+      
+      const errorToast = await this.toastController.create({
+        message: 'Erreur lors de la sauvegarde du PDF',
+        duration: 3000,
+        color: 'danger',
+        position: 'bottom'
+      });
+      await errorToast.present();
+    }
   }
 
   async printReport() {

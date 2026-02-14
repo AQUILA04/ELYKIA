@@ -187,7 +187,7 @@ export interface SpecialDailyStakeRequest {
 // Types pour la synchronisation manuelle
 
 export interface SyncSelection {
-  entityType: 'client' | 'distribution' | 'recovery';
+  entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery';
   selectedIds: string[];
   totalCount: number;
   isSelectAll: boolean;
@@ -197,8 +197,11 @@ export interface ManualSyncState {
   clients: SyncSelection;
   distributions: SyncSelection;
   recoveries: SyncSelection;
+  tontineMembers: SyncSelection;
+  tontineCollections: SyncSelection;
+  tontineDeliveries: SyncSelection;
   isLoading: boolean;
-  activeTab: 'clients' | 'distributions' | 'recoveries' | 'all';
+  activeTab: 'clients' | 'distributions' | 'recoveries' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries' | 'all';
 }
 
 // Énumérations

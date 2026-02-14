@@ -69,9 +69,19 @@
                         <span>📅 Hebdomadaire</span>
                     </div>
                     <div class="member-amount">{{ member.totalContribution | number:'1.0-0':'fr-FR' }} FCFA</div>
-                    <span class="member-status" [ngClass]="getStatusClass(member.deliveryStatus || member.status)">
-                        {{ getStatusLabel(member.deliveryStatus || member.status) }}
-                    </span>
+                    <div style="display: flex; gap: 6px; margin-top: 4px;">
+                        <span class="member-status" [ngClass]="getStatusClass(member.deliveryStatus || member.status)">
+                            {{ getStatusLabel(member.deliveryStatus || member.status) }}
+                        </span>
+                        <ion-badge *ngIf="!member.isSync" color="medium" style="font-size: 10px; padding: 4px 6px;">
+                            <ion-icon name="cloud-offline-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                            Local
+                        </ion-badge>
+                        <ion-badge *ngIf="member.isSync" color="success" style="font-size: 10px; padding: 4px 6px;">
+                            <ion-icon name="cloud-done-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                            Sync
+                        </ion-badge>
+                    </div>
                 </div>
                 <div style="color: var(--text-secondary); font-size: 20px;">›</div>
             </div>

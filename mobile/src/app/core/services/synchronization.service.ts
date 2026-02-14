@@ -686,7 +686,7 @@ export class SynchronizationService {
   /**
    * Synchroniser les mises journalières normales
    */
-  private async syncDefaultDailyStakes(recoveries: Recovery[]): Promise<void> {
+  public async syncDefaultDailyStakes(recoveries: Recovery[]): Promise<void> {
     const stakeUnits = [];
     const currentUser = this.authService.currentUser;
 
@@ -729,7 +729,7 @@ export class SynchronizationService {
   /**
    * Synchroniser les mises journalières spéciales
    */
-  private async syncSpecialDailyStakes(recoveries: Recovery[]): Promise<void> {
+  public async syncSpecialDailyStakes(recoveries: Recovery[]): Promise<void> {
     const stakeUnits = [];
     const currentUser = this.authService.currentUser;
     console.log('SPECIAL STAKES SIZE: ', recoveries.length);
