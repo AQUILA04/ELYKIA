@@ -2241,7 +2241,7 @@ export class DatabaseService {
         for (const method of readMethods) {
           try {
             const result = await method();
-            console.log(`� Files in elykia:`, result.files.map(f => f.name));
+            console.log(` Files in elykia:`, result.files.map(f => f.name));
 
             // Traiter tous les fichiers trouvés
             const backupFiles = result.files
@@ -3124,7 +3124,17 @@ export class DatabaseService {
     return result.values || [];
   }
 
-
+  async getUnsyncedCollectionsTotals(): Promise<{tontineMemberId: string, total: number}[]> {
+      if (!this.db) throw new Error('Database not initialized.');
+      const query = `
+          SELECT tontineMemberId, SUM(amount) as total
+          FROM tontine_collections
+          WHERE isSync = 0
+          GROUP BY tontineMemberId
+      `;
+      const result = await this.db.query(query);
+      return result.values || [];
+  }
 
   async saveTontineDeliveries(deliveries: any[]): Promise<void> {
     if (!this.db) throw new Error('Database not initialized.');
@@ -3258,7 +3268,7 @@ export class DatabaseService {
       await transactionManager.beginTransaction();
 
       // Temporarily disable foreign keys for restoration if needed, though usually better to respect them
-      // await this.db.run('PRAGMA foreign_keys = OFF;'); 
+      // await this.db.run('PRAGMA foreign_keys = OFF;');
 
       try {
         await this.executeStatementsWithProgress(statements, monitor);

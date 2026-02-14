@@ -47,31 +47,76 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
 
         // Update totalContribution only if explicitly requested (for manual collection recording)
         if (updateMemberTotal) {
-            const uniqueMemberIds = [...new Set(entities.map(c => c.tontineMemberId))];
-            for (const memberId of uniqueMemberIds) {
-                await this.updateMemberTotalContribution(memberId);
+            // Group amounts by memberId to handle multiple collections for the same member in one batch
+            const memberAmounts = new Map<string, number>();
+
+            entities.forEach(c => {
+                const current = memberAmounts.get(c.tontineMemberId) || 0;
+                memberAmounts.set(c.tontineMemberId, current + (c.amount || 0));
+            });
+
+            for (const [memberId, amountToAdd] of memberAmounts.entries()) {
+                await this.incrementMemberTotalContribution(memberId, amountToAdd);
             }
         }
     }
 
     /**
+     * Increment the totalContribution for a member.
+     * Safer than recalculating from scratch if local history is incomplete.
+     * @param memberId ID of the tontine member
+     * @param amount Amount to add
+     */
+    async incrementMemberTotalContribution(memberId: string, amount: number): Promise<void> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+
+        const updateQuery = `
+            UPDATE tontine_members
+            SET totalContribution = COALESCE(totalContribution, 0) + ?
+            WHERE id = ?
+        `;
+
+        await this.databaseService.execute(updateQuery, [amount, memberId]);
+    }
+
+    /**
      * Update the totalContribution for a member by summing all their collections
+     * @deprecated Use incrementMemberTotalContribution instead to avoid issues with partial local history
      * @param memberId ID of the tontine member
      */
     async updateMemberTotalContribution(memberId: string): Promise<void> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
 
         const updateQuery = `
-            UPDATE tontine_members 
+            UPDATE tontine_members
             SET totalContribution = (
-                SELECT COALESCE(SUM(amount), 0) 
-                FROM tontine_collections 
+                SELECT COALESCE(SUM(amount), 0)
+                FROM tontine_collections
                 WHERE tontineMemberId = ?
             )
             WHERE id = ?
         `;
 
         await this.databaseService.execute(updateQuery, [memberId, memberId]);
+    }
+
+    /**
+     * Update the totalContribution for ALL members by summing their collections.
+     * Useful after bulk sync operations to ensure consistency.
+     */
+    async updateAllMembersTotalContribution(): Promise<void> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+
+        const updateQuery = `
+            UPDATE tontine_members
+            SET totalContribution = (
+                SELECT COALESCE(SUM(amount), 0)
+                FROM tontine_collections
+                WHERE tontine_collections.tontineMemberId = tontine_members.id
+            )
+        `;
+
+        await this.databaseService.execute(updateQuery);
     }
 
     // ==================== SPECIFIC QUERY METHODS ====================
@@ -97,7 +142,7 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
 
         // Utilise JOIN pour supporter les données existantes (sans commercialUsername) et nouvelles
         const query = `
-          SELECT tc.* 
+          SELECT tc.*
           FROM tontine_collections tc
           INNER JOIN tontine_members tm ON tc.tontineMemberId = tm.id
           WHERE tm.commercialUsername = ? OR tc.commercialUsername = ?

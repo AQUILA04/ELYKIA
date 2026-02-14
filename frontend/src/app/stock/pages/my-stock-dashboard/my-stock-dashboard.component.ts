@@ -5,6 +5,8 @@ import { CommercialMonthlyStock } from '../../models/commercial-stock.model';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ClientService } from 'src/app/client/service/client.service';
 import { PageEvent } from '@angular/material/paginator';
+import {UserService} from "../../../user/service/user.service";
+import {UserProfile} from "../../../shared/models/user-profile.enum";
 
 @Component({
   selector: 'app-my-stock-dashboard',
@@ -24,16 +26,25 @@ export class MyStockDashboardComponent implements OnInit {
   totalElements: number = 0;
   pageSize: number = 20;
   pageIndex: number = 0;
+  isManager = false; // Changed declaration
+  isStoreKeeper = false; // Changed declaration
+  isPromoter = false; // Changed declaration
+  isSecretary = false;
 
   constructor(
     private commercialStockService: CommercialStockService,
     private authService: AuthService,
     private spinner: NgxSpinnerService,
-    private clientService: ClientService
+    private clientService: ClientService,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
+    this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE) || this.userService.hasProfile(UserProfile.ADMIN) || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
+    this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER);
+    this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
+    this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
     this.loadAgents();
     this.loadCurrentStock();
   }

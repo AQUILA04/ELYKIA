@@ -8,6 +8,7 @@ import { LoggerService } from './logger.service';
 import { Store } from '@ngrx/store';
 import { selectAuthUser, selectToken } from '../../store/auth/auth.selectors';
 import { TontineMemberView } from 'src/app/models/tontine.model';
+import { TontineCollectionRepository } from '../repositories/tontine-collection.repository';
 
 @Injectable({
     providedIn: 'root'
@@ -20,7 +21,8 @@ export class TontineService {
         private http: HttpClient,
         private dbService: DatabaseService,
         private log: LoggerService,
-        private store: Store
+        private store: Store,
+        private collectionRepo: TontineCollectionRepository
     ) {
         this.store.select(selectAuthUser).subscribe(user => {
             this.commercialUsername = user?.username;
@@ -109,95 +111,117 @@ export class TontineService {
     fetchAndSaveMembers(sessionId: string, page: number = 0, size: number = 100): Observable<any> {
         console.log(`TontineService: Fetching members for session ${sessionId}, page ${page}...`);
 
-        return this.getHeaders().pipe(
-            switchMap(headers => this.http.get<any>(`${this.apiUrl}/tontines/members?page=${page}&size=${size}`, { headers })),
-            switchMap(response => {
-                const pageData = response.data;
-                const members = pageData.content || [];
-                const currentPage = pageData.page.number || 0;
-                const totalPages = pageData.page.totalPages || 1;
-                const totalElements = pageData.page.totalElements || 0;
+        return forkJoin({
+            headers: this.getHeaders(),
+            unsyncedTotals: from(this.dbService.getUnsyncedCollectionsTotals())
+        }).pipe(
+            switchMap(({ headers, unsyncedTotals }) => {
+                // Convert unsyncedTotals to Map for easy lookup
+                const unsyncedMap = new Map<string, number>();
+                unsyncedTotals.forEach(t => unsyncedMap.set(t.tontineMemberId, t.total));
 
-                console.log(`TontineService: Page ${currentPage + 1}/${totalPages} - ${members.length} members found (Total: ${totalElements})`);
+                return this.http.get<any>(`${this.apiUrl}/tontines/members?page=${page}&size=${size}`, { headers }).pipe(
+                    switchMap(response => {
+                        const pageData = response.data;
+                        const members = pageData.content || [];
+                        const currentPage = pageData.page.number || 0;
+                        const totalPages = pageData.page.totalPages || 1;
+                        const totalElements = pageData.page.totalElements || 0;
 
-                if (members.length === 0) {
-                    console.log('TontineService: No members on this page.');
-                    return of(null);
-                }
+                        console.log(`TontineService: Page ${currentPage + 1}/${totalPages} - ${members.length} members found (Total: ${totalElements})`);
 
-                // Map API response to DB structure
-                const mappedMembers = members.map((m: any) => ({
-                    id: m.id,
-                    tontineSessionId: sessionId,
-                    clientId: m.client?.id,
-                    commercialUsername: this.commercialUsername,
-                    totalContribution: m.totalContribution,
-                    deliveryStatus: m.deliveryStatus,
-                    registrationDate: m.registrationDate,
-                    frequency: m.frequency,
-                    amount: m.amount,
-                    notes: m.notes,
-                    isLocal: false,
-                    isSync: true
-                }));
-
-                const deliveries: any[] = [];
-                members.forEach((m: any) => {
-                    if (m.delivery) {
-                        deliveries.push({
-                            id: m.delivery.id,
-                            tontineMemberId: m.id,
-                            commercialUsername: this.commercialUsername,
-                            requestDate: m.delivery.requestDate,
-                            deliveryDate: m.delivery.deliveryDate,
-                            totalAmount: m.delivery.totalAmount,
-                            status: m.delivery.status,
-                            isLocal: false,
-                            isSync: true,
-                            items: m.delivery.items ? m.delivery.items.map((i: any) => {
-                                // API returns 'articles' (plural) or 'article', and also 'articleId' directly
-                                const articleId = i.articleId || i.articles?.id || i.article?.id;
-
-                                return {
-                                    id: i.id,
-                                    tontineDeliveryId: m.delivery.id,
-                                    articleId: articleId,
-                                    quantity: i.quantity,
-                                    unitPrice: i.unitPrice,
-                                    totalPrice: i.totalPrice
-                                };
-                            }) : []
-                        });
-                    }
-                });
-
-                console.log(`TontineService: Saving ${mappedMembers.length} members and ${deliveries.length} deliveries from page ${currentPage + 1}...`);
-
-                // Save current batch immediately
-                return from(this.dbService.saveTontineMembers(mappedMembers)).pipe(
-                    switchMap(() => {
-                        if (deliveries.length > 0) {
-                            return from(this.dbService.saveTontineDeliveries(deliveries));
-                        }
-                        return of(void 0);
-                    }),
-                    tap(() => console.log(`TontineService: Page ${currentPage + 1}/${totalPages} saved successfully.`)),
-
-                    switchMap(() => {
-                        // Check if there are more pages to fetch
-                        if (currentPage < totalPages - 1) {
-                            console.log(`TontineService: Fetching next page (${currentPage + 2}/${totalPages})...`);
-                            // Recursively fetch next page
-                            return this.fetchAndSaveMembers(sessionId, currentPage + 1, size);
-                        } else {
-                            console.log(`TontineService: All ${totalPages} pages fetched and saved successfully.`);
+                        if (members.length === 0) {
+                            console.log('TontineService: No members on this page.');
                             return of(null);
                         }
-                    }),
-                    catchError(err => {
-                        console.error(`TontineService: Error saving page ${currentPage + 1}:`, err);
-                        this.log.log(`TontineService: Error saving page ${currentPage + 1}: ${JSON.stringify(err)}`);
-                        throw err;
+
+                        // Map API response to DB structure
+                        const mappedMembers = members.map((m: any) => {
+                            // Add local unsynced total to server total to prevent "dip"
+                            const serverTotal = m.totalContribution || 0;
+                            const localUnsynced = unsyncedMap.get(m.id) || 0;
+                            const adjustedTotal = serverTotal + localUnsynced;
+
+                            return {
+                                id: m.id,
+                                tontineSessionId: sessionId,
+                                clientId: m.client?.id,
+                                commercialUsername: this.commercialUsername,
+                                totalContribution: adjustedTotal,
+                                deliveryStatus: m.deliveryStatus,
+                                registrationDate: m.registrationDate,
+                                frequency: m.frequency,
+                                amount: m.amount,
+                                notes: m.notes,
+                                isLocal: false,
+                                isSync: true
+                            };
+                        });
+
+                        const deliveries: any[] = [];
+                        members.forEach((m: any) => {
+                            if (m.delivery) {
+                                deliveries.push({
+                                    id: m.delivery.id,
+                                    tontineMemberId: m.id,
+                                    commercialUsername: this.commercialUsername,
+                                    requestDate: m.delivery.requestDate,
+                                    deliveryDate: m.delivery.deliveryDate,
+                                    totalAmount: m.delivery.totalAmount,
+                                    status: m.delivery.status,
+                                    isLocal: false,
+                                    isSync: true,
+                                    items: m.delivery.items ? m.delivery.items.map((i: any) => {
+                                        // API returns 'articles' (plural) or 'article', and also 'articleId' directly
+                                        const articleId = i.articleId || i.articles?.id || i.article?.id;
+
+                                        return {
+                                            id: i.id,
+                                            tontineDeliveryId: m.delivery.id,
+                                            articleId: articleId,
+                                            quantity: i.quantity,
+                                            unitPrice: i.unitPrice,
+                                            totalPrice: i.totalPrice
+                                        };
+                                    }) : []
+                                });
+                            }
+                        });
+
+                        console.log(`TontineService: Saving ${mappedMembers.length} members and ${deliveries.length} deliveries from page ${currentPage + 1}...`);
+
+                        // Save current batch immediately
+                        return from(this.dbService.saveTontineMembers(mappedMembers)).pipe(
+                            switchMap(() => {
+                                if (deliveries.length > 0) {
+                                    return from(this.dbService.saveTontineDeliveries(deliveries));
+                                }
+                                return of(void 0);
+                            }),
+                            tap(() => console.log(`TontineService: Page ${currentPage + 1}/${totalPages} saved successfully.`)),
+
+                            switchMap(() => {
+                                // Check if there are more pages to fetch
+                                if (currentPage < totalPages - 1) {
+                                    console.log(`TontineService: Fetching next page (${currentPage + 2}/${totalPages})...`);
+                                    // Recursively fetch next page
+                                    return this.fetchAndSaveMembers(sessionId, currentPage + 1, size);
+                                } else {
+                                    console.log(`TontineService: All ${totalPages} pages fetched and saved successfully.`);
+
+                                    // Recalculate totals to include local unsynced collections
+                                    console.log('TontineService: Recalculating member totals after member sync...');
+                                    return from(this.collectionRepo.updateAllMembersTotalContribution()).pipe(
+                                        map(() => null)
+                                    );
+                                }
+                            }),
+                            catchError(err => {
+                                console.error(`TontineService: Error saving page ${currentPage + 1}:`, err);
+                                this.log.log(`TontineService: Error saving page ${currentPage + 1}: ${JSON.stringify(err)}`);
+                                throw err;
+                            })
+                        );
                     })
                 );
             }),
@@ -292,7 +316,8 @@ export class TontineService {
                 console.log(`TontineService: Collections Page ${currentPage + 1}/${totalPages} - ${collections.length} collections found (Total: ${totalElements})`);
 
                 if (collections.length === 0) {
-                    return of(null);
+                    // Even if no collections, we should update totals to be safe
+                    return from(this.collectionRepo.updateAllMembersTotalContribution()).pipe(map(() => null));
                 }
 
                 // Map API response to DB structure
@@ -319,7 +344,8 @@ export class TontineService {
                             return this.fetchAndSaveCollections(currentPage + 1, size);
                         } else {
                             console.log(`TontineService: All ${totalPages} collections pages fetched and saved successfully.`);
-                            return of(null);
+                            // After all collections are saved, update member totals
+                            return from(this.collectionRepo.updateAllMembersTotalContribution()).pipe(map(() => null));
                         }
                     }),
                     catchError(err => {

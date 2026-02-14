@@ -6,7 +6,7 @@
   </div>
 
   <div class="filter-row">
-    <div class="agent-select">
+    <div class="agent-select" *ngIf="this.isManager || this.isSecretary">
       <ng-select [items]="agents" bindLabel="username" bindValue="username" placeholder="Sélectionner un commercial"
         [searchFn]="searchAgent" (change)="onAgentChange($event)">
         <ng-template ng-option-tmp let-item="item">

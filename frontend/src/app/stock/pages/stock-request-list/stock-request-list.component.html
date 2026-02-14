@@ -22,6 +22,7 @@
         <tr>
           <th>Référence</th>
           <th>Date Demande</th>
+          <th>Date de livraison</th>
           <th>Commercial</th>
           <th>Statut</th>
           <th class="text-right">Actions</th>
@@ -31,6 +32,7 @@
         <tr *ngFor="let req of requests">
           <td>{{ req.reference || '-' }}</td>
           <td>{{ req.requestDate | date:'dd/MM/yyyy' }}</td>
+          <td>{{ (req.deliveryDate | date:'dd/MM/yyyy') || '-' }}</td>
           <td>{{ req.collector }}</td>
           <td>
             <span class="badge" [ngClass]="getStatusBadge(req.status!)">{{ getStatusLabel(req.status) }}</span>
@@ -75,7 +77,9 @@
         <div class="row mb-3">
           <div class="col-md-6">
             <p><strong>Commercial:</strong> {{ selectedRequest.collector }}</p>
-            <p><strong>Date:</strong> {{ selectedRequest.requestDate | date:'dd/MM/yyyy' }}</p>
+            <p><strong>Date demande:</strong> {{ selectedRequest.requestDate | date:'dd/MM/yyyy' }}</p>
+            <p><strong>Date validation:</strong> {{ (selectedRequest.validationDate | date:'dd/MM/yyyy') || '-' }}</p>
+            <p><strong>Date livraison:</strong> {{ (selectedRequest.deliveryDate | date:'dd/MM/yyyy') || '-' }}</p>
           </div>
           <div class="col-md-6 text-right">
             <p><strong>Statut:</strong> <span class="badge" [ngClass]="getStatusBadge(selectedRequest.status!)">{{
