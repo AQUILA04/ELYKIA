@@ -14,10 +14,10 @@ import {
   formatDateTime,
   TontineMemberDeliveryStatus,
   TontineSessionStatus,
-  TONTINE_DELIVERY_STATUS_LABELS, // Added import
-  TONTINE_DELIVERY_STATUS_COLORS // Added import
+  TONTINE_DELIVERY_STATUS_LABELS,
+  TONTINE_DELIVERY_STATUS_COLORS
 } from '../../types/tontine.types';
-import { AuthService } from 'src/app/auth/service/auth.service'; // Assuming this path for Auth service
+import { AuthService } from 'src/app/auth/service/auth.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { RecordCollectionModalComponent } from '../../components/modals/record-collection-modal/record-collection-modal.component';
 import { DeliveryArticleSelectionModalComponent } from '../../components/modals/delivery-article-selection-modal/delivery-article-selection-modal.component';
@@ -33,8 +33,8 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   member: TontineMember | null = null;
   collections: readonly TontineCollection[] = [];
   loading: boolean = false;
-  currentSessionStatus: TontineSessionStatus | null = null; // New property
-  isSessionActive: boolean = false; // New property
+  currentSessionStatus: TontineSessionStatus | null = null;
+  isSessionActive: boolean = false;
 
   monthsList = [
     'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -48,7 +48,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     private deliveryService: TontineDeliveryService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private authService: AuthService, // Injected AuthService
+    private authService: AuthService,
     private alertService: AlertService
   ) {}
 
@@ -158,7 +158,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   getTheoreticalSocietyShare(): number {
     if (!this.member || !this.member.tontineSession) return 0;
 
-    const dailyAmount = this.member.amount;
+    const dailyAmount = this.member.amount ?? 0;
     const startDateStr = this.member.tontineSession.startDate;
     const registrationDateStr = this.member.registrationDate;
 
@@ -168,8 +168,6 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     const now = new Date();
 
     // Logic to use registration date if it's later than session start
-    // Note: Ideally this logic should match the backend parameter exactly.
-    // Here we assume the parameter is enabled or we default to this behavior as it's safer for display.
     if (registrationDateStr) {
       const regDate = new Date(registrationDateStr);
       if (regDate > startDate) {
@@ -192,7 +190,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   getSocietyShareStatusColor(): string {
     const paid = this.member?.societyShare || 0;
     const due = this.getTheoreticalSocietyShare();
-    return paid < due ? 'warn' : 'primary'; // 'warn' is usually red in Material
+    return paid < due ? 'warn' : 'primary';
   }
 
   async onValidateDelivery(): Promise<void> {
@@ -272,16 +270,12 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result === true && this.member) { // Check for true to indicate successful creation
+      if (result === true && this.member) {
         this.showSuccess('Livraison créée avec succès');
         this.loadMemberDetails(this.member!.id);
       }
     });
   }
-
-
-
-
 
   goBack(): void {
     this.router.navigate(['/tontine']);

@@ -106,6 +106,10 @@ import { ParameterListComponent } from './parameters/parameter-list/parameter-li
 import { ParameterEditComponent } from './parameters/parameter-edit/parameter-edit.component';
 import { CashDepositModalComponent } from './report/components/cash-deposit-modal/cash-deposit-modal.component';
 import { DailyStakeModalComponent } from './credit/components/daily-stake-modal/daily-stake-modal.component';
+import { ClientKpiCardsComponent } from './client/components/client-kpi-cards/client-kpi-cards.component';
+import { ClientInfoCardComponent } from './client/components/client-info-card/client-info-card.component';
+import { ClientCreditListComponent } from './client/components/client-credit-list/client-credit-list.component';
+import { ClientCotisationHistoryComponent } from './client/components/client-cotisation-history/client-cotisation-history.component';
 
 @NgModule({
   declarations: [
@@ -176,7 +180,11 @@ import { DailyStakeModalComponent } from './credit/components/daily-stake-modal/
     ParameterListComponent,
     ParameterEditComponent,
     CashDepositModalComponent,
-    DailyStakeModalComponent
+    DailyStakeModalComponent,
+    ClientKpiCardsComponent,
+    ClientInfoCardComponent,
+    ClientCreditListComponent,
+    ClientCotisationHistoryComponent
     // --- NOUVELLES COMPOSANTS DÉPLACÉS DANS SHARED ---
   ],
   imports: [

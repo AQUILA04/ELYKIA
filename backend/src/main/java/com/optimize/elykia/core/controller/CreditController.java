@@ -9,6 +9,7 @@ import com.optimize.elykia.core.dto.MergeCreditDto;
 import com.optimize.elykia.core.entity.Credit;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.repository.spec.CreditSpecification;
+import com.optimize.elykia.core.service.CreditArticlesService;
 import com.optimize.elykia.core.service.CreditReturnHistoryService;
 import com.optimize.elykia.core.service.CreditService;
 import com.optimize.elykia.core.service.CreditTimelineService;
@@ -42,6 +43,7 @@ public class CreditController {
     private final CreditTimelineService creditTimelineService;
     private final PdfService pdfService;
     private final CreditReturnHistoryService creditReturnHistoryService;
+    private final CreditArticlesService creditArticlesService;
 
     @PostMapping
     public ResponseEntity<Response> createCredit(@RequestBody @Valid CreditDto dto) throws Exception {
@@ -268,6 +270,12 @@ public class CreditController {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getTimelines(creditId, pageable)), HttpStatus.OK);
     }
 
+    @GetMapping(value = "timelines/by-client/{clientId}")
+    public ResponseEntity<Response> getTimelinesByClient(@PathVariable Long clientId, Pageable pageable) {
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getTimelinesByClient(clientId, pageable)), HttpStatus.OK);
+    }
+
     @GetMapping(value = "history/by-client/{clientId}")
     public ResponseEntity<Response> getCreditsHistoryByClient(@PathVariable Long clientId, Pageable pageable) {
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
@@ -303,5 +311,10 @@ public class CreditController {
     public ResponseEntity<Response> mergeCredits(@RequestBody @Valid MergeCreditDto dto) {
         return new ResponseEntity<>(ResponseUtil.successResponse(
             creditService.mergeCredits(dto)), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "{creditId}/articles")
+    public ResponseEntity<Response> getCreditArticles(@PathVariable Long creditId) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditArticlesService.getRepository().findByCredit_id(creditId)), HttpStatus.OK);
     }
 }

@@ -1,0 +1,55 @@
+<mat-card class="profile-card h-100">
+  <div class="profile-header text-center p-4">
+    <div class="profile-image-wrapper mb-3">
+      <img [src]="safeProfilPhotoUrl || 'https://placehold.co/120x120/003366/FFFFFF?text=Profil'"
+           alt="Photo de profil" class="profile-photo">
+    </div>
+    <h2 class="mb-0">{{ client.firstname }} {{ client.lastname }}</h2>
+    <p class="text-muted">{{ client.occupation || 'Occupation non spécifiée' }}</p>
+  </div>
+  <mat-divider></mat-divider>
+  <mat-card-content class="p-0">
+    <mat-list>
+      <mat-list-item>
+        <mat-icon mat-list-icon>phone</mat-icon>
+        <div mat-line><strong>Téléphone</strong></div>
+        <div mat-line>{{ client.phone || 'Non spécifié' }}</div>
+      </mat-list-item>
+      <mat-divider></mat-divider>
+      <mat-list-item>
+        <mat-icon mat-list-icon>location_on</mat-icon>
+        <div mat-line><strong>Adresse</strong></div>
+        <div mat-line>{{ client.address || 'Non spécifiée' }}</div>
+      </mat-list-item>
+      <mat-divider></mat-divider>
+      <mat-list-item>
+        <mat-icon mat-list-icon>map</mat-icon>
+        <div mat-line><strong>Localité</strong></div>
+        <div mat-line>{{ client.quarter || 'Non spécifiée' }}</div>
+      </mat-list-item>
+      <mat-divider></mat-divider>
+      <mat-list-item>
+        <mat-icon mat-list-icon>badge</mat-icon>
+        <div mat-line><strong>Agent associé</strong></div>
+        <div mat-line>{{ client.collector || 'Non assigné' }}</div>
+      </mat-list-item>
+      <mat-divider></mat-divider>
+      <mat-list-item>
+        <mat-icon mat-list-icon>fingerprint</mat-icon>
+        <div mat-line><strong>Identité</strong></div>
+        <div mat-line>
+          <span *ngIf="client.cardType">{{ client.cardType }}</span>
+          <span *ngIf="client.cardType && client.cardID"> - </span>
+          <span *ngIf="client.cardID">{{ client.cardID }}</span>
+          <span *ngIf="!client.cardType && !client.cardID">Non renseignée</span>
+        </div>
+      </mat-list-item>
+      <mat-divider *ngIf="client.iddoc"></mat-divider>
+      <mat-list-item *ngIf="client.iddoc">
+        <mat-icon mat-list-icon>description</mat-icon>
+        <div mat-line><strong>Document</strong></div>
+        <div mat-line><a [href]="client.iddoc" target="_blank">Voir le document</a></div>
+      </mat-list-item>
+    </mat-list>
+  </mat-card-content>
+</mat-card>

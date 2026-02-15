@@ -38,6 +38,7 @@ export class DailyReportComponent implements OnInit {
     // UI State
     isLoading = false;
     isPromoter = false;
+    isManager = false;
     showMargins = false; // Toggle for margin visibility
 
     // Operations Log
@@ -70,6 +71,7 @@ export class DailyReportComponent implements OnInit {
     ngOnInit(): void {
         // Check if profil is object with name or just string, handling both just in case
         this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
+        this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
 
         if (!this.isPromoter) {
             this.loadAgents();
@@ -250,6 +252,18 @@ export class DailyReportComponent implements OnInit {
         return this.totalAmountToDeposit - this.totalAmountDeposited;
     }
 
+    get isSingleDay(): boolean {
+        if (this.selectedFilter === 'today') {
+            return true;
+        }
+        if (this.selectedFilter === 'custom' && this.range.value.start && this.range.value.end) {
+            const start = this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd');
+            const end = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd');
+            return start === end;
+        }
+        return false;
+    }
+
     openDepositModal(report?: DailyCommercialReport) {
         const commercialToUse = report?.commercialUsername || this.selectedAgent;
 
@@ -261,12 +275,20 @@ export class DailyReportComponent implements OnInit {
         const amountDeposited = report ? (report.totalAmountDeposited || 0) : this.totalAmountDeposited;
         const remaining = amountToDeposit - amountDeposited;
 
+        // Determine the date to pass
+        let depositDate: string | null = null;
+        if (this.isSingleDay) {
+            // If single day, use the end date (which is same as start date)
+            depositDate = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd');
+        }
+
         const dialogRef = this.dialog.open(CashDepositModalComponent, {
             width: '800px',
             data: {
                 commercialUsername: commercialToUse,
                 totalAmountToDeposit: amountToDeposit,
-                remainingAmount: remaining
+                remainingAmount: remaining,
+                date: depositDate // Pass the date
             },
             disableClose: true
         });

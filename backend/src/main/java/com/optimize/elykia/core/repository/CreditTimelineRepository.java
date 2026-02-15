@@ -48,4 +48,6 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
     Page<CreditTimeline> findByCredit_id(Long creditId, Pageable pageable);
 
     boolean existsByReference(String reference);
+
+    Page<CreditTimeline> findByCredit_Client_Id(Long clientId, Pageable pageable);
 }

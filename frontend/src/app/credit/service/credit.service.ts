@@ -113,7 +113,8 @@ export class CreditService extends BaseHttpService {
     const headers = this.getHeader();
     let params = new HttpParams()
       .set('page', page.toString())
-      .set('size', size.toString());
+      .set('size', size.toString())
+      .set('sort', 'id,desc'); // Ajout du tri par défaut
 
     return this.http.post(`${this.apiUrl}/fetch`, searchDto, { headers, params });
   }
@@ -191,7 +192,8 @@ export class CreditService extends BaseHttpService {
   }
 
   getCreditHistoryByClient(clientId: number, page: number, size: number, sort: string): Observable<any> {
-    return this.get(`${this.apiUrl}/history/by-client/${clientId}?page=${page}&size=${size}&sort=${sort}`);
+    // Updated to use the new endpoint for timelines (cotisations)
+    return this.get(`${this.apiUrl}/timelines/by-client/${clientId}?page=${page}&size=${size}&sort=${sort}`);
   }
 
   getPendingCreditsByClient(clientId: number, page: number, size: number, sort: string): Observable<any> {
@@ -259,6 +261,10 @@ export class CreditService extends BaseHttpService {
 
   makeDailyStake(dto: CreditTimelineDto): Observable<any> {
     return this.post(`${this.apiUrl}/daily-stake`, dto);
+  }
+
+  getCreditArticles(creditId: number): Observable<any> {
+    return this.get(`${this.apiUrl}/${creditId}/articles`);
   }
 
 

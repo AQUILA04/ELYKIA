@@ -1005,6 +1005,10 @@ public class CreditService extends GenericService<Credit, Long> {
         return creditTimelineRepository.findByCredit_id(creditId, pageable);
     }
 
+    public Page<CreditTimeline> getTimelinesByClient(Long clientId, Pageable pageable) {
+        return creditTimelineRepository.findByCredit_Client_Id(clientId, pageable);
+    }
+
     @Transactional
     public void updatePromoterCreditStatusBatch() {
         int page = 0;
