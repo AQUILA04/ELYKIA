@@ -113,10 +113,11 @@ export class SynchronizationService {
     const unsyncedAccounts = await this.getUnsyncedAccounts();
     const updatedAccounts = await this.getUpdatedAccounts();
     const unsyncedTontineMembers = await this.getUnsyncedTontineMembers();
+    const modifiedTontineMembers = await this.getModifiedTontineMembers();
     const unsyncedTontineCollections = await this.getUnsyncedTontineCollections();
     const unsyncedTontineDeliveries = await this.getUnsyncedTontineDeliveries();
 
-    const totalItems = unsyncedLocalities.length + unsyncedClients.length + updatedClients.length + updatedPhotoClients.length + updatedPhotoUrlClients.length + unsyncedDistributions.length + unsyncedOrders.length + unsyncedRecoveries + unsyncedAccounts.length + updatedAccounts.length + unsyncedTontineMembers.length + unsyncedTontineCollections.length + unsyncedTontineDeliveries.length;
+    const totalItems = unsyncedLocalities.length + unsyncedClients.length + updatedClients.length + updatedPhotoClients.length + updatedPhotoUrlClients.length + unsyncedDistributions.length + unsyncedOrders.length + unsyncedRecoveries + unsyncedAccounts.length + updatedAccounts.length + unsyncedTontineMembers.length + modifiedTontineMembers.length + unsyncedTontineCollections.length + unsyncedTontineDeliveries.length;
     let processedItems = 0;
 
     this.store.dispatch(updateSyncProgress({ progress: { totalItems, processedItems, percentage: 0 } }));
@@ -165,9 +166,12 @@ export class SynchronizationService {
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'recoveries' } }));
       processedItems = await this.syncAllRecoveries(result, processedItems, totalItems);
 
-      // 6.1 Synchroniser les membres de tontine
+      // 6.1 Synchroniser les membres de tontine (Nouveaux)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-members' } }));
       processedItems = await this.syncAllTontineMembers(result, unsyncedTontineMembers, processedItems, totalItems);
+
+      // 6.1.5 Synchroniser les membres de tontine (Modifiés)
+      processedItems = await this.syncModifiedTontineMembers(result, modifiedTontineMembers, processedItems, totalItems);
 
       // 6.2 Synchroniser les collectes de tontine
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-collections' } }));
@@ -1557,6 +1561,22 @@ export class SynchronizationService {
     }
   }
 
+  async getModifiedTontineMembers(): Promise<TontineMember[]> {
+    try {
+      const user = this.authService.currentUser;
+      if (!user) return [];
+
+      const result = await this.databaseService.query(
+        `SELECT * FROM tontine_members WHERE isSync = 0 AND isLocal = 0 AND commercialUsername = ?`,
+        [user.username]
+      );
+      return result.values?.map((row: any) => this.mapRowToTontineMember(row)) || [];
+    } catch (error) {
+      console.error('Erreur lors de la récupération des membres de tontine modifiés:', error);
+      return [];
+    }
+  }
+
   async getUnsyncedTontineCollections(): Promise<TontineCollection[]> {
     try {
       const user = this.authService.currentUser;
@@ -1802,6 +1822,22 @@ export class SynchronizationService {
     }
   }
 
+  private async markTontineMemberAsUpdated(localId: string): Promise<void> {
+    if (!this.databaseService) {
+      return;
+    }
+    try {
+      await this.databaseService.execute(
+        `UPDATE tontine_members SET isSync = 1, syncDate = datetime('now', 'localtime') WHERE id = ?`,
+        [localId]
+      );
+      console.log(`Tontine member ${localId} marked as updated/synced.`);
+    } catch (error) {
+      console.error(`Erreur lors du marquage du membre de tontine ${localId} comme mis à jour:`, error);
+      throw error;
+    }
+  }
+
   // ==================== TONTINE SYNC SINGLE ENTITY METHODS ====================
 
   async syncSingleTontineMember(member: TontineMember): Promise<TontineMemberSyncResponse> {
@@ -1872,6 +1908,42 @@ export class SynchronizationService {
   }
 
   // ==================== TONTINE SYNC ALL METHODS ====================
+
+  async updateSingleTontineMember(member: TontineMember): Promise<TontineMemberSyncResponse> {
+    const syncRequest = await this.prepareTontineMemberSyncRequest(member);
+    const headers = this.getAuthHeaders();
+    return firstValueFrom(
+      this.http.put<ApiResponse<TontineMemberSyncResponse>>(`${this.baseUrl}/api/v1/tontines/members/${member.id}`, syncRequest, { headers })
+        .pipe(
+          switchMap(async (response) => {
+            if (!response || !response.data) {
+              const errorMessage = response?.message || 'La mise à jour du membre de tontine a renvoyé une réponse vide ou invalide.';
+              throw new Error(errorMessage);
+            }
+            const syncedMember = response.data;
+            await this.markTontineMemberAsUpdated(member.id);
+            return syncedMember;
+          }),
+          catchError(this.handleError)
+        )
+    );
+  }
+
+  private async syncModifiedTontineMembers(result: SyncBatchResult, modifiedMembers: TontineMember[], processedItems: number, totalItems: number): Promise<number> {
+    for (const member of modifiedMembers) {
+      try {
+        await this.updateSingleTontineMember(member);
+        // We reuse the same counter for success
+        result.tontineMembersSync.success++;
+      } catch (error) {
+        result.tontineMembersSync.errors++;
+        await this.logSyncError('tontine-member', member.id, 'UPDATE', error, member, this.getTontineMemberDisplayName(member), member);
+      }
+      processedItems++;
+      this.store.dispatch(updateSyncProgress({ progress: { processedItems, percentage: (processedItems / totalItems) * 100 } }));
+    }
+    return processedItems;
+  }
 
   private async syncAllTontineMembers(result: SyncBatchResult, unsyncedMembers: TontineMember[], processedItems: number, totalItems: number): Promise<number> {
     for (const member of unsyncedMembers) {

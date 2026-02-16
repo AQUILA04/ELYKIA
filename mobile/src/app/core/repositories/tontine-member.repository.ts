@@ -75,4 +75,25 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
         return result.values && result.values[0] && result.values[0].count > 0;
     }
 
+    /**
+     * Update a tontine member
+     * @param member The member to update
+     */
+    async updateMember(member: TontineMember): Promise<void> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+
+        const query = `
+            UPDATE tontine_members
+            SET frequency = ?, amount = ?, notes = ?, isSync = 0, syncDate = NULL
+            WHERE id = ?
+        `;
+
+        await this.databaseService.execute(query, [
+            member.frequency,
+            member.amount,
+            member.notes,
+            member.id
+        ]);
+    }
+
 }
