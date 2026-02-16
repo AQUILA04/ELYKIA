@@ -96,6 +96,14 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
 
                 // Grouping Logic for 'todo' view
                 if (statusFilter === 'todo') {
+                    console.log('Dashboard: Raw filtered members for TODO:', filtered.map(m => ({
+                        id: m.id,
+                        name: m.clientName,
+                        quarter: m.clientQuarter,
+                        hasPaidToday: m.hasPaidToday,
+                        deliveryStatus: m.deliveryStatus
+                    })));
+
                     const groups: { [key: string]: any[] } = {};
                     filtered.forEach(m => {
                         const quarter = m.clientQuarter || 'Autre';

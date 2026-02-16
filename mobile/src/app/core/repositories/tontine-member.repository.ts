@@ -59,16 +59,31 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
                 c.phone as clientPhone,
                 c.quarter as clientQuarter,
                 CASE 
-                    WHEN tc.id IS NOT NULL THEN 1 
+                    WHEN EXISTS (
+                        SELECT 1 FROM tontine_collections tc 
+                        WHERE tc.tontineMemberId = tm.id 
+                        AND substr(tc.collectionDate, 1, 10) = ?
+                    ) THEN 1 
                     ELSE 0 
-                END as hasPaidToday
+                END as isPaidToday
             FROM tontine_members tm
             LEFT JOIN clients c ON tm.clientId = c.id
-            LEFT JOIN tontine_collections tc ON tm.id = tc.tontineMemberId AND substr(tc.collectionDate, 1, 10) = ?
             WHERE tm.tontineSessionId = ? AND tm.commercialUsername = ?
         `;
+
         const result = await this.databaseService.query(query, [today, sessionId, commercialUsername]);
-        return result.values || [];
+
+        if (result.values && result.values.length > 0) {
+            console.log('TontineMemberRepo: Sample Row:', JSON.stringify(result.values[0]));
+        } else {
+            console.log('TontineMemberRepo: No results found');
+        }
+
+        return (result.values || []).map((row: any) => ({
+            ...row,
+            hasPaidToday: !!row.isPaidToday,
+            clientQuarter: row.clientQuarter || row.quarter || 'Non défini'
+        }));
     }
 
     /**

@@ -197,21 +197,24 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
 
         try {
             // Check if client is already registered in this session
-            const clientExists = await this.tontineMemberRepo.checkClientExists(
-                this.sessionId,
-                this.selectedClient.id
-            );
+            // Skip this check in edit mode since the client is already associated with this member
+            if (!this.isEditMode) {
+                const clientExists = await this.tontineMemberRepo.checkClientExists(
+                    this.sessionId,
+                    this.selectedClient.id
+                );
 
-            if (clientExists) {
-                await loading.dismiss();
+                if (clientExists) {
+                    await loading.dismiss();
 
-                const alert = await this.alertCtrl.create({
-                    header: 'Client déjà enregistré',
-                    message: `${this.getClientDisplayName()} est déjà membre de cette session de tontine. Un client ne peut être enregistré qu'une seule fois par session.`,
-                    buttons: ['OK']
-                });
-                await alert.present();
-                return;
+                    const alert = await this.alertCtrl.create({
+                        header: 'Client déjà enregistré',
+                        message: `${this.getClientDisplayName()} est déjà membre de cette session de tontine. Un client ne peut être enregistré qu'une seule fois par session.`,
+                        buttons: ['OK']
+                    });
+                    await alert.present();
+                    return;
+                }
             }
 
             const formValue = this.registrationForm.value;

@@ -9,6 +9,7 @@ import { Store } from '@ngrx/store';
 import { selectAuthUser, selectToken } from '../../store/auth/auth.selectors';
 import { TontineMemberView } from 'src/app/models/tontine.model';
 import { TontineCollectionRepository } from '../repositories/tontine-collection.repository';
+import { TontineMemberRepository } from '../repositories/tontine-member.repository';
 
 @Injectable({
     providedIn: 'root'
@@ -22,12 +23,17 @@ export class TontineService {
         private dbService: DatabaseService,
         private log: LoggerService,
         private store: Store,
-        private collectionRepo: TontineCollectionRepository
+        private collectionRepo: TontineCollectionRepository,
+        private memberRepo: TontineMemberRepository // Inject repository
     ) {
         this.store.select(selectAuthUser).subscribe(user => {
             this.commercialUsername = user?.username;
         });
     }
+
+    // ... (existing code)
+
+
 
     private getHeaders(): Observable<HttpHeaders> {
         return this.store.select(selectToken).pipe(
@@ -385,7 +391,7 @@ export class TontineService {
      */
     getMembers(sessionId: string): Observable<TontineMemberView[]> {
         if (!this.commercialUsername) return of([]);
-        return from(this.dbService.getTontineMembers(sessionId, this.commercialUsername)) as Observable<TontineMemberView[]>;
+        return from(this.memberRepo.getBySessionAndCommercial(sessionId, this.commercialUsername));
     }
 
     /**

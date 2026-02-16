@@ -2511,6 +2511,21 @@ export class DatabaseService {
     }
   }
 
+  async getUnsyncedTontineMembers(): Promise<any[]> {
+    if (!this.db) throw new Error('Database not initialized.');
+
+    // Join with clients to get the name for display purposes
+    const query = `
+      SELECT tm.*, c.fullName as clientName
+      FROM tontine_members tm
+      LEFT JOIN clients c ON tm.clientId = c.id
+      WHERE tm.isSync = 0
+    `;
+
+    const result = await this.db.query(query);
+    return result.values || [];
+  }
+
   async getUpdatedClients(): Promise<Client[]> {
     if (!this.db) {
       throw new Error('Database not initialized.');
@@ -3510,18 +3525,7 @@ export class DatabaseService {
     return ret.values || [];
   }
 
-  /**
-   * Récupérer les membres tontine non synchronisés
-   */
-  async getUnsyncedTontineMembers(): Promise<any[]> {
-    if (!this.db) {
-      console.error('Database not initialized.');
-      return [];
-    }
-    const sql = `SELECT * FROM tontine_members WHERE isSync = 0 AND isLocal = 1`;
-    const ret = await this.db.query(sql);
-    return ret.values || [];
-  }
+
 
   /**
    * Récupérer les membres tontine synchronisés
