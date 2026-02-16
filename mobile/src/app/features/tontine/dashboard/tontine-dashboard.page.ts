@@ -43,10 +43,8 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
         private actionSheetCtrl: ActionSheetController,
     ) {
         this.session$ = this.store.select(selectTontineSession).pipe(
-            tap(session => console.log('Dashboard: Session from store:', session))
         );
         this.members$ = this.store.select(selectTontineMembers).pipe(
-            tap(members => console.log('Dashboard: Members from store:', members))
         );
 
         this.currentYear$ = this.session$.pipe(

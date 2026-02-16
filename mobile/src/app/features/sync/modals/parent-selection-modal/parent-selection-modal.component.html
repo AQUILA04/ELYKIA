@@ -18,12 +18,8 @@
     </div>
 
     <!-- Barre de recherche -->
-    <ion-searchbar
-      [(ngModel)]="searchTerm"
-      (ionInput)="onSearchChange($event)"
-      placeholder="Rechercher par nom ou ID..."
-      debounce="300"
-    ></ion-searchbar>
+    <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="onSearchChange($event)"
+      placeholder="Rechercher par nom ou ID..." debounce="300"></ion-searchbar>
 
     <!-- Loading -->
     <div *ngIf="loading" class="loading-container">
@@ -33,23 +29,17 @@
 
     <!-- Liste des parents -->
     <ion-list *ngIf="!loading && filteredParents.length > 0">
-      <ion-item
-        *ngFor="let parent of filteredParents"
-        [class.selected]="parent.id === selectedParentId"
-        (click)="selectParent(parent)"
-        button
-      >
+      <ion-item *ngFor="let parent of filteredParents" [class.selected]="parent.id === selectedParentId"
+        (click)="selectParent(parent)" button>
         <ion-label>
           <h2>{{ getParentName(parent) }}</h2>
           <p>{{ getParentDetails(parent) }}</p>
-          <p class="parent-id">ID: {{ parent.id }}</p>
+          <p class="parent-id">
+            ID: {{ parent.id }}
+            <ion-badge color="medium" *ngIf="parent.id === currentParentId" class="ml-2">ACTUEL</ion-badge>
+          </p>
         </ion-label>
-        <ion-icon
-          *ngIf="parent.id === selectedParentId"
-          name="checkmark-circle"
-          slot="end"
-          color="success"
-        ></ion-icon>
+        <ion-icon *ngIf="parent.id === selectedParentId" name="checkmark-circle" slot="end" color="success"></ion-icon>
       </ion-item>
     </ion-list>
 
@@ -68,11 +58,7 @@
       <ion-button expand="block" fill="outline" (click)="dismiss()">
         Annuler
       </ion-button>
-      <ion-button
-        expand="block"
-        [disabled]="!selectedParentId"
-        (click)="validate()"
-      >
+      <ion-button expand="block" [disabled]="!selectedParentId" (click)="validate()">
         <ion-icon name="checkmark" slot="start"></ion-icon>
         Valider
       </ion-button>

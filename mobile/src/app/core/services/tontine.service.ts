@@ -85,12 +85,10 @@ export class TontineService {
         return this.getHeaders().pipe(
             switchMap(headers => this.http.get<any>(`${this.apiUrl}/tontines/sessions/current`, { headers })),
             map(response => {
-                console.log('TontineService: Session API response:', response);
                 return response.data;
             }),
             switchMap(session => {
                 if (session) {
-                    console.log('TontineService: Saving session to local DB...', session);
                     return from(this.dbService.saveTontineSession(session)).pipe(
                         map(() => session),
                         catchError(err => {
@@ -404,7 +402,6 @@ export class TontineService {
         return from(this.dbService.getTontineCollectionsByCommercial(username)).pipe(
             tap(collections => {
                 console.log('TontineService.getCollections: Retrieved', collections?.length || 0, 'collections');
-                console.log('TontineService.getCollections: Data =', collections);
             })
         );
     }
@@ -427,11 +424,10 @@ export class TontineService {
             switchMap(headers => this.http.get<any>(`${this.apiUrl}/tontines/stock`, { headers })),
             switchMap(response => {
                 // Handle case where response.data is null or undefined
-                const stocks = response.data || [];
+                const stocks = response.data.content || [];
 
                 // Ensure stocks is an array before checking length or mapping
                 if (!Array.isArray(stocks)) {
-                    console.warn('TontineService: Stocks response data is not an array:', stocks);
                     return of(null);
                 }
 

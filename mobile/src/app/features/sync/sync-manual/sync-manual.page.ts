@@ -215,7 +215,7 @@ export class SyncManualPage implements OnInit, OnDestroy {
               entityType: this.activeTab,
               selectedIds
             }));
-            
+
             // Afficher un toast de démarrage
             const toast = await this.toastController.create({
               message: `Synchronisation de ${selectedIds.length} élément(s) en cours...`,
@@ -270,7 +270,7 @@ export class SyncManualPage implements OnInit, OnDestroy {
    */
   onRefresh(event?: any) {
     this.store.dispatch(SyncActions.loadManualSyncData());
-    
+
     if (event) {
       setTimeout(() => {
         event.target.complete();
@@ -352,6 +352,7 @@ export class SyncManualPage implements OnInit, OnDestroy {
     let entityType: string;
     let parentType: 'client' | 'distribution' | 'tontine-member';
     let entityName: string = '';
+    let currentParentId: string | undefined;
 
     switch (this.activeTab) {
       case 'distributions':
@@ -360,6 +361,7 @@ export class SyncManualPage implements OnInit, OnDestroy {
         const dist = await this.distributions$.pipe(take(1)).toPromise();
         const distribution = dist?.find(d => d.id === entityId);
         entityName = distribution ? `Distribution ${distribution.reference || distribution.id}` : '';
+        currentParentId = distribution?.clientId;
         break;
       case 'recoveries':
         entityType = 'recovery';
@@ -367,6 +369,7 @@ export class SyncManualPage implements OnInit, OnDestroy {
         const recs = await this.recoveries$.pipe(take(1)).toPromise();
         const recovery = recs?.find(r => r.id === entityId);
         entityName = recovery ? `Recouvrement ${recovery.id}` : '';
+        currentParentId = recovery?.distributionId;
         break;
       case 'tontine-members':
         entityType = 'tontine-member';
@@ -374,6 +377,7 @@ export class SyncManualPage implements OnInit, OnDestroy {
         const members = await this.tontineMembers$.pipe(take(1)).toPromise();
         const member = members?.find(m => m.id === entityId);
         entityName = member ? `Membre ${(member as any).clientName || member.clientId}` : '';
+        currentParentId = member?.clientId;
         break;
       case 'tontine-collections':
         entityType = 'tontine-collection';
@@ -381,6 +385,7 @@ export class SyncManualPage implements OnInit, OnDestroy {
         const collections = await this.tontineCollections$.pipe(take(1)).toPromise();
         const collection = collections?.find(c => c.id === entityId);
         entityName = collection ? `Collecte ${collection.id}` : '';
+        currentParentId = collection?.tontineMemberId;
         break;
       case 'tontine-deliveries':
         entityType = 'tontine-delivery';
@@ -388,6 +393,7 @@ export class SyncManualPage implements OnInit, OnDestroy {
         const deliveries = await this.tontineDeliveries$.pipe(take(1)).toPromise();
         const delivery = deliveries?.find(d => d.id === entityId);
         entityName = delivery ? `Livraison ${delivery.id}` : '';
+        currentParentId = delivery?.tontineMemberId;
         break;
       default:
         return;
@@ -400,7 +406,8 @@ export class SyncManualPage implements OnInit, OnDestroy {
         entityId,
         entityType,
         entityName,
-        parentType
+        parentType,
+        currentParentId
       },
       cssClass: 'parent-selection-modal'
     });

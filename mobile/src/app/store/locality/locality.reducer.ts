@@ -21,7 +21,6 @@ export const localityReducer = createReducer(
     loading: true,
   })),
   on(LocalityActions.loadLocalitiesSuccess, (state, { localities }) => {
-    console.log('[LocalityReducer] Load Success. Payload:', localities);
     return {
       ...state,
       localities,

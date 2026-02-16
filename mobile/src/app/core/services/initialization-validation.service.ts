@@ -16,7 +16,7 @@ import { Storage } from '@ionic/storage-angular';
   providedIn: 'root'
 })
 export class InitializationValidationService {
-  
+
   private readonly INIT_DATE_KEY = 'last_complete_initialization_date';
   private readonly TOLERANCE_PERCENTAGE = 0.05; // 5% de tolérance
 
@@ -41,7 +41,7 @@ export class InitializationValidationService {
    */
   async compareData(commercialUsername: string, serverSummary: DataSummary): Promise<DataComparisonResult> {
     console.log('[InitializationValidation] Comparing server vs local data...');
-    
+
     // Récupérer les totaux locaux
     const localCounts = {
       clients: await this.dbService.countClients(commercialUsername),
@@ -58,48 +58,46 @@ export class InitializationValidationService {
       commercialStockRemaining: await this.dbService.countCommercialStockRemaining(commercialUsername)
     };
 
-    console.log('[InitializationValidation] Local counts:', localCounts);
-    console.log('[InitializationValidation] Server summary:', serverSummary);
 
     // Comparer les totaux
     const missingData: string[] = [];
-    
+
     if (!this.isWithinTolerance(localCounts.clients, serverSummary.totalClients)) {
       missingData.push(`Clients (local: ${localCounts.clients}, serveur: ${serverSummary.totalClients})`);
     }
-    
+
     if (!this.isWithinTolerance(localCounts.distributions, serverSummary.totalDistributions)) {
       missingData.push(`Distributions (local: ${localCounts.distributions}, serveur: ${serverSummary.totalDistributions})`);
     }
-    
+
     if (!this.isWithinTolerance(localCounts.recoveries, serverSummary.totalRecoveries)) {
       missingData.push(`Recouvrements (local: ${localCounts.recoveries}, serveur: ${serverSummary.totalRecoveries})`);
     }
-    
+
     if (!this.isWithinTolerance(localCounts.tontineMembers, serverSummary.totalTontineMembers)) {
       missingData.push(`Membres Tontine (local: ${localCounts.tontineMembers}, serveur: ${serverSummary.totalTontineMembers})`);
     }
-    
+
     if (!this.isWithinTolerance(localCounts.articles, serverSummary.totalArticles)) {
       missingData.push(`Articles (local: ${localCounts.articles}, serveur: ${serverSummary.totalArticles})`);
     }
-    
+
     if (!this.isWithinTolerance(localCounts.localities, serverSummary.totalLocalities)) {
       missingData.push(`Localités (local: ${localCounts.localities}, serveur: ${serverSummary.totalLocalities})`);
     }
-    
+
     if (!this.isWithinTolerance(localCounts.tontineStockItems, serverSummary.totalTontineStockItems)) {
       missingData.push(`Items Stock Tontine (local: ${localCounts.tontineStockItems}, serveur: ${serverSummary.totalTontineStockItems})`);
     }
-    
+
     if (!this.isWithinTolerance(localCounts.tontineStockAvailable, serverSummary.totalTontineStockAvailable)) {
       missingData.push(`Quantité Stock Tontine (local: ${localCounts.tontineStockAvailable}, serveur: ${serverSummary.totalTontineStockAvailable})`);
     }
-    
+
     if (!this.isWithinTolerance(localCounts.commercialStockItems, serverSummary.totalCommercialStockItems)) {
       missingData.push(`Items Stock Commercial (local: ${localCounts.commercialStockItems}, serveur: ${serverSummary.totalCommercialStockItems})`);
     }
-    
+
     if (!this.isWithinTolerance(localCounts.commercialStockRemaining, serverSummary.totalCommercialStockRemaining)) {
       missingData.push(`Quantité Stock Commercial (local: ${localCounts.commercialStockRemaining}, serveur: ${serverSummary.totalCommercialStockRemaining})`);
     }
@@ -137,7 +135,7 @@ export class InitializationValidationService {
    */
   async isInitializationCompleteForToday(): Promise<boolean> {
     const lastInitDate = await this.storage.get(this.INIT_DATE_KEY);
-    
+
     if (!lastInitDate) {
       console.log('[InitializationValidation] No initialization date found');
       return false;
@@ -145,14 +143,14 @@ export class InitializationValidationService {
 
     const lastInit = new Date(lastInitDate);
     const today = new Date();
-    
+
     // Vérifier si c'est le même jour
     const isSameDay = lastInit.getDate() === today.getDate() &&
                       lastInit.getMonth() === today.getMonth() &&
                       lastInit.getFullYear() === today.getFullYear();
 
     console.log('[InitializationValidation] Last init:', lastInit, 'Today:', today, 'Same day:', isSameDay);
-    
+
     return isSameDay;
   }
 

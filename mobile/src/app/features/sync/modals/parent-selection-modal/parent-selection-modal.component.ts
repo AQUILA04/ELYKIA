@@ -53,6 +53,7 @@ export class ParentSelectionModalComponent implements OnInit {
   @Input() entityType!: ParentEntityType;
   @Input() currentParentId?: string;
   @Input() entityName!: string; // Nom de l'entité à modifier (pour affichage)
+  @Input() parentType!: ParentEntityType; // Type du parent à sélectionner
 
   parents: any[] = [];
   filteredParents: any[] = [];
@@ -66,15 +67,17 @@ export class ParentSelectionModalComponent implements OnInit {
   ) { }
 
   async ngOnInit() {
+    console.log('[ParentSelectionModal] ngOnInit. entityType:', this.entityType, 'parentType:', this.parentType, 'currentParentId:', this.currentParentId);
     await this.loadParents();
     this.selectedParentId = this.currentParentId || null;
   }
 
   async loadParents() {
     this.loading = true;
+    console.log('[ParentSelectionModal] loadParents started for parentType:', this.parentType);
 
     try {
-      switch (this.entityType) {
+      switch (this.parentType) {
         case 'client':
           this.parents = await this.databaseService.getSyncedClients();
           break;
@@ -83,10 +86,12 @@ export class ParentSelectionModalComponent implements OnInit {
           break;
         case 'tontine-member':
           this.parents = await this.databaseService.getSyncedTontineMembers();
+          console.log('[ParentSelectionModal] Tontine Members loaded:', this.parents.length, JSON.stringify(this.parents));
           break;
       }
 
       this.filteredParents = [...this.parents];
+      console.log('[ParentSelectionModal] loadParents finished. Count:', this.filteredParents.length);
     } catch (error) {
       console.error('Erreur lors du chargement des parents:', error);
     } finally {
@@ -115,28 +120,30 @@ export class ParentSelectionModalComponent implements OnInit {
   }
 
   getParentName(parent: any): string {
-    if (this.entityType === 'client' || this.entityType === 'tontine-member') {
+    if (this.parentType === 'client' || this.parentType === 'tontine-member') {
       return parent.name || 'Sans nom';
-    } else if (this.entityType === 'distribution') {
-      return `Distribution ${parent.amount || 0} FCFA`;
+    } else if (this.parentType === 'distribution') {
+      const ref = parent.reference || parent.id;
+      const client = parent.clientName ? ` - ${parent.clientName}` : '';
+      return `Distribution ${ref}${client} (${parent.amount || 0} FCFA)`;
     }
     return 'Inconnu';
   }
 
   getParentDetails(parent: any): string {
-    if (this.entityType === 'client') {
+    if (this.parentType === 'client') {
       return parent.phone || 'Pas de téléphone';
-    } else if (this.entityType === 'distribution') {
+    } else if (this.parentType === 'distribution') {
       const date = parent.createdAt ? new Date(parent.createdAt).toLocaleDateString('fr-FR') : '';
       return date || 'Pas de date';
-    } else if (this.entityType === 'tontine-member') {
+    } else if (this.parentType === 'tontine-member') {
       return `Contribution: ${parent.totalContribution || 0} FCFA`;
     }
     return '';
   }
 
   getEntityTypeLabel(): string {
-    switch (this.entityType) {
+    switch (this.parentType) {
       case 'client':
         return 'Client';
       case 'distribution':

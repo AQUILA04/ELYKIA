@@ -3084,17 +3084,14 @@ export class DatabaseService {
     // DIAGNOSTIC: Check members for this commercial
     const commercialMembersQuery = 'SELECT COUNT(*) as total FROM tontine_members WHERE commercialUsername = ?';
     const commercialMembersResult = await this.db.query(commercialMembersQuery, [commercialUsername]);
-    console.log('DIAGNOSTIC: tontine_members for', commercialUsername, ':', commercialMembersResult.values?.[0]?.total || 0);
 
     // DIAGNOSTIC: Sample some collections
     const sampleQuery = 'SELECT * FROM tontine_collections LIMIT 5';
     const sampleResult = await this.db.query(sampleQuery, []);
-    console.log('DIAGNOSTIC: Sample collections (first 5):', sampleResult.values);
 
     // DIAGNOSTIC: Sample some members
     const sampleMembersQuery = 'SELECT id, commercialUsername FROM tontine_members LIMIT 5';
     const sampleMembersResult = await this.db.query(sampleMembersQuery, []);
-    console.log('DIAGNOSTIC: Sample members (first 5):', sampleMembersResult.values);
 
     // Utilise JOIN pour supporter les données existantes (sans commercialUsername) et nouvelles
     const query = `
@@ -3104,14 +3101,10 @@ export class DatabaseService {
       WHERE tm.commercialUsername = ? OR tc.commercialUsername = ?
     `;
 
-    console.log('DatabaseService.getTontineCollectionsByCommercial: Executing query:', query);
-    console.log('DatabaseService.getTontineCollectionsByCommercial: Parameters:', [commercialUsername, commercialUsername]);
 
     const result = await this.db.query(query, [commercialUsername, commercialUsername]);
 
-    console.log('DatabaseService.getTontineCollectionsByCommercial: Query result:', result);
     console.log('DatabaseService.getTontineCollectionsByCommercial: Rows count:', result.values?.length || 0);
-    console.log('DatabaseService.getTontineCollectionsByCommercial: Data:', result.values);
 
     return result.values || [];
   }
@@ -3489,7 +3482,11 @@ export class DatabaseService {
       console.error('Database not initialized.');
       return [];
     }
-    const sql = `SELECT * FROM clients WHERE isSync = 1`;
+    const sql = `
+      SELECT *, COALESCE(fullName, firstname || ' ' || lastname) as name 
+      FROM clients 
+      WHERE isSync = 1
+    `;
     const ret = await this.db.query(sql);
     return ret.values || [];
   }
@@ -3502,7 +3499,13 @@ export class DatabaseService {
       console.error('Database not initialized.');
       return [];
     }
-    const sql = `SELECT * FROM distributions WHERE isSync = 1`;
+    const sql = `
+      SELECT d.*, d.totalAmount as amount, d.reference,
+      COALESCE(c.fullName, c.firstname || ' ' || c.lastname) as clientName
+      FROM distributions d
+      LEFT JOIN clients c ON d.clientId = c.id
+      WHERE d.isSync = 1
+    `;
     const ret = await this.db.query(sql);
     return ret.values || [];
   }
@@ -3528,7 +3531,12 @@ export class DatabaseService {
       console.error('Database not initialized.');
       return [];
     }
-    const sql = `SELECT * FROM tontine_members WHERE isSync = 1`;
+    const sql = `
+      SELECT tm.*, COALESCE(c.fullName, c.firstname || ' ' || c.lastname) as name
+      FROM tontine_members tm
+      LEFT JOIN clients c ON tm.clientId = c.id
+      WHERE tm.isSync = 1
+    `;
     const ret = await this.db.query(sql);
     return ret.values || [];
   }
@@ -3542,7 +3550,7 @@ export class DatabaseService {
       return [];
     }
     const sql = `
-      SELECT tc.*, 
+      SELECT tc.*,
       COALESCE(c.fullName, (COALESCE(c.firstname, '') || ' ' || COALESCE(c.lastname, ''))) as clientName,
       tm.id as _debug_tmId,
       c.id as _debug_clientId
@@ -3552,7 +3560,6 @@ export class DatabaseService {
       WHERE tc.isSync = 0 AND tc.isLocal = 1
     `;
     const ret = await this.db.query(sql);
-    console.log('[DatabaseService] getUnsyncedTontineCollections result:', JSON.stringify(ret.values, null, 2));
     return ret.values || [];
   }
 

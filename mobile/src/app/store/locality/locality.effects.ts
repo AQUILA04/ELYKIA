@@ -12,7 +12,6 @@ export class LocalityEffects {
       ofType(LocalityActions.loadLocalities),
       mergeMap(() =>
         from(this.databaseService.getLocalities()).pipe(
-          tap(localities => console.log('[LocalityEffects] Localities from DB:', localities)),
           map((localities) => LocalityActions.loadLocalitiesSuccess({ localities })),
           catchError((error) => of(LocalityActions.loadLocalitiesFailure({ error })))
         )

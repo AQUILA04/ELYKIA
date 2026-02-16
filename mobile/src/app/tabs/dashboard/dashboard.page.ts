@@ -99,7 +99,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     this.store.select(selectAuthUser).pipe(
       take(1)
     ).subscribe(user => {
-      this.log.log('[DashboardPage] LoadDashboardData - User: ' + JSON.stringify(user));
 
       if (!user || !user.username) {
         this.log.log('[DashboardPage] No valid authenticated user found. Logging out...');
@@ -198,12 +197,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       this.cdr.markForCheck();
     });
 
-    // Debug log for raw stock items
-    commercialStockItems$.pipe(takeUntil(this.destroy$)).subscribe(items => {
-      console.log('--- RAW COMMERCIAL STOCK ITEMS FROM STORE ---');
-      console.log(JSON.stringify(items, null, 2));
-      console.log('---------------------------------------------');
-    });
   }
 
   setPeriod(period: string) {
@@ -331,7 +324,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   private calculateTontineAmount(collections: any[], startDate: Date): number {
     console.log('=== TONTINE KPI CALCULATION ===');
-    console.log('Collections received:', collections);
     console.log('Collections count:', collections?.length || 0);
     console.log('Start date for filter:', startDate);
 
