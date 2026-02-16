@@ -70,4 +70,15 @@ export abstract class BaseRepository<T, ID> implements Repository<T, ID> {
             return v.toString(16);
         });
     }
+
+    /**
+     * Get the database service instance
+     * This method is provided for repository extensions that need direct database access
+     * for complex queries (e.g., aggregations, KPI calculations)
+     * 
+     * @returns DatabaseService instance
+     */
+    protected getDatabaseService(): DatabaseService {
+        return this.databaseService;
+    }
 }
