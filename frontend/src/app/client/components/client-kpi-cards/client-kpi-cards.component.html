@@ -18,7 +18,7 @@
         <mat-card-subtitle>Reste à payer</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <div class="kpi-value text-danger">{{ (clientDetails.totalInProgressAmountDue || 0) | currency:'XOF':'symbol':'1.0-0' }}</div>
+        <div class="kpi-value text-danger">{{ ((clientDetails.totalInProgressCreditAmount - clientDetails.totalInProgressAmountCollected) || 0) | currency:'XOF':'symbol':'1.0-0' }}</div>
       </mat-card-content>
     </mat-card>
   </div>

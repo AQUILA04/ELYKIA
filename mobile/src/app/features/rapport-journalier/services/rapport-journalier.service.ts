@@ -284,34 +284,7 @@ export class RapportJournalierService {
   /**
    * Charge les données des membres tontine du jour (lazy loading)
    */
-  /**
-   * Charge les données des membres tontine du jour (lazy loading)
-   */
-  getTontineMembersData(date?: Date): Observable<{ count: number; items: any[] }> {
-    if (!this.commercialUsername) {
-      return of({ count: 0, items: [] });
-    }
-    const currentCommercialId = this.commercialUsername;
-    const targetDate = date || new Date();
-    const dateString = targetDate.toISOString().split('T')[0];
 
-    return from(this.databaseService.getTontineMembers('', currentCommercialId)).pipe(
-      switchMap(members => {
-        const todayMembers = members.filter(m => m.registrationDate && m.registrationDate.startsWith(dateString));
-        if (todayMembers.length === 0) {
-          return of({ count: 0, items: [] });
-        }
-        const items = todayMembers.map(m => ({
-          time: m.registrationDate ? new Date(m.registrationDate).toLocaleTimeString('fr-FR') : '',
-          memberName: m.name || m.clientName || 'Membre inconnu',
-          details: `Contribution: ${m.totalContribution || 0} FCFA`,
-          contribution: m.totalContribution || 0,
-          isSync: m.isSync || false
-        }));
-        return of({ count: items.length, items });
-      })
-    );
-  }
 
   /**
    * Charge les données des collectes tontine du jour (lazy loading)
@@ -411,6 +384,70 @@ export class RapportJournalierService {
       collections: collectionsCount$,
       deliveries: deliveriesCount$
     });
+  }
+
+  /**
+   * Charge toutes les données du rapport pour la génération PDF
+   * (Inclut les données des onglets lazy-loaded)
+   */
+  getDailyReportWithDetails(date?: Date): Observable<DailyReportData> {
+    const targetDate = date || new Date();
+
+    return forkJoin({
+      baseReport: this.getDailyReport(targetDate),
+      tontineMembers: this.getTontineMembersData(targetDate),
+      tontineCollections: this.getTontineCollectionsData(targetDate),
+      tontineDeliveries: this.getTontineDeliveriesData(targetDate)
+    }).pipe(
+      map(({ baseReport, tontineMembers, tontineCollections, tontineDeliveries }) => {
+        // Fusionner les données
+        return {
+          ...baseReport,
+          tontineMembers,
+          tontineCollections,
+          tontineDeliveries
+        };
+      })
+    );
+  }
+
+  /**
+   * Charge les données des membres tontine du jour (lazy loading)
+   */
+  getTontineMembersData(date?: Date): Observable<{ count: number; items: any[] }> {
+    if (!this.commercialUsername) {
+      return of({ count: 0, items: [] });
+    }
+    const currentCommercialId = this.commercialUsername;
+    const targetDate = date || new Date();
+    const dateString = targetDate.toISOString().split('T')[0];
+
+    return from(this.databaseService.getTontineMembers('', currentCommercialId)).pipe(
+      switchMap(members => {
+        // DIAGNOSTIC LOGS
+        console.log(`[RapportJournalier] Filtering members for date: ${dateString}`);
+        console.log(`[RapportJournalier] Total members found: ${members.length}`);
+        if (members.length > 0) {
+          console.log(`[RapportJournalier] Sample member date: ${members[0].registrationDate}`);
+        }
+
+        const todayMembers = members.filter(m => m.registrationDate && m.registrationDate.startsWith(dateString));
+
+        console.log(`[RapportJournalier] Members match count: ${todayMembers.length}`);
+
+        if (todayMembers.length === 0) {
+          return of({ count: 0, items: [] });
+        }
+        const items = todayMembers.map(m => ({
+          time: m.registrationDate ? new Date(m.registrationDate).toLocaleTimeString('fr-FR') : '',
+          memberName: m.name || m.clientName || 'Membre inconnu',
+          details: `Contribution: ${m.totalContribution || 0} FCFA`,
+          contribution: m.totalContribution || 0,
+          isSync: m.isSync || false
+        }));
+        return of({ count: items.length, items });
+      })
+    );
   }
 
   /**

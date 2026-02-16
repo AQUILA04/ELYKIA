@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { PrintingService } from '../../../../core/services/printing.service';
 import { RapportJournalierService, DailyReportData } from '../../services/rapport-journalier.service';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
-import { IonBadge, IonButton, IonContent, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonSpinner, ToastController } from '@ionic/angular/standalone';
+import { IonBadge, IonButton, IonContent, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonSpinner, ToastController, LoadingController } from '@ionic/angular/standalone';
 import { CommonModule, DecimalPipe, registerLocaleData } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Component, OnInit, LOCALE_ID, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
@@ -91,6 +91,7 @@ export class RapportJournalierPage {
     private databaseService: DatabaseService,
     private pdfReportService: PdfReportService,
     private toastController: ToastController,
+    private loadingController: LoadingController,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -142,7 +143,7 @@ export class RapportJournalierPage {
    */
   onSegmentChanged(event: any) {
     const newTab = event.detail.value;
-    
+
     // Si l'onglet est déjà chargé, on ne fait rien
     if (this.loadedTabs.has(newTab)) {
       return;
@@ -250,25 +251,25 @@ export class RapportJournalierPage {
   private async generatePDFAfterSync() {
     try {
       console.log('Génération automatique du PDF après synchronisation...');
-      
+
       // Recharger les données du rapport pour avoir les données synchronisées
       this.rapportJournalierService.getDailyReport().subscribe(async (data) => {
         this.reportData = data;
-        
+
         // Générer le HTML pour PDF
         const htmlContent = this.rapportJournalierService.generatePDFHTML(this.reportData);
-        
+
         // Générer le nom de fichier
         const filename = this.pdfReportService.generateFilename();
-        
+
         // Générer le PDF
         const pdfBase64 = await this.pdfReportService.generatePDF(htmlContent, filename);
-        
+
         // Sauvegarder dans External Storage
         await this.pdfReportService.savePDFToExternalStorage(pdfBase64, filename);
-        
+
         console.log('PDF généré automatiquement avec succès:', filename);
-        
+
         // Afficher un toast discret
         const toast = await this.toastController.create({
           message: `Rapport PDF généré automatiquement`,
@@ -278,7 +279,7 @@ export class RapportJournalierPage {
         });
         await toast.present();
       });
-      
+
     } catch (error) {
       console.error('Erreur lors de la génération automatique du PDF:', error);
     }
@@ -289,12 +290,6 @@ export class RapportJournalierPage {
    */
   async savePDF() {
     try {
-      // Générer le HTML pour PDF (format complet avec tableaux)
-      const htmlContent = this.rapportJournalierService.generatePDFHTML(this.reportData);
-      
-      // Générer le nom de fichier avec date et heure
-      const filename = this.pdfReportService.generateFilename();
-      
       // Afficher un toast de chargement
       const loadingToast = await this.toastController.create({
         message: 'Génération du PDF en cours...',
@@ -302,36 +297,65 @@ export class RapportJournalierPage {
         position: 'bottom'
       });
       await loadingToast.present();
-      
-      // Générer le PDF
-      const pdfBase64 = await this.pdfReportService.generatePDF(htmlContent, filename);
-      
-      // Sauvegarder dans External Storage
-      const uri = await this.pdfReportService.savePDFToExternalStorage(pdfBase64, filename);
-      
-      // Fermer le toast de chargement
-      await loadingToast.dismiss();
-      
-      // Afficher un toast de confirmation
-      const successToast = await this.toastController.create({
-        message: `PDF sauvegardé : ${filename}`,
-        duration: 3000,
-        color: 'success',
-        position: 'bottom',
-        buttons: [
-          {
-            text: 'OK',
-            role: 'cancel'
+
+      // Charger TOUTES les données (y compris celles non affichées) pour le PDF
+      // On utilise une souscription locale pour ne pas polluer this.reportData (lazy loading)
+      const currentDate = new Date(this.reportData.date); // Utiliser la date actuelle du rapport
+
+      this.rapportJournalierService.getDailyReportWithDetails(currentDate).subscribe({
+        next: async (fullData) => {
+          try {
+            // Générer le HTML pour PDF (format complet avec tableaux)
+            const htmlContent = this.rapportJournalierService.generatePDFHTML(fullData);
+
+            // Générer le nom de fichier avec date et heure
+            const filename = this.pdfReportService.generateFilename();
+
+            // Générer le PDF
+            const pdfBase64 = await this.pdfReportService.generatePDF(htmlContent, filename);
+
+            // Sauvegarder dans External Storage
+            const uri = await this.pdfReportService.savePDFToExternalStorage(pdfBase64, filename);
+
+            // Fermer le toast de chargement
+            await loadingToast.dismiss();
+
+            // Afficher un toast de confirmation
+            const successToast = await this.toastController.create({
+              message: `PDF sauvegardé : ${filename}`,
+              duration: 3000,
+              color: 'success',
+              position: 'bottom',
+              buttons: [
+                {
+                  text: 'OK',
+                  role: 'cancel'
+                }
+              ]
+            });
+            await successToast.present();
+
+            console.log('PDF sauvegardé avec succès:', uri);
+
+            // Libérer la mémoire explicitement si nécessaire (le GC le fera à la fin de la fonction)
+            // fullData = null; 
+
+          } catch (innerError) {
+            console.error('Erreur interne lors de la génération PDF:', innerError);
+            await loadingToast.dismiss();
+            this.showErrorToast('Erreur lors de la génération du contenu PDF');
           }
-        ]
+        },
+        error: async (err) => {
+          console.error('Erreur lors du chargement des détails pour PDF:', err);
+          await loadingToast.dismiss();
+          this.showErrorToast('Impossible de charger les détails complets du rapport');
+        }
       });
-      await successToast.present();
-      
-      console.log('PDF sauvegardé avec succès:', uri);
-      
+
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du PDF:', error);
-      
+
       const errorToast = await this.toastController.create({
         message: 'Erreur lors de la sauvegarde du PDF',
         duration: 3000,
@@ -342,36 +366,81 @@ export class RapportJournalierPage {
     }
   }
 
+  private async showErrorToast(msg: string) {
+    const errorToast = await this.toastController.create({
+      message: msg,
+      duration: 3000,
+      color: 'danger',
+      position: 'bottom'
+    });
+    await errorToast.present();
+  }
+
   async printReport() {
+    // Afficher un loader car on va chercher les données complètes
+    const loading = await this.loadingController.create({
+      message: 'Préparation de l\'impression...',
+      duration: 5000
+    });
+    await loading.present();
+
+    const currentDate = new Date(this.reportData.date);
+
+    // Charger les données complètes (lazy loaded inclus)
+    this.rapportJournalierService.getDailyReportWithDetails(currentDate).subscribe({
+      next: async (fullData) => {
+        try {
+          const htmlContent = this.rapportJournalierService.generateReportHTML(fullData);
+          await loading.dismiss();
+
+          // Utiliser le plugin Capacitor Printer
+          await Printer.print({
+            content: htmlContent,
+            name: `rapport_journalier_${new Date().toISOString().split('T')[0]}`
+          });
+
+          console.log('Rapport imprimé avec succès');
+
+          // Save the report to the database
+          const commercial = await this.databaseService.getCommercial();
+          if (commercial) {
+            await this.databaseService.saveDailyReport(fullData, commercial.id);
+          } else {
+            console.error('Commercial not found, cannot save daily report.');
+          }
+
+        } catch (error) {
+          await loading.dismiss();
+          console.error('Erreur lors de l\'impression:', error);
+          // En cas d'erreur d'impression, proposer de sauvegarder en PDF
+          this.saveAsPDF(fullData); // Passer les données complètes si dispo
+        }
+      },
+      error: async (err) => {
+        await loading.dismiss();
+        console.error('Erreur chargement données impression:', err);
+        // Fallback sur les données partielles
+        this.fallbackPrintOnly();
+      }
+    });
+  }
+
+  private async fallbackPrintOnly() {
     try {
       const htmlContent = this.rapportJournalierService.generateReportHTML(this.reportData);
-
-      // Utiliser le plugin Capacitor Printer
       await Printer.print({
         content: htmlContent,
         name: `rapport_journalier_${new Date().toISOString().split('T')[0]}`
       });
-
-      console.log('Rapport imprimé avec succès');
-
-      // Save the report to the database
-      const commercial = await this.databaseService.getCommercial();
-      if (commercial) {
-        await this.databaseService.saveDailyReport(this.reportData, commercial.id);
-      } else {
-        console.error('Commercial not found, cannot save daily report.');
-      }
-
-    } catch (error) {
-      console.error('Erreur lors de l\'impression:', error);
-      // En cas d\'erreur d\'impression, proposer de sauvegarder en PDF
-      this.saveAsPDF();
+    } catch (e) {
+      console.error('Erreur fallback print:', e);
     }
   }
 
-  private saveAsPDF() {
+  private saveAsPDF(data?: any) {
     try {
-      const htmlContent = this.rapportJournalierService.generateReportHTML(this.reportData);
+      const reportToUse = data || this.reportData;
+      const htmlContent = this.rapportJournalierService.generateReportHTML(reportToUse);
       const options = {
         margin: 1,
         filename: `rapport_journalier_${new Date().toISOString().split('T')[0]}.pdf`,
