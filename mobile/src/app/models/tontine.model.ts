@@ -31,6 +31,8 @@ export interface TontineMember {
 export interface TontineMemberView extends TontineMember {
     clientName: string;
     clientPhone: string;
+    clientQuarter?: string;
+    hasPaidToday?: boolean;
 }
 
 export interface TontineCollection {

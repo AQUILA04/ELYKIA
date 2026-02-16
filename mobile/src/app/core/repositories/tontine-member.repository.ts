@@ -49,13 +49,25 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
      */
     async getBySessionAndCommercial(sessionId: string, commercialUsername: string): Promise<any[]> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        // Get today's date in YYYY-MM-DD format for comparison
+        const today = new Date().toISOString().split('T')[0];
+
         const query = `
-            SELECT tm.*, c.fullName as clientName, c.phone as clientPhone
+            SELECT 
+                tm.*, 
+                c.fullName as clientName, 
+                c.phone as clientPhone,
+                c.quarter as clientQuarter,
+                CASE 
+                    WHEN tc.id IS NOT NULL THEN 1 
+                    ELSE 0 
+                END as hasPaidToday
             FROM tontine_members tm
             LEFT JOIN clients c ON tm.clientId = c.id
+            LEFT JOIN tontine_collections tc ON tm.id = tc.tontineMemberId AND substr(tc.collectionDate, 1, 10) = ?
             WHERE tm.tontineSessionId = ? AND tm.commercialUsername = ?
         `;
-        const result = await this.databaseService.query(query, [sessionId, commercialUsername]);
+        const result = await this.databaseService.query(query, [today, sessionId, commercialUsername]);
         return result.values || [];
     }
 

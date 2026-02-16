@@ -27,6 +27,8 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
     // Filters
     searchTerm$ = new BehaviorSubject<string>('');
     statusFilter$ = new BehaviorSubject<string>('all');
+    groupedMembers$ = new BehaviorSubject<{ quarter: string, members: any[] }[]>([]);
+    isGroupedView$: Observable<boolean>;
 
     private destroy$ = new Subject<void>();
 
@@ -45,6 +47,10 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
         this.session$ = this.store.select(selectTontineSession).pipe(
         );
         this.members$ = this.store.select(selectTontineMembers).pipe(
+        );
+
+        this.isGroupedView$ = this.statusFilter$.pipe(
+            map(status => status === 'todo')
         );
 
         this.currentYear$ = this.session$.pipe(
@@ -75,17 +81,36 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
                     const matchesStatus = statusFilter === 'all' ||
                         (statusFilter === 'active' && member.status === 'ACTIVE') ||
                         (statusFilter === 'pending' && member.deliveryStatus === 'PENDING') ||
-                        (statusFilter === 'delivered' && member.deliveryStatus === 'DELIVERED');
+                        (statusFilter === 'todo' && !member.hasPaidToday);
 
                     const term = searchTerm.toLowerCase();
                     const matchesSearch = !term ||
                         (member.clientName && member.clientName.toLowerCase().includes(term)) ||
-                        (member.clientPhone && member.clientPhone.includes(term));
+                        (member.clientPhone && member.clientPhone.includes(term)) ||
+                        (member.clientQuarter && member.clientQuarter.toLowerCase().includes(term));
 
                     return matchesStatus && matchesSearch;
                 });
 
                 console.log('Dashboard: Filtered members count:', filtered.length);
+
+                // Grouping Logic for 'todo' view
+                if (statusFilter === 'todo') {
+                    const groups: { [key: string]: any[] } = {};
+                    filtered.forEach(m => {
+                        const quarter = m.clientQuarter || 'Autre';
+                        if (!groups[quarter]) {
+                            groups[quarter] = [];
+                        }
+                        groups[quarter].push(m);
+                    });
+
+                    const groupedArray = Object.keys(groups).sort().map(quarter => ({
+                        quarter,
+                        members: groups[quarter]
+                    }));
+                    this.groupedMembers$.next(groupedArray);
+                }
 
                 // Reset pagination when filter changes
                 this.allFilteredMembers = filtered;
