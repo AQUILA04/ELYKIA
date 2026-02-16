@@ -225,14 +225,20 @@ export class DataInitializationService {
   }
 
   initializeTontine(): Observable<boolean> {
-    return this.tontineService.initializeTontine().pipe(
-      map(() => {
-        this.store.dispatch(TontineActions.loadTontineSession());
-        return true;
-      }),
-      catchError(error => {
-        console.error('Error initializing tontine:', error);
-        return of(false);
+    return this.store.select(selectAuthUser).pipe(
+      take(1),
+      filter((user): user is User => !!user),
+      switchMap(user => {
+        return this.tontineService.initializeTontine(user.username).pipe(
+          map(() => {
+            this.store.dispatch(TontineActions.loadTontineSession());
+            return true;
+          }),
+          catchError(error => {
+            console.error('Error initializing tontine:', error);
+            return of(false);
+          })
+        );
       })
     );
   }

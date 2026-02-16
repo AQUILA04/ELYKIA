@@ -130,6 +130,33 @@ const initialState: SyncState = {
   error: null
 };
 
+// Helper function to map entity types to ManualSyncState keys
+function getEntityStateKeys(entityType: string): {
+  listKey: keyof SyncState['manualSync'],
+  selectionKey: keyof SyncState['manualSync']
+} {
+  switch (entityType) {
+    case 'client':
+      return { listKey: 'availableClients', selectionKey: 'clients' };
+    case 'distribution':
+      return { listKey: 'availableDistributions', selectionKey: 'distributions' };
+    case 'recovery':
+      return { listKey: 'availableRecoveries', selectionKey: 'recoveries' };
+    case 'tontine-member':
+      return { listKey: 'availableTontineMembers', selectionKey: 'tontineMembers' };
+    case 'tontine-collection':
+      return { listKey: 'availableTontineCollections', selectionKey: 'tontineCollections' };
+    case 'tontine-delivery':
+      return { listKey: 'availableTontineDeliveries', selectionKey: 'tontineDeliveries' };
+    default:
+      console.warn(`Unknown entity type: ${entityType}`);
+      return {
+        listKey: `available${entityType}s` as any,
+        selectionKey: `${entityType}s` as any
+      };
+  }
+}
+
 export const syncReducer = createReducer(
   initialState,
 
@@ -273,10 +300,16 @@ export const syncReducer = createReducer(
     }
   })),
 
+
+
+
   on(SyncActions.toggleEntitySelection, (state, { entityType, entityId }) => {
-    // Convertir entityType au pluriel pour accéder aux propriétés de ManualSyncState
-    const entityTypeKey = `${entityType}s` as keyof ManualSyncState;
-    const selection = state.manualSync[entityTypeKey] as SyncSelection;
+    const { selectionKey } = getEntityStateKeys(entityType);
+    const selection = state.manualSync[selectionKey] as SyncSelection;
+
+    // Safety check
+    if (!selection) return state;
+
     let newSelectedIds = [...selection.selectedIds];
 
     const index = newSelectedIds.indexOf(entityId);
@@ -296,18 +329,20 @@ export const syncReducer = createReducer(
       ...state,
       manualSync: {
         ...state.manualSync,
-        [entityTypeKey]: updatedSelection
+        [selectionKey]: updatedSelection
       }
     };
   }),
 
   on(SyncActions.selectAllEntities, (state, { entityType }) => {
-    const availableEntities = state.manualSync[`available${entityType.charAt(0).toUpperCase() + entityType.slice(1)}s` as keyof typeof state.manualSync] as any[];
-    const allIds = availableEntities.map(entity => entity.id);
+    const { listKey, selectionKey } = getEntityStateKeys(entityType);
 
-    // Convertir entityType au pluriel pour accéder aux propriétés de ManualSyncState
-    const entityTypeKey = `${entityType}s` as keyof ManualSyncState;
-    const currentSelection = state.manualSync[entityTypeKey] as SyncSelection;
+    // Safety check
+    const availableEntities = (state.manualSync[listKey] as any) as any[];
+    if (!availableEntities) return state;
+
+    const allIds = availableEntities.map(entity => entity.id);
+    const currentSelection = state.manualSync[selectionKey] as SyncSelection;
 
     const updatedSelection: SyncSelection = {
       ...currentSelection,
@@ -319,15 +354,17 @@ export const syncReducer = createReducer(
       ...state,
       manualSync: {
         ...state.manualSync,
-        [entityTypeKey]: updatedSelection
+        [selectionKey]: updatedSelection
       }
     };
   }),
 
   on(SyncActions.clearEntitySelection, (state, { entityType }) => {
-    // Convertir entityType au pluriel pour accéder aux propriétés de ManualSyncState
-    const entityTypeKey = `${entityType}s` as keyof ManualSyncState;
-    const currentSelection = state.manualSync[entityTypeKey] as SyncSelection;
+    const { selectionKey } = getEntityStateKeys(entityType);
+    const currentSelection = state.manualSync[selectionKey] as SyncSelection;
+
+    // Safety check
+    if (!currentSelection) return state;
 
     const updatedSelection: SyncSelection = {
       ...currentSelection,
@@ -339,12 +376,12 @@ export const syncReducer = createReducer(
       ...state,
       manualSync: {
         ...state.manualSync,
-        [entityTypeKey]: updatedSelection
+        [selectionKey]: updatedSelection
       }
     };
   }),
 
-  on(SyncActions.startManualSync, (state, { entityType }) => ({
+  on(SyncActions.startManualSync, (state) => ({
     ...state,
     manualSync: {
       ...state.manualSync,
@@ -352,19 +389,17 @@ export const syncReducer = createReducer(
     }
   })),
 
-  on(SyncActions.manualSyncSuccess, (state, { entityType, successCount }) => {
-    // Retirer les éléments synchronisés avec succès de la liste
-    const availableKey = `available${entityType.charAt(0).toUpperCase() + entityType.slice(1)}s` as keyof typeof state.manualSync;
-    const currentAvailable = state.manualSync[availableKey] as any[];
+  on(SyncActions.manualSyncSuccess, (state, { entityType }) => {
+    const { listKey, selectionKey } = getEntityStateKeys(entityType);
 
-    // Convertir entityType au pluriel pour accéder aux propriétés de ManualSyncState
-    const entityTypeKey = `${entityType}s` as keyof ManualSyncState;
-    const currentSelection = state.manualSync[entityTypeKey] as SyncSelection;
+    const currentAvailable = (state.manualSync[listKey] as any) as any[];
+    const currentSelection = state.manualSync[selectionKey] as SyncSelection;
+
+    if (!currentAvailable || !currentSelection) return state;
+
     const selectedIds = currentSelection.selectedIds;
-
     const updatedAvailable = currentAvailable.filter(entity => !selectedIds.includes(entity.id));
 
-    // Mettre à jour la sélection
     const updatedSelection: SyncSelection = {
       ...currentSelection,
       selectedIds: [],
@@ -377,8 +412,8 @@ export const syncReducer = createReducer(
       manualSync: {
         ...state.manualSync,
         isLoading: false,
-        [availableKey]: updatedAvailable,
-        [entityTypeKey]: updatedSelection
+        [listKey]: updatedAvailable,
+        [selectionKey]: updatedSelection
       }
     };
   }),
@@ -401,18 +436,22 @@ export const syncReducer = createReducer(
   })),
 
   on(SyncActions.syncSingleEntitySuccess, (state, { entityType, entityId }) => {
-    // Retirer l'entité de la liste disponible et des entités en cours de sync
-    const availableKey = `available${entityType.charAt(0).toUpperCase() + entityType.slice(1)}s` as keyof typeof state.manualSync;
-    const currentAvailable = state.manualSync[availableKey] as any[];
-    const updatedAvailable = currentAvailable.filter(entity => entity.id !== entityId);
+    const { listKey, selectionKey } = getEntityStateKeys(entityType);
 
-    // Convertir entityType au pluriel pour accéder aux propriétés de ManualSyncState
-    const entityTypeKey = `${entityType}s` as keyof ManualSyncState;
-
+    const currentAvailable = (state.manualSync[listKey] as any) as any[];
     const newSyncingEntities = state.manualSync.syncingEntities.filter(id => id !== entityId);
 
-    // Mettre à jour la sélection correspondante
-    const currentSelection = state.manualSync[entityTypeKey] as SyncSelection;
+    if (!currentAvailable) return {
+      ...state,
+      manualSync: {
+        ...state.manualSync,
+        syncingEntities: newSyncingEntities
+      }
+    };
+
+    const updatedAvailable = currentAvailable.filter(entity => entity.id !== entityId);
+    const currentSelection = state.manualSync[selectionKey] as SyncSelection;
+
     const updatedSelection: SyncSelection = {
       ...currentSelection,
       totalCount: updatedAvailable.length
@@ -422,9 +461,9 @@ export const syncReducer = createReducer(
       ...state,
       manualSync: {
         ...state.manualSync,
-        [availableKey]: updatedAvailable,
+        [listKey]: updatedAvailable,
         syncingEntities: newSyncingEntities,
-        [entityTypeKey]: updatedSelection
+        [selectionKey]: updatedSelection
       }
     };
   }),

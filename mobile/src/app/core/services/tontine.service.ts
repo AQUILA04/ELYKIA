@@ -45,8 +45,11 @@ export class TontineService {
     /**
      * Initialize Tontine Data (Session, Members, Stocks, etc.)
      */
-    initializeTontine(): Observable<boolean> {
-        console.log('TontineService: Initializing tontine data...');
+    initializeTontine(commercialUsername?: string): Observable<boolean> {
+        if (commercialUsername) {
+            this.commercialUsername = commercialUsername;
+        }
+        console.log(`TontineService: Initializing tontine data for ${this.commercialUsername}...`);
         return this.fetchAndSaveSession().pipe(
             switchMap(session => {
                 if (session) {
@@ -118,7 +121,7 @@ export class TontineService {
             switchMap(({ headers, unsyncedTotals }) => {
                 // Convert unsyncedTotals to Map for easy lookup
                 const unsyncedMap = new Map<string, number>();
-                unsyncedTotals.forEach(t => unsyncedMap.set(t.tontineMemberId, t.total));
+                unsyncedTotals.forEach(t => unsyncedMap.set(String(t.tontineMemberId), t.total));
 
                 return this.http.get<any>(`${this.apiUrl}/tontines/members?page=${page}&size=${size}`, { headers }).pipe(
                     switchMap(response => {
@@ -139,8 +142,15 @@ export class TontineService {
                         const mappedMembers = members.map((m: any) => {
                             // Add local unsynced total to server total to prevent "dip"
                             const serverTotal = m.totalContribution || 0;
-                            const localUnsynced = unsyncedMap.get(m.id) || 0;
+                            const memberIdStr = String(m.id);
+                            const localUnsynced = unsyncedMap.get(memberIdStr) || 0;
                             const adjustedTotal = serverTotal + localUnsynced;
+
+                            if (serverTotal > 0 && adjustedTotal === 0) {
+                                console.warn(`TontineService: WARNING - Member ${m.id} has serverTotal ${serverTotal} but adjustedTotal is 0! (Local Unsynced: ${localUnsynced})`);
+                            } else if (serverTotal > 0) {
+                                console.log(`TontineService: Member ${m.id} - Server Total: ${serverTotal} + Local Unsynced: ${localUnsynced} = ${adjustedTotal}`);
+                            }
 
                             return {
                                 id: m.id,
@@ -209,11 +219,11 @@ export class TontineService {
                                 } else {
                                     console.log(`TontineService: All ${totalPages} pages fetched and saved successfully.`);
 
-                                    // Recalculate totals to include local unsynced collections
-                                    console.log('TontineService: Recalculating member totals after member sync...');
-                                    return from(this.collectionRepo.updateAllMembersTotalContribution()).pipe(
-                                        map(() => null)
-                                    );
+                                    // DO NOT Recalculate totals here.
+                                    // 1. It wipes out the server-provided total (which is authoritative).
+                                    // 2. Collections are not yet fetched at this point!
+                                    console.log('TontineService: Members sync completed. Preserving server totals.');
+                                    return of(null);
                                 }
                             }),
                             catchError(err => {
@@ -316,14 +326,14 @@ export class TontineService {
                 console.log(`TontineService: Collections Page ${currentPage + 1}/${totalPages} - ${collections.length} collections found (Total: ${totalElements})`);
 
                 if (collections.length === 0) {
-                    // Even if no collections, we should update totals to be safe
-                    return from(this.collectionRepo.updateAllMembersTotalContribution()).pipe(map(() => null));
+                    console.log('TontineService: No collections found on page.');
+                    return of(null);
                 }
 
                 // Map API response to DB structure
                 const mappedCollections = collections.map((c: any) => ({
                     id: c.id,
-                    tontineMemberId: c.tontineMemberId || c.member?.id,
+                    tontineMemberId: c.tontineMemberId || c.tontineMember?.id || c.member?.id,
                     amount: c.amount,
                     collectionDate: c.collectionDate,
                     commercialUsername: this.commercialUsername,
@@ -344,8 +354,10 @@ export class TontineService {
                             return this.fetchAndSaveCollections(currentPage + 1, size);
                         } else {
                             console.log(`TontineService: All ${totalPages} collections pages fetched and saved successfully.`);
-                            // After all collections are saved, update member totals
-                            return from(this.collectionRepo.updateAllMembersTotalContribution()).pipe(map(() => null));
+                            // DO NOT Recalculate totals here.
+                            // The member total is already correctly set (Server Total + Unsynced Local Delta) in fetchAndSaveMembers.
+                            // Re-summing local collections can be inaccurate if the device doesn't hold the full history.
+                            return of(null);
                         }
                     }),
                     catchError(err => {

@@ -7,7 +7,7 @@
 .list-header {
   background: var(--ion-color-light);
   border-bottom: 1px solid var(--ion-color-light-shade);
-  
+
   .select-all-item {
     --background: var(--ion-color-light);
     --padding-start: 16px;
@@ -39,7 +39,7 @@ ion-list {
     --padding-start: 16px;
     --padding-end: 16px;
     --min-height: 72px;
-    --background: var(--ion-color-light-contrast);
+    --background: var(--ion-item-background, var(--ion-background-color, #fff));
     margin-bottom: 1px;
     transition: all 0.3s ease;
 
@@ -148,6 +148,7 @@ ion-list {
     opacity: 0;
     transform: translateX(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
