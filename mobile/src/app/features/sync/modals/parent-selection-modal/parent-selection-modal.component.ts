@@ -1,23 +1,23 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  IonHeader, 
-  IonToolbar, 
-  IonTitle, 
-  IonButtons, 
-  IonButton, 
-  IonContent, 
-  IonSearchbar, 
-  IonList, 
-  IonItem, 
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButtons,
+  IonButton,
+  IonContent,
+  IonSearchbar,
+  IonList,
+  IonItem,
   IonLabel,
   IonIcon,
   IonBadge,
   IonSpinner,
-  IonFooter,
-  ModalController 
+  IonFooter
 } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { DatabaseService } from '../../../../core/services/database.service';
 import { Client } from '../../../../models/client.model';
 import { Distribution } from '../../../../models/distribution.model';
@@ -63,7 +63,7 @@ export class ParentSelectionModalComponent implements OnInit {
   constructor(
     private modalController: ModalController,
     private databaseService: DatabaseService
-  ) {}
+  ) { }
 
   async ngOnInit() {
     await this.loadParents();
@@ -72,7 +72,7 @@ export class ParentSelectionModalComponent implements OnInit {
 
   async loadParents() {
     this.loading = true;
-    
+
     try {
       switch (this.entityType) {
         case 'client':
@@ -85,7 +85,7 @@ export class ParentSelectionModalComponent implements OnInit {
           this.parents = await this.databaseService.getSyncedTontineMembers();
           break;
       }
-      
+
       this.filteredParents = [...this.parents];
     } catch (error) {
       console.error('Erreur lors du chargement des parents:', error);
@@ -97,12 +97,12 @@ export class ParentSelectionModalComponent implements OnInit {
   onSearchChange(event: any) {
     const searchTerm = event.detail.value?.toLowerCase() || '';
     this.searchTerm = searchTerm;
-    
+
     if (!searchTerm) {
       this.filteredParents = [...this.parents];
       return;
     }
-    
+
     this.filteredParents = this.parents.filter(parent => {
       const name = this.getParentName(parent).toLowerCase();
       const id = parent.id?.toLowerCase() || '';
@@ -156,7 +156,7 @@ export class ParentSelectionModalComponent implements OnInit {
     if (!this.selectedParentId) {
       return;
     }
-    
+
     const selectedParent = this.parents.find(p => p.id === this.selectedParentId);
     this.modalController.dismiss({
       parentId: this.selectedParentId,
