@@ -64,7 +64,7 @@ public class CommercialDataSummaryService {
             
             // Membres de tontine
             Long totalTontineMembers = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM tontine_member tm join client c on tm.client_id = c.id  WHERE c.tontine_collector = :collector AND visibility = 'ENABLED'")
+                "SELECT COUNT(*) FROM tontine_member tm join client c on tm.client_id = c.id  WHERE c.tontine_collector = :collector AND tm.visibility = 'ENABLED'")
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalTontineMembers(totalTontineMembers);
@@ -107,14 +107,14 @@ public class CommercialDataSummaryService {
             
             // Stock Tontine - Nombre d'items (lignes)
             Long totalTontineStockItems = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM tontine_stock WHERE commercial = :collector AND availbale_quantity > 0")
+                "SELECT COUNT(*) FROM tontine_stock WHERE commercial = :collector AND available_quantity > 0")
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalTontineStockItems(totalTontineStockItems);
             
             // Stock Tontine - Somme des quantités disponibles
             Long totalTontineStockAvailable = ((Number) entityManager.createNativeQuery(
-                "SELECT COALESCE(SUM(available_quantity), 0) FROM tontine_stock WHERE commercial = :collector AND availbale_quantity > 0")
+                "SELECT COALESCE(SUM(available_quantity), 0) FROM tontine_stock WHERE commercial = :collector AND available_quantity > 0")
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalTontineStockAvailable(totalTontineStockAvailable);

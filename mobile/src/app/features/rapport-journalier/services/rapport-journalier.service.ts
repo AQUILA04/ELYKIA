@@ -284,6 +284,9 @@ export class RapportJournalierService {
   /**
    * Charge les données des membres tontine du jour (lazy loading)
    */
+  /**
+   * Charge les données des membres tontine du jour (lazy loading)
+   */
   getTontineMembersData(date?: Date): Observable<{ count: number; items: any[] }> {
     if (!this.commercialUsername) {
       return of({ count: 0, items: [] });
@@ -294,15 +297,15 @@ export class RapportJournalierService {
 
     return from(this.databaseService.getTontineMembers('', currentCommercialId)).pipe(
       switchMap(members => {
-        const todayMembers = members.filter(m => m.createdAt && m.createdAt.startsWith(dateString));
+        const todayMembers = members.filter(m => m.registrationDate && m.registrationDate.startsWith(dateString));
         if (todayMembers.length === 0) {
           return of({ count: 0, items: [] });
         }
         const items = todayMembers.map(m => ({
-          time: m.createdAt ? new Date(m.createdAt).toLocaleTimeString('fr-FR') : '',
-          memberName: m.name || 'Membre inconnu',
-          details: `Contribution: ${m.contributionAmount || 0} FCFA`,
-          contribution: m.contributionAmount || 0,
+          time: m.registrationDate ? new Date(m.registrationDate).toLocaleTimeString('fr-FR') : '',
+          memberName: m.name || m.clientName || 'Membre inconnu',
+          details: `Contribution: ${m.totalContribution || 0} FCFA`,
+          contribution: m.totalContribution || 0,
           isSync: m.isSync || false
         }));
         return of({ count: items.length, items });
@@ -323,17 +326,17 @@ export class RapportJournalierService {
 
     return from(this.databaseService.getTontineCollectionsByCommercial(currentCommercialId)).pipe(
       switchMap(collections => {
-        const todayCollections = collections.filter(c => c.createdAt && c.createdAt.startsWith(dateString));
+        const todayCollections = collections.filter(c => c.collectionDate && c.collectionDate.startsWith(dateString));
         if (todayCollections.length === 0) {
           return of({ count: 0, totalAmount: 0, items: [] });
         }
         return from(this.databaseService.getTontineMembers('', currentCommercialId)).pipe(
           map(members => {
-            const memberMap = new Map(members.map(m => [m.id, m.name]));
+            const memberMap = new Map(members.map(m => [m.id, m.name || m.clientName]));
             const items = todayCollections.map(c => ({
-              time: c.createdAt ? new Date(c.createdAt).toLocaleTimeString('fr-FR') : '',
-              memberName: memberMap.get(c.memberId) || 'Membre inconnu',
-              details: `Collecte #${c.id}`,
+              time: c.collectionDate ? new Date(c.collectionDate).toLocaleTimeString('fr-FR') : '',
+              memberName: memberMap.get(c.tontineMemberId) || 'Membre inconnu',
+              details: `Collecte #${c.id.substring(0, 8)}`,
               amount: c.amount || 0,
               isSync: c.isSync || false
             }));
@@ -358,18 +361,18 @@ export class RapportJournalierService {
 
     return from(this.databaseService.getTontineDeliveries('', currentCommercialId)).pipe(
       switchMap(deliveries => {
-        const todayDeliveries = deliveries.filter(d => d.createdAt && d.createdAt.startsWith(dateString));
+        const todayDeliveries = deliveries.filter(d => d.requestDate && d.requestDate.startsWith(dateString));
         if (todayDeliveries.length === 0) {
           return of({ count: 0, totalAmount: 0, items: [] });
         }
         return from(this.databaseService.getTontineMembers('', currentCommercialId)).pipe(
           map(members => {
-            const memberMap = new Map(members.map(m => [m.id, m.name]));
+            const memberMap = new Map(members.map(m => [m.id, m.name || m.clientName]));
             const items = todayDeliveries.map(d => ({
-              time: d.createdAt ? new Date(d.createdAt).toLocaleTimeString('fr-FR') : '',
-              memberName: memberMap.get(d.memberId) || 'Membre inconnu',
-              details: `Livraison #${d.id}`,
-              amount: d.amount || 0,
+              time: d.requestDate ? new Date(d.requestDate).toLocaleTimeString('fr-FR') : '',
+              memberName: memberMap.get(d.tontineMemberId) || 'Membre inconnu',
+              details: `Livraison #${d.id.substring(0, 8)}`,
+              amount: d.totalAmount || 0,
               isSync: d.isSync || false
             }));
             const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
@@ -392,15 +395,15 @@ export class RapportJournalierService {
     const dateString = targetDate.toISOString().split('T')[0];
 
     const membersCount$ = from(this.databaseService.getTontineMembers('', currentCommercialId)).pipe(
-      map(members => members.filter(m => m.createdAt && m.createdAt.startsWith(dateString)).length)
+      map(members => members.filter(m => m.registrationDate && m.registrationDate.startsWith(dateString)).length)
     );
 
     const collectionsCount$ = from(this.databaseService.getTontineCollectionsByCommercial(currentCommercialId)).pipe(
-      map(collections => collections.filter(c => c.createdAt && c.createdAt.startsWith(dateString)).length)
+      map(collections => collections.filter(c => c.collectionDate && c.collectionDate.startsWith(dateString)).length)
     );
 
     const deliveriesCount$ = from(this.databaseService.getTontineDeliveries('', currentCommercialId)).pipe(
-      map(deliveries => deliveries.filter(d => d.createdAt && d.createdAt.startsWith(dateString)).length)
+      map(deliveries => deliveries.filter(d => d.requestDate && d.requestDate.startsWith(dateString)).length)
     );
 
     return forkJoin({
@@ -467,47 +470,47 @@ export class RapportJournalierService {
 
     const tontineMembersTable = reportData.tontineMembers && reportData.tontineMembers.items.length > 0
       ? this.generateTableHTML(
-          'Membres Tontine',
-          ['ID', 'Heure', 'Nom', 'Détails', 'Contribution', 'Statut'],
-          reportData.tontineMembers.items.map((item: any, index: number) => [
-            (index + 1).toString(),
-            item.time,
-            item.memberName,
-            item.details,
-            `${formatPrice(item.contribution)} FCFA`,
-            item.isSync ? 'Sync' : 'Local'
-          ])
-        )
+        'Membres Tontine',
+        ['ID', 'Heure', 'Nom', 'Détails', 'Contribution', 'Statut'],
+        reportData.tontineMembers.items.map((item: any, index: number) => [
+          (index + 1).toString(),
+          item.time,
+          item.memberName,
+          item.details,
+          `${formatPrice(item.contribution)} FCFA`,
+          item.isSync ? 'Sync' : 'Local'
+        ])
+      )
       : '';
 
     const tontineCollectionsTable = reportData.tontineCollections && reportData.tontineCollections.items.length > 0
       ? this.generateTableHTML(
-          'Collectes Tontine',
-          ['ID', 'Heure', 'Membre', 'Détails', 'Montant', 'Statut'],
-          reportData.tontineCollections.items.map((item: any, index: number) => [
-            (index + 1).toString(),
-            item.time,
-            item.memberName,
-            item.details,
-            `${formatPrice(item.amount)} FCFA`,
-            item.isSync ? 'Sync' : 'Local'
-          ])
-        )
+        'Collectes Tontine',
+        ['ID', 'Heure', 'Membre', 'Détails', 'Montant', 'Statut'],
+        reportData.tontineCollections.items.map((item: any, index: number) => [
+          (index + 1).toString(),
+          item.time,
+          item.memberName,
+          item.details,
+          `${formatPrice(item.amount)} FCFA`,
+          item.isSync ? 'Sync' : 'Local'
+        ])
+      )
       : '';
 
     const tontineDeliveriesTable = reportData.tontineDeliveries && reportData.tontineDeliveries.items.length > 0
       ? this.generateTableHTML(
-          'Livraisons Tontine',
-          ['ID', 'Heure', 'Membre', 'Détails', 'Montant', 'Statut'],
-          reportData.tontineDeliveries.items.map((item: any, index: number) => [
-            (index + 1).toString(),
-            item.time,
-            item.memberName,
-            item.details,
-            `${formatPrice(item.amount)} FCFA`,
-            item.isSync ? 'Sync' : 'Local'
-          ])
-        )
+        'Livraisons Tontine',
+        ['ID', 'Heure', 'Membre', 'Détails', 'Montant', 'Statut'],
+        reportData.tontineDeliveries.items.map((item: any, index: number) => [
+          (index + 1).toString(),
+          item.time,
+          item.memberName,
+          item.details,
+          `${formatPrice(item.amount)} FCFA`,
+          item.isSync ? 'Sync' : 'Local'
+        ])
+      )
       : '';
 
     return `

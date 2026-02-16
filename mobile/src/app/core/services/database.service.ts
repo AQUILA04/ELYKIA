@@ -3047,13 +3047,22 @@ export class DatabaseService {
 
   async getTontineMembers(sessionId: string, commercialUsername: string): Promise<any[]> {
     if (!this.db) throw new Error('Database not initialized.');
-    const query = `
+
+    let query = `
       SELECT tm.*, c.fullName as clientName, c.phone as clientPhone
       FROM tontine_members tm
       LEFT JOIN clients c ON tm.clientId = c.id
-      WHERE tm.tontineSessionId = ? AND tm.commercialUsername = ?
+      WHERE tm.commercialUsername = ?
     `;
-    const result = await this.db.query(query, [sessionId, commercialUsername]);
+
+    const params = [commercialUsername];
+
+    if (sessionId && sessionId.trim() !== '') {
+      query += ` AND tm.tontineSessionId = ?`;
+      params.push(sessionId);
+    }
+
+    const result = await this.db.query(query, params);
     return result.values || [];
   }
 
@@ -3191,8 +3200,16 @@ export class DatabaseService {
   async getTontineDeliveries(memberId: string, commercialUsername: string): Promise<any[]> {
     if (!this.db) throw new Error('Database not initialized.');
 
+    let query = 'SELECT * FROM tontine_deliveries WHERE commercialUsername = ?';
+    const params = [commercialUsername];
+
+    if (memberId && memberId.trim() !== '') {
+      query += ' AND tontineMemberId = ?';
+      params.push(memberId);
+    }
+
     // Get deliveries
-    const deliveriesResult = await this.db.query('SELECT * FROM tontine_deliveries WHERE tontineMemberId = ? AND commercialUsername = ?', [memberId, commercialUsername]);
+    const deliveriesResult = await this.db.query(query, params);
     const deliveries = deliveriesResult.values || [];
 
     // Get items for each delivery
@@ -3753,38 +3770,28 @@ export class DatabaseService {
 
   /**
    * Compte le nombre d'items (lignes) dans le stock commercial pour un commercial
+   * Validation basée sur le stock actuel (commercial_stock_items)
    */
   async countCommercialStockItems(commercialUsername: string): Promise<number> {
     if (!this.db) {
       console.error('Database not initialized.');
       return 0;
     }
-    const sql = `
-      SELECT COUNT(*) as count
-      FROM stock_output_items soi
-      JOIN stock_outputs so ON soi.stockOutputId = so.id
-      WHERE so.commercialId = ?
-    `;
+    const sql = `SELECT COUNT(*) as count FROM commercial_stock_items WHERE commercialUsername = ?`;
     const result = await this.db.query(sql, [commercialUsername]);
     return result.values && result.values.length > 0 ? result.values[0].count : 0;
   }
 
   /**
-   * Compte la quantité totale restante dans le stock commercial (stock output items)
-   * Note: Sur mobile, on stocke les StockOutputItem avec quantity
-   * qui correspond au quantityRemaining du backend
+   * Compte la quantité totale restante dans le stock commercial
+   * Validation basée sur le stock actuel (commercial_stock_items)
    */
   async countCommercialStockRemaining(commercialUsername: string): Promise<number> {
     if (!this.db) {
       console.error('Database not initialized.');
       return 0;
     }
-    const sql = `
-      SELECT COALESCE(SUM(soi.quantity), 0) as total 
-      FROM stock_output_items soi
-      JOIN stock_outputs so ON soi.stockOutputId = so.id
-      WHERE so.commercialId = ?
-    `;
+    const sql = `SELECT COALESCE(SUM(quantityRemaining), 0) as total FROM commercial_stock_items WHERE commercialUsername = ?`;
     const result = await this.db.query(sql, [commercialUsername]);
     return result.values && result.values.length > 0 ? result.values[0].total : 0;
   }
