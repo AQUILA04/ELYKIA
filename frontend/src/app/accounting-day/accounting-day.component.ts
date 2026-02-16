@@ -130,28 +130,43 @@ export class AccountingDayComponent implements OnInit {
   closeDay(): void {
     if (!this.isOpen) {
       this.spinner.show();
-      this.alertService.showDefaultError('La journée comptable est déjà fermée !');
-      return;
-    }
-
-    this.accountingDayService.closeDay(this.closeDate).subscribe(
-      response => {
-        if (response.statusCode === 200) {
-          this.spinner.hide();
-          this.alertService.showDefaultSucces('La journée comptable a été fermée avec succès');
-          this.isOpen = false;
-        } else {
-          this.alertService.showDefaultError(response.message || 'Erreur lors de la fermeture de la journée comptable');
+          this.alertService.showDefaultError('La journée comptable est déjà fermée !');
+          return;
         }
-      },
-      error => {
-        this.spinner.hide();
-        if (error.status === 500 && error.error.message === 'Cette Journée comptable est déjà fermée !') {
-          this.alertService.showDefaultError('Cette Journée comptable est déjà fermée !');
-        } else {
-          this.alertService.showDefaultError('Erreur lors de la fermeture de la journée comptable');
-        }
-      }
-    );
-  }
-}
+      
+        Swal.fire({
+          title: 'Confirmation de fermeture',
+          text: 'Êtes-vous sûr de vouloir fermer la journée comptable ? Cette action est irréversible.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Oui, fermer !',
+          cancelButtonText: 'Annuler'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.spinner.show();
+            this.accountingDayService.closeDay(this.closeDate).subscribe(
+              response => {
+                if (response.statusCode === 200) {
+                  this.spinner.hide();
+                  this.alertService.showDefaultSucces('La journée comptable a été fermée avec succès');
+                  this.isOpen = false;
+                } else {
+                  this.alertService.showDefaultError(response.message || 'Erreur lors de la fermeture de la journée comptable');
+                }
+              },
+              error => {
+                this.spinner.hide();
+                if (error.status === 500 && error.error.message === 'Cette Journée comptable est déjà fermée !') {
+                  this.alertService.showDefaultError('Cette Journée comptable est déjà fermée !');
+                } else {
+                  this.alertService.showDefaultError('Erreur lors de la fermeture de la journée comptable');
+                }
+              }
+            );
+          } else {
+            this.alertService.showInfo('Fermeture annulée', 'La journée comptable n\'a pas été fermée.');
+          }
+        });
+      }}

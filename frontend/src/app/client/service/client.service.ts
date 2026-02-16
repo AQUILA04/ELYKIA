@@ -91,7 +91,10 @@ export class ClientService {
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
-      .set('sort', sort);
+      .set('sort', sort)
+      .set('username', username.username)
+      .set('tontine', false);
+
 
     // Si une recherche est en cours, on utilise l'endpoint POST /elasticsearch
     if (search && search.trim() !== '') {
@@ -139,7 +142,7 @@ export class ClientService {
     if (searchTerm) {
       params = params.set('search', searchTerm);
     }
-    
+
     return this.http.get<any>(`${this.apiUrl}/by-commercial/${username}`, { params, headers });
   }
 
