@@ -173,7 +173,7 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
     }
 
     goBack() {
-        this.navCtrl.back();
+        this.navCtrl.navigateBack('/tabs/dashboard');
     }
 
     async showMenu() {

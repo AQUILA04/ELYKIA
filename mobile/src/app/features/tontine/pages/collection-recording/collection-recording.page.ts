@@ -12,6 +12,7 @@ import { ClientRepository } from 'src/app/core/repositories/client.repository';
 import { TontineMember, TontineCollection, TontineSession } from 'src/app/models/tontine.model';
 import { Client } from 'src/app/models/client.model';
 import { selectTontineSession } from 'src/app/store/tontine/tontine.selectors';
+import * as TontineActions from 'src/app/store/tontine/tontine.actions';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { PrintableTontineCollection } from 'src/app/core/services/printing.service';
 import { TontineReceiptModalComponent } from 'src/app/shared/components/tontine-receipt-modal/tontine-receipt-modal.component';
@@ -214,6 +215,9 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
             };
 
             await this.collectionRepo.save(newCollection);
+
+            // Update Store specifically for Dashboard KPI
+            this.store.dispatch(TontineActions.loadTontineCollections());
 
             await loading.dismiss();
 

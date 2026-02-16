@@ -89,6 +89,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ionViewWillEnter() {
+    console.log('[DashboardPage] ionViewWillEnter triggered');
     // Recharger les données à chaque fois qu'on entre dans la vue
     this.loadDashboardData();
   }
@@ -96,10 +97,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
 
   private loadDashboardData() {
+    console.log('[DashboardPage] loadDashboardData called');
     this.store.select(selectAuthUser).pipe(
       take(1)
     ).subscribe(user => {
-
+      console.log('[DashboardPage] loadDashboardData auth user:', user?.username);
       if (!user || !user.username) {
         this.log.log('[DashboardPage] No valid authenticated user found. Logging out...');
         this.store.dispatch(AuthActions.logout());
@@ -323,29 +325,14 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private calculateTontineAmount(collections: any[], startDate: Date): number {
-    console.log('=== TONTINE KPI CALCULATION ===');
-    console.log('Collections count:', collections?.length || 0);
-    console.log('Start date for filter:', startDate);
-
-    if (!collections) {
-      console.log('No collections - returning 0');
-      return 0;
-    }
+    if (!collections) return 0;
 
     const filtered = collections.filter(c => {
       const collectionDate = new Date(c.collectionDate);
-      const isAfterStart = collectionDate >= startDate;
-      console.log(`Collection ${c.id}: date=${c.collectionDate}, amount=${c.amount}, isAfterStart=${isAfterStart}`);
-      return isAfterStart;
+      return collectionDate >= startDate;
     });
 
-    console.log('Filtered collections count:', filtered.length);
-
-    const total = filtered.reduce((sum, c) => sum + c.amount, 0);
-    console.log('Total Tontine amount:', total);
-    console.log('=== END TONTINE KPI CALCULATION ===');
-
-    return total;
+    return filtered.reduce((sum, c) => sum + c.amount, 0);
   }
 
   private prepareChartData(distributions: Distribution[], recoveries: RecoveryView[], period: string): any {
