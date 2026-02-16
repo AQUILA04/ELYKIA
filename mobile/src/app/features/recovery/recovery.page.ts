@@ -121,9 +121,11 @@ export class RecoveryPage implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
 
-      // Attendre un peu avant de réinitialiser complètement l'état pour laisser le temps aux données de se mettre à jour
+      // Attendre un peu avant de réinitialiser le formulaire pour laisser le temps aux données de se mettre à jour
       setTimeout(() => {
-        this.store.dispatch(RecoveryActions.clearRecoveryState());
+        this.store.dispatch(RecoveryActions.resetRecoveryForm());
+        // On ne vide PAS tout l'état (clearRecoveryState) pour ne pas perdre la liste des recouvrements
+        // Si besoin de désélectionner le client, on peut le faire ici, mais resetRecoveryForm est souvent suffisant
       }, 1000);
     });
   }

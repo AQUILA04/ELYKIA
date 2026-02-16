@@ -2,15 +2,16 @@ import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { of, from, timer, EMPTY } from 'rxjs';
-import { 
-  map, 
-  catchError, 
-  switchMap, 
-  tap, 
+import {
+  map,
+  catchError,
+  switchMap,
+  tap,
   withLatestFrom,
   takeUntil,
   concatMap,
-  delay
+  delay,
+  filter
 } from 'rxjs/operators';
 
 import { SynchronizationService } from '../../core/services/synchronization.service';
@@ -23,6 +24,11 @@ import { RecoveryService } from '../../core/services/recovery.service';
 import * as SyncActions from './sync.actions';
 import { selectAutomaticSyncIsActive } from './sync.selectors';
 import { SyncProgress, SyncPhase } from '../../models/sync.model';
+import * as ClientActions from '../../store/client/client.actions';
+import * as DistributionActions from '../../store/distribution/distribution.actions';
+import * as RecoveryActions from '../../store/recovery/recovery.actions';
+import * as TontineActions from '../../store/tontine/tontine.actions';
+import { selectAuthUser } from '../../store/auth/auth.selectors';
 
 @Injectable()
 export class SyncEffects {
@@ -36,7 +42,7 @@ export class SyncEffects {
     private clientService: ClientService,
     private distributionService: DistributionService,
     private recoveryService: RecoveryService
-  ) {}
+  ) { }
 
   // ==================== EFFETS SYNCHRONISATION AUTOMATIQUE ====================
 
@@ -157,8 +163,8 @@ export class SyncEffects {
       ofType(SyncActions.retrySyncError),
       switchMap(({ errorId }) =>
         from(this.syncErrorService.retrySyncError(errorId)).pipe(
-          map(success => 
-            success 
+          map(success =>
+            success
               ? SyncActions.retrySyncErrorSuccess({ errorId })
               : SyncActions.retrySyncErrorFailure({ errorId, error: 'Échec du retry' })
           ),
@@ -250,6 +256,55 @@ export class SyncEffects {
   );
 
   /**
+   * Recharger les stores ngrx après une synchronisation réussie pour mettre à jour l'UI
+   */
+  reloadFeatureStores$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        SyncActions.manualSyncSuccess,
+        SyncActions.syncSingleEntitySuccess,
+        SyncActions.automaticSyncSuccess
+      ),
+      withLatestFrom(this.store.select(selectAuthUser)),
+      filter(([action, user]) => !!user),
+      concatMap(([action, user]) => {
+        const username = user!.username;
+        const actionsToDispatch = [];
+
+        // Determine which stores to reload based on the action and entity type
+        if (action.type === SyncActions.automaticSyncSuccess.type) {
+          // Full reload for automatic sync
+          actionsToDispatch.push(ClientActions.loadClients({ commercialUsername: username }));
+          actionsToDispatch.push(DistributionActions.loadDistributions({ commercialUsername: username }));
+          actionsToDispatch.push(RecoveryActions.loadRecoveries({ commercialUsername: username }));
+          actionsToDispatch.push(TontineActions.loadTontineSession());
+          // Note: loadTontineMembers depends on session ID, which is handled in the dashboard via session selector, 
+          // but we can trigger session reload which cascades.
+        } else {
+          // Partial reload for manual/single sync
+          const entityType = (action as any).entityType; // Type assertion as props vary slightly but entityType is common in usage context or mapped
+
+          if (['client', 'clients'].includes(entityType)) {
+            actionsToDispatch.push(ClientActions.loadClients({ commercialUsername: username }));
+          }
+          if (['distribution', 'distributions'].includes(entityType)) {
+            actionsToDispatch.push(DistributionActions.loadDistributions({ commercialUsername: username }));
+          }
+          if (['recovery', 'recoveries'].includes(entityType)) {
+            actionsToDispatch.push(RecoveryActions.loadRecoveries({ commercialUsername: username }));
+          }
+          if (['tontine-member', 'tontine-members', 'tontine-collection', 'tontine-collections'].includes(entityType)) {
+            // Reload session to be safe, logic usually cascades to members
+            actionsToDispatch.push(TontineActions.loadTontineSession());
+          }
+        }
+
+        return from(actionsToDispatch);
+      })
+    )
+  );
+
+  /**
    * Recharger les erreurs après retry réussi
    */
   reloadErrorsAfterRetry$ = createEffect(() =>
@@ -303,9 +358,9 @@ export class SyncEffects {
   /**
    * Charger les données non synchronisées
    */
-  private async loadUnsyncedData(): Promise<{ 
-    clients: any[], 
-    distributions: any[], 
+  private async loadUnsyncedData(): Promise<{
+    clients: any[],
+    distributions: any[],
     recoveries: any[],
     tontineMembers: any[],
     tontineCollections: any[],
@@ -436,10 +491,10 @@ export class SyncEffects {
     this.actions$.pipe(
       ofType(SyncActions.manualSyncSuccess),
       tap(async ({ entityType, successCount, errorCount }) => {
-        const entityLabel = entityType === 'clients' ? 'client(s)' : 
-                           entityType === 'distributions' ? 'distribution(s)' : 
-                           'recouvrement(s)';
-        
+        const entityLabel = entityType === 'clients' ? 'client(s)' :
+          entityType === 'distributions' ? 'distribution(s)' :
+            'recouvrement(s)';
+
         let message = `${successCount} ${entityLabel} synchronisé(s) avec succès`;
         if (errorCount > 0) {
           message += ` (${errorCount} erreur(s))`;
@@ -467,10 +522,10 @@ export class SyncEffects {
     this.actions$.pipe(
       ofType(SyncActions.syncSingleEntitySuccess),
       tap(async ({ entityType }) => {
-        const entityLabel = entityType === 'client' ? 'Client' : 
-                           entityType === 'distribution' ? 'Distribution' : 
-                           'Recouvrement';
-        
+        const entityLabel = entityType === 'client' ? 'Client' :
+          entityType === 'distribution' ? 'Distribution' :
+            'Recouvrement';
+
         const { ToastController } = await import('@ionic/angular');
         const toastController = new ToastController();
         const toast = await toastController.create({
@@ -496,7 +551,7 @@ export class SyncEffects {
           const filePath = await this.syncLogsExportService.exportSyncLogsAfterSync(result);
           if (filePath) {
             console.log('Logs de synchronisation exportés automatiquement:', filePath);
-            
+
             // Nettoyer les anciens fichiers de logs (garder les 30 derniers)
             await this.syncLogsExportService.cleanOldLogFiles();
           }

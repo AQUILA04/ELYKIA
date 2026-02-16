@@ -393,14 +393,15 @@ export class TontineService {
     /**
      * Get collections from local DB
      */
-    getCollections(): Observable<any[]> {
-        console.log('TontineService.getCollections: commercialUsername =', this.commercialUsername);
-        if (!this.commercialUsername) {
+    getCollections(commercialUsername?: string): Observable<any[]> {
+        const username = commercialUsername || this.commercialUsername;
+        console.log('TontineService.getCollections: commercialUsername =', username);
+        if (!username) {
             console.log('TontineService.getCollections: No commercialUsername - returning empty array');
             return of([]);
         }
         console.log('TontineService.getCollections: Calling dbService.getTontineCollectionsByCommercial');
-        return from(this.dbService.getTontineCollectionsByCommercial(this.commercialUsername)).pipe(
+        return from(this.dbService.getTontineCollectionsByCommercial(username)).pipe(
             tap(collections => {
                 console.log('TontineService.getCollections: Retrieved', collections?.length || 0, 'collections');
                 console.log('TontineService.getCollections: Data =', collections);

@@ -8,7 +8,7 @@ export interface RecoveryState {
   recoveries: Recovery[];
   loading: boolean;
   error: any;
-  
+
   // Nouveaux états pour l'US008
   selectedClient: Client | null;
   clientCredits: Distribution[];
@@ -26,7 +26,7 @@ export const initialState: RecoveryState = {
   recoveries: [],
   loading: false,
   error: null,
-  
+
   // Nouveaux états initiaux
   selectedClient: null,
   clientCredits: [],
@@ -141,6 +141,8 @@ export const recoveryReducer = createReducer(
 
   on(RecoveryActions.resetRecoveryForm, (state) => ({
     ...state,
+    selectedClient: null,
+    clientCredits: [],
     selectedCredit: null,
     recoveryAmount: 0,
     validationResult: null,

@@ -9,6 +9,7 @@ import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { selectCommercialByUsername } from '../../store/commercial/commercial.selectors';
 import { selectIsOnline } from '../../store/health-check/health-check.selectors';
 import * as CommercialActions from '../../store/commercial/commercial.actions';
+import * as AuthActions from '../../store/auth/auth.actions';
 import * as StockOutputActions from '../../store/stock-output/stock-output.actions';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import * as RecoveryActions from '../../store/recovery/recovery.actions';
@@ -92,20 +93,38 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     this.loadDashboardData();
   }
 
+
+
   private loadDashboardData() {
     this.store.select(selectAuthUser).pipe(
-      take(1),
-      filter(user => !!user)
+      take(1)
     ).subscribe(user => {
-      const username = user!.username;
+      this.log.log('[DashboardPage] LoadDashboardData - User: ' + JSON.stringify(user));
+
+      if (!user || !user.username) {
+        this.log.log('[DashboardPage] No valid authenticated user found. Logging out...');
+        this.store.dispatch(AuthActions.logout());
+        return;
+      }
+
+      const username = user.username;
+
+      // Dispatch load actions IMMEDIATELY to ensure data availability
       this.store.dispatch(CommercialActions.loadCommercial({ commercialUsername: username }));
-      // this.store.dispatch(StockOutputActions.loadStockOutputs({ commercialUsername: username })); // Deprecated
       this.store.dispatch(CommercialStockActions.loadCommercialStock({ commercialUsername: username }));
       this.store.dispatch(DistributionActions.loadDistributions({ commercialUsername: username }));
-      // Recharger aussi les recouvrements pour les KPIs
       this.store.dispatch(RecoveryActions.loadRecoveries({ commercialUsername: username }));
-      // Charger les collections tontine
       this.store.dispatch(TontineActions.loadTontineCollections());
+
+      // Delayed check for commercial data integrity
+      setTimeout(() => {
+        this.store.select(selectCommercialByUsername(username)).pipe(take(1)).subscribe(commercial => {
+          if (!commercial || (!commercial.fullName && !commercial.username)) {
+            this.log.log('[DashboardPage] Commercial data missing after load attempt. Logging out.');
+            this.store.dispatch(AuthActions.logout());
+          }
+        });
+      }, 2000); // 2 second grace period for data to load
     });
   }
 
@@ -147,7 +166,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
     // Create salesAmount observable first so it can be reused
     const salesAmount$ = combineLatest([distributions$, filteredData$]).pipe(
-        map(([d, sd]) => (d as Distribution[]).filter(i => new Date(i.createdAt) >= sd).reduce((s: number, i: Distribution) => s + i.totalAmount, 0))
+      map(([d, sd]) => (d as Distribution[]).filter(i => new Date(i.createdAt) >= sd).reduce((s: number, i: Distribution) => s + i.totalAmount, 0))
     );
 
     this.vm$ = combineLatest({
@@ -156,7 +175,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       isSyncing: this.store.select(selectAutomaticSyncIsActive),
       syncNotifications: this.store.select(selectSyncErrorsCount),
       salesAmount: salesAmount$,
-      recoveryAmount: combineLatest([recoveries$, filteredData$]).pipe(map(([r, sd]) => (r as RecoveryView[]).filter(i => new Date(i.paymentDate) >= sd).reduce((s: number, i: RecoveryView) => s + i.amount, 0))),
+      recoveryAmount: combineLatest([recoveries$, filteredData$]).pipe(
+        tap(([r, sd]) => console.log(`[Dashboard] Calculating Recovery Amount. Recoveries: ${r?.length}, StartDate: ${sd}`)),
+        map(([r, sd]) => (r as RecoveryView[]).filter(i => new Date(i.paymentDate) >= sd).reduce((s: number, i: RecoveryView) => s + i.amount, 0))
+      ),
       // stockOutputAmount: combineLatest([stockOutputs$, this.periodFilter$]).pipe(map(([so, p]) => this.calculateStockOutputAmount(so as StockOutput[], p))),
       stockOutputAmount: combineLatest([commercialStockItems$, articles$, salesAmount$]).pipe(map(([items, articles, sales]) => this.calculateTotalStockValue(items, articles, sales))),
       remainingAmount: combineLatest([distributions$, recoveries$, this.periodFilter$]).pipe(map(([d, r, p]) => this.calculateRemainingAmount(d as Distribution[], r as RecoveryView[], p))),
@@ -178,9 +200,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
     // Debug log for raw stock items
     commercialStockItems$.pipe(takeUntil(this.destroy$)).subscribe(items => {
-        console.log('--- RAW COMMERCIAL STOCK ITEMS FROM STORE ---');
-        console.log(JSON.stringify(items, null, 2));
-        console.log('---------------------------------------------');
+      console.log('--- RAW COMMERCIAL STOCK ITEMS FROM STORE ---');
+      console.log(JSON.stringify(items, null, 2));
+      console.log('---------------------------------------------');
     });
   }
 
@@ -225,25 +247,25 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private calculateTotalStockValue(items: CommercialStockItem[], articles: Article[], salesAmount: number): number {
-      if (!items || !articles) return 0;
+    if (!items || !articles) return 0;
 
-      // Calculate undistributed value
-      const undistributed = this.calculateUndistributedStockValue(items, articles);
+    // Calculate undistributed value
+    const undistributed = this.calculateUndistributedStockValue(items, articles);
 
-      // Total Stock Output = Total Sales (from KPI) + Undistributed
-      return salesAmount + undistributed;
+    // Total Stock Output = Total Sales (from KPI) + Undistributed
+    return salesAmount + undistributed;
   }
 
   private calculateUndistributedStockValue(items: CommercialStockItem[], articles: Article[]): number {
-      if (!items || !articles) return 0;
+    if (!items || !articles) return 0;
 
-      return items.reduce((total, item) => {
-          const article = articles.find(a => a.id === item.articleId);
-          if (article) {
-              return total + (item.quantityRemaining * article.creditSalePrice);
-          }
-          return total;
-      }, 0);
+    return items.reduce((total, item) => {
+      const article = articles.find(a => a.id === item.articleId);
+      if (article) {
+        return total + (item.quantityRemaining * article.creditSalePrice);
+      }
+      return total;
+    }, 0);
   }
 
   private calculateRemainingAmount(distributions: Distribution[], recoveries: RecoveryView[], period: string): number {

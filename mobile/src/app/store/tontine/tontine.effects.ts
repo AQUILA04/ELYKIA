@@ -4,6 +4,9 @@ import { catchError, map, mergeMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import * as TontineActions from './tontine.actions';
 import { TontineService } from '../../core/services/tontine.service';
+import { Store } from '@ngrx/store';
+import { selectAuthUser } from '../auth/auth.selectors';
+import { withLatestFrom } from 'rxjs/operators';
 
 @Injectable()
 export class TontineEffects {
@@ -28,15 +31,23 @@ export class TontineEffects {
 
     loadCollections$ = createEffect(() => this.actions$.pipe(
         ofType(TontineActions.loadTontineCollections),
-        mergeMap(() => this.tontineService.getCollections()
-            .pipe(
-                map(collections => TontineActions.loadTontineCollectionsSuccess({ collections })),
-                catchError(error => of(TontineActions.loadTontineCollectionsFailure({ error })))
-            ))
+        withLatestFrom(this.store.select(selectAuthUser)),
+        mergeMap(([action, user]) => {
+            const username = user?.username;
+            if (!username) {
+                return of(TontineActions.loadTontineCollectionsFailure({ error: 'User not authenticated' }));
+            }
+            return this.tontineService.getCollections(username)
+                .pipe(
+                    map(collections => TontineActions.loadTontineCollectionsSuccess({ collections })),
+                    catchError(error => of(TontineActions.loadTontineCollectionsFailure({ error })))
+                );
+        })
     ));
 
     constructor(
         private actions$: Actions,
-        private tontineService: TontineService
+        private tontineService: TontineService,
+        private store: Store
     ) { }
 }

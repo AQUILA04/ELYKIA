@@ -119,12 +119,17 @@ export class DataInitializationService {
       filter((user): user is User => !!user),
       switchMap(user => {
         const commercialUsername = user.username;
+        this.log.log(`[DataInit] Initializing commercial for: ${commercialUsername}`);
         return this.commercialService.initializeCommercial(commercialUsername).pipe(
           map(() => {
+            this.log.log(`[DataInit] Commercial initialized, dispatching load for: ${commercialUsername}`);
             this.store.dispatch(CommercialActions.loadCommercial({ commercialUsername }));
             return true;
           }),
-          catchError(error => of(false))
+          catchError(error => {
+            this.log.log(`[DataInit] Error initializing commercial: ${error}`);
+            return of(false);
+          })
         );
       })
     );
