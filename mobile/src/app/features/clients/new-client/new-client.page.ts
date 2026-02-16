@@ -13,6 +13,7 @@ import { Actions, ofType } from '@ngrx/effects';
 import { map, take, takeUntil, startWith, distinctUntilChanged } from 'rxjs/operators';
 import { selectAuthUser } from '../../../store/auth/auth.selectors';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 import * as LocalityActions from 'src/app/store/locality/locality.actions';
 import { LoggerService } from '../../../core/services/logger.service';
 
@@ -72,7 +73,7 @@ export class NewClientPage implements OnInit, OnDestroy {
       cardType: ['', Validators.required],
       cardID: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(26)]],
       address: ['', Validators.required],
-      quarter: [''],
+      quarter: ['', Validators.required],
       contactPersonName: [''],
       contactPersonPhone: [''],
       contactPersonAddress: [''],
@@ -283,14 +284,16 @@ export class NewClientPage implements OnInit, OnDestroy {
 
   async takePicture() {
     try {
-      let permissions = await Camera.checkPermissions();
-      if (permissions.camera !== 'granted') {
-        permissions = await Camera.requestPermissions();
-      }
+      if (Capacitor.getPlatform() !== 'web') {
+        let permissions = await Camera.checkPermissions();
+        if (permissions.camera !== 'granted') {
+          permissions = await Camera.requestPermissions();
+        }
 
-      if (permissions.camera !== 'granted') {
-        await this.presentAlert('Permission refusée', "L'accès à la caméra est nécessaire pour prendre une photo.");
-        return;
+        if (permissions.camera !== 'granted') {
+          await this.presentAlert('Permission refusée', "L'accès à la caméra est nécessaire pour prendre une photo.");
+          return;
+        }
       }
 
       const image = await Camera.getPhoto({
@@ -304,20 +307,28 @@ export class NewClientPage implements OnInit, OnDestroy {
       this.clientForm.patchValue({ profilPhoto: image.dataUrl });
     } catch (error) {
       console.error('Error taking picture', error);
+      // Don't show alert if user cancelled or if it's just a "User cancelled photos app" error which is common
+      if (typeof error === 'string' && error.includes('User cancelled')) {
+        return;
+      }
+      // On web, if the user closes the file picker without selecting, it might throw "User cancelled photos app" or similar.
+      // We can genericize the error message or just log it.
       await this.presentAlert('Erreur Caméra', 'Impossible de prendre une photo.');
     }
   }
 
   async takeCardPicture() {
     try {
-      let permissions = await Camera.checkPermissions();
-      if (permissions.camera !== 'granted') {
-        permissions = await Camera.requestPermissions();
-      }
+      if (Capacitor.getPlatform() !== 'web') {
+        let permissions = await Camera.checkPermissions();
+        if (permissions.camera !== 'granted') {
+          permissions = await Camera.requestPermissions();
+        }
 
-      if (permissions.camera !== 'granted') {
-        await this.presentAlert('Permission refusée', "L'accès à la caméra est nécessaire pour prendre une photo.");
-        return;
+        if (permissions.camera !== 'granted') {
+          await this.presentAlert('Permission refusée', "L'accès à la caméra est nécessaire pour prendre une photo.");
+          return;
+        }
       }
 
       const image = await Camera.getPhoto({
@@ -331,6 +342,9 @@ export class NewClientPage implements OnInit, OnDestroy {
       this.clientForm.patchValue({ cardPhoto: image.dataUrl });
     } catch (error) {
       console.error('Error taking card picture', error);
+      if (typeof error === 'string' && error.includes('User cancelled')) {
+        return;
+      }
       await this.presentAlert('Erreur Caméra', 'Impossible de prendre une photo.');
     }
   }

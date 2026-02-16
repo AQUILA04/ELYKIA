@@ -19,6 +19,7 @@ export interface Client {
   contactPersonPhone: string;
   contactPersonAddress: string;
   collector: string;
+  tontineCollector?: string; // Ajout du champ tontineCollector
   occupation: string;
   quarter: string;
   creditInProgress?: boolean;
@@ -46,6 +47,7 @@ export interface NewClientData {
   contactPersonPhone: string;
   contactPersonAddress: string;
   collector: string;
+  tontineCollector?: string; // Ajout du champ tontineCollector
   occupation: string;
   quarter: string;
   creditInProgress?: boolean;
@@ -167,4 +169,3 @@ export class ClientService {
     );
   }
 }
-

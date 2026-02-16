@@ -28,7 +28,7 @@ public class DailyCommercialReport extends BaseEntity<String> {
     // Stock Request (Vente à Crédit)
     @Column(columnDefinition = "double precision default 0")
     private Double totalStockRequestAmount = 0.0;
-    
+
     // Stock Tontine Request (NOUVEAU)
     @Column(columnDefinition = "double precision default 0")
     private Double totalTontineStockRequestAmount = 0.0;
@@ -94,12 +94,16 @@ public class DailyCommercialReport extends BaseEntity<String> {
     @Column(columnDefinition = "double precision default 0")
     private Double stockRequestMargin = 0.0;
 
+    // Advances
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalAdvancesAmount = 0.0;
+
     public DailyCommercialReport(String commercialUsername, Double totalStockRequestAmount, Long creditSalesCount,
             Double creditSalesAmount, Long newClientsCount, Double newAccountsBalance, Long collectionsCount,
             Double collectionsAmount, Long ordersCount, Double ordersAmount, Long tontineMembersCount,
             Long tontineCollectionsCount, Double tontineCollectionsAmount, Long tontineDeliveriesCount,
             Double tontineDeliveriesAmount, Double totalAmountToDeposit, Double totalAmountDeposited,
-            Double creditSalesMargin, Double stockRequestMargin) {
+            Double creditSalesMargin, Double stockRequestMargin, Double totalAdvancesAmount) {
         this.commercialUsername = commercialUsername;
         this.totalStockRequestAmount = totalStockRequestAmount != null ? totalStockRequestAmount : 0.0;
         this.creditSalesCount = creditSalesCount != null ? creditSalesCount.intValue() : 0;
@@ -119,6 +123,7 @@ public class DailyCommercialReport extends BaseEntity<String> {
         this.totalAmountDeposited = totalAmountDeposited != null ? totalAmountDeposited : 0.0;
         this.creditSalesMargin = creditSalesMargin != null ? creditSalesMargin : 0.0;
         this.stockRequestMargin = stockRequestMargin != null ? stockRequestMargin : 0.0;
+        this.totalAdvancesAmount = totalAdvancesAmount != null ? totalAdvancesAmount : 0.0;
     }
 
     public void addAmountToDeposit(Double amount) {

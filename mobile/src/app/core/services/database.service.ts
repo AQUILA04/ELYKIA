@@ -77,7 +77,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 11; // Incremented for tontineCollector update
+        const targetVersion = 12; // Incremented for syncHash update
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -302,6 +302,7 @@ export class DatabaseService {
             quantity INTEGER,
             unitPrice REAL,
             totalPrice REAL,
+            syncHash TEXT,
             -- FOREIGN KEY(distributionId) REFERENCES distributions(id),
             FOREIGN KEY(articleId) REFERENCES articles(id)
         );
@@ -355,7 +356,8 @@ export class DatabaseService {
             isSync BOOLEAN DEFAULT 0,
             syncDate DATETIME,
             createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-            isDefaultStake BOOLEAN DEFAULT 0
+            isDefaultStake BOOLEAN DEFAULT 0,
+            syncHash TEXT
             -- FOREIGN KEY(distributionId) REFERENCES distributions(id),
             -- FOREIGN KEY(clientId) REFERENCES clients(id)
         );
@@ -705,12 +707,20 @@ export class DatabaseService {
     const localitiesToInsert: any[][] = [];
     const localitiesToUpdate: any[][] = [];
 
+    const processedIds = new Set<string>();
+
     // 3. Boucle de préparation, sans requêtes à la base de données
     for (const locality of localities) {
       if (!locality || locality.id === undefined || locality.id === null) {
         console.warn('Skipping locality with no ID:', locality);
         continue;
       }
+
+      const localityIdStr = String(locality.id);
+      if (processedIds.has(localityIdStr)) {
+        continue;
+      }
+      processedIds.add(localityIdStr);
       const newHash = this.generateHash(locality, keysToInclude);
       const isExisting = existingLocalityMap.has(locality.id);
       const needsUpdate = isExisting && existingLocalityMap.get(locality.id) !== newHash;
@@ -3124,16 +3134,16 @@ export class DatabaseService {
     return result.values || [];
   }
 
-  async getUnsyncedCollectionsTotals(): Promise<{tontineMemberId: string, total: number}[]> {
-      if (!this.db) throw new Error('Database not initialized.');
-      const query = `
+  async getUnsyncedCollectionsTotals(): Promise<{ tontineMemberId: string, total: number }[]> {
+    if (!this.db) throw new Error('Database not initialized.');
+    const query = `
           SELECT tontineMemberId, SUM(amount) as total
           FROM tontine_collections
           WHERE isSync = 0
           GROUP BY tontineMemberId
       `;
-      const result = await this.db.query(query);
-      return result.values || [];
+    const result = await this.db.query(query);
+    return result.values || [];
   }
 
   async saveTontineDeliveries(deliveries: any[]): Promise<void> {
@@ -3607,7 +3617,7 @@ export class DatabaseService {
       console.error('Database not initialized.');
       return 0;
     }
-    const sql = `SELECT COUNT(*) as count FROM clients WHERE commercialId = ?`;
+    const sql = `SELECT COUNT(*) as count FROM clients WHERE commercial = ?`;
     const result = await this.db.query(sql, [commercialUsername]);
     return result.values && result.values.length > 0 ? result.values[0].count : 0;
   }
@@ -3636,7 +3646,7 @@ export class DatabaseService {
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - days);
     const dateFrom = daysAgo.toISOString();
-    
+
     const sql = `SELECT COUNT(*) as count FROM recoveries WHERE commercialId = ? AND createdAt >= ?`;
     const result = await this.db.query(sql, [commercialUsername, dateFrom]);
     return result.values && result.values.length > 0 ? result.values[0].count : 0;
@@ -3650,7 +3660,7 @@ export class DatabaseService {
       console.error('Database not initialized.');
       return 0;
     }
-    const sql = `SELECT COUNT(*) as count FROM tontine_members WHERE commercialId = ?`;
+    const sql = `SELECT COUNT(*) as count FROM tontine_members WHERE commercialUsername = ?`;
     const result = await this.db.query(sql, [commercialUsername]);
     return result.values && result.values.length > 0 ? result.values[0].count : 0;
   }
@@ -3666,9 +3676,9 @@ export class DatabaseService {
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - days);
     const dateFrom = daysAgo.toISOString();
-    
-    const sql = `SELECT COUNT(*) as count FROM tontine_collections WHERE commercialId = ? AND createdAt >= ?`;
-    const result = await this.db.query(sql, [commercialUsername]);
+
+    const sql = `SELECT COUNT(*) as count FROM tontine_collections WHERE commercialUsername = ? AND collectionDate >= ?`;
+    const result = await this.db.query(sql, [commercialUsername, dateFrom]);
     return result.values && result.values.length > 0 ? result.values[0].count : 0;
   }
 
@@ -3683,9 +3693,9 @@ export class DatabaseService {
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - days);
     const dateFrom = daysAgo.toISOString();
-    
-    const sql = `SELECT COUNT(*) as count FROM tontine_deliveries WHERE commercialId = ? AND createdAt >= ?`;
-    const result = await this.db.query(sql, [commercialUsername]);
+
+    const sql = `SELECT COUNT(*) as count FROM tontine_deliveries WHERE commercialUsername = ? AND requestDate >= ?`;
+    const result = await this.db.query(sql, [commercialUsername, dateFrom]);
     return result.values && result.values.length > 0 ? result.values[0].count : 0;
   }
 

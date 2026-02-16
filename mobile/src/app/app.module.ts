@@ -77,13 +77,18 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    Storage,
     DataInitializationService,
     DatabaseService,
     {
       provide: APP_INITIALIZER,
       useFactory: initializeDatabase,
       deps: [DatabaseService],
+      multi: true,
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (storage: Storage) => () => storage.create(),
+      deps: [Storage],
       multi: true,
     },
     {

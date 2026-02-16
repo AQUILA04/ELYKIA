@@ -34,6 +34,12 @@
         <div mat-line>{{ client.collector || 'Non assigné' }}</div>
       </mat-list-item>
       <mat-divider></mat-divider>
+      <mat-list-item *ngIf="client.tontineCollector">
+        <mat-icon mat-list-icon>savings</mat-icon>
+        <div mat-line><strong>Agent Tontine</strong></div>
+        <div mat-line>{{ client.tontineCollector }}</div>
+      </mat-list-item>
+      <mat-divider *ngIf="client.tontineCollector"></mat-divider>
       <mat-list-item>
         <mat-icon mat-list-icon>fingerprint</mat-icon>
         <div mat-line><strong>Identité</strong></div>

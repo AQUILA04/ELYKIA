@@ -99,7 +99,7 @@
                 <th>Article</th>
                 <th>Quantité</th>
                 <th>Prix Vente Unitaire</th>
-                <th>Prix Achat Unitaire</th>
+                <th *ngIf="isManager">Prix Achat Unitaire</th>
               </tr>
             </thead>
             <tbody>
@@ -107,14 +107,14 @@
                 <td>{{ item.itemName }}</td>
                 <td>{{ item.quantity }}</td>
                 <td>{{ item.unitPrice | number:'1.0-0' }} FCFA</td>
-                <td>{{ item.purchasePrice | number:'1.0-0' }} FCFA</td>
+                <td *ngIf="isManager">{{ item.purchasePrice | number:'1.0-0' }} FCFA</td>
               </tr>
             </tbody>
             <tfoot>
               <tr class="font-weight-bold">
                 <td colspan="2" class="text-right">Total :</td>
                 <td>{{ selectedRequest.totalSalePrice | number:'1.0-0' }} FCFA</td>
-                <td>{{ selectedRequest.totalPurchasePrice | number:'1.0-0' }} FCFA</td>
+                <td *ngIf="isManager">{{ selectedRequest.totalPurchasePrice | number:'1.0-0' }} FCFA</td>
               </tr>
             </tfoot>
           </table>

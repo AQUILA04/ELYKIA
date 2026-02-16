@@ -55,10 +55,15 @@ export class MigrationService {
       case 11:
         await this.migrateToV11(db);
         break;
+      case 12:
+        await this.migrateToV12(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
   }
+
+  /* methods restored */
 
   private async migrateToV3(db: SQLiteDBConnection): Promise<void> {
     try {
@@ -66,13 +71,12 @@ export class MigrationService {
       await db.execute("ALTER TABLE clients ADD COLUMN updatedPhoto BOOLEAN DEFAULT 0;");
       this.log.log('Migration to v3 successful.');
     } catch (error: any) {
-      // Check if the error is due to a duplicate column, which is expected on subsequent runs.
       if ((error.message && error.message.toLowerCase().includes('duplicate column')) || (error.toString && error.toString().toLowerCase().includes('duplicate column'))) {
         this.log.log('Migration to v3 already applied: updatedPhoto column exists.');
       } else {
         this.log.log(`Error in migration v3: ${error}`);
         console.error('Error in migration v3', error);
-        throw error; // Re-throw other unexpected errors
+        throw error;
       }
     }
   }
@@ -81,7 +85,6 @@ export class MigrationService {
     try {
       this.log.log('Executing migration to v4: Creating orders and order_items tables.');
 
-      // Create orders table
       await db.execute(`
         CREATE TABLE IF NOT EXISTS orders (
           id TEXT PRIMARY KEY,
@@ -105,7 +108,6 @@ export class MigrationService {
         );
       `);
 
-      // Create order_items table
       await db.execute(`
         CREATE TABLE IF NOT EXISTS order_items (
           id TEXT PRIMARY KEY,
@@ -120,7 +122,6 @@ export class MigrationService {
         );
       `);
 
-      // Create indexes for better performance
       await db.execute(`CREATE INDEX IF NOT EXISTS idx_orders_clientId ON orders(clientId);`);
       await db.execute(`CREATE INDEX IF NOT EXISTS idx_orders_commercialId ON orders(commercialId);`);
       await db.execute(`CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);`);
@@ -139,20 +140,18 @@ export class MigrationService {
     try {
       this.log.log('Executing migration to v5: Adding photo URL columns to clients table.');
 
-      // Ajouter les colonnes pour les URLs des photos
       await db.execute("ALTER TABLE clients ADD COLUMN profilPhotoUrl TEXT;");
       await db.execute("ALTER TABLE clients ADD COLUMN cardPhotoUrl TEXT;");
       await db.execute("ALTER TABLE clients ADD COLUMN updatedPhotoUrl BOOLEAN DEFAULT 0;");
 
       this.log.log('Migration to v5 successful: Photo URL columns added to clients table.');
     } catch (error: any) {
-      // Check if the error is due to a duplicate column, which is expected on subsequent runs.
       if ((error.message && error.message.toLowerCase().includes('duplicate column')) || (error.toString && error.toString().toLowerCase().includes('duplicate column'))) {
         this.log.log('Migration to v5 already applied: photo URL columns exist.');
       } else {
         this.log.log(`Error in migration v5: ${error}`);
         console.error('Error in migration v5', error);
-        throw error; // Re-throw other unexpected errors
+        throw error;
       }
     }
   }
@@ -162,7 +161,6 @@ export class MigrationService {
       this.log.log('Executing migration to v6: Creating Tontine tables.');
 
       const createTables = `
-        -- Table des sessions de tontine
         CREATE TABLE IF NOT EXISTS tontine_sessions (
             id TEXT PRIMARY KEY,
             year INTEGER,
@@ -176,7 +174,6 @@ export class MigrationService {
             syncHash TEXT
         );
 
-        -- Table des membres de tontine
         CREATE TABLE IF NOT EXISTS tontine_members (
             id TEXT PRIMARY KEY,
             tontineSessionId TEXT,
@@ -193,7 +190,6 @@ export class MigrationService {
             FOREIGN KEY(clientId) REFERENCES clients(id)
         );
 
-        -- Table des collectes de tontine
         CREATE TABLE IF NOT EXISTS tontine_collections (
             id TEXT PRIMARY KEY,
             tontineMemberId TEXT,
@@ -206,7 +202,6 @@ export class MigrationService {
             FOREIGN KEY(tontineMemberId) REFERENCES tontine_members(id)
         );
 
-        -- Table des livraisons de tontine (Demandes de remise)
         CREATE TABLE IF NOT EXISTS tontine_deliveries (
             id TEXT PRIMARY KEY,
             tontineMemberId TEXT,
@@ -222,7 +217,6 @@ export class MigrationService {
             FOREIGN KEY(tontineMemberId) REFERENCES tontine_members(id)
         );
 
-        -- Table des articles de livraison de tontine
         CREATE TABLE IF NOT EXISTS tontine_delivery_items (
             id TEXT PRIMARY KEY,
             tontineDeliveryId TEXT,
@@ -248,9 +242,7 @@ export class MigrationService {
   private async migrateToV7(db: SQLiteDBConnection): Promise<void> {
     try {
       this.log.log('Running migration to v7: Adding commercialUsername to tontine_collections...');
-      console.log('Running migration to v7...');
 
-      // Add commercialUsername column to tontine_collections
       const alterTable = `
         ALTER TABLE tontine_collections ADD COLUMN commercialUsername TEXT;
       `;
@@ -268,44 +260,19 @@ export class MigrationService {
   private async migrateToV8(db: SQLiteDBConnection): Promise<void> {
     try {
       this.log.log('Running migration to v8: Creating indexes for Tontine tables...');
-      console.log('Running migration to v8...');
 
-      // Create indexes for better query performance
       const createIndexes = `
-        -- Index pour tontine_members: recherche par session
         CREATE INDEX IF NOT EXISTS idx_tontine_members_sessionId ON tontine_members(tontineSessionId);
-
-        -- Index pour tontine_members: recherche par commercial
         CREATE INDEX IF NOT EXISTS idx_tontine_members_commercial ON tontine_members(commercialUsername);
-
-        -- Index pour tontine_members: recherche par client
         CREATE INDEX IF NOT EXISTS idx_tontine_members_clientId ON tontine_members(clientId);
-
-        -- Index pour tontine_collections: recherche par membre
         CREATE INDEX IF NOT EXISTS idx_tontine_collections_memberId ON tontine_collections(tontineMemberId);
-
-        -- Index pour tontine_collections: recherche par commercial
         CREATE INDEX IF NOT EXISTS idx_tontine_collections_commercial ON tontine_collections(commercialUsername);
-
-        -- Index pour tontine_collections: filtre par date
         CREATE INDEX IF NOT EXISTS idx_tontine_collections_date ON tontine_collections(collectionDate);
-
-        -- Index composite pour tontine_collections: commercial + date (pour le dashboard KPI)
         CREATE INDEX IF NOT EXISTS idx_tontine_collections_commercial_date ON tontine_collections(commercialUsername, collectionDate);
-
-        -- Index pour tontine_deliveries: recherche par membre
         CREATE INDEX IF NOT EXISTS idx_tontine_deliveries_memberId ON tontine_deliveries(tontineMemberId);
-
-        -- Index pour tontine_deliveries: recherche par commercial
         CREATE INDEX IF NOT EXISTS idx_tontine_deliveries_commercial ON tontine_deliveries(commercialUsername);
-
-        -- Index pour tontine_deliveries: filtre par statut
         CREATE INDEX IF NOT EXISTS idx_tontine_deliveries_status ON tontine_deliveries(status);
-
-        -- Index pour tontine_delivery_items: recherche par livraison
         CREATE INDEX IF NOT EXISTS idx_tontine_delivery_items_deliveryId ON tontine_delivery_items(tontineDeliveryId);
-
-        -- Index pour tontine_delivery_items: recherche par article
         CREATE INDEX IF NOT EXISTS idx_tontine_delivery_items_articleId ON tontine_delivery_items(articleId);
       `;
 
@@ -357,6 +324,36 @@ export class MigrationService {
         console.error('Error in migration v11', error);
         throw error;
       }
+    }
+  }
+
+  private async migrateToV12(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v12: Adding syncHash to recoveries and distribution_items...');
+
+      // Add syncHash to recoveries
+      try {
+        await db.execute("ALTER TABLE recoveries ADD COLUMN syncHash TEXT;");
+      } catch (e: any) {
+        if (!((e.message && e.message.toLowerCase().includes('duplicate column')) || (e.toString && e.toString().toLowerCase().includes('duplicate column')))) {
+          throw e;
+        }
+      }
+
+      // Add syncHash to distribution_items
+      try {
+        await db.execute("ALTER TABLE distribution_items ADD COLUMN syncHash TEXT;");
+      } catch (e: any) {
+        if (!((e.message && e.message.toLowerCase().includes('duplicate column')) || (e.toString && e.toString().toLowerCase().includes('duplicate column')))) {
+          throw e;
+        }
+      }
+
+      this.log.log('Migration to v12 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v12: ${error}`);
+      console.error('Error in migration v12', error);
+      throw error;
     }
   }
 }

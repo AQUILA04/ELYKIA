@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { DataInitializationService } from '../../core/services/data-initialization.service';
-import { interval, Subject } from 'rxjs';
+import { interval, Subject, from } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import { AlertController } from '@ionic/angular';
 import { InitializationStateService } from '../../core/services/initialization-state.service';
@@ -14,6 +14,7 @@ import { Store } from '@ngrx/store';
 import { MemoryManagementService } from '../../core/services/memory-management.service';
 import { DatabaseService } from '../../core/services/database.service';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-initial-loading',
@@ -42,7 +43,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     { text: 'Chargement des recouvrements...', method: () => this.dataInitService.initializeRecoveries() },
     { text: 'Chargement de la tontine...', method: () => this.dataInitService.initializeTontine() },
     { text: 'Calcul des stocks...', method: () => this.dataInitService.calculateArticleStocks() },
-    { text: 'Détection des correspondances...', method: () => this.detectOrphanedDependencies() }
+    { text: 'Détection des correspondances...', method: () => from(this.detectOrphanedDependencies()) }
   ];
 
   constructor(
@@ -55,7 +56,8 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     private store: Store,
     private memoryManagementService: MemoryManagementService,
     private dbService: DatabaseService,
-    private initValidationService: InitializationValidationService
+    private initValidationService: InitializationValidationService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
@@ -71,14 +73,18 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     // Nettoyage de la mémoire avant le début de l'initialisation (uniquement au début)
     if (this.currentStepIndex === 0) {
       try {
-        // 1. Réinitialiser le store (sauf auth)
-        this.store.dispatch(resetAppData());
-        this.log.log('[InitialLoadingPage] App data state reset (auth preserved)');
-
-        // 2. Nettoyer la mémoire cache
-        this.statusText = "Optimisation de la mémoire...";
-        await this.memoryManagementService.clearMemoryCache();
-        this.log.log('[InitialLoadingPage] Memory cache cleared successfully');
+        // Nettoyage de la mémoire avant le début de l'initialisation (uniquement au début)
+        if (this.currentStepIndex === 0) {
+          try {
+            // 2. Nettoyer la mémoire cache
+            this.statusText = "Optimisation de la mémoire...";
+            await this.memoryManagementService.clearMemoryCache();
+            this.log.log('[InitialLoadingPage] Memory cache cleared successfully');
+          } catch (error) {
+            this.log.log(`[InitialLoadingPage] Failed to clear memory/state: ${error}`);
+            console.warn('Failed to clear memory cache:', error);
+          }
+        }
       } catch (error) {
         this.log.log(`[InitialLoadingPage] Failed to clear memory/state: ${error}`);
         console.warn('Failed to clear memory cache:', error);
@@ -163,15 +169,22 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
   private async completeInitialization() {
     // Vérifier la complétude des données
     this.statusText = "Vérification de la complétude des données...";
-    
+
     try {
-      const user = await this.store.select(selectAuthUser).pipe(take(1)).toPromise();
+      let user = await this.store.select(selectAuthUser).pipe(take(1)).toPromise();
+
+      // Fallback: si l'utilisateur n'est pas dans le store, essayer via AuthService
+      if (!user || !user.username) {
+        this.log.log('[InitialLoadingPage] User not found in store, checking AuthService...');
+        user = this.authService.currentUser;
+      }
+
       if (user && user.username) {
-        this.log.log('[InitialLoadingPage] Validating data completeness...');
-        
+        this.log.log('[InitialLoadingPage] Validating data completeness for: ' + user.username);
+
         const comparisonResult = await this.initValidationService.validateInitialization(user.username)
           .pipe(take(1)).toPromise();
-        
+
         if (comparisonResult && comparisonResult.isComplete) {
           this.log.log('[InitialLoadingPage] ✅ Data validation successful - all data complete');
           await this.initValidationService.markInitializationComplete();
@@ -182,21 +195,29 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
           this.log.log('[InitialLoadingPage] ⚠️ Data validation warning - some data missing: ' + JSON.stringify(comparisonResult.missingData));
           // Afficher un avertissement mais continuer
           await this.presentDataIncompleteWarning(comparisonResult.missingData);
-          // Marquer quand même comme complète pour permettre le travail
+          // Marquer quand même comme complète pour permettre le travail, mais ne pas marquer la date si incomplet?
+          // Décision: Marquer la date pour éviter le blocage offline, car l'utilisateur a vu l'avertissement.
+          // OU: Ne pas marquer la date pour forcer une ré-init propre le lendemain?
+          // Le doc VALIDATION dit: "Affiche un avertissement mais continue".
+          // Et "connexion hors ligne (nouvelle journée) -> NON (car nouvelle journée)"
+          // Donc on doit mettre à jour la date pour permettre le travail offline AUJOURD'HUI.
+          await this.initValidationService.markInitializationComplete();
           await this.storage.set('initialization_complete', true);
           this.statusText = "Initialisation terminée (avec avertissements)";
           this.progress = 100;
         }
       } else {
-        this.log.log('[InitialLoadingPage] No user found, skipping validation');
-        await this.storage.set('initialization_complete', true);
-        this.statusText = "Initialisation terminée !";
-        this.progress = 100;
+        this.log.log('[InitialLoadingPage] CRITICAL: No user found even after fallback. Initialization incomplete.');
+        // Ne PAS marquer initialization_complete pour éviter de coincer l'utilisateur
+        // Rediriger vers login? Ou laisser l'utilisateur réessayer?
+        this.presentErrorAlert("Erreur critique: Utilisateur non identifié. Veuillez vous reconnecter.");
+        return;
       }
     } catch (error) {
       this.log.log(`[InitialLoadingPage] Data validation failed: ${error}`);
       console.error('Data validation error:', error);
-      // En cas d'erreur de validation, continuer quand même
+      // En cas d'erreur technique (réseau, crash), on marque comme complet pour ne pas bloquer
+      // mais on ne met pas à jour la date de validation stricte (donc offline login pourrait échouer demain, ce qui est bien)
       await this.storage.set('initialization_complete', true);
       this.statusText = "Initialisation terminée (validation ignorée)";
       this.progress = 100;
@@ -238,7 +259,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     try {
       // Import dynamique du service de matching
       const { SyncDependencyMatcherService } = await import('../../core/services/sync-dependency-matcher.service');
-      
+
       const matcherService = new SyncDependencyMatcherService(this.dbService);
 
       // Détecter les correspondances avec timeout de 5 secondes

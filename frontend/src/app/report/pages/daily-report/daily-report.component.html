@@ -145,6 +145,11 @@
                                             currency:'XOF':'symbol':'1.0-0' }}
                                         </span>
                                     </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Total Avances</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.totalAdvancesAmount |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
                                 </div>
                             </mat-card-content>
                         </mat-card>
@@ -232,6 +237,11 @@
                                             {{ ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0))
                                             | currency:'XOF':'symbol':'1.0-0' }}
                                         </span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Total Avances</span>
+                                        <span class="kpi-value">{{ report.totalAdvancesAmount |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
                                     </div>
                                 </div>
                                 <div class="mt-3"

@@ -106,18 +106,30 @@ public class DailyReportEventListener {
                 report.setCreditSalesAmount(report.getCreditSalesAmount() + event.getAmount());
                 report.setCreditSalesMargin(
                                 report.getCreditSalesMargin() + (event.getMargin() != null ? event.getMargin() : 0.0));
-                report.addAmountToDeposit(event.getAdvance());
+
+                Double advance = event.getAdvance() != null ? event.getAdvance() : 0.0;
+                report.setTotalAdvancesAmount(report.getTotalAdvancesAmount() + advance);
+                report.addAmountToDeposit(advance);
+
                 repository.save(report);
+
+                String description = "Nouvelle vente à crédit (Client: "
+                                + (event.getClientName() != null ? event.getClientName() : "N/A")
+                                + ", Ref: "
+                                + (event.getReference() != null ? event.getReference() : "N/A");
+
+                if (advance > 0) {
+                        description += ", Avance: " + advance;
+                }
+
+                description += ")";
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
                                 com.optimize.elykia.core.enumaration.OperationType.CREDIT_SALES,
                                 event.getAmount(),
                                 "Vente Crédit",
-                                "Nouvelle vente à crédit (Client: "
-                                                + (event.getClientName() != null ? event.getClientName() : "N/A")
-                                                + ", Ref: "
-                                                + (event.getReference() != null ? event.getReference() : "N/A") + ")");
+                                description);
         }
 
         @EventListener

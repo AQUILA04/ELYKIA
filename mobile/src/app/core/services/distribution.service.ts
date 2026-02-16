@@ -143,6 +143,9 @@ export class DistributionService {
 
   // Get distributions by commercial username from local database
   getDistributionsByCommercialUsername(username: string): Observable<Distribution[]> {
+    if (!username) {
+      return of([]);
+    }
     return from(this.dbService.getDistributions(username)).pipe(
       catchError(error => {
         console.error('Failed to get distributions by commercial username:', error);
@@ -278,9 +281,9 @@ export class DistributionService {
     try {
       // Update CommercialStockItems
       if (this.commercialUsername) {
-          for (const item of articleQuantities) {
-              await this.commercialStockRepository.updateStockQuantity(item.articleId, this.commercialUsername, -item.quantity);
-          }
+        for (const item of articleQuantities) {
+          await this.commercialStockRepository.updateStockQuantity(item.articleId, this.commercialUsername, -item.quantity);
+        }
       }
 
       // Also update legacy article stock for compatibility if needed
@@ -535,9 +538,9 @@ export class DistributionService {
     try {
       // Restore CommercialStockItems
       if (this.commercialUsername) {
-          for (const item of items) {
-              await this.commercialStockRepository.updateStockQuantity(item.articleId, this.commercialUsername, item.quantity);
-          }
+        for (const item of items) {
+          await this.commercialStockRepository.updateStockQuantity(item.articleId, this.commercialUsername, item.quantity);
+        }
       }
 
       // Restore legacy article stock

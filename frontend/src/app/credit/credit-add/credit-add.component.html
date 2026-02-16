@@ -22,16 +22,9 @@
     <!-- Sélection Commercial (Visible uniquement en mode Crédit) -->
     <div class="form-group" *ngIf="saleType === 'CREDIT'">
       <label for="commercial">Commercial <span class="text-danger">*</span></label>
-      <ng-select
-        id="commercial"
-        formControlName="commercial"
-        [items]="commercials"
-        bindLabel="username"
-        bindValue="username"
-        [searchFn]="searchCommercial"
-        (change)="onCommercialChange()"
-        placeholder="Sélectionner un commercial"
-        [clearable]="false">
+      <ng-select id="commercial" formControlName="commercial" [items]="commercials" bindLabel="username"
+        bindValue="username" [searchFn]="searchCommercial" (change)="onCommercialChange()"
+        placeholder="Sélectionner un commercial" [clearable]="false">
         <ng-template ng-option-tmp let-item="item">
           <div class="commercial-option">
             <strong>{{ item.username }}</strong>
@@ -46,15 +39,8 @@
 
     <div class="form-group">
       <label for="clientId">Client<span class="text-danger">*</span></label>
-      <ng-select
-        id="clientId"
-        formControlName="clientId"
-        [items]="clients"
-        bindLabel="firstname"
-        bindValue="id"
-        [searchFn]="searchClient"
-        placeholder="Rechercher et sélectionner un client"
-        notFoundText="Aucun client trouvé">
+      <ng-select id="clientId" formControlName="clientId" [items]="clients" bindLabel="firstname" bindValue="id"
+        [searchFn]="searchClient" placeholder="Rechercher et sélectionner un client" notFoundText="Aucun client trouvé">
         <ng-template ng-label-tmp let-item="item">
           {{ item.firstname }} {{ item.lastname }}
         </ng-template>
@@ -70,21 +56,16 @@
     <!-- Utilisation du nouveau composant réutilisable -->
     <div class="form-group">
       <label>Articles<span class="text-danger">*</span></label>
-      <app-article-selector
-        formControlName="articles"
-        [articles]="articles"
-        [priceType]="saleType === 'CREDIT' ? 'credit' : 'inventory'"
-        [showPrices]="true"
-        [showStock]="true"
-        (totalAmountChange)="onTotalAmountChange($event)"
-        [validateStock]="true">
+      <app-article-selector formControlName="articles" [articles]="articles"
+        [priceType]="saleType === 'CREDIT' ? 'credit' : 'inventory'" [showPrices]="true" [showStock]="true"
+        (totalAmountChange)="onTotalAmountChange($event)" [validateStock]="true">
       </app-article-selector>
       <mat-error *ngIf="creditForm.get('articles')?.invalid && creditForm.get('articles')?.touched">
         Au moins un article doit être sélectionné.
       </mat-error>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" *ngIf="saleType === 'CREDIT'">
       <label for="advance">Avance (Optionnel)</label>
       <input id="advance" type="number" formControlName="advance" class="form-control" />
       <mat-error *ngIf="creditForm.get('advance')?.invalid && creditForm.get('advance')?.touched">

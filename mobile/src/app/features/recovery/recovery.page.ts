@@ -14,6 +14,7 @@ import { ClientSelectorModalComponent } from '../../shared/components/client-sel
 import * as RecoveryActions from '../../store/recovery/recovery.actions';
 import * as RecoverySelectors from '../../store/recovery/recovery.selectors';
 import * as ClientActions from '../../store/client/client.actions';
+import * as DistributionActions from '../../store/distribution/distribution.actions';
 import { LoggerService } from '../../core/services/logger.service';
 
 interface RecoveryViewModel {
@@ -53,7 +54,7 @@ export class RecoveryPage implements OnInit, OnDestroy {
     private actions$: Actions,
     private log: LoggerService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.log.log('[RecoveryPage] User entered recovery page.');
@@ -114,7 +115,7 @@ export class RecoveryPage implements OnInit, OnDestroy {
         // this.store.dispatch(ClientActions.loadClientViewsUpdate()); // Géré par RecoveryEffects
 
         // Recharger les distributions pour mettre à jour les KPIs du dashboard
-        this.store.dispatch({ type: '[Distribution] Load Distributions', payload: { commercialUsername: user.username } });
+        this.store.dispatch(DistributionActions.loadDistributions({ commercialUsername: user.username }));
 
         // Forcer la mise à jour de la vue
         this.cdr.markForCheck();

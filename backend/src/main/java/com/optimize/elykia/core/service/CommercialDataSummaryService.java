@@ -40,14 +40,14 @@ public class CommercialDataSummaryService {
         try {
             // Clients - Compter les clients du commercial
             Long totalClients = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM client WHERE collector = :collector")
+                "SELECT COUNT(*) FROM client WHERE collector = :collector AND visibility = 'ENABLED' AND client_type = 'CLIENT'")
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalClients(totalClients);
             
             // Distributions (crédits actifs) - Compter les crédits en cours
             Long totalDistributions = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM credit WHERE collector = :collector AND status = 'INPROGRESS'")
+                "SELECT COUNT(*) FROM credit WHERE collector = :collector AND status = 'INPROGRESS' AND visibility = 'ENABLED'")
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalDistributions(totalDistributions);
@@ -55,7 +55,7 @@ public class CommercialDataSummaryService {
             // Recouvrements des 30 derniers jours
             Long totalRecoveries = ((Number) entityManager.createNativeQuery(
                 "SELECT COUNT(*) FROM credit_timeline WHERE collector = :collector " +
-                "AND created_date >= :dateFrom AND created_date <= :dateTo")
+                "AND date_reg >= :dateFrom AND date_reg <= :dateTo AND visibility = 'ENABLED'")
                 .setParameter("collector", commercialUsername)
                 .setParameter("dateFrom", thirtyDaysAgo)
                 .setParameter("dateTo", LocalDateTime.now())
@@ -64,15 +64,15 @@ public class CommercialDataSummaryService {
             
             // Membres de tontine
             Long totalTontineMembers = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM tontine_member WHERE collector = :collector")
+                "SELECT COUNT(*) FROM tontine_member tm join client c on tm.client_id = c.id  WHERE c.tontine_collector = :collector AND visibility = 'ENABLED'")
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalTontineMembers(totalTontineMembers);
             
             // Collectes de tontine des 30 derniers jours
             Long totalTontineCollections = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM tontine_collection WHERE collector = :collector " +
-                "AND created_date >= :dateFrom AND created_date <= :dateTo")
+                "SELECT COUNT(*) FROM tontine_collection WHERE commercial_username  = :collector " +
+                "AND date_reg >= :dateFrom AND date_reg <= :dateTo AND visibility = 'ENABLED'")
                 .setParameter("collector", commercialUsername)
                 .setParameter("dateFrom", thirtyDaysAgo)
                 .setParameter("dateTo", LocalDateTime.now())
@@ -81,8 +81,8 @@ public class CommercialDataSummaryService {
             
             // Livraisons de tontine des 30 derniers jours
             Long totalTontineDeliveries = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM tontine_delivery WHERE collector = :collector " +
-                "AND created_date >= :dateFrom AND created_date <= :dateTo")
+                "SELECT COUNT(*) FROM tontine_delivery WHERE commercial_username = :collector " +
+                "AND date_reg >= :dateFrom AND date_reg <= :dateTo AND visibility = 'ENABLED'")
                 .setParameter("collector", commercialUsername)
                 .setParameter("dateFrom", thirtyDaysAgo)
                 .setParameter("dateTo", LocalDateTime.now())
@@ -91,13 +91,13 @@ public class CommercialDataSummaryService {
             
             // Articles (tous les articles disponibles)
             Long totalArticles = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM articles")
+                "SELECT COUNT(*) FROM articles WHERE visibility = 'ENABLED'")
                 .getSingleResult()).longValue();
             summary.setTotalArticles(totalArticles);
             
             // Localités (toutes les localités)
             Long totalLocalities = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM locality")
+                "SELECT COUNT(*) FROM locality WHERE visibility = 'ENABLED'")
                 .getSingleResult()).longValue();
             summary.setTotalLocalities(totalLocalities);
             
@@ -107,14 +107,14 @@ public class CommercialDataSummaryService {
             
             // Stock Tontine - Nombre d'items (lignes)
             Long totalTontineStockItems = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM tontine_stock WHERE commercial = :collector")
+                "SELECT COUNT(*) FROM tontine_stock WHERE commercial = :collector AND availbale_quantity > 0")
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalTontineStockItems(totalTontineStockItems);
             
             // Stock Tontine - Somme des quantités disponibles
             Long totalTontineStockAvailable = ((Number) entityManager.createNativeQuery(
-                "SELECT COALESCE(SUM(available_quantity), 0) FROM tontine_stock WHERE commercial = :collector")
+                "SELECT COALESCE(SUM(available_quantity), 0) FROM tontine_stock WHERE commercial = :collector AND availbale_quantity > 0")
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalTontineStockAvailable(totalTontineStockAvailable);
@@ -124,7 +124,7 @@ public class CommercialDataSummaryService {
                 "SELECT COUNT(*) " +
                 "FROM commercial_monthly_stock_item cms_item " +
                 "JOIN commercial_monthly_stock cms ON cms_item.monthly_stock_id = cms.id " +
-                "WHERE cms.commercial = :collector")
+                "WHERE cms.collector = :collector AND cms_item.quantity_remaining > 0")
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalCommercialStockItems(totalCommercialStockItems);
@@ -134,7 +134,7 @@ public class CommercialDataSummaryService {
                 "SELECT COALESCE(SUM(cms_item.quantity_remaining), 0) " +
                 "FROM commercial_monthly_stock_item cms_item " +
                 "JOIN commercial_monthly_stock cms ON cms_item.monthly_stock_id = cms.id " +
-                "WHERE cms.commercial = :collector")
+                "WHERE cms.collector = :collector AND cms_item.quantity_remaining > 0")
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalCommercialStockRemaining(totalCommercialStockRemaining);

@@ -188,6 +188,7 @@ export class DailyReportComponent implements OnInit {
             totalAmountDeposited: this.reports.reduce((sum, r) => sum + (r.totalAmountDeposited || 0), 0),
             creditSalesMargin: this.reports.reduce((sum, r) => sum + (r.creditSalesMargin || 0), 0),
             stockRequestMargin: this.reports.reduce((sum, r) => sum + (r.stockRequestMargin || 0), 0),
+            totalAdvancesAmount: this.reports.reduce((sum, r) => sum + (r.totalAdvancesAmount || 0), 0),
         };
     }
 

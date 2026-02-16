@@ -148,7 +148,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
           dependencies$ = forkJoin({
             stock: this.getGeneralStockObservable(),
-            clients: this.getAllClientsObservable()
+            clients: this.isPromoter
+              ? this.getClientsForCommercialObservable(this.currentUser.username)
+              : this.getAllClientsObservable()
           });
         }
 
@@ -276,9 +278,17 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       this.creditForm.get('commercial')?.disable();
 
       this.spinner.show();
+
+      let clientsObservable$;
+      if (this.isPromoter) {
+        clientsObservable$ = this.getClientsForCommercialObservable(this.currentUser.username);
+      } else {
+        clientsObservable$ = this.getAllClientsObservable();
+      }
+
       forkJoin({
         stock: this.getGeneralStockObservable(),
-        clients: this.getAllClientsObservable()
+        clients: clientsObservable$
       }).pipe(finalize(() => this.spinner.hide())).subscribe();
 
     } else { // CREDIT
