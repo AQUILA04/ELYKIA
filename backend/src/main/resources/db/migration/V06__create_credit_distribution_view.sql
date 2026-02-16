@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS credit_distribution_view;
 CREATE OR REPLACE VIEW credit_distribution_view AS
 SELECT
     parent.id AS credit_parent_id,

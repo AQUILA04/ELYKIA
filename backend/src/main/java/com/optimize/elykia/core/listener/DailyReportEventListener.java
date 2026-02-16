@@ -205,10 +205,8 @@ public class DailyReportEventListener {
                 report.setOrdersCount(report.getOrdersCount() + 1);
                 report.setOrdersAmount(report.getOrdersAmount() + event.getAmount());
 
-                // Add to total deposit
-                report.setTotalAmountToDeposit(report.getTotalAmountToDeposit() + event.getAmount());
-
-                repository.save(report);
+        // Add to total deposit
+        repository.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),

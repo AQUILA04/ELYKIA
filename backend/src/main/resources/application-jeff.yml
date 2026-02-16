@@ -53,6 +53,8 @@ logging:
         web:
           filter:
             CommonsRequestLoggingFilter: DEBUG
+
+  file:
     path: ${user.home}\.${spring.application.name}\logs\
 
 
