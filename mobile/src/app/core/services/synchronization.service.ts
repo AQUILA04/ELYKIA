@@ -695,8 +695,8 @@ export class SynchronizationService {
 
       if (distributionServerId) {
         stakeUnits.push({
-            creditId: parseInt(distributionServerId),
-            recoveryId: recovery.id
+          creditId: parseInt(distributionServerId),
+          recoveryId: recovery.id
         });
       }
     }
@@ -1562,10 +1562,19 @@ export class SynchronizationService {
       const user = this.authService.currentUser;
       if (!user) return [];
 
-      const result = await this.databaseService.query(
-        `SELECT * FROM tontine_collections WHERE isSync = 0 AND isLocal = 1 AND commercialUsername = ?`,
-        [user.username]
-      );
+      const sql = `
+        SELECT tc.*, 
+        COALESCE(c.fullName, (COALESCE(c.firstname, '') || ' ' || COALESCE(c.lastname, ''))) as clientName,
+        tm.id as _debug_tmId,
+        c.id as _debug_clientId
+        FROM tontine_collections tc
+        LEFT JOIN tontine_members tm ON tc.tontineMemberId = tm.id
+        LEFT JOIN clients c ON tm.clientId = c.id
+        WHERE tc.isSync = 0 AND tc.isLocal = 1 AND tc.commercialUsername = ?
+      `;
+
+      const result = await this.databaseService.query(sql, [user.username]);
+      console.log('[SynchronizationService] getUnsyncedTontineCollections result:', JSON.stringify(result.values, null, 2));
       return result.values?.map((row: any) => this.mapRowToTontineCollection(row)) || [];
     } catch (error) {
       console.error('Erreur lors de la récupération des collectes de tontine non synchronisées:', error);
@@ -1640,7 +1649,8 @@ export class SynchronizationService {
       isSync: row.isSync === 1,
       syncDate: row.syncDate,
       syncHash: row.syncHash,
-      isDeliveryCollection: row.isDeliveryCollection === 1
+      isDeliveryCollection: row.isDeliveryCollection === 1,
+      clientName: row.clientName
     } as TontineCollection;
   }
 

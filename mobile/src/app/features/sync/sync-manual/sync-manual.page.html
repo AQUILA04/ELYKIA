@@ -17,7 +17,7 @@
   </ion-toolbar>
 
   <!-- Segment pour les onglets (scrollable pour 6 onglets) -->
-  <ion-toolbar>
+  <ion-toolbar class="segment-toolbar">
     <ion-segment scrollable [(ngModel)]="activeTab" (ionChange)="onSegmentChange($event)">
       <ion-segment-button value="clients">
         <ion-icon name="people-outline"></ion-icon>
@@ -63,90 +63,60 @@
   <div class="sync-content" *ngIf="!(loading$ | async)">
     <!-- Onglet Clients -->
     <div *ngIf="activeTab === 'clients'">
-      <app-entity-sync-list
-        [entities]="(clients$ | async) || []"
-        [selectedIds]="(selectedClientIds$ | async) || []"
-        [syncingIds]="(syncingEntities$ | async) || []"
-        entityType="client"
-        (toggleSelection)="onToggleSelection('client', $event)"
-        (selectAll)="onSelectAll('client')"
-        (clearSelection)="onClearSelection('client')"
-        (syncSingle)="onSyncSingle('client', $event)">
+      <app-entity-sync-list [entities]="(clients$ | async) || []" [selectedIds]="(selectedClientIds$ | async) || []"
+        [syncingIds]="(syncingEntities$ | async) || []" entityType="client"
+        (toggleSelection)="onToggleSelection('client', $event)" (selectAll)="onSelectAll('client')"
+        (clearSelection)="onClearSelection('client')" (syncSingle)="onSyncSingle('client', $event)">
       </app-entity-sync-list>
     </div>
 
     <!-- Onglet Distributions -->
     <div *ngIf="activeTab === 'distributions'">
-      <app-entity-sync-list
-        [entities]="(distributions$ | async) || []"
-        [selectedIds]="(selectedDistributionIds$ | async) || []"
-        [syncingIds]="(syncingEntities$ | async) || []"
-        entityType="distribution"
-        (toggleSelection)="onToggleSelection('distribution', $event)"
-        (selectAll)="onSelectAll('distribution')"
-        (clearSelection)="onClearSelection('distribution')"
-        (syncSingle)="onSyncSingle('distribution', $event)"
-        (editParent)="onEditParent($event)">
+      <app-entity-sync-list [entities]="(distributions$ | async) || []"
+        [selectedIds]="(selectedDistributionIds$ | async) || []" [syncingIds]="(syncingEntities$ | async) || []"
+        entityType="distribution" (toggleSelection)="onToggleSelection('distribution', $event)"
+        (selectAll)="onSelectAll('distribution')" (clearSelection)="onClearSelection('distribution')"
+        (syncSingle)="onSyncSingle('distribution', $event)" (editParent)="onEditParent($event)">
       </app-entity-sync-list>
     </div>
 
     <!-- Onglet Recouvrements -->
     <div *ngIf="activeTab === 'recoveries'">
-      <app-entity-sync-list
-        [entities]="(recoveries$ | async) || []"
-        [selectedIds]="(selectedRecoveryIds$ | async) || []"
-        [syncingIds]="(syncingEntities$ | async) || []"
-        entityType="recovery"
-        (toggleSelection)="onToggleSelection('recovery', $event)"
-        (selectAll)="onSelectAll('recovery')"
-        (clearSelection)="onClearSelection('recovery')"
-        (syncSingle)="onSyncSingle('recovery', $event)"
-        (editParent)="onEditParent($event)">
+      <app-entity-sync-list [entities]="(recoveries$ | async) || []"
+        [selectedIds]="(selectedRecoveryIds$ | async) || []" [syncingIds]="(syncingEntities$ | async) || []"
+        entityType="recovery" (toggleSelection)="onToggleSelection('recovery', $event)"
+        (selectAll)="onSelectAll('recovery')" (clearSelection)="onClearSelection('recovery')"
+        (syncSingle)="onSyncSingle('recovery', $event)" (editParent)="onEditParent($event)">
       </app-entity-sync-list>
     </div>
 
     <!-- Onglet Membres Tontine -->
     <div *ngIf="activeTab === 'tontine-members'">
-      <app-entity-sync-list
-        [entities]="(tontineMembers$ | async) || []"
-        [selectedIds]="(selectedTontineMemberIds$ | async) || []"
-        [syncingIds]="(syncingEntities$ | async) || []"
-        entityType="tontine-member"
-        (toggleSelection)="onToggleSelection('tontine-member', $event)"
-        (selectAll)="onSelectAll('tontine-member')"
-        (clearSelection)="onClearSelection('tontine-member')"
-        (syncSingle)="onSyncSingle('tontine-member', $event)"
-        (editParent)="onEditParent($event)">
+      <app-entity-sync-list [entities]="(tontineMembers$ | async) || []"
+        [selectedIds]="(selectedTontineMemberIds$ | async) || []" [syncingIds]="(syncingEntities$ | async) || []"
+        entityType="tontine-member" (toggleSelection)="onToggleSelection('tontine-member', $event)"
+        (selectAll)="onSelectAll('tontine-member')" (clearSelection)="onClearSelection('tontine-member')"
+        (syncSingle)="onSyncSingle('tontine-member', $event)" (editParent)="onEditParent($event)">
       </app-entity-sync-list>
     </div>
 
     <!-- Onglet Collectes Tontine -->
     <div *ngIf="activeTab === 'tontine-collections'">
-      <app-entity-sync-list
-        [entities]="(tontineCollections$ | async) || []"
-        [selectedIds]="(selectedTontineCollectionIds$ | async) || []"
-        [syncingIds]="(syncingEntities$ | async) || []"
-        entityType="tontine-collection"
-        (toggleSelection)="onToggleSelection('tontine-collection', $event)"
-        (selectAll)="onSelectAll('tontine-collection')"
-        (clearSelection)="onClearSelection('tontine-collection')"
-        (syncSingle)="onSyncSingle('tontine-collection', $event)"
-        (editParent)="onEditParent($event)">
+      <app-entity-sync-list [entities]="(tontineCollections$ | async) || []"
+        [selectedIds]="(selectedTontineCollectionIds$ | async) || []" [syncingIds]="(syncingEntities$ | async) || []"
+        entityType="tontine-collection" (toggleSelection)="onToggleSelection('tontine-collection', $event)"
+        (selectAll)="onSelectAll('tontine-collection')" (clearSelection)="onClearSelection('tontine-collection')"
+        (syncSingle)="onSyncSingle('tontine-collection', $event)" (editParent)="onEditParent($event)">
       </app-entity-sync-list>
     </div>
 
     <!-- Onglet Livraisons Tontine -->
     <div *ngIf="activeTab === 'tontine-deliveries'">
-      <app-entity-sync-list
-        [entities]="(tontineDeliveries$ | async) || []"
-        [selectedIds]="(selectedTontineDeliveryIds$ | async) || []"
-        [syncingIds]="(syncingEntities$ | async) || []"
-        entityType="tontine-delivery"
-        (toggleSelection)="onToggleSelection('tontine-delivery', $event)"
-        (selectAll)="onSelectAll('tontine-delivery')"
-        (clearSelection)="onClearSelection('tontine-delivery')"
-        (syncSingle)="onSyncSingle('tontine-delivery', $event)"
-        (editParent)="onEditParent($event)">
+      <app-entity-sync-list [entities]="(tontineDeliveries$ | async) || []"
+        [selectedIds]="(selectedTontineDeliveryIds$ | async) || []" [syncingIds]="(syncingEntities$ | async) || []"
+        entityType="tontine-delivery" (toggleSelection)="onToggleSelection('tontine-delivery', $event)"
+        (selectAll)="onSelectAll('tontine-delivery')" (clearSelection)="onClearSelection('tontine-delivery')"
+        (syncSingle)="onSyncSingle('tontine-delivery', $event)" (editParent)="onEditParent($event)">
       </app-entity-sync-list>
     </div>
   </div>

@@ -4,13 +4,24 @@ ion-header {
     --color: var(--ion-color-primary-contrast);
   }
 
+  ion-toolbar.segment-toolbar {
+    --background: var(--ion-item-background, #fff);
+    --color: var(--ion-text-color, #000);
+    --border-color: var(--ion-border-color, #dedede);
+    border-bottom: 1px solid var(--border-color);
+  }
+
   ion-segment {
-    padding: 8px 16px;
+    padding: 0;
+    background: transparent;
   }
 
   ion-segment-button {
     --indicator-color: var(--ion-color-primary);
     --color-checked: var(--ion-color-primary);
+    --color: var(--ion-color-medium);
+    margin: 0;
+    border-radius: 0;
     min-height: 48px;
 
     ion-icon {
@@ -82,12 +93,13 @@ ion-fab {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-.sync-content > div {
+.sync-content>div {
   animation: fadeIn 0.3s ease-out;
 }

@@ -3541,8 +3541,18 @@ export class DatabaseService {
       console.error('Database not initialized.');
       return [];
     }
-    const sql = `SELECT * FROM tontine_collections WHERE isSync = 0 AND isLocal = 1`;
+    const sql = `
+      SELECT tc.*, 
+      COALESCE(c.fullName, (COALESCE(c.firstname, '') || ' ' || COALESCE(c.lastname, ''))) as clientName,
+      tm.id as _debug_tmId,
+      c.id as _debug_clientId
+      FROM tontine_collections tc
+      LEFT JOIN tontine_members tm ON tc.tontineMemberId = tm.id
+      LEFT JOIN clients c ON tm.clientId = c.id
+      WHERE tc.isSync = 0 AND tc.isLocal = 1
+    `;
     const ret = await this.db.query(sql);
+    console.log('[DatabaseService] getUnsyncedTontineCollections result:', JSON.stringify(ret.values, null, 2));
     return ret.values || [];
   }
 

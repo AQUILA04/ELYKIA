@@ -37,7 +37,7 @@ export class EntitySyncListComponent implements OnChanges {
    */
   private updateAllSelectedState() {
     if (this.entities && this.entities.length > 0) {
-      this.isAllSelected = this.entities.every(entity => 
+      this.isAllSelected = this.entities.every(entity =>
         this.selectedIds.includes(entity.id)
       );
     } else {
@@ -120,7 +120,7 @@ export class EntitySyncListComponent implements OnChanges {
         return `Membre ${(member as any).clientName || member.clientId}`;
       case 'tontine-collection':
         const collection = entity as TontineCollection;
-        return `Collecte ${collection.id}`;
+        return collection.clientName ? `Collecte - ${collection.clientName}` : `Collecte ${collection.id}`;
       case 'tontine-delivery':
         const delivery = entity as TontineDelivery;
         return `Livraison ${delivery.id}`;
@@ -148,7 +148,11 @@ export class EntitySyncListComponent implements OnChanges {
         return `Contribution: ${member.totalContribution} FCFA • ${member.deliveryStatus}`;
       case 'tontine-collection':
         const collection = entity as TontineCollection;
-        return `Montant: ${collection.amount} FCFA • ${new Date(collection.collectionDate).toLocaleDateString()}`;
+        // Format date including time: DD/MM/YYYY HH:mm
+        const date = new Date(collection.collectionDate);
+        const dateStr = date.toLocaleDateString();
+        const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `Montant: ${collection.amount} FCFA • ${dateStr} ${timeStr}`;
       case 'tontine-delivery':
         const delivery = entity as TontineDelivery;
         return `Montant: ${delivery.totalAmount} FCFA • ${delivery.status}`;

@@ -44,6 +44,7 @@ export interface TontineCollection {
     syncDate?: string;
     syncHash?: string;
     isDeliveryCollection?: boolean;
+    clientName?: string;
 }
 
 export interface TontineDeliveryItem {
