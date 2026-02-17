@@ -118,3 +118,56 @@ export const deleteRecoveriesByDistributionIds = createAction(
   '[Recovery] Delete Recoveries By Distribution Ids',
   props<{ distributionIds: string[] }>()
 );
+
+// ==================== PAGINATION ACTIONS ====================
+
+export const loadFirstPageRecoveries = createAction(
+  '[Recovery] Load First Page Recoveries',
+  props<{ 
+    commercialId: string;
+    pageSize?: number;
+    filters?: {
+      startDate?: string;
+      endDate?: string;
+      paymentMethod?: string;
+      clientId?: string;
+    }
+  }>()
+);
+
+export const loadFirstPageRecoveriesSuccess = createAction(
+  '[Recovery] Load First Page Recoveries Success',
+  props<{ page: { content: Recovery[]; totalElements: number; totalPages: number; page: number; size: number } }>()
+);
+
+export const loadFirstPageRecoveriesFailure = createAction(
+  '[Recovery] Load First Page Recoveries Failure',
+  props<{ error: any }>()
+);
+
+export const loadNextPageRecoveries = createAction(
+  '[Recovery] Load Next Page Recoveries',
+  props<{ 
+    commercialId: string;
+    filters?: {
+      startDate?: string;
+      endDate?: string;
+      paymentMethod?: string;
+      clientId?: string;
+    }
+  }>()
+);
+
+export const loadNextPageRecoveriesSuccess = createAction(
+  '[Recovery] Load Next Page Recoveries Success',
+  props<{ page: { content: Recovery[]; totalElements: number; totalPages: number; page: number; size: number } }>()
+);
+
+export const loadNextPageRecoveriesFailure = createAction(
+  '[Recovery] Load Next Page Recoveries Failure',
+  props<{ error: any }>()
+);
+
+export const resetRecoveryPagination = createAction(
+  '[Recovery] Reset Recovery Pagination'
+);

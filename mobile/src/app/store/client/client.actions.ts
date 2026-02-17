@@ -112,3 +112,54 @@ export const updateClientPhotosAndInfoFailure = createAction(
   '[Client] Update Client Photos and Info Failure',
   props<{ error: any }>()
 );
+
+// ==================== PAGINATION ACTIONS ====================
+
+export const loadFirstPageClients = createAction(
+  '[Client] Load First Page Clients',
+  props<{ 
+    commercialUsername: string;
+    pageSize?: number;
+    filters?: {
+      searchQuery?: string;
+      quarter?: string;
+      clientType?: string;
+    }
+  }>()
+);
+
+export const loadFirstPageClientsSuccess = createAction(
+  '[Client] Load First Page Clients Success',
+  props<{ page: { content: Client[]; totalElements: number; totalPages: number; page: number; size: number } }>()
+);
+
+export const loadFirstPageClientsFailure = createAction(
+  '[Client] Load First Page Clients Failure',
+  props<{ error: any }>()
+);
+
+export const loadNextPageClients = createAction(
+  '[Client] Load Next Page Clients',
+  props<{ 
+    commercialUsername: string;
+    filters?: {
+      searchQuery?: string;
+      quarter?: string;
+      clientType?: string;
+    }
+  }>()
+);
+
+export const loadNextPageClientsSuccess = createAction(
+  '[Client] Load Next Page Clients Success',
+  props<{ page: { content: Client[]; totalElements: number; totalPages: number; page: number; size: number } }>()
+);
+
+export const loadNextPageClientsFailure = createAction(
+  '[Client] Load Next Page Clients Failure',
+  props<{ error: any }>()
+);
+
+export const resetClientPagination = createAction(
+  '[Client] Reset Client Pagination'
+);

@@ -149,3 +149,64 @@ export class ClientEffects {
   );
 }
 
+
+  // ==================== PAGINATION EFFECTS ====================
+
+  loadFirstPageClients$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ClientActions.loadFirstPageClients),
+      switchMap((action) => {
+        if (!action.commercialUsername) {
+          return of(ClientActions.loadFirstPageClientsFailure({ 
+            error: 'commercialUsername is required for security' 
+          }));
+        }
+
+        return from(
+          this.clientService.getClientsPaginated(
+            action.commercialUsername,
+            0, // First page
+            action.pageSize || 20,
+            action.filters
+          )
+        ).pipe(
+          map((page) => ClientActions.loadFirstPageClientsSuccess({ page })),
+          catchError((error) => of(ClientActions.loadFirstPageClientsFailure({ error: error.message })))
+        );
+      })
+    )
+  );
+
+  loadNextPageClients$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ClientActions.loadNextPageClients),
+      withLatestFrom(this.store.select(state => state.client?.pagination)),
+      switchMap(([action, pagination]) => {
+        if (!action.commercialUsername) {
+          return of(ClientActions.loadNextPageClientsFailure({ 
+            error: 'commercialUsername is required for security' 
+          }));
+        }
+
+        if (!pagination || !pagination.hasMore || pagination.loading) {
+          // No more pages to load or already loading
+          return of({ type: 'NO_OP' });
+        }
+
+        const nextPage = pagination.currentPage + 1;
+
+        return from(
+          this.clientService.getClientsPaginated(
+            action.commercialUsername,
+            nextPage,
+            pagination.pageSize,
+            action.filters
+          )
+        ).pipe(
+          map((page) => ClientActions.loadNextPageClientsSuccess({ page })),
+          catchError((error) => of(ClientActions.loadNextPageClientsFailure({ error: error.message })))
+        );
+      })
+    )
+  );
+}
