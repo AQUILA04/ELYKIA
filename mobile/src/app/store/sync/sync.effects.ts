@@ -415,65 +415,138 @@ export class SyncEffects {
    * Synchroniser une entité individuelle par ID
    */
   private async syncSingleEntityById(entityType: string, entityId: string): Promise<void> {
-    switch (entityType) {
-      case 'client':
-        // Get all unsynced clients and find the one with matching ID
-        const clients = await this.syncService.getUnsyncedClients();
-        const client = clients.find(c => c.id === entityId);
-        if (client) {
-          await this.syncService.syncSingleClient(client);
-        }
-        break;
-      case 'distribution':
-        // Get all unsynced distributions and find the one with matching ID
-        const distributions = await this.syncService.getUnsyncedDistributions();
-        const distribution = distributions.find(d => d.id === entityId);
-        if (distribution) {
-          await this.syncService.syncSingleDistribution(distribution);
-        }
-        break;
-      case 'recovery':
-        // Synchroniser un recouvrement individuel
-        const { defaultStakes, specialStakes } = await this.syncService.categorizeRecoveries();
-        const allRecoveries = [...defaultStakes, ...specialStakes];
-        const recovery = allRecoveries.find(r => r.id === entityId);
-        if (recovery) {
-          if (recovery.isDefaultStake) {
-            await this.syncService.syncDefaultDailyStakes([recovery]);
-          } else {
-            await this.syncService.syncSpecialDailyStakes([recovery]);
+    try {
+      switch (entityType) {
+        case 'client':
+          // Get all unsynced clients and find the one with matching ID
+          const clients = await this.syncService.getUnsyncedClients();
+          const client = clients.find(c => c.id === entityId);
+          if (client) {
+            try {
+              await this.syncService.syncSingleClient(client);
+            } catch (error) {
+              await this.syncErrorService.logSyncError(
+                'client',
+                client.id,
+                'MANUAL_SYNC',
+                error,
+                client,
+                this.syncService.getClientDisplayName(client),
+                client
+              );
+              throw error;
+            }
           }
-        }
-        break;
-      case 'tontine-member':
-      case 'tontine-members':
-        // Synchroniser un membre de tontine
-        const tontineMembers = await this.syncService.getUnsyncedTontineMembers();
-        const member = tontineMembers.find(m => m.id === entityId);
-        if (member) {
-          await this.syncService.syncSingleTontineMember(member);
-        }
-        break;
-      case 'tontine-collection':
-      case 'tontine-collections':
-        // Synchroniser une collecte de tontine
-        const tontineCollections = await this.syncService.getUnsyncedTontineCollections();
-        const collection = tontineCollections.find(c => c.id === entityId);
-        if (collection) {
-          await this.syncService.syncSingleTontineCollection(collection);
-        }
-        break;
-      case 'tontine-delivery':
-      case 'tontine-deliveries':
-        // Synchroniser une livraison de tontine
-        const tontineDeliveries = await this.syncService.getUnsyncedTontineDeliveries();
-        const delivery = tontineDeliveries.find(d => d.id === entityId);
-        if (delivery) {
-          await this.syncService.syncSingleTontineDelivery(delivery);
-        }
-        break;
-      default:
-        throw new Error(`Type d'entité non supporté: ${entityType}`);
+          break;
+        case 'distribution':
+          // Get all unsynced distributions and find the one with matching ID
+          const distributions = await this.syncService.getUnsyncedDistributions();
+          const distribution = distributions.find(d => d.id === entityId);
+          if (distribution) {
+            try {
+              await this.syncService.syncSingleDistribution(distribution);
+            } catch (error) {
+              await this.syncErrorService.logSyncError(
+                'distribution',
+                distribution.id,
+                'MANUAL_SYNC',
+                error,
+                distribution,
+                this.syncService.getDistributionDisplayName(distribution),
+                distribution
+              );
+              throw error;
+            }
+          }
+          break;
+        case 'recovery':
+          // Synchroniser un recouvrement individuel
+          const { defaultStakes, specialStakes } = await this.syncService.categorizeRecoveries();
+          const allRecoveries = [...defaultStakes, ...specialStakes];
+          const recovery = allRecoveries.find(r => r.id === entityId);
+          if (recovery) {
+            // syncDefaultDailyStakes and syncSpecialDailyStakes already handle error logging internally
+            if (recovery.isDefaultStake) {
+              await this.syncService.syncDefaultDailyStakes([recovery]);
+            } else {
+              await this.syncService.syncSpecialDailyStakes([recovery]);
+            }
+          }
+          break;
+        case 'tontine-member':
+        case 'tontine-members':
+          // Synchroniser un membre de tontine
+          const tontineMembers = await this.syncService.getUnsyncedTontineMembers();
+          const member = tontineMembers.find(m => m.id === entityId);
+          if (member) {
+            try {
+              await this.syncService.syncSingleTontineMember(member);
+            } catch (error) {
+              await this.syncErrorService.logSyncError(
+                'tontine-member',
+                member.id,
+                'MANUAL_SYNC',
+                error,
+                member,
+                this.syncService.getTontineMemberDisplayName(member),
+                member
+              );
+              throw error;
+            }
+          }
+          break;
+        case 'tontine-collection':
+        case 'tontine-collections':
+          // Synchroniser une collecte de tontine
+          const tontineCollections = await this.syncService.getUnsyncedTontineCollections();
+          const collection = tontineCollections.find(c => c.id === entityId);
+          if (collection) {
+            try {
+              await this.syncService.syncSingleTontineCollection(collection);
+            } catch (error) {
+              await this.syncErrorService.logSyncError(
+                'tontine-collection',
+                collection.id,
+                'MANUAL_SYNC',
+                error,
+                collection,
+                this.syncService.getTontineCollectionDisplayName(collection),
+                collection
+              );
+              throw error;
+            }
+          }
+          break;
+        case 'tontine-delivery':
+        case 'tontine-deliveries':
+          // Synchroniser une livraison de tontine
+          const tontineDeliveries = await this.syncService.getUnsyncedTontineDeliveries();
+          const delivery = tontineDeliveries.find(d => d.id === entityId);
+          if (delivery) {
+            try {
+              await this.syncService.syncSingleTontineDelivery(delivery);
+            } catch (error) {
+              await this.syncErrorService.logSyncError(
+                'tontine-delivery',
+                delivery.id,
+                'MANUAL_SYNC',
+                error,
+                delivery,
+                this.syncService.getTontineDeliveryDisplayName(delivery),
+                delivery
+              );
+              throw error;
+            }
+          }
+          break;
+        default:
+          throw new Error(`Type d'entité non supporté: ${entityType}`);
+      }
+    } catch (error) {
+      // If the error was already logged (re-thrown), we just let it propagate to the effect
+      // If it happened during fetching (before logging), we might want to log it here contextually?
+      // For now, assume fetching errors are rare and covered by generic logging or try/catch blocks within services.
+      throw error;
     }
   }
 
@@ -572,8 +645,19 @@ export class SyncEffects {
       tap(async ({ error }) => {
         const { ToastController } = await import('@ionic/angular');
         const toastController = new ToastController();
+
+        // Extract the most relevant error message
+        let errorMessage = 'Erreur inconnue';
+        if (error) {
+          if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+        }
+
         const toast = await toastController.create({
-          message: `Erreur lors de la synchronisation: ${error?.message || 'Erreur inconnue'}`,
+          message: `Erreur lors de la synchronisation: ${errorMessage}`,
           duration: 4000,
           color: 'danger',
           position: 'bottom'

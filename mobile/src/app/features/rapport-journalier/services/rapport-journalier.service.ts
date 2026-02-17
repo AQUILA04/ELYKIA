@@ -574,12 +574,12 @@ export class RapportJournalierService {
             text-align: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 2px solid #2196F3;
+            border-bottom: 2px solid #003366;
           }
           .header h1 {
             margin: 0;
             font-size: 24pt;
-            color: #2196F3;
+            color: #003366;
             text-transform: uppercase;
           }
           .header p {
@@ -596,7 +596,7 @@ export class RapportJournalierService {
           .kpi-section h2 {
             margin: 0 0 15px 0;
             font-size: 14pt;
-            color: #2196F3;
+            color: #003366;
             text-transform: uppercase;
           }
           .kpi-grid {
@@ -615,20 +615,20 @@ export class RapportJournalierService {
             color: #555;
           }
           .kpi-value {
-            color: #2196F3;
+            color: #003366;
             font-weight: bold;
           }
           .total-section {
             margin-top: 15px;
             padding-top: 15px;
-            border-top: 2px solid #2196F3;
+            border-top: 2px solid #003366;
           }
           .total-item {
             display: flex;
             justify-content: space-between;
             font-size: 14pt;
             font-weight: bold;
-            color: #2196F3;
+            color: #003366;
           }
           .table-section {
             margin-bottom: 30px;
@@ -637,9 +637,9 @@ export class RapportJournalierService {
           .table-section h3 {
             margin: 0 0 10px 0;
             font-size: 12pt;
-            color: #2196F3;
+            color: #003366;
             text-transform: uppercase;
-            border-bottom: 2px solid #2196F3;
+            border-bottom: 2px solid #003366;
             padding-bottom: 5px;
           }
           table {
@@ -648,7 +648,7 @@ export class RapportJournalierService {
             margin-bottom: 10px;
           }
           th {
-            background: #2196F3;
+            background: #003366;
             color: white;
             padding: 8px;
             text-align: left;

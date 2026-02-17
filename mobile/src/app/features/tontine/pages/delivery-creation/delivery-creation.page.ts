@@ -10,6 +10,7 @@ import { TontineCollectionRepository } from 'src/app/core/repositories/tontine-c
 import { ClientRepository } from 'src/app/core/repositories/client.repository';
 import { TontineStockRepository } from 'src/app/core/repositories/tontine-stock.repository';
 import { TontineDeliveryRepository } from 'src/app/core/repositories/tontine-delivery.repository';
+import { DatabaseService } from 'src/app/core/services/database.service';
 
 import { TontineMember, TontineSession, TontineDelivery, TontineDeliveryItem, TontineStock } from 'src/app/models/tontine.model';
 import { Client } from 'src/app/models/client.model';
@@ -76,7 +77,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         private collectionRepo: TontineCollectionRepository,
         private clientRepo: ClientRepository,
         private stockRepo: TontineStockRepository,
-        private deliveryRepo: TontineDeliveryRepository
+        private deliveryRepo: TontineDeliveryRepository,
+        private dbService: DatabaseService
     ) { }
 
     async ngOnInit() {
@@ -175,6 +177,12 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         console.log('LOAD STOCK After first if ...');
         this.vm.loading = true;
         try {
+            // DEBUG: Log raw stocks from DB to diagnose issue
+            console.log('DEBUG: Querying all stocks for commercial:', this.commercialUsername);
+            const debugStocks = await this.dbService.query('SELECT * FROM tontine_stocks WHERE commercial = ?', [this.commercialUsername]);
+            console.log('DEBUG: Raw stocks in DB:', debugStocks.values);
+            console.log('DEBUG: Current Session ID:', this.vm.session.id);
+
             // Load available stocks only
             this.allStocks = await this.stockRepo.getAvailableStocks(
                 this.commercialUsername,

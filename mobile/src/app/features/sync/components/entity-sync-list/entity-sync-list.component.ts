@@ -117,13 +117,13 @@ export class EntitySyncListComponent implements OnChanges {
         return `Recouvrement ${recovery.id}`;
       case 'tontine-member':
         const member = entity as TontineMember;
-        return (member as any).clientName ? `Membre - ${(member as any).clientName}` : `Membre ${member.clientId}`;
+        return member.clientName ? `Membre - ${member.clientName}` : `Membre ${member.clientId}`;
       case 'tontine-collection':
         const collection = entity as TontineCollection;
         return collection.clientName ? `Collecte - ${collection.clientName}` : `Collecte ${collection.id}`;
       case 'tontine-delivery':
         const delivery = entity as TontineDelivery;
-        return `Livraison ${delivery.id}`;
+        return delivery.clientName ? `Livraison - ${delivery.clientName}` : `Livraison ${delivery.id}`;
       default:
         return 'Entité inconnue';
     }

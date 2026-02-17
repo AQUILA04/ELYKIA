@@ -64,7 +64,7 @@ export class TontineService {
                         members: this.fetchAndSaveMembers(session.id).pipe(
                             switchMap(() => this.fetchAndSaveCollections())
                         ),
-                        stocks: this.fetchAndSaveStocks()
+                        stocks: this.fetchAndSaveStocks(session.id)
                     }).pipe(
                         map(() => {
                             console.log('TontineService: Tontine initialization completed successfully.');
@@ -423,7 +423,7 @@ export class TontineService {
     /**
      * Fetch and save tontine stocks from API
      */
-    fetchAndSaveStocks(): Observable<any> {
+    fetchAndSaveStocks(sessionId?: string): Observable<any> {
         console.log('TontineService: Fetching tontine stocks...');
 
         return this.getHeaders().pipe(
@@ -455,7 +455,7 @@ export class TontineService {
                     availableQuantity: s.availableQuantity || 0,
                     distributedQuantity: s.distributedQuantity || 0,
                     year: s.year,
-                    tontineSessionId: s.tontineSessionId?.toString()
+                    tontineSessionId: s.tontineSessionId?.toString() || sessionId
                 }));
 
                 console.log('TontineService: Saving stocks to DB...');

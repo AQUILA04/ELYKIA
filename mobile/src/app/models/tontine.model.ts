@@ -26,10 +26,10 @@ export interface TontineMember {
     frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
     amount?: number;
     notes?: string;
+    clientName?: string;
 }
 
 export interface TontineMemberView extends TontineMember {
-    clientName: string;
     clientPhone: string;
     clientQuarter?: string;
     hasPaidToday?: boolean;
@@ -72,6 +72,7 @@ export interface TontineDelivery {
     isSync: boolean;
     syncDate?: string;
     syncHash?: string;
+    clientName?: string;
 }
 
 export interface TontineStock {

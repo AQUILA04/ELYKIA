@@ -969,6 +969,7 @@ public class CreditService extends GenericService<Credit, Long> {
         clientDetails.setTotalInProgressAmountCollected(
                 getRepository().getTotalInProgressAmountPaidByClientId(clientId, CreditStatus.INPROGRESS));
         clientDetails.setTotalInProgressAmountDue(getRepository().getTotalAmountDueTodayByClientId(clientId));
+        clientDetails.setTotalAmountRemaining(clientDetails.getTotalInProgressCreditAmount() - clientDetails.getTotalInProgressAmountCollected());
         return clientDetails;
     }
 

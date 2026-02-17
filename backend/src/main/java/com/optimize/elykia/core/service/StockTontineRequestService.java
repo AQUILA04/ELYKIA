@@ -166,11 +166,12 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             articlesService.update(article);
         }
 
+        request.setDeliveryDate(LocalDate.now());
         // 3. Mise à jour du stock Tontine du commercial
         tontineStockService.processStockDelivery(request);
 
         request.setStatus(StockRequestStatus.DELIVERED);
-        request.setDeliveryDate(LocalDate.now());
+
         request.setAccountingDate(accountingDayService.getCurrentAccountingDate());
 
         StockTontineRequest savedRequest = update(request);

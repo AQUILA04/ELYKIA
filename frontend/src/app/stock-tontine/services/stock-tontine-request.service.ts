@@ -29,8 +29,8 @@ export class StockTontineRequestService extends BaseHttpService {
     return this.put<StockTontineRequest>(`${this.baseUrl}/${id}/validate`, {});
   }
 
-  deliver(id: number): Observable<StockTontineRequest> {
-    return this.put<StockTontineRequest>(`${this.baseUrl}/${id}/deliver`, {});
+  deliver(id: number): Observable<any> {
+    return this.put<any>(`${this.baseUrl}/${id}/deliver`, {});
   }
 
   getAll(collector: string | null, page: number = 0, size: number = 20): Observable<Page<StockTontineRequest>> {
