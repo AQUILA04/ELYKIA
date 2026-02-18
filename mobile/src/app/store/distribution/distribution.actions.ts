@@ -177,3 +177,40 @@ export const updateDistributionFailure = createAction(
   props<{ error: string }>()
 );
 
+
+// Pagination Actions
+export const loadFirstPageDistributions = createAction(
+  '[Distribution] Load First Page Distributions',
+  props<{ commercialUsername: string; filters?: { status?: string; clientId?: string; searchQuery?: string; isLocal?: boolean; isSync?: boolean; quarter?: string; dateFilter?: any } }>()
+);
+
+export const loadFirstPageDistributionsSuccess = createAction(
+  '[Distribution] Load First Page Distributions Success',
+  props<{ distributions: any[]; totalElements: number; totalPages: number }>() // any[] because we might use DistributionView
+);
+
+export const loadFirstPageDistributionsFailure = createAction(
+  '[Distribution] Load First Page Distributions Failure',
+  props<{ error: string }>()
+);
+
+export const loadNextPageDistributions = createAction(
+  '[Distribution] Load Next Page Distributions',
+  props<{ commercialUsername: string; filters?: { status?: string; clientId?: string; searchQuery?: string; isLocal?: boolean; isSync?: boolean; quarter?: string; dateFilter?: any } }>()
+);
+
+export const loadNextPageDistributionsSuccess = createAction(
+  '[Distribution] Load Next Page Distributions Success',
+  props<{ distributions: any[] }>()
+);
+
+export const loadNextPageDistributionsFailure = createAction(
+  '[Distribution] Load Next Page Distributions Failure',
+  props<{ error: string }>()
+);
+
+export const resetDistributionPagination = createAction(
+  '[Distribution] Reset Distribution Pagination'
+);
+
+

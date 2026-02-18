@@ -27,11 +27,11 @@ export const loadRecoveryKpi = createAction(
 
 export const loadRecoveryKpiSuccess = createAction(
   '[KPI] Load Recovery KPI Success',
-  props<{ 
-    total: number; 
-    totalByCommercial: number; 
-    today: number; 
-    totalAmount: number; 
+  props<{
+    total: number;
+    totalByCommercial: number;
+    today: number;
+    totalAmount: number;
     totalAmountByCommercial: number;
     todayAmount: number;
   }>()
@@ -51,13 +51,15 @@ export const loadDistributionKpi = createAction(
 
 export const loadDistributionKpiSuccess = createAction(
   '[KPI] Load Distribution KPI Success',
-  props<{ 
-    total: number; 
-    totalByCommercial: number; 
-    active: number; 
+  props<{
+    total: number;
+    totalByCommercial: number;
+    active: number;
     activeByCommercial: number;
     totalAmount: number;
     totalAmountByCommercial: number;
+    totalRemaining: number;
+    dailyPayment: number;
   }>()
 );
 
@@ -99,6 +101,23 @@ export const loadOrderKpiFailure = createAction(
   props<{ error: string }>()
 );
 
+// ==================== COMMERCIAL STOCK KPI ACTIONS ====================
+
+export const loadCommercialStockKpi = createAction(
+  '[KPI] Load Commercial Stock KPI',
+  props<{ commercialUsername?: string }>()
+);
+
+export const loadCommercialStockKpiSuccess = createAction(
+  '[KPI] Load Commercial Stock KPI Success',
+  props<{ totalValue: number }>()
+);
+
+export const loadCommercialStockKpiFailure = createAction(
+  '[KPI] Load Commercial Stock KPI Failure',
+  props<{ error: string }>()
+);
+
 // ==================== TONTINE KPI ACTIONS ====================
 
 export const loadTontineKpi = createAction(
@@ -108,11 +127,11 @@ export const loadTontineKpi = createAction(
 
 export const loadTontineKpiSuccess = createAction(
   '[KPI] Load Tontine KPI Success',
-  props<{ 
-    totalMembers: number; 
-    totalMembersBySession: number; 
-    pendingDeliveries: number; 
-    totalCollected: number 
+  props<{
+    totalMembers: number;
+    totalMembersBySession: number;
+    pendingDeliveries: number;
+    totalCollected: number
   }>()
 );
 
@@ -129,9 +148,9 @@ export const loadTontineKpiFailure = createAction(
  */
 export const loadAllKpi = createAction(
   '[KPI] Load All KPI',
-  props<{ 
-    commercialUsername?: string; 
-    commercialId?: string; 
+  props<{
+    commercialUsername?: string;
+    commercialId?: string;
     sessionId?: string;
     dateFilter?: DateFilter;
   }>()

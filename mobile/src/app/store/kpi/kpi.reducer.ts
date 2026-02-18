@@ -37,6 +37,8 @@ export interface KpiState {
     activeByCommercial: number;
     totalAmount: number;
     totalAmountByCommercial: number;
+    totalRemaining: number;
+    dailyPayment: number;
     loading: boolean;
     error: string | null;
   };
@@ -52,6 +54,13 @@ export interface KpiState {
   orderKpi: {
     total: number;
     totalByCommercial: number;
+    loading: boolean;
+    error: string | null;
+  };
+
+  // Commercial Stock KPIs
+  commercialStockKpi: {
+    totalValue: number;
     loading: boolean;
     error: string | null;
   };
@@ -91,6 +100,8 @@ export const initialState: KpiState = {
     activeByCommercial: 0,
     totalAmount: 0,
     totalAmountByCommercial: 0,
+    totalRemaining: 0,
+    dailyPayment: 0,
     loading: false,
     error: null
   },
@@ -102,6 +113,11 @@ export const initialState: KpiState = {
   orderKpi: {
     total: 0,
     totalByCommercial: 0,
+    loading: false,
+    error: null
+  },
+  commercialStockKpi: {
+    totalValue: 0,
     loading: false,
     error: null
   },
@@ -185,7 +201,7 @@ export const kpiReducer = createReducer(
       error: null
     }
   })),
-  on(KpiActions.loadDistributionKpiSuccess, (state, { total, totalByCommercial, active, activeByCommercial, totalAmount, totalAmountByCommercial }) => ({
+  on(KpiActions.loadDistributionKpiSuccess, (state, { total, totalByCommercial, active, activeByCommercial, totalAmount, totalAmountByCommercial, totalRemaining, dailyPayment }) => ({
     ...state,
     distributionKpi: {
       total,
@@ -194,6 +210,8 @@ export const kpiReducer = createReducer(
       activeByCommercial,
       totalAmount,
       totalAmountByCommercial,
+      totalRemaining,
+      dailyPayment,
       loading: false,
       error: null
     }
@@ -255,6 +273,32 @@ export const kpiReducer = createReducer(
     ...state,
     orderKpi: {
       ...state.orderKpi,
+      loading: false,
+      error
+    }
+  })),
+
+  // ==================== COMMERCIAL STOCK KPI ====================
+  on(KpiActions.loadCommercialStockKpi, (state) => ({
+    ...state,
+    commercialStockKpi: {
+      ...state.commercialStockKpi,
+      loading: true,
+      error: null
+    }
+  })),
+  on(KpiActions.loadCommercialStockKpiSuccess, (state, { totalValue }) => ({
+    ...state,
+    commercialStockKpi: {
+      totalValue,
+      loading: false,
+      error: null
+    }
+  })),
+  on(KpiActions.loadCommercialStockKpiFailure, (state, { error }) => ({
+    ...state,
+    commercialStockKpi: {
+      ...state.commercialStockKpi,
       loading: false,
       error
     }

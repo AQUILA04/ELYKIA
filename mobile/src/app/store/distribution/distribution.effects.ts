@@ -16,6 +16,8 @@ import { selectDistributionsByClientId } from './distribution.selectors';
 import { deleteRecoveriesByDistributionIds } from '../recovery/recovery.actions';
 import * as ArticleActions from '../article/article.actions';
 import * as CommercialStockActions from '../commercial-stock/commercial-stock.actions';
+import { selectDistributionState } from './distribution.selectors';
+import { DistributionRepositoryExtensions } from '../../core/repositories/distribution.repository.extensions';
 
 @Injectable()
 export class DistributionEffects {
@@ -25,8 +27,9 @@ export class DistributionEffects {
     private distributionService: DistributionService,
     private printingService: PrintingService,
     private toastController: ToastController,
-    private store: Store
-  ) {}
+    private store: Store,
+    private distributionRepositoryExtensions: DistributionRepositoryExtensions
+  ) { }
 
   // Load Distributions Effect - from local database only
   loadDistributions$ = createEffect(() =>
@@ -43,6 +46,42 @@ export class DistributionEffects {
           })
         )
       )
+    )
+  );
+
+  /**
+   * Pagination Effects (US001/US002)
+   */
+  loadFirstPageDistributions$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadFirstPageDistributions),
+      // Use DEFAULT_PAGE_SIZE = 20 from config, hardcoded for now or use constant
+      switchMap(({ commercialUsername, filters }) =>
+        this.distributionService.getDistributionsPaginated(0, 20, filters).pipe( // Page 0, Size 20
+          map(page => DistributionActions.loadFirstPageDistributionsSuccess({
+            distributions: page.content,
+            totalElements: page.totalElements,
+            totalPages: page.totalPages
+          })),
+          catchError(error => of(DistributionActions.loadFirstPageDistributionsFailure({ error: error.message })))
+        )
+      )
+    )
+  );
+
+  loadNextPageDistributions$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadNextPageDistributions),
+      withLatestFrom(this.store.select(selectDistributionState)), // To get current page
+      switchMap(([{ commercialUsername, filters }, state]) => {
+        const nextPage = state.pagination.currentPage + 1;
+        return this.distributionService.getDistributionsPaginated(nextPage, 20, filters).pipe(
+          map(page => DistributionActions.loadNextPageDistributionsSuccess({
+            distributions: page.content
+          })),
+          catchError(error => of(DistributionActions.loadNextPageDistributionsFailure({ error: error.message })))
+        );
+      })
     )
   );
 
@@ -167,22 +206,22 @@ export class DistributionEffects {
       ofType(DistributionActions.createDistributionSuccess),
       withLatestFrom(this.store.select(selectAuthUser)),
       switchMap(([action, user]) => {
-          const actions: Action[] = [
-              ClientActions.updateClientCreditStatus({ clientId: action.distribution.clientId, creditInProgress: true }),
-              ClientActions.loadClients({ commercialUsername: user?.username || '' })
-          ];
+        const actions: Action[] = [
+          ClientActions.updateClientCreditStatus({ clientId: action.distribution.clientId, creditInProgress: true }),
+          ClientActions.loadClients({ commercialUsername: user?.username || '' })
+        ];
 
-          // Update local stock for each item in the distribution
-          if (action.distribution.items) {
-              action.distribution.items.forEach(item => {
-                  actions.push(CommercialStockActions.updateStockQuantity({
-                      articleId: item.articleId,
-                      quantityChange: -item.quantity
-                  }));
-              });
-          }
+        // Update local stock for each item in the distribution
+        if (action.distribution.items) {
+          action.distribution.items.forEach(item => {
+            actions.push(CommercialStockActions.updateStockQuantity({
+              articleId: item.articleId,
+              quantityChange: -item.quantity
+            }));
+          });
+        }
 
-          return actions;
+        return actions;
       })
     )
   );
@@ -433,4 +472,5 @@ export class DistributionEffects {
     ),
     { dispatch: false }
   );
+
 }

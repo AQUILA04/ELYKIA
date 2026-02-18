@@ -109,10 +109,6 @@ export const selectClientPaginationTotalItems = createSelector(
   (pagination) => pagination.totalItems
 );
 
-export const selectClientPaginationTotalPages = createSelector(
-  selectClientPagination,
-  (pagination) => pagination.totalPages
-);
 
 /**
  * Selector for paginated client views (with account information)

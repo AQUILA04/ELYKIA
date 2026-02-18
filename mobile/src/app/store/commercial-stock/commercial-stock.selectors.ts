@@ -19,6 +19,8 @@ export const selectCommercialStockError = createSelector(
 );
 
 export const selectAvailableStockItems = createSelector(
-    selectAllCommercialStockItems,
-    (items) => items.filter(item => item.quantityRemaining > 0)
+  selectAllCommercialStockItems,
+  (items) => items.filter(item => item.quantityRemaining > 0)
 );
+
+

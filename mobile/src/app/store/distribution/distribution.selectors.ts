@@ -174,7 +174,47 @@ export const selectDistributionsByCommercialId = (commercialId: string) => creat
   (distributions) => distributions.filter(d => d.commercialId === commercialId)
 );
 
+
 export const selectDistributionsByCommercialUsername = (commercialUsername: string) => createSelector(
   selectAllDistributions,
   (distributions) => distributions.filter(d => d.commercialId === commercialUsername)
 );
+
+// Pagination Selectors
+export const selectDistributionPagination = createSelector(
+  selectDistributionState,
+  (state) => state.pagination
+);
+
+export const selectPaginatedDistributions = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.items
+);
+
+export const selectDistributionPaginationLoading = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.loading
+);
+
+export const selectDistributionPaginationError = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.error
+);
+
+export const selectDistributionPaginationHasMore = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.hasMore
+);
+
+export const selectDistributionPaginationTotalItems = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.totalItems
+);
+
+export const selectDistributionPaginationPage = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.currentPage
+);
+
+// KPI Stats Selectors
+

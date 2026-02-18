@@ -30,8 +30,8 @@ export const selectRecoveryViews = createSelector(
 );
 
 export const selectRecoveryViewById = (id: string) => createSelector(
-    selectRecoveryViews,
-    (recoveryViews: RecoveryView[]) => recoveryViews.find(rv => rv.id === id)
+  selectRecoveryViews,
+  (recoveryViews: RecoveryView[]) => recoveryViews.find(rv => rv.id === id)
 );
 
 
@@ -198,10 +198,7 @@ export const selectRecoveryPaginationTotalItems = createSelector(
   (pagination) => pagination.totalItems
 );
 
-export const selectRecoveryPaginationTotalPages = createSelector(
-  selectRecoveryPagination,
-  (pagination) => pagination.totalPages
-);
+
 
 /**
  * Selector for paginated recovery views (with client and distribution information)
@@ -223,3 +220,5 @@ export const selectPaginatedRecoveryViews = createSelector(
     });
   }
 );
+
+

@@ -10,7 +10,7 @@ import { Client } from '../../models/client.model';
 import * as AccountActions from '../account/account.actions';
 
 import { selectAllClients, selectClientById } from './client.selectors';
-import {deleteDistributionsByClient} from "../distribution/distribution.actions";
+import { deleteDistributionsByClient } from "../distribution/distribution.actions";
 
 @Injectable()
 export class ClientEffects {
@@ -18,7 +18,7 @@ export class ClientEffects {
     private actions$: Actions,
     private clientService: ClientService,
     private store: Store
-  ) {}
+  ) { }
 
   loadClients$ = createEffect(() =>
     this.actions$.pipe(
@@ -147,7 +147,7 @@ export class ClientEffects {
       )
     )
   );
-}
+
 
 
   // ==================== PAGINATION EFFECTS ====================
@@ -157,8 +157,8 @@ export class ClientEffects {
       ofType(ClientActions.loadFirstPageClients),
       switchMap((action) => {
         if (!action.commercialUsername) {
-          return of(ClientActions.loadFirstPageClientsFailure({ 
-            error: 'commercialUsername is required for security' 
+          return of(ClientActions.loadFirstPageClientsFailure({
+            error: 'commercialUsername is required for security'
           }));
         }
 
@@ -180,11 +180,11 @@ export class ClientEffects {
   loadNextPageClients$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ClientActions.loadNextPageClients),
-      withLatestFrom(this.store.select(state => state.client?.pagination)),
+      withLatestFrom(this.store.select(state => (state as any).client?.pagination)),
       switchMap(([action, pagination]) => {
         if (!action.commercialUsername) {
-          return of(ClientActions.loadNextPageClientsFailure({ 
-            error: 'commercialUsername is required for security' 
+          return of(ClientActions.loadNextPageClientsFailure({
+            error: 'commercialUsername is required for security'
           }));
         }
 

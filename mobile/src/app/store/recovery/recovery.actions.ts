@@ -124,7 +124,7 @@ export const deleteRecoveriesByDistributionIds = createAction(
 
 export const loadFirstPageRecoveries = createAction(
   '[Recovery] Load First Page Recoveries',
-  props<{ 
+  props<{
     commercialId: string;
     pageSize?: number;
     filters?: {
@@ -147,7 +147,7 @@ export const loadFirstPageRecoveriesFailure = createAction(
 
 export const loadNextPageRecoveries = createAction(
   '[Recovery] Load Next Page Recoveries',
-  props<{ 
+  props<{
     commercialId: string;
     filters?: {
       dateFilter?: DateFilter;
@@ -170,3 +170,5 @@ export const loadNextPageRecoveriesFailure = createAction(
 export const resetRecoveryPagination = createAction(
   '[Recovery] Reset Recovery Pagination'
 );
+
+

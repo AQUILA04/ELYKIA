@@ -14,6 +14,7 @@ import { HealthCheckService } from './health-check.service';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import { DistributionMapper } from '../../shared/mapper/distribution.mapper';
 import { CommercialStockRepository } from '../repositories/commercial-stock.repository';
+import { DistributionRepositoryExtensions } from '../repositories/distribution.repository.extensions';
 
 interface CreateDistributionData {
   clientId: string;
@@ -38,121 +39,60 @@ export class DistributionService {
     private dbService: DatabaseService,
     private store: Store,
     private healthCheckService: HealthCheckService,
-    private commercialStockRepository: CommercialStockRepository
+    private commercialStockRepository: CommercialStockRepository,
+    private distributionRepositoryExtensions: DistributionRepositoryExtensions
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
     });
   }
 
+  // ... (existing code)
 
-  initializeDistributions(): Observable<boolean> {
-    return this.healthCheckService.pingBackend().pipe(
-      switchMap(isOnline => {
-        if (isOnline) {
-          console.log('DistributionService: Backend online, starting sync...');
-          return this.fetchAndSaveDistributions().pipe(
-            map(() => true),
-            catchError((error) => {
-              console.error('Failed to fetch distributions from API, usage local data', error);
-              return of(true);
-            })
-          );
-        } else {
-          console.log('DistributionService: Backend offline, skipping sync.');
-          return of(true);
-        }
-      }),
-      catchError(err => {
-        console.error('Distribution initialization failed:', err);
-        return of(false);
-      })
-    );
-  }
-
-  fetchAndSaveDistributions(page: number = 0, size: number = 100, seenKeys: Set<string> = new Set()): Observable<any> {
+  /**
+   * Get paginated distributions (Native Views)
+   * 
+   * @param page Page number
+   * @param size Page size
+   * @param filters Optional filters
+   * @returns Page of DistributionView
+   */
+  getDistributionsPaginated(
+    page: number,
+    size: number,
+    filters?: any
+  ): Observable<any> {
     if (!this.commercialUsername) {
-      return of(null);
+      return of({ content: [], totalElements: 0, totalPages: 0, page, size });
     }
-    console.log(`DistributionService: Fetching distributions page ${page}...`);
-    const url = `${environment.apiUrl}/api/v1/credits/by-commercial/${this.commercialUsername}?page=${page}&size=${size}&sort=id,desc`;
-    return this.http.get<ApiResponse<any>>(url).pipe(
-      switchMap(response => {
-        const pageData = response.data;
-        const distributions = pageData.content || [];
-        const currentPage = pageData.page?.number || 0;
-        const totalPages = pageData.page?.totalPages || 1;
-        const totalElements = pageData.page?.totalElements || 0;
-
-        console.log(`DistributionService: Page ${currentPage + 1}/${totalPages} - ${distributions.length} distributions found (Total: ${totalElements})`);
-
-        if (distributions.length === 0) {
-          return of(null);
-        }
-
-        const uniqueDistributions = this.filterUniqueDistributions(distributions, seenKeys);
-
-        console.log(`DistributionService: Saving ${uniqueDistributions.length} unique distributions from page ${currentPage + 1}...`);
-
-        return from(this.dbService.saveDistributionsAndItems(uniqueDistributions)).pipe(
-          tap(() => console.log(`DistributionService: Page ${currentPage + 1} saved successfully.`)),
-          switchMap(() => {
-            if (currentPage < totalPages - 1) {
-              return this.fetchAndSaveDistributions(currentPage + 1, size, seenKeys);
-            } else {
-              console.log('DistributionService: All pages fetched and saved.');
-              return of(null);
-            }
-          }),
-          catchError(err => {
-            console.error(`DistributionService: Error saving page ${currentPage + 1}:`, err);
-            throw err;
-          })
-        );
-      })
-    );
-  }
-
-  private filterUniqueDistributions(distributions: Distribution[], seen: Set<string>): Distribution[] {
-    return distributions.filter(dist => {
-      const key = `${dist.clientId}-${dist.totalAmount}-${dist.dailyPayment}-${dist.startDate}`;
-      if (seen.has(key)) {
-        return false;
-      } else {
-        seen.add(key);
-        return true;
-      }
-    });
-  }
-
-  // Get distributions from local database only
-  getDistributions(): Observable<Distribution[]> {
-    if (!this.commercialUsername) {
-      return of([]); // Or throw an error, depending on desired behavior
-    }
-    return from(this.dbService.getDistributions(this.commercialUsername)).pipe(
-      map(distributions => {
-        return distributions;
-      }),
+    return from(this.distributionRepositoryExtensions.findViewsByCommercialPaginated(
+      this.commercialUsername,
+      page,
+      size,
+      filters
+    )).pipe(
       catchError(error => {
-        console.error('Failed to load distributions from local database:', error);
-        return of([]);
+        console.error('Failed to load paginated distributions:', error);
+        return of({ content: [], totalElements: 0, totalPages: 0, page, size });
       })
     );
   }
 
-  // Get distributions by commercial username from local database
+  /**
+   * @deprecated Use pagination instead
+   */
+  initializeDistributions(): Observable<Distribution[]> {
+    return this.getDistributionsByCommercialUsername(this.commercialUsername || '');
+  }
+
+  /**
+   * @deprecated Use pagination instead
+   */
   getDistributionsByCommercialUsername(username: string): Observable<Distribution[]> {
-    if (!username) {
-      return of([]);
-    }
-    return from(this.dbService.getDistributions(username)).pipe(
-      catchError(error => {
-        console.error('Failed to get distributions by commercial username:', error);
-        return of([]);
-      })
-    );
+    if (!username) return of([]);
+    return from(this.dbService.getDistributions(username));
   }
+
 
 
 

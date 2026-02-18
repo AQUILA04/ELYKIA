@@ -41,6 +41,8 @@ import { commercialStockReducer } from './store/commercial-stock/commercial-stoc
 import { CommercialStockEffects } from './store/commercial-stock/commercial-stock.effects';
 import { kpiReducer } from './store/kpi/kpi.reducer';
 import { KpiEffects } from './store/kpi/kpi.effects';
+import { reducer as orderReducer } from './store/order/order.reducer';
+import { OrderEffects } from './store/order/order.effects';
 import { ClientRepositoryExtensions } from './core/repositories/client.repository.extensions';
 import { RecoveryRepositoryExtensions } from './core/repositories/recovery.repository.extensions';
 import { DistributionRepositoryExtensions } from './core/repositories/distribution.repository.extensions';
@@ -75,8 +77,8 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
       ]
     }),
     AppRoutingModule,
-    StoreModule.forRoot({ auth: authReducer, client: clientReducer, article: articleReducer, commercial: commercialReducer, stockOutput: stockOutputReducer, distribution: distributionReducer, account: accountReducer, healthCheck: healthCheckReducer, recovery: recoveryReducer, transaction: transactionReducer, sync: syncReducer, tontine: tontineReducer, commercialStock: commercialStockReducer, kpi: kpiReducer }, { metaReducers }),
-    EffectsModule.forRoot([AuthEffects, ClientEffects, ArticleEffects, CommercialEffects, StockOutputEffects, DistributionEffects, AccountEffects, HealthCheckEffects, RecoveryEffects, TransactionEffects, SyncEffects, TontineEffects, CommercialStockEffects, KpiEffects]),
+    StoreModule.forRoot({ auth: authReducer, client: clientReducer, article: articleReducer, commercial: commercialReducer, stockOutput: stockOutputReducer, distribution: distributionReducer, account: accountReducer, healthCheck: healthCheckReducer, recovery: recoveryReducer, transaction: transactionReducer, sync: syncReducer, tontine: tontineReducer, commercialStock: commercialStockReducer, kpi: kpiReducer, order: orderReducer }, { metaReducers }),
+    EffectsModule.forRoot([AuthEffects, ClientEffects, ArticleEffects, CommercialEffects, StockOutputEffects, DistributionEffects, AccountEffects, HealthCheckEffects, RecoveryEffects, TransactionEffects, SyncEffects, TontineEffects, CommercialStockEffects, KpiEffects, OrderEffects]),
     StoreDevtoolsModule.instrument({
       maxAge: 25,
       logOnly: !isDevMode(),

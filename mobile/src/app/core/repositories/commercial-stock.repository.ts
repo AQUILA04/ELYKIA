@@ -12,7 +12,7 @@ export class CommercialStockRepository {
   constructor(
     private db: DatabaseService,
     private log: LoggerService
-  ) {}
+  ) { }
 
   async saveWithCommercialUsername(items: CommercialStockItemDto[], username: string): Promise<void> {
     try {
@@ -75,7 +75,7 @@ export class CommercialStockRepository {
       const checkAll = await this.db.query('SELECT count(*) as count FROM commercial_stock_items WHERE commercialUsername = ?', [username]);
       let totalCount = 0;
       if (checkAll && checkAll.values && checkAll.values.length > 0) {
-          totalCount = checkAll.values[0].count;
+        totalCount = checkAll.values[0].count;
       }
       this.log.log(`[CommercialStockRepository] Total items in DB for ${username}: ${totalCount}`);
 
@@ -87,7 +87,7 @@ export class CommercialStockRepository {
       const items: CommercialStockItem[] = [];
       if (result && result.values) {
         for (const row of result.values) {
-             items.push(row);
+          items.push(row);
         }
       }
 
@@ -100,23 +100,46 @@ export class CommercialStockRepository {
   }
 
   async updateStockQuantity(articleId: string, username: string, quantityChange: number): Promise<void> {
-      try {
-          let sql = `UPDATE commercial_stock_items SET quantityRemaining = quantityRemaining + ?`;
-          const params: any[] = [quantityChange];
+    try {
+      let sql = `UPDATE commercial_stock_items SET quantityRemaining = quantityRemaining + ?`;
+      const params: any[] = [quantityChange];
 
-          if (quantityChange < 0) {
-              sql += `, quantitySold = quantitySold + ?`;
-              params.push(Math.abs(quantityChange));
-          }
-
-          sql += ` WHERE articleId = ? AND commercialUsername = ?`;
-          params.push(String(articleId), username); // Ensure articleId is string
-
-          // UPDATE is not a query, so executeSql (which calls run) is correct here
-          await this.db.executeSql(sql, params);
-      } catch (error) {
-          this.log.error('[CommercialStockRepository] Error updating stock quantity', error);
-          throw error;
+      if (quantityChange < 0) {
+        sql += `, quantitySold = quantitySold + ?`;
+        params.push(Math.abs(quantityChange));
       }
+
+      sql += ` WHERE articleId = ? AND commercialUsername = ?`;
+      params.push(String(articleId), username); // Ensure articleId is string
+
+      // UPDATE is not a query, so executeSql (which calls run) is correct here
+      await this.db.executeSql(sql, params);
+    } catch (error) {
+      this.log.error('[CommercialStockRepository] Error updating stock quantity', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Calculate total value of remaining stock for a commercial
+   * 
+   * @param username Commercial username
+   * @returns Total value (quantityRemaining * creditSalePrice)
+   */
+  async getTotalStockValue(username: string): Promise<number> {
+    try {
+      // Join with articles table to get creditSalePrice
+      const sql = `
+              SELECT COALESCE(SUM(s.quantityRemaining * a.creditSalePrice), 0) as totalValue
+              FROM commercial_stock_items s
+              JOIN articles a ON s.articleId = a.id
+              WHERE s.commercialUsername = ?
+          `;
+      const result = await this.db.query(sql, [username]);
+      return result.values?.[0]?.totalValue || 0;
+    } catch (error) {
+      this.log.error('[CommercialStockRepository] Error calculating total stock value', error);
+      return 0;
+    }
   }
 }

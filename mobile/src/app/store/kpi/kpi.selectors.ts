@@ -126,15 +126,21 @@ export const selectDistributionKpiTotalAmountByCommercial = createSelector(
   (distributionKpi) => distributionKpi.totalAmountByCommercial
 );
 
+export const selectDistributionKpiDailyPayment = createSelector(
+  selectDistributionKpi,
+  (distributionKpi) => distributionKpi.dailyPayment
+);
+
+export const selectDistributionKpiTotalRemaining = createSelector(
+  selectDistributionKpi,
+  (distributionKpi) => distributionKpi.totalRemaining
+);
+
 export const selectDistributionKpiLoading = createSelector(
   selectDistributionKpi,
   (distributionKpi) => distributionKpi.loading
 );
 
-/**
- * Selector for distribution list component stats
- * Returns all stats needed for the distribution list header
- */
 export const selectDistributionListStats = createSelector(
   selectDistributionKpi,
   (distributionKpi) => ({
@@ -181,6 +187,23 @@ export const selectOrderKpiTotalByCommercial = createSelector(
 export const selectOrderKpiLoading = createSelector(
   selectOrderKpi,
   (orderKpi) => orderKpi.loading
+);
+
+// ==================== COMMERCIAL STOCK KPI SELECTORS ====================
+
+export const selectCommercialStockKpi = createSelector(
+  selectKpiState,
+  (state: KpiState) => state.commercialStockKpi
+);
+
+export const selectCommercialStockKpiTotalValue = createSelector(
+  selectCommercialStockKpi,
+  (kpi) => kpi.totalValue
+);
+
+export const selectCommercialStockKpiLoading = createSelector(
+  selectCommercialStockKpi,
+  (kpi) => kpi.loading
 );
 
 // ==================== TONTINE KPI SELECTORS ====================
@@ -239,7 +262,9 @@ export const selectDashboardKpis = createSelector(
   selectRecoveryKpi,
   selectDistributionKpi,
   selectArticleKpi,
-  (clientKpi, recoveryKpi, distributionKpi, articleKpi) => ({
+  selectCommercialStockKpi,
+  selectTontineKpi,
+  (clientKpi, recoveryKpi, distributionKpi, articleKpi, commercialStockKpi, tontineKpi) => ({
     clients: {
       total: clientKpi.totalByCommercial,
       loading: clientKpi.loading
@@ -255,11 +280,20 @@ export const selectDashboardKpis = createSelector(
       total: distributionKpi.totalByCommercial,
       active: distributionKpi.activeByCommercial,
       totalAmount: distributionKpi.totalAmountByCommercial,
+      dailyPayment: distributionKpi.dailyPayment,
       loading: distributionKpi.loading
     },
     articles: {
       total: articleKpi.total,
       loading: articleKpi.loading
+    },
+    commercialStock: {
+      totalValue: commercialStockKpi.totalValue,
+      loading: commercialStockKpi.loading
+    },
+    tontine: {
+      totalCollected: tontineKpi.totalCollected,
+      loading: tontineKpi.loading
     }
   })
 );
@@ -274,6 +308,7 @@ export const selectAnyKpiLoading = createSelector(
   selectArticleKpiLoading,
   selectOrderKpiLoading,
   selectTontineKpiLoading,
-  (clientLoading, recoveryLoading, distributionLoading, articleLoading, orderLoading, tontineLoading) =>
-    clientLoading || recoveryLoading || distributionLoading || articleLoading || orderLoading || tontineLoading
+  selectCommercialStockKpiLoading,
+  (clientLoading, recoveryLoading, distributionLoading, articleLoading, orderLoading, tontineLoading, stockLoading) =>
+    clientLoading || recoveryLoading || distributionLoading || articleLoading || orderLoading || tontineLoading || stockLoading
 );

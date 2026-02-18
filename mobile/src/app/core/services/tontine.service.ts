@@ -9,6 +9,7 @@ import { Store } from '@ngrx/store';
 import { selectAuthUser, selectToken } from '../../store/auth/auth.selectors';
 import { TontineMemberView } from 'src/app/models/tontine.model';
 import { TontineCollectionRepository } from '../repositories/tontine-collection.repository';
+import { TontineMemberRepositoryExtensions } from '../repositories/tontine-member.repository.extensions';
 
 @Injectable({
     providedIn: 'root'
@@ -22,7 +23,8 @@ export class TontineService {
         private dbService: DatabaseService,
         private log: LoggerService,
         private store: Store,
-        private collectionRepo: TontineCollectionRepository
+        private collectionRepo: TontineCollectionRepository,
+        private tontineMemberRepositoryExtensions: TontineMemberRepositoryExtensions
     ) {
         this.store.select(selectAuthUser).subscribe(user => {
             this.commercialUsername = user?.username;
@@ -472,5 +474,37 @@ export class TontineService {
             const v = c === 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
+    }
+
+    /**
+     * Get paginated tontine members (Native Views)
+     * 
+     * @param sessionId Tontine Session ID
+     * @param page Page number
+     * @param size Page size
+     * @param filters Optional filters
+     * @returns Page of TontineMemberView
+     */
+    getTontineMembersPaginated(
+        sessionId: string,
+        page: number,
+        size: number,
+        filters?: any
+    ): Observable<any> {
+        if (!this.commercialUsername) {
+            return of({ content: [], totalElements: 0, totalPages: 0, page, size });
+        }
+        return from(this.tontineMemberRepositoryExtensions.findBySessionAndCommercialPaginated(
+            sessionId,
+            this.commercialUsername,
+            page,
+            size,
+            filters
+        )).pipe(
+            catchError(error => {
+                console.error('Failed to load paginated tontine members:', error);
+                return of({ content: [], totalElements: 0, totalPages: 0, page, size });
+            })
+        );
     }
 }

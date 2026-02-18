@@ -3,7 +3,7 @@ import * as RecoveryActions from './recovery.actions';
 import { Recovery } from '../../models/recovery.model';
 import { Distribution } from '../../models/distribution.model';
 import { Client } from '../../models/client.model';
-import { PaginationState, createInitialPaginationState, updatePaginationState, resetPaginationState, appendPaginationItems } from '../../core/models/pagination.model';
+import { PaginationState, createInitialPaginationState, resetPaginationState } from '../../core/models/pagination.model';
 
 export interface RecoveryState {
   recoveries: Recovery[];
@@ -21,7 +21,7 @@ export interface RecoveryState {
   } | null;
   isCreatingRecovery: boolean;
   createRecoveryError: any;
-  
+
   // Pagination state
   pagination: PaginationState<Recovery>;
 }
@@ -39,16 +39,16 @@ export const initialState: RecoveryState = {
   validationResult: null,
   isCreatingRecovery: false,
   createRecoveryError: null,
-  
+
   // Initialize pagination state
-  pagination: createInitialPaginationState<Recovery>(),
+  pagination: createInitialPaginationState<Recovery>()
 };
 
 export const recoveryReducer = createReducer(
   initialState,
-  
+
   // ==================== LEGACY LOAD ALL RECOVERIES ====================
-  
+
   on(RecoveryActions.loadRecoveries, (state) => ({
     ...state,
     loading: true,
@@ -67,12 +67,16 @@ export const recoveryReducer = createReducer(
   })),
 
   // ==================== PAGINATION ACTIONS ====================
-  
+
   on(RecoveryActions.loadFirstPageRecoveries, (state) => ({
     ...state,
-    pagination: updatePaginationState(state.pagination, { loading: true, error: null })
+    pagination: {
+      ...state.pagination,
+      loading: true,
+      error: null
+    }
   })),
-  
+
   on(RecoveryActions.loadFirstPageRecoveriesSuccess, (state, { page }) => ({
     ...state,
     pagination: {
@@ -87,41 +91,55 @@ export const recoveryReducer = createReducer(
       error: null
     }
   })),
-  
+
   on(RecoveryActions.loadFirstPageRecoveriesFailure, (state, { error }) => ({
     ...state,
-    pagination: updatePaginationState(state.pagination, { loading: false, error })
+    pagination: {
+      ...state.pagination,
+      loading: false,
+      error
+    }
   })),
-  
+
   on(RecoveryActions.loadNextPageRecoveries, (state) => ({
     ...state,
-    pagination: updatePaginationState(state.pagination, { loading: true, error: null })
+    pagination: {
+      ...state.pagination,
+      loading: true,
+      error: null
+    }
   })),
-  
+
   on(RecoveryActions.loadNextPageRecoveriesSuccess, (state, { page }) => ({
     ...state,
-    pagination: appendPaginationItems(state.pagination, page.content, {
+    pagination: {
+      ...state.pagination,
+      items: [...state.pagination.items, ...page.content],
       currentPage: page.page,
       totalItems: page.totalElements,
-      totalPages: page.totalPages,
+      // totalPages: page.totalPages, // Not in PaginationState
       hasMore: page.page + 1 < page.totalPages,
       loading: false,
       error: null
-    })
+    }
   })),
-  
+
   on(RecoveryActions.loadNextPageRecoveriesFailure, (state, { error }) => ({
     ...state,
-    pagination: updatePaginationState(state.pagination, { loading: false, error })
+    pagination: {
+      ...state.pagination,
+      loading: false,
+      error
+    }
   })),
-  
+
   on(RecoveryActions.resetRecoveryPagination, (state) => ({
     ...state,
     pagination: resetPaginationState(state.pagination)
   })),
 
   // ==================== US008 RECOVERY WORKFLOW ====================
-  
+
   on(RecoveryActions.setSelectedClient, (state, { client }) => ({
     ...state,
     selectedClient: client,
@@ -233,3 +251,5 @@ export const recoveryReducer = createReducer(
     }
   }))
 );
+
+

@@ -3,14 +3,18 @@ import { Distribution } from '../../models/distribution.model';
 import { Article } from '../../models/article.model';
 import * as DistributionActions from './distribution.actions';
 import { DistributionItem } from '../../models/distribution-item.model';
+import { PaginationState, createInitialPaginationState } from '../../core/models/pagination.model';
+import { DistributionView } from '../../models/distribution-view.model'; // Ensure this exists or use any
 
 export interface DistributionState {
   distributions: Distribution[];
-  items: DistributionItem[]; // <-- ADDED
+  items: DistributionItem[];
   loading: boolean;
   error: string | null;
 
-  // New state for US006 & US007
+  // Pagination for List View
+  pagination: PaginationState<DistributionView>;
+
   availableArticles: Article[];
   articlesLoading: boolean;
   articlesError: string | null;
@@ -22,11 +26,9 @@ export interface DistributionState {
   printingReceipt: boolean;
   printReceiptError: string | null;
 
-  // New distribution form state
   selectedClient: any | null;
   articleQuantities: { [articleId: string]: number };
 
-  // Filter and search state
   filters: {
     status?: string;
     clientId?: string;
@@ -34,7 +36,6 @@ export interface DistributionState {
   };
   searchTerm: string;
 
-  // Sync state
   syncingPending: boolean;
   syncError: string | null;
   lastSyncDate: Date | null;
@@ -42,9 +43,11 @@ export interface DistributionState {
 
 export const initialState: DistributionState = {
   distributions: [],
-  items: [], // <-- ADDED
+  items: [],
   loading: false,
   error: null,
+
+  pagination: createInitialPaginationState<DistributionView>(),
 
   availableArticles: [],
   articlesLoading: false,
@@ -71,7 +74,7 @@ export const initialState: DistributionState = {
 export const distributionReducer = createReducer(
   initialState,
 
-  // Load Distributions
+  // Load Distributions (Legacy)
   on(DistributionActions.loadDistributions, (state) => ({
     ...state,
     loading: true,
@@ -95,7 +98,80 @@ export const distributionReducer = createReducer(
     error
   })),
 
-  // ... (rest of the file is the same)
+  // ==========================================
+  // PAGINATION REDUCERS
+  // ==========================================
+  on(DistributionActions.loadFirstPageDistributions, (state) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      loading: true,
+      error: null,
+      currentPage: 0,
+      items: [], // Clear items on reload first page
+      hasMore: true
+    }
+  })),
+
+  on(DistributionActions.loadFirstPageDistributionsSuccess, (state, { distributions, totalElements, totalPages }) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      items: distributions,
+      totalItems: totalElements,
+      // totalPages is not in PaginationState
+      hasMore: 0 < totalPages - 1, // Or (0 + 1) * pageSize < totalItems
+      loading: false,
+      error: null
+    }
+  })),
+
+  on(DistributionActions.loadFirstPageDistributionsFailure, (state, { error }) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      loading: false,
+      error
+    }
+  })),
+
+  on(DistributionActions.loadNextPageDistributions, (state) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      loading: true,
+      error: null
+    }
+  })),
+
+  on(DistributionActions.loadNextPageDistributionsSuccess, (state, { distributions }) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      items: [...state.pagination.items, ...distributions],
+      currentPage: state.pagination.currentPage + 1,
+      hasMore: (state.pagination.currentPage + 1 + 1) * state.pagination.pageSize < state.pagination.totalItems,
+      loading: false,
+      error: null
+    }
+  })),
+
+  on(DistributionActions.loadNextPageDistributionsFailure, (state, { error }) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      loading: false,
+      error
+    }
+  })),
+
+  on(DistributionActions.resetDistributionPagination, (state) => ({
+    ...state,
+    pagination: createInitialPaginationState<DistributionView>()
+  })),
+
+  // ... (rest of the file as before, just ensuring imports and closing brace)
+
   // Load Available Articles
   on(DistributionActions.loadAvailableArticles, (state) => ({
     ...state,
@@ -127,6 +203,11 @@ export const distributionReducer = createReducer(
   on(DistributionActions.createDistributionSuccess, (state, { distribution }) => ({
     ...state,
     distributions: [distribution, ...state.distributions],
+    pagination: {
+      ...state.pagination,
+      items: [distribution as unknown as DistributionView, ...state.pagination.items], // Optimistic update
+      totalItems: state.pagination.totalItems + 1
+    },
     creatingDistribution: false,
     distributionCreated: true,
     createDistributionError: null
@@ -169,6 +250,11 @@ export const distributionReducer = createReducer(
     distributions: state.distributions.map(d =>
       d.id === distribution.id ? distribution : d
     ),
+    pagination: {
+      ...state.pagination,
+      // Preserve existing items (with articles) from the view, only update status/fields from distribution
+      items: state.pagination.items.map(d => d.id === distribution.id ? { ...d, ...distribution, items: d.items } : d)
+    },
     loading: false,
     error: null
   })),
@@ -189,6 +275,11 @@ export const distributionReducer = createReducer(
   on(DistributionActions.deleteDistributionSuccess, (state, { distributionId }) => ({
     ...state,
     distributions: state.distributions.filter(d => d.id !== distributionId),
+    pagination: {
+      ...state.pagination,
+      items: state.pagination.items.filter(d => d.id !== distributionId),
+      totalItems: state.pagination.totalItems - 1
+    },
     loading: false,
     error: null
   })),
@@ -301,7 +392,7 @@ export const distributionReducer = createReducer(
     error: null
   })),
 
-    on(DistributionActions.updateDistributionAmountsFailure, (state, { error }) => ({
+  on(DistributionActions.updateDistributionAmountsFailure, (state, { error }) => ({
     ...state,
     loading: false,
     error
@@ -312,4 +403,7 @@ export const distributionReducer = createReducer(
     distributions: state.distributions.filter(d => d.clientId !== clientId),
   }))
 );
+
+// KPI Stats
+
 

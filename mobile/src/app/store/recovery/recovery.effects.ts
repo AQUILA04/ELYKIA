@@ -16,6 +16,7 @@ import { RecoverySummaryModalComponent } from '../../shared/components/recovery-
 import { Transaction } from '../../models/transaction.model';
 import * as ClientActions from '../client/client.actions';
 import { filter, take } from 'rxjs/operators';
+import { RecoveryRepositoryExtensions } from '../../core/repositories/recovery.repository.extensions';
 
 @Injectable()
 export class RecoveryEffects {
@@ -24,8 +25,9 @@ export class RecoveryEffects {
     private recoveryService: RecoveryService,
     private printingService: PrintingService,
     private store: Store,
-    private modalController: ModalController
-  ) {}
+    private modalController: ModalController,
+    private recoveryRepositoryExtensions: RecoveryRepositoryExtensions
+  ) { }
 
   loadAndSelectClient$ = createEffect(() => {
     return this.actions$.pipe(
@@ -256,8 +258,8 @@ export class RecoveryEffects {
       ofType(RecoveryActions.loadFirstPageRecoveries),
       switchMap((action) => {
         if (!action.commercialId) {
-          return of(RecoveryActions.loadFirstPageRecoveriesFailure({ 
-            error: 'commercialId is required for security' 
+          return of(RecoveryActions.loadFirstPageRecoveriesFailure({
+            error: 'commercialId is required for security'
           }));
         }
 
@@ -279,11 +281,11 @@ export class RecoveryEffects {
   loadNextPageRecoveries$ = createEffect(() =>
     this.actions$.pipe(
       ofType(RecoveryActions.loadNextPageRecoveries),
-      withLatestFrom(this.store.select(state => state.recovery?.pagination)),
+      withLatestFrom(this.store.select(state => (state as any).recovery?.pagination)),
       switchMap(([action, pagination]) => {
         if (!action.commercialId) {
-          return of(RecoveryActions.loadNextPageRecoveriesFailure({ 
-            error: 'commercialId is required for security' 
+          return of(RecoveryActions.loadNextPageRecoveriesFailure({
+            error: 'commercialId is required for security'
           }));
         }
 
@@ -308,4 +310,6 @@ export class RecoveryEffects {
       })
     )
   );
+
+
 }
