@@ -10,6 +10,7 @@ import { RecoveryRepository } from './recovery.repository';
 import { Recovery } from '../../models/recovery.model';
 import { Page } from './repository.interface';
 import { buildCommercialFilterCondition } from '../constants/commercial-filter.config';
+import { DateFilter, buildDateFilterClause } from '../models/date-filter.model';
 
 /**
  * Extended pagination methods for RecoveryRepository
@@ -29,7 +30,7 @@ export class RecoveryRepositoryExtensions {
      * @param commercialId ID of the commercial (REQUIRED)
      * @param page Page number (zero-indexed)
      * @param size Number of items per page
-     * @param filters Optional filters (date range, payment method, etc.)
+     * @param filters Optional filters (date filter, payment method, etc.)
      * @returns Page of recoveries
      */
     async findByCommercialPaginated(
@@ -37,8 +38,7 @@ export class RecoveryRepositoryExtensions {
         page: number,
         size: number,
         filters?: {
-            startDate?: string;
-            endDate?: string;
+            dateFilter?: DateFilter;
             paymentMethod?: string;
             clientId?: string;
         }
@@ -54,17 +54,16 @@ export class RecoveryRepositoryExtensions {
         let whereConditions = [commercialCondition];
         const params: any[] = [commercialId];
         
+        // Add date filter using helper function (paymentDate is the default for recoveries)
+        if (filters?.dateFilter) {
+            const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'paymentDate');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
+        }
+        
         // Add optional filters
-        if (filters?.startDate) {
-            whereConditions.push('DATE(paymentDate) >= ?');
-            params.push(filters.startDate);
-        }
-        
-        if (filters?.endDate) {
-            whereConditions.push('DATE(paymentDate) <= ?');
-            params.push(filters.endDate);
-        }
-        
         if (filters?.paymentMethod) {
             whereConditions.push('paymentMethod = ?');
             params.push(filters.paymentMethod);
@@ -109,8 +108,7 @@ export class RecoveryRepositoryExtensions {
     async countByCommercial(
         commercialId: string,
         filters?: {
-            startDate?: string;
-            endDate?: string;
+            dateFilter?: DateFilter;
             paymentMethod?: string;
         }
     ): Promise<number> {
@@ -123,17 +121,16 @@ export class RecoveryRepositoryExtensions {
         let whereConditions = [commercialCondition];
         const params: any[] = [commercialId];
         
+        // Add date filter using helper function
+        if (filters?.dateFilter) {
+            const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'paymentDate');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
+        }
+        
         // Add optional filters
-        if (filters?.startDate) {
-            whereConditions.push('DATE(paymentDate) >= ?');
-            params.push(filters.startDate);
-        }
-        
-        if (filters?.endDate) {
-            whereConditions.push('DATE(paymentDate) <= ?');
-            params.push(filters.endDate);
-        }
-        
         if (filters?.paymentMethod) {
             whereConditions.push('paymentMethod = ?');
             params.push(filters.paymentMethod);
@@ -158,8 +155,8 @@ export class RecoveryRepositoryExtensions {
     async getTotalAmountByCommercial(
         commercialId: string,
         filters?: {
-            startDate?: string;
-            endDate?: string;
+            dateFilter?: DateFilter;
+            paymentMethod?: string;
         }
     ): Promise<number> {
         if (!commercialId) {
@@ -171,15 +168,19 @@ export class RecoveryRepositoryExtensions {
         let whereConditions = [commercialCondition];
         const params: any[] = [commercialId];
         
-        // Add optional filters
-        if (filters?.startDate) {
-            whereConditions.push('DATE(paymentDate) >= ?');
-            params.push(filters.startDate);
+        // Add date filter using helper function
+        if (filters?.dateFilter) {
+            const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'paymentDate');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
         }
         
-        if (filters?.endDate) {
-            whereConditions.push('DATE(paymentDate) <= ?');
-            params.push(filters.endDate);
+        // Add optional filters
+        if (filters?.paymentMethod) {
+            whereConditions.push('paymentMethod = ?');
+            params.push(filters.paymentMethod);
         }
         
         const whereClause = whereConditions.join(' AND ');
@@ -190,44 +191,39 @@ export class RecoveryRepositoryExtensions {
     }
 
     /**
-     * Get today's recoveries count for a specific commercial
+     * Get average recovery amount for a specific commercial
      * 
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
      * 
      * @param commercialId ID of the commercial (REQUIRED)
-     * @returns Count of today's recoveries
+     * @param dateFilter Optional date filter
+     * @returns Average recovery amount
      */
-    async countTodayByCommercial(commercialId: string): Promise<number> {
+    async getAverageAmountByCommercial(
+        commercialId: string,
+        dateFilter?: DateFilter
+    ): Promise<number> {
         if (!commercialId) {
-            throw new Error('commercialId is required for security - cannot count today recoveries without commercial filter');
+            throw new Error('commercialId is required for security - cannot calculate average recovery amount without commercial filter');
         }
 
-        const today = new Date().toISOString().split('T')[0];
         const commercialCondition = buildCommercialFilterCondition('recovery');
-        const sql = `SELECT COUNT(*) as total FROM recoveries WHERE ${commercialCondition} AND DATE(paymentDate) = ?`;
-        const result = await this.recoveryRepository['getDatabaseService']().query(sql, [commercialId, today]);
+        let whereConditions = [commercialCondition];
+        const params: any[] = [commercialId];
         
-        return result.values?.[0]?.total || 0;
-    }
-
-    /**
-     * Get today's recovery amount for a specific commercial
-     * 
-     * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
-     * @param commercialId ID of the commercial (REQUIRED)
-     * @returns Total amount of today's recoveries
-     */
-    async getTodayAmountByCommercial(commercialId: string): Promise<number> {
-        if (!commercialId) {
-            throw new Error('commercialId is required for security - cannot calculate today recovery amount without commercial filter');
+        // Add date filter using helper function
+        if (dateFilter) {
+            const dateFilterResult = buildDateFilterClause(dateFilter, 'paymentDate');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
         }
-
-        const today = new Date().toISOString().split('T')[0];
-        const commercialCondition = buildCommercialFilterCondition('recovery');
-        const sql = `SELECT COALESCE(SUM(amount), 0) as total FROM recoveries WHERE ${commercialCondition} AND DATE(paymentDate) = ?`;
-        const result = await this.recoveryRepository['getDatabaseService']().query(sql, [commercialId, today]);
         
-        return result.values?.[0]?.total || 0;
+        const whereClause = whereConditions.join(' AND ');
+        const sql = `SELECT COALESCE(AVG(amount), 0) as average FROM recoveries WHERE ${whereClause}`;
+        const result = await this.recoveryRepository['getDatabaseService']().query(sql, params);
+        
+        return result.values?.[0]?.average || 0;
     }
 }

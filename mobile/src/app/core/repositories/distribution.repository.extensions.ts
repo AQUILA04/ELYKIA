@@ -10,6 +10,7 @@ import { DistributionRepository } from './distribution.repository';
 import { Distribution } from '../../models/distribution.model';
 import { Page } from './repository.interface';
 import { buildCommercialFilterCondition } from '../constants/commercial-filter.config';
+import { DateFilter, buildDateFilterClause } from '../models/date-filter.model';
 
 /**
  * Extended pagination methods for DistributionRepository
@@ -29,7 +30,7 @@ export class DistributionRepositoryExtensions {
      * @param commercialId ID of the commercial (REQUIRED)
      * @param page Page number (zero-indexed)
      * @param size Number of items per page
-     * @param filters Optional filters (status, date range, etc.)
+     * @param filters Optional filters (status, date filter, etc.)
      * @returns Page of distributions
      */
     async findByCommercialPaginated(
@@ -38,8 +39,7 @@ export class DistributionRepositoryExtensions {
         size: number,
         filters?: {
             status?: string;
-            startDate?: string;
-            endDate?: string;
+            dateFilter?: DateFilter;
             clientId?: string;
         }
     ): Promise<Page<Distribution>> {
@@ -60,14 +60,13 @@ export class DistributionRepositoryExtensions {
             params.push(filters.status);
         }
         
-        if (filters?.startDate) {
-            whereConditions.push('DATE(startDate) >= ?');
-            params.push(filters.startDate);
-        }
-        
-        if (filters?.endDate) {
-            whereConditions.push('DATE(endDate) <= ?');
-            params.push(filters.endDate);
+        // Add date filter using helper function
+        if (filters?.dateFilter) {
+            const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'createdAt');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
         }
         
         if (filters?.clientId) {
@@ -84,7 +83,7 @@ export class DistributionRepositoryExtensions {
         const totalPages = Math.ceil(totalElements / size);
         
         // Get paginated data
-        const dataSql = `SELECT * FROM distributions WHERE ${whereClause} ORDER BY startDate DESC LIMIT ${size} OFFSET ${offset}`;
+        const dataSql = `SELECT * FROM distributions WHERE ${whereClause} ORDER BY createdAt DESC LIMIT ${size} OFFSET ${offset}`;
         const dataResult = await this.distributionRepository['getDatabaseService']().query(dataSql, params);
         const content = (dataResult.values || []) as Distribution[];
         
@@ -110,8 +109,7 @@ export class DistributionRepositoryExtensions {
         commercialId: string,
         filters?: {
             status?: string;
-            startDate?: string;
-            endDate?: string;
+            dateFilter?: DateFilter;
         }
     ): Promise<number> {
         if (!commercialId) {
@@ -129,14 +127,13 @@ export class DistributionRepositoryExtensions {
             params.push(filters.status);
         }
         
-        if (filters?.startDate) {
-            whereConditions.push('DATE(startDate) >= ?');
-            params.push(filters.startDate);
-        }
-        
-        if (filters?.endDate) {
-            whereConditions.push('DATE(endDate) <= ?');
-            params.push(filters.endDate);
+        // Add date filter using helper function
+        if (filters?.dateFilter) {
+            const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'createdAt');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
         }
         
         const whereClause = whereConditions.join(' AND ');
@@ -159,8 +156,7 @@ export class DistributionRepositoryExtensions {
         commercialId: string,
         filters?: {
             status?: string;
-            startDate?: string;
-            endDate?: string;
+            dateFilter?: DateFilter;
         }
     ): Promise<number> {
         if (!commercialId) {
@@ -178,14 +174,13 @@ export class DistributionRepositoryExtensions {
             params.push(filters.status);
         }
         
-        if (filters?.startDate) {
-            whereConditions.push('DATE(startDate) >= ?');
-            params.push(filters.startDate);
-        }
-        
-        if (filters?.endDate) {
-            whereConditions.push('DATE(endDate) <= ?');
-            params.push(filters.endDate);
+        // Add date filter using helper function
+        if (filters?.dateFilter) {
+            const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'createdAt');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
         }
         
         const whereClause = whereConditions.join(' AND ');
@@ -201,16 +196,33 @@ export class DistributionRepositoryExtensions {
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
      * 
      * @param commercialId ID of the commercial (REQUIRED)
+     * @param dateFilter Optional date filter
      * @returns Count of active distributions
      */
-    async countActiveByCommercial(commercialId: string): Promise<number> {
+    async countActiveByCommercial(
+        commercialId: string,
+        dateFilter?: DateFilter
+    ): Promise<number> {
         if (!commercialId) {
             throw new Error('commercialId is required for security - cannot count active distributions without commercial filter');
         }
 
         const commercialCondition = buildCommercialFilterCondition('distribution');
-        const sql = `SELECT COUNT(*) as total FROM distributions WHERE ${commercialCondition} AND status = 'ACTIVE'`;
-        const result = await this.distributionRepository['getDatabaseService']().query(sql, [commercialId]);
+        let whereConditions = [commercialCondition, "status = 'ACTIVE'"];
+        const params: any[] = [commercialId];
+        
+        // Add date filter using helper function
+        if (dateFilter) {
+            const dateFilterResult = buildDateFilterClause(dateFilter, 'createdAt');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
+        }
+        
+        const whereClause = whereConditions.join(' AND ');
+        const sql = `SELECT COUNT(*) as total FROM distributions WHERE ${whereClause}`;
+        const result = await this.distributionRepository['getDatabaseService']().query(sql, params);
         
         return result.values?.[0]?.total || 0;
     }

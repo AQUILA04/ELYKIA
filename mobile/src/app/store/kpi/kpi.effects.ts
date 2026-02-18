@@ -37,7 +37,7 @@ export class KpiEffects {
   loadClientKpi$ = createEffect(() =>
     this.actions$.pipe(
       ofType(KpiActions.loadClientKpi),
-      switchMap(({ commercialUsername }) => {
+      switchMap(({ commercialUsername, dateFilter }) => {
         if (!commercialUsername) {
           return of(KpiActions.loadClientKpiFailure({ 
             error: 'commercialUsername is required for security' 
@@ -45,7 +45,7 @@ export class KpiEffects {
         }
 
         return forkJoin({
-          totalByCommercial: this.clientRepoExt.countByCommercial(commercialUsername)
+          totalByCommercial: this.clientRepoExt.countByCommercial(commercialUsername, { dateFilter })
         }).pipe(
           map(({ totalByCommercial }) =>
             KpiActions.loadClientKpiSuccess({ 
@@ -66,7 +66,7 @@ export class KpiEffects {
   loadRecoveryKpi$ = createEffect(() =>
     this.actions$.pipe(
       ofType(KpiActions.loadRecoveryKpi),
-      switchMap(({ commercialId }) => {
+      switchMap(({ commercialId, dateFilter }) => {
         if (!commercialId) {
           return of(KpiActions.loadRecoveryKpiFailure({ 
             error: 'commercialId is required for security' 
@@ -74,19 +74,17 @@ export class KpiEffects {
         }
 
         return forkJoin({
-          totalByCommercial: this.recoveryRepoExt.countByCommercial(commercialId),
-          today: this.recoveryRepoExt.countTodayByCommercial(commercialId),
-          totalAmountByCommercial: this.recoveryRepoExt.getTotalAmountByCommercial(commercialId),
-          todayAmount: this.recoveryRepoExt.getTodayAmountByCommercial(commercialId)
+          totalByCommercial: this.recoveryRepoExt.countByCommercial(commercialId, { dateFilter }),
+          totalAmountByCommercial: this.recoveryRepoExt.getTotalAmountByCommercial(commercialId, { dateFilter })
         }).pipe(
-          map(({ totalByCommercial, today, totalAmountByCommercial, todayAmount }) =>
+          map(({ totalByCommercial, totalAmountByCommercial }) =>
             KpiActions.loadRecoveryKpiSuccess({ 
               total: totalByCommercial,  // For consistency
               totalByCommercial, 
-              today, 
+              today: 0,  // Deprecated - use dateFilter instead
               totalAmount: totalAmountByCommercial,  // For consistency
               totalAmountByCommercial,
-              todayAmount
+              todayAmount: 0  // Deprecated - use dateFilter instead
             })
           ),
           catchError((error) =>
@@ -102,7 +100,7 @@ export class KpiEffects {
   loadDistributionKpi$ = createEffect(() =>
     this.actions$.pipe(
       ofType(KpiActions.loadDistributionKpi),
-      switchMap(({ commercialId }) => {
+      switchMap(({ commercialId, dateFilter }) => {
         if (!commercialId) {
           return of(KpiActions.loadDistributionKpiFailure({ 
             error: 'commercialId is required for security' 
@@ -110,9 +108,9 @@ export class KpiEffects {
         }
 
         return forkJoin({
-          totalByCommercial: this.distributionRepoExt.countByCommercial(commercialId),
-          activeByCommercial: this.distributionRepoExt.countActiveByCommercial(commercialId),
-          totalAmountByCommercial: this.distributionRepoExt.getTotalAmountByCommercial(commercialId)
+          totalByCommercial: this.distributionRepoExt.countByCommercial(commercialId, { dateFilter }),
+          activeByCommercial: this.distributionRepoExt.countActiveByCommercial(commercialId, dateFilter),
+          totalAmountByCommercial: this.distributionRepoExt.getTotalAmountByCommercial(commercialId, { dateFilter })
         }).pipe(
           map(({ totalByCommercial, activeByCommercial, totalAmountByCommercial }) =>
             KpiActions.loadDistributionKpiSuccess({ 

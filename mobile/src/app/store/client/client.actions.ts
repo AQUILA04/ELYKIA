@@ -1,5 +1,6 @@
 import { createAction, props } from '@ngrx/store';
 import { Client } from '../../models/client.model';
+import { DateFilter } from '../../core/models/date-filter.model';
 
 export const loadClients = createAction(
   '[Client] Load Clients',
@@ -124,6 +125,7 @@ export const loadFirstPageClients = createAction(
       searchQuery?: string;
       quarter?: string;
       clientType?: string;
+      dateFilter?: DateFilter;
     }
   }>()
 );
@@ -146,6 +148,7 @@ export const loadNextPageClients = createAction(
       searchQuery?: string;
       quarter?: string;
       clientType?: string;
+      dateFilter?: DateFilter;
     }
   }>()
 );

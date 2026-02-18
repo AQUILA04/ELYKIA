@@ -1,10 +1,11 @@
 import { createAction, props } from '@ngrx/store';
+import { DateFilter } from '../../core/models/date-filter.model';
 
 // ==================== CLIENT KPI ACTIONS ====================
 
 export const loadClientKpi = createAction(
   '[KPI] Load Client KPI',
-  props<{ commercialUsername?: string }>()
+  props<{ commercialUsername?: string; dateFilter?: DateFilter }>()
 );
 
 export const loadClientKpiSuccess = createAction(
@@ -21,7 +22,7 @@ export const loadClientKpiFailure = createAction(
 
 export const loadRecoveryKpi = createAction(
   '[KPI] Load Recovery KPI',
-  props<{ commercialId?: string }>()
+  props<{ commercialId?: string; dateFilter?: DateFilter }>()
 );
 
 export const loadRecoveryKpiSuccess = createAction(
@@ -45,7 +46,7 @@ export const loadRecoveryKpiFailure = createAction(
 
 export const loadDistributionKpi = createAction(
   '[KPI] Load Distribution KPI',
-  props<{ commercialId?: string }>()
+  props<{ commercialId?: string; dateFilter?: DateFilter }>()
 );
 
 export const loadDistributionKpiSuccess = createAction(
@@ -85,7 +86,7 @@ export const loadArticleKpiFailure = createAction(
 
 export const loadOrderKpi = createAction(
   '[KPI] Load Order KPI',
-  props<{ commercialId?: string }>()
+  props<{ commercialId?: string; dateFilter?: DateFilter }>()
 );
 
 export const loadOrderKpiSuccess = createAction(
@@ -102,7 +103,7 @@ export const loadOrderKpiFailure = createAction(
 
 export const loadTontineKpi = createAction(
   '[KPI] Load Tontine KPI',
-  props<{ sessionId?: string; commercialUsername?: string }>()
+  props<{ sessionId?: string; commercialUsername?: string; dateFilter?: DateFilter }>()
 );
 
 export const loadTontineKpiSuccess = createAction(
@@ -131,6 +132,7 @@ export const loadAllKpi = createAction(
   props<{ 
     commercialUsername?: string; 
     commercialId?: string; 
-    sessionId?: string 
+    sessionId?: string;
+    dateFilter?: DateFilter;
   }>()
 );

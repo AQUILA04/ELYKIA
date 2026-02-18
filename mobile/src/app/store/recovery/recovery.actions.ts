@@ -1,5 +1,6 @@
 import { createAction, props } from '@ngrx/store';
 import { Recovery } from '../../models/recovery.model';
+import { DateFilter } from '../../core/models/date-filter.model';
 import { Distribution } from '../../models/distribution.model';
 import { Client } from '../../models/client.model';
 import { PrintableRecovery } from '../../core/services/printing.service';
@@ -127,8 +128,7 @@ export const loadFirstPageRecoveries = createAction(
     commercialId: string;
     pageSize?: number;
     filters?: {
-      startDate?: string;
-      endDate?: string;
+      dateFilter?: DateFilter;
       paymentMethod?: string;
       clientId?: string;
     }
@@ -150,8 +150,7 @@ export const loadNextPageRecoveries = createAction(
   props<{ 
     commercialId: string;
     filters?: {
-      startDate?: string;
-      endDate?: string;
+      dateFilter?: DateFilter;
       paymentMethod?: string;
       clientId?: string;
     }

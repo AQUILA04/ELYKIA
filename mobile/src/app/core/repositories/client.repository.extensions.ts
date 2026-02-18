@@ -10,6 +10,7 @@ import { ClientRepository } from './client.repository';
 import { Client } from '../../models/client.model';
 import { Page } from './repository.interface';
 import { buildCommercialFilterCondition } from '../constants/commercial-filter.config';
+import { DateFilter, buildDateFilterClause } from '../models/date-filter.model';
 
 /**
  * Extended pagination methods for ClientRepository
@@ -29,7 +30,7 @@ export class ClientRepositoryExtensions {
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param page Page number (zero-indexed)
      * @param size Number of items per page
-     * @param filters Optional filters (search query, quarter, etc.)
+     * @param filters Optional filters (search query, quarter, date filter, etc.)
      * @returns Page of clients
      */
     async findByCommercialPaginated(
@@ -40,6 +41,7 @@ export class ClientRepositoryExtensions {
             searchQuery?: string;
             quarter?: string;
             clientType?: string;
+            dateFilter?: DateFilter;
         }
     ): Promise<Page<Client>> {
         if (!commercialUsername) {
@@ -68,6 +70,15 @@ export class ClientRepositoryExtensions {
         if (filters?.clientType) {
             whereConditions.push('clientType = ?');
             params.push(filters.clientType);
+        }
+        
+        // Add date filter using helper function
+        if (filters?.dateFilter) {
+            const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'createdAt');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
         }
         
         const whereClause = whereConditions.join(' AND ');
@@ -104,9 +115,9 @@ export class ClientRepositoryExtensions {
     async countByCommercial(
         commercialUsername: string,
         filters?: {
-            searchQuery?: string;
             quarter?: string;
             clientType?: string;
+            dateFilter?: DateFilter;
         }
     ): Promise<number> {
         if (!commercialUsername) {
@@ -119,12 +130,6 @@ export class ClientRepositoryExtensions {
         const params: any[] = [commercialUsername];
         
         // Add optional filters
-        if (filters?.searchQuery) {
-            whereConditions.push('(fullName LIKE ? OR phone LIKE ? OR quarter LIKE ?)');
-            const searchPattern = `%${filters.searchQuery}%`;
-            params.push(searchPattern, searchPattern, searchPattern);
-        }
-        
         if (filters?.quarter) {
             whereConditions.push('quarter = ?');
             params.push(filters.quarter);
@@ -133,6 +138,52 @@ export class ClientRepositoryExtensions {
         if (filters?.clientType) {
             whereConditions.push('clientType = ?');
             params.push(filters.clientType);
+        }
+        
+        // Add date filter using helper function
+        if (filters?.dateFilter) {
+            const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'createdAt');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
+        }
+        
+        const whereClause = whereConditions.join(' AND ');
+        const sql = `SELECT COUNT(*) as total FROM clients WHERE ${whereClause}`;
+        const result = await this.clientRepository['getDatabaseService']().query(sql, params);
+        
+        return result.values?.[0]?.total || 0;
+    }
+
+    /**
+     * Count clients with active credit for a specific commercial
+     * 
+     * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
+     * 
+     * @param commercialUsername Username of the commercial (REQUIRED)
+     * @param dateFilter Optional date filter
+     * @returns Count of clients with active credit
+     */
+    async countWithActiveCreditByCommercial(
+        commercialUsername: string,
+        dateFilter?: DateFilter
+    ): Promise<number> {
+        if (!commercialUsername) {
+            throw new Error('commercialUsername is required for security - cannot count clients without commercial filter');
+        }
+
+        const commercialCondition = buildCommercialFilterCondition('client');
+        let whereConditions = [commercialCondition, 'creditInProgress = 1'];
+        const params: any[] = [commercialUsername];
+        
+        // Add date filter using helper function
+        if (dateFilter) {
+            const dateFilterResult = buildDateFilterClause(dateFilter, 'createdAt');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
         }
         
         const whereClause = whereConditions.join(' AND ');
