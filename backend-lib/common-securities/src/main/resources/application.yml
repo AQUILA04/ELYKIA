@@ -61,4 +61,8 @@ app:
         key: AGENCY_COLLECTOR
         value: COM001
         description: Le Username du commercial qui comptabilise les opération de vente en agence
+      init-data[2]:
+        key: USE_MEMBER_REGISTRATION_DATE_FOR_SHARE
+        value: true
+        description: Utiliser la date d'adhésion d'un membre tontine pour calculer la part société à prélever (si désactiver, on utilise la date debut de la session de tontine)
 

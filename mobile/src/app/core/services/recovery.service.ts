@@ -94,12 +94,12 @@ export class RecoveryService {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
-    const totalRecoveries = (await this.dbService.getRecoveries(this.commercialUsername)).length;
+    // Génération d'un suffixe aléatoire pour éviter les collisions (sur 6 caractères hexadécimaux)
     const year = new Date().getFullYear();
-    const newCount = (totalRecoveries + 1).toString().padStart(6, '0');
+    const uniqueSuffix = Math.floor(Math.random() * 0x1000000).toString(16).toUpperCase().padStart(6, '0');
     const usernameSuffix = this.commercialUsername.slice(-3); // Récupère les 3 derniers caractères
 
-    const newId = `REC-${year}${usernameSuffix}-${newCount}`;
+    const newId = `REC-${year}${usernameSuffix}-${uniqueSuffix}`;
 
 
     const newRecovery: Recovery = {
@@ -138,7 +138,7 @@ export class RecoveryService {
   /**
    * Valider le montant d'un recouvrement
    */
-  validateRecoveryAmount(amount: number, distributionId: string): Observable<{isValid: boolean, message: string}> {
+  validateRecoveryAmount(amount: number, distributionId: string): Observable<{ isValid: boolean, message: string }> {
     return from(this.dbService.getDistributionById(distributionId)).pipe(
       map(distribution => {
         if (!distribution) {

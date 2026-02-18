@@ -77,7 +77,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 12; // Incremented for syncHash update
+        const targetVersion = 13; // Incremented for parameters table
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -130,6 +130,14 @@ export class DatabaseService {
             lastLogin DATETIME,
             isActive BOOLEAN DEFAULT 1,
             syncHash TEXT
+        );
+
+        -- Table des paramètres globaux
+        CREATE TABLE IF NOT EXISTS parameters (
+            key TEXT PRIMARY KEY,
+            value TEXT,
+            description TEXT,
+            syncDate DATETIME
         );
 
         -- Table des commerciaux
@@ -546,7 +554,7 @@ export class DatabaseService {
 
   private async verifyTables(): Promise<void> {
     try {
-      const expectedTables = ['users', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items'];
+      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items'];
       const result = await this.db?.query(`SELECT name FROM sqlite_master WHERE type='table'`);
       const existingTables = result?.values?.map(row => row.name) || [];
       const missingTables = expectedTables.filter(table => !existingTables.includes(table));
@@ -1921,7 +1929,7 @@ export class DatabaseService {
 
       // Liste des tables à exporter
       const tables = [
-        'users', 'commercials', 'articles', 'localities', 'clients',
+        'users', 'parameters', 'commercials', 'articles', 'localities', 'clients',
         'accounts', 'stock_outputs', 'stock_output_items', 'distributions',
         'distribution_items', 'recoveries', 'sync_logs', 'daily_reports', 'transactions',
         'id_mappings', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'tontine_stocks'
@@ -3261,10 +3269,6 @@ export class DatabaseService {
   // IMPROVED BACKUP RESTORATION SYSTEM
   // ==========================================
 
-  // ==========================================
-  // IMPROVED BACKUP RESTORATION SYSTEM
-  // ==========================================
-
   /**
    * Core restoration logic using transactions and validation
    * Acts as the single source of truth for all restore operations
@@ -3498,8 +3502,8 @@ export class DatabaseService {
       return [];
     }
     const sql = `
-      SELECT *, COALESCE(fullName, firstname || ' ' || lastname) as name 
-      FROM clients 
+      SELECT *, COALESCE(fullName, firstname || ' ' || lastname) as name
+      FROM clients
       WHERE isSync = 1
     `;
     const ret = await this.db.query(sql);

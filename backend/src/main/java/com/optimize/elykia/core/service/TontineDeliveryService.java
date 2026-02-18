@@ -228,11 +228,11 @@ public class TontineDeliveryService {
 
             // Publier l'événement de collecte tontine (car une livraison implique une
             // collecte du montant total)
-            eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineCollectionEvent(
-                    this,
-                    delivery.getTotalAmount(),
-                    delivery.getCommercialUsername(),
-                    member.getClient().getFullName()));
+//            eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineCollectionEvent(
+//                    this,
+//                    delivery.getTotalAmount(),
+//                    delivery.getCommercialUsername(),
+//                    member.getClient().getFullName()));
         }
 
         log.info("Delivery {} marked as DELIVERED.", delivery.getId());

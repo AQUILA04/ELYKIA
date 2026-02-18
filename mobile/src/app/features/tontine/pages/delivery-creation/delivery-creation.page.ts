@@ -11,6 +11,7 @@ import { ClientRepository } from 'src/app/core/repositories/client.repository';
 import { TontineStockRepository } from 'src/app/core/repositories/tontine-stock.repository';
 import { TontineDeliveryRepository } from 'src/app/core/repositories/tontine-delivery.repository';
 import { DatabaseService } from 'src/app/core/services/database.service';
+import { TontineCalculationService } from 'src/app/core/services/tontine-calculation.service';
 
 import { TontineMember, TontineSession, TontineDelivery, TontineDeliveryItem, TontineStock } from 'src/app/models/tontine.model';
 import { Client } from 'src/app/models/client.model';
@@ -25,6 +26,8 @@ interface DeliveryViewModel {
     session: TontineSession | null;
     stocks: TontineStock[];
     totalBudget: number;
+    societyShare: number; // Added
+    availableBudget: number; // Added
     usedBudget: number;
     remainingBudget: number;
     selectedCount: number;
@@ -46,6 +49,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         session: null,
         stocks: [],
         totalBudget: 0,
+        societyShare: 0, // Initialize
+        availableBudget: 0, // Initialize
         usedBudget: 0,
         remainingBudget: 0,
         selectedCount: 0,
@@ -78,7 +83,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         private clientRepo: ClientRepository,
         private stockRepo: TontineStockRepository,
         private deliveryRepo: TontineDeliveryRepository,
-        private dbService: DatabaseService
+        private dbService: DatabaseService,
+        private tontineCalculationService: TontineCalculationService // Injected
     ) { }
 
     async ngOnInit() {
@@ -162,6 +168,21 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 // Calculate total budget (Total collected)
                 const collections = await this.collectionRepo.getByMemberId(this.memberId!);
                 this.vm.totalBudget = collections.reduce((sum, c) => sum + (c.amount || 0), 0);
+
+                // Use calculation service to get society share and available budget
+                if (this.vm.session) {
+                    const status = await this.tontineCalculationService.calculateMemberStatus(
+                        this.vm.member,
+                        this.vm.session,
+                        this.vm.totalBudget
+                    );
+                    this.vm.societyShare = status.societyShare;
+                    this.vm.availableBudget = status.availableBudget;
+                } else {
+                    // Fallback if session is not loaded (should not happen ideally)
+                    this.vm.availableBudget = this.vm.totalBudget;
+                }
+
                 this.updateBudgetCalculations();
             }
         } catch (error) {
@@ -269,7 +290,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         });
 
         this.vm.usedBudget = used;
-        this.vm.remainingBudget = this.vm.totalBudget - used;
+        // Use availableBudget instead of totalBudget
+        this.vm.remainingBudget = this.vm.availableBudget - used;
         this.vm.selectedCount = count;
     }
 
@@ -404,7 +426,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 commercial: {
                     name: this.commercialUsername || 'Commercial'
                 },
-                totalBudget: this.vm.totalBudget,
+                totalBudget: this.vm.availableBudget, // Use available budget for receipt
                 remainingBudget: this.vm.remainingBudget
             };
 

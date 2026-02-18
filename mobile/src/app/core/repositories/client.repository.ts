@@ -45,7 +45,7 @@ export class ClientRepository extends BaseRepository<Client, string> {
             const needsUpdate = isExisting && existingClientMap.get(clientIdStr) !== newHash;
 
             if (needsUpdate) {
-                const sql = `UPDATE clients SET firstname = ?, lastname = ?, fullName = ?, phone = ?, address = ?, dateOfBirth = ?, occupation = ?, clientType = ?, cardType = ?, cardID = ?, quarter = ?, commercial = ?, isLocal = ?, isSync = ?, syncDate = ?, syncHash = ?, latitude = ?, longitude = ?, mll = ?, contactPersonName = ?, contactPersonPhone = ?, contactPersonAddress = ?, code = ?, profilPhoto = ?, creditInProgress = ?, cardPhoto = ?, profilPhotoUrl = ?, cardPhotoUrl = ?, updatedPhotoUrl = ? WHERE id = ?`;
+                const sql = `UPDATE clients SET firstname = ?, lastname = ?, fullName = ?, phone = ?, address = ?, dateOfBirth = ?, occupation = ?, clientType = ?, cardType = ?, cardID = ?, quarter = ?, commercial = ?, isLocal = ?, isSync = ?, syncDate = ?, syncHash = ?, latitude = ?, longitude = ?, mll = ?, contactPersonName = ?, contactPersonPhone = ?, contactPersonAddress = ?, code = ?, profilPhoto = ?, creditInProgress = ?, cardPhoto = ?, profilPhotoUrl = ?, cardPhotoUrl = ?, updatedPhotoUrl = ?, tontineCollector = ? WHERE id = ?`;
                 const updateParams = [
                     localClient.firstname ?? null, localClient.lastname ?? null, localClient.fullName ?? null,
                     localClient.phone ?? null, localClient.address ?? null, localClient.dateOfBirth ?? null,
@@ -57,12 +57,13 @@ export class ClientRepository extends BaseRepository<Client, string> {
                     localClient.contactPersonAddress ?? null, localClient.code ?? null, localClient.profilPhoto ?? null,
                     localClient.creditInProgress ? 1 : 0, localClient.cardPhoto ?? null,
                     localClient.profilPhotoUrl ?? null, localClient.cardPhotoUrl ?? null, localClient.updatedPhotoUrl ? 1 : 0,
+                    localClient.tontineCollector ?? null,
                     clientIdStr
                 ];
                 clientsToUpdate.push({ statement: sql, values: updateParams });
 
             } else if (!isExisting) {
-                const sql = `INSERT INTO clients (id, firstname, lastname, fullName, phone, address, dateOfBirth, occupation, clientType, cardType, cardID, quarter, commercial, isLocal, isSync, syncDate, syncHash, latitude, longitude, mll, contactPersonName, contactPersonPhone, contactPersonAddress, code, profilPhoto, creditInProgress, cardPhoto, profilPhotoUrl, cardPhotoUrl, updatedPhotoUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                const sql = `INSERT INTO clients (id, firstname, lastname, fullName, phone, address, dateOfBirth, occupation, clientType, cardType, cardID, quarter, commercial, isLocal, isSync, syncDate, syncHash, latitude, longitude, mll, contactPersonName, contactPersonPhone, contactPersonAddress, code, profilPhoto, creditInProgress, cardPhoto, profilPhotoUrl, cardPhotoUrl, updatedPhotoUrl, tontineCollector, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
                 const insertParams = [
                     clientIdStr, localClient.firstname ?? null, localClient.lastname ?? null, localClient.fullName ?? null,
                     localClient.phone ?? null, localClient.address ?? null, localClient.dateOfBirth ?? null,
@@ -73,7 +74,9 @@ export class ClientRepository extends BaseRepository<Client, string> {
                     localClient.mll ?? null, localClient.contactPersonName ?? null, localClient.contactPersonPhone ?? null,
                     localClient.contactPersonAddress ?? null, localClient.code ?? null, localClient.profilPhoto ?? null,
                     localClient.creditInProgress ? 1 : 0, localClient.cardPhoto ?? null,
-                    localClient.profilPhotoUrl ?? null, localClient.cardPhotoUrl ?? null, localClient.updatedPhotoUrl ? 1 : 0, localClient.createdAt ?? new Date()
+                    localClient.profilPhotoUrl ?? null, localClient.cardPhotoUrl ?? null, localClient.updatedPhotoUrl ? 1 : 0,
+                    localClient.tontineCollector ?? null,
+                    localClient.createdAt ?? new Date()
                 ];
                 clientsToInsert.push({ statement: sql, values: insertParams });
             }
@@ -207,7 +210,7 @@ export class ClientRepository extends BaseRepository<Client, string> {
             throw new Error('Database not initialized.');
         }
 
-        const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress'];
+        const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress', 'tontineCollector'];
         const newSyncHash = this.generateHash(client, keysToInclude);
 
         const sql = `UPDATE clients SET
@@ -215,7 +218,7 @@ export class ClientRepository extends BaseRepository<Client, string> {
           clientType = ?, cardType = ?, cardID = ?, quarter = ?, latitude = ?, longitude = ?, mll = ?,
           profilPhoto = ?, contactPersonName = ?, contactPersonPhone = ?, contactPersonAddress = ?,
           commercial = ?, creditInProgress = ?, isLocal = ?, isSync = ?, syncDate = ?, createdAt = ?,
-          syncHash = ?, code = ?, cardPhoto = ?
+          syncHash = ?, code = ?, cardPhoto = ?, tontineCollector = ?
           WHERE id = ?`;
 
         const fullName = `${client.firstname} ${client.lastname}`;
@@ -226,7 +229,7 @@ export class ClientRepository extends BaseRepository<Client, string> {
             client.latitude, client.longitude, client.mll, client.profilPhoto, client.contactPersonName,
             client.contactPersonPhone, client.contactPersonAddress, client.commercial,
             client.creditInProgress ? 1 : 0, client.isLocal ? 1 : 0, client.isSync ? 1 : 0,
-            client.syncDate, client.createdAt, newSyncHash, client.code, client.cardPhoto, client.id
+            client.syncDate, client.createdAt, newSyncHash, client.code, client.cardPhoto, client.tontineCollector, client.id
         ]);
 
         const updatedClient = await this.databaseService.query('SELECT * FROM clients WHERE id = ?', [client.id]);

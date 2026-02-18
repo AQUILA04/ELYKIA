@@ -29,6 +29,7 @@ import * as CommercialStockActions from '../../store/commercial-stock/commercial
 import { CommercialStockService } from './commercial-stock.service';
 import { User } from '../../models/auth.model';
 import { RestoreResult } from '../models/restore.models';
+import { ParameterService } from './parameter.service';
 
 @Injectable({
   providedIn: 'root'
@@ -50,11 +51,22 @@ export class DataInitializationService {
     private transactionService: TransactionService,
     private log: LoggerService,
     private tontineService: TontineService,
-    private commercialStockService: CommercialStockService
+    private commercialStockService: CommercialStockService,
+    private parameterService: ParameterService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
     });
+  }
+
+  initializeParameters(): Observable<boolean> {
+    return this.parameterService.initializeParameters().pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error initializing parameters:', error);
+        return of(false);
+      })
+    );
   }
 
   initializeArticles(): Observable<boolean> {

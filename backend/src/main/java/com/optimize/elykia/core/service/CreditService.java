@@ -204,23 +204,23 @@ public class CreditService extends GenericService<Credit, Long> {
 
     @Transactional
     public Credit createTontine(Credit credit) {
-        if (getRepository().existsByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(
-                OperationType.TONTINE,
-                credit.getCollector(),
-                CreditStatus.INPROGRESS,
-                ClientType.PROMOTER,
-                DateUtils.getStartYearDate(),
-                DateUtils.getEndYearDate())) {
-            Credit promoterTontine = getRepository()
-                    .findByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(
-                            OperationType.TONTINE,
-                            credit.getCollector(),
-                            CreditStatus.INPROGRESS,
-                            ClientType.PROMOTER,
-                            DateUtils.getStartYearDate(),
-                            DateUtils.getEndYearDate())
-                    .orElseThrow();
-            credit.setParent(promoterTontine);
+//        if (getRepository().existsByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(
+//                OperationType.TONTINE,
+//                credit.getCollector(),
+//                CreditStatus.INPROGRESS,
+//                ClientType.PROMOTER,
+//                DateUtils.getStartYearDate(),
+//                DateUtils.getEndYearDate())) {
+//            Credit promoterTontine = getRepository()
+//                    .findByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(
+//                            OperationType.TONTINE,
+//                            credit.getCollector(),
+//                            CreditStatus.INPROGRESS,
+//                            ClientType.PROMOTER,
+//                            DateUtils.getStartYearDate(),
+//                            DateUtils.getEndYearDate())
+//                    .orElseThrow();
+//            credit.setParent(promoterTontine);
             tontineStockService
                     .checkAvailabilityAndUpdateTontineStock(
                             credit.getArticles(),
@@ -230,31 +230,31 @@ public class CreditService extends GenericService<Credit, Long> {
             credit.setCreditToCreditArticles(); // Ensure relationship is set
             credit.getArticles().forEach(creditArticlesService::create);
             this.startCredit(credit.getId(), Boolean.TRUE);
-        } else {
-            Credit tontineParent = new Credit(); // faire un clone
-            ClientRespDto clientDto = clientService.getRepository().findByCollectorAndClientTypeAndState(
-                    credit.getCollector(),
-                    ClientType.PROMOTER,
-                    State.ENABLED,
-                    PageRequest.of(0, 1)).getContent().stream().findFirst().orElse(null);
-            Client client = new Client();
-            assert clientDto != null;
-            client.setId(clientDto.id());
-            client.setClientType(clientDto.clientType());
-            String baseReference = generateReference(
-                    String.valueOf(client.getId()),
-                    ClientType.PROMOTER);
-            tontineParent.setReference("T" + baseReference);
-            tontineParent.addClient(client);
-            tontineParent.tontineBuilder();
-            tontineParent.setArticles(credit.getArticles());
-            this.create(tontineParent);
-            tontineParent.setCreditToCreditArticles();
-            tontineParent.getArticles().forEach(creditArticlesService::create);
-            this.creditEnrichment(tontineParent);
-            this.startCredit(tontineParent.getId(), Boolean.FALSE);
-            return this.createTontine(credit);
-        }
+//        } else {
+//            Credit tontineParent = new Credit(); // faire un clone
+//            ClientRespDto clientDto = clientService.getRepository().findByCollectorAndClientTypeAndState(
+//                    credit.getCollector(),
+//                    ClientType.PROMOTER,
+//                    State.ENABLED,
+//                    PageRequest.of(0, 1)).getContent().stream().findFirst().orElse(null);
+//            Client client = new Client();
+//            assert clientDto != null;
+//            client.setId(clientDto.id());
+//            client.setClientType(clientDto.clientType());
+//            String baseReference = generateReference(
+//                    String.valueOf(client.getId()),
+//                    ClientType.PROMOTER);
+//            tontineParent.setReference("T" + baseReference);
+//            tontineParent.addClient(client);
+//            tontineParent.tontineBuilder();
+//            tontineParent.setArticles(credit.getArticles());
+//            this.create(tontineParent);
+//            tontineParent.setCreditToCreditArticles();
+//            tontineParent.getArticles().forEach(creditArticlesService::create);
+//            this.creditEnrichment(tontineParent);
+//            this.startCredit(tontineParent.getId(), Boolean.FALSE);
+//            return this.createTontine(credit);
+//        }
         // Save the credit
         return credit;
     }
@@ -735,7 +735,7 @@ public class CreditService extends GenericService<Credit, Long> {
     public Boolean startCredit(Long creditId, Boolean distribution) {
         Credit credit = getById(creditId);
         List<String> articleOutOfStock = new ArrayList<>();
-        if (Boolean.FALSE.equals(distribution)) {
+        if (Boolean.FALSE.equals(distribution) && !OperationType.TONTINE.equals(credit.getType())) {
             credit.getArticles().forEach(article -> {
                 if (!article.hasStockAvailable()) {
                     articleOutOfStock.add(article.getArticles().getCommercialName());
@@ -744,7 +744,7 @@ public class CreditService extends GenericService<Credit, Long> {
 
             if (!articleOutOfStock.isEmpty()) {
                 throw new CustomValidationException("Stock manquant pour démarrer le crédit: Articles Manquants: "
-                        + articleOutOfStock.stream().collect(Collectors.joining("; \n")));
+                        + String.join("; \n", articleOutOfStock));
             }
 
             // Enregistrement des mouvements de stock
@@ -802,9 +802,9 @@ public class CreditService extends GenericService<Credit, Long> {
                 commercialMonthlyStockRepository.save(monthlyStock);
             }
 
-            if (OperationType.TONTINE.equals(credit.getType())) {
-                credit = mergeTontine(credit);
-            }
+//            if (OperationType.TONTINE.equals(credit.getType())) {
+//                credit = mergeTontine(credit);
+//            }
         }
         LocalDate accountingDate = sharedService.getAccountingDayService().getCurrentAccountingDate();
         credit.setAccountingDate(accountingDate);
@@ -817,7 +817,7 @@ public class CreditService extends GenericService<Credit, Long> {
                 (credit.getTotalPurchase() != null ? credit.getTotalPurchase() : 0.0);
 
         // Publish Event
-        if (eventPublisher != null) {
+        if (eventPublisher != null && !OperationType.TONTINE.equals(credit.getType())) {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.CreditStartedEvent(
                     this,
                     credit.getTotalAmount(),

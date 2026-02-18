@@ -32,6 +32,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
 
   initSteps: { text: string; method: () => any }[] = [
     { text: 'Vérification de la connexion...', method: () => this.healthCheckService.pingBackend() },
+    { text: 'Chargement des paramètres...', method: () => this.dataInitService.initializeParameters() },
     { text: 'Chargement des articles...', method: () => this.dataInitService.initializeArticles() },
     { text: 'Chargement des infos commerciales...', method: () => this.dataInitService.initializeCommercial() },
     { text: 'Chargement des localités...', method: () => this.dataInitService.initializeLocalities() },

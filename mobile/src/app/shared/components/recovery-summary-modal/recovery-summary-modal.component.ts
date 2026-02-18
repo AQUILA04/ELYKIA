@@ -8,6 +8,7 @@ import { Client } from '../../../models/client.model';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import localeFrExtra from '@angular/common/locales/extra/fr';
+import { PdfService } from '../../../core/services/pdf.service';
 
 registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
 
@@ -26,7 +27,10 @@ export class RecoverySummaryModalComponent implements OnInit {
 
   qrCodeData: string = '';
 
-  constructor(private modalController: ModalController) { }
+  constructor(
+    private modalController: ModalController,
+    private pdfService: PdfService
+  ) { }
 
   ngOnInit() {
     const receiptData = {
@@ -39,6 +43,23 @@ export class RecoverySummaryModalComponent implements OnInit {
       creditRef: this.distribution.reference
     };
     this.qrCodeData = JSON.stringify(receiptData);
+  }
+
+  async ionViewDidEnter() {
+    setTimeout(async () => {
+      const content = document.getElementById('receipt-content');
+      if (content) {
+        try {
+          await this.pdfService.saveReceipt(
+            content,
+            'recouvrement',
+            this.recovery.id
+          );
+        } catch (e) {
+          console.error('Failed to auto-save PDF receipt', e);
+        }
+      }
+    }, 500);
   }
 
   dismiss() {

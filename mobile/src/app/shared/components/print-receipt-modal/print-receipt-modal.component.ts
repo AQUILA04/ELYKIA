@@ -7,6 +7,7 @@ import { Article } from '../../../models/article.model';
 import { User } from '../../../models/auth.model';
 import { PrintableDistribution, PrintingService } from '../../../core/services/printing.service';
 import * as DistributionActions from '../../../store/distribution/distribution.actions';
+import { PdfService } from '../../../core/services/pdf.service';
 
 @Component({
   selector: 'app-print-receipt-modal',
@@ -25,8 +26,9 @@ export class PrintReceiptModalComponent implements OnInit {
 
   constructor(
     private modalController: ModalController,
-    private store: Store
-  ) {}
+    private store: Store,
+    private pdfService: PdfService
+  ) { }
 
   ngOnInit() {
     this.printableDistribution = {
@@ -52,6 +54,23 @@ export class PrintReceiptModalComponent implements OnInit {
       date: this.distribution.createdAt
     };
     this.qrCodeData = JSON.stringify(receiptData);
+  }
+
+  async ionViewDidEnter() {
+    setTimeout(async () => {
+      const content = document.getElementById('receipt-content');
+      if (content) {
+        try {
+          await this.pdfService.saveReceipt(
+            content,
+            'distribution',
+            this.distribution.reference || `DIST-${this.distribution.id}`
+          );
+        } catch (e) {
+          console.error('Failed to auto-save PDF receipt', e);
+        }
+      }
+    }, 500);
   }
 
   dismiss() {
