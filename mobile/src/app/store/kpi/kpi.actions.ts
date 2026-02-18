@@ -140,6 +140,66 @@ export const loadTontineKpiFailure = createAction(
   props<{ error: string }>()
 );
 
+// ==================== ACCOUNT ACTIVITY ACTIONS ====================
+
+export const loadAccountActivityKpi = createAction(
+  '[KPI] Load Account Activity KPI',
+  props<{ commercialUsername: string; dateFilter?: DateFilter }>()
+);
+
+export const loadAccountActivityKpiSuccess = createAction(
+  '[KPI] Load Account Activity KPI Success',
+  props<{
+    newAccountsCount: number;
+    newAccountsBalance: number;
+    updatedAccountsCount: number;
+    updatedAccountsBalance: number;
+  }>()
+);
+
+export const loadAccountActivityKpiFailure = createAction(
+  '[KPI] Load Account Activity KPI Failure',
+  props<{ error: string }>()
+);
+
+// ==================== ADVANCES ACTIONS ====================
+
+export const loadAdvancesKpi = createAction(
+  '[KPI] Load Advances KPI',
+  props<{ commercialId: string; dateFilter?: DateFilter }>()
+);
+
+export const loadAdvancesKpiSuccess = createAction(
+  '[KPI] Load Advances KPI Success',
+  props<{ count: number; totalAmount: number }>()
+);
+
+export const loadAdvancesKpiFailure = createAction(
+  '[KPI] Load Advances KPI Failure',
+  props<{ error: string }>()
+);
+
+// ==================== TONTINE SUMMARY ACTIONS ====================
+
+export const loadTontineSummaryKpi = createAction(
+  '[KPI] Load Tontine Summary KPI',
+  props<{ commercialUsername: string; dateFilter?: DateFilter }>()
+);
+
+export const loadTontineSummaryKpiSuccess = createAction(
+  '[KPI] Load Tontine Summary KPI Success',
+  props<{
+    dailyMembersCount: number;
+    dailyCollectionsAmount: number;
+    dailyDeliveriesAmount: number;
+  }>()
+);
+
+export const loadTontineSummaryKpiFailure = createAction(
+  '[KPI] Load Tontine Summary KPI Failure',
+  props<{ error: string }>()
+);
+
 // ==================== COMBINED ACTIONS ====================
 
 /**

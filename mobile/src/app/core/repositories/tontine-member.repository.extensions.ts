@@ -190,6 +190,64 @@ export class TontineMemberRepositoryExtensions {
     }
 
     /**
+     * Count tontine members for a specific commercial (across all sessions)
+     * 
+     * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
+     * 
+     * @param commercialUsername Username of the commercial (REQUIRED)
+     * @param filters Optional filters
+     * @returns Total count of tontine members
+     */
+    async countByCommercial(
+        commercialUsername: string,
+        filters?: {
+            dateFilter?: DateFilter;
+            searchQuery?: string;
+        }
+    ): Promise<number> {
+        if (!commercialUsername) {
+            throw new Error('commercialUsername is required for security - cannot count tontine members without commercial filter');
+        }
+
+        const commercialCondition = buildCommercialFilterCondition('tontineMember', 'tm');
+        let whereConditions = [commercialCondition];
+        const params: any[] = [commercialUsername];
+
+        // Apply filters directly since applyFilters expects specific filters interface
+        if (filters?.dateFilter) {
+            const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'tm.registrationDate');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
+        }
+
+        if (filters?.searchQuery) {
+            // Requires join with clients
+            whereConditions.push('(c.fullName LIKE ? OR c.phone LIKE ?)');
+            const searchPattern = `%${filters.searchQuery}%`;
+            params.push(searchPattern, searchPattern);
+        }
+
+        const whereClause = whereConditions.join(' AND ');
+
+        let sql = '';
+        if (filters?.searchQuery) {
+            sql = `
+                SELECT COUNT(*) as total 
+                FROM tontine_members tm 
+                JOIN clients c ON tm.clientId = c.id
+                WHERE ${whereClause}
+            `;
+        } else {
+            sql = `SELECT COUNT(*) as total FROM tontine_members tm WHERE ${whereClause}`;
+        }
+
+        const result = await this.tontineMemberRepository['getDatabaseService']().query(sql, params);
+        return result.values?.[0]?.total || 0;
+    }
+
+    /**
      * Get total collected amount for a tontine session (filtered by commercial)
      * 
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation

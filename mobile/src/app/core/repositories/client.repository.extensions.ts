@@ -263,6 +263,102 @@ export class ClientRepositoryExtensions {
         return result.values?.[0]?.total || 0;
     }
 
+    /**
+     * Get account activity (new and updated accounts) for a specific commercial
+     * 
+     * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
+     * 
+     * @param commercialUsername Username of the commercial (REQUIRED)
+     * @param dateFilter Optional date filter
+     * @returns Account activity stats
+     */
+    async getAccountActivityByCommercial(
+        commercialUsername: string,
+        dateFilter?: DateFilter
+    ): Promise<{
+        newAccountsCount: number;
+        newAccountsBalance: number;
+        updatedAccountsCount: number;
+        updatedAccountsBalance: number;
+    }> {
+        if (!commercialUsername) {
+            throw new Error('commercialUsername is required for security - cannot calculate account activity without commercial filter');
+        }
+
+        const db = this.clientRepository['getDatabaseService']();
+
+        // 1. New Accounts (created within date range)
+        // Since accounts table has clientId, we need to join clients to filter by commercial if 'accounts' doesn't have 'commercial'.
+        // Checking Account model: it has clientId.
+        // Checking Database schema: accounts table usually doesn't store commercial, clients does.
+        // So we join clients.
+
+        const baseJoin = `JOIN clients c ON a.clientId = c.id`;
+        const commercialCondition = `c.commercial = ?`;
+
+        // Date filter logic
+        let newAccountsWhere = [commercialCondition];
+        let updatedAccountsWhere = [commercialCondition, 'a.updated = 1', 'a.accountBalance > a.old_balance'];
+
+        const params: any[] = [commercialUsername];
+
+        if (dateFilter) {
+            const createdDateResult = buildDateFilterClause(dateFilter, 'a.createdAt');
+            if (createdDateResult.whereClause) {
+                newAccountsWhere.push(createdDateResult.whereClause);
+            }
+
+            const syncDateResult = buildDateFilterClause(dateFilter, 'a.syncDate');
+            if (syncDateResult.whereClause) {
+                updatedAccountsWhere.push(syncDateResult.whereClause);
+            }
+
+            // Params logic is tricky because we execute two queries.
+            // We'll reconstruct params for each query.
+        }
+
+        // --- Execute New Accounts Query ---
+        let newParams = [commercialUsername];
+        if (dateFilter) {
+            const createdDateResult = buildDateFilterClause(dateFilter, 'a.createdAt');
+            if (createdDateResult.whereClause) {
+                newParams.push(...createdDateResult.params);
+            }
+        }
+
+        const newSql = `
+            SELECT COUNT(*) as count, COALESCE(SUM(a.accountBalance), 0) as balance
+            FROM accounts a
+            ${baseJoin}
+            WHERE ${newAccountsWhere.join(' AND ')}
+        `;
+        const newResult = await db.query(newSql, newParams);
+
+        // --- Execute Updated Accounts Query ---
+        let updatedParams = [commercialUsername];
+        if (dateFilter) {
+            const syncDateResult = buildDateFilterClause(dateFilter, 'a.syncDate');
+            if (syncDateResult.whereClause) {
+                updatedParams.push(...syncDateResult.params);
+            }
+        }
+
+        const updatedSql = `
+            SELECT COUNT(*) as count, COALESCE(SUM(a.accountBalance - a.old_balance), 0) as balanceDifference
+            FROM accounts a
+            ${baseJoin}
+            WHERE ${updatedAccountsWhere.join(' AND ')}
+        `;
+        const updatedResult = await db.query(updatedSql, updatedParams);
+
+        return {
+            newAccountsCount: newResult.values?.[0]?.count || 0,
+            newAccountsBalance: newResult.values?.[0]?.balance || 0,
+            updatedAccountsCount: updatedResult.values?.[0]?.count || 0,
+            updatedAccountsBalance: updatedResult.values?.[0]?.balanceDifference || 0
+        };
+    }
+
     // Helper to apply common filters
     private applyFilters(whereConditions: string[], params: any[], filters?: any) {
         if (filters?.searchQuery) {

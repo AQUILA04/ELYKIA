@@ -97,6 +97,43 @@ export class TontineDeliveryRepositoryExtensions {
         };
     }
 
+    /**
+     * Get total delivery amount for a specific commercial
+     * 
+     * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
+     * 
+     * @param commercialUsername Username of the commercial (REQUIRED)
+     * @param filters Optional filters
+     * @returns Total delivery amount
+     */
+    async getTotalAmountByCommercial(
+        commercialUsername: string,
+        filters?: TontineDeliveryRepositoryFilters
+    ): Promise<number> {
+        if (!commercialUsername) {
+            throw new Error('commercialUsername is required for security - cannot calculate delivery amount without commercial filter');
+        }
+
+        let whereConditions = [`td.commercialUsername = ?`];
+        const params: any[] = [commercialUsername];
+
+        this.applyFilters(whereConditions, params, filters);
+
+        const whereClause = whereConditions.join(' AND ');
+
+        // Need JOIN if filtering by client
+        const sql = `
+            SELECT COALESCE(SUM(td.totalAmount), 0) as total 
+            FROM tontine_deliveries td 
+            JOIN tontine_members tm ON td.tontineMemberId = tm.id
+            JOIN clients c ON tm.clientId = c.id
+            WHERE ${whereClause}
+        `;
+        const result = await this.tontineDeliveryRepository['getDatabaseService']().query(sql, params);
+
+        return result.values?.[0]?.total || 0;
+    }
+
     private applyFilters(whereConditions: string[], params: any[], filters?: any) {
         if (filters?.status) {
             whereConditions.push('td.status = ?');

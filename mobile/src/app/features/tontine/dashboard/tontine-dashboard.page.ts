@@ -1,11 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, combineLatest, BehaviorSubject } from 'rxjs';
-import { takeUntil, map, startWith, tap, take } from 'rxjs/operators';
+import { takeUntil, map, startWith, tap, take, filter, switchMap } from 'rxjs/operators';
 import { TontineService } from 'src/app/core/services/tontine.service';
 import { selectTontineSession, selectTontineMembers } from 'src/app/store/tontine/tontine.selectors';
 import { loadTontineSession, loadTontineMembers } from 'src/app/store/tontine/tontine.actions';
 import { ActionSheetController, NavController } from '@ionic/angular';
+import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
+import * as KpiActions from 'src/app/store/kpi/kpi.actions';
+import * as KpiSelectors from 'src/app/store/kpi/kpi.selectors';
 
 @Component({
     selector: 'app-tontine-dashboard',
@@ -44,10 +47,8 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
         private navCtrl: NavController,
         private actionSheetCtrl: ActionSheetController,
     ) {
-        this.session$ = this.store.select(selectTontineSession).pipe(
-        );
-        this.members$ = this.store.select(selectTontineMembers).pipe(
-        );
+        this.session$ = this.store.select(selectTontineSession);
+        this.members$ = this.store.select(selectTontineMembers);
 
         this.isGroupedView$ = this.statusFilter$.pipe(
             map(status => status === 'todo')
@@ -57,17 +58,10 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
             map(session => session ? session.year : new Date().getFullYear())
         );
 
-        this.totalMembers$ = this.members$.pipe(
-            map(members => members.length)
-        );
-
-        this.totalCollected$ = this.members$.pipe(
-            map(members => members.reduce((sum, m) => sum + (m.totalContribution || 0), 0))
-        );
-
-        this.pendingDeliveries$ = this.members$.pipe(
-            map(members => members.filter(m => m.deliveryStatus === 'PENDING').length)
-        );
+        // KPI Selectors from KpiStore
+        this.totalMembers$ = this.store.select(KpiSelectors.selectTontineKpiTotalMembersBySession);
+        this.totalCollected$ = this.store.select(KpiSelectors.selectTontineKpiTotalCollected);
+        this.pendingDeliveries$ = this.store.select(KpiSelectors.selectTontineKpiPendingDeliveries);
 
         this.filteredMembers$ = combineLatest([
             this.members$,
@@ -129,29 +123,44 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
         // Load Tontine Session
         this.store.dispatch(loadTontineSession());
 
-        // Load Members when Session is available
-        this.session$.pipe(
+        // Load Members and KPIs when Session is available
+        combineLatest([
+            this.session$.pipe(filter(s => !!s && !!s.id)),
+            this.store.select(selectAuthUser).pipe(filter(u => !!u))
+        ]).pipe(
             takeUntil(this.destroy$),
-            tap(session => {
-                if (session && session.id) {
-                    console.log('Dashboard: Session loaded, dispatching loadTontineMembers for session', session.id);
-                    this.store.dispatch(loadTontineMembers({ sessionId: session.id }));
-                }
+            tap(([session, user]) => {
+                const sessionId = session.id;
+                const commercialUsername = user.username;
+
+                console.log('Dashboard: Session loaded, dispatching loads for session', sessionId);
+
+                // Load detailed members list (for list view)
+                this.store.dispatch(loadTontineMembers({ sessionId }));
+
+                // Load KPIs (statistics)
+                this.store.dispatch(KpiActions.loadTontineKpi({
+                    sessionId,
+                    commercialUsername,
+                    dateFilter: { startDate: new Date().toISOString(), endDate: new Date().toISOString() } // Optional: Pass date filter if needed for 'daily' stats in the same call
+                }));
             })
         ).subscribe();
     }
 
     ionViewWillEnter() {
-        // Reload members when returning to this page
-        this.session$.pipe(
-            take(1),
-            tap(session => {
-                if (session && session.id) {
-                    console.log('Dashboard: Reloading members on view enter');
-                    this.store.dispatch(loadTontineMembers({ sessionId: session.id }));
-                }
-            })
-        ).subscribe();
+        // Reload data when returning to this page
+        combineLatest([
+            this.session$.pipe(take(1), filter(s => !!s && !!s.id)),
+            this.store.select(selectAuthUser).pipe(take(1), filter(u => !!u))
+        ]).subscribe(([session, user]) => {
+            const sessionId = session.id;
+            const commercialUsername = user.username;
+
+            console.log('Dashboard: Reloading data on view enter');
+            this.store.dispatch(loadTontineMembers({ sessionId }));
+            this.store.dispatch(KpiActions.loadTontineKpi({ sessionId, commercialUsername }));
+        });
     }
 
     ngOnDestroy() {

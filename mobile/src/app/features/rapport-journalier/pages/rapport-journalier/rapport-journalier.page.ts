@@ -16,6 +16,10 @@ import { DatabaseService } from '../../../../core/services/database.service';
 import * as html2pdf from 'html2pdf.js';
 import { PdfReportService } from '../../../../core/services/pdf-report.service';
 import { SyncStatus } from '../../../../models/sync.model';
+import * as KpiActions from '../../../../store/kpi/kpi.actions';
+import * as KpiSelectors from '../../../../store/kpi/kpi.selectors';
+import { selectAuthUser } from '../../../../store/auth/auth.selectors';
+import { take } from 'rxjs/operators';
 
 // Register French locale data
 registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
@@ -100,15 +104,100 @@ export class RapportJournalierPage {
   }
 
   private loadReportData() {
+    // Dispatch KPI load action
+    this.store.select(selectAuthUser).pipe(take(1)).subscribe(user => {
+      if (user) {
+        const today = new Date();
+        const dateString = today.toISOString().split('T')[0];
+
+        this.store.dispatch(KpiActions.loadAllKpi({
+          commercialUsername: user.username,
+          commercialId: user.username, // Using username as ID for now as per service logic
+          dateFilter: {
+            startDate: dateString,
+            endDate: dateString
+          }
+        }));
+      }
+    });
+
+    // Subscribe to Store Selectors to update reportData KPIs
+    // Distributions
+    this.store.select(KpiSelectors.selectDistributionKpi).subscribe(kpi => {
+      this.reportData.distributions.count = kpi.totalByCommercial; // Using totalByCommercial as 'daily' count with date filter
+      this.reportData.distributions.totalAmount = kpi.totalAmountByCommercial;
+      this.cdr.markForCheck();
+    });
+
+    // Recoveries
+    this.store.select(KpiSelectors.selectRecoveryKpi).subscribe(kpi => {
+      this.reportData.recoveries.count = kpi.totalByCommercial;
+      this.reportData.recoveries.totalAmount = kpi.totalAmountByCommercial;
+      this.cdr.markForCheck();
+    });
+
+    // Account Activity (New Clients)
+    this.store.select(KpiSelectors.selectAccountActivityKpi).subscribe(kpi => {
+      this.reportData.newClients.count = kpi.newAccountsCount + kpi.updatedAccountsCount;
+      this.reportData.newClients.totalBalance = kpi.newAccountsBalance + kpi.updatedAccountsBalance;
+      this.cdr.markForCheck();
+    });
+
+    // Advances
+    this.store.select(KpiSelectors.selectAdvancesKpi).subscribe(kpi => {
+      this.reportData.advances.count = kpi.count;
+      this.reportData.advances.totalAmount = kpi.totalAmount;
+      this.reportData.totalToPay = (this.reportData.recoveries?.totalAmount || 0) + kpi.totalAmount + (this.reportData.tontine?.totalAmount || 0);
+      this.cdr.markForCheck();
+    });
+
+    // Tontine Summaries
+    this.store.select(KpiSelectors.selectTontineKpi).subscribe(kpi => {
+      this.reportData.tontine.count = kpi.dailyCollectionsCount + kpi.dailyDeliveriesCount; // Estimate or use specific field
+      this.reportData.tontine.totalAmount = kpi.dailyCollectionsAmount;
+
+      // Update Total To Pay
+      this.reportData.totalToPay = (this.reportData.recoveries?.totalAmount || 0) + (this.reportData.advances?.totalAmount || 0) + kpi.dailyCollectionsAmount;
+
+      // Update Tontine Sub-sections counts (if needed for badges, though badges usually use the lists)
+      if (this.reportData.tontineMembers) {
+        this.reportData.tontineMembers.count = kpi.dailyMembersCount;
+      } else {
+        this.reportData.tontineMembers = { count: kpi.dailyMembersCount, items: [] };
+      }
+
+      if (this.reportData.tontineCollections) {
+        this.reportData.tontineCollections.count = kpi.dailyCollectionsCount;
+        this.reportData.tontineCollections.totalAmount = kpi.dailyCollectionsAmount;
+      } else {
+        this.reportData.tontineCollections = { count: kpi.dailyCollectionsCount, totalAmount: kpi.dailyCollectionsAmount, items: [] };
+      }
+
+      if (this.reportData.tontineDeliveries) {
+        this.reportData.tontineDeliveries.count = kpi.dailyDeliveriesCount;
+        this.reportData.tontineDeliveries.totalAmount = kpi.dailyDeliveriesAmount;
+      } else {
+        this.reportData.tontineDeliveries = { count: kpi.dailyDeliveriesCount, totalAmount: kpi.dailyDeliveriesAmount, items: [] };
+      }
+
+      this.cdr.markForCheck();
+    });
+
+    // Continue to load detailed lists from Service for tabs
     this.rapportJournalierService.getDailyReport().subscribe({
       next: (data) => {
-        this.reportData = data;
-        // Charger uniquement les counts des tontines pour les badges
-        this.loadTontineCounts();
+        // Only update the ITEMS (lists) from the service, preserving the KPIs from Store
+        this.reportData.distributions.items = data.distributions.items;
+        this.reportData.recoveries.items = data.recoveries.items;
+        this.reportData.newClients.items = data.newClients.items;
+
+        // Update date and commercial name if not set
+        if (!this.reportData.commercialName) this.reportData.commercialName = data.commercialName;
+
         this.cdr.markForCheck();
       },
       error: (error) => {
-        console.error('Erreur lors du chargement des données du rapport:', error);
+        console.error('Erreur lors du chargement des données du rapport (service):', error);
         this.cdr.markForCheck();
       }
     });
@@ -120,29 +209,14 @@ export class RapportJournalierPage {
     this.router.navigate(['/tabs/dashboard']);
   }
 
-  /**
-   * Charge uniquement les counts des tontines (optimisation)
-   */
-  private loadTontineCounts() {
-    this.rapportJournalierService.getTontineCountsOnly().subscribe({
-      next: (counts) => {
-        this.reportData.tontineMembers = { count: counts.members, items: [] };
-        this.reportData.tontineCollections = { count: counts.collections, totalAmount: 0, items: [] };
-        this.reportData.tontineDeliveries = { count: counts.deliveries, totalAmount: 0, items: [] };
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        console.error('Erreur lors du chargement des counts tontine:', error);
-      }
-    });
-  }
+
 
   /**
    * Gère le changement d'onglet avec lazy loading
    */
   onSegmentChanged(event: any) {
     const newTab = event.detail.value;
-    
+
     // Si l'onglet est déjà chargé, on ne fait rien
     if (this.loadedTabs.has(newTab)) {
       return;
@@ -250,25 +324,25 @@ export class RapportJournalierPage {
   private async generatePDFAfterSync() {
     try {
       console.log('Génération automatique du PDF après synchronisation...');
-      
+
       // Recharger les données du rapport pour avoir les données synchronisées
       this.rapportJournalierService.getDailyReport().subscribe(async (data) => {
         this.reportData = data;
-        
+
         // Générer le HTML pour PDF
         const htmlContent = this.rapportJournalierService.generatePDFHTML(this.reportData);
-        
+
         // Générer le nom de fichier
         const filename = this.pdfReportService.generateFilename();
-        
+
         // Générer le PDF
         const pdfBase64 = await this.pdfReportService.generatePDF(htmlContent, filename);
-        
+
         // Sauvegarder dans External Storage
         await this.pdfReportService.savePDFToExternalStorage(pdfBase64, filename);
-        
+
         console.log('PDF généré automatiquement avec succès:', filename);
-        
+
         // Afficher un toast discret
         const toast = await this.toastController.create({
           message: `Rapport PDF généré automatiquement`,
@@ -278,7 +352,7 @@ export class RapportJournalierPage {
         });
         await toast.present();
       });
-      
+
     } catch (error) {
       console.error('Erreur lors de la génération automatique du PDF:', error);
     }
@@ -291,10 +365,10 @@ export class RapportJournalierPage {
     try {
       // Générer le HTML pour PDF (format complet avec tableaux)
       const htmlContent = this.rapportJournalierService.generatePDFHTML(this.reportData);
-      
+
       // Générer le nom de fichier avec date et heure
       const filename = this.pdfReportService.generateFilename();
-      
+
       // Afficher un toast de chargement
       const loadingToast = await this.toastController.create({
         message: 'Génération du PDF en cours...',
@@ -302,16 +376,16 @@ export class RapportJournalierPage {
         position: 'bottom'
       });
       await loadingToast.present();
-      
+
       // Générer le PDF
       const pdfBase64 = await this.pdfReportService.generatePDF(htmlContent, filename);
-      
+
       // Sauvegarder dans External Storage
       const uri = await this.pdfReportService.savePDFToExternalStorage(pdfBase64, filename);
-      
+
       // Fermer le toast de chargement
       await loadingToast.dismiss();
-      
+
       // Afficher un toast de confirmation
       const successToast = await this.toastController.create({
         message: `PDF sauvegardé : ${filename}`,
@@ -326,12 +400,12 @@ export class RapportJournalierPage {
         ]
       });
       await successToast.present();
-      
+
       console.log('PDF sauvegardé avec succès:', uri);
-      
+
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du PDF:', error);
-      
+
       const errorToast = await this.toastController.create({
         message: 'Erreur lors de la sauvegarde du PDF',
         duration: 3000,

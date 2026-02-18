@@ -65,12 +65,38 @@ export interface KpiState {
     error: string | null;
   };
 
+  // Account Activity KPIs (New/Updated Accounts)
+  accountActivityKpi: {
+    newAccountsCount: number;
+    newAccountsBalance: number;
+    updatedAccountsCount: number;
+    updatedAccountsBalance: number;
+    loading: boolean;
+    error: string | null;
+  };
+
+  // Advances KPIs
+  advancesKpi: {
+    count: number;
+    totalAmount: number;
+    loading: boolean;
+    error: string | null;
+  };
+
   // Tontine KPIs
   tontineKpi: {
-    totalMembers: number;
-    totalMembersBySession: number;
-    pendingDeliveries: number;
-    totalCollected: number;
+    totalMembers: number; // For session
+    totalMembersBySession: number; // For session
+    pendingDeliveries: number; // For session
+    totalCollected: number; // For session
+
+    // Global/Daily Tontine Stats
+    dailyMembersCount: number;
+    dailyCollectionsCount: number;
+    dailyCollectionsAmount: number;
+    dailyDeliveriesCount: number;
+    dailyDeliveriesAmount: number;
+
     loading: boolean;
     error: string | null;
   };
@@ -121,11 +147,32 @@ export const initialState: KpiState = {
     loading: false,
     error: null
   },
+  accountActivityKpi: {
+    newAccountsCount: 0,
+    newAccountsBalance: 0,
+    updatedAccountsCount: 0,
+    updatedAccountsBalance: 0,
+    loading: false,
+    error: null
+  },
+  advancesKpi: {
+    count: 0,
+    totalAmount: 0,
+    loading: false,
+    error: null
+  },
   tontineKpi: {
     totalMembers: 0,
     totalMembersBySession: 0,
     pendingDeliveries: 0,
     totalCollected: 0,
+
+    dailyMembersCount: 0,
+    dailyCollectionsCount: 0,
+    dailyCollectionsAmount: 0,
+    dailyDeliveriesCount: 0,
+    dailyDeliveriesAmount: 0,
+
     loading: false,
     error: null
   }
@@ -316,6 +363,7 @@ export const kpiReducer = createReducer(
   on(KpiActions.loadTontineKpiSuccess, (state, { totalMembers, totalMembersBySession, pendingDeliveries, totalCollected }) => ({
     ...state,
     tontineKpi: {
+      ...state.tontineKpi,
       totalMembers,
       totalMembersBySession,
       pendingDeliveries,
@@ -325,6 +373,91 @@ export const kpiReducer = createReducer(
     }
   })),
   on(KpiActions.loadTontineKpiFailure, (state, { error }) => ({
+    ...state,
+    tontineKpi: {
+      ...state.tontineKpi,
+      loading: false,
+      error
+    }
+  })),
+
+  // ==================== ACCOUNT ACTIVITY KPI ====================
+  on(KpiActions.loadAccountActivityKpi, (state) => ({
+    ...state,
+    accountActivityKpi: {
+      ...state.accountActivityKpi,
+      loading: true,
+      error: null
+    }
+  })),
+  on(KpiActions.loadAccountActivityKpiSuccess, (state, { newAccountsCount, newAccountsBalance, updatedAccountsCount, updatedAccountsBalance }) => ({
+    ...state,
+    accountActivityKpi: {
+      newAccountsCount,
+      newAccountsBalance,
+      updatedAccountsCount,
+      updatedAccountsBalance,
+      loading: false,
+      error: null
+    }
+  })),
+  on(KpiActions.loadAccountActivityKpiFailure, (state, { error }) => ({
+    ...state,
+    accountActivityKpi: {
+      ...state.accountActivityKpi,
+      loading: false,
+      error
+    }
+  })),
+
+  // ==================== ADVANCES KPI ====================
+  on(KpiActions.loadAdvancesKpi, (state) => ({
+    ...state,
+    advancesKpi: {
+      ...state.advancesKpi,
+      loading: true,
+      error: null
+    }
+  })),
+  on(KpiActions.loadAdvancesKpiSuccess, (state, { count, totalAmount }) => ({
+    ...state,
+    advancesKpi: {
+      count,
+      totalAmount,
+      loading: false,
+      error: null
+    }
+  })),
+  on(KpiActions.loadAdvancesKpiFailure, (state, { error }) => ({
+    ...state,
+    advancesKpi: {
+      ...state.advancesKpi,
+      loading: false,
+      error
+    }
+  })),
+
+  // ==================== TONTINE SUMMARY KPI ====================
+  on(KpiActions.loadTontineSummaryKpi, (state) => ({
+    ...state,
+    tontineKpi: {
+      ...state.tontineKpi,
+      loading: true,
+      error: null
+    }
+  })),
+  on(KpiActions.loadTontineSummaryKpiSuccess, (state, { dailyMembersCount, dailyCollectionsAmount, dailyDeliveriesAmount }) => ({
+    ...state,
+    tontineKpi: {
+      ...state.tontineKpi,
+      dailyMembersCount,
+      dailyCollectionsAmount,
+      dailyDeliveriesAmount,
+      loading: false,
+      error: null
+    }
+  })),
+  on(KpiActions.loadTontineSummaryKpiFailure, (state, { error }) => ({
     ...state,
     tontineKpi: {
       ...state.tontineKpi,

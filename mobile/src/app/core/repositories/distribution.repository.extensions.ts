@@ -384,6 +384,45 @@ export class DistributionRepositoryExtensions {
         return result.values?.[0]?.total || 0;
     }
 
+    /**
+     * Get total advances amount for a specific commercial
+     * 
+     * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
+     * 
+     * @param commercialId ID of the commercial (REQUIRED)
+     * @param dateFilter Optional date filter
+     * @returns Total advances amount
+     */
+    async getTotalAdvancesByCommercial(
+        commercialId: string,
+        dateFilter?: DateFilter
+    ): Promise<{ count: number; totalAmount: number }> {
+        if (!commercialId) {
+            throw new Error('commercialId is required for security - cannot calculate advances without commercial filter');
+        }
+
+        const commercialCondition = buildCommercialFilterCondition('distribution');
+        let whereConditions = [commercialCondition, 'advance > 0'];
+        const params: any[] = [commercialId];
+
+        if (dateFilter) {
+            const dateFilterResult = buildDateFilterClause(dateFilter, 'createdAt');
+            if (dateFilterResult.whereClause) {
+                whereConditions.push(dateFilterResult.whereClause);
+                params.push(...dateFilterResult.params);
+            }
+        }
+
+        const whereClause = whereConditions.join(' AND ');
+        const sql = `SELECT COUNT(*) as count, COALESCE(SUM(advance), 0) as totalAmount FROM distributions WHERE ${whereClause}`;
+        const result = await this.distributionRepository['getDatabaseService']().query(sql, params);
+
+        return {
+            count: result.values?.[0]?.count || 0,
+            totalAmount: result.values?.[0]?.totalAmount || 0
+        };
+    }
+
     private applyFilters(whereConditions: string[], params: any[], filters?: any) {
         if (filters?.status) {
             whereConditions.push('status = ?');

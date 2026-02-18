@@ -312,3 +312,84 @@ export const selectAnyKpiLoading = createSelector(
   (clientLoading, recoveryLoading, distributionLoading, articleLoading, orderLoading, tontineLoading, stockLoading) =>
     clientLoading || recoveryLoading || distributionLoading || articleLoading || orderLoading || tontineLoading || stockLoading
 );
+
+// ==================== ACCOUNT ACTIVITY KPI SELECTORS ====================
+
+export const selectAccountActivityKpi = createSelector(
+  selectKpiState,
+  (state: KpiState) => state.accountActivityKpi
+);
+
+export const selectAccountActivityKpiNewAccountsCount = createSelector(
+  selectAccountActivityKpi,
+  (kpi) => kpi.newAccountsCount
+);
+
+export const selectAccountActivityKpiNewAccountsBalance = createSelector(
+  selectAccountActivityKpi,
+  (kpi) => kpi.newAccountsBalance
+);
+
+export const selectAccountActivityKpiUpdatedAccountsCount = createSelector(
+  selectAccountActivityKpi,
+  (kpi) => kpi.updatedAccountsCount
+);
+
+export const selectAccountActivityKpiUpdatedAccountsBalance = createSelector(
+  selectAccountActivityKpi,
+  (kpi) => kpi.updatedAccountsBalance
+);
+
+export const selectAccountActivityKpiTotalBalance = createSelector(
+  selectAccountActivityKpi,
+  (kpi) => kpi.newAccountsBalance + kpi.updatedAccountsBalance
+);
+
+export const selectAccountActivityKpiTotalCount = createSelector(
+  selectAccountActivityKpi,
+  (kpi) => kpi.newAccountsCount + kpi.updatedAccountsCount
+);
+
+// ==================== ADVANCES KPI SELECTORS ====================
+
+export const selectAdvancesKpi = createSelector(
+  selectKpiState,
+  (state: KpiState) => state.advancesKpi
+);
+
+export const selectAdvancesKpiCount = createSelector(
+  selectAdvancesKpi,
+  (kpi) => kpi.count
+);
+
+export const selectAdvancesKpiTotalAmount = createSelector(
+  selectAdvancesKpi,
+  (kpi) => kpi.totalAmount
+);
+
+// ==================== DAILY TONTINE KPI SELECTORS ====================
+
+export const selectTontineKpiDailyMembersCount = createSelector(
+  selectTontineKpi,
+  (kpi) => kpi.dailyMembersCount
+);
+
+export const selectTontineKpiDailyCollectionsAmount = createSelector(
+  selectTontineKpi,
+  (kpi) => kpi.dailyCollectionsAmount
+);
+
+export const selectTontineKpiDailyDeliveriesAmount = createSelector(
+  selectTontineKpi,
+  (kpi) => kpi.dailyDeliveriesAmount
+);
+
+export const selectTontineKpiDailyCollectionsCount = createSelector(
+  selectTontineKpi,
+  (kpi) => kpi.dailyCollectionsCount
+);
+
+export const selectTontineKpiDailyDeliveriesCount = createSelector(
+  selectTontineKpi,
+  (kpi) => kpi.dailyDeliveriesCount
+);
