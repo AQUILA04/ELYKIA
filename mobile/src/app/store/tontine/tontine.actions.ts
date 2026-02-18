@@ -74,7 +74,7 @@ export const loadTontineCollectionsFailure = createAction(
 // Pagination Actions for Members
 export const loadFirstPageTontineMembers = createAction(
     '[Tontine] Load First Page Members',
-    props<{ sessionId: string; filters?: { searchQuery?: string; deliveryStatus?: string; quarter?: string; dateFilter?: any; isLocal?: boolean; isSync?: boolean } }>()
+    props<{ sessionId: string; filters?: { searchQuery?: string; deliveryStatus?: string; status?: string; quarter?: string; dateFilter?: any; isLocal?: boolean; isSync?: boolean } }>()
 );
 
 export const loadFirstPageTontineMembersSuccess = createAction(
@@ -89,7 +89,7 @@ export const loadFirstPageTontineMembersFailure = createAction(
 
 export const loadNextPageTontineMembers = createAction(
     '[Tontine] Load Next Page Members',
-    props<{ sessionId: string; filters?: { searchQuery?: string; deliveryStatus?: string; quarter?: string; dateFilter?: any; isLocal?: boolean; isSync?: boolean } }>()
+    props<{ sessionId: string; filters?: { searchQuery?: string; deliveryStatus?: string; status?: string; quarter?: string; dateFilter?: any; isLocal?: boolean; isSync?: boolean } }>()
 );
 
 export const loadNextPageTontineMembersSuccess = createAction(

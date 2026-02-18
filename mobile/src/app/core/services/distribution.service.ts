@@ -128,6 +128,18 @@ export class DistributionService {
     );
   }
 
+  getAvailableArticlesPaginated(page: number, size: number, filters?: { searchQuery?: string }): Observable<any> {
+    if (!this.commercialUsername) {
+      return of({ content: [], totalElements: 0, totalPages: 0 });
+    }
+    return from(this.commercialStockRepository.findAvailableArticlesPaginated(
+      this.commercialUsername,
+      page,
+      size,
+      filters
+    ));
+  }
+
   // Create a new distribution - save to local database only
   createDistribution(distributionData: CreateDistributionData): Observable<Distribution> {
     return from(this.createLocalDistribution(distributionData)).pipe(

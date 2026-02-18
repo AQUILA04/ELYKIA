@@ -55,7 +55,7 @@
         <!-- Grouped View -->
         <ng-container *ngIf="(isGroupedView$ | async); else flatList">
             <ng-container *ngIf="(groupedMembers$ | async) as groups">
-                <div *ngIf="groups.length === 0 && (filteredMembers$ | async)?.length === 0" class="empty-state">
+                <div *ngIf="groups.length === 0" class="empty-state">
                     <div class="empty-icon">🎯</div>
                     <h3>Aucun membre trouvé</h3>
                     <p>Tout est à jour pour aujourd'hui !</p>
@@ -68,7 +68,7 @@
                     </div>
                     <div class="member-card" *ngFor="let member of group.members"
                         (click)="viewMemberDetails(member.id)">
-                        <div class="member-avatar">{{ member.clientName?.charAt(0) || '?' }}</div>
+                        <div class="member-avatar">{{ member.clientName.charAt(0) || '?' }}</div>
                         <div class="member-info">
                             <div class="member-name">{{ member.clientName || 'Client Inconnu' }}</div>
                             <div class="member-details">
@@ -78,11 +78,10 @@
                             <div class="member-amount">{{ member.totalContribution | number:'1.0-0':'fr-FR' }} FCFA
                             </div>
                             <div style="display: flex; gap: 6px; margin-top: 4px;">
-                                <span class="member-status"
-                                    [ngClass]="getStatusClass(member.deliveryStatus || member.status)">
-                                    {{ getStatusLabel(member.deliveryStatus || member.status) }}
+                                <span class="member-status" [ngClass]="getStatusClass(member.deliveryStatus)">
+                                    {{ getStatusLabel(member.deliveryStatus) }}
                                 </span>
-                                <ion-badge *ngIf="!member.isSync" color="medium"
+                                <ion-badge *ngIf="!member.isLocal" color="medium"
                                     style="font-size: 10px; padding: 4px 6px;">
                                     <ion-icon name="cloud-offline-outline"
                                         style="font-size: 10px; margin-right: 2px;"></ion-icon>
@@ -104,15 +103,15 @@
 
         <!-- Flat List -->
         <ng-template #flatList>
-            <ng-container *ngIf="(displayedMembers$ | async) as members">
-                <div *ngIf="members.length === 0 && (filteredMembers$ | async)?.length === 0" class="empty-state">
+            <ng-container *ngIf="(members$ | async) as members">
+                <div *ngIf="members.length === 0" class="empty-state">
                     <div class="empty-icon">🎯</div>
                     <h3>Aucun membre trouvé</h3>
                     <p>Aucun membre ne correspond à vos critères de recherche.</p>
                 </div>
 
                 <div class="member-card" *ngFor="let member of members" (click)="viewMemberDetails(member.id)">
-                    <div class="member-avatar">{{ member.clientName?.charAt(0) || '?' }}</div>
+                    <div class="member-avatar">{{ member.clientName.charAt(0) || '?' }}</div>
                     <div class="member-info">
                         <div class="member-name">{{ member.clientName || 'Client Inconnu' }}</div>
                         <div class="member-details">
@@ -122,11 +121,11 @@
                         </div>
                         <div class="member-amount">{{ member.totalContribution | number:'1.0-0':'fr-FR' }} FCFA</div>
                         <div style="display: flex; gap: 6px; margin-top: 4px;">
-                            <span class="member-status"
-                                [ngClass]="getStatusClass(member.deliveryStatus || member.status)">
-                                {{ getStatusLabel(member.deliveryStatus || member.status) }}
+                            <span class="member-status" [ngClass]="getStatusClass(member.deliveryStatus)">
+                                {{ getStatusLabel(member.deliveryStatus) }}
                             </span>
-                            <ion-badge *ngIf="!member.isSync" color="medium" style="font-size: 10px; padding: 4px 6px;">
+                            <ion-badge *ngIf="!member.isLocal" color="medium"
+                                style="font-size: 10px; padding: 4px 6px;">
                                 <ion-icon name="cloud-offline-outline"
                                     style="font-size: 10px; margin-right: 2px;"></ion-icon>
                                 Local

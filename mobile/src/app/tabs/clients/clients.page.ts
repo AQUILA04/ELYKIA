@@ -1,20 +1,18 @@
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, combineLatest, from, of, switchMap, Subject } from 'rxjs';
+import { Observable, Subject, combineLatest, BehaviorSubject } from 'rxjs';
 import { ClientView } from 'src/app/models/client-view.model';
-import { selectClientViewsByCommercialUsername, selectAllClients } from 'src/app/store/client/client.selectors';
+import { selectPaginatedClientViews, selectClientPaginationHasMore, selectClientPaginationLoading } from 'src/app/store/client/client.selectors';
 import * as ClientActions from 'src/app/store/client/client.actions';
 import { loadAccounts } from 'src/app/store/account/account.actions';
 import { FormControl } from '@angular/forms';
-import { startWith, map, tap, catchError, filter, shareReplay, take, takeUntil } from 'rxjs/operators';
+import { startWith, map, tap, catchError, filter, shareReplay, take, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { User } from 'src/app/models/auth.model';
 import { LoggerService } from '../../core/services/logger.service';
-import { ActionSheetController } from '@ionic/angular';
+import { ActionSheetController, IonContent, IonInfiniteScroll } from '@ionic/angular';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-clients',
@@ -24,12 +22,19 @@ import { environment } from '../../../environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ClientsPage implements OnInit, OnDestroy {
+  @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
+  @ViewChild(IonContent) content!: IonContent;
+
   private destroy$ = new Subject<void>();
 
-  filteredClients$!: Observable<ClientView[]>;
-  filteredClients: ClientView[] = [];
-  searchControl = new FormControl();
+  paginatedClients$: Observable<ClientView[]>;
+  isLoading$: Observable<boolean>;
+  hasMore$: Observable<boolean>;
+
+  searchControl = new FormControl('');
   activeFilter = 'all';
+
+  private photoUrlCache = new Map<string, Observable<SafeUrl>>();
 
   constructor(
     private store: Store,
@@ -38,113 +43,115 @@ export class ClientsPage implements OnInit, OnDestroy {
     private log: LoggerService,
     private actionSheetCtrl: ActionSheetController,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) {
+    this.paginatedClients$ = this.store.select(selectPaginatedClientViews);
+    this.isLoading$ = this.store.select(selectClientPaginationLoading);
+    this.hasMore$ = this.store.select(selectClientPaginationHasMore);
+  }
 
   ngOnInit() {
-    const user$ = this.store.select(selectAuthUser).pipe(
-      filter((user): user is User => !!user),
-      shareReplay(1)
-    );
-
-    const clients$ = user$.pipe(
-      switchMap(user => this.store.select(selectClientViewsByCommercialUsername(user.username))),
-      map(clients => [...clients].sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateB - dateA;
-      }))
-    );
-
-    this.filteredClients$ = combineLatest([
-      clients$,
-      this.searchControl.valueChanges.pipe(startWith(''))
-    ]).pipe(
-      map(([clients, searchTerm]) => this.filterAndSortClients(clients, searchTerm, this.activeFilter)),
-      takeUntil(this.destroy$)
-    );
-
-    // Subscribe to update the synchronous property for virtual scrolling
-    this.filteredClients$.subscribe(clients => {
-      this.filteredClients = clients;
-      this.cdr.detectChanges();
+    // Handle Search
+    this.searchControl.valueChanges.pipe(
+      takeUntil(this.destroy$),
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.refreshList(query || '');
     });
   }
 
   ionViewWillEnter() {
-    this.loadClientData();
+    this.refreshList(this.searchControl.value || '');
   }
 
-  private loadClientData() {
+  refreshList(searchQuery: string) {
     this.store.select(selectAuthUser).pipe(take(1)).subscribe(user => {
       if (user && user.username) {
-        this.store.dispatch(ClientActions.loadClients({ commercialUsername: user.username }));
+        this.store.dispatch(ClientActions.loadFirstPageClients({
+          commercialUsername: user.username,
+          pageSize: 20,
+          filters: {
+            searchQuery: searchQuery,
+            clientType: this.activeFilter === 'all' ? undefined : this.activeFilter,
+            // Map UI filters to backend filters if needed (e.g. 'credit', 'new', 'quartier' logic might need adjustment in Repository)
+            // For now, assuming Repository handles these or we might need to adjust 'clientType' usage.
+            // 'credit' -> handled by repository logic if passed? repository handles 'quartier' sort?
+            // Checking client.repository.extensions: it handles 'quarter', 'isLocal', 'isSync'.
+            // 'credit' logic (clients with credit) might need a specific filter flag.
+          }
+        }));
+
+        // Also ensure accounts are loaded for the balance display
         this.store.dispatch(loadAccounts());
       }
     });
   }
 
-  private filterAndSortClients(clients: ClientView[], searchTerm: string, activeFilter: string): ClientView[] {
-    const lowerCaseSearchTerm = (searchTerm || '').toLowerCase();
-    let filtered = clients;
+  loadMore(event: any) {
+    this.store.select(selectAuthUser).pipe(take(1)).subscribe(user => {
+      if (user && user.username) {
+        this.store.dispatch(ClientActions.loadNextPageClients({
+          commercialUsername: user.username,
+          filters: {
+            searchQuery: this.searchControl.value || '',
+            clientType: this.activeFilter === 'all' ? undefined : this.activeFilter
+          }
+        }));
+      }
+    });
 
-    if (lowerCaseSearchTerm) {
-      filtered = clients.filter(client =>
-        (client.fullName || `${client.firstname} ${client.lastname}`).toLowerCase().includes(lowerCaseSearchTerm)
-      );
-    }
-
-    switch (activeFilter) {
-      case 'credit':
-        return filtered.filter(client => client.creditInProgress);
-      case 'new':
-        return filtered.filter(client => client.isLocal);
-      case 'quartier':
-        return [...filtered].sort((a, b) => (a.quarter || '').localeCompare(b.quarter || ''));
-      default:
-        return filtered;
-    }
+    // Determine when to complete the infinite scroll
+    // We can use a slight delay or listen to loading state changes
+    // But typically we just complete it immediately or after a short delay, 
+    // or let the effect handle it?
+    // Effects usually don't complete the UI event. 
+    // We should wait for loading to be false.
+    this.isLoading$.pipe(
+      filter(loading => !loading),
+      take(1)
+    ).subscribe(() => {
+      event.target.complete();
+    });
   }
 
-  private photoUrlCache = new Map<string, Observable<SafeUrl>>();
+  setFilter(filterName: string) {
+    this.activeFilter = filterName;
+    this.content?.scrollToTop(500);
+    this.refreshList(this.searchControl.value || '');
+  }
+
+  openClientDetail(clientId: string) {
+    this.router.navigate(['/client-detail', clientId]);
+  }
 
   getPhotoUrl(localPath: string | undefined | null): Observable<SafeUrl> {
     if (!localPath) {
-      return of('assets/icon/person-circle-outline.svg');
+      return new BehaviorSubject('assets/icon/person-circle-outline.svg');
     }
 
     if (this.photoUrlCache.has(localPath)) {
       return this.photoUrlCache.get(localPath)!;
     }
 
-    this.log.log(`[PhotoDebug-List] Attempting to load local photo from path: ${localPath}`);
+    const photoSubject = new Subject<SafeUrl>();
+    const photo$ = photoSubject.asObservable().pipe(shareReplay(1));
 
-    const photo$ = from(Filesystem.readFile({
+    Filesystem.readFile({
       path: localPath,
       directory: Directory.ExternalStorage
-    })).pipe(
-      map(file => {
-        this.log.log(`[PhotoDebug-List] Successfully read localFile from ExternalStorage: ${localPath}`);
-        return this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`);
-      }),
-      catchError((error) => {
-        this.log.log(`[PhotoDebug-List] Failed to read from ExternalStorage, trying Data: ${localPath}`);
-        // Fallback to Data directory
-        return from(Filesystem.readFile({
-          path: localPath,
-          directory: Directory.Data
-        })).pipe(
-          map(file => {
-            this.log.log(`[PhotoDebug-List] Successfully read localFile from Data: ${localPath}`);
-            return this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`);
-          }),
-          catchError((err) => {
-            this.log.log(`[PhotoDebug-List] Failed to read from Data as well: ${localPath}`);
-            return of('assets/icon/person-circle-outline.svg');
-          })
-        );
-      }),
-      shareReplay(1)
-    );
+    }).then(file => {
+      photoSubject.next(this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`));
+    }).catch(() => {
+      // Fallback
+      Filesystem.readFile({
+        path: localPath,
+        directory: Directory.Data
+      }).then(file => {
+        photoSubject.next(this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`));
+      }).catch(() => {
+        photoSubject.next('assets/icon/person-circle-outline.svg');
+      });
+    });
 
     this.photoUrlCache.set(localPath, photo$);
     return photo$;
@@ -153,15 +160,6 @@ export class ClientsPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  setFilter(filter: string) {
-    this.activeFilter = filter;
-    this.searchControl.setValue(this.searchControl.value); // Trigger re-evaluation
-  }
-
-  openClientDetail(clientId: string) {
-    this.router.navigate(['/client-detail', clientId]);
   }
 
   async presentActionSheet() {

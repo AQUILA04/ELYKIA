@@ -7,6 +7,7 @@ import { DateFilter, buildDateFilterClause } from '../models/date-filter.model';
 
 export interface TontineMemberRepositoryFilters extends RepositoryViewFilters {
     deliveryStatus?: string;
+    status?: string;
 }
 
 /**
@@ -310,6 +311,28 @@ export class TontineMemberRepositoryExtensions {
             params.push(filters.deliveryStatus);
         }
 
+        // Status Filter Logic
+        if (filters?.status) {
+            if (filters.status === 'todo') {
+                // Filter members who have NOT collected today
+                // We use the same 'today' date as in the main query
+                const today = new Date().toISOString().split('T')[0];
+                whereConditions.push(`NOT EXISTS (
+                    SELECT 1 FROM tontine_collections tc 
+                    WHERE tc.tontineMemberId = tm.id 
+                    AND substr(tc.collectionDate, 1, 10) = ?
+                )`);
+                params.push(today);
+            } else if (filters.status === 'ACTIVE') {
+                // Active usually implies they are in the session (which is already filtered) 
+                // and maybe not delivered? Or just all active members.
+                // For now, if 'ACTIVE' is passed, we might filter by specific status if needed.
+                // If TontineMember had a status column: whereConditions.push('tm.status = ?'); params.push('ACTIVE');
+                // Since it relies on deliveryStatus for lifecycle:
+                // whereConditions.push('tm.deliveryStatus != ?'); params.push('DELIVERED'); // Example
+            }
+        }
+
         if (filters?.searchQuery) {
             whereConditions.push('(c.fullName LIKE ? OR c.phone LIKE ?)');
             const searchPattern = `%${filters.searchQuery}%`;
@@ -322,9 +345,7 @@ export class TontineMemberRepositoryExtensions {
         }
 
         if (filters?.dateFilter) {
-            // TontineMember usually has 'createdAt'.
-            // Or we filter by last collection date? Usually member creation date.
-            const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'tm.createdAt');
+            const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'tm.registrationDate');
             if (dateFilterResult.whereClause) {
                 whereConditions.push(dateFilterResult.whereClause);
                 params.push(...dateFilterResult.params);

@@ -58,6 +58,9 @@ export class MigrationService {
       case 12:
         await this.migrateToV12(db);
         break;
+      case 13:
+        await this.migrateToV13(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -353,6 +356,22 @@ export class MigrationService {
     } catch (error: any) {
       this.log.log(`Error in migration v12: ${error}`);
       console.error('Error in migration v12', error);
+      throw error;
+    }
+  }
+
+  private async migrateToV13(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v13: Creating indexes for distributions table...');
+
+      await db.execute("CREATE INDEX IF NOT EXISTS idx_distributions_clientId ON distributions(clientId);");
+      await db.execute("CREATE INDEX IF NOT EXISTS idx_distributions_commercialId ON distributions(commercialId);");
+      await db.execute("CREATE INDEX IF NOT EXISTS idx_distributions_status ON distributions(status);");
+
+      this.log.log('Migration to v13 successful.');
+    } catch (error) {
+      this.log.log(`Error in migration v13: ${error}`);
+      console.error('Error in migration v13', error);
       throw error;
     }
   }

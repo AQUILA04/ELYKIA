@@ -103,6 +103,38 @@ export class DistributionEffects {
     )
   );
 
+  loadFirstPageAvailableArticles$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadFirstPageAvailableArticles),
+      switchMap(({ commercialUsername, pageSize, filters }) =>
+        this.distributionService.getAvailableArticlesPaginated(0, pageSize || 20, filters).pipe(
+          map(page => DistributionActions.loadFirstPageAvailableArticlesSuccess({
+            articles: page.content,
+            totalElements: page.totalElements,
+            totalPages: page.totalPages
+          })),
+          catchError(error => of(DistributionActions.loadFirstPageAvailableArticlesFailure({ error: error.message })))
+        )
+      )
+    )
+  );
+
+  loadNextPageAvailableArticles$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadNextPageAvailableArticles),
+      withLatestFrom(this.store.select(selectDistributionState)),
+      switchMap(([{ commercialUsername, pageSize, filters }, state]) => {
+        const nextPage = state.articlesPagination.currentPage + 1;
+        return this.distributionService.getAvailableArticlesPaginated(nextPage, pageSize || 20, filters).pipe(
+          map(page => DistributionActions.loadNextPageAvailableArticlesSuccess({
+            articles: page.content
+          })),
+          catchError(error => of(DistributionActions.loadNextPageAvailableArticlesFailure({ error: error.message })))
+        );
+      })
+    )
+  );
+
   // Create Distribution Effect - save to local database only
   createDistribution$ = createEffect(() =>
     this.actions$.pipe(

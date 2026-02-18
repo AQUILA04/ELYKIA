@@ -77,7 +77,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 12; // Incremented for syncHash update
+        const targetVersion = 13; // Incremented for distribution indices
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -426,6 +426,12 @@ export class DatabaseService {
         CREATE INDEX IF NOT EXISTS idx_order_items_orderId ON order_items(orderId);
         CREATE INDEX IF NOT EXISTS idx_order_items_articleId ON order_items(articleId);
         CREATE INDEX IF NOT EXISTS idx_clients_tontineCollector ON clients(tontineCollector);
+        
+        -- Index pour optimiser les performances des distributions
+        CREATE INDEX IF NOT EXISTS idx_distributions_clientId ON distributions(clientId);
+        CREATE INDEX IF NOT EXISTS idx_distributions_commercialId ON distributions(commercialId);
+        CREATE INDEX IF NOT EXISTS idx_distributions_status ON distributions(status);
+
 
         -- ==========================================
         -- TABLES TONTINE

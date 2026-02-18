@@ -129,17 +129,92 @@ export class CommercialStockRepository {
   async getTotalStockValue(username: string): Promise<number> {
     try {
       // Join with articles table to get creditSalePrice
-      const sql = `
+      const query = `
               SELECT COALESCE(SUM(s.quantityRemaining * a.creditSalePrice), 0) as totalValue
               FROM commercial_stock_items s
               JOIN articles a ON s.articleId = a.id
               WHERE s.commercialUsername = ?
           `;
-      const result = await this.db.query(sql, [username]);
-      return result.values?.[0]?.totalValue || 0;
+      const result = await this.db.query(query, [username]);
+      return result?.values?.[0]?.totalValue || 0;
     } catch (error) {
       this.log.error('[CommercialStockRepository] Error calculating total stock value', error);
       return 0;
+    }
+  }
+
+  /**
+   * Find available articles (with stock) paginated
+   * 
+   * @param username Commercial username
+   * @param page Page index (0-based)
+   * @param size Page size
+   * @param filters Optional filters (searchQuery)
+   * @returns Page of Articles with stockQuantity populated
+   */
+  async findAvailableArticlesPaginated(
+    username: string,
+    page: number,
+    size: number,
+    filters?: { searchQuery?: string }
+  ): Promise<{ content: any[], totalElements: number, totalPages: number }> {
+    try {
+      const offset = page * size;
+      const params: any[] = [username];
+
+      let baseQuery = `
+        FROM commercial_stock_items s
+        JOIN articles a ON s.articleId = a.id
+        WHERE s.commercialUsername = ? AND s.quantityRemaining > 0
+      `;
+
+      if (filters?.searchQuery) {
+        baseQuery += ` AND (LOWER(a.name) LIKE ? OR LOWER(a.reference) LIKE ?)`;
+        const term = `%${filters.searchQuery.toLowerCase()}%`;
+        params.push(term, term);
+      }
+
+      // Count Query
+      const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
+      // Log count query for debugging
+      // console.log('[CommercialStockRepository] Count Query:', countQuery, params);
+
+      const countResult = await this.db.query(countQuery, params);
+      const totalElements = countResult?.values?.[0]?.total || 0;
+      const totalPages = Math.ceil(totalElements / size);
+
+      // Data Query
+      const dataQuery = `
+        SELECT a.*, s.quantityRemaining as stockQuantity 
+        ${baseQuery}
+        ORDER BY a.name ASC
+        LIMIT ? OFFSET ?
+      `;
+
+      const dataParams = [...params, size, offset];
+      // Log data query for debugging
+      // console.log('[CommercialStockRepository] Data Query:', dataQuery, dataParams);
+
+      const dataResult = await this.db.query(dataQuery, dataParams);
+      const content = dataResult?.values || [];
+
+      // Parse JSON fields if necessary (like existing dbService does for Articles)
+      // Usually dbService handles this if using getArticles, but here we do raw query.
+      // We might need to parse 'image', 'packaging', etc if they are JSON strings.
+      // But typically SQLite plugin returns columns as is. If Article entity has special types, we might need mapping.
+      // For now, assuming direct mapping is fine or handled by consumer.
+      // Actually, 'isSync', 'isLocal' are integers (0/1) in SQLite usually?
+      // Let's ensure basic boolean mapping if needed, but often JS treats 1 as true-ish.
+
+      return {
+        content,
+        totalElements,
+        totalPages
+      };
+
+    } catch (error) {
+      this.log.error('[CommercialStockRepository] Error finding available articles paginated', error);
+      return { content: [], totalElements: 0, totalPages: 0 };
     }
   }
 }

@@ -15,15 +15,17 @@
 <ion-content>
   <div class="filters-section">
     <ion-chip [class.ion-color-primary]="activeFilter === 'all'" (click)="setFilter('all')">Tous</ion-chip>
-    <ion-chip [class.ion-color-primary]="activeFilter === 'credit'" (click)="setFilter('credit')">Crédit en cours</ion-chip>
+    <ion-chip [class.ion-color-primary]="activeFilter === 'credit'" (click)="setFilter('credit')">Crédit en
+      cours</ion-chip>
     <ion-chip [class.ion-color-primary]="activeFilter === 'new'" (click)="setFilter('new')">Nouveau</ion-chip>
-    <ion-chip [class.ion-color-primary]="activeFilter === 'quartier'" (click)="setFilter('quartier')">Par Quartier</ion-chip>
+    <ion-chip [class.ion-color-primary]="activeFilter === 'quartier'" (click)="setFilter('quartier')">Par
+      Quartier</ion-chip>
   </div>
 
   <div class="list-container">
-    <ion-list *ngIf="filteredClients.length > 0; else emptyState">
-      <cdk-virtual-scroll-viewport itemSize="88" class="ion-content-scroll-host">
-        <ion-item *cdkVirtualFor="let client of filteredClients; trackBy: trackByClientId" (click)="openClientDetail(client.id)" button>
+    <ion-list *ngIf="(paginatedClients$ | async) as clients">
+      <ng-container *ngIf="clients.length > 0; else emptyState">
+        <ion-item *ngFor="let client of clients; trackBy: trackByClientId" (click)="openClientDetail(client.id)" button>
           <ion-avatar slot="start">
             <img [src]="getPhotoUrl(client.profilPhoto || client.profilPhotoUrl) | async" />
           </ion-avatar>
@@ -45,17 +47,22 @@
             </ion-badge>
           </div>
         </ion-item>
-      </cdk-virtual-scroll-viewport>
-    </ion-list>
-  </div>
+      </ng-container>
 
-  <ng-template #emptyState>
-    <div class="empty-state">
-      <ion-icon name="people-outline"></ion-icon>
-      <h2>Aucun client trouvé</h2>
-      <p>Ajouter un <a routerLink="new-client">nouveau client</a> ?</p>
-    </div>
-  </ng-template>
+      <ng-template #emptyState>
+        <div class="empty-state">
+          <ion-icon name="people-outline"></ion-icon>
+          <h2 *ngIf="!(isLoading$ | async)">Aucun client trouvé</h2>
+          <ion-spinner *ngIf="isLoading$ | async"></ion-spinner>
+          <p>Ajouter un <a routerLink="new-client">nouveau client</a> ?</p>
+        </div>
+      </ng-template>
+    </ion-list>
+
+    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMore($event)" [disabled]="!(hasMore$ | async)">
+      <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement..."></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+  </div>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button routerLink="new-client">

@@ -1,6 +1,7 @@
 import { createAction, props } from '@ngrx/store';
 import { Client } from '../../models/client.model';
 import { DateFilter } from '../../core/models/date-filter.model';
+import { ClientRepositoryFilters } from '../../core/repositories/client.repository.extensions';
 
 export const loadClients = createAction(
   '[Client] Load Clients',
@@ -118,15 +119,10 @@ export const updateClientPhotosAndInfoFailure = createAction(
 
 export const loadFirstPageClients = createAction(
   '[Client] Load First Page Clients',
-  props<{ 
+  props<{
     commercialUsername: string;
     pageSize?: number;
-    filters?: {
-      searchQuery?: string;
-      quarter?: string;
-      clientType?: string;
-      dateFilter?: DateFilter;
-    }
+    filters?: ClientRepositoryFilters
   }>()
 );
 
@@ -142,15 +138,7 @@ export const loadFirstPageClientsFailure = createAction(
 
 export const loadNextPageClients = createAction(
   '[Client] Load Next Page Clients',
-  props<{ 
-    commercialUsername: string;
-    filters?: {
-      searchQuery?: string;
-      quarter?: string;
-      clientType?: string;
-      dateFilter?: DateFilter;
-    }
-  }>()
+  props<{ commercialUsername: string, filters?: ClientRepositoryFilters }>()
 );
 
 export const loadNextPageClientsSuccess = createAction(

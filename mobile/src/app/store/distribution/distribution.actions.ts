@@ -133,10 +133,41 @@ export const refreshDistributions = createAction('[Distribution] Refresh Distrib
 
 export const refreshAvailableArticles = createAction('[Distribution] Refresh Available Articles');
 
+// Pagination Actions for Available Articles
+export const loadFirstPageAvailableArticles = createAction(
+  '[Distribution] Load First Page Available Articles',
+  props<{ commercialUsername?: string; pageSize?: number; filters?: { searchQuery?: string; categoryId?: string } }>()
+);
+
+export const loadFirstPageAvailableArticlesSuccess = createAction(
+  '[Distribution] Load First Page Available Articles Success',
+  props<{ articles: Article[]; totalElements: number; totalPages: number }>()
+);
+
+export const loadFirstPageAvailableArticlesFailure = createAction(
+  '[Distribution] Load First Page Available Articles Failure',
+  props<{ error: string }>()
+);
+
+export const loadNextPageAvailableArticles = createAction(
+  '[Distribution] Load Next Page Available Articles',
+  props<{ commercialUsername?: string; pageSize?: number; filters?: { searchQuery?: string; categoryId?: string } }>()
+);
+
+export const loadNextPageAvailableArticlesSuccess = createAction(
+  '[Distribution] Load Next Page Available Articles Success',
+  props<{ articles: Article[] }>()
+);
+
+export const loadNextPageAvailableArticlesFailure = createAction(
+  '[Distribution] Load Next Page Available Articles Failure',
+  props<{ error: string }>()
+);
+
 // Article quantity management for new distribution
 export const updateArticleQuantity = createAction(
   '[Distribution] Update Article Quantity',
-  props<{ articleId: string; quantity: number }>()
+  props<{ articleId: string; quantity: number; article?: Article }>() // Added optional article for caching
 );
 
 export const setSelectedClient = createAction(
@@ -181,7 +212,7 @@ export const updateDistributionFailure = createAction(
 // Pagination Actions
 export const loadFirstPageDistributions = createAction(
   '[Distribution] Load First Page Distributions',
-  props<{ commercialUsername: string; filters?: { status?: string; clientId?: string; searchQuery?: string; isLocal?: boolean; isSync?: boolean; quarter?: string; dateFilter?: any } }>()
+  props<{ commercialUsername: string; pageSize?: number; filters?: { status?: string; clientId?: string; searchQuery?: string; isLocal?: boolean; isSync?: boolean; quarter?: string; dateFilter?: any } }>()
 );
 
 export const loadFirstPageDistributionsSuccess = createAction(
@@ -196,7 +227,7 @@ export const loadFirstPageDistributionsFailure = createAction(
 
 export const loadNextPageDistributions = createAction(
   '[Distribution] Load Next Page Distributions',
-  props<{ commercialUsername: string; filters?: { status?: string; clientId?: string; searchQuery?: string; isLocal?: boolean; isSync?: boolean; quarter?: string; dateFilter?: any } }>()
+  props<{ commercialUsername: string; pageSize?: number; filters?: { status?: string; clientId?: string; searchQuery?: string; isLocal?: boolean; isSync?: boolean; quarter?: string; dateFilter?: any } }>()
 );
 
 export const loadNextPageDistributionsSuccess = createAction(

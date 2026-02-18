@@ -161,14 +161,34 @@ export class DistributionRepositoryExtensions {
         const totalElements = countResult.values?.[0]?.total || 0;
         const totalPages = Math.ceil(totalElements / size);
 
-        // Data with JOIN
+        // Data with JOIN and JSON Aggregation for items
         const dataSql = `
             SELECT d.*, 
                    c.fullName as clientName, 
                    c.phone as clientPhone, 
                    c.quarter as clientQuarter,
                    c.address as clientAddress,
-                   c.location as clientLocation
+                   c.location as clientLocation,
+                   (
+                       SELECT json_group_array(
+                           json_object(
+                               'articleId', di.articleId,
+                               'quantity', di.quantity,
+                               'unitPrice', di.unitPrice,
+                               'totalPrice', di.totalPrice,
+                               'article', json_object(
+                                   'id', a.id,
+                                   'name', a.name,
+                                   'commercialName', a.commercialName,
+                                   'type', a.type,
+                                   'photo', a.photo
+                               )
+                           )
+                       )
+                       FROM distribution_items di
+                       JOIN articles a ON di.articleId = a.id
+                       WHERE di.distributionId = d.id
+                   ) as itemsJson
             FROM distributions d 
             JOIN clients c ON d.clientId = c.id
             WHERE ${whereClause} 
@@ -189,8 +209,18 @@ export class DistributionRepositoryExtensions {
                 phone: row.clientPhone,
                 quarter: row.clientQuarter,
                 address: row.clientAddress,
-                // Partial client...
+                location: row.clientLocation
             } as any;
+
+            // Parse items from JSON
+            let items: any[] = [];
+            try {
+                if (row.itemsJson) {
+                    items = JSON.parse(row.itemsJson);
+                }
+            } catch (e) {
+                console.error('Error parsing itemsJson for distribution', row.id, e);
+            }
 
             return {
                 ...distribution,
@@ -198,23 +228,7 @@ export class DistributionRepositoryExtensions {
                 clientName: row.clientName,
                 clientPhone: row.clientPhone,
                 clientQuarter: row.clientQuarter,
-                items: [] // Items are usually fetched separately or we need another JOIN. 
-                // DistributionView extends Omit<Distribution, 'items'> ... and adds items: DistributionItemView[].
-                // The current implementation of findAllPaginated usually does NOT fetch items?
-                // Let's check standard behavior. Usually list views don't show items, or they do?
-                // DistributionView implies we have items.
-                // If we need items, we must fetch them.
-                // For performance, maybe we don't fetch items in the LIST view unless requested?
-                // But the interface requires 'items'.
-                // If we leave it empty, UI might break if it iterates.
-                // Given this is for a "View", maybe we fetch items?
-                // Fetching items for 20 distributions = 20 queries OR 1 IN query.
-                // Let's set it to empty array for now and assume proper detail view fetches it, OR if the list needs it, we must implement it.
-                // Standard 'findAllPaginated' returns 'Distribution' which HAS 'items: DistributionItem[]'.
-                // Does 'findAllPaginated' fill items?
-                // The SQL `SELECT * FROM distributions` does NOT return items (they are in distribution_items table).
-                // So the existing 'findAllPaginated' (lines 86-88 in original) returns Distribution objects WITHOUT items populated (unless the repository does it magically, which it doesn't seem to do here).
-                // So returning empty items is consistent with existing findAllPaginated.
+                items: items
             };
         });
 

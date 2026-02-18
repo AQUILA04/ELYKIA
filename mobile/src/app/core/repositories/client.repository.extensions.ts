@@ -17,6 +17,9 @@ import { RepositoryViewFilters } from './repository.interface';
 
 export interface ClientRepositoryFilters extends RepositoryViewFilters {
     clientType?: string;
+    hasCredit?: boolean;
+    orderBy?: 'quarter' | 'name';
+    tontineCollector?: string;
 }
 
 /**
@@ -143,6 +146,32 @@ export class ClientRepositoryExtensions {
             params.push(filters.isSync ? 1 : 0);
         }
 
+        if (filters?.hasCredit) {
+            // Join is already done with accounts a.
+            // We need clients who have an account with balance < 0 (credit) OR > 0?
+            // Usually "Credit" in this context means they owe money. 
+            // In ELYKIA:
+            // - Positive balance = Client has money (Deposit)
+            // - Negative balance = Client owes money (Credit/Debt)
+            // Let's check `recovery-client-list.page.ts` or `recovery.selectors.ts` to confirm what "Recovery" means.
+            // `selectClientsForRecovery` usually filters simple lists.
+
+            // Wait, let's verify if `hasCredit` means < 0.
+            // Assuming Credit = Debt = Negative Balance.
+            // But sometimes "Credit" means "Credit Limit".
+            // Context "Recouvrement" -> Recovery -> Debt.
+            // So Balance < 0.
+            // BUT, `accountBalance` is usually stored as positive if they have money, negative if they owe? 
+            // Or maybe `creditInProgress` flag exists?
+            // `clients` table has `creditInProgress` column (boolean).
+
+            whereConditions.push('c.creditInProgress = 1');
+            // params.push(1); // No param needed for literal check or if mapped.
+            // actually if it is 1/0 integer:
+            // whereConditions.push('c.creditInProgress = ?');
+            // params.push(1);
+        }
+
         const whereClause = whereConditions.join(' AND ');
 
         // Count
@@ -151,7 +180,16 @@ export class ClientRepositoryExtensions {
         const totalElements = countResult.values?.[0]?.total || 0;
         const totalPages = Math.ceil(totalElements / size);
 
-        // Data with JOIN
+        // Default sort by Quarter then Name if grouping is implied, or just Name.
+        // If sorting by Quarter is required for the UI grouping to work with pagination, 
+        // we should probably sort by `c.quarter ASC, c.fullName ASC`.
+
+        let orderByClause = 'ORDER BY c.fullName ASC';
+
+        if (filters?.orderBy === 'quarter') {
+            orderByClause = 'ORDER BY COALESCE(c.quarter, "ZZZ") ASC, c.fullName ASC';
+        }
+
         const dataSql = `
             SELECT c.*, 
                    a.id as accountId,
@@ -161,7 +199,7 @@ export class ClientRepositoryExtensions {
             FROM clients c 
             LEFT JOIN accounts a ON c.id = a.clientId
             WHERE ${whereClause} 
-            ORDER BY c.fullName ASC 
+            ${orderByClause}
             LIMIT ${size} OFFSET ${offset}
         `;
 
@@ -220,7 +258,7 @@ export class ClientRepositoryExtensions {
         this.applyFilters(whereConditions, params, filters);
 
         const whereClause = whereConditions.join(' AND ');
-        const sql = `SELECT COUNT(*) as total FROM clients WHERE ${whereClause}`;
+        const sql = `SELECT COUNT(*) as total FROM clients WHERE ${whereClause} `;
         const result = await this.clientRepository['getDatabaseService']().query(sql, params);
 
         return result.values?.[0]?.total || 0;
@@ -257,7 +295,7 @@ export class ClientRepositoryExtensions {
         }
 
         const whereClause = whereConditions.join(' AND ');
-        const sql = `SELECT COUNT(*) as total FROM clients WHERE ${whereClause}`;
+        const sql = `SELECT COUNT(*) as total FROM clients WHERE ${whereClause} `;
         const result = await this.clientRepository['getDatabaseService']().query(sql, params);
 
         return result.values?.[0]?.total || 0;
@@ -294,7 +332,7 @@ export class ClientRepositoryExtensions {
         // So we join clients.
 
         const baseJoin = `JOIN clients c ON a.clientId = c.id`;
-        const commercialCondition = `c.commercial = ?`;
+        const commercialCondition = `c.commercial = ? `;
 
         // Date filter logic
         let newAccountsWhere = [commercialCondition];
@@ -363,7 +401,7 @@ export class ClientRepositoryExtensions {
     private applyFilters(whereConditions: string[], params: any[], filters?: any) {
         if (filters?.searchQuery) {
             whereConditions.push('(fullName LIKE ? OR phone LIKE ? OR quarter LIKE ?)');
-            const searchPattern = `%${filters.searchQuery}%`;
+            const searchPattern = `% ${filters.searchQuery}% `;
             params.push(searchPattern, searchPattern, searchPattern);
         }
 
