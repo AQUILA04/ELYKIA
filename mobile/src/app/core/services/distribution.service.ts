@@ -234,7 +234,21 @@ export class DistributionService {
       syncHash: ''
     };
 
+    // --- STOCK VALIDATION START ---
+    // Verify strict stock availability before proceeding
+    for (const item of distributionData.articles) {
+      const currentStock = await this.commercialStockRepository.getCurrentStock(item.articleId, this.commercialUsername);
+      if (currentStock < item.quantity) {
+        const allArticles = await this.dbService.getArticles();
+        const article = allArticles.find(a => a.id === item.articleId);
+        const articleName = article ? article.name : `Article ${item.articleId}`;
+        throw new Error(`Stock insuffisant pour ${articleName}. Disponible: ${currentStock}, Demandé: ${item.quantity}`);
+      }
+    }
+    // --- STOCK VALIDATION END ---
+
     // Save the main distribution record first
+
     await this.dbService.saveDistributions([distribution]);
 
     // Now, create and save the distribution items
