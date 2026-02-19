@@ -71,13 +71,13 @@
             <span>Articles Disponibles</span>
         </div>
 
-        <div class="empty-state" *ngIf="vm.stocks.length === 0 && !vm.loading">
+        <div class="empty-state" *ngIf="(stocks$ | async)?.length === 0 && !(isLoading$ | async)">
             <ion-icon name="cube-outline" class="empty-icon"></ion-icon>
             <h3>Aucun stock disponible</h3>
             <p>Aucun article en stock pour cette session</p>
         </div>
 
-        <div class="article-card" *ngFor="let stock of vm.stocks">
+        <div class="article-card" *ngFor="let stock of stocks$ | async">
             <div class="article-image">
                 <ion-icon name="cube-outline"></ion-icon>
             </div>
@@ -103,6 +103,11 @@
                 </div>
             </div>
         </div>
+
+        <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreStocks($event)">
+            <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement plus d'articles...">
+            </ion-infinite-scroll-content>
+        </ion-infinite-scroll>
     </div>
 </ion-content>
 

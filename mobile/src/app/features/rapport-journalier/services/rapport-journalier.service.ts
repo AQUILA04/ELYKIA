@@ -103,7 +103,7 @@ export class RapportJournalierService {
     });
   }
 
-  getDailyReport(date?: Date): Observable<DailyReportData> {
+  getAllDailyReportData(date?: Date): Observable<DailyReportData> {
     if (!this.commercialUsername) {
       console.error('RapportJournalierService: Commercial username not available.');
       return of({
@@ -115,7 +115,7 @@ export class RapportJournalierService {
         newClients: { count: 0, totalBalance: 0, items: [] },
         advances: { count: 0, totalAmount: 0 },
         tontine: { count: 0, totalAmount: 0 }
-      }); // Return a default empty report
+      });
     }
     const currentCommercialId = this.commercialUsername;
     const targetDate = date || new Date();
@@ -234,16 +234,11 @@ export class RapportJournalierService {
       })
     );
 
-    const tontine$ = from(this.databaseService.getTontineCollectionsByCommercial(currentCommercialId)).pipe(
-      map((collections: any[]) => {
-        const todayCollections = collections.filter(c => c.collectionDate && c.collectionDate.startsWith(dateString));
-        const totalAmount = todayCollections.reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
-        return {
-          count: todayCollections.length,
-          totalAmount: totalAmount
-        };
-      })
-    );
+    const tontineDetails$ = forkJoin({
+      members: this.getTontineMembersData(targetDate),
+      collections: this.getTontineCollectionsData(targetDate),
+      deliveries: this.getTontineDeliveriesData(targetDate)
+    });
 
     return forkJoin({
       commercial: commercial$,
@@ -251,7 +246,7 @@ export class RapportJournalierService {
       recoveries: recoveries$,
       newClients: newClients$,
       advances: advances$,
-      tontine: tontine$
+      tontineDetails: tontineDetails$
     }).pipe(
       map((results: {
         commercial: Commercial | null;
@@ -259,9 +254,15 @@ export class RapportJournalierService {
         recoveries: { count: number; totalAmount: number; items: any[] };
         newClients: { count: number; totalBalance: number; items: any[] };
         advances: { count: number; totalAmount: number };
-        tontine: { count: number; totalAmount: number };
+        tontineDetails: {
+          members: { count: number; items: any[] };
+          collections: { count: number; totalAmount: number; items: any[] };
+          deliveries: { count: number; totalAmount: number; items: any[] };
+        };
       }) => {
-        const totalToPay = results.recoveries.totalAmount + results.advances.totalAmount + results.tontine.totalAmount;
+        const tontineTotalAmount = results.tontineDetails.collections.totalAmount;
+        const totalToPay = results.recoveries.totalAmount + results.advances.totalAmount + tontineTotalAmount;
+
         return {
           date: targetDate.toLocaleDateString('fr-FR', {
             weekday: 'long',
@@ -275,18 +276,18 @@ export class RapportJournalierService {
           recoveries: results.recoveries,
           newClients: results.newClients,
           advances: results.advances,
-          tontine: results.tontine
+          tontine: {
+            count: results.tontineDetails.collections.count + results.tontineDetails.deliveries.count,
+            totalAmount: tontineTotalAmount
+          },
+          tontineMembers: results.tontineDetails.members,
+          tontineCollections: results.tontineDetails.collections,
+          tontineDeliveries: results.tontineDetails.deliveries
         };
       })
     );
   }
 
-  /**
-   * Charge les données des membres tontine du jour (lazy loading)
-   */
-  /**
-   * Charge les données des membres tontine du jour (lazy loading)
-   */
   getTontineMembersData(date?: Date): Observable<{ count: number; items: any[] }> {
     if (!this.commercialUsername) {
       return of({ count: 0, items: [] });
@@ -313,9 +314,6 @@ export class RapportJournalierService {
     );
   }
 
-  /**
-   * Charge les données des collectes tontine du jour (lazy loading)
-   */
   getTontineCollectionsData(date?: Date): Observable<{ count: number; totalAmount: number; items: any[] }> {
     if (!this.commercialUsername) {
       return of({ count: 0, totalAmount: 0, items: [] });
@@ -348,9 +346,6 @@ export class RapportJournalierService {
     );
   }
 
-  /**
-   * Charge les données des livraisons tontine du jour (lazy loading)
-   */
   getTontineDeliveriesData(date?: Date): Observable<{ count: number; totalAmount: number; items: any[] }> {
     if (!this.commercialUsername) {
       return of({ count: 0, totalAmount: 0, items: [] });
@@ -383,9 +378,6 @@ export class RapportJournalierService {
     );
   }
 
-  /**
-   * Charge uniquement le count des tontines pour l'affichage initial des badges
-   */
   getTontineCountsOnly(date?: Date): Observable<{ members: number; collections: number; deliveries: number }> {
     if (!this.commercialUsername) {
       return of({ members: 0, collections: 0, deliveries: 0 });
@@ -413,11 +405,6 @@ export class RapportJournalierService {
     });
   }
 
-  /**
-   * ==================================================================
-   * GÉNÉRATION HTML POUR PDF (FORMAT COMPLET AVEC TABLEAUX)
-   * ==================================================================
-   */
   generatePDFHTML(reportData: DailyReportData): string {
     const formattedDate = new Date().toLocaleDateString('fr-FR', {
       weekday: 'long',
@@ -428,7 +415,6 @@ export class RapportJournalierService {
 
     const formatPrice = (amount: number) => amount.toLocaleString('fr-FR');
 
-    // Générer les tableaux pour chaque entité
     const distributionsTable = this.generateTableHTML(
       'Distributions',
       ['ID', 'Heure', 'Client', 'Détails', 'Montant', 'Statut'],
@@ -652,14 +638,12 @@ export class RapportJournalierService {
       </head>
       <body>
         <div class="container">
-          <!-- En-tête -->
           <div class="header">
             <h1>Rapport Journalier</h1>
             <p><strong>Date:</strong> ${formattedDate}</p>
             <p><strong>Commercial:</strong> ${reportData.commercialName}</p>
           </div>
 
-          <!-- Section KPI -->
           <div class="kpi-section">
             <h2>Résumé du Jour</h2>
             <div class="kpi-grid">
@@ -704,7 +688,6 @@ export class RapportJournalierService {
             </div>
           </div>
 
-          <!-- Tableaux détaillés -->
           ${distributionsTable}
           ${recoveriesTable}
           ${clientsTable}
@@ -712,7 +695,6 @@ export class RapportJournalierService {
           ${tontineCollectionsTable}
           ${tontineDeliveriesTable}
 
-          <!-- Pied de page -->
           <div class="footer">
             <p>Document généré le ${new Date().toLocaleString('fr-FR')}</p>
             <p>© ELYKIA - Tous droits réservés</p>
@@ -723,9 +705,6 @@ export class RapportJournalierService {
     `;
   }
 
-  /**
-   * Génère un tableau HTML pour une entité
-   */
   private generateTableHTML(title: string, headers: string[], rows: string[][]): string {
     if (rows.length === 0) {
       return `
@@ -739,7 +718,6 @@ export class RapportJournalierService {
     const headerRow = headers.map(h => `<th>${h}</th>`).join('');
     const dataRows = rows.map(row => {
       const cells = row.map((cell, index) => {
-        // Appliquer un style spécial pour la colonne Statut
         if (index === row.length - 1) {
           const cssClass = cell === 'Sync' ? 'status-sync' : 'status-local';
           return `<td class="${cssClass}">${cell}</td>`;
@@ -764,19 +742,11 @@ export class RapportJournalierService {
     `;
   }
 
-  /**
-   * ==================================================================
-   * MÉTHODE MISE À JOUR POUR CORRESPONDRE AU FORMAT DU REÇU
-   * ==================================================================
-   */
   generateReportHTML(reportData: DailyReportData): string {
     const formattedDate = new Date().toLocaleDateString('fr-FR');
     const formattedTime = new Date().toLocaleTimeString('fr-FR');
-
-    // Fonctions d'aide pour formater les montants
     const formatPrice = (amount: number) => amount.toLocaleString('fr-FR');
     const formatPriceWithCurrency = (amount: number) => `${amount.toLocaleString('fr-FR')} FCFA`;
-
     const uniqueId = `#EL${Date.now().toString()}`;
 
     return `
@@ -788,7 +758,7 @@ export class RapportJournalierService {
         <style>
           body {
             font-family: 'Consolas', 'Menlo', 'Courier', monospace;
-            width: 180px; /* Largeur typique d'un reçu thermique */
+            width: 180px;
             font-size: 6px;
             line-height: 1.4;
             margin: 0;
@@ -892,6 +862,14 @@ export class RapportJournalierService {
           <span class="name">AVANCES :</span>
           <span class="price">${formatPriceWithCurrency(reportData.advances.totalAmount)}</span>
         </div>
+        <div class="item">
+          <span class="name">TONTINE (NB) :</span>
+          <span class="price">${reportData.tontine.count}</span>
+        </div>
+        <div class="item">
+          <span class="name">TONTINE (MONTANT) :</span>
+          <span class="price">${formatPriceWithCurrency(reportData.tontine.totalAmount)}</span>
+        </div>
 
         <div class="separator"></div>
 
@@ -916,7 +894,6 @@ export class RapportJournalierService {
         <div class="footer">
           <p>Rapport genere le ${formattedDate} ${formattedTime}</p>
           <p class="unique-id-text">${uniqueId} <br></p>
-
         </div>
       </body>
       </html>

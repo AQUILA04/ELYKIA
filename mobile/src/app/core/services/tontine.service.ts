@@ -10,6 +10,9 @@ import { selectAuthUser, selectToken } from '../../store/auth/auth.selectors';
 import { TontineMemberView } from 'src/app/models/tontine.model';
 import { TontineCollectionRepository } from '../repositories/tontine-collection.repository';
 import { TontineMemberRepositoryExtensions } from '../repositories/tontine-member.repository.extensions';
+import { TontineCollectionRepositoryExtensions } from '../repositories/tontine-collection.repository.extensions';
+import { TontineDeliveryRepositoryExtensions } from '../repositories/tontine-delivery.repository.extensions';
+import { TontineStockRepositoryExtensions } from '../repositories/tontine-stock.repository.extensions';
 
 @Injectable({
     providedIn: 'root'
@@ -24,7 +27,10 @@ export class TontineService {
         private log: LoggerService,
         private store: Store,
         private collectionRepo: TontineCollectionRepository,
-        private tontineMemberRepositoryExtensions: TontineMemberRepositoryExtensions
+        private tontineMemberRepositoryExtensions: TontineMemberRepositoryExtensions,
+        private tontineCollectionRepositoryExtensions: TontineCollectionRepositoryExtensions,
+        private tontineDeliveryRepositoryExtensions: TontineDeliveryRepositoryExtensions,
+        private tontineStockRepositoryExtensions: TontineStockRepositoryExtensions
     ) {
         this.store.select(selectAuthUser).subscribe(user => {
             this.commercialUsername = user?.username;
@@ -503,6 +509,96 @@ export class TontineService {
         )).pipe(
             catchError(error => {
                 console.error('Failed to load paginated tontine members:', error);
+                return of({ content: [], totalElements: 0, totalPages: 0, page, size });
+            })
+        );
+    }
+    /**
+     * Get paginated tontine collections (Native Views)
+     * 
+     * @param commercialUsername Username (optional, defaults to current user)
+     * @param page Page number
+     * @param size Page size
+     * @param filters Optional filters
+     * @returns Page of TontineCollectionView
+     */
+    getTontineCollectionsPaginated(
+        page: number,
+        size: number,
+        filters?: any
+    ): Observable<any> {
+        if (!this.commercialUsername) {
+            return of({ content: [], totalElements: 0, totalPages: 0, page, size });
+        }
+        return from(this.tontineCollectionRepositoryExtensions.findViewsByCommercialPaginated(
+            this.commercialUsername,
+            page,
+            size,
+            filters
+        )).pipe(
+            catchError(error => {
+                console.error('Failed to load paginated tontine collections:', error);
+                return of({ content: [], totalElements: 0, totalPages: 0, page, size });
+            })
+        );
+    }
+
+    /**
+     * Get paginated tontine deliveries (Native Views)
+     * 
+     * @param page Page number
+     * @param size Page size
+     * @param filters Optional filters
+     * @returns Page of TontineDeliveryView
+     */
+    getTontineDeliveriesPaginated(
+        page: number,
+        size: number,
+        filters?: any
+    ): Observable<any> {
+        if (!this.commercialUsername) {
+            return of({ content: [], totalElements: 0, totalPages: 0, page, size });
+        }
+        return from(this.tontineDeliveryRepositoryExtensions.findViewsByCommercialPaginated(
+            this.commercialUsername,
+            page,
+            size,
+            filters
+        )).pipe(
+            catchError(error => {
+                console.error('Failed to load paginated tontine deliveries:', error);
+                return of({ content: [], totalElements: 0, totalPages: 0, page, size });
+            })
+        );
+    }
+
+    /**
+     * Get paginated tontine stocks
+     * 
+     * @param sessionId Session ID
+     * @param page Page number
+     * @param size Page size
+     * @param filters Optional filters
+     * @returns Page of TontineStock
+     */
+    getTontineStocksPaginated(
+        sessionId: string,
+        page: number,
+        size: number,
+        filters?: any
+    ): Observable<any> {
+        if (!this.commercialUsername) {
+            return of({ content: [], totalElements: 0, totalPages: 0, page, size });
+        }
+        return from(this.tontineStockRepositoryExtensions.findAvailableStocksByCommercialPaginated(
+            this.commercialUsername,
+            sessionId,
+            page,
+            size,
+            filters
+        )).pipe(
+            catchError(error => {
+                console.error('Failed to load paginated tontine stocks:', error);
                 return of({ content: [], totalElements: 0, totalPages: 0, page, size });
             })
         );

@@ -81,6 +81,11 @@ export interface TontineDelivery {
     syncHash?: string;
 }
 
+export interface TontineDeliveryView extends TontineDelivery {
+    clientName: string;
+    clientQuarter?: string;
+}
+
 export interface TontineStock {
     id: string;
     commercial: string;

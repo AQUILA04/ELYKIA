@@ -73,7 +73,7 @@ export class DataInitializationService {
   initializeLocalities(): Observable<boolean> {
     return this.localityService.initializeLocalities().pipe(
       map(() => {
-        this.store.dispatch(LocalityActions.loadLocalities());
+        this.store.dispatch(LocalityActions.loadFirstPage({ pageSize: 1000 }));
         return true;
       }),
       catchError((error) => {

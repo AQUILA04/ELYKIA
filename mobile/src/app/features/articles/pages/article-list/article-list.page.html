@@ -13,23 +13,28 @@
     <div class="section-header">
       <ion-icon name="cube" class="section-icon"></ion-icon>
       <span class="section-title">Articles Disponibles</span>
-      <span class="articles-count">{{ articleCount$ | async }} articles</span>
+      <!-- Count removed as pagination total is not exposed in VM currently, can be added if needed -->
     </div>
 
     <!-- Search Container -->
     <div class="search-container">
-      <ion-searchbar
-        placeholder="Rechercher par nom, référence..."
-        (ionInput)="onSearchInput($event)"
-        debounce="300">
+      <ion-searchbar placeholder="Rechercher par nom, référence..." (ionInput)="onSearchInput($event)" [debounce]="300">
       </ion-searchbar>
     </div>
 
     <div class="articles-list">
+      <!-- Loading State -->
+      <div *ngIf="(isLoading$ | async) && !(articles$ | async)?.length" class="ion-text-center ion-padding">
+        <ion-spinner></ion-spinner>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!(isLoading$ | async) && (articles$ | async)?.length === 0" class="empty-state">
+        <p>Aucun article trouvé.</p>
+      </div>
+
       <!-- Remplacement du virtual scroll par une boucle *ngFor -->
-      <ion-card
-        *ngFor="let article of displayedArticles; trackBy: trackByArticleId"
-        class="article-card">
+      <ion-card *ngFor="let article of articles$ | async; trackBy: trackByArticleId" class="article-card">
         <ion-card-content>
           <div class="article-content">
             <div class="article-info">
@@ -45,7 +50,7 @@
       </ion-card>
 
       <!-- Ajout de l'infinite scroll -->
-      <ion-infinite-scroll (ionInfinite)="loadMoreData($event)" [disabled]="isInfiniteScrollDisabled">
+      <ion-infinite-scroll (ionInfinite)="loadMoreData($event)" [disabled]="!(hasMore$ | async)">
         <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement...">
         </ion-infinite-scroll-content>
       </ion-infinite-scroll>

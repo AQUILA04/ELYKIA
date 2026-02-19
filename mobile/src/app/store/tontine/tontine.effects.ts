@@ -81,7 +81,104 @@ export class TontineEffects {
         )
     );
 
+    // Collection Pagination Effects
+    loadFirstPageTontineCollections$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(TontineActions.loadFirstPageTontineCollections),
+            switchMap(({ filters }) =>
+                this.tontineService.getTontineCollectionsPaginated(0, 20, filters).pipe(
+                    map(page => TontineActions.loadFirstPageTontineCollectionsSuccess({
+                        collections: page.content,
+                        totalElements: page.totalElements,
+                        totalPages: page.totalPages
+                    })),
+                    catchError(error => of(TontineActions.loadFirstPageTontineCollectionsFailure({ error: error.message })))
+                )
+            )
+        )
+    );
 
+    loadNextPageTontineCollections$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(TontineActions.loadNextPageTontineCollections),
+            withLatestFrom(this.store.select(selectTontineState)),
+            switchMap(([{ filters }, state]) => {
+                const nextPage = state.collectionPagination.currentPage + 1;
+                return this.tontineService.getTontineCollectionsPaginated(nextPage, 20, filters).pipe(
+                    map(page => TontineActions.loadNextPageTontineCollectionsSuccess({
+                        collections: page.content
+                    })),
+                    catchError(error => of(TontineActions.loadNextPageTontineCollectionsFailure({ error: error.message })))
+                );
+            })
+        )
+    );
+
+    // Delivery Pagination Effects
+    loadFirstPageTontineDeliveries$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(TontineActions.loadFirstPageTontineDeliveries),
+            switchMap(({ filters }) =>
+                this.tontineService.getTontineDeliveriesPaginated(0, 20, filters).pipe(
+                    map(page => TontineActions.loadFirstPageTontineDeliveriesSuccess({
+                        deliveries: page.content,
+                        totalElements: page.totalElements,
+                        totalPages: page.totalPages
+                    })),
+                    catchError(error => of(TontineActions.loadFirstPageTontineDeliveriesFailure({ error: error.message })))
+                )
+            )
+        )
+    );
+
+    loadNextPageTontineDeliveries$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(TontineActions.loadNextPageTontineDeliveries),
+            withLatestFrom(this.store.select(selectTontineState)),
+            switchMap(([{ filters }, state]) => {
+                const nextPage = state.deliveryPagination.currentPage + 1;
+                return this.tontineService.getTontineDeliveriesPaginated(nextPage, 20, filters).pipe(
+                    map(page => TontineActions.loadNextPageTontineDeliveriesSuccess({
+                        deliveries: page.content
+                    })),
+                    catchError(error => of(TontineActions.loadNextPageTontineDeliveriesFailure({ error: error.message })))
+                );
+            })
+        )
+    );
+
+    // Stock Pagination Effects
+    loadFirstPageTontineStocks$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(TontineActions.loadFirstPageTontineStocks),
+            switchMap(({ sessionId, filters }) =>
+                this.tontineService.getTontineStocksPaginated(sessionId, 0, 20, filters).pipe(
+                    map(page => TontineActions.loadFirstPageTontineStocksSuccess({
+                        stocks: page.content,
+                        totalElements: page.totalElements,
+                        totalPages: page.totalPages
+                    })),
+                    catchError(error => of(TontineActions.loadFirstPageTontineStocksFailure({ error: error.message })))
+                )
+            )
+        )
+    );
+
+    loadNextPageTontineStocks$ = createEffect(() =>
+        this.actions$.pipe(
+            ofType(TontineActions.loadNextPageTontineStocks),
+            withLatestFrom(this.store.select(selectTontineState)),
+            switchMap(([{ sessionId, filters }, state]) => {
+                const nextPage = state.stockPagination.currentPage + 1;
+                return this.tontineService.getTontineStocksPaginated(sessionId, nextPage, 20, filters).pipe(
+                    map(page => TontineActions.loadNextPageTontineStocksSuccess({
+                        stocks: page.content
+                    })),
+                    catchError(error => of(TontineActions.loadNextPageTontineStocksFailure({ error: error.message })))
+                );
+            })
+        )
+    );
 
     constructor(
         private actions$: Actions,
