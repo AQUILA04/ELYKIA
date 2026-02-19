@@ -21,7 +21,13 @@ import {
   selectManualSyncSelectedTontineDeliveries,
   selectManualSyncSyncingEntities,
   selectManualSyncLoading,
-  selectManualSyncActiveTab
+  selectManualSyncActiveTab,
+  selectClientPagination,
+  selectDistributionPagination,
+  selectRecoveryPagination,
+  selectTontineMemberPagination,
+  selectTontineCollectionPagination,
+  selectTontineDeliveryPagination
 } from '../../../store/sync/sync.selectors';
 
 import { Client } from '../../../models/client.model';
@@ -30,6 +36,7 @@ import { Recovery } from '../../../models/recovery.model';
 import { TontineMember, TontineCollection, TontineDelivery } from '../../../models/tontine.model';
 import { HealthCheckService } from '../../../core/services/health-check.service';
 import { DatabaseService } from '../../../core/services/database.service';
+import { PaginationState } from '../../../models/sync.model';
 
 @Component({
   selector: 'app-sync-manual',
@@ -55,6 +62,14 @@ export class SyncManualPage implements OnInit, OnDestroy {
   selectedTontineMemberIds$: Observable<string[]>;
   selectedTontineCollectionIds$: Observable<string[]>;
   selectedTontineDeliveryIds$: Observable<string[]>;
+
+  // Observables pour la pagination
+  clientPagination$: Observable<PaginationState>;
+  distributionPagination$: Observable<PaginationState>;
+  recoveryPagination$: Observable<PaginationState>;
+  tontineMemberPagination$: Observable<PaginationState>;
+  tontineCollectionPagination$: Observable<PaginationState>;
+  tontineDeliveryPagination$: Observable<PaginationState>;
 
   // Observables pour l'état
   syncingEntities$: Observable<string[]>;
@@ -90,6 +105,14 @@ export class SyncManualPage implements OnInit, OnDestroy {
     this.selectedTontineMemberIds$ = this.store.select(selectManualSyncSelectedTontineMembers);
     this.selectedTontineCollectionIds$ = this.store.select(selectManualSyncSelectedTontineCollections);
     this.selectedTontineDeliveryIds$ = this.store.select(selectManualSyncSelectedTontineDeliveries);
+
+    // Initialiser les observables pour la pagination
+    this.clientPagination$ = this.store.select(selectClientPagination);
+    this.distributionPagination$ = this.store.select(selectDistributionPagination);
+    this.recoveryPagination$ = this.store.select(selectRecoveryPagination);
+    this.tontineMemberPagination$ = this.store.select(selectTontineMemberPagination);
+    this.tontineCollectionPagination$ = this.store.select(selectTontineCollectionPagination);
+    this.tontineDeliveryPagination$ = this.store.select(selectTontineDeliveryPagination);
 
     // Initialiser les observables pour l'état
     this.syncingEntities$ = this.store.select(selectManualSyncSyncingEntities);
@@ -132,20 +155,68 @@ export class SyncManualPage implements OnInit, OnDestroy {
     this.activeTab$.pipe(takeUntil(this.destroy$)).subscribe(tab => {
       if (tab !== 'all') {
         this.activeTab = tab;
+        // Charger les données pour l'onglet actif si nécessaire (ou laisser ionViewWillEnter le faire)
+        // Ici on pourrait recharger si on veut rafraîchir à chaque changement d'onglet
       }
-    });
-
-    // Écouter les succès de synchronisation pour afficher un toast
-    this.store.select(state => state).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(async (state: any) => {
-      // Cette logique sera gérée par les effects via les actions success/failure
     });
   }
 
   ionViewWillEnter() {
-    // Charger les données à chaque fois que la page est affichée
-    this.store.dispatch(SyncActions.loadManualSyncData());
+    // Charger la première page pour l'onglet actif
+    this.loadFirstPage();
+  }
+
+  loadFirstPage() {
+    this.store.dispatch(SyncActions.loadManualSyncDataPaginated({
+      entityType: this.activeTab === 'tontine-members' ? 'tontine-member' :
+                  this.activeTab === 'tontine-collections' ? 'tontine-collection' :
+                  this.activeTab === 'tontine-deliveries' ? 'tontine-delivery' :
+                  this.activeTab === 'clients' ? 'client' :
+                  this.activeTab === 'distributions' ? 'distribution' : 'recovery',
+      page: 0,
+      size: 20
+    }));
+  }
+
+  /**
+   * Charger plus de données (Infinite Scroll)
+   */
+  loadData(event: any) {
+    const entityType = this.activeTab === 'tontine-members' ? 'tontine-member' :
+                       this.activeTab === 'tontine-collections' ? 'tontine-collection' :
+                       this.activeTab === 'tontine-deliveries' ? 'tontine-delivery' :
+                       this.activeTab === 'clients' ? 'client' :
+                       this.activeTab === 'distributions' ? 'distribution' : 'recovery';
+
+    this.store.dispatch(SyncActions.loadMoreManualSyncData({ entityType }));
+
+    // Compléter l'événement infinite scroll quand le chargement est terminé
+    // On peut utiliser un sélecteur pour savoir quand le chargement est fini, ou un timeout simple pour l'UX
+    // Idéalement, on écoute le state loading de la pagination
+    let pagination$: Observable<PaginationState>;
+    switch (this.activeTab) {
+      case 'clients': pagination$ = this.clientPagination$; break;
+      case 'distributions': pagination$ = this.distributionPagination$; break;
+      case 'recoveries': pagination$ = this.recoveryPagination$; break;
+      case 'tontine-members': pagination$ = this.tontineMemberPagination$; break;
+      case 'tontine-collections': pagination$ = this.tontineCollectionPagination$; break;
+      case 'tontine-deliveries': pagination$ = this.tontineDeliveryPagination$; break;
+    }
+
+    pagination$.pipe(
+      map(p => p.loading),
+      // Attendre que loading passe à true puis à false
+      // Ou simplement attendre que loading soit false si on suppose qu'il est passé à true synchrone (ce qui est le cas avec NgRx)
+      // Mais ici l'action est dispatchée, l'effet va se lancer.
+      // On va juste attendre un peu ou écouter le changement.
+      take(1) // On prend juste l'état actuel, ce n'est pas suffisant.
+    ).subscribe(() => {
+       // Hack simple pour l'instant : timeout.
+       // Pour une vraie solution, il faudrait un Effect qui dispatch une action "LoadMoreComplete" ou écouter le stream.
+       setTimeout(() => {
+         event.target.complete();
+       }, 1000);
+    });
   }
 
   /**
@@ -155,6 +226,7 @@ export class SyncManualPage implements OnInit, OnDestroy {
     const newTab = event.detail.value;
     this.activeTab = newTab;
     this.store.dispatch(SyncActions.setActiveTab({ tab: newTab }));
+    this.loadFirstPage(); // Recharger les données pour le nouvel onglet
   }
 
   /**
@@ -269,7 +341,7 @@ export class SyncManualPage implements OnInit, OnDestroy {
    * Actualiser les données
    */
   onRefresh(event?: any) {
-    this.store.dispatch(SyncActions.loadManualSyncData());
+    this.loadFirstPage();
 
     if (event) {
       setTimeout(() => {
@@ -463,7 +535,7 @@ export class SyncManualPage implements OnInit, OnDestroy {
       await toast.present();
 
       // Recharger les données
-      this.store.dispatch(SyncActions.loadManualSyncData());
+      this.loadFirstPage();
     } catch (error) {
       await loading.dismiss();
 

@@ -3,16 +3,36 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { from, of } from 'rxjs';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 import { DatabaseService } from 'src/app/core/services/database.service';
+import { Store } from '@ngrx/store';
+import { withLatestFrom } from 'rxjs/operators';
 import * as LocalityActions from './locality.actions';
+import { LocalityRepositoryExtensions } from 'src/app/core/repositories/locality.repository.extensions';
+import { selectLocalityPage, selectLocalitySize } from './locality.selectors';
 
 @Injectable()
 export class LocalityEffects {
-  loadLocalities$ = createEffect(() =>
+  loadFirstPage$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(LocalityActions.loadLocalities),
-      mergeMap(() =>
-        from(this.databaseService.getLocalities()).pipe(
-          map((localities) => LocalityActions.loadLocalitiesSuccess({ localities })),
+      ofType(LocalityActions.loadFirstPage),
+      mergeMap((action) =>
+        from(this.localityRepositoryExtensions.findAllPaginated(0, action.pageSize || 20, action.filters)).pipe(
+          map((page) => LocalityActions.loadLocalitiesSuccess({ page })),
+          catchError((error) => of(LocalityActions.loadLocalitiesFailure({ error })))
+        )
+      )
+    )
+  );
+
+  loadNextPage$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(LocalityActions.loadNextPage),
+      withLatestFrom(
+        this.store.select(selectLocalityPage),
+        this.store.select(selectLocalitySize)
+      ),
+      mergeMap(([action, currentPage, pageSize]) =>
+        from(this.localityRepositoryExtensions.findAllPaginated(currentPage + 1, pageSize, action.filters)).pipe(
+          map((page) => LocalityActions.loadLocalitiesSuccess({ page })),
           catchError((error) => of(LocalityActions.loadLocalitiesFailure({ error })))
         )
       )
@@ -33,6 +53,8 @@ export class LocalityEffects {
 
   constructor(
     private actions$: Actions,
-    private databaseService: DatabaseService
-  ) {}
+    private databaseService: DatabaseService,
+    private localityRepositoryExtensions: LocalityRepositoryExtensions,
+    private store: Store
+  ) { }
 }

@@ -14,6 +14,21 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
         super(databaseService);
     }
 
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<TontineCollection[]> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        const sql = `SELECT * FROM tontine_collections WHERE isSync = 0 AND isLocal = 1 AND commercialUsername = ? LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => ({ ...row, isLocal: row.isLocal === 1, isSync: row.isSync === 1 }));
+    }
+
+    async markAsSynced(localId: string, serverId: string): Promise<void> {
+        if (!this.databaseService['db'] || localId === serverId) return;
+        await this.databaseService.execute(
+            `UPDATE tontine_collections SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`,
+            [serverId, localId]
+        );
+    }
+
     /**
      * Override save to update member total contribution for manual collection recording
      */

@@ -44,6 +44,8 @@ export interface ClientSyncResponse {
   code: string;
   fullName: string;
   accountId?: number;
+  profilPhotoUrl?: string;
+  cardPhotoUrl?: string;
 }
 
 export interface AccountSyncResponse {

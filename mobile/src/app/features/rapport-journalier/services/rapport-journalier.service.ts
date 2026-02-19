@@ -103,7 +103,7 @@ export class RapportJournalierService {
     });
   }
 
-  getDailyReport(date?: Date): Observable<DailyReportData> {
+  getAllDailyReportData(date?: Date): Observable<DailyReportData> {
     if (!this.commercialUsername) {
       console.error('RapportJournalierService: Commercial username not available.');
       return of({
@@ -234,16 +234,11 @@ export class RapportJournalierService {
       })
     );
 
-    const tontine$ = from(this.databaseService.getTontineCollectionsByCommercial(currentCommercialId)).pipe(
-      map((collections: any[]) => {
-        const todayCollections = collections.filter(c => c.collectionDate && c.collectionDate.startsWith(dateString));
-        const totalAmount = todayCollections.reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
-        return {
-          count: todayCollections.length,
-          totalAmount: totalAmount
-        };
-      })
-    );
+    const tontineDetails$ = forkJoin({
+      members: this.getTontineMembersData(targetDate),
+      collections: this.getTontineCollectionsData(targetDate),
+      deliveries: this.getTontineDeliveriesData(targetDate)
+    });
 
     return forkJoin({
       commercial: commercial$,
@@ -251,7 +246,7 @@ export class RapportJournalierService {
       recoveries: recoveries$,
       newClients: newClients$,
       advances: advances$,
-      tontine: tontine$
+      tontineDetails: tontineDetails$
     }).pipe(
       map((results: {
         commercial: Commercial | null;
@@ -259,9 +254,15 @@ export class RapportJournalierService {
         recoveries: { count: number; totalAmount: number; items: any[] };
         newClients: { count: number; totalBalance: number; items: any[] };
         advances: { count: number; totalAmount: number };
-        tontine: { count: number; totalAmount: number };
+        tontineDetails: {
+          members: { count: number; items: any[] };
+          collections: { count: number; totalAmount: number; items: any[] };
+          deliveries: { count: number; totalAmount: number; items: any[] };
+        };
       }) => {
-        const totalToPay = results.recoveries.totalAmount + results.advances.totalAmount + results.tontine.totalAmount;
+        const tontineTotalAmount = results.tontineDetails.collections.totalAmount;
+        const totalToPay = results.recoveries.totalAmount + results.advances.totalAmount + tontineTotalAmount;
+
         return {
           date: targetDate.toLocaleDateString('fr-FR', {
             weekday: 'long',
@@ -275,7 +276,13 @@ export class RapportJournalierService {
           recoveries: results.recoveries,
           newClients: results.newClients,
           advances: results.advances,
-          tontine: results.tontine
+          tontine: {
+            count: results.tontineDetails.collections.count + results.tontineDetails.deliveries.count,
+            totalAmount: tontineTotalAmount
+          },
+          tontineMembers: results.tontineDetails.members,
+          tontineCollections: results.tontineDetails.collections,
+          tontineDeliveries: results.tontineDetails.deliveries
         };
       })
     );
@@ -284,7 +291,31 @@ export class RapportJournalierService {
   /**
    * Charge les données des membres tontine du jour (lazy loading)
    */
-
+  // getTontineMembersData(date?: Date): Observable<{ count: number; items: any[] }> {
+  //   if (!this.commercialUsername) {
+  //     return of({ count: 0, items: [] });
+  //   }
+  //   const currentCommercialId = this.commercialUsername;
+  //   const targetDate = date || new Date();
+  //   const dateString = targetDate.toISOString().split('T')[0];
+  //
+  //   return from(this.databaseService.getTontineMembers('', currentCommercialId)).pipe(
+  //     switchMap(members => {
+  //       const todayMembers = members.filter(m => m.registrationDate && m.registrationDate.startsWith(dateString));
+  //       if (todayMembers.length === 0) {
+  //         return of({ count: 0, items: [] });
+  //       }
+  //       const items = todayMembers.map(m => ({
+  //         time: m.registrationDate ? new Date(m.registrationDate).toLocaleTimeString('fr-FR') : '',
+  //         memberName: m.name || m.clientName || 'Membre inconnu',
+  //         details: `Contribution: ${m.totalContribution || 0} FCFA`,
+  //         contribution: m.totalContribution || 0,
+  //         isSync: m.isSync || false
+  //       }));
+  //       return of({ count: items.length, items });
+  //     })
+  //   );
+  // }
 
   /**
    * Charge les données des collectes tontine du jour (lazy loading)
@@ -394,7 +425,7 @@ export class RapportJournalierService {
     const targetDate = date || new Date();
 
     return forkJoin({
-      baseReport: this.getDailyReport(targetDate),
+      baseReport: this.getAllDailyReportData(targetDate),
       tontineMembers: this.getTontineMembersData(targetDate),
       tontineCollections: this.getTontineCollectionsData(targetDate),
       tontineDeliveries: this.getTontineDeliveriesData(targetDate)
@@ -801,11 +832,6 @@ export class RapportJournalierService {
     `;
   }
 
-  /**
-   * ==================================================================
-   * MÉTHODE MISE À JOUR POUR CORRESPONDRE AU FORMAT DU REÇU
-   * ==================================================================
-   */
   generateReportHTML(reportData: DailyReportData): string {
     const formattedDate = new Date().toLocaleDateString('fr-FR');
     const formattedTime = new Date().toLocaleTimeString('fr-FR');
@@ -928,6 +954,14 @@ export class RapportJournalierService {
         <div class="item">
           <span class="name">AVANCES :</span>
           <span class="price">${formatPriceWithCurrency(reportData.advances.totalAmount)}</span>
+        </div>
+        <div class="item">
+          <span class="name">TONTINE (NB) :</span>
+          <span class="price">${reportData.tontine.count}</span>
+        </div>
+        <div class="item">
+          <span class="name">TONTINE (MONTANT) :</span>
+          <span class="price">${formatPriceWithCurrency(reportData.tontine.totalAmount)}</span>
         </div>
 
         <div class="separator"></div>

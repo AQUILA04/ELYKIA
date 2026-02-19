@@ -8,17 +8,19 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding" *ngIf="vm$ | async as vm">
   <!-- Section de recherche et filtres -->
   <ion-card class="search-section">
-    <ion-searchbar placeholder="Rechercher par client, référence..."></ion-searchbar>
+    <ion-searchbar [formControl]="searchControl" placeholder="Rechercher par client, référence..."></ion-searchbar>
     <ion-grid>
       <ion-row>
         <ion-col>
           <ion-item>
             <ion-label>Type</ion-label>
-            <ion-select value="all">
+            <ion-select [formControl]="typeFilterControl">
               <ion-select-option value="all">Tous</ion-select-option>
+              <ion-select-option value="CASH">Espèces</ion-select-option>
+              <ion-select-option value="MOBILE_MONEY">Mobile Money</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-col>
@@ -43,7 +45,7 @@
       <ion-col>
         <ion-card class="stat-card">
           <ion-card-content>
-            <div class="stat-number">{{ stats.total }}</div>
+            <div class="stat-number">{{ vm.stats.total }}</div>
             <div class="stat-label">TOTAL</div>
           </ion-card-content>
         </ion-card>
@@ -51,7 +53,7 @@
       <ion-col>
         <ion-card class="stat-card">
           <ion-card-content>
-            <div class="stat-number">{{ stats.today }}</div>
+            <div class="stat-number">{{ vm.stats.today }}</div>
             <div class="stat-label">AUJOURD'HUI</div>
           </ion-card-content>
         </ion-card>
@@ -59,7 +61,7 @@
       <ion-col>
         <ion-card class="stat-card">
           <ion-card-content>
-            <div class="stat-number">{{ stats.totalAmount | formatNumber }}</div>
+            <div class="stat-number">{{ vm.stats.totalAmount | number:'1.0-0' }}</div>
             <div class="stat-label">FCFA</div>
           </ion-card-content>
         </ion-card>
@@ -68,46 +70,52 @@
   </ion-grid>
 
   <!-- Liste des recouvrements -->
-  @if (recoveries.length > 0) {
-    <div class="recoveries-container">
-      <ion-list-header>
-        <ion-label>Historique des Recouvrements</ion-label>
-        <ion-badge color="success">{{ recoveries.length }}</ion-badge>
-      </ion-list-header>
-      <ion-list class="recouvrements-list">
-        <cdk-virtual-scroll-viewport itemSize="80" class="ion-content-scroll-host">
-          <ion-item *cdkVirtualFor="let recovery of recoveries; trackBy: trackByRecoveryId" (click)="openDetailModal(recovery)" class="recouvrement-item" button>
-            <div class="recouvrement-date">
-              <div class="date-day">{{ recovery.paymentDate | date:'dd' }}</div>
-              <div class="date-month">{{ recovery.paymentDate | date:'MMM' }}</div>
-            </div>
-            <div class="recouvrement-info">
-              <h2>{{ recovery.id }}</h2>
-              <p class="client-name">{{ recovery.client?.fullName || (recovery.client?.firstname + ' ' + recovery.client?.lastname) }}</p>
-              <p class="time-and-reference">{{ recovery.paymentDate | date:'HH:mm' }} - {{recovery.distribution?.reference}}</p>
-            </div>
-            <div class="recouvrement-amount">
-              <div class="amount-value">{{ recovery.amount | currency:'FCFA':'symbol':'1.0-0' }}</div>
-              <div class="amount-type">Recouvrement</div>
-              <ion-badge *ngIf="!recovery.isSync" color="medium" style="margin-top: 4px; font-size: 10px;">
-                <ion-icon name="cloud-offline-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
-                Local
-              </ion-badge>
-              <ion-badge *ngIf="recovery.isSync" color="success" style="margin-top: 4px; font-size: 10px;">
-                <ion-icon name="cloud-done-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
-                Sync
-              </ion-badge>
-            </div>
-          </ion-item>
-        </cdk-virtual-scroll-viewport>
-      </ion-list>
-    </div>
+  @if (vm.recoveries.length > 0) {
+  <div class="recoveries-container">
+    <ion-list-header>
+      <ion-label>Historique des Recouvrements</ion-label>
+      <ion-badge color="success">{{ vm.recoveries.length }}</ion-badge>
+    </ion-list-header>
+    <ion-list class="recouvrements-list">
+      <!-- Note: Using standard ngFor for simplicity with pagination, or keep virtual scroll if performant -->
+      <ion-item *ngFor="let recovery of vm.recoveries; trackBy: trackByRecoveryId" (click)="openDetailModal(recovery)"
+        class="recouvrement-item" button>
+        <div class="recouvrement-date">
+          <div class="date-day">{{ recovery.paymentDate | date:'dd' }}</div>
+          <div class="date-month">{{ recovery.paymentDate | date:'MMM' }}</div>
+        </div>
+        <div class="recouvrement-info">
+          <h2>{{ recovery.reference || recovery.id.substring(0,8) }}</h2>
+          <p class="client-name">{{ recovery.client?.fullName || (recovery.client?.firstname + ' ' +
+            recovery.client?.lastname) }}</p>
+          <p class="time-and-reference">{{ recovery.paymentDate | date:'HH:mm' }} - {{recovery.distribution?.reference}}
+          </p>
+        </div>
+        <div class="recouvrement-amount">
+          <div class="amount-value">{{ recovery.amount | number:'1.0-0' }} FCFA</div>
+          <div class="amount-type">Recouvrement</div>
+          <ion-badge *ngIf="!recovery.isSync" color="medium" style="margin-top: 4px; font-size: 10px;">
+            <ion-icon name="cloud-offline-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+            Local
+          </ion-badge>
+          <ion-badge *ngIf="recovery.isSync" color="success" style="margin-top: 4px; font-size: 10px;">
+            <ion-icon name="cloud-done-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+            Sync
+          </ion-badge>
+        </div>
+      </ion-item>
+    </ion-list>
+
+    <ion-infinite-scroll (ionInfinite)="loadMore($event)">
+      <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement..."></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+  </div>
   } @else {
-    <div class="empty-state-card">
-      <ion-icon name="receipt-outline" class="empty-state-icon"></ion-icon>
-      <h3 class="empty-state-title">Aucun recouvrement</h3>
-      <p class="empty-state-description">Il n'y a aucun recouvrement à afficher pour le moment.</p>
-    </div>
+  <div class="empty-state-card">
+    <ion-icon name="receipt-outline" class="empty-state-icon"></ion-icon>
+    <h3 class="empty-state-title">Aucun recouvrement</h3>
+    <p class="empty-state-description">Il n'y a aucun recouvrement à afficher pour le moment.</p>
+  </div>
   }
 
   <!-- Bouton d'action flottant -->

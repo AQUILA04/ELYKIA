@@ -15,16 +15,19 @@ import { TontineCalculationService } from 'src/app/core/services/tontine-calcula
 
 import { TontineMember, TontineSession, TontineDelivery, TontineDeliveryItem, TontineStock } from 'src/app/models/tontine.model';
 import { Client } from 'src/app/models/client.model';
-import { selectTontineSession } from 'src/app/store/tontine/tontine.selectors';
+import { selectTontineSession, selectPaginatedTontineStocks, selectTontineStockPaginationLoading, selectTontineStockPaginationHasMore } from 'src/app/store/tontine/tontine.selectors';
+import * as TontineActions from 'src/app/store/tontine/tontine.actions';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { TontineDeliveryReceiptModalComponent } from 'src/app/shared/components/tontine-delivery-receipt-modal/tontine-delivery-receipt-modal.component';
 import { PrintableTontineDelivery } from 'src/app/core/services/printing.service';
+import { Observable } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 interface DeliveryViewModel {
     member: TontineMember | null;
     client: Client | null;
     session: TontineSession | null;
-    stocks: TontineStock[];
+    stocks: TontineStock[]; // Kept for interface compatibility but main source is stocks$
     totalBudget: number;
     societyShare: number; // Added
     availableBudget: number; // Added
@@ -63,13 +66,14 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
     // Search
     private currentSearchQuery = '';
-    private allStocks: TontineStock[] = [];
-    private filteredStocks: TontineStock[] = [];
+    stocks$: Observable<TontineStock[]>;
+    isLoading$: Observable<boolean>;
+    hasMore$: Observable<boolean>;
 
     // Cart: Map<stockId, quantity>
     private cart = new Map<string, number>();
-    // Cart Details: Map<stockId, {price, name, maxQty}> to handle invisible items
-    private cartDetails = new Map<string, { price: number, name: string, maxQty: number }>();
+    // Cart Details: Map<stockId, {price, name, maxQty, articleId}> to handle invisible items
+    private cartDetails = new Map<string, { price: number, name: string, maxQty: number, articleId: string }>();
 
     constructor(
         private route: ActivatedRoute,
@@ -85,7 +89,11 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         private deliveryRepo: TontineDeliveryRepository,
         private dbService: DatabaseService,
         private tontineCalculationService: TontineCalculationService // Injected
-    ) { }
+    ) {
+        this.stocks$ = this.store.select(selectPaginatedTontineStocks);
+        this.isLoading$ = this.store.select(selectTontineStockPaginationLoading);
+        this.hasMore$ = this.store.select(selectTontineStockPaginationHasMore);
+    }
 
     async ngOnInit() {
         this.memberId = this.route.snapshot.queryParamMap.get('memberId');
@@ -102,10 +110,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             .subscribe(session => {
                 if (session) {
                     this.vm.session = session;
-                    // if (session.status !== 'CLOSED' && session.status !== 'ENDED') {
-                    //     this.showError('La session doit être clôturée pour effectuer une livraison.');
-                    //     this.navCtrl.back();
-                    // }
+                    this.loadStocks();
                 }
             });
 
@@ -115,6 +120,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             .subscribe(user => {
                 if (user) {
                     this.commercialUsername = user.username;
+                    this.loadStocks();
                 }
             });
 
@@ -141,8 +147,6 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 return;
             }
         }
-
-        await this.loadStocks();
     }
 
     async ionViewWillEnter() {
@@ -153,6 +157,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
+        this.store.dispatch(TontineActions.resetTontineStockPagination());
         this.destroy$.next();
         this.destroy$.complete();
     }
@@ -190,50 +195,47 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         }
     }
 
-    async loadStocks() {
-        console.log('LOAD STOCK Enter ...');
-        console.log('LOAD STOCK session: ', this.vm.session);
-        console.log('Commercial: ', this.commercialUsername);
+    loadStocks() {
         if (!this.vm.session || !this.commercialUsername) return;
-        console.log('LOAD STOCK After first if ...');
-        this.vm.loading = true;
-        try {
-            // DEBUG: Log raw stocks from DB to diagnose issue
-            console.log('DEBUG: Querying all stocks for commercial:', this.commercialUsername);
-            const debugStocks = await this.dbService.query('SELECT * FROM tontine_stocks WHERE commercial = ?', [this.commercialUsername]);
-            console.log('DEBUG: Raw stocks in DB:', debugStocks.values);
-            console.log('DEBUG: Current Session ID:', this.vm.session.id);
 
-            // Load available stocks only
-            this.allStocks = await this.stockRepo.getAvailableStocks(
-                this.commercialUsername,
-                this.vm.session.id
-            );
-            console.log('Stock loaded: ', this.allStocks);
-            this.filteredStocks = [...this.allStocks];
-            this.vm.stocks = this.filteredStocks;
-        } catch (error) {
-            console.error('Error loading stocks:', error);
-        } finally {
-            this.vm.loading = false;
+        this.store.dispatch(TontineActions.loadFirstPageTontineStocks({
+            sessionId: this.vm.session.id,
+            filters: {
+                searchQuery: this.currentSearchQuery
+            }
+        }));
+    }
+
+    loadMoreStocks(event: any) {
+        if (!this.vm.session) {
+            event.target.complete();
+            return;
         }
+
+        this.store.select(selectTontineStockPaginationHasMore)
+            .pipe(take(1))
+            .subscribe(hasMore => {
+                if (hasMore) {
+                    this.store.dispatch(TontineActions.loadNextPageTontineStocks({
+                        sessionId: this.vm.session!.id,
+                        filters: {
+                            searchQuery: this.currentSearchQuery
+                        }
+                    }));
+                } else {
+                    event.target.disabled = true;
+                }
+                // Delay completion slightly to allow UI to update
+                setTimeout(() => event.target.complete(), 500);
+            });
     }
 
     onSearch(event: any) {
         this.currentSearchQuery = (event.target.value || '').toLowerCase();
-        this.filterStocks();
+        this.loadStocks();
     }
 
-    private filterStocks() {
-        if (!this.currentSearchQuery.trim()) {
-            this.filteredStocks = [...this.allStocks];
-        } else {
-            this.filteredStocks = this.allStocks.filter(stock =>
-                stock.articleName?.toLowerCase().includes(this.currentSearchQuery)
-            );
-        }
-        this.vm.stocks = this.filteredStocks;
-    }
+
 
     // Cart Management
     getQuantity(stockId: string): number {
@@ -245,7 +247,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         this.cartDetails.set(stock.id, {
             price: stock.unitPrice,
             name: stock.articleName || 'Article',
-            maxQty: stock.availableQuantity
+            maxQty: stock.availableQuantity,
+            articleId: stock.articleId
         });
 
         const currentQty = this.getQuantity(stock.id);
@@ -352,21 +355,18 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             this.cart.forEach((qty, stockId) => {
                 const details = this.cartDetails.get(stockId);
                 if (details) {
-                    // Find the stock to get the articleId
-                    const stock = this.allStocks.find(s => s.id === stockId);
-                    if (stock) {
-                        items.push({
-                            id: this.generateUuid(),
-                            tontineDeliveryId: deliveryId,
-                            articleId: stock.articleId,
-                            quantity: qty,
-                            unitPrice: details.price,
-                            totalPrice: details.price * qty
-                        });
+                    // Use details from cartDetails which now includes articleId (added in increaseQuantity)
+                    items.push({
+                        id: this.generateUuid(),
+                        tontineDeliveryId: deliveryId,
+                        articleId: details.articleId,
+                        quantity: qty,
+                        unitPrice: details.price,
+                        totalPrice: details.price * qty
+                    });
 
-                        // Track stock update
-                        stockUpdates.push({ stockId: stock.id, quantity: qty });
-                    }
+                    // Track stock update
+                    stockUpdates.push({ stockId: stockId, quantity: qty });
                 }
             });
 

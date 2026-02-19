@@ -435,6 +435,11 @@ export class DatabaseService {
         CREATE INDEX IF NOT EXISTS idx_order_items_articleId ON order_items(articleId);
         CREATE INDEX IF NOT EXISTS idx_clients_tontineCollector ON clients(tontineCollector);
 
+        -- Index pour optimiser les performances des distributions
+        CREATE INDEX IF NOT EXISTS idx_distributions_clientId ON distributions(clientId);
+        CREATE INDEX IF NOT EXISTS idx_distributions_commercialId ON distributions(commercialId);
+        CREATE INDEX IF NOT EXISTS idx_distributions_status ON distributions(status);
+
         -- ==========================================
         -- TABLES TONTINE
         -- ==========================================
@@ -929,6 +934,8 @@ export class DatabaseService {
     this.log.log(`[DatabaseService] getClients: Query finished for commercial ${commercialId}. Found ${ret.values?.length} clients.`);
     return ret.values || [];
   }
+
+
 
   async saveCommercial(commercial: any): Promise<void> {
     if (!this.db) {

@@ -550,5 +550,84 @@ export class ClientService {
     return await this.dbService.updateClientPhotosAndInfo(data);
   }
 
+  // ==================== PAGINATION METHODS ====================
+
+  /**
+   * Get paginated clients from local database
+   * 
+   * **SECURITY**: This method requires commercialUsername for data isolation
+   * 
+   * @param commercialUsername Username of the commercial (REQUIRED)
+   * @param page Page number (zero-indexed)
+   * @param size Number of items per page
+   * @param filters Optional filters
+   * @returns Page of clients
+   */
+  async getClientsPaginated(
+    commercialUsername: string,
+    page: number,
+    size: number,
+    filters?: {
+      searchQuery?: string;
+      quarter?: string;
+      clientType?: string;
+      tontineCollector?: string;
+    }
+  ): Promise<{ content: Client[]; totalElements: number; totalPages: number; page: number; size: number }> {
+    if (!commercialUsername) {
+      throw new Error('commercialUsername is required for security');
+    }
+
+    // Use ClientRepositoryExtensions for paginated query
+    // For now, we'll use the dbService directly with SQL
+    // In the future, inject ClientRepositoryExtensions here
+
+    const offset = page * size;
+    let whereConditions = ['commercial = ?'];
+    const params: any[] = [commercialUsername];
+
+    // Add optional filters
+    if (filters?.searchQuery) {
+      whereConditions.push('(fullName LIKE ? OR phone LIKE ? OR quarter LIKE ?)');
+      const searchPattern = `%${filters.searchQuery}%`;
+      params.push(searchPattern, searchPattern, searchPattern);
+    }
+
+    if (filters?.quarter) {
+      whereConditions.push('quarter = ?');
+      params.push(filters.quarter);
+    }
+
+    if (filters?.clientType) {
+      whereConditions.push('clientType = ?');
+      params.push(filters.clientType);
+    }
+
+    if (filters?.tontineCollector) {
+      whereConditions.push('tontineCollector = ?');
+      params.push(filters.tontineCollector);
+    }
+
+    const whereClause = whereConditions.join(' AND ');
+
+    // Count total items
+    const countSql = `SELECT COUNT(*) as total FROM clients WHERE ${whereClause}`;
+    const countResult = await this.dbService.query(countSql, params);
+    const totalElements = countResult.values?.[0]?.total || 0;
+    const totalPages = Math.ceil(totalElements / size);
+
+    // Get paginated data
+    const dataSql = `SELECT * FROM clients WHERE ${whereClause} ORDER BY fullName ASC LIMIT ${size} OFFSET ${offset}`;
+    const dataResult = await this.dbService.query(dataSql, params);
+    const content = (dataResult.values || []) as Client[];
+
+    return {
+      content,
+      totalElements,
+      totalPages,
+      page,
+      size
+    };
+  }
 
 }

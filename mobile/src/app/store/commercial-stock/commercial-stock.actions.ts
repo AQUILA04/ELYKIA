@@ -32,6 +32,19 @@ export const syncCommercialStockFailure = createAction(
 );
 
 export const updateStockQuantity = createAction(
-    '[Commercial Stock] Update Stock Quantity',
-    props<{ articleId: string, quantityChange: number }>()
+  '[Commercial Stock] Update Stock Quantity',
+  props<{ articleId: string, quantityChange: number }>()
 );
+
+export const updateStockQuantitySuccess = createAction(
+  '[Commercial Stock] Update Stock Quantity Success',
+  props<{ stockItems: CommercialStockItem[] }>()
+);
+
+export const updateStockQuantityFailure = createAction(
+  '[Commercial Stock] Update Stock Quantity Failure',
+  props<{ error: string }>()
+);
+
+// Dashboard KPI Stats Actions
+

@@ -16,6 +16,7 @@ import { RecoverySummaryModalComponent } from '../../shared/components/recovery-
 import { Transaction } from '../../models/transaction.model';
 import * as ClientActions from '../client/client.actions';
 import { filter, take } from 'rxjs/operators';
+import { RecoveryRepositoryExtensions } from '../../core/repositories/recovery.repository.extensions';
 
 @Injectable()
 export class RecoveryEffects {
@@ -24,8 +25,9 @@ export class RecoveryEffects {
     private recoveryService: RecoveryService,
     private printingService: PrintingService,
     private store: Store,
-    private modalController: ModalController
-  ) {}
+    private modalController: ModalController,
+    private recoveryRepositoryExtensions: RecoveryRepositoryExtensions
+  ) { }
 
   loadAndSelectClient$ = createEffect(() => {
     return this.actions$.pipe(
@@ -248,4 +250,66 @@ export class RecoveryEffects {
       })
     )
   );
+
+  // ==================== PAGINATION EFFECTS ====================
+
+  loadFirstPageRecoveries$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(RecoveryActions.loadFirstPageRecoveries),
+      switchMap((action) => {
+        if (!action.commercialId) {
+          return of(RecoveryActions.loadFirstPageRecoveriesFailure({
+            error: 'commercialId is required for security'
+          }));
+        }
+
+        return from(
+          this.recoveryService.getRecoveriesPaginated(
+            action.commercialId,
+            0, // First page
+            action.pageSize || 20,
+            action.filters
+          )
+        ).pipe(
+          map((page) => RecoveryActions.loadFirstPageRecoveriesSuccess({ page })),
+          catchError((error) => of(RecoveryActions.loadFirstPageRecoveriesFailure({ error: error.message })))
+        );
+      })
+    )
+  );
+
+  loadNextPageRecoveries$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(RecoveryActions.loadNextPageRecoveries),
+      withLatestFrom(this.store.select(state => (state as any).recovery?.pagination)),
+      switchMap(([action, pagination]) => {
+        if (!action.commercialId) {
+          return of(RecoveryActions.loadNextPageRecoveriesFailure({
+            error: 'commercialId is required for security'
+          }));
+        }
+
+        if (!pagination || !pagination.hasMore || pagination.loading) {
+          // No more pages to load or already loading
+          return of({ type: 'NO_OP' });
+        }
+
+        const nextPage = pagination.currentPage + 1;
+
+        return from(
+          this.recoveryService.getRecoveriesPaginated(
+            action.commercialId,
+            nextPage,
+            pagination.pageSize,
+            action.filters
+          )
+        ).pipe(
+          map((page) => RecoveryActions.loadNextPageRecoveriesSuccess({ page })),
+          catchError((error) => of(RecoveryActions.loadNextPageRecoveriesFailure({ error: error.message })))
+        );
+      })
+    )
+  );
+
+
 }

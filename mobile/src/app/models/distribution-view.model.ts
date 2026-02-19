@@ -17,6 +17,12 @@ export interface DistributionItemView extends DistributionItem {
  */
 export interface DistributionView extends Omit<Distribution, 'items' | 'clientId'> {
   clientId: string;
-  client: Client; // Imbrication de l'objet Client complet
+  client: Client; // Imbrication de l'objet Client complet (Legacy support)
+
+  // Flat fields for Native View performance
+  clientName?: string;
+  clientPhone?: string;
+  clientQuarter?: string;
+
   items: DistributionItemView[];
 }

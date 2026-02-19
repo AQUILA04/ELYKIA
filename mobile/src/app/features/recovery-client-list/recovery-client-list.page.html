@@ -11,14 +11,19 @@
 </ion-header>
 
 <ion-content>
+  <div *ngIf="(isLoading$ | async) && !(groupedClients$ | async)?.length" class="ion-padding ion-text-center">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Chargement des clients...</p>
+  </div>
+
   <ng-container *ngIf="(groupedClients$ | async) as groups">
     <div *ngIf="groups.length > 0; else emptyState">
       <ion-list>
-        <ion-item-group *ngFor="let group of groups">
-          <ion-item-divider>
+        <ng-container *ngFor="let group of groups">
+          <ion-item-divider sticky>
             <ion-label>{{ group.quarter }}</ion-label>
           </ion-item-divider>
-          <ion-item *ngFor="let client of group.clients" (click)="openRecoveryPage(client.id)" button>
+          <ion-item *ngFor="let client of group.clients" (click)="openRecoveryPage(client.id)" button detail>
             <ion-avatar slot="start">
               <img [src]="client.photoUrl || 'assets/icon/person-circle-outline.svg'" />
             </ion-avatar>
@@ -27,18 +32,23 @@
               <p>{{ client.address }}</p>
               <p>{{ client.phone }}</p>
             </ion-label>
-            <ion-note slot="end" color="danger" *ngIf="client.account?.accountBalance ?? 0 < 0">
+            <ion-note slot="end" color="danger" *ngIf="(client.account?.accountBalance || 0) < 0">
               {{ client.account?.accountBalance | currency:'XOF' }}
             </ion-note>
           </ion-item>
-        </ion-item-group>
+        </ng-container>
       </ion-list>
+
+      <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMore($event)" [disabled]="!(hasMore$ | async)">
+        <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement des clients suivants...">
+        </ion-infinite-scroll-content>
+      </ion-infinite-scroll>
     </div>
 
     <ng-template #emptyState>
-      <div class="empty-state ion-text-center ion-padding">
+      <div class="empty-state ion-text-center ion-padding" *ngIf="!(isLoading$ | async)">
         <ion-icon name="document-text-outline" size="large"></ion-icon>
-        <h2>Aucun client à recouvrer</h2>
+        <h2>Aucun client à recouvrer.</h2>
         <p>Tous les comptes clients sont à jour.</p>
       </div>
     </ng-template>

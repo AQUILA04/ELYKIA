@@ -243,4 +243,79 @@ export class RecoveryService {
     const updatedRecoveries = recoveries.filter(r => !distributionIds.includes(r.distributionId));
     await this.dbService.saveRecoveries(updatedRecoveries);
   }
+
+  // ==================== PAGINATION METHODS ====================
+
+  /**
+   * Get paginated recoveries from local database
+   * 
+   * **SECURITY**: This method requires commercialId for data isolation
+   * 
+   * @param commercialId ID of the commercial (REQUIRED)
+   * @param page Page number (zero-indexed)
+   * @param size Number of items per page
+   * @param filters Optional filters
+   * @returns Page of recoveries
+   */
+  async getRecoveriesPaginated(
+    commercialId: string,
+    page: number,
+    size: number,
+    filters?: {
+      startDate?: string;
+      endDate?: string;
+      paymentMethod?: string;
+      clientId?: string;
+    }
+  ): Promise<{ content: Recovery[]; totalElements: number; totalPages: number; page: number; size: number }> {
+    if (!commercialId) {
+      throw new Error('commercialId is required for security');
+    }
+
+    const offset = page * size;
+    let whereConditions = ['commercialId = ?'];
+    const params: any[] = [commercialId];
+    
+    // Add optional filters
+    if (filters?.startDate) {
+      whereConditions.push('DATE(paymentDate) >= ?');
+      params.push(filters.startDate);
+    }
+    
+    if (filters?.endDate) {
+      whereConditions.push('DATE(paymentDate) <= ?');
+      params.push(filters.endDate);
+    }
+    
+    if (filters?.paymentMethod) {
+      whereConditions.push('paymentMethod = ?');
+      params.push(filters.paymentMethod);
+    }
+    
+    if (filters?.clientId) {
+      whereConditions.push('clientId = ?');
+      params.push(filters.clientId);
+    }
+    
+    const whereClause = whereConditions.join(' AND ');
+    
+    // Count total items
+    const countSql = `SELECT COUNT(*) as total FROM recoveries WHERE ${whereClause}`;
+    const countResult = await this.dbService.query(countSql, params);
+    const totalElements = countResult.values?.[0]?.total || 0;
+    const totalPages = Math.ceil(totalElements / size);
+    
+    // Get paginated data
+    const dataSql = `SELECT * FROM recoveries WHERE ${whereClause} ORDER BY paymentDate DESC LIMIT ${size} OFFSET ${offset}`;
+    const dataResult = await this.dbService.query(dataSql, params);
+    const content = (dataResult.values || []) as Recovery[];
+    
+    return {
+      content,
+      totalElements,
+      totalPages,
+      page,
+      size
+    };
+  }
 }

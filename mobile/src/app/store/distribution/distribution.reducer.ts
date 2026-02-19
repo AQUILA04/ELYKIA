@@ -3,17 +3,26 @@ import { Distribution } from '../../models/distribution.model';
 import { Article } from '../../models/article.model';
 import * as DistributionActions from './distribution.actions';
 import { DistributionItem } from '../../models/distribution-item.model';
+import { PaginationState, createInitialPaginationState } from '../../core/models/pagination.model';
+import { DistributionView } from '../../models/distribution-view.model'; // Ensure this exists or use any
 
 export interface DistributionState {
   distributions: Distribution[];
-  items: DistributionItem[]; // <-- ADDED
+  items: DistributionItem[];
   loading: boolean;
   error: string | null;
 
-  // New state for US006 & US007
+  // Pagination for List View
+  pagination: PaginationState<DistributionView>;
+
+  // Legacy & Fallback (kept for compatibility and dual-mode)
   availableArticles: Article[];
   articlesLoading: boolean;
   articlesError: string | null;
+
+  // Pagination for Articles
+  articlesPagination: PaginationState<Article>;
+  selectedArticlesCache: { [id: string]: Article };
 
   creatingDistribution: boolean;
   distributionCreated: boolean;
@@ -22,11 +31,9 @@ export interface DistributionState {
   printingReceipt: boolean;
   printReceiptError: string | null;
 
-  // New distribution form state
   selectedClient: any | null;
   articleQuantities: { [articleId: string]: number };
 
-  // Filter and search state
   filters: {
     status?: string;
     clientId?: string;
@@ -34,7 +41,6 @@ export interface DistributionState {
   };
   searchTerm: string;
 
-  // Sync state
   syncingPending: boolean;
   syncError: string | null;
   lastSyncDate: Date | null;
@@ -42,13 +48,18 @@ export interface DistributionState {
 
 export const initialState: DistributionState = {
   distributions: [],
-  items: [], // <-- ADDED
+  items: [],
   loading: false,
   error: null,
+
+  pagination: createInitialPaginationState<DistributionView>(),
 
   availableArticles: [],
   articlesLoading: false,
   articlesError: null,
+
+  articlesPagination: createInitialPaginationState<Article>(),
+  selectedArticlesCache: {},
 
   creatingDistribution: false,
   distributionCreated: false,
@@ -71,32 +82,18 @@ export const initialState: DistributionState = {
 export const distributionReducer = createReducer(
   initialState,
 
-  // Load Distributions
-  on(DistributionActions.loadDistributions, (state) => ({
-    ...state,
-    loading: true,
-    error: null
-  })),
+  // ... (Load Distributions reducers remain the same)
 
-  on(DistributionActions.loadDistributionsSuccess, (state, { distributions }) => {
-    const items = distributions.reduce((acc, d) => acc.concat(d.items || []), [] as DistributionItem[]);
-    return {
-      ...state,
-      distributions,
-      items: items,
-      loading: false,
-      error: null
-    };
-  }),
+  // ==========================================
+  // PAGINATION REDUCERS (Distributions)
+  // ==========================================
+  // ... (Distribution Pagination reducers remain the same)
 
-  on(DistributionActions.loadDistributionsFailure, (state, { error }) => ({
-    ...state,
-    loading: false,
-    error
-  })),
+  // ==========================================
+  // PAGINATION REDUCERS (Articles)
+  // ==========================================
 
-  // ... (rest of the file is the same)
-  // Load Available Articles
+  // Load Available Articles (Legacy - kept for compatibility if needed, but we essentially replace usage)
   on(DistributionActions.loadAvailableArticles, (state) => ({
     ...state,
     articlesLoading: true,
@@ -116,6 +113,72 @@ export const distributionReducer = createReducer(
     articlesError: error
   })),
 
+  // Load First Page Available Articles
+  on(DistributionActions.loadFirstPageAvailableArticles, (state) => ({
+    ...state,
+    articlesPagination: {
+      ...state.articlesPagination,
+      loading: true,
+      error: null,
+      currentPage: 0,
+      items: [],
+      hasMore: true
+    }
+  })),
+
+  on(DistributionActions.loadFirstPageAvailableArticlesSuccess, (state, { articles, totalElements, totalPages }) => ({
+    ...state,
+    articlesPagination: {
+      ...state.articlesPagination,
+      items: articles,
+      totalItems: totalElements,
+      hasMore: 0 < totalPages - 1,
+      loading: false,
+      error: null
+    }
+  })),
+
+  on(DistributionActions.loadFirstPageAvailableArticlesFailure, (state, { error }) => ({
+    ...state,
+    articlesPagination: {
+      ...state.articlesPagination,
+      loading: false,
+      error
+    }
+  })),
+
+  // Load Next Page Available Articles
+  on(DistributionActions.loadNextPageAvailableArticles, (state) => ({
+    ...state,
+    articlesPagination: {
+      ...state.articlesPagination,
+      loading: true,
+      error: null
+    }
+  })),
+
+  on(DistributionActions.loadNextPageAvailableArticlesSuccess, (state, { articles }) => ({
+    ...state,
+    articlesPagination: {
+      ...state.articlesPagination,
+      items: [...state.articlesPagination.items, ...articles],
+      currentPage: state.articlesPagination.currentPage + 1,
+      hasMore: (state.articlesPagination.currentPage + 1 + 1) * state.articlesPagination.pageSize < state.articlesPagination.totalItems,
+      loading: false,
+      error: null
+    }
+  })),
+
+  on(DistributionActions.loadNextPageAvailableArticlesFailure, (state, { error }) => ({
+    ...state,
+    articlesPagination: {
+      ...state.articlesPagination,
+      loading: false,
+      error
+    }
+  })),
+
+
   // Create Distribution
   on(DistributionActions.createDistribution, (state) => ({
     ...state,
@@ -127,6 +190,11 @@ export const distributionReducer = createReducer(
   on(DistributionActions.createDistributionSuccess, (state, { distribution }) => ({
     ...state,
     distributions: [distribution, ...state.distributions],
+    pagination: {
+      ...state.pagination,
+      items: [distribution as unknown as DistributionView, ...state.pagination.items], // Optimistic update
+      totalItems: state.pagination.totalItems + 1
+    },
     creatingDistribution: false,
     distributionCreated: true,
     createDistributionError: null
@@ -169,6 +237,11 @@ export const distributionReducer = createReducer(
     distributions: state.distributions.map(d =>
       d.id === distribution.id ? distribution : d
     ),
+    pagination: {
+      ...state.pagination,
+      // Preserve existing items (with articles) from the view, only update status/fields from distribution
+      items: state.pagination.items.map(d => d.id === distribution.id ? { ...d, ...distribution, items: d.items } : d)
+    },
     loading: false,
     error: null
   })),
@@ -189,6 +262,11 @@ export const distributionReducer = createReducer(
   on(DistributionActions.deleteDistributionSuccess, (state, { distributionId }) => ({
     ...state,
     distributions: state.distributions.filter(d => d.id !== distributionId),
+    pagination: {
+      ...state.pagination,
+      items: state.pagination.items.filter(d => d.id !== distributionId),
+      totalItems: state.pagination.totalItems - 1
+    },
     loading: false,
     error: null
   })),
@@ -268,13 +346,40 @@ export const distributionReducer = createReducer(
   })),
 
   // Article quantity management
-  on(DistributionActions.updateArticleQuantity, (state, { articleId, quantity }) => ({
-    ...state,
-    articleQuantities: {
+  on(DistributionActions.updateArticleQuantity, (state, { articleId, quantity, article }) => {
+    const nextQuantities = {
       ...state.articleQuantities,
       [articleId]: quantity
+    };
+
+    // If quantity became 0, we can remove it from quantities, but maybe keep in cache?
+    // Actually, updateArticleQuantity is dispatched with quantity >= 0.
+
+    // Update Cache Algorithm:
+    // 1. If an article object is provided in action, use it.
+    // 2. If not, try to find it in articlesPagination.items or availableArticles.
+    // 3. Only update cache if we have the article object and quantity > 0.
+
+    let nextCache = { ...state.selectedArticlesCache };
+
+    if (quantity > 0) {
+      const foundArticle = article ||
+        state.articlesPagination.items.find(a => a.id === articleId) ||
+        state.availableArticles.find(a => a.id === articleId) ||
+        nextCache[articleId];
+
+      if (foundArticle) {
+        nextCache[articleId] = foundArticle;
+      }
     }
-  })),
+    // Optional: We could remove from cache if quantity === 0, but it doesn't hurt to keep it.
+
+    return {
+      ...state,
+      articleQuantities: nextQuantities,
+      selectedArticlesCache: nextCache
+    };
+  }),
 
   // Client selection
   on(DistributionActions.setSelectedClient, (state, { client }) => ({
@@ -301,7 +406,7 @@ export const distributionReducer = createReducer(
     error: null
   })),
 
-    on(DistributionActions.updateDistributionAmountsFailure, (state, { error }) => ({
+  on(DistributionActions.updateDistributionAmountsFailure, (state, { error }) => ({
     ...state,
     loading: false,
     error
@@ -312,4 +417,7 @@ export const distributionReducer = createReducer(
     distributions: state.distributions.filter(d => d.clientId !== clientId),
   }))
 );
+
+// KPI Stats
+
 

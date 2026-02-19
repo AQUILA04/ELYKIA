@@ -12,6 +12,10 @@ import { Store } from '@ngrx/store';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { HealthCheckService } from './health-check.service';
 
+import { OrderRepositoryExtensions, OrderRepositoryFilters } from '../repositories/order.repository.extensions';
+import { Page } from '../repositories/repository.interface';
+import { OrderView } from '../../models/order-view.model';
+
 interface CreateOrderData {
   clientId: string;
   articles: Array<{ articleId: string; quantity: number }>;
@@ -29,14 +33,29 @@ export class OrderService {
     private http: HttpClient,
     private dbService: DatabaseService,
     private store: Store,
-    private healthCheckService: HealthCheckService
+    private healthCheckService: HealthCheckService,
+    private orderRepositoryExtensions: OrderRepositoryExtensions
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
     });
   }
 
+  /**
+   * Get paginated orders with client details (View)
+   */
+  getOrdersPaginated(page: number, size: number, filters?: OrderRepositoryFilters): Observable<Page<OrderView>> {
+    const commercialId = this.commercialUsername;
+    if (!commercialId) {
+      return of({ content: [], totalElements: 0, totalPages: 0, page, size });
+    }
+    return from(this.orderRepositoryExtensions.findViewsByCommercialPaginated(commercialId, page, size, filters));
+  }
+
   // Get orders from local database only
+  /**
+   * @deprecated Use getOrdersPaginated instead for list views
+   */
   getOrders(): Observable<Order[]> {
     if (!this.commercialUsername) {
       return of([]);

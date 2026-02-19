@@ -47,6 +47,13 @@ export interface TontineCollection {
     syncHash?: string;
     isDeliveryCollection?: boolean;
     clientName?: string;
+    clientQuarter?: string;
+    memberUniqueId?: string; // e.g. code or other identifier
+}
+
+export interface TontineCollectionView extends TontineCollection {
+    clientName: string;
+    clientQuarter?: string;
 }
 
 export interface TontineDeliveryItem {
@@ -73,6 +80,11 @@ export interface TontineDelivery {
     syncDate?: string;
     syncHash?: string;
     clientName?: string;
+}
+
+export interface TontineDeliveryView extends TontineDelivery {
+    clientName: string;
+    clientQuarter?: string;
 }
 
 export interface TontineStock {

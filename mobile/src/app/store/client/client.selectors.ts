@@ -71,3 +71,55 @@ export const selectClientsByCommercialUsername = (username: string) => createSel
   selectAllClients,
   (clients) => clients.filter(c => c.commercial === username)
 );
+
+// ==================== PAGINATION SELECTORS ====================
+
+export const selectClientPagination = createSelector(
+  selectClientState,
+  (state) => state.pagination
+);
+
+export const selectPaginatedClients = createSelector(
+  selectClientPagination,
+  (pagination) => pagination.items
+);
+
+export const selectClientPaginationLoading = createSelector(
+  selectClientPagination,
+  (pagination) => pagination.loading
+);
+
+export const selectClientPaginationError = createSelector(
+  selectClientPagination,
+  (pagination) => pagination.error
+);
+
+export const selectClientPaginationHasMore = createSelector(
+  selectClientPagination,
+  (pagination) => pagination.hasMore
+);
+
+export const selectClientPaginationCurrentPage = createSelector(
+  selectClientPagination,
+  (pagination) => pagination.currentPage
+);
+
+export const selectClientPaginationTotalItems = createSelector(
+  selectClientPagination,
+  (pagination) => pagination.totalItems
+);
+
+
+/**
+ * Selector for paginated client views (with account information)
+ */
+export const selectPaginatedClientViews = createSelector(
+  selectPaginatedClients,
+  selectAllAccounts,
+  (clients, accounts): ClientView[] => {
+    return clients.map(client => ({
+      ...client,
+      account: accounts.find(account => account.clientId === client.id)
+    }));
+  }
+);

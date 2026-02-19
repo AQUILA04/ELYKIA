@@ -121,6 +121,18 @@
     </div>
   </div>
 
+  <!-- Infinite Scroll -->
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)"
+    [disabled]="activeTab === 'clients' ? !((clientPagination$ | async)?.hasMore) :
+                activeTab === 'distributions' ? !((distributionPagination$ | async)?.hasMore) :
+                activeTab === 'recoveries' ? !((recoveryPagination$ | async)?.hasMore) :
+                activeTab === 'tontine-members' ? !((tontineMemberPagination$ | async)?.hasMore) :
+                activeTab === 'tontine-collections' ? !((tontineCollectionPagination$ | async)?.hasMore) :
+                !((tontineDeliveryPagination$ | async)?.hasMore)">
+    <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement plus de données...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
   <!-- Floating Action Button pour synchronisation groupée -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="((selectedCount$ | async) ?? 0) > 0">
     <ion-fab-button (click)="onSyncSelected()" color="primary">

@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { DatabaseService } from './database.service';
+import { LocalityRepository } from '../repositories/locality.repository';
 import { AuthService } from './auth.service';
 import { SyncErrorService } from './sync-error.service';
 import { Locality } from '../../models/locality.model';
@@ -17,12 +18,15 @@ export class LocalitySyncService {
   constructor(
     private http: HttpClient,
     private databaseService: DatabaseService,
+    private localityRepository: LocalityRepository,
     private authService: AuthService,
     private syncErrorService: SyncErrorService
-  ) {}
+  ) { }
 
-  async syncLocalities(): Promise<{ success: number, errors: number }> {
-    const unsyncedLocalities = await this.databaseService.getUnsyncedLocalities();
+  async syncLocalities(limit: number = 100): Promise<{ success: number, errors: number }> {
+    const commercialUsername = this.authService.currentUser?.username || '';
+    const unsyncedLocalities = await this.localityRepository.findUnsynced(commercialUsername, limit, 0);
+
     if (unsyncedLocalities.length === 0) {
       return { success: 0, errors: 0 };
     }
@@ -56,7 +60,8 @@ export class LocalitySyncService {
     }
 
     const serverLocality = response.data;
-    await this.databaseService.markLocalityAsSynced(locality.id, parseInt(serverLocality.id, 10));
+    // Use repository to mark as synced. serverLocality.id is likely string or number, convert to string.
+    await this.localityRepository.markAsSynced(locality.id, String(serverLocality.id));
   }
 
   private getAuthHeaders(): HttpHeaders {
