@@ -68,7 +68,7 @@
                     </div>
                     <div class="member-card" *ngFor="let member of group.members"
                         (click)="viewMemberDetails(member.id)">
-                        <div class="member-avatar">{{ member.clientName.charAt(0) || '?' }}</div>
+                        <div class="member-avatar">{{ (member.clientName || '?').charAt(0) }}</div>
                         <div class="member-info">
                             <div class="member-name">{{ member.clientName || 'Client Inconnu' }}</div>
                             <div class="member-details">
@@ -111,7 +111,7 @@
                 </div>
 
                 <div class="member-card" *ngFor="let member of members" (click)="viewMemberDetails(member.id)">
-                    <div class="member-avatar">{{ member.clientName.charAt(0) || '?' }}</div>
+                    <div class="member-avatar">{{ (member.clientName || '?').charAt(0) }}</div>
                     <div class="member-info">
                         <div class="member-name">{{ member.clientName || 'Client Inconnu' }}</div>
                         <div class="member-details">

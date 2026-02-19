@@ -342,6 +342,7 @@ export class RapportJournalierPage implements OnDestroy {
           commercialUsername: this.commercialUsername,
           filters: { dateFilter }
         }));
+        break;
       case 'recouvrements':
         this.store.dispatch(RecoveryActions.loadFirstPageRecoveries({
           commercialId: this.commercialUsername,
@@ -387,28 +388,35 @@ export class RapportJournalierPage implements OnDestroy {
       case 'distributions':
         this.store.select(DistributionSelectors.selectDistributionPagination).pipe(take(1)).subscribe(p => {
           if (p.hasMore && !p.loading && index > p.items.length - threshold) {
-            this.store.dispatch(DistributionActions.loadNextPageDistributions({ commercialUsername: this.commercialUsername!, filters: { dateFilter: { startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0] } } as any }));
+            this.store.dispatch(DistributionActions.loadNextPageDistributions({commercialUsername: this.commercialUsername!,
+              filters: {
+                dateFilter: {
+                  startDate: new Date().toISOString().split('T')[0],
+                  endDate: new Date().toISOString().split('T')[0]
+                }
+              } as any
+            }));
           }
         });
         break;
       case 'recouvrements':
         this.store.select(RecoverySelectors.selectRecoveryPagination).pipe(take(1)).subscribe(p => {
           if (p.hasMore && !p.loading && index > p.items.length - threshold) {
-            this.store.dispatch(RecoveryActions.loadNextPageRecoveries({ commercialId: this.commercialUsername! }));
+            this.store.dispatch(RecoveryActions.loadNextPageRecoveries({commercialId: this.commercialUsername!}));
           }
         });
         break;
       case 'clients':
         this.store.select(ClientSelectors.selectClientPagination).pipe(take(1)).subscribe(p => {
           if (p.hasMore && !p.loading && index > p.items.length - threshold) {
-            this.store.dispatch(ClientActions.loadNextPageClients({ commercialUsername: this.commercialUsername! }));
+            this.store.dispatch(ClientActions.loadNextPageClients({commercialUsername: this.commercialUsername!}));
           }
         });
         break;
       case 'tontine-membres':
         this.store.select(TontineSelectors.selectTontineMemberPagination).pipe(take(1)).subscribe(p => {
           if (p.hasMore && !p.loading && index > p.items.length - threshold && this.tontineSessionId) {
-            this.store.dispatch(TontineActions.loadNextPageTontineMembers({ sessionId: this.tontineSessionId }));
+            this.store.dispatch(TontineActions.loadNextPageTontineMembers({sessionId: this.tontineSessionId}));
           }
         });
         break;
@@ -428,8 +436,10 @@ export class RapportJournalierPage implements OnDestroy {
         break;
     }
   }
+
   loadMoreData(event: any) {
-    if (!this.commercialUsername) { event.target.complete(); return; }
+    if (!this.commercialUsername) {
+      event.target.complete(); return; }
     const complete = () => event.target.complete();
     complete();
   }
