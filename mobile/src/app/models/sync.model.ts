@@ -100,21 +100,27 @@ export interface ClientSyncRequest {
   occupation: string;
   phone: string;
   quarter: string;
-  id: null; // Toujours null pour création
+  id: number | null;
   contactPersonName?: string;
   contactPersonPhone?: string;
   contactPersonAddress?: string;
-  clientType: 'CLIENT';
+  clientType?: 'CLIENT';
   iddoc?: string;
   profilPhoto?: string;
   longitude?: number;
   latitude?: number;
   mll?: string;
-  code: string;
-  profilPhotoUrl: string;
-  cardPhotoUrl: string;
-  tontineCollector: string;
+  code?: string;
+  profilPhotoUrl?: string;
+  cardPhotoUrl?: string;
+  city?: string;
+  status?: string;
+  nic?: string;
+  profession?: string;
+  tontineCollector?: string;
   agencyCollector?: string;
+  profilePicture?: string;
+  cardPicture?: string;
 }
 
 export interface AccountSyncRequest {
@@ -122,6 +128,7 @@ export interface AccountSyncRequest {
   accountNumber: string;
   clientId: number; // ID serveur du client
   accountBalance: number;
+  status?: string;
 }
 
 export interface AccountUpdateRequest {
@@ -160,9 +167,27 @@ export interface OrderSyncRequest {
   }>;
 }
 
+export interface AccountSyncResponse {
+  id: number;
+  clientId: number;
+  accountNumber: string;
+  accountBalance: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface OrderSyncResponse {
   id: number;
   // Inclure d'autres champs si nécessaire, basés sur la réponse réelle de l'API
+}
+
+export interface DistributionSyncResponse {
+  id: number;
+  clientId: number;
+  totalAmount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 

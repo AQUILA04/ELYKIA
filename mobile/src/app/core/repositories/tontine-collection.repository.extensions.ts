@@ -131,6 +131,59 @@ export class TontineCollectionRepositoryExtensions {
         return result.values?.[0]?.total || 0;
     }
 
+    async findByCommercialPaginated(
+        commercialUsername: string,
+        page: number,
+        size: number,
+        filters?: TontineCollectionRepositoryFilters
+    ): Promise<Page<TontineCollection>> {
+        if (!commercialUsername) {
+            throw new Error('commercialUsername is required for security');
+        }
+
+        const offset = page * size;
+        let whereConditions = [`tc.commercialUsername = ?`];
+        const params: any[] = [commercialUsername];
+
+        this.applyFilters(whereConditions, params, filters);
+
+        const whereClause = whereConditions.join(' AND ');
+
+        // Count
+        const countSql = `
+            SELECT COUNT(*) as total 
+            FROM tontine_collections tc 
+            JOIN tontine_members tm ON tc.tontineMemberId = tm.id
+            JOIN clients c ON tm.clientId = c.id
+            WHERE ${whereClause}
+        `;
+        const countResult = await this.tontineCollectionRepository['getDatabaseService']().query(countSql, params);
+        const totalElements = countResult.values?.[0]?.total || 0;
+        const totalPages = Math.ceil(totalElements / size);
+
+        // Data
+        const dataSql = `
+            SELECT tc.*
+            FROM tontine_collections tc 
+            JOIN tontine_members tm ON tc.tontineMemberId = tm.id
+            JOIN clients c ON tm.clientId = c.id
+            WHERE ${whereClause} 
+            ORDER BY tc.collectionDate DESC 
+            LIMIT ${size} OFFSET ${offset}
+        `;
+
+        const dataResult = await this.tontineCollectionRepository['getDatabaseService']().query(dataSql, params);
+        const content = (dataResult.values || []) as TontineCollection[];
+
+        return {
+            content,
+            totalElements,
+            totalPages,
+            page,
+            size
+        };
+    }
+
     private applyFilters(whereConditions: string[], params: any[], filters?: any) {
         if (filters?.searchQuery) {
             // Search client name

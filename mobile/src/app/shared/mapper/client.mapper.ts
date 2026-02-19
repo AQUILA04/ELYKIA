@@ -22,7 +22,7 @@ export class ClientMapper {
       syncDate: clientBackend.syncDate ?? new Date().toISOString(),
       latitude: clientBackend.latitude ?? 0,
       longitude: clientBackend.longitude ?? 0,
-      mll: clientBackend.mll ||'',
+      mll: clientBackend.mll || '',
       profilPhoto: clientBackend.profilPhoto,
       contactPersonName: clientBackend.contactPersonName || '',
       contactPersonPhone: clientBackend.contactPersonPhone || '',
@@ -65,5 +65,9 @@ export class ClientMapper {
       createdAt: clientLocal.createdAt,
       syncHash: clientLocal.syncHash,
     };
+  }
+
+  static fromLocal(row: any): Client {
+    return this.toLocal(row);
   }
 }

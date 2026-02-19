@@ -178,6 +178,30 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
         return ret.values || [];
     }
 
+    /**
+     * Get unsynced distributions with pagination
+     * @param commercialUsername Commercial username (filtered by ID in Distributions table, assuming username matches commercialId or need mapping? SyncService uses commercialId=username)
+     * @param limit Max number of items
+     * @param offset Offset
+     */
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<Distribution[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `SELECT * FROM distributions WHERE isSync = 0 AND isLocal = 1 AND commercialId = ? ORDER BY createdAt ASC LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => this.mapRowToDistribution(row));
+    }
+
+    async markAsSynced(localId: string, serverId: string): Promise<void> {
+        if (!this.databaseService['db'] || localId === serverId) return;
+        const updateSet = [
+            { statement: `UPDATE recoveries SET distributionId = ? WHERE distributionId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE distributions SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`, values: [serverId, localId] }
+        ];
+        await this.databaseService.executeSet(updateSet);
+    }
+
     // ==================== SPECIFIC UPDATE METHODS ====================
 
     /**

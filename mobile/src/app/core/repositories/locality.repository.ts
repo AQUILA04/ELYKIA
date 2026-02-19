@@ -109,14 +109,13 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
      * Get all localities that have not been synchronized with the server
      * @returns Array of unsynced localities
      */
-    async getUnsyncedLocalities(): Promise<Locality[]> {
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<Locality[]> {
         if (!this.databaseService['db']) {
-            console.error('Database not initialized.');
-            return [];
+            throw new Error('Database not initialized.');
         }
-        const sql = `SELECT * FROM localities WHERE isSync = 0 AND isLocal = 1`;
-        const ret = await this.databaseService.query(sql);
-        return ret.values || [];
+        const sql = `SELECT * FROM localities WHERE isSync = 0 AND isLocal = 1 LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [limit, offset]);
+        return (result.values || []).map((row: any) => ({ ...row, isLocal: row.isLocal === 1, isSync: row.isSync === 1 }));
     }
 
     /**
@@ -124,7 +123,7 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
      * @param localId Local ID of the locality
      * @param serverId Server ID assigned to the locality
      */
-    async markAsSynced(localId: string, serverId: number): Promise<void> {
+    async markAsSynced(localId: string, serverId: string): Promise<void> {
         if (!this.databaseService['db']) {
             console.error('Database not initialized.');
             return;
@@ -138,5 +137,4 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
 
         console.log(`Locality ${localId} marked as synced with server ID ${serverId}.`);
     }
-
 }

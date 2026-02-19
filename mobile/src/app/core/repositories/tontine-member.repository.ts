@@ -39,6 +39,30 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
         await this.databaseService.executeSet(set);
     }
 
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<TontineMember[]> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        const sql = `SELECT * FROM tontine_members WHERE isSync = 0 AND isLocal = 1 AND commercialUsername = ? LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => ({ ...row, isLocal: row.isLocal === 1, isSync: row.isSync === 1 }));
+    }
+
+    async markAsSynced(localId: string, serverId: string): Promise<void> {
+        if (!this.databaseService['db'] || localId === serverId) return;
+        const updateSet = [
+            { statement: `UPDATE tontine_collections SET tontineMemberId = ? WHERE tontineMemberId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE tontine_deliveries SET tontineMemberId = ? WHERE tontineMemberId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE tontine_members SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`, values: [serverId, localId] }
+        ];
+        await this.databaseService.executeSet(updateSet);
+    }
+
+    async findModified(commercialUsername: string, limit: number, offset: number): Promise<TontineMember[]> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        const sql = `SELECT * FROM tontine_members WHERE isSync = 0 AND isLocal = 0 AND commercialUsername = ? LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => ({ ...row, isLocal: row.isLocal === 1, isSync: row.isSync === 1 }));
+    }
+
     // ==================== SPECIFIC QUERY METHODS ====================
 
     /**

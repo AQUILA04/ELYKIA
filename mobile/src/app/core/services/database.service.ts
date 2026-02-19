@@ -928,6 +928,8 @@ export class DatabaseService {
     return ret.values || [];
   }
 
+
+
   async saveCommercial(commercial: any): Promise<void> {
     if (!this.db) {
       console.error('Database not initialized.');

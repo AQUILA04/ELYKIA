@@ -134,6 +134,59 @@ export class TontineDeliveryRepositoryExtensions {
         return result.values?.[0]?.total || 0;
     }
 
+    async findByCommercialPaginated(
+        commercialUsername: string,
+        page: number,
+        size: number,
+        filters?: TontineDeliveryRepositoryFilters
+    ): Promise<Page<TontineDelivery>> {
+        if (!commercialUsername) {
+            throw new Error('commercialUsername is required for security');
+        }
+
+        const offset = page * size;
+        let whereConditions = [`td.commercialUsername = ?`];
+        const params: any[] = [commercialUsername];
+
+        this.applyFilters(whereConditions, params, filters);
+
+        const whereClause = whereConditions.join(' AND ');
+
+        // Count
+        const countSql = `
+            SELECT COUNT(*) as total 
+            FROM tontine_deliveries td 
+            JOIN tontine_members tm ON td.tontineMemberId = tm.id
+            JOIN clients c ON tm.clientId = c.id
+            WHERE ${whereClause}
+        `;
+        const countResult = await this.tontineDeliveryRepository['getDatabaseService']().query(countSql, params);
+        const totalElements = countResult.values?.[0]?.total || 0;
+        const totalPages = Math.ceil(totalElements / size);
+
+        // Data
+        const dataSql = `
+            SELECT td.*
+            FROM tontine_deliveries td 
+            JOIN tontine_members tm ON td.tontineMemberId = tm.id
+            JOIN clients c ON tm.clientId = c.id
+            WHERE ${whereClause} 
+            ORDER BY td.requestDate DESC 
+            LIMIT ${size} OFFSET ${offset}
+        `;
+
+        const dataResult = await this.tontineDeliveryRepository['getDatabaseService']().query(dataSql, params);
+        const content = (dataResult.values || []) as TontineDelivery[];
+
+        return {
+            content,
+            totalElements,
+            totalPages,
+            page,
+            size
+        };
+    }
+
     private applyFilters(whereConditions: string[], params: any[], filters?: any) {
         if (filters?.status) {
             whereConditions.push('td.status = ?');

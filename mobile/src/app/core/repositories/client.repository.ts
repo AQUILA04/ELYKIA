@@ -121,12 +121,15 @@ export class ClientRepository extends BaseRepository<Client, string> {
      * Get clients that have been updated locally
      * @returns Array of updated clients
      */
-    async getUpdatedClients(): Promise<Client[]> {
-        if (!this.databaseService['db']) {
-            throw new Error('Database not initialized.');
-        }
-        const result = await this.databaseService.query('SELECT * FROM clients WHERE updated = 1');
-        return (result.values || []).map((row: any) => this.mapRowToClient(row));
+    /**
+     * Get clients that have been updated locally (Server origin but modified)
+     * @param limit Limit results
+     * @returns Array of updated clients
+     */
+    async findUpdated(limit: number = 50): Promise<Client[]> {
+        const sql = `SELECT * FROM clients WHERE isLocal = 0 AND isSync = 0 LIMIT ?`;
+        const result = await this.databaseService.query(sql, [limit]);
+        return (result.values || []).map((row: any) => ClientMapper.fromLocal(row));
     }
 
     /**
@@ -235,6 +238,49 @@ export class ClientRepository extends BaseRepository<Client, string> {
         } else {
             throw new Error(`Client with id ${client.id} not found after update.`);
         }
+    }
+
+    /**
+     * Get unsynced clients with pagination
+     * @param commercialUsername Commercial username
+     * @param limit Max number of items
+     * @param offset Offset
+     * @returns Array of unsynced clients
+     */
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<Client[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        // Client table uses 'commercial' as the column for username
+        const sql = `SELECT * FROM clients WHERE isSync = 0 AND isLocal = 1 AND commercial = ? ORDER BY createdAt ASC LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => this.mapRowToClient(row));
+    }
+
+    /**
+     * Mark client as synced and update ID refs
+     */
+    async markAsSynced(localId: string, serverId: string, profilPhotoUrl?: string, cardPhotoUrl?: string): Promise<void> {
+        if (!this.databaseService['db'] || localId === serverId) return;
+
+        const updateSet: any[] = [
+            { statement: `UPDATE accounts SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE distributions SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE recoveries SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            // transactions table might not exist in repository but was in SyncService? I'll check if table exists or if I should skip.
+            // SyncService line 1184: UPDATE transactions ...
+            // I'll include it if I'm sure. I'll rely on SyncService being correct.
+            // But if specific tables belong to other modules, it's a bit messy.
+            // I'll stick to what SyncService had:
+            { statement: `UPDATE transactions SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE orders SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE tontine_members SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            {
+                statement: `UPDATE clients SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime'), profilPhotoUrl = ?, cardPhotoUrl = ? WHERE id = ?`,
+                values: [serverId, profilPhotoUrl || null, cardPhotoUrl || null, localId]
+            }
+        ];
+        await this.databaseService.executeSet(updateSet);
     }
 
     /**

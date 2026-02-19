@@ -305,6 +305,58 @@ export class TontineMemberRepositoryExtensions {
         return result.values?.[0]?.total || 0;
     }
 
+    async findByCommercialPaginated(
+        commercialUsername: string,
+        page: number,
+        size: number,
+        filters?: TontineMemberRepositoryFilters
+    ): Promise<Page<TontineMember>> {
+        if (!commercialUsername) {
+            throw new Error('commercialUsername is required for security');
+        }
+
+        const offset = page * size;
+        const commercialCondition = buildCommercialFilterCondition('tontineMember', 'tm');
+        let whereConditions = [commercialCondition];
+        const params: any[] = [commercialUsername];
+
+        this.applyFilters(whereConditions, params, filters);
+
+        const whereClause = whereConditions.join(' AND ');
+
+        // Count
+        const countSql = `
+            SELECT COUNT(*) as total 
+            FROM tontine_members tm 
+            JOIN clients c ON tm.clientId = c.id
+            WHERE ${whereClause}
+        `;
+        const countResult = await this.tontineMemberRepository['getDatabaseService']().query(countSql, params);
+        const totalElements = countResult.values?.[0]?.total || 0;
+        const totalPages = Math.ceil(totalElements / size);
+
+        // Data
+        const dataSql = `
+            SELECT tm.*
+            FROM tontine_members tm
+            JOIN clients c ON tm.clientId = c.id
+            WHERE ${whereClause}
+            ORDER BY tm.registrationDate DESC
+            LIMIT ${size} OFFSET ${offset}
+        `;
+
+        const dataResult = await this.tontineMemberRepository['getDatabaseService']().query(dataSql, params);
+        const content = (dataResult.values || []) as TontineMember[];
+
+        return {
+            content,
+            totalElements,
+            totalPages,
+            page,
+            size
+        };
+    }
+
     private applyFilters(whereConditions: string[], params: any[], filters?: any) {
         if (filters?.deliveryStatus) {
             whereConditions.push('tm.deliveryStatus = ?');

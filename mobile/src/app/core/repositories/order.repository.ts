@@ -146,6 +146,53 @@ export class OrderRepository extends BaseRepository<Order, string> {
         }
     }
 
+    /**
+     * Get unsynced orders with pagination
+     * @param commercialUsername Commercial username
+     * @param limit Max number of items
+     * @param offset Offset
+     */
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<Order[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `SELECT * FROM orders WHERE isSync = 0 AND isLocal = 1 AND commercialId = ? ORDER BY createdAt ASC LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+
+        // Orders need items? SyncService fetches items separately in prepareOrderSyncRequest.
+        // Repository returns the base Order.
+        // I need mapRowToOrder. It is not in the file?
+        // Check file content... It has getAllItems and saveAll but no mapRow method visible?
+        // Wait, mapRowToOrder was in SyncService.
+        // OrderRepository doesn't seem to have mapRowToOrder in step 61.
+        // I might need to implement it or usage generic mapping?
+        // BaseRepository findAll uses cast `as T[]`.
+        // I will use cast `as Order[]` or implement a mapper if properties differ (e.g. booleans).
+        // SQLite booleans are 0/1. Order model expects boolean?
+        // SyncService mapped 1/0 to true/false.
+        // I should use a mapper.
+
+        return (result.values || []).map((row: any) => this.mapRowToOrder(row));
+    }
+
+    async markAsSynced(localId: string, serverId: string): Promise<void> {
+        if (!this.databaseService['db'] || localId === serverId) return;
+        const updateSet = [
+            { statement: `UPDATE order_items SET orderId = ? WHERE orderId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE orders SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`, values: [serverId, localId] }
+        ];
+        await this.databaseService.executeSet(updateSet);
+    }
+
+    private mapRowToOrder(row: any): Order {
+        return {
+            ...row,
+            isLocal: row.isLocal === 1,
+            isSync: row.isSync === 1,
+            // Add other boolean mappings if needed
+        } as Order;
+    }
+
     // ==================== SPECIFIC QUERY METHODS ====================
 
     /**

@@ -113,6 +113,72 @@ export class OrderRepositoryExtensions {
         };
     }
 
+    async findByCommercialPaginated(
+        commercialId: string,
+        page: number,
+        size: number,
+        filters?: OrderRepositoryFilters
+    ): Promise<Page<Order>> {
+        if (!commercialId) {
+            throw new Error('commercialId is required for security');
+        }
+
+        const offset = page * size;
+        let whereConditions = ['o.commercialId = ?'];
+        const params: any[] = [commercialId];
+
+        this.applyFilters(whereConditions, params, filters);
+
+        const whereClause = whereConditions.join(' AND ');
+
+        // Count
+        // Note: applyFilters uses alias 'o' and 'c' (for quarter/name search).
+        // If filters involve 'c' (client), we MUST join.
+        // If filters are only on 'o' (status, sync, local), we technically don't need join but applyFilters checks 'c.fullName' in searchQuery.
+        // To be safe and reuse applyFilters, we MUST JOIN if filters can access client fields.
+        // But for Sync, we only use isSync/isLocal/commercialId which are on 'o'.
+        // However, applyFilters is shared. 
+        // If we want a raw query without join, we need a separate applyFilters or ensure we pass filters that don't trigger join logic?
+        // But the SQL must be valid.
+        // If applyFilters adds 'c.quarter = ?', we need the join.
+
+        // Strategy: Use the same JOIN as views to be safe with shared applyFilters, 
+        // OR duplicate generic filtering logic.
+        // Reusing the JOIN is safer for consistency but slightly less efficient.
+        // Given sqlite, it's negligible.
+
+        const countSql = `
+            SELECT COUNT(*) as total 
+            FROM orders o 
+            LEFT JOIN clients c ON o.clientId = c.id
+            WHERE ${whereClause}
+        `;
+        const countResult = await this.orderRepository['getDatabaseService']().query(countSql, params);
+        const totalElements = countResult.values?.[0]?.total || 0;
+        const totalPages = Math.ceil(totalElements / size);
+
+        // Data
+        const dataSql = `
+            SELECT o.*
+            FROM orders o 
+            LEFT JOIN clients c ON o.clientId = c.id
+            WHERE ${whereClause} 
+            ORDER BY o.createdAt DESC 
+            LIMIT ${size} OFFSET ${offset}
+        `;
+
+        const dataResult = await this.orderRepository['getDatabaseService']().query(dataSql, params);
+        const content = (dataResult.values || []) as Order[];
+
+        return {
+            content,
+            totalElements,
+            totalPages,
+            page,
+            size
+        };
+    }
+
     private applyFilters(whereConditions: string[], params: any[], filters?: any) {
         if (filters?.status) {
             whereConditions.push('o.status = ?');

@@ -104,6 +104,38 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
         }
     }
 
+    /**
+     * Get unsynced recoveries with pagination
+     * @param commercialUsername Commercial username
+     * @param limit Max number of items
+     * @param offset Offset
+     */
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<Recovery[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `SELECT * FROM recoveries WHERE isSync = 0 AND isLocal = 1 AND commercialId = ? ORDER BY createdAt ASC LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => this.mapRowToRecovery(row));
+    }
+
+    async markAsSynced(localId: string): Promise<void> {
+        if (!this.databaseService['db']) return;
+        await this.databaseService.execute(
+            `UPDATE recoveries SET isSync = 1, isLocal = 0, syncDate = datetime('now') WHERE id = ?`,
+            [localId]
+        );
+    }
+
+    private mapRowToRecovery(row: any): Recovery {
+        return {
+            ...row,
+            isLocal: row.isLocal === 1,
+            isSync: row.isSync === 1,
+            isDefaultStake: row.isDefaultStake === 1
+        } as Recovery;
+    }
+
     // ==================== SPECIFIC QUERY METHODS ====================
 
     /**
@@ -120,19 +152,6 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
         return ret.values || [];
     }
 
-    /**
-     * Mark a recovery as synchronized with the server
-     * @param recoveryId ID of the recovery to mark as synced
-     */
-    async markAsSynced(recoveryId: string): Promise<void> {
-        if (!this.databaseService['db']) {
-            console.error('Database not initialized.');
-            return;
-        }
-        const now = new Date().toISOString();
-        const sql = `UPDATE recoveries SET isSync = 1, isLocal = 0, syncDate = ? WHERE id = ?`;
-        await this.databaseService.execute(sql, [now, recoveryId]);
-        console.log(`Recovery ${recoveryId} marked as synced.`);
-    }
+
 
 }

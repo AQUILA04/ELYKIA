@@ -14,6 +14,22 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         super(databaseService);
     }
 
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<TontineDelivery[]> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        const sql = `SELECT * FROM tontine_deliveries WHERE isSync = 0 AND isLocal = 1 AND commercialUsername = ? LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => ({ ...row, isLocal: row.isLocal === 1, isSync: row.isSync === 1 }));
+    }
+
+    async markAsSynced(localId: string, serverId: string): Promise<void> {
+        if (!this.databaseService['db'] || localId === serverId) return;
+        const updateSet = [
+            { statement: `UPDATE tontine_delivery_items SET tontineDeliveryId = ? WHERE tontineDeliveryId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE tontine_deliveries SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`, values: [serverId, localId] }
+        ];
+        await this.databaseService.executeSet(updateSet);
+    }
+
     async saveAll(entities: TontineDelivery[]): Promise<void> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
         if (!entities.length) return;
@@ -92,5 +108,12 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         }
 
         return deliveries;
+    }
+
+    async getItems(deliveryId: string): Promise<any[]> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        const sql = `SELECT * FROM tontine_delivery_items WHERE tontineDeliveryId = ?`;
+        const result = await this.databaseService.query(sql, [deliveryId]);
+        return result.values || [];
     }
 }
