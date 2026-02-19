@@ -11,19 +11,22 @@ import {
   takeUntil,
   concatMap,
   delay,
-  filter
+  filter,
+  debounceTime,
+  distinctUntilChanged
 } from 'rxjs/operators';
 
-import { SynchronizationService } from '../../core/services/synchronization.service';
+import { SyncMasterService } from '../../core/services/sync-master.service';
 import { SyncErrorService } from '../../core/services/sync-error.service';
 import { SyncLogsExportService } from '../../core/services/sync-logs-export.service';
 import { ClientService } from '../../core/services/client.service';
 import { DistributionService } from '../../core/services/distribution.service';
 import { RecoveryService } from '../../core/services/recovery.service';
+import { CashDeskService } from '../../core/services/cash-desk.service';
 
 import * as SyncActions from './sync.actions';
-import { selectAutomaticSyncIsActive, selectManualSyncPagination } from './sync.selectors';
-import { SyncProgress, SyncPhase } from '../../models/sync.model';
+import { selectAutomaticSyncIsActive, selectManualSyncPagination, selectParentSelectionState } from './sync.selectors';
+import { SyncProgress, SyncPhase, ParentSelectionState } from '../../models/sync.model';
 import * as ClientActions from '../../store/client/client.actions';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import * as RecoveryActions from '../../store/recovery/recovery.actions';
@@ -37,6 +40,14 @@ import { RecoveryRepositoryExtensions } from '../../core/repositories/recovery.r
 import { TontineMemberRepositoryExtensions } from '../../core/repositories/tontine-member.repository.extensions';
 import { TontineCollectionRepositoryExtensions } from '../../core/repositories/tontine-collection.repository.extensions';
 import { TontineDeliveryRepositoryExtensions } from '../../core/repositories/tontine-delivery.repository.extensions';
+
+// Repositories (for findById)
+import { ClientRepository } from '../../core/repositories/client.repository';
+import { DistributionRepository } from '../../core/repositories/distribution.repository';
+import { RecoveryRepository } from '../../core/repositories/recovery.repository';
+import { TontineMemberRepository } from '../../core/repositories/tontine-member.repository';
+import { TontineCollectionRepository } from '../../core/repositories/tontine-collection.repository';
+import { TontineDeliveryRepository } from '../../core/repositories/tontine-delivery.repository';
 
 // Domain Specific Sync Services
 import { ClientSyncService } from '../../core/services/sync/client-sync.service';
@@ -53,12 +64,13 @@ export class SyncEffects {
   constructor(
     private actions$: Actions,
     private store: Store,
-    private syncService: SynchronizationService,
+    private syncMasterService: SyncMasterService,
     private syncErrorService: SyncErrorService,
     private syncLogsExportService: SyncLogsExportService,
     private clientService: ClientService,
     private distributionService: DistributionService,
     private recoveryService: RecoveryService,
+    private cashDeskService: CashDeskService,
 
     // Repository Extensions
     private clientRepoExt: ClientRepositoryExtensions,
@@ -67,6 +79,14 @@ export class SyncEffects {
     private tmRepoExt: TontineMemberRepositoryExtensions,
     private tcRepoExt: TontineCollectionRepositoryExtensions,
     private tdRepoExt: TontineDeliveryRepositoryExtensions,
+
+    // Repositories
+    private clientRepo: ClientRepository,
+    private distRepo: DistributionRepository,
+    private recRepo: RecoveryRepository,
+    private tmRepo: TontineMemberRepository,
+    private tcRepo: TontineCollectionRepository,
+    private tdRepo: TontineDeliveryRepository,
 
     // Domain Sync Services
     private clientSync: ClientSyncService,
@@ -106,7 +126,6 @@ export class SyncEffects {
       ofType(SyncActions.cancelAutomaticSync),
       tap(() => {
         console.log('Synchronisation automatique annulée');
-        // Ici on pourrait ajouter une logique pour nettoyer les opérations en cours
       })
     ),
     { dispatch: false }
@@ -204,6 +223,99 @@ export class SyncEffects {
     )
   );
 
+  // ==================== EFFETS SÉLECTION PARENT (MODALE) ====================
+
+  loadSyncedParentsPaginated$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(SyncActions.loadSyncedParentsPaginated),
+      withLatestFrom(this.store.select(selectAuthUser)),
+      filter(([action, user]) => !!user),
+      switchMap(([action, user]) => {
+        const username = user!.username;
+        const { entityType, page, size, filters } = action;
+
+        // Filter for synced items
+        const queryFilters = { ...filters, isSync: true };
+
+        let fetchObservable: Observable<Page<any>>;
+
+        switch (entityType) {
+          case 'client':
+            fetchObservable = from(this.clientRepoExt.findByCommercialPaginated(username, page, size, queryFilters));
+            break;
+          case 'distribution':
+            fetchObservable = from(this.distRepoExt.findViewsByCommercialPaginated(username, page, size, queryFilters));
+            break;
+          case 'tontine-member':
+            fetchObservable = from(this.tmRepoExt.findByCommercialPaginated(username, page, size, queryFilters));
+            break;
+          default:
+            return of(SyncActions.loadSyncedParentsPaginatedFailure({ entityType, error: 'Unknown entity type' }));
+        }
+
+        return fetchObservable.pipe(
+          map((pageResult: Page<any>) => SyncActions.loadSyncedParentsPaginatedSuccess({
+            entityType,
+            data: pageResult.content,
+            pageInfo: {
+              page: pageResult.page,
+              size: pageResult.size,
+              totalPages: pageResult.totalPages,
+              totalElements: pageResult.totalElements
+            }
+          })),
+          catchError(error => of(SyncActions.loadSyncedParentsPaginatedFailure({ entityType, error })))
+        );
+      })
+    )
+  );
+
+  searchSyncedParents$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(SyncActions.searchSyncedParents),
+      debounceTime(300),
+      distinctUntilChanged(),
+      map(({ entityType, query }) => SyncActions.loadSyncedParentsPaginated({
+        entityType,
+        page: 0,
+        size: 20,
+        filters: { searchQuery: query }
+      }))
+    )
+  );
+
+  loadMoreSyncedParents$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(SyncActions.loadMoreSyncedParents),
+      withLatestFrom(this.store.select(selectParentSelectionState)),
+      switchMap(([action, parentSelectionState]) => {
+        const { entityType } = action;
+        let key: keyof ParentSelectionState;
+
+        switch (entityType) {
+          case 'client': key = 'clients'; break;
+          case 'distribution': key = 'distributions'; break;
+          case 'tontine-member': key = 'tontineMembers'; break;
+          default: return EMPTY;
+        }
+
+        const currentEntityState = parentSelectionState[key] as any;
+        const currentPagination = currentEntityState.pagination;
+
+        if (!currentPagination || !currentPagination.hasMore || currentPagination.loading) {
+          return EMPTY;
+        }
+
+        return of(SyncActions.loadSyncedParentsPaginated({
+          entityType,
+          page: currentPagination.page + 1,
+          size: currentPagination.size,
+          filters: { searchQuery: parentSelectionState.searchQuery }
+        }));
+      })
+    )
+  );
+
   /**
    * Synchronisation manuelle par type d'entité (Batch)
    */
@@ -242,7 +354,6 @@ export class SyncEffects {
       ofType(SyncActions.syncSingleEntity),
       concatMap(({ entityType, entityId }) => {
         let service;
-        // Map entityType to service
         if (entityType === 'client') service = this.clientSync;
         else if (entityType === 'distribution') service = this.distSync;
         else if (entityType === 'recovery') service = this.recSync;
@@ -265,9 +376,6 @@ export class SyncEffects {
 
   // ==================== EFFETS GESTION DES ERREURS ====================
 
-  /**
-   * Charger les erreurs de synchronisation
-   */
   loadSyncErrors$ = createEffect(() =>
     this.actions$.pipe(
       ofType(SyncActions.loadSyncErrors),
@@ -280,9 +388,6 @@ export class SyncEffects {
     )
   );
 
-  /**
-   * Réessayer une erreur de synchronisation
-   */
   retrySyncError$ = createEffect(() =>
     this.actions$.pipe(
       ofType(SyncActions.retrySyncError),
@@ -301,9 +406,6 @@ export class SyncEffects {
     )
   );
 
-  /**
-   * Réessayer plusieurs erreurs sélectionnées
-   */
   retrySelectedErrors$ = createEffect(() =>
     this.actions$.pipe(
       ofType(SyncActions.retrySelectedErrors),
@@ -320,9 +422,6 @@ export class SyncEffects {
     )
   );
 
-  /**
-   * Nettoyer les erreurs résolues
-   */
   clearResolvedErrors$ = createEffect(() =>
     this.actions$.pipe(
       ofType(SyncActions.clearResolvedErrors),
@@ -337,14 +436,11 @@ export class SyncEffects {
 
   // ==================== EFFETS VÉRIFICATION CAISSE ====================
 
-  /**
-   * Vérifier le statut de la caisse
-   */
   checkCashDeskStatus$ = createEffect(() =>
     this.actions$.pipe(
       ofType(SyncActions.checkCashDeskStatus),
       switchMap(() =>
-        this.syncService.checkCashDeskStatus().pipe(
+        this.cashDeskService.checkCashDeskStatus().pipe(
           map(isOpened => SyncActions.checkCashDeskStatusSuccess({ isOpened })),
           catchError(error => of(SyncActions.checkCashDeskStatusFailure({ error })))
         )
@@ -352,14 +448,11 @@ export class SyncEffects {
     )
   );
 
-  /**
-   * Ouvrir la caisse
-   */
   openCashDesk$ = createEffect(() =>
     this.actions$.pipe(
       ofType(SyncActions.openCashDesk),
       switchMap(() =>
-        this.syncService.openCashDesk().pipe(
+        this.cashDeskService.openCashDesk().pipe(
           map(cashDeskData => SyncActions.openCashDeskSuccess({ cashDeskData })),
           catchError(error => of(SyncActions.openCashDeskFailure({ error })))
         )
@@ -369,20 +462,13 @@ export class SyncEffects {
 
   // ==================== EFFETS DE RECHARGEMENT AUTOMATIQUE ====================
 
-  /**
-   * Recharger les données après succès de synchronisation manuelle
-   */
   reloadAfterManualSync$ = createEffect(() =>
     this.actions$.pipe(
       ofType(SyncActions.manualSyncSuccess, SyncActions.syncSingleEntitySuccess),
-      delay(500), // Petit délai pour laisser le temps aux données de se mettre à jour
-      // Reload current tab data
-      withLatestFrom(this.store.select(selectManualSyncPagination)), // We might need active tab but let's just reload all or specific
-      // Actually, we should reload the specific entity type that was synced.
-      // But the action props contain entityType.
+      delay(500),
+      withLatestFrom(this.store.select(selectManualSyncPagination)),
       map(([action]) => {
         const entityType = (action as any).entityType;
-        // Map plural to singular if needed
         let singularType = entityType;
         if (entityType === 'clients') singularType = 'client';
         else if (entityType === 'distributions') singularType = 'distribution';
@@ -400,9 +486,6 @@ export class SyncEffects {
     )
   );
 
-  /**
-   * Recharger les stores ngrx après une synchronisation réussie pour mettre à jour l'UI
-   */
   reloadFeatureStores$ = createEffect(() =>
     this.actions$.pipe(
       ofType(
@@ -416,15 +499,12 @@ export class SyncEffects {
         const username = user!.username;
         const actionsToDispatch = [];
 
-        // Determine which stores to reload based on the action and entity type
         if (action.type === SyncActions.automaticSyncSuccess.type) {
-          // Full reload for automatic sync
           actionsToDispatch.push(ClientActions.loadClients({ commercialUsername: username }));
           actionsToDispatch.push(DistributionActions.loadDistributions({ commercialUsername: username }));
           actionsToDispatch.push(RecoveryActions.loadRecoveries({ commercialUsername: username }));
           actionsToDispatch.push(TontineActions.loadTontineSession());
         } else {
-          // Partial reload for manual/single sync
           const entityType = (action as any).entityType;
 
           if (['client', 'clients'].includes(entityType)) {
@@ -446,9 +526,6 @@ export class SyncEffects {
     )
   );
 
-  /**
-   * Recharger les erreurs après retry réussi
-   */
   reloadErrorsAfterRetry$ = createEffect(() =>
     this.actions$.pipe(
       ofType(SyncActions.retrySyncErrorSuccess, SyncActions.retrySelectedErrorsSuccess),
@@ -459,14 +536,10 @@ export class SyncEffects {
 
   // ==================== MÉTHODES PRIVÉES ====================
 
-  /**
-   * Effectuer la synchronisation automatique avec émission de progression
-   */
   private async performAutomaticSync(): Promise<any> {
     const progressUpdates: any[] = [];
 
     try {
-      // Phase 1: Vérification caisse
       progressUpdates.push(SyncActions.automaticSyncProgress({
         progress: {
           currentPhase: 'cash-check',
@@ -480,16 +553,12 @@ export class SyncEffects {
         }
       }));
 
-      // Simuler la progression avec des émissions
       for (const update of progressUpdates) {
         this.store.dispatch(update);
         await this.delay(100);
       }
 
-      // Effectuer la synchronisation réelle
-      const result = await this.syncService.synchronizeAllData();
-
-      // Émettre le résultat final
+      const result = await this.syncMasterService.synchronizeAllData();
       return SyncActions.automaticSyncSuccess({ result });
 
     } catch (error) {
@@ -497,9 +566,6 @@ export class SyncEffects {
     }
   }
 
-  /**
-   * Helper to perform batch sync for selected IDs
-   */
   private async performBatchSync(service: any, selectedIds: string[], entityType: string): Promise<{ successCount: number, errorCount: number }> {
     let successCount = 0;
     let errorCount = 0;
@@ -517,37 +583,27 @@ export class SyncEffects {
     return { successCount, errorCount };
   }
 
-  /**
-   * Synchroniser une entité individuelle par ID
-   */
   private async performSingleSync(service: any, entityId: string, entityType: string): Promise<void> {
-    // Fetch entity
     let entity;
 
     switch (entityType) {
       case 'client':
-        const clients = await this.syncService.getUnsyncedClients();
-        entity = clients.find(c => c.id === entityId);
+        entity = await this.clientRepo.findById(entityId);
         break;
       case 'distribution':
-        const distributions = await this.syncService.getUnsyncedDistributions();
-        entity = distributions.find(d => d.id === entityId);
+        entity = await this.distRepo.findById(entityId);
         break;
       case 'recovery':
-        const { defaultStakes, specialStakes } = await this.syncService.categorizeRecoveries();
-        entity = [...defaultStakes, ...specialStakes].find(r => r.id === entityId);
+        entity = await this.recRepo.findById(entityId);
         break;
       case 'tontine-member':
-        const members = await this.syncService.getUnsyncedTontineMembers();
-        entity = members.find(m => m.id === entityId);
+        entity = await this.tmRepo.findById(entityId);
         break;
       case 'tontine-collection':
-        const collections = await this.syncService.getUnsyncedTontineCollections();
-        entity = collections.find(c => c.id === entityId);
+        entity = await this.tcRepo.findById(entityId);
         break;
       case 'tontine-delivery':
-        const deliveries = await this.syncService.getUnsyncedTontineDeliveries();
-        entity = deliveries.find(d => d.id === entityId);
+        entity = await this.tdRepo.findById(entityId);
         break;
     }
 
@@ -558,9 +614,6 @@ export class SyncEffects {
     }
   }
 
-  /**
-   * Utilitaire pour créer un délai
-   */
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }

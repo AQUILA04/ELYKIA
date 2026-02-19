@@ -49,7 +49,7 @@ export const loadManualSyncDataFailure = createAction(
   props<{ error: any }>()
 );
 
-// ==================== ACTIONS PAGINATION ====================
+// ==================== ACTIONS PAGINATION (MANUAL SYNC) ====================
 
 export const loadManualSyncDataPaginated = createAction(
   '[Sync] Load Manual Sync Data Paginated',
@@ -88,6 +88,59 @@ export const loadMoreManualSyncData = createAction(
   props<{
     entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery'
   }>()
+);
+
+// ==================== ACTIONS SÉLECTION PARENT (MODALE) ====================
+
+export const loadSyncedParentsPaginated = createAction(
+  '[Sync] Load Synced Parents Paginated',
+  props<{
+    entityType: 'client' | 'distribution' | 'tontine-member',
+    page: number,
+    size: number,
+    filters?: any
+  }>()
+);
+
+export const loadSyncedParentsPaginatedSuccess = createAction(
+  '[Sync] Load Synced Parents Paginated Success',
+  props<{
+    entityType: 'client' | 'distribution' | 'tontine-member',
+    data: any[],
+    pageInfo: {
+      page: number,
+      size: number,
+      totalPages: number,
+      totalElements: number
+    }
+  }>()
+);
+
+export const loadSyncedParentsPaginatedFailure = createAction(
+  '[Sync] Load Synced Parents Paginated Failure',
+  props<{
+    entityType: 'client' | 'distribution' | 'tontine-member',
+    error: any
+  }>()
+);
+
+export const searchSyncedParents = createAction(
+  '[Sync] Search Synced Parents',
+  props<{
+    entityType: 'client' | 'distribution' | 'tontine-member',
+    query: string
+  }>()
+);
+
+export const loadMoreSyncedParents = createAction(
+  '[Sync] Load More Synced Parents',
+  props<{
+    entityType: 'client' | 'distribution' | 'tontine-member'
+  }>()
+);
+
+export const clearParentSelectionState = createAction(
+  '[Sync] Clear Parent Selection State'
 );
 
 // ==================== ACTIONS UI & SELECTION ====================

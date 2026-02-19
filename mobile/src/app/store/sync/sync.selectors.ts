@@ -180,6 +180,33 @@ export const selectTontineDeliveryPagination = createSelector(
   (pagination) => pagination.tontineDeliveries
 );
 
+// ==================== SÉLECTEURS SÉLECTION PARENT ====================
+
+export const selectParentSelectionState = createSelector(
+  selectSyncState,
+  (state) => state.parentSelection
+);
+
+export const selectParentSelectionClients = createSelector(
+  selectParentSelectionState,
+  (state) => state.clients
+);
+
+export const selectParentSelectionDistributions = createSelector(
+  selectParentSelectionState,
+  (state) => state.distributions
+);
+
+export const selectParentSelectionTontineMembers = createSelector(
+  selectParentSelectionState,
+  (state) => state.tontineMembers
+);
+
+export const selectParentSelectionSearchQuery = createSelector(
+  selectParentSelectionState,
+  (state) => state.searchQuery
+);
+
 // ==================== SÉLECTEURS GESTION DES ERREURS ====================
 
 export const selectSyncErrorsState = createSelector(

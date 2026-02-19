@@ -1,5 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
-import { SyncProgress, SyncResult, SyncError, ManualSyncState, SyncStatus, SyncSelection, PaginationState } from '../../models/sync.model';
+import { SyncProgress, SyncResult, SyncError, ManualSyncState, SyncStatus, SyncSelection, PaginationState, ParentSelectionState } from '../../models/sync.model';
 import * as SyncActions from './sync.actions';
 
 export interface SyncState {
@@ -22,6 +22,9 @@ export interface SyncState {
     availableTontineDeliveries: any[];
     syncingEntities: string[];
   };
+
+  // État de la sélection de parent (Modale)
+  parentSelection: ParentSelectionState;
 
   // Gestion des erreurs
   errors: {
@@ -62,6 +65,13 @@ const initialPaginationState: PaginationState = {
   totalElements: 0,
   loading: false,
   hasMore: true
+};
+
+const initialParentSelectionState: ParentSelectionState = {
+  clients: { data: [], pagination: { ...initialPaginationState }, loading: false },
+  distributions: { data: [], pagination: { ...initialPaginationState }, loading: false },
+  tontineMembers: { data: [], pagination: { ...initialPaginationState }, loading: false },
+  searchQuery: ''
 };
 
 const initialManualSyncState: ManualSyncState = {
@@ -131,6 +141,7 @@ const initialState: SyncState = {
     availableTontineDeliveries: [],
     syncingEntities: []
   },
+  parentSelection: initialParentSelectionState,
   errors: {
     list: [],
     loading: false,
@@ -171,6 +182,16 @@ function getEntityStateKeys(entityType: string): {
         listKey: `available${entityType}s` as any,
         selectionKey: `${entityType}s` as any
       };
+  }
+}
+
+// Helper for parent selection keys
+function getParentSelectionKey(entityType: string): keyof ParentSelectionState {
+  switch (entityType) {
+    case 'client': return 'clients';
+    case 'distribution': return 'distributions';
+    case 'tontine-member': return 'tontineMembers';
+    default: return 'clients'; // Fallback
   }
 }
 
@@ -309,11 +330,10 @@ export const syncReducer = createReducer(
     error
   })),
 
-  // ==================== PAGINATION ====================
+  // ==================== PAGINATION (MANUAL SYNC) ====================
 
   on(SyncActions.loadManualSyncDataPaginated, (state, { entityType }) => {
     const { selectionKey } = getEntityStateKeys(entityType);
-    // Cast to ensure TS knows it's a key of pagination
     const paginationKey = selectionKey as keyof typeof state.manualSync.pagination;
 
     return {
@@ -387,6 +407,95 @@ export const syncReducer = createReducer(
       error
     };
   }),
+
+  // ==================== PARENT SELECTION (MODALE) ====================
+
+  on(SyncActions.loadSyncedParentsPaginated, (state, { entityType }) => {
+    const key = getParentSelectionKey(entityType);
+    // Cast to any to avoid complex TS mapping issues in reducer
+    const currentEntityState = state.parentSelection[key] as any;
+
+    return {
+      ...state,
+      parentSelection: {
+        ...state.parentSelection,
+        [key]: {
+          ...currentEntityState,
+          loading: true,
+          pagination: {
+            ...currentEntityState.pagination,
+            loading: true
+          }
+        }
+      }
+    };
+  }),
+
+  on(SyncActions.loadSyncedParentsPaginatedSuccess, (state, { entityType, data, pageInfo }) => {
+    const key = getParentSelectionKey(entityType);
+    const currentEntityState = state.parentSelection[key] as any;
+
+    // Append data if page > 0, replace if page === 0
+    const currentList = pageInfo.page === 0 ? [] : currentEntityState.data;
+    const newList = [...currentList, ...data];
+
+    return {
+      ...state,
+      parentSelection: {
+        ...state.parentSelection,
+        [key]: {
+          ...currentEntityState,
+          data: newList,
+          loading: false,
+          pagination: {
+            ...currentEntityState.pagination,
+            loading: false,
+            page: pageInfo.page,
+            size: pageInfo.size,
+            totalPages: pageInfo.totalPages,
+            totalElements: pageInfo.totalElements,
+            hasMore: pageInfo.page < pageInfo.totalPages - 1
+          }
+        }
+      }
+    };
+  }),
+
+  on(SyncActions.loadSyncedParentsPaginatedFailure, (state, { entityType, error }) => {
+    const key = getParentSelectionKey(entityType);
+    const currentEntityState = state.parentSelection[key] as any;
+
+    return {
+      ...state,
+      parentSelection: {
+        ...state.parentSelection,
+        [key]: {
+          ...currentEntityState,
+          loading: false,
+          pagination: {
+            ...currentEntityState.pagination,
+            loading: false
+          }
+        }
+      },
+      error
+    };
+  }),
+
+  on(SyncActions.searchSyncedParents, (state, { query }) => ({
+    ...state,
+    parentSelection: {
+      ...state.parentSelection,
+      searchQuery: query
+    }
+  })),
+
+  on(SyncActions.clearParentSelectionState, (state) => ({
+    ...state,
+    parentSelection: initialParentSelectionState
+  })),
+
+  // ==================== UI & SELECTION ====================
 
   on(SyncActions.setActiveTab, (state, { tab }) => ({
     ...state,

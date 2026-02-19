@@ -227,6 +227,13 @@ export interface PaginationState {
   hasMore: boolean;
 }
 
+export interface ParentSelectionState {
+  clients: { data: any[], pagination: PaginationState, loading: boolean };
+  distributions: { data: any[], pagination: PaginationState, loading: boolean };
+  tontineMembers: { data: any[], pagination: PaginationState, loading: boolean };
+  searchQuery: string;
+}
+
 export interface ManualSyncState {
   clients: SyncSelection;
   distributions: SyncSelection;

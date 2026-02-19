@@ -35,15 +35,17 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
      * Synchronize a batch of unsynced orders
      * Overridden to handle failedClientIds dependency
      */
-    override async syncBatch(limit: number = 20, failedClientIds: string[] = []): Promise<{ success: number; errors: number; failedIds?: string[] }> {
+    override async syncBatch(limit: number = 20, failedClientIds: string[] = []): Promise<{ success: number; errors: number; failedIds: string[] }> {
         const unsyncedOrders = await this.fetchUnsynced(limit);
 
         let success = 0;
         let errors = 0;
         const failedIds: string[] = [];
 
+        const clientIdsToCheck = failedClientIds.length > 0 ? failedClientIds : this.failedClientIds;
+
         for (const order of unsyncedOrders) {
-            if (failedClientIds.includes(order.clientId)) {
+            if (clientIdsToCheck.includes(order.clientId)) {
                 // Check if client is actually synced (failedClientIds contains local IDs)
                 errors++;
                 await this.syncErrorService.logSyncError(
