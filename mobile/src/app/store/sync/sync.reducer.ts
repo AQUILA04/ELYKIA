@@ -1,5 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
-import { SyncProgress, SyncResult, SyncError, ManualSyncState, SyncStatus, SyncSelection } from '../../models/sync.model';
+import { SyncProgress, SyncResult, SyncError, ManualSyncState, SyncStatus, SyncSelection, PaginationState } from '../../models/sync.model';
 import * as SyncActions from './sync.actions';
 
 export interface SyncState {
@@ -55,6 +55,15 @@ const initialProgress: SyncProgress = {
   canCancel: true
 };
 
+const initialPaginationState: PaginationState = {
+  page: 0,
+  size: 20,
+  totalPages: 0,
+  totalElements: 0,
+  loading: false,
+  hasMore: true
+};
+
 const initialManualSyncState: ManualSyncState = {
   clients: {
     entityType: 'client',
@@ -93,7 +102,15 @@ const initialManualSyncState: ManualSyncState = {
     isSelectAll: false
   },
   isLoading: false,
-  activeTab: 'clients'
+  activeTab: 'clients',
+  pagination: {
+    clients: { ...initialPaginationState },
+    distributions: { ...initialPaginationState },
+    recoveries: { ...initialPaginationState },
+    tontineMembers: { ...initialPaginationState },
+    tontineCollections: { ...initialPaginationState },
+    tontineDeliveries: { ...initialPaginationState }
+  }
 };
 
 const initialState: SyncState = {
@@ -292,6 +309,85 @@ export const syncReducer = createReducer(
     error
   })),
 
+  // ==================== PAGINATION ====================
+
+  on(SyncActions.loadManualSyncDataPaginated, (state, { entityType }) => {
+    const { selectionKey } = getEntityStateKeys(entityType);
+    // Cast to ensure TS knows it's a key of pagination
+    const paginationKey = selectionKey as keyof typeof state.manualSync.pagination;
+
+    return {
+      ...state,
+      manualSync: {
+        ...state.manualSync,
+        pagination: {
+          ...state.manualSync.pagination,
+          [paginationKey]: {
+            ...state.manualSync.pagination[paginationKey],
+            loading: true
+          }
+        }
+      }
+    };
+  }),
+
+  on(SyncActions.loadManualSyncDataPaginatedSuccess, (state, { entityType, data, pageInfo }) => {
+    const { listKey, selectionKey } = getEntityStateKeys(entityType);
+    const paginationKey = selectionKey as keyof typeof state.manualSync.pagination;
+
+    // Append data if page > 0, replace if page === 0
+    const currentList = pageInfo.page === 0 ? [] : (state.manualSync[listKey] as any[]);
+    const newList = [...currentList, ...data];
+
+    // Cast selection to SyncSelection to avoid spread error
+    const currentSelection = state.manualSync[selectionKey] as SyncSelection;
+
+    return {
+      ...state,
+      manualSync: {
+        ...state.manualSync,
+        [listKey]: newList,
+        pagination: {
+          ...state.manualSync.pagination,
+          [paginationKey]: {
+            ...state.manualSync.pagination[paginationKey],
+            loading: false,
+            page: pageInfo.page,
+            size: pageInfo.size,
+            totalPages: pageInfo.totalPages,
+            totalElements: pageInfo.totalElements,
+            hasMore: pageInfo.page < pageInfo.totalPages - 1
+          }
+        },
+        // Update selection total count
+        [selectionKey]: {
+          ...currentSelection,
+          totalCount: pageInfo.totalElements
+        }
+      }
+    };
+  }),
+
+  on(SyncActions.loadManualSyncDataPaginatedFailure, (state, { entityType, error }) => {
+    const { selectionKey } = getEntityStateKeys(entityType);
+    const paginationKey = selectionKey as keyof typeof state.manualSync.pagination;
+
+    return {
+      ...state,
+      manualSync: {
+        ...state.manualSync,
+        pagination: {
+          ...state.manualSync.pagination,
+          [paginationKey]: {
+            ...state.manualSync.pagination[paginationKey],
+            loading: false
+          }
+        }
+      },
+      error
+    };
+  }),
+
   on(SyncActions.setActiveTab, (state, { tab }) => ({
     ...state,
     manualSync: {
@@ -299,9 +395,6 @@ export const syncReducer = createReducer(
       activeTab: tab
     }
   })),
-
-
-
 
   on(SyncActions.toggleEntitySelection, (state, { entityType, entityId }) => {
     const { selectionKey } = getEntityStateKeys(entityType);

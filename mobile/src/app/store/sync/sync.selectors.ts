@@ -143,6 +143,43 @@ export const selectCurrentTabData = createSelector(
   }
 );
 
+// ==================== SÉLECTEURS PAGINATION ====================
+
+export const selectManualSyncPagination = createSelector(
+  selectManualSyncState,
+  (manualSync) => manualSync.pagination
+);
+
+export const selectClientPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.clients
+);
+
+export const selectDistributionPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.distributions
+);
+
+export const selectRecoveryPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.recoveries
+);
+
+export const selectTontineMemberPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.tontineMembers
+);
+
+export const selectTontineCollectionPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.tontineCollections
+);
+
+export const selectTontineDeliveryPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.tontineDeliveries
+);
+
 // ==================== SÉLECTEURS GESTION DES ERREURS ====================
 
 export const selectSyncErrorsState = createSelector(
@@ -281,36 +318,36 @@ export const selectSyncSteps = createSelector(
   selectAutomaticSyncProgress,
   (progress) => {
     if (!progress) return [];
-    
+
     const steps = [
       {
         id: 'cash-check',
         name: 'Vérification caisse',
-        status: progress.currentPhase === 'cash-check' ? 'active' : 
+        status: progress.currentPhase === 'cash-check' ? 'active' :
                 ['clients', 'distributions', 'recoveries', 'updates', 'completed'].includes(progress.currentPhase) ? 'completed' : 'pending'
       },
       {
         id: 'clients',
         name: 'Synchronisation clients',
-        status: progress.currentPhase === 'clients' ? 'active' : 
+        status: progress.currentPhase === 'clients' ? 'active' :
                 ['distributions', 'recoveries', 'updates', 'completed'].includes(progress.currentPhase) ? 'completed' : 'pending'
       },
       {
         id: 'distributions',
         name: 'Synchronisation distributions',
-        status: progress.currentPhase === 'distributions' ? 'active' : 
+        status: progress.currentPhase === 'distributions' ? 'active' :
                 ['recoveries', 'updates', 'completed'].includes(progress.currentPhase) ? 'completed' : 'pending'
       },
       {
         id: 'recoveries',
         name: 'Synchronisation recouvrements',
-        status: progress.currentPhase === 'recoveries' ? 'active' : 
+        status: progress.currentPhase === 'recoveries' ? 'active' :
                 ['updates', 'completed'].includes(progress.currentPhase) ? 'completed' : 'pending'
       },
       {
         id: 'updates',
         name: 'Mise à jour données',
-        status: progress.currentPhase === 'updates' ? 'active' : 
+        status: progress.currentPhase === 'updates' ? 'active' :
                 progress.currentPhase === 'completed' ? 'completed' : 'pending'
       }
     ];

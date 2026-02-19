@@ -145,6 +145,18 @@ export class ClientRepository extends BaseRepository<Client, string> {
     }
 
     /**
+     * Get clients with updated location
+     * @returns Array of clients with updated location
+     */
+    async getUpdatedLocationClients(): Promise<Client[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const result = await this.databaseService.query('SELECT * FROM clients WHERE updated = 1');
+        return (result.values || []).map((row: any) => this.mapRowToClient(row));
+    }
+
+    /**
      * Get clients with updated photos
      * @returns Array of clients with updated photos
      */
@@ -157,6 +169,18 @@ export class ClientRepository extends BaseRepository<Client, string> {
     }
 
     /**
+     * Get clients with updated photo URLs
+     * @returns Array of clients with updated photo URLs
+     */
+    async getUpdatedPhotoUrlClients(): Promise<Client[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const result = await this.databaseService.query('SELECT * FROM clients WHERE updatedPhotoUrl = 1');
+        return (result.values || []).map((row: any) => this.mapRowToClient(row));
+    }
+
+    /**
      * Mark client photos as synced
      * @param clientId Client ID
      */
@@ -165,6 +189,18 @@ export class ClientRepository extends BaseRepository<Client, string> {
             throw new Error('Database not initialized.');
         }
         const sql = `UPDATE clients SET updatedPhoto = 0 WHERE id = ?`;
+        await this.databaseService.execute(sql, [clientId]);
+    }
+
+    /**
+     * Mark client photo URLs as synced
+     * @param clientId Client ID
+     */
+    async markAsPhotoUrlSynced(clientId: string): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `UPDATE clients SET updatedPhotoUrl = 0 WHERE id = ?`;
         await this.databaseService.execute(sql, [clientId]);
     }
 

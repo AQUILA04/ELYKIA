@@ -35,18 +35,18 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
      * Synchronize a batch of unsynced distributions
      * Overridden to handle failedClientIds dependency
      */
-    override async syncBatch(limit: number = 20, failedClientIds: string[] = []): Promise<{ success: number; errors: number; failedIds?: string[] }> {
+    override async syncBatch(limit: number = 20, failedClientIds: string[] = []): Promise<{ success: number; errors: number; failedIds: string[] }> {
         const unsyncedDistributions = await this.fetchUnsynced(limit);
 
         let success = 0;
         let errors = 0;
         const failedIds: string[] = [];
 
+        // Use local failedClientIds if not provided as argument
+        const clientIdsToCheck = failedClientIds.length > 0 ? failedClientIds : this.failedClientIds;
+
         for (const distribution of unsyncedDistributions) {
-            if (failedClientIds.includes(distribution.clientId)) {
-                // Check if client is actually synced (maybe failedIds is stale or incomplete, but trust it for now)
-                // Actually, failedClientIds contains LOCAL IDs of clients that failed sync.
-                // distribution.clientId is local ID.
+            if (clientIdsToCheck.includes(distribution.clientId)) {
                 errors++;
                 await this.syncErrorService.logSyncError(
                     'distribution',
@@ -94,12 +94,6 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
         const syncRequest = await this.prepareDistributionSyncRequest(distribution);
         const headers = this.getAuthHeaders();
 
-        // Check if update or create?
-        // Usually distributions are created once. If we support updates, check serverId.
-        // For now assuming create only as per existing service.
-        // Existing service used PATCH /api/v1/credits/distribute-articles ? 
-        // PATCH implies update or partial? "distribute-articles" sounds like a business action.
-
         const response = await firstValueFrom(
             this.http.patch<ApiResponse<DistributionSyncResponse>>(`${this.baseUrl}/api/v1/credits/distribute-articles`, syncRequest, { headers })
         );
@@ -120,9 +114,6 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
         const items = await this.repository.getItemsForDistribution(distribution.id);
         const clientServerId = await this.repository.getServerId(distribution.clientId, 'client');
 
-        // Items mapping: assuming generic numeric articleId? 
-        // Existing service had: articleId: parseInt(item.articleId)
-
         return {
             articles: {
                 articleEntries: items.map(item => ({
@@ -131,14 +122,7 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
                 }))
             },
             clientId: parseInt(clientServerId || '0'),
-            // If clientServerId is null (not synced), this should fail? 
-            // Logic in `syncBatch` skips if in `failedClientIds`.
-            // But if client hasn't been synced yet (and not failed), `clientServerId` is null.
-            // We should throw here if clientServerId is missing?
-            // Existing service used `parseInt(clientServerId || '0')` which means it sends 0. 
-            // Backend might reject 0.
-
-            creditId: parseInt(distribution.creditId || '0'), // What is creditId?
+            creditId: parseInt(distribution.creditId || '0'),
             advance: distribution.advance || 0,
             dailyStake: distribution.dailyPayment || 0,
             startDate: distribution.startDate || new Date().toISOString(),

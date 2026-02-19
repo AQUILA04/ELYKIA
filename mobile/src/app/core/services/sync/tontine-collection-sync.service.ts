@@ -35,15 +35,17 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
      * Synchronize a batch of unsynced tontine collections
      * Overridden to handle failedMemberIds dependency
      */
-    override async syncBatch(limit: number = 50, failedMemberIds: string[] = []): Promise<{ success: number; errors: number; failedIds?: string[] }> {
+    override async syncBatch(limit: number = 50, failedMemberIds: string[] = []): Promise<{ success: number; errors: number; failedIds: string[] }> {
         const unsyncedCollections = await this.fetchUnsynced(limit);
 
         let success = 0;
         let errors = 0;
         const failedIds: string[] = [];
 
+        const memberIdsToCheck = failedMemberIds.length > 0 ? failedMemberIds : this.failedMemberIds;
+
         for (const collection of unsyncedCollections) {
-            if (failedMemberIds.includes(collection.tontineMemberId)) {
+            if (memberIdsToCheck.includes(collection.tontineMemberId)) {
                 errors++;
                 await this.syncErrorService.logSyncError(
                     'tontine-collection',

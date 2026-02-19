@@ -14,6 +14,7 @@ import { BaseSyncService } from './base-sync.service';
     providedIn: 'root'
 })
 export class TontineMemberSyncService extends BaseSyncService<TontineMember, TontineMemberRepository> {
+    private failedClientIds: string[] = [];
 
     constructor(
         protected override http: HttpClient,
@@ -25,8 +26,45 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
         super(http, repository, authService, syncErrorService, 'tontine-member');
     }
 
-    override async syncBatch(limit: number = 50): Promise<{ success: number; errors: number; failedIds?: string[] }> {
-        return super.syncBatch(limit);
+    setFailedClientIds(ids: string[]) {
+        this.failedClientIds = ids;
+    }
+
+    override async syncBatch(limit: number = 50, failedClientIds: string[] = []): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        const unsyncedMembers = await this.fetchUnsynced(limit);
+
+        let success = 0;
+        let errors = 0;
+        const failedIds: string[] = [];
+
+        const clientIdsToCheck = failedClientIds.length > 0 ? failedClientIds : this.failedClientIds;
+
+        for (const member of unsyncedMembers) {
+            if (clientIdsToCheck.includes(member.clientId)) {
+                errors++;
+                await this.syncErrorService.logSyncError(
+                    'tontine-member',
+                    member.id,
+                    'SKIP',
+                    new Error('Parent client failed sync'),
+                    member,
+                    `Membre Tontine ${member.id}`,
+                    member
+                );
+                continue;
+            }
+
+            try {
+                await this.syncSingle(member);
+                success++;
+            } catch (error) {
+                errors++;
+                failedIds.push(member.id);
+                await this.handleError(member.id, 'CREATE', error, member, `Membre Tontine ${member.id}`);
+            }
+        }
+
+        return { success, errors, failedIds };
     }
 
     async syncSingle(item: TontineMember): Promise<any> {

@@ -218,6 +218,15 @@ export interface SyncSelection {
   isSelectAll: boolean;
 }
 
+export interface PaginationState {
+  page: number;
+  size: number;
+  totalPages: number;
+  totalElements: number;
+  loading: boolean;
+  hasMore: boolean;
+}
+
 export interface ManualSyncState {
   clients: SyncSelection;
   distributions: SyncSelection;
@@ -227,6 +236,14 @@ export interface ManualSyncState {
   tontineDeliveries: SyncSelection;
   isLoading: boolean;
   activeTab: 'clients' | 'distributions' | 'recoveries' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries' | 'all';
+  pagination: {
+    clients: PaginationState;
+    distributions: PaginationState;
+    recoveries: PaginationState;
+    tontineMembers: PaginationState;
+    tontineCollections: PaginationState;
+    tontineDeliveries: PaginationState;
+  };
 }
 
 // Énumérations

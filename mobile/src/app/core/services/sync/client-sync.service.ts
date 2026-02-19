@@ -11,6 +11,7 @@ import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
 import { ClientSyncResponse } from 'src/app/models/api-sync-response.model';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { ClientPhotoUrlUpdateDto } from '../../../models/client-photo-url-update.dto';
 
 @Injectable({
     providedIn: 'root'
@@ -27,9 +28,96 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
         super(http, repository, authService, syncErrorService, 'client');
     }
 
-    override async syncBatch(limit: number = 20): Promise<{ success: number; errors: number; failedIds?: string[] }> {
-        // Base implementation calls fetchUnsynced and loops calling syncSingle
+    /**
+     * Orchestration complète de la synchronisation des clients.
+     * Inclut :
+     * 1. Création et mise à jour complète (via syncBatch)
+     * 2. Mise à jour des photos
+     * 3. Mise à jour des URLs de photos
+     * 4. Mise à jour de la localisation
+     */
+    override async syncAll(batchSize: number = 20): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        // 1. Synchronisation standard (Nouveaux clients et Mises à jour complètes)
+        const baseResult = await super.syncAll(batchSize);
+
+        // 2. Synchronisation des photos modifiées
+        const photoResult = await this.syncUpdatedPhotos();
+
+        // 3. Synchronisation des URLs de photos modifiées
+        const photoUrlResult = await this.syncUpdatedPhotoUrls();
+
+        // 4. Synchronisation de la localisation modifiée
+        const locationResult = await this.syncUpdatedLocations();
+
+        // Fusionner les résultats
+        return {
+            success: baseResult.success + photoResult.success + photoUrlResult.success + locationResult.success,
+            errors: baseResult.errors + photoResult.errors + photoUrlResult.errors + locationResult.errors,
+            failedIds: baseResult.failedIds || [] // On retourne principalement les IDs des clients dont la création/update a échoué
+        };
+    }
+
+    override async syncBatch(limit: number = 20): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        // Synchronisation standard (Nouveaux clients et Mises à jour complètes)
         return super.syncBatch(limit);
+    }
+
+    /**
+     * Synchronise uniquement les photos des clients modifiés
+     */
+    async syncUpdatedPhotos(): Promise<{ success: number; errors: number }> {
+        const result = { success: 0, errors: 0 };
+        const updatedPhotoClients = await this.repository.getUpdatedPhotoClients();
+
+        for (const client of updatedPhotoClients) {
+            try {
+                await this.syncUpdatedPhotoClient(client);
+                result.success++;
+            } catch (error) {
+                result.errors++;
+                await this.syncErrorService.logSyncError('client', client.id, 'UPDATE_PHOTO', error, client, `Client ${client.firstname} ${client.lastname}`, client);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Synchronise uniquement les URLs de photos des clients modifiés
+     */
+    async syncUpdatedPhotoUrls(): Promise<{ success: number; errors: number }> {
+        const result = { success: 0, errors: 0 };
+        // Cast nécessaire car la méthode a été ajoutée dynamiquement au repository ou via extension
+        const updatedPhotoUrlClients = await (this.repository as any).getUpdatedPhotoUrlClients();
+
+        for (const client of updatedPhotoUrlClients) {
+            try {
+                await this.syncUpdatedPhotoUrlClient(client);
+                result.success++;
+            } catch (error) {
+                result.errors++;
+                await this.syncErrorService.logSyncError('client', client.id, 'UPDATE_PHOTO_URL', error, client, `Client ${client.firstname} ${client.lastname}`, client);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Synchronise uniquement la localisation des clients modifiés
+     */
+    async syncUpdatedLocations(): Promise<{ success: number; errors: number }> {
+        const result = { success: 0, errors: 0 };
+        const updatedLocationClients = await (this.repository as any).getUpdatedLocationClients();
+
+        for (const client of updatedLocationClients) {
+            try {
+                await this.syncUpdatedLocationClient(client);
+                result.success++;
+            } catch (error) {
+                result.errors++;
+                await this.syncErrorService.logSyncError('client', client.id, 'UPDATE_LOCATION', error, client, `Client ${client.firstname} ${client.lastname}`, client);
+            }
+        }
+        return result;
     }
 
     /**
@@ -98,22 +186,72 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
         return response.data;
     }
 
+    private async syncUpdatedPhotoClient(client: Client): Promise<void> {
+        const requestBody = await this.prepareUpdatePhotoDto(client);
+        const headers = this.getAuthHeaders();
+        const response = await firstValueFrom(
+            this.http.patch<ApiResponse<boolean>>(`${this.baseUrl}/api/v1/clients/photo-update`, requestBody, { headers })
+        );
+
+        if (response.statusCode === 200 && response.data === true) {
+            await this.repository.markAsPhotoSynced(client.id);
+        } else {
+            throw new Error(response.message || 'Failed to sync updated client photo.');
+        }
+    }
+
+    private async syncUpdatedPhotoUrlClient(client: Client): Promise<void> {
+        const requestBody: ClientPhotoUrlUpdateDto = {
+            id: client.id,
+            profilPhotoUrl: client.profilPhotoUrl,
+            cardPhotoUrl: client.cardPhotoUrl
+        };
+
+        const headers = this.getAuthHeaders();
+        const response = await firstValueFrom(
+            this.http.patch<ApiResponse<boolean>>(`${this.baseUrl}/api/v1/clients/update-photo-url`, requestBody, { headers })
+        );
+
+        if (response.statusCode === 200 && response.data === true) {
+            await (this.repository as any).markAsPhotoUrlSynced(client.id);
+        } else {
+            throw new Error(response.message || 'Failed to sync updated client photo URLs.');
+        }
+    }
+
+    private async syncUpdatedLocationClient(client: Client): Promise<void> {
+        const requestBody = {
+            id: client.id,
+            latitude: client.latitude,
+            longitude: client.longitude
+        };
+        const headers = this.getAuthHeaders();
+        const response = await firstValueFrom(
+            this.http.patch<ApiResponse<boolean>>(`${this.baseUrl}/api/v1/clients/location-update`, requestBody, { headers })
+        );
+
+        if (response.statusCode === 200 && response.data === true) {
+            await this.repository.markAsLocationSynced(client.id);
+        } else {
+            throw new Error(response.message || 'Failed to sync updated client location.');
+        }
+    }
+
     private async prepareClientSyncRequest(client: Client): Promise<ClientSyncRequest> {
         let iddocBase64: string | undefined;
         let profilPhotoBase64: string | undefined;
 
         try {
             if (client.cardPhoto) {
-                const file = await Filesystem.readFile({ path: client.cardPhoto, directory: Directory.Data });
+                const file = await Filesystem.readFile({ path: client.cardPhoto, directory: Directory.ExternalStorage });
                 iddocBase64 = file.data as string;
             }
             if (client.profilPhoto) {
-                const file = await Filesystem.readFile({ path: client.profilPhoto, directory: Directory.Data });
+                const file = await Filesystem.readFile({ path: client.profilPhoto, directory: Directory.ExternalStorage });
                 profilPhotoBase64 = file.data as string;
             }
         } catch (error) {
             console.error('Error reading image file for client sync', error);
-            // Laisser les variables undefined, elles ne seront pas incluses dans le JSON
         }
 
         return {
@@ -142,6 +280,32 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
             code: client.code || '',
             profilPhotoUrl: client.profilPhotoUrl || '',
             cardPhotoUrl: client.cardPhotoUrl || ''
+        };
+    }
+
+    private async prepareUpdatePhotoDto(client: Client): Promise<any> {
+        let profilPhotoBase64: string | undefined;
+        let cardPhotoBase64: string | undefined;
+
+        try {
+            if (client.profilPhoto) {
+                const file = await Filesystem.readFile({ path: client.profilPhoto, directory: Directory.ExternalStorage });
+                profilPhotoBase64 = file.data as string;
+            }
+            if (client.cardPhoto) {
+                const file = await Filesystem.readFile({ path: client.cardPhoto, directory: Directory.ExternalStorage });
+                cardPhotoBase64 = file.data as string;
+            }
+        } catch (error) {
+            console.error('Error reading image file for photo update sync', error);
+        }
+
+        return {
+            clientId: client.id,
+            profilPhoto: profilPhotoBase64,
+            cardPhoto: cardPhotoBase64,
+            cardType: client.cardType,
+            cardNumber: client.cardID
         };
     }
 }

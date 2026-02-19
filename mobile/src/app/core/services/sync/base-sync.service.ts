@@ -22,14 +22,51 @@ export abstract class BaseSyncService<T extends { id: string }, R extends BaseRe
     ) { }
 
     /**
-     * Synchronize a batch of unsynced items
-     * @param limit Batch size
+     * Orchestration locale par domaine.
+     * Cette méthode gère la boucle de synchronisation par lots (batch)
+     * et peut être surchargée pour inclure des synchronisations spécifiques.
+     *
+     * @param batchSize Taille du lot (défaut: 50)
+     * @returns Résultat de la synchronisation incluant les IDs ayant échoué
      */
+    async syncAll(batchSize: number = 50): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        const result: { success: number; errors: number; failedIds: string[] } = { success: 0, errors: 0, failedIds: [] };
+
+        // 1. Récupérer le nombre total d'éléments non synchronisés
+        const totalUnsynced = await this.getUnsyncedCount();
+
+        if (totalUnsynced === 0) {
+            return result;
+        }
+
+        // 2. Calculer le nombre d'itérations nécessaires
+        const totalBatches = Math.ceil(totalUnsynced / batchSize);
+
+        // 3. Itérer sur les lots
+        for (let i = 0; i < totalBatches; i++) {
+            const batchResult = await this.syncBatch(batchSize);
+
+            result.success += batchResult.success;
+            result.errors += batchResult.errors;
+
+            if (batchResult.failedIds && Array.isArray(batchResult.failedIds)) {
+                result.failedIds.push(...batchResult.failedIds);
+            }
+
+            // Si un lot ne retourne rien (ex: fin de liste ou filtrage), on arrête
+            if (batchResult.success + batchResult.errors === 0) {
+                break;
+            }
+        }
+
+        return result;
+    }
+
     /**
      * Synchronize a batch of unsynced items
      * @param limit Batch size
      */
-    async syncBatch(limit: number): Promise<{ success: number; errors: number; failedIds?: string[] }> {
+    async syncBatch(limit: number): Promise<{ success: number; errors: number; failedIds: string[] }> {
         const items = await this.fetchUnsynced(limit);
         const result: { success: number; errors: number; failedIds: string[] } = { success: 0, errors: 0, failedIds: [] };
 

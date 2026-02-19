@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { of, from, timer, EMPTY } from 'rxjs';
+import { of, from, timer, EMPTY, Observable } from 'rxjs';
 import {
   map,
   catchError,
@@ -22,13 +22,30 @@ import { DistributionService } from '../../core/services/distribution.service';
 import { RecoveryService } from '../../core/services/recovery.service';
 
 import * as SyncActions from './sync.actions';
-import { selectAutomaticSyncIsActive } from './sync.selectors';
+import { selectAutomaticSyncIsActive, selectManualSyncPagination } from './sync.selectors';
 import { SyncProgress, SyncPhase } from '../../models/sync.model';
 import * as ClientActions from '../../store/client/client.actions';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import * as RecoveryActions from '../../store/recovery/recovery.actions';
 import * as TontineActions from '../../store/tontine/tontine.actions';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
+
+// Repository Extensions
+import { ClientRepositoryExtensions } from '../../core/repositories/client.repository.extensions';
+import { DistributionRepositoryExtensions } from '../../core/repositories/distribution.repository.extensions';
+import { RecoveryRepositoryExtensions } from '../../core/repositories/recovery.repository.extensions';
+import { TontineMemberRepositoryExtensions } from '../../core/repositories/tontine-member.repository.extensions';
+import { TontineCollectionRepositoryExtensions } from '../../core/repositories/tontine-collection.repository.extensions';
+import { TontineDeliveryRepositoryExtensions } from '../../core/repositories/tontine-delivery.repository.extensions';
+
+// Domain Specific Sync Services
+import { ClientSyncService } from '../../core/services/sync/client-sync.service';
+import { DistributionSyncService } from '../../core/services/sync/distribution-sync.service';
+import { RecoverySyncService } from '../../core/services/sync/recovery-sync.service';
+import { TontineMemberSyncService } from '../../core/services/sync/tontine-member-sync.service';
+import { TontineCollectionSyncService } from '../../core/services/sync/tontine-collection-sync.service';
+import { TontineDeliverySyncService } from '../../core/services/sync/tontine-delivery-sync.service';
+import { Page } from '../../core/repositories/repository.interface';
 
 @Injectable()
 export class SyncEffects {
@@ -41,7 +58,23 @@ export class SyncEffects {
     private syncLogsExportService: SyncLogsExportService,
     private clientService: ClientService,
     private distributionService: DistributionService,
-    private recoveryService: RecoveryService
+    private recoveryService: RecoveryService,
+
+    // Repository Extensions
+    private clientRepoExt: ClientRepositoryExtensions,
+    private distRepoExt: DistributionRepositoryExtensions,
+    private recRepoExt: RecoveryRepositoryExtensions,
+    private tmRepoExt: TontineMemberRepositoryExtensions,
+    private tcRepoExt: TontineCollectionRepositoryExtensions,
+    private tdRepoExt: TontineDeliveryRepositoryExtensions,
+
+    // Domain Sync Services
+    private clientSync: ClientSyncService,
+    private distSync: DistributionSyncService,
+    private recSync: RecoverySyncService,
+    private tmSync: TontineMemberSyncService,
+    private tcSync: TontineCollectionSyncService,
+    private tdSync: TontineDeliverySyncService
   ) { }
 
   // ==================== EFFETS SYNCHRONISATION AUTOMATIQUE ====================
@@ -79,43 +112,125 @@ export class SyncEffects {
     { dispatch: false }
   );
 
-  // ==================== EFFETS SYNCHRONISATION MANUELLE ====================
+  // ==================== EFFETS SYNCHRONISATION MANUELLE (PAGINATION) ====================
 
   /**
-   * Charger les données pour la synchronisation manuelle
+   * Charger les données paginées pour la synchronisation manuelle
    */
-  loadManualSyncData$ = createEffect(() =>
+  loadManualSyncDataPaginated$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(SyncActions.loadManualSyncData),
-      switchMap(() =>
-        from(this.loadUnsyncedData()).pipe(
-          map(({ clients, distributions, recoveries, tontineMembers, tontineCollections, tontineDeliveries }) =>
-            SyncActions.loadManualSyncDataSuccess({ clients, distributions, recoveries, tontineMembers, tontineCollections, tontineDeliveries })
-          ),
-          catchError(error =>
-            of(SyncActions.loadManualSyncDataFailure({ error }))
-          )
-        )
-      )
+      ofType(SyncActions.loadManualSyncDataPaginated),
+      withLatestFrom(this.store.select(selectAuthUser)),
+      filter(([action, user]) => !!user),
+      switchMap(([action, user]) => {
+        const username = user!.username;
+        const { entityType, page, size, filters } = action;
+
+        // Common filter for unsynced items
+        const queryFilters = { ...filters, isSync: false };
+
+        let fetchObservable: Observable<Page<any>>;
+
+        switch (entityType) {
+          case 'client':
+            fetchObservable = from(this.clientRepoExt.findByCommercialPaginated(username, page, size, queryFilters));
+            break;
+          case 'distribution':
+            fetchObservable = from(this.distRepoExt.findByCommercialPaginated(username, page, size, queryFilters));
+            break;
+          case 'recovery':
+            fetchObservable = from(this.recRepoExt.findByCommercialPaginated(username, page, size, queryFilters));
+            break;
+          case 'tontine-member':
+            fetchObservable = from(this.tmRepoExt.findByCommercialPaginated(username, page, size, queryFilters));
+            break;
+          case 'tontine-collection':
+            fetchObservable = from(this.tcRepoExt.findByCommercialPaginated(username, page, size, queryFilters));
+            break;
+          case 'tontine-delivery':
+            fetchObservable = from(this.tdRepoExt.findByCommercialPaginated(username, page, size, queryFilters));
+            break;
+          default:
+            return of(SyncActions.loadManualSyncDataPaginatedFailure({ entityType, error: 'Unknown entity type' }));
+        }
+
+        return fetchObservable.pipe(
+          map((pageResult: Page<any>) => SyncActions.loadManualSyncDataPaginatedSuccess({
+            entityType,
+            data: pageResult.content,
+            pageInfo: {
+              page: pageResult.page,
+              size: pageResult.size,
+              totalPages: pageResult.totalPages,
+              totalElements: pageResult.totalElements
+            }
+          })),
+          catchError(error => of(SyncActions.loadManualSyncDataPaginatedFailure({ entityType, error })))
+        );
+      })
     )
   );
 
   /**
-   * Synchronisation manuelle par type d'entité
+   * Charger plus de données (Infinite Scroll)
+   */
+  loadMoreManualSyncData$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(SyncActions.loadMoreManualSyncData),
+      withLatestFrom(this.store.select(selectManualSyncPagination)),
+      switchMap(([action, paginationState]) => {
+        const { entityType } = action;
+        let currentPagination;
+
+        switch (entityType) {
+          case 'client': currentPagination = paginationState.clients; break;
+          case 'distribution': currentPagination = paginationState.distributions; break;
+          case 'recovery': currentPagination = paginationState.recoveries; break;
+          case 'tontine-member': currentPagination = paginationState.tontineMembers; break;
+          case 'tontine-collection': currentPagination = paginationState.tontineCollections; break;
+          case 'tontine-delivery': currentPagination = paginationState.tontineDeliveries; break;
+        }
+
+        if (!currentPagination || !currentPagination.hasMore || currentPagination.loading) {
+          return EMPTY;
+        }
+
+        return of(SyncActions.loadManualSyncDataPaginated({
+          entityType,
+          page: currentPagination.page + 1,
+          size: currentPagination.size
+        }));
+      })
+    )
+  );
+
+  /**
+   * Synchronisation manuelle par type d'entité (Batch)
    */
   startManualSync$ = createEffect(() =>
     this.actions$.pipe(
       ofType(SyncActions.startManualSync),
-      switchMap(({ entityType, selectedIds }) =>
-        from(this.performManualSync(entityType, selectedIds)).pipe(
+      switchMap(({ entityType, selectedIds }) => {
+        let service;
+        let singularEntityType: any = entityType;
+
+        if (entityType === 'clients' || entityType === 'client') { service = this.clientSync; singularEntityType = 'client'; }
+        else if (entityType === 'distributions' || entityType === 'distribution') { service = this.distSync; singularEntityType = 'distribution'; }
+        else if (entityType === 'recoveries' || entityType === 'recovery') { service = this.recSync; singularEntityType = 'recovery'; }
+        else if (entityType === 'tontine-members' || entityType === 'tontine-member') { service = this.tmSync; singularEntityType = 'tontine-member'; }
+        else if (entityType === 'tontine-collections' || entityType === 'tontine-collection') { service = this.tcSync; singularEntityType = 'tontine-collection'; }
+        else if (entityType === 'tontine-deliveries' || entityType === 'tontine-delivery') { service = this.tdSync; singularEntityType = 'tontine-delivery'; }
+        else { return of(SyncActions.manualSyncFailure({ entityType, error: 'Unknown entity type' })); }
+
+        return from(this.performBatchSync(service, selectedIds, singularEntityType)).pipe(
           map(({ successCount, errorCount }) =>
             SyncActions.manualSyncSuccess({ entityType, successCount, errorCount })
           ),
           catchError(error =>
             of(SyncActions.manualSyncFailure({ entityType, error }))
           )
-        )
-      )
+        );
+      })
     )
   );
 
@@ -125,16 +240,26 @@ export class SyncEffects {
   syncSingleEntity$ = createEffect(() =>
     this.actions$.pipe(
       ofType(SyncActions.syncSingleEntity),
-      concatMap(({ entityType, entityId }) =>
-        from(this.syncSingleEntityById(entityType, entityId)).pipe(
+      concatMap(({ entityType, entityId }) => {
+        let service;
+        // Map entityType to service
+        if (entityType === 'client') service = this.clientSync;
+        else if (entityType === 'distribution') service = this.distSync;
+        else if (entityType === 'recovery') service = this.recSync;
+        else if (entityType === 'tontine-member') service = this.tmSync;
+        else if (entityType === 'tontine-collection') service = this.tcSync;
+        else if (entityType === 'tontine-delivery') service = this.tdSync;
+        else return of(SyncActions.syncSingleEntityFailure({ entityType, entityId, error: 'Unknown entity type' }));
+
+        return from(this.performSingleSync(service, entityId, entityType)).pipe(
           map(() =>
             SyncActions.syncSingleEntitySuccess({ entityType, entityId })
           ),
           catchError(error =>
             of(SyncActions.syncSingleEntityFailure({ entityType, entityId, error }))
           )
-        )
-      )
+        );
+      })
     )
   );
 
@@ -251,7 +376,27 @@ export class SyncEffects {
     this.actions$.pipe(
       ofType(SyncActions.manualSyncSuccess, SyncActions.syncSingleEntitySuccess),
       delay(500), // Petit délai pour laisser le temps aux données de se mettre à jour
-      map(() => SyncActions.loadManualSyncData())
+      // Reload current tab data
+      withLatestFrom(this.store.select(selectManualSyncPagination)), // We might need active tab but let's just reload all or specific
+      // Actually, we should reload the specific entity type that was synced.
+      // But the action props contain entityType.
+      map(([action]) => {
+        const entityType = (action as any).entityType;
+        // Map plural to singular if needed
+        let singularType = entityType;
+        if (entityType === 'clients') singularType = 'client';
+        else if (entityType === 'distributions') singularType = 'distribution';
+        else if (entityType === 'recoveries') singularType = 'recovery';
+        else if (entityType === 'tontine-members') singularType = 'tontine-member';
+        else if (entityType === 'tontine-collections') singularType = 'tontine-collection';
+        else if (entityType === 'tontine-deliveries') singularType = 'tontine-delivery';
+
+        return SyncActions.loadManualSyncDataPaginated({
+          entityType: singularType,
+          page: 0,
+          size: 20
+        });
+      })
     )
   );
 
@@ -278,11 +423,9 @@ export class SyncEffects {
           actionsToDispatch.push(DistributionActions.loadDistributions({ commercialUsername: username }));
           actionsToDispatch.push(RecoveryActions.loadRecoveries({ commercialUsername: username }));
           actionsToDispatch.push(TontineActions.loadTontineSession());
-          // Note: loadTontineMembers depends on session ID, which is handled in the dashboard via session selector, 
-          // but we can trigger session reload which cascades.
         } else {
           // Partial reload for manual/single sync
-          const entityType = (action as any).entityType; // Type assertion as props vary slightly but entityType is common in usage context or mapped
+          const entityType = (action as any).entityType;
 
           if (['client', 'clients'].includes(entityType)) {
             actionsToDispatch.push(ClientActions.loadClients({ commercialUsername: username }));
@@ -294,7 +437,6 @@ export class SyncEffects {
             actionsToDispatch.push(RecoveryActions.loadRecoveries({ commercialUsername: username }));
           }
           if (['tontine-member', 'tontine-members', 'tontine-collection', 'tontine-collections'].includes(entityType)) {
-            // Reload session to be safe, logic usually cascades to members
             actionsToDispatch.push(TontineActions.loadTontineSession());
           }
         }
@@ -356,56 +498,20 @@ export class SyncEffects {
   }
 
   /**
-   * Charger les données non synchronisées
+   * Helper to perform batch sync for selected IDs
    */
-  private async loadUnsyncedData(): Promise<{
-    clients: any[],
-    distributions: any[],
-    recoveries: any[],
-    tontineMembers: any[],
-    tontineCollections: any[],
-    tontineDeliveries: any[]
-  }> {
-    try {
-      const [clients, distributions, recoveries, tontineMembers, tontineCollections, tontineDeliveries] = await Promise.all([
-        this.syncService.getUnsyncedClients(),
-        this.syncService.getUnsyncedDistributions(),
-        this.syncService.categorizeRecoveries().then(r => [...r.defaultStakes, ...r.specialStakes]),
-        this.syncService.getUnsyncedTontineMembers(),
-        this.syncService.getUnsyncedTontineCollections(),
-        this.syncService.getUnsyncedTontineDeliveries()
-      ]);
-
-      return { clients, distributions, recoveries, tontineMembers, tontineCollections, tontineDeliveries };
-    } catch (error) {
-      console.error('Erreur lors du chargement des données non synchronisées:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Effectuer la synchronisation manuelle
-   */
-  private async performManualSync(entityType: string, selectedIds: string[]): Promise<{ successCount: number, errorCount: number }> {
+  private async performBatchSync(service: any, selectedIds: string[], entityType: string): Promise<{ successCount: number, errorCount: number }> {
     let successCount = 0;
     let errorCount = 0;
 
     for (const id of selectedIds) {
       try {
-        await this.syncSingleEntityById(entityType, id);
+        await this.performSingleSync(service, id, entityType);
         successCount++;
       } catch (error) {
         errorCount++;
         console.error(`Erreur lors de la synchronisation de ${entityType} ${id}:`, error);
       }
-
-      // Émettre la progression
-      this.store.dispatch(SyncActions.manualSyncProgress({
-        entityType: entityType as any,
-        processed: successCount + errorCount,
-        total: selectedIds.length,
-        currentItem: id
-      }));
     }
 
     return { successCount, errorCount };
@@ -414,66 +520,41 @@ export class SyncEffects {
   /**
    * Synchroniser une entité individuelle par ID
    */
-  private async syncSingleEntityById(entityType: string, entityId: string): Promise<void> {
+  private async performSingleSync(service: any, entityId: string, entityType: string): Promise<void> {
+    // Fetch entity
+    let entity;
+
     switch (entityType) {
       case 'client':
-        // Get all unsynced clients and find the one with matching ID
         const clients = await this.syncService.getUnsyncedClients();
-        const client = clients.find(c => c.id === entityId);
-        if (client) {
-          await this.syncService.syncSingleClient(client);
-        }
+        entity = clients.find(c => c.id === entityId);
         break;
       case 'distribution':
-        // Get all unsynced distributions and find the one with matching ID
         const distributions = await this.syncService.getUnsyncedDistributions();
-        const distribution = distributions.find(d => d.id === entityId);
-        if (distribution) {
-          await this.syncService.syncSingleDistribution(distribution);
-        }
+        entity = distributions.find(d => d.id === entityId);
         break;
       case 'recovery':
-        // Synchroniser un recouvrement individuel
         const { defaultStakes, specialStakes } = await this.syncService.categorizeRecoveries();
-        const allRecoveries = [...defaultStakes, ...specialStakes];
-        const recovery = allRecoveries.find(r => r.id === entityId);
-        if (recovery) {
-          if (recovery.isDefaultStake) {
-            await this.syncService.syncDefaultDailyStakes([recovery]);
-          } else {
-            await this.syncService.syncSpecialDailyStakes([recovery]);
-          }
-        }
+        entity = [...defaultStakes, ...specialStakes].find(r => r.id === entityId);
         break;
       case 'tontine-member':
-      case 'tontine-members':
-        // Synchroniser un membre de tontine
-        const tontineMembers = await this.syncService.getUnsyncedTontineMembers();
-        const member = tontineMembers.find(m => m.id === entityId);
-        if (member) {
-          await this.syncService.syncSingleTontineMember(member);
-        }
+        const members = await this.syncService.getUnsyncedTontineMembers();
+        entity = members.find(m => m.id === entityId);
         break;
       case 'tontine-collection':
-      case 'tontine-collections':
-        // Synchroniser une collecte de tontine
-        const tontineCollections = await this.syncService.getUnsyncedTontineCollections();
-        const collection = tontineCollections.find(c => c.id === entityId);
-        if (collection) {
-          await this.syncService.syncSingleTontineCollection(collection);
-        }
+        const collections = await this.syncService.getUnsyncedTontineCollections();
+        entity = collections.find(c => c.id === entityId);
         break;
       case 'tontine-delivery':
-      case 'tontine-deliveries':
-        // Synchroniser une livraison de tontine
-        const tontineDeliveries = await this.syncService.getUnsyncedTontineDeliveries();
-        const delivery = tontineDeliveries.find(d => d.id === entityId);
-        if (delivery) {
-          await this.syncService.syncSingleTontineDelivery(delivery);
-        }
+        const deliveries = await this.syncService.getUnsyncedTontineDeliveries();
+        entity = deliveries.find(d => d.id === entityId);
         break;
-      default:
-        throw new Error(`Type d'entité non supporté: ${entityType}`);
+    }
+
+    if (entity) {
+      await service.syncSingle(entity);
+    } else {
+      throw new Error(`Entity ${entityType} with ID ${entityId} not found or already synced.`);
     }
   }
 
@@ -483,104 +564,4 @@ export class SyncEffects {
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
-
-  /**
-   * Afficher un toast de succès après une synchronisation manuelle réussie
-   */
-  showManualSyncSuccessToast$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(SyncActions.manualSyncSuccess),
-      tap(async ({ entityType, successCount, errorCount }) => {
-        const entityLabel = entityType === 'clients' ? 'client(s)' :
-          entityType === 'distributions' ? 'distribution(s)' :
-            'recouvrement(s)';
-
-        let message = `${successCount} ${entityLabel} synchronisé(s) avec succès`;
-        if (errorCount > 0) {
-          message += ` (${errorCount} erreur(s))`;
-        }
-
-        // Utiliser ToastController via injection
-        const { ToastController } = await import('@ionic/angular');
-        const toastController = new ToastController();
-        const toast = await toastController.create({
-          message,
-          duration: 3000,
-          color: errorCount > 0 ? 'warning' : 'success',
-          position: 'bottom'
-        });
-        await toast.present();
-      })
-    ),
-    { dispatch: false }
-  );
-
-  /**
-   * Afficher un toast de succès après une synchronisation d'entité unique réussie
-   */
-  showSingleEntitySyncSuccessToast$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(SyncActions.syncSingleEntitySuccess),
-      tap(async ({ entityType }) => {
-        const entityLabel = entityType === 'client' ? 'Client' :
-          entityType === 'distribution' ? 'Distribution' :
-            'Recouvrement';
-
-        const { ToastController } = await import('@ionic/angular');
-        const toastController = new ToastController();
-        const toast = await toastController.create({
-          message: `${entityLabel} synchronisé avec succès`,
-          duration: 2000,
-          color: 'success',
-          position: 'bottom'
-        });
-        await toast.present();
-      })
-    ),
-    { dispatch: false }
-  );
-
-  /**
-   * Exporter automatiquement les logs de synchronisation après une synchronisation automatique réussie
-   */
-  exportSyncLogsAfterAutomaticSync$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(SyncActions.automaticSyncSuccess),
-      tap(async ({ result }) => {
-        try {
-          const filePath = await this.syncLogsExportService.exportSyncLogsAfterSync(result);
-          if (filePath) {
-            console.log('Logs de synchronisation exportés automatiquement:', filePath);
-
-            // Nettoyer les anciens fichiers de logs (garder les 30 derniers)
-            await this.syncLogsExportService.cleanOldLogFiles();
-          }
-        } catch (error) {
-          console.error('Erreur lors de l\'export automatique des logs:', error);
-        }
-      })
-    ),
-    { dispatch: false }
-  );
-
-  /**
-   * Afficher un toast d'erreur après une synchronisation manuelle échouée
-   */
-  showManualSyncErrorToast$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(SyncActions.manualSyncFailure, SyncActions.syncSingleEntityFailure),
-      tap(async ({ error }) => {
-        const { ToastController } = await import('@ionic/angular');
-        const toastController = new ToastController();
-        const toast = await toastController.create({
-          message: `Erreur lors de la synchronisation: ${error?.message || 'Erreur inconnue'}`,
-          duration: 4000,
-          color: 'danger',
-          position: 'bottom'
-        });
-        await toast.present();
-      })
-    ),
-    { dispatch: false }
-  );
 }

@@ -26,10 +26,6 @@ export class LocalitySyncService {
   async syncLocalities(limit: number = 100): Promise<{ success: number, errors: number }> {
     const commercialUsername = this.authService.currentUser?.username || '';
     const unsyncedLocalities = await this.localityRepository.findUnsynced(commercialUsername, limit, 0);
-    // LocalityRepository.findUnsynced logic: SELECT * FROM localities WHERE isSync = 0 AND isLocal = 1.
-    // SyncService just called `getUnsyncedLocalities` which did the same.
-    // SyncService didn't filter by user for localities usually (shared data), but LocalityRepository findUnsynced implementation might differ?
-    // Step 51: `findUnsynced(limit: number, offset: number): Promise<Locality[]>` - No username param. Correct.
 
     if (unsyncedLocalities.length === 0) {
       return { success: 0, errors: 0 };
@@ -64,8 +60,8 @@ export class LocalitySyncService {
     }
 
     const serverLocality = response.data;
-    // Use repository to mark as synced
-    await this.localityRepository.markAsSynced(locality.id, parseInt(serverLocality.id, 10));
+    // Use repository to mark as synced. serverLocality.id is likely string or number, convert to string.
+    await this.localityRepository.markAsSynced(locality.id, String(serverLocality.id));
   }
 
   private getAuthHeaders(): HttpHeaders {

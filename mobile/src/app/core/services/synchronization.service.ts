@@ -407,11 +407,11 @@ export class SynchronizationService {
 
     try {
       if (client.profilPhoto) {
-        const file = await Filesystem.readFile({ path: client.profilPhoto, directory: Directory.Data });
+        const file = await Filesystem.readFile({ path: client.profilPhoto, directory: Directory.ExternalStorage });
         profilPhotoBase64 = file.data as string;
       }
       if (client.cardPhoto) {
-        const file = await Filesystem.readFile({ path: client.cardPhoto, directory: Directory.Data });
+        const file = await Filesystem.readFile({ path: client.cardPhoto, directory: Directory.ExternalStorage });
         cardPhotoBase64 = file.data as string;
       }
     } catch (error) {
@@ -988,11 +988,11 @@ export class SynchronizationService {
 
     try {
       if (client.cardPhoto) {
-        const file = await Filesystem.readFile({ path: client.cardPhoto, directory: Directory.Data });
+        const file = await Filesystem.readFile({ path: client.cardPhoto, directory: Directory.ExternalStorage });
         iddocBase64 = file.data as string;
       }
       if (client.profilPhoto) {
-        const file = await Filesystem.readFile({ path: client.profilPhoto, directory: Directory.Data });
+        const file = await Filesystem.readFile({ path: client.profilPhoto, directory: Directory.ExternalStorage });
         profilPhotoBase64 = file.data as string;
       }
     } catch (error) {
@@ -1527,19 +1527,19 @@ export class SynchronizationService {
   }
 
   // Méthodes de génération de noms d'affichage
-  private getClientDisplayName(client: Client): string {
+  public getClientDisplayName(client: Client): string {
     return `${client.firstname} ${client.lastname}`;
   }
 
-  private getDistributionDisplayName(distribution: Distribution): string {
+  public getDistributionDisplayName(distribution: Distribution): string {
     return `Distribution ${distribution.reference || distribution.id}`;
   }
 
-  private getOrderDisplayName(order: Order): string {
+  public getOrderDisplayName(order: Order): string {
     return `Commande ${order.reference || order.id}`;
   }
 
-  private getRecoveryDisplayName(recovery: Recovery): string {
+  public getRecoveryDisplayName(recovery: Recovery): string {
     return `Recouvrement ${recovery.amount} FCFA`;
   }
 
@@ -1550,10 +1550,15 @@ export class SynchronizationService {
       const user = this.authService.currentUser;
       if (!user) return [];
 
-      const result = await this.databaseService.query(
-        `SELECT * FROM tontine_members WHERE isSync = 0 AND isLocal = 1 AND commercialUsername = ?`,
-        [user.username]
-      );
+      const sql = `
+        SELECT tm.*,
+        COALESCE(c.fullName, (COALESCE(c.firstname, '') || ' ' || COALESCE(c.lastname, ''))) as clientName
+        FROM tontine_members tm
+        LEFT JOIN clients c ON tm.clientId = c.id
+        WHERE tm.isSync = 0 AND tm.isLocal = 1 AND tm.commercialUsername = ?
+      `;
+
+      const result = await this.databaseService.query(sql, [user.username]);
       return result.values?.map((row: any) => this.mapRowToTontineMember(row)) || [];
     } catch (error) {
       console.error('Erreur lors de la récupération des membres de tontine non synchronisés:', error);
@@ -1583,7 +1588,7 @@ export class SynchronizationService {
       if (!user) return [];
 
       const sql = `
-        SELECT tc.*, 
+        SELECT tc.*,
         COALESCE(c.fullName, (COALESCE(c.firstname, '') || ' ' || COALESCE(c.lastname, ''))) as clientName,
         tm.id as _debug_tmId,
         c.id as _debug_clientId
@@ -1607,10 +1612,16 @@ export class SynchronizationService {
       const user = this.authService.currentUser;
       if (!user) return [];
 
-      const result = await this.databaseService.query(
-        `SELECT * FROM tontine_deliveries WHERE isSync = 0 AND isLocal = 1 AND commercialUsername = ?`,
-        [user.username]
-      );
+      const sql = `
+        SELECT td.*,
+        COALESCE(c.fullName, (COALESCE(c.firstname, '') || ' ' || COALESCE(c.lastname, ''))) as clientName
+        FROM tontine_deliveries td
+        LEFT JOIN tontine_members tm ON td.tontineMemberId = tm.id
+        LEFT JOIN clients c ON tm.clientId = c.id
+        WHERE td.isSync = 0 AND td.isLocal = 1 AND td.commercialUsername = ?
+      `;
+
+      const result = await this.databaseService.query(sql, [user.username]);
       return result.values?.map((row: any) => this.mapRowToTontineDelivery(row)) || [];
     } catch (error) {
       console.error('Erreur lors de la récupération des livraisons de tontine non synchronisées:', error);
@@ -1655,7 +1666,8 @@ export class SynchronizationService {
       syncHash: row.syncHash,
       frequency: row.frequency,
       amount: row.amount,
-      notes: row.notes
+      notes: row.notes,
+      clientName: row.clientName
     } as TontineMember;
   }
 
@@ -1686,21 +1698,22 @@ export class SynchronizationService {
       isLocal: row.isLocal === 1,
       isSync: row.isSync === 1,
       syncDate: row.syncDate,
-      syncHash: row.syncHash
+      syncHash: row.syncHash,
+      clientName: row.clientName
     } as TontineDelivery;
   }
 
   // ==================== TONTINE DISPLAY NAME METHODS ====================
 
-  private getTontineMemberDisplayName(member: TontineMember): string {
+  public getTontineMemberDisplayName(member: TontineMember): string {
     return `Membre Tontine ${member.id}`;
   }
 
-  private getTontineCollectionDisplayName(collection: TontineCollection): string {
+  public getTontineCollectionDisplayName(collection: TontineCollection): string {
     return `Collecte Tontine ${collection.id}`;
   }
 
-  private getTontineDeliveryDisplayName(delivery: TontineDelivery): string {
+  public getTontineDeliveryDisplayName(delivery: TontineDelivery): string {
     return `Livraison Tontine ${delivery.id}`;
   }
 
