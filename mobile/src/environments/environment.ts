@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8081',
+  apiUrl: 'http://192.168.1.108:8081',
   appName: 'Elykia',
   version: '2.4.0'
 };
