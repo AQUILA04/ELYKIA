@@ -495,80 +495,52 @@ export class RapportJournalierPage implements OnDestroy {
    * Enregistre le rapport en PDF dans External Storage
    */
   async savePDF() {
-    try {
-      // Afficher un toast de chargement
-      const loadingToast = await this.toastController.create({
-        message: 'Génération du PDF en cours...',
-        duration: 0, // Pas de fermeture automatique
-        position: 'bottom'
-      });
-      await loadingToast.present();
+    const loading = await this.loadingController.create({
+      message: 'Enregistrement des données en cours...',
+      backdropDismiss: false
+    });
+    await loading.present();
 
-      // Charger TOUTES les données (y compris celles non affichées) pour le PDF
-      // On utilise une souscription locale pour ne pas polluer this.reportData (lazy loading)
-      const currentDate = new Date(); // Utiliser la date actuelle du rapport
+    try {
+      const currentDate = new Date();
 
       this.rapportJournalierService.getDailyReportWithDetails(currentDate).subscribe({
         next: async (fullData) => {
           try {
-            // Générer le HTML pour PDF (format complet avec tableaux)
             const htmlContent = this.rapportJournalierService.generatePDFHTML(fullData);
-
-            // Générer le nom de fichier avec date et heure
             const filename = this.pdfReportService.generateFilename();
-
-            // Générer le PDF
             const pdfBase64 = await this.pdfReportService.generatePDF(htmlContent, filename);
-
-            // Sauvegarder dans External Storage
             const uri = await this.pdfReportService.savePDFToExternalStorage(pdfBase64, filename);
 
-            // Fermer le toast de chargement
-            await loadingToast.dismiss();
+            await loading.dismiss();
 
-            // Afficher un toast de confirmation
             const successToast = await this.toastController.create({
               message: `PDF sauvegardé : ${filename}`,
               duration: 3000,
               color: 'success',
               position: 'bottom',
-              buttons: [
-                {
-                  text: 'OK',
-                  role: 'cancel'
-                }
-              ]
+              buttons: [{ text: 'OK', role: 'cancel' }]
             });
             await successToast.present();
 
             console.log('PDF sauvegardé avec succès:', uri);
-
-            // Libérer la mémoire explicitement si nécessaire (le GC le fera à la fin de la fonction)
-            // fullData = null;
-
           } catch (innerError) {
             console.error('Erreur interne lors de la génération PDF:', innerError);
-            await loadingToast.dismiss();
+            await loading.dismiss();
             this.showErrorToast('Erreur lors de la génération du contenu PDF');
           }
         },
         error: async (err) => {
           console.error('Erreur lors du chargement des détails pour PDF:', err);
-          await loadingToast.dismiss();
+          await loading.dismiss();
           this.showErrorToast('Impossible de charger les détails complets du rapport');
         }
       });
 
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du PDF:', error);
-
-      const errorToast = await this.toastController.create({
-        message: 'Erreur lors de la sauvegarde du PDF',
-        duration: 3000,
-        color: 'danger',
-        position: 'bottom'
-      });
-      await errorToast.present();
+      await loading.dismiss();
+      this.showErrorToast('Erreur lors de la sauvegarde du PDF');
     }
   }
 

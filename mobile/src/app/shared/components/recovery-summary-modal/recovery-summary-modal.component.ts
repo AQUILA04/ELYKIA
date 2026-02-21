@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { ModalController, IonicModule } from '@ionic/angular';
+import { LoadingController, ModalController, IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { Recovery } from '../../../models/recovery.model';
@@ -29,6 +29,7 @@ export class RecoverySummaryModalComponent implements OnInit {
 
   constructor(
     private modalController: ModalController,
+    private loadingController: LoadingController,
     private pdfService: PdfService
   ) { }
 
@@ -49,14 +50,21 @@ export class RecoverySummaryModalComponent implements OnInit {
     setTimeout(async () => {
       const content = document.getElementById('receipt-content');
       if (content) {
+        const loading = await this.loadingController.create({
+          message: 'Enregistrement des données en cours...',
+          backdropDismiss: false
+        });
+        await loading.present();
         try {
           await this.pdfService.saveReceipt(
             content,
             'recouvrement',
             this.recovery.id
           );
+          await loading.dismiss();
         } catch (e) {
           console.error('Failed to auto-save PDF receipt', e);
+          await loading.dismiss();
         }
       }
     }, 500);

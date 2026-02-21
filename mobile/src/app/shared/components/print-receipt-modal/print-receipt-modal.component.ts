@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { LoadingController, ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Distribution } from '../../../models/distribution.model';
 import { Client } from '../../../models/client.model';
@@ -26,6 +26,7 @@ export class PrintReceiptModalComponent implements OnInit {
 
   constructor(
     private modalController: ModalController,
+    private loadingController: LoadingController,
     private store: Store,
     private pdfService: PdfService
   ) { }
@@ -60,14 +61,21 @@ export class PrintReceiptModalComponent implements OnInit {
     setTimeout(async () => {
       const content = document.getElementById('receipt-content');
       if (content) {
+        const loading = await this.loadingController.create({
+          message: 'Enregistrement des données en cours...',
+          backdropDismiss: false
+        });
+        await loading.present();
         try {
           await this.pdfService.saveReceipt(
             content,
             'distribution',
             this.distribution.reference || `DIST-${this.distribution.id}`
           );
+          await loading.dismiss();
         } catch (e) {
           console.error('Failed to auto-save PDF receipt', e);
+          await loading.dismiss();
         }
       }
     }, 500);
