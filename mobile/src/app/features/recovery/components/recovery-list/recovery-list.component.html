@@ -85,10 +85,12 @@
           <div class="date-month">{{ recovery.paymentDate | date:'MMM' }}</div>
         </div>
         <div class="recouvrement-info">
-          <h2>{{ recovery.reference || recovery.id.substring(0,8) }}</h2>
-          <p class="client-name">{{ recovery.client?.fullName || (recovery.client?.firstname + ' ' +
-            recovery.client?.lastname) }}</p>
-          <p class="time-and-reference">{{ recovery.paymentDate | date:'HH:mm' }} - {{recovery.distribution?.reference}}
+          <h2>{{ recovery.clientName }}</h2>
+          <!-- FIX: Display full reference if available, otherwise fallback to ID -->
+          <p class="client-name">Réf: {{ recovery.reference || recovery.id }}</p>
+          <p class="time-and-reference">
+            {{ recovery.paymentDate | date:'HH:mm' }}
+            <span *ngIf="recovery.distributionReference">- D: {{ recovery.distributionReference }}</span>
           </p>
         </div>
         <div class="recouvrement-amount">
@@ -106,7 +108,7 @@
       </ion-item>
     </ion-list>
 
-    <ion-infinite-scroll (ionInfinite)="loadMore($event)">
+    <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!vm.hasMore">
       <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement..."></ion-infinite-scroll-content>
     </ion-infinite-scroll>
   </div>

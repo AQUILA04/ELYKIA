@@ -66,6 +66,18 @@ public class ArticleHistory extends Auditable<String> {
         return articleHistory;
     }
 
+    public static ArticleHistory buildReturnHistory(Articles articles, Integer quantity, String username) {
+        ArticleHistory articleHistory = new ArticleHistory();
+        articleHistory.setArticles(articles);
+        articleHistory.setInitialQuantity(articles.getStockQuantity());
+        articleHistory.setOperationQuantity(quantity);
+        articleHistory.setFinalQuantity(articleHistory.calculateFinalEntryQuantity());
+        articleHistory.setOperationType(StockOperationType.RETURN);
+        articleHistory.setOperationDate(LocalDate.now());
+        articleHistory.setOperationUser(username);
+        return articleHistory;
+    }
+
     public Integer calculateFinalEntryQuantity() {
         return initialQuantity + operationQuantity;
     }

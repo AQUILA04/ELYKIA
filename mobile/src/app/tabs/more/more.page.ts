@@ -7,9 +7,11 @@ import { Commercial } from 'src/app/models/commercial.model';
 import { selectCommercial } from 'src/app/store/commercial/commercial.selectors';
 import * as AuthActions from 'src/app/store/auth/auth.actions';
 import { Storage } from '@ionic/storage-angular';
-import { selectTotalClients } from 'src/app/store/client/client.selectors';
-import { selectActiveCreditsCount } from 'src/app/store/distribution/distribution.selectors';
-import { selectCollectionRate } from 'src/app/store/recovery/recovery.selectors';
+import { selectClientKpiTotalByCommercial } from 'src/app/store/kpi/kpi.selectors';
+import { selectDistributionKpiActiveByCommercial } from 'src/app/store/kpi/kpi.selectors';
+import { selectCollectionRateKpi } from 'src/app/store/kpi/kpi.selectors';
+import * as KpiActions from 'src/app/store/kpi/kpi.actions';
+import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { DatabaseService } from '../../core/services/database.service';
 import { AlertController, ToastController, LoadingController } from '@ionic/angular';
 import { SyncErrorService } from 'src/app/core/services/sync-error.service';
@@ -62,9 +64,9 @@ export class MorePage implements OnInit, OnDestroy {
     private router: Router
   ) {
     this.user$ = this.store.select(selectCommercial);
-    this.totalClients$ = this.store.select(selectTotalClients);
-    this.activeCreditsCount$ = this.store.select(selectActiveCreditsCount);
-    this.collectionRate$ = this.store.select(selectCollectionRate);
+    this.totalClients$ = this.store.select(selectClientKpiTotalByCommercial);
+    this.activeCreditsCount$ = this.store.select(selectDistributionKpiActiveByCommercial);
+    this.collectionRate$ = this.store.select(selectCollectionRateKpi);
     this.memoryStats$ = this.memoryManagementService.getMemoryStats();
   }
 
@@ -95,6 +97,14 @@ export class MorePage implements OnInit, OnDestroy {
 
   ionViewWillEnter() {
     this.loadPendingErrorsCount();
+    // Refresh KPIs so profile stats are up to date
+    this.store.select(selectAuthUser).pipe(take(1)).subscribe(user => {
+      if (user) {
+        this.store.dispatch(KpiActions.loadClientKpi({ commercialUsername: user.username }));
+        this.store.dispatch(KpiActions.loadDistributionKpi({ commercialId: user.username }));
+        this.store.dispatch(KpiActions.loadRecoveryKpi({ commercialId: user.username }));
+      }
+    });
     // Forcer la mise à jour des stats mémoire en récupérant les stats actuelles
     this.memoryManagementService.getMemoryStats().pipe(take(1)).subscribe();
     this.cdr.markForCheck();

@@ -12,6 +12,8 @@ import { LoggerService } from './logger.service';
 import { PhotoSyncService } from './photo-sync.service';
 import { Store } from '@ngrx/store';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
+import { ClientRepositoryFilters } from '../repositories/client.repository.extensions';
+import { buildDateFilterClause } from '../models/date-filter.model';
 
 export interface ClientInitializationProgress {
   isLoading: boolean;
@@ -554,9 +556,9 @@ export class ClientService {
 
   /**
    * Get paginated clients from local database
-   * 
+   *
    * **SECURITY**: This method requires commercialUsername for data isolation
-   * 
+   *
    * @param commercialUsername Username of the commercial (REQUIRED)
    * @param page Page number (zero-indexed)
    * @param size Number of items per page
@@ -567,12 +569,7 @@ export class ClientService {
     commercialUsername: string,
     page: number,
     size: number,
-    filters?: {
-      searchQuery?: string;
-      quarter?: string;
-      clientType?: string;
-      tontineCollector?: string;
-    }
+    filters?: ClientRepositoryFilters
   ): Promise<{ content: Client[]; totalElements: number; totalPages: number; page: number; size: number }> {
     if (!commercialUsername) {
       throw new Error('commercialUsername is required for security');
@@ -606,6 +603,14 @@ export class ClientService {
     if (filters?.tontineCollector) {
       whereConditions.push('tontineCollector = ?');
       params.push(filters.tontineCollector);
+    }
+
+    if (filters?.dateFilter) {
+      const dateFilterResult = buildDateFilterClause(filters.dateFilter, 'createdAt');
+      if (dateFilterResult.whereClause) {
+        whereConditions.push(dateFilterResult.whereClause);
+        params.push(...dateFilterResult.params);
+      }
     }
 
     const whereClause = whereConditions.join(' AND ');

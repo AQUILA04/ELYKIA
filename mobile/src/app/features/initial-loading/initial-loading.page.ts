@@ -15,6 +15,7 @@ import { MemoryManagementService } from '../../core/services/memory-management.s
 import { DatabaseService } from '../../core/services/database.service';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { AuthService } from '../../core/services/auth.service';
+import * as KpiActions from '../../store/kpi/kpi.actions';
 
 @Component({
   selector: 'app-initial-loading',
@@ -207,6 +208,23 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
           this.statusText = "Initialisation terminée (avec avertissements)";
           this.progress = 100;
         }
+
+        // --- PRELOAD KPIS START ---
+        this.statusText = "Préchargement des indicateurs...";
+        // Use username as commercialId because repositories expect username for filtering
+        const commercialId = user.username;
+        const username = user.username;
+        const today = new Date();
+        const startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0]; // Start of month
+        const endDate = today.toISOString().split('T')[0];
+
+        this.store.dispatch(KpiActions.loadAllKpi({
+          commercialUsername: username,
+          commercialId: commercialId, // Pass username as ID
+          dateFilter: { startDate, endDate }
+        }));
+        // --- PRELOAD KPIS END ---
+
       } else {
         this.log.log('[InitialLoadingPage] CRITICAL: No user found even after fallback. Initialization incomplete.');
         // Ne PAS marquer initialization_complete pour éviter de coincer l'utilisateur

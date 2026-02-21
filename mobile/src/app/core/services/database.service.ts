@@ -1673,8 +1673,8 @@ export class DatabaseService {
       // On normalise les IDs imbriqués pour le hashage
       const normalizedRecovery = {
         ...recovery,
-        distributionId: recovery.distribution?.id,
-        clientId: recovery.client?.id,
+        distributionId: recovery.distribution?.id || recovery.distributionId, // FIX: Use direct ID if available
+        clientId: recovery.client?.id || recovery.clientId, // FIX: Use direct ID if available
         commercialId: recovery.commercialId
       };
       const newHash = this.generateHash(normalizedRecovery, keysToInclude);
@@ -1693,8 +1693,8 @@ export class DatabaseService {
           recovery.paymentDate ?? null,
           recovery.paymentMethod ?? null,
           recovery.notes ?? null,
-          recovery.distribution?.id ?? null,
-          recovery.client?.id ?? null,
+          recovery.distribution?.id ?? recovery.distributionId ?? null, // FIX: Fallback to direct ID
+          recovery.client?.id ?? recovery.clientId ?? null, // FIX: Fallback to direct ID
           recovery.commercialId ?? null,
           IS_LOCAL,
           IS_SYNC,
@@ -1714,8 +1714,8 @@ export class DatabaseService {
           recovery.paymentDate ?? null,
           recovery.paymentMethod ?? null,
           recovery.notes ?? null,
-          recovery.distribution?.id ?? null,
-          recovery.client?.id ?? null,
+          recovery.distribution?.id ?? recovery.distributionId ?? null, // FIX: Fallback to direct ID
+          recovery.client?.id ?? recovery.clientId ?? null, // FIX: Fallback to direct ID
           recovery.commercialId ?? null,
           IS_LOCAL,
           IS_SYNC,

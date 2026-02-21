@@ -1,6 +1,7 @@
 import { createReducer, on } from '@ngrx/store';
 import * as RecoveryActions from './recovery.actions';
 import { Recovery } from '../../models/recovery.model';
+import { RecoveryView } from '../../models/recovery-view.model';
 import { Distribution } from '../../models/distribution.model';
 import { Client } from '../../models/client.model';
 import { PaginationState, createInitialPaginationState, resetPaginationState } from '../../core/models/pagination.model';
@@ -23,7 +24,7 @@ export interface RecoveryState {
   createRecoveryError: any;
 
   // Pagination state
-  pagination: PaginationState<Recovery>;
+  pagination: PaginationState<RecoveryView>;
 }
 
 export const initialState: RecoveryState = {
@@ -41,7 +42,7 @@ export const initialState: RecoveryState = {
   createRecoveryError: null,
 
   // Initialize pagination state
-  pagination: createInitialPaginationState<Recovery>()
+  pagination: createInitialPaginationState<RecoveryView>()
 };
 
 export const recoveryReducer = createReducer(
@@ -73,7 +74,9 @@ export const recoveryReducer = createReducer(
     pagination: {
       ...state.pagination,
       loading: true,
-      error: null
+      error: null,
+      items: [], // Clear items on new load
+      currentPage: 0
     }
   })),
 
@@ -214,7 +217,7 @@ export const recoveryReducer = createReducer(
     // Update pagination list (prepend new recovery)
     pagination: {
       ...state.pagination,
-      items: [recovery, ...state.pagination.items],
+      items: [{ ...recovery, client: undefined, distribution: undefined } as RecoveryView, ...state.pagination.items],
       totalItems: state.pagination.totalItems + 1
     },
     isCreatingRecovery: false,
@@ -246,10 +249,8 @@ export const recoveryReducer = createReducer(
     // Update pagination list
     pagination: {
       ...state.pagination,
-      items: state.pagination.items.filter(r => !distributionIds.includes(r.distributionId)),
+      items: state.pagination.items.filter(r => !distributionIds.includes((r as any).distributionId)),
       totalItems: Math.max(0, state.pagination.totalItems - distributionIds.length)
     }
   }))
 );
-
-

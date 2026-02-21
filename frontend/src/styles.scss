@@ -2,6 +2,47 @@
 
 @import "~material-icons/iconfont/material-icons.css";
 
+// ====================================================
+// Design System — Article Detail Page
+// Variables disponibles globalement pour tous les composants
+// ====================================================
+:root {
+  // Palette principale
+  --ad-navy: #0a2472;
+  --ad-navy-mid: #1a3a8f;
+  --ad-navy-light: #e8edf8;
+  --ad-navy-pale: #f2f5fc;
+  --ad-accent: #1565c0;
+  --ad-teal: #00897b;
+  --ad-amber: #f59e0b;
+  --ad-red: #e53935;
+  --ad-green: #2e7d32;
+
+  // Fonds sémantiques
+  --ad-green-bg: #e8f5e9;
+  --ad-amber-bg: #fff8e1;
+  --ad-red-bg: #ffebee;
+  --ad-info: #1565c0;
+  --ad-info-bg: #e3f2fd;
+
+  // Texte
+  --ad-text-primary: #0d1b3e;
+  --ad-text-secondary: #4a5568;
+  --ad-text-muted: #94a3b8;
+
+  // Bordures & fond
+  --ad-border: #e2e8f0;
+  --ad-border-dark: #cbd5e1;
+  --ad-bg-page: #f7f9fc;
+  --ad-bg-card: #ffffff;
+
+  // Coins & Ombres
+  --ad-radius: 12px;
+  --ad-radius-sm: 8px;
+  --ad-shadow: 0 1px 3px rgba(10, 36, 114, .06), 0 4px 16px rgba(10, 36, 114, .06);
+  --ad-shadow-md: 0 2px 8px rgba(10, 36, 114, .10), 0 8px 24px rgba(10, 36, 114, .08);
+}
+
 body,
 html {
   margin: 0;

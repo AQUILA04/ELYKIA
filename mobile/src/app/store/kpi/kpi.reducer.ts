@@ -67,6 +67,7 @@ export interface KpiState {
 
   // Account Activity KPIs (New/Updated Accounts)
   accountActivityKpi: {
+    newClientsCount: number;
     newAccountsCount: number;
     newAccountsBalance: number;
     updatedAccountsCount: number;
@@ -148,6 +149,7 @@ export const initialState: KpiState = {
     error: null
   },
   accountActivityKpi: {
+    newClientsCount: 0,
     newAccountsCount: 0,
     newAccountsBalance: 0,
     updatedAccountsCount: 0,
@@ -390,9 +392,10 @@ export const kpiReducer = createReducer(
       error: null
     }
   })),
-  on(KpiActions.loadAccountActivityKpiSuccess, (state, { newAccountsCount, newAccountsBalance, updatedAccountsCount, updatedAccountsBalance }) => ({
+  on(KpiActions.loadAccountActivityKpiSuccess, (state, { newClientsCount, newAccountsCount, newAccountsBalance, updatedAccountsCount, updatedAccountsBalance }) => ({
     ...state,
     accountActivityKpi: {
+      newClientsCount,
       newAccountsCount,
       newAccountsBalance,
       updatedAccountsCount,
@@ -446,12 +449,14 @@ export const kpiReducer = createReducer(
       error: null
     }
   })),
-  on(KpiActions.loadTontineSummaryKpiSuccess, (state, { dailyMembersCount, dailyCollectionsAmount, dailyDeliveriesAmount }) => ({
+  on(KpiActions.loadTontineSummaryKpiSuccess, (state, { dailyMembersCount, dailyCollectionsCount, dailyCollectionsAmount, dailyDeliveriesCount, dailyDeliveriesAmount }) => ({
     ...state,
     tontineKpi: {
       ...state.tontineKpi,
       dailyMembersCount,
+      dailyCollectionsCount,
       dailyCollectionsAmount,
+      dailyDeliveriesCount,
       dailyDeliveriesAmount,
       loading: false,
       error: null

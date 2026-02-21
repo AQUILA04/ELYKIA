@@ -24,9 +24,9 @@ export class DistributionRepositoryExtensions {
 
     /**
      * Get paginated distributions for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param page Page number (zero-indexed)
      * @param size Number of items per page
@@ -77,7 +77,7 @@ export class DistributionRepositoryExtensions {
 
     /**
      * Get paginated distribution views (with client info) for a specific commercial
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param page Page number
      * @param size Page size
@@ -97,13 +97,8 @@ export class DistributionRepositoryExtensions {
         const offset = page * size;
 
         // Use 'd' alias for distributions, 'c' for clients
-        // buildCommercialFilterCondition('distribution') usually returns 'commercialId = ?' (or 'commercial'?)
-        // Distribution table has 'commercialId' ? No, 'commercial' usually?
-        // Let's check database.service.ts or models.
-        // Distribution model has 'commercial' (string).
-        // Since we alias distribution as 'd', we need 'd.commercial = ?'.
-
-        let whereConditions = [`d.commercial = ?`];
+        // Explicitly use 'commercialId' as per database schema to avoid 'no such column: d.commercial' error
+        let whereConditions = [`d.commercialId = ?`];
         const params: any[] = [commercialId];
 
         // Add optional filters
@@ -152,9 +147,9 @@ export class DistributionRepositoryExtensions {
 
         // Count with JOIN (because we might filter by client quarter)
         const countSql = `
-            SELECT COUNT(*) as total 
-            FROM distributions d 
-            JOIN clients c ON d.clientId = c.id 
+            SELECT COUNT(*) as total
+            FROM distributions d
+            JOIN clients c ON d.clientId = c.id
             WHERE ${whereClause}
         `;
         const countResult = await this.distributionRepository['getDatabaseService']().query(countSql, params);
@@ -163,12 +158,11 @@ export class DistributionRepositoryExtensions {
 
         // Data with JOIN and JSON Aggregation for items
         const dataSql = `
-            SELECT d.*, 
-                   c.fullName as clientName, 
-                   c.phone as clientPhone, 
+            SELECT d.*,
+                   c.fullName as clientName,
+                   c.phone as clientPhone,
                    c.quarter as clientQuarter,
                    c.address as clientAddress,
-                   c.location as clientLocation,
                    (
                        SELECT json_group_array(
                            json_object(
@@ -180,8 +174,7 @@ export class DistributionRepositoryExtensions {
                                    'id', a.id,
                                    'name', a.name,
                                    'commercialName', a.commercialName,
-                                   'type', a.type,
-                                   'photo', a.photo
+                                   'type', a.type
                                )
                            )
                        )
@@ -189,10 +182,10 @@ export class DistributionRepositoryExtensions {
                        JOIN articles a ON di.articleId = a.id
                        WHERE di.distributionId = d.id
                    ) as itemsJson
-            FROM distributions d 
+            FROM distributions d
             JOIN clients c ON d.clientId = c.id
-            WHERE ${whereClause} 
-            ORDER BY d.createdAt DESC 
+            WHERE ${whereClause}
+            ORDER BY d.createdAt DESC
             LIMIT ${size} OFFSET ${offset}
         `;
 
@@ -243,9 +236,9 @@ export class DistributionRepositoryExtensions {
 
     /**
      * Count distributions for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param filters Optional filters
      * @returns Total count of distributions
@@ -274,9 +267,9 @@ export class DistributionRepositoryExtensions {
 
     /**
      * Get total distribution amount for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param filters Optional filters
      * @returns Total amount of distributions
@@ -305,9 +298,9 @@ export class DistributionRepositoryExtensions {
 
     /**
      * Count active distributions for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param dateFilter Optional date filter
      * @returns Count of active distributions
@@ -342,9 +335,9 @@ export class DistributionRepositoryExtensions {
 
     /**
      * Get total remaining amount for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param filters Optional filters
      * @returns Total remaining amount
@@ -372,9 +365,9 @@ export class DistributionRepositoryExtensions {
 
     /**
      * Get total daily payment amount (for active distributions) for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @returns Total daily payment expected
      */
@@ -400,9 +393,9 @@ export class DistributionRepositoryExtensions {
 
     /**
      * Get total advances amount for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param dateFilter Optional date filter
      * @returns Total advances amount

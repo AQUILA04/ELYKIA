@@ -17,6 +17,7 @@ import { Transaction } from '../../models/transaction.model';
 import * as ClientActions from '../client/client.actions';
 import { filter, take } from 'rxjs/operators';
 import { RecoveryRepositoryExtensions } from '../../core/repositories/recovery.repository.extensions';
+import * as KpiActions from '../kpi/kpi.actions';
 
 @Injectable()
 export class RecoveryEffects {
@@ -264,7 +265,7 @@ export class RecoveryEffects {
         }
 
         return from(
-          this.recoveryService.getRecoveriesPaginated(
+          this.recoveryRepositoryExtensions.findViewsByCommercialPaginated(
             action.commercialId,
             0, // First page
             action.pageSize || 20,
@@ -297,7 +298,7 @@ export class RecoveryEffects {
         const nextPage = pagination.currentPage + 1;
 
         return from(
-          this.recoveryService.getRecoveriesPaginated(
+          this.recoveryRepositoryExtensions.findViewsByCommercialPaginated(
             action.commercialId,
             nextPage,
             pagination.pageSize,
@@ -310,6 +311,32 @@ export class RecoveryEffects {
       })
     )
   );
+  // ==================== KPI REFRESH AFTER RECOVERY ====================
 
+  /**
+   * Rafraîchir les KPIs après la création d'un recouvrement.
+   * Utilise le filtre par défaut du dashboard (mois en cours).
+   */
+  refreshKpiAfterRecovery$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(RecoveryActions.createRecoverySuccess),
+      withLatestFrom(this.store.select(selectAuthUser)),
+      filter(([_, user]) => !!user),
+      switchMap(([_, user]) => {
+        const username = user!.username;
+        const now = new Date();
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const endDate = now.toISOString().split('T')[0];
+        const dateFilter = { startDate, endDate };
+
+        console.log('[RecoveryEffects] Refreshing KPIs after recovery creation');
+
+        return [
+          KpiActions.loadRecoveryKpi({ commercialId: username, dateFilter }),
+          KpiActions.loadDistributionKpi({ commercialId: username, dateFilter })
+        ];
+      })
+    )
+  );
 
 }

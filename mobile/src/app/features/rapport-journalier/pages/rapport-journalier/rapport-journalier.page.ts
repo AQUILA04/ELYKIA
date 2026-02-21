@@ -286,7 +286,7 @@ export class RapportJournalierPage implements OnDestroy {
     }));
 
     this.subscriptions.add(this.store.select(KpiSelectors.selectAccountActivityKpi).subscribe(kpi => {
-      this.reportData.newClients.count = kpi.newAccountsCount;
+      this.reportData.newClients.count = kpi.newClientsCount;
       this.reportData.newClients.totalBalance = kpi.newAccountsBalance;
       this.cdr.markForCheck();
     }));
@@ -388,7 +388,8 @@ export class RapportJournalierPage implements OnDestroy {
       case 'distributions':
         this.store.select(DistributionSelectors.selectDistributionPagination).pipe(take(1)).subscribe(p => {
           if (p.hasMore && !p.loading && index > p.items.length - threshold) {
-            this.store.dispatch(DistributionActions.loadNextPageDistributions({commercialUsername: this.commercialUsername!,
+            this.store.dispatch(DistributionActions.loadNextPageDistributions({
+              commercialUsername: this.commercialUsername!,
               filters: {
                 dateFilter: {
                   startDate: new Date().toISOString().split('T')[0],
@@ -402,21 +403,21 @@ export class RapportJournalierPage implements OnDestroy {
       case 'recouvrements':
         this.store.select(RecoverySelectors.selectRecoveryPagination).pipe(take(1)).subscribe(p => {
           if (p.hasMore && !p.loading && index > p.items.length - threshold) {
-            this.store.dispatch(RecoveryActions.loadNextPageRecoveries({commercialId: this.commercialUsername!}));
+            this.store.dispatch(RecoveryActions.loadNextPageRecoveries({ commercialId: this.commercialUsername! }));
           }
         });
         break;
       case 'clients':
         this.store.select(ClientSelectors.selectClientPagination).pipe(take(1)).subscribe(p => {
           if (p.hasMore && !p.loading && index > p.items.length - threshold) {
-            this.store.dispatch(ClientActions.loadNextPageClients({commercialUsername: this.commercialUsername!}));
+            this.store.dispatch(ClientActions.loadNextPageClients({ commercialUsername: this.commercialUsername! }));
           }
         });
         break;
       case 'tontine-membres':
         this.store.select(TontineSelectors.selectTontineMemberPagination).pipe(take(1)).subscribe(p => {
           if (p.hasMore && !p.loading && index > p.items.length - threshold && this.tontineSessionId) {
-            this.store.dispatch(TontineActions.loadNextPageTontineMembers({sessionId: this.tontineSessionId}));
+            this.store.dispatch(TontineActions.loadNextPageTontineMembers({ sessionId: this.tontineSessionId }));
           }
         });
         break;
@@ -439,7 +440,8 @@ export class RapportJournalierPage implements OnDestroy {
 
   loadMoreData(event: any) {
     if (!this.commercialUsername) {
-      event.target.complete(); return; }
+      event.target.complete(); return;
+    }
     const complete = () => event.target.complete();
     complete();
   }
@@ -504,7 +506,7 @@ export class RapportJournalierPage implements OnDestroy {
 
       // Charger TOUTES les données (y compris celles non affichées) pour le PDF
       // On utilise une souscription locale pour ne pas polluer this.reportData (lazy loading)
-      const currentDate = new Date(this.reportData.date); // Utiliser la date actuelle du rapport
+      const currentDate = new Date(); // Utiliser la date actuelle du rapport
 
       this.rapportJournalierService.getDailyReportWithDetails(currentDate).subscribe({
         next: async (fullData) => {
@@ -588,7 +590,7 @@ export class RapportJournalierPage implements OnDestroy {
     });
     await loading.present();
 
-    const currentDate = new Date(this.reportData.date);
+    const currentDate = new Date();
 
     // Charger les données complètes (lazy loaded inclus)
     this.rapportJournalierService.getDailyReportWithDetails(currentDate).subscribe({

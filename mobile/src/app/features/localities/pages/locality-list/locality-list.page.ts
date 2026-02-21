@@ -20,7 +20,6 @@ export class LocalityListPage {
 
   constructor(private store: Store, private navCtrl: NavController) {
     this.localities$ = this.store.select(LocalitySelectors.selectAllLocalities).pipe(
-      tap(localities => console.log('[LocalityListPage] Localities from store:', localities))
     );
     this.loading$ = this.store.select(LocalitySelectors.selectLocalitiesLoading);
     this.hasMore$ = this.store.select(LocalitySelectors.selectLocalityHasMore);

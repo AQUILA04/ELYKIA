@@ -3,6 +3,7 @@ package com.optimize.elykia.client.controller;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.client.dto.AccountDto;
+import com.optimize.elykia.client.dto.AccountRespDto;
 import com.optimize.elykia.client.enumeration.AccountStatus;
 import com.optimize.elykia.client.service.AccountService;
 import jakarta.validation.Valid;
@@ -65,7 +66,7 @@ public class AccountController {
 
     @GetMapping(value = "all")
     public ResponseEntity<Response> getAll() {
-        return new ResponseEntity<>(ResponseUtil.successResponse(accountService.getAll()), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseUtil.successResponse(AccountRespDto.fromAccountList(accountService.getAll())), HttpStatus.OK);
     }
 
     @PostMapping(value = "activate/{id}")

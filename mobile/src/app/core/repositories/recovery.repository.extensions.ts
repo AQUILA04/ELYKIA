@@ -25,9 +25,9 @@ export class RecoveryRepositoryExtensions {
 
     /**
      * Get paginated recoveries for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param page Page number (zero-indexed)
      * @param size Number of items per page
@@ -78,7 +78,7 @@ export class RecoveryRepositoryExtensions {
 
     /**
      * Get paginated recovery views (with client and distribution info) for a specific commercial
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param page Page number
      * @param size Page size
@@ -99,7 +99,8 @@ export class RecoveryRepositoryExtensions {
 
         // Use 'r' alias for recovery, 'c' for client, 'd' for distribution
         // commercial condition on recovery table
-        let whereConditions = [`r.commercial = ?`]; // Assuming 'commercial' column on recoveries
+        // FIX: Use 'commercialId' column as per database schema, not 'commercial'
+        let whereConditions = [`r.commercialId = ?`];
         const params: any[] = [commercialId];
 
         // Add optional filters
@@ -129,7 +130,7 @@ export class RecoveryRepositoryExtensions {
         }
 
         if (filters?.searchQuery) {
-            // Search on client name/phone or distribution reference? 
+            // Search on client name/phone or distribution reference?
             // recoveries don't have many searchable text fields except maybe 'amount' or linked data.
             whereConditions.push('(c.fullName LIKE ? OR c.phone LIKE ? OR d.reference LIKE ?)');
             const searchPattern = `%${filters.searchQuery}%`;
@@ -149,10 +150,11 @@ export class RecoveryRepositoryExtensions {
         const whereClause = whereConditions.join(' AND ');
 
         // Count with JOIN
+        // Changed JOIN to LEFT JOIN to include recoveries even if client is missing (orphaned)
         const countSql = `
-            SELECT COUNT(*) as total 
-            FROM recoveries r 
-            JOIN clients c ON r.clientId = c.id
+            SELECT COUNT(*) as total
+            FROM recoveries r
+            LEFT JOIN clients c ON r.clientId = c.id
             LEFT JOIN distributions d ON r.distributionId = d.id
             WHERE ${whereClause}
         `;
@@ -161,16 +163,17 @@ export class RecoveryRepositoryExtensions {
         const totalPages = Math.ceil(totalElements / size);
 
         // Data with JOIN
+        // Changed JOIN to LEFT JOIN to include recoveries even if client is missing (orphaned)
         const dataSql = `
-            SELECT r.*, 
-                   c.fullName as clientName, 
+            SELECT r.*,
+                   c.fullName as clientName,
                    c.quarter as clientQuarter,
                    d.reference as distributionReference
-            FROM recoveries r 
-            JOIN clients c ON r.clientId = c.id
+            FROM recoveries r
+            LEFT JOIN clients c ON r.clientId = c.id
             LEFT JOIN distributions d ON r.distributionId = d.id
-            WHERE ${whereClause} 
-            ORDER BY r.paymentDate DESC 
+            WHERE ${whereClause}
+            ORDER BY r.paymentDate DESC
             LIMIT ${size} OFFSET ${offset}
         `;
 
@@ -182,8 +185,8 @@ export class RecoveryRepositoryExtensions {
 
             // Construct Client/Distribution objects if needed for nested property, or rely on flat fields?
             // RecoveryView has client: Client | undefined;
-            // We have partial client data (only name and quarter). 
-            // To be safe, we can populate what we have or fetch? 
+            // We have partial client data (only name and quarter).
+            // To be safe, we can populate what we have or fetch?
             // Fetching is N+1. avoid.
             // Populate partial or set to undefined?
             // RecoveryView definition: client: Client | undefined.
@@ -191,7 +194,7 @@ export class RecoveryRepositoryExtensions {
 
             const client: Client | undefined = row.clientId ? {
                 id: row.clientId,
-                fullName: row.clientName,
+                fullName: row.clientName || 'Client Inconnu', // Fallback name
                 quarter: row.clientQuarter
                 // other mandatory fields missing
             } as any : undefined;
@@ -205,7 +208,7 @@ export class RecoveryRepositoryExtensions {
                 ...recovery,
                 client,
                 distribution,
-                clientName: row.clientName,
+                clientName: row.clientName || 'Client Inconnu', // Fallback name
                 clientQuarter: row.clientQuarter,
                 distributionReference: row.distributionReference
             };
@@ -222,9 +225,9 @@ export class RecoveryRepositoryExtensions {
 
     /**
      * Count recoveries for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param filters Optional filters
      * @returns Total count of recoveries
@@ -256,9 +259,9 @@ export class RecoveryRepositoryExtensions {
 
     /**
      * Get total recovery amount for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param filters Optional filters
      * @returns Total amount of recoveries
@@ -283,6 +286,7 @@ export class RecoveryRepositoryExtensions {
 
         const whereClause = whereConditions.join(' AND ');
         const sql = `SELECT COALESCE(SUM(amount), 0) as total FROM recoveries WHERE ${whereClause}`;
+
         const result = await this.recoveryRepository['getDatabaseService']().query(sql, params);
 
         return result.values?.[0]?.total || 0;
@@ -290,9 +294,9 @@ export class RecoveryRepositoryExtensions {
 
     /**
      * Get average recovery amount for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialId ID of the commercial (REQUIRED)
      * @param dateFilter Optional date filter
      * @returns Average recovery amount

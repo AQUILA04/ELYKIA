@@ -1,5 +1,6 @@
 package com.optimize.elykia.client.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.elykia.client.entity.Account;
 import com.optimize.elykia.client.entity.Client;
@@ -11,30 +12,15 @@ import jakarta.persistence.OneToOne;
 import lombok.ToString;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
-public record ClientRespDto(Long id,
-        String firstname,
-        String lastname,
-        String address,
-        String phone,
-        String cardID,
-        String cardType,
-        LocalDate dateOfBirth,
-        String contactPersonName,
-        String contactPersonPhone,
-        String contactPersonAddress,
-        String collector,
-        String quarter,
-        Boolean creditInProgress,
-        String occupation,
-        ClientType clientType,
-        Double latitude,
-        Double longitude,
-        String mll,
-        LocalDate syncDate,
-        String code, String profilPhotoUrl, String cardPhotoUrl,
-                            String tontineCollector
+public record ClientRespDto(Long id, String firstname, String lastname, String address, String phone,
+                            String cardID, String cardType, LocalDate dateOfBirth, String contactPersonName,
+                            String contactPersonPhone, String contactPersonAddress, String collector, String quarter,
+                            Boolean creditInProgress, String occupation, ClientType clientType, Double latitude,
+                            Double longitude, String mll, LocalDate syncDate, String code, String profilPhotoUrl,
+                            String cardPhotoUrl, String tontineCollector, @JsonFormat(pattern = "yyyy-MM-dd") LocalDateTime createdAt
 
 ) {
 
@@ -43,7 +29,7 @@ public record ClientRespDto(Long id,
         return new ClientRespDto(id, null, null, null, null, null, null,
                 null, null, null, null, null,
                 null, null, null, null, null, null, null,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
     }
 
     @JsonIgnore
@@ -54,6 +40,6 @@ public record ClientRespDto(Long id,
         return new ClientRespDto(client.getId(), client.getFirstname(), client.getLastname(), client.getAddress(), client.getPhone(), client.getCardID(), client.getCardType(),
                 client.getDateOfBirth(), null, null, null, client.getCollector(),
                 client.getQuarter(), client.getCreditInProgress(), client.getOccupation(), client.getClientType(), null, null, null,
-                null, client.getCode(), client.getProfilPhotoUrl(), client.getCardPhotoUrl(), client.getTontineCollector());
+                null, client.getCode(), client.getProfilPhotoUrl(), client.getCardPhotoUrl(), client.getTontineCollector(), client.getCreatedDate());
     }
 }

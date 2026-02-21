@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 import * as html2pdf from 'html2pdf.js';
 
 @Injectable({
@@ -38,18 +39,26 @@ export class PdfService {
             const fileName = `${reference}.pdf`;
             const fullPath = `${path}/${fileName}`;
 
+            const isWeb = Capacitor.getPlatform() === 'web';
+            const directory = isWeb ? Directory.Data : Directory.ExternalStorage;
+
             // Create directories if they don't exist
-            await this.ensureDirectoryExists(path);
+            await this.ensureDirectoryExists(path, directory);
 
             // Write File
             await Filesystem.writeFile({
                 path: fullPath,
                 data: base64Data,
-                directory: Directory.ExternalStorage,
-                // encoding: Encoding.UTF8 // Not needed for base64 data? actually writeFile expects string for data, usually base64 if no encoding or if binary.
+                directory: directory,
             });
 
             console.log(`PDF Saved: ${fullPath}`);
+
+            // On web, trigger browser download
+            if (isWeb) {
+                await this.downloadPDFFromWeb(fileName, fullPath);
+            }
+
             return fullPath;
 
         } catch (error) {
@@ -58,19 +67,46 @@ export class PdfService {
         }
     }
 
-    private async ensureDirectoryExists(path: string): Promise<void> {
+    private async ensureDirectoryExists(path: string, directory: Directory = Directory.ExternalStorage): Promise<void> {
         try {
             await Filesystem.stat({
                 path: path,
-                directory: Directory.ExternalStorage
+                directory: directory
             });
         } catch (e) {
             // Directory doesn't exist, create it recursively
             await Filesystem.mkdir({
                 path: path,
-                directory: Directory.ExternalStorage,
+                directory: directory,
                 recursive: true
             });
+        }
+    }
+
+    private async downloadPDFFromWeb(fileName: string, filePath: string): Promise<void> {
+        try {
+            // 1. Read the file from Capacitor storage
+            const result = await Filesystem.readFile({
+                path: filePath,
+                directory: Directory.Data
+            });
+
+            // 2. Convert Base64 to Blob
+            const base64Data = result.data;
+            const byteArray = Uint8Array.from(atob(base64Data as string), c => c.charCodeAt(0));
+            const blob = new Blob([byteArray], { type: 'application/pdf' });
+
+            // 3. Create a download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.click();
+
+            // 4. Clean up
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Erreur lors du téléchargement du PDF', error);
         }
     }
 }

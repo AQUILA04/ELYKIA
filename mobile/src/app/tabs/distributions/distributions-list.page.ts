@@ -62,7 +62,7 @@ export class DistributionsListPage implements OnInit, OnDestroy {
     const loading$ = this.store.select(DistributionSelectors.selectDistributionPaginationLoading);
     const error$ = this.store.select(DistributionSelectors.selectDistributionPaginationError);
     const hasMore$ = this.store.select(DistributionSelectors.selectDistributionPaginationHasMore); // Handle implicitely via infinite scroll disabled logic?
-    // Actually we need `hasMore` for the UI? 
+    // Actually we need `hasMore` for the UI?
     // The current UI uses `vm.displayedDistributions.length >= all`.
     // We can expose `hasMore` or `totalItems`.
     const totalItems$ = this.store.select(DistributionSelectors.selectDistributionPaginationTotalItems);
@@ -201,4 +201,3 @@ export class DistributionsListPage implements OnInit, OnDestroy {
     return await modal.present();
   }
 }
-

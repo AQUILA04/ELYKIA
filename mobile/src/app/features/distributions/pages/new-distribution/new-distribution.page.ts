@@ -16,7 +16,7 @@ import { Client } from '../../../../models/client.model';
 import { Article } from '../../../../models/article.model';
 
 import * as DistributionActions from '../../../../store/distribution/distribution.actions';
-import { selectAvailableArticles, selectSelectedClient, selectArticleQuantities, selectDistributionTotalAmount, selectSelectedArticlesWithDetails } from '../../../../store/distribution/distribution.selectors';
+import { selectAvailableArticles, selectSelectedClient, selectArticleQuantities, selectDistributionTotalAmount, selectSelectedArticlesWithDetails, selectArticlesPaginationHasMore } from '../../../../store/distribution/distribution.selectors';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 import { CanComponentDeactivate } from '../../../../core/guards/unsaved-changes.guard';
 import { LoggerService } from '../../../../core/services/logger.service';
@@ -36,6 +36,7 @@ interface DistributionViewModel {
   paymentPeriod: number;
   isSpecialCase: boolean;
   canEditAdvance: boolean;
+  hasMoreArticles: boolean;
 }
 
 @Component({
@@ -58,7 +59,8 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     adjustedAdvance: 0,
     paymentPeriod: 30,
     isSpecialCase: false,
-    canEditAdvance: true
+    canEditAdvance: true,
+    hasMoreArticles: true
   };
   Object = Object; // Expose Object to the template
 
@@ -106,7 +108,8 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
       adjustedAdvance: this.adjustedAdvance$.asObservable(),
       paymentPeriod: this.paymentPeriod$.asObservable(),
       isSpecialCase: this.isSpecialCase$.asObservable(),
-      canEditAdvance: this.canEditAdvance$.asObservable()
+      canEditAdvance: this.canEditAdvance$.asObservable(),
+      hasMoreArticles: this.store.select(selectArticlesPaginationHasMore)
     }).pipe(
       takeUntil(this.destroy$)
     );
@@ -169,6 +172,18 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
             searchQuery: this.searchTerm$.value
           }
         }));
+
+        this.actions$.pipe(
+          ofType(
+            DistributionActions.loadNextPageAvailableArticlesSuccess,
+            DistributionActions.loadNextPageAvailableArticlesFailure
+          ),
+          take(1)
+        ).subscribe(() => {
+          event.target.complete();
+        });
+      } else {
+        event.target.complete();
       }
     });
   }

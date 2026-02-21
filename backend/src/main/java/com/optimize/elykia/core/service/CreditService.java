@@ -121,7 +121,7 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     @Transactional
-    public Credit createCredit(CreditDto creditDto) throws Exception {
+    public CreditRespDto createCredit(CreditDto creditDto) throws Exception {
         if (Objects.nonNull(creditDto.getType()) && OperationType.CASH.equals(creditDto.getType())) {
             return createCashSale(creditDto);
         }
@@ -146,7 +146,7 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     @Transactional
-    public Credit createCashSale(CreditDto creditDto) {
+    public CreditRespDto createCashSale(CreditDto creditDto) {
         Credit credit = creditMapper.toEntity(creditDto);
         Client client = clientService.getById(credit.getClientId());
 
@@ -188,11 +188,11 @@ public class CreditService extends GenericService<Credit, Long> {
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
 
-        return creditEnrichment(credit);
+        return CreditRespDto.fromCredit(creditEnrichment(credit));
     }
 
     @Transactional
-    public Credit createTontineCredit(TontineDelivery delivery) {
+    public CreditRespDto createTontineCredit(TontineDelivery delivery) {
         Credit credit = Credit.buildFromDelivery(delivery);
         String baseReference = generateReference(
                 String.valueOf(delivery.getTontineMember().getClient().getId()),
@@ -203,24 +203,7 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     @Transactional
-    public Credit createTontine(Credit credit) {
-//        if (getRepository().existsByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(
-//                OperationType.TONTINE,
-//                credit.getCollector(),
-//                CreditStatus.INPROGRESS,
-//                ClientType.PROMOTER,
-//                DateUtils.getStartYearDate(),
-//                DateUtils.getEndYearDate())) {
-//            Credit promoterTontine = getRepository()
-//                    .findByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(
-//                            OperationType.TONTINE,
-//                            credit.getCollector(),
-//                            CreditStatus.INPROGRESS,
-//                            ClientType.PROMOTER,
-//                            DateUtils.getStartYearDate(),
-//                            DateUtils.getEndYearDate())
-//                    .orElseThrow();
-//            credit.setParent(promoterTontine);
+    public CreditRespDto createTontine(Credit credit) {
             tontineStockService
                     .checkAvailabilityAndUpdateTontineStock(
                             credit.getArticles(),
@@ -230,33 +213,7 @@ public class CreditService extends GenericService<Credit, Long> {
             credit.setCreditToCreditArticles(); // Ensure relationship is set
             credit.getArticles().forEach(creditArticlesService::create);
             this.startCredit(credit.getId(), Boolean.TRUE);
-//        } else {
-//            Credit tontineParent = new Credit(); // faire un clone
-//            ClientRespDto clientDto = clientService.getRepository().findByCollectorAndClientTypeAndState(
-//                    credit.getCollector(),
-//                    ClientType.PROMOTER,
-//                    State.ENABLED,
-//                    PageRequest.of(0, 1)).getContent().stream().findFirst().orElse(null);
-//            Client client = new Client();
-//            assert clientDto != null;
-//            client.setId(clientDto.id());
-//            client.setClientType(clientDto.clientType());
-//            String baseReference = generateReference(
-//                    String.valueOf(client.getId()),
-//                    ClientType.PROMOTER);
-//            tontineParent.setReference("T" + baseReference);
-//            tontineParent.addClient(client);
-//            tontineParent.tontineBuilder();
-//            tontineParent.setArticles(credit.getArticles());
-//            this.create(tontineParent);
-//            tontineParent.setCreditToCreditArticles();
-//            tontineParent.getArticles().forEach(creditArticlesService::create);
-//            this.creditEnrichment(tontineParent);
-//            this.startCredit(tontineParent.getId(), Boolean.FALSE);
-//            return this.createTontine(credit);
-//        }
-        // Save the credit
-        return credit;
+        return CreditRespDto.fromCredit(credit);
     }
 
     public void creditUnicity(Credit credit) {
@@ -268,7 +225,7 @@ public class CreditService extends GenericService<Credit, Long> {
         }
     }
 
-    private Credit createAndProcessCredit(Credit credit, Long clientId) {
+    private CreditRespDto createAndProcessCredit(Credit credit, Long clientId) {
         credit = this.create(credit);
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
@@ -280,7 +237,7 @@ public class CreditService extends GenericService<Credit, Long> {
             credit = update(credit);
         }
 
-        return creditEnrichment(credit);
+        return CreditRespDto.fromCredit(creditEnrichment(credit));
     }
 
     public Credit creditEnrichment(Credit credit) {

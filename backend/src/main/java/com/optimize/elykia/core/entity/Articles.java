@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.optimize.common.entities.entity.Auditable;
 import com.optimize.common.entities.enums.State;
 import jakarta.persistence.*;
@@ -97,6 +98,29 @@ public class Articles extends Auditable<String> {
         return this instanceof HibernateProxy
                 ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode()
                 : getClass().hashCode();
+    }
+
+    // ===== AUDIT : getters explicites pour contourner @JsonIgnore de BaseEntity
+    // =====
+
+    @JsonProperty("articleCreatedBy")
+    public String getArticleCreatedBy() {
+        return createdBy;
+    }
+
+    @JsonProperty("articleCreatedDate")
+    public String getArticleCreatedDate() {
+        return createdDate != null ? createdDate.toString() : null;
+    }
+
+    @JsonProperty("articleLastModifiedBy")
+    public String getArticleLastModifiedBy() {
+        return lastModifiedBy;
+    }
+
+    @JsonProperty("articleLastModifiedDate")
+    public String getArticleLastModifiedDate() {
+        return lastModifiedDate != null ? lastModifiedDate.toString() : null;
     }
 
     public State getStatus() {

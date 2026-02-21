@@ -131,6 +131,39 @@ export class TontineCollectionRepositoryExtensions {
         return result.values?.[0]?.total || 0;
     }
 
+    /**
+     * Count collections for a specific commercial
+     *
+     * @param commercialUsername Username of the commercial (REQUIRED)
+     * @param filters Optional filters
+     * @returns Count of collections
+     */
+    async countByCommercial(
+        commercialUsername: string,
+        filters?: TontineCollectionRepositoryFilters
+    ): Promise<number> {
+        if (!commercialUsername) {
+            throw new Error('commercialUsername is required for security');
+        }
+
+        let whereConditions = [`tc.commercialUsername = ?`];
+        const params: any[] = [commercialUsername];
+
+        this.applyFilters(whereConditions, params, filters);
+
+        const whereClause = whereConditions.join(' AND ');
+        const sql = `
+            SELECT COUNT(*) as total
+            FROM tontine_collections tc
+            JOIN tontine_members tm ON tc.tontineMemberId = tm.id
+            JOIN clients c ON tm.clientId = c.id
+            WHERE ${whereClause}
+        `;
+        const result = await this.tontineCollectionRepository['getDatabaseService']().query(sql, params);
+
+        return result.values?.[0]?.total || 0;
+    }
+
     async findByCommercialPaginated(
         commercialUsername: string,
         page: number,

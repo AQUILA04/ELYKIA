@@ -62,7 +62,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
                 c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
-                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate)
                 FROM Client c
                 WHERE (c.collector = :collector OR c.tontineCollector = :collector) AND c.clientType = :clientType AND c.state = :state
             """)
@@ -74,7 +74,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.tontineCollector,
                 c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
-                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate)
                 FROM Client c
                 WHERE c.tontineCollector = :collector AND c.clientType = :clientType AND c.state = :state
             """)
@@ -86,7 +86,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
                 c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
-                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate)
                 FROM Client c
                 WHERE (c.tontineCollector = :collector OR c.collector = :collector) AND c.clientType = :clientType AND c.state = :state
             """)
@@ -98,7 +98,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
                 c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
-                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector)
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate)
                 FROM Client c
                 WHERE c.state <> :state
 

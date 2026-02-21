@@ -5,7 +5,9 @@ import { map, startWith, filter, switchMap, takeUntil, take, debounceTime, disti
 import { Recovery } from '../../../../models/recovery.model';
 import * as RecoveryActions from '../../../../store/recovery/recovery.actions';
 import * as RecoverySelectors from '../../../../store/recovery/recovery.selectors';
+import * as KpiSelectors from '../../../../store/kpi/kpi.selectors';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
+import { Actions, ofType } from '@ngrx/effects';
 import { ModalController, IonInfiniteScroll } from '@ionic/angular';
 import { RecoveryDetailComponent } from '../recovery-detail/recovery-detail.component';
 import { FormControl } from '@angular/forms';
@@ -31,15 +33,7 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
 
   // For filters
   searchControl = new FormControl('');
-  // typeFilterControl = new FormControl('all'); // Note: 'paymentMethod' filter not fully implemented in UI yet or depends on 'type'??
-  // The repo supports 'paymentMethod'.
-  // Original code had 'typeFilterControl'. Let's keep it and map to 'paymentMethod'.
-
-  // periodFilterControl = new FormControl('all'); // To be mapped to DateFilter
-  dateFilterControl = new FormControl('all');    // Renaming to match other pages for consistency, or keep 'period'
-
-  // Keeping original control names to minimize template breakage if possible
-  typeFilterControl = new FormControl('all');
+  typeFilterControl = new FormControl({ value: 'all', disabled: true }); // Disabled as requested
   periodFilterControl = new FormControl('all');
 
   // View Model
@@ -47,47 +41,36 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
     recoveries: RecoveryView[];
     loading: boolean;
     error: any;
+    hasMore: boolean;
     stats: { total: number; today: number; totalAmount: number };
   }>;
 
-  constructor(private store: Store, private modalController: ModalController, private cdr: ChangeDetectorRef) {
+  constructor(private store: Store, private modalController: ModalController, private cdr: ChangeDetectorRef, private actions$: Actions) {
     this.recoveries$ = this.store.select(RecoverySelectors.selectPaginatedRecoveryViews);
     this.loading$ = this.store.select(RecoverySelectors.selectRecoveryPaginationLoading);
     this.error$ = this.store.select(RecoverySelectors.selectRecoveryPaginationError);
 
-    // Calculate stats from displayed recoveries (or fetch separate stats if needed)
-    // For now, calculating from current page/list might be misleading if paginated.
-    // Ideally we need a separate selector for global stats or total counts.
-    // The previous implementation calculated stats from 'filteredRecoveries', which might have been ALL recoveries?
-    // If we are paginating, we only have the current page.
-    // We should probably fetch stats separately or accept that stats are for "loaded items" or "total items if available".
-    // RecoveryPaginationState has 'totalItems'.
-    // For 'today' and 'totalAmount', we need aggregation from backend or separate store state.
-    // Let's use simple estimation or available data for now to fix the error.
-
-    // Quick fix: derive stats from current list (incomplete but functional for display)
-    // Better fix: Add actions/selectors for Stats properly.
-    // Given scope, I will derive from available recoveries and total count.
+    // Use KPI Store for stats
+    const kpiStats$ = this.store.select(KpiSelectors.selectRecoveryListStats);
+    const hasMore$ = this.store.select(RecoverySelectors.selectRecoveryPaginationHasMore);
 
     this.vm$ = combineLatest([
       this.recoveries$,
       this.loading$,
       this.error$,
-      this.store.select(RecoverySelectors.selectRecoveryPaginationTotalItems)
+      kpiStats$,
+      hasMore$
     ]).pipe(
-      map(([recoveries, loading, error, totalItems]) => {
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const todayRecoveries = recoveries.filter((r: RecoveryView) => new Date(r.paymentDate) >= today);
-
+      map(([recoveries, loading, error, stats, hasMore]) => {
         return {
           recoveries,
           loading,
           error,
+          hasMore,
           stats: {
-            total: totalItems || recoveries.length,
-            today: todayRecoveries.length, // Only counting loaded for today... might be inaccurate if not all loaded.
-            totalAmount: recoveries.reduce((sum, r) => sum + r.amount, 0) // Only counting loaded amount...
+            total: stats.total,
+            today: stats.today,
+            totalAmount: stats.totalAmount
           }
         };
       })
@@ -110,7 +93,12 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
   }
 
   ionViewWillEnter() {
-    // subscription works
+    // Force reload on enter to ensure data is fresh
+    this.loadFirstPage(
+      this.searchControl.value || '',
+      this.typeFilterControl.value || 'all',
+      this.periodFilterControl.value || 'all'
+    );
   }
 
   private loadFirstPage(search: string, type: string, period: string) {
@@ -118,6 +106,7 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
       filter((user): user is User => !!user),
       take(1)
     ).subscribe(user => {
+      // Load List
       this.store.dispatch(RecoveryActions.loadFirstPageRecoveries({
         commercialId: user.username,
         pageSize: 20,
@@ -127,6 +116,19 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
           dateFilter: this.mapPeriodToDateFilter(period)
         }
       }));
+
+      // Load KPIs with same filters (except search which doesn't apply to global KPIs usually, but period does)
+      // Note: KPI actions might need to be updated to accept filters if we want dynamic KPIs on this page.
+      // Currently KpiActions.loadRecoveryKpi accepts dateFilter.
+      // We should dispatch it here to update the stats cards based on the period filter.
+
+      // Import KpiActions dynamically or add import
+      import('../../../../store/kpi/kpi.actions').then(KpiActions => {
+        this.store.dispatch(KpiActions.loadRecoveryKpi({
+          commercialId: user.username,
+          dateFilter: this.mapPeriodToDateFilter(period)
+        }));
+      });
     });
   }
 
@@ -146,8 +148,11 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
     });
 
     // Complete infinite scroll when loading finishes
-    this.loading$.pipe(
-      filter(loading => !loading),
+    this.actions$.pipe(
+      ofType(
+        RecoveryActions.loadNextPageRecoveriesSuccess,
+        RecoveryActions.loadNextPageRecoveriesFailure
+      ),
       take(1)
     ).subscribe(() => {
       event.target.complete();
@@ -156,15 +161,23 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
 
   private mapPeriodToDateFilter(period: string): any {
     switch (period) {
-      case 'today': return 'today';
-      case 'week': return 'week'; // Repository usually expects 'this_week' or similar enum? 
-      // DateFilter enum: 'today', 'yesterday', 'this_week', 'this_month', 'custom'
-      // Map 'week' -> 'this_week', 'month' -> 'this_month'
-      case 'month': return 'month'; // 'this_month'?
-      // Let's check DateFilter type definition if needed. 
-      // Assuming standard mapping or strings.
+      case 'today': return { startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0] };
+      case 'week': return { startDate: this.getWeekStartDate() };
+      case 'month': return { startDate: this.getMonthStartDate() };
       default: return undefined;
     }
+  }
+
+  private getWeekStartDate(): string {
+    const now = new Date();
+    const weekStartDate = new Date(now.setDate(now.getDate() - now.getDay()));
+    return weekStartDate.toISOString().split('T')[0];
+  }
+
+  private getMonthStartDate(): string {
+    const now = new Date();
+    const monthStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    return monthStartDate.toISOString().split('T')[0];
   }
 
   ngOnDestroy() {

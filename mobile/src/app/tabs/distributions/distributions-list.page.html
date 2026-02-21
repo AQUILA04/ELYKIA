@@ -86,20 +86,17 @@
       </ion-card>
     </div>
 
+    <!-- Debug Info (Temporary) -->
+    <!-- <div style="padding: 10px; background: #f0f0f0; font-size: 10px;">
+      DEBUG: Distributions: {{ vm.distributions.length }}, Loading: {{ vm.loading }}, Total: {{ vm.totalItems }}
+    </div> -->
+
     <!-- Distributions List -->
     <div class="distributions-list" *ngIf="vm.distributions.length > 0 || (!vm.loading && vm.totalItems > 0)">
       <div class="list-header">
         <div class="list-title">Historique des Distributions</div>
         <!-- Display filtered count here -->
         <div class="list-count">{{ vm.totalItems }}</div>
-      </div>
-
-      <!-- Empty State -->
-      <div class="empty-state" *ngIf="!vm.loading && vm.distributions.length === 0">
-        <ion-icon name="receipt-outline" class="empty-icon"></ion-icon>
-        <h3>Aucune distribution trouvée</h3>
-        <p>Essayez un autre terme de recherche ou créez une nouvelle distribution.</p>
-        <ion-button fill="solid" color="primary" (click)="goToNewDistribution()">Nouvelle Distribution</ion-button>
       </div>
 
       <ion-list>
@@ -113,6 +110,15 @@
         </ion-infinite-scroll-content>
       </ion-infinite-scroll>
     </div>
+
+    <!-- Empty State (Moved outside the list container to ensure visibility) -->
+    <div class="empty-state" *ngIf="!vm.loading && vm.distributions.length === 0 && !vm.error">
+      <ion-icon name="receipt-outline" class="empty-icon"></ion-icon>
+      <h3>Aucune distribution trouvée</h3>
+      <p>Essayez un autre terme de recherche ou créez une nouvelle distribution.</p>
+      <ion-button fill="solid" color="primary" (click)="goToNewDistribution()">Nouvelle Distribution</ion-button>
+    </div>
+
   </ng-container>
 
   <!-- Floating Action Button -->

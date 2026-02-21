@@ -150,6 +150,7 @@ export const loadAccountActivityKpi = createAction(
 export const loadAccountActivityKpiSuccess = createAction(
   '[KPI] Load Account Activity KPI Success',
   props<{
+    newClientsCount: number;
     newAccountsCount: number;
     newAccountsBalance: number;
     updatedAccountsCount: number;
@@ -190,7 +191,9 @@ export const loadTontineSummaryKpiSuccess = createAction(
   '[KPI] Load Tontine Summary KPI Success',
   props<{
     dailyMembersCount: number;
+    dailyCollectionsCount: number;
     dailyCollectionsAmount: number;
+    dailyDeliveriesCount: number;
     dailyDeliveriesAmount: number;
   }>()
 );

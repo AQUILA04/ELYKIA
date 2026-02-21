@@ -21,11 +21,23 @@ export interface Article {
   purchasePrice: number;
   sellingPrice: number;
   creditSalePrice?: number;
+  stockQuantity?: number;
   reorderPoint?: number;
   optimalStockLevel?: number;
-
+  averageMonthlySales?: number;
+  stockTurnoverRate?: number;
+  daysOfStockAvailable?: number;
+  category?: string;
   isSeasonal?: boolean;
+  lastRestockDate?: string;
+  state?: 'ENABLED' | 'DISABLED' | 'DELETED';
+  /** @deprecated Utiliser 'state' — alias de compatibilité pour list.component */
   status?: 'ENABLED' | 'DISABLED' | 'DELETED';
+  // Audit fields — noms correspondant aux @JsonProperty dans Articles.java
+  articleCreatedBy?: string;
+  articleCreatedDate?: string;
+  articleLastModifiedBy?: string;
+  articleLastModifiedDate?: string;
 }
 
 export interface NewArticleData {
@@ -40,6 +52,24 @@ export interface NewArticleData {
   reorderPoint?: number;
   optimalStockLevel?: number;
   isSeasonal?: boolean;
+}
+
+export interface ArticleHistoryItem {
+  id: number;
+  operationType: 'ENTREE' | 'SORTIE' | 'RESET';
+  initialQuantity: number;
+  operationQuantity: number;
+  finalQuantity: number;
+  operationDate: string;
+  operationUser: string;
+}
+
+export interface ArticleStateHistoryItem {
+  id: number;
+  previousState: 'ENABLED' | 'DISABLED' | 'DELETED';
+  newState: 'ENABLED' | 'DISABLED' | 'DELETED';
+  createdDate: string;
+  createdBy: string;
 }
 
 export interface ArticleResponse {
@@ -203,5 +233,15 @@ export class ItemService {
     return this.http.get<any[]>(this.apiUrl, { headers }).pipe(
       map(items => items.length)
     );
+  }
+
+  getArticleHistory(id: number): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.get<any>(`${this.apiUrl}/${id}/history`, { headers });
+  }
+
+  getArticleStateHistory(id: number): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.get<any>(`${this.apiUrl}/${id}/state-history`, { headers });
   }
 }

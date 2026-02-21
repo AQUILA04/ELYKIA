@@ -21,7 +21,8 @@ import {
   selectRecoveryKpiTotalAmount,
   selectTontineKpiTotalCollected,
   selectCommercialStockKpiTotalValue,
-  selectAnyKpiLoading
+  selectAnyKpiLoading,
+  selectTontineKpiDailyCollectionsAmount
 } from '../../store/kpi/kpi.selectors';
 
 import { LoggerService } from '../../core/services/logger.service';
@@ -118,7 +119,18 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       // KpiEffects for distribution/recovery require commercialId.
       // AuthUser usually has 'id'. Let's check user object.
       // If user.id is the commercialId, we use it.
-      const commercialId = user.id;
+      const commercialId = user.username; // Use username as ID for now if ID is missing or same
+      this.store.dispatch(CommercialActions.loadCommercial({ commercialUsername: username }));
+
+      setTimeout(() => {
+        this.store.select(selectCommercialByUsername(username)).pipe(take(1)).subscribe(commercial => {
+          if (!commercial || (!commercial.fullName && !commercial.username)) {
+            this.log.log('[DashboardPage] Commercial data missing after load attempt. Logging out.');
+            this.store.dispatch(AuthActions.logout());
+          }
+        });
+      }, 2000); // 2 second grace period for data to load
+
 
       if (!commercialId) {
         console.error('[DashboardPage] Commercial ID missing in auth user');
@@ -171,7 +183,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     const salesAmount$ = this.store.select(selectDistributionKpiTotalAmount);
     const recoveryAmount$ = this.store.select(selectRecoveryKpiTotalAmount);
     const undistributedAmount$ = this.store.select(selectCommercialStockKpiTotalValue);
-    const tontineAmount$ = this.store.select(selectTontineKpiTotalCollected);
+    // Use Tontine Summary KPI for dashboard (daily/period collections) instead of session total
+    const tontineAmount$ = this.store.select(selectTontineKpiDailyCollectionsAmount);
 
     const dailyPayment$ = this.store.select(selectDistributionKpiDailyPayment);
     const remainingDistributionAmount$ = this.store.select(selectDistributionKpiTotalRemaining);

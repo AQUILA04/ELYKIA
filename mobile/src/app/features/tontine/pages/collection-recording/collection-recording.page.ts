@@ -13,6 +13,7 @@ import { TontineMember, TontineCollection, TontineSession } from 'src/app/models
 import { Client } from 'src/app/models/client.model';
 import { selectTontineSession } from 'src/app/store/tontine/tontine.selectors';
 import * as TontineActions from 'src/app/store/tontine/tontine.actions';
+import * as KpiActions from 'src/app/store/kpi/kpi.actions';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { PrintableTontineCollection } from 'src/app/core/services/printing.service';
 import { TontineReceiptModalComponent } from 'src/app/shared/components/tontine-receipt-modal/tontine-receipt-modal.component';
@@ -218,6 +219,16 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
 
             // Update Store specifically for Dashboard KPI
             this.store.dispatch(TontineActions.loadTontineCollections());
+
+            // Refresh Tontine KPI for dashboard
+            const now = new Date();
+            const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+            const endDate = now.toISOString().split('T')[0];
+            const dateFilter = { startDate, endDate };
+            this.store.dispatch(KpiActions.loadTontineSummaryKpi({
+                commercialUsername: this.commercialUsername!,
+                dateFilter
+            }));
 
             await loading.dismiss();
 

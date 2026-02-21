@@ -19,11 +19,13 @@ export const selectRecoveryViews = createSelector(
     return recoveries.map(recovery => {
       const client = clients.find(c => c.id === recovery.clientId);
       const distribution = distributions.find(d => d.id === recovery.distributionId);
-      const { clientId, distributionId, ...recoveryProps } = recovery;
+      const { clientId, distributionId, ...recoveryProps } = recovery as any;
       return {
         ...recoveryProps,
         client,
-        distribution
+        distribution,
+        clientName: client ? (client.fullName || `${client.firstname} ${client.lastname}`) : 'Inconnu',
+        distributionReference: distribution?.reference
       } as RecoveryView;
     });
   }
@@ -201,24 +203,11 @@ export const selectRecoveryPaginationTotalItems = createSelector(
 
 
 /**
- * Selector for paginated recovery views (with client and distribution information)
+ * Selector for paginated recovery views (already mapped by repository)
  */
 export const selectPaginatedRecoveryViews = createSelector(
   selectPaginatedRecoveries,
-  selectAllClients,
-  selectAllDistributions,
-  (recoveries, clients, distributions): RecoveryView[] => {
-    return recoveries.map(recovery => {
-      const client = clients.find(c => c.id === recovery.clientId);
-      const distribution = distributions.find(d => d.id === recovery.distributionId);
-      const { clientId, distributionId, ...recoveryProps } = recovery;
-      return {
-        ...recoveryProps,
-        client,
-        distribution
-      } as RecoveryView;
-    });
-  }
+  (recoveries) => recoveries // recoveries is already RecoveryView[]
 );
 
 

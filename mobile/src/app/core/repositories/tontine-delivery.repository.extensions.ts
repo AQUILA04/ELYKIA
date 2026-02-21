@@ -134,6 +134,39 @@ export class TontineDeliveryRepositoryExtensions {
         return result.values?.[0]?.total || 0;
     }
 
+    /**
+     * Count deliveries for a specific commercial
+     *
+     * @param commercialUsername Username of the commercial (REQUIRED)
+     * @param filters Optional filters
+     * @returns Count of deliveries
+     */
+    async countByCommercial(
+        commercialUsername: string,
+        filters?: TontineDeliveryRepositoryFilters
+    ): Promise<number> {
+        if (!commercialUsername) {
+            throw new Error('commercialUsername is required for security');
+        }
+
+        let whereConditions = [`td.commercialUsername = ?`];
+        const params: any[] = [commercialUsername];
+
+        this.applyFilters(whereConditions, params, filters);
+
+        const whereClause = whereConditions.join(' AND ');
+        const sql = `
+            SELECT COUNT(*) as total
+            FROM tontine_deliveries td
+            JOIN tontine_members tm ON td.tontineMemberId = tm.id
+            JOIN clients c ON tm.clientId = c.id
+            WHERE ${whereClause}
+        `;
+        const result = await this.tontineDeliveryRepository['getDatabaseService']().query(sql, params);
+
+        return result.values?.[0]?.total || 0;
+    }
+
     async findByCommercialPaginated(
         commercialUsername: string,
         page: number,

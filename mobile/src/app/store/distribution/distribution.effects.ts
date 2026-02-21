@@ -18,6 +18,7 @@ import * as ArticleActions from '../article/article.actions';
 import * as CommercialStockActions from '../commercial-stock/commercial-stock.actions';
 import { selectDistributionState } from './distribution.selectors';
 import { DistributionRepositoryExtensions } from '../../core/repositories/distribution.repository.extensions';
+import * as KpiActions from '../kpi/kpi.actions';
 
 @Injectable()
 export class DistributionEffects {
@@ -503,6 +504,33 @@ export class DistributionEffects {
       })
     ),
     { dispatch: false }
+  );
+  // ==================== KPI REFRESH AFTER DISTRIBUTION ====================
+
+  /**
+   * Rafraîchir les KPIs après la création d'une distribution.
+   * Utilise le filtre par défaut du dashboard (mois en cours).
+   */
+  refreshKpiAfterDistribution$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.createDistributionSuccess),
+      withLatestFrom(this.store.select(selectAuthUser)),
+      filter(([_, user]) => !!user),
+      switchMap(([_, user]) => {
+        const username = user!.username;
+        const now = new Date();
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const endDate = now.toISOString().split('T')[0];
+        const dateFilter = { startDate, endDate };
+
+        console.log('[DistributionEffects] Refreshing KPIs after distribution creation');
+
+        return [
+          KpiActions.loadDistributionKpi({ commercialId: username, dateFilter }),
+          KpiActions.loadCommercialStockKpi({ commercialUsername: username })
+        ];
+      })
+    )
   );
 
 }

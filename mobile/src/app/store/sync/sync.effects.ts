@@ -31,6 +31,7 @@ import * as ClientActions from '../../store/client/client.actions';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import * as RecoveryActions from '../../store/recovery/recovery.actions';
 import * as TontineActions from '../../store/tontine/tontine.actions';
+import * as KpiActions from '../../store/kpi/kpi.actions';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 
 // Repository Extensions
@@ -505,6 +506,17 @@ export class SyncEffects {
           actionsToDispatch.push(DistributionActions.loadDistributions({ commercialUsername: username }));
           actionsToDispatch.push(RecoveryActions.loadRecoveries({ commercialUsername: username }));
           actionsToDispatch.push(TontineActions.loadTontineSession());
+
+          // Refresh KPIs with default month filter so dashboard shows correct data
+          const now = new Date();
+          const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+          const endDate = now.toISOString().split('T')[0];
+          const dateFilter = { startDate, endDate };
+          actionsToDispatch.push(KpiActions.loadAllKpi({
+            commercialUsername: username,
+            commercialId: username,
+            dateFilter
+          }));
         } else {
           const entityType = (action as any).entityType;
 

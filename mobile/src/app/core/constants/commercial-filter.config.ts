@@ -1,6 +1,6 @@
 /**
  * Commercial Filter Configuration
- * 
+ *
  * This file defines the column names used to filter data by commercial user
  * for each entity type in the database. This ensures that users only see
  * their own data and maintains data isolation between commercials.
@@ -32,7 +32,7 @@ export interface CommercialFilterConfig {
 
 /**
  * Commercial filter configuration by entity type
- * 
+ *
  * This mapping defines how to filter each entity type by the connected commercial.
  * All queries must use these configurations to ensure proper data isolation.
  */
@@ -67,7 +67,7 @@ export const COMMERCIAL_FILTER_CONFIG: Record<string, CommercialFilterConfig> = 
 
     // Recovery entity uses 'commercialId' column
     recovery: {
-        columnName: 'commercialId',
+        columnName: 'commercialId', // Reverted to commercialId as 'commercial' column does not exist
         filterType: CommercialFilterType.ID,
         required: true
     },
@@ -110,7 +110,7 @@ export const COMMERCIAL_FILTER_CONFIG: Record<string, CommercialFilterConfig> = 
 
 /**
  * Get the commercial filter configuration for a specific entity type
- * 
+ *
  * @param entityType The entity type (e.g., 'client', 'distribution')
  * @returns The commercial filter configuration
  * @throws Error if entity type is not configured
@@ -125,18 +125,18 @@ export function getCommercialFilterConfig(entityType: string): CommercialFilterC
 
 /**
  * Build a WHERE clause condition for commercial filtering
- * 
+ *
  * @param entityType The entity type
  * @param tableAlias Optional table alias for JOIN queries (e.g., 'c', 'tm')
  * @returns SQL WHERE condition string (e.g., 'commercialId = ?')
  */
 export function buildCommercialFilterCondition(entityType: string, tableAlias?: string): string {
     const config = getCommercialFilterConfig(entityType);
-    
+
     if (!config.required) {
         return '';
     }
-    
+
     const columnRef = tableAlias ? `${tableAlias}.${config.columnName}` : config.columnName;
     return `${columnRef} = ?`;
 }

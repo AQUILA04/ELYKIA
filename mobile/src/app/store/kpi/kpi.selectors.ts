@@ -320,6 +320,11 @@ export const selectAccountActivityKpi = createSelector(
   (state: KpiState) => state.accountActivityKpi
 );
 
+export const selectAccountActivityKpiNewClientsCount = createSelector(
+  selectAccountActivityKpi,
+  (kpi) => kpi.newClientsCount
+);
+
 export const selectAccountActivityKpiNewAccountsCount = createSelector(
   selectAccountActivityKpi,
   (kpi) => kpi.newAccountsCount
@@ -392,4 +397,20 @@ export const selectTontineKpiDailyCollectionsCount = createSelector(
 export const selectTontineKpiDailyDeliveriesCount = createSelector(
   selectTontineKpi,
   (kpi) => kpi.dailyDeliveriesCount
+);
+
+// ==================== COMBINED KPI FOR MORE PAGE ====================
+
+/**
+ * Collection rate computed from KPI store data.
+ * Formula: (today's recoveries / active credits) * 100
+ */
+export const selectCollectionRateKpi = createSelector(
+  selectRecoveryKpi,
+  selectDistributionKpi,
+  (recoveryKpi, distributionKpi) => {
+    const activeCredits = distributionKpi.activeByCommercial;
+    if (activeCredits === 0) return 0;
+    return Math.round((recoveryKpi.today / activeCredits) * 100);
+  }
 );

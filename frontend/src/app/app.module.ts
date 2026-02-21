@@ -110,6 +110,12 @@ import { ClientKpiCardsComponent } from './client/components/client-kpi-cards/cl
 import { ClientInfoCardComponent } from './client/components/client-info-card/client-info-card.component';
 import { ClientCreditListComponent } from './client/components/client-credit-list/client-credit-list.component';
 import { ClientCotisationHistoryComponent } from './client/components/client-cotisation-history/client-cotisation-history.component';
+// --- Article Detail Sub-Components ---
+import { StockGaugeComponent } from './article/details/components/stock-gauge/stock-gauge.component';
+import { PriceCardComponent } from './article/details/components/price-card/price-card.component';
+import { MovementTableComponent } from './article/details/components/movement-table/movement-table.component';
+import { StateTimelineComponent } from './article/details/components/state-timeline/state-timeline.component';
+import { QuickStockEntryComponent } from './article/details/components/quick-stock-entry/quick-stock-entry.component';
 
 @NgModule({
   declarations: [
@@ -184,7 +190,13 @@ import { ClientCotisationHistoryComponent } from './client/components/client-cot
     ClientKpiCardsComponent,
     ClientInfoCardComponent,
     ClientCreditListComponent,
-    ClientCotisationHistoryComponent
+    ClientCotisationHistoryComponent,
+    // --- Article Detail Sub-Components ---
+    StockGaugeComponent,
+    PriceCardComponent,
+    MovementTableComponent,
+    StateTimelineComponent,
+    QuickStockEntryComponent
     // --- NOUVELLES COMPOSANTS DÉPLACÉS DANS SHARED ---
   ],
   imports: [

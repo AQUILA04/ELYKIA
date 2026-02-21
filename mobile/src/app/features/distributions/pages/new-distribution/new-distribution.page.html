@@ -104,7 +104,7 @@
           </ion-card>
         </div>
 
-        <ion-infinite-scroll (ionInfinite)="loadMoreArticles($event)">
+        <ion-infinite-scroll (ionInfinite)="loadMoreArticles($event)" [disabled]="!vm.hasMoreArticles">
           <ion-infinite-scroll-content loadingSpinner="bubbles"
             loadingText="Chargement des articles..."></ion-infinite-scroll-content>
         </ion-infinite-scroll>

@@ -1,6 +1,6 @@
 /**
  * Client Repository Extensions
- * 
+ *
  * This file contains pagination-specific methods for the ClientRepository.
  * All methods enforce commercial-level data isolation.
  */
@@ -34,9 +34,9 @@ export class ClientRepositoryExtensions {
 
     /**
      * Get paginated clients for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param page Page number (zero-indexed)
      * @param size Number of items per page
@@ -87,7 +87,7 @@ export class ClientRepositoryExtensions {
 
     /**
      * Get paginated client views (with account info) for a specific commercial
-     * 
+     *
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param page Page number
      * @param size Page size
@@ -147,29 +147,7 @@ export class ClientRepositoryExtensions {
         }
 
         if (filters?.hasCredit) {
-            // Join is already done with accounts a.
-            // We need clients who have an account with balance < 0 (credit) OR > 0?
-            // Usually "Credit" in this context means they owe money. 
-            // In ELYKIA:
-            // - Positive balance = Client has money (Deposit)
-            // - Negative balance = Client owes money (Credit/Debt)
-            // Let's check `recovery-client-list.page.ts` or `recovery.selectors.ts` to confirm what "Recovery" means.
-            // `selectClientsForRecovery` usually filters simple lists.
-
-            // Wait, let's verify if `hasCredit` means < 0.
-            // Assuming Credit = Debt = Negative Balance.
-            // But sometimes "Credit" means "Credit Limit".
-            // Context "Recouvrement" -> Recovery -> Debt.
-            // So Balance < 0.
-            // BUT, `accountBalance` is usually stored as positive if they have money, negative if they owe? 
-            // Or maybe `creditInProgress` flag exists?
-            // `clients` table has `creditInProgress` column (boolean).
-
             whereConditions.push('c.creditInProgress = 1');
-            // params.push(1); // No param needed for literal check or if mapped.
-            // actually if it is 1/0 integer:
-            // whereConditions.push('c.creditInProgress = ?');
-            // params.push(1);
         }
 
         const whereClause = whereConditions.join(' AND ');
@@ -180,10 +158,6 @@ export class ClientRepositoryExtensions {
         const totalElements = countResult.values?.[0]?.total || 0;
         const totalPages = Math.ceil(totalElements / size);
 
-        // Default sort by Quarter then Name if grouping is implied, or just Name.
-        // If sorting by Quarter is required for the UI grouping to work with pagination, 
-        // we should probably sort by `c.quarter ASC, c.fullName ASC`.
-
         let orderByClause = 'ORDER BY c.fullName ASC';
 
         if (filters?.orderBy === 'quarter') {
@@ -191,14 +165,14 @@ export class ClientRepositoryExtensions {
         }
 
         const dataSql = `
-            SELECT c.*, 
+            SELECT c.*,
                    a.id as accountId,
-                   a.accountBalance, 
-                   a.accountNumber, 
-                   a.status as accountStatus 
-            FROM clients c 
+                   a.accountBalance,
+                   a.accountNumber,
+                   a.status as accountStatus
+            FROM clients c
             LEFT JOIN accounts a ON c.id = a.clientId
-            WHERE ${whereClause} 
+            WHERE ${whereClause}
             ${orderByClause}
             LIMIT ${size} OFFSET ${offset}
         `;
@@ -235,9 +209,9 @@ export class ClientRepositoryExtensions {
 
     /**
      * Count clients for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param filters Optional filters
      * @returns Total count of clients
@@ -266,9 +240,9 @@ export class ClientRepositoryExtensions {
 
     /**
      * Count clients with active credit for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param dateFilter Optional date filter
      * @returns Count of clients with active credit
@@ -303,9 +277,9 @@ export class ClientRepositoryExtensions {
 
     /**
      * Get account activity (new and updated accounts) for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param dateFilter Optional date filter
      * @returns Account activity stats
@@ -314,6 +288,7 @@ export class ClientRepositoryExtensions {
         commercialUsername: string,
         dateFilter?: DateFilter
     ): Promise<{
+        newClientsCount: number;
         newAccountsCount: number;
         newAccountsBalance: number;
         updatedAccountsCount: number;
@@ -324,42 +299,35 @@ export class ClientRepositoryExtensions {
         }
 
         const db = this.clientRepository['getDatabaseService']();
-
-        // 1. New Accounts (created within date range)
-        // Since accounts table has clientId, we need to join clients to filter by commercial if 'accounts' doesn't have 'commercial'.
-        // Checking Account model: it has clientId.
-        // Checking Database schema: accounts table usually doesn't store commercial, clients does.
-        // So we join clients.
-
         const baseJoin = `JOIN clients c ON a.clientId = c.id`;
-        const commercialCondition = `c.commercial = ? `;
 
-        // Date filter logic
-        let newAccountsWhere = [commercialCondition];
-        let updatedAccountsWhere = [commercialCondition, 'a.updated = 1', 'a.accountBalance > a.old_balance'];
-
-        const params: any[] = [commercialUsername];
+        // --- 1. New Clients Count (from clients table directly) ---
+        let newClientsWhere = [`c.commercial = ?`];
+        let newClientsParams: any[] = [commercialUsername];
 
         if (dateFilter) {
-            const createdDateResult = buildDateFilterClause(dateFilter, 'a.createdAt');
+            const createdDateResult = buildDateFilterClause(dateFilter, 'c.createdAt');
             if (createdDateResult.whereClause) {
-                newAccountsWhere.push(createdDateResult.whereClause);
+                newClientsWhere.push(createdDateResult.whereClause);
+                newClientsParams.push(...createdDateResult.params);
             }
-
-            const syncDateResult = buildDateFilterClause(dateFilter, 'a.syncDate');
-            if (syncDateResult.whereClause) {
-                updatedAccountsWhere.push(syncDateResult.whereClause);
-            }
-
-            // Params logic is tricky because we execute two queries.
-            // We'll reconstruct params for each query.
         }
 
-        // --- Execute New Accounts Query ---
-        let newParams = [commercialUsername];
+        const newClientsCountSql = `
+            SELECT COUNT(*) as count
+            FROM clients c
+            WHERE ${newClientsWhere.join(' AND ')}
+        `;
+        const newClientsCountResult = await db.query(newClientsCountSql, newClientsParams);
+
+        // --- 2. New Accounts Query ---
+        let newAccountsWhere = [`c.commercial = ?`];
+        let newParams: any[] = [commercialUsername];
+
         if (dateFilter) {
-            const createdDateResult = buildDateFilterClause(dateFilter, 'a.createdAt');
+            const createdDateResult = buildDateFilterClause(dateFilter, 'c.createdAt');
             if (createdDateResult.whereClause) {
+                newAccountsWhere.push(createdDateResult.whereClause);
                 newParams.push(...createdDateResult.params);
             }
         }
@@ -372,11 +340,14 @@ export class ClientRepositoryExtensions {
         `;
         const newResult = await db.query(newSql, newParams);
 
-        // --- Execute Updated Accounts Query ---
-        let updatedParams = [commercialUsername];
+        // --- 3. Updated Accounts Query ---
+        let updatedAccountsWhere = [`c.commercial = ?`, 'a.updated = 1', 'a.accountBalance > a.old_balance'];
+        let updatedParams: any[] = [commercialUsername];
+
         if (dateFilter) {
             const syncDateResult = buildDateFilterClause(dateFilter, 'a.syncDate');
             if (syncDateResult.whereClause) {
+                updatedAccountsWhere.push(syncDateResult.whereClause);
                 updatedParams.push(...syncDateResult.params);
             }
         }
@@ -390,6 +361,7 @@ export class ClientRepositoryExtensions {
         const updatedResult = await db.query(updatedSql, updatedParams);
 
         return {
+            newClientsCount: newClientsCountResult.values?.[0]?.count || 0,
             newAccountsCount: newResult.values?.[0]?.count || 0,
             newAccountsBalance: newResult.values?.[0]?.balance || 0,
             updatedAccountsCount: updatedResult.values?.[0]?.count || 0,
@@ -401,7 +373,7 @@ export class ClientRepositoryExtensions {
     private applyFilters(whereConditions: string[], params: any[], filters?: any) {
         if (filters?.searchQuery) {
             whereConditions.push('(fullName LIKE ? OR phone LIKE ? OR quarter LIKE ?)');
-            const searchPattern = `% ${filters.searchQuery}% `;
+            const searchPattern = `%${filters.searchQuery}%`;
             params.push(searchPattern, searchPattern, searchPattern);
         }
 

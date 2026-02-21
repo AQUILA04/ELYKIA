@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.dto.ArticleStateHistoryDto;
 import com.optimize.elykia.core.dto.ArticlesDto;
 import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.dto.StockEntryDto;
@@ -258,6 +259,19 @@ public class ArticlesService extends GenericService<Articles, Long> {
                 "purchaseTotal", purchaseTotal,
                 "creditSaleTotal", creditSaleTotal,
                 "combinedTotal", combinedTotal);
+    }
+
+    public List<ArticleStateHistoryDto> getStateHistoryByArticleId(Long articleId) {
+        return articleStateHistoryRepository.findByArticle_IdOrderByCreatedDateDesc(articleId)
+                .stream()
+                .map(sh -> ArticleStateHistoryDto.builder()
+                        .id(sh.getId())
+                        .previousState(sh.getPreviousState())
+                        .newState(sh.getNewState())
+                        .createdDate(sh.getCreatedDate())
+                        .createdBy(sh.getCreatedBy())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Transactional(readOnly = true)

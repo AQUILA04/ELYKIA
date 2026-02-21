@@ -137,7 +137,7 @@ export const loadFirstPageRecoveries = createAction(
 
 export const loadFirstPageRecoveriesSuccess = createAction(
   '[Recovery] Load First Page Recoveries Success',
-  props<{ page: { content: Recovery[]; totalElements: number; totalPages: number; page: number; size: number } }>()
+  props<{ page: { content: import('../../models/recovery-view.model').RecoveryView[]; totalElements: number; totalPages: number; page: number; size: number } }>()
 );
 
 export const loadFirstPageRecoveriesFailure = createAction(
@@ -159,7 +159,7 @@ export const loadNextPageRecoveries = createAction(
 
 export const loadNextPageRecoveriesSuccess = createAction(
   '[Recovery] Load Next Page Recoveries Success',
-  props<{ page: { content: Recovery[]; totalElements: number; totalPages: number; page: number; size: number } }>()
+  props<{ page: { content: import('../../models/recovery-view.model').RecoveryView[]; totalElements: number; totalPages: number; page: number; size: number } }>()
 );
 
 export const loadNextPageRecoveriesFailure = createAction(

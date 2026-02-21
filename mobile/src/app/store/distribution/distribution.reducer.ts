@@ -87,7 +87,73 @@ export const distributionReducer = createReducer(
   // ==========================================
   // PAGINATION REDUCERS (Distributions)
   // ==========================================
-  // ... (Distribution Pagination reducers remain the same)
+
+  // Load First Page Distributions
+  on(DistributionActions.loadFirstPageDistributions, (state) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      loading: true,
+      error: null,
+      currentPage: 0,
+      items: [], // Clear items on new search/load
+      hasMore: true
+    }
+  })),
+
+  on(DistributionActions.loadFirstPageDistributionsSuccess, (state, { distributions, totalElements, totalPages }) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      items: distributions,
+      totalItems: totalElements,
+      hasMore: 0 < totalPages - 1,
+      loading: false,
+      error: null
+    }
+  })),
+
+  on(DistributionActions.loadFirstPageDistributionsFailure, (state, { error }) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      loading: false,
+      error
+    }
+  })),
+
+  // Load Next Page Distributions
+  on(DistributionActions.loadNextPageDistributions, (state) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      loading: true,
+      error: null
+    }
+  })),
+
+  on(DistributionActions.loadNextPageDistributionsSuccess, (state, { distributions }) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      items: [...state.pagination.items, ...distributions],
+      currentPage: state.pagination.currentPage + 1,
+      // Simple check for hasMore, ideally backend returns totalPages or we check if returned count < pageSize
+      hasMore: distributions.length > 0,
+      loading: false,
+      error: null
+    }
+  })),
+
+  on(DistributionActions.loadNextPageDistributionsFailure, (state, { error }) => ({
+    ...state,
+    pagination: {
+      ...state.pagination,
+      loading: false,
+      error
+    }
+  })),
+
 
   // ==========================================
   // PAGINATION REDUCERS (Articles)
@@ -419,5 +485,3 @@ export const distributionReducer = createReducer(
 );
 
 // KPI Stats
-
-

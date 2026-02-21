@@ -35,25 +35,25 @@ public class AccountService extends GenericService<Account, Long> {
     }
 
     @Transactional
-    public Account createAccount(AccountDto accountDto) {
+    public AccountRespDto createAccount(AccountDto accountDto) {
         Account account = accountMapper.toEntity(accountDto);
         account.setStatus(AccountStatus.CREATED);
         Account savedAccount = create(account);
 
         publishAccountCreationEvent(savedAccount);
 
-        return savedAccount;
+        return AccountRespDto.fromAccount(savedAccount);
     }
 
     @Transactional
-    public Account syncAccount(AccountDto accountDto) {
+    public AccountRespDto syncAccount(AccountDto accountDto) {
         Account account = accountMapper.toEntity(accountDto);
         account.setStatus(AccountStatus.ACTIF);
         Account savedAccount = create(account);
 
         publishAccountCreationEvent(savedAccount);
 
-        return savedAccount;
+        return AccountRespDto.fromAccount(savedAccount);
     }
 
     private void publishAccountCreationEvent(Account account) {
@@ -71,15 +71,15 @@ public class AccountService extends GenericService<Account, Long> {
 
     // MODIFIÉ : La méthode utilise maintenant le searchTerm pour filtrer les
     // résultats
-    public Page<Account> getAll(Pageable pageable, String searchTerm) {
+    public Page<AccountRespDto> getAll(Pageable pageable, String searchTerm) {
         Specification<Account> spec = Specification.where(null); // Spécification de base
 
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
             spec = spec.and(getSearchSpecification(searchTerm));
-            return getRepository().findAll(spec, pageable);
+            return AccountRespDto.fromAccountPage(getRepository().findAll(spec, pageable));
         }
 
-        return findByStateNot(State.DELETED, pageable);
+        return AccountRespDto.fromAccountPage(findByStateNot(State.DELETED, pageable));
     }
 
     public Page<AccountRespDto> getAllForCommercial(String commercial, Pageable pageable) {
@@ -106,12 +106,12 @@ public class AccountService extends GenericService<Account, Long> {
     }
 
     @Transactional
-    public Account updateAccount(AccountDto accountDto, Long id) {
+    public AccountRespDto updateAccount(AccountDto accountDto, Long id) {
         accountDto.setId(id);
         Account existingOne = getById(id);
         Account account = accountMapper.toEntity(accountDto);
         account.setStatus(existingOne.getStatus()); // Preserve the status
-        return update(account);
+        return AccountRespDto.fromAccount(update(account));
     }
 
     @Transactional

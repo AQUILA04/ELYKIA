@@ -161,4 +161,16 @@ public class ArticlesController {
         Map<String, Double> totals = articlesService.getDetailedStockValues();
         return ResponseEntity.ok(totals);
     }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<Response> getArticleHistory(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(
+                articlesService.getArticleHistoryService().getByArticleId(id)), HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/state-history")
+    public ResponseEntity<Response> getArticleStateHistory(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(
+                articlesService.getStateHistoryByArticleId(id)), HttpStatus.OK);
+    }
 }
