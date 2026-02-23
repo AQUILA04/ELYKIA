@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/clients")
@@ -106,6 +108,16 @@ public class ClientController {
     @GetMapping(value = "card-photo/{id}")
     public ResponseEntity<Response> getClientCardPhoto(@PathVariable Long id) {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getCardPhoto(id)), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "profil-photos")
+    public ResponseEntity<Response> getClientProfilPhotos(@RequestBody List<Long> ids) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getProfilPhotos(ids)), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "card-photos")
+    public ResponseEntity<Response> getClientCardPhotos(@RequestBody List<Long> ids) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getCardPhotos(ids)), HttpStatus.OK);
     }
 
     @DeleteMapping(value = "{id}")

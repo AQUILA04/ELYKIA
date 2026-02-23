@@ -84,9 +84,18 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
             commercialUsername,
             0,
             limit,
-            { isSync: false }
+            { isSync: false, isLocal: true }
         );
         return page.content;
+    }
+
+    override async getUnsyncedCount(): Promise<number> {
+        const commercialUsername = this.authService.currentUser?.username || '';
+        if (!commercialUsername) return 0;
+        const page = await this.tontineDeliveryRepositoryExtensions.findByCommercialPaginated(
+            commercialUsername, 0, 1, { isSync: false, isLocal: true }
+        );
+        return page.totalElements;
     }
 
     private async syncSingleTontineDelivery(delivery: TontineDelivery): Promise<TontineDeliverySyncResponse> {

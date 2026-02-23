@@ -5,19 +5,23 @@ import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.CollectorDailyStakeDto;
 import com.optimize.elykia.core.dto.CreditTimelineDto;
+import com.optimize.elykia.core.dto.CreditTimelineMobileDto;
 import com.optimize.elykia.core.dto.SpecialDailyStakeDto;
 import com.optimize.elykia.core.entity.Credit;
 import com.optimize.elykia.core.entity.CreditTimeline;
 import com.optimize.elykia.core.entity.DailyAccountancy;
 import com.optimize.elykia.core.enumaration.CreditStatus;
+import com.optimize.elykia.core.event.CreditCollectionEvent;
 import com.optimize.elykia.core.mapper.CreditMapper;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
-import com.optimize.elykia.core.event.CreditCollectionEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -196,6 +200,19 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
                         thirtyDaysAgo, 
                         now
                 )
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Récupère les CreditTimelineMobileDto des 30 derniers jours pour un collector
+     * Optimisé avec une requête JPQL directe
+     * @param collector Username du collector
+     * @return Liste des CreditTimelineMobileDto
+     */
+    public List<CreditTimelineMobileDto> getLast30DaysMobileDtosByCollector(String collector) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime thirtyDaysAgo = now.minusDays(30);
+
+        return getRepository().findMobileDtosByCollectorAndDateRange(collector, thirtyDaysAgo, now);
     }
 }

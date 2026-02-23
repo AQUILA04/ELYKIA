@@ -20,8 +20,8 @@ export interface PhotoSyncPreferences {
   providedIn: 'root'
 })
 export class PhotoSyncService {
-  private readonly PROFILE_PHOTO_DIR = 'client_photos';
-  private readonly CARD_PHOTO_DIR = 'card_photos';
+  private readonly PROFILE_PHOTO_DIR = 'Pictures/Elykia/client_photos';
+  private readonly CARD_PHOTO_DIR = 'Pictures/Elykia/card_photos';
   private commercialUsername: string | undefined;
 
   constructor(
@@ -39,7 +39,7 @@ export class PhotoSyncService {
   async getPhotoSyncPreferences(): Promise<PhotoSyncPreferences> {
     const enableProfilePhotoSync = await this.storage.get('enableProfilePhotoSync') || true;
     const enableCardPhotoSync = await this.storage.get('enableCardPhotoSync') || true;
-    
+
     return {
       enableProfilePhotoSync,
       enableCardPhotoSync
@@ -51,9 +51,9 @@ export class PhotoSyncService {
     await this.storage.set('enableCardPhotoSync', preferences.enableCardPhotoSync);
   }
 
-  async syncPhotosForClients(): Promise<void> {
+  async syncPhotosForClients(clients?: Client[]): Promise<void> {
     const preferences = await this.getPhotoSyncPreferences();
-    
+
     if (!preferences.enableProfilePhotoSync && !preferences.enableCardPhotoSync) {
       this.log.log('[PhotoSyncService] Photo sync disabled in preferences');
       return;
@@ -65,111 +65,124 @@ export class PhotoSyncService {
     }
 
     try {
-      const clients = await this.dbService.getClients(this.commercialUsername);
-      const syncedClients = clients.filter(client => client.isSync && !client.isLocal);
-      
+      let syncedClients: Client[];
+      if (clients) {
+        syncedClients = clients.filter(client => client.isSync && !client.isLocal);
+      } else {
+        const allClients = await this.dbService.getClients(this.commercialUsername);
+        syncedClients = allClients.filter(client => client.isSync && !client.isLocal);
+      }
+
       this.log.log(`[PhotoSyncService] Found ${syncedClients.length} synced clients to check for photos`);
 
-      for (const client of syncedClients) {
-        await this.syncClientPhotos(client, preferences);
+      // Batch processing for profile photos
+      if (preferences.enableProfilePhotoSync) {
+        const clientsNeedingProfilePhoto = await this.filterClientsNeedingProfilePhoto(syncedClients);
+        if (clientsNeedingProfilePhoto.length > 0) {
+          await this.syncProfilePhotosBatch(clientsNeedingProfilePhoto);
+        }
       }
+
+      // Batch processing for card photos
+      if (preferences.enableCardPhotoSync) {
+        const clientsNeedingCardPhoto = await this.filterClientsNeedingCardPhoto(syncedClients);
+        if (clientsNeedingCardPhoto.length > 0) {
+          await this.syncCardPhotosBatch(clientsNeedingCardPhoto);
+        }
+      }
+
     } catch (error) {
       this.log.log(`[PhotoSyncService] Error syncing photos: ${error}`);
       console.error('Error syncing photos:', error);
     }
   }
 
-  private async syncClientPhotos(client: Client, preferences: PhotoSyncPreferences): Promise<void> {
-    let needsUpdate = false;
-
-    // Synchroniser la photo de profil
-    if (preferences.enableProfilePhotoSync) {
-      const profilePhotoUpdated = await this.syncProfilePhoto(client);
-      if (profilePhotoUpdated) {
-        needsUpdate = true;
+  private async filterClientsNeedingProfilePhoto(clients: Client[]): Promise<Client[]> {
+    const needingPhoto: Client[] = [];
+    for (const client of clients) {
+      if (await this.shouldFetchProfilePhoto(client)) {
+        needingPhoto.push(client);
       }
     }
+    return needingPhoto;
+  }
 
-    // Synchroniser la photo de carte d'identité
-    if (preferences.enableCardPhotoSync) {
-      const cardPhotoUpdated = await this.syncCardPhoto(client);
-      if (cardPhotoUpdated) {
-        needsUpdate = true;
+  private async filterClientsNeedingCardPhoto(clients: Client[]): Promise<Client[]> {
+    const needingPhoto: Client[] = [];
+    for (const client of clients) {
+      if (await this.shouldFetchCardPhoto(client)) {
+        needingPhoto.push(client);
       }
     }
+    return needingPhoto;
+  }
 
-    // Marquer le client comme ayant des URLs de photos mises à jour
-    if (needsUpdate) {
-      await this.markClientPhotoUrlsUpdated(client.id);
+  private async syncProfilePhotosBatch(clients: Client[]): Promise<void> {
+    const clientIds = clients.map(c => parseInt(c.id, 10)); // Assuming IDs are numeric for backend
+    this.log.log(`[PhotoSyncService] Fetching profile photos for ${clientIds.length} clients`);
+
+    try {
+      const response = await this.fetchProfilePhotosBatchFromApi(clientIds);
+      if (response && response.data) {
+        const photos: { clientId: number, photo: string }[] = response.data;
+        for (const item of photos) {
+          if (item.photo) {
+            const client = clients.find(c => parseInt(c.id, 10) === item.clientId);
+            if (client) {
+              const photoPath = await this.savePhotoToFileSystem(
+                item.photo,
+                this.PROFILE_PHOTO_DIR,
+                `profile_${client.id}_${Date.now()}.png`
+              );
+              await this.updateClientProfilePhotoUrl(client.id, photoPath);
+              await this.markClientPhotoUrlsUpdated(client.id);
+            }
+          }
+        }
+        this.log.log(`[PhotoSyncService] Batch profile photos synced for ${photos.length} clients`);
+      }
+    } catch (error) {
+      this.log.log(`[PhotoSyncService] Error syncing batch profile photos: ${error}`);
     }
   }
 
-  private async syncProfilePhoto(client: Client): Promise<boolean> {
+  private async syncCardPhotosBatch(clients: Client[]): Promise<void> {
+    const clientIds = clients.map(c => parseInt(c.id, 10));
+    this.log.log(`[PhotoSyncService] Fetching card photos for ${clientIds.length} clients`);
+
     try {
-      // Vérifier si la photo de profil doit être récupérée
-      if (!(await this.shouldFetchProfilePhoto(client))) {
-        return false;
+      const response = await this.fetchCardPhotosBatchFromApi(clientIds);
+      if (response && response.data) {
+        const photos: { clientId: number, photo: string }[] = response.data;
+        for (const item of photos) {
+          if (item.photo) {
+            const client = clients.find(c => parseInt(c.id, 10) === item.clientId);
+            if (client) {
+              const photoPath = await this.savePhotoToFileSystem(
+                item.photo,
+                this.CARD_PHOTO_DIR,
+                `card_${client.id}_${Date.now()}.png`
+              );
+              await this.updateClientCardPhotoUrl(client.id, photoPath);
+              await this.markClientPhotoUrlsUpdated(client.id);
+            }
+          }
+        }
+        this.log.log(`[PhotoSyncService] Batch card photos synced for ${photos.length} clients`);
       }
-
-      this.log.log(`[PhotoSyncService] Fetching profile photo for client ${client.id}`);
-      
-      const photoData = await this.fetchProfilePhotoFromApi(client.id);
-      if (!photoData || !photoData.data) {
-        this.log.log(`[PhotoSyncService] No profile photo data for client ${client.id}`);
-        return false;
-      }
-
-      // Sauvegarder la photo dans le système de fichiers
-      const photoPath = await this.savePhotoToFileSystem(
-        photoData.data, 
-        this.PROFILE_PHOTO_DIR, 
-        `profile_${client.id}_${Date.now()}.png`
-      );
-
-      // Mettre à jour l'URL de la photo de profil
-      await this.updateClientProfilePhotoUrl(client.id, photoPath);
-      
-      this.log.log(`[PhotoSyncService] Profile photo saved for client ${client.id} at ${photoPath}`);
-      return true;
-
     } catch (error) {
-      this.log.log(`[PhotoSyncService] Error syncing profile photo for client ${client.id}: ${error}`);
-      return false;
+      this.log.log(`[PhotoSyncService] Error syncing batch card photos: ${error}`);
     }
   }
 
-  private async syncCardPhoto(client: Client): Promise<boolean> {
-    try {
-      // Vérifier si la photo de carte doit être récupérée
-      if (!(await this.shouldFetchCardPhoto(client))) {
-        return false;
-      }
+  private async fetchProfilePhotosBatchFromApi(clientIds: number[]): Promise<any> {
+    const url = `${environment.apiUrl}/api/v1/clients/profil-photos`;
+    return this.http.post<any>(url, clientIds).toPromise();
+  }
 
-      this.log.log(`[PhotoSyncService] Fetching card photo for client ${client.id}`);
-      
-      const photoData = await this.fetchCardPhotoFromApi(client.id);
-      if (!photoData || !photoData.data) {
-        this.log.log(`[PhotoSyncService] No card photo data for client ${client.id}`);
-        return false;
-      }
-
-      // Sauvegarder la photo dans le système de fichiers
-      const photoPath = await this.savePhotoToFileSystem(
-        photoData.data, 
-        this.CARD_PHOTO_DIR, 
-        `card_${client.id}_${Date.now()}.png`
-      );
-
-      // Mettre à jour l'URL de la photo de carte
-      await this.updateClientCardPhotoUrl(client.id, photoPath);
-      
-      this.log.log(`[PhotoSyncService] Card photo saved for client ${client.id} at ${photoPath}`);
-      return true;
-
-    } catch (error) {
-      this.log.log(`[PhotoSyncService] Error syncing card photo for client ${client.id}: ${error}`);
-      return false;
-    }
+  private async fetchCardPhotosBatchFromApi(clientIds: number[]): Promise<any> {
+    const url = `${environment.apiUrl}/api/v1/clients/card-photos`;
+    return this.http.post<any>(url, clientIds).toPromise();
   }
 
   private async shouldFetchProfilePhoto(client: Client): Promise<boolean> {
@@ -177,7 +190,7 @@ export class PhotoSyncService {
     if (!client.profilPhotoUrl) {
       return true;
     }
-    
+
     // Vérifier si le fichier existe dans le système de fichiers
     try {
       const exists = await this.checkIfFileExists(client.profilPhotoUrl);
@@ -192,7 +205,7 @@ export class PhotoSyncService {
     if (!client.cardPhotoUrl) {
       return true;
     }
-    
+
     // Vérifier si le fichier existe dans le système de fichiers
     try {
       const exists = await this.checkIfFileExists(client.cardPhotoUrl);
@@ -214,16 +227,6 @@ export class PhotoSyncService {
     }
   }
 
-  private async fetchProfilePhotoFromApi(clientId: string): Promise<any> {
-    const url = `${environment.apiUrl}/api/v1/clients/profil-photo/${clientId}`;
-    return this.http.get<any>(url).toPromise();
-  }
-
-  private async fetchCardPhotoFromApi(clientId: string): Promise<any> {
-    const url = `${environment.apiUrl}/api/v1/clients/card-photo/${clientId}`;
-    return this.http.get<any>(url).toPromise();
-  }
-
   private async savePhotoToFileSystem(base64Data: string, directory: string, fileName: string): Promise<string> {
     try {
       // Créer le répertoire s'il n'existe pas.
@@ -243,7 +246,7 @@ export class PhotoSyncService {
       }
 
       const filePath = `${directory}/${fileName}`;
-      
+
       // Sauvegarder le fichier
       await Filesystem.writeFile({
         path: filePath,

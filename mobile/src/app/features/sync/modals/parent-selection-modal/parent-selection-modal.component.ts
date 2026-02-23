@@ -54,7 +54,6 @@ export type ParentEntityType = 'client' | 'distribution' | 'tontine-member';
     IonItem,
     IonLabel,
     IonIcon,
-    IonBadge,
     IonSpinner,
     IonFooter,
     IonInfiniteScroll,

@@ -67,8 +67,8 @@ public class MobileController {
     @GetMapping(value = "credit-timelines/{commercialId}")
     public ResponseEntity<Response> getCreditTimelinesByCollector(@PathVariable String commercialId) {
         log.info("Récupération des CreditTimeline des 30 derniers jours pour le collector: {}", commercialId);
-        var creditTimelines = creditTimelineService.getLast30DaysByCollector(commercialId);
-        var mobileDtos = creditTimelineMobileMapper.toMobileDtoList(creditTimelines);
+        // Utilisation de la méthode optimisée avec projection DTO directe
+        var mobileDtos = creditTimelineService.getLast30DaysMobileDtosByCollector(commercialId);
         log.info("Nombre de CreditTimeline récupérés: {}", mobileDtos.size());
         return new ResponseEntity<>(ResponseUtil.successResponse(mobileDtos, "Les recouvrements sont récupérés avec succès !"), HttpStatus.OK);
     }

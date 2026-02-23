@@ -31,7 +31,10 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
     }
 
     override async syncBatch(limit: number = 50, failedClientIds: string[] = []): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        // Sync des entités locales (CREATE)
         const unsyncedMembers = await this.fetchUnsynced(limit);
+        // Sync des entités modifiées (UPDATE)
+        const modifiedMembers = await this.fetchModified(limit);
 
         let success = 0;
         let errors = 0;
@@ -39,6 +42,7 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
 
         const clientIdsToCheck = failedClientIds.length > 0 ? failedClientIds : this.failedClientIds;
 
+        // Process unsynced (CREATE)
         for (const member of unsyncedMembers) {
             if (clientIdsToCheck.includes(member.clientId)) {
                 errors++;
@@ -64,6 +68,18 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
             }
         }
 
+        // Process modified (UPDATE)
+        for (const member of modifiedMembers) {
+            try {
+                await this.syncSingle(member);
+                success++;
+            } catch (error) {
+                errors++;
+                failedIds.push(member.id);
+                await this.handleError(member.id, 'UPDATE', error, member, `Membre Tontine ${member.id}`);
+            }
+        }
+
         return { success, errors, failedIds };
     }
 
@@ -83,9 +99,31 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
             commercialUsername,
             0,
             limit,
-            { isSync: false }
+            { isSync: false, isLocal: true }
         );
         return page.content;
+    }
+
+    protected async fetchModified(limit: number): Promise<TontineMember[]> {
+        const commercialUsername = this.authService.currentUser?.username || '';
+        if (!commercialUsername) return [];
+
+        const page = await this.tontineMemberRepositoryExtensions.findByCommercialPaginated(
+            commercialUsername,
+            0,
+            limit,
+            { isSync: false, isLocal: false }
+        );
+        return page.content;
+    }
+
+    override async getUnsyncedCount(): Promise<number> {
+        const commercialUsername = this.authService.currentUser?.username || '';
+        if (!commercialUsername) return 0;
+        const page = await this.tontineMemberRepositoryExtensions.findByCommercialPaginated(
+            commercialUsername, 0, 1, { isSync: false, isLocal: true }
+        );
+        return page.totalElements;
     }
 
     private async syncSingleTontineMember(member: TontineMember): Promise<TontineMemberSyncResponse> {

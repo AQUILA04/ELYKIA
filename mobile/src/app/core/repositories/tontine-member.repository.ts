@@ -77,18 +77,18 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
         const today = new Date().toISOString().split('T')[0];
 
         const query = `
-            SELECT 
-                tm.*, 
-                c.fullName as clientName, 
+            SELECT
+                tm.*,
+                c.fullName as clientName,
                 c.phone as clientPhone,
                 c.quarter as clientQuarter,
-                CASE 
+                CASE
                     WHEN EXISTS (
-                        SELECT 1 FROM tontine_collections tc 
-                        WHERE tc.tontineMemberId = tm.id 
+                        SELECT 1 FROM tontine_collections tc
+                        WHERE tc.tontineMemberId = tm.id
                         AND substr(tc.collectionDate, 1, 10) = ?
-                    ) THEN 1 
-                    ELSE 0 
+                    ) THEN 1
+                    ELSE 0
                 END as isPaidToday
             FROM tontine_members tm
             LEFT JOIN clients c ON tm.clientId = c.id
@@ -147,4 +147,13 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
         ]);
     }
 
+    override async countUnsynced(): Promise<number> {
+        // This method should ideally filter by commercialUsername, but BaseRepository signature doesn't allow arguments.
+        // However, since we are in a specific repository, we might want to rely on the service layer to call a specific count method
+        // or just return the total unsynced count for now as per BaseRepository contract.
+        // But to fix Bug #4, we should try to filter if possible or rely on service.
+        // Since we can't easily inject AuthService here without circular deps or architectural changes,
+        // we will leave this as is and rely on the service layer using `getUnsyncedCount` which we will override in the service.
+        return super.countUnsynced();
+    }
 }

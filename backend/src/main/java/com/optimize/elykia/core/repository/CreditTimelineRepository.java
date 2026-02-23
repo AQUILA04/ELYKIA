@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
+import com.optimize.elykia.core.dto.CreditTimelineMobileDto;
 import com.optimize.elykia.core.entity.CreditTimeline;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,4 +51,18 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
     boolean existsByReference(String reference);
 
     Page<CreditTimeline> findByCredit_Client_Id(Long clientId, Pageable pageable);
+
+    @Query("SELECT new com.optimize.elykia.core.dto.CreditTimelineMobileDto(" +
+            "ct.id, ct.amount, ct.createdDate, ct.normalStake, ct.collector, " +
+            "c.id, cl.id, ct.reference) " +
+            "FROM CreditTimeline ct " +
+            "LEFT JOIN ct.credit c " +
+            "LEFT JOIN c.client cl " +
+            "WHERE ct.collector = :collector " +
+            "AND ct.createdDate >= :dateFrom " +
+            "AND ct.createdDate <= :dateTo")
+    List<CreditTimelineMobileDto> findMobileDtosByCollectorAndDateRange(
+            @Param("collector") String collector,
+            @Param("dateFrom") LocalDateTime dateFrom,
+            @Param("dateTo") LocalDateTime dateTo);
 }

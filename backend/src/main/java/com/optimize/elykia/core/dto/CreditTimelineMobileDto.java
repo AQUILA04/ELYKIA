@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
  * Mappé vers le modèle Recovery côté mobile
  */
 @Data
+@NoArgsConstructor
 public class CreditTimelineMobileDto {
     private String id; // ID du CreditTimeline converti en String
     private Double amount;
@@ -21,4 +23,18 @@ public class CreditTimelineMobileDto {
     private String reference; // reference du CreditTimeline (ID mobile si existe)
     private Boolean isSync; // Toujours true car vient du serveur
     private LocalDateTime syncDate; // Date de récupération
+
+    public CreditTimelineMobileDto(Long id, Double amount, LocalDateTime createdDate, Boolean normalStake, String collector, Long creditId, Long clientId, String reference) {
+        this.id = id != null ? id.toString() : null;
+        this.amount = amount;
+        this.paymentDate = createdDate;
+        this.createdAt = createdDate;
+        this.isDefaultStake = normalStake;
+        this.commercialId = collector;
+        this.distributionId = creditId != null ? creditId.toString() : null;
+        this.clientId = clientId != null ? clientId.toString() : null;
+        this.reference = reference;
+        this.isSync = true;
+        this.syncDate = LocalDateTime.now();
+    }
 }

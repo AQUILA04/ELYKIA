@@ -1,6 +1,6 @@
 /**
  * Tontine Collection Repository Extensions
- * 
+ *
  * This file contains pagination-specific methods for the TontineCollectionRepository.
  * All methods enforce commercial-level data isolation.
  */
@@ -25,7 +25,7 @@ export class TontineCollectionRepositoryExtensions {
 
     /**
      * Get paginated tontine collections (views) for a specific commercial
-     * 
+     *
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param page Page number
      * @param size Page size
@@ -60,8 +60,8 @@ export class TontineCollectionRepositoryExtensions {
         // Count with JOIN
         // Note: join might be needed if filtering by client quarter
         const countSql = `
-            SELECT COUNT(*) as total 
-            FROM tontine_collections tc 
+            SELECT COUNT(*) as total
+            FROM tontine_collections tc
             JOIN tontine_members tm ON tc.tontineMemberId = tm.id
             JOIN clients c ON tm.clientId = c.id
             WHERE ${whereClause}
@@ -72,14 +72,14 @@ export class TontineCollectionRepositoryExtensions {
 
         // Data with JOIN
         const dataSql = `
-            SELECT tc.*, 
-                   c.fullName as clientName, 
+            SELECT tc.*,
+                   c.fullName as clientName,
                    c.quarter as clientQuarter
-            FROM tontine_collections tc 
+            FROM tontine_collections tc
             JOIN tontine_members tm ON tc.tontineMemberId = tm.id
             JOIN clients c ON tm.clientId = c.id
-            WHERE ${whereClause} 
-            ORDER BY tc.collectionDate DESC 
+            WHERE ${whereClause}
+            ORDER BY tc.collectionDate DESC
             LIMIT ${size} OFFSET ${offset}
         `;
 
@@ -97,7 +97,7 @@ export class TontineCollectionRepositoryExtensions {
 
     /**
      * Get total collection amount for a specific commercial
-     * 
+     *
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param filters Optional filters
      * @returns Total collection amount
@@ -120,8 +120,8 @@ export class TontineCollectionRepositoryExtensions {
         // Need JOIN if filtering by client attributes (which applyFilters might do)
         // applyFilters uses 'c.quarter' so we need to join clients
         const sql = `
-            SELECT COALESCE(SUM(tc.amount), 0) as total 
-            FROM tontine_collections tc 
+            SELECT COALESCE(SUM(tc.amount), 0) as total
+            FROM tontine_collections tc
             JOIN tontine_members tm ON tc.tontineMemberId = tm.id
             JOIN clients c ON tm.clientId = c.id
             WHERE ${whereClause}
@@ -184,8 +184,8 @@ export class TontineCollectionRepositoryExtensions {
 
         // Count
         const countSql = `
-            SELECT COUNT(*) as total 
-            FROM tontine_collections tc 
+            SELECT COUNT(*) as total
+            FROM tontine_collections tc
             JOIN tontine_members tm ON tc.tontineMemberId = tm.id
             JOIN clients c ON tm.clientId = c.id
             WHERE ${whereClause}
@@ -197,16 +197,23 @@ export class TontineCollectionRepositoryExtensions {
         // Data
         const dataSql = `
             SELECT tc.*
-            FROM tontine_collections tc 
+            FROM tontine_collections tc
             JOIN tontine_members tm ON tc.tontineMemberId = tm.id
             JOIN clients c ON tm.clientId = c.id
-            WHERE ${whereClause} 
-            ORDER BY tc.collectionDate DESC 
+            WHERE ${whereClause}
+            ORDER BY tc.collectionDate DESC
             LIMIT ${size} OFFSET ${offset}
         `;
 
         const dataResult = await this.tontineCollectionRepository['getDatabaseService']().query(dataSql, params);
-        const content = (dataResult.values || []) as TontineCollection[];
+        const rows = (dataResult.values || []) as any[];
+
+        const content = rows.map((row: any) => ({
+            ...row,
+            isLocal: !!row.isLocal,
+            isSync: !!row.isSync,
+            isDeliveryCollection: !!row.isDeliveryCollection,
+        })) as TontineCollection[];
 
         return {
             content,

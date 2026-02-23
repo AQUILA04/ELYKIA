@@ -22,9 +22,9 @@ export class TontineMemberRepositoryExtensions {
 
     /**
      * Get paginated tontine members for a specific session and commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param sessionId ID of the tontine session
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param page Page number (zero-indexed)
@@ -58,8 +58,8 @@ export class TontineMemberRepositoryExtensions {
 
         // Count total items with JOIN (needed for quarter filter)
         const countSql = `
-            SELECT COUNT(*) as total 
-            FROM tontine_members tm 
+            SELECT COUNT(*) as total
+            FROM tontine_members tm
             JOIN clients c ON tm.clientId = c.id
             WHERE ${whereClause}
         `;
@@ -69,14 +69,14 @@ export class TontineMemberRepositoryExtensions {
 
         // Get paginated data with client details
         const dataSql = `
-            SELECT 
-                tm.*, 
-                c.fullName as clientName, 
+            SELECT
+                tm.*,
+                c.fullName as clientName,
                 c.phone as clientPhone,
                 c.quarter as clientQuarter,
-                CASE 
-                    WHEN tc.id IS NOT NULL THEN 1 
-                    ELSE 0 
+                CASE
+                    WHEN tc.id IS NOT NULL THEN 1
+                    ELSE 0
                 END as hasPaidToday
             FROM tontine_members tm
             LEFT JOIN clients c ON tm.clientId = c.id
@@ -86,47 +86,108 @@ export class TontineMemberRepositoryExtensions {
             LIMIT ${size} OFFSET ${offset}
         `;
 
-        const dataParams = [...params, today];
-        // WAIT. params are for WHERE clause.
-        // dataSql has `?` in LEFT JOIN ON clause for `tc.collectionDate`.
-        // The order of params must match the `?` appearances.
-        // `tc` join is BEFORE `WHERE`.
-        // So `today` should come BEFORE `params`?
-        // NO. `whereClause` is used in `WHERE`. 
-        // `WHERE` is AFTER `LEFT JOIN`.
-        // So parameters for JOIN conditions come BEFORE parameters for WHERE conditions.
-        // In my SQL string:
-        // `... LEFT JOIN ... = ? WHERE ...`
-        // So order is [today, ...params].
-        // Verification:
-        // params contains [sessionId, commercialUsername, ...filters].
-        // SQL:
-        // SELECT ... 
-        // FROM ...
-        // LEFT JOIN ... = ? (today)
-        // WHERE ... ? (sessionId) AND ? (commercial) AND ...
-        // So yes, [today, ...params] is correct.
-
         const dataResult = await this.tontineMemberRepository['getDatabaseService']().query(dataSql, [today, ...params]);
         const rows = (dataResult.values || []) as any[];
 
         // Map rows to TontineMemberView
         const content: TontineMemberView[] = rows.map((row: any) => {
-            // TontineMemberView extends TontineMember
-            // row has flat properties and tm.* properties.
-            // We need to map boolean fields if they come as 0/1 from SQLite?
-            // SQLite returns 0/1 for booleans.
-            // Models likely expect boolean.
-            // TontineMember has `isLocal`, `isSync`, `locked`.
-            // We might need to cast/convert.
-            // `row` has `hasPaidToday` as 0/1.
             return {
                 ...row,
                 hasPaidToday: !!row.hasPaidToday,
                 isLocal: !!row.isLocal,
                 isSync: !!row.isSync,
                 locked: !!row.locked,
-                // Ensure other fields are correct type if needed
+            };
+        });
+
+        return {
+            content,
+            totalElements,
+            totalPages,
+            page,
+            size
+        };
+    }
+
+    /**
+     * Get paginated tontine member views for a specific commercial and year
+     *
+     * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
+     *
+     * @param commercialUsername Username of the commercial (REQUIRED)
+     * @param year Year of the tontine session
+     * @param page Page number (zero-indexed)
+     * @param size Number of items per page
+     * @param filters Optional filters
+     * @returns Page of tontine member views
+     */
+    async findViewsByCommercialAndYearPaginated(
+        commercialUsername: string,
+        year: number,
+        page: number,
+        size: number,
+        filters?: TontineMemberRepositoryFilters
+    ): Promise<Page<TontineMemberView>> {
+        if (!commercialUsername) {
+            throw new Error('commercialUsername is required for security - cannot query tontine member views without commercial filter');
+        }
+
+        const offset = page * size;
+        const today = new Date().toISOString().split('T')[0];
+
+        // Build WHERE clause with MANDATORY commercial filter
+        const commercialCondition = buildCommercialFilterCondition('tontineMember', 'tm');
+        let whereConditions = [commercialCondition, 'ts.year = ?'];
+        const params: any[] = [commercialUsername, year];
+
+        // Add optional filters
+        this.applyFilters(whereConditions, params, filters);
+
+        const whereClause = whereConditions.join(' AND ');
+
+        // Count total items with JOIN
+        const countSql = `
+            SELECT COUNT(*) as total
+            FROM tontine_members tm
+            JOIN tontine_sessions ts ON tm.tontineSessionId = ts.id
+            JOIN clients c ON tm.clientId = c.id
+            WHERE ${whereClause}
+        `;
+        const countResult = await this.tontineMemberRepository['getDatabaseService']().query(countSql, params);
+        const totalElements = countResult.values?.[0]?.total || 0;
+        const totalPages = Math.ceil(totalElements / size);
+
+        // Get paginated data with client details
+        const dataSql = `
+            SELECT
+                tm.*,
+                c.fullName as clientName,
+                c.phone as clientPhone,
+                c.quarter as clientQuarter,
+                CASE
+                    WHEN tc.id IS NOT NULL THEN 1
+                    ELSE 0
+                END as hasPaidToday
+            FROM tontine_members tm
+            JOIN tontine_sessions ts ON tm.tontineSessionId = ts.id
+            LEFT JOIN clients c ON tm.clientId = c.id
+            LEFT JOIN tontine_collections tc ON tm.id = tc.tontineMemberId AND substr(tc.collectionDate, 1, 10) = ?
+            WHERE ${whereClause}
+            ORDER BY c.fullName ASC
+            LIMIT ${size} OFFSET ${offset}
+        `;
+
+        const dataResult = await this.tontineMemberRepository['getDatabaseService']().query(dataSql, [today, ...params]);
+        const rows = (dataResult.values || []) as any[];
+
+        // Map rows to TontineMemberView
+        const content: TontineMemberView[] = rows.map((row: any) => {
+            return {
+                ...row,
+                hasPaidToday: !!row.hasPaidToday,
+                isLocal: !!row.isLocal,
+                isSync: !!row.isSync,
+                locked: !!row.locked,
             };
         });
 
@@ -141,9 +202,9 @@ export class TontineMemberRepositoryExtensions {
 
     /**
      * Count tontine members for a specific session and commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param sessionId ID of the tontine session
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param filters Optional filters
@@ -171,17 +232,12 @@ export class TontineMemberRepositoryExtensions {
         let sql = '';
         if (filters?.searchQuery || filters?.quarter) {
             sql = `
-                SELECT COUNT(*) as total 
-                FROM tontine_members tm 
+                SELECT COUNT(*) as total
+                FROM tontine_members tm
                 JOIN clients c ON tm.clientId = c.id
                 WHERE ${whereClause}
             `;
         } else {
-            // Optimization: if no client filters, we don't need to join, 
-            // BUT `applyFilters` adds `tm.` prefix to commercial condition.
-            // If we don't join, we must ensure table alias is valid or unused if we remove alias.
-            // But existing code uses `tm.` prefix.
-            // `SELECT COUNT(*) FROM tontine_members tm WHERE ...` is valid.
             sql = `SELECT COUNT(*) as total FROM tontine_members tm WHERE ${whereClause}`;
         }
 
@@ -192,9 +248,9 @@ export class TontineMemberRepositoryExtensions {
 
     /**
      * Count tontine members for a specific commercial (across all sessions)
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param filters Optional filters
      * @returns Total count of tontine members
@@ -235,8 +291,8 @@ export class TontineMemberRepositoryExtensions {
         let sql = '';
         if (filters?.searchQuery) {
             sql = `
-                SELECT COUNT(*) as total 
-                FROM tontine_members tm 
+                SELECT COUNT(*) as total
+                FROM tontine_members tm
                 JOIN clients c ON tm.clientId = c.id
                 WHERE ${whereClause}
             `;
@@ -250,9 +306,9 @@ export class TontineMemberRepositoryExtensions {
 
     /**
      * Get total collected amount for a tontine session (filtered by commercial)
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param sessionId ID of the tontine session
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @returns Total collected amount
@@ -279,9 +335,9 @@ export class TontineMemberRepositoryExtensions {
 
     /**
      * Count pending deliveries for a tontine session (filtered by commercial)
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param sessionId ID of the tontine session
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @returns Count of pending deliveries
@@ -296,7 +352,7 @@ export class TontineMemberRepositoryExtensions {
 
         const commercialCondition = buildCommercialFilterCondition('tontineMember', 'tm');
         const sql = `
-            SELECT COUNT(*) as total 
+            SELECT COUNT(*) as total
             FROM tontine_members tm
             WHERE tm.tontineSessionId = ? AND ${commercialCondition} AND tm.deliveryStatus = 'PENDING'
         `;
@@ -310,7 +366,7 @@ export class TontineMemberRepositoryExtensions {
         page: number,
         size: number,
         filters?: TontineMemberRepositoryFilters
-    ): Promise<Page<TontineMember>> {
+    ): Promise<Page<TontineMemberView>> {
         if (!commercialUsername) {
             throw new Error('commercialUsername is required for security');
         }
@@ -326,8 +382,8 @@ export class TontineMemberRepositoryExtensions {
 
         // Count
         const countSql = `
-            SELECT COUNT(*) as total 
-            FROM tontine_members tm 
+            SELECT COUNT(*) as total
+            FROM tontine_members tm
             JOIN clients c ON tm.clientId = c.id
             WHERE ${whereClause}
         `;
@@ -337,7 +393,7 @@ export class TontineMemberRepositoryExtensions {
 
         // Data
         const dataSql = `
-            SELECT tm.*
+            SELECT tm.*, c.fullName as clientName
             FROM tontine_members tm
             JOIN clients c ON tm.clientId = c.id
             WHERE ${whereClause}
@@ -346,7 +402,14 @@ export class TontineMemberRepositoryExtensions {
         `;
 
         const dataResult = await this.tontineMemberRepository['getDatabaseService']().query(dataSql, params);
-        const content = (dataResult.values || []) as TontineMember[];
+        const rows = (dataResult.values || []) as any[];
+
+        const content = rows.map((row: any) => ({
+            ...row,
+            isLocal: !!row.isLocal,
+            isSync: !!row.isSync,
+            locked: !!row.locked,
+        })) as TontineMemberView[];
 
         return {
             content,
@@ -370,13 +433,13 @@ export class TontineMemberRepositoryExtensions {
                 // We use the same 'today' date as in the main query
                 const today = new Date().toISOString().split('T')[0];
                 whereConditions.push(`NOT EXISTS (
-                    SELECT 1 FROM tontine_collections tc 
-                    WHERE tc.tontineMemberId = tm.id 
+                    SELECT 1 FROM tontine_collections tc
+                    WHERE tc.tontineMemberId = tm.id
                     AND substr(tc.collectionDate, 1, 10) = ?
                 )`);
                 params.push(today);
             } else if (filters.status === 'ACTIVE') {
-                // Active usually implies they are in the session (which is already filtered) 
+                // Active usually implies they are in the session (which is already filtered)
                 // and maybe not delivered? Or just all active members.
                 // For now, if 'ACTIVE' is passed, we might filter by specific status if needed.
                 // If TontineMember had a status column: whereConditions.push('tm.status = ?'); params.push('ACTIVE');

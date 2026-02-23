@@ -1,6 +1,6 @@
 /**
  * Tontine Delivery Repository Extensions
- * 
+ *
  * This file contains pagination-specific methods for the TontineDeliveryRepository.
  * All methods enforce commercial-level data isolation.
  */
@@ -31,7 +31,7 @@ export class TontineDeliveryRepositoryExtensions {
 
     /**
      * Get paginated tontine deliveries (views) for a specific commercial
-     * 
+     *
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param page Page number
      * @param size Page size
@@ -62,8 +62,8 @@ export class TontineDeliveryRepositoryExtensions {
 
         // Count with JOIN
         const countSql = `
-            SELECT COUNT(*) as total 
-            FROM tontine_deliveries td 
+            SELECT COUNT(*) as total
+            FROM tontine_deliveries td
             JOIN tontine_members tm ON td.tontineMemberId = tm.id
             JOIN clients c ON tm.clientId = c.id
             WHERE ${whereClause}
@@ -74,14 +74,14 @@ export class TontineDeliveryRepositoryExtensions {
 
         // Data with JOIN
         const dataSql = `
-            SELECT td.*, 
-                   c.fullName as clientName, 
+            SELECT td.*,
+                   c.fullName as clientName,
                    c.quarter as clientQuarter
-            FROM tontine_deliveries td 
+            FROM tontine_deliveries td
             JOIN tontine_members tm ON td.tontineMemberId = tm.id
             JOIN clients c ON tm.clientId = c.id
-            WHERE ${whereClause} 
-            ORDER BY td.requestDate DESC 
+            WHERE ${whereClause}
+            ORDER BY td.requestDate DESC
             LIMIT ${size} OFFSET ${offset}
         `;
 
@@ -99,9 +99,9 @@ export class TontineDeliveryRepositoryExtensions {
 
     /**
      * Get total delivery amount for a specific commercial
-     * 
+     *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
-     * 
+     *
      * @param commercialUsername Username of the commercial (REQUIRED)
      * @param filters Optional filters
      * @returns Total delivery amount
@@ -123,8 +123,8 @@ export class TontineDeliveryRepositoryExtensions {
 
         // Need JOIN if filtering by client
         const sql = `
-            SELECT COALESCE(SUM(td.totalAmount), 0) as total 
-            FROM tontine_deliveries td 
+            SELECT COALESCE(SUM(td.totalAmount), 0) as total
+            FROM tontine_deliveries td
             JOIN tontine_members tm ON td.tontineMemberId = tm.id
             JOIN clients c ON tm.clientId = c.id
             WHERE ${whereClause}
@@ -187,8 +187,8 @@ export class TontineDeliveryRepositoryExtensions {
 
         // Count
         const countSql = `
-            SELECT COUNT(*) as total 
-            FROM tontine_deliveries td 
+            SELECT COUNT(*) as total
+            FROM tontine_deliveries td
             JOIN tontine_members tm ON td.tontineMemberId = tm.id
             JOIN clients c ON tm.clientId = c.id
             WHERE ${whereClause}
@@ -200,16 +200,22 @@ export class TontineDeliveryRepositoryExtensions {
         // Data
         const dataSql = `
             SELECT td.*
-            FROM tontine_deliveries td 
+            FROM tontine_deliveries td
             JOIN tontine_members tm ON td.tontineMemberId = tm.id
             JOIN clients c ON tm.clientId = c.id
-            WHERE ${whereClause} 
-            ORDER BY td.requestDate DESC 
+            WHERE ${whereClause}
+            ORDER BY td.requestDate DESC
             LIMIT ${size} OFFSET ${offset}
         `;
 
         const dataResult = await this.tontineDeliveryRepository['getDatabaseService']().query(dataSql, params);
-        const content = (dataResult.values || []) as TontineDelivery[];
+        const rows = (dataResult.values || []) as any[];
+
+        const content = rows.map((row: any) => ({
+            ...row,
+            isLocal: !!row.isLocal,
+            isSync: !!row.isSync,
+        })) as TontineDelivery[];
 
         return {
             content,

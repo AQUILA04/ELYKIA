@@ -197,6 +197,14 @@ public class ClientService extends GenericService<Client, Long> {
         return getRepository().getCardPhoto(id);
     }
 
+    public List<ClientPhotoDto> getProfilPhotos(List<Long> ids) {
+        return getRepository().getProfilPhotos(ids);
+    }
+
+    public List<ClientPhotoDto> getCardPhotos(List<Long> ids) {
+        return getRepository().getCardPhotos(ids);
+    }
+
     public Page<Client> getByOperator(String username, Pageable pageable) {
         return getRepository().findByCollectorAndCreditInProgressIsTrueAndStateOrderByQuarterAsc(username,
                 State.ENABLED, pageable);

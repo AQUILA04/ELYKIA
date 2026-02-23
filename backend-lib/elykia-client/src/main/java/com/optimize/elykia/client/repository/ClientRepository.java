@@ -2,6 +2,7 @@ package com.optimize.elykia.client.repository;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
+import com.optimize.elykia.client.dto.ClientPhotoDto;
 import com.optimize.elykia.client.dto.ClientRespDto;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
@@ -110,6 +111,12 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
 
     @Query(value = "SELECT c.IDDoc FROM Client c WHERE c.id = :id")
     byte[] getCardPhoto(Long id);
+
+    @Query(value = "SELECT new com.optimize.elykia.client.dto.ClientPhotoDto(c.id, c.profilPhoto) FROM Client c WHERE c.id IN :ids")
+    List<ClientPhotoDto> getProfilPhotos(List<Long> ids);
+
+    @Query(value = "SELECT new com.optimize.elykia.client.dto.ClientPhotoDto(c.id, c.IDDoc) FROM Client c WHERE c.id IN :ids")
+    List<ClientPhotoDto> getCardPhotos(List<Long> ids);
 
     boolean existsByFirstnameAndLastname(String firstname, String lastname);
 

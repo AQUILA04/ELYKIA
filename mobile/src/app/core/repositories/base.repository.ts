@@ -75,7 +75,7 @@ export abstract class BaseRepository<T, ID> implements Repository<T, ID> {
      * Get the database service instance
      * This method is provided for repository extensions that need direct database access
      * for complex queries (e.g., aggregations, KPI calculations)
-     * 
+     *
      * @returns DatabaseService instance
      */
     protected getDatabaseService(): DatabaseService {
@@ -95,6 +95,11 @@ export abstract class BaseRepository<T, ID> implements Repository<T, ID> {
         );
         if (result && result.values && result.values.length > 0) {
             return result.values[0].serverId;
+        }
+        // FALLBACK : si l'ID est déjà numérique, c'est un ID serveur direct
+        // (entité reçue du serveur, pas de mapping nécessaire)
+        if (/^\d+$/.test(localId)) {
+            return localId;
         }
         return null;
     }

@@ -122,7 +122,8 @@ export class ClientService {
 
               // Synchroniser les photos après l'initialisation des clients
               try {
-                await this.photoSyncService.syncPhotosForClients();
+                // Utiliser la nouvelle méthode de synchronisation par batch
+                await this.photoSyncService.syncPhotosForClients(clients);
                 this.log.log('[ClientService] Photo synchronization completed');
               } catch (error) {
                 this.log.log(`[ClientService] Photo synchronization failed: ${error}`);
