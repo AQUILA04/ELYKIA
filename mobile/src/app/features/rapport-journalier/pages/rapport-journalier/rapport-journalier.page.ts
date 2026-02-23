@@ -447,6 +447,19 @@ export class RapportJournalierPage implements OnDestroy {
   }
 
   goBack() {
+    if (this.commercialUsername) {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      this.store.dispatch(KpiActions.loadAllKpi({
+        commercialUsername: this.commercialUsername,
+        commercialId: this.commercialUsername,
+        dateFilter: {
+          startDate: startOfMonth.toISOString().split('T')[0],
+          endDate: now.toISOString().split('T')[0]
+        }
+      }));
+    }
     this.router.navigate(['/tabs/dashboard']);
   }
 

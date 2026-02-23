@@ -81,7 +81,7 @@
                                 <span class="member-status" [ngClass]="getStatusClass(member.deliveryStatus)">
                                     {{ getStatusLabel(member.deliveryStatus) }}
                                 </span>
-                                <ion-badge *ngIf="!member.isLocal" color="medium"
+                                <ion-badge *ngIf="member.isLocal && !member.isSync" color="medium"
                                     style="font-size: 10px; padding: 4px 6px;">
                                     <ion-icon name="cloud-offline-outline"
                                         style="font-size: 10px; margin-right: 2px;"></ion-icon>
@@ -124,7 +124,7 @@
                             <span class="member-status" [ngClass]="getStatusClass(member.deliveryStatus)">
                                 {{ getStatusLabel(member.deliveryStatus) }}
                             </span>
-                            <ion-badge *ngIf="!member.isLocal" color="medium"
+                            <ion-badge *ngIf="member.isLocal && !member.isSync" color="medium"
                                 style="font-size: 10px; padding: 4px 6px;">
                                 <ion-icon name="cloud-offline-outline"
                                     style="font-size: 10px; margin-right: 2px;"></ion-icon>
@@ -141,7 +141,7 @@
                 </div>
             </ng-container>
 
-            <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreMembers($event)">
+            <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreMembers($event)" [disabled]="!(hasMore$ | async)">
                 <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement plus de membres...">
                 </ion-infinite-scroll-content>
             </ion-infinite-scroll>

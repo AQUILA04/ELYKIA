@@ -3,7 +3,7 @@ import { Store } from '@ngrx/store';
 import { Observable, Subject, combineLatest, BehaviorSubject } from 'rxjs';
 import { takeUntil, map, startWith, tap, take, filter, switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TontineService } from 'src/app/core/services/tontine.service';
-import { selectTontineSession, selectPaginatedTontineMembers, selectTontineMemberPaginationLoading } from 'src/app/store/tontine/tontine.selectors';
+import { selectTontineSession, selectPaginatedTontineMembers, selectTontineMemberPaginationLoading, selectTontineMemberPaginationHasMore } from 'src/app/store/tontine/tontine.selectors';
 import { loadTontineSession, loadFirstPageTontineMembers, loadNextPageTontineMembers } from 'src/app/store/tontine/tontine.actions';
 import { ActionSheetController, NavController } from '@ionic/angular';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
@@ -21,6 +21,7 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
     session$: Observable<any>;
     members$: Observable<TontineMemberView[]>;
     loading$: Observable<boolean>;
+    hasMore$: Observable<boolean>;
 
     // Derived streams for UI
     groupedMembers$: Observable<{ quarter: string, members: TontineMemberView[] }[]>;
@@ -47,6 +48,7 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
         this.session$ = this.store.select(selectTontineSession);
         this.members$ = this.store.select(selectPaginatedTontineMembers);
         this.loading$ = this.store.select(selectTontineMemberPaginationLoading);
+        this.hasMore$ = this.store.select(selectTontineMemberPaginationHasMore);
 
         this.isGroupedView$ = this.statusFilter$.pipe(
             map(status => status === 'todo')
@@ -178,13 +180,13 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
             this.store.dispatch(loadNextPageTontineMembers({ sessionId: this.sessionId, filters }));
         }
 
-        // Timeout to complete infinite scroll is handled by Effect?
-        // Or we should listen to loading state?
-        // Simple approach: complete after short delay or listen to success action in component.
-        // For now, let's complete it after 500ms or listen to loading$
-        setTimeout(() => {
+        // Listen to loading state to complete the infinite scroll
+        this.loading$.pipe(
+            filter(loading => !loading),
+            take(1)
+        ).subscribe(() => {
             event.target.complete();
-        }, 1000);
+        });
     }
 
     filterByStatus(status: string) {

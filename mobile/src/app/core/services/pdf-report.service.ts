@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 import * as html2pdf from 'html2pdf.js';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PdfReportService {
-  
+
   private readonly REPORT_DIR = 'elykia/rapport';
-  
+
   constructor() { }
 
   /**
@@ -33,7 +34,7 @@ export class PdfReportService {
 
       // Générer le PDF et obtenir le blob
       const pdf = await html2pdf().from(element).set(options).output('blob');
-      
+
       // Supprimer l'élément temporaire
       document.body.removeChild(element);
 
@@ -68,18 +69,28 @@ export class PdfReportService {
    */
   async savePDFToExternalStorage(pdfBase64: string, filename: string): Promise<string> {
     try {
+      const isWeb = Capacitor.getPlatform() === 'web';
+      const directory = isWeb ? Directory.Data : Directory.Documents;
+
       // Créer le répertoire si nécessaire
-      await this.ensureDirectoryExists();
+      await this.ensureDirectoryExists(directory);
+
+      const fullPath = `${this.REPORT_DIR}/${filename}`;
 
       // Sauvegarder le fichier
       const result = await Filesystem.writeFile({
-        path: `${this.REPORT_DIR}/${filename}`,
+        path: fullPath,
         data: pdfBase64,
-        directory: Directory.Documents,
+        directory: directory,
         recursive: true
       });
 
       console.log('PDF sauvegardé:', result.uri);
+
+      if (isWeb) {
+        await this.downloadPDFFromWeb(filename, fullPath);
+      }
+
       return result.uri;
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du PDF:', error);
@@ -90,11 +101,11 @@ export class PdfReportService {
   /**
    * Assure que le répertoire existe
    */
-  private async ensureDirectoryExists(): Promise<void> {
+  private async ensureDirectoryExists(directory: Directory = Directory.Documents): Promise<void> {
     try {
       await Filesystem.mkdir({
         path: this.REPORT_DIR,
-        directory: Directory.Documents,
+        directory: directory,
         recursive: true
       });
     } catch (error) {
@@ -105,6 +116,33 @@ export class PdfReportService {
           console.error('Erreur lors de la création du répertoire:', error);
         }
       }
+    }
+  }
+
+  private async downloadPDFFromWeb(fileName: string, filePath: string): Promise<void> {
+    try {
+        // 1. Read the file from Capacitor storage
+        const result = await Filesystem.readFile({
+            path: filePath,
+            directory: Directory.Data
+        });
+
+        // 2. Convert Base64 to Blob
+        const base64Data = result.data;
+        const byteArray = Uint8Array.from(atob(base64Data as string), c => c.charCodeAt(0));
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+
+        // 3. Create a download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
+
+        // 4. Clean up
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Erreur lors du téléchargement du PDF', error);
     }
   }
 

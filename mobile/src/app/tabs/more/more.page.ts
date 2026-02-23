@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRe
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, from, Subject } from 'rxjs';
-import { takeUntil, take } from 'rxjs/operators';
+import { takeUntil, take, filter } from 'rxjs/operators';
 import { Commercial } from 'src/app/models/commercial.model';
 import { selectCommercial } from 'src/app/store/commercial/commercial.selectors';
 import * as AuthActions from 'src/app/store/auth/auth.actions';
@@ -98,7 +98,10 @@ export class MorePage implements OnInit, OnDestroy {
   ionViewWillEnter() {
     this.loadPendingErrorsCount();
     // Refresh KPIs so profile stats are up to date
-    this.store.select(selectAuthUser).pipe(take(1)).subscribe(user => {
+    this.store.select(selectAuthUser).pipe(
+      filter(user => !!user),
+      take(1)
+    ).subscribe(user => {
       if (user) {
         this.store.dispatch(KpiActions.loadClientKpi({ commercialUsername: user.username }));
         this.store.dispatch(KpiActions.loadDistributionKpi({ commercialId: user.username }));

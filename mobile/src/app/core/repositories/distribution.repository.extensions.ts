@@ -314,7 +314,7 @@ export class DistributionRepositoryExtensions {
         }
 
         const commercialCondition = buildCommercialFilterCondition('distribution');
-        let whereConditions = [commercialCondition, "status = 'ACTIVE'"];
+        let whereConditions = [commercialCondition, "(status = 'ACTIVE' OR status = 'INPROGRESS')"];
         const params: any[] = [commercialId];
 
         // Add date filter using helper function

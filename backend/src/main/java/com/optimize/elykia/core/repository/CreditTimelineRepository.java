@@ -27,8 +27,8 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
                 .mapToDouble(CreditTimeline::getAmount).sum();
     }
 
-    @Query(value = "select sum(amount) from credit_timeline ct join daily_accountancy da on ct.daily_accountancy_id=da.id where mod_user_id = :collector and cast(da.accounting_date as date) >= cast(:dateFrom as date) and cast(da.accounting_date as date) <= cast(:dateTo as date)", nativeQuery = true)
-    double sumAmountByCollectorAndDate(@Param(value = "collector") String collector, @Param(value = "dateFrom") LocalDateTime dateFrom, @Param(value = "dateTo") LocalDateTime dateTo);
+    @Query(value = "select sum(amount) from credit_timeline ct join daily_accountancy da on ct.daily_accountancy_id=da.id where ct.collector = :collector and cast(da.accounting_date as date) >= cast(:dateFrom as date) and cast(da.accounting_date as date) <= cast(:dateTo as date)", nativeQuery = true)
+    Double sumAmountByCollectorAndDate(@Param(value = "collector") String collector, @Param(value = "dateFrom") LocalDateTime dateFrom, @Param(value = "dateTo") LocalDateTime dateTo);
 
     @Query(value = "select sum(ct.amount) from credit_timeline ct join daily_accountancy da on ct.daily_accountancy_id=da.id where  cast(da.accounting_date as date) >= cast(:dateFrom as date) and cast(da.accounting_date as date) <= cast(:dateTo as date)", nativeQuery = true)
     Double sumAmountByDate( @Param(value = "dateFrom") LocalDateTime dateFrom, @Param(value = "dateTo") LocalDateTime dateTo);

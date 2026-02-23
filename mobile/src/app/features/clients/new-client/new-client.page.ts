@@ -16,6 +16,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import * as LocalityActions from 'src/app/store/locality/locality.actions';
 import { LoggerService } from '../../../core/services/logger.service';
+import { FaceDetection, PerformanceMode, LandmarkMode, ContourMode } from '@capacitor-mlkit/face-detection';
 
 export function ageValidator(minAge: number): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -326,8 +327,27 @@ export class NewClientPage implements OnInit, OnDestroy {
         width: 800,
         height: 800,
         allowEditing: true,
-        resultType: CameraResultType.DataUrl
+        resultType: Capacitor.getPlatform() === 'web' ? CameraResultType.DataUrl : CameraResultType.Uri
       });
+
+      if (Capacitor.getPlatform() !== 'web' && image.path) {
+        const hasFace = await this.validateFaceInImage(image.path);
+        if (!hasFace) {
+          await this.presentAlert('Visage non détecté', 'La photo doit contenir un visage. Veuillez reprendre la photo.');
+          return;
+        }
+
+        // Read the file to get the base64 data to maintain compatibility with existing logic
+        const fileData = await Filesystem.readFile({
+          path: image.path,
+        });
+
+        const dataUrl = `data:image/${image.format};base64,${fileData.data}`;
+
+        // Populate the image object with dataUrl so it's handled like on the web
+        image.dataUrl = dataUrl;
+      }
+
       this.photoToSave = image;
       this.clientForm.patchValue({ profilPhoto: image.dataUrl });
     } catch (error) {
@@ -339,6 +359,29 @@ export class NewClientPage implements OnInit, OnDestroy {
       // On web, if the user closes the file picker without selecting, it might throw "User cancelled photos app" or similar.
       // We can genericize the error message or just log it.
       await this.presentAlert('Erreur Caméra', 'Impossible de prendre une photo.');
+    }
+  }
+
+  private async validateFaceInImage(imagePath: string): Promise<boolean> {
+    try {
+      const result = await FaceDetection.processImage({
+        path: imagePath,
+        performanceMode: PerformanceMode.Fast,
+        landmarkMode: LandmarkMode.None,
+        contourMode: ContourMode.All,
+      });
+
+      if (result.faces.length === 0) {
+        this.log.log('[NewClientPage]: No face detected in image.');
+        console.warn('Aucun visage détecté.');
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.log.log('[NewClientPage]: Error during face detection: ' + error);
+      console.error('Erreur lors de la détection de visage:', error);
+      return false;
     }
   }
 
