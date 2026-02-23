@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -122,6 +123,37 @@ public class ClientService extends GenericService<Client, Long> {
         repository.saveAndFlush(client);
 
         return Boolean.TRUE;
+    }
+
+    @Transactional
+    public Boolean updatePhotosBatch(List<ClientPhotoBatchUpdateDto> dtos) {
+        for (ClientPhotoBatchUpdateDto dto : dtos) {
+            Client client = getById(dto.clientId());
+            if (StringUtils.hasText(dto.profilPhoto())) {
+                client.setProfilPhoto(Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto())));
+            }
+            if (StringUtils.hasText(dto.cardPhoto())) {
+                client.setIDDoc(Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto())));
+            }
+            repository.save(client);
+        }
+        repository.flush();
+        return Boolean.TRUE;
+    }
+
+    public List<ClientPhotoCheckDto> checkMissingPhotos(List<Long> ids) {
+        List<Client> clients = getRepository().findAllByIds(ids);
+        List<ClientPhotoCheckDto> result = new ArrayList<>();
+        
+        for (Client client : clients) {
+            boolean missingProfil = client.getProfilPhoto() == null || client.getProfilPhoto().length < 512;
+            boolean missingCard = client.getIDDoc() == null || client.getIDDoc().length < 512;
+            
+            if (missingProfil || missingCard) {
+                result.add(new ClientPhotoCheckDto(client.getId(), missingProfil, missingCard));
+            }
+        }
+        return result;
     }
 
     // Nouvelle méthode pour lavalidation

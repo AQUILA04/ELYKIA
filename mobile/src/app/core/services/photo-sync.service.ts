@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from, of } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Storage } from '@ionic/storage-angular';
 import { LoggerService } from './logger.service';
 import { DatabaseService } from './database.service';
@@ -285,5 +285,149 @@ export class PhotoSyncService {
   async markClientPhotoUrlsSynced(clientId: string): Promise<void> {
     const sql = `UPDATE clients SET updatedPhotoUrl = 0 WHERE id = ?`;
     await this.dbService.execute(sql, [clientId]);
+  }
+
+  // =================================================================================================
+  // REPAIR MISSING SERVER PHOTOS
+  // =================================================================================================
+
+  async repairServerPhotos(progressCallback?: (message: string) => void): Promise<void> {
+    if (!this.commercialUsername) {
+      this.log.log('[PhotoSyncService] Commercial user not identified. Cannot repair photos.');
+      return;
+    }
+
+    try {
+      if (progressCallback) progressCallback('Analyse des clients locaux...');
+
+      // 1. Récupérer les clients locaux synchronisés avec des URLs de photos
+      const allClients = await this.dbService.getClients(this.commercialUsername);
+      const candidates = allClients.filter(c =>
+        c.isSync &&
+        !c.isLocal &&
+        (c.profilPhotoUrl || c.cardPhotoUrl)
+      );
+
+      this.log.log(`[PhotoSyncService] Found ${candidates.length} candidates for repair`);
+      if (progressCallback) progressCallback(`${candidates.length} clients candidats trouvés.`);
+
+      // 2. Vérifier l'existence physique des fichiers
+      const validClients: Client[] = [];
+      for (const client of candidates) {
+        let hasValidFile = false;
+        if (client.profilPhotoUrl && await this.checkIfFileExists(client.profilPhotoUrl)) {
+          hasValidFile = true;
+        }
+        if (client.cardPhotoUrl && await this.checkIfFileExists(client.cardPhotoUrl)) {
+          hasValidFile = true;
+        }
+
+        if (hasValidFile) {
+          validClients.push(client);
+        }
+      }
+
+      this.log.log(`[PhotoSyncService] ${validClients.length} clients have valid local files`);
+      if (progressCallback) progressCallback(`${validClients.length} clients avec fichiers valides.`);
+
+      // 3. Batch Check avec le backend (par lots de 20)
+      const BATCH_SIZE = 20;
+      for (let i = 0; i < validClients.length; i += BATCH_SIZE) {
+        const batch = validClients.slice(i, i + BATCH_SIZE);
+        const batchIds = batch.map(c => parseInt(c.id, 10));
+
+        if (progressCallback) progressCallback(`Vérification lot ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(validClients.length/BATCH_SIZE)}...`);
+
+        const checkResponse = await this.http.post<any>(`${environment.apiUrl}/api/v1/clients/check-missing-photos`, batchIds).toPromise();
+
+        if (checkResponse && checkResponse.data) {
+          const missingList: { clientId: number, missingProfil: boolean, missingCard: boolean }[] = checkResponse.data;
+
+          // Filtrer ceux qui ont vraiment besoin d'une mise à jour
+          const toUpdate = missingList.filter(item => item.missingProfil || item.missingCard);
+
+          if (toUpdate.length > 0) {
+            await this.processRepairBatch(toUpdate, validClients, progressCallback);
+          }
+        }
+      }
+
+      if (progressCallback) progressCallback('Réparation terminée avec succès.');
+
+    } catch (error) {
+      this.log.log(`[PhotoSyncService] Error repairing photos: ${error}`);
+      if (progressCallback) progressCallback('Erreur lors de la réparation.');
+      console.error('Error repairing photos:', error);
+    }
+  }
+
+  private async processRepairBatch(
+    missingList: { clientId: number, missingProfil: boolean, missingCard: boolean }[],
+    clients: Client[],
+    progressCallback?: (message: string) => void
+  ): Promise<void> {
+
+    // Traiter par petits lots de 5 pour éviter OOM avec les Base64
+    const UPLOAD_BATCH_SIZE = 5;
+
+    for (let i = 0; i < missingList.length; i += UPLOAD_BATCH_SIZE) {
+      const batchItems = missingList.slice(i, i + UPLOAD_BATCH_SIZE);
+      const updateDtos: any[] = [];
+
+      for (const item of batchItems) {
+        const client = clients.find(c => parseInt(c.id, 10) === item.clientId);
+        if (!client) continue;
+
+        let profilPhotoBase64 = null;
+        let cardPhotoBase64 = null;
+
+        if (item.missingProfil && client.profilPhotoUrl) {
+          try {
+            const file = await Filesystem.readFile({
+              path: client.profilPhotoUrl,
+              directory: Directory.Data,
+              encoding: Encoding.UTF8 // Assuming base64 string is stored directly or read as string
+            });
+            // Si le fichier contient déjà le préfixe data:image..., on peut l'utiliser tel quel ou le nettoyer
+            // Ici on suppose que readFile retourne le contenu. Si c'est binaire, il faut ajuster.
+            // Généralement Filesystem.readFile retourne { data: string }
+            profilPhotoBase64 = file.data;
+          } catch (e) {
+            this.log.log(`[PhotoSyncService] Failed to read profile photo for ${client.id}: ${e}`);
+          }
+        }
+
+        if (item.missingCard && client.cardPhotoUrl) {
+          try {
+            const file = await Filesystem.readFile({
+              path: client.cardPhotoUrl,
+              directory: Directory.Data,
+              encoding: Encoding.UTF8
+            });
+            cardPhotoBase64 = file.data;
+          } catch (e) {
+            this.log.log(`[PhotoSyncService] Failed to read card photo for ${client.id}: ${e}`);
+          }
+        }
+
+        if (profilPhotoBase64 || cardPhotoBase64) {
+          updateDtos.push({
+            clientId: item.clientId,
+            profilPhoto: profilPhotoBase64,
+            cardPhoto: cardPhotoBase64
+          });
+        }
+      }
+
+      if (updateDtos.length > 0) {
+        if (progressCallback) progressCallback(`Envoi correctif pour ${updateDtos.length} clients...`);
+        try {
+          await this.http.post(`${environment.apiUrl}/api/v1/clients/photos-batch-update`, updateDtos).toPromise();
+          this.log.log(`[PhotoSyncService] Successfully repaired photos for ${updateDtos.length} clients`);
+        } catch (e) {
+          this.log.log(`[PhotoSyncService] Failed to upload repair batch: ${e}`);
+        }
+      }
+    }
   }
 }

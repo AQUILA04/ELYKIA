@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -50,12 +51,12 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
     @Transactional
     public AccountingDay openAccountingDay() {
         if (getRepository().existsByStatus(AccountingDayStatus.OPENED)) {
-            throw new ApplicationException("Une journée comptable ouverte existe déjà !");
-        }
-        if (getRepository().existsByStatusAndAccountingDate(AccountingDayStatus.CLOSED, LocalDate.now())) {
-            throw new ApplicationException("Cette Journée comptable est déjà fermée !");
+            return getByStatus(AccountingDayStatus.OPENED);
         }
         AccountingDay accountingDay = new AccountingDay();
+        if (getRepository().existsByStatusAndAccountingDate(AccountingDayStatus.CLOSED, LocalDate.now())) {
+            accountingDay.setAccountingDate(LocalDate.now().plusDays(1));
+        }
         create(accountingDay);
         dailyAccountingService.initDailyAccounting(accountingDay.getAccountingDate());
         creditRepository.updateDailyPaidForCredit();
@@ -66,13 +67,23 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
         return getRepository().findByStatus(status).orElseThrow(() -> new ResourceNotFoundException("Journée comptable introuvable !"));
     }
 
+    @Transactional
     public LocalDate getCurrentAccountingDate() {
-        return getByStatus(AccountingDayStatus.OPENED).getAccountingDate();
+        Optional<AccountingDay> optionalAccountingDay = getRepository().findByStatus(AccountingDayStatus.OPENED);
+        if (optionalAccountingDay.isPresent()) {
+            AccountingDay accountingDay = optionalAccountingDay.get();
+            if (accountingDay.getAccountingDate().isBefore(LocalDate.now())) {
+                closeAccountingDay();
+                return openAccountingDay().getAccountingDate();
+            }
+            return accountingDay.getAccountingDate();
+        }
+        return openAccountingDay().getAccountingDate();
     }
 
     @Transactional
     public AccountingDay closeAccountingDay() {
-        final LocalDate accountingDate = getCurrentAccountingDate();
+        final LocalDate accountingDate = getByStatus(AccountingDayStatus.OPENED).getAccountingDate();
         if (!getRepository().existsByStatus(AccountingDayStatus.OPENED)) {
             throw new ApplicationException("Il n'existe aucune journée comptable ouverte !");
         }
@@ -80,7 +91,12 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
             throw new ApplicationException("Cette Journée comptable est déjà fermée !");
         }
         if (this.dailyAccountingService.getDailyAccountancyService().isExistsOpenedCashDesk()) {
-            throw new ApplicationException("Toutes les caisses ne sont pas encore fermées !");
+            this.dailyAccountingService.getDailyAccountancyService().getOpenCashDesks().forEach(dailyAccountancy -> {
+                CloseCollectorOperationDto dto = new CloseCollectorOperationDto();
+                dto.setCollector(dailyAccountancy.getCollector());
+                dto.setRealTotalAmount(dailyAccountancy.getRealBalance());
+                dailyAccountingService.closeCollectorOperation(dto, accountingDate);
+            });
         }
         AccountingDay accountingDay = getByStatus(AccountingDayStatus.OPENED);
 

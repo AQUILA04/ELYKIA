@@ -118,6 +118,9 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
     @Query(value = "SELECT new com.optimize.elykia.client.dto.ClientPhotoDto(c.id, c.IDDoc) FROM Client c WHERE c.id IN :ids")
     List<ClientPhotoDto> getCardPhotos(List<Long> ids);
 
+    @Query(value = "SELECT c FROM Client c WHERE c.id IN :ids")
+    List<Client> findAllByIds(List<Long> ids);
+
     boolean existsByFirstnameAndLastname(String firstname, String lastname);
 
     // AJOUTÉ : Méthodes pour la vérification de l'unicité

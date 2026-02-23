@@ -332,4 +332,46 @@ export class MorePage implements OnInit, OnDestroy {
   openUserGuide() {
     window.location.href = '/user-guide/commercial/index.html';
   }
+
+  async repairServerPhotos() {
+    const alert = await this.alertController.create({
+      header: 'Réparer les photos serveur',
+      message: 'Cette action va vérifier les photos manquantes sur le serveur et tenter de les renvoyer depuis votre téléphone. Cela peut prendre du temps et consommer de la data.',
+      buttons: [
+        {
+          text: 'Annuler',
+          role: 'cancel'
+        },
+        {
+          text: 'Démarrer',
+          handler: async () => {
+            await this.performPhotoRepair();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private async performPhotoRepair() {
+    const loading = await this.loadingController.create({
+      message: 'Démarrage de la réparation...',
+      spinner: 'crescent'
+    });
+    await loading.present();
+
+    try {
+      await this.photoSyncService.repairServerPhotos((msg) => {
+        loading.message = msg;
+      });
+
+      await loading.dismiss();
+      await this.presentToast('Réparation des photos terminée.', 'success', 'top');
+    } catch (error) {
+      await loading.dismiss();
+      await this.presentToast('Erreur lors de la réparation des photos.', 'danger', 'top');
+      console.error('Photo repair error:', error);
+    }
+  }
 }
