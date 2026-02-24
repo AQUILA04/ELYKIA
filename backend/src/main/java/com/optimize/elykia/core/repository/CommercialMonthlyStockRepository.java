@@ -29,7 +29,7 @@ public interface CommercialMonthlyStockRepository extends GenericRepository<Comm
            "i.article.name, " +
            "i.article.type || ': ' || i.article.marque || ' ' || i.article.model, " +
            "i.article.sellingPrice, " +
-           "i.article.creditSalePrice, " +
+           "i.weightedAverageUnitPrice, " +
            "i.quantityRemaining) " +
            "FROM CommercialMonthlyStock s " +
            "JOIN s.items i " +

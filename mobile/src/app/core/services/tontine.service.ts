@@ -14,6 +14,7 @@ import { TontineCollectionRepositoryExtensions } from '../repositories/tontine-c
 import { TontineDeliveryRepositoryExtensions } from '../repositories/tontine-delivery.repository.extensions';
 import { TontineStockRepositoryExtensions } from '../repositories/tontine-stock.repository.extensions';
 import { TontineMemberRepository } from '../repositories/tontine-member.repository';
+import { TontineMemberAmountHistoryRepository } from '../repositories/tontine-member-amount-history.repository';
 
 @Injectable({
     providedIn: 'root'
@@ -32,7 +33,8 @@ export class TontineService {
         private tontineCollectionRepositoryExtensions: TontineCollectionRepositoryExtensions,
         private tontineDeliveryRepositoryExtensions: TontineDeliveryRepositoryExtensions,
         private tontineStockRepositoryExtensions: TontineStockRepositoryExtensions,
-        private memberRepo: TontineMemberRepository // Inject repository
+        private memberRepo: TontineMemberRepository,
+        private historyRepo: TontineMemberAmountHistoryRepository
     ) {
         this.store.select(selectAuthUser).subscribe(user => {
             this.commercialUsername = user?.username;
@@ -68,7 +70,8 @@ export class TontineService {
                         members: this.fetchAndSaveMembers(session.id).pipe(
                             switchMap(() => this.fetchAndSaveCollections())
                         ),
-                        stocks: this.fetchAndSaveStocks(session.id)
+                        stocks: this.fetchAndSaveStocks(session.id),
+                        history: this.fetchAndSaveAmountHistory(session.id)
                     }).pipe(
                         map(() => {
                             console.log('TontineService: Tontine initialization completed successfully.');
@@ -172,7 +175,8 @@ export class TontineService {
                                 amount: m.amount,
                                 notes: m.notes,
                                 isLocal: false,
-                                isSync: true
+                                isSync: true,
+                                updateScope: null // Reset updateScope on sync as it's processed by backend
                             };
                         });
 
@@ -246,6 +250,37 @@ export class TontineService {
             catchError(error => {
                 console.error(`TontineService: Error fetching members page ${page}:`, error);
                 this.log.log(`TontineService: Error fetching members page ${page}: ${JSON.stringify(error)}`);
+                return of(null);
+            })
+        );
+    }
+
+    /**
+     * Fetch amount history for members of the current session and commercial
+     */
+    fetchAndSaveAmountHistory(sessionId: string): Observable<any> {
+        console.log(`TontineService: Fetching amount history for session ${sessionId}...`);
+
+        return this.getHeaders().pipe(
+            switchMap(headers => this.http.get<any>(`${this.apiUrl}/tontines/members/history?commercial=${this.commercialUsername}`, { headers })),
+            switchMap(response => {
+                const history = response.data || [];
+                if (history.length === 0) return of(null);
+
+                const mappedHistory = history.map((h: any) => ({
+                    id: h.id,
+                    tontineMemberId: h.tontineMember?.id,
+                    amount: h.amount,
+                    startDate: h.startDate,
+                    endDate: h.endDate,
+                    creationDate: h.creationDate,
+                    syncHash: h.syncHash
+                }));
+
+                return from(this.historyRepo.saveAll(mappedHistory));
+            }),
+            catchError(error => {
+                console.warn('TontineService: Could not fetch history.', error);
                 return of(null);
             })
         );

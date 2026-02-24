@@ -127,7 +127,7 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
     }
 
     private async syncSingleTontineMember(member: TontineMember): Promise<TontineMemberSyncResponse> {
-        const syncRequest = await this.prepareTontineMemberSyncRequest(member);
+        const syncRequest = await this.prepareTontineMemberSyncRequest(member, false);
         const headers = this.getAuthHeaders();
 
         const response = await firstValueFrom(
@@ -146,7 +146,7 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
     }
 
     private async updateSingleTontineMember(member: TontineMember): Promise<TontineMemberSyncResponse> {
-        const syncRequest = await this.prepareTontineMemberSyncRequest(member);
+        const syncRequest = await this.prepareTontineMemberSyncRequest(member, true);
         const headers = this.getAuthHeaders();
 
         const response = await firstValueFrom(
@@ -163,7 +163,7 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
         return response.data;
     }
 
-    private async prepareTontineMemberSyncRequest(member: TontineMember): Promise<TontineMemberSyncRequest> {
+    private async prepareTontineMemberSyncRequest(member: TontineMember, isUpdate: boolean): Promise<TontineMemberSyncRequest> {
         const clientServerId = await this.repository.getServerId(member.clientId, 'client');
         if (!clientServerId) {
             throw new Error(`Impossible de trouver l'ID serveur pour le client local ${member.clientId}`);
@@ -172,7 +172,8 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
             clientId: parseInt(clientServerId, 10),
             frequency: member.frequency,
             amount: member.amount,
-            notes: member.notes
+            notes: member.notes,
+            updateScope: isUpdate ? member.updateScope : null
         };
     }
 }

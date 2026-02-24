@@ -64,6 +64,13 @@ public class TontineController {
                 tontineService.getMembers(user, search, deliveryStatus, commercial, pageable)), HttpStatus.OK);
     }
 
+    @GetMapping("/members/history")
+    public ResponseEntity<Response> getMembersHistory(
+            @RequestParam(required = false) String commercial) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(
+                tontineService.getMembersHistory(commercial)), HttpStatus.OK);
+    }
+
     @GetMapping("/members/{id}")
     public ResponseEntity<Response> getMemberById(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.getById(id)), HttpStatus.OK);

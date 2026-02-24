@@ -78,6 +78,26 @@
             <span>Le montant est requis et doit être supérieur à 0</span>
         </div>
 
+        <!-- Update Scope Section (Only visible when editing amount) -->
+        <div *ngIf="showUpdateScope">
+            <div class="section-header">
+                <ion-icon name="options-outline"></ion-icon>
+                <h2>Portée de la modification</h2>
+            </div>
+            <p class="helper-text">Le montant a changé. Veuillez choisir comment appliquer ce changement :</p>
+
+            <ion-list class="scope-list">
+                <ion-radio-group formControlName="updateScope">
+                    <ion-item *ngFor="let option of updateScopeOptions" lines="none" class="scope-item">
+                        <ion-radio [value]="option.value" slot="start"></ion-radio>
+                        <ion-label class="ion-text-wrap">
+                            <h3>{{option.label}}</h3>
+                        </ion-label>
+                    </ion-item>
+                </ion-radio-group>
+            </ion-list>
+        </div>
+
         <!-- Notes Section -->
         <div class="section-header">
             <ion-icon name="document-text-outline"></ion-icon>

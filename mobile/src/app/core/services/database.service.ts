@@ -77,7 +77,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 13; // Incremented for parameters table
+        const targetVersion = 15; // Incremented for tontine member amount history
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -474,6 +474,7 @@ export class DatabaseService {
             frequency TEXT,
             amount REAL,
             notes TEXT,
+            updateScope TEXT,
             FOREIGN KEY(tontineSessionId) REFERENCES tontine_sessions(id)
             -- IMPORTANT:
             -- On ne met plus de contrainte FOREIGN KEY(clientId) ici, car l'ID du client
@@ -482,6 +483,20 @@ export class DatabaseService {
             -- atomique (UPDATE sur clients + mises à jour des enfants) provoque une erreur
             -- de type "FOREIGN KEY constraint failed". L'intégrité est gérée applicativement
             -- via les mises à jour coordonnées dans SynchronizationService.markClientAsSynced.
+        );
+
+        -- Table de l'historique des montants des membres de tontine
+        CREATE TABLE IF NOT EXISTS tontine_member_amount_history (
+            id TEXT PRIMARY KEY,
+            tontineMemberId TEXT,
+            amount REAL,
+            startDate TEXT,
+            endDate TEXT,
+            creationDate TEXT,
+            isSync BOOLEAN DEFAULT 0,
+            syncDate DATETIME,
+            syncHash TEXT,
+            FOREIGN KEY(tontineMemberId) REFERENCES tontine_members(id)
         );
 
             -- Table des collectes de tontine
@@ -559,7 +574,7 @@ export class DatabaseService {
 
   private async verifyTables(): Promise<void> {
     try {
-      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items'];
+      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items', 'tontine_member_amount_history'];
       const result = await this.db?.query(`SELECT name FROM sqlite_master WHERE type='table'`);
       const existingTables = result?.values?.map(row => row.name) || [];
       const missingTables = expectedTables.filter(table => !existingTables.includes(table));
@@ -3060,15 +3075,15 @@ export class DatabaseService {
 
     const query = `
       INSERT OR REPLACE INTO tontine_members (
-        id, tontineSessionId, clientId, commercialUsername, totalContribution, deliveryStatus, registrationDate, frequency, amount, notes, isLocal, isSync, syncDate, syncHash
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, tontineSessionId, clientId, commercialUsername, totalContribution, deliveryStatus, registrationDate, frequency, amount, notes, isLocal, isSync, syncDate, syncHash, updateScope
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const set: capSQLiteSet[] = members.map(m => ({
       statement: query,
       values: [
         m.id, m.tontineSessionId, m.clientId, m.commercialUsername, m.totalContribution, m.deliveryStatus,
-        m.registrationDate, m.frequency, m.amount, m.notes, m.isLocal ? 1 : 0, m.isSync ? 1 : 0, m.syncDate || new Date().toISOString(), m.syncHash
+        m.registrationDate, m.frequency, m.amount, m.notes, m.isLocal ? 1 : 0, m.isSync ? 1 : 0, m.syncDate || new Date().toISOString(), m.syncHash, m.updateScope || null
       ]
     }));
 
@@ -3093,6 +3108,33 @@ export class DatabaseService {
     }
 
     const result = await this.db.query(query, params);
+    return result.values || [];
+  }
+
+  async saveTontineMemberAmountHistory(history: any[]): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized.');
+    if (!history.length) return;
+
+    const query = `
+      INSERT OR REPLACE INTO tontine_member_amount_history (
+        id, tontineMemberId, amount, startDate, endDate, creationDate, isSync, syncDate, syncHash
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const set: capSQLiteSet[] = history.map(h => ({
+      statement: query,
+      values: [
+        h.id, h.tontineMemberId, h.amount, h.startDate, h.endDate, h.creationDate,
+        1, new Date().toISOString(), h.syncHash
+      ]
+    }));
+
+    await this.db.executeSet(set);
+  }
+
+  async getTontineMemberAmountHistory(memberId: string): Promise<any[]> {
+    if (!this.db) throw new Error('Database not initialized.');
+    const result = await this.db.query('SELECT * FROM tontine_member_amount_history WHERE tontineMemberId = ? ORDER BY startDate DESC', [memberId]);
     return result.values || [];
   }
 

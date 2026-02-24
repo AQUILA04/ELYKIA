@@ -61,6 +61,9 @@ export class MigrationService {
       case 13:
         await this.migrateToV13(db);
         break;
+      case 14:
+        await this.migrateToV14(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -373,6 +376,24 @@ export class MigrationService {
       this.log.log(`Error in migration v13: ${error}`);
       console.error('Error in migration v13', error);
       throw error;
+    }
+  }
+
+  private async migrateToV14(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v14: Adding updateScope to tontine_members...');
+
+      await db.execute("ALTER TABLE tontine_members ADD COLUMN updateScope TEXT;");
+
+      this.log.log('Migration to v14 successful.');
+    } catch (error: any) {
+      if ((error.message && error.message.toLowerCase().includes('duplicate column')) || (error.toString && error.toString().toLowerCase().includes('duplicate column'))) {
+        this.log.log('Migration to v14 already applied.');
+      } else {
+        this.log.log(`Error in migration v14: ${error}`);
+        console.error('Error in migration v14', error);
+        throw error;
+      }
     }
   }
 }

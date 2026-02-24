@@ -305,6 +305,7 @@ export interface TontineMemberSyncRequest {
   frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
   amount?: number;
   notes?: string;
+  updateScope?: 'GLOBAL' | 'CURRENT_AND_FUTURE' | 'FUTURE_ONLY' | null;
 }
 
 export interface TontineCollectionSyncRequest {

@@ -43,6 +43,13 @@ public class CommercialMonthlyStockItem extends Auditable<String> {
 
     @Column(columnDefinition = "double precision default 0")
     private Double weightedAveragePurchasePrice = 0.0;
+
+    // Prix unitaire réel au moment de la dernière mise à jour
+    @Column(columnDefinition = "double precision default 0")
+    private Double lastUnitPrice = 0.0;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double lastPurchasePrice = 0.0;
     
     public void updateRemaining() {
         this.quantityRemaining = this.quantityTaken - this.quantitySold - this.quantityReturned;

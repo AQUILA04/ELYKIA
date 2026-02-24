@@ -27,6 +27,7 @@ export interface TontineMember {
     amount?: number;
     notes?: string;
     clientName?: string;
+    updateScope?: 'GLOBAL' | 'CURRENT_AND_FUTURE' | 'FUTURE_ONLY';
 }
 
 export interface TontineMemberView extends TontineMember {

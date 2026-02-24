@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -67,4 +69,8 @@ public class TontineMember extends BaseEntity<String> {
 
     @Transient
     private Double totalDeliveryCollections = 0.0;
+
+    @OneToMany(mappedBy = "tontineMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<TontineMemberAmountHistory> amountHistory = new ArrayList<>();
 }

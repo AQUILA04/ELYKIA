@@ -73,6 +73,8 @@ public class CreditService extends GenericService<Credit, Long> {
     private ParameterService parameterService;
 
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private CreditTimelineService creditTimelineService;
 
     protected CreditService(CreditRepository repository,
             CreditMapper creditMapper,
@@ -141,8 +143,8 @@ public class CreditService extends GenericService<Credit, Long> {
     @Transactional
     public Long transformOrderToCredit(Order order) {
         DistributeArticleDto distributeArticleDto = DistributeArticleDto.fromOrder(order);
-        Credit credit = distributeArticlesV2(distributeArticleDto);
-        return credit.getId();
+        CreditRespDto credit = distributeArticlesV2(distributeArticleDto);
+        return credit.id();
     }
 
     @Transactional
@@ -187,8 +189,17 @@ public class CreditService extends GenericService<Credit, Long> {
         credit = this.create(credit);
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
-
+        filledRecovery(credit);
         return CreditRespDto.fromCredit(creditEnrichment(credit));
+    }
+
+    private void filledRecovery(Credit credit) {
+        var timeline = new CreditTimelineDto();
+        timeline.setCreditId(credit.getId());
+        timeline.setCollector(credit.getCollector());
+        timeline.setAmount(credit.getTotalAmount());
+        timeline.setNormalStake(Boolean.FALSE);
+        creditTimelineService.makeDailyStake(timeline);
     }
 
     @Transactional
@@ -213,6 +224,7 @@ public class CreditService extends GenericService<Credit, Long> {
             credit.setCreditToCreditArticles(); // Ensure relationship is set
             credit.getArticles().forEach(creditArticlesService::create);
             this.startCredit(credit.getId(), Boolean.TRUE);
+            filledRecovery(credit);
         return CreditRespDto.fromCredit(credit);
     }
 
@@ -512,7 +524,7 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     @Transactional
-    public Credit distributeArticlesV2(DistributeArticleDto dto) {
+    public CreditRespDto distributeArticlesV2(DistributeArticleDto dto) {
         dto.validateEntryArticles();
         // Dans la V2, on ne dépend plus d'un crédit parent (sortie stock)
         // On vérifie directement le stock mensuel du commercial
@@ -577,7 +589,7 @@ public class CreditService extends GenericService<Credit, Long> {
 
         if (StringUtils.hasText(dto.getReference())) {
             if (getRepository().existsByReference(dto.getReference())) {
-                return getRepository().findByReference(dto.getReference()).orElseThrow();
+                return CreditRespDto.fromCredit(getRepository().findByReference(dto.getReference()).orElseThrow());
             }
             clientCredit.setReference(dto.getReference());
         }
@@ -589,7 +601,7 @@ public class CreditService extends GenericService<Credit, Long> {
         validateCredit(clientCredit.getId());
         startCredit(clientCredit.getId(), Boolean.TRUE);
 
-        return clientCredit;
+        return CreditRespDto.fromCredit(clientCredit);
     }
 
     public List<CreditDistributionDto> getCreditDistribution(Long creditId) {
@@ -803,17 +815,17 @@ public class CreditService extends GenericService<Credit, Long> {
                         + " avec l'identifiant du client " + clientId));
     }
 
-    public Page<Credit> elasticsearch(String keyword, Pageable pageable) {
-        return getRepository().elasticsearch(keyword, pageable);
+    public Page<CreditRespDto> elasticsearch(String keyword, Pageable pageable) {
+        return CreditRespDto.fromCreditPage(getRepository().elasticsearch(keyword, pageable));
     }
 
-    public Page<Credit> getCreditByCollector(Pageable pageable) {
+    public Page<CreditRespDto> getCreditByCollector(Pageable pageable) {
         User user = userService.getCurrentUser();
         if (user.is(UserProfilConstant.PROMOTER) && !dailyAccountancyService.isOpenCashDesk()) {
             throw new ApplicationException("Aucune caisse ouverte pour l'utilisateur " + user.getUsername());
         }
-        return getRepository().findByStatusAndCollectorAndDailyPaidIsFalseAndClientTypeOrderByClient_quarterAsc(
-                CreditStatus.INPROGRESS, user.getUsername(), ClientType.CLIENT, pageable);
+        return CreditRespDto.fromCreditPage(getRepository().findByStatusAndCollectorAndDailyPaidIsFalseAndClientTypeOrderByClient_quarterAsc(
+                CreditStatus.INPROGRESS, user.getUsername(), ClientType.CLIENT, pageable));
     }
 
     public Page<CreditRespDto> getCreditByCollectors(String collector, Pageable pageable) {
@@ -832,9 +844,9 @@ public class CreditService extends GenericService<Credit, Long> {
                 collector, ClientType.CLIENT, pageable);
     }
 
-    public Page<Credit> getPendingSortieByCollectors(String collector, Pageable pageable) {
-        return getRepository().findByStatusInAndCollectorAndClientTypeOrderByClient_quarterAsc(
-                List.of(CreditStatus.CREATED, CreditStatus.VALIDATED), collector, ClientType.PROMOTER, pageable);
+    public Page<CreditRespDto> getPendingSortieByCollectors(String collector, Pageable pageable) {
+        return CreditRespDto.fromCreditPage(getRepository().findByStatusInAndCollectorAndClientTypeOrderByClient_quarterAsc(
+                List.of(CreditStatus.CREATED, CreditStatus.VALIDATED), collector, ClientType.PROMOTER, pageable));
     }
 
     public List<Credit> getCreditByCollector() {

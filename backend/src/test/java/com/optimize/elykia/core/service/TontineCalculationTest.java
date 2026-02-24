@@ -16,7 +16,13 @@ public class TontineCalculationTest {
         member.setTotalContribution(0.0);
 
         // Access private method using reflection
-        TontineService service = new TontineService(null, null, null, null, null, null, null);
+        TontineService service = new TontineService(null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
         Method calculateMethod = TontineService.class.getDeclaredMethod("calculateMemberStatus", TontineMember.class);
         calculateMethod.setAccessible(true);
 

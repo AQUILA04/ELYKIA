@@ -8,8 +8,10 @@ import com.optimize.elykia.core.entity.CreditArticles;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -71,6 +73,21 @@ public record CreditRespDto(Long id,
                 credit.getLateDaysCount(), credit.getTotalAmount(), credit.getTotalAmount(), credit.getTotalAmountPaid(), credit.getTotalAmountRemaining(),
                 credit.getDailyStake(), credit.getStatus(), credit.getRemainingDaysCount(),credit.getCollector(), credit.getType(), credit.getDailyPaid(), credit.getClientType(), parentId,
                 credit.getUpdatable(), credit.getReference(), credit.getAccountingDate(), credit.getReleaseDate(), credit.getReleasePrinted(), credit.getOldReference(), null, client);
+    }
+
+    public static Page<CreditRespDto> fromCreditPage(Page<Credit> creditPage) {
+        if (Objects.isNull(creditPage)) {
+            return null;
+        }
+
+        return creditPage.map(CreditRespDto::fromCredit);
+    }
+
+    public static List<CreditRespDto> fromCreditList(List<Credit> creditList) {
+        if (Objects.isNull(creditList)) {
+            return null;
+        }
+        return creditList.stream().map(CreditRespDto::fromCredit).toList();
     }
 
     @JsonIgnore

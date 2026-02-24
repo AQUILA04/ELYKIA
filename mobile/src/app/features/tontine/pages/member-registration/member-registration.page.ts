@@ -29,11 +29,19 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
     private sessionId: string | null = null;
     private commercialUsername: string | null = null;
+    private initialAmount: number | null = null;
+    showUpdateScope = false;
 
     frequencyOptions = [
         { value: 'DAILY', label: 'Quotidien' },
         { value: 'WEEKLY', label: 'Hebdomadaire' },
         { value: 'MONTHLY', label: 'Mensuel' }
+    ];
+
+    updateScopeOptions = [
+        { value: 'CURRENT_AND_FUTURE', label: 'Mois en cours et futurs' },
+        { value: 'FUTURE_ONLY', label: 'Mois futurs uniquement' },
+        { value: 'GLOBAL', label: 'Rétroactif (Tout recalculer)' }
     ];
 
     constructor(
@@ -76,6 +84,21 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
                 await this.loadMemberData();
             }
         });
+
+        // Monitor amount changes to show/hide update scope
+        this.registrationForm.get('amount')?.valueChanges
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(newAmount => {
+                if (this.isEditMode && this.initialAmount !== null && newAmount !== this.initialAmount) {
+                    this.showUpdateScope = true;
+                    this.registrationForm.get('updateScope')?.setValidators(Validators.required);
+                } else {
+                    this.showUpdateScope = false;
+                    this.registrationForm.get('updateScope')?.clearValidators();
+                    this.registrationForm.get('updateScope')?.setValue('CURRENT_AND_FUTURE'); // Default
+                }
+                this.registrationForm.get('updateScope')?.updateValueAndValidity();
+            });
     }
 
     private async loadMemberData() {
@@ -91,6 +114,7 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
             const member = await this.tontineMemberRepo.findById(this.memberId);
 
             if (member) {
+                this.initialAmount = member.amount || 0;
                 this.registrationForm.patchValue({
                     frequency: member.frequency,
                     amount: member.amount,
@@ -127,7 +151,8 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
         this.registrationForm = this.fb.group({
             frequency: ['DAILY', Validators.required],
             amount: [null, [Validators.required, Validators.min(0)]],
-            notes: ['']
+            notes: [''],
+            updateScope: ['CURRENT_AND_FUTURE']
         });
     }
 
@@ -226,6 +251,7 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
                     frequency: formValue.frequency,
                     amount: formValue.amount,
                     notes: formValue.notes || null,
+                    updateScope: this.showUpdateScope ? formValue.updateScope : null,
                     // IMPORTANT: isSync is handled by repo.updateMember (sets to 0)
                     // isLocal remains as is (handled by repo not touching it, or we pass it)
                     // Actually repo.updateMember only updates specific fields and sync status.

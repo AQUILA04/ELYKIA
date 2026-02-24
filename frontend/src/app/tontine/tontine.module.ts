@@ -32,6 +32,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatRadioModule } from '@angular/material/radio'; // Added MatRadioModule
 
 // Pages
 import { TontineDashboardComponent } from './pages/tontine-dashboard/tontine-dashboard.component';
@@ -64,13 +65,13 @@ import { AddMultipleMembersModalComponent } from './components/modals/add-multip
     MemberDetailsComponent,
     SessionComparisonComponent,
     TontineMagasinierDashboardComponent, // Declared new component
-    
+
     // Components
     TontineKpiCardComponent,
     TontineFilterBarComponent,
     TontineMemberTableComponent,
     SessionSelectorComponent,
-    
+
     // Modals
     AddMemberModalComponent,
     AddMultipleMembersModalComponent,
@@ -85,7 +86,7 @@ import { AddMultipleMembersModalComponent } from './components/modals/add-multip
     ReactiveFormsModule,
     RouterModule,
     TontineRoutingModule,
-    
+
     // Modules Angular Material
     MatIconModule,
     MatButtonModule,
@@ -108,6 +109,7 @@ import { AddMultipleMembersModalComponent } from './components/modals/add-multip
     MatProgressBarModule,
     MatOptionModule,
     MatCheckboxModule,
+    MatRadioModule // Added MatRadioModule to imports
   ],
   providers: [
     TontineService,

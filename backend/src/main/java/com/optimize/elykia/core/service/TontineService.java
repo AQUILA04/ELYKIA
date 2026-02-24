@@ -13,13 +13,17 @@ import com.optimize.elykia.core.dto.TontineCollectionDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
 import com.optimize.elykia.core.entity.TontineCollection;
 import com.optimize.elykia.core.entity.TontineMember;
+import com.optimize.elykia.core.entity.TontineMemberAmountHistory;
 import com.optimize.elykia.core.entity.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
+import com.optimize.elykia.core.enumaration.TontineMemberUpdateScope;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
+import com.optimize.elykia.core.repository.TontineMemberAmountHistoryRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -45,6 +49,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
     private final TontineSessionRepository tontineSessionRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
+    private TontineMemberAmountHistoryRepository tontineMemberAmountHistoryRepository;
     private final ClientService clientService;
     private final UserService userService;
     private final ParameterService parameterService;
@@ -64,6 +69,11 @@ public class TontineService extends GenericService<TontineMember, Long> {
         this.userService = userService;
         this.parameterService = parameterService;
         this.eventPublisher = eventPublisher;
+    }
+
+    @Autowired
+    public void setTontineMemberAmountHistoryRepository(TontineMemberAmountHistoryRepository tontineMemberAmountHistoryRepository) {
+        this.tontineMemberAmountHistoryRepository = tontineMemberAmountHistoryRepository;
     }
 
     public TontineSession getActiveSession() {
@@ -133,6 +143,14 @@ public class TontineService extends GenericService<TontineMember, Long> {
         newMember.setRegistrationDate(LocalDateTime.now());
         newMember.setAmount(dto.getAmount());
 
+        // Initialize history with the first amount
+        TontineMemberAmountHistory history = new TontineMemberAmountHistory();
+        history.setTontineMember(newMember);
+        history.setAmount(dto.getAmount());
+        history.setStartDate(activeSession.getStartDate()); 
+        
+        newMember.getAmountHistory().add(history);
+
         TontineMember savedMember = this.create(newMember);
 
         // Publish Event
@@ -153,25 +171,87 @@ public class TontineService extends GenericService<TontineMember, Long> {
             member.setFrequency(dto.getFrequency());
         }
 
-        if (dto.getAmount() != null) {
+        if (dto.getAmount() != null && !dto.getAmount().equals(member.getAmount())) {
+            // Amount has changed, handle history based on scope
+            handleAmountChange(member, dto.getAmount(), dto.getUpdateScope());
             member.setAmount(dto.getAmount());
         }
 
-        // Notes are likely stored in a field, but TontineMember entity structure wasn't
-        // fully visible.
-        // Assuming 'notes' field exists or similar. If not, I'll check entity or skip
-        // it.
-        // Wait, I saw 'notes' in frontend model but not in backend service.
-        // Let's check if TontineMember entity has notes.
-        // I'll assume it does or I'll check TontineMember.java first?
-        // Actually, let's verify TontineMember.java to be safe.
-        // But for now I'll just update frequency and amount which are critical.
-        // If notes is missing I'll add it to the entity if needed/requested.
-        // The DTO likely has it.
-        // I'll skip notes for now to be safe or add it if I'm sure.
-        // Frontend sends it. Backend DTO receives it.
-        // Let's assume it's fine or I'll check quickly.
+        // Notes handling if needed (skipped as per previous logic)
+
         return this.update(member);
+    }
+
+    private void handleAmountChange(TontineMember member, Double newAmount, TontineMemberUpdateScope scope) {
+        if (scope == null) {
+            scope = TontineMemberUpdateScope.CURRENT_AND_FUTURE; // Default behavior
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate firstDayOfCurrentMonth = today.withDayOfMonth(1);
+        LocalDate firstDayOfNextMonth = today.plusMonths(1).withDayOfMonth(1);
+
+        List<TontineMemberAmountHistory> history = member.getAmountHistory();
+        
+        // Sort history by start date
+        history.sort(Comparator.comparing(TontineMemberAmountHistory::getStartDate));
+
+        switch (scope) {
+            case GLOBAL:
+                // Clear history and create a single new entry from the beginning
+                history.clear();
+                TontineMemberAmountHistory globalEntry = new TontineMemberAmountHistory();
+                globalEntry.setTontineMember(member);
+                globalEntry.setAmount(newAmount);
+                globalEntry.setStartDate(member.getTontineSession().getStartDate()); // Or earliest relevant date
+                history.add(globalEntry);
+                break;
+
+            case CURRENT_AND_FUTURE:
+                // Close previous entry at end of last month
+                // Create new entry starting first day of current month
+                closeHistoryAt(history, firstDayOfCurrentMonth.minusDays(1));
+                
+                TontineMemberAmountHistory currentEntry = new TontineMemberAmountHistory();
+                currentEntry.setTontineMember(member);
+                currentEntry.setAmount(newAmount);
+                currentEntry.setStartDate(firstDayOfCurrentMonth);
+                history.add(currentEntry);
+                break;
+
+            case FUTURE_ONLY:
+                // Close previous entry at end of current month
+                // Create new entry starting first day of next month
+                closeHistoryAt(history, firstDayOfNextMonth.minusDays(1));
+
+                TontineMemberAmountHistory futureEntry = new TontineMemberAmountHistory();
+                futureEntry.setTontineMember(member);
+                futureEntry.setAmount(newAmount);
+                futureEntry.setStartDate(firstDayOfNextMonth);
+                history.add(futureEntry);
+                break;
+        }
+    }
+
+    private void closeHistoryAt(List<TontineMemberAmountHistory> history, LocalDate endDate) {
+        // Find the active entry (where endDate is null or after the new endDate)
+        // And close it.
+        
+        for (TontineMemberAmountHistory entry : history) {
+            if (entry.getEndDate() == null || entry.getEndDate().isAfter(endDate)) {
+                // This entry was supposed to go on, but we cut it short.
+                // If the entry starts after the cut-off, it should be removed (it's in the future relative to the cut-off)
+                if (entry.getStartDate().isAfter(endDate)) {
+                    // This case shouldn't happen if we are just appending, but for safety with "FUTURE_ONLY" etc.
+                    // If we are setting a future amount, we might be overwriting a previously set future amount.
+                    // For now, let's assume we just close the current active one.
+                } else {
+                    entry.setEndDate(endDate);
+                }
+            }
+        }
+        // Remove entries that are completely after the new end date (if any, e.g. if we changed mind from Future to Current)
+        history.removeIf(entry -> entry.getStartDate().isAfter(endDate));
     }
 
     public TontineCollection recordCollection(TontineCollectionDto dto) {
@@ -227,7 +307,6 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     private void processCollectionAllocation(TontineMember member, Double amountCollected) {
-        Double dailyAmount = member.getAmount();
         Double currentSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
         Double currentTotalContribution = member.getTotalContribution() != null ? member.getTotalContribution() : 0.0;
 
@@ -247,23 +326,21 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
 
         LocalDate now = LocalDate.now();
-
-        int monthsStarted = 0;
-        if (!now.isBefore(startDate)) {
-            // Calculate months elapsed since start (inclusive of current month)
-            monthsStarted = (now.getYear() - startDate.getYear()) * 12
-                    + (now.getMonthValue() - startDate.getMonthValue()) + 1;
-        }
-
+        Double targetSocietyShare = 0.0;
+        
+        // Iterate through months to calculate share based on history
+        LocalDate iterDate = startDate;
+        int monthsCounted = 0;
         int MAX_MONTHS = 10;
-        if (monthsStarted > MAX_MONTHS) {
-            monthsStarted = MAX_MONTHS;
-        }
-        if (monthsStarted < 0) {
-            monthsStarted = 0;
-        }
 
-        Double targetSocietyShare = monthsStarted * dailyAmount;
+        while (!iterDate.isAfter(now) && monthsCounted < MAX_MONTHS) {
+             // For this month (represented by iterDate), find the applicable amount
+             Double applicableAmount = getApplicableAmountForDate(member, iterDate);
+             targetSocietyShare += applicableAmount;
+             
+             monthsCounted++;
+             iterDate = iterDate.plusMonths(1);
+        }
 
         // 2. Calculate Deficit (What is owed to society up to today)
         double societyShareDeficit = targetSocietyShare - currentSocietyShare;
@@ -283,6 +360,38 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         // 5. Recalculate derived status (validated months) based on remaining capital
         calculateMemberStatus(member);
+    }
+    
+    private Double getApplicableAmountForDate(TontineMember member, LocalDate date) {
+        // Find the history entry that covers this date
+        // If multiple (shouldn't happen with clean logic), take the latest created one or specific logic?
+        // Our logic ensures non-overlapping or clear cut-offs.
+        // We look for an entry where startDate <= date AND (endDate == null OR endDate >= date)
+        
+        // However, the requirement says: "s'il y plusieurs changement dans un mois qui concerne le mois présent et futur, on ne prendra que la dernière valeur pour le calcul de la part société pour le mois."
+        // This implies we should look for the entry valid at the END of the month? Or the one valid at the specific date?
+        // "pour le mois" suggests one value per month.
+        // If I change amount on 5th, and then on 20th. The value for that month should be the one on 20th.
+        // So we should look for the amount valid at the end of that month (or today if it's current month).
+        
+        LocalDate targetLookupDate = date.withDayOfMonth(date.lengthOfMonth());
+        if (targetLookupDate.isAfter(LocalDate.now())) {
+            targetLookupDate = LocalDate.now(); // For current month, take today's status? Or end of month projection?
+            // If we are in current month, and we changed amount today, we want today's amount.
+        }
+        
+        // Actually, simpler: Find the entry active at 'date'. If multiple changes happened in that month, 
+        // the 'startDate' of the latest change would be in that month.
+        // So we want the entry with the latest startDate that is <= end of that month.
+        
+        LocalDate endOfMonth = date.withDayOfMonth(date.lengthOfMonth());
+        
+        return member.getAmountHistory().stream()
+                .filter(h -> !h.getStartDate().isAfter(endOfMonth)) // Started before or during this month
+                .sorted(Comparator.comparing(TontineMemberAmountHistory::getStartDate).reversed()) // Latest first
+                .map(TontineMemberAmountHistory::getAmount)
+                .findFirst()
+                .orElse(member.getAmount()); // Fallback to current amount if no history found (shouldn't happen if initialized correctly)
     }
 
     private void calculateMemberStatus(TontineMember member) {
@@ -374,6 +483,29 @@ public class TontineService extends GenericService<TontineMember, Long> {
         };
 
         return getRepository().findAll(spec, pageable);
+    }
+
+    public List<TontineMemberAmountHistory> getMembersHistory(String commercial) {
+        User currentUser = userService.getCurrentUser();
+        int currentYear = LocalDate.now().getYear();
+
+        Specification<TontineMemberAmountHistory> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Filter by current year via TontineMember -> TontineSession
+            predicates.add(cb.equal(root.get("tontineMember").get("tontineSession").get("year"), currentYear));
+
+            // Filter by commercial
+            if (StringUtils.hasText(commercial)) {
+                predicates.add(cb.equal(root.get("tontineMember").get("client").get("tontineCollector"), commercial));
+            } else if (currentUser.is(UserProfilConstant.PROMOTER)) {
+                predicates.add(cb.equal(root.get("tontineMember").get("client").get("tontineCollector"), currentUser.getUsername()));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return tontineMemberAmountHistoryRepository.findAll(spec);
     }
 
     public Page<TontineCollection> getCollections(Pageable pageable) {

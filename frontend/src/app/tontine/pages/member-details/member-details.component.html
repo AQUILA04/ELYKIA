@@ -15,6 +15,10 @@
         <mat-icon>local_shipping</mat-icon>
         Préparer la Livraison
       </button>
+      <button mat-stroked-button color="primary" (click)="onEditMember()" *ngIf="isSessionActive">
+        <mat-icon>edit</mat-icon>
+        Modifier
+      </button>
       <ng-container *ngxPermissionsOnly="['ROLE_REPORT', 'ROLE_ADMIN']">
         <button mat-raised-button color="warn" (click)="onValidateDelivery()"
                 *ngIf="member?.deliveryStatus === 'PENDING'">

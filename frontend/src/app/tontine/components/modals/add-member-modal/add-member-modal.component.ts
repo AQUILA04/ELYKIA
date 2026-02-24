@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject, Optional } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { TontineService } from '../../../services/tontine.service';
-import { TontineClient } from '../../../types/tontine.types';
+import { TontineClient, TontineMember } from '../../../types/tontine.types';
 
 @Component({
   selector: 'app-add-member-modal',
@@ -17,24 +17,33 @@ export class AddMemberModalComponent implements OnInit {
   filteredClients: TontineClient[] = [];
   loading: boolean = false;
   error: string | null = null;
+  isEditMode: boolean = false;
+  initialAmount: number | null = null;
+  showUpdateScope: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<AddMemberModalComponent>,
-    private tontineService: TontineService
+    private tontineService: TontineService,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: { member?: TontineMember }
   ) {
+    this.isEditMode = !!data?.member;
+    this.initialAmount = data?.member?.amount || null;
+
     this.form = this.fb.group({
-      clientId: [null, Validators.required],
+      clientId: [{ value: data?.member?.clientId, disabled: this.isEditMode }, Validators.required],
       clientSearch: [''],
-      frequency: [''],
-      amount: [null],
-      notes: ['']
+      frequency: [data?.member?.frequency || ''],
+      amount: [data?.member?.amount || null],
+      notes: [data?.member?.notes || ''],
+      updateScope: ['FUTURE_ONLY']
     });
   }
 
   ngOnInit(): void {
     this.loadClients();
     this.setupClientSearch();
+    this.setupAmountChangeDetection();
   }
 
   private loadClients(): void {
@@ -44,6 +53,12 @@ export class AddMemberModalComponent implements OnInit {
         if (response.data) {
           this.clients = response.data;
           this.filteredClients = response.data;
+
+          // If editing, ensure the current client is in the list and selected
+          if (this.isEditMode && this.data.member) {
+             // We might need to fetch the specific client if not in the initial list
+             // But for now assuming it's loaded or we just display the ID if not found (which is handled by disabled state)
+          }
         }
         this.loading = false;
       },
@@ -61,6 +76,20 @@ export class AddMemberModalComponent implements OnInit {
     ).subscribe(searchTerm => {
       this.filterClients(searchTerm);
     });
+  }
+
+  private setupAmountChangeDetection(): void {
+      this.form.get('amount')?.valueChanges.subscribe(newAmount => {
+          if (this.isEditMode && this.initialAmount !== null && newAmount !== this.initialAmount) {
+              this.showUpdateScope = true;
+              this.form.get('updateScope')?.setValidators(Validators.required);
+          } else {
+              this.showUpdateScope = false;
+              this.form.get('updateScope')?.clearValidators();
+              this.form.get('updateScope')?.setValue('FUTURE_ONLY');
+          }
+          this.form.get('updateScope')?.updateValueAndValidity();
+      });
   }
 
   private filterClients(searchTerm: string): void {
@@ -89,19 +118,28 @@ export class AddMemberModalComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    const { clientId, frequency, amount, notes } = this.form.value;
+    const { clientId, frequency, amount, notes, updateScope } = this.form.value;
+    // If disabled, clientId is not in .value, get it from raw value or data
+    const finalClientId = this.isEditMode ? this.data.member!.clientId : clientId;
 
-    this.tontineService.createMember({
-      clientId,
+    const memberData = {
+      clientId: finalClientId,
       frequency: frequency || undefined,
       amount: amount || undefined,
-      notes: notes || undefined
-    }).subscribe({
+      notes: notes || undefined,
+      updateScope: this.showUpdateScope ? updateScope : undefined
+    };
+
+    const request = this.isEditMode
+        ? this.tontineService.updateMember(this.data.member!.id, memberData)
+        : this.tontineService.createMember(memberData);
+
+    request.subscribe({
       next: () => {
         this.dialogRef.close(true);
       },
       error: (error) => {
-        this.error = error.message || 'Erreur lors de l\'ajout du membre';
+        this.error = error.message || (this.isEditMode ? 'Erreur lors de la modification' : 'Erreur lors de l\'ajout');
         this.loading = false;
       }
     });

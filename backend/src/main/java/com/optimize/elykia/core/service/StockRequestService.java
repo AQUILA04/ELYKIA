@@ -211,24 +211,27 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 CommercialMonthlyStockItem item = existingItem.get();
 
                 // Calcul du nouveau prix moyen pondéré
-                double currentTotalValue = item.getQuantityTaken() * item.getWeightedAverageUnitPrice();
+                int currentNetQuantity = item.getQuantityTaken() - item.getQuantityReturned();
+                double currentTotalValue = currentNetQuantity * item.getWeightedAverageUnitPrice();
                 double newRequestValue = reqItem.getQuantity() * reqItem.getUnitPrice();
-                int newTotalQuantity = item.getQuantityTaken() + reqItem.getQuantity();
+                int newNetQuantity = currentNetQuantity + reqItem.getQuantity();
 
-                if (newTotalQuantity > 0) {
-                    item.setWeightedAverageUnitPrice((currentTotalValue + newRequestValue) / newTotalQuantity);
+                if (newNetQuantity > 0) {
+                    item.setWeightedAverageUnitPrice((currentTotalValue + newRequestValue) / newNetQuantity);
                 }
 
                 // Idem pour le prix d'achat
-                double currentTotalPurchaseValue = item.getQuantityTaken() * item.getWeightedAveragePurchasePrice();
+                double currentTotalPurchaseValue = currentNetQuantity * item.getWeightedAveragePurchasePrice();
                 double newRequestPurchaseValue = reqItem.getQuantity() * reqItem.getPurchasePrice();
 
-                if (newTotalQuantity > 0) {
+                if (newNetQuantity > 0) {
                     item.setWeightedAveragePurchasePrice(
-                            (currentTotalPurchaseValue + newRequestPurchaseValue) / newTotalQuantity);
+                            (currentTotalPurchaseValue + newRequestPurchaseValue) / newNetQuantity);
                 }
 
-                item.setQuantityTaken(newTotalQuantity);
+                item.setQuantityTaken(item.getQuantityTaken() + reqItem.getQuantity());
+                item.setLastUnitPrice(reqItem.getUnitPrice());
+                item.setLastPurchasePrice(reqItem.getPurchasePrice());
                 item.updateRemaining();
             } else {
                 CommercialMonthlyStockItem newItem = new CommercialMonthlyStockItem();
@@ -236,6 +239,8 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 newItem.setQuantityTaken(reqItem.getQuantity());
                 newItem.setWeightedAverageUnitPrice(reqItem.getUnitPrice());
                 newItem.setWeightedAveragePurchasePrice(reqItem.getPurchasePrice());
+                newItem.setLastUnitPrice(reqItem.getUnitPrice());
+                newItem.setLastPurchasePrice(reqItem.getPurchasePrice());
                 newItem.updateRemaining();
                 monthlyStock.addItem(newItem);
             }
