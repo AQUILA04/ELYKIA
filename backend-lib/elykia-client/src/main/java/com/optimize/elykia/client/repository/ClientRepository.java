@@ -42,6 +42,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                     cb.like(cb.lower(root.get("contactPersonPhone")), searchKeyword),
                     cb.like(cb.lower(root.get("contactPersonAddress")), searchKeyword),
                     cb.like(cb.lower(root.get("collector")), searchKeyword),
+                    cb.like(cb.lower(root.get("recoveryCollector")), searchKeyword),
                     cb.like(cb.lower(root.get("quarter")), searchKeyword),
                     cb.like(cb.lower(root.get("cardType")), searchKeyword));
             if (Objects.nonNull(username) && username.startsWith("COM")) {
@@ -65,7 +66,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
                 c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate)
                 FROM Client c
-                WHERE (c.collector = :collector OR c.tontineCollector = :collector) AND c.clientType = :clientType AND c.state = :state
+                WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.recoveryCollector = :collector) AND c.clientType = :clientType AND c.state = :state
             """)
     Page<ClientRespDto> findByCollectorAndClientTypeAndState(String collector, ClientType clientType, State state,
             Pageable pageable);
@@ -89,7 +90,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
                 c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate)
                 FROM Client c
-                WHERE (c.tontineCollector = :collector OR c.collector = :collector) AND c.clientType = :clientType AND c.state = :state
+                WHERE (c.tontineCollector = :collector OR c.collector = :collector OR c.recoveryCollector = :collector) AND c.clientType = :clientType AND c.state = :state
             """)
     Page<ClientRespDto> findByCollectorAndTontineCollectorAndClientTypeAndState(String collector, ClientType clientType,
             State state, Pageable pageable);
