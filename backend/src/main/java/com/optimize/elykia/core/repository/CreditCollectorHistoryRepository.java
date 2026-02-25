@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface CreditCollectorHistoryRepository extends JpaRepository<CreditCollectorHistory, Long> {
-    List<CreditCollectorHistory> findByCreditId(Long creditId);
+    List<CreditCollectorHistory> findByCreditIdOrderByChangeDateDesc(Long creditId);
 }

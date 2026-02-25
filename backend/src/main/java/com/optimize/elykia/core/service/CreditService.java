@@ -1432,4 +1432,11 @@ public class CreditService extends GenericService<Credit, Long> {
         credit = update(credit);
         return CreditRespDto.fromCredit(credit);
     }
+
+    public List<com.optimize.elykia.core.dto.CreditCollectorHistoryDto> getCollectorHistory(Long creditId) {
+        return creditCollectorHistoryRepository.findByCreditIdOrderByChangeDateDesc(creditId)
+                .stream()
+                .map(com.optimize.elykia.core.dto.CreditCollectorHistoryDto::fromEntity)
+                .toList();
+    }
 }

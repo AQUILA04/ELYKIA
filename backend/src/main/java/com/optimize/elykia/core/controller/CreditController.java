@@ -371,4 +371,9 @@ public class CreditController {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(creditService.changeCollector(id, dto.getNewCollector())), HttpStatus.OK);
     }
+
+    @GetMapping(value = "{id}/collector-history")
+    public ResponseEntity<Response> getCollectorHistory(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getCollectorHistory(id)), HttpStatus.OK);
+    }
 }

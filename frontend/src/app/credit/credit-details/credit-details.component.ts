@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CreditService } from '../service/credit.service';
 import { NgxSpinnerService } from 'ngx-spinner';
-import Swal from 'sweetalert2';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { CreditDistributionDetail } from '../types/credit.types';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
@@ -10,17 +9,21 @@ import { ErrorHandlingMixin } from 'src/app/shared/mixins/error-handling.mixin';
 import { ClientService } from 'src/app/client/service/client.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 
-
 @Component({
   selector: 'app-credit-details',
   templateUrl: './credit-details.component.html',
-  styleUrls: ['./credit-details.component.scss']
+  styleUrls: ['./credit-details.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit {
   credit: any | undefined;
   isLoading = true;
-  creditId: number | null;
+  creditId: number | null = null;
   distributionDetails: CreditDistributionDetail[] = [];
+
+  timelines: any[] = [];
+  collectorHistory: any[] = [];
+  lateMetrics: any = null;
 
   showChangeCollectorModal = false;
   agents: any[] = [];
@@ -38,57 +41,101 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
   ) {
     super(errorHandler);
     this.tokenStorage.checkConnectedUser();
-    this.creditId = 1;
   }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
       const creditId = +params['id'];
-      this.spinner.show();
-      this.loadCreditDetails(creditId);
-      this.loadDistributionDetails(creditId);
-      console.log('id du credit', creditId)
-      this.creditId = creditId;
-    });
-  }
-  onCancel(): void {
-    this.router.navigate(['/credit-list']);
-  }
-  navigateToEdit(creditId: number | null): void {
-    console.log('navigatetoEDit', creditId)
-    this.router.navigate(['/credit-add', creditId]);
-  }
-
-
-  loadCreditDetails(creditId: number): void {
-    this.spinner.show();
-    this.creditService.getCreditById(creditId).subscribe({
-      next: (data: any) => {
-        this.credit = data.data;
-        this.isLoading = false;
-        this.spinner.hide();
-      },
-      error: (error) => {
-        // Utiliser notre système de gestion d'erreur amélioré
-        this.handleError(error, 'Erreur de chargement');
-        this.isLoading = false;
-        this.spinner.hide();
+      if (creditId) {
+        this.creditId = creditId;
+        this.spinner.show();
+        this.loadAllCreditData(creditId);
       }
     });
   }
 
-  loadDistributionDetails(creditId: number): void {
+  onCancel(): void {
+    this.router.navigate(['/credit-list']);
+  }
+
+  navigateToEdit(creditId: number | null): void {
+    this.router.navigate(['/credit-add', creditId]);
+  }
+
+  loadAllCreditData(creditId: number): void {
+    this.isLoading = true;
+
+    // Load Credit Data
+    this.creditService.getCreditById(creditId).subscribe({
+      next: (data: any) => {
+        this.credit = data.data;
+        this.computeLateMetrics();
+      },
+      error: (error) => this.handleError(error, 'Erreur de chargement')
+    });
+
+    // Load Distribution Details
     this.creditService.getCreditDistributionDetails(creditId).subscribe({
       next: (response) => {
         if (response.data) {
           this.distributionDetails = response.data;
         }
       },
-      error: (error) => {
-        // Utiliser notre système de gestion d'erreur amélioré
-        this.handleError(error, 'Erreur de chargement des détails');
-      }
+      error: (error) => this.handleError(error, 'Erreur de chargement des détails')
     });
+
+    // Load Timelines
+    this.creditService.getEcheancesByCredit(creditId, 0, 1000, 'id,desc').subscribe({
+      next: (response: any) => {
+        if (response.data && response.data.content) {
+          this.timelines = response.data.content;
+        }
+      },
+      error: (error) => this.handleError(error, 'Erreur de chargement des échéances')
+    });
+
+    // Load Collector History
+    this.creditService.getCollectorHistory(creditId).subscribe({
+      next: (response: any) => {
+        if (response.data) {
+          this.collectorHistory = response.data;
+        }
+      },
+      error: (error) => this.handleError(error, 'Erreur de chargement de l\'historique commercial')
+    });
+
+    // Hide spinner once all requests are initiated
+    this.spinner.hide();
+    this.isLoading = false;
+  }
+
+  private daysBetween(a: Date, b: Date): number {
+    return Math.floor((b.getTime() - a.getTime()) / 86400000);
+  }
+
+  private computeLateMetrics(): void {
+    if (!this.credit || !this.credit.beginDate || !this.credit.expectedEndDate) {
+      return;
+    }
+
+    const beginDate = new Date(this.credit.beginDate);
+    const expectedEndDate = new Date(this.credit.expectedEndDate);
+    const today = new Date();
+
+    const totalDays = this.daysBetween(beginDate, expectedEndDate);
+    const rawElapsed = this.daysBetween(beginDate, today);
+    const elapsed = Math.max(0, Math.min(rawElapsed, totalDays)); // Plafond à date de fin
+
+    const dailyStake = this.credit.dailyStake || 1; // Protect against division by zero
+    const paid = Math.floor((this.credit.totalAmountPaid || 0) / dailyStake);
+    const late = Math.max(0, elapsed - paid);
+
+    this.lateMetrics = {
+      elapsed,
+      paid,
+      late,
+      totalDays
+    };
   }
 
   async changeCollector(): Promise<void> {
@@ -129,7 +176,7 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
         this.closeChangeCollectorModal();
         this.alertService.showSuccess('Le commercial a été modifié avec succès.');
         if (this.creditId) {
-          this.loadCreditDetails(this.creditId);
+          this.loadAllCreditData(this.creditId);
         }
       },
       error: (err) => {
@@ -138,5 +185,4 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
       }
     });
   }
-
 }

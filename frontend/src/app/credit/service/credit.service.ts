@@ -117,6 +117,10 @@ export class CreditService extends BaseHttpService {
     );
   }
 
+  getCollectorHistory(creditId: number): Observable<ApiResponse<any[]>> {
+    return this.get(`${this.apiUrl}/${creditId}/collector-history`);
+  }
+
   searchCredits(searchDto: any, page: number, size: number): Observable<any> {
     const headers = this.getHeader();
     let params = new HttpParams()
