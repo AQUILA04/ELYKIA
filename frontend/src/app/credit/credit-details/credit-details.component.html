@@ -72,44 +72,50 @@
       </table>
     </div>
 
-        <!-- Credits Details -->
-        <div class="details-section">
-          <h2>Informations sur le credit</h2>
-          <div class="details-row">
-            <span class="details-label">Mise journalière:</span>
-            <div class="details-value">
-              <span>{{ credit.dailyStake }}</span>
-              <span class="mx-4"></span>
-              <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
-                {{ (credit.status | statusBadge).label }}
-              </span>
-            </div>
-          </div>
-          <div class="details-row">
-            <span class="details-label">Date de debut du credit</span>
-            <div class="details-value">{{ credit.beginDate }}</div>
-          </div>
-          <div class="details-row">
-            <span class="details-label">Date fin prévu:</span>
-            <div class="details-value">{{ credit.expectedEndDate }}</div>
-          </div>
-          <div class="details-row">
-            <span class="details-label">Montant total déja payé:</span>
-            <div class="details-value">{{ credit.totalAmountPaid }}</div>
-          </div>
-          <div class="details-row">
-            <span class="details-label">Nombre de jours restant:</span>
-            <div class="details-value">{{ credit.remainingDaysCount }}</div>
-          </div>
-          <div class="details-row">
-            <span class="details-label">Montant total restant a payé:</span>
-            <div class="details-value">{{ credit.totalAmountRemaining }}</div>
-          </div>
-          <div class="details-row">
-            <span class="details-label">Agent collecteur:</span>
-            <div class="details-value">{{ credit.collector }}</div>
-          </div>
+    <!-- Credits Details -->
+    <div class="details-section">
+      <h2>Informations sur le credit</h2>
+      <div class="details-row">
+        <span class="details-label">Mise journalière:</span>
+        <div class="details-value">
+          <span>{{ credit.dailyStake }}</span>
+          <span class="mx-4"></span>
+          <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
+            {{ (credit.status | statusBadge).label }}
+          </span>
         </div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Date de debut du credit</span>
+        <div class="details-value">{{ credit.beginDate }}</div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Date fin prévu:</span>
+        <div class="details-value">{{ credit.expectedEndDate }}</div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Montant total déja payé:</span>
+        <div class="details-value">{{ credit.totalAmountPaid }}</div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Nombre de jours restant:</span>
+        <div class="details-value">{{ credit.remainingDaysCount }}</div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Montant total restant a payé:</span>
+        <div class="details-value">{{ credit.totalAmountRemaining }}</div>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Agent collecteur:</span>
+        <div class="details-value">
+          {{ credit.collector }}
+          <button class="btn btn-sm btn-outline-primary ml-2 ms-2" style="padding: 2px 8px; font-size: 0.8rem;"
+            (click)="changeCollector()" *ngIf="credit.status === 'INPROGRESS'">
+            <i class="ti ti-pencil"></i> Modifier
+          </button>
+        </div>
+      </div>
+    </div>
     <!-- <div class="d-flex justify-content-end action-buttons" style="margin-top: 20px;">
       <button *ngIf="credit.status === 'VALIDATED' && credit.status === 'VALIDATED'" class="btn validate-button btn-sm" (click)="validateCredit(credit.id)">
         <mat-icon>check</mat-icon>
@@ -125,7 +131,7 @@
 
 
     <div class="form-actions">
-       <a (click)="onCancel()" class="link-back">
+      <a (click)="onCancel()" class="link-back">
         <i class="ti ti-arrow-left"></i> Retour à la liste
       </a>
       <!-- <div class="form-actions">
@@ -136,4 +142,42 @@
     </div>
   </div>
   <div *ngIf="isLoading">Chargement...</div>
+</div>
+
+<!-- Modal de changement de commercial -->
+<div class="modal-overlay" *ngIf="showChangeCollectorModal">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Modifier l'agent collecteur</h2>
+      <button class="close-btn" (click)="closeChangeCollectorModal()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="credit-info" *ngIf="credit">
+        <p><strong>Agent actuel :</strong> {{ credit.collector }}</p>
+        <p><strong>Référence :</strong> {{ credit.reference }}</p>
+        <p><strong>Client :</strong> {{ credit.client?.firstname }} {{ credit.client?.lastname }}</p>
+        <p><strong>Montant total :</strong> {{ credit.totalAmount | currency }}</p>
+        <p><strong>Montant restant :</strong> {{ (credit.remainingAmount ?? credit.totalAmount) | currency }}</p>
+      </div>
+
+      <div class="form-group">
+        <label for="collectorSelect">Sélectionnez le nouveau commercial</label>
+        <select id="collectorSelect" [(ngModel)]="selectedCommercial" class="form-control">
+          <option value="" disabled selected>-- Sélectionnez --</option>
+          <option *ngFor="let agent of agents" [value]="agent.username">
+            {{ agent.username }}
+          </option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="closeChangeCollectorModal()">Annuler</button>
+        <button type="button" class="btn btn-primary" [disabled]="!selectedCommercial"
+          (click)="submitChangeCollector()">Valider</button>
+      </div>
+    </div>
+  </div>
 </div>

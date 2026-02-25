@@ -60,6 +60,7 @@ public class CreditService extends GenericService<Credit, Long> {
     private CreditTimelineRepository creditTimelineRepository;
     private SharedService sharedService;
     private final CommercialMonthlyStockRepository commercialMonthlyStockRepository;
+    private final com.optimize.elykia.core.repository.CreditCollectorHistoryRepository creditCollectorHistoryRepository;
 
     // Services BI pour enrichissement automatique
     private CreditEnrichmentService creditEnrichmentService;
@@ -87,6 +88,7 @@ public class CreditService extends GenericService<Credit, Long> {
             CreditDistributionViewRepository creditDistributionViewRepository,
             CreditDistributionMapper creditDistributionMapper,
             CommercialMonthlyStockRepository commercialMonthlyStockRepository,
+            com.optimize.elykia.core.repository.CreditCollectorHistoryRepository creditCollectorHistoryRepository,
             org.springframework.context.ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.creditMapper = creditMapper;
@@ -99,6 +101,7 @@ public class CreditService extends GenericService<Credit, Long> {
         this.creditDistributionViewRepository = creditDistributionViewRepository;
         this.creditDistributionMapper = creditDistributionMapper;
         this.commercialMonthlyStockRepository = commercialMonthlyStockRepository;
+        this.creditCollectorHistoryRepository = creditCollectorHistoryRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -215,16 +218,16 @@ public class CreditService extends GenericService<Credit, Long> {
 
     @Transactional
     public CreditRespDto createTontine(Credit credit) {
-            tontineStockService
-                    .checkAvailabilityAndUpdateTontineStock(
-                            credit.getArticles(),
-                            credit.getCollector());
-            credit = this.create(credit);
-            // Save CreditArticles
-            credit.setCreditToCreditArticles(); // Ensure relationship is set
-            credit.getArticles().forEach(creditArticlesService::create);
-            this.startCredit(credit.getId(), Boolean.TRUE);
-            filledRecovery(credit);
+        tontineStockService
+                .checkAvailabilityAndUpdateTontineStock(
+                        credit.getArticles(),
+                        credit.getCollector());
+        credit = this.create(credit);
+        // Save CreditArticles
+        credit.setCreditToCreditArticles(); // Ensure relationship is set
+        credit.getArticles().forEach(creditArticlesService::create);
+        this.startCredit(credit.getId(), Boolean.TRUE);
+        filledRecovery(credit);
         return CreditRespDto.fromCredit(credit);
     }
 
@@ -567,8 +570,12 @@ public class CreditService extends GenericService<Credit, Long> {
                         + creditArticles.getArticles().getCommercialName());
             }
 
-            // Mise à jour des compteurs
+            // Mise à jour des compteurs et de la valeur financière vendue exacte
             stockItem.setQuantitySold(stockItem.getQuantitySold() + creditArticles.getQuantity());
+            Double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0 : stockItem.getTotalSoldValue();
+            Double currentPMP = stockItem.getWeightedAverageUnitPrice() == null ? 0.0
+                    : stockItem.getWeightedAverageUnitPrice();
+            stockItem.setTotalSoldValue(currentTotalSold + (creditArticles.getQuantity() * currentPMP));
             stockItem.updateRemaining();
         });
 
@@ -766,14 +773,19 @@ public class CreditService extends GenericService<Credit, Long> {
                     // Pour une vente CASH, on considère que c'est pris du stock ET vendu
                     stockItem.setQuantityTaken(stockItem.getQuantityTaken() + creditArticle.getQuantity());
                     stockItem.setQuantitySold(stockItem.getQuantitySold() + creditArticle.getQuantity());
+                    Double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0
+                            : stockItem.getTotalSoldValue();
+                    Double currentPMP = stockItem.getWeightedAverageUnitPrice() == null ? 0.0
+                            : stockItem.getWeightedAverageUnitPrice();
+                    stockItem.setTotalSoldValue(currentTotalSold + (creditArticle.getQuantity() * currentPMP));
                     stockItem.updateRemaining();
                 });
                 commercialMonthlyStockRepository.save(monthlyStock);
             }
 
-//            if (OperationType.TONTINE.equals(credit.getType())) {
-//                credit = mergeTontine(credit);
-//            }
+            // if (OperationType.TONTINE.equals(credit.getType())) {
+            // credit = mergeTontine(credit);
+            // }
         }
         LocalDate accountingDate = sharedService.getAccountingDayService().getCurrentAccountingDate();
         credit.setAccountingDate(accountingDate);
@@ -824,8 +836,9 @@ public class CreditService extends GenericService<Credit, Long> {
         if (user.is(UserProfilConstant.PROMOTER) && !dailyAccountancyService.isOpenCashDesk()) {
             throw new ApplicationException("Aucune caisse ouverte pour l'utilisateur " + user.getUsername());
         }
-        return CreditRespDto.fromCreditPage(getRepository().findByStatusAndCollectorAndDailyPaidIsFalseAndClientTypeOrderByClient_quarterAsc(
-                CreditStatus.INPROGRESS, user.getUsername(), ClientType.CLIENT, pageable));
+        return CreditRespDto.fromCreditPage(
+                getRepository().findByStatusAndCollectorAndDailyPaidIsFalseAndClientTypeOrderByClient_quarterAsc(
+                        CreditStatus.INPROGRESS, user.getUsername(), ClientType.CLIENT, pageable));
     }
 
     public Page<CreditRespDto> getCreditByCollectors(String collector, Pageable pageable) {
@@ -845,8 +858,10 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     public Page<CreditRespDto> getPendingSortieByCollectors(String collector, Pageable pageable) {
-        return CreditRespDto.fromCreditPage(getRepository().findByStatusInAndCollectorAndClientTypeOrderByClient_quarterAsc(
-                List.of(CreditStatus.CREATED, CreditStatus.VALIDATED), collector, ClientType.PROMOTER, pageable));
+        return CreditRespDto
+                .fromCreditPage(getRepository().findByStatusInAndCollectorAndClientTypeOrderByClient_quarterAsc(
+                        List.of(CreditStatus.CREATED, CreditStatus.VALIDATED), collector, ClientType.PROMOTER,
+                        pageable));
     }
 
     public List<Credit> getCreditByCollector() {
@@ -938,7 +953,8 @@ public class CreditService extends GenericService<Credit, Long> {
         clientDetails.setTotalInProgressAmountCollected(
                 getRepository().getTotalInProgressAmountPaidByClientId(clientId, CreditStatus.INPROGRESS));
         clientDetails.setTotalInProgressAmountDue(getRepository().getTotalAmountDueTodayByClientId(clientId));
-        clientDetails.setTotalAmountRemaining(clientDetails.getTotalInProgressCreditAmount() - clientDetails.getTotalInProgressAmountCollected());
+        clientDetails.setTotalAmountRemaining(
+                clientDetails.getTotalInProgressCreditAmount() - clientDetails.getTotalInProgressAmountCollected());
         return clientDetails;
     }
 
@@ -1381,5 +1397,39 @@ public class CreditService extends GenericService<Credit, Long> {
     @Autowired
     public void setParameterService(ParameterService parameterService) {
         this.parameterService = parameterService;
+    }
+
+    @Transactional
+    public CreditRespDto changeCollector(Long creditId, String newCollector) {
+        Credit credit = getById(creditId);
+
+        if (!CreditStatus.INPROGRESS.equals(credit.getStatus())) {
+            throw new CustomValidationException(
+                    "Le changement de commercial n'est autorisé que pour les ventes en cours (INPROGRESS).");
+        }
+
+        // 1. Historiser l'opération
+        CreditCollectorHistory history = new CreditCollectorHistory();
+        history.setCredit(credit);
+        history.setOldCollector(credit.getCollector());
+        history.setNewCollector(newCollector);
+        history.setTotalAmount(credit.getTotalAmount());
+        history.setTotalAmountPaid(credit.getTotalAmountPaid());
+        history.setTotalAmountRemaining(credit.getTotalAmountRemaining());
+        history.setChangeDate(java.time.LocalDateTime.now());
+        creditCollectorHistoryRepository.save(history);
+
+        // 2. Mettre à jour le crédit
+        credit.setCollector(newCollector);
+
+        // 3. Mettre à jour le recoveryCollector du client
+        Client client = credit.getClient();
+        if (client != null) {
+            client.setRecoveryCollector(newCollector);
+            clientService.update(client);
+        }
+
+        credit = update(credit);
+        return CreditRespDto.fromCredit(credit);
     }
 }

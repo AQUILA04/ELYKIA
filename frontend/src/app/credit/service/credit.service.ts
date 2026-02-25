@@ -83,7 +83,7 @@ export class CreditService extends BaseHttpService {
     super(http, tokenStorage, errorHandler);
   }
 
-  getHeader(){
+  getHeader() {
     const token = this.tokenStorage.getToken();
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`
@@ -107,6 +107,14 @@ export class CreditService extends BaseHttpService {
   // --- NOUVELLE MÉTHODE AJOUTÉE ICI ---
   changeDailyStake(dto: ChangeDailyStakeDto): Observable<any> {
     return this.patch(`${this.apiUrl}/change-daily-stake`, dto);
+  }
+
+  changeCollector(creditId: number, newCollector: string): Observable<any> {
+    return this.post(`${this.apiUrl}/${creditId}/change-collector`, { newCollector }, {
+      observe: 'response'
+    }).pipe(
+      map(response => response)
+    );
   }
 
   searchCredits(searchDto: any, page: number, size: number): Observable<any> {
@@ -290,9 +298,9 @@ export class CreditService extends BaseHttpService {
 
   private isValidCreditId(creditId: number): boolean {
     return typeof creditId === 'number' &&
-           creditId > 0 &&
-           Number.isInteger(creditId) &&
-           creditId <= Number.MAX_SAFE_INTEGER;
+      creditId > 0 &&
+      Number.isInteger(creditId) &&
+      creditId <= Number.MAX_SAFE_INTEGER;
   }
 
   private isValidMergeData(mergeData: MergeCreditDto): boolean {

@@ -172,14 +172,80 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
 
         if (dto.getAmount() != null && !dto.getAmount().equals(member.getAmount())) {
+            // Capture old society share before recalculation
+            Double oldSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
+
             // Amount has changed, handle history based on scope
             handleAmountChange(member, dto.getAmount(), dto.getUpdateScope());
             member.setAmount(dto.getAmount());
+
+            // Recalculate society share based on new amount history
+            // We need to re-run the allocation logic as if we are validating the current state
+            // But processCollectionAllocation is designed for adding new money.
+            // Here we just want to update the target/theoretical share and adjust the actual share if needed?
+            // Actually, changing the daily amount changes the target society share.
+            // If the target increases, the deficit increases.
+            // If the target decreases, the member might have overpaid society share.
+            
+            // Let's recalculate the target society share and update the member's society share
+            // We can reuse part of the logic from processCollectionAllocation but without adding new money.
+            recalculateSocietyShareAfterUpdate(member);
+
+            Double newSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
+
+            // Update session revenue: subtract old share, add new share
+            TontineSession session = member.getTontineSession();
+            Double currentSessionRevenue = session.getTotalRevenue() != null ? session.getTotalRevenue() : 0.0;
+            session.setTotalRevenue(currentSessionRevenue - oldSocietyShare + newSocietyShare);
+            tontineSessionRepository.save(session);
         }
 
         // Notes handling if needed (skipped as per previous logic)
 
         return this.update(member);
+    }
+
+    private void recalculateSocietyShareAfterUpdate(TontineMember member) {
+        Double currentSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
+        
+        // Calculate Target Society Share based on Time and History
+        LocalDate startDate = member.getTontineSession().getStartDate();
+        boolean useRegistrationDate = parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE");
+        if (useRegistrationDate && member.getRegistrationDate() != null) {
+            LocalDate regDate = member.getRegistrationDate().toLocalDate();
+            if (regDate.isAfter(startDate)) {
+                startDate = regDate;
+            }
+        }
+
+        LocalDate now = LocalDate.now();
+        Double targetSocietyShare = 0.0;
+        
+        LocalDate iterDate = startDate;
+        int monthsCounted = 0;
+        int MAX_MONTHS = 10;
+
+        while (!iterDate.isAfter(now) && monthsCounted < MAX_MONTHS) {
+             Double applicableAmount = getApplicableAmountForDate(member, iterDate);
+             targetSocietyShare += applicableAmount;
+             monthsCounted++;
+             iterDate = iterDate.plusMonths(1);
+        }
+
+        // Logic:
+        // If we have collected enough total money to cover the new target share, we allocate it.
+        // If the new target is lower than current share, we might reduce the share (and increase capital).
+        // If the new target is higher, we increase share (and reduce capital) IF there is enough total contribution.
+        
+        Double totalContrib = member.getTotalContribution() != null ? member.getTotalContribution() : 0.0;
+        
+        // The society share should be the target, capped by what the user has actually paid.
+        Double newSocietyShare = Math.min(totalContrib, targetSocietyShare);
+        
+        member.setSocietyShare(newSocietyShare);
+        
+        // Recalculate derived status (validated months) based on remaining capital
+        calculateMemberStatus(member);
     }
 
     private void handleAmountChange(TontineMember member, Double newAmount, TontineMemberUpdateScope scope) {

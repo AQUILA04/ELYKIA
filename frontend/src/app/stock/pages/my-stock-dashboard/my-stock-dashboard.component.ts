@@ -5,8 +5,8 @@ import { CommercialMonthlyStock } from '../../models/commercial-stock.model';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ClientService } from 'src/app/client/service/client.service';
 import { PageEvent } from '@angular/material/paginator';
-import {UserService} from "../../../user/service/user.service";
-import {UserProfile} from "../../../shared/models/user-profile.enum";
+import { UserService } from "../../../user/service/user.service";
+import { UserProfile } from "../../../shared/models/user-profile.enum";
 
 @Component({
   selector: 'app-my-stock-dashboard',
@@ -104,12 +104,12 @@ export class MyStockDashboardComponent implements OnInit {
 
   getTotalSoldValue(stock: CommercialMonthlyStock): number {
     if (!stock || !stock.items) return 0;
-    return stock.items.reduce((acc, item) => acc + (item.quantitySold * item.weightedAverageUnitPrice), 0);
+    return stock.items.reduce((acc, item) => acc + (item.totalSoldValue || 0), 0);
   }
 
   getTotalDueValue(stock: CommercialMonthlyStock): number {
     if (!stock || !stock.items) return 0;
-    return stock.items.reduce((acc, item) => acc + ((item.quantityTaken - item.quantityReturned) * item.weightedAverageUnitPrice), 0);
+    return this.getTotalStockValue(stock) + this.getTotalSoldValue(stock);
   }
 
   getMonthName(monthNumber: number): string {

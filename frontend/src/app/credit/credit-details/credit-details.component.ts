@@ -7,6 +7,8 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 import { CreditDistributionDetail } from '../types/credit.types';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 import { ErrorHandlingMixin } from 'src/app/shared/mixins/error-handling.mixin';
+import { ClientService } from 'src/app/client/service/client.service';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 
 @Component({
@@ -20,12 +22,18 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
   creditId: number | null;
   distributionDetails: CreditDistributionDetail[] = [];
 
+  showChangeCollectorModal = false;
+  agents: any[] = [];
+  selectedCommercial = '';
+
   constructor(
     private route: ActivatedRoute,
     private creditService: CreditService,
     private spinner: NgxSpinnerService,
-    private router : Router,
-    private tokenStorage : TokenStorageService,
+    private router: Router,
+    private tokenStorage: TokenStorageService,
+    private clientService: ClientService,
+    private alertService: AlertService,
     errorHandler: ErrorHandlerService
   ) {
     super(errorHandler);
@@ -39,19 +47,19 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
       this.spinner.show();
       this.loadCreditDetails(creditId);
       this.loadDistributionDetails(creditId);
-      console.log('id du credit',creditId)
+      console.log('id du credit', creditId)
       this.creditId = creditId;
     });
   }
   onCancel(): void {
     this.router.navigate(['/credit-list']);
   }
-  navigateToEdit(creditId:number | null): void {
-    console.log('navigatetoEDit',creditId)
+  navigateToEdit(creditId: number | null): void {
+    console.log('navigatetoEDit', creditId)
     this.router.navigate(['/credit-add', creditId]);
   }
 
-  
+
   loadCreditDetails(creditId: number): void {
     this.spinner.show();
     this.creditService.getCreditById(creditId).subscribe({
@@ -79,6 +87,54 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
       error: (error) => {
         // Utiliser notre système de gestion d'erreur amélioré
         this.handleError(error, 'Erreur de chargement des détails');
+      }
+    });
+  }
+
+  async changeCollector(): Promise<void> {
+    if (this.credit?.status !== 'INPROGRESS') {
+      this.alertService.showWarning('Le statut du crédit doit être EN COURS pour modifier le commercial.');
+      return;
+    }
+
+    this.spinner.show();
+    try {
+      this.agents = (await this.clientService.getAgents().toPromise()) || [];
+      this.spinner.hide();
+
+      if (!this.agents || this.agents.length === 0) {
+        this.alertService.showWarning('Aucun commercial trouvé.');
+        return;
+      }
+
+      this.showChangeCollectorModal = true;
+    } catch (error) {
+      this.spinner.hide();
+      this.handleError(error, 'Erreur lors du chargement des commerciaux');
+    }
+  }
+
+  closeChangeCollectorModal(): void {
+    this.showChangeCollectorModal = false;
+    this.selectedCommercial = '';
+  }
+
+  submitChangeCollector(): void {
+    if (!this.selectedCommercial) return;
+
+    this.spinner.show();
+    this.creditService.changeCollector(this.credit.id, this.selectedCommercial).subscribe({
+      next: (res) => {
+        this.spinner.hide();
+        this.closeChangeCollectorModal();
+        this.alertService.showSuccess('Le commercial a été modifié avec succès.');
+        if (this.creditId) {
+          this.loadCreditDetails(this.creditId);
+        }
+      },
+      error: (err) => {
+        this.spinner.hide();
+        this.handleError(err, 'Erreur lors de la modification du commercial');
       }
     });
   }

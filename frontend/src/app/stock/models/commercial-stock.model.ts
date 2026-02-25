@@ -7,6 +7,7 @@ export interface CommercialMonthlyStockItem {
   quantityRemaining: number;
   weightedAverageUnitPrice: number;
   weightedAveragePurchasePrice: number;
+  totalSoldValue?: number;
 }
 
 export interface CommercialMonthlyStock {

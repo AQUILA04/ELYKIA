@@ -211,13 +211,13 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 CommercialMonthlyStockItem item = existingItem.get();
 
                 // Calcul du nouveau prix moyen pondéré
-                int currentNetQuantity = item.getQuantityTaken() - item.getQuantityReturned();
+                int currentNetQuantity = item.getQuantityRemaining();
                 double currentTotalValue = currentNetQuantity * item.getWeightedAverageUnitPrice();
                 double newRequestValue = reqItem.getQuantity() * reqItem.getUnitPrice();
                 int newNetQuantity = currentNetQuantity + reqItem.getQuantity();
 
                 if (newNetQuantity > 0) {
-                    item.setWeightedAverageUnitPrice((currentTotalValue + newRequestValue) / newNetQuantity);
+                    item.setWeightedAverageUnitPrice(Math.ceil((currentTotalValue + newRequestValue) / newNetQuantity));
                 }
 
                 // Idem pour le prix d'achat
@@ -226,7 +226,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
 
                 if (newNetQuantity > 0) {
                     item.setWeightedAveragePurchasePrice(
-                            (currentTotalPurchaseValue + newRequestPurchaseValue) / newNetQuantity);
+                            Math.ceil((currentTotalPurchaseValue + newRequestPurchaseValue) / newNetQuantity));
                 }
 
                 item.setQuantityTaken(item.getQuantityTaken() + reqItem.getQuantity());
@@ -237,8 +237,8 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 CommercialMonthlyStockItem newItem = new CommercialMonthlyStockItem();
                 newItem.setArticle(reqItem.getArticle());
                 newItem.setQuantityTaken(reqItem.getQuantity());
-                newItem.setWeightedAverageUnitPrice(reqItem.getUnitPrice());
-                newItem.setWeightedAveragePurchasePrice(reqItem.getPurchasePrice());
+                newItem.setWeightedAverageUnitPrice(Math.ceil(reqItem.getUnitPrice()));
+                newItem.setWeightedAveragePurchasePrice(Math.ceil(reqItem.getPurchasePrice()));
                 newItem.setLastUnitPrice(reqItem.getUnitPrice());
                 newItem.setLastPurchasePrice(reqItem.getPurchasePrice());
                 newItem.updateRemaining();

@@ -129,7 +129,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         return saved;
     }
 
-    private void updateCommercialMonthlyStock(StockReturn stockReturn) {
+    private double updateCommercialMonthlyStock(StockReturn stockReturn) {
         LocalDate date = LocalDate.now();
         int month = date.getMonthValue();
         int year = date.getYear();
@@ -137,6 +137,8 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         CommercialMonthlyStock monthlyStock = monthlyStockRepository
                 .findByCollectorAndMonthAndYear(stockReturn.getCollector(), month, year)
                 .orElseThrow(() -> new CustomValidationException("Aucun stock mensuel trouvé pour ce commercial."));
+
+        double totalReturnAmount = 0.0;
 
         for (StockReturnItem returnItem : stockReturn.getItems()) {
             Optional<CommercialMonthlyStockItem> existingItem = monthlyStock.getItems().stream()
@@ -154,12 +156,16 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                 item.setQuantityReturned(item.getQuantityReturned() + returnItem.getQuantity());
                 item.updateRemaining();
                 monthlyStockItemRepository.save(item);
+
+                // Calculate the value of returned stock based on current PMP
+                totalReturnAmount += returnItem.getQuantity() * item.getWeightedAverageUnitPrice();
             } else {
                 throw new CustomValidationException("Article non trouvé dans le stock du commercial : "
                         + returnItem.getArticle().getCommercialName());
             }
         }
         monthlyStockRepository.save(monthlyStock);
+        return totalReturnAmount;
     }
 
     public Page<StockReturn> getAll(String collector, Pageable pageable) {

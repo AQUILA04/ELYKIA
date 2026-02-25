@@ -41,6 +41,11 @@ public class CommercialMonthlyStockItem extends Auditable<String> {
     @Column(columnDefinition = "double precision default 0")
     private Double weightedAverageUnitPrice = 0.0;
 
+    // Total financial value of sold items, accurately aggregated at the specific
+    // PMP of each sale
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalSoldValue = 0.0;
+
     @Column(columnDefinition = "double precision default 0")
     private Double weightedAveragePurchasePrice = 0.0;
 
@@ -50,7 +55,7 @@ public class CommercialMonthlyStockItem extends Auditable<String> {
 
     @Column(columnDefinition = "double precision default 0")
     private Double lastPurchasePrice = 0.0;
-    
+
     public void updateRemaining() {
         this.quantityRemaining = this.quantityTaken - this.quantitySold - this.quantityReturned;
     }
