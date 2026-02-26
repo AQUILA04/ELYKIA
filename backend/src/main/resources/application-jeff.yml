@@ -2,7 +2,7 @@ spring:
   application:
     name: optimize-elykia-core
   datasource:
-    url: jdbc:postgresql://localhost:5432/oec_op
+    url: jdbc:postgresql://localhost:5432/oec_form
     username: eric #jeff #francis
     password: 9191 #Admin@1234 #Anid2022
   jpa:
