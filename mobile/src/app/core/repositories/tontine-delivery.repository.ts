@@ -91,7 +91,7 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         // Get items for each delivery with article names via JOIN
         for (const d of deliveries) {
             const itemsQuery = `
-                SELECT 
+                SELECT
                     tdi.*,
                     a.name as articleName,
                     a.commercialName as articleCommercialName
@@ -115,5 +115,29 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         const sql = `SELECT * FROM tontine_delivery_items WHERE tontineDeliveryId = ?`;
         const result = await this.databaseService.query(sql, [deliveryId]);
         return result.values || [];
+    }
+
+    /**
+     * Get tontine deliveries created on a specific date for a commercial
+     * @param commercialUsername Commercial username
+     * @param date Date string (YYYY-MM-DD)
+     * @returns Array of tontine deliveries with member names
+     */
+    async findByCommercialAndDate(commercialUsername: string, date: string): Promise<any[]> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        const sql = `
+            SELECT td.*, c.fullName as clientName
+            FROM tontine_deliveries td
+            LEFT JOIN tontine_members tm ON td.tontineMemberId = tm.id
+            LEFT JOIN clients c ON tm.clientId = c.id
+            WHERE td.commercialUsername = ? AND td.requestDate LIKE ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, `${date}%`]);
+        return (result.values || []).map((row: any) => ({
+            ...row,
+            isLocal: row.isLocal === 1,
+            isSync: row.isSync === 1,
+            clientName: row.clientName
+        }));
     }
 }

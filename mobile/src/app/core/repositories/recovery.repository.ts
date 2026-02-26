@@ -152,6 +152,27 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
         return ret.values || [];
     }
 
-
+    /**
+     * Get recoveries created on a specific date for a commercial
+     * @param commercialUsername Commercial username
+     * @param date Date string (YYYY-MM-DD)
+     * @returns Array of recoveries with client names
+     */
+    async findByCommercialAndDate(commercialUsername: string, date: string): Promise<any[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `
+            SELECT r.*, c.fullName as clientName
+            FROM recoveries r
+            LEFT JOIN clients c ON r.clientId = c.id
+            WHERE r.commercialId = ? AND r.createdAt LIKE ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, `${date}%`]);
+        return (result.values || []).map((row: any) => ({
+            ...this.mapRowToRecovery(row),
+            clientName: row.clientName
+        }));
+    }
 
 }

@@ -8,6 +8,8 @@ import { DatabaseService } from './database.service';
 import { Article } from '../../models/article.model';
 import { ApiResponse } from '../../models/api-response.model';
 import { HealthCheckService } from './health-check.service';
+import { ArticleRepository } from '../repositories/article.repository';
+import { Page } from '../repositories/repository.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +19,8 @@ export class ArticleService {
   constructor(
     private http: HttpClient,
     private dbService: DatabaseService,
-    private healthCheckService: HealthCheckService
+    private healthCheckService: HealthCheckService,
+    private articleRepository: ArticleRepository
   ) { }
 
   initializeArticles(): Observable<Article[]> {
@@ -54,5 +57,9 @@ export class ArticleService {
 
   getArticles(): Observable<Article[]> {
     return from(this.dbService.getArticles());
+  }
+
+  searchArticlesPaginated(query: string, page: number, size: number): Observable<Page<Article>> {
+    return from(this.articleRepository.searchArticles(query, page, size));
   }
 }

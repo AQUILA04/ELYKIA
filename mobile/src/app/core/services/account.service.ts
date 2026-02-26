@@ -9,6 +9,7 @@ import { ApiResponse } from '../../models/api-response.model';
 import { Store } from '@ngrx/store';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { HealthCheckService } from './health-check.service';
+import { AccountRepository } from '../repositories/account.repository';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,7 @@ export class AccountService {
   constructor(
     private http: HttpClient,
     private dbService: DatabaseService,
+    private accountRepository: AccountRepository,
     private store: Store,
     private healthCheckService: HealthCheckService
   ) {
@@ -79,7 +81,7 @@ export class AccountService {
       return of([]);
     }
     const url = `${environment.apiUrl}/api/v1/accounts/by-commercial?page=0&size=2000&sort=id,desc&commercial=${this.commercialUsername}`;
-    return this.http.get<ApiResponse<{content: Account[]}>>(url).pipe(
+    return this.http.get<ApiResponse<{ content: Account[] }>>(url).pipe(
       map(response => response.data.content)
     );
   }
@@ -93,5 +95,13 @@ export class AccountService {
 
   getAccountFromDB(): Observable<Account[]> {
     return from(this.getAccounts());
+  }
+
+  getAccountByClientId(clientId: string): Observable<Account | null> {
+    return from(this.accountRepository.findByClientId(clientId));
+  }
+
+  getAccountsByClientIds(clientIds: string[]): Observable<Account[]> {
+    return from(this.accountRepository.findByClientIds(clientIds));
   }
 }

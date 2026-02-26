@@ -17,7 +17,6 @@ import { selectDistributionKpi } from '../../store/kpi/kpi.selectors';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { DistributionDetailComponent } from './components/distribution-detail/distribution-detail.component';
 import { selectAllClients } from '../../store/client/client.selectors';
-import { selectAllArticles } from '../../store/article/article.selectors';
 import { DistributionView } from '../../models/distribution-view.model';
 import { User } from '../../models/auth.model';
 

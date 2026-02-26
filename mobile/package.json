@@ -46,6 +46,7 @@
     "@ionic/pwa-elements": "^3.3.0",
     "@ionic/storage-angular": "^4.0.0",
     "@ngrx/effects": "^20.0.0-rc.0",
+    "@ngrx/entity": "^21.0.1",
     "@ngrx/store": "^20.0.0-rc.0",
     "@ngrx/store-devtools": "^20.0.0-rc.0",
     "@types/leaflet": "^1.9.20",

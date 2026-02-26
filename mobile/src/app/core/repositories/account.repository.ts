@@ -28,6 +28,30 @@ export class AccountRepository extends BaseRepository<Account, string> {
         return (result.values || []).map((row: any) => this.mapRowToAccount(row));
     }
 
+    async findByClientId(clientId: string): Promise<Account | null> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `SELECT * FROM accounts WHERE clientId = ? LIMIT 1`;
+        const result = await this.databaseService.query(sql, [clientId]);
+        if (result.values && result.values.length > 0) {
+            return this.mapRowToAccount(result.values[0]);
+        }
+        return null;
+    }
+
+    async findByClientIds(clientIds: string[]): Promise<Account[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        if (!clientIds || clientIds.length === 0) return [];
+
+        const placeholders = clientIds.map(() => '?').join(',');
+        const sql = `SELECT * FROM accounts WHERE clientId IN (${placeholders})`;
+        const result = await this.databaseService.query(sql, clientIds);
+        return (result.values || []).map((row: any) => this.mapRowToAccount(row));
+    }
+
     async markAsSynced(localId: string, serverId: string): Promise<void> {
         if (!this.databaseService['db'] || localId === serverId) return;
         await this.databaseService.execute(

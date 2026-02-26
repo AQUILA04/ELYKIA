@@ -20,8 +20,8 @@
       </ion-avatar>
       <h1 class="client-name-large">{{ client.firstname }} {{ client.lastname }}</h1>
       <p class="client-basic-info">
-              {{ client.address }}<br>
-              {{ client.phone }} <ion-icon name="call" (click)="callClient(client.phone)" class="call-icon"></ion-icon>      </p>
+        {{ client.address }}<br>
+        {{ client.phone }} <ion-icon name="call" (click)="callClient(client.phone)" class="call-icon"></ion-icon> </p>
     </div>
   </ng-container>
 
@@ -81,14 +81,15 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-icon name="call-outline" ></ion-icon>
+                <ion-icon name="call-outline"></ion-icon>
                 Contact
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
               <div class="info-row">
                 <span class="info-label">Téléphone</span>
-                <span class="info-value">{{ client.phone }} <ion-icon name="call" (click)="callClient(client.phone)" class="call-icon"></ion-icon></span>
+                <span class="info-value">{{ client.phone }} <ion-icon name="call" (click)="callClient(client.phone)"
+                    class="call-icon"></ion-icon></span>
               </div>
               <div class="info-row">
                 <span class="info-label">Adresse</span>
@@ -117,7 +118,8 @@
                 <span class="info-label">Numéro</span>
                 <span class="info-value">{{ client.cardID }}</span>
               </div>
-              <ion-button *ngIf="client.cardPhoto" expand="block" fill="outline" class="ion-margin-top" (click)="openCardPreview(client)">
+              <ion-button *ngIf="client.cardPhoto" expand="block" fill="outline" class="ion-margin-top"
+                (click)="openCardPreview(client)">
                 <ion-icon slot="start" name="eye-outline"></ion-icon>
                 Voir la photo de la pièce
               </ion-button>
@@ -127,7 +129,7 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-icon name="alert-circle-outline" ></ion-icon>
+                <ion-icon name="alert-circle-outline"></ion-icon>
                 Personne à Contacter
               </ion-card-title>
             </ion-card-header>
@@ -169,14 +171,15 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-icon name="location-outline" ></ion-icon>
+                <ion-icon name="location-outline"></ion-icon>
                 Géolocalisation
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
               <div class="info-row">
                 <span class="info-label">Coordonnées</span>
-                <span class="info-value">{{ client.latitude ?? '0.0' | number:'1.4-4'}}, {{ client.longitude ?? '0.0' | number:'1.4-4' }}</span>
+                <span class="info-value">{{ client.latitude ?? '0.0' | number:'1.4-4'}}, {{ client.longitude ?? '0.0' |
+                  number:'1.4-4' }}</span>
               </div>
               <ion-button expand="block" fill="outline" class="map-button" (click)="openMapPreview(client)">
                 <ion-icon name="map-outline" slot="start"></ion-icon>
@@ -200,33 +203,38 @@
               <ion-card-header>
                 <div class="credit-header-line">
                   <ion-card-title>{{ credit.reference }}</ion-card-title>
-                  <ion-badge [color]="credit.status === 'INPROGRESS' ? 'warning' : 'success'">{{ credit.status }}</ion-badge>
+                  <ion-badge [color]="credit.status === 'INPROGRESS' ? 'warning' : 'success'">{{ credit.status
+                    }}</ion-badge>
                 </div>
               </ion-card-header>
               <ion-card-content>
                 <div class="credit-amounts">
                   <div class="amount-item">
                     <span class="amount-label">Montant Total</span>
-                    <span class="amount-value amount-total">{{ credit.totalAmount | currency:'XOF':'symbol':'1.0-0' }}</span>
+                    <span class="amount-value amount-total">{{ credit.totalAmount | currency:'XOF':'symbol':'1.0-0'
+                      }}</span>
                   </div>
                   <div class="amount-item">
                     <span class="amount-label">Payé</span>
-                    <span class="amount-value amount-paid">{{ credit.paidAmount || 0 | currency:'XOF':'symbol':'1.0-0' }}</span>
+                    <span class="amount-value amount-paid">{{ credit.paidAmount || 0 | currency:'XOF':'symbol':'1.0-0'
+                      }}</span>
                   </div>
                 </div>
                 <div class="progress-section">
                   <ion-progress-bar [value]="((credit.paidAmount / credit.totalAmount) * 100)"></ion-progress-bar>
-                  <span class="progress-label">{{ (credit.paidAmount / credit.totalAmount) * 100 || 0 | number:'1.0-0' }}%</span>
+                  <span class="progress-label">{{ (credit.paidAmount / credit.totalAmount) * 100 || 0 | number:'1.0-0'
+                    }}%</span>
                 </div>
                 <div class="credit-footer">
-                    <div class="amount-item">
-                        <span class="amount-label">Restant</span>
-                        <span class="amount-value amount-remaining">{{ credit.remainingAmount | currency:'XOF':'symbol':'1.0-0' }}</span>
-                    </div>
-                    <div class="amount-item">
-                        <span class="amount-label">Mise/jour</span>
-                        <span class="amount-value">{{ credit.dailyPayment | currency:'XOF':'symbol':'1.0-0' }}</span>
-                    </div>
+                  <div class="amount-item">
+                    <span class="amount-label">Restant</span>
+                    <span class="amount-value amount-remaining">{{ credit.remainingAmount |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                  </div>
+                  <div class="amount-item">
+                    <span class="amount-label">Mise/jour</span>
+                    <span class="amount-value">{{ credit.dailyPayment | currency:'XOF':'symbol':'1.0-0' }}</span>
+                  </div>
                 </div>
                 <div class="credit-dates">
                   <span>Début: {{ credit.startDate | date:'dd/MM/yy' }}</span>
@@ -257,9 +265,14 @@
                   <span class="timeline-date">{{ item.date | date:'dd/MM/yy HH:mm' }}</span>
                 </div>
                 <p class="timeline-details">Ref: {{ item.referenceId }}</p>
-                <span class="timeline-amount" [ngClass]="item.type">{{ item.amount | currency:'FCFA':'symbol':'1.0-0' }}</span>
+                <span class="timeline-amount" [ngClass]="item.type">{{ item.amount | currency:'FCFA':'symbol':'1.0-0'
+                  }}</span>
               </div>
             </div>
+            <ion-infinite-scroll *ngIf="hasMoreTransactions$ | async" (ionInfinite)="loadMoreTransactions($event)">
+              <ion-infinite-scroll-content loadingSpinner="bubbles"
+                loadingText="Chargement..."></ion-infinite-scroll-content>
+            </ion-infinite-scroll>
           </div>
         </ng-container>
       </div>

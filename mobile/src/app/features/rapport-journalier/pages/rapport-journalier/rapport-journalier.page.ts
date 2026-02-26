@@ -245,26 +245,42 @@ export class RapportJournalierPage implements OnDestroy {
       })
     );
 
-    // Subscribe to Data Lists to update reportData.items locally (for PDF and list display binding)
-    this.subscriptions.add(this.distributions$.subscribe(items => { this.reportData.distributions.items = items; this.cdr.markForCheck(); }));
-    this.subscriptions.add(this.recoveries$.subscribe(items => { this.reportData.recoveries.items = items; this.cdr.markForCheck(); }));
-    this.subscriptions.add(this.clients$.subscribe(items => { this.reportData.newClients.items = items; this.cdr.markForCheck(); }));
-    this.subscriptions.add(this.tontineMembers$.subscribe(items => {
-      if (!this.reportData.tontineMembers) this.reportData.tontineMembers = { count: 0, items: [] };
-      this.reportData.tontineMembers.items = items;
-      this.cdr.markForCheck();
-    }));
-    this.subscriptions.add(this.tontineCollections$.subscribe(items => {
-      if (!this.reportData.tontineCollections) this.reportData.tontineCollections = { count: 0, totalAmount: 0, items: [] };
-      this.reportData.tontineCollections.items = items;
-      this.cdr.markForCheck();
-    }));
-    this.subscriptions.add(this.tontineDeliveries$.subscribe(items => {
-      if (!this.reportData.tontineDeliveries) this.reportData.tontineDeliveries = { count: 0, totalAmount: 0, items: [] };
-      this.reportData.tontineDeliveries.items = items;
-      this.cdr.markForCheck();
-    }));
-
+    // Optimize subscriptions: Use combineLatest to reduce the number of separate subscriptions
+    this.subscriptions.add(
+      combineLatest([
+        this.distributions$,
+        this.recoveries$,
+        this.clients$,
+        this.tontineMembers$,
+        this.tontineCollections$,
+        this.tontineDeliveries$
+      ]).pipe(
+        map(([distributions, recoveries, clients, tontineMembers, tontineCollections, tontineDeliveries]) => ({
+          distributions,
+          recoveries,
+          clients,
+          tontineMembers,
+          tontineCollections,
+          tontineDeliveries
+        }))
+      ).subscribe(data => {
+        // Update report data items
+        this.reportData.distributions.items = data.distributions;
+        this.reportData.recoveries.items = data.recoveries;
+        this.reportData.newClients.items = data.clients;
+        
+        if (!this.reportData.tontineMembers) this.reportData.tontineMembers = { count: 0, items: [] };
+        this.reportData.tontineMembers.items = data.tontineMembers;
+        
+        if (!this.reportData.tontineCollections) this.reportData.tontineCollections = { count: 0, totalAmount: 0, items: [] };
+        this.reportData.tontineCollections.items = data.tontineCollections;
+        
+        if (!this.reportData.tontineDeliveries) this.reportData.tontineDeliveries = { count: 0, totalAmount: 0, items: [] };
+        this.reportData.tontineDeliveries.items = data.tontineDeliveries;
+        
+        this.cdr.markForCheck();
+      })
+    );
 
     // Subscribe to KPI updates / Pagination Counts
     this.subscriptions.add(this.store.select(DistributionSelectors.selectDistributionPaginationTotalItems).subscribe(count => {

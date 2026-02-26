@@ -10,6 +10,7 @@ import { DatabaseService } from './database.service';
 import { Client } from '../../models/client.model';
 import { Store } from '@ngrx/store';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
+import { ThumbnailService } from './thumbnail.service';
 
 export interface PhotoSyncPreferences {
   enableProfilePhotoSync: boolean;
@@ -29,7 +30,8 @@ export class PhotoSyncService {
     private storage: Storage,
     private log: LoggerService,
     private dbService: DatabaseService,
-    private store: Store
+    private store: Store,
+    private thumbnailService: ThumbnailService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -134,7 +136,12 @@ export class PhotoSyncService {
                 this.PROFILE_PHOTO_DIR,
                 `profile_${client.id}_${Date.now()}.png`
               );
-              await this.updateClientProfilePhotoUrl(client.id, photoPath);
+
+              // Generate thumbnail
+              const thumbPath = await this.thumbnailService.generateThumbnail(photoPath, 200, 200);
+
+              // Update client with both paths
+              await this.updateClientProfilePhotoUrl(client.id, photoPath, thumbPath);
               await this.markClientPhotoUrlsUpdated(client.id);
             }
           }
@@ -163,7 +170,11 @@ export class PhotoSyncService {
                 this.CARD_PHOTO_DIR,
                 `card_${client.id}_${Date.now()}.png`
               );
-              await this.updateClientCardPhotoUrl(client.id, photoPath);
+
+              // Generate thumbnail
+              const thumbPath = await this.thumbnailService.generateThumbnail(photoPath, 200, 200);
+
+              await this.updateClientCardPhotoUrl(client.id, photoPath, thumbPath);
               await this.markClientPhotoUrlsUpdated(client.id);
             }
           }
@@ -261,14 +272,17 @@ export class PhotoSyncService {
     }
   }
 
-  private async updateClientProfilePhotoUrl(clientId: string, photoPath: string): Promise<void> {
-    const sql = `UPDATE clients SET profilPhotoUrl = ? WHERE id = ?`;
-    await this.dbService.execute(sql, [photoPath, clientId]);
+  private async updateClientProfilePhotoUrl(clientId: string, photoPath: string, thumbPath?: string): Promise<void> {
+    // We store the thumbnail path in profilPhotoUrl for list display performance
+    // The original full-res path is stored in profilPhoto
+    const sql = `UPDATE clients SET profilPhotoUrl = ?, profilPhoto = ? WHERE id = ?`;
+    await this.dbService.execute(sql, [thumbPath || photoPath, photoPath, clientId]);
   }
 
-  private async updateClientCardPhotoUrl(clientId: string, photoPath: string): Promise<void> {
-    const sql = `UPDATE clients SET cardPhotoUrl = ? WHERE id = ?`;
-    await this.dbService.execute(sql, [photoPath, clientId]);
+  private async updateClientCardPhotoUrl(clientId: string, photoPath: string, thumbPath?: string): Promise<void> {
+    // Similar logic for card photos
+    const sql = `UPDATE clients SET cardPhotoUrl = ?, cardPhoto = ? WHERE id = ?`;
+    await this.dbService.execute(sql, [thumbPath || photoPath, photoPath, clientId]);
   }
 
   private async markClientPhotoUrlsUpdated(clientId: string): Promise<void> {

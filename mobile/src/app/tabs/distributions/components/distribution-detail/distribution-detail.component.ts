@@ -8,8 +8,6 @@ import { filter, take } from 'rxjs/operators';
 import { DistributionView, DistributionItemView } from '../../../../models/distribution-view.model';
 import { DistributionService } from '../../../../core/services/distribution.service';
 import { RecoveryService } from '../../../../core/services/recovery.service';
-import { selectAllArticles } from '../../../../store/article/article.selectors';
-import { loadArticles } from '../../../../store/article/article.actions';
 import * as DistributionActions from '../../../../store/distribution/distribution.actions';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 
@@ -21,7 +19,7 @@ import { selectAuthUser } from '../../../../store/auth/auth.selectors';
   imports: [CommonModule, IonicModule],
   providers: [DecimalPipe]
 })
-export class DistributionDetailComponent  implements OnInit {
+export class DistributionDetailComponent implements OnInit {
 
   @Input() distribution!: DistributionView;
 
@@ -39,7 +37,7 @@ export class DistributionDetailComponent  implements OnInit {
   ngOnInit() {
     // No need to load items manually, they are already populated in DistributionView
     if (this.distribution && (!this.distribution.items || this.distribution.items.length === 0)) {
-       console.warn('[DistributionDetail] Distribution items are empty, this might be expected if no items exist.');
+      console.warn('[DistributionDetail] Distribution items are empty, this might be expected if no items exist.');
     }
   }
 
@@ -109,10 +107,10 @@ export class DistributionDetailComponent  implements OnInit {
 
     // Handle different data types for isLocal field
     return isLocal === true ||
-           isLocal === 1 ||
-           isLocal === '1' ||
-           isLocal === 'true' ||
-           String(isLocal).toLowerCase() === 'true';
+      isLocal === 1 ||
+      isLocal === '1' ||
+      isLocal === 'true' ||
+      String(isLocal).toLowerCase() === 'true';
   }
 
   async editDistribution() {

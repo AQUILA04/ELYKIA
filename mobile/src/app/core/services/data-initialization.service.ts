@@ -85,7 +85,6 @@ export class DataInitializationService {
   initializeLocalities(): Observable<boolean> {
     return this.localityService.initializeLocalities().pipe(
       map(() => {
-        this.store.dispatch(LocalityActions.loadFirstPage({ pageSize: 1000 }));
         return true;
       }),
       catchError((error) => {
@@ -156,7 +155,6 @@ export class DataInitializationService {
         const commercialUsername = user.username;
         return this.stockOutputService.initializeStockOutputs(commercialUsername).pipe(
           map(() => {
-            this.store.dispatch(StockOutputActions.loadStockOutputs({ commercialUsername }));
             return true;
           }),
           catchError(error => of(false))
@@ -207,7 +205,6 @@ export class DataInitializationService {
   initializeAccounts(): Observable<boolean> {
     return this.accountService.initializeAccounts().pipe(
       map(() => {
-        this.store.dispatch(AccountActions.loadAccounts());
         return true;
       }),
       catchError((error) => {
@@ -237,7 +234,6 @@ export class DataInitializationService {
   }
 
   initializeTransactions(): Observable<boolean> {
-    this.store.dispatch(TransactionActions.loadTransactions());
     return of(true);
   }
 

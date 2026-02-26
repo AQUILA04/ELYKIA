@@ -553,6 +553,10 @@ export class ClientService {
     return await this.dbService.updateClientPhotosAndInfo(data);
   }
 
+  async getClientById(id: string): Promise<Client> {
+    return await this.dbService.getClientById(id);
+  }
+
   // ==================== PAGINATION METHODS ====================
 
   /**

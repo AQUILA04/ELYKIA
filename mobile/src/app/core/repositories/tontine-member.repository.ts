@@ -157,4 +157,27 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
         // we will leave this as is and rely on the service layer using `getUnsyncedCount` which we will override in the service.
         return super.countUnsynced();
     }
+
+    /**
+     * Get tontine members registered on a specific date for a commercial
+     * @param commercialUsername Commercial username
+     * @param date Date string (YYYY-MM-DD)
+     * @returns Array of tontine members with client names
+     */
+    async findByCommercialAndDate(commercialUsername: string, date: string): Promise<any[]> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        const sql = `
+            SELECT tm.*, c.fullName as clientName
+            FROM tontine_members tm
+            LEFT JOIN clients c ON tm.clientId = c.id
+            WHERE tm.commercialUsername = ? AND tm.registrationDate LIKE ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, `${date}%`]);
+        return (result.values || []).map((row: any) => ({
+            ...row,
+            isLocal: row.isLocal === 1,
+            isSync: row.isSync === 1,
+            clientName: row.clientName
+        }));
+    }
 }

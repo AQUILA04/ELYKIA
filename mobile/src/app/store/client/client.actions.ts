@@ -3,16 +3,25 @@ import { Client } from '../../models/client.model';
 import { DateFilter } from '../../core/models/date-filter.model';
 import { ClientRepositoryFilters } from '../../core/repositories/client.repository.extensions';
 
+/**
+ * @deprecated Use loadFirstPageClients instead. This action loads ALL clients into memory.
+ */
 export const loadClients = createAction(
   '[Client] Load Clients',
   props<{ commercialUsername: string }>()
 );
 
+/**
+ * @deprecated Use loadFirstPageClientsSuccess instead.
+ */
 export const loadClientsSuccess = createAction(
   '[Client] Load Clients Success',
   props<{ clients: Client[] }>()
 );
 
+/**
+ * @deprecated Use loadFirstPageClientsFailure instead.
+ */
 export const loadClientsFailure = createAction(
   '[Client] Load Clients Failure',
   props<{ error: any }>()
@@ -38,6 +47,9 @@ export const updateClientCreditStatus = createAction(
   props<{ clientId: string; creditInProgress: boolean }>()
 );
 
+/**
+ * @deprecated This action triggers a full reload. Use specific update actions or reload current page.
+ */
 export const loadClientViewsUpdate = createAction('[Client] Load Client Views Update');
 
 export const deleteClient = createAction(
@@ -102,7 +114,17 @@ export const updateClientLocationFailure = createAction(
 
 export const updateClientPhotosAndInfo = createAction(
   '[Client] Update Client Photos and Info',
-  props<{ clientId: string; cardType: string; cardID: string; profilPhoto: string | null; cardPhoto: string | null; profilPhotoUrl?: string | null; cardPhotoUrl?: string | null; }>()
+  props<{
+    clientId: string;
+    cardType: string;
+    cardID: string;
+    profilPhoto: string | null;
+    cardPhoto: string | null;
+    profilPhotoUrl?: string | null;
+    cardPhotoUrl?: string | null;
+    profilPhotoThumbUrl?: string | null;
+    cardPhotoThumbUrl?: string | null;
+  }>()
 );
 
 export const updateClientPhotosAndInfoSuccess = createAction(

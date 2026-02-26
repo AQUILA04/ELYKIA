@@ -279,7 +279,9 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
             mll: client.mll || '',
             code: client.code || '',
             profilPhotoUrl: client.profilPhotoUrl || '',
-            cardPhotoUrl: client.cardPhotoUrl || ''
+            cardPhotoUrl: client.cardPhotoUrl || '',
+            profilPhotoThumbUrl: client.profilPhotoThumbUrl || '', // Use specific thumb path if available
+            cardPhotoThumbUrl: client.cardPhotoThumbUrl || ''      // Use specific thumb path if available
         };
     }
 

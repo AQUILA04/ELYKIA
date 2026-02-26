@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@ngrx/entity": "^21.0.1"
+  }
+}

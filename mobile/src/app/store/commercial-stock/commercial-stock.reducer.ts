@@ -23,7 +23,6 @@ export const commercialStockReducer = createReducer(
   })),
   on(CommercialStockActions.loadCommercialStockSuccess, (state, { stockItems }) => ({
     ...state,
-    stockItems,
     loading: false
   })),
   on(CommercialStockActions.loadCommercialStockFailure, (state, { error }) => ({

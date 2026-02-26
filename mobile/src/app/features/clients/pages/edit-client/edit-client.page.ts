@@ -119,14 +119,14 @@ export class EditClientPage implements OnInit, OnDestroy {
       this.loadLocalities(searchTerm);
     });
 
-    this.store.dispatch(AccountActions.loadAccounts()); // Load accounts
-
     this.clientId = this.route.snapshot.paramMap.get('id') || '';
     if (this.clientId) {
+      this.store.dispatch(AccountActions.loadAccountByClientId({ clientId: this.clientId }));
+
       this.store.select(ClientSelectors.selectClientById(this.clientId)).pipe(
         filter(client => !!client),
         take(1)
-      ).subscribe(client => {
+      ).subscribe((client: any) => {
         this.originalClient = client;
         this.clientForm.patchValue(client);
       });

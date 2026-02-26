@@ -17,6 +17,7 @@ import { Capacitor } from '@capacitor/core';
 import * as LocalityActions from 'src/app/store/locality/locality.actions';
 import { LoggerService } from '../../../core/services/logger.service';
 import { FaceDetection, PerformanceMode, LandmarkMode, ContourMode } from '@capacitor-mlkit/face-detection';
+import { ThumbnailService } from '../../../core/services/thumbnail.service';
 
 export function ageValidator(minAge: number): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -66,7 +67,8 @@ export class NewClientPage implements OnInit, OnDestroy {
     private alertController: AlertController,
     private navCtrl: NavController,
     private actions$: Actions,
-    private log: LoggerService
+    private log: LoggerService,
+    private thumbnailService: ThumbnailService
   ) {
     this.clientForm = this.fb.group({
       firstname: ['', Validators.required],
@@ -188,12 +190,13 @@ export class NewClientPage implements OnInit, OnDestroy {
     }
     this.store.select(ClientSelectors.selectClientByPhone(phone)).pipe(
       take(1)
-    ).subscribe(async (existingClient) => {
+    ).subscribe(async (existingClient: any) => {
       if (existingClient) {
         this.presentAlert('Donnée Invalide', phone + ' est déjà utilisé !');
         return;
       }
       let profilPhotoPath = null;
+      let profilPhotoThumbPath = null;
       if (this.photoToSave && this.photoToSave.dataUrl) {
         const profilPhotoName = `profile_${Date.now()}.png`;
         profilPhotoPath = `Pictures/Elykia/client_photos/${profilPhotoName}`;
@@ -216,9 +219,13 @@ export class NewClientPage implements OnInit, OnDestroy {
           data: base64Data,
           directory: Directory.ExternalStorage
         });
+
+        // Generate thumbnail for profile photo
+        profilPhotoThumbPath = await this.thumbnailService.generateThumbnail(profilPhotoPath, 200, 200);
       }
 
       let cardPhotoPath = null;
+      let cardPhotoThumbPath = null;
       if (this.cardPhotoToSave && this.cardPhotoToSave.dataUrl) {
         const cardPhotoName = `card_${Date.now()}.png`;
         cardPhotoPath = `Pictures/Elykia/card_photos/${cardPhotoName}`;
@@ -240,6 +247,9 @@ export class NewClientPage implements OnInit, OnDestroy {
           data: cardBase64Data,
           directory: Directory.ExternalStorage
         });
+
+        // Generate thumbnail for card photo
+        cardPhotoThumbPath = await this.thumbnailService.generateThumbnail(cardPhotoPath, 200, 200);
       }
 
       this.currentUser$.pipe(
@@ -250,10 +260,15 @@ export class NewClientPage implements OnInit, OnDestroy {
           const clientData = JSON.parse(JSON.stringify(this.clientForm.value));
           delete clientData.profilPhoto;
           delete clientData.cardPhoto;
+          
+          // Store only file paths, not base64 data
           clientData.profilPhoto = profilPhotoPath;
           clientData.cardPhoto = cardPhotoPath;
-          clientData.profilPhotoUrl = profilPhotoPath; // Initialiser avec le même chemin
-          clientData.cardPhotoUrl = cardPhotoPath; // Initialiser avec le même chemin
+          
+          // Store thumbnail paths for display purposes
+          clientData.profilPhotoUrl = profilPhotoThumbPath || profilPhotoPath; // Use thumbnail if available, otherwise original
+          clientData.cardPhotoUrl = cardPhotoThumbPath || cardPhotoPath; // Use thumbnail if available, otherwise original
+          
           clientData.updatedPhotoUrl = false; // Nouveau client, pas de mise à jour d'URL nécessaire
           clientData.isLocal = true;
           clientData.isSync = false;
@@ -349,7 +364,8 @@ export class NewClientPage implements OnInit, OnDestroy {
       }
 
       this.photoToSave = image;
-      this.clientForm.patchValue({ profilPhoto: image.dataUrl });
+      // Don't set the base64 data in the form, just a placeholder to pass validation
+      this.clientForm.patchValue({ profilPhoto: 'PHOTO_CAPTURED' });
     } catch (error) {
       console.error('Error taking picture', error);
       // Don't show alert if user cancelled or if it's just a "User cancelled photos app" error which is common
@@ -407,7 +423,8 @@ export class NewClientPage implements OnInit, OnDestroy {
         resultType: CameraResultType.DataUrl
       });
       this.cardPhotoToSave = image;
-      this.clientForm.patchValue({ cardPhoto: image.dataUrl });
+      // Don't set the base64 data in the form, just a placeholder to pass validation
+      this.clientForm.patchValue({ cardPhoto: 'CARD_PHOTO_CAPTURED' });
     } catch (error) {
       console.error('Error taking card picture', error);
       if (typeof error === 'string' && error.includes('User cancelled')) {

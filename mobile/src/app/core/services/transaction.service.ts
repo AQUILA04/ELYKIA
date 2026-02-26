@@ -6,6 +6,8 @@ import { Transaction } from '../../models/transaction.model';
 import { Store } from '@ngrx/store';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 
+import { TransactionRepository } from '../repositories/transaction.repository';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -13,7 +15,8 @@ export class TransactionService {
   private commercialUsername: string | undefined;
 
   constructor(private dbService: DatabaseService,
-    private store: Store
+    private store: Store,
+    private transactionRepository: TransactionRepository
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -54,4 +57,8 @@ export class TransactionService {
     return fullTransaction;
   }
 
+  getTransactionsByClientPaginated(clientId: string, page: number, size: number): Observable<Transaction[]> {
+    const offset = page * size;
+    return from(this.transactionRepository.findTransactionsByClientPaginated(clientId, offset, size));
+  }
 }

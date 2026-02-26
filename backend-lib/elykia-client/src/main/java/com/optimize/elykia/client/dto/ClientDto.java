@@ -51,6 +51,8 @@ public class ClientDto {
     private String code;
     private String profilPhotoUrl;
     private String cardPhotoUrl;
+    private String profilPhotoThumbUrl;
+    private String cardPhotoThumbUrl;
     private String tontineCollector;
     private String agencyCollector;
     private boolean isTontineMember;

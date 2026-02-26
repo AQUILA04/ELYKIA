@@ -64,6 +64,13 @@ export class MigrationService {
       case 14:
         await this.migrateToV14(db);
         break;
+      case 15:
+        // Version 15 was handled by createTables (new table tontine_member_amount_history)
+        this.log.log('Migration v15 is handled by createTables.');
+        break;
+      case 16:
+        await this.migrateToV16(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -394,6 +401,34 @@ export class MigrationService {
         console.error('Error in migration v14', error);
         throw error;
       }
+    }
+  }
+
+  private async migrateToV16(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v16: Adding commercialUsername to accounts and transactions...');
+
+      try {
+        await db.execute("ALTER TABLE accounts ADD COLUMN commercialUsername TEXT;");
+      } catch (e: any) {
+        if (!((e.message && e.message.toLowerCase().includes('duplicate column')) || (e.toString && e.toString().toLowerCase().includes('duplicate column')))) {
+          throw e;
+        }
+      }
+
+      try {
+        await db.execute("ALTER TABLE transactions ADD COLUMN commercialUsername TEXT;");
+      } catch (e: any) {
+        if (!((e.message && e.message.toLowerCase().includes('duplicate column')) || (e.toString && e.toString().toLowerCase().includes('duplicate column')))) {
+          throw e;
+        }
+      }
+
+      this.log.log('Migration to v16 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v16: ${error}`);
+      console.error('Error in migration v16', error);
+      throw error;
     }
   }
 }

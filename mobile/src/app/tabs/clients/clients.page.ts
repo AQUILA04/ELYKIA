@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, Subject, combineLatest, BehaviorSubject } from 'rxjs';
+import { Observable, Subject, combineLatest, BehaviorSubject, of } from 'rxjs';
 import { ClientView } from 'src/app/models/client-view.model';
 import { selectPaginatedClientViews, selectClientPaginationHasMore, selectClientPaginationLoading } from 'src/app/store/client/client.selectors';
 import * as ClientActions from 'src/app/store/client/client.actions';
-import { loadAccounts } from 'src/app/store/account/account.actions';
 import { FormControl } from '@angular/forms';
 import { startWith, map, tap, catchError, filter, shareReplay, take, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
@@ -13,6 +12,7 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { LoggerService } from '../../core/services/logger.service';
 import { ActionSheetController, IonContent, IonInfiniteScroll } from '@ionic/angular';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-clients',
@@ -33,8 +33,6 @@ export class ClientsPage implements OnInit, OnDestroy {
 
   searchControl = new FormControl('');
   activeFilter = 'all';
-
-  private photoUrlCache = new Map<string, Observable<SafeUrl>>();
 
   constructor(
     private store: Store,
@@ -73,16 +71,8 @@ export class ClientsPage implements OnInit, OnDestroy {
           filters: {
             searchQuery: searchQuery,
             clientType: this.activeFilter === 'all' ? undefined : this.activeFilter,
-            // Map UI filters to backend filters if needed (e.g. 'credit', 'new', 'quartier' logic might need adjustment in Repository)
-            // For now, assuming Repository handles these or we might need to adjust 'clientType' usage.
-            // 'credit' -> handled by repository logic if passed? repository handles 'quartier' sort?
-            // Checking client.repository.extensions: it handles 'quarter', 'isLocal', 'isSync'.
-            // 'credit' logic (clients with credit) might need a specific filter flag.
           }
         }));
-
-        // Also ensure accounts are loaded for the balance display
-        this.store.dispatch(loadAccounts());
       }
     });
   }
@@ -100,12 +90,6 @@ export class ClientsPage implements OnInit, OnDestroy {
       }
     });
 
-    // Determine when to complete the infinite scroll
-    // We can use a slight delay or listen to loading state changes
-    // But typically we just complete it immediately or after a short delay, 
-    // or let the effect handle it?
-    // Effects usually don't complete the UI event. 
-    // We should wait for loading to be false.
     this.isLoading$.pipe(
       filter(loading => !loading),
       take(1)
@@ -124,37 +108,19 @@ export class ClientsPage implements OnInit, OnDestroy {
     this.router.navigate(['/client-detail', clientId]);
   }
 
-  getPhotoUrl(localPath: string | undefined | null): Observable<SafeUrl> {
+  /**
+   * Optimized photo URL retrieval using Capacitor.convertFileSrc.
+   * This avoids reading the file into memory (base64) and uses the native WebView rendering.
+   */
+  getPhotoUrl(localPath: string | undefined | null): SafeUrl {
     if (!localPath) {
-      return new BehaviorSubject('assets/icon/person-circle-outline.svg');
+      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
     }
 
-    if (this.photoUrlCache.has(localPath)) {
-      return this.photoUrlCache.get(localPath)!;
-    }
-
-    const photoSubject = new Subject<SafeUrl>();
-    const photo$ = photoSubject.asObservable().pipe(shareReplay(1));
-
-    Filesystem.readFile({
-      path: localPath,
-      directory: Directory.ExternalStorage
-    }).then(file => {
-      photoSubject.next(this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`));
-    }).catch(() => {
-      // Fallback
-      Filesystem.readFile({
-        path: localPath,
-        directory: Directory.Data
-      }).then(file => {
-        photoSubject.next(this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`));
-      }).catch(() => {
-        photoSubject.next('assets/icon/person-circle-outline.svg');
-      });
-    });
-
-    this.photoUrlCache.set(localPath, photo$);
-    return photo$;
+    // Use Capacitor's convertFileSrc to get a WebView-compatible URL
+    // This is much more efficient than reading the file as Base64
+    const resolvedPath = Capacitor.convertFileSrc(localPath);
+    return this.sanitizer.bypassSecurityTrustUrl(resolvedPath);
   }
 
   ngOnDestroy() {

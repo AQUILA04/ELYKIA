@@ -3,6 +3,7 @@ import { RecoveryState } from './recovery.reducer';
 import { selectAllClients, selectClientViewsByCommercialUsername } from '../client/client.selectors';
 import { selectAllDistributions } from '../distribution/distribution.selectors';
 import { RecoveryView } from '../../models/recovery-view.model';
+import { Client } from '../../models/client.model';
 
 export const selectRecoveryState = createFeatureSelector<RecoveryState>('recovery');
 
@@ -209,5 +210,3 @@ export const selectPaginatedRecoveryViews = createSelector(
   selectPaginatedRecoveries,
   (recoveries) => recoveries // recoveries is already RecoveryView[]
 );
-
-

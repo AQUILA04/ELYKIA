@@ -23,7 +23,6 @@ export const stockOutputReducer = createReducer(
   })),
   on(StockOutputActions.loadStockOutputsSuccess, (state, { stockOutputs }) => ({
     ...state,
-    stockOutputs,
     loading: false,
     error: null,
   })),

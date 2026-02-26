@@ -7,7 +7,6 @@ import { OrderView } from '../../models/order-view.model'; // Ensure this exists
 export const orderFeatureKey = 'order';
 
 export interface State {
-    orders: Order[]; // For compatibility or details
     loading: boolean;
     error: any;
 
@@ -16,7 +15,6 @@ export interface State {
 }
 
 export const initialState: State = {
-    orders: [],
     loading: false,
     error: null,
 
@@ -26,21 +24,6 @@ export const initialState: State = {
 export const reducer = createReducer(
     initialState,
 
-    // --- Legacy / Detail Actions ---
-    on(OrderActions.loadOrders, state => ({
-        ...state,
-        loading: true
-    })),
-    on(OrderActions.loadOrdersSuccess, (state, { orders }) => ({
-        ...state,
-        loading: false,
-        orders
-    })),
-    on(OrderActions.loadOrdersFailure, (state, { error }) => ({
-        ...state,
-        loading: false,
-        error
-    })),
     // ... createOrder handlers if needed
 
     // --- Pagination Actions ---

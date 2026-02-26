@@ -166,4 +166,28 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
         const result = await this.databaseService.query(query, [commercialUsername, commercialUsername]);
         return result.values || [];
     }
+
+    /**
+     * Get tontine collections created on a specific date for a commercial
+     * @param commercialUsername Commercial username
+     * @param date Date string (YYYY-MM-DD)
+     * @returns Array of tontine collections with member names
+     */
+    async findByCommercialAndDate(commercialUsername: string, date: string): Promise<any[]> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        const sql = `
+            SELECT tc.*, c.fullName as clientName
+            FROM tontine_collections tc
+            LEFT JOIN tontine_members tm ON tc.tontineMemberId = tm.id
+            LEFT JOIN clients c ON tm.clientId = c.id
+            WHERE tc.commercialUsername = ? AND tc.collectionDate LIKE ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, `${date}%`]);
+        return (result.values || []).map((row: any) => ({
+            ...row,
+            isLocal: row.isLocal === 1,
+            isSync: row.isSync === 1,
+            clientName: row.clientName
+        }));
+    }
 }

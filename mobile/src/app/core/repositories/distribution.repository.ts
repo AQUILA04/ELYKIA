@@ -332,4 +332,27 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
         }
     }
 
+    /**
+     * Get distributions created on a specific date for a commercial
+     * @param commercialUsername Commercial username
+     * @param date Date string (YYYY-MM-DD)
+     * @returns Array of distributions with client names
+     */
+    async findByCommercialAndDate(commercialUsername: string, date: string): Promise<any[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `
+            SELECT d.*, c.fullName as clientName
+            FROM distributions d
+            LEFT JOIN clients c ON d.clientId = c.id
+            WHERE d.commercialId = ? AND d.createdAt LIKE ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, `${date}%`]);
+        return (result.values || []).map((row: any) => ({
+            ...this.mapRowToDistribution(row),
+            clientName: row.clientName
+        }));
+    }
+
 }

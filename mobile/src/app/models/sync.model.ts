@@ -113,6 +113,8 @@ export interface ClientSyncRequest {
   code?: string;
   profilPhotoUrl?: string;
   cardPhotoUrl?: string;
+  profilPhotoThumbUrl?: string;
+  cardPhotoThumbUrl?: string;
   city?: string;
   status?: string;
   nic?: string;

@@ -58,6 +58,8 @@ public class Client extends Auditable<String> {
     private String code;
     private String profilPhotoUrl;
     private String cardPhotoUrl;
+    private String profilPhotoThumbUrl;
+    private String cardPhotoThumbUrl;
     private String tontineCollector;
     private String agencyCollector;
     private String recoveryCollector;

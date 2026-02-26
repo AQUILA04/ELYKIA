@@ -3,12 +3,6 @@ import { State, orderFeatureKey } from './order.reducer';
 
 export const selectOrderState = createFeatureSelector<State>(orderFeatureKey);
 
-// Legacy Selectors
-export const selectOrders = createSelector(
-    selectOrderState,
-    (state: State) => state.orders
-);
-
 export const selectOrderLoading = createSelector(
     selectOrderState,
     (state: State) => state.loading
