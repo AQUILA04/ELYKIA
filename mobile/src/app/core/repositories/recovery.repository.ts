@@ -37,8 +37,8 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
 
             const normalizedRecovery = {
                 ...recovery,
-                distributionId: recovery.distribution?.id,
-                clientId: recovery.client?.id,
+                distributionId: recovery.distribution?.id || recovery.distributionId,
+                clientId: recovery.client?.id || recovery.clientId,
                 commercialId: recovery.commercialId
             };
             const newHash = this.generateHash(normalizedRecovery, keysToInclude);
@@ -46,8 +46,8 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
             const isExisting = existingRecoveryMap.has(recoveryIdStr);
             const needsUpdate = isExisting && existingRecoveryMap.get(recoveryIdStr) !== newHash;
 
-            const IS_LOCAL = 0;
-            const IS_SYNC = 1;
+            const IS_LOCAL = recovery.isLocal ? 1 : 0;
+            const IS_SYNC = recovery.isSync ? 1 : 0;
 
             if (needsUpdate) {
                 const sql = `UPDATE recoveries SET amount = ?, paymentDate = ?, paymentMethod = ?, notes = ?, distributionId = ?, clientId = ?, commercialId = ?, isLocal = ?, isSync = ?, syncDate = ?, syncHash = ?, isDefaultStake = ? WHERE id = ?`;
@@ -56,8 +56,8 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
                     recovery.paymentDate ?? null,
                     recovery.paymentMethod ?? null,
                     recovery.notes ?? null,
-                    recovery.distribution?.id ?? null,
-                    recovery.client?.id ?? null,
+                    recovery.distribution?.id ?? recovery.distributionId ?? null,
+                    recovery.client?.id ?? recovery.clientId ?? null,
                     recovery.commercialId ?? null,
                     IS_LOCAL,
                     IS_SYNC,
@@ -76,8 +76,8 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
                     recovery.paymentDate ?? null,
                     recovery.paymentMethod ?? null,
                     recovery.notes ?? null,
-                    recovery.distribution?.id ?? null,
-                    recovery.client?.id ?? null,
+                    recovery.distribution?.id ?? recovery.distributionId ?? null,
+                    recovery.client?.id ?? recovery.clientId ?? null,
                     recovery.commercialId ?? null,
                     IS_LOCAL,
                     IS_SYNC,
@@ -173,6 +173,21 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
             ...this.mapRowToRecovery(row),
             clientName: row.clientName
         }));
+    }
+
+    /**
+     * Delete recoveries by distribution IDs
+     * @param distributionIds List of distribution IDs
+     */
+    async deleteByDistributionIds(distributionIds: string[]): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        if (distributionIds.length === 0) return;
+
+        const placeholders = distributionIds.map(() => '?').join(',');
+        const sql = `DELETE FROM recoveries WHERE distributionId IN (${placeholders})`;
+        await this.databaseService.execute(sql, distributionIds);
     }
 
 }

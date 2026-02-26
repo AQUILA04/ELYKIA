@@ -159,19 +159,6 @@ export class OrderRepository extends BaseRepository<Order, string> {
         const sql = `SELECT * FROM orders WHERE isSync = 0 AND isLocal = 1 AND commercialId = ? ORDER BY createdAt ASC LIMIT ? OFFSET ?`;
         const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
 
-        // Orders need items? SyncService fetches items separately in prepareOrderSyncRequest.
-        // Repository returns the base Order.
-        // I need mapRowToOrder. It is not in the file?
-        // Check file content... It has getAllItems and saveAll but no mapRow method visible?
-        // Wait, mapRowToOrder was in SyncService.
-        // OrderRepository doesn't seem to have mapRowToOrder in step 61.
-        // I might need to implement it or usage generic mapping?
-        // BaseRepository findAll uses cast `as T[]`.
-        // I will use cast `as Order[]` or implement a mapper if properties differ (e.g. booleans).
-        // SQLite booleans are 0/1. Order model expects boolean?
-        // SyncService mapped 1/0 to true/false.
-        // I should use a mapper.
-
         return (result.values || []).map((row: any) => this.mapRowToOrder(row));
     }
 
@@ -279,6 +266,35 @@ export class OrderRepository extends BaseRepository<Order, string> {
         } catch (error) {
             console.error('Failed to save order items in repository.', error);
             await this.databaseService.execute('ROLLBACK;');
+            throw error;
+        }
+    }
+
+    /**
+     * Delete an order and its items
+     * @param orderId ID of the order to delete
+     */
+    async deleteOrder(orderId: string): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+
+        try {
+            const deleteSet: capSQLiteSet[] = [
+                {
+                    statement: `DELETE FROM order_items WHERE orderId = ?`,
+                    values: [orderId]
+                },
+                {
+                    statement: `DELETE FROM orders WHERE id = ?`,
+                    values: [orderId]
+                }
+            ];
+
+            await this.databaseService.executeSet(deleteSet);
+            console.log(`Successfully deleted order ${orderId} and its items.`);
+        } catch (error) {
+            console.error(`Failed to delete order ${orderId}:`, error);
             throw error;
         }
     }

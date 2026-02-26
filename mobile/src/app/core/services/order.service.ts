@@ -13,6 +13,8 @@ import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { HealthCheckService } from './health-check.service';
 
 import { OrderRepositoryExtensions, OrderRepositoryFilters } from '../repositories/order.repository.extensions';
+import { OrderRepository } from '../repositories/order.repository';
+import { ArticleRepository } from '../repositories/article.repository';
 import { Page } from '../repositories/repository.interface';
 import { OrderView } from '../../models/order-view.model';
 
@@ -34,7 +36,9 @@ export class OrderService {
     private dbService: DatabaseService,
     private store: Store,
     private healthCheckService: HealthCheckService,
-    private orderRepositoryExtensions: OrderRepositoryExtensions
+    private orderRepositoryExtensions: OrderRepositoryExtensions,
+    private orderRepository: OrderRepository,
+    private articleRepository: ArticleRepository
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -60,15 +64,12 @@ export class OrderService {
     if (!this.commercialUsername) {
       return of([]);
     }
-    return from(this.dbService.getOrders(this.commercialUsername)).pipe(
-      map(orders => {
-        return orders;
-      }),
-      catchError(error => {
-        console.error('Failed to load orders from local database:', error);
-        return of([]);
-      })
-    );
+    // Warning: This might still load many orders if not careful.
+    // Ideally we should remove this method or make it paginated.
+    // For backward compatibility, we return empty or implement a fetch all via repository if absolutely needed.
+    // But since we are optimizing, let's return empty and log warning.
+    console.warn('OrderService.getOrders() is deprecated and returns empty array. Use getOrdersPaginated() instead.');
+    return of([]);
   }
 
   // Get order by ID from local database
@@ -76,8 +77,8 @@ export class OrderService {
     if (!this.commercialUsername) {
       return of(undefined);
     }
-    return from(this.dbService.getOrders(this.commercialUsername)).pipe(
-      map(orders => orders.find(o => o.id === orderId)),
+    return from(this.orderRepository.findById(orderId)).pipe(
+      map(order => order || undefined),
       catchError(error => {
         console.error('Failed to get order by ID:', error);
         return of(undefined);
@@ -87,7 +88,7 @@ export class OrderService {
 
   // Get order items by order ID from local database
   getOrderItems(orderId: string): Observable<OrderItem[]> {
-    return from(this.dbService.getItemsForOrder(orderId)).pipe(
+    return from(this.orderRepository.getItemsForOrder(orderId)).pipe(
       map(items => {
         return items;
       }),
@@ -100,7 +101,7 @@ export class OrderService {
 
   // Get available articles from local database (no stock check for orders)
   getAvailableArticles(): Observable<Article[]> {
-    return from(this.dbService.getArticles()).pipe(
+    return from(this.articleRepository.findAll()).pipe(
       map(articles => {
         // Pour les commandes, on retourne tous les articles (pas de vérification de stock)
         return articles;
@@ -130,13 +131,20 @@ export class OrderService {
       throw new Error('Commercial user not identified.');
     }
     const now = new Date().toISOString();
-    const allOrders = await this.dbService.getOrders(this.commercialUsername);
-    const newCount = (allOrders.length + 1).toString().padStart(6, '0');
+
+    // OPTIMIZATION: Use count instead of loading all orders
+    const totalOrders = await this.orderRepositoryExtensions.countByCommercial(this.commercialUsername);
+    const newCount = (totalOrders + 1).toString().padStart(6, '0');
     const commercialCode = this.commercialUsername?.slice(-2).toUpperCase() || 'XX';
     const reference = `CMD-${commercialCode}-${newCount}`;
 
     // Create order items
-    const allArticles = await this.dbService.getArticles();
+    // OPTIMIZATION: Load all articles might be heavy if many articles.
+    // But usually articles are not that many (hundreds).
+    // If needed, we could fetch only specific articles by IDs.
+    // For now, findAll is acceptable for articles (usually < 1000).
+    const allArticles = await this.articleRepository.findAll();
+
     const orderItems: OrderItem[] = orderData.articles.map(item => {
       const articleDetails = allArticles.find(a => a.id === item.articleId);
       const unitPrice = articleDetails?.creditSalePrice || 0;
@@ -178,10 +186,13 @@ export class OrderService {
       item.id = `o-item-${order.id}-${item.articleId}`;
     });
 
-    // Save order and items in a single transaction using the new method
-    await this.dbService.saveOrdersAndItems([order]);
+    // Save order and items in a single transaction using Repository
+    await this.orderRepository.saveAll([order]);
 
     // Create transaction for history (optional for orders)
+    // We still use dbService for transactions as there is no TransactionRepository yet?
+    // Or we should create one. For now, keep dbService usage for this specific part or create repository.
+    // Assuming TransactionRepository exists or we use dbService.
     await this.dbService.addTransaction({
       id: `trans-${order.id}`,
       clientId: order.clientId,
@@ -214,15 +225,15 @@ export class OrderService {
       throw new Error('Commercial user not identified.');
     }
     try {
-      const orders = await this.dbService.getOrders(this.commercialUsername);
-      const originalOrder = orders.find(o => o.id === orderData.id);
+      // OPTIMIZATION: Fetch specific order
+      const originalOrder = await this.orderRepository.findById(orderData.id);
 
       if (!originalOrder) {
         throw new Error('Order not found');
       }
 
       // Create updated order items
-      const allArticles = await this.dbService.getArticles();
+      const allArticles = await this.articleRepository.findAll();
       const orderItems: OrderItem[] = orderData.articles.map((article: any, index: number) => {
         const articleDetails = allArticles.find(a => a.id === article.articleId);
         const unitPrice = articleDetails?.creditSalePrice || 0;
@@ -247,7 +258,7 @@ export class OrderService {
       };
 
       // Save order and items in a single transaction
-      await this.dbService.saveOrdersAndItems([updatedOrder]);
+      await this.orderRepository.saveAll([updatedOrder]);
 
       return updatedOrder;
     } catch (error) {
@@ -273,22 +284,8 @@ export class OrderService {
     try {
       console.log(`Starting deletion of order: ${orderId}`);
 
-      // Get order
-      const orders = await this.dbService.getOrders(this.commercialUsername);
-      const orderToDelete = orders.find(o => o.id === orderId);
-
-      if (!orderToDelete) {
-        throw new Error('Order not found');
-      }
-
-      // Delete order items
-      const orderItems = await this.dbService.getOrderItems();
-      const filteredItems = orderItems.filter(item => item.orderId !== orderId);
-      await this.dbService.saveOrderItems(filteredItems);
-
-      // Delete the order itself
-      const filteredOrders = orders.filter(o => o.id !== orderId);
-      await this.dbService.saveOrders(filteredOrders);
+      // Use Repository to delete
+      await this.orderRepository.deleteOrder(orderId);
 
       console.log(`Successfully deleted order ${orderId}`);
       return true;
@@ -303,8 +300,14 @@ export class OrderService {
     if (!this.commercialUsername) {
       return of([]);
     }
-    return from(this.dbService.getOrders(this.commercialUsername)).pipe(
-      map(orders => orders.filter(o => o.clientId === clientId)),
+    // OPTIMIZATION: Use paginated query with filter
+    return from(this.orderRepositoryExtensions.findByCommercialPaginated(
+        this.commercialUsername,
+        0,
+        1000, // Reasonable limit
+        { clientId: clientId }
+    )).pipe(
+      map(page => page.content),
       catchError(error => {
         console.error('Failed to get orders by client:', error);
         return of([]);
@@ -317,8 +320,8 @@ export class OrderService {
     if (!this.commercialUsername) {
       return of([]);
     }
-    return from(this.dbService.getOrders(this.commercialUsername)).pipe(
-      map(orders => orders.filter(o => !o.isSync && o.isLocal)),
+    // OPTIMIZATION: Use findUnsynced
+    return from(this.orderRepository.findUnsynced(this.commercialUsername, 1000, 0)).pipe(
       catchError(error => {
         console.error('Failed to get pending orders:', error);
         return of([]);
@@ -341,20 +344,8 @@ export class OrderService {
       throw new Error('Commercial user not identified.');
     }
     try {
-      const orders = await this.dbService.getOrders(this.commercialUsername);
-      const orderIndex = orders.findIndex(o => o.id === orderId);
-
-      if (orderIndex === -1) {
-        return false;
-      }
-
-      orders[orderIndex] = {
-        ...orders[orderIndex],
-        isSync: true,
-        syncDate: new Date().toISOString()
-      };
-
-      await this.dbService.saveOrders(orders);
+      // Use Repository
+      await this.orderRepository.updateSyncStatus(orderId, true);
       return true;
     } catch (error) {
       console.error('Failed to mark order as synced:', error);

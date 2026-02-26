@@ -6,7 +6,7 @@
   </div>
   <div class="distribution-info">
     <div class="distribution-reference">{{ distribution.reference }}</div>
-    <div class="distribution-client">{{ distribution.client?.firstname }} {{ distribution.client?.lastname }}</div>
+    <div class="distribution-client">{{ distribution.client?.firstname || distribution?.clientName }} {{ distribution.client?.lastname }}</div>
     <div class="distribution-details">
       {{ distribution.articleCount || 0 }} {{ distribution.articleCount === 1 ? 'article' : 'articles' }} • {{ distribution.dailyPayment }} FCFA/jour
     </div>

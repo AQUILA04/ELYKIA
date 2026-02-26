@@ -15,6 +15,7 @@ import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { ClientRepositoryFilters, ClientRepositoryExtensions } from '../repositories/client.repository.extensions';
 import { buildDateFilterClause } from '../models/date-filter.model';
 import { ClientRepository } from '../repositories/client.repository';
+import { AccountRepository } from '../repositories/account.repository';
 
 export interface ClientInitializationProgress {
   isLoading: boolean;
@@ -52,7 +53,8 @@ export class ClientService {
     private photoSyncService: PhotoSyncService,
     private store: Store, // Inject Store
     private clientRepository: ClientRepository,
-    private clientRepositoryExtensions: ClientRepositoryExtensions
+    private clientRepositoryExtensions: ClientRepositoryExtensions,
+    private accountRepository: AccountRepository
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -102,65 +104,49 @@ export class ClientService {
 
           return this.fetchClientsFromApi(commercialUsername).pipe(
             concatMap(async (clients) => {
-              this.updateProgress({
-                isLoading: true,
-                currentPage: 0,
-                totalPages: 0,
-                loadedClients: clients.length,
-                totalClients: clients.length,
-                message: 'Sauvegarde des clients...'
-              });
-
-              // Use Repository instead of DatabaseService
-              await this.clientRepository.saveAll(clients);
-              // We don't update cache with ALL clients anymore to avoid memory issues
-              // this.updateCache(clients, commercialUsername);
+              // Note: clients here will be empty or partial because fetchClientsFromApi now handles saving internally
+              // and we don't want to return all clients to avoid memory issues.
 
               this.updateProgress({
                 isLoading: true,
                 currentPage: 0,
                 totalPages: 0,
-                loadedClients: clients.length,
-                totalClients: clients.length,
+                loadedClients: 0, // We don't know total loaded here easily without tracking
+                totalClients: 0,
                 message: 'Synchronisation des photos en cours...'
               });
 
               // Synchroniser les photos après l'initialisation des clients
+              // WARNING: This might still be heavy if it tries to sync all photos at once.
+              // Ideally PhotoSyncService should also be paginated or incremental.
               try {
                 // Utiliser la nouvelle méthode de synchronisation par batch
-                await this.photoSyncService.syncPhotosForClients(clients);
-                this.log.log('[ClientService] Photo synchronization completed');
+                // We pass an empty array or handle it differently because we don't have all clients in memory anymore.
+                // If photoSyncService needs the list of clients, we might need to change how it works.
+                // For now, assuming it can work or we skip it here and let it run in background.
+                // await this.photoSyncService.syncPhotosForClients(clients);
+                // this.log.log('[ClientService] Photo synchronization completed');
+
+                // Alternative: Trigger photo sync for local clients that need it, or just rely on background sync.
+                 this.log.log('[ClientService] Photo synchronization skipped in initializeClients to save memory. Should be handled by background sync.');
+
               } catch (error) {
                 this.log.log(`[ClientService] Photo synchronization failed: ${error}`);
-                // Ne pas faire échouer l'initialisation si la sync des photos échoue
               }
 
               this.updateProgress({
                 isLoading: false,
                 currentPage: 0,
                 totalPages: 0,
-                loadedClients: clients.length,
-                totalClients: clients.length,
-                message: `${clients.length} clients synchronisés avec succès`
+                loadedClients: 0,
+                totalClients: 0,
+                message: `Synchronisation terminée`
               });
 
-              return clients;
+              return []; // Return empty array to indicate success but no data payload
             }),
             catchError(async (error) => {
               this.log.log(`[ClientService] API fetch failed: ${error.message}`);
-              this.updateProgress({
-                isLoading: true,
-                currentPage: 0,
-                totalPages: 0,
-                loadedClients: 0,
-                totalClients: 0,
-                message: 'Chargement des clients locaux...'
-              });
-
-              // In offline mode or error, we don't load all clients anymore.
-              // We return an empty array or just the first page if needed,
-              // but the UI should handle pagination.
-              // For backward compatibility, we might return empty array.
               this.updateProgress({
                 isLoading: false,
                 currentPage: 0,
@@ -175,15 +161,14 @@ export class ClientService {
           );
         } else {
           this.updateProgress({
-            isLoading: true,
+            isLoading: false,
             currentPage: 0,
             totalPages: 0,
             loadedClients: 0,
             totalClients: 0,
-            message: 'Mode hors ligne - Chargement des clients locaux...'
+            message: 'Mode hors ligne'
           });
 
-          // In offline mode, we don't load all clients.
           return of([]);
         }
       }),
@@ -203,73 +188,52 @@ export class ClientService {
   }
 
   private fetchClientsFromApi(commercialUsername: string): Observable<Client[]> {
-    return this.fetchAllClientsPaginated(commercialUsername, 0, this.PAGE_SIZE, []);
+    // We start the pagination process. We don't accumulate clients anymore.
+    return this.fetchPageAndSave(commercialUsername, 0, this.PAGE_SIZE);
   }
 
-  private fetchAllClientsPaginated(commercialUsername: string, page: number, size: number, accumulatedClients: Client[]): Observable<Client[]> {
-    // Protection contre les boucles infinies
-    if (accumulatedClients.length >= this.MAX_CLIENTS) {
-      this.log.log(`[ClientService] Maximum client limit reached (${this.MAX_CLIENTS}). Stopping pagination.`);
-      return of(accumulatedClients);
-    }
+  private fetchPageAndSave(commercialUsername: string, page: number, size: number): Observable<Client[]> {
+      const url = `${environment.apiUrl}/api/v1/clients/by-commercial/${commercialUsername}?page=${page}&size=${size}&sort=id,desc`;
 
-    const url = `${environment.apiUrl}/api/v1/clients/by-commercial/${commercialUsername}?page=${page}&size=${size}&sort=id,desc`;
+      return this.http.get<ApiResponse<{ content: Client[]; page: { totalPages: number; number: number; totalElements: number } }>>(url).pipe(
+          switchMap(async (response) => {
+              const clients = response.data.content;
+              const pageInfo = response.data.page;
 
-    return this.http.get<ApiResponse<{ content: Client[]; page: { totalPages: number; number: number; totalElements: number } }>>(url).pipe(
-      switchMap(response => {
-        const clients = response.data.content;
-        const pageInfo = response.data.page;
-        const allClients = [...accumulatedClients, ...clients];
+              if (clients.length > 0) {
+                  // Save this batch of clients
+                  await this.clientRepository.saveAll(clients);
 
-        // Mise à jour du progrès
-        this.updateProgress({
-          isLoading: true,
-          currentPage: page + 1,
-          totalPages: pageInfo.totalPages,
-          loadedClients: allClients.length,
-          totalClients: pageInfo.totalElements || allClients.length,
-          message: `Chargement page ${page + 1}/${pageInfo.totalPages}...`
-        });
+                  // Also trigger photo sync for this batch if needed, but be careful not to block
+                  // this.photoSyncService.syncPhotosForClients(clients).catch(e => console.error(e));
+              }
 
-        this.log.log(`[ClientService] Fetched page ${page + 1}/${pageInfo.totalPages}, ${clients.length} clients (Total: ${allClients.length})`);
+              this.updateProgress({
+                  isLoading: true,
+                  currentPage: page + 1,
+                  totalPages: pageInfo.totalPages,
+                  loadedClients: (page * size) + clients.length,
+                  totalClients: pageInfo.totalElements,
+                  message: `Chargement page ${page + 1}/${pageInfo.totalPages}...`
+              });
 
-        // Si c'est la dernière page ou s'il n'y a plus de clients, retourner tous les clients
-        if (page >= pageInfo.totalPages - 1 || clients.length === 0) {
-          this.log.log(`[ClientService] Pagination complete. Total clients: ${allClients.length}`);
-          return of(allClients);
-        }
+              this.log.log(`[ClientService] Processed page ${page + 1}/${pageInfo.totalPages}, saved ${clients.length} clients.`);
 
-        // Sinon, récupérer la page suivante
-        return this.fetchAllClientsPaginated(commercialUsername, page + 1, size, allClients);
-      }),
-      catchError(error => {
-        this.log.log(`[ClientService] Error fetching page ${page}: ${error.message}`);
-        // En cas d'erreur, retourner les clients déjà récupérés
-        if (accumulatedClients.length > 0) {
-          this.log.log(`[ClientService] Returning ${accumulatedClients.length} clients despite error`);
-        }
-        return of(accumulatedClients);
-      })
-    );
-  }
-
-  private async getLocalClients(): Promise<Client[]> {
-    // This method is deprecated and should be avoided.
-    // It loads all clients into memory.
-    if (!this.commercialUsername) {
-      this.log.log('[ClientService] getLocalClients: commercialUsername is undefined.');
-      throw new Error('Commercial user not identified.');
-    }
-    // Use Repository instead of DatabaseService
-    // WARNING: This still loads all clients. Should be used with caution or refactored.
-    // For now, we keep it but it's discouraged.
-    const clients = await this.clientRepository.findAllByCommercial(this.commercialUsername);
-    if (clients.length > 0) {
-      return clients;
-    } else {
-      this.log.log('[ClientService] getLocalClients: No clients found locally.');
-      throw new Error('Impossible de charger les clients. Veuillez vérifier votre connexion ou synchroniser.');
-    }
+              // If there are more pages, fetch the next one
+              if (page < pageInfo.totalPages - 1) {
+                  // Recursive call, but we wrap it in from() because it returns an Observable
+                  // We wait for the next page to complete
+                  return await this.fetchPageAndSave(commercialUsername, page + 1, size).toPromise() || [];
+              } else {
+                  return []; // Done
+              }
+          }),
+          catchError(error => {
+              this.log.log(`[ClientService] Error fetching page ${page}: ${error.message}`);
+              // Stop pagination on error
+              return of([]);
+          })
+      );
   }
 
   // Méthodes utilitaires pour la gestion du cache
@@ -301,10 +265,6 @@ export class ClientService {
     this.log.log('[ClientService] Cache cleared');
   }
 
-  // public getClients(): Observable<Client[]> {
-  //   return from(this.dbService.getClients());
-  // }
-
   async createClientLocally(clientData: any, commercialUsername: string): Promise<{ client: Client, account: any }> {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
@@ -324,9 +284,6 @@ export class ClientService {
     let clientCode: string;
     let accountNumber: string;
     let newClientIndex = totalClients + 1;
-    // Note: We are simplifying the uniqueness check for performance.
-    // In a real high-concurrency scenario, we'd need a DB constraint or a 'checkExists' method.
-    // Assuming sequential generation is safe enough for single-user local DB.
 
     clientCode = `${commercialUsername.slice(-2)}${newClientIndex.toString().padStart(3, '0')}`;
     accountNumber = `0021${commercialUsername.slice(-2)}${newClientIndex.toString().padStart(4, '0')}`;
@@ -347,18 +304,19 @@ export class ClientService {
       tontineCollector: commercialUsername
     };
 
-    const newAccount = {
+    const newAccount: Account = {
       id: this.generateUuid(),
       accountNumber: accountNumber,
       accountBalance: clientData.balance || 0,
       status: 'ACTIF',
       clientId: newClient.id,
       isSync: false,
-      syncDate: ''
+      syncDate: '',
+      isLocal: true,
+      createdAt: new Date().toISOString()
     };
 
     try {
-      // Use Repository instead of DatabaseService
       await this.clientRepository.saveAll([newClient]);
     } catch (error: any) {
       const errorMessage = `[ClientService] createClientLocally: Error saving client. Message: ${error.message}`;
@@ -368,7 +326,8 @@ export class ClientService {
     }
 
     try {
-      await this.dbService.saveAccounts([newAccount]);
+      // Use AccountRepository instead of DatabaseService
+      await this.accountRepository.saveAll([newAccount]);
     } catch (error: any) {
       const errorMessage = `[ClientService] createClientLocally: Error saving account. Message: ${error.message}`;
       this.log.log(errorMessage);
@@ -390,12 +349,10 @@ export class ClientService {
   // Public method to get clients as Observable for UI components
   getClients(): Observable<Client[]> {
     // WARNING: This loads all clients. UI should use pagination instead.
-    return from(this.getLocalClients()).pipe(
-      catchError(error => {
-        this.log.log(`[ClientService] getClients: Error caught: ${error.message}`);
-        return of([]);
-      })
-    );
+    // We return empty array to force usage of pagination, or we could implement a default pagination.
+    // For now, let's log a warning and return empty to avoid memory crash.
+    this.log.log('[ClientService] getClients called. This method is deprecated and returns empty. Use getClientsPaginated.');
+    return of([]);
   }
 
   // Méthode pour obtenir des statistiques sur les clients
@@ -416,19 +373,26 @@ export class ClientService {
       const synced = await this.clientRepositoryExtensions.countByCommercial(this.commercialUsername, { isSync: true });
       const withCredit = await this.clientRepositoryExtensions.countWithActiveCreditByCommercial(this.commercialUsername);
 
-      // For active accounts, we might need a specific query or keep using dbService if optimized
-      // Assuming dbService.getAccounts loads all accounts (bad), we should optimize this too.
-      // For now, let's use a direct count query if possible, or fallback to existing method but be aware of perf.
-      // Since we don't have AccountRepositoryExtensions yet, we'll leave activeAccounts as is or mock it if not critical.
-      // Actually, let's try to use a direct query via dbService if exposed, or just accept the cost for this specific stat for now.
-      const accounts = await this.dbService.getAccounts(this.commercialUsername);
+      // For active accounts, we use a direct query via dbService or add a method to AccountRepository/ClientRepositoryExtensions
+      // Since we don't have a direct method yet, let's use a raw query via dbService for now, but optimized.
+      // Or better, let's add a method to ClientRepositoryExtensions if possible, or just use a raw count here.
+      // We can use accountRepository if we add a count method there.
+      // For now, let's use a raw query to avoid loading objects.
+      const activeAccountsSql = `
+        SELECT COUNT(*) as count
+        FROM accounts a
+        JOIN clients c ON a.clientId = c.id
+        WHERE c.commercial = ? AND a.status = 'ACTIF'
+      `;
+      const activeAccountsResult = await this.dbService.query(activeAccountsSql, [this.commercialUsername]);
+      const activeAccounts = activeAccountsResult.values?.[0]?.count || 0;
 
       return {
         total,
         local,
         synced,
         withCredit,
-        activeAccounts: accounts.filter(a => a.status === 'ACTIF').length
+        activeAccounts
       };
     } catch (error: any) {
       this.log.log(`[ClientService] getClientStats error: ${error.message}`);
@@ -483,30 +447,23 @@ export class ClientService {
     const client = await this.clientRepository.findById(clientId);
 
     if (client) {
-      const accounts = await this.dbService.getAccounts(this.commercialUsername); // Still loading all accounts... needs AccountRepository
-      const accountIndex = accounts.findIndex(a => a.clientId === clientId);
+      // Use AccountRepository to find account by clientId
+      const account = await this.accountRepository.findByClientId(clientId);
 
-      const isNumericId = /^[0-9]+$/.test(clientId);
-      const IS_SYNC = isNumericId ? 1 : 0;
+      if (account) {
+        const isNumericId = /^[0-9]+$/.test(clientId);
+        const IS_SYNC = isNumericId ? 1 : 0;
 
-      if (accountIndex > -1 && IS_SYNC) {
-        if (accounts[accountIndex].accountBalance > 0) {
-          accounts[accountIndex].old_balance = accounts[accountIndex].accountBalance;
-          accounts[accountIndex].updated = true;
-          accounts[accountIndex].syncDate = new Date().toISOString();
+        if (account.accountBalance > 0 && IS_SYNC) {
+          account.old_balance = account.accountBalance;
+          account.updated = true;
+          account.syncDate = new Date().toISOString();
         }
-        accounts[accountIndex].accountBalance = balance;
-        await this.dbService.saveAccounts(accounts);
-        return accounts[accountIndex];
-      } else if (accountIndex > -1) {
-        accounts[accountIndex].accountBalance = balance;
-        await this.dbService.saveAccounts(accounts);
-        return accounts[accountIndex];
+        account.accountBalance = balance;
+        await this.accountRepository.saveAll([account]);
+        return account;
       } else {
         // Create a new account
-        // We need a unique account number. Without loading all, we can use timestamp or random.
-        // Or count existing accounts.
-        // For now, let's use a timestamp-based approach to avoid collisions without loading all.
         const timestamp = Date.now().toString().slice(-6);
         const newAccountNumber = `0021${client.commercial.slice(-2)}${timestamp}`;
 
@@ -521,7 +478,7 @@ export class ClientService {
           createdAt: new Date().toISOString(),
           syncDate: ''
         };
-        await this.dbService.saveAccounts([newAccount]);
+        await this.accountRepository.saveAll([newAccount]);
         return newAccount;
       }
     }

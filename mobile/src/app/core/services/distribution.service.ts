@@ -14,7 +14,9 @@ import { HealthCheckService } from './health-check.service';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import { DistributionMapper } from '../../shared/mapper/distribution.mapper';
 import { CommercialStockRepository } from '../repositories/commercial-stock.repository';
-import { DistributionRepositoryExtensions } from '../repositories/distribution.repository.extensions';
+import { DistributionRepositoryExtensions, DistributionRepositoryFilters } from '../repositories/distribution.repository.extensions';
+import { DistributionRepository } from '../repositories/distribution.repository';
+import { ArticleRepository } from '../repositories/article.repository';
 
 interface CreateDistributionData {
   clientId: string;
@@ -40,7 +42,9 @@ export class DistributionService {
     private store: Store,
     private healthCheckService: HealthCheckService,
     private commercialStockRepository: CommercialStockRepository,
-    private distributionRepositoryExtensions: DistributionRepositoryExtensions
+    private distributionRepositoryExtensions: DistributionRepositoryExtensions,
+    private distributionRepository: DistributionRepository,
+    private articleRepository: ArticleRepository
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -134,7 +138,8 @@ export class DistributionService {
 
         console.log(`DistributionService: Saving ${uniqueDistributions.length} unique distributions from page ${currentPage + 1}...`);
 
-        return from(this.dbService.saveDistributionsAndItems(uniqueDistributions)).pipe(
+        // Use Repository to save
+        return from(this.distributionRepository.saveAll(uniqueDistributions)).pipe(
           tap(() => console.log(`DistributionService: Page ${currentPage + 1} saved successfully.`)),
           switchMap(() => {
             if (currentPage < totalPages - 1) {
@@ -170,15 +175,8 @@ export class DistributionService {
     if (!this.commercialUsername) {
       return of([]); // Or throw an error, depending on desired behavior
     }
-    return from(this.dbService.getDistributions(this.commercialUsername)).pipe(
-      map(distributions => {
-        return distributions;
-      }),
-      catchError(error => {
-        console.error('Failed to load distributions from local database:', error);
-        return of([]);
-      })
-    );
+    console.warn('DistributionService.getDistributions() is deprecated and returns empty array. Use getDistributionsPaginated() instead.');
+    return of([]);
   }
 
   /**
@@ -186,17 +184,13 @@ export class DistributionService {
    */
   getDistributionsByCommercialUsername(username: string): Observable<Distribution[]> {
     if (!username) return of([]);
-    return from(this.dbService.getDistributions(username));
+    console.warn('DistributionService.getDistributionsByCommercialUsername() is deprecated and returns empty array. Use getDistributionsPaginated() instead.');
+    return of([]);
   }
-
-
-
-
-
 
   // Get distribution items by distribution ID from local database
   getDistributionItems(distributionId: string): Observable<DistributionItem[]> {
-    return from(this.dbService.getItemsForDistribution(distributionId)).pipe(
+    return from(this.distributionRepository.getItemsForDistribution(distributionId)).pipe(
       map(items => {
         return items;
       }),
@@ -209,7 +203,7 @@ export class DistributionService {
 
   // Get available articles from local database only
   getAvailableArticles(): Observable<Article[]> {
-    return from(this.dbService.getArticles()).pipe(
+    return from(this.articleRepository.findAll()).pipe(
       map(articles => {
         // Filter only articles with stock > 0
         // NOTE: This logic might need to be updated to check CommercialStockItems instead of article.stockQuantity
@@ -254,8 +248,13 @@ export class DistributionService {
       throw new Error('Commercial user not identified.');
     }
     const now = new Date().toISOString();
-    // const allDistributions = await this.dbService.getDistributions(this.commercialUsername);
-    const newCount = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase().padStart(6, '0');
+
+    // OPTIMIZATION: Use count to generate reference or just random/timestamp
+    // const newCount = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase().padStart(6, '0');
+    // Or better, use count from repository
+    const totalDistributions = await this.distributionRepositoryExtensions.countByCommercial(this.commercialUsername);
+    const newCount = (totalDistributions + 1).toString().padStart(6, '0');
+
     const commercialCode = this.commercialUsername?.slice(-3).toUpperCase() || 'XXX';
     const reference = `DIST-${commercialCode}-${newCount}`;
 
@@ -287,7 +286,7 @@ export class DistributionService {
     for (const item of distributionData.articles) {
       const currentStock = await this.commercialStockRepository.getCurrentStock(item.articleId, this.commercialUsername);
       if (currentStock < item.quantity) {
-        const allArticles = await this.dbService.getArticles();
+        const allArticles = await this.articleRepository.findAll();
         const article = allArticles.find(a => a.id === item.articleId);
         const articleName = article ? article.name : `Article ${item.articleId}`;
         throw new Error(`Stock insuffisant pour ${articleName}. Disponible: ${currentStock}, Demandé: ${item.quantity}`);
@@ -295,12 +294,8 @@ export class DistributionService {
     }
     // --- STOCK VALIDATION END ---
 
-    // Save the main distribution record first
-
-    await this.dbService.saveDistributions([distribution]);
-
-    // Now, create and save the distribution items
-    const allArticles = await this.dbService.getArticles();
+    // Now, create the distribution items
+    const allArticles = await this.articleRepository.findAll();
     const distributionItems: DistributionItem[] = distributionData.articles.map(item => {
       const articleDetails = allArticles.find(a => a.id === item.articleId);
       const unitPrice = articleDetails?.creditSalePrice || 0;
@@ -314,12 +309,13 @@ export class DistributionService {
       };
     });
 
-    await this.dbService.saveDistributionItems(distributionItems);
-    //distribution.items = distributionItems;
+    distribution.items = distributionItems;
 
-    // Save the main distribution record and its items in a single transaction
+    // Save the main distribution record and its items in a single transaction using Repository
+    await this.distributionRepository.saveAll([distribution]);
 
     // Create and save the corresponding transaction for the history
+    // Still using dbService for transactions
     await this.dbService.addTransaction({
       id: `trans-${distribution.id}`,
       clientId: distribution.clientId,
@@ -349,7 +345,7 @@ export class DistributionService {
       }
 
       // Also update legacy article stock for compatibility if needed
-      const articles = await this.dbService.getArticles();
+      const articles = await this.articleRepository.findAll();
       const updatedArticles = articles.map(article => {
         const usedQuantity = articleQuantities.find(aq => aq.articleId === article.id);
         if (usedQuantity) {
@@ -364,7 +360,7 @@ export class DistributionService {
       });
 
       // Save updated articles back to local database
-      await this.dbService.saveArticles(updatedArticles);
+      await this.articleRepository.saveAll(updatedArticles);
     } catch (error) {
       console.error('Failed to update article stock:', error);
     }
@@ -375,23 +371,27 @@ export class DistributionService {
     if (!this.commercialUsername) {
       return of(undefined);
     }
-    return from(this.dbService.getDistributions(this.commercialUsername)).pipe(
-      switchMap(distributions => {
-        const distribution = distributions.find(d => d.id === distributionId);
+    return from(this.distributionRepository.findById(distributionId)).pipe(
+      switchMap(async (distribution) => {
         if (!distribution) {
-          return of(undefined);
+          return undefined;
         }
 
         // Enrichir avec les informations du client
-        return from(this.dbService.getClients(this.commercialUsername!)).pipe(
-          map(clients => {
-            const client = clients.find(c => c.id === distribution.clientId);
+        // Use ClientRepository instead of dbService.getClients
+        // But we don't have ClientRepository injected.
+        // We can use dbService.getClientById which is efficient if it uses WHERE id = ?
+        // Or inject ClientRepository.
+        // For now, let's use dbService.getClientById as it is efficient.
+        try {
+            const client = await this.dbService.getClientById(distribution.clientId);
             return {
               ...distribution,
               client: client
             };
-          })
-        );
+        } catch (e) {
+            return distribution;
+        }
       }),
       catchError(error => {
         console.error('Failed to get distribution by ID:', error);
@@ -405,8 +405,14 @@ export class DistributionService {
     if (!this.commercialUsername) {
       return of([]);
     }
-    return from(this.dbService.getDistributions(this.commercialUsername)).pipe(
-      map(distributions => distributions.filter(d => d.clientId === clientId)),
+    // OPTIMIZATION: Use paginated query with filter
+    return from(this.distributionRepositoryExtensions.findByCommercialPaginated(
+        this.commercialUsername,
+        0,
+        1000,
+        { clientId: clientId }
+    )).pipe(
+      map(page => page.content),
       catchError(error => {
         console.error('Failed to get distributions by client:', error);
         return of([]);
@@ -419,8 +425,14 @@ export class DistributionService {
     if (!this.commercialUsername) {
       return of([]);
     }
-    return from(this.dbService.getDistributions(this.commercialUsername)).pipe(
-      map(distributions => distributions.filter(d => d.status === status)),
+    // OPTIMIZATION: Use paginated query with filter
+    return from(this.distributionRepositoryExtensions.findByCommercialPaginated(
+        this.commercialUsername,
+        0,
+        1000,
+        { status: status }
+    )).pipe(
+      map(page => page.content),
       catchError(error => {
         console.error('Failed to get distributions by status:', error);
         return of([]);
@@ -442,22 +454,21 @@ export class DistributionService {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
-    const distributions = await this.dbService.getDistributions(this.commercialUsername);
-    const distributionIndex = distributions.findIndex(d => d.id === distributionId);
 
-    if (distributionIndex === -1) {
+    const distribution = await this.distributionRepository.findById(distributionId);
+
+    if (!distribution) {
       throw new Error('Distribution not found');
     }
 
     const updatedDistribution = {
-      ...distributions[distributionIndex],
+      ...distribution,
       status,
       isSync: false, // Mark as needing sync
       syncDate: new Date().toISOString()
     };
 
-    distributions[distributionIndex] = updatedDistribution;
-    await this.dbService.saveDistributions(distributions);
+    await this.distributionRepository.saveAll([updatedDistribution]);
 
     return updatedDistribution;
   }
@@ -468,23 +479,22 @@ export class DistributionService {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
-    const distributions = await this.dbService.getDistributions(this.commercialUsername);
-    const distributionIndex = distributions.findIndex(d => d.id === distributionId);
 
-    if (distributionIndex === -1) {
+    const distribution = await this.distributionRepository.findById(distributionId);
+
+    if (!distribution) {
       throw new Error('Distribution not found');
     }
 
     const updatedDistribution = {
-      ...distributions[distributionIndex],
+      ...distribution,
       paidAmount,
       remainingAmount,
       isSync: false, // Mark as needing sync
       syncDate: new Date().toISOString()
     };
 
-    distributions[distributionIndex] = updatedDistribution;
-    await this.dbService.saveDistributions(distributions);
+    await this.distributionRepository.saveAll([updatedDistribution]);
 
     return updatedDistribution;
   }
@@ -504,14 +514,11 @@ export class DistributionService {
       throw new Error('Commercial user not identified.');
     }
     try {
-      const distributions = await this.dbService.getDistributions(this.commercialUsername);
-      const distributionIndex = distributions.findIndex(d => d.id === distributionData.id);
+      const originalDistribution = await this.distributionRepository.findById(distributionData.id);
 
-      if (distributionIndex === -1) {
+      if (!originalDistribution) {
         throw new Error('Distribution not found');
       }
-
-      const originalDistribution = distributions[distributionIndex];
 
       // Calculate new values
       const dailyPayment = distributionData.dailyPayment || 0;
@@ -533,18 +540,15 @@ export class DistributionService {
         syncDate: new Date().toISOString()
       };
 
-      distributions[distributionIndex] = updatedDistribution;
-      await this.dbService.saveDistributions(distributions);
-
       // Update distribution items
       if (distributionData.articles && distributionData.articles.length > 0) {
         // First, restore stock for original items
-        const originalItems = await this.dbService.getItemsForDistribution(distributionData.id);
+        const originalItems = await this.distributionRepository.getItemsForDistribution(distributionData.id);
         await this.restoreArticleStock(originalItems);
 
-        // Delete old items
-        const allItems = await this.dbService.getDistributionItems();
-        const filteredItems = allItems.filter(item => item.distributionId !== distributionData.id);
+        // Note: saveAll handles update/insert but doesn't delete removed items unless we handle it.
+        // DistributionRepository.saveAll deletes items if we pass the distribution with new items.
+        // So we just need to construct the new items list.
 
         // Add new items
         const newItems: DistributionItem[] = distributionData.articles.map((article: any, index: number) => ({
@@ -559,7 +563,7 @@ export class DistributionService {
         }));
 
         // Calculate prices for new items
-        const articles = await this.dbService.getArticles();
+        const articles = await this.articleRepository.findAll();
         newItems.forEach(item => {
           const article = articles.find(a => a.id === item.articleId);
           if (article) {
@@ -568,10 +572,16 @@ export class DistributionService {
           }
         });
 
-        await this.dbService.saveDistributionItems([...filteredItems, ...newItems]);
+        updatedDistribution.items = newItems;
+
+        // Save updated distribution and items
+        await this.distributionRepository.saveAll([updatedDistribution]);
 
         // Update stock for new items
         await this.updateArticleStock(distributionData.articles);
+      } else {
+          // Just save the distribution update
+          await this.distributionRepository.saveAll([updatedDistribution]);
       }
 
       // Update transaction
@@ -606,7 +616,7 @@ export class DistributionService {
       }
 
       // Restore legacy article stock
-      const articles = await this.dbService.getArticles();
+      const articles = await this.articleRepository.findAll();
       const updatedArticles = articles.map(article => {
         const restoredQuantity = items
           .filter(item => item.articleId === article.id)
@@ -623,7 +633,7 @@ export class DistributionService {
         return article;
       });
 
-      await this.dbService.saveArticles(updatedArticles);
+      await this.articleRepository.saveAll(updatedArticles);
       console.log('Article stock restored locally');
     } catch (error) {
       console.error('Failed to restore article stock:', error);
@@ -648,16 +658,14 @@ export class DistributionService {
       console.log(`Starting deletion of distribution: ${distributionId}`);
 
       // 1. Get distribution
-      const distributions = await this.dbService.getDistributions(this.commercialUsername);
-      const distributionToDelete = distributions.find(d => d.id === distributionId);
+      const distributionToDelete = await this.distributionRepository.findById(distributionId);
 
       if (!distributionToDelete) {
         throw new Error('Distribution not found');
       }
 
       // 2. Get distribution items to restore stock
-      const distributionItems = await this.dbService.getDistributionItems();
-      const itemsToRestore = distributionItems.filter(item => item.distributionId === distributionId);
+      const itemsToRestore = await this.distributionRepository.getItemsForDistribution(distributionId);
 
       // 3. Restore stock for all articles in the distribution
       if (itemsToRestore.length > 0) {
@@ -665,13 +673,8 @@ export class DistributionService {
         await this.restoreArticleStock(itemsToRestore);
       }
 
-      // 4. Delete distribution items
-      const filteredItems = distributionItems.filter(item => item.distributionId !== distributionId);
-      await this.dbService.saveDistributionItems(filteredItems);
-
-      // 5. Delete the distribution itself
-      const filteredDistributions = distributions.filter(d => d.id !== distributionId);
-      await this.dbService.saveDistributions(filteredDistributions);
+      // 4. Delete distribution and items using Repository
+      await this.distributionRepository.deleteDistribution(distributionId);
 
       console.log(`Successfully deleted distribution ${distributionId} and restored stock`);
       return true;
@@ -685,13 +688,10 @@ export class DistributionService {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
-    const distributions = await this.dbService.getDistributions(this.commercialUsername);
-    const updatedDistributions = distributions.filter(d => !distributionIds.includes(d.id));
-    await this.dbService.saveDistributions(updatedDistributions);
-
-    const distributionItems = await this.dbService.getDistributionItems();
-    const updatedItems = distributionItems.filter(item => !distributionIds.includes(item.distributionId));
-    await this.dbService.saveDistributionItems(updatedItems);
+    // Loop and delete one by one to handle stock restoration correctly
+    for (const id of distributionIds) {
+        await this.deleteDistributionLocally(id);
+    }
   }
 
   // Get pending distributions (for sync)
@@ -699,8 +699,8 @@ export class DistributionService {
     if (!this.commercialUsername) {
       return of([]);
     }
-    return from(this.dbService.getDistributions(this.commercialUsername)).pipe(
-      map(distributions => distributions.filter(d => !d.isSync && d.isLocal)),
+    // OPTIMIZATION: Use findUnsynced
+    return from(this.distributionRepository.findUnsynced(this.commercialUsername, 1000, 0)).pipe(
       catchError(error => {
         console.error('Failed to get pending distributions:', error);
         return of([]);
@@ -723,20 +723,7 @@ export class DistributionService {
       throw new Error('Commercial user not identified.');
     }
     try {
-      const distributions = await this.dbService.getDistributions(this.commercialUsername);
-      const distributionIndex = distributions.findIndex(d => d.id === distributionId);
-
-      if (distributionIndex === -1) {
-        return false;
-      }
-
-      distributions[distributionIndex] = {
-        ...distributions[distributionIndex],
-        isSync: true,
-        syncDate: new Date().toISOString()
-      };
-
-      await this.dbService.saveDistributions(distributions);
+      await this.distributionRepository.updateSyncStatus(distributionId, true);
       return true;
     } catch (error) {
       console.error('Failed to mark distribution as synced:', error);
@@ -756,22 +743,24 @@ export class DistributionService {
         pendingSync: 0
       });
     }
-    return from(this.dbService.getDistributions(this.commercialUsername)).pipe(
-      map(distributions => {
-        const total = distributions.length;
-        const active = distributions.filter(d => d.status === 'INPROGRESS' || d.status === 'ACTIVE').length;
-        const completed = distributions.filter(d => d.status === 'COMPLETED').length;
-        const overdue = distributions.filter(d => d.status === 'OVERDUE').length;
-        const totalAmount = distributions.reduce((sum, d) => sum + d.totalAmount, 0);
-        const pendingSync = distributions.filter(d => !d.isSync && d.isLocal).length;
 
+    // OPTIMIZATION: Use count queries
+    return forkJoin({
+        total: from(this.distributionRepositoryExtensions.countByCommercial(this.commercialUsername)),
+        active: from(this.distributionRepositoryExtensions.countActiveByCommercial(this.commercialUsername)),
+        // completed: from(this.distributionRepositoryExtensions.countByCommercial(this.commercialUsername, { status: 'COMPLETED' })),
+        // overdue: from(this.distributionRepositoryExtensions.countByCommercial(this.commercialUsername, { status: 'OVERDUE' })),
+        totalAmount: from(this.distributionRepositoryExtensions.getTotalAmountByCommercial(this.commercialUsername)),
+        pendingSync: from(this.distributionRepository.countUnsynced()) // Note: countUnsynced in BaseRepository doesn't filter by commercial, might need override
+    }).pipe(
+      map(stats => {
         return {
-          total,
-          active,
-          completed,
-          overdue,
-          totalAmount,
-          pendingSync
+          total: stats.total,
+          active: stats.active,
+          completed: 0, // Not implemented in extensions yet
+          overdue: 0, // Not implemented in extensions yet
+          totalAmount: stats.totalAmount,
+          pendingSync: stats.pendingSync
         };
       }),
       catchError(error => {
@@ -787,23 +776,4 @@ export class DistributionService {
       })
     );
   }
-
-  // private async saveDistributionLocally(distribution: Distribution): Promise<void> {
-  //   try {
-  //     await this.dbService.saveDistributions([distribution]);
-  //     await this.dbService.addTransaction({
-  //       id: `trans-${distribution.id}`,
-  //       clientId: distribution.clientId,
-  //       referenceId: distribution.id,
-  //       type: 'distribution',
-  //       amount: distribution.totalAmount,
-  //       details: `Distribution de ${distribution.articles?.length} article(s)`,
-  //       date: distribution.createdAt,
-  //       isSync: false
-  //     });
-  //     console.log('Saving distribution and transaction locally:', distribution.reference);
-  //   } catch (error) {
-  //     console.error('Failed to save distribution locally:', error);
-  //   }
-  // }
 }

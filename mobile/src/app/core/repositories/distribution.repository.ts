@@ -355,4 +355,33 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
         }));
     }
 
+    /**
+     * Delete a distribution and its items
+     * @param distributionId ID of the distribution to delete
+     */
+    async deleteDistribution(distributionId: string): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+
+        try {
+            const deleteSet: capSQLiteSet[] = [
+                {
+                    statement: `DELETE FROM distribution_items WHERE distributionId = ?`,
+                    values: [distributionId]
+                },
+                {
+                    statement: `DELETE FROM distributions WHERE id = ?`,
+                    values: [distributionId]
+                }
+            ];
+
+            await this.databaseService.executeSet(deleteSet);
+            console.log(`Successfully deleted distribution ${distributionId} and its items.`);
+        } catch (error) {
+            console.error(`Failed to delete distribution ${distributionId}:`, error);
+            throw error;
+        }
+    }
+
 }
