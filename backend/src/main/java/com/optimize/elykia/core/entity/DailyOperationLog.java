@@ -38,6 +38,7 @@ public class DailyOperationLog extends BaseEntity<String> {
 
     private String reference; // e.g., Client name, Invoice ID
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     public DailyOperationLog(LocalDate date, String commercialUsername, LocalDateTime timestamp, OperationType type,

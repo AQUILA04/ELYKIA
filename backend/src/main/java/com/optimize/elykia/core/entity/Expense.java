@@ -37,6 +37,7 @@ public class Expense extends Auditable<String> {
     @Column(nullable = false)
     private LocalDate expenseDate;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
     
     private String reference;
