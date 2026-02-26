@@ -17,11 +17,6 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
     }
 
     async saveAll(entities: Distribution[]): Promise<void> {
-        // This implements saveDistributions logic.
-        // Note: DatabaseService also has saveDistributionsAndItems.
-        // For a repository, save(Distribution) should probably save items too if they are present.
-        // I will implement the logic from saveDistributionsAndItems as it is more complete for an aggregate.
-
         if (!this.databaseService['db']) {
             throw new Error('Database not initialized.');
         }
@@ -92,7 +87,7 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
                     allItemsToInsert.push({
                         statement: sql,
                         values: [
-                            item.id ?? this.databaseService['generateUuid'](), // Accessing private or need helper
+                            item.id ?? this.generateUuid(),
                             distIdStr,
                             item.articleId ?? null,
                             item.quantity ?? 0,
@@ -108,7 +103,7 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
             if (distributionIdsToClearItems.length > 0) {
                 const placeholders = distributionIdsToClearItems.map(() => '?').join(',');
                 const sql = `DELETE FROM distribution_items WHERE distributionId IN (${placeholders})`;
-                await this.databaseService['db'].run(sql, distributionIdsToClearItems);
+                await this.databaseService.execute(sql, distributionIdsToClearItems);
             }
 
             if (distributionsToUpdate.length > 0) {
@@ -124,7 +119,7 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
             }
 
         } catch (error) {
-            console.error('Failed to save distributions and items in repository.', error);
+            console.error('Failed to save distributions in repository.', error);
             throw error;
         }
     }

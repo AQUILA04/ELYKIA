@@ -26,6 +26,7 @@ export class ClientsPage implements OnInit, OnDestroy {
   @ViewChild(IonContent) content!: IonContent;
 
   private destroy$ = new Subject<void>();
+  private basePath: string = '';
 
   paginatedClients$: Observable<ClientView[]>;
   isLoading$: Observable<boolean>;
@@ -47,7 +48,18 @@ export class ClientsPage implements OnInit, OnDestroy {
     this.hasMore$ = this.store.select(selectClientPaginationHasMore);
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    try {
+      const { uri } = await Filesystem.getUri({
+        path: '',
+        directory: Directory.ExternalStorage
+      });
+      this.basePath = uri;
+      this.cdr.markForCheck();
+    } catch (e) {
+      console.warn('Error getting base path:', e);
+    }
+
     // Handle Search
     this.searchControl.valueChanges.pipe(
       takeUntil(this.destroy$),
@@ -117,10 +129,26 @@ export class ClientsPage implements OnInit, OnDestroy {
       return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
     }
 
-    // Use Capacitor's convertFileSrc to get a WebView-compatible URL
-    // This is much more efficient than reading the file as Base64
-    const resolvedPath = Capacitor.convertFileSrc(localPath);
-    return this.sanitizer.bypassSecurityTrustUrl(resolvedPath);
+    // Sur le Web, les chemins de fichiers natifs ne fonctionneront pas directement.
+    // On retourne l'image par défaut pour éviter les erreurs 404 dans la console,
+    // sauf si c'est une URL http ou un asset.
+    if (Capacitor.getPlatform() === 'web' && !localPath.startsWith('http') && !localPath.startsWith('assets')) {
+      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
+    }
+
+    // Si le chemin est déjà une URL complète ou un asset
+    if (localPath.startsWith('http') || localPath.startsWith('assets') || localPath.startsWith('file://') || localPath.startsWith('content://')) {
+      return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(localPath));
+    }
+
+    // Si c'est un chemin relatif, on a besoin du basePath
+    if (!this.basePath) {
+      // En attendant que le basePath soit chargé, on affiche l'image par défaut pour éviter les 404
+      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
+    }
+
+    const finalPath = this.basePath + (localPath.startsWith('/') ? '' : '/') + localPath;
+    return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(finalPath));
   }
 
   ngOnDestroy() {

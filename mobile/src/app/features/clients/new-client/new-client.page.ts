@@ -260,15 +260,16 @@ export class NewClientPage implements OnInit, OnDestroy {
           const clientData = JSON.parse(JSON.stringify(this.clientForm.value));
           delete clientData.profilPhoto;
           delete clientData.cardPhoto;
-          
+
           // Store only file paths, not base64 data
           clientData.profilPhoto = profilPhotoPath;
           clientData.cardPhoto = cardPhotoPath;
-          
+
           // Store thumbnail paths for display purposes
-          clientData.profilPhotoUrl = profilPhotoThumbPath || profilPhotoPath; // Use thumbnail if available, otherwise original
-          clientData.cardPhotoUrl = cardPhotoThumbPath || cardPhotoPath; // Use thumbnail if available, otherwise original
-          
+          clientData.profilPhotoUrl = profilPhotoPath; // Use thumbnail if available, otherwise original
+          clientData.cardPhotoUrl = cardPhotoPath; // Use thumbnail if available, otherwise original
+          clientData.profilPhotoThumbUrl = profilPhotoThumbPath;
+          clientData.cardPhotoThumbUrl = cardPhotoThumbPath;
           clientData.updatedPhotoUrl = false; // Nouveau client, pas de mise à jour d'URL nécessaire
           clientData.isLocal = true;
           clientData.isSync = false;

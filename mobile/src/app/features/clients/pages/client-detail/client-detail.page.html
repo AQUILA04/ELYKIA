@@ -13,7 +13,7 @@
   <ng-container *ngIf="client$ | async as client">
     <div class="client-header-content">
       <ion-avatar class="client-photo-large" (click)="onAvatarClick(client)">
-        <img [src]="client.photoUrl" *ngIf="client.photoUrl; else initials">
+        <img [src]="client.profilPhotoThumbUrl" *ngIf="client.profilPhotoThumbUrl; else initials">
         <ng-template #initials>
           <div class="initials-placeholder">{{ client.firstname?.charAt(0) }}{{ client.lastname?.charAt(0) }}</div>
         </ng-template>

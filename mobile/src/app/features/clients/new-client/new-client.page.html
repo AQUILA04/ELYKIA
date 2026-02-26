@@ -22,7 +22,7 @@
             </ion-card-header>
             <ion-card-content class="photo-section">
               <div class="photo-zone" (click)="takePicture()">
-                <img *ngIf="clientForm.get('profilPhoto')?.value" [src]="clientForm.get('profilPhoto')?.value"
+                <img *ngIf="clientForm.get('profilPhoto')?.value" [src]="this.photoToSave.dataUrl"
                   class="photo-preview" />
                 <div *ngIf="!clientForm.get('profilPhoto')?.value" class="photo-placeholder">📷</div>
               </div>

@@ -139,14 +139,12 @@ export class OrderService {
     const reference = `CMD-${commercialCode}-${newCount}`;
 
     // Create order items
-    // OPTIMIZATION: Load all articles might be heavy if many articles.
-    // But usually articles are not that many (hundreds).
-    // If needed, we could fetch only specific articles by IDs.
-    // For now, findAll is acceptable for articles (usually < 1000).
-    const allArticles = await this.articleRepository.findAll();
+    // OPTIMIZATION: Fetch only needed articles
+    const articleIds = orderData.articles.map(a => a.articleId);
+    const articles = await this.articleRepository.findByIds(articleIds);
 
     const orderItems: OrderItem[] = orderData.articles.map(item => {
-      const articleDetails = allArticles.find(a => a.id === item.articleId);
+      const articleDetails = articles.find(a => a.id === item.articleId);
       const unitPrice = articleDetails?.creditSalePrice || 0;
       return {
         id: `o-item-${Date.now()}-${item.articleId}`,
@@ -233,9 +231,12 @@ export class OrderService {
       }
 
       // Create updated order items
-      const allArticles = await this.articleRepository.findAll();
+      // OPTIMIZATION: Fetch only needed articles
+      const articleIds = orderData.articles.map((a: any) => a.articleId);
+      const articles = await this.articleRepository.findByIds(articleIds);
+
       const orderItems: OrderItem[] = orderData.articles.map((article: any, index: number) => {
-        const articleDetails = allArticles.find(a => a.id === article.articleId);
+        const articleDetails = articles.find(a => a.id === article.articleId);
         const unitPrice = articleDetails?.creditSalePrice || 0;
         return {
           id: `${orderData.id}-item-${index + 1}`,

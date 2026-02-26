@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import * as ClientSelectors from '../../../../store/client/client.selectors';
@@ -39,6 +39,7 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   hasMoreTransactions$!: Observable<boolean>;
   clientId: string | null = null;
   today = new Date();
+  private basePath: string = '';
 
   private destroy$ = new Subject<void>();
 
@@ -53,10 +54,22 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     private alertController: AlertController,
     private toastController: ToastController,
     private actions$: Actions,
-    private thumbnailService: ThumbnailService
+    private thumbnailService: ThumbnailService,
+    private cdr: ChangeDetectorRef
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+    try {
+      const { uri } = await Filesystem.getUri({
+        path: '',
+        directory: Directory.ExternalStorage
+      });
+      this.basePath = uri;
+      this.cdr.markForCheck();
+    } catch (e) {
+      console.warn('Error getting base path:', e);
+    }
+
     this.clientId = this.route.snapshot.paramMap.get('id');
     if (this.clientId) {
       this.store.dispatch(loadTransactionsByClient({ clientId: this.clientId, page: 0, size: 20 }));
@@ -190,9 +203,26 @@ export class ClientDetailPage implements OnInit, OnDestroy {
       return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
     }
 
-    // Use Capacitor's convertFileSrc to get a WebView-compatible URL
-    const resolvedPath = Capacitor.convertFileSrc(localPath);
-    return this.sanitizer.bypassSecurityTrustUrl(resolvedPath);
+    // Sur le Web, les chemins de fichiers natifs ne fonctionneront pas directement.
+    // On retourne l'image par défaut pour éviter les erreurs 404 dans la console,
+    // sauf si c'est une URL http ou un asset.
+    if (Capacitor.getPlatform() === 'web' && !localPath.startsWith('http') && !localPath.startsWith('assets')) {
+      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
+    }
+
+    // Si le chemin est déjà une URL complète ou un asset
+    if (localPath.startsWith('http') || localPath.startsWith('assets') || localPath.startsWith('file://') || localPath.startsWith('content://')) {
+      return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(localPath));
+    }
+
+    // Si c'est un chemin relatif, on a besoin du basePath
+    if (!this.basePath) {
+      // En attendant que le basePath soit chargé, on affiche l'image par défaut pour éviter les 404
+      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
+    }
+
+    const finalPath = this.basePath + (localPath.startsWith('/') ? '' : '/') + localPath;
+    return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(finalPath));
   }
 
   async presentPopover(event: any) {

@@ -139,7 +139,7 @@ export class DistributionService {
         console.log(`DistributionService: Saving ${uniqueDistributions.length} unique distributions from page ${currentPage + 1}...`);
 
         // Use Repository to save
-        return from(this.distributionRepository.saveAll(uniqueDistributions)).pipe(
+        return from(this.dbService.saveDistributionsAndItems(uniqueDistributions)).pipe(
           tap(() => console.log(`DistributionService: Page ${currentPage + 1} saved successfully.`)),
           switchMap(() => {
             if (currentPage < totalPages - 1) {
@@ -249,11 +249,8 @@ export class DistributionService {
     }
     const now = new Date().toISOString();
 
-    // OPTIMIZATION: Use count to generate reference or just random/timestamp
     // const newCount = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase().padStart(6, '0');
-    // Or better, use count from repository
-    const totalDistributions = await this.distributionRepositoryExtensions.countByCommercial(this.commercialUsername);
-    const newCount = (totalDistributions + 1).toString().padStart(6, '0');
+    const newCount = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase().padStart(6, '0');
 
     const commercialCode = this.commercialUsername?.slice(-3).toUpperCase() || 'XXX';
     const reference = `DIST-${commercialCode}-${newCount}`;
@@ -283,21 +280,24 @@ export class DistributionService {
 
     // --- STOCK VALIDATION START ---
     // Verify strict stock availability before proceeding
+    // OPTIMIZATION: Fetch only needed articles
+    const articleIds = distributionData.articles.map(a => a.articleId);
+    const neededArticles = await this.articleRepository.findByIds(articleIds);
+
     for (const item of distributionData.articles) {
       const currentStock = await this.commercialStockRepository.getCurrentStock(item.articleId, this.commercialUsername);
       if (currentStock < item.quantity) {
-        const allArticles = await this.articleRepository.findAll();
-        const article = allArticles.find(a => a.id === item.articleId);
+        const article = neededArticles.find(a => a.id === item.articleId);
         const articleName = article ? article.name : `Article ${item.articleId}`;
         throw new Error(`Stock insuffisant pour ${articleName}. Disponible: ${currentStock}, Demandé: ${item.quantity}`);
       }
     }
     // --- STOCK VALIDATION END ---
+    await this.dbService.saveDistributions([distribution]);
 
     // Now, create the distribution items
-    const allArticles = await this.articleRepository.findAll();
     const distributionItems: DistributionItem[] = distributionData.articles.map(item => {
-      const articleDetails = allArticles.find(a => a.id === item.articleId);
+      const articleDetails = neededArticles.find(a => a.id === item.articleId);
       const unitPrice = articleDetails?.creditSalePrice || 0;
       return {
         id: `d-item-${distribution.id}-${item.articleId}`,
@@ -311,8 +311,13 @@ export class DistributionService {
 
     distribution.items = distributionItems;
 
+    if (distribution.items.length < 1) {
+      throw new Error(`Aucun items pour la distribution`);
+    }
+    await this.dbService.saveDistributionItems(distributionItems);
+
     // Save the main distribution record and its items in a single transaction using Repository
-    await this.distributionRepository.saveAll([distribution]);
+    //await this.distributionRepository.saveAll([distribution]);
 
     // Create and save the corresponding transaction for the history
     // Still using dbService for transactions
@@ -345,7 +350,10 @@ export class DistributionService {
       }
 
       // Also update legacy article stock for compatibility if needed
-      const articles = await this.articleRepository.findAll();
+      // OPTIMIZATION: Fetch only needed articles
+      const articleIds = articleQuantities.map(a => a.articleId);
+      const articles = await this.articleRepository.findByIds(articleIds);
+
       const updatedArticles = articles.map(article => {
         const usedQuantity = articleQuantities.find(aq => aq.articleId === article.id);
         if (usedQuantity) {
@@ -563,7 +571,10 @@ export class DistributionService {
         }));
 
         // Calculate prices for new items
-        const articles = await this.articleRepository.findAll();
+        // OPTIMIZATION: Fetch only needed articles
+        const articleIds = distributionData.articles.map((a: any) => a.articleId);
+        const articles = await this.articleRepository.findByIds(articleIds);
+
         newItems.forEach(item => {
           const article = articles.find(a => a.id === item.articleId);
           if (article) {
@@ -616,7 +627,10 @@ export class DistributionService {
       }
 
       // Restore legacy article stock
-      const articles = await this.articleRepository.findAll();
+      // OPTIMIZATION: Fetch only needed articles
+      const articleIds = items.map(i => i.articleId);
+      const articles = await this.articleRepository.findByIds(articleIds);
+
       const updatedArticles = articles.map(article => {
         const restoredQuantity = items
           .filter(item => item.articleId === article.id)

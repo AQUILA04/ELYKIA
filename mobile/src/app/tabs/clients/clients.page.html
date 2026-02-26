@@ -27,7 +27,7 @@
       <ng-container *ngIf="clients.length > 0; else emptyState">
         <ion-item *ngFor="let client of clients; trackBy: trackByClientId" (click)="openClientDetail(client.id)" button>
           <ion-avatar slot="start">
-            <img [src]="getPhotoUrl(client.profilPhotoUrl || client.profilPhoto)" />
+            <img [src]="getPhotoUrl(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto)" />
           </ion-avatar>
           <ion-label>
             <h2>{{ client.fullName || (client.firstname + ' ' + client.lastname) }}</h2>

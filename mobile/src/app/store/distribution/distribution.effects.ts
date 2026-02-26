@@ -37,7 +37,7 @@ export class DistributionEffects {
     this.actions$.pipe(
       ofType(DistributionActions.loadDistributions, DistributionActions.refreshDistributions),
       switchMap((action: { commercialUsername: string }) =>
-        this.distributionService.getDistributionsByCommercialUsername(action.commercialUsername).pipe(
+        this.distributionService. getDistributionsByCommercialUsername(action.commercialUsername).pipe(
           map(distributions => DistributionActions.loadDistributionsSuccess({ distributions })),
           catchError(error => {
             console.error('Load distributions failed:', error);
