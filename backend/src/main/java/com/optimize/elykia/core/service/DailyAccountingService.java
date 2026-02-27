@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
@@ -53,14 +54,16 @@ public class DailyAccountingService extends GenericService<DailyAccounting, Long
     @Transactional
     public DailyAccounting closeDailyAccounting(LocalDate accountingDate) {
         DailyAccounting dailyAccounting = getByAccountingDate(accountingDate);
+        if (Objects.isNull(dailyAccounting)) {
+            return null;
+        }
         dailyAccounting.setTotalAmount(creditTimelineRepository.sumAmountByDate(accountingDate.atStartOfDay(), accountingDate.atTime(23, 59)));
         dailyAccounting.setStatus(AccountingDayStatus.OLD);
         return update(dailyAccounting);
     }
 
     public DailyAccounting getByAccountingDate(LocalDate accountingDate) {
-        return ((DailyAccountingRepository) repository).findByAccountingDate(accountingDate).orElseThrow(() ->
-                new ResourceNotFoundException("Comptabilité journalière non trouvée !"));
+        return ((DailyAccountingRepository) repository).findByAccountingDate(accountingDate).orElse(null);
     }
 
     public Page<DailyAccountancy> getDailyAccountingDetails(Long dailyAccountingId, Pageable pageable) {

@@ -38,7 +38,7 @@
             <span class="hide-menu">Dashboard BI</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_OPEN_ACCOUNTING_DAY', 'ROLE_CLOSE_ACCOUNTING_DAY']">
+        <li hidden="hidden" class="sidebar-item" *ngxPermissionsOnly="['ROLE_OPEN_ACCOUNTING_DAY', 'ROLE_CLOSE_ACCOUNTING_DAY']">
           <a class="sidebar-link" routerLink="/accounting-day" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/accounting-day') }">
             <span>

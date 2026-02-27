@@ -1,7 +1,7 @@
 {
   "name": "elykia-mobile",
-  "version": "1.2.0",
-  "author": "Ionic Framework",
+  "version": "2.6.0",
+  "author": "Francis AHONSU",
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",

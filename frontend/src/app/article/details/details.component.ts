@@ -172,7 +172,7 @@ export class DetailComponent implements OnInit {
 
   get potentialRevenue(): number {
     if (!this.article) return 0;
-    return (this.article.stockQuantity || 0) * (this.article.sellingPrice || 0);
+    return (this.article.stockQuantity || 0) * (this.article.creditSalePrice || 0);
   }
 
   get reorderAlert(): boolean {

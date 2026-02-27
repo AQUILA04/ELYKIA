@@ -340,8 +340,8 @@ export class NewClientPage implements OnInit, OnDestroy {
 
       const image = await Camera.getPhoto({
         quality: 50,
-        width: 800,
-        height: 800,
+        width: 600,
+        height: 600,
         allowEditing: true,
         resultType: Capacitor.getPlatform() === 'web' ? CameraResultType.DataUrl : CameraResultType.Uri
       });

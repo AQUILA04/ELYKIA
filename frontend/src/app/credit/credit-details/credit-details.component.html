@@ -24,14 +24,16 @@
   <div class="cd-page-header a2">
     <div>
       <div class="header-eyebrow">Réf. {{ credit.reference }}</div>
-      <div class="header-title">Détails de la vente à crédit</div>
+      <div class="header-title" *ngIf="credit.type == 'CREDIT'">Détails de la vente à crédit</div>
+      <div class="header-title" *ngIf="credit.type == 'TONTINE'">Détails de la livraison tontine</div>
+      <div class="header-title" *ngIf="credit.type == 'CASH'">Détails de la vente Cash</div>
       <div class="header-sub">{{ credit.client?.firstname }} {{ credit.client?.lastname }} — Ouvert le {{
         credit.beginDate | date:'dd/MM/yyyy' }}</div>
     </div>
     <div class="header-right">
       <span class="cd-badge"
         [ngClass]="{'cd-badge-success': credit.status === 'INPROGRESS', 'cd-badge-secondary': credit.status !== 'INPROGRESS'}">{{
-        credit.status }}</span>
+          (credit.status | statusBadge).label }}</span>
       <span style="font-size:12px;color:var(--text-muted);">Mise journalière : <strong style="color:var(--navy);">{{
           credit.dailyStake | number }} FCFA</strong></span>
     </div>
@@ -58,7 +60,8 @@
       <span>Début : {{ credit.beginDate | date:'dd/MM/yyyy' }}</span>
       <span class="progress-remaining">⏳ {{ credit.totalAmountRemaining | number }} FCFA restants · {{
         credit.remainingDaysCount }} jours</span>
-      <span>Fin prévue : {{ credit.expectedEndDate | date:'dd/MM/yyyy' }}</span>
+      <span *ngIf="credit.status !== 'SETTLED'">Fin prévue : {{ credit.expectedEndDate | date:'dd/MM/yyyy' }}</span>
+      <span *ngIf="credit.status === 'SETTLED'">Cloturé le : {{ credit.effectiveEndDate | date:'dd/MM/yyyy' }}</span>
     </div>
   </div>
 
@@ -109,8 +112,10 @@
         </svg>
       </div>
       <div>
-        <div class="date-lbl">Date fin prévue</div>
-        <div class="date-val red">{{ credit.expectedEndDate | date:'dd MMMM yyyy' }}</div>
+        <div class="date-lbl" *ngIf="credit.status !== 'SETTLED'">Date fin prévue</div>
+        <div class="date-val red" *ngIf="credit.status !== 'SETTLED'">{{ credit.expectedEndDate | date:'dd MMMM yyyy' }}</div>
+        <div class="date-lbl" *ngIf="credit.status === 'SETTLED'">Date fin </div>
+        <div class="date-val red" *ngIf="credit.status === 'SETTLED'">{{ credit.effectiveEndDate | date:'dd MMMM yyyy' }}</div>
       </div>
     </div>
   </div>

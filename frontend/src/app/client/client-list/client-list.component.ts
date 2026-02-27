@@ -21,6 +21,8 @@ export class ClientListComponent implements OnInit {
 
   // NOUVEAU: Propriété pour le terme de recherche
   searchTerm: string = '';
+  selectedCommercial: string | null = null;
+  private readonly STORAGE_KEY = 'client_list_selected_commercial';
 
   constructor(
     private clientService: ClientService,
@@ -34,15 +36,24 @@ export class ClientListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.restoreFilter();
     this.loadClient();
+  }
+
+  restoreFilter(): void {
+    const savedCommercial = sessionStorage.getItem(this.STORAGE_KEY);
+    if (savedCommercial) {
+      this.selectedCommercial = savedCommercial;
+    }
   }
 
   loadClient(): void {
     this.spinner.show();
     const currentUser = this.authService.getCurrentUser();
+    const usernameToUse = this.selectedCommercial || currentUser.username;
 
     // MODIFIÉ: On passe le searchTerm au service
-    this.clientService.getClients(this.currentPage, this.pageSize, this.sortField, currentUser.username, this.searchTerm).subscribe({
+    this.clientService.getClients(this.currentPage, this.pageSize, this.sortField, usernameToUse, this.searchTerm).subscribe({
       next: (data) => {
         if (data.statusCode === 200) {
           this.clients = data.data.content;
@@ -75,6 +86,8 @@ export class ClientListComponent implements OnInit {
   // MODIFIÉ: La méthode refresh réinitialise la recherche
   refresh(): void {
     this.searchTerm = '';
+    this.selectedCommercial = null;
+    sessionStorage.removeItem(this.STORAGE_KEY);
     this.onSearch();
   }
 
@@ -112,5 +125,16 @@ export class ClientListComponent implements OnInit {
 
   editClient(clientId: number): void {
     this.router.navigate(['/client-add', clientId]);
+  }
+
+  onCommercialSelected(commercial: string | null): void {
+    this.selectedCommercial = commercial;
+    if (commercial) {
+      sessionStorage.setItem(this.STORAGE_KEY, commercial);
+    } else {
+      sessionStorage.removeItem(this.STORAGE_KEY);
+    }
+    this.currentPage = 0;
+    this.loadClient();
   }
 }

@@ -124,6 +124,7 @@ public class DailyAccountancyService extends GenericService<DailyAccountancy, Lo
         return getRepository().findByDailyAccounting_idAndCollectorAndIsOpened(dailyAccounting.getId(), username, isOpened).orElseThrow(() -> new ResourceNotFoundException("accountancy.not.found"));
     }
 
+    @Transactional
     public DailyAccountancy getByCollectorOrCreateNew (String username) {
         DailyAccounting dailyAccounting = dailyAccountingRepository.getCurrentDailyAccounting();
         return getRepository().findByDailyAccounting_idAndCollectorAndIsOpened(dailyAccounting.getId(), username, Boolean.TRUE).orElseGet(() -> {

@@ -7,9 +7,11 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.entity.*;
 import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
+import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.StockRequestRepository;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private final StockMovementService stockMovementService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final TemplateEngine templateEngine;
+    private CommercialMonthlyStockItemRepository monthlyStockItemRepository;
 
     public StockRequestService(StockRequestRepository repository,
             ArticlesService articlesService,
@@ -79,10 +82,23 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
 
         double totalCreditSalePrice = 0.0;
         double totalPurchasePrice = 0.0;
+        LocalDate now = LocalDate.now();
 
+        List<String> unitPriceChange = new ArrayList<>();
         // Initialiser les prix des articles au moment de la création
         for (StockRequestItem item : request.getItems()) {
             Articles article = articlesService.getById(item.getArticle().getId());
+            Double currentUnitPrice = monthlyStockItemRepository
+                    .getUnitPriceByArticleId(article.getId(), now.getMonthValue(), now.getYear(), request.getCollector());
+            Double availableQuantity = monthlyStockItemRepository
+                    .getRemainingQuantityByArticleId(article.getId(), now.getMonthValue(), now.getYear(), request.getCollector());
+            currentUnitPrice = Objects.nonNull(currentUnitPrice) ? currentUnitPrice : 0.0;
+            availableQuantity = Objects.nonNull(availableQuantity) ? availableQuantity : 0.0;
+
+            if (availableQuantity > 0 && currentUnitPrice != article.getCreditSalePrice()) {
+                unitPriceChange.add(article.getCommercialName() + " " + article.getName() + " (Ancien prix: " +
+                        currentUnitPrice + ", Nouveau prix: " + article.getCreditSalePrice() + ")");
+            }
             item.setArticle(article); // S'assurer que l'article est bien chargé
             item.setItemName(article.getCommercialName() + " " + article.getName());
             item.setUnitPrice(article.getCreditSalePrice());
@@ -92,6 +108,11 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             totalCreditSalePrice += (item.getUnitPrice() != null ? item.getUnitPrice() : 0.0) * item.getQuantity();
             totalPurchasePrice += (item.getPurchasePrice() != null ? item.getPurchasePrice() : 0.0)
                     * item.getQuantity();
+        }
+
+        if (!unitPriceChange.isEmpty()) {
+            throw new CustomValidationException("Le prix de ces articles en stock pour le commercial ont changé: " + String.join("| ", unitPriceChange) +
+                    ". Veuillez faire le retour de stock de ces articles avant de faire une nouvelle demande de sortie");
         }
 
         request.setTotalCreditSalePrice(totalCreditSalePrice);
@@ -301,5 +322,10 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         ByteArrayOutputStream target = new ByteArrayOutputStream();
         HtmlConverter.convertToPdf(html, target);
         return target.toByteArray();
+    }
+
+    @Autowired
+    public void setMonthlyStockItemRepository(CommercialMonthlyStockItemRepository monthlyStockItemRepository) {
+        this.monthlyStockItemRepository = monthlyStockItemRepository;
     }
 }

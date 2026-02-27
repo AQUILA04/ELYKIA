@@ -93,6 +93,11 @@ public class ArticlesService extends GenericService<Articles, Long> {
     public Articles updateArticles(ArticlesDto dto, Long id) {
         dto.setId(id);
         Articles articles = articlesMapper.toEntity(dto);
+        Articles oldOne = getById(id);
+        articles.setStockQuantity(oldOne.getStockQuantity());
+        articles.setCreatedBy(oldOne.getCreatedBy());
+        articles.setState(oldOne.getState());
+        articles.setCreatedDate(oldOne.getCreatedDate());
         return create(articles);
     }
 

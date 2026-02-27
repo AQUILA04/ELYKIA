@@ -1,0 +1,10 @@
+<div class="agent-select" *ngIf="!isPromoter">
+    <ng-select [items]="agents" bindLabel="username" bindValue="username"
+        placeholder="Sélectionner un commercial" [searchFn]="searchAgent" [(ngModel)]="selectedAgent"
+        (change)="onAgentChange($event)">
+        <ng-template ng-option-tmp let-item="item">
+            {{item.username}} <small class="text-muted">({{item.firstname}}
+                {{item.lastname}})</small>
+        </ng-template>
+    </ng-select>
+</div>

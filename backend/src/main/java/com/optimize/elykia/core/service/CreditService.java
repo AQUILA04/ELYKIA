@@ -21,9 +21,7 @@ import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
 import com.optimize.elykia.core.enumaration.StockOperation;
 import com.optimize.elykia.core.mapper.CreditMapper;
-import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
-import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.core.repository.*;
 import com.optimize.elykia.core.util.DateUtils;
 import com.optimize.elykia.core.util.MoneyUtil;
 import com.optimize.elykia.core.util.UserProfilConstant;
@@ -41,7 +39,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import com.optimize.elykia.core.repository.CreditDistributionViewRepository;
+
 import com.optimize.elykia.core.mapper.CreditDistributionMapper;
 import com.optimize.elykia.core.entity.CreditDistributionView;
 
@@ -60,7 +58,8 @@ public class CreditService extends GenericService<Credit, Long> {
     private CreditTimelineRepository creditTimelineRepository;
     private SharedService sharedService;
     private final CommercialMonthlyStockRepository commercialMonthlyStockRepository;
-    private final com.optimize.elykia.core.repository.CreditCollectorHistoryRepository creditCollectorHistoryRepository;
+    private final CreditCollectorHistoryRepository creditCollectorHistoryRepository;
+    private CommercialMonthlyStockItemRepository commercialMonthlyStockItemRepository;
 
     // Services BI pour enrichissement automatique
     private CreditEnrichmentService creditEnrichmentService;
@@ -357,11 +356,23 @@ public class CreditService extends GenericService<Credit, Long> {
 
     public void creditControlProcess(Credit credit) {
         Client client = clientService.getById(credit.getClientId());
+        credit.setCollector(client.getCollector());
+        LocalDate now =  LocalDate.now();
 
         if (Objects.isNull(credit.getId())) {
             credit.getArticles().forEach(article -> {
-                article.setArticles(articlesService.getById(article.getArticlesId()));
-                article.setUnitPrice(article.getArticles().getCreditSalePrice());
+                Articles oneArticle = articlesService.getById(article.getArticlesId());
+                article.setArticles(oneArticle);
+                if (OperationType.CREDIT.equals(credit.getType()) && ClientType.CLIENT.equals(credit.getClientType())) {
+
+                    Double unitPrice = commercialMonthlyStockItemRepository
+                            .getUnitPriceByArticleId(oneArticle.getId(), now.getMonthValue(), now.getYear(), credit.getCollector());
+                    unitPrice = Objects.nonNull(unitPrice) ? unitPrice : oneArticle.getCreditSalePrice();
+                    article.setUnitPrice(unitPrice);
+                }else {
+                    article.setUnitPrice(article.getArticles().getCreditSalePrice());
+                }
+
             });
         } else {
             Credit oldOne = getById(credit.getId());
@@ -391,7 +402,7 @@ public class CreditService extends GenericService<Credit, Long> {
 
         credit.setClient(client);
         credit.setType(OperationType.CREDIT);
-        credit.setCollector(client.getCollector());
+
         credit.checkAdvance();
         credit.setClientType(Objects.nonNull(client.getClientType()) ? client.getClientType() : ClientType.CLIENT);
         if (!StringUtils.hasText(credit.getReference())) {
@@ -572,10 +583,12 @@ public class CreditService extends GenericService<Credit, Long> {
 
             // Mise à jour des compteurs et de la valeur financière vendue exacte
             stockItem.setQuantitySold(stockItem.getQuantitySold() + creditArticles.getQuantity());
-            Double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0 : stockItem.getTotalSoldValue();
+            double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0 : stockItem.getTotalSoldValue();
+            double currentTotalMarge = Objects.isNull(stockItem.getTotalMargeValue()) ? 0.0 : stockItem.getTotalMargeValue();
             Double currentPMP = stockItem.getWeightedAverageUnitPrice() == null ? 0.0
                     : stockItem.getWeightedAverageUnitPrice();
             stockItem.setTotalSoldValue(currentTotalSold + (creditArticles.getQuantity() * currentPMP));
+            stockItem.setTotalMargeValue(currentTotalMarge + (creditArticles.getQuantity() * stockItem.getWeightedAveragePurchasePrice()));
             stockItem.updateRemaining();
         });
 
@@ -589,9 +602,9 @@ public class CreditService extends GenericService<Credit, Long> {
             clientCredit.setTotalAmountRemaining(dto.getTotalAmount() - dto.getAdvance());
             clientCredit.setTotalAmountPaid(dto.getAdvance());
             clientCredit.setBeginDate(dto.getStartDate());
-            clientCredit.setExpectedEndDate(dto.getEndDate());
             clientCredit.setRemainingDaysCount(
                     (int) Math.ceil(clientCredit.getTotalAmountRemaining() / clientCredit.getDailyStake()));
+            clientCredit.setExpectedEndDate(now.plusDays(clientCredit.getRemainingDaysCount()));
         }
 
         if (StringUtils.hasText(dto.getReference())) {
@@ -1438,5 +1451,10 @@ public class CreditService extends GenericService<Credit, Long> {
                 .stream()
                 .map(com.optimize.elykia.core.dto.CreditCollectorHistoryDto::fromEntity)
                 .toList();
+    }
+
+    @Autowired
+    public void setCommercialMonthlyStockItemRepository(CommercialMonthlyStockItemRepository commercialMonthlyStockItemRepository) {
+        this.commercialMonthlyStockItemRepository = commercialMonthlyStockItemRepository;
     }
 }

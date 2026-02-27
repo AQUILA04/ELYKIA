@@ -39,12 +39,10 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
         this.creditRepository = creditRepository;
     }
 
+    @Transactional
     public Map<String, Object> hasOpenedDay() {
-        boolean status = getRepository().existsByStatus(AccountingDayStatus.OPENED);
-        Map<String, Object> response = new java.util.HashMap<>(Map.of("status", getRepository().existsByStatus(AccountingDayStatus.OPENED)));
-        if (status) {
+        Map<String, Object> response = new java.util.HashMap<>(Map.of("status", Boolean.TRUE));
             response.put("accountingDate", getCurrentAccountingDate());
-        }
          return response;
     }
 
@@ -57,6 +55,20 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
         if (getRepository().existsByStatusAndAccountingDate(AccountingDayStatus.CLOSED, LocalDate.now())) {
             accountingDay.setAccountingDate(LocalDate.now().plusDays(1));
         }
+        AccountingDay oldDay = getByStatus(AccountingDayStatus.OPENED);
+
+        if (this.dailyAccountingService.getDailyAccountancyService().isExistsOpenedCashDesk()) {
+            this.dailyAccountingService.getDailyAccountancyService().getOpenCashDesks().forEach(dailyAccountancy -> {
+                CloseCollectorOperationDto dto = new CloseCollectorOperationDto();
+                dto.setCollector(dailyAccountancy.getCollector());
+                dto.setRealTotalAmount(dailyAccountancy.getRealBalance());
+                dailyAccountingService.closeCollectorOperation(dto, dailyAccountancy.getAccountingDate());
+                dailyAccountingService.closeDailyAccounting(dailyAccountancy.getAccountingDate());
+            });
+        }
+
+        accountingDay.close();
+        update(oldDay);
         create(accountingDay);
         dailyAccountingService.initDailyAccounting(accountingDay.getAccountingDate());
         creditRepository.updateDailyPaidForCredit();
