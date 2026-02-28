@@ -98,6 +98,10 @@ public class ArticlesService extends GenericService<Articles, Long> {
         articles.setCreatedBy(oldOne.getCreatedBy());
         articles.setState(oldOne.getState());
         articles.setCreatedDate(oldOne.getCreatedDate());
+        articles.setAverageMonthlySales(oldOne.getAverageMonthlySales());
+        articles.setDaysOfStockAvailable(oldOne.getDaysOfStockAvailable());
+        articles.setLastRestockDate(oldOne.getLastRestockDate());
+        articles.setStockTurnoverRate(oldOne.getStockTurnoverRate());
         return create(articles);
     }
 

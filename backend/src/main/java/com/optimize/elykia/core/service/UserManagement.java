@@ -515,7 +515,10 @@ public class UserManagement {
                 new UserPermission(UserPermissionConstant.VALIDATE_CREDIT),
                 new UserPermission(UserPermissionConstant.DEL_TONTINE),
                 new UserPermission(UserPermissionConstant.REPORT),
-                new UserPermission(UserPermissionConstant.STOREKEEPER_DASHBOARD)
+                new UserPermission(UserPermissionConstant.STOREKEEPER_DASHBOARD),
+                new UserPermission(UserPermissionConstant.CREATE_INVENTORY),
+                new UserPermission(UserPermissionConstant.RECONCILE_INVENTORY),
+                new UserPermission(UserPermissionConstant.FINALIZE_INVENTORY)
         ));
         return gestionnairePermissions;
     }
