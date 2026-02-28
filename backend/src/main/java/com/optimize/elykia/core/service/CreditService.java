@@ -862,7 +862,7 @@ public class CreditService extends GenericService<Credit, Long> {
         final List<CreditRespDto> content = credits.getContent().stream()
                 .map(credit -> credit.addArticles(creditArticlesService.getRepository().findByCredit_id(credit.id())))
                 .toList();
-        return new PageImpl<>(content, pageable, content.size());
+        return new PageImpl<>(content, pageable, credits.getTotalElements());
     }
 
     public Page<CreditRespDto> getCreditHistoryByCollectors(String collector, Pageable pageable) {
