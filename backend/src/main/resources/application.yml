@@ -1,12 +1,12 @@
 spring:
   profiles:
-    active: jeff
+    active: prod
   application:
     name: optimize-elykia-core
 
   # Configuration Flyway pour la gestion des migrations de base de données
   flyway:
-    enabled: false
+    enabled: true
     baseline-on-migrate: true
     baseline-version: 0
     locations: classpath:db/migration

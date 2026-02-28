@@ -1,6 +1,6 @@
 -- V25__create_credit_collector_history.sql
 
-CREATE TABLE credit_collector_history (
+CREATE TABLE IF NOT EXISTS credit_collector_history (
     id BIGSERIAL PRIMARY KEY,
     credit_id BIGINT NOT NULL,
     old_collector VARCHAR(255) NOT NULL,

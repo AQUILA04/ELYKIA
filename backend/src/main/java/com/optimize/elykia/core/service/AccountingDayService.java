@@ -55,7 +55,7 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
         if (getRepository().existsByStatusAndAccountingDate(AccountingDayStatus.CLOSED, LocalDate.now())) {
             accountingDay.setAccountingDate(LocalDate.now().plusDays(1));
         }
-        AccountingDay oldDay = getByStatus(AccountingDayStatus.OPENED);
+        //AccountingDay oldDay = getByStatus(AccountingDayStatus.OPENED);
 
         if (this.dailyAccountingService.getDailyAccountancyService().isExistsOpenedCashDesk()) {
             this.dailyAccountingService.getDailyAccountancyService().getOpenCashDesks().forEach(dailyAccountancy -> {
@@ -68,7 +68,7 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
         }
 
         accountingDay.close();
-        update(oldDay);
+        //update(oldDay);
         create(accountingDay);
         dailyAccountingService.initDailyAccounting(accountingDay.getAccountingDate());
         creditRepository.updateDailyPaidForCredit();

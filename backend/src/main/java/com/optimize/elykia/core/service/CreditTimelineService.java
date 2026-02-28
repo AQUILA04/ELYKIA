@@ -161,8 +161,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
                         // Validation for special stake
                         if (stakeAmount > credit.getTotalAmountRemaining()) {
                             throw new CustomValidationException(
-                                    "Le montant de la mise spéciale ne peut pas dépasser le montant restant à payer !");
-                        }
+                                    "Le montant de la mise spéciale ne peut pas dépasser le montant restant à payer ! Ref: " + credit.getReference() + " Montant restant: " + credit.getTotalAmountRemaining() + " Montant mise: " + stakeAmount);                        }
                     }
 
                     CreditTimeline creditTimeline = new CreditTimeline();

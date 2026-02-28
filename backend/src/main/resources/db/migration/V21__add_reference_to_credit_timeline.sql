@@ -1,5 +1,5 @@
 -- Add reference column
-ALTER TABLE credit_timeline ADD COLUMN reference VARCHAR(255);
+ALTER TABLE credit_timeline ADD COLUMN IF NOT EXISTS reference VARCHAR(255);
 
 -- Add unique constraint
 -- Note: In PostgreSQL, multiple NULL values are allowed in a UNIQUE column.
