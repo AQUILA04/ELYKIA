@@ -60,11 +60,6 @@ public class CreditController {
         return new ResponseEntity<>(ResponseUtil.successResponse(pageDto), HttpStatus.OK);
     }
 
-    @PostMapping(value = "create-tontine")
-    public ResponseEntity<Response> createTontine(@RequestBody @Valid CreditDto dto) throws Exception {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.createTontineForCommercial(dto)),
-                HttpStatus.CREATED);
-    }
 
     @PutMapping(value = "{id}")
     public ResponseEntity<Response> updateCredit(@RequestBody CreditDto dto, @PathVariable Long id) {
@@ -74,18 +69,6 @@ public class CreditController {
     @GetMapping(value = "{id}")
     public ResponseEntity<Response> getOne(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getById(id)), HttpStatus.OK);
-    }
-
-    @GetMapping(value = "with-distributions/{id}")
-    public ResponseEntity<Response> getCreditWithDistribution(@PathVariable Long id) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getCreditWithDistribution(id)),
-                HttpStatus.OK);
-    }
-
-    @GetMapping(value = "back-to-store/{creditId}")
-    public ResponseEntity<Response> getBackToStoreArticles(@PathVariable Long creditId) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getBackToStoreArticles(creditId)),
-                HttpStatus.OK);
     }
 
     @GetMapping(value = "timeline/{creditId}")
@@ -134,21 +117,11 @@ public class CreditController {
                 HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}/distribution-details")
-    public ResponseEntity<Response> getCreditDistributionDetails(@PathVariable Long id) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getCreditDistribution(id)),
-                HttpStatus.OK);
-    }
 
     @PatchMapping(value = "validate/{creditId}")
     public ResponseEntity<Response> validateCredit(@PathVariable Long creditId) {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.validateCredit(creditId)),
                 HttpStatus.OK);
-    }
-
-    @PatchMapping(value = "back-to-store")
-    public ResponseEntity<Response> backToStore(@RequestBody @Valid ReturnArticlesDto dto) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.backToStore(dto)), HttpStatus.OK);
     }
 
     @PatchMapping(value = "distribute-articles")
@@ -227,21 +200,7 @@ public class CreditController {
                 HttpStatus.OK);
     }
 
-    @GetMapping(value = "sorties/by-commercial/{collector}")
-    public ResponseEntity<Response> getAllPendingSortiesByCollectors(@PathVariable String collector,
-            Pageable pageable) {
-        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-        return new ResponseEntity<>(
-                ResponseUtil.successResponse(creditService.getPendingSortieByCollectors(collector, pageable)),
-                HttpStatus.OK);
-    }
 
-    @GetMapping(value = "sorties-history/by-commercial/{collector}")
-    public ResponseEntity<Response> getAllSortieHistory(@PathVariable String collector, Pageable pageable) {
-        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-        return new ResponseEntity<>(
-                ResponseUtil.successResponse(creditService.getsortiesByCollector(collector, pageable)), HttpStatus.OK);
-    }
 
     @GetMapping(value = "stock-output/by-commercial/{collector}")
     public ResponseEntity<Response> getCommercialStockOutput(@PathVariable String collector) {
@@ -258,12 +217,6 @@ public class CreditController {
     public ResponseEntity<Response> getAllByCollectorV2() {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getCreditByCollectorV2()),
                 HttpStatus.OK);
-    }
-
-    @GetMapping(value = "article-quantity-distributed")
-    public ResponseEntity<Response> getTotalDistributed(Long creditId, Long articleId) {
-        return new ResponseEntity<>(
-                ResponseUtil.successResponse(creditService.getTotalDistributed(creditId, articleId)), HttpStatus.OK);
     }
 
     @GetMapping(value = "item-release-sheet/pdf/{username}")
@@ -298,12 +251,6 @@ public class CreditController {
                 HttpStatus.OK);
     }
 
-    @GetMapping(value = "{creditId}/distributions")
-    public ResponseEntity<Response> getDistributions(@PathVariable Long creditId, Pageable pageable) {
-        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getDistributions(creditId, pageable)),
-                HttpStatus.OK);
-    }
 
     @GetMapping(value = "{creditId}/timelines")
     public ResponseEntity<Response> getTimelines(@PathVariable Long creditId, Pageable pageable) {
@@ -335,29 +282,7 @@ public class CreditController {
                 List.of(CreditStatus.CREATED, CreditStatus.VALIDATED), pageable)), HttpStatus.OK);
     }
 
-    @GetMapping("/summary/total-disbursed")
-    public ResponseEntity<Response> getTotalDisbursed(
-            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        // la méthode du service
-        Double totalAmount = creditService.getTotalDisbursedAmountForPeriod(startDate, endDate);
-
-        // Retourne la réponse
-        return new ResponseEntity<>(ResponseUtil.successResponse(totalAmount), HttpStatus.OK);
-    }
-
-    @GetMapping("/mergeable/{commercialUsername}")
-    public ResponseEntity<Response> getMergeableCredits(@PathVariable String commercialUsername) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(
-                creditService.getMergeableCreditsByCommercial(commercialUsername)), HttpStatus.OK);
-    }
-
-    @PostMapping("/merge")
-    public ResponseEntity<Response> mergeCredits(@RequestBody @Valid MergeCreditDto dto) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(
-                creditService.mergeCredits(dto)), HttpStatus.OK);
-    }
 
     @GetMapping(value = "{creditId}/articles")
     public ResponseEntity<Response> getCreditArticles(@PathVariable Long creditId) {

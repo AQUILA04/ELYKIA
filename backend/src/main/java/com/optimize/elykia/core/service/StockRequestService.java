@@ -303,6 +303,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 endDate, collector, statuses);
 
         long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
+        double totalAmount = data.stream().mapToDouble(StockRequestExportDTO::getTotalAmount).sum();
 
         StockExportPdfContextDto contextDto = StockExportPdfContextDto.builder()
                 .title("Rapport des Sorties de Stock")
@@ -312,6 +313,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
                 .items(data)
                 .totalQuantity(totalQuantity)
+                .totalAmount(totalAmount)
                 .build();
 
         Context context = new Context();
