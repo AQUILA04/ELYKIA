@@ -9,9 +9,7 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
-import com.optimize.elykia.core.dto.TontineCollectionDto;
-import com.optimize.elykia.core.dto.TontineMemberDto;
-import com.optimize.elykia.core.dto.TontineMemberRespDto;
+import com.optimize.elykia.core.dto.*;
 import com.optimize.elykia.core.entity.TontineCollection;
 import com.optimize.elykia.core.entity.TontineMember;
 import com.optimize.elykia.core.entity.TontineMemberAmountHistory;
@@ -31,8 +29,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
 
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Join;
@@ -552,7 +548,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
         return TontineMemberRespDto.fromTontineMembers(getRepository().findAll(spec, pageable));
     }
 
-    public List<TontineMemberAmountHistory> getMembersHistory(String commercial) {
+    public List<TontineMemberAmountHistoryRespDto> getMembersHistory(String commercial) {
         User currentUser = userService.getCurrentUser();
         int currentYear = LocalDate.now().getYear();
 
@@ -572,10 +568,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        return tontineMemberAmountHistoryRepository.findAll(spec);
+        return TontineMemberAmountHistoryRespDto.fromList(tontineMemberAmountHistoryRepository.findAll(spec));
     }
 
-    public Page<TontineCollection> getCollections(Pageable pageable) {
+    public Page<TontineCollectionRespDto> getCollections(Pageable pageable) {
         User currentUser = userService.getCurrentUser();
         int currentYear = LocalDate.now().getYear();
 
@@ -595,7 +591,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        return tontineCollectionRepository.findAll(spec, pageable);
+        return TontineCollectionRespDto.fromPage(tontineCollectionRepository.findAll(spec, pageable));
     }
 
     @Override
