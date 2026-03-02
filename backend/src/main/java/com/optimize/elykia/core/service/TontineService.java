@@ -11,6 +11,7 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.TontineCollectionDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
+import com.optimize.elykia.core.dto.TontineMemberRespDto;
 import com.optimize.elykia.core.entity.TontineCollection;
 import com.optimize.elykia.core.entity.TontineMember;
 import com.optimize.elykia.core.entity.TontineMemberAmountHistory;
@@ -502,8 +503,8 @@ public class TontineService extends GenericService<TontineMember, Long> {
         tontineSessionRepository.save(session);
     }
 
-    public Page<TontineMember> getMembers(User currentUser, String search, String deliveryStatus, String commercial,
-            Pageable pageable) {
+    public Page<TontineMemberRespDto> getMembers(User currentUser, String search, String deliveryStatus, String commercial,
+                                                 Pageable pageable) {
         int currentYear = LocalDate.now().getYear();
 
         Specification<TontineMember> spec = (root, query, cb) -> {
@@ -548,7 +549,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        return getRepository().findAll(spec, pageable);
+        return TontineMemberRespDto.fromTontineMembers(getRepository().findAll(spec, pageable));
     }
 
     public List<TontineMemberAmountHistory> getMembersHistory(String commercial) {

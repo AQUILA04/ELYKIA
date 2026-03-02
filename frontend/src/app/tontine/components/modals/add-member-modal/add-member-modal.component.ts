@@ -120,7 +120,7 @@ export class AddMemberModalComponent implements OnInit {
 
     const { clientId, frequency, amount, notes, updateScope } = this.form.value;
     // If disabled, clientId is not in .value, get it from raw value or data
-    const finalClientId = this.isEditMode ? this.data.member!.clientId : clientId;
+    const finalClientId = this.isEditMode ? this.data.member!.client.id : clientId;
 
     const memberData = {
       clientId: finalClientId,
