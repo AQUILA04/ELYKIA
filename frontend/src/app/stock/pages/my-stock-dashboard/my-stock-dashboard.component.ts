@@ -7,6 +7,8 @@ import { ClientService } from 'src/app/client/service/client.service';
 import { PageEvent } from '@angular/material/paginator';
 import { UserService } from "../../../user/service/user.service";
 import { UserProfile } from "../../../shared/models/user-profile.enum";
+import { MatDialog } from '@angular/material/dialog';
+import { SalesDetailsDialogComponent } from '../../components/sales-details-dialog/sales-details-dialog.component';
 
 @Component({
   selector: 'app-my-stock-dashboard',
@@ -36,7 +38,8 @@ export class MyStockDashboardComponent implements OnInit {
     private authService: AuthService,
     private spinner: NgxSpinnerService,
     private clientService: ClientService,
-    private userService: UserService
+    private userService: UserService,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -116,5 +119,16 @@ export class MyStockDashboardComponent implements OnInit {
     const date = new Date();
     date.setMonth(monthNumber - 1);
     return date.toLocaleString('fr-FR', { month: 'long' });
+  }
+
+  openSalesDetails(item: any): void {
+    this.dialog.open(SalesDetailsDialogComponent, {
+      width: '800px',
+      data: {
+        stockItemId: item.id,
+        articleName: item.article.commercialName + ' ' + item.article.name,
+        totalSold: item.quantitySold
+      }
+    });
   }
 }

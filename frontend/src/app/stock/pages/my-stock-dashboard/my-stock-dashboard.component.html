@@ -81,7 +81,7 @@
               <tr *ngFor="let item of stock.items">
                 <td>{{ item.article.commercialName + ' ' + item.article.name }}</td>
                 <td class="text-center">{{ item.quantityTaken }}</td>
-                <td class="text-center">{{ item.quantitySold }}</td>
+                <td class="text-center clickable-cell" (click)="openSalesDetails(item)">{{ item.quantitySold }}</td>
                 <td class="text-center">{{ item.quantityReturned }}</td>
                 <td class="text-center font-weight-bold">{{ item.quantityRemaining }}</td>
                 <td class="text-right">{{ (item.quantityRemaining * item.weightedAverageUnitPrice) | number:'1.0-0' }}

@@ -369,6 +369,11 @@ public class CreditService extends GenericService<Credit, Long> {
                             .getUnitPriceByArticleId(oneArticle.getId(), now.getMonthValue(), now.getYear(), credit.getCollector());
                     unitPrice = Objects.nonNull(unitPrice) ? unitPrice : oneArticle.getCreditSalePrice();
                     article.setUnitPrice(unitPrice);
+
+                    Long stockItemId = commercialMonthlyStockItemRepository
+                            .getIdByArticleId(oneArticle.getId(), now.getMonthValue(), now.getYear(), credit.getCollector());
+                    article.setStockItemId(stockItemId);
+
                 }else {
                     article.setUnitPrice(article.getArticles().getCreditSalePrice());
                 }
@@ -471,6 +476,9 @@ public class CreditService extends GenericService<Credit, Long> {
             stockItem.setTotalSoldValue(currentTotalSold + (creditArticles.getQuantity() * currentPMP));
             stockItem.setTotalMargeValue(currentTotalMarge + (creditArticles.getQuantity() * stockItem.getWeightedAveragePurchasePrice()));
             stockItem.updateRemaining();
+            
+            // Set stockItemId in CreditArticles
+            creditArticles.setStockItemId(stockItem.getId());
         });
 
         // Sauvegarde du stock mis à jour

@@ -301,4 +301,11 @@ public class CreditController {
     public ResponseEntity<Response> getCollectorHistory(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getCollectorHistory(id)), HttpStatus.OK);
     }
+
+    @GetMapping(value = "articles/details/{stockItemId}")
+    public ResponseEntity<Response> getCreditArticleDetails(@PathVariable Long stockItemId) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(creditArticlesService.getDetailsByStockItemId(stockItemId)),
+                HttpStatus.OK);
+    }
 }

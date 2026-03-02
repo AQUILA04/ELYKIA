@@ -2,6 +2,7 @@ package com.optimize.elykia.core.service;
 
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.common.entities.service.GenericService;
+import com.optimize.elykia.core.dto.CreditArticleDetailDto;
 import com.optimize.elykia.core.entity.CreditArticles;
 import com.optimize.elykia.core.repository.CreditArticlesRepository;
 import org.springframework.data.domain.PageRequest;
@@ -31,5 +32,9 @@ public class CreditArticlesService extends GenericService<CreditArticles, Long> 
     public List<Object[]> getTop10ArticlesWithHighestQuantity() {
         Pageable top10 = PageRequest.of(0, 10);
         return getRepository().findTop10ArticlesWithHighestQuantity(top10);
+    }
+
+    public List<CreditArticleDetailDto> getDetailsByStockItemId(Long stockItemId) {
+        return getRepository().findDetailsByStockItemId(stockItemId);
     }
 }
