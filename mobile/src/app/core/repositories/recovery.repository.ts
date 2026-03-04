@@ -190,4 +190,20 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
         await this.databaseService.execute(sql, distributionIds);
     }
 
+    /**
+     * Count recoveries for a specific client on a specific date
+     * @param clientId Client ID
+     * @param date Date string (YYYY-MM-DD)
+     * @returns Number of recoveries
+     */
+    async countByClientAndDate(clientId: string, date: string): Promise<number> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        // We use paymentDate for the check as it represents the date of the recovery
+        const sql = `SELECT COUNT(*) as total FROM recoveries WHERE clientId = ? AND paymentDate LIKE ?`;
+        const result = await this.databaseService.query(sql, [clientId, `${date}%`]);
+        return result.values?.[0]?.total || 0;
+    }
+
 }

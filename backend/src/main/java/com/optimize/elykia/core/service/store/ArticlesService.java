@@ -116,7 +116,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
 
     @Override
     public Page<Articles> getAll(Pageable pageable) {
-        return getRepository().findAll(pageable); // Retourne tous les articles (sauf DELETED) pour la vue de gestion
+        return findByStateNot(State.DELETED, pageable); // Retourne tous les articles (sauf DELETED) pour la vue de gestion
     }
 
     public Page<Articles> getAllEnabled(Pageable pageable) {

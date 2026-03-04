@@ -284,4 +284,16 @@ export class RecoveryService {
 
     return this.recoveryRepositoryExtensions.findByCommercialPaginated(commercialId, page, size, filters);
   }
+
+  /**
+   * Check if a recovery already exists for a client on a specific date
+   * @param clientId Client ID
+   * @param date Date string (YYYY-MM-DD)
+   * @returns True if a recovery exists, false otherwise
+   */
+  async checkExistingRecoveryForToday(clientId: string): Promise<boolean> {
+    const today = new Date().toISOString().split('T')[0];
+    const count = await this.recoveryRepository.countByClientAndDate(clientId, today);
+    return count > 0;
+  }
 }

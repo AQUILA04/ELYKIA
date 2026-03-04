@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ModalController, ToastController } from '@ionic/angular';
+import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
 import { Observable, Subject, combineLatest } from 'rxjs';
@@ -16,6 +16,7 @@ import * as RecoverySelectors from '../../store/recovery/recovery.selectors';
 import * as ClientActions from '../../store/client/client.actions';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import { LoggerService } from '../../core/services/logger.service';
+import { RecoveryService } from '../../core/services/recovery.service';
 
 interface RecoveryViewModel {
   client: Client | null;
@@ -50,10 +51,12 @@ export class RecoveryPage implements OnInit, OnDestroy {
     private router: Router,
     private modalController: ModalController,
     private toastController: ToastController,
+    private alertController: AlertController,
     private store: Store,
     private actions$: Actions,
     private log: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private recoveryService: RecoveryService
   ) { }
 
   ngOnInit() {
@@ -156,21 +159,54 @@ export class RecoveryPage implements OnInit, OnDestroy {
       .pipe(withLatestFrom(this.vm$))
       .subscribe(async ([user, vm]) => {
         if (vm.selectedCredit && this.recoveryAmount > 0 && vm.client && user) {
-          const isDefaultStake = this.recoveryAmount === vm.selectedCredit.dailyPayment;
-          const recovery: Partial<Recovery> = {
-            amount: this.recoveryAmount,
-            paymentDate: new Date().toISOString(),
-            paymentMethod: 'CASH',
-            distributionId: vm.selectedCredit.id,
-            clientId: vm.client.id,
-            commercialId: user.username,
-            isLocal: true,
-            isSync: false,
-            isDefaultStake: isDefaultStake
-          };
-          this.store.dispatch(RecoveryActions.createRecovery({ recovery, distribution: vm.selectedCredit }));
+
+          // Vérifier si un recouvrement existe déjà pour ce client aujourd'hui
+          const exists = await this.recoveryService.checkExistingRecoveryForToday(vm.client.id);
+
+          if (exists) {
+            const alert = await this.alertController.create({
+              header: 'Confirmation',
+              message: 'Un recouvrement a déjà été effectué pour ce client aujourd\'hui. Voulez-vous vraiment en ajouter un autre ?',
+              buttons: [
+                {
+                  text: 'Annuler',
+                  role: 'cancel',
+                  cssClass: 'secondary',
+                  handler: () => {
+                    this.log.log('[RecoveryPage] Recovery cancelled by user due to existing recovery.');
+                  }
+                }, {
+                  text: 'Confirmer',
+                  handler: () => {
+                    this.dispatchCreateRecovery(user, vm);
+                  }
+                }
+              ]
+            });
+            await alert.present();
+          } else {
+            this.dispatchCreateRecovery(user, vm);
+          }
         }
       });
+  }
+
+  private dispatchCreateRecovery(user: any, vm: RecoveryViewModel) {
+    if (vm.selectedCredit && vm.client) {
+      const isDefaultStake = this.recoveryAmount === vm.selectedCredit.dailyPayment;
+      const recovery: Partial<Recovery> = {
+        amount: this.recoveryAmount,
+        paymentDate: new Date().toISOString(),
+        paymentMethod: 'CASH',
+        distributionId: vm.selectedCredit.id,
+        clientId: vm.client.id,
+        commercialId: user.username,
+        isLocal: true,
+        isSync: false,
+        isDefaultStake: isDefaultStake
+      };
+      this.store.dispatch(RecoveryActions.createRecovery({ recovery, distribution: vm.selectedCredit }));
+    }
   }
 
   goBack() {
