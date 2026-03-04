@@ -2,7 +2,7 @@ package com.optimize.elykia.core.controller;
 
 import com.optimize.elykia.core.entity.StockRequest;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
-import com.optimize.elykia.core.service.StockRequestService;
+import com.optimize.elykia.core.service.stock.StockRequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -11,8 +11,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/stock-requests")

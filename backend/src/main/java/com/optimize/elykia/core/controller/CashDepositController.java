@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.controller;
 
 import com.optimize.elykia.core.entity.CashDeposit;
-import com.optimize.elykia.core.service.CashDepositService;
+import com.optimize.elykia.core.service.accounting.CashDepositService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

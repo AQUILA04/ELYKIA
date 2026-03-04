@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.scheduler;
 
-import com.optimize.elykia.core.service.BiAggregationService;
+import com.optimize.elykia.core.service.bi.BiAggregationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

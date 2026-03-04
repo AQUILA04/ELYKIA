@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Objects;
@@ -140,4 +141,14 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
     Optional<Client> findByPhoneAndIdNot(String phone, Long id);
 
     Optional<Client> findByCardIDAndIdNot(String cardID, Long id);
+
+    @Query("SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id, c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth, c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector, c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude, c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate) " +
+       "FROM Client c " +
+       "WHERE c.state <> com.optimize.common.entities.enums.State.DELETED " +
+       "AND (:#{#username == null} = true OR ( " +
+       "    (:#{#tontine == true} = true AND c.tontineCollector = :username) OR " +
+       "    (:#{#mobile == true} = true AND (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username)) OR " +
+       "    (:#{#tontine != true AND #mobile != true} = true AND (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))" +
+       "))")
+    Page<ClientRespDto> findClientsDto(@Param("username") String username, @Param("tontine") Boolean tontine, @Param("mobile") Boolean mobile, Pageable pageable);
 }

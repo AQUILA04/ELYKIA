@@ -15,6 +15,27 @@ import { TontineDeliveryRepositoryExtensions } from '../repositories/tontine-del
 import { TontineStockRepositoryExtensions } from '../repositories/tontine-stock.repository.extensions';
 import { TontineMemberRepository } from '../repositories/tontine-member.repository';
 import { TontineMemberAmountHistoryRepository } from '../repositories/tontine-member-amount-history.repository';
+import { SyncOrchestratorService } from './sync/sync-orchestrator.service';
+import { SyncOptions } from '../models/tontine-sync.models';
+
+/**
+ * Service de gestion des données Tontine
+ * 
+ * MIGRATION NOTICE:
+ * Ce service a été migré pour utiliser le nouveau système de synchronisation robuste (SyncOrchestratorService).
+ * 
+ * Changements principaux:
+ * - initializeTontine() utilise maintenant SyncOrchestratorService pour une synchronisation fiable
+ * - Les anciennes méthodes (fetchAndSaveMembers, fetchAndSaveCollections, fetchAndSaveStocks) sont dépréciées
+ * - Le nouveau système élimine les race conditions et garantit l'intégrité des données
+ * 
+ * Avantages du nouveau système:
+ * - Synchronisation séquentielle (pas de race conditions)
+ * - Nettoyage préalable des données
+ * - Validation d'intégrité post-synchronisation
+ * - Gestion d'erreur robuste avec rollback
+ * - Journalisation complète des opérations
+ */
 
 @Injectable({
     providedIn: 'root'
@@ -34,7 +55,8 @@ export class TontineService {
         private tontineDeliveryRepositoryExtensions: TontineDeliveryRepositoryExtensions,
         private tontineStockRepositoryExtensions: TontineStockRepositoryExtensions,
         private memberRepo: TontineMemberRepository,
-        private historyRepo: TontineMemberAmountHistoryRepository
+        private historyRepo: TontineMemberAmountHistoryRepository,
+        private syncOrchestrator: SyncOrchestratorService
     ) {
         this.store.select(selectAuthUser).subscribe(user => {
             this.commercialUsername = user?.username;
@@ -56,31 +78,51 @@ export class TontineService {
 
     /**
      * Initialize Tontine Data (Session, Members, Stocks, etc.)
+     * Uses the new SyncOrchestrator for reliable data synchronization
      */
     initializeTontine(commercialUsername?: string): Observable<boolean> {
         if (commercialUsername) {
             this.commercialUsername = commercialUsername;
         }
+        
+        if (!this.commercialUsername) {
+            console.error('TontineService: No commercial username provided');
+            return of(false);
+        }
+
         console.log(`TontineService: Initializing tontine data for ${this.commercialUsername}...`);
+        
+        // First fetch and save the session
         return this.fetchAndSaveSession().pipe(
             switchMap(session => {
-                if (session) {
-                    console.log('TontineService: Session found, fetching members and stocks...', session.id);
-                    return forkJoin({
-                        members: this.fetchAndSaveMembers(session.id).pipe(
-                            switchMap(() => this.fetchAndSaveCollections())
-                        ),
-                        stocks: this.fetchAndSaveStocks(session.id),
-                        history: this.fetchAndSaveAmountHistory(session.id)
-                    }).pipe(
-                        map(() => {
-                            console.log('TontineService: Tontine initialization completed successfully.');
-                            return true;
-                        })
-                    );
+                if (!session) {
+                    console.log('TontineService: No active session found.');
+                    return of(true);
                 }
-                console.log('TontineService: No active session found.');
-                return of(true);
+
+                console.log('TontineService: Session found, starting sync orchestrator...', session.id);
+
+                // Use the new SyncOrchestrator for reliable synchronization
+                const syncOptions: SyncOptions = {
+                    forceCleanup: true,
+                    sessionId: session.id,
+                    commercialUsername: this.commercialUsername!,
+                    batchSize: 100
+                };
+
+                return this.syncOrchestrator.startSync(syncOptions).pipe(
+                    map(result => {
+                        if (result.success) {
+                            console.log('TontineService: Tontine initialization completed successfully.');
+                            console.log(`TontineService: Synced ${result.totalMembers} members, ${result.totalCollections} collections, ${result.totalStocks} stocks`);
+                            return true;
+                        } else {
+                            console.error('TontineService: Sync failed with errors:', result.errors);
+                            this.log.log('TontineService: Sync failed: ' + JSON.stringify(result.errors));
+                            return false;
+                        }
+                    })
+                );
             }),
             catchError(error => {
                 console.error('TontineService: Error initializing tontine:', error);
@@ -121,6 +163,8 @@ export class TontineService {
 
     /**
      * Fetch members for a session and save to DB with pagination support
+     * @deprecated This method is deprecated. Use SyncOrchestratorService.startSync() instead for reliable synchronization.
+     * Kept for backward compatibility and testing purposes.
      */
     fetchAndSaveMembers(sessionId: string, page: number = 0, size: number = 100): Observable<any> {
         console.log(`TontineService: Fetching members for session ${sessionId}, page ${page}...`);
@@ -132,7 +176,7 @@ export class TontineService {
             switchMap(({ headers, unsyncedTotals }) => {
                 // Convert unsyncedTotals to Map for easy lookup
                 const unsyncedMap = new Map<string, number>();
-                unsyncedTotals.forEach(t => unsyncedMap.set(String(t.tontineMemberId), t.total));
+                unsyncedTotals.forEach((t: any) => unsyncedMap.set(String(t.tontineMemberId), t.total));
 
                 return this.http.get<any>(`${this.apiUrl}/tontines/members?page=${page}&size=${size}`, { headers }).pipe(
                     switchMap(response => {
@@ -353,6 +397,8 @@ export class TontineService {
 
     /**
      * Fetch all collections and save to DB with pagination support
+     * @deprecated This method is deprecated. Use SyncOrchestratorService.startSync() instead for reliable synchronization.
+     * Kept for backward compatibility and testing purposes.
      */
     fetchAndSaveCollections(page: number = 0, size: number = 100): Observable<any> {
         console.log(`TontineService: Fetching all collections, page ${page}...`);
@@ -461,6 +507,8 @@ export class TontineService {
 
     /**
      * Fetch and save tontine stocks from API
+     * @deprecated This method is deprecated. Use SyncOrchestratorService.startSync() instead for reliable synchronization.
+     * Kept for backward compatibility and testing purposes.
      */
     fetchAndSaveStocks(sessionId?: string): Observable<any> {
         console.log('TontineService: Fetching tontine stocks...');

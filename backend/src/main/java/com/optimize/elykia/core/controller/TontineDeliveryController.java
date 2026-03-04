@@ -4,7 +4,7 @@ import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.CreateDeliveryDto;
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
-import com.optimize.elykia.core.service.TontineDeliveryService;
+import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,7 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

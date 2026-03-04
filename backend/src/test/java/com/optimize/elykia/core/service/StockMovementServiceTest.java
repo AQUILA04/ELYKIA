@@ -5,6 +5,7 @@ import com.optimize.elykia.core.entity.Credit;
 import com.optimize.elykia.core.entity.StockMovement;
 import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.repository.StockMovementRepository;
+import com.optimize.elykia.core.service.stock.StockMovementService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

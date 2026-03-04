@@ -6,8 +6,8 @@ import com.optimize.common.securities.models.User;
 import com.optimize.elykia.core.dto.TontineCollectionDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
 import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
-import com.optimize.elykia.core.service.TontineService;
-import com.optimize.elykia.core.service.TontineStockService;
+import com.optimize.elykia.core.service.tontine.TontineService;
+import com.optimize.elykia.core.service.tontine.TontineStockService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -69,6 +69,14 @@ public class TontineController {
             @RequestParam(required = false) String commercial) {
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 tontineService.getMembersHistory(commercial)), HttpStatus.OK);
+    }
+
+    @GetMapping("/members/history/page")
+    public ResponseEntity<Response> getMembersHistoryPage(
+            Pageable pageable,
+            @RequestParam(required = false) String commercial) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(
+                tontineService.getMembersHistoryPage(commercial, pageable)), HttpStatus.OK);
     }
 
     @GetMapping("/members/{id}")

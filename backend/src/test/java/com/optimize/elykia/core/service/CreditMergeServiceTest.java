@@ -9,6 +9,8 @@ import com.optimize.elykia.core.dto.MergeCreditDto;
 import com.optimize.elykia.core.entity.Credit;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.service.sale.CreditArticlesService;
+import com.optimize.elykia.core.service.sale.CreditService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

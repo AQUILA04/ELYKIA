@@ -4,7 +4,7 @@ import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.OrderDto;
 import com.optimize.elykia.core.enumaration.OrderStatus;
-import com.optimize.elykia.core.service.OrderService;
+import com.optimize.elykia.core.service.order.OrderService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import com.optimize.elykia.core.dto.UpdateOrderStatusDto;
 
 import com.lowagie.text.DocumentException;
-import com.optimize.elykia.core.service.PdfService;
+import com.optimize.elykia.core.service.report.PdfService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;

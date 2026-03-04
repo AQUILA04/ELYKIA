@@ -3,7 +3,7 @@ package com.optimize.elykia.core.controller;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.CloseCollectorOperationDto;
-import com.optimize.elykia.core.service.AccountingDayService;
+import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -14,7 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.optimize.elykia.core.service.DailyAccountancyService;
+import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
 
 @RestController
 @RequiredArgsConstructor

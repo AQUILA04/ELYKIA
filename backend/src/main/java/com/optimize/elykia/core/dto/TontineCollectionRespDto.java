@@ -10,11 +10,17 @@ public record TontineCollectionRespDto(Long id, TontineMemberRespDto tontineMemb
                                        LocalDateTime collectionDate, String commercialUsername,
                                        Boolean isDeliveryCollection, String reference) {
 
+    public TontineCollectionRespDto(Long id, Long tontineMemberId, Double amount,
+                                    LocalDateTime collectionDate, String commercialUsername,
+                                    Boolean isDeliveryCollection, String reference) {
+        this(id, TontineMemberRespDto.fromId(tontineMemberId), amount, collectionDate, commercialUsername, isDeliveryCollection, reference);
+    }
+
     public static TontineCollectionRespDto fromId(Long id) {
         if (id == null) {
             return null;
         }
-        return new TontineCollectionRespDto(id, null, null, null, null, null, null);
+        return new TontineCollectionRespDto(id, 0L, null, null, null, null, null);
     }
 
     public static TontineCollectionRespDto fromTontineCollection(TontineCollection tontineCollection) {

@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.controller;
 
 import com.optimize.elykia.core.entity.StockTontineReturn;
-import com.optimize.elykia.core.service.StockTontineReturnService;
+import com.optimize.elykia.core.service.stock.StockTontineReturnService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

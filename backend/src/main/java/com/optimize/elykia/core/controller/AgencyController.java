@@ -3,7 +3,7 @@ package com.optimize.elykia.core.controller;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.AgencyDto;
-import com.optimize.elykia.core.service.AgencyService;
+import com.optimize.elykia.core.service.agency.AgencyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

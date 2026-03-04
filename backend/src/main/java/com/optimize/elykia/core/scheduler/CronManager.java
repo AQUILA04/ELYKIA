@@ -1,9 +1,8 @@
 package com.optimize.elykia.core.scheduler;
 
-import com.optimize.elykia.core.service.CreditService;
-import com.optimize.elykia.core.service.PdfService;
+import com.optimize.elykia.core.service.sale.CreditService;
+import com.optimize.elykia.core.service.report.PdfService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component

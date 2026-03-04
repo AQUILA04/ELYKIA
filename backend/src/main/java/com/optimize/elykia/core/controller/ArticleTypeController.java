@@ -3,7 +3,7 @@ package com.optimize.elykia.core.controller;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.ArticleTypeDto;
-import com.optimize.elykia.core.service.ArticleTypeService;
+import com.optimize.elykia.core.service.store.ArticleTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

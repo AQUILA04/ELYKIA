@@ -2,7 +2,7 @@ package com.optimize.elykia.core.controller;
 
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
-import com.optimize.elykia.core.service.AgencyWeeklyReportService;
+import com.optimize.elykia.core.service.agency.AgencyWeeklyReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;

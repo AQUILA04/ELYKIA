@@ -7,6 +7,7 @@ import com.optimize.elykia.core.entity.ExpenseType;
 import com.optimize.elykia.core.mapper.ExpenseMapper;
 import com.optimize.elykia.core.repository.ExpenseRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
+import com.optimize.elykia.core.service.expense.ExpenseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

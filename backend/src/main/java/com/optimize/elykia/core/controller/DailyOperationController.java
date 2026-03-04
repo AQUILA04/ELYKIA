@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.controller;
 
 import com.optimize.elykia.core.entity.DailyOperationLog;
-import com.optimize.elykia.core.service.DailyOperationService;
+import com.optimize.elykia.core.service.report.DailyOperationService;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;

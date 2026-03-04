@@ -10,6 +10,8 @@ import com.optimize.elykia.core.mapper.RecoveryMapper;
 import com.optimize.elykia.core.mapper.TransactionMapper;
 import com.optimize.elykia.core.service.MobileTransactionService;
 import com.optimize.elykia.core.service.RecoveryService;
+import com.optimize.elykia.core.service.commercial.CommercialDataSummaryService;
+import com.optimize.elykia.core.service.sale.CreditTimelineService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +31,9 @@ public class MobileController {
     private final RecoveryService recoveryService;
     private final RecoveryMapper recoveryMapper;
     private final TransactionMapper transactionMapper;
-    private final com.optimize.elykia.core.service.CreditTimelineService creditTimelineService;
+    private final CreditTimelineService creditTimelineService;
     private final com.optimize.elykia.core.mapper.CreditTimelineMobileMapper creditTimelineMobileMapper;
-    private final com.optimize.elykia.core.service.CommercialDataSummaryService commercialDataSummaryService;
+    private final CommercialDataSummaryService commercialDataSummaryService;
 
     @GetMapping(value = "recoveries/{commercialId}")
     public ResponseEntity<Response> getRecoveriesByCommercial(@PathVariable String commercialId) {

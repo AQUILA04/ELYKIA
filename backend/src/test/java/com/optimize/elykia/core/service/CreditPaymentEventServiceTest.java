@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service;
 import com.optimize.elykia.core.entity.Credit;
 import com.optimize.elykia.core.entity.CreditPaymentEvent;
 import com.optimize.elykia.core.repository.CreditPaymentEventRepository;
+import com.optimize.elykia.core.service.sale.CreditPaymentEventService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

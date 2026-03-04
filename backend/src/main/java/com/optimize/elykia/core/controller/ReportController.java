@@ -3,7 +3,7 @@ package com.optimize.elykia.core.controller;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.enumaration.PeriodState;
-import com.optimize.elykia.core.service.ReportService;
+import com.optimize.elykia.core.service.report.ReportService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

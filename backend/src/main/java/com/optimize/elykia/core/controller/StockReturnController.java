@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.controller;
 
 import com.optimize.elykia.core.entity.StockReturn;
-import com.optimize.elykia.core.service.StockReturnService;
+import com.optimize.elykia.core.service.stock.StockReturnService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;

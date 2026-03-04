@@ -3,7 +3,7 @@ package com.optimize.elykia.core.controller;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.AgencyDailyReportDto;
-import com.optimize.elykia.core.service.AgencyDailyReportService;
+import com.optimize.elykia.core.service.agency.AgencyDailyReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;

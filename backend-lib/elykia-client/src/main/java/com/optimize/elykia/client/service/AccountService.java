@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @Transactional(readOnly = true)
@@ -72,14 +73,8 @@ public class AccountService extends GenericService<Account, Long> {
     // MODIFIÉ : La méthode utilise maintenant le searchTerm pour filtrer les
     // résultats
     public Page<AccountRespDto> getAll(Pageable pageable, String searchTerm) {
-        Specification<Account> spec = Specification.where(null); // Spécification de base
-
-        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            spec = spec.and(getSearchSpecification(searchTerm));
-            return AccountRespDto.fromAccountPage(getRepository().findAll(spec, pageable));
-        }
-
-        return AccountRespDto.fromAccountPage(findByStateNot(State.DELETED, pageable));
+        String effectiveSearchTerm = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm : null;
+        return getRepository().findAccountsDto(effectiveSearchTerm, State.DELETED, pageable);
     }
 
     public Page<AccountRespDto> getAllForCommercial(String commercial, Pageable pageable) {
@@ -87,7 +82,7 @@ public class AccountService extends GenericService<Account, Long> {
                 AccountStatus.ACTIF, pageable);
     }
 
-    // NOUVEAU : Méthode privée pour construire la logique de recherche
+    // RESTAURÉ : Méthode privée pour construire la logique de recherche
     private Specification<Account> getSearchSpecification(String keyword) {
         final String searchKeyword = String.format("%%%s%%", keyword.toLowerCase());
 

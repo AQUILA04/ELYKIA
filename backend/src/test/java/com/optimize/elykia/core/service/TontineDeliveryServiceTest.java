@@ -18,6 +18,8 @@ import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.TontineDeliveryRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
+import com.optimize.elykia.core.service.sale.CreditService;
+import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +27,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Optional;
 

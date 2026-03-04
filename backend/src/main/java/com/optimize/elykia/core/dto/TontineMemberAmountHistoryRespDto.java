@@ -2,6 +2,7 @@ package com.optimize.elykia.core.dto;
 
 
 import com.optimize.elykia.core.entity.TontineMemberAmountHistory;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,8 +15,12 @@ public record TontineMemberAmountHistoryRespDto(Long id,
                                                 LocalDate startDate,
                                                 LocalDateTime creationDate) {
 
+    public TontineMemberAmountHistoryRespDto(Long id, Long tontineMemberId, Double amount, LocalDate startDate, LocalDateTime creationDate) {
+        this(id, TontineMemberRespDto.fromId(tontineMemberId), amount, startDate, creationDate);
+    }
+
     public static TontineMemberAmountHistoryRespDto fromId(Long id) {
-        return new TontineMemberAmountHistoryRespDto(id, null, null, null, null);
+        return new TontineMemberAmountHistoryRespDto(id, 0L, null, null, null);
     }
 
     public static TontineMemberAmountHistoryRespDto fromTontineMemberHistory(TontineMemberAmountHistory history) {
@@ -32,5 +37,12 @@ public record TontineMemberAmountHistoryRespDto(Long id,
         }
 
         return memberAmountHistories.stream().map(TontineMemberAmountHistoryRespDto::fromTontineMemberHistory).toList();
+    }
+
+    public static Page<TontineMemberAmountHistoryRespDto> fromPage(Page<TontineMemberAmountHistory> memberAmountHistories) {
+        if (memberAmountHistories == null) {
+            return null;
+        }
+        return memberAmountHistories.map(TontineMemberAmountHistoryRespDto::fromTontineMemberHistory);
     }
 }

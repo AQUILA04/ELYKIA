@@ -3,7 +3,7 @@ package com.optimize.elykia.core.controller;
 import com.optimize.elykia.core.dto.CommercialStockItemDto;
 import com.optimize.elykia.core.entity.CommercialMonthlyStock;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
-import com.optimize.elykia.core.service.CommercialMonthlyStockService;
+import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
