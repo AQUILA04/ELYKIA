@@ -24,4 +24,7 @@ public class StockReturnItem extends Auditable<String> {
     private Articles article;
 
     private Integer quantity;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double unitPrice;
 }

@@ -156,6 +156,10 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                 }
                 item.setQuantityReturned(item.getQuantityReturned() + returnItem.getQuantity());
                 item.updateRemaining();
+                
+                // Set unit price from monthly stock item
+                returnItem.setUnitPrice(item.getWeightedAverageUnitPrice());
+
                 monthlyStockItemRepository.save(item);
 
                 // Calculate the value of returned stock based on current PMP

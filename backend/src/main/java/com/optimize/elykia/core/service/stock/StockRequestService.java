@@ -7,9 +7,11 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.entity.*;
 import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
+import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.StockRequestRepository;
+import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.util.UserProfilConstant;
@@ -26,6 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.Map;
+
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
 import com.itextpdf.html2pdf.HtmlConverter;
 import java.io.ByteArrayOutputStream;
@@ -45,6 +50,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final TemplateEngine templateEngine;
     private CommercialMonthlyStockItemRepository monthlyStockItemRepository;
+    private StockReturnRepository stockReturnRepository;
 
     public StockRequestService(StockRequestRepository repository,
             ArticlesService articlesService,
@@ -301,11 +307,40 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             collector = user.getUsername();
         }
 
-        List<StockRequestExportDTO> data = ((StockRequestRepository) repository).findAggregatedStockRequests(startDate,
+        List<StockRequestExportDTO> requestData = ((StockRequestRepository) repository).findAggregatedStockRequests(startDate,
                 endDate, collector, statuses);
+        
+        List<StockRequestExportDTO> returnData = stockReturnRepository.findAggregatedStockReturns(startDate, endDate, collector, StockReturnStatus.RECEIVED);
 
-        long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
-        double totalAmount = data.stream().mapToDouble(StockRequestExportDTO::getTotalAmount).sum();
+        // Merge requestData and returnData
+        Map<String, StockRequestExportDTO> mergedData = requestData.stream()
+            .collect(Collectors.toMap(
+                dto -> dto.getArticleName() + "|" + dto.getUnitPrice(),
+                dto -> dto
+            ));
+
+        for (StockRequestExportDTO returnDto : returnData) {
+            String key = returnDto.getArticleName() + "|" + returnDto.getUnitPrice();
+            if (mergedData.containsKey(key)) {
+                StockRequestExportDTO existing = mergedData.get(key);
+                existing.setReturnedQuantity(existing.getReturnedQuantity() + returnDto.getTotalQuantity());
+            } else {
+                // If there's a return without a request in this period (unlikely but possible), add it
+                returnDto.setReturnedQuantity(returnDto.getTotalQuantity());
+                returnDto.setTotalQuantity(0L); // No requests in this period
+                returnDto.setTotalAmount(0.0);
+                mergedData.put(key, returnDto);
+            }
+        }
+
+        List<StockRequestExportDTO> finalData = new ArrayList<>(mergedData.values());
+        // Sort by article name
+        finalData.sort((d1, d2) -> d1.getArticleName().compareTo(d2.getArticleName()));
+
+        long totalQuantity = finalData.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
+        double totalAmount = finalData.stream().mapToDouble(StockRequestExportDTO::getTotalAmount).sum();
+        long totalReturned = finalData.stream().mapToLong(StockRequestExportDTO::getReturnedQuantity).sum();
+        double totalNetAmount = finalData.stream().mapToDouble(StockRequestExportDTO::getNetAmount).sum();
 
         StockExportPdfContextDto contextDto = StockExportPdfContextDto.builder()
                 .title("Rapport des Sorties de Stock")
@@ -313,13 +348,18 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 .endDate(endDate != null ? endDate.toString() : "Fin")
                 .collector(collector != null ? collector : "Tous")
                 .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
-                .items(data)
+                .items(finalData)
                 .totalQuantity(totalQuantity)
                 .totalAmount(totalAmount)
                 .build();
+        
+        // We need to pass totalReturned and totalNetAmount to the template, but StockExportPdfContextDto might not have these fields.
+        // Let's check StockExportPdfContextDto first. If not, we can add them to the context map directly.
 
         Context context = new Context();
         context.setVariable("context", contextDto);
+        context.setVariable("totalReturned", totalReturned);
+        context.setVariable("totalNetAmount", totalNetAmount);
 
         String html = templateEngine.process("stock-export", context);
 
@@ -331,5 +371,10 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     @Autowired
     public void setMonthlyStockItemRepository(CommercialMonthlyStockItemRepository monthlyStockItemRepository) {
         this.monthlyStockItemRepository = monthlyStockItemRepository;
+    }
+
+    @Autowired
+    public void setStockReturnRepository(StockReturnRepository stockReturnRepository) {
+        this.stockReturnRepository = stockReturnRepository;
     }
 }
