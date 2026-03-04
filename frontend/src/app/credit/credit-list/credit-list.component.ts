@@ -39,6 +39,12 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
   showDailyStakeModal = false;
   selectedCreditForStake: any = null;
 
+  // Selection variables
+  selectedCredits: Set<number> = new Set();
+  isAllSelected: boolean = false;
+  showBulkChangeCollectorModal: boolean = false;
+  selectedNewCollector: string = '';
+
   private subscriptions: Subscription[] = [];
 
   showAdvancedSearch: boolean = false;
@@ -116,6 +122,9 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
           this.credits = response.data.content || [];
           this.filteredCredits = [...this.credits];
           this.totalElement = response.data.page.totalElements || 0;
+          // Reset selection on page load
+          this.selectedCredits.clear();
+          this.isAllSelected = false;
         } else {
           this.alertService.showError(response.message || 'Réponse inattendue du serveur.');
           this.credits = [];
@@ -151,6 +160,9 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
           this.credits = response.data.content || [];
           this.filteredCredits = [...this.credits];
           this.totalElement = response.data.totalElements || 0;
+          // Reset selection on page load
+          this.selectedCredits.clear();
+          this.isAllSelected = false;
         } else {
           this.alertService.showError(response.message || 'Réponse inattendue du serveur.');
           this.credits = [];
@@ -439,5 +451,73 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
         this.alertService.showError(error.error?.message || 'Erreur lors de la mise');
       }
     });
+  }
+
+  // --- Bulk Change Collector ---
+
+  toggleSelection(id: number): void {
+    if (this.selectedCredits.has(id)) {
+      this.selectedCredits.delete(id);
+    } else {
+      this.selectedCredits.add(id);
+    }
+    this.isAllSelected = this.filteredCredits.length > 0 && this.selectedCredits.size === this.filteredCredits.length;
+  }
+
+  toggleAllSelection(): void {
+    if (this.isAllSelected) {
+      this.selectedCredits.clear();
+    } else {
+      this.filteredCredits.forEach(c => this.selectedCredits.add(c.id));
+    }
+    this.isAllSelected = !this.isAllSelected;
+  }
+
+  isSelected(id: number): boolean {
+    return this.selectedCredits.has(id);
+  }
+
+  openBulkChangeCollectorModal(): void {
+    if (this.selectedCredits.size === 0) {
+      this.alertService.showWarning('Veuillez sélectionner au moins une vente.');
+      return;
+    }
+    this.loadCollectors();
+    this.showBulkChangeCollectorModal = true;
+  }
+
+  closeBulkChangeCollectorModal(): void {
+    this.showBulkChangeCollectorModal = false;
+    this.selectedNewCollector = '';
+  }
+
+  confirmBulkChangeCollector(): void {
+    if (!this.selectedNewCollector) {
+      this.alertService.showWarning('Veuillez sélectionner un commercial.');
+      return;
+    }
+
+    const dto = {
+      creditIds: Array.from(this.selectedCredits),
+      newCollector: this.selectedNewCollector
+    };
+
+    this.spinner.show();
+    const sub = this.creditService.bulkChangeCollector(dto).subscribe({
+      next: () => {
+        this.spinner.hide();
+        this.alertService.showSuccess('Changement de commercial effectué avec succès.');
+        this.closeBulkChangeCollectorModal();
+        this.selectedCredits.clear();
+        this.isAllSelected = false;
+        this.loadCredits();
+      },
+      error: (error) => {
+        this.spinner.hide();
+        this.alertService.showError('Erreur lors du changement de commercial.');
+        console.error(error);
+      }
+    });
+    this.subscriptions.push(sub);
   }
 }

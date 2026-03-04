@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.optimize.elykia.core.mapper.CreditDistributionMapper;
+import com.optimize.elykia.core.dto.BulkChangeCollectorDto;
 
 @Transactional
 @Service
@@ -970,5 +971,21 @@ public class CreditService extends GenericService<Credit, Long> {
     public Page<CreditRespDto> searchCredits(CreditSearchDto dto, Pageable pageable) {
         Page<Credit> page = getRepository().findAll(CreditSpecification.build(dto), pageable);
         return CreditRespDto.fromCreditPage(page);
+    }
+
+    @Transactional
+    public void bulkChangeCollector(BulkChangeCollectorDto dto) {
+        if (dto.getCreditIds() == null || dto.getCreditIds().isEmpty()) {
+            return;
+        }
+
+        // 1. Historiser l'opération en bulk
+        creditCollectorHistoryRepository.bulkInsertHistoryForCredits(dto.getCreditIds(), dto.getNewCollector());
+
+        // 2. Mettre à jour les crédits en bulk
+        getRepository().bulkUpdateCollector(dto.getCreditIds(), dto.getNewCollector());
+
+        // 3. Mettre à jour le recoveryCollector des clients en bulk
+        getRepository().bulkUpdateClientRecoveryCollector(dto.getCreditIds(), dto.getNewCollector());
     }
 }

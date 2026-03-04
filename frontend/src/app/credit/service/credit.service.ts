@@ -117,6 +117,10 @@ export class CreditService extends BaseHttpService {
     );
   }
 
+  bulkChangeCollector(dto: { creditIds: number[], newCollector: string }): Observable<any> {
+    return this.post(`${this.apiUrl}/bulk-change-collector`, dto);
+  }
+
   getCollectorHistory(creditId: number): Observable<ApiResponse<any[]>> {
     return this.get(`${this.apiUrl}/${creditId}/collector-history`);
   }

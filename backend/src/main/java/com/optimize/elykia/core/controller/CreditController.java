@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import com.optimize.elykia.core.dto.BulkChangeCollectorDto;
 
 @RestController
 @RequiredArgsConstructor
@@ -289,6 +290,12 @@ public class CreditController {
     public ResponseEntity<Response> changeCollector(@PathVariable Long id, @RequestBody @Valid ChangeCollectorDto dto) {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(creditService.changeCollector(id, dto.getNewCollector())), HttpStatus.OK);
+    }
+
+    @PostMapping("/bulk-change-collector")
+    public ResponseEntity<Response> bulkChangeCollector(@RequestBody @Valid BulkChangeCollectorDto dto) {
+        creditService.bulkChangeCollector(dto);
+        return new ResponseEntity<>(ResponseUtil.successResponse(true), HttpStatus.OK);
     }
 
     @GetMapping(value = "{id}/collector-history")

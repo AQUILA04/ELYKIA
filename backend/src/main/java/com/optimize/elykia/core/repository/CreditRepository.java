@@ -560,4 +560,12 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("type") OperationType type,
             @Param("state") State state,
             Pageable pageable);
+
+    @Modifying
+    @Query("UPDATE Credit c SET c.collector = :newCollector WHERE c.id IN :creditIds")
+    int bulkUpdateCollector(@Param("creditIds") List<Long> creditIds, @Param("newCollector") String newCollector);
+
+    @Modifying
+    @Query("UPDATE Client cl SET cl.recoveryCollector = :newCollector WHERE cl.id IN (SELECT c.client.id FROM Credit c WHERE c.id IN :creditIds)")
+    void bulkUpdateClientRecoveryCollector(@Param("creditIds") List<Long> creditIds, @Param("newCollector") String newCollector);
 }
