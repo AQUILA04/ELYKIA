@@ -211,6 +211,14 @@ export interface SpecialDailyStakeRequest {
   }>;
 }
 
+export interface SpecialDailyStakeResponse {
+  successRecoveryIds: string[];
+  failedRecoveries: Array<{
+    recoveryId: string;
+    errorMessage: string;
+  }>;
+}
+
 // Types pour la synchronisation manuelle
 
 export interface SyncSelection {

@@ -18,6 +18,7 @@ public interface CreditMapper extends BaseMapper<Credit, CreditDto> {
 
     @Mapping(source = "creditId", target = "credit.id")
     @Mapping(source = "articleId", target = "articles.id")
+    @Mapping(source = "stockItemId", target = "stockItemId")
     CreditArticles toCreditArticles(CreditArticlesDto creditArticlesDto);
 
     @Override

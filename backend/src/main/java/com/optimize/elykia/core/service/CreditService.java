@@ -369,6 +369,11 @@ public class CreditService extends GenericService<Credit, Long> {
                             .getUnitPriceByArticleId(oneArticle.getId(), now.getMonthValue(), now.getYear(), credit.getCollector());
                     unitPrice = Objects.nonNull(unitPrice) ? unitPrice : oneArticle.getCreditSalePrice();
                     article.setUnitPrice(unitPrice);
+
+                    Long stockItemId = commercialMonthlyStockItemRepository
+                            .getIdByArticleId(oneArticle.getId(), now.getMonthValue(), now.getYear(), credit.getCollector());
+                    article.setStockItemId(stockItemId);
+
                 }else {
                     article.setUnitPrice(article.getArticles().getCreditSalePrice());
                 }
@@ -411,130 +416,11 @@ public class CreditService extends GenericService<Credit, Long> {
 
     }
 
-    @Transactional
-    public String backToStore(ReturnArticlesDto dto) {
-        Credit credit = getById(dto.getCreditId());
-        credit.supportedBackToStoreOperation();
-        final String connectedUser = userService.getCurrentUser().getUsername();
-
-        Credit finalCredit = credit;
-        credit.getArticles().forEach(creditArticles -> dto.getReturnArticles().forEach(returnArticles -> {
-            if (returnArticles.getArticleId().equals(creditArticles.getArticles().getId())) {
-                creditArticles.returnQuantity(returnArticles.getQuantity());
-                creditArticlesService.update(creditArticles);
-                Articles articles = creditArticles.getArticles();
-                articles.makeEntry(returnArticles.getQuantity());
-                // articlesService.makeStockEntries()
-                StockEntry stockEntry = new StockEntry();
-                stockEntry.setArticleId(articles.getId());
-                stockEntry.setUnitPrice(articles.getCreditSalePrice());
-                stockEntry.setQuantity(returnArticles.getQuantity());
-                articlesService.update(articles);
-                ArticleHistory articleHistory = ArticleHistory.buildEntryHistory(articles, stockEntry, connectedUser);
-                articlesService.getArticleHistoryService().create(articleHistory);
-                // Création de l'historique de retour
-                CreditReturnHistory returnHistory = CreditReturnHistory.createReturnHistory(
-                        finalCredit, articles, returnArticles.getQuantity(), connectedUser);
-                creditReturnHistoryService.create(returnHistory);
-            }
-        }));
-
-        // Vérifier si tous les articles ont une quantité de 0
-        boolean allArticlesQuantityZero = credit.getArticles().stream()
-                .allMatch(article -> article.getQuantity() == 0);
-
-        // Si tous les articles ont une quantité de 0, définir updatable à false
-        if (allArticlesQuantityZero) {
-            credit.setUpdatable(false);
-            update(credit);
-        }
-        credit = getById(dto.getCreditId());
-        credit.setTotalAmount(credit.getTotalAmountByCalcul());
-        credit.setTotalAmountRemaining(credit.getTotalAmount());
-        credit.setDailyStake(MoneyUtil.calculateDailyStake(credit.getDailyStakeCalculated()));
-        update(credit);
-
-        return "\"success\":true";
-    }
-
     public boolean changeDailyStake(ChangeDailyStakeDto dto) {
         Credit credit = getById(dto.creditId());
         credit.changeDailyStake(dto.dailyStake());
         repository.saveAndFlush(credit);
         return Boolean.TRUE;
-    }
-
-    @Transactional
-    @Deprecated
-    public Credit distributeArticles(DistributeArticleDto dto) {
-        dto.validateEntryArticles();
-        Credit credit = getById(dto.getCreditId());
-        credit.checkStartStatus();
-        Client client = clientService.getById(dto.getClientId());
-
-        // credit.supportedBackToStoreOperation();
-
-        if (ClientType.PROMOTER.equals(client.getClientType())) {
-            throw new CustomValidationException("Opération non disponible pour ce type de client !");
-        }
-
-        Credit clientCredit = new Credit();
-        clientCredit.setClient(client);
-        clientCredit.setArticles(CreditArticles.from(dto.getArticles()));
-        clientCredit.setParent(credit);
-        // Correction: Associer d'abord les articles au crédit
-        clientCredit.setCreditToCreditArticles();
-        clientCredit.setAdvance(dto.getAdvance());
-        // Vérifier si toutes les quantités seront distribuées après cette opération
-        AtomicBoolean allQuantitiesDistributed = new AtomicBoolean(true);
-        creditControlProcess(clientCredit);
-        creditUnicity(clientCredit);
-        clientCredit.getArticles().forEach(creditArticles -> {
-            Integer totalDistributed = getRepository()
-                    .sumTotalArticleDistributedForParentCredit(creditArticles.getArticlesId(), credit.getId());
-            CreditArticles parent = credit.getArticles().stream()
-                    .filter(ca -> ca.getArticlesId().equals(creditArticles.getArticlesId()))
-                    .findFirst()
-                    .orElse(new CreditArticles());
-            if (Objects.isNull(totalDistributed)) {
-                totalDistributed = 0;
-            }
-            if ((totalDistributed + creditArticles.getQuantity()) > parent.getQuantity()) {
-                throw new CustomValidationException(
-                        "Il ne reste plus de quantité suffisante pour la distribution de l'article {"
-                                + parent.getArticles().getCommercialName() + "}");
-            }
-
-            // Vérifier si la quantité distribuée + la quantité en cours de distribution est
-            // différente de la quantité totale
-            if ((totalDistributed + creditArticles.getQuantity()) < parent.getQuantity()) {
-                allQuantitiesDistributed.set(false);
-            }
-        });
-        // Sauvegarder le crédit après que tout soit correctement configuré
-        if (Objects.nonNull(dto.getMobile()) && dto.getMobile()) {
-            clientCredit.setTotalAmount(dto.getTotalAmount());
-            clientCredit.setDailyStake(dto.getDailyStake());
-            clientCredit.setTotalAmountRemaining(dto.getTotalAmount() - dto.getAdvance());
-            clientCredit.setTotalAmountPaid(dto.getAdvance());
-            clientCredit.setBeginDate(dto.getStartDate());
-            clientCredit.setExpectedEndDate(dto.getEndDate());
-            clientCredit.setRemainingDaysCount(
-                    (int) Math.ceil(clientCredit.getTotalAmountRemaining() / clientCredit.getDailyStake()));
-        }
-        repository.saveAndFlush(clientCredit);
-
-        // Mettre à jour le statut du client
-        clientService.updateCreditStatus(client.getId(), Boolean.TRUE);
-        validateCredit(clientCredit.getId());
-        startCredit(clientCredit.getId(), Boolean.TRUE);
-        // Si toutes les quantités sont distribuées, mettre à jour l'attribut updatable
-        // du crédit parent
-        if (allQuantitiesDistributed.get()) {
-            credit.setUpdatable(false);
-            repository.saveAndFlush(credit);
-        }
-        return clientCredit;
     }
 
     @Transactional
@@ -590,6 +476,9 @@ public class CreditService extends GenericService<Credit, Long> {
             stockItem.setTotalSoldValue(currentTotalSold + (creditArticles.getQuantity() * currentPMP));
             stockItem.setTotalMargeValue(currentTotalMarge + (creditArticles.getQuantity() * stockItem.getWeightedAveragePurchasePrice()));
             stockItem.updateRemaining();
+            
+            // Set stockItemId in CreditArticles
+            creditArticles.setStockItemId(stockItem.getId());
         });
 
         // Sauvegarde du stock mis à jour
@@ -624,24 +513,8 @@ public class CreditService extends GenericService<Credit, Long> {
         return CreditRespDto.fromCredit(clientCredit);
     }
 
-    public List<CreditDistributionDto> getCreditDistribution(Long creditId) {
-        List<CreditDistributionView> distributionView = creditDistributionViewRepository.findByCreditParentId(creditId);
-        return distributionView.stream()
-                .map(creditDistributionMapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    public CreditWithDistribution getCreditWithDistribution(Long id) {
-        Credit credit = getById(id);
-        List<Credit> distributions = getRepository().findByParent_id(id);
-        return new CreditWithDistribution(credit, distributions);
-    }
-
-    public Page<Credit> getSortieHistory(String collector, Pageable pageable) {
-        return getRepository().findByUpdatableFalseAndClientTypeAndCollector(ClientType.PROMOTER, collector, pageable);
-    }
-
     // Total avance par commercial
+    @Deprecated
     public Double getTotalAdvanceForCommercial(String commercialUsername) {
         Double total = getRepository().getTotalAdvanceByCommercial(
                 commercialUsername,
@@ -651,22 +524,20 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     // Total de vente non distribuer par le commercial
+    @Deprecated
     public Double getTotalNotDistributedForCommercial(String commercialUsername) {
         Double total = getRepository().getTotalNotDistributedAmountByCommercial(
                 commercialUsername);
         return total != null ? total : 0.0;
     }
 
-    // nouveau
 
-    @Autowired
-    private CreditRepository creditRepository;
-
+    @Deprecated
     public Double getTotalDisbursedAmountForPeriod(LocalDate startDate, LocalDate endDate) {
         List<CreditStatus> disbursedStatuses = List.of(CreditStatus.INPROGRESS, CreditStatus.DELIVERED,
                 CreditStatus.ENDED, CreditStatus.SETTLED);
 
-        Double totalAmount = creditRepository.sumTotalAmountByBeginDateBetweenAndStatusInAndState(
+        Double totalAmount = getRepository().sumTotalAmountByBeginDateBetweenAndStatusInAndState(
                 startDate,
                 endDate,
                 disbursedStatuses,
@@ -676,6 +547,7 @@ public class CreditService extends GenericService<Credit, Long> {
         return totalAmount == null ? 0.0 : totalAmount;
     }
 
+    @Deprecated
     public CommercialDetails getCommercialDetails(Long id) {
         User user = userService.getById(id);
         String username = user.getUsername();
@@ -705,11 +577,6 @@ public class CreditService extends GenericService<Credit, Long> {
         commercialDetails.setTotalNotDistributed(totalNonDistributed);
 
         return commercialDetails;
-    }
-
-    public Integer getTotalDistributed(Long creditId, Long articleId) {
-        Integer totalDistributed = getRepository().sumTotalArticleDistributedForParentCredit(articleId, creditId);
-        return Objects.nonNull(totalDistributed) ? totalDistributed : 0;
     }
 
     @Transactional
@@ -786,7 +653,7 @@ public class CreditService extends GenericService<Credit, Long> {
                     // Pour une vente CASH, on considère que c'est pris du stock ET vendu
                     stockItem.setQuantityTaken(stockItem.getQuantityTaken() + creditArticle.getQuantity());
                     stockItem.setQuantitySold(stockItem.getQuantitySold() + creditArticle.getQuantity());
-                    Double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0
+                    double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0
                             : stockItem.getTotalSoldValue();
                     Double currentPMP = stockItem.getWeightedAverageUnitPrice() == null ? 0.0
                             : stockItem.getWeightedAverageUnitPrice();
@@ -870,13 +737,6 @@ public class CreditService extends GenericService<Credit, Long> {
                 collector, ClientType.CLIENT, pageable);
     }
 
-    public Page<CreditRespDto> getPendingSortieByCollectors(String collector, Pageable pageable) {
-        return CreditRespDto
-                .fromCreditPage(getRepository().findByStatusInAndCollectorAndClientTypeOrderByClient_quarterAsc(
-                        List.of(CreditStatus.CREATED, CreditStatus.VALIDATED), collector, ClientType.PROMOTER,
-                        pageable));
-    }
-
     public List<Credit> getCreditByCollector() {
         User user = userService.getCurrentUser();
         if (!dailyAccountancyService.isOpenCashDesk()) {
@@ -933,13 +793,6 @@ public class CreditService extends GenericService<Credit, Long> {
                 ClientType.PROMOTER, pageable);
     }
 
-    public Set<CreditArticles> getBackToStoreArticles(Long creditId) {
-        Credit credit = getById(creditId);
-        if (!ClientType.PROMOTER.equals(credit.getClientType())) {
-            throw new ApplicationException("Operation non supporté pour cette vente !");
-        }
-        return credit.getArticles();
-    }
 
     @Override
     public CreditRepository getRepository() {
@@ -979,25 +832,11 @@ public class CreditService extends GenericService<Credit, Long> {
         return getRepository().findByClient_idAndStatusIn(clientId, statuses, pageable);
     }
 
-    public Page<Credit> getsortiesByCollector(
-            String collector,
-            Pageable pageable) {
-
-        return getRepository().findByCollectorAndClientTypeAndStatusInOrderByIdDesc(
-                collector,
-                ClientType.PROMOTER,
-                List.of(CreditStatus.INPROGRESS, CreditStatus.SETTLED),
-                pageable);
-    }
 
     public String generateReference(String clientId, ClientType clientType) {
         String yy = "" + LocalDate.now().getYear();
         String initial = clientType.name().substring(0, 1);
         return initial + yy.substring(2) + clientId + RandomStringUtils.randomNumeric(4);
-    }
-
-    public Page<Credit> getDistributions(Long creditId, Pageable pageable) {
-        return getRepository().findByParent_id(creditId, pageable);
     }
 
     public Page<CreditTimeline> getTimelines(Long creditId, Pageable pageable) {
@@ -1008,62 +847,14 @@ public class CreditService extends GenericService<Credit, Long> {
         return creditTimelineRepository.findByCredit_Client_Id(clientId, pageable);
     }
 
-    @Transactional
-    public void updatePromoterCreditStatusBatch() {
-        int page = 0;
-        int size = 20; // Taille du batch
-        Page<Credit> creditPage;
 
-        do {
-            creditPage = getRepository().findByClientTypeAndStatusAndBeginDateBefore(
-                    ClientType.PROMOTER,
-                    CreditStatus.INPROGRESS,
-                    LocalDate.now().minusMonths(1),
-                    PageRequest.of(page, size, Sort.by("id").descending()));
 
-            for (Credit credit : creditPage) {
-                List<Credit> children = getRepository().findByParent_id(credit.getId());
-
-                boolean allChildrenSettled = children.stream()
-                        .allMatch(child -> child.getStatus() == CreditStatus.SETTLED);
-
-                if (allChildrenSettled) {
-                    credit.setStatus(CreditStatus.SETTLED);
-                    getRepository().save(credit);
-                }
-            }
-            page++;
-        } while (creditPage.hasNext());
+    public Page<CreditRespDto> getDelayedCreditsByCommercial(String commercial, Pageable pageable) {
+        return CreditRespDto.fromCreditPage(getRepository().getDelayedCredits(commercial, pageable));
     }
 
-    @Transactional
-    public void updatePromoterCreditAmountBatch() {
-        int page = 0;
-        int size = 20;
-        Page<Credit> creditPage;
-        do {
-            creditPage = getRepository()
-                    .findByStatusInAndClientType(List.of(CreditStatus.INPROGRESS),
-                            ClientType.PROMOTER,
-                            PageRequest.of(page, size,
-                                    Sort.by("id").descending()));
-            for (Credit credit : creditPage) {
-                PromoterCreditTotalAmountPaid promoterCreditTotalAmountPaid = getRepository()
-                        .getPromoterCreditTotalAmountPaidAndTotalAmountRemaining(credit.getId());
-                credit.setTotalAmountPaid(promoterCreditTotalAmountPaid.getTotalAmountPaid());
-                credit.setTotalAmountRemaining(promoterCreditTotalAmountPaid.getTotalAmountRemaining());
-                repository.saveAndFlush(credit);
-            }
-            page++;
-        } while (creditPage.hasNext());
-    }
-
-    public Page<Credit> getDelayedCreditsByCommercial(String commercial, Pageable pageable) {
-        return getRepository().getDelayedCredits(commercial, pageable);
-    }
-
-    public Page<Credit> getEndingCreditsByCommercial(String commercial, Pageable pageable) {
-        return getRepository().getEndingCredits(commercial, pageable);
+    public Page<CreditRespDto> getEndingCreditsByCommercial(String commercial, Pageable pageable) {
+        return CreditRespDto.fromCreditPage(getRepository().getEndingCredits(commercial, pageable));
     }
 
     @Transactional
@@ -1071,7 +862,7 @@ public class CreditService extends GenericService<Credit, Long> {
     public boolean deleteSoft(Long id) throws ApplicationException {
         Credit credit = getById(id);
         boolean result = super.deleteSoft(id);
-        if (Boolean.TRUE.equals(result)) {
+        if (result) {
             clientService.updateCreditStatus(credit.getClientId(), Boolean.FALSE);
         }
         return result;
@@ -1099,303 +890,6 @@ public class CreditService extends GenericService<Credit, Long> {
         this.sharedService = sharedService;
     }
 
-    /**
-     * Récupère la liste des crédits en cours d'un commercial pour la fusion
-     */
-    public List<CreditSummaryDto> getMergeableCreditsByCommercial(String commercialUsername) {
-        List<Credit> credits = getRepository().findByCollectorAndClientTypeAndStatusAndUpdatableAndState(
-                commercialUsername, ClientType.PROMOTER, CreditStatus.INPROGRESS, true, State.ENABLED);
-
-        return credits.stream()
-                .map(credit -> new CreditSummaryDto(
-                        credit.getId(),
-                        credit.getReference(),
-                        credit.getBeginDate(),
-                        credit.getTotalAmount()))
-                .toList();
-    }
-
-    /**
-     * Fusionne plusieurs crédits d'un commercial en un seul
-     */
-    @Transactional
-    public String mergeCredits(MergeCreditDto dto) {
-        // Validation des données d'entrée
-        if (dto.getCreditIds().isEmpty()) {
-            throw new CustomValidationException("La liste des IDs de crédit ne peut pas être vide");
-        }
-
-        // Récupération des crédits à fusionner
-        List<Credit> creditsToMerge = getRepository().findByIdInAndCollectorAndClientTypeAndUpdatableAndState(
-                dto.getCreditIds(), dto.getCommercialUsername(), ClientType.PROMOTER, true, State.ENABLED);
-
-        // Validation que tous les crédits existent et appartiennent au commercial
-        if (creditsToMerge.size() != dto.getCreditIds().size()) {
-            throw new CustomValidationException(
-                    "Certains crédits n'existent pas ou n'appartiennent pas au commercial spécifié");
-        }
-
-        // Validation que tous les crédits sont fusionnables
-        for (Credit credit : creditsToMerge) {
-            if (!credit.getCollector().equals(dto.getCommercialUsername())) {
-                throw new CustomValidationException("Tous les crédits doivent appartenir au même commercial");
-            }
-            if (!ClientType.PROMOTER.equals(credit.getClientType())) {
-                throw new CustomValidationException("Seuls les crédits de type PROMOTER peuvent être fusionnés");
-            }
-            if (!Boolean.TRUE.equals(credit.getUpdatable())) {
-                throw new CustomValidationException("Tous les crédits doivent être modifiables pour être fusionnés");
-            }
-        }
-
-        // Création du nouveau crédit fusionné
-        Credit mergedCredit = createMergedCredit(creditsToMerge, dto.getCommercialUsername());
-
-        // Sauvegarde du nouveau crédit
-        mergedCredit = repository.saveAndFlush(mergedCredit);
-
-        // Mise à jour des crédits enfants (distributions)
-        updateChildCreditsParent(creditsToMerge, mergedCredit.getId());
-
-        // Mise à jour des articles de crédit
-        updateCreditArticlesParent(creditsToMerge, mergedCredit.getId());
-
-        // Suppression logique des anciens crédits
-        markCreditsAsDeleted(creditsToMerge);
-
-        return mergedCredit.getReference();
-    }
-
-    private Credit createMergedCredit(List<Credit> creditsToMerge, String commercialUsername) {
-        Credit mergedCredit = new Credit();
-
-        // --- Calculs des totaux sécurisés ---
-        double totalAmount = creditsToMerge.stream()
-                .map(Credit::getTotalAmount)
-                .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .sum();
-
-        double totalAmountPaid = creditsToMerge.stream()
-                .map(Credit::getTotalAmountPaid)
-                .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .sum();
-
-        double totalAmountRemaining = creditsToMerge.stream()
-                .map(Credit::getTotalAmountRemaining)
-                .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .sum();
-
-        double totalPurchase = creditsToMerge.stream()
-                .map(Credit::getTotalPurchase)
-                .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .sum();
-
-        mergedCredit.setTotalAmount(totalAmount);
-        mergedCredit.setTotalAmountPaid(totalAmountPaid);
-        mergedCredit.setTotalAmountRemaining(totalAmountRemaining);
-        mergedCredit.setTotalPurchase(totalPurchase);
-
-        // --- Dates ---
-        LocalDate oldestBeginDate = creditsToMerge.stream()
-                .map(Credit::getBeginDate)
-                .filter(Objects::nonNull)
-                .min(LocalDate::compareTo)
-                .orElse(LocalDate.now());
-        mergedCredit.setBeginDate(oldestBeginDate);
-
-        LocalDate latestExpectedEndDate = creditsToMerge.stream()
-                .map(Credit::getExpectedEndDate)
-                .filter(Objects::nonNull)
-                .max(LocalDate::compareTo)
-                .orElse(LocalDate.now().plusDays(30));
-        mergedCredit.setExpectedEndDate(latestExpectedEndDate);
-
-        LocalDate latestAccountingDate = creditsToMerge.stream()
-                .map(Credit::getAccountingDate)
-                .filter(Objects::nonNull)
-                .max(LocalDate::compareTo)
-                .orElse(null);
-        mergedCredit.setAccountingDate(latestAccountingDate);
-
-        LocalDate latestReleaseDate = creditsToMerge.stream()
-                .map(Credit::getReleaseDate)
-                .filter(Objects::nonNull)
-                .max(LocalDate::compareTo)
-                .orElse(null);
-        mergedCredit.setReleaseDate(latestReleaseDate);
-
-        // --- Propriétés générales ---
-        mergedCredit.setClientType(ClientType.PROMOTER);
-        mergedCredit.setUpdatable(true);
-        mergedCredit.setCollector(commercialUsername);
-        mergedCredit.setStatus(CreditStatus.INPROGRESS);
-        mergedCredit.setState(State.ENABLED);
-
-        // --- Client & Type ---
-        Credit firstCredit = creditsToMerge.get(0);
-        if (firstCredit.getClient() == null) {
-            throw new IllegalStateException("Le premier crédit n’a pas de client associé");
-        }
-
-        mergedCredit.setClient(firstCredit.getClient());
-        mergedCredit.setType(firstCredit.getType());
-
-        // --- Référence ---
-        String baseReference = generateReference(
-                String.valueOf(firstCredit.getClient().getId()),
-                ClientType.PROMOTER);
-        mergedCredit.setReference("F" + baseReference);
-
-        // --- Mise journalière ---
-        double totalDailyStake = creditsToMerge.stream()
-                .map(Credit::getDailyStake)
-                .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .sum();
-        mergedCredit.setDailyStake(totalDailyStake);
-
-        // --- Jours restants ---
-        if (mergedCredit.getDailyStake() > 0) {
-            double exactDays = totalAmountRemaining / mergedCredit.getDailyStake();
-            mergedCredit.setRemainingDaysCount((int) Math.ceil(exactDays));
-        }
-
-        // --- Avances ---
-        double totalAdvance = creditsToMerge.stream()
-                .map(Credit::getAdvance)
-                .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .sum();
-        mergedCredit.setAdvance(totalAdvance);
-
-        return mergedCredit;
-    }
-
-    private void updateChildCreditsParent(List<Credit> creditsToMerge, Long newParentId) {
-        List<Long> oldCreditIds = creditsToMerge.stream().map(Credit::getId).toList();
-
-        for (Long oldCreditId : oldCreditIds) {
-            List<Credit> childCredits = getRepository().findByParent_id(oldCreditId);
-            for (Credit child : childCredits) {
-                child.setParent(new Credit(newParentId));
-                repository.save(child);
-            }
-        }
-    }
-
-    private void updateCreditArticlesParent(List<Credit> creditsToMerge, Long newCreditId) {
-        for (Credit credit : creditsToMerge) {
-            if (credit.getArticles() != null) {
-                for (CreditArticles article : credit.getArticles()) {
-                    article.setCredit(new Credit(newCreditId));
-                    creditArticlesService.update(article);
-                }
-            }
-        }
-    }
-
-    private void markCreditsAsDeleted(List<Credit> creditsToMerge) {
-        for (Credit credit : creditsToMerge) {
-            credit.setState(State.DELETED);
-            credit.setStatus(CreditStatus.MERGED);
-            credit.setUpdatable(Boolean.FALSE);
-            repository.save(credit);
-        }
-    }
-
-    @Transactional
-    public Credit createTontineForCommercial(CreditDto creditDto) {
-        Credit tontine = creditMapper.toEntity(creditDto);
-        Client client = clientService.getById(tontine.getClientId());
-        tontine.getArticles().forEach(ca -> {
-            Articles article = articlesService.getById(ca.getArticlesId());
-            ca.setArticles(article);
-            ca.setUnitPrice(article.getSellingPrice());
-        });
-        tontine.tontineBuilder();
-        tontine.addClient(client);
-        Credit checkExistingOne = getRepository()
-                .findByTypeAndCollectorAndStatusInAndClientTypeAndBeginDateBetween(OperationType.TONTINE,
-                        tontine.getCollector(),
-                        List.of(CreditStatus.CREATED, CreditStatus.VALIDATED),
-                        ClientType.PROMOTER,
-                        DateUtils.getStartYearDate(),
-                        DateUtils.getEndYearDate())
-                .orElse(null);
-        if (Objects.nonNull(checkExistingOne)) {
-            tontine.getArticles().forEach(ca -> {
-                ca.setCredit(checkExistingOne);
-                creditArticlesService.create(ca);
-                checkExistingOne.getArticles().add(ca);
-            });
-            checkExistingOne.addTontine(tontine);
-            checkExistingOne.setStatus(CreditStatus.CREATED);
-            repository.saveAndFlush(checkExistingOne);
-
-        } else {
-            create(tontine);
-            tontine.setCreditToCreditArticles();
-            tontine.getArticles().forEach(creditArticlesService::create);
-        }
-
-        return creditEnrichment(tontine);
-    }
-
-    /**
-     * à utiliser uniquement dans startCredit
-     * 
-     * @param tontine la tontine
-     * @return CRedit
-     */
-    @Transactional
-    public Credit mergeTontine(Credit tontine) {
-        if (getRepository().existsByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(
-                OperationType.TONTINE,
-                tontine.getCollector(),
-                CreditStatus.INPROGRESS,
-                ClientType.PROMOTER,
-                DateUtils.getStartYearDate(),
-                DateUtils.getEndYearDate())) {
-            Credit existingTontine = getRepository()
-                    .findByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(
-                            OperationType.TONTINE,
-                            tontine.getCollector(),
-                            CreditStatus.INPROGRESS,
-                            ClientType.PROMOTER,
-                            DateUtils.getStartYearDate(),
-                            DateUtils.getEndYearDate())
-                    .orElseThrow();
-            existingTontine.addNewArticles(tontine.getArticles());
-            creditArticlesService.getRepository().saveAllAndFlush(existingTontine.getArticles());
-            tontine.getArticles().forEach(ca -> {
-                ca.setCredit(existingTontine);
-                var tontineStock = tontineStockService.updateArticleStock(ca, tontine.getCollector(),
-                        StockOperation.ADD);
-                if (Objects.isNull(tontineStock)) {
-                    TontineStock.build(existingTontine, ca, tontineService.getActiveSession());
-                }
-            });
-            existingTontine.addTontine(tontine);
-            repository.saveAndFlush(existingTontine);
-            tontine.setStatus(CreditStatus.MERGED);
-            tontine.setState(State.DELETED);
-            repository.saveAndFlush(tontine);
-            tontine.setCreditToCreditArticles();
-            creditArticlesService.getRepository().saveAllAndFlush(tontine.getArticles());
-            return existingTontine;
-        } else {
-            tontine.getArticles().forEach(ca -> {
-                tontineStockService.create(
-                        TontineStock.build(tontine, ca, tontineService.getActiveSession()));
-            });
-
-            return tontine;
-        }
-    }
 
     @Autowired
     public void setTontineStockService(TontineStockService tontineStockService) {
@@ -1446,7 +940,7 @@ public class CreditService extends GenericService<Credit, Long> {
         return CreditRespDto.fromCredit(credit);
     }
 
-    public List<com.optimize.elykia.core.dto.CreditCollectorHistoryDto> getCollectorHistory(Long creditId) {
+    public List<CreditCollectorHistoryDto> getCollectorHistory(Long creditId) {
         return creditCollectorHistoryRepository.findByCreditIdOrderByChangeDateDesc(creditId)
                 .stream()
                 .map(com.optimize.elykia.core.dto.CreditCollectorHistoryDto::fromEntity)

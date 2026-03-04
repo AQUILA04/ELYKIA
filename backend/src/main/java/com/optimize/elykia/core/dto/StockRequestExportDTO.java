@@ -10,4 +10,6 @@ import lombok.NoArgsConstructor;
 public class StockRequestExportDTO {
     private String articleName;
     private Long totalQuantity;
+    private Double unitPrice;
+    private Double totalAmount;
 }

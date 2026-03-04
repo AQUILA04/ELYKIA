@@ -1,0 +1,26 @@
+.summary-info {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+}
+
+.table-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.mat-table {
+  width: 100%;
+}
+
+.no-data {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}

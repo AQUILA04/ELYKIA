@@ -32,6 +32,7 @@ public class CreditArticles extends Auditable<String> {
     private Integer quantity;
     @Column(columnDefinition = "double precision default 0")
     private Double unitPrice;
+    private Long stockItemId;
 
     public CreditArticles(Long articleId, Integer quantity) {
         articles = new Articles(articleId);

@@ -24,13 +24,13 @@ public interface StockRequestRepository extends GenericRepository<StockRequest, 
     @Query("SELECT MAX(s.id) FROM StockRequest s")
     Long findMaxId();
 
-    @Query("SELECT new com.optimize.elykia.core.dto.StockRequestExportDTO(i.itemName, SUM(i.quantity)) " +
+    @Query("SELECT new com.optimize.elykia.core.dto.StockRequestExportDTO(i.itemName, SUM(i.quantity), i.unitPrice, SUM(i.quantity * COALESCE(i.unitPrice, 0.0))) " +
             "FROM StockRequest s JOIN s.items i " +
             "WHERE s.status IN :statuses " +
             "AND (:#{#collector == null} = true OR s.collector = :collector) " +
             "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
             "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
-            "GROUP BY i.itemName " +
+            "GROUP BY i.itemName, i.unitPrice " +
             "ORDER BY i.itemName")
     List<com.optimize.elykia.core.dto.StockRequestExportDTO> findAggregatedStockRequests(
             @Param("startDate") java.time.LocalDate startDate,

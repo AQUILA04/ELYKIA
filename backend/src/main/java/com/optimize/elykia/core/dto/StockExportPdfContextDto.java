@@ -19,4 +19,5 @@ public class StockExportPdfContextDto {
     private String generationDate;
     private List<StockRequestExportDTO> items;
     private Long totalQuantity;
+    private Double totalAmount;
 }

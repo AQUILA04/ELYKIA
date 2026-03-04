@@ -64,21 +64,26 @@
             <tr>
                 <th>Article</th>
                 <th>Quantité Totale</th>
+                <th>Prix Unitaire</th>
+                <th>Prix Total</th>
             </tr>
         </thead>
         <tbody>
             <tr th:if="${#lists.isEmpty(context.items)}">
-                <td colspan="2" class="no-data">Aucune donnée trouvée pour cette période.</td>
+                <td colspan="4" class="no-data">Aucune donnée trouvée pour cette période.</td>
             </tr>
             <tr th:each="item : ${context.items}">
                 <td th:text="${item.articleName}"></td>
                 <td th:text="${item.totalQuantity}"></td>
+                <td th:text="${item.unitPrice}"></td>
+                <td th:text="${item.totalAmount}"></td>
             </tr>
         </tbody>
     </table>
 
     <div class="footer" th:if="${!#lists.isEmpty(context.items)}">
         <p><strong>Total Articles : </strong><span th:text="${context.totalQuantity}"></span></p>
+        <p><strong>Montant Total : </strong><span th:text="${context.totalAmount}"></span></p>
     </div>
 
 </body>
