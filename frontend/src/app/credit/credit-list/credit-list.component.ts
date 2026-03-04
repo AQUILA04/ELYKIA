@@ -1,19 +1,20 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CreditService } from '../service/credit.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgxPermissionsService } from 'ngx-permissions';
 import { NgxSpinnerService } from 'ngx-spinner';
-import { PageEvent } from '@angular/material/paginator';
-import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { AlertService } from 'src/app/shared/service/alert.service';
-import { UserService } from 'src/app/user/service/user.service';
-import { ClientService } from 'src/app/client/service/client.service';
 import { Subscription } from 'rxjs';
+import { ClientService } from 'src/app/client/service/client.service';
+import { AlertService } from 'src/app/shared/service/alert.service';
+import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
+import { UserService } from 'src/app/user/service/user.service';
+import { CreditSearchDto } from '../components/advanced-search/advanced-search.types';
+import { CreditService } from '../service/credit.service';
 import { Collector } from '../types/credit-merge.types';
-import {CreditSearchDto} from "../components/advanced-search/advanced-search.types";
+import { PageEvent } from '@angular/material/paginator';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 import { ErrorHandlingMixin } from 'src/app/shared/mixins/error-handling.mixin';
 import { CreditTimelineDto } from '../types/credit.types';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 
 
 
@@ -22,7 +23,7 @@ import { CreditTimelineDto } from '../types/credit.types';
   templateUrl: './credit-list.component.html',
   styleUrls: ['./credit-list.component.scss']
 })
-export class CreditListComponent extends ErrorHandlingMixin implements OnInit {
+export class CreditListComponent extends ErrorHandlingMixin implements OnInit, OnDestroy {
   credits: any[] = [];
   // La variable filteredCredits est toujours utilisée pour l'affichage
   filteredCredits: any[] = [];
@@ -43,6 +44,10 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit {
   showAdvancedSearch: boolean = false;
   currentSearchDto: CreditSearchDto | null = null;
 
+  // User-specific properties
+  currentUser: any = null;
+  isPromoter: boolean = false;
+
   constructor(
     private creditService: CreditService,
     private router: Router,
@@ -56,9 +61,12 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit {
   ) {
     super(errorHandler);
     this.tokenStorage.checkConnectedUser();
+    this.currentUser = this.tokenStorage.getUser();
+    this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
   }
 
   ngOnInit(): void {
+    this.loadInitialSearch();
     this.loadCredits();
   }
 
@@ -70,6 +78,23 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit {
       }
     });
     this.subscriptions = [];
+  }
+
+  private getSearchStorageKey(): string | null {
+    if (this.currentUser && this.currentUser.id) {
+      return `credit_search_filters_${this.currentUser.id}`;
+    }
+    return null;
+  }
+
+  private loadInitialSearch(): void {
+    const storageKey = this.getSearchStorageKey();
+    if (storageKey) {
+      const savedSearch = localStorage.getItem(storageKey);
+      if (savedSearch) {
+        this.currentSearchDto = JSON.parse(savedSearch);
+      }
+    }
   }
 
   loadCredits(): void {
@@ -163,6 +188,12 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit {
   onAdvancedSearch(searchDto: CreditSearchDto): void {
     this.currentSearchDto = searchDto;
     this.currentPage = 0;
+
+    const storageKey = this.getSearchStorageKey();
+    if (storageKey) {
+      localStorage.setItem(storageKey, JSON.stringify(searchDto));
+    }
+
     this.performAdvancedSearch(searchDto);
   }
 
@@ -170,6 +201,12 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit {
   onSearchReset(): void {
     this.currentSearchDto = null;
     this.currentPage = 0;
+
+    const storageKey = this.getSearchStorageKey();
+    if (storageKey) {
+      localStorage.removeItem(storageKey);
+    }
+
     this.loadCredits();
   }
 
@@ -195,7 +232,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit {
   refresh(): void {
     this.searchTerm = ''; // On vide aussi la recherche
     this.currentPage = 0;
-    this.loadCredits();
+    this.onSearchReset();
   }
 
   // --- Le reste de vos méthodes (add, delete, etc.) reste identique car elles appellent déjà loadCredits() ---

@@ -45,6 +45,9 @@
   <app-advanced-search
     [isVisible]="showAdvancedSearch"
     [commercials]="collectors"
+    [initialSearchDto]="currentSearchDto"
+    [isPromoter]="isPromoter"
+    [currentUsername]="currentUser?.username"
     (search)="onAdvancedSearch($event)"
     (reset)="onSearchReset()"
     (close)="onCloseAdvancedSearch()">
