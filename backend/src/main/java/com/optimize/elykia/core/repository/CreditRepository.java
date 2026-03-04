@@ -515,4 +515,49 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     boolean existsByReference(String reference);
     Optional<Credit> findByReference(String reference);
 
+    @Query("SELECT new com.optimize.elykia.core.dto.CreditRespDto(" +
+           "c.id, " +
+           "c.client.id, " +
+           "c.beginDate, " +
+           "c.expectedEndDate, " +
+           "c.effectiveEndDate, " +
+           "c.solvencyNote, " +
+           "c.lateDaysCount, " +
+           "c.totalAmount, " +
+           "c.totalPurchase, " +
+           "c.totalAmountPaid, " +
+           "c.totalAmountRemaining, " +
+           "c.dailyStake, " +
+           "c.status, " +
+           "c.remainingDaysCount, " +
+           "c.collector, " +
+           "c.type, " +
+           "c.dailyPaid, " +
+           "c.clientType, " +
+           "c.parent.id, " +
+           "c.updatable, " +
+           "c.reference, " +
+           "c.accountingDate, " +
+           "c.releaseDate, " +
+           "c.releasePrinted, " +
+           "c.oldReference, " +
+           "null, " +
+           "new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate)) " +
+           "FROM Credit c " +
+           "LEFT JOIN c.client cl " +
+           "WHERE c.state = :state " +
+           "AND (:collector IS NULL OR c.collector = :collector) " +
+           "AND (:status IS NULL OR c.status = :status) " +
+           "AND c.type = :type " +
+           "AND (:searchTerm IS NULL OR (" +
+           "LOWER(c.reference) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(cl.firstname) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(cl.lastname) LIKE LOWER(CONCAT('%', :searchTerm, '%'))))")
+    Page<CreditRespDto> findCreditsDto(
+            @Param("searchTerm") String searchTerm,
+            @Param("collector") String collector,
+            @Param("status") CreditStatus status,
+            @Param("type") OperationType type,
+            @Param("state") State state,
+            Pageable pageable);
 }

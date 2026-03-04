@@ -12,24 +12,20 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.*;
-import com.optimize.elykia.core.dto.CreditSummaryDto;
-import com.optimize.elykia.core.dto.MergeCreditDto;
 import com.optimize.elykia.core.entity.*;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
-import com.optimize.elykia.core.enumaration.StockOperation;
 import com.optimize.elykia.core.mapper.CreditMapper;
 import com.optimize.elykia.core.repository.*;
+import com.optimize.elykia.core.repository.spec.CreditSpecification;
 import com.optimize.elykia.core.service.store.ArticlesService;
-import com.optimize.elykia.core.service.SharedService;
+import com.optimize.elykia.core.service.util.SharedService;
 import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
 import com.optimize.elykia.core.service.bi.BiAggregationService;
 import com.optimize.elykia.core.service.stock.StockMovementService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
-import com.optimize.elykia.core.util.DateUtils;
-import com.optimize.elykia.core.util.MoneyUtil;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -42,11 +38,9 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import com.optimize.elykia.core.mapper.CreditDistributionMapper;
-import com.optimize.elykia.core.entity.CreditDistributionView;
 
 @Transactional
 @Service
@@ -268,7 +262,7 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     @Transactional
-    public Credit updateCredit(CreditDto creditDto, Long id) {
+    public CreditRespDto updateCredit(CreditDto creditDto, Long id) {
         creditDto.setId(id);
         final Credit oldOne = getById(id);
 
@@ -296,11 +290,11 @@ public class CreditService extends GenericService<Credit, Long> {
         credit = update(credit);
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
-        return credit;
+        return CreditRespDto.fromCredit(credit);
     }
 
     @Transactional
-    public Credit updateCashSale(CreditDto creditDto, Long id) {
+    public CreditRespDto updateCashSale(CreditDto creditDto, Long id) {
         creditDto.setId(id);
         Credit credit = creditMapper.toEntity(creditDto);
         final Credit oldOne = getById(id);
@@ -356,7 +350,7 @@ public class CreditService extends GenericService<Credit, Long> {
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
 
-        return creditEnrichment(credit);
+        return CreditRespDto.fromCredit(creditEnrichment(credit));
     }
 
     public void creditControlProcess(Credit credit) {
@@ -728,13 +722,33 @@ public class CreditService extends GenericService<Credit, Long> {
 
     public Page<CreditRespDto> getCreditByCollectors(String collector, Pageable pageable) {
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
-        final Page<CreditRespDto> credits = getRepository()
-                .findByStatusAndCollectorAndClientTypeOrderByClient_quarterAsc(CreditStatus.INPROGRESS, collector,
-                        ClientType.CLIENT, pageable);
-        final List<CreditRespDto> content = credits.getContent().stream()
-                .map(credit -> credit.addArticles(creditArticlesService.getRepository().findByCredit_id(credit.id())))
+        
+        // 1. Récupérer les DTOs des crédits (sans articles)
+        Page<CreditRespDto> creditsPage = getRepository().findCreditsDto(
+                null, collector, CreditStatus.INPROGRESS, OperationType.CREDIT, State.ENABLED, pageable);
+
+        // 2. Récupérer les IDs des crédits
+        List<Long> creditIds = creditsPage.getContent().stream()
+                .map(CreditRespDto::id)
                 .toList();
-        return new PageImpl<>(content, pageable, credits.getTotalElements());
+
+        if (creditIds.isEmpty()) {
+            return creditsPage;
+        }
+
+        // 3. Charger les articles en lot
+        Set<CreditArticles> allArticles = creditArticlesService.getRepository().findByCreditIds(creditIds);
+
+        // 4. Grouper les articles par creditId
+        Map<Long, Set<CreditArticles>> articlesByCreditId = allArticles.stream()
+                .collect(Collectors.groupingBy(ca -> ca.getCredit().getId(), Collectors.toSet()));
+
+        // 5. Associer les articles aux DTOs
+        List<CreditRespDto> contentWithArticles = creditsPage.getContent().stream()
+                .map(credit -> credit.addArticles(articlesByCreditId.getOrDefault(credit.id(), Collections.emptySet())))
+                .toList();
+
+        return new PageImpl<>(contentWithArticles, pageable, creditsPage.getTotalElements());
     }
 
     public Page<CreditRespDto> getCreditHistoryByCollectors(String collector, Pageable pageable) {
@@ -768,20 +782,16 @@ public class CreditService extends GenericService<Credit, Long> {
         return grouped;
     }
 
-    public Page<Credit> getAll(Pageable pageable, String searchTerm) {
-        // NOUVELLE LOGIQUE DE RECHERCHE
-        // Si un terme de recherche est fourni, on l'utilise en priorité
-        if (StringUtils.hasText(searchTerm)) {
-            // On appelle votre méthode de recherche existante
-            return getRepository().elasticsearch(searchTerm, pageable);
-        }
-
-        // Si aucun terme de recherche n'est fourni, on applique la logique originale
+    public Page<CreditRespDto> getAll(Pageable pageable, String searchTerm) {
         User user = userService.getCurrentUser();
+        String collector = null;
         if (user.is(UserProfilConstant.PROMOTER)) {
-            return getRepository().findByCollectorAndState(user.getUsername(), State.ENABLED, pageable);
+            collector = user.getUsername();
         }
-        return getRepository().findByState(State.ENABLED, pageable);
+        
+        String effectiveSearchTerm = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm : null;
+
+        return getRepository().findCreditsDto(effectiveSearchTerm, collector, null, OperationType.CREDIT, State.ENABLED, pageable);
     }
 
     public Page<Credit> getAllValidatedCredit(String collector, Pageable pageable) {
@@ -955,5 +965,10 @@ public class CreditService extends GenericService<Credit, Long> {
     @Autowired
     public void setCommercialMonthlyStockItemRepository(CommercialMonthlyStockItemRepository commercialMonthlyStockItemRepository) {
         this.commercialMonthlyStockItemRepository = commercialMonthlyStockItemRepository;
+    }
+
+    public Page<CreditRespDto> searchCredits(CreditSearchDto dto, Pageable pageable) {
+        Page<Credit> page = getRepository().findAll(CreditSpecification.build(dto), pageable);
+        return CreditRespDto.fromCreditPage(page);
     }
 }

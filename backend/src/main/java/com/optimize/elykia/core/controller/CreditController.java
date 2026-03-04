@@ -51,12 +51,7 @@ public class CreditController {
 
     @PostMapping("/fetch")
     public ResponseEntity<Response> fetch(@RequestBody CreditSearchDto dto, Pageable pageable) {
-        Page<Credit> page = creditService.getRepository().findAll(CreditSpecification.build(dto), pageable);
-        Page<CreditRespDto> pageDto = new PageImpl<>(page.getContent()
-                .stream()
-                .map(CreditRespDto::fromCredit).toList(),
-                pageable, page.getTotalElements());
-        return new ResponseEntity<>(ResponseUtil.successResponse(pageDto), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.searchCredits(dto, pageable)), HttpStatus.OK);
     }
 
 

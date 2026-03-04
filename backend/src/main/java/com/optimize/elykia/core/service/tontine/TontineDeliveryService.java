@@ -17,7 +17,7 @@ import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.TontineDeliveryRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
-import com.optimize.elykia.core.service.ClientAccountService;
+import com.optimize.elykia.core.service.util.ClientAccountService;
 import com.optimize.elykia.core.service.sale.CreditService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

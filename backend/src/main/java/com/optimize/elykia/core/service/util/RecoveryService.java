@@ -1,4 +1,4 @@
-package com.optimize.elykia.core.service;
+package com.optimize.elykia.core.service.util;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.service.GenericService;

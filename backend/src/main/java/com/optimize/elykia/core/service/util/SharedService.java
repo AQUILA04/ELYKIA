@@ -1,4 +1,4 @@
-package com.optimize.elykia.core.service;
+package com.optimize.elykia.core.service.util;
 
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import lombok.Getter;

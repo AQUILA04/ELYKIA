@@ -20,6 +20,7 @@ import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
+import com.optimize.elykia.core.service.util.ClientAccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

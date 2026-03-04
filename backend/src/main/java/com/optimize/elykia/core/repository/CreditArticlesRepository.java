@@ -25,4 +25,7 @@ public interface CreditArticlesRepository extends GenericRepository<CreditArticl
             "JOIN c.client cl " +
             "WHERE ca.stockItemId = :stockItemId")
     List<com.optimize.elykia.core.dto.CreditArticleDetailDto> findDetailsByStockItemId(@Param("stockItemId") Long stockItemId);
+
+    @Query("SELECT ca FROM CreditArticles ca WHERE ca.credit.id IN :creditIds")
+    Set<CreditArticles> findByCreditIds(@Param("creditIds") List<Long> creditIds);
 }
