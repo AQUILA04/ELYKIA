@@ -166,7 +166,7 @@ export class TontineService {
      * @deprecated This method is deprecated. Use SyncOrchestratorService.startSync() instead for reliable synchronization.
      * Kept for backward compatibility and testing purposes.
      */
-    fetchAndSaveMembers(sessionId: string, page: number = 0, size: number = 100): Observable<any> {
+    fetchAndSaveMembers(sessionId: string, page: number = 0, size: number = 500): Observable<any> {
         console.log(`TontineService: Fetching members for session ${sessionId}, page ${page}...`);
 
         return forkJoin({
@@ -333,7 +333,7 @@ export class TontineService {
     /**
      * Fetch collections for a specific member and save to DB with pagination support
      */
-    fetchAndSaveMemberCollections(memberId: string, page: number = 0, size: number = 50): Observable<any> {
+    fetchAndSaveMemberCollections(memberId: string, page: number = 0, size: number = 500): Observable<any> {
         console.log(`TontineService: Fetching collections for member ${memberId}, page ${page}...`);
 
         return this.getHeaders().pipe(
@@ -400,7 +400,7 @@ export class TontineService {
      * @deprecated This method is deprecated. Use SyncOrchestratorService.startSync() instead for reliable synchronization.
      * Kept for backward compatibility and testing purposes.
      */
-    fetchAndSaveCollections(page: number = 0, size: number = 100): Observable<any> {
+    fetchAndSaveCollections(page: number = 0, size: number = 500): Observable<any> {
         console.log(`TontineService: Fetching all collections, page ${page}...`);
 
         return this.getHeaders().pipe(
