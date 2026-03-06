@@ -187,7 +187,8 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
 
         request.setStatus(StockRequestStatus.DELIVERED);
         request.setDeliveryDate(LocalDate.now());
-        request.setAccountingDate(accountingDayService.getCurrentAccountingDate());
+        //request.setAccountingDate(accountingDayService.getCurrentAccountingDate());
+        request.setAccountingDate(LocalDate.now());
         StockRequest savedRequest = repository.save(request);
 
         // Calculate margin
