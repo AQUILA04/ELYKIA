@@ -725,8 +725,7 @@ public class CreditService extends GenericService<Credit, Long> {
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
         
         // 1. Récupérer les DTOs des crédits (sans articles)
-        Page<CreditRespDto> creditsPage = getRepository().findCreditsDto(
-                null, collector, CreditStatus.INPROGRESS, OperationType.CREDIT, State.ENABLED, pageable);
+        Page<CreditRespDto> creditsPage = getRepository().findCreditsDto(collector, CreditStatus.INPROGRESS, OperationType.CREDIT, State.ENABLED, pageable);
 
         // 2. Récupérer les IDs des crédits
         List<Long> creditIds = creditsPage.getContent().stream()
@@ -792,7 +791,11 @@ public class CreditService extends GenericService<Credit, Long> {
         
         String effectiveSearchTerm = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm : null;
 
-        return getRepository().findCreditsDto(effectiveSearchTerm, collector, null, OperationType.CREDIT, State.ENABLED, pageable);
+        if (Objects.nonNull(effectiveSearchTerm)) {
+            return getRepository().findCreditsDtoWithSearch(effectiveSearchTerm, collector, null, OperationType.CREDIT, State.ENABLED, pageable);
+        } else {
+            return getRepository().findCreditsDto(collector, null, OperationType.CREDIT, State.ENABLED, pageable);
+        }
     }
 
     public Page<Credit> getAllValidatedCredit(String collector, Pageable pageable) {

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface StockRequestRepository extends GenericRepository<StockRequest, Long> {
@@ -20,6 +21,8 @@ public interface StockRequestRepository extends GenericRepository<StockRequest, 
     Page<StockRequest> findByStatusIn(List<StockRequestStatus> statuses, Pageable pageable);
 
     Page<StockRequest> findByStatusInOrderByIdDesc(List<StockRequestStatus> statuses, Pageable pageable);
+
+    List<StockRequest> findByStatusAndRequestDateBefore(StockRequestStatus status, LocalDate date);
 
     @Query("SELECT MAX(s.id) FROM StockRequest s")
     Long findMaxId();

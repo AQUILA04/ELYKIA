@@ -48,13 +48,13 @@ public class TontineService extends GenericService<TontineMember, Long> {
     private final ParameterService parameterService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
-    protected TontineService(TontineMemberRepository repository,
-            TontineSessionRepository tontineSessionRepository,
-            TontineCollectionRepository tontineCollectionRepository,
-            ClientService clientService,
-            UserService userService,
-            ParameterService parameterService,
-            org.springframework.context.ApplicationEventPublisher eventPublisher) {
+    public TontineService(TontineMemberRepository repository,
+                          TontineSessionRepository tontineSessionRepository,
+                          TontineCollectionRepository tontineCollectionRepository,
+                          ClientService clientService,
+                          UserService userService,
+                          ParameterService parameterService,
+                          org.springframework.context.ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.tontineSessionRepository = tontineSessionRepository;
         this.tontineCollectionRepository = tontineCollectionRepository;
@@ -517,8 +517,11 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         // Clean up search string
         String searchFilter = StringUtils.hasText(search) ? search : null;
-
-        return getRepository().findMembersDto(currentYear, commercialFilter, searchFilter, statusFilter, pageable);
+        if (Objects.isNull(searchFilter)) {
+            return getRepository().findMembersDto(currentYear, commercialFilter, statusFilter, pageable);
+        } else {
+            return getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter, statusFilter, pageable);
+        }
     }
 
     public List<TontineMemberAmountHistoryRespDto> getMembersHistory(String commercial) {

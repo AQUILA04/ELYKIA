@@ -55,33 +55,87 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                         @Param("sessionId") Long sessionId,
                         @Param("state") State state);
 
-        @Query("SELECT new com.optimize.elykia.core.dto.TontineMemberRespDto(" +
-                "tm.id, " +
-                "s, " +
-                "new com.optimize.elykia.client.dto.ClientRespDto(c.id, c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth, null, null, null, c.collector, c.quarter, c.creditInProgress, c.occupation, c.clientType, null, null, null, null, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate), " +
-                "tm.totalContribution, " +
-                "tm.deliveryStatus, " +
-                "tm.registrationDate, " +
-                "new com.optimize.elykia.core.dto.TontineDeliveryRespDto(d.id, null, d.deliveryDate, d.requestDate, d.totalAmount, d.remainingBalance, d.commercialUsername, null), " +
-                "tm.frequency, " +
-                "tm.amount, " +
-                "tm.notes, " +
-                "tm.societyShare, " +
-                "tm.availableContribution, " +
-                "tm.validatedMonths, " +
-                "tm.currentMonthDays) " +
-                "FROM TontineMember tm " +
-                "LEFT JOIN tm.tontineSession s " +
-                "LEFT JOIN tm.client c " +
-                "LEFT JOIN tm.delivery d " +
-                "WHERE s.year = :year " +
-                "AND (:commercial IS NULL OR c.tontineCollector = :commercial) " +
-                "AND (:search IS NULL OR LOWER(c.firstname) LIKE LOWER(CONCAT('%', :search, '%')) " +
-                "     OR LOWER(c.lastname) LIKE LOWER(CONCAT('%', :search, '%')) " +
-                "     OR LOWER(c.phone) LIKE LOWER(CONCAT('%', :search, '%')) " +
-                "     OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-                "AND (:deliveryStatus IS NULL OR tm.deliveryStatus = :deliveryStatus)")
+        @Query("""
+        SELECT new com.optimize.elykia.core.dto.TontineMemberRespDto(
+            tm.id,
+            s,
+            new com.optimize.elykia.client.dto.ClientRespDto(
+                c.id, c.firstname, c.lastname, c.address, c.phone, c.cardID, 
+                c.cardType, c.dateOfBirth, null, null, null, c.collector, 
+                c.quarter, c.creditInProgress, c.occupation, c.clientType, 
+                null, null, null, null, c.code, c.profilPhotoUrl, 
+                c.cardPhotoUrl, c.tontineCollector, c.createdDate
+            ),
+            tm.totalContribution,
+            tm.deliveryStatus,
+            tm.registrationDate,
+            new com.optimize.elykia.core.dto.TontineDeliveryRespDto(
+                d.id, null, d.deliveryDate, d.requestDate, d.totalAmount, 
+                d.remainingBalance, d.commercialUsername, null
+            ),
+            tm.frequency,
+            tm.amount,
+            tm.notes,
+            tm.societyShare,
+            tm.availableContribution,
+            tm.validatedMonths,
+            tm.currentMonthDays
+        )
+        FROM TontineMember tm
+        LEFT JOIN tm.tontineSession s
+        LEFT JOIN tm.client c
+        LEFT JOIN tm.delivery d
+        WHERE s.year = :year
+        AND (:commercial IS NULL OR c.tontineCollector = :commercial)
+        AND (:deliveryStatus IS NULL OR tm.deliveryStatus = :deliveryStatus)
+        """)
         Page<TontineMemberRespDto> findMembersDto(
+                @Param("year") Integer year,
+                @Param("commercial") String commercial,
+                @Param("deliveryStatus") TontineMemberDeliveryStatus deliveryStatus,
+                Pageable pageable);
+
+
+
+        @Query("""
+        SELECT new com.optimize.elykia.core.dto.TontineMemberRespDto(
+            tm.id,
+            s,
+            new com.optimize.elykia.client.dto.ClientRespDto(
+                c.id, c.firstname, c.lastname, c.address, c.phone, c.cardID, 
+                c.cardType, c.dateOfBirth, null, null, null, c.collector, 
+                c.quarter, c.creditInProgress, c.occupation, c.clientType, 
+                null, null, null, null, c.code, c.profilPhotoUrl, 
+                c.cardPhotoUrl, c.tontineCollector, c.createdDate
+            ),
+            tm.totalContribution,
+            tm.deliveryStatus,
+            tm.registrationDate,
+            new com.optimize.elykia.core.dto.TontineDeliveryRespDto(
+                d.id, null, d.deliveryDate, d.requestDate, d.totalAmount, 
+                d.remainingBalance, d.commercialUsername, null
+            ),
+            tm.frequency,
+            tm.amount,
+            tm.notes,
+            tm.societyShare,
+            tm.availableContribution,
+            tm.validatedMonths,
+            tm.currentMonthDays
+        )
+        FROM TontineMember tm
+        LEFT JOIN tm.tontineSession s
+        LEFT JOIN tm.client c
+        LEFT JOIN tm.delivery d
+        WHERE s.year = :year
+        AND (:commercial IS NULL OR c.tontineCollector = :commercial)
+        AND (:search IS NULL OR LOWER(c.firstname) LIKE LOWER(CONCAT('%', :search, '%')) 
+                OR LOWER(c.lastname) LIKE LOWER(CONCAT('%', :search, '%')) 
+                OR LOWER(c.phone) LIKE LOWER(CONCAT('%', :search, '%')) 
+                OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%')))     
+        AND (:deliveryStatus IS NULL OR tm.deliveryStatus = :deliveryStatus)
+        """)
+        Page<TontineMemberRespDto> findMembersDtoWithSearch(
                 @Param("year") Integer year,
                 @Param("commercial") String commercial,
                 @Param("search") String search,

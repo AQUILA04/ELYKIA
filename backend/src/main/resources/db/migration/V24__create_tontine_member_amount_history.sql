@@ -14,14 +14,14 @@ CREATE TABLE IF NOT EXISTS public.tontine_member_amount_history (
 );
 
 -- Initialize history for existing members
-INSERT INTO tontine_member_amount_history (tontine_member_id, amount, start_date, creation_date, visibility, date_reg, reg_user_id)
-SELECT
-    tm.id,
-    tm.amount,
-    ts.start_date,
-    NOW(),
-    'ENABLED',
-    tm.date_reg,
-    tm.reg_user_id
-FROM tontine_member tm
-JOIN tontine_session ts ON tm.tontine_session_id = ts.id;
+-- INSERT INTO tontine_member_amount_history (tontine_member_id, amount, start_date, creation_date, visibility, date_reg, reg_user_id)
+-- SELECT
+--     tm.id,
+--     tm.amount,
+--     ts.start_date,
+--     NOW(),
+--     'ENABLED',
+--     tm.date_reg,
+--     tm.reg_user_id
+-- FROM tontine_member tm
+-- JOIN tontine_session ts ON tm.tontine_session_id = ts.id;

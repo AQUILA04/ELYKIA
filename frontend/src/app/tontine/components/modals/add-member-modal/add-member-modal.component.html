@@ -9,7 +9,14 @@
       <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
+    <!-- Read-only Client Display for Edit Mode -->
+    <mat-form-field appearance="outline" class="full-width" *ngIf="isEditMode">
+      <mat-label>Client</mat-label>
+      <input matInput [value]="getClientDisplay(data.member!.client)" disabled>
+    </mat-form-field>
+
+    <!-- Client Select for Add Mode -->
+    <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditMode">
       <mat-label>Sélectionner un client *</mat-label>
       <mat-select formControlName="clientId" required>
         <mat-option *ngFor="let client of filteredClients" [value]="client.id">

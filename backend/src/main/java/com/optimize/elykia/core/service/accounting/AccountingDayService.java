@@ -51,10 +51,10 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
             return getByStatus(AccountingDayStatus.OPENED);
         }
         AccountingDay accountingDay = new AccountingDay();
-        if (getRepository().existsByStatusAndAccountingDate(AccountingDayStatus.CLOSED, LocalDate.now())) {
-            accountingDay.setAccountingDate(LocalDate.now().plusDays(1));
+        accountingDay.setAccountingDate(LocalDate.now());
+        while (getRepository().existsByStatusAndAccountingDate(AccountingDayStatus.CLOSED, accountingDay.getAccountingDate())) {
+            accountingDay.setAccountingDate(accountingDay.getAccountingDate().plusDays(1));
         }
-        //AccountingDay oldDay = getByStatus(AccountingDayStatus.OPENED);
 
         if (this.dailyAccountingService.getDailyAccountancyService().isExistsOpenedCashDesk()) {
             this.dailyAccountingService.getDailyAccountancyService().getOpenCashDesks().forEach(dailyAccountancy -> {
@@ -65,9 +65,6 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
                 dailyAccountingService.closeDailyAccounting(dailyAccountancy.getAccountingDate());
             });
         }
-
-        accountingDay.close();
-        //update(oldDay);
         create(accountingDay);
         dailyAccountingService.initDailyAccounting(accountingDay.getAccountingDate());
         creditRepository.updateDailyPaidForCredit();
@@ -95,11 +92,8 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
     @Transactional
     public AccountingDay closeAccountingDay() {
         final LocalDate accountingDate = getByStatus(AccountingDayStatus.OPENED).getAccountingDate();
-        if (!getRepository().existsByStatus(AccountingDayStatus.OPENED)) {
-            throw new ApplicationException("Il n'existe aucune journée comptable ouverte !");
-        }
         if (getRepository().existsByStatusAndAccountingDate(AccountingDayStatus.CLOSED, accountingDate)) {
-            throw new ApplicationException("Cette Journée comptable est déjà fermée !");
+            return null;
         }
         if (this.dailyAccountingService.getDailyAccountancyService().isExistsOpenedCashDesk()) {
             this.dailyAccountingService.getDailyAccountancyService().getOpenCashDesks().forEach(dailyAccountancy -> {

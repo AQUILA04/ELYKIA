@@ -34,7 +34,7 @@ public interface AccountRepository extends GenericRepository<Account, Long> {
 
     @Query(value = """
             SELECT new com.optimize.elykia.client.dto.AccountRespDto(a.id, a.accountNumber,
-                c.id, a.accountBalance, a.status, a.createdDate)
+                c.id, c.firstname, c.lastname, a.accountBalance, a.status, a.createdDate)
                 FROM Account a JOIN a.client c WHERE (c.collector = :commercial OR c.tontineCollector = :commercial OR c.recoveryCollector = :commercial) AND a.state = :state AND c.clientType = :clientType AND a.status = :status
     """)
     Page<AccountRespDto> getAccountForCommercial(String commercial, State state, ClientType clientType, AccountStatus status, Pageable pageable);
@@ -42,19 +42,26 @@ public interface AccountRepository extends GenericRepository<Account, Long> {
     //@Query("SELECT a FROM Account a WHERE a.client.collector = ?1 AND a.client.clientType = ?2")
     Page<Account> findByClient_collectorAndClient_clientType(String collector, ClientType clientType, Pageable pageable);
 
-    @Query("SELECT new com.optimize.elykia.client.dto.AccountRespDto(" +
-           "a.id, " +
-           "a.accountNumber, " +
-           "c.id, " +
-           "a.accountBalance, " +
-           "a.status, " +
-           "a.createdDate) " +
-           "FROM Account a " +
-           "JOIN a.client c " +
-           "WHERE a.state <> :state " +
-           "AND (:searchTerm IS NULL OR (" +
-           "LOWER(a.accountNumber) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-           "LOWER(c.firstname) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-           "LOWER(c.lastname) LIKE LOWER(CONCAT('%', :searchTerm, '%'))))")
-    Page<AccountRespDto> findAccountsDto(@Param("searchTerm") String searchTerm, @Param("state") State state, Pageable pageable);
+    @Query("""
+               SELECT new com.optimize.elykia.client.dto.AccountRespDto(
+                    a.id, a.accountNumber, c.id, c.firstname, c.lastname, a.accountBalance, a.status, a.createdDate)
+               FROM Account a
+               JOIN a.client c
+               WHERE a.state <> :state
+           """)
+    Page<AccountRespDto> findAccountsDto(@Param("state") State state, Pageable pageable);
+
+
+    @Query("""
+               SELECT new com.optimize.elykia.client.dto.AccountRespDto(
+                    a.id, a.accountNumber, c.id, c.firstname, c.lastname, a.accountBalance, a.status, a.createdDate)
+               FROM Account a
+               JOIN a.client c
+               WHERE a.state <> :state
+               AND (:searchTerm IS NULL OR (
+               LOWER(a.accountNumber) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR
+               LOWER(c.firstname) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR
+               LOWER(c.lastname) LIKE LOWER(CONCAT('%', :searchTerm, '%'))))
+           """)
+    Page<AccountRespDto> findAccountsDtoWithSearch(@Param("searchTerm") String searchTerm, @Param("state") State state, Pageable pageable);
 }

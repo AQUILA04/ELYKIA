@@ -33,6 +33,14 @@ export class StockTontineRequestService extends BaseHttpService {
     return this.put<any>(`${this.baseUrl}/${id}/deliver`, {});
   }
 
+  cancel(id: number): Observable<StockTontineRequest> {
+    return this.put<StockTontineRequest>(`${this.baseUrl}/${id}/cancel`, {});
+  }
+
+  refuse(id: number): Observable<StockTontineRequest> {
+    return this.put<StockTontineRequest>(`${this.baseUrl}/${id}/refuse`, {});
+  }
+
   getAll(collector: string | null, page: number = 0, size: number = 20): Observable<Page<StockTontineRequest>> {
     let url = `${this.baseUrl}?page=${page}&size=${size}`;
     if (collector) {

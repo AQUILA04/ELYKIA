@@ -159,6 +159,46 @@ export class StockTontineRequestListComponent implements OnInit {
     });
   }
 
+  cancel(request: StockTontineRequest) {
+    this.alertService.showConfirmation('Confirmation', 'Annuler cette demande ?').then((confirmed) => {
+      if (confirmed) {
+        this.spinner.show();
+        this.requestService.cancel(request.id!).subscribe({
+          next: () => {
+            this.toastr.success('Demande annulée');
+            this.loadRequests();
+            this.spinner.hide();
+          },
+          error: (err) => {
+            console.error('Error', err);
+            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors de l\'annulation de la demande', 'Erreur d\'annulation');
+            this.spinner.hide();
+          }
+        });
+      }
+    });
+  }
+
+  refuse(request: StockTontineRequest) {
+    this.alertService.showConfirmation('Confirmation', 'Refuser cette demande ?').then((confirmed) => {
+      if (confirmed) {
+        this.spinner.show();
+        this.requestService.refuse(request.id!).subscribe({
+          next: () => {
+            this.toastr.success('Demande refusée');
+            this.loadRequests();
+            this.spinner.hide();
+          },
+          error: (err) => {
+            console.error('Error', err);
+            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors du refus de la demande', 'Erreur de refus');
+            this.spinner.hide();
+          }
+        });
+      }
+    });
+  }
+
   showDetails(request: StockTontineRequest) {
     this.selectedRequest = request;
   }
@@ -173,6 +213,7 @@ export class StockTontineRequestListComponent implements OnInit {
       case 'VALIDATED': return 'badge-success';
       case 'DELIVERED': return 'badge-success';
       case 'CANCELLED': return 'badge-danger';
+      case 'REFUSED': return 'badge-danger';
       default: return 'badge-danger';
     }
   }
@@ -183,6 +224,7 @@ export class StockTontineRequestListComponent implements OnInit {
       case 'VALIDATED': return 'Validé';
       case 'DELIVERED': return 'Livré';
       case 'CANCELLED': return 'Annulé';
+      case 'REFUSED': return 'Refusé';
       default: return 'badge-danger';
     }
   }

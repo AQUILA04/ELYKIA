@@ -130,6 +130,43 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         return saved;
     }
 
+    public void cancelReturn(Long returnId) {
+        StockReturn returnRequest = getById(returnId);
+        User currentUser = userService.getCurrentUser();
+
+        if (returnRequest.getStatus() != StockReturnStatus.CREATED) {
+            throw new CustomValidationException("Seuls les retours au statut CREATED peuvent être annulés.");
+        }
+
+        boolean isCreator = returnRequest.getCollector().equals(currentUser.getUsername());
+        boolean isStoreKeeper = currentUser.is(UserProfilConstant.MAGASINIER) || currentUser.is(UserProfilConstant.ADMIN);
+
+        if (!isCreator && !isStoreKeeper) {
+             throw new CustomValidationException("Vous n'avez pas le droit d'annuler ce retour.");
+        }
+
+        returnRequest.setStatus(StockReturnStatus.CANCELLED);
+        repository.save(returnRequest);
+    }
+
+    public void refuseReturn(Long returnId) {
+        StockReturn returnRequest = getById(returnId);
+        User currentUser = userService.getCurrentUser();
+
+        if (returnRequest.getStatus() != StockReturnStatus.CREATED) {
+             throw new CustomValidationException("Seuls les retours au statut CREATED peuvent être refusés.");
+        }
+
+        boolean isStoreKeeper = currentUser.is(UserProfilConstant.MAGASINIER) || currentUser.is(UserProfilConstant.ADMIN);
+
+        if (!isStoreKeeper) {
+            throw new CustomValidationException("Vous n'avez pas le droit de refuser ce retour.");
+        }
+
+        returnRequest.setStatus(StockReturnStatus.REFUSED);
+        repository.save(returnRequest);
+    }
+
     private double updateCommercialMonthlyStock(StockReturn stockReturn) {
         LocalDate date = LocalDate.now();
         int month = date.getMonthValue();
@@ -184,6 +221,6 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
             return ((StockReturnRepository) repository).findByCollector(currentUser.getUsername(), pageable);
         }
         return ((StockReturnRepository) repository)
-                .findByStatusIn(List.of(StockReturnStatus.CREATED, StockReturnStatus.RECEIVED), pageable);
+                .findByStatusIn(List.of(StockReturnStatus.CREATED, StockReturnStatus.RECEIVED, StockReturnStatus.CANCELLED, StockReturnStatus.REFUSED), pageable);
     }
 }

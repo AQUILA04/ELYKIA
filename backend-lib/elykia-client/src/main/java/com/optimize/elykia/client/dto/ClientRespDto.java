@@ -33,6 +33,15 @@ public record ClientRespDto(Long id, String firstname, String lastname, String a
     }
 
     @JsonIgnore
+    public static ClientRespDto withFirstnameAndLastname(Long id, String firstname, String lastname) {
+        return new ClientRespDto(id, firstname, lastname, null, null, null, null,
+                null, null, null, null, null,
+                null, null, null, null, null, null, null,
+                null, null, null, null, null, null);
+    }
+
+
+    @JsonIgnore
     public static ClientRespDto fromClient(Client client) {
         if (Objects.isNull(client)) {
             return  null;

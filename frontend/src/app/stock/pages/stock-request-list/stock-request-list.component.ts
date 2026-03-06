@@ -142,6 +142,40 @@ export class StockRequestListComponent implements OnInit {
     });
   }
 
+  cancel(request: StockRequest) {
+    this.alertService.showConfirmation('Confirmation', 'Annuler cette demande ?').then((confirmed) => {
+      if (confirmed) {
+        this.stockRequestService.cancel(request.id!).subscribe({
+          next: () => {
+            this.toastr.success('Demande annulée');
+            this.loadRequests();
+          },
+          error: (err) => {
+            console.error('Error', err);
+            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors de l\'annulation de la demande', 'Erreur d\'annulation');
+          }
+        });
+      }
+    });
+  }
+
+  refuse(request: StockRequest) {
+    this.alertService.showConfirmation('Confirmation', 'Refuser cette demande ?').then((confirmed) => {
+      if (confirmed) {
+        this.stockRequestService.refuse(request.id!).subscribe({
+          next: () => {
+            this.toastr.success('Demande refusée');
+            this.loadRequests();
+          },
+          error: (err) => {
+            console.error('Error', err);
+            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors du refus de la demande', 'Erreur de refus');
+          }
+        });
+      }
+    });
+  }
+
   showDetails(request: StockRequest) {
     this.selectedRequest = request;
   }
@@ -156,6 +190,7 @@ export class StockRequestListComponent implements OnInit {
       case 'VALIDATED': return 'badge-success';
       case 'DELIVERED': return 'badge-success';
       case 'CANCELLED': return 'badge-danger';
+      case 'REFUSED': return 'badge-danger';
       default: return 'badge-danger';
     }
   }
@@ -166,6 +201,7 @@ export class StockRequestListComponent implements OnInit {
       case 'VALIDATED': return 'Validé';
       case 'DELIVERED': return 'Livré';
       case 'CANCELLED': return 'Annulé';
+      case 'REFUSED': return 'Refusé';
       default: return 'badge-danger';
     }
   }

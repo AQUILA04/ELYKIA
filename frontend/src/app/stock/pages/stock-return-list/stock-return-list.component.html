@@ -37,6 +37,14 @@
                 (click)="validate(ret)" matTooltip="Réceptionner le retour">
                 <mat-icon>check_circle</mat-icon>
               </button>
+              <button *ngIf="(isStoreKeeper || (currentUser?.username === ret.collector)) && ret.status === 'CREATED'"
+                      mat-icon-button (click)="cancel(ret)" matTooltip="Annuler" class="btn-action cancel">
+                <mat-icon style="color: red;">cancel</mat-icon>
+              </button>
+              <button *ngIf="isStoreKeeper && ret.status === 'CREATED'"
+                      mat-icon-button (click)="refuse(ret)" matTooltip="Refuser" class="btn-action refuse">
+                <mat-icon style="color: darkred;">block</mat-icon>
+              </button>
             </div>
           </td>
         </tr>

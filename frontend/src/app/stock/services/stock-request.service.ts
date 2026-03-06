@@ -33,6 +33,14 @@ export class StockRequestService extends BaseHttpService {
     return this.http.put<StockRequest>(`${this.baseUrl}/${id}/deliver`, {});
   }
 
+  cancel(id: number): Observable<StockRequest> {
+    return this.http.put<StockRequest>(`${this.baseUrl}/${id}/cancel`, {});
+  }
+
+  refuse(id: number): Observable<StockRequest> {
+    return this.http.put<StockRequest>(`${this.baseUrl}/${id}/refuse`, {});
+  }
+
   getByCollector(collector: string, page: number = 0, size: number = 20): Observable<Page<StockRequest>> {
     return this.http.get<Page<StockRequest>>(`${this.baseUrl}/collector/${collector}?page=${page}&size=${size}`);
   }

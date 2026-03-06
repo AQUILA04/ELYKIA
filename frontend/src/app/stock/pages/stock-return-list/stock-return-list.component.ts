@@ -72,6 +72,40 @@ export class StockReturnListComponent implements OnInit {
     });
   }
 
+  cancel(ret: StockReturn) {
+    this.alertService.showConfirmation('Confirmation', 'Annuler ce retour ?').then((confirmed) => {
+      if (confirmed) {
+        this.stockReturnService.cancel(ret.id!).subscribe({
+          next: () => {
+            this.toastr.success('Retour annulé');
+            this.loadReturns();
+          },
+          error: (err) => {
+            console.error('Error', err);
+            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors de l\'annulation du retour', 'Erreur d\'annulation');
+          }
+        });
+      }
+    });
+  }
+
+  refuse(ret: StockReturn) {
+    this.alertService.showConfirmation('Confirmation', 'Refuser ce retour ?').then((confirmed) => {
+      if (confirmed) {
+        this.stockReturnService.refuse(ret.id!).subscribe({
+          next: () => {
+            this.toastr.success('Retour refusé');
+            this.loadReturns();
+          },
+          error: (err) => {
+            console.error('Error', err);
+            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors du refus du retour', 'Erreur de refus');
+          }
+        });
+      }
+    });
+  }
+
   showDetails(stockReturn: StockReturn) {
     this.selectedReturn = stockReturn;
   }
@@ -81,10 +115,22 @@ export class StockReturnListComponent implements OnInit {
   }
 
   getStatusBadge(status: string): string {
-    return status === 'RECEIVED' ? 'badge-success' : 'badge-secondary';
+    switch (status) {
+      case 'RECEIVED': return 'badge-success';
+      case 'CREATED': return 'badge-secondary';
+      case 'CANCELLED': return 'badge-danger';
+      case 'REFUSED': return 'badge-danger';
+      default: return 'badge-secondary';
+    }
   }
 
   getStatusLabel(status: string | undefined): string {
-    return status === 'RECEIVED' ? 'Réceptionné' : 'En attente';
+    switch (status) {
+      case 'RECEIVED': return 'Réceptionné';
+      case 'CREATED': return 'En attente';
+      case 'CANCELLED': return 'Annulé';
+      case 'REFUSED': return 'Refusé';
+      default: return 'Inconnu';
+    }
   }
 }

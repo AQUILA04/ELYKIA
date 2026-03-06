@@ -3,7 +3,7 @@ package com.optimize.elykia.core.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.optimize.elykia.core.dto.ArticleTypeDto;
 import com.optimize.elykia.core.entity.ArticleType;
-import com.optimize.elykia.core.service.ArticleTypeService;
+import com.optimize.elykia.core.service.store.ArticleTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

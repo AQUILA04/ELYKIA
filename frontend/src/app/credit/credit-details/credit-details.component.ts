@@ -74,15 +74,6 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
       error: (error) => this.handleError(error, 'Erreur de chargement')
     });
 
-    // Load Distribution Details
-    this.creditService.getCreditDistributionDetails(creditId).subscribe({
-      next: (response) => {
-        if (response.data) {
-          this.distributionDetails = response.data;
-        }
-      },
-      error: (error) => this.handleError(error, 'Erreur de chargement des détails')
-    });
 
     // Load Timelines
     this.creditService.getEcheancesByCredit(creditId, 0, 1000, 'id,desc').subscribe({

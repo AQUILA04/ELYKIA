@@ -18,6 +18,7 @@ import com.optimize.elykia.core.util.UserProfilConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -195,7 +196,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
 
         request.setStatus(StockRequestStatus.DELIVERED);
         request.setDeliveryDate(LocalDate.now());
-        request.setAccountingDate(accountingDayService.getCurrentAccountingDate());
+        request.setAccountingDate(LocalDate.now());
         StockRequest savedRequest = repository.save(request);
 
         // Calculate margin
@@ -214,6 +215,56 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         }
 
         return savedRequest;
+    }
+
+    public void cancelRequest(Long requestId) {
+        StockRequest request = getById(requestId);
+        User currentUser = userService.getCurrentUser();
+
+        if (request.getStatus() != StockRequestStatus.CREATED) {
+            throw new CustomValidationException("Seules les demandes au statut CREATED peuvent être annulées.");
+        }
+
+        boolean isCreator = request.getCollector().equals(currentUser.getUsername());
+        boolean isManager = currentUser.is(UserProfilConstant.GESTIONNAIRE) || currentUser.is(UserProfilConstant.ADMIN);
+
+        if (!isCreator && !isManager) {
+             throw new CustomValidationException("Vous n'avez pas le droit d'annuler cette demande.");
+        }
+
+        request.setStatus(StockRequestStatus.CANCELLED);
+        repository.save(request);
+    }
+
+    public void refuseRequest(Long requestId) {
+        StockRequest request = getById(requestId);
+        User currentUser = userService.getCurrentUser();
+
+        if (request.getStatus() != StockRequestStatus.CREATED) {
+             throw new CustomValidationException("Seules les demandes au statut CREATED peuvent être refusées.");
+        }
+
+        boolean isManagerOrSecretary = currentUser.is(UserProfilConstant.GESTIONNAIRE) || 
+                                       currentUser.is(UserProfilConstant.SECRETARY) ||
+                                       currentUser.is(UserProfilConstant.ADMIN);
+
+        if (!isManagerOrSecretary) {
+            throw new CustomValidationException("Vous n'avez pas le droit de refuser cette demande.");
+        }
+
+        request.setStatus(StockRequestStatus.REFUSED);
+        repository.save(request);
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void autoCancelOldRequests() {
+        LocalDate thresholdDate = LocalDate.now().minusDays(30);
+        List<StockRequest> oldRequests = ((StockRequestRepository) repository).findByStatusAndRequestDateBefore(StockRequestStatus.CREATED, thresholdDate);
+        
+        for (StockRequest request : oldRequests) {
+            request.setStatus(StockRequestStatus.CANCELLED);
+            repository.save(request);
+        }
     }
 
     private void updateCommercialMonthlyStock(StockRequest request) {
@@ -295,7 +346,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         }
 
         return ((StockRequestRepository) repository).findByStatusInOrderByIdDesc(
-                List.of(StockRequestStatus.CREATED, StockRequestStatus.DELIVERED), pageable);
+                List.of(StockRequestStatus.CREATED, StockRequestStatus.DELIVERED, StockRequestStatus.CANCELLED, StockRequestStatus.REFUSED), pageable);
     }
 
     public byte[] generatePdfExport(LocalDate startDate, LocalDate endDate, String collector) {

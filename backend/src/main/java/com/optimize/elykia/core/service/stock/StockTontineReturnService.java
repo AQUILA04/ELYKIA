@@ -82,6 +82,43 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         return update(returnRequest);
     }
 
+    public void cancelReturn(Long returnId) {
+        StockTontineReturn returnRequest = getById(returnId);
+        User currentUser = userService.getCurrentUser();
+
+        if (returnRequest.getStatus() != StockReturnStatus.CREATED) {
+            throw new CustomValidationException("Seuls les retours au statut CREATED peuvent être annulés.");
+        }
+
+        boolean isCreator = returnRequest.getCollector().equals(currentUser.getUsername());
+        boolean isStoreKeeper = currentUser.is(UserProfilConstant.MAGASINIER) || currentUser.is(UserProfilConstant.ADMIN);
+
+        if (!isCreator && !isStoreKeeper) {
+             throw new CustomValidationException("Vous n'avez pas le droit d'annuler ce retour.");
+        }
+
+        returnRequest.setStatus(StockReturnStatus.CANCELLED);
+        update(returnRequest);
+    }
+
+    public void refuseReturn(Long returnId) {
+        StockTontineReturn returnRequest = getById(returnId);
+        User currentUser = userService.getCurrentUser();
+
+        if (returnRequest.getStatus() != StockReturnStatus.CREATED) {
+             throw new CustomValidationException("Seuls les retours au statut CREATED peuvent être refusés.");
+        }
+
+        boolean isStoreKeeper = currentUser.is(UserProfilConstant.MAGASINIER) || currentUser.is(UserProfilConstant.ADMIN);
+
+        if (!isStoreKeeper) {
+            throw new CustomValidationException("Vous n'avez pas le droit de refuser ce retour.");
+        }
+
+        returnRequest.setStatus(StockReturnStatus.REFUSED);
+        update(returnRequest);
+    }
+
     private void processValidationLogic(StockTontineReturn returnRequest) {
         tontineStockService.processStockReturn(returnRequest);
 

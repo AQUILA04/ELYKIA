@@ -31,7 +31,7 @@ export class AddMemberModalComponent implements OnInit {
     this.initialAmount = data?.member?.amount || null;
 
     this.form = this.fb.group({
-      clientId: [{ value: data?.member?.clientId, disabled: this.isEditMode }, Validators.required],
+      clientId: [{ value: data?.member?.client?.id, disabled: this.isEditMode }, Validators.required],
       clientSearch: [''],
       frequency: [data?.member?.frequency || ''],
       amount: [data?.member?.amount || null],
@@ -55,9 +55,14 @@ export class AddMemberModalComponent implements OnInit {
           this.filteredClients = response.data;
 
           // If editing, ensure the current client is in the list and selected
-          if (this.isEditMode && this.data.member) {
-             // We might need to fetch the specific client if not in the initial list
-             // But for now assuming it's loaded or we just display the ID if not found (which is handled by disabled state)
+          if (this.isEditMode && this.data.member?.client) {
+            const currentClient = this.data.member.client;
+            const exists = this.clients.some(c => c.id === currentClient.id);
+            if (!exists) {
+              this.clients.unshift(currentClient);
+              this.filteredClients = [...this.clients];
+            }
+            this.form.patchValue({ clientId: currentClient.id });
           }
         }
         this.loading = false;

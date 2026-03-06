@@ -153,13 +153,14 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
   performAdvancedSearch(searchDto: CreditSearchDto): void {
     this.spinner.show();
     this.isLoading = true;
+    this.showAdvancedSearch = !this.showAdvancedSearch ? true : this.showAdvancedSearch;
 
     const subscription = this.creditService.searchCredits(searchDto, this.currentPage, this.pageSize).subscribe({
       next: (response: any) => {
         if (response.statusCode === 200) {
           this.credits = response.data.content || [];
           this.filteredCredits = [...this.credits];
-          this.totalElement = response.data.totalElements || 0;
+          this.totalElement = response.data.page.totalElements || 0;
           // Reset selection on page load
           this.selectedCredits.clear();
           this.isAllSelected = false;

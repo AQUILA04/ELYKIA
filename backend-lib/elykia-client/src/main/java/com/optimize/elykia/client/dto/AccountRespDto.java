@@ -12,14 +12,23 @@ import java.util.Objects;
 public record AccountRespDto (Long id,
                               String accountNumber,
                               Long clientId,
+                              String clientFirstname,
+                              String clientLastname,
                               double accountBalance,
                               AccountStatus status,
                               @JsonFormat(pattern = "yyyy-MM-dd") LocalDateTime createdAt
 ) {
+    public AccountRespDto(Long id, String accountNumber, Long clientId, double accountBalance, AccountStatus status, LocalDateTime createdAt) {
+        this(id, accountNumber, clientId, null, null, accountBalance, status, createdAt);
+    }
 
     public ClientRespDto getClient() {
         if (Objects.isNull(this.clientId)) {
             return null;
+        }
+
+        if (Objects.nonNull(this.clientFirstname) && Objects.nonNull(this.clientLastname)) {
+            return ClientRespDto.withFirstnameAndLastname(this.clientId, this.clientFirstname, this.clientLastname);
         }
         return ClientRespDto.fromId(this.clientId);
     }

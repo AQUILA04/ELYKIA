@@ -189,6 +189,45 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         return savedRequest;
     }
 
+    public void cancelRequest(Long requestId) {
+        StockTontineRequest request = getById(requestId);
+        User currentUser = userService.getCurrentUser();
+
+        if (request.getStatus() != StockRequestStatus.CREATED) {
+            throw new CustomValidationException("Seules les demandes au statut CREATED peuvent être annulées.");
+        }
+
+        boolean isCreator = request.getCollector().equals(currentUser.getUsername());
+        boolean isManager = currentUser.is(UserProfilConstant.GESTIONNAIRE) || currentUser.is(UserProfilConstant.ADMIN);
+
+        if (!isCreator && !isManager) {
+             throw new CustomValidationException("Vous n'avez pas le droit d'annuler cette demande.");
+        }
+
+        request.setStatus(StockRequestStatus.CANCELLED);
+        update(request);
+    }
+
+    public void refuseRequest(Long requestId) {
+        StockTontineRequest request = getById(requestId);
+        User currentUser = userService.getCurrentUser();
+
+        if (request.getStatus() != StockRequestStatus.CREATED) {
+             throw new CustomValidationException("Seules les demandes au statut CREATED peuvent être refusées.");
+        }
+
+        boolean isManagerOrSecretary = currentUser.is(UserProfilConstant.GESTIONNAIRE) || 
+                                       currentUser.is(UserProfilConstant.SECRETARY) ||
+                                       currentUser.is(UserProfilConstant.ADMIN);
+
+        if (!isManagerOrSecretary) {
+            throw new CustomValidationException("Vous n'avez pas le droit de refuser cette demande.");
+        }
+
+        request.setStatus(StockRequestStatus.REFUSED);
+        update(request);
+    }
+
     public Page<StockTontineRequest> getAll(String collector, Pageable pageable) {
         if (Objects.nonNull(collector)) {
             return ((StockTontineRequestRepository) getRepository()).findByCollectorOrderByIdDesc(collector, pageable);
@@ -204,26 +243,14 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
 
         // Si c'est un magasinier, il voit les demandes Validées ou Livrées (pour
         // préparer la livraison)
-        // Note: Dans StockRequestService, le magasinier voit VALIDATED et DELIVERED.
-        // Mais il doit aussi pouvoir voir les CREATED s'il a le droit de valider ?
-        // Dans l'existant:
-        // findByStatusInOrderByIdDesc(List.of(StockRequestStatus.VALIDATED,
-        // StockRequestStatus.DELIVERED)
-        // Je copie la logique existante.
         if (user.is(UserProfilConstant.MAGASINIER)) {
             return ((StockTontineRequestRepository) getRepository()).findByStatusInOrderByIdDesc(
                     List.of(StockRequestStatus.VALIDATED, StockRequestStatus.DELIVERED), pageable);
         }
 
-        // Gestionnaire/Admin voit CREATED et DELIVERED (et VALIDATED implicitement ?)
-        // L'existant dit: List.of(StockRequestStatus.CREATED,
-        // StockRequestStatus.DELIVERED)
-        // C'est un peu étrange qu'il ne voit pas VALIDATED, mais je respecte
-        // l'existant.
-        // Correction: Si je suis gestionnaire, je dois voir CREATED pour pouvoir
-        // valider.
+        // Gestionnaire/Admin voit CREATED, VALIDATED, DELIVERED, CANCELLED, REFUSED
         return ((StockTontineRequestRepository) getRepository()).findByStatusInOrderByIdDesc(
-                List.of(StockRequestStatus.CREATED, StockRequestStatus.VALIDATED, StockRequestStatus.DELIVERED),
+                List.of(StockRequestStatus.CREATED, StockRequestStatus.VALIDATED, StockRequestStatus.DELIVERED, StockRequestStatus.CANCELLED, StockRequestStatus.REFUSED),
                 pageable);
     }
 

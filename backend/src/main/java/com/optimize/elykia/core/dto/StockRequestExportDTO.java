@@ -30,6 +30,14 @@ public class StockRequestExportDTO {
         this.returnedQuantity = 0L;
     }
 
+    public StockRequestExportDTO(String articleName, Long totalQuantity) {
+        this.articleName = articleName;
+        this.totalQuantity = totalQuantity;
+        this.unitPrice = 0.0;
+        this.totalAmount = 0.0;
+        this.returnedQuantity = 0L;
+    }
+
     public Long getNetQuantity() {
         return totalQuantity - returnedQuantity;
     }

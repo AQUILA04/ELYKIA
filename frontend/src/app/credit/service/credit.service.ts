@@ -232,9 +232,6 @@ export class CreditService extends BaseHttpService {
     return this.get(`${this.apiUrl}/article-quantity-distributed?creditId=${creditId}&articleId=${articleId}`);
   }
 
-  getCreditDistributionDetails(creditId: number): Observable<ApiResponse<CreditDistributionDetail[]>> {
-    return this.get(`${this.apiUrl}/${creditId}/distribution-details`);
-  }
 
   // Enhanced methods for credit merge functionality with validation
   getMergeableCredits(commercialUsername: string): Observable<ApiResponse<CreditSummaryDto[]>> {

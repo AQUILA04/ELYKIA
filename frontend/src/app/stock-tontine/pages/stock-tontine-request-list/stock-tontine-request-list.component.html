@@ -50,6 +50,14 @@
               matTooltip="Livrer">
               <mat-icon style="color: #003366;">local_shipping</mat-icon>
             </button>
+            <button *ngIf="(isManager || (currentUser?.username === req.collector)) && req.status === 'CREATED'"
+                    mat-icon-button (click)="cancel(req)" matTooltip="Annuler">
+              <mat-icon style="color: red;">cancel</mat-icon>
+            </button>
+             <button *ngIf="(isManager || isSecretary) && req.status === 'CREATED'"
+                    mat-icon-button (click)="refuse(req)" matTooltip="Refuser">
+              <mat-icon style="color: darkred;">block</mat-icon>
+            </button>
           </td>
         </tr>
         <tr *ngIf="requests.length === 0">

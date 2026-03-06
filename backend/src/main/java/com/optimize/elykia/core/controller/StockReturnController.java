@@ -27,6 +27,18 @@ public class StockReturnController  {
         return ResponseEntity.ok(service.validateReturn(id));
     }
 
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelReturn(@PathVariable Long id) {
+        service.cancelReturn(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/refuse")
+    public ResponseEntity<Void> refuseReturn(@PathVariable Long id) {
+        service.refuseReturn(id);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/collector/{collector}")
     public ResponseEntity<Page<StockReturn>> getByCollector(@PathVariable String collector, Pageable pageable) {
         return ResponseEntity.ok(((com.optimize.elykia.core.repository.StockReturnRepository)service.getRepository()).findByCollector(collector, pageable));

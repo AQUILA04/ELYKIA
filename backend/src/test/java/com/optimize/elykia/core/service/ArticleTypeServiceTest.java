@@ -4,6 +4,7 @@ import com.optimize.elykia.core.dto.ArticleTypeDto;
 import com.optimize.elykia.core.entity.ArticleType;
 import com.optimize.elykia.core.mapper.ArticleTypeMapper;
 import com.optimize.elykia.core.repository.ArticleTypeRepository;
+import com.optimize.elykia.core.service.store.ArticleTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

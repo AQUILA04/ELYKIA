@@ -34,6 +34,18 @@ public class StockTontineRequestController {
         return ResponseEntity.ok(service.deliver(id));
     }
 
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelRequest(@PathVariable Long id) {
+        service.cancelRequest(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/refuse")
+    public ResponseEntity<Void> refuseRequest(@PathVariable Long id) {
+        service.refuseRequest(id);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/collector/{collector}")
     public ResponseEntity<Page<StockTontineRequest>> getByCollector(@PathVariable String collector, Pageable pageable) {
         return ResponseEntity.ok(service.getAll(collector, pageable));

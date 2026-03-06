@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Objects;
+
 @Service
 @Transactional(readOnly = true)
 public class AccountService extends GenericService<Account, Long> {
@@ -74,7 +76,11 @@ public class AccountService extends GenericService<Account, Long> {
     // résultats
     public Page<AccountRespDto> getAll(Pageable pageable, String searchTerm) {
         String effectiveSearchTerm = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm : null;
-        return getRepository().findAccountsDto(effectiveSearchTerm, State.DELETED, pageable);
+        if (Objects.isNull(effectiveSearchTerm)) {
+            return getRepository().findAccountsDto(State.DELETED, pageable);
+        } else {
+            return getRepository().findAccountsDtoWithSearch(effectiveSearchTerm, State.DELETED, pageable);
+        }
     }
 
     public Page<AccountRespDto> getAllForCommercial(String commercial, Pageable pageable) {
