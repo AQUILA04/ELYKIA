@@ -1159,7 +1159,7 @@ export class DatabaseService {
     }
 
     // === ÉTAPE 1: PRÉPARATION ===
-    const keysToInclude = ['id', 'reference', 'totalAmount', 'dailyPayment', 'startDate', 'endDate', 'status'];
+    const keysToInclude = ['id', 'reference', 'totalAmount', 'paidAmount', 'remainingAmount', 'dailyPayment', 'startDate', 'endDate', 'status'];
     const existingRows = await this.db.query('SELECT id, syncHash FROM distributions');
 
     // *** LA LIGNE CORRIGÉE ***
