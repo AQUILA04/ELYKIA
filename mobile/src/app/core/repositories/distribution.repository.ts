@@ -209,13 +209,16 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
             throw new Error('Database not initialized.');
         }
 
-        const keysToInclude = ['id', 'reference', 'totalAmount', 'dailyPayment', 'startDate', 'endDate', 'status'];
+        const keysToInclude = ['id', 'reference', 'totalAmount', 'dailyPayment', 'paidAmount', 'remainingAmount', 'advance', 'startDate', 'endDate', 'status'];
         const newSyncHash = this.generateHash(distribution, keysToInclude);
         const now = new Date().toISOString();
 
         const sql = `UPDATE distributions SET reference = ?, creditId = ?, totalAmount = ?, dailyPayment = ?, startDate = ?, endDate = ?, status = ?, clientId = ?, commercialId = ?, isLocal = ?, isSync = ?, syncDate = ?, createdAt = ?, syncHash = ?, articleCount = ?, remainingAmount = ?, paidAmount = ?, advance = ? WHERE id = ?`;
 
         const localDist = DistributionMapper.toLocal(distribution);
+        if (localDist.totalAmount == localDist.paidAmount) {
+          localDist.status = 'SETTLED';
+        }
 
         await this.databaseService.execute(sql, [
             localDist.reference ?? null,

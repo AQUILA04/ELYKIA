@@ -168,4 +168,26 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
         return result.values?.[0]?.total || 0;
     }
 
+    /**
+     * Get unsynced recoveries that belong to closed (SETTLED) distributions
+     * These should be synced before creating new distributions to ensure the server closes the old one.
+     */
+    async findUnsyncedForClosedDistributions(commercialUsername: string): Promise<Recovery[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `
+            SELECT r.*
+            FROM recoveries r
+            INNER JOIN distributions d ON r.distributionId = d.id
+            WHERE r.isSync = 0
+              AND r.isLocal = 1
+              AND r.commercialId = ?
+              AND d.status = 'SETTLED'
+            ORDER BY r.createdAt ASC
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername]);
+        return (result.values || []).map((row: any) => this.mapRowToRecovery(row));
+    }
+
 }

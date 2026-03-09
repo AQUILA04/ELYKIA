@@ -125,7 +125,17 @@ export class SyncMasterService {
       processedItems += (orderResult.success + orderResult.errors);
       this.updateProgress(processedItems, totalItems);
 
-      // 7. Sync Distributions (Depends on Clients)
+      // 7. Sync Closing Recoveries (CRITICAL STEP)
+      // Sync recoveries for closed distributions FIRST to ensure server closes old distributions
+      // before we try to create new ones.
+      this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'recoveries' } }));
+      const closingRecResult = await this.recoverySyncService.syncClosingRecoveries();
+      batchResult.recoveriesSync.success += closingRecResult.success;
+      batchResult.recoveriesSync.errors += closingRecResult.errors;
+      processedItems += (closingRecResult.success + closingRecResult.errors);
+      this.updateProgress(processedItems, totalItems);
+
+      // 8. Sync Distributions (Depends on Clients)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'distributions' } }));
       this.distributionSyncService.setFailedClientIds(this.failedClientIds);
       const distResult = await this.distributionSyncService.syncAll();
@@ -134,16 +144,17 @@ export class SyncMasterService {
       processedItems += (distResult.success + distResult.errors);
       this.updateProgress(processedItems, totalItems);
 
-      // 8. Sync Recoveries (Depends on Clients AND Distributions)
+      // 9. Sync Remaining Recoveries (Depends on Clients AND Distributions)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'recoveries' } }));
       this.recoverySyncService.setFailedClientIds(this.failedClientIds);
       this.recoverySyncService.setFailedDistributionIds(this.failedDistributionIds);
       const recResult = await this.recoverySyncService.syncAll();
-      batchResult.recoveriesSync = { success: recResult.success, errors: recResult.errors };
+      batchResult.recoveriesSync.success += recResult.success;
+      batchResult.recoveriesSync.errors += recResult.errors;
       processedItems += (recResult.success + recResult.errors);
       this.updateProgress(processedItems, totalItems);
 
-      // 9. Sync Tontine Members (Depends on Clients)
+      // 10. Sync Tontine Members (Depends on Clients)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-members' } }));
       // Assuming TontineMemberSyncService has setFailedClientIds (if not, it needs to be added)
       // For now, we assume the pattern holds. If the method is missing in the service, it should be added.
@@ -156,7 +167,7 @@ export class SyncMasterService {
       processedItems += (tmResult.success + tmResult.errors);
       this.updateProgress(processedItems, totalItems);
 
-      // 10. Sync Tontine Collections (Depends on Tontine Members)
+      // 11. Sync Tontine Collections (Depends on Tontine Members)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-collections' } }));
       this.tontineCollectionSyncService.setFailedMemberIds(this.failedTontineMemberIds);
       const tcResult = await this.tontineCollectionSyncService.syncAll();
@@ -164,7 +175,7 @@ export class SyncMasterService {
       processedItems += (tcResult.success + tcResult.errors);
       this.updateProgress(processedItems, totalItems);
 
-      // 11. Sync Tontine Deliveries (Depends on Tontine Members)
+      // 12. Sync Tontine Deliveries (Depends on Tontine Members)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-deliveries' } }));
       this.tontineDeliverySyncService.setFailedMemberIds(this.failedTontineMemberIds);
       const tdResult = await this.tontineDeliverySyncService.syncAll();

@@ -116,6 +116,57 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
         return page.content;
     }
 
+    /**
+     * Sync recoveries that belong to closed distributions.
+     * This is critical to ensure the server closes the old distribution before a new one is created.
+     */
+    async syncClosingRecoveries(): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        const commercialUsername = this.authService.currentUser?.username || '';
+        if (!commercialUsername) return { success: 0, errors: 0, failedIds: [] };
+
+        const closingRecoveries = await this.repository.findUnsyncedForClosedDistributions(commercialUsername);
+
+        if (closingRecoveries.length === 0) {
+            return { success: 0, errors: 0, failedIds: [] };
+        }
+
+        // We reuse syncBatch logic but passing the specific list of recoveries is not directly supported by syncBatch signature.
+        // So we implement a similar logic here or refactor syncBatch.
+        // Let's implement specific logic here reusing the batch sync methods.
+
+        let success = 0;
+        let errors = 0;
+        const failedIds: string[] = [];
+
+        // Split into default and special stakes
+        const defaultStakes = closingRecoveries.filter(r => r.isDefaultStake);
+        const specialStakes = closingRecoveries.filter(r => !r.isDefaultStake);
+
+        // Sync Default Stakes (Batch)
+        if (defaultStakes.length > 0) {
+            try {
+                await this.syncDefaultDailyStakes(defaultStakes);
+                success += defaultStakes.length;
+            } catch (error) {
+                errors += defaultStakes.length;
+                defaultStakes.forEach(r => failedIds.push(r.id));
+            }
+        }
+
+        // Sync Special Stakes (Batch)
+        if (specialStakes.length > 0) {
+            try {
+                await this.syncSpecialDailyStakes(specialStakes);
+                success += specialStakes.length;
+            } catch (error) {
+                errors += specialStakes.length;
+                specialStakes.forEach(r => failedIds.push(r.id));
+            }
+        }
+
+        return { success, errors, failedIds };
+    }
+
     private async syncDefaultDailyStakes(recoveries: Recovery[]): Promise<void> {
         const stakeUnits = [];
         const currentUser = this.authService.currentUser;
