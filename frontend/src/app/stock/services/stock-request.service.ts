@@ -29,8 +29,8 @@ export class StockRequestService extends BaseHttpService {
     return this.http.put<StockRequest>(`${this.baseUrl}/${id}/validate`, {});
   }
 
-  deliver(id: number): Observable<StockRequest> {
-    return this.http.put<StockRequest>(`${this.baseUrl}/${id}/deliver`, {});
+  deliver(id: number): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/${id}/deliver`, {});
   }
 
   cancel(id: number): Observable<StockRequest> {

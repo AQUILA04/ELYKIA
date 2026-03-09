@@ -129,9 +129,14 @@ export class StockRequestListComponent implements OnInit {
     this.alertService.showConfirmation('Confirmation', 'Confirmer la livraison de cette demande ?').then((confirmed) => {
       if (confirmed) {
         this.stockRequestService.deliver(request.id!).subscribe({
-          next: () => {
-            this.toastr.success('Demande livrée');
-            this.loadRequests();
+          next: (resp: any) => {
+            if (resp && resp.statusCode && resp.statusCode !== 500) {
+              this.alertService.showError(resp.message ?? 'Erreur de livraison', 'Erreur de livraison');
+            } else {
+              this.toastr.success('Demande livrée');
+              this.loadRequests();
+            }
+
           },
           error: (err) => {
             console.error('Error', err);

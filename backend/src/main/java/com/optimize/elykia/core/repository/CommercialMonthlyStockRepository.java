@@ -19,9 +19,10 @@ public interface CommercialMonthlyStockRepository extends GenericRepository<Comm
 
     Page<CommercialMonthlyStock> findByMonthAndYearOrderByIdDesc(Integer month, Integer year, Pageable pageable);
 
+    @Query("SELECT s FROM CommercialMonthlyStock s WHERE s.collector = :collector AND ((s.month < :month AND s.year = :year) OR s.year < :year) ORDER BY s.id DESC")
     Page<CommercialMonthlyStock> findByCollectorAndMonthNotAndYearNotOrderByIdDesc(String collector, Integer month,
             Integer year, Pageable pageable);
-
+    @Query("SELECT s FROM CommercialMonthlyStock s WHERE (s.month < :month AND s.year = :year) OR s.year < :year ORDER BY s.id DESC")
     Page<CommercialMonthlyStock> findByMonthNotAndYearNotOrderByIdDesc(Integer month, Integer year, Pageable pageable);
 
     @Query("SELECT new com.optimize.elykia.core.dto.CommercialStockItemDto(" +

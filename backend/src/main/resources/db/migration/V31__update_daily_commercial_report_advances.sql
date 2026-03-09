@@ -6,4 +6,4 @@ FROM (
     WHERE advance > 0 AND begin_date IS NOT NULL AND collector IS NOT NULL
     GROUP BY begin_date, collector
 ) sub
-WHERE dcr.date = cast(sub.begin_date as date) AND dcr.commercial_username = sub.collector;
+WHERE dcr.date = sub.begin_date AND dcr.commercial_username = sub.collector;

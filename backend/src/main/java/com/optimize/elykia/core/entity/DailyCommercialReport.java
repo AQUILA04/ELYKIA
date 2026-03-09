@@ -82,7 +82,7 @@ public class DailyCommercialReport extends BaseEntity<String> {
 
     // Cash Management
     @Column(columnDefinition = "double precision default 0")
-    private Double totalAmountToDeposit = 0.0; // Recettes total (Cash-in)
+        private Double totalAmountToDeposit = 0.0; // Recettes total (Cash-in)
 
     @Column(columnDefinition = "double precision default 0")
     private Double totalAmountDeposited = 0.0; // Somme des versements effectués

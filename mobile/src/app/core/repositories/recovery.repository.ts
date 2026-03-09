@@ -19,14 +19,7 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
             throw new Error('Database not initialized.');
         }
 
-        const keysToInclude = ['id', 'amount', 'paymentDate', 'paymentMethod', 'notes', 'distributionId', 'clientId', 'commercialId'];
-        const existingRows = await this.databaseService.query('SELECT id, syncHash FROM recoveries');
-        const existingRecoveryMap = new Map<string, string>(
-            existingRows.values?.map((row: { id: string | number; syncHash: string }) => [String(row.id), row.syncHash]) ?? []
-        );
-
-        const recoveriesToInsert: capSQLiteSet[] = [];
-        const recoveriesToUpdate: capSQLiteSet[] = [];
+        const sqlSet: capSQLiteSet[] = [];
         const now = new Date().toISOString();
 
         for (const recovery of entities) {
@@ -35,68 +28,37 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
             }
             const recoveryIdStr = String(recovery.id);
 
-            const normalizedRecovery = {
-                ...recovery,
-                distributionId: recovery.distribution?.id || recovery.distributionId,
-                clientId: recovery.client?.id || recovery.clientId,
-                commercialId: recovery.commercialId
-            };
-            const newHash = this.generateHash(normalizedRecovery, keysToInclude);
+            // INSERT OR REPLACE pour mettre à jour ou insérer le recouvrement
+            // On ne compare plus les hashs, on écrase systématiquement avec les données du serveur
+            const sql = `INSERT OR REPLACE INTO recoveries (
+                id, amount, paymentDate, paymentMethod, notes, distributionId, clientId,
+                commercialId, isLocal, isSync, syncDate, syncHash, isDefaultStake, createdAt
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-            const isExisting = existingRecoveryMap.has(recoveryIdStr);
-            const needsUpdate = isExisting && existingRecoveryMap.get(recoveryIdStr) !== newHash;
+            const params = [
+                recoveryIdStr,
+                recovery.amount ?? 0,
+                recovery.paymentDate ?? null,
+                recovery.paymentMethod ?? null,
+                recovery.notes ?? null,
+                recovery.distribution?.id ?? recovery.distributionId ?? null,
+                recovery.client?.id ?? recovery.clientId ?? null,
+                recovery.commercialId ?? null,
+                recovery.isLocal ? 1 : 0,
+                recovery.isSync ? 1 : 0,
+                now,
+                null, // Plus de hash
+                recovery.isDefaultStake ? 1 : 0,
+                recovery.createdAt ?? now
+            ];
 
-            const IS_LOCAL = recovery.isLocal ? 1 : 0;
-            const IS_SYNC = recovery.isSync ? 1 : 0;
-
-            if (needsUpdate) {
-                const sql = `UPDATE recoveries SET amount = ?, paymentDate = ?, paymentMethod = ?, notes = ?, distributionId = ?, clientId = ?, commercialId = ?, isLocal = ?, isSync = ?, syncDate = ?, syncHash = ?, isDefaultStake = ? WHERE id = ?`;
-                const updateParams = [
-                    recovery.amount ?? 0,
-                    recovery.paymentDate ?? null,
-                    recovery.paymentMethod ?? null,
-                    recovery.notes ?? null,
-                    recovery.distribution?.id ?? recovery.distributionId ?? null,
-                    recovery.client?.id ?? recovery.clientId ?? null,
-                    recovery.commercialId ?? null,
-                    IS_LOCAL,
-                    IS_SYNC,
-                    now,
-                    newHash,
-                    recovery.isDefaultStake ? 1 : 0,
-                    recoveryIdStr
-                ];
-                recoveriesToUpdate.push({ statement: sql, values: updateParams });
-
-            } else if (!isExisting) {
-                const sql = `INSERT INTO recoveries (id, amount, paymentDate, paymentMethod, notes, distributionId, clientId, commercialId, isLocal, isSync, syncDate, syncHash, isDefaultStake, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-                const insertParams = [
-                    recoveryIdStr,
-                    recovery.amount ?? 0,
-                    recovery.paymentDate ?? null,
-                    recovery.paymentMethod ?? null,
-                    recovery.notes ?? null,
-                    recovery.distribution?.id ?? recovery.distributionId ?? null,
-                    recovery.client?.id ?? recovery.clientId ?? null,
-                    recovery.commercialId ?? null,
-                    IS_LOCAL,
-                    IS_SYNC,
-                    now,
-                    newHash,
-                    recovery.isDefaultStake ? 1 : 0,
-                    recovery.createdAt ?? now
-                ];
-                recoveriesToInsert.push({ statement: sql, values: insertParams });
-            }
+            sqlSet.push({ statement: sql, values: params });
         }
 
         try {
-            if (recoveriesToUpdate.length > 0) {
-                await this.databaseService.executeSet(recoveriesToUpdate);
-            }
-
-            if (recoveriesToInsert.length > 0) {
-                await this.databaseService.executeSet(recoveriesToInsert);
+            if (sqlSet.length > 0) {
+                await this.databaseService.executeSet(sqlSet);
+                console.log(`Successfully saved ${entities.length} recoveries (INSERT OR REPLACE).`);
             }
         } catch (error) {
             console.error('Failed to save recoveries in repository.', error);

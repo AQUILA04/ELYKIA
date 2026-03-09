@@ -28,7 +28,7 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
     public Page<CommercialMonthlyStock> getAll(String collector, Pageable pageable, Boolean historic) {
         LocalDate now = LocalDate.now();
         User currentUser = userService.getCurrentUser();
-        if (Objects.nonNull(historic) && Boolean.TRUE.equals(historic)) {
+        if (Objects.nonNull(historic) && historic) {
             if (collector != null) {
                 return ((CommercialMonthlyStockRepository) repository).findByCollectorAndMonthNotAndYearNotOrderByIdDesc(collector, now.getMonthValue(), now.getYear(), pageable);
             }

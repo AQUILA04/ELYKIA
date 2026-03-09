@@ -722,97 +722,6 @@ export class DatabaseService {
     return ret.values || [];
   }
 
-  async saveLocalities(localities: any[]): Promise<void> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
-
-    // 1. Clés pour le hash de comparaison
-    const keysToInclude = ['id', 'name'];
-
-    // 2. Préparation des données en une seule passe
-    const existingRows = await this.db.query('SELECT id, syncHash FROM localities');
-    const existingLocalityMap = new Map<string, string>(
-      existingRows.values?.map(row => [row.id, row.syncHash]) ?? []
-    );
-
-    const localitiesToInsert: any[][] = [];
-    const localitiesToUpdate: any[][] = [];
-
-    const processedIds = new Set<string>();
-
-    // 3. Boucle de préparation, sans requêtes à la base de données
-    for (const locality of localities) {
-      if (!locality || locality.id === undefined || locality.id === null) {
-        console.warn('Skipping locality with no ID:', locality);
-        continue;
-      }
-
-      const localityIdStr = String(locality.id);
-      if (processedIds.has(localityIdStr)) {
-        continue;
-      }
-      processedIds.add(localityIdStr);
-      const newHash = this.generateHash(locality, keysToInclude);
-      const isExisting = existingLocalityMap.has(locality.id);
-      const needsUpdate = isExisting && existingLocalityMap.get(locality.id) !== newHash;
-
-      // Les valeurs 'Maritime' et '1' sont conservées car elles semblent intentionnelles
-      const REGION = 'Maritime';
-      const IS_ACTIVE = 1;
-
-      if (needsUpdate) {
-        const sql = `UPDATE localities SET name = ?, region = ?, isActive = ?, syncHash = ?, isSync = ?, syncDate = ? WHERE id = ?`;
-        const updateParams = [
-          locality.name,
-          REGION,
-          IS_ACTIVE,
-          newHash,
-          locality.id // Pour la clause WHERE
-        ];
-        localitiesToUpdate.push(updateParams);
-      } else if (!isExisting) {
-
-        const insertParams = [
-          locality.id,
-          locality.name,
-          REGION,
-          IS_ACTIVE,
-          newHash,
-          locality.isLocal ? 1 : 0,
-          locality.isSync ? 1 : 0,
-          new Date().toISOString(),
-          locality.createdAt ?? new Date().toISOString()
-        ];
-        localitiesToInsert.push(insertParams);
-      }
-    }
-
-    // 4. Exécution en batch dans une transaction
-    try {
-      // La gestion de transaction dépend de votre librairie (ex: this.db.beginTransaction())
-      if (localitiesToUpdate.length > 0) {
-        const sql = `UPDATE localities SET name = ?, region = ?, isActive = ?, syncHash = ? WHERE id = ?`;
-        await this.db.run(sql, localitiesToUpdate);
-      }
-
-      if (localitiesToInsert.length > 0) {
-        const sql = `INSERT INTO localities (id, name, region, isActive, syncHash, isLocal, isSync, syncDate, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        for (const params of localitiesToInsert) {
-          await this.db.run(sql, params);
-        }
-      }
-
-      const totalAffected = localitiesToInsert.length + localitiesToUpdate.length;
-      if (totalAffected > 0) {
-        console.log(`Successfully saved ${totalAffected} localities.`);
-      }
-    } catch (error) {
-      console.error('Failed to save localities in transaction. Rolling back.', error);
-      throw error;
-    }
-  }
-
   async getLocalities(): Promise<Locality[]> {
     if (!this.db) {
       console.error('Database not initialized.');
@@ -841,31 +750,6 @@ export class DatabaseService {
     const sql = `SELECT * FROM localities WHERE isSync = 0 AND isLocal = 1`;
     const ret = await this.db.query(sql);
     return ret.values || [];
-  }
-
-  async markLocalityAsSynced(localId: string, serverId: number): Promise<void> {
-    if (!this.db) {
-      console.error('Database not initialized.');
-      return;
-    }
-    const now = new Date().toISOString();
-    const updateSql = `UPDATE localities SET isSync = 1, isLocal = 0, syncDate = ? WHERE id = ?`;
-    await this.db.run(updateSql, [now, localId]);
-
-    const mappingSql = `INSERT INTO id_mappings (localId, serverId, entityType) VALUES (?, ?, 'locality')`;
-    await this.db.run(mappingSql, [localId, serverId.toString()]);
-
-    console.log(`Locality ${localId} marked as synced with server ID ${serverId}.`);
-  }
-
-
-
-  async saveClients(clients: any[]): Promise<void> {
-    // Moved to ClientRepository.saveAll
-    // This method is kept for backward compatibility if needed, but should be deprecated
-    // or delegate to repository if possible (circular dependency risk)
-    // For now, throwing error to force usage of repository
-    throw new Error('Use ClientRepository.saveAll instead of DatabaseService.saveClients');
   }
 
   async getClients(commercialId: string): Promise<Client[]> {
@@ -988,142 +872,6 @@ export class DatabaseService {
     return ret.values && ret.values.length > 0 ? ret.values[0] : null;
   }
 
-  async saveStockOutputs(stockOutputs: StockOutput[]): Promise<void> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
-
-    // 1. Clés pour le hash (cohérentes avec le modèle local)
-    const keysToInclude = ['id', 'reference', 'status', 'updatable', 'totalAmount', 'createdAt', 'commercialId'];
-
-    // 2. Préparation des données en une seule passe
-    const existingRows = await this.db.query('SELECT id, syncHash FROM stock_outputs');
-    // **Amélioration : Forcer la conversion en String pour la robustesse**
-    const existingOutputMap = new Map<string, string>(
-      existingRows.values?.map(row => [String(row.id), row.syncHash]) ?? []
-    );
-
-    const outputsToInsert: any[][] = [];
-    const outputsToUpdate: any[][] = [];
-    const allItemsToInsert: any[][] = [];
-    const outputIdsToClearItems: string[] = [];
-    const now = new Date().toISOString();
-
-    for (const so of stockOutputs) {
-      const soLocal = StockOutputMapper.toLocal(so);
-      const soIdStr = String(soLocal.id); // **Amélioration**
-      if (!soIdStr) {
-        console.warn('Skipping stock output with no ID:', so);
-        continue;
-      }
-
-      const newHash = this.generateHash(soLocal, keysToInclude);
-      const isExisting = existingOutputMap.has(soIdStr); // **Amélioration**
-      const needsUpdate = isExisting && existingOutputMap.get(soIdStr) !== newHash;
-
-      if (!isExisting || needsUpdate) {
-        if (needsUpdate) {
-          outputIdsToClearItems.push(soIdStr);
-          // **Amélioration : Paramètres robustes**
-          const updateParams = [
-            soLocal.reference ?? null,
-            soLocal.status ?? null,
-            soLocal.updatable ? 1 : 0,
-            soLocal.totalAmount ?? 0,
-            soLocal.createdAt ?? now,
-            soLocal.commercialId ?? null,
-            1, now, newHash, soIdStr
-          ];
-          outputsToUpdate.push(updateParams);
-        } else {
-          // **Amélioration : Paramètres robustes**
-          const insertParams = [
-            soIdStr,
-            soLocal.reference ?? null,
-            soLocal.status ?? null,
-            soLocal.updatable ? 1 : 0,
-            soLocal.totalAmount ?? 0,
-            soLocal.createdAt ?? now,
-            soLocal.commercialId ?? null,
-            1, now, newHash
-          ];
-          outputsToInsert.push(insertParams);
-        }
-
-        for (const item of soLocal?.items || []) {
-          // **Amélioration : Paramètres robustes**
-          allItemsToInsert.push([
-            item.id ?? null,
-            item.stockOutputId ?? soIdStr,
-            item.articleId ?? null,
-            item.quantity ?? 0,
-            item.unitPrice ?? 0,
-            item.totalPrice ?? 0
-          ]);
-        }
-      }
-    }
-
-    // 3. Exécution de toutes les requêtes
-    try {
-      // Étape A: Supprimer les anciens items. 'db.run' est correct ici car ce n'est pas un batch de la même manière.
-      if (outputIdsToClearItems.length > 0) {
-        const placeholders = outputIdsToClearItems.map(() => '?').join(',');
-        const sql = `DELETE FROM stock_output_items WHERE stockOutputId IN (${placeholders})`;
-        await this.db.run(sql, outputIdsToClearItems);
-      }
-
-      // **Amélioration : Utilisation de db.executeSet pour les batchs**
-      // Étape B: Mettre à jour les sorties de stock
-      if (outputsToUpdate.length > 0) {
-        const updateSet: capSQLiteSet[] = [];
-        const sql = `UPDATE stock_outputs SET reference = ?, status = ?, updatable = ?, totalAmount = ?, createdAt = ?, commercialId = ?, isSync = ?, syncDate = ?, syncHash = ? WHERE id = ?`;
-        for (const params of outputsToUpdate) {
-          updateSet.push({ statement: sql, values: params });
-        }
-        await this.db.executeSet(updateSet);
-      }
-
-      // Étape C: Insérer les nouvelles sorties de stock
-      if (outputsToInsert.length > 0) {
-        const insertSet: capSQLiteSet[] = [];
-        const sql = `INSERT INTO stock_outputs (id, reference, status, updatable, totalAmount, createdAt, commercialId, isSync, syncDate, syncHash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        for (const params of outputsToInsert) {
-          insertSet.push({ statement: sql, values: params });
-        }
-        await this.db.executeSet(insertSet);
-      }
-
-      // Étape D: Insérer tous les nouveaux items
-      if (allItemsToInsert.length > 0) {
-        const insertItemsSet: capSQLiteSet[] = [];
-        const sql = `INSERT INTO stock_output_items (id, stockOutputId, articleId, quantity, unitPrice, totalPrice) VALUES (?, ?, ?, ?, ?, ?)`;
-        for (const params of allItemsToInsert) {
-          insertItemsSet.push({ statement: sql, values: params });
-        }
-        await this.db.executeSet(insertItemsSet);
-      }
-
-      const totalAffected = outputsToInsert.length + outputsToUpdate.length;
-      if (totalAffected > 0) {
-        console.log(`Successfully saved ${totalAffected} stock outputs and their items.`);
-      }
-
-    } catch (error) {
-      console.error('Failed to save stock outputs in transaction. Rolling back.', error);
-      throw error;
-    }
-  }
-
-  async getStockOutputs(): Promise<StockOutput[]> {
-    if (!this.db) {
-      console.error('Database not initialized.');
-      return [];
-    }
-    const ret = await this.db.query('SELECT * FROM stock_outputs');
-    return ret.values || [];
-  }
-
   async getStockOutputItems(): Promise<any[]> {
     if (!this.db) {
       console.error('Database not initialized.');
@@ -1133,45 +881,15 @@ export class DatabaseService {
     return ret.values || [];
   }
 
-  async getStockOutputsByStatus(status: string): Promise<StockOutput[]> {
-    if (!this.db) {
-      console.error('Database not initialized.');
-      return [];
-    }
-    const sql = `SELECT * FROM stock_outputs WHERE status = ?`;
-    const ret = await this.db.query(sql, [status]);
-    return ret.values || [];
-  }
 
-  async getStockOutputItemsByStockId(stockOutputId: string): Promise<StockOutputItem[]> {
-    if (!this.db) {
-      console.error('Database not initialized.');
-      return [];
-    }
-    const sql = `SELECT * FROM stock_output_items WHERE stockOutputId = ?`;
-    const ret = await this.db.query(sql, [stockOutputId]);
-    return ret.values || [];
-  }
+
 
   async saveDistributionsAndItems(distributions: Distribution[]): Promise<void> {
     if (!this.db) {
       throw new Error('Database not initialized.');
     }
 
-    // === ÉTAPE 1: PRÉPARATION ===
-    const keysToInclude = ['id', 'reference', 'totalAmount', 'paidAmount', 'remainingAmount', 'dailyPayment', 'startDate', 'endDate', 'status'];
-    const existingRows = await this.db.query('SELECT id, syncHash FROM distributions');
-
-    // *** LA LIGNE CORRIGÉE ***
-    // On s'assure que .map retourne une paire [clé, valeur] et on type 'row'.
-    const existingDistributionMap = new Map<string, string>(
-      existingRows.values?.map((row: DbRowWithHash) => [String(row.id), row.syncHash]) ?? []
-    );
-
-    const distributionsToUpdate: capSQLiteSet[] = [];
-    const distributionsToInsert: capSQLiteSet[] = [];
-    const allItemsToInsert: capSQLiteSet[] = [];
-    const distributionIdsToClearItems: string[] = [];
+    const sqlSet: capSQLiteSet[] = [];
     const now = new Date().toISOString();
 
     for (const dist of distributions) {
@@ -1179,54 +897,50 @@ export class DatabaseService {
       const distIdStr = String(localDist.id);
       if (!distIdStr) { continue; }
 
-      const newHash = this.generateHash(dist, keysToInclude);
-      const isExisting = existingDistributionMap.has(distIdStr);
-      const needsUpdate = isExisting && existingDistributionMap.get(distIdStr) !== newHash;
+      // 1. Supprimer les items existants pour cette distribution
+      sqlSet.push({
+        statement: 'DELETE FROM distribution_items WHERE distributionId = ?',
+        values: [distIdStr]
+      });
 
-      if (isExisting && !needsUpdate) {
-        continue;
-      }
+      // 2. Insérer ou Remplacer la distribution
+      const sql = `INSERT OR REPLACE INTO distributions (
+        id, reference, creditId, totalAmount, dailyPayment, startDate, endDate, status,
+        clientId, commercialId, isLocal, isSync, syncDate, createdAt, syncHash,
+        articleCount, remainingAmount, paidAmount, advance
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
-      // Si une distribution est mise à jour, on supprime TOUJOURS ses anciens items.
-      if (needsUpdate) {
-        distributionIdsToClearItems.push(distIdStr);
-      }
+      sqlSet.push({
+        statement: sql,
+        values: [
+          distIdStr,
+          localDist.reference ?? null,
+          localDist.creditId ?? null,
+          localDist.totalAmount ?? 0,
+          localDist.dailyPayment ?? 0,
+          localDist.startDate ?? null,
+          localDist.endDate ?? null,
+          localDist.status ?? null,
+          localDist.clientId ?? null,
+          localDist.commercialId ?? null,
+          localDist.isLocal ? 1 : 0,
+          localDist.isSync ? 1 : 0,
+          now,
+          localDist.createdAt ?? now,
+          null, // Plus de hash
+          localDist.articleCount ?? 0,
+          localDist.remainingAmount ?? localDist.totalAmount ?? 0,
+          localDist.paidAmount ?? 0,
+          localDist.advance ?? 0
+        ]
+      });
 
-      if (needsUpdate) {
-        const sql = `UPDATE distributions SET reference=?, creditId=?, totalAmount=?, dailyPayment=?, startDate=?, endDate=?, status=?, clientId=?, commercialId=?, isLocal=?, isSync=?, syncDate=?, createdAt=?, syncHash=?, articleCount=?, remainingAmount=?, paidAmount=?, advance=? WHERE id=?`;
-        distributionsToUpdate.push({
-          statement: sql,
-          values: [
-            localDist.reference ?? null, localDist.creditId ?? null, localDist.totalAmount ?? 0,
-            localDist.dailyPayment ?? 0, localDist.startDate ?? null, localDist.endDate ?? null,
-            localDist.status ?? null, localDist.clientId ?? null, localDist.commercialId ?? null,
-            localDist.isLocal ? 1 : 0, localDist.isSync ? 1 : 0, now,
-            localDist.createdAt ?? now, newHash, localDist.articleCount ?? 0,
-            localDist.remainingAmount ?? localDist.totalAmount ?? 0,
-            localDist.paidAmount ?? 0, localDist.advance ?? 0, distIdStr
-          ]
-        });
-      } else if (!isExisting) {
-        const sql = `INSERT INTO distributions (id, reference, creditId, totalAmount, dailyPayment, startDate, endDate, status, clientId, commercialId, isLocal, isSync, syncDate, createdAt, syncHash, articleCount, remainingAmount, paidAmount, advance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-        distributionsToInsert.push({
-          statement: sql,
-          values: [
-            distIdStr, localDist.reference ?? null, localDist.creditId ?? null, localDist.totalAmount ?? 0,
-            localDist.dailyPayment ?? 0, localDist.startDate ?? null, localDist.endDate ?? null,
-            localDist.status ?? null, localDist.clientId ?? null, localDist.commercialId ?? null,
-            localDist.isLocal ? 1 : 0, localDist.isSync ? 1 : 0, now,
-            localDist.createdAt ?? now, newHash, localDist.articleCount ?? 0,
-            localDist.remainingAmount ?? localDist.totalAmount ?? 0,
-            localDist.paidAmount ?? 0, localDist.advance ?? 0
-          ]
-        });
-      }
-
+      // 3. Insérer les items
       if (localDist.items && localDist.items.length > 0) {
-        const sql = `INSERT INTO distribution_items (id, distributionId, articleId, quantity, unitPrice, totalPrice) VALUES (?,?,?,?,?,?)`;
+        const itemSql = `INSERT INTO distribution_items (id, distributionId, articleId, quantity, unitPrice, totalPrice) VALUES (?,?,?,?,?,?)`;
         for (const item of localDist.items) {
-          allItemsToInsert.push({
-            statement: sql,
+          sqlSet.push({
+            statement: itemSql,
             values: [
               item.id ?? this.generateUuid(),
               distIdStr,
@@ -1240,28 +954,11 @@ export class DatabaseService {
       }
     }
 
-    // === ÉTAPE 2: EXÉCUTION ===
     try {
-      if (distributionIdsToClearItems.length > 0) {
-        const placeholders = distributionIdsToClearItems.map(() => '?').join(',');
-        const sql = `DELETE FROM distribution_items WHERE distributionId IN (${placeholders})`;
-        await this.db.run(sql, distributionIdsToClearItems);
+      if (sqlSet.length > 0) {
+        await this.db.executeSet(sqlSet);
+        console.log(`Successfully saved ${distributions.length} distributions and their items (INSERT OR REPLACE).`);
       }
-
-      if (distributionsToUpdate.length > 0) {
-        await this.db.executeSet(distributionsToUpdate);
-      }
-
-      if (distributionsToInsert.length > 0) {
-        await this.db.executeSet(distributionsToInsert);
-      }
-
-      if (allItemsToInsert.length > 0) {
-        await this.db.executeSet(allItemsToInsert);
-      }
-
-      console.log(`Successfully saved ${distributions.length} distributions and their items.`);
-
     } catch (error) {
       console.error('Failed to save distributions and items in transaction.', error);
       throw error;
@@ -1468,18 +1165,6 @@ export class DatabaseService {
     return ret.values || [];
   }
 
-  /**
-   * Récupérer les articles pour une distribution spécifique.
-   */
-  async getItemsForDistribution(distributionId: string): Promise<DistributionItem[]> {
-    if (!this.db) {
-      console.error('Database not initialized.');
-      return [];
-    }
-    const sql = `SELECT * FROM distribution_items WHERE distributionId = ?`;
-    const ret = await this.db.query(sql, [distributionId]);
-    return ret.values || [];
-  }
 
   async saveAccounts(accounts: any[]): Promise<void> {
     if (!this.db) {
@@ -1598,108 +1283,6 @@ export class DatabaseService {
     return ret.values || [];
   }
 
-  async saveRecoveries(recoveries: any[]): Promise<void> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
-
-    // 1. Clés pour le hash de comparaison
-    const keysToInclude = ['id', 'amount', 'paymentDate', 'paymentMethod', 'notes', 'distributionId', 'clientId', 'commercialId'];
-
-    // 2. Préparation des données en une seule passe
-    const existingRows = await this.db.query('SELECT id, syncHash FROM recoveries');
-    const existingRecoveryMap = new Map<string, string>(
-      existingRows.values?.map(row => [String(row.id), row.syncHash]) ?? []
-    );
-
-    const recoveriesToInsert: capSQLiteSet[] = [];
-    const recoveriesToUpdate: capSQLiteSet[] = [];
-    const now = new Date().toISOString();
-
-    // 3. Boucle de préparation
-    for (const recovery of recoveries) {
-      if (!recovery || recovery.id === undefined) {
-        console.warn('Skipping recovery with no ID:', recovery);
-        continue;
-      }
-      const recoveryIdStr = String(recovery.id);
-
-      // On normalise les IDs imbriqués pour le hashage
-      const normalizedRecovery = {
-        ...recovery,
-        distributionId: recovery.distribution?.id || recovery.distributionId, // FIX: Use direct ID if available
-        clientId: recovery.client?.id || recovery.clientId, // FIX: Use direct ID if available
-        commercialId: recovery.commercialId
-      };
-      const newHash = this.generateHash(normalizedRecovery, keysToInclude);
-
-      const isExisting = existingRecoveryMap.has(recoveryIdStr);
-      const needsUpdate = isExisting && existingRecoveryMap.get(recoveryIdStr) !== newHash;
-
-      const IS_LOCAL = 0; // Données venant du serveur
-      const IS_SYNC = 1;
-
-      if (needsUpdate) {
-        const sql = `UPDATE recoveries SET amount = ?, paymentDate = ?, paymentMethod = ?, notes = ?, distributionId = ?, clientId = ?, commercialId = ?, isLocal = ?, isSync = ?, syncDate = ?, syncHash = ?, isDefaultStake = ? WHERE id = ?`;
-        // **Amélioration : Paramètres robustes et accès sécurisé**
-        const updateParams = [
-          recovery.amount ?? 0,
-          recovery.paymentDate ?? null,
-          recovery.paymentMethod ?? null,
-          recovery.notes ?? null,
-          recovery.distribution?.id ?? recovery.distributionId ?? null, // FIX: Fallback to direct ID
-          recovery.client?.id ?? recovery.clientId ?? null, // FIX: Fallback to direct ID
-          recovery.commercialId ?? null,
-          IS_LOCAL,
-          IS_SYNC,
-          now,
-          newHash,
-          recovery.isDefaultStake ? 1 : 0,
-          recoveryIdStr
-        ];
-        recoveriesToUpdate.push({ statement: sql, values: updateParams });
-
-      } else if (!isExisting) {
-        const sql = `INSERT INTO recoveries (id, amount, paymentDate, paymentMethod, notes, distributionId, clientId, commercialId, isLocal, isSync, syncDate, createdAt, syncHash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        // **Amélioration : Paramètres robustes et accès sécurisé**
-        const insertParams = [
-          recoveryIdStr,
-          recovery.amount ?? 0,
-          recovery.paymentDate ?? null,
-          recovery.paymentMethod ?? null,
-          recovery.notes ?? null,
-          recovery.distribution?.id ?? recovery.distributionId ?? null, // FIX: Fallback to direct ID
-          recovery.client?.id ?? recovery.clientId ?? null, // FIX: Fallback to direct ID
-          recovery.commercialId ?? null,
-          IS_LOCAL,
-          IS_SYNC,
-          now,
-          recovery.paymentDate ?? now, // createdAt
-          newHash
-        ];
-        recoveriesToInsert.push({ statement: sql, values: insertParams });
-      }
-    }
-
-    // 4. Exécution en batch avec executeSet
-    try {
-      if (recoveriesToUpdate.length > 0) {
-        await this.db.executeSet(recoveriesToUpdate);
-      }
-      if (recoveriesToInsert.length > 0) {
-        await this.db.executeSet(recoveriesToInsert);
-      }
-
-      const totalAffected = recoveriesToInsert.length + recoveriesToUpdate.length;
-      if (totalAffected > 0) {
-        console.log(`Successfully saved ${totalAffected} recoveries.`);
-      }
-
-    } catch (error) {
-      console.error('Failed to save recoveries in transaction.', error);
-      throw error;
-    }
-  }
 
   async getRecoveries(commercialId: string): Promise<Recovery[]> {
     if (!this.db) {
@@ -1763,69 +1346,6 @@ export class DatabaseService {
     });
   }
 
-  // Nouvelles méthodes pour l'US008
-
-  /**
-   * Récupérer les distributions actives d'un client
-   */
-  async getClientActiveDistributions(clientId: string): Promise<Distribution[]> {
-    if (!this.db) {
-      console.error('Database not initialized.');
-      return [];
-    }
-    const sql = `
-      SELECT * FROM distributions
-      WHERE clientId = ? AND remainingAmount > 0
-      ORDER BY createdAt DESC
-    `;
-    const ret = await this.db.query(sql, [clientId]);
-    return ret.values || [];
-  }
-
-  /**
-   * Récupérer une distribution par son ID
-   */
-  async getDistributionById(distributionId: string): Promise<Distribution | null> {
-    if (!this.db) {
-      console.error('Database not initialized.');
-      return null;
-    }
-    const sql = `SELECT * FROM distributions WHERE id = ?`;
-    const ret = await this.db.query(sql, [distributionId]);
-    return ret.values && ret.values.length > 0 ? ret.values[0] : null;
-  }
-
-  /**
-   * Sauvegarder un nouveau recouvrement
-   */
-  async saveRecovery(recovery: Recovery): Promise<void> {
-    if (!this.db) {
-      console.error('Database not initialized.');
-      return;
-    }
-    const sql = `
-      INSERT INTO recoveries (
-        id, amount, paymentDate, paymentMethod, notes,
-        distributionId, clientId, commercialId,
-        isLocal, isSync, syncDate, createdAt, isDefaultStake
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    await this.db.run(sql, [
-      recovery.id,
-      recovery.amount,
-      recovery.paymentDate,
-      recovery.paymentMethod,
-      recovery.notes,
-      recovery.distributionId,
-      recovery.clientId,
-      recovery.commercialId,
-      recovery.isLocal ? 1 : 0,
-      recovery.isSync ? 1 : 0,
-      recovery.syncDate,
-      recovery.createdAt,
-      recovery.isDefaultStake ? 1 : 0
-    ]);
-  }
 
   /**
    * Récupérer les recouvrements non synchronisés
@@ -1840,41 +1360,6 @@ export class DatabaseService {
     return ret.values || [];
   }
 
-  /**
-   * Marquer un recouvrement comme synchronisé
-   */
-  async markRecoveryAsSynced(recoveryId: string): Promise<void> {
-    if (!this.db) {
-      console.error('Database not initialized.');
-      return;
-    }
-    const sql = `
-      UPDATE recoveries
-      SET isSync = 1, syncDate = ?
-      WHERE id = ?
-    `;
-    await this.db.run(sql, [new Date().toISOString(), recoveryId]);
-  }
-
-  /**
-   * Mettre à jour une distribution
-   */
-  async updateDistribution(distribution: Distribution): Promise<void> {
-    if (!this.db) {
-      console.error('Database not initialized.');
-      return;
-    }
-    const sql = `
-      UPDATE distributions
-      SET remainingAmount = ?, paidAmount = ?
-      WHERE id = ?
-    `;
-    await this.db.run(sql, [
-      distribution.remainingAmount,
-      distribution.paidAmount,
-      distribution.id
-    ]);
-  }
 
   /**
    * Exporter la base de données vers un format SQL
@@ -2025,41 +1510,7 @@ export class DatabaseService {
     return [];
   }
 
-  /**
-   * Demander l'accès persistant au dossier via Storage Access Framework
-   */
-  async requestDirectoryAccessViaSAF(): Promise<{ path: string, size: number }[]> {
-    try {
-      console.log('📂 Requesting directory access via Storage Access Framework...');
 
-      // Utiliser FilePicker pour permettre à l'utilisateur de sélectionner le dossier elykia
-      const result = await FilePicker.pickFiles({
-        types: ['application/sql', 'text/plain'],
-        readData: false // On veut juste l'accès, pas lire immédiatement
-      });
-
-      if (!result.files || result.files.length === 0) {
-        console.log('❌ No directory access granted');
-        return [];
-      }
-
-      // Pour l'instant, on retourne les fichiers sélectionnés
-      // Dans une implémentation complète, on sauvegarderait l'URI du dossier
-      const backupFiles = result.files
-        .filter(file => file.name?.startsWith('db-backup-') && file.name?.endsWith('.sql'))
-        .map(file => ({
-          path: file.path || file.name || '',
-          size: file.size || 0
-        }));
-
-      console.log(`✅ SAF access granted: Found ${backupFiles.length} backup files`);
-      return backupFiles;
-
-    } catch (error) {
-      console.error('❌ SAF directory access failed:', error);
-      throw error;
-    }
-  }
 
   /**
    * Fallback: File Picker pour sélection manuelle
@@ -2187,74 +1638,6 @@ export class DatabaseService {
     return allFoundFiles;
   }
 
-  /**
-   * Méthode alternative utilisant l'accès direct au système de fichiers
-   */
-  private async scanWithDirectFileSystemAccess(): Promise<{ path: string, size: number }[]> {
-    const foundFiles: { path: string, size: number }[] = [];
-
-    try {
-      console.log('🔄 Attempting direct filesystem access...');
-
-      // Essayer d'accéder directement au dossier Documents
-      const documentsPath = '';
-      const documentsResult = await Filesystem.readdir({
-        path: documentsPath,
-        directory: Directory.Documents
-      });
-
-      console.log('📁 Documents root contents:', documentsResult.files.map(f => f.name));
-
-      // Chercher le dossier elykia
-      const elykyaFolder = documentsResult.files.find(f => f.name === 'elykia');
-      if (elykyaFolder) {
-        console.log('✅ Found elykia folder');
-
-        // Essayer plusieurs méthodes pour lire le contenu
-        const readMethods = [
-          () => Filesystem.readdir({ path: 'elykia', directory: Directory.Documents }),
-          () => Filesystem.readdir({ path: './elykia', directory: Directory.Documents }),
-          () => Filesystem.readdir({ path: '/elykia', directory: Directory.Documents })
-        ];
-
-        for (const method of readMethods) {
-          try {
-            const result = await method();
-            console.log(` Files in elykia:`, result.files.map(f => f.name));
-
-            // Traiter tous les fichiers trouvés
-            const backupFiles = result.files
-              .filter(file => file.name.startsWith('db-backup-') && file.name.endsWith('.sql'))
-              .map(file => ({
-                path: `elykia/${file.name}`,
-                size: file.size || 0
-              }));
-
-            // Ajouter les nouveaux fichiers
-            for (const file of backupFiles) {
-              const exists = foundFiles.some(existing => existing.path === file.path);
-              if (!exists) {
-                foundFiles.push(file);
-                console.log(`✅ Added: ${file.path}`);
-              }
-            }
-
-            if (backupFiles.length > 0) {
-              break; // Si on a trouvé des fichiers, pas besoin d'essayer les autres méthodes
-            }
-
-          } catch (error) {
-            console.warn('Method failed:', error);
-          }
-        }
-      }
-
-    } catch (error) {
-      console.error('Direct filesystem access failed:', error);
-    }
-
-    return foundFiles;
-  }
 
   /**
    * Diagnostiquer les problèmes d'accès aux fichiers de backup
@@ -2412,74 +1795,6 @@ export class DatabaseService {
     }
   }
 
-
-
-  async deleteClientAndRelatedData(clientId: string): Promise<void> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
-
-    try {
-      // On prépare un "set" de toutes les requêtes de suppression.
-      // L'ordre est important : on supprime les "enfants" avant les "parents".
-      const deleteSet: capSQLiteSet[] = [
-        // Étape 1: Supprimer les items de distribution liés au client.
-        // C'est plus efficace de le faire avec une sous-requête.
-        {
-          statement: `DELETE FROM distribution_items WHERE distributionId IN (SELECT id FROM distributions WHERE clientId = ?)`,
-          values: [clientId]
-        },
-        // Étape 2: Supprimer les recouvrements du client
-        {
-          statement: `DELETE FROM recoveries WHERE clientId = ?`,
-          values: [clientId]
-        },
-        // Étape 3: Supprimer les distributions du client
-        {
-          statement: `DELETE FROM distributions WHERE clientId = ?`,
-          values: [clientId]
-        },
-        // Étape 4: Supprimer le compte du client
-        {
-          statement: `DELETE FROM accounts WHERE clientId = ?`,
-          values: [clientId]
-        },
-        // Étape 5: Enfin, supprimer le client lui-même
-        {
-          statement: `DELETE FROM clients WHERE id = ?`,
-          values: [clientId]
-        }
-      ];
-
-      // On exécute l'ensemble des opérations.
-      // executeSet est transactionnel : si une requête échoue, tout est annulé.
-      await this.db.executeSet(deleteSet);
-
-      this.log.log(`Successfully deleted client ${clientId} and all related data.`);
-
-    } catch (error) {
-      // Le rollback est géré automatiquement par executeSet.
-      this.log.log(`Failed to delete client ${clientId} and related data.`);
-      console.error('Failed to delete client and related data:', error);
-      throw error; // On relance l'erreur pour que le code appelant soit notifié.
-    }
-  }
-
-  async updateClientLocation(id: string, latitude: number, longitude: number): Promise<Client> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
-    const sql = `UPDATE clients SET updated=1, latitude=?, longitude=? WHERE id=?`;
-    await this.db.run(sql, [latitude, longitude, id]);
-    this.log.log(`Location for client with id ${id} updated.`);
-    const updatedClient = await this.db.query('SELECT * FROM clients WHERE id = ?', [id]);
-    if (updatedClient.values && updatedClient.values.length > 0) {
-      return updatedClient.values[0];
-    } else {
-      throw new Error(`Client with id ${id} not found after update.`);
-    }
-  }
-
   async getUnsyncedTontineMembers(): Promise<any[]> {
     if (!this.db) throw new Error('Database not initialized.');
 
@@ -2534,11 +1849,6 @@ export class DatabaseService {
     throw new Error('Use ClientRepository.updatePhotosAndInfo instead of DatabaseService.updateClientPhotosAndInfo');
   }
 
-  async updateClient(client: Client): Promise<Client> {
-    // Moved to ClientRepository.updateClient
-    throw new Error('Use ClientRepository.updateClient instead of DatabaseService.updateClient');
-  }
-
   private mapRowToClient(row: any): Client {
     return {
       id: row.id,
@@ -2574,307 +1884,6 @@ export class DatabaseService {
     } as Client;
   }
 
-  // ==================== ORDER METHODS ====================
-
-  /**
-   * Save orders and their items in a single transaction (similar to saveDistributionsAndItems)
-   */
-  async saveOrdersAndItems(orders: any[]): Promise<void> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
-
-    if (!orders || orders.length === 0) {
-      console.log('No orders to save.');
-      return;
-    }
-
-    // === ÉTAPE 1: PRÉPARATION ===
-    const keysToInclude = ['id', 'reference', 'totalAmount', 'status', 'clientId', 'commercialId'];
-    const existingRows = await this.db.query('SELECT id, syncHash FROM orders');
-
-    const existingOrderMap = new Map<string, string>(
-      existingRows.values?.map((row: DbRowWithHash) => [String(row.id), row.syncHash]) ?? []
-    );
-
-    const ordersToUpdate: capSQLiteSet[] = [];
-    const ordersToInsert: capSQLiteSet[] = [];
-    const allItemsToInsert: capSQLiteSet[] = [];
-    const orderIdsToClearItems: string[] = [];
-    const now = new Date().toISOString();
-
-    for (const order of orders) {
-      const orderIdStr = String(order.id);
-      if (!orderIdStr) { continue; }
-
-      const newHash = this.generateHash(order, keysToInclude);
-      const isExisting = existingOrderMap.has(orderIdStr);
-      const needsUpdate = isExisting && existingOrderMap.get(orderIdStr) !== newHash;
-
-      if (isExisting && !needsUpdate) {
-        continue;
-      }
-
-      // Si une commande est mise à jour, on supprime TOUJOURS ses anciens items.
-      if (needsUpdate) {
-        orderIdsToClearItems.push(orderIdStr);
-      }
-
-      if (needsUpdate) {
-        const sql = `UPDATE orders SET reference=?, totalAmount=?, advance=?, remainingAmount=?, dailyPayment=?, startDate=?, endDate=?, status=?, clientId=?, commercialId=?, isLocal=?, isSync=?, syncDate=?, createdAt=?, syncHash=?, articleCount=? WHERE id=?`;
-        ordersToUpdate.push({
-          statement: sql,
-          values: [
-            order.reference ?? null,
-            order.totalAmount ?? 0,
-            order.advance ?? 0,
-            order.remainingAmount ?? order.totalAmount ?? 0,
-            order.dailyPayment ?? 0,
-            order.startDate ?? null,
-            order.endDate ?? null,
-            order.status ?? null,
-            order.clientId ?? null,
-            order.commercialId ?? null,
-            order.isLocal ? 1 : 0,
-            order.isSync ? 1 : 0,
-            now,
-            order.createdAt ?? now,
-            newHash,
-            order.articleCount ?? 0,
-            orderIdStr
-          ]
-        });
-      } else if (!isExisting) {
-        const sql = `INSERT INTO orders (id, reference, totalAmount, advance, remainingAmount, dailyPayment, startDate, endDate, status, clientId, commercialId, isLocal, isSync, syncDate, createdAt, syncHash, articleCount) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-        ordersToInsert.push({
-          statement: sql,
-          values: [
-            orderIdStr,
-            order.reference ?? null,
-            order.totalAmount ?? 0,
-            order.advance ?? 0,
-            order.remainingAmount ?? order.totalAmount ?? 0,
-            order.dailyPayment ?? 0,
-            order.startDate ?? null,
-            order.endDate ?? null,
-            order.status ?? null,
-            order.clientId ?? null,
-            order.commercialId ?? null,
-            order.isLocal ? 1 : 0,
-            order.isSync ? 1 : 0,
-            now,
-            order.createdAt ?? now,
-            newHash,
-            order.articleCount ?? 0
-          ]
-        });
-      }
-
-      if (order.items && order.items.length > 0) {
-        const sql = `INSERT INTO order_items (id, orderId, articleId, quantity, unitPrice, totalPrice, articleName) VALUES (?,?,?,?,?,?,?)`;
-        for (const item of order.items) {
-          allItemsToInsert.push({
-            statement: sql,
-            values: [
-              item.id ?? this.generateUuid(),
-              orderIdStr,
-              item.articleId ?? null,
-              item.quantity ?? 0,
-              item.unitPrice ?? 0,
-              item.totalPrice ?? 0,
-              item.articleName ?? null
-            ]
-          });
-        }
-      }
-    }
-
-    // === ÉTAPE 2: EXÉCUTION ===
-    try {
-      if (orderIdsToClearItems.length > 0) {
-        const placeholders = orderIdsToClearItems.map(() => '?').join(',');
-        const sql = `DELETE FROM order_items WHERE orderId IN (${placeholders})`;
-        await this.db.run(sql, orderIdsToClearItems);
-      }
-
-      if (ordersToUpdate.length > 0) {
-        await this.db.executeSet(ordersToUpdate);
-      }
-
-      if (ordersToInsert.length > 0) {
-        await this.db.executeSet(ordersToInsert);
-      }
-
-      if (allItemsToInsert.length > 0) {
-        await this.db.executeSet(allItemsToInsert);
-      }
-
-      console.log(`Successfully saved ${orders.length} orders and their items.`);
-
-    } catch (error) {
-      console.error('Failed to save orders and items in transaction.', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get all orders from local database
-   */
-  async getOrders(commercialId: string): Promise<any[]> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
-
-    try {
-      const query = `SELECT * FROM orders WHERE commercialId = ? ORDER BY createdAt DESC`;
-      const result = await this.db.query(query, [commercialId]);
-      return result.values || [];
-    } catch (error) {
-      console.error('Error getting orders:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Save orders to local database
-   */
-  async saveOrders(orders: any[]): Promise<void> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
-
-    if (!orders || orders.length === 0) {
-      console.log('No orders to save.');
-      return;
-    }
-
-    try {
-      await this.db.execute('BEGIN TRANSACTION;');
-
-      for (const order of orders) {
-        const query = `
-          INSERT OR REPLACE INTO orders (
-            id, reference, totalAmount, advance, remainingAmount, dailyPayment,
-            startDate, endDate, status, clientId, commercialId, isLocal, isSync,
-            syncDate, createdAt, syncHash, articleCount
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        const values = [
-          order.id,
-          order.reference,
-          order.totalAmount,
-          order.advance || 0,
-          order.remainingAmount || order.totalAmount,
-          order.dailyPayment || 0,
-          order.startDate,
-          order.endDate || '',
-          order.status,
-          order.clientId,
-          order.commercialId,
-          order.isLocal ? 1 : 0,
-          order.isSync ? 1 : 0,
-          order.syncDate || '',
-          order.createdAt,
-          order.syncHash || '',
-          order.articleCount || 0
-        ];
-
-        await this.db.run(query, values);
-      }
-
-      await this.db.execute('COMMIT;');
-      console.log(`Successfully saved ${orders.length} orders.`);
-    } catch (error) {
-      await this.db.execute('ROLLBACK;');
-      console.error('Error saving orders:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get order items for a specific order
-   */
-  async getItemsForOrder(orderId: string): Promise<any[]> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
-
-    try {
-      const query = `SELECT * FROM order_items WHERE orderId = ?`;
-      const result = await this.db.query(query, [orderId]);
-      return result.values || [];
-    } catch (error) {
-      console.error('Error getting order items:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get all order items
-   */
-  async getOrderItems(): Promise<any[]> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
-
-    try {
-      const query = `SELECT * FROM order_items`;
-      const result = await this.db.query(query);
-      return result.values || [];
-    } catch (error) {
-      console.error('Error getting all order items:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Save order items to local database
-   */
-  async saveOrderItems(items: any[]): Promise<void> {
-    if (!this.db) {
-      throw new Error('Database not initialized.');
-    }
-
-    if (!items || items.length === 0) {
-      console.log('No order items to save.');
-      return;
-    }
-
-    try {
-      await this.db.execute('BEGIN TRANSACTION;');
-
-      // Clear existing items first
-      await this.db.execute('DELETE FROM order_items');
-
-      for (const item of items) {
-        const query = `
-          INSERT INTO order_items (
-            id, orderId, articleId, quantity, unitPrice, totalPrice, articleName
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        const values = [
-          item.id,
-          item.orderId,
-          item.articleId,
-          item.quantity,
-          item.unitPrice,
-          item.totalPrice,
-          item.articleName || null
-        ];
-
-        await this.db.run(query, values);
-      }
-
-      await this.db.execute('COMMIT;');
-      console.log(`Successfully saved ${items.length} order items.`);
-    } catch (error) {
-      await this.db.execute('ROLLBACK;');
-      console.error('Error saving order items:', error);
-      throw error;
-    }
-  }
   /**
    * ==========================================
    * TONTINE METHODS
@@ -2948,33 +1957,6 @@ export class DatabaseService {
     return result.values || [];
   }
 
-  async saveTontineMemberAmountHistory(history: any[]): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized.');
-    if (!history.length) return;
-
-    const query = `
-      INSERT OR REPLACE INTO tontine_member_amount_history (
-        id, tontineMemberId, amount, startDate, endDate, creationDate, isSync, syncDate, syncHash
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    const set: capSQLiteSet[] = history.map(h => ({
-      statement: query,
-      values: [
-        h.id, h.tontineMemberId, h.amount, h.startDate, h.endDate, h.creationDate,
-        1, new Date().toISOString(), h.syncHash
-      ]
-    }));
-
-    await this.db.executeSet(set);
-  }
-
-  async getTontineMemberAmountHistory(memberId: string): Promise<any[]> {
-    if (!this.db) throw new Error('Database not initialized.');
-    const result = await this.db.query('SELECT * FROM tontine_member_amount_history WHERE tontineMemberId = ? ORDER BY startDate DESC', [memberId]);
-    return result.values || [];
-  }
-
   async getTontineCollectionsByCommercial(commercialUsername: string): Promise<any[]> {
     if (!this.db) throw new Error('Database not initialized.');
 
@@ -3037,12 +2019,6 @@ export class DatabaseService {
     }));
 
     await this.db.executeSet(set);
-  }
-
-  async getTontineCollections(memberId: string): Promise<any[]> {
-    if (!this.db) throw new Error('Database not initialized.');
-    const result = await this.db.query('SELECT * FROM tontine_collections WHERE tontineMemberId = ?', [memberId]);
-    return result.values || [];
   }
 
   async getUnsyncedCollectionsTotals(): Promise<{ tontineMemberId: string, total: number }[]> {
@@ -3143,12 +2119,6 @@ export class DatabaseService {
     }));
 
     await this.db.executeSet(set);
-  }
-
-  async getTontineStocks(commercial: string, sessionId: string): Promise<any[]> {
-    if (!this.db) throw new Error('Database not initialized.');
-    const result = await this.db.query('SELECT * FROM tontine_stocks WHERE commercial = ? AND tontineSessionId = ?', [commercial, sessionId]);
-    return result.values || [];
   }
 
   // ==========================================

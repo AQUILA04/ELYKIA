@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -118,13 +119,14 @@ public class CommercialDataSummaryService {
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalTontineStockAvailable(totalTontineStockAvailable);
+            LocalDate today = LocalDate.now();
             
             // Stock Commercial - Nombre d'items (lignes)
             Long totalCommercialStockItems = ((Number) entityManager.createNativeQuery(
                 "SELECT COUNT(*) " +
                 "FROM commercial_monthly_stock_item cms_item " +
                 "JOIN commercial_monthly_stock cms ON cms_item.monthly_stock_id = cms.id " +
-                "WHERE cms.collector = :collector AND cms_item.quantity_remaining > 0")
+                "WHERE cms.collector = :collector AND cms_item.quantity_remaining > 0 AND cms.month = "+ today.getMonthValue() +" AND cms.year = " + today.getYear())
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalCommercialStockItems(totalCommercialStockItems);
@@ -134,7 +136,7 @@ public class CommercialDataSummaryService {
                 "SELECT COALESCE(SUM(cms_item.quantity_remaining), 0) " +
                 "FROM commercial_monthly_stock_item cms_item " +
                 "JOIN commercial_monthly_stock cms ON cms_item.monthly_stock_id = cms.id " +
-                "WHERE cms.collector = :collector AND cms_item.quantity_remaining > 0")
+                "WHERE cms.collector = :collector AND cms_item.quantity_remaining > 0 AND cms.month = "+ today.getMonthValue() +" AND cms.year = " + today.getYear())
                 .setParameter("collector", commercialUsername)
                 .getSingleResult()).longValue();
             summary.setTotalCommercialStockRemaining(totalCommercialStockRemaining);
