@@ -6,7 +6,7 @@ import { ClientView } from 'src/app/models/client-view.model';
 import { selectPaginatedClientViews, selectClientPaginationHasMore, selectClientPaginationLoading } from 'src/app/store/client/client.selectors';
 import * as ClientActions from 'src/app/store/client/client.actions';
 import { FormControl } from '@angular/forms';
-import { startWith, map, tap, catchError, filter, shareReplay, take, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { startWith, map, tap, catchError, filter, shareReplay, take, takeUntil, debounceTime, distinctUntilChanged, withLatestFrom } from 'rxjs/operators';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { LoggerService } from '../../core/services/logger.service';
@@ -104,9 +104,13 @@ export class ClientsPage implements OnInit, OnDestroy {
 
     this.isLoading$.pipe(
       filter(loading => !loading),
+      withLatestFrom(this.hasMore$),
       take(1)
-    ).subscribe(() => {
+    ).subscribe(([_, hasMore]) => {
       event.target.complete();
+      if (!hasMore) {
+        event.target.disabled = true;
+      }
     });
   }
 
