@@ -39,7 +39,7 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
     public CashDeposit createDeposit(CashDeposit deposit) {
         User currentUser = userService.getCurrentUser();
         deposit.setReceivedBy(currentUser.getUsername());
-        deposit.setDate(LocalDate.now());
+        deposit.setDate(deposit.getDate() != null ? deposit.getDate() : LocalDate.now());
 
         // Update Daily Report
         DailyCommercialReport report = dailyReportRepository
@@ -63,7 +63,7 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
                 OperationType.CASH_DEPOSIT,
                 deposit.getAmount(),
                 "Versement " + saved.getId(),
-                "Versement effectué par " + currentUser.getUsername());
+                "Versement effectué par " + currentUser.getUsername() + " Pour la date du "+ deposit.getDate());
 
         return saved;
     }
