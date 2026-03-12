@@ -3,7 +3,7 @@
 <div class="container" *ngIf="reception">
   <div class="header-fixed">
     <div class="d-flex justify-content-center mb-3">
-      <h1>Détails de la Réception</h1>
+      <h1>Détails de l'entrée de stock</h1>
     </div>
   </div>
 
@@ -38,7 +38,7 @@
       <tbody>
       <tr *ngFor="let item of reception.items; let i = index">
         <td>{{ i + 1 }}</td>
-        <td>{{ item.article.name }}</td>
+        <td>{{ item.articleName }}</td>
         <td>{{ item.quantity }}</td>
         <td>{{ item.unitPrice | currency }}</td>
         <td>{{ item.totalPrice | currency }}</td>
