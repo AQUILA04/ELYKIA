@@ -15,6 +15,21 @@ export const loadDistributionsFailure = createAction(
   props<{ error: string }>()
 );
 
+export const loadDistributionsByClient = createAction(
+  '[Distribution] Load Distributions By Client',
+  props<{ clientId: string }>()
+);
+
+export const loadDistributionsByClientSuccess = createAction(
+  '[Distribution] Load Distributions By Client Success',
+  props<{ distributions: Distribution[] }>()
+);
+
+export const loadDistributionsByClientFailure = createAction(
+  '[Distribution] Load Distributions By Client Failure',
+  props<{ error: string }>()
+);
+
 // New actions for US006: Available Articles
 export const loadAvailableArticles = createAction('[Distribution] Load Available Articles');
 

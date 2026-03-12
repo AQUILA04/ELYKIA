@@ -82,7 +82,29 @@ export const initialState: DistributionState = {
 export const distributionReducer = createReducer(
   initialState,
 
-  // ... (Load Distributions reducers remain the same)
+  // Load Distributions By Client
+  on(DistributionActions.loadDistributionsByClient, (state) => ({
+    ...state,
+    loading: true,
+    error: null
+  })),
+
+  on(DistributionActions.loadDistributionsByClientSuccess, (state, { distributions }) => {
+    const newDistMap = new Map(distributions.map(d => [d.id, d]));
+    const otherDistributions = state.distributions.filter(d => !newDistMap.has(d.id));
+    return {
+      ...state,
+      distributions: [...otherDistributions, ...distributions],
+      loading: false,
+      error: null
+    };
+  }),
+
+  on(DistributionActions.loadDistributionsByClientFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error
+  })),
 
   // ==========================================
   // PAGINATION REDUCERS (Distributions)

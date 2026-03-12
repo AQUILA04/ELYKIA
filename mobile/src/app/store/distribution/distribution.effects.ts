@@ -50,6 +50,24 @@ export class DistributionEffects {
     )
   );
 
+  // Load Distributions By Client Effect - from local database only
+  loadDistributionsByClient$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadDistributionsByClient),
+      switchMap((action) =>
+        this.distributionService.getDistributionsByClient(action.clientId).pipe(
+          map(distributions => DistributionActions.loadDistributionsByClientSuccess({ distributions })),
+          catchError(error => {
+            console.error('Load distributions by client failed:', error);
+            return of(DistributionActions.loadDistributionsByClientFailure({
+              error: error.message || 'Erreur lors du chargement des distributions du client'
+            }));
+          })
+        )
+      )
+    )
+  );
+
   /**
    * Pagination Effects (US001/US002)
    */
@@ -335,6 +353,22 @@ export class DistributionEffects {
   loadDistributionsError$ = createEffect(() =>
     this.actions$.pipe(
       ofType(DistributionActions.loadDistributionsFailure),
+      tap(async ({ error }) => {
+        const toast = await this.toastController.create({
+          message: error,
+          duration: 5000,
+          color: 'danger',
+          position: 'top'
+        });
+        await toast.present();
+      })
+    ),
+    { dispatch: false }
+  );
+
+  loadDistributionsByClientError$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadDistributionsByClientFailure),
       tap(async ({ error }) => {
         const toast = await this.toastController.create({
           message: error,

@@ -22,6 +22,7 @@ import { LocationUpdateComponent } from 'src/app/shared/components/location-upda
 import { ClientMenuComponent } from '../../components/client-menu/client-menu.component';
 import * as ClientActions from '../../../../store/client/client.actions';
 import * as AccountActions from '../../../../store/account/account.actions';
+import * as DistributionActions from '../../../../store/distribution/distribution.actions';
 import { Capacitor } from '@capacitor/core';
 import { ThumbnailService } from '../../../../core/services/thumbnail.service';
 
@@ -73,6 +74,7 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     this.clientId = this.route.snapshot.paramMap.get('id');
     if (this.clientId) {
       this.store.dispatch(loadTransactionsByClient({ clientId: this.clientId, page: 0, size: 20 }));
+      this.store.dispatch(DistributionActions.loadDistributionsByClient({ clientId: this.clientId }));
       this.initObservables(this.clientId);
       this.setupActionListeners();
     }
