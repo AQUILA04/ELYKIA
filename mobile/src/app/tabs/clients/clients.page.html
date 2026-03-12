@@ -27,12 +27,23 @@
       <ng-container *ngIf="clients.length > 0; else emptyState">
         <ion-item *ngFor="let client of clients; trackBy: trackByClientId" (click)="openClientDetail(client.id)" button>
           <ion-avatar slot="start">
-            <img [src]="getPhotoUrl(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto)" />
+            <img *ngIf="(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto); else defaultAvatar" 
+                 [src]="getPhotoUrl(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto)" 
+                 (error)="handleImageError($event)"/>
+            <ng-template #defaultAvatar>
+              <div class="avatar-fallback">
+                <ion-icon name="person"></ion-icon>
+              </div>
+            </ng-template>
           </ion-avatar>
           <ion-label>
             <h2>{{ client.fullName || (client.firstname + ' ' + client.lastname) }}</h2>
-            <p>{{ client.address }} • {{ client.quarter }}</p>
-            <p>{{ client.phone }}</p>
+            <p *ngIf="client.address || client.quarter">
+              <ng-container *ngIf="client.address">{{ client.address }}</ng-container>
+              <ng-container *ngIf="client.address && client.quarter"> • </ng-container>
+              <ng-container *ngIf="client.quarter">{{ client.quarter }}</ng-container>
+            </p>
+            <p *ngIf="client.phone">{{ client.phone }}</p>
           </ion-label>
           <div slot="end" class="client-details">
             <ion-note color="success">{{ client.account?.accountBalance | currency:'XOF' }}</ion-note>

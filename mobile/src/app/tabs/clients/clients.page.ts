@@ -167,6 +167,13 @@ export class ClientsPage implements OnInit, OnDestroy {
     await actionSheet.present();
   }
 
+  handleImageError(event: any) {
+    if (event.target) {
+      event.target.src = 'assets/icon/person-circle-outline.svg';
+      event.target.onerror = null;
+    }
+  }
+
   trackByClientId(index: number, client: ClientView): string {
     return client.id;
   }
