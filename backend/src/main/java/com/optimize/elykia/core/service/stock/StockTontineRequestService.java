@@ -175,7 +175,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
 
         request.setStatus(StockRequestStatus.DELIVERED);
 
-        request.setAccountingDate(accountingDayService.getCurrentAccountingDate());
+        request.setAccountingDate(LocalDate.now());
 
         StockTontineRequest savedRequest = update(request);
 

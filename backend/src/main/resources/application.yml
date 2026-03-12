@@ -15,7 +15,7 @@ spring:
     placeholder-replacement: true
     placeholders:
       project: optimize-elykia-core
-debug: true
+#debug: true
 security:
   licence:
     prod:

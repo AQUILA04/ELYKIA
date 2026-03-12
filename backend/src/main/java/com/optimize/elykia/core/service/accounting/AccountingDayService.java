@@ -41,7 +41,7 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
     @Transactional
     public Map<String, Object> hasOpenedDay() {
         Map<String, Object> response = new java.util.HashMap<>(Map.of("status", Boolean.TRUE));
-            response.put("accountingDate", getCurrentAccountingDate());
+            response.put("accountingDate", LocalDate.now());
          return response;
     }
 

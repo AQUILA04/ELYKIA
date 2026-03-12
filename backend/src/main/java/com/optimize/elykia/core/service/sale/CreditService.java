@@ -667,7 +667,7 @@ public class CreditService extends GenericService<Credit, Long> {
             // credit = mergeTontine(credit);
             // }
         }
-        LocalDate accountingDate = sharedService.getAccountingDayService().getCurrentAccountingDate();
+        LocalDate accountingDate = LocalDate.now();
         credit.setAccountingDate(accountingDate);
         credit.setReleaseDate(accountingDate);
         credit.start();
