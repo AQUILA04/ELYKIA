@@ -22,6 +22,7 @@ import com.optimize.elykia.core.repository.TontineMemberAmountHistoryRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +36,7 @@ import java.util.*;
 
 import lombok.Getter;
 
+@Slf4j
 @Service
 @Transactional
 @Getter
@@ -499,6 +501,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
                                                  Pageable pageable) {
         int currentYear = LocalDate.now().getYear();
 
+
         // Determine the commercial filter
         String commercialFilter = commercial;
         if (currentUser.is(UserProfilConstant.PROMOTER)) {
@@ -517,10 +520,18 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         // Clean up search string
         String searchFilter = StringUtils.hasText(search) ? search : null;
+        Page<TontineMemberRespDto> memberRespDtos= null;
         if (Objects.isNull(searchFilter)) {
-            return getRepository().findMembersDto(currentYear, commercialFilter, statusFilter, pageable);
+            memberRespDtos= getRepository().findMembersDto(currentYear, commercialFilter, statusFilter, pageable);
+            log.info("===>TONTINE MEMBER LOG -memberRespDtos= " + memberRespDtos.getContent().size());
+            log.info("**************##### ===>TONTINE MEMBER LOG -LIST MEMBER ID= " + memberRespDtos.getContent().stream().map(TontineMemberRespDto::id).toList());
+            return memberRespDtos;
         } else {
-            return getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter, statusFilter, pageable);
+            memberRespDtos = getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter, statusFilter, pageable);
+            log.info("===>TONTINE MEMBER LOG -memberRespDtos= " + memberRespDtos.getContent().size());
+            log.info("**************##### ===>TONTINE MEMBER LOG -LIST MEMBER ID= " + memberRespDtos.getContent().stream().map(TontineMemberRespDto::id).toList());
+
+            return memberRespDtos;
         }
     }
 

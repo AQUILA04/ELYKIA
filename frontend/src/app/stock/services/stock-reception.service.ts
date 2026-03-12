@@ -8,8 +8,8 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root'
 })
 export class StockReceptionService {
-  private apiUrl = `${environment.apiUrl}/stock-receptions`;
-  private pdfUrl = `${environment.apiUrl}/pdf`;
+  private apiUrl = `${environment.apiUrl}/api/v1/stock-receptions`;
+  private pdfUrl = `${environment.apiUrl}/api/v1/pdf`;
 
   constructor(private http: HttpClient) { }
 
@@ -32,8 +32,8 @@ export class StockReceptionService {
     return this.http.get<any>(endpoint, { params });
   }
 
-  getReception(id: number): Observable<StockReception> {
-    return this.http.get<StockReception>(`${this.apiUrl}/${id}`);
+  getReception(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 
   downloadPdf(id: number): Observable<Blob> {

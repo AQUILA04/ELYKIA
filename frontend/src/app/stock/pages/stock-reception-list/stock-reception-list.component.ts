@@ -32,9 +32,9 @@ export class StockReceptionListComponent implements OnInit {
     this.spinner.show();
     this.stockReceptionService.getReceptions(this.currentPage, this.pageSize, this.searchReference, this.searchDate).subscribe({
       next: (response) => {
-        if (response && response.content) {
-            this.receptions = response.content;
-            this.totalElement = response.totalElements;
+        if (response && response.data.content) {
+            this.receptions = response.data.content;
+            this.totalElement = response.data.page.totalElements;
         } else {
              this.receptions = [];
              this.totalElement = 0;

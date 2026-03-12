@@ -57,7 +57,7 @@
         </thead>
         <tbody>
         <tr th:each="item : ${reception.items}">
-            <td th:text="${item.article.name}"></td>
+            <td th:text="${item.articleName}"></td>
             <td th:text="${item.quantity}"></td>
             <td th:text="${#numbers.formatCurrency(item.unitPrice)}"></td>
             <td th:text="${#numbers.formatCurrency(item.totalPrice)}"></td>

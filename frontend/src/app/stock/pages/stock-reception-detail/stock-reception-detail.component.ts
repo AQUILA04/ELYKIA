@@ -10,7 +10,7 @@ import { StockReception } from '../../../core/models/stock-reception.model';
   styleUrls: ['./stock-reception-detail.component.scss']
 })
 export class StockReceptionDetailComponent implements OnInit {
-  reception: StockReception | null = null;
+  reception: any | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -30,7 +30,7 @@ export class StockReceptionDetailComponent implements OnInit {
     this.spinner.show();
     this.stockReceptionService.getReception(id).subscribe({
       next: (response) => {
-        this.reception = response;
+        this.reception = response.data;
         this.spinner.hide();
       },
       error: () => {

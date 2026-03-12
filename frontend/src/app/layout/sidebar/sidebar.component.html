@@ -168,15 +168,7 @@
           </ul>
         </li>
 
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER', 'ROLE_REPORT']">
-          <a class="sidebar-link" routerLink="/stock/receptions" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/stock/receptions') }">
-            <span>
-              <mat-icon>history</mat-icon>
-            </span>
-            <span class="hide-menu">Historique Entrée</span>
-          </a>
-        </li>
+
 
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT']">
           <a class="sidebar-link" routerLink="/credit-list" aria-expanded="false"
@@ -285,7 +277,15 @@
             <span class="hide-menu">Inventaires</span>
           </a>
         </li>
-
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER', 'ROLE_REPORT']">
+          <a class="sidebar-link" routerLink="/stock/receptions" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/stock/receptions') }">
+            <span>
+              <mat-icon>history</mat-icon>
+            </span>
+            <span class="hide-menu">Historique Entrée</span>
+          </a>
+        </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']">
           <a class="sidebar-link" routerLink="/gestion-list" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/gestion-list') }">

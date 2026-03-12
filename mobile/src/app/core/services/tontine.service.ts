@@ -20,15 +20,15 @@ import { SyncOptions } from '../models/tontine-sync.models';
 
 /**
  * Service de gestion des données Tontine
- * 
+ *
  * MIGRATION NOTICE:
  * Ce service a été migré pour utiliser le nouveau système de synchronisation robuste (SyncOrchestratorService).
- * 
+ *
  * Changements principaux:
  * - initializeTontine() utilise maintenant SyncOrchestratorService pour une synchronisation fiable
  * - Les anciennes méthodes (fetchAndSaveMembers, fetchAndSaveCollections, fetchAndSaveStocks) sont dépréciées
  * - Le nouveau système élimine les race conditions et garantit l'intégrité des données
- * 
+ *
  * Avantages du nouveau système:
  * - Synchronisation séquentielle (pas de race conditions)
  * - Nettoyage préalable des données
@@ -84,14 +84,14 @@ export class TontineService {
         if (commercialUsername) {
             this.commercialUsername = commercialUsername;
         }
-        
+
         if (!this.commercialUsername) {
             console.error('TontineService: No commercial username provided');
             return of(false);
         }
 
         console.log(`TontineService: Initializing tontine data for ${this.commercialUsername}...`);
-        
+
         // First fetch and save the session
         return this.fetchAndSaveSession().pipe(
             switchMap(session => {
@@ -107,7 +107,7 @@ export class TontineService {
                     forceCleanup: true,
                     sessionId: session.id,
                     commercialUsername: this.commercialUsername!,
-                    batchSize: 100
+                    batchSize: 500
                 };
 
                 return this.syncOrchestrator.startSync(syncOptions).pipe(
@@ -476,6 +476,7 @@ export class TontineService {
      */
     getMembers(sessionId: string): Observable<TontineMemberView[]> {
         if (!this.commercialUsername) return of([]);
+
         return from(this.dbService.getTontineMembers(sessionId, this.commercialUsername)) as Observable<TontineMemberView[]>;
     }
 
