@@ -111,15 +111,24 @@ export class TontineService {
                 };
 
                 return this.syncOrchestrator.startSync(syncOptions).pipe(
-                    map(result => {
+                    switchMap(result => {
                         if (result.success) {
                             console.log('TontineService: Tontine initialization completed successfully.');
                             console.log(`TontineService: Synced ${result.totalMembers} members, ${result.totalCollections} collections, ${result.totalStocks} stocks`);
-                            return true;
+
+                            // Fetch amount history after successful sync
+                            return this.fetchAndSaveAmountHistory(session.id).pipe(
+                                map(() => true),
+                                catchError(err => {
+                                    console.error('TontineService: Error fetching amount history:', err);
+                                    // Even if history fails, the main sync was successful
+                                    return of(true);
+                                })
+                            );
                         } else {
                             console.error('TontineService: Sync failed with errors:', result.errors);
                             this.log.log('TontineService: Sync failed: ' + JSON.stringify(result.errors));
-                            return false;
+                            return of(false);
                         }
                     })
                 );

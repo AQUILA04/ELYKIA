@@ -285,10 +285,10 @@ export class DatabaseService {
             id TEXT PRIMARY KEY,
             reference TEXT,
             creditId TEXT,
-            totalAmount REAL,
-            paidAmount REAL DEFAULT 0,
-            advance REAL DEFAULT 0,
-            remainingAmount REAL DEFAULT 0,
+            totalAmount REAL CHECK(TYPEOF(totalAmount) IN ('integer', 'real') OR totalAmount IS NULL),
+            paidAmount REAL DEFAULT 0 CHECK(TYPEOF(paidAmount) IN ('integer', 'real') OR paidAmount IS NULL),
+            advance REAL DEFAULT 0 CHECK(TYPEOF(advance) IN ('integer', 'real') OR advance IS NULL),
+            remainingAmount REAL DEFAULT 0 CHECK(TYPEOF(remainingAmount) IN ('integer', 'real') OR remainingAmount IS NULL),
             dailyPayment REAL,
             startDate TEXT,
             endDate TEXT,
@@ -356,7 +356,7 @@ export class DatabaseService {
         -- Table des recouvrements
         CREATE TABLE IF NOT EXISTS recoveries (
             id TEXT PRIMARY KEY,
-            amount REAL,
+            amount REAL CHECK(TYPEOF(amount) IN ('integer', 'real') OR amount IS NULL),
             paymentDate TEXT,
             paymentMethod TEXT,
             notes TEXT,
@@ -476,7 +476,7 @@ export class DatabaseService {
             syncDate DATETIME,
             syncHash TEXT,
             frequency TEXT,
-            amount REAL,
+            amount REAL CHECK(TYPEOF(amount) IN ('integer', 'real') OR amount IS NULL),
             notes TEXT,
             updateScope TEXT,
             FOREIGN KEY(tontineSessionId) REFERENCES tontine_sessions(id)
@@ -532,7 +532,8 @@ export class DatabaseService {
             isLocal BOOLEAN DEFAULT 0,
             isSync BOOLEAN DEFAULT 0,
             syncDate DATETIME,
-            syncHash TEXT
+            syncHash TEXT,
+            FOREIGN KEY(tontineMemberId) REFERENCES tontine_members(id)
             -- IMPORTANT:
             -- Pas de contrainte FOREIGN KEY(tontineMemberId) ici non plus, même raison que ci-dessus.
         );
@@ -982,7 +983,7 @@ export class DatabaseService {
             const res = await this.db.query(`SELECT id FROM articles WHERE id IN (${placeholders})`, idsArr);
             const foundIds = new Set((res.values || []).map(r => String(r.id)));
             const missingIds = idsArr.filter(id => !foundIds.has(id));
-            
+
             if (missingIds.length > 0) {
               const exactCause = `EXACT CAUSE: FOREIGN KEY constraint failed. Missing article IDs in local DB: ${missingIds.join(', ')}`;
               this.log.log(exactCause);
@@ -1962,7 +1963,7 @@ export class DatabaseService {
       statement: query,
       values: [
         m.id, m.tontineSessionId, m.clientId, m.commercialUsername, m.totalContribution, m.deliveryStatus,
-        m.registrationDate, m.frequency, m.amount, m.notes, m.isLocal ? 1 : 0, m.isSync ? 1 : 0, m.syncDate || new Date().toISOString(), m.syncHash, m.updateScope || null
+        m.registrationDate, m.isLocal ? 1 : 0, m.isSync ? 1 : 0, m.syncDate || new Date().toISOString(), m.syncHash, m.frequency, m.amount, m.notes, m.updateScope || null
       ]
     }));
 
