@@ -30,13 +30,25 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         } else {
             page = getRepository().findAll(pageable);
         }
-        // Utilise la méthode toDto par défaut qui ignore les items
+        return page.map(mapper::toDto);
+    }
+    
+    public Page<StockReceptionDto> searchReceptions(String reference, LocalDate receptionDate, Pageable pageable) {
+        Page<StockReception> page;
+        if (reference != null && !reference.isEmpty() && receptionDate != null) {
+            page = ((StockReceptionRepository) getRepository()).findByReferenceContainingIgnoreCaseAndReceptionDate(reference, receptionDate, pageable);
+        } else if (reference != null && !reference.isEmpty()) {
+             page = ((StockReceptionRepository) getRepository()).findByReferenceContainingIgnoreCase(reference, pageable);
+        } else if (receptionDate != null) {
+             page = ((StockReceptionRepository) getRepository()).findByReceptionDate(receptionDate, pageable);
+        } else {
+            page = getRepository().findAll(pageable);
+        }
         return page.map(mapper::toDto);
     }
 
     public StockReceptionDto getReceptionById(Long id) {
         StockReception reception = getById(id);
-        // Utilise la méthode spécifique pour inclure les items
         return mapper.toDtoWithItems(reception);
     }
 }

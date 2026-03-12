@@ -22,6 +22,8 @@ import { SalesDetailsDialogComponent } from './components/sales-details-dialog/s
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { StockReceptionListComponent } from './pages/stock-reception-list/stock-reception-list.component';
+import { StockReceptionDetailComponent } from './pages/stock-reception-detail/stock-reception-detail.component';
 
 
 @NgModule({
@@ -31,7 +33,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MyStockDashboardComponent,
     StockReturnListComponent,
     StockReturnCreateComponent,
-    SalesDetailsDialogComponent
+    SalesDetailsDialogComponent,
+    StockReceptionListComponent,
+    StockReceptionDetailComponent
   ],
   imports: [
     CommonModule,

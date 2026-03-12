@@ -8,8 +8,10 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.InventoryControlPdfDto;
 import com.optimize.elykia.core.dto.ItemReleaseSheetDto;
 import com.optimize.elykia.core.dto.PrintOperationDto;
+import com.optimize.elykia.core.dto.StockReceptionDto;
 import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.core.service.store.InventoryService;
+import com.optimize.elykia.core.service.stock.StockReceptionService;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import lombok.RequiredArgsConstructor;
@@ -36,8 +38,10 @@ public class PdfService {
     private final CreditService creditService;
     private final ReportService reportService;
     private final AccountingDayService accountingDayService;
-    private final OrderService orderService; // Injected OrderService
+    private final OrderService orderService;
     private final InventoryService inventoryService;
+    private final StockReceptionService stockReceptionService;
+    
     @Value(value = "${app.folder}")
     private String folder;
 
@@ -99,6 +103,12 @@ public class PdfService {
         context.setVariable("item", dto);
         return templateEngine.process("item-release-sheet", context);
     }
+    
+    public String generateStockReceptionHtmlFromTemplate(StockReceptionDto dto) {
+        Context context = new Context();
+        context.setVariable("reception", dto);
+        return templateEngine.process("stock-reception-sheet", context);
+    }
 
     public InputStream printDailyOperationPdf() throws DocumentException {
         PrintOperationDto dto = PrintOperationDto.from(creditService.getCreditByCollector());
@@ -110,6 +120,12 @@ public class PdfService {
         ItemReleaseSheetDto dto = reportService.getItemReleaseSheetByCollector(collector, releaseDate);
         String html = generateItemReleaseHtmlFromTemplate(dto);
         return generatePdfFromHtml(html, "FICHE_SORTIE_ARTICLES_" + collector);
+    }
+    
+    public InputStream generateStockReceptionPdf(Long receptionId) throws DocumentException {
+        StockReceptionDto dto = stockReceptionService.getReceptionById(receptionId);
+        String html = generateStockReceptionHtmlFromTemplate(dto);
+        return generatePdfFromHtml(html, "RECEPTION_" + dto.getReference());
     }
 
     /**

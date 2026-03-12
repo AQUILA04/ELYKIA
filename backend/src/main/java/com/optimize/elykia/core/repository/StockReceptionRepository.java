@@ -11,4 +11,10 @@ import java.time.LocalDate;
 @Repository
 public interface StockReceptionRepository extends BaseRepository<StockReception, Long, Long> {
     Page<StockReception> findByReceptionDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
+    
+    Page<StockReception> findByReferenceContainingIgnoreCase(String reference, Pageable pageable);
+
+    Page<StockReception> findByReceptionDate(LocalDate receptionDate, Pageable pageable);
+    
+    Page<StockReception> findByReferenceContainingIgnoreCaseAndReceptionDate(String reference, LocalDate receptionDate, Pageable pageable);
 }

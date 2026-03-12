@@ -53,7 +53,7 @@ export class StockRequestListComponent implements OnInit {
   }
 
   get canSelectPromoter(): boolean {
-    return this.isManager || this.isSecretary;
+    return this.isManager || this.isSecretary || this.isStoreKeeper;
   }
 
   loadPromoters() {

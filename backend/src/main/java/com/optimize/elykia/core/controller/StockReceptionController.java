@@ -32,6 +32,14 @@ public class StockReceptionController {
         return new ResponseEntity<>(ResponseUtil.successResponse(service.getAllReceptions(startDate, endDate, pageable)), HttpStatus.OK);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Response> search(
+            @RequestParam(required = false) String reference,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate receptionDate,
+            Pageable pageable) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(service.searchReceptions(reference, receptionDate, pageable)), HttpStatus.OK);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Response> getOne(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(service.getReceptionById(id)), HttpStatus.OK);

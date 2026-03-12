@@ -1,7 +1,9 @@
 package com.optimize.elykia.core.controller;
 
+import com.lowagie.text.DocumentException;
 import com.optimize.common.entities.util.DateUtils;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
+import com.optimize.elykia.core.service.report.PdfService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
@@ -26,6 +28,7 @@ import java.util.zip.ZipOutputStream;
 public class PdfController {
     private final String baseDir = System.getProperty("user.home") + "/.optimize-elykia-core/item-release/";
     private final AccountingDayService accountingDayService;
+    private final PdfService pdfService;
 
     @GetMapping("/list-today-files")
     public List<String> listTodayFiles() {
@@ -145,5 +148,14 @@ public class PdfController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=SORTIE_ARTICLES_"+releaseDate+".zip")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
+    }
+    
+    @GetMapping("/download-reception/{id}")
+    public ResponseEntity<Resource> downloadStockReceptionPdf(@PathVariable Long id) throws DocumentException {
+        InputStream resource = pdfService.generateStockReceptionPdf(id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=RECEPTION_" + id + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new InputStreamResource(resource));
     }
 }

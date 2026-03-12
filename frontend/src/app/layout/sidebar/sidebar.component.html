@@ -168,6 +168,16 @@
           </ul>
         </li>
 
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER', 'ROLE_GESTIONNAIRE']">
+          <a class="sidebar-link" routerLink="/stock/receptions" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/stock/receptions') }">
+            <span>
+              <mat-icon>history</mat-icon>
+            </span>
+            <span class="hide-menu">Historique Entrée</span>
+          </a>
+        </li>
+
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT']">
           <a class="sidebar-link" routerLink="/credit-list" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/credit-list') }">
