@@ -1,9 +1,15 @@
 .container {
   padding: 20px;
+  background-color: white;
+  border-radius: 5px;
 }
 
 .header-fixed {
   margin-bottom: 20px;
+  h1 {
+    color: #003366;
+    text-align: center;
+  }
 }
 
 .d-flex {
@@ -14,8 +20,20 @@
   justify-content: center;
 }
 
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
 .mb-3 {
   margin-bottom: 1rem;
+}
+
+.mb-0 {
+  margin-bottom: 0;
 }
 
 .flex-wrap {
@@ -26,28 +44,81 @@
   gap: 0.5rem;
 }
 
+.card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #f8f9fa;
+}
+
+.card-title {
+    color: #003366;
+    font-weight: bold;
+}
+
+.refresh-button {
+  color: white;
+  background-color: #003366;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  mat-icon {
+    font-size: 20px;
+    color: white;
+  }
+}
+
+.mt-3 {
+  margin-top: 1rem;
+}
+
 .table-container {
   margin-top: 20px;
   overflow-x: auto;
+  h5 {
+      color: #003366;
+      margin-bottom: 10px;
+  }
 }
 
 .article-table {
   width: 100%;
   border-collapse: collapse;
-}
 
-.article-table th, .article-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
+  thead {
+    background-color: #ddd;
+    color: #003366;
+    text-align: center;
 
-.article-table th {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  text-align: left;
-  background-color: #f2f2f2;
-}
+    th {
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+  }
 
-.btn-secondary {
-  margin-top: 20px;
+  tbody {
+    tr {
+      &:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      &:hover {
+        background-color: #ddd;
+      }
+
+      td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        vertical-align: middle;
+        text-align: center;
+      }
+    }
+  }
 }

@@ -11,7 +11,7 @@
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="card-title mb-0">Informations Générales</h5>
-        <button class="btn btn-primary btn-sm" (click)="downloadPdf()">
+        <button class="btn refresh-button btn-sm" (click)="downloadPdf()">
           <mat-icon>picture_as_pdf</mat-icon>
           <span>Télécharger PDF</span>
         </button>
@@ -38,7 +38,7 @@
       <tbody>
       <tr *ngFor="let item of reception.items; let i = index">
         <td>{{ i + 1 }}</td>
-        <td>{{ item.articleName }}</td>
+        <td>{{ item.article.name }}</td>
         <td>{{ item.quantity }}</td>
         <td>{{ item.unitPrice | currency }}</td>
         <td>{{ item.totalPrice | currency }}</td>
@@ -47,5 +47,5 @@
     </table>
   </div>
 
-  <button class="btn btn-secondary mt-3" (click)="goBack()">Retour</button>
+  <button class="btn refresh-button mt-3" (click)="goBack()">Retour</button>
 </div>
