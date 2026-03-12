@@ -49,9 +49,9 @@ export class ArticleService {
   }
 
   private fetchArticlesFromApi(): Observable<Article[]> {
-    const url = `${environment.apiUrl}/api/v1/articles/enabled/all`;
-    return this.http.get<ApiResponse<Article[]>>(url).pipe(
-      map(response => response.data)
+    const url = `${environment.apiUrl}/api/v1/articles?page=0&size=1000`;
+    return this.http.get<ApiResponse<any>>(url).pipe(
+      map(response => response.data.content)
     );
   }
 

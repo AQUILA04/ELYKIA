@@ -92,7 +92,7 @@ public class CommercialDataSummaryService {
             
             // Articles (tous les articles disponibles)
             Long totalArticles = ((Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM articles WHERE visibility = 'ENABLED'")
+                "SELECT COUNT(*) FROM articles WHERE visibility IN ('ENABLED', 'DISABLED'")
                 .getSingleResult()).longValue();
             summary.setTotalArticles(totalArticles);
             
