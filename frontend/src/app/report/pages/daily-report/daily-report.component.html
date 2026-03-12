@@ -80,6 +80,11 @@
                                             aggregatedReportData.stockRequestMargin | currency:'XOF':'symbol':'1.0-0'
                                             }}</span>
                                     </div>
+                                  <div class="kpi-card">
+                                    <span class="kpi-label">Tontine Sortie Stock</span>
+                                    <span class="kpi-value">{{ aggregatedReportData.totalTontineStockRequestAmount |
+                                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                                  </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">Ventes à Crédit</span>
                                         <span class="kpi-value">{{ aggregatedReportData.creditSalesCount }} ({{
@@ -89,6 +94,11 @@
                                             aggregatedReportData.creditSalesMargin | currency:'XOF':'symbol':'1.0-0'
                                             }}</span>
                                     </div>
+                                  <div class="kpi-card">
+                                    <span class="kpi-label">Total Avances</span>
+                                    <span class="kpi-value">{{ aggregatedReportData.totalAdvancesAmount |
+                                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                                  </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">Nouveaux Clients</span>
                                         <span class="kpi-value">{{ aggregatedReportData.newClientsCount }}</span>
@@ -145,11 +155,7 @@
                                             currency:'XOF':'symbol':'1.0-0' }}
                                         </span>
                                     </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Total Avances</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.totalAdvancesAmount |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
+
                                 </div>
                             </mat-card-content>
                         </mat-card>
