@@ -10,6 +10,7 @@ import { UserProfile } from '../../../shared/models/user-profile.enum';
 import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-stock-request-list',
@@ -20,8 +21,7 @@ export class StockRequestListComponent implements OnInit {
 
   requests: any[] = []; // Changed type from StockRequest[] to any[]
   page: number = 0;
-  size: number = 20;
-  totalPages: number = 0;
+  size: number = 10;
   isManager = false; // Changed declaration
   isStoreKeeper = false; // Changed declaration
   isPromoter = false; // Changed declaration
@@ -29,6 +29,7 @@ export class StockRequestListComponent implements OnInit {
   promoters: User[] = [];
   currentUser: any;
   selectedRequest: StockRequest | null = null; // Pour la modale de détails
+  totalElement: number=0;
 
   constructor(
     private stockRequestService: StockRequestService,
@@ -103,10 +104,16 @@ export class StockRequestListComponent implements OnInit {
       });
   }
 
-  handlePage(page: Page<StockRequest>) {
+  handlePage(page: any) {
     this.requests = page.content;
-    this.totalPages = page.totalPages;
+    this.totalElement = page.page.totalElements;
   }
+
+  pageChanged(event: PageEvent): void {
+      this.page = event.pageIndex;
+      this.size = event.pageSize;
+      this.loadRequests();
+    }
 
   validate(request: StockRequest) {
     this.alertService.showConfirmation('Confirmation', 'Valider cette demande ?').then((confirmed) => {

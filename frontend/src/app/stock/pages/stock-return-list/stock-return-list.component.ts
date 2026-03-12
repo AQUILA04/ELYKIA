@@ -8,6 +8,7 @@ import { UserProfile } from '../../../shared/models/user-profile.enum';
 import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-stock-return-list',
@@ -18,8 +19,8 @@ export class StockReturnListComponent implements OnInit {
 
   returns: StockReturn[] = [];
   page: number = 0;
-  size: number = 20;
-  totalPages: number = 0;
+  size: number = 10;
+  totalElements: number = 0;
   isPromoter: boolean = false;
   isStoreKeeper: boolean = false;
   currentUser: any;
@@ -53,9 +54,15 @@ export class StockReturnListComponent implements OnInit {
       });
   }
 
-  handlePage(page: Page<StockReturn>) {
+  handlePage(page: any) {
     this.returns = page.content;
-    this.totalPages = page.totalPages;
+    this.totalElements = page.page.totalElements;
+  }
+
+  onPageChange(event: PageEvent) {
+    this.page = event.pageIndex;
+    this.size = event.pageSize;
+    this.loadReturns();
   }
 
   validate(stockReturn: StockReturn) {
