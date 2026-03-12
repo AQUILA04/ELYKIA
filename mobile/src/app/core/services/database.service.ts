@@ -957,10 +957,43 @@ export class DatabaseService {
     try {
       if (sqlSet.length > 0) {
         await this.db.executeSet(sqlSet);
-        console.log(`Successfully saved ${distributions.length} distributions and their items (INSERT OR REPLACE).`);
+        const msg = `Successfully saved ${distributions.length} distributions and their items (INSERT OR REPLACE).`;
+        this.log.log(msg);
+        console.log(msg);
       }
-    } catch (error) {
-      console.error('Failed to save distributions and items in transaction.', error);
+    } catch (error: any) {
+      const errMsg = `Failed to save distributions and items in transaction: ${error.message || JSON.stringify(error)}`;
+      this.log.log(errMsg);
+      console.error(errMsg, error);
+
+      if (error && error.message && error.message.includes('FOREIGN KEY constraint failed')) {
+        try {
+          const articleIds = new Set<string>();
+          distributions.forEach(d => {
+            const localDist = DistributionMapper.toLocal(d);
+            if (localDist.items) {
+              localDist.items.forEach(i => i.articleId && articleIds.add(String(i.articleId)));
+            }
+          });
+
+          if (articleIds.size > 0) {
+            const idsArr = Array.from(articleIds);
+            const placeholders = idsArr.map(() => '?').join(',');
+            const res = await this.db.query(`SELECT id FROM articles WHERE id IN (${placeholders})`, idsArr);
+            const foundIds = new Set((res.values || []).map(r => String(r.id)));
+            const missingIds = idsArr.filter(id => !foundIds.has(id));
+            
+            if (missingIds.length > 0) {
+              const exactCause = `EXACT CAUSE: FOREIGN KEY constraint failed. Missing article IDs in local DB: ${missingIds.join(', ')}`;
+              this.log.log(exactCause);
+              console.error(exactCause);
+            }
+          }
+        } catch (innerError) {
+          console.error('Failed to determine missing article IDs', innerError);
+        }
+      }
+
       throw error;
     }
   }
