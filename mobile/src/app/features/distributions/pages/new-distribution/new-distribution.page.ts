@@ -537,9 +537,10 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
       }
 
       const vm = this.vm;
+      const articlesCount = this.getSelectedArticlesCount();
 
       // Règle 1: Vérifier s'il y a déjà un crédit en cours pour ce client
-      // We need to fetch distributions for this client. 
+      // We need to fetch distributions for this client.
       // Using a selector or service? The old code used selectDistributionsByClientId.
       // We need to ensure we have them loaded.
       // Assuming they are in the store or we fetch them.
@@ -548,7 +549,7 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
       // However, for "New Distribution", we probably haven't loaded this client's history specifically if we just came here.
       // Better to check via service to be safe, OR if the store has everything (offline first).
       // The old code used: this.store.select(selectDistributionsByClientId(vm.client.id))
-      // Let's assume offline-first means we have them in the store/db. 
+      // Let's assume offline-first means we have them in the store/db.
       // But we need to import selectDistributionsByClientId.
 
       // Checking via service for robustness if store might be empty of specific client data
@@ -589,10 +590,41 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
       // Prepare distribution items
       const selectedArticles = await firstValueFrom(this.store.select(selectSelectedArticlesWithDetails).pipe(take(1)));
 
+      // Vérification de cohérence : le nombre d'articles sélectionnés doit correspondre
+      if (selectedArticles.length !== articlesCount) {
+        this.log.error('[NewDistributionPage] Incohérence détectée dans la sélection des articles', {
+          selectedArticlesCount: selectedArticles.length,
+          expectedCount: articlesCount
+        });
+
+        const alert = await this.alertController.create({
+          header: 'Erreur de sélection',
+          message: 'La sélection des articles n\'est pas à jour. Veuillez vérifier votre sélection avant de soumettre.',
+          buttons: [
+            {
+              text: 'OK',
+              handler: () => {
+                // Optionnel : recharger la liste des articles ou rafraîchir l'état
+                this.refreshList(this.searchTerm$.value);
+              }
+            }
+          ],
+          cssClass: 'error-alert'
+        });
+        await alert.present();
+        return;
+      }
+
+      // Vérifier qu'il y a au moins un article sélectionné
+      if (selectedArticles.length === 0) {
+        await this.presentErrorAlert('Sélection vide', 'Veuillez sélectionner au moins un article.');
+        return;
+      }
+
       const distributionData = {
         creditId: creditId,
         clientId: vm.client!.id,
-        // client: vm.client, 
+        // client: vm.client,
         client: vm.client,
         articles: selectedArticles.map(item => ({
           articleId: item.article.id,

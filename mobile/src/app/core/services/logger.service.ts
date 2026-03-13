@@ -8,7 +8,7 @@ export class LoggerService {
   private static inMemoryLogs: string[] = [];
   // Chemin dans le répertoire de données de l'application
   // Utilise un fichier directement dans le répertoire Documents sans sous-dossier
-  private logFileName = 'elykia_app_logs.txt';
+  private logFileName = 'elykia/app_logs.txt';
   private logDirectory = Directory.Documents;
 
   constructor() {
