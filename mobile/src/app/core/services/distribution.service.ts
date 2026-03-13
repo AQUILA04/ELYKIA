@@ -247,6 +247,9 @@ export class DistributionService {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
+    if (distributionData.articles.length < 1) {
+      throw new Error(`Aucun items pour la distribution`);
+    }
     const now = new Date().toISOString();
 
     // const newCount = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase().padStart(6, '0');
@@ -293,7 +296,6 @@ export class DistributionService {
       }
     }
     // --- STOCK VALIDATION END ---
-    await this.dbService.saveDistributions([distribution]);
 
     // Now, create the distribution items
     const distributionItems: DistributionItem[] = distributionData.articles.map(item => {
@@ -314,6 +316,8 @@ export class DistributionService {
     if (distribution.items.length < 1) {
       throw new Error(`Aucun items pour la distribution`);
     }
+
+    await this.dbService.saveDistributions([distribution]);
     await this.dbService.saveDistributionItems(distributionItems);
 
     // Save the main distribution record and its items in a single transaction using Repository
