@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -13,4 +14,6 @@ public class OrderItemDto {
     @NotNull(message = "La quantité ne peut pas être nulle.")
     @Positive(message = "La quantité doit être positive.")
     private Integer quantity;
+    private State state =State.ENABLED;
+
 }

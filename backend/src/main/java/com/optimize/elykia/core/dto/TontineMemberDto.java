@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
 import com.optimize.elykia.core.enumaration.TontineMemberUpdateScope;
 import jakarta.validation.constraints.NotNull;
@@ -18,4 +19,6 @@ public class TontineMemberDto {
     private Integer currentMonthDays;
     private Double totalDeliveryCollections;
     private TontineMemberUpdateScope updateScope;
+    private State state =State.ENABLED;
+
 }

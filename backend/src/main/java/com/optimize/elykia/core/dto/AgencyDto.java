@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 import com.optimize.common.entities.annotations.NotStringValue;
+import com.optimize.common.entities.enums.State;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -16,4 +17,6 @@ public class AgencyDto {
     @NotBlank(message = "Le numéro de téléphone de l'agence est obligatoire !")
     @NotStringValue(message = "Le numéro de téléphone de l'agence ne peut pas être 'string'")
     private String phone;
+    private State state =State.ENABLED;
+
 }

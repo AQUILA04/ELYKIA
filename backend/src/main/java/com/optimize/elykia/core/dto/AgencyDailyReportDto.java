@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import lombok.Data;
 
@@ -15,6 +16,8 @@ public class AgencyDailyReportDto {
     private String day;
     private LocalDate recoveryDate = LocalDate.now();
     private Long agencyWeeklyReportId;
+    private State state =State.ENABLED;
+
 
     public void balanceControl() {
         if (balance != (collection - spending)) {

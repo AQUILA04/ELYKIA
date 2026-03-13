@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.optimize.common.entities.enums.State;
 import lombok.Data;
 
 @Data
@@ -12,4 +13,6 @@ public class StockReceptionItemDto {
     private Integer quantity;
     private Double unitPrice;
     private Double totalPrice;
+    private State state =State.ENABLED;
+
 }

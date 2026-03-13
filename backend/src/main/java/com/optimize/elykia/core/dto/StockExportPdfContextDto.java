@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,4 +21,6 @@ public class StockExportPdfContextDto {
     private List<StockRequestExportDTO> items;
     private Long totalQuantity;
     private Double totalAmount;
+    private State state =State.ENABLED;
+
 }

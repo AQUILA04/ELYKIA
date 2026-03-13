@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,4 +12,6 @@ public class ComparisonMetricsDto {
     private Double collectionGrowth;    // % de croissance des collectes
     private Integer bestYear;           // Année avec le meilleur résultat
     private Integer worstYear;          // Année avec le moins bon résultat
+    private State state =State.ENABLED;
+
 }

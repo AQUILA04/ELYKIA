@@ -63,6 +63,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
     @Transactional
     public Articles createArticles(ArticlesDto dto) {
         Articles articles = articlesMapper.toEntity(dto);
+        articles.setState(State.ENABLED);
         return create(articles);
 
     }

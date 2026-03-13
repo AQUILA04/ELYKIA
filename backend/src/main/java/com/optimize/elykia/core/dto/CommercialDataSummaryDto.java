@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -93,4 +94,6 @@ public class CommercialDataSummaryDto {
      * Quantité totale restante dans le stock commercial mensuel
      */
     private Long totalCommercialStockRemaining;
+    private State state =State.ENABLED;
+
 }

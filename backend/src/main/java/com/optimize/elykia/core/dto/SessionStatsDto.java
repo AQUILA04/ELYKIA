@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Builder;
 import lombok.Data;
 
@@ -20,4 +21,6 @@ public class SessionStatsDto {
     private Double totalRevenue;
     private Double totalDeliveryCollections;
     private List<TopCommercialDto> topCommercials;
+    private State state =State.ENABLED;
+
 }

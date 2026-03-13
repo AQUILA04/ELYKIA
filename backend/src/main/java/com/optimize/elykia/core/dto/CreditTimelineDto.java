@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
@@ -19,4 +20,6 @@ public class CreditTimelineDto {
     //private Integer remainingDaysCount;
     //private Double totalAmountRemaining;
     private String collector;
+    private State state =State.ENABLED;
+
 }

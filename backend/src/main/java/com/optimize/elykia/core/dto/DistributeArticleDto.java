@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.core.entity.Order;
 import jakarta.validation.Valid;
@@ -31,6 +32,8 @@ public class DistributeArticleDto {
     private Double totalAmountRemaining;
     private Boolean mobile;
     private String reference;
+    private State state =State.ENABLED;
+
 
     public void validateEntryArticles() {
         if (Objects.isNull(articles) || articles.getArticleEntries().isEmpty()) {

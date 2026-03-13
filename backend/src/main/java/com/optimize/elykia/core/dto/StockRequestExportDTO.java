@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,8 @@ public class StockRequestExportDTO {
     private Double unitPrice;
     private Double totalAmount;
     private Long returnedQuantity;
+    private State state =State.ENABLED;
+
 
     public StockRequestExportDTO(String articleName, Long totalQuantity, Double unitPrice, Double totalAmount) {
         this.articleName = articleName;

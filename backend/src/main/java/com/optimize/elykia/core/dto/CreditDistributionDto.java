@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,4 +16,6 @@ public class CreditDistributionDto {
     private Integer parentQuantity;
     private Long distributedQuantity;
     private Long undistributedQuantity;
+    private State state =State.ENABLED;
+
 }

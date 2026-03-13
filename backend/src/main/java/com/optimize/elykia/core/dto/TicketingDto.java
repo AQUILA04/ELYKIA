@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -12,4 +13,6 @@ public class TicketingDto {
     private Double totalAmount;
     @NotBlank(message = "Les données convertit en json du billetage est obligatoire !")
     private String ticketingJson;
+    private State state =State.ENABLED;
+
 }

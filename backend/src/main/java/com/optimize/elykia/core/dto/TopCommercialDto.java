@@ -14,6 +14,7 @@ public class TopCommercialDto {
     private Long memberCount;
     private Double totalCollected;
 
+
     public TopCommercialDto(String username, Long memberCount, Double totalCollected) {
         this.username = username;
         this.memberCount = memberCount;

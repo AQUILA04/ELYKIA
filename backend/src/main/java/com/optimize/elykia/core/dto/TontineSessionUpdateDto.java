@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -13,4 +14,6 @@ public class TontineSessionUpdateDto {
 
     @NotNull(message = "La date de fin ne peut pas être nulle.")
     private LocalDate endDate;
+    private State state =State.ENABLED;
+
 }

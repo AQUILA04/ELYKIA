@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.optimize.common.entities.enums.State;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -15,4 +16,6 @@ public class StockReceptionDto {
     private String receivedBy;
     private Double totalAmount;
     private Set<StockReceptionItemDto> items;
+    private State state =State.ENABLED;
+
 }

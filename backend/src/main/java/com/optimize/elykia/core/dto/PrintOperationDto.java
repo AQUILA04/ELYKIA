@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.util.DateUtils;
 import com.optimize.elykia.core.entity.Credit;
 import lombok.Data;
@@ -15,6 +16,8 @@ public class PrintOperationDto {
     private String weekTo;
     private Integer totalElements;
     private String collector;
+    private State state =State.ENABLED;
+
 
     public static PrintOperationDto from(List<Credit> credits) {
         PrintOperationDto operationDto = new PrintOperationDto();

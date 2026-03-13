@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -23,6 +24,8 @@ public class CreditTimelineMobileDto {
     private String reference; // reference du CreditTimeline (ID mobile si existe)
     private Boolean isSync; // Toujours true car vient du serveur
     private LocalDateTime syncDate; // Date de récupération
+    private State state =State.ENABLED;
+
 
     public CreditTimelineMobileDto(Long id, Double amount, LocalDateTime createdDate, Boolean normalStake, String collector, Long creditId, Long clientId, String reference) {
         this.id = id != null ? id.toString() : null;

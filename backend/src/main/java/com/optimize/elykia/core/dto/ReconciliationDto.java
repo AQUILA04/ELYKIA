@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.enumaration.ReconciliationAction;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -17,5 +18,7 @@ public class ReconciliationDto {
 
     @NotNull(message = "L'action de réconciliation est obligatoire")
     private ReconciliationAction action;
+    private State state =State.ENABLED;
+
 }
 

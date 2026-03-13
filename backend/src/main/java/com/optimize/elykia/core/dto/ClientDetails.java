@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Data;
 
 @Data
@@ -17,5 +18,7 @@ public class ClientDetails {
     private Integer totalCreditClosed;
     private Integer totalCreditDelayed;
     private Double totalAmountRemaining;
+    private State state =State.ENABLED;
+
 
 }

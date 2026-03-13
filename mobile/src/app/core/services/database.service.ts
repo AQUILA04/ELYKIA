@@ -2194,10 +2194,17 @@ export class DatabaseService {
       console.log(`📊 Parsed ${statements.length} SQL statements`);
 
       // Phase 2: Execute in transaction with monitoring
-      await transactionManager.beginTransaction();
+      
+      // Temporarily disable foreign keys for restoration if needed
+      // Must be done OUTSIDE of a transaction to take effect.
+      try {
+        await this.db.run('PRAGMA foreign_keys = OFF;');
+        console.log('🔗 Foreign keys temporarily disabled for restoration');
+      } catch (e) {
+        console.warn('⚠️ Failed to disable foreign keys:', e);
+      }
 
-      // Temporarily disable foreign keys for restoration if needed, though usually better to respect them
-      // await this.db.run('PRAGMA foreign_keys = OFF;');
+      await transactionManager.beginTransaction();
 
       try {
         await this.executeStatementsWithProgress(statements, monitor);
@@ -2251,7 +2258,13 @@ export class DatabaseService {
         integrityCheck: { isValid: false, results: [], summary: 'Restoration failed' }
       };
     } finally {
-      // await this.db.run('PRAGMA foreign_keys = ON;');
+      // Re-enable foreign keys
+      try {
+        await this.db.run('PRAGMA foreign_keys = ON;');
+        console.log('🔗 Foreign keys re-enabled');
+      } catch (e) {
+        console.warn('⚠️ Failed to re-enable foreign keys:', e);
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,4 +15,6 @@ public class TontineDeliveryItemDto {
     private Integer quantity;
     private Double unitPrice;
     private Double totalPrice;
+    private State state =State.ENABLED;
+
 }

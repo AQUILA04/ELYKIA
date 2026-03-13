@@ -18,4 +18,6 @@ public class ArticleStateHistoryDto {
     private State newState;
     private LocalDateTime createdDate;
     private String createdBy;
+    private State state =State.ENABLED;
+
 }

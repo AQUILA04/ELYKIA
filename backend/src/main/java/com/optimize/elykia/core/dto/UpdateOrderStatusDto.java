@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -15,4 +16,6 @@ public class UpdateOrderStatusDto {
 
     @NotNull(message = "Le nouveau statut ne peut pas être nul.")
     private OrderStatus newStatus;
+    private State state =State.ENABLED;
+
 }

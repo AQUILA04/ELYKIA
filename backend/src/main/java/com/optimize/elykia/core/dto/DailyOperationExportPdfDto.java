@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.entity.DailyOperationLog;
 import lombok.Builder;
 import lombok.Data;
@@ -16,4 +17,6 @@ public class DailyOperationExportPdfDto {
     private String generationDate;
     private List<DailyOperationLog> operations;
     private Double totalAmount;
+    private State state =State.ENABLED;
+
 }

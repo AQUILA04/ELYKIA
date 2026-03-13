@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -16,4 +17,6 @@ public class OrderDto {
     @Valid
     @NotEmpty(message = "La liste des articles ne peut pas être vide.")
     private Set<OrderItemDto> items;
+    private State state =State.ENABLED;
+
 }

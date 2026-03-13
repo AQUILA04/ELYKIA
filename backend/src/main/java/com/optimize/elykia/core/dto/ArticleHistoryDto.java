@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.enumaration.StockOperationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,4 +21,6 @@ public class ArticleHistoryDto {
     private Integer finalQuantity;
     private LocalDate operationDate;
     private String operationUser;
+    private State state =State.ENABLED;
+
 }

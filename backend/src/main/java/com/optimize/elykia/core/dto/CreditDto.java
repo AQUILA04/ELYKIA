@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.enumaration.OperationType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -22,4 +23,6 @@ public class CreditDto {
     private Double advance;
     private String agencyCommercial;
     private OperationType type;
+    private State state =State.ENABLED;
+
 }

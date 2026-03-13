@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import lombok.Builder;
 import lombok.Data;
@@ -21,4 +22,6 @@ public class TontineDeliveryDto {
     private String commercialUsername;
     private TontineMemberDeliveryStatus deliveryStatus;
     private List<TontineDeliveryItemDto> items;
+    private State state =State.ENABLED;
+
 }

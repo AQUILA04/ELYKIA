@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.entity.DailyAccounting;
 import lombok.Data;
 
@@ -14,4 +15,6 @@ public class CloseCollectorOperationDto {
     private LocalDate accountingDate;
     @JsonIgnore
     private DailyAccounting dailyAccounting;
+    private State state =State.ENABLED;
+
 }

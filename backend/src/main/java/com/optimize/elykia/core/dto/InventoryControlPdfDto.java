@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -23,6 +24,8 @@ public class InventoryControlPdfDto {
         private Integer physicalQuantity;
         private Integer difference;
         private String status;
+        private State state =State.ENABLED;
+
     }
 }
 

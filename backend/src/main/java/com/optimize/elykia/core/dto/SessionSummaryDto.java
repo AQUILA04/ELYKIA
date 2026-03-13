@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,4 +14,6 @@ public class SessionSummaryDto {
     private Double averageContribution;
     private Double deliveryRate;
     private String topCommercial;
+    private State state =State.ENABLED;
+
 }

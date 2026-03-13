@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.enumaration.InventoryItemStatus;
 import lombok.Data;
 
@@ -23,5 +24,7 @@ public class InventoryItemDto {
     private LocalDateTime reconciledAt;
     private Boolean markAsDebt;
     private Boolean debtCancelled;
+    private State state =State.ENABLED;
+
 }
 

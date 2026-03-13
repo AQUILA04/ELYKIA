@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +18,6 @@ public class ExpenseKpiDto {
     private LocalDate endDate;
     private BigDecimal totalAmount;
     private String periodLabel; // e.g. "This Week", "This Month"
+    private State state =State.ENABLED;
+
 }

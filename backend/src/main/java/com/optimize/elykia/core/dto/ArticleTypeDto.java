@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,4 +21,6 @@ public class ArticleTypeDto {
     private String code;
     
     private String description;
+    private State state =State.ENABLED;
+
 }

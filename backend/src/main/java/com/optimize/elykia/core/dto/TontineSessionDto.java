@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,4 +18,6 @@ public class TontineSessionDto {
     private Integer memberCount;
     private Double totalCollected;
     private Double totalRevenue;
+    private State state =State.ENABLED;
+
 }

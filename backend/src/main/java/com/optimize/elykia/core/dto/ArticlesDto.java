@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 import com.optimize.common.entities.annotations.NotStringValue;
+import com.optimize.common.entities.enums.State;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -11,7 +12,6 @@ import lombok.ToString;
 @Data
 @ToString
 public class ArticlesDto {
-    private com.optimize.common.entities.enums.State state;
     private Long id;
     @NotNull(message = "Le prix d'achat est obligatoire !")
     @Positive
@@ -48,4 +48,5 @@ public class ArticlesDto {
     private String category; // Catégorie produit pour analyse
 
     private Boolean isSeasonal = false;
+    private State state =State.ENABLED;
 }

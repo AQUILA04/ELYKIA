@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -13,4 +14,6 @@ public class MergeCreditDto {
     
     @NotNull(message = "Le nom d'utilisateur du commercial est requis")
     private String commercialUsername;
+    private State state =State.ENABLED;
+
 }

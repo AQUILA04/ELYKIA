@@ -4,4 +4,5 @@ public interface CreditArticleDetailDto {
     String getReference();
     String getClientName();
     Integer getQuantity();
+
 }

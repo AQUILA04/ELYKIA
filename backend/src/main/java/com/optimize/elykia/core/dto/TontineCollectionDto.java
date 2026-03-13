@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -14,4 +15,6 @@ public class TontineCollectionDto {
     private Double amount;
     private Boolean isDeliveryCollection = Boolean.FALSE;
     private String reference;
+    private State state =State.ENABLED;
+
 }

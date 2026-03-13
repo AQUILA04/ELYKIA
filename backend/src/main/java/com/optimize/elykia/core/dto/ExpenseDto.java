@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,4 +15,6 @@ public class ExpenseDto {
     private LocalDate expenseDate;
     private String description;
     private String reference;
+    private State state =State.ENABLED;
+
 }

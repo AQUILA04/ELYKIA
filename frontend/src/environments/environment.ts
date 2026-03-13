@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   //apiUrl: 'http://192.168.1.126:8081',
-  apiUrl: 'http://localhost:8081', // Base URL de l'API
+  apiUrl: 'http://localhost:8081', // Base UpmRL de l'API
   config: {
     authuser: 'currentUser',
     authtoken: 'auth-token',

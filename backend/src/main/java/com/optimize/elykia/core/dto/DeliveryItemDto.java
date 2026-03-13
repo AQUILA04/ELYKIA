@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -17,4 +18,6 @@ public class DeliveryItemDto {
     @NotNull(message = "Le prix unitaire est requis")
     @Min(value = 0, message = "Le prix unitaire ne peut pas être négatif")
     private Double unitPrice;
+    private State state =State.ENABLED;
+
 }

@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,4 +13,6 @@ public class AccountingReportDto {
     private LocalDate dateFrom;
     private LocalDate dateTo;
     private Double releasedTotalAmount;
+    private State state =State.ENABLED;
+
 }

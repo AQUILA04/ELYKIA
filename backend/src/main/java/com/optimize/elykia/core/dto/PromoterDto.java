@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -11,4 +12,6 @@ public class PromoterDto {
     private String serialNumber;
     private LocalDate dateOfBirth;
     private String phoneNumber;
+    private State state =State.ENABLED;
+
 }

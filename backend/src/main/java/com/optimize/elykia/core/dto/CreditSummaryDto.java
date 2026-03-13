@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.common.entities.enums.State;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,4 +15,6 @@ public class CreditSummaryDto {
     private String reference;
     private LocalDate beginDate;
     private Double totalAmount;
+    private State state =State.ENABLED;
+
 }
