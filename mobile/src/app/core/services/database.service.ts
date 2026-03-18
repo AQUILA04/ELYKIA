@@ -77,7 +77,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 17; // Incremented for thumbnail columns
+        const targetVersion = 18; // Incremented for UNIQUE indexes on clients.phone and clients.cardID
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -438,6 +438,9 @@ export class DatabaseService {
         CREATE INDEX IF NOT EXISTS idx_order_items_orderId ON order_items(orderId);
         CREATE INDEX IF NOT EXISTS idx_order_items_articleId ON order_items(articleId);
         CREATE INDEX IF NOT EXISTS idx_clients_tontineCollector ON clients(tontineCollector);
+        -- Contraintes d'unicité pour éviter les doublons sur les données sensibles
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_clients_phone ON clients(phone);
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_clients_cardID ON clients(cardID);
 
         -- Index pour optimiser les performances des distributions
         CREATE INDEX IF NOT EXISTS idx_distributions_clientId ON distributions(clientId);

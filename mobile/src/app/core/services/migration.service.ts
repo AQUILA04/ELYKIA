@@ -71,6 +71,13 @@ export class MigrationService {
       case 16:
         await this.migrateToV16(db);
         break;
+      case 17:
+        // Version 17 was handled by createTables (thumbnail columns)
+        this.log.log('Migration v17 is handled by createTables.');
+        break;
+      case 18:
+        await this.migrateToV18(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -428,6 +435,34 @@ export class MigrationService {
     } catch (error: any) {
       this.log.log(`Error in migration v16: ${error}`);
       console.error('Error in migration v16', error);
+      throw error;
+    }
+  }
+
+  private async migrateToV18(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v18: Adding UNIQUE indexes on clients.phone and clients.cardID...');
+
+      try {
+        await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_clients_phone ON clients(phone);');
+      } catch (e: any) {
+        // L'index peut déjà exister ou il peut y avoir des doublons existants.
+        // On log l'erreur mais on ne bloque pas la migration.
+        this.log.log(`Migration v18: Could not create idx_clients_phone: ${e?.message ?? e}`);
+        console.warn('Migration v18: Could not create idx_clients_phone', e);
+      }
+
+      try {
+        await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_clients_cardID ON clients(cardID);');
+      } catch (e: any) {
+        this.log.log(`Migration v18: Could not create idx_clients_cardID: ${e?.message ?? e}`);
+        console.warn('Migration v18: Could not create idx_clients_cardID', e);
+      }
+
+      this.log.log('Migration to v18 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v18: ${error}`);
+      console.error('Error in migration v18', error);
       throw error;
     }
   }

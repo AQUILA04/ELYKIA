@@ -16,6 +16,7 @@ import { ClientRepositoryFilters, ClientRepositoryExtensions } from '../reposito
 import { buildDateFilterClause } from '../models/date-filter.model';
 import { ClientRepository } from '../repositories/client.repository';
 import { AccountRepository } from '../repositories/account.repository';
+import { capSQLiteSet } from '@capacitor-community/sqlite';
 
 export interface ClientInitializationProgress {
   isLoading: boolean;
@@ -316,23 +317,89 @@ export class ClientService {
       createdAt: new Date().toISOString()
     };
 
-    try {
-      await this.clientRepository.saveAll([newClient]);
-    } catch (error: any) {
-      const errorMessage = `[ClientService] createClientLocally: Error saving client. Message: ${error.message}`;
-      this.log.log(errorMessage);
-      console.error('Error saving client:', error);
-      throw error;
-    }
+    // Insertion atomique : client + compte dans une seule transaction executeSet.
+    // Si l'une des deux insertions échoue, aucune des deux n'est persistée.
+    const nowIso = new Date().toISOString();
+
+    const clientSql = `INSERT OR REPLACE INTO clients (
+      id, firstname, lastname, fullName, phone, address, dateOfBirth, occupation,
+      clientType, cardType, cardID, quarter, commercial, isLocal, isSync, syncDate,
+      syncHash, latitude, longitude, mll, contactPersonName, contactPersonPhone,
+      contactPersonAddress, code, profilPhoto, creditInProgress, cardPhoto,
+      profilPhotoUrl, cardPhotoUrl, profilPhotoThumbUrl, cardPhotoThumbUrl,
+      updatedPhotoUrl, tontineCollector, createdAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    const clientParams = [
+      newClient.id,
+      newClient.firstname ?? null,
+      newClient.lastname ?? null,
+      newClient.fullName ?? null,
+      newClient.phone ?? null,
+      newClient.address ?? null,
+      newClient.dateOfBirth ?? null,
+      newClient.occupation ?? null,
+      newClient.clientType ?? null,
+      newClient.cardType ?? null,
+      newClient.cardID ?? null,
+      newClient.quarter ?? null,
+      newClient.commercial ?? null,
+      1, // isLocal
+      0, // isSync
+      nowIso,
+      null, // syncHash
+      newClient.latitude ?? 0,
+      newClient.longitude ?? 0,
+      newClient.mll ?? null,
+      newClient.contactPersonName ?? null,
+      newClient.contactPersonPhone ?? null,
+      newClient.contactPersonAddress ?? null,
+      newClient.code ?? null,
+      newClient.profilPhoto ?? null,
+      0, // creditInProgress
+      newClient.cardPhoto ?? null,
+      newClient.profilPhotoUrl ?? null,
+      newClient.cardPhotoUrl ?? null,
+      newClient.profilPhotoThumbUrl ?? null,
+      newClient.cardPhotoThumbUrl ?? null,
+      0, // updatedPhotoUrl
+      newClient.tontineCollector ?? null,
+      newClient.createdAt ?? nowIso
+    ];
+
+    const accountSql = `INSERT INTO accounts (
+      id, accountNumber, accountBalance, status, clientId, isLocal, isSync, syncDate, syncHash, old_balance, updated, createdAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    const accountParams = [
+      newAccount.id,
+      newAccount.accountNumber,
+      newAccount.accountBalance ?? 0,
+      newAccount.status ?? 'ACTIF',
+      newAccount.clientId,
+      1, // isLocal
+      0, // isSync
+      nowIso,
+      null, // syncHash
+      null, // old_balance
+      0,    // updated
+      newAccount.createdAt ?? nowIso
+    ];
+
+    const transactionSet: capSQLiteSet[] = [
+      { statement: clientSql, values: clientParams },
+      { statement: accountSql, values: accountParams }
+    ];
 
     try {
-      // Use AccountRepository instead of DatabaseService
-      await this.accountRepository.saveAll([newAccount]);
+      await this.dbService.executeSet(transactionSet);
+      this.log.log(`[ClientService] createClientLocally: Client and account saved atomically.`);
     } catch (error: any) {
-      const errorMessage = `[ClientService] createClientLocally: Error saving account. Message: ${error.message}`;
+      const errorMessage = `[ClientService] createClientLocally: Atomic transaction failed. Message: ${error?.message ?? JSON.stringify(error)}`;
       this.log.log(errorMessage);
-      console.error('Error saving account:', error);
-      throw error;
+      console.error('Atomic transaction failed:', error);
+      // Relancer une erreur lisible
+      throw new Error(errorMessage);
     }
 
     return { client: newClient, account: newAccount };
@@ -516,6 +583,44 @@ export class ClientService {
       throw new Error('Client not found');
     }
     return client;
+  }
+
+  // ==================== UNIQUENESS CHECK METHODS ====================
+
+  /**
+   * Check if a phone number already exists in the local database.
+   * Uses a direct SQL query to avoid relying on the paginated NgRx store.
+   *
+   * @param phone Phone number to check
+   * @param excludeId Optional client ID to exclude from the check (for updates)
+   * @returns true if the phone already exists
+   */
+  async checkPhoneExists(phone: string, excludeId?: string): Promise<boolean> {
+    if (!phone) return false;
+    const sql = excludeId
+      ? `SELECT COUNT(*) as count FROM clients WHERE phone = ? AND id != ?`
+      : `SELECT COUNT(*) as count FROM clients WHERE phone = ?`;
+    const params = excludeId ? [phone, excludeId] : [phone];
+    const result = await this.dbService.query(sql, params);
+    return (result.values?.[0]?.count ?? 0) > 0;
+  }
+
+  /**
+   * Check if a card ID already exists in the local database.
+   * Uses a direct SQL query to avoid relying on the paginated NgRx store.
+   *
+   * @param cardID Card ID to check
+   * @param excludeId Optional client ID to exclude from the check (for updates)
+   * @returns true if the card ID already exists
+   */
+  async checkCardIDExists(cardID: string, excludeId?: string): Promise<boolean> {
+    if (!cardID) return false;
+    const sql = excludeId
+      ? `SELECT COUNT(*) as count FROM clients WHERE cardID = ? AND id != ?`
+      : `SELECT COUNT(*) as count FROM clients WHERE cardID = ?`;
+    const params = excludeId ? [cardID, excludeId] : [cardID];
+    const result = await this.dbService.query(sql, params);
+    return (result.values?.[0]?.count ?? 0) > 0;
   }
 
   // ==================== PAGINATION METHODS ====================

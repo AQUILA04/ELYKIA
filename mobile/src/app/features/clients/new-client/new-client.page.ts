@@ -18,6 +18,7 @@ import * as LocalityActions from 'src/app/store/locality/locality.actions';
 import { LoggerService } from '../../../core/services/logger.service';
 import { FaceDetection, PerformanceMode, LandmarkMode, ContourMode } from '@capacitor-mlkit/face-detection';
 import { ThumbnailService } from '../../../core/services/thumbnail.service';
+import { ClientService } from '../../../core/services/client.service';
 
 export function ageValidator(minAge: number): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -68,7 +69,8 @@ export class NewClientPage implements OnInit, OnDestroy {
     private navCtrl: NavController,
     private actions$: Actions,
     private log: LoggerService,
-    private thumbnailService: ThumbnailService
+    private thumbnailService: ThumbnailService,
+    private clientService: ClientService
   ) {
     this.clientForm = this.fb.group({
       firstname: ['', Validators.required],
@@ -149,7 +151,17 @@ export class NewClientPage implements OnInit, OnDestroy {
   private setupActionSubscriptions() {
     this.error$.pipe(takeUntil(this.destroy$)).subscribe(error => {
       if (error) {
-        this.presentAlert('Erreur', error);
+        let errorMsg: string;
+        if (typeof error === 'string') {
+          errorMsg = error;
+        } else if (error instanceof Error) {
+          errorMsg = error.message;
+        } else if (error && typeof error === 'object') {
+          errorMsg = error.message || error.errorMessage || JSON.stringify(error);
+        } else {
+          errorMsg = 'Une erreur inconnue est survenue.';
+        }
+        this.presentAlert('Erreur', errorMsg);
       }
     });
 
@@ -181,113 +193,124 @@ export class NewClientPage implements OnInit, OnDestroy {
       return;
     }
     const phone = this.clientForm.get('phone')?.value;
+    const cardID = this.clientForm.get('cardID')?.value;
     const contactPersonPhone = this.clientForm.get('contactPersonPhone')?.value;
-
 
     if (phone && contactPersonPhone && phone === contactPersonPhone) {
       this.presentAlert('Donnée Invalide', 'Le numéro de téléphone de la personne à contacter ne peut pas être identique au numéro de téléphone principal.');
       return;
     }
-    this.store.select(ClientSelectors.selectClientByPhone(phone)).pipe(
-      take(1)
-    ).subscribe(async (existingClient: any) => {
-      if (existingClient) {
-        this.presentAlert('Donnée Invalide', phone + ' est déjà utilisé !');
+
+    // Vérification d'unicité directement en base de données (et non via le store paginé)
+    try {
+      const phoneExists = await this.clientService.checkPhoneExists(phone);
+      if (phoneExists) {
+        this.presentAlert('Donnée Invalide', phone + ' est déjà utilisé par un autre client !');
         return;
       }
-      let profilPhotoPath = null;
-      let profilPhotoThumbPath = null;
-      if (this.photoToSave && this.photoToSave.dataUrl) {
-        const profilPhotoName = `profile_${Date.now()}.png`;
-        profilPhotoPath = `Pictures/Elykia/client_photos/${profilPhotoName}`;
-        this.log.log('[ClientPage]: build profilPhotoPath: ' + profilPhotoPath);
+      const cardIDExists = await this.clientService.checkCardIDExists(cardID);
+      if (cardIDExists) {
+        this.presentAlert('Donnée Invalide', 'Ce numéro de carte d\'identité est déjà utilisé par un autre client !');
+        return;
+      }
+    } catch (e) {
+      this.log.log('[NewClientPage] Erreur lors de la vérification d\'unicité : ' + e);
+      // On ne bloque pas la création si la vérification échoue (fail-open), la contrainte DB prendra le relais
+    }
 
-        try {
-          await Filesystem.mkdir({
-            path: 'Pictures/Elykia/client_photos',
-            directory: Directory.ExternalStorage,
-            recursive: true
-          });
-        } catch (e) {
-          console.error('Unable to create directory client_photos', e);
-          this.log.log('[ClientPage]: Unable to create directory client_photos' + e);
-        }
+    // Sauvegarde des photos et dispatch de l'action
+    let profilPhotoPath: string | null = null;
+    let profilPhotoThumbPath: string | null = null;
+    if (this.photoToSave && this.photoToSave.dataUrl) {
+      const profilPhotoName = `profile_${Date.now()}.png`;
+      profilPhotoPath = `Pictures/Elykia/client_photos/${profilPhotoName}`;
+      this.log.log('[ClientPage]: build profilPhotoPath: ' + profilPhotoPath);
 
-        const base64Data = this.getBase64FromDataUrl(this.photoToSave.dataUrl);
-        await Filesystem.writeFile({
-          path: profilPhotoPath,
-          data: base64Data,
-          directory: Directory.ExternalStorage
+      try {
+        await Filesystem.mkdir({
+          path: 'Pictures/Elykia/client_photos',
+          directory: Directory.ExternalStorage,
+          recursive: true
         });
-
-        // Generate thumbnail for profile photo
-        profilPhotoThumbPath = await this.thumbnailService.generateThumbnail(profilPhotoPath, 200, 200);
+      } catch (e) {
+        console.error('Unable to create directory client_photos', e);
+        this.log.log('[ClientPage]: Unable to create directory client_photos' + e);
       }
 
-      let cardPhotoPath = null;
-      let cardPhotoThumbPath = null;
-      if (this.cardPhotoToSave && this.cardPhotoToSave.dataUrl) {
-        const cardPhotoName = `card_${Date.now()}.png`;
-        cardPhotoPath = `Pictures/Elykia/card_photos/${cardPhotoName}`;
-
-        try {
-          await Filesystem.mkdir({
-            path: 'Pictures/Elykia/card_photos',
-            directory: Directory.ExternalStorage,
-            recursive: true
-          });
-        } catch (e) {
-          console.error('Unable to create directory card_photos', e);
-          this.log.log('[ClientPage]: Unable to create directory card_photos' + e);
-        }
-
-        const cardBase64Data = this.getBase64FromDataUrl(this.cardPhotoToSave.dataUrl);
-        await Filesystem.writeFile({
-          path: cardPhotoPath,
-          data: cardBase64Data,
-          directory: Directory.ExternalStorage
-        });
-
-        // Generate thumbnail for card photo
-        cardPhotoThumbPath = await this.thumbnailService.generateThumbnail(cardPhotoPath, 200, 200);
-      }
-
-      this.currentUser$.pipe(
-        take(1)
-      ).subscribe(user => {
-        this.log.log('[ClientPage]: Suscribing to currentUser$');
-        if (user && user.username) {
-          const clientData = JSON.parse(JSON.stringify(this.clientForm.value));
-          delete clientData.profilPhoto;
-          delete clientData.cardPhoto;
-
-          // Store only file paths, not base64 data
-          clientData.profilPhoto = profilPhotoPath;
-          clientData.cardPhoto = cardPhotoPath;
-
-          // Store thumbnail paths for display purposes
-          clientData.profilPhotoUrl = profilPhotoPath; // Use thumbnail if available, otherwise original
-          clientData.cardPhotoUrl = cardPhotoPath; // Use thumbnail if available, otherwise original
-          clientData.profilPhotoThumbUrl = profilPhotoThumbPath;
-          clientData.cardPhotoThumbUrl = cardPhotoThumbPath;
-          clientData.updatedPhotoUrl = false; // Nouveau client, pas de mise à jour d'URL nécessaire
-          clientData.isLocal = true;
-          clientData.isSync = false;
-          clientData.fullName = `${clientData.firstname} ${clientData.lastname}`;
-
-          // Generate mll link
-          if (clientData.latitude && clientData.longitude) {
-            clientData.mll = `https://www.google.com/maps/search/?api=1&query=${clientData.latitude},${clientData.longitude}`;
-          }
-
-          this.store.dispatch(ClientActions.addClient({
-            client: clientData,
-            commercialUsername: user.username
-          }));
-        } else {
-          console.error("Impossible de récupérer le nom d'utilisateur du commercial.");
-        }
+      const base64Data = this.getBase64FromDataUrl(this.photoToSave.dataUrl);
+      await Filesystem.writeFile({
+        path: profilPhotoPath,
+        data: base64Data,
+        directory: Directory.ExternalStorage
       });
+
+      // Generate thumbnail for profile photo
+      profilPhotoThumbPath = await this.thumbnailService.generateThumbnail(profilPhotoPath, 200, 200);
+    }
+
+    let cardPhotoPath: string | null = null;
+    let cardPhotoThumbPath: string | null = null;
+    if (this.cardPhotoToSave && this.cardPhotoToSave.dataUrl) {
+      const cardPhotoName = `card_${Date.now()}.png`;
+      cardPhotoPath = `Pictures/Elykia/card_photos/${cardPhotoName}`;
+
+      try {
+        await Filesystem.mkdir({
+          path: 'Pictures/Elykia/card_photos',
+          directory: Directory.ExternalStorage,
+          recursive: true
+        });
+      } catch (e) {
+        console.error('Unable to create directory card_photos', e);
+        this.log.log('[ClientPage]: Unable to create directory card_photos' + e);
+      }
+
+      const cardBase64Data = this.getBase64FromDataUrl(this.cardPhotoToSave.dataUrl);
+      await Filesystem.writeFile({
+        path: cardPhotoPath,
+        data: cardBase64Data,
+        directory: Directory.ExternalStorage
+      });
+
+      // Generate thumbnail for card photo
+      cardPhotoThumbPath = await this.thumbnailService.generateThumbnail(cardPhotoPath, 200, 200);
+    }
+
+    this.currentUser$.pipe(
+      take(1)
+    ).subscribe(user => {
+      this.log.log('[ClientPage]: Suscribing to currentUser$');
+      if (user && user.username) {
+        const clientData = JSON.parse(JSON.stringify(this.clientForm.value));
+        delete clientData.profilPhoto;
+        delete clientData.cardPhoto;
+
+        // Store only file paths, not base64 data
+        clientData.profilPhoto = profilPhotoPath;
+        clientData.cardPhoto = cardPhotoPath;
+
+        // Store thumbnail paths for display purposes
+        clientData.profilPhotoUrl = profilPhotoPath;
+        clientData.cardPhotoUrl = cardPhotoPath;
+        clientData.profilPhotoThumbUrl = profilPhotoThumbPath;
+        clientData.cardPhotoThumbUrl = cardPhotoThumbPath;
+        clientData.updatedPhotoUrl = false; // Nouveau client, pas de mise à jour d'URL nécessaire
+        clientData.isLocal = true;
+        clientData.isSync = false;
+        clientData.fullName = `${clientData.firstname} ${clientData.lastname}`;
+
+        // Generate mll link
+        if (clientData.latitude && clientData.longitude) {
+          clientData.mll = `https://www.google.com/maps/search/?api=1&query=${clientData.latitude},${clientData.longitude}`;
+        }
+
+        this.store.dispatch(ClientActions.addClient({
+          client: clientData,
+          commercialUsername: user.username
+        }));
+      } else {
+        console.error("Impossible de récupérer le nom d'utilisateur du commercial.");
+      }
     });
   }
 
