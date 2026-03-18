@@ -1410,12 +1410,57 @@ export class DatabaseService {
       let sqlBackup = '-- Elykia Mobile Database Backup\n';
       sqlBackup += `-- Generated on: ${new Date().toISOString()}\n\n`;
 
-      // Liste des tables à exporter
+      // Liste des tables à exporter, ordonnée du parent vers l'enfant selon les dépendances FK.
+      // Cet ordre garantit que lors de la restauration :
+      //   - Les DELETE sont exécutés dans l'ordre parent→enfant (la FK OFF les rend tolérants)
+      //   - Les INSERT sont exécutés dans le même ordre, respectant les références parent→enfant
+      // Tables ajoutées : commercial_stock_items, orders, order_items, tontine_member_amount_history
       const tables = [
-        'users', 'parameters', 'commercials', 'articles', 'localities', 'clients',
-        'accounts', 'stock_outputs', 'stock_output_items', 'distributions',
-        'distribution_items', 'recoveries', 'sync_logs', 'daily_reports', 'transactions',
-        'id_mappings', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'tontine_stocks'
+        // Tables racines (aucune dépendance FK entrante)
+        'users',
+        'parameters',
+        'commercials',
+        'articles',
+        'localities',
+        // Dépend de : articles (FK)
+        'commercial_stock_items',
+        // Dépend de : aucune FK active
+        'clients',
+        'accounts',
+        // Dépend de : aucune FK active
+        'stock_outputs',
+        // Dépend de : stock_outputs, articles (FK)
+        'stock_output_items',
+        // Dépend de : aucune FK active
+        'distributions',
+        // Dépend de : articles (FK)
+        'distribution_items',
+        // Dépend de : aucune FK active
+        'orders',
+        // Dépend de : orders, articles (FK commentées mais données liées)
+        'order_items',
+        // Dépend de : aucune FK active
+        'recoveries',
+        'sync_logs',
+        // Dépend de : commercials (FK)
+        'daily_reports',
+        // Dépend de : aucune FK active
+        'transactions',
+        'id_mappings',
+        // Dépend de : aucune FK active
+        'tontine_sessions',
+        // Dépend de : tontine_sessions (FK)
+        'tontine_members',
+        // Dépend de : tontine_members (FK)
+        'tontine_member_amount_history',
+        // Dépend de : aucune FK active (FK commentée volontairement)
+        'tontine_collections',
+        // Dépend de : tontine_members (FK)
+        'tontine_deliveries',
+        // Dépend de : articles (FK)
+        'tontine_delivery_items',
+        // Dépend de : tontine_sessions, articles (FK)
+        'tontine_stocks'
       ];
 
       for (const tableName of tables) {
@@ -2199,8 +2244,11 @@ export class DatabaseService {
       // Phase 2: Execute in transaction with monitoring
       await transactionManager.beginTransaction();
 
-      // Temporarily disable foreign keys for restoration if needed, though usually better to respect them
-      // await this.db.run('PRAGMA foreign_keys = OFF;');
+      // Désactiver temporairement les contraintes de clés étrangères pendant la restauration.
+      // Indispensable : le script SQL effectue DELETE+INSERT table par table dans un ordre qui ne peut
+      // pas satisfaire simultanément les contraintes parent→enfant et enfant→parent.
+      // Les FK sont réactivées dans le bloc finally pour garantir leur remise en place même en cas d'erreur.
+      await this.db!.execute('PRAGMA foreign_keys = OFF;');
 
       try {
         await this.executeStatementsWithProgress(statements, monitor);
@@ -2254,7 +2302,12 @@ export class DatabaseService {
         integrityCheck: { isValid: false, results: [], summary: 'Restoration failed' }
       };
     } finally {
-      // await this.db.run('PRAGMA foreign_keys = ON;');
+      // Réactiver les contraintes de clés étrangères dans tous les cas (succès, erreur, rollback).
+      try {
+        await this.db!.execute('PRAGMA foreign_keys = ON;');
+      } catch (pragmaError) {
+        console.warn('⚠️ Failed to re-enable foreign keys after restore:', pragmaError);
+      }
     }
   }
 
