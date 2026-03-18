@@ -86,9 +86,9 @@ public class DailyAccountancyService extends GenericService<DailyAccountancy, Lo
         }
         DailyAccountancy accountancy = new DailyAccountancy();
         accountancy.setCollector(user.getUsername());
-        DailyAccounting dailyAccounting = dailyAccountingRepository.getCurrentDailyAccounting();
-        accountancy.setDailyAccounting(dailyAccounting);
-        accountancy.setAccountingDate(dailyAccounting.getAccountingDate());
+        //DailyAccounting dailyAccounting = dailyAccountingRepository.getCurrentDailyAccounting();
+        //accountancy.setDailyAccounting(dailyAccounting);
+        accountancy.setAccountingDate(LocalDate.now());
         super.create(accountancy);
         return accountancy;
     }
