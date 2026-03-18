@@ -259,4 +259,13 @@ export const resetDistributionPagination = createAction(
   '[Distribution] Reset Distribution Pagination'
 );
 
+/**
+ * Enrichit le cache selectedArticlesCache avec une liste d'articles récupérés depuis la DB.
+ * Utilisé avant la soumission pour garantir que tous les articles sélectionnés sont dans le cache,
+ * même si la liste paginée a été rechargée entre-temps (Fix Cause Racine 1).
+ */
+export const enrichArticlesCache = createAction(
+  '[Distribution] Enrich Articles Cache',
+  props<{ articles: Article[] }>()
+);
 

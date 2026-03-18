@@ -16,13 +16,14 @@ import { Client } from '../../../../models/client.model';
 import { Article } from '../../../../models/article.model';
 
 import * as DistributionActions from '../../../../store/distribution/distribution.actions';
-import { selectAvailableArticles, selectSelectedClient, selectArticleQuantities, selectDistributionTotalAmount, selectSelectedArticlesWithDetails, selectArticlesPaginationHasMore } from '../../../../store/distribution/distribution.selectors';
+import { selectAvailableArticles, selectSelectedClient, selectArticleQuantities, selectDistributionTotalAmount, selectSelectedArticlesWithDetails, selectArticlesPaginationHasMore, selectSelectedArticlesCache } from '../../../../store/distribution/distribution.selectors';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 import { CanComponentDeactivate } from '../../../../core/guards/unsaved-changes.guard';
 import { LoggerService } from '../../../../core/services/logger.service';
 import { DistributionService } from '../../../../core/services/distribution.service';
 import { AccountService } from '../../../../core/services/account.service';
 import { DatabaseService } from '../../../../core/services/database.service';
+import { ArticleRepository } from '../../../../core/repositories/article.repository';
 import { selectAvailableStockItems } from '../../../../store/commercial-stock/commercial-stock.selectors';
 import { CommercialStockItem } from '../../../../models/commercial-stock-item.model';
 
@@ -84,7 +85,8 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     private cdr: ChangeDetectorRef,
     private distributionService: DistributionService,
     private accountService: AccountService,
-    private databaseService: DatabaseService
+    private databaseService: DatabaseService,
+    private articleRepository: ArticleRepository
   ) {
     this.distributionForm = this.fb.group({ advance: [0] });
   }
@@ -587,24 +589,60 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + paymentPeriod);
 
-      // Prepare distribution items
+      // --- Fix Cause Racine 1 : Enrichissement du cache avant soumission ---
+      // Récupère les quantités et le cache actuels depuis le store.
+      const currentQuantities = await firstValueFrom(this.store.select(selectArticleQuantities).pipe(take(1)));
+      const currentCache = await firstValueFrom(this.store.select(selectSelectedArticlesCache).pipe(take(1)));
+
+      // Identifie les IDs d'articles sélectionnés (quantité > 0) qui ne sont PAS dans le cache.
+      const missingFromCacheIds = Object.keys(currentQuantities)
+        .filter(id => currentQuantities[id] > 0 && !currentCache[id]);
+
+      if (missingFromCacheIds.length > 0) {
+        this.log.log('[NewDistributionPage] Articles manquants dans le cache, récupération depuis la DB', { missingFromCacheIds });
+        try {
+          // Récupère les articles manquants directement depuis la base de données locale.
+          const missingArticles = await this.articleRepository.findByIds(missingFromCacheIds);
+          if (missingArticles.length > 0) {
+            // Dispatch l'action pour enrichir le cache dans le store.
+            this.store.dispatch(DistributionActions.enrichArticlesCache({ articles: missingArticles }));
+            // Laisse le temps au store de se mettre à jour avant de lire le sélecteur.
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+        } catch (cacheError) {
+          this.log.error('[NewDistributionPage] Échec de l\'enrichissement du cache', cacheError);
+          // Non bloquant : on continue, la validation suivante détectera les articles manquants.
+        }
+      }
+      // --- Fin Fix Cause Racine 1 ---
+
+      // Prepare distribution items (après enrichissement du cache)
       const selectedArticles = await firstValueFrom(this.store.select(selectSelectedArticlesWithDetails).pipe(take(1)));
 
-      // Vérification de cohérence : le nombre d'articles sélectionnés doit correspondre
+      // Vérifier qu'il y a au moins un article sélectionné
+      if (selectedArticles.length === 0) {
+        await this.presentErrorAlert('Sélection vide', 'Veuillez sélectionner au moins un article.');
+        return;
+      }
+
+      // --- Fix Cause Racine 5 : Vérification de cohérence améliorée ---
+      // Compare le nombre d'articles dans le cache (après enrichissement) avec le nombre attendu.
+      // Si des articles sont toujours manquants après l'enrichissement, on bloque avec un message précis.
       if (selectedArticles.length !== articlesCount) {
-        this.log.error('[NewDistributionPage] Incohérence détectée dans la sélection des articles', {
+        const missingCount = articlesCount - selectedArticles.length;
+        this.log.error('[NewDistributionPage] Incohérence persistante après enrichissement du cache', {
           selectedArticlesCount: selectedArticles.length,
-          expectedCount: articlesCount
+          expectedCount: articlesCount,
+          missingCount
         });
 
         const alert = await this.alertController.create({
           header: 'Erreur de sélection',
-          message: 'La sélection des articles n\'est pas à jour. Veuillez vérifier votre sélection avant de soumettre.',
+          message: `${missingCount} article(s) sélectionné(s) n'ont pas pu être chargés. Veuillez re-sélectionner vos articles.`,
           buttons: [
             {
-              text: 'OK',
+              text: 'Rafraîchir',
               handler: () => {
-                // Optionnel : recharger la liste des articles ou rafraîchir l'état
                 this.refreshList(this.searchTerm$.value);
               }
             }
@@ -614,12 +652,7 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
         await alert.present();
         return;
       }
-
-      // Vérifier qu'il y a au moins un article sélectionné
-      if (selectedArticles.length === 0) {
-        await this.presentErrorAlert('Sélection vide', 'Veuillez sélectionner au moins un article.');
-        return;
-      }
+      // --- Fin Fix Cause Racine 5 ---
 
       const distributionData = {
         creditId: creditId,

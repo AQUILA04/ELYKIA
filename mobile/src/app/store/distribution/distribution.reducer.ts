@@ -503,7 +503,25 @@ export const distributionReducer = createReducer(
   on(DistributionActions.deleteDistributionsByClient, (state, { clientId }) => ({
     ...state,
     distributions: state.distributions.filter(d => d.clientId !== clientId),
-  }))
+  })),
+
+  // Fix Cause Racine 1 : enrichissement du cache avec des articles récupérés depuis la DB.
+  // Garantit que tous les articles sélectionnés sont dans le cache avant la soumission,
+  // même si la liste paginée a été rechargée (recherche, scroll) entre la sélection et la soumission.
+  on(DistributionActions.enrichArticlesCache, (state, { articles }) => {
+    const enrichedCache = { ...state.selectedArticlesCache };
+    for (const article of articles) {
+      // N'enrichit que les articles qui ont une quantité > 0 et qui ne sont pas déjà en cache.
+      // On ne remplace pas les entrées existantes pour éviter d'écraser des données plus récentes.
+      if (state.articleQuantities[article.id] > 0 && !enrichedCache[article.id]) {
+        enrichedCache[article.id] = article;
+      }
+    }
+    return {
+      ...state,
+      selectedArticlesCache: enrichedCache
+    };
+  })
 );
 
 // KPI Stats

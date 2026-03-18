@@ -317,11 +317,11 @@ export class DistributionService {
       throw new Error(`Aucun items pour la distribution`);
     }
 
-    await this.dbService.saveDistributions([distribution]);
-    await this.dbService.saveDistributionItems(distributionItems);
-
-    // Save the main distribution record and its items in a single transaction using Repository
-    //await this.distributionRepository.saveAll([distribution]);
+    // Persistance atomique : distribution + items dans un seul executeSet (une seule transaction SQLite).
+    // Si l'insertion des items échoue, la distribution n'est pas non plus persistée (rollback implicite).
+    // saveDistributionsAndItems utilise DistributionMapper.toLocal qui lit maintenant distribution.items
+    // en priorité (Fix 4 — DistributionMapper), garantissant que les items locaux sont bien inclus.
+    await this.dbService.saveDistributionsAndItems([distribution]);
 
     // Create and save the corresponding transaction for the history
     // Still using dbService for transactions

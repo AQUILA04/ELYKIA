@@ -31,13 +31,26 @@ export class DistributionMapper {
   }
 
   private static mapItems(backendData: any): DistributionItem[] {
+    // Priorité 1 : items locaux déjà mappés (format Distribution local, création/mise à jour locale).
+    // Ces items sont stockés dans distribution.items et contiennent déjà toutes les données nécessaires.
+    if (backendData.items && Array.isArray(backendData.items) && backendData.items.length > 0) {
+      return backendData.items.map((item: any) => ({
+        id: item.id?.toString() || '',
+        distributionId: item.distributionId?.toString() || backendData.id?.toString() || '',
+        articleId: item.articleId?.toString() || '',
+        quantity: item.quantity ?? 0,
+        unitPrice: item.unitPrice ?? 0,
+        totalPrice: item.totalPrice ?? 0
+      }));
+    }
+    // Priorité 2 : articles au format API backend (backendData.articles, sync depuis le serveur).
     return (backendData.articles || []).map((article: any) => ({
       id: article.id?.toString() || article.id || '',
       distributionId: backendData.id?.toString() || backendData.id || '',
       articleId: article.articles?.id?.toString() || article.articleId || '',
-      quantity: article.quantity ?? article.quantity ?? 0,
+      quantity: article.quantity ?? 0,
       unitPrice: this.getUnitPrice(article) ?? article.unitPrice ?? 0,
-      totalPrice: (article.quantity ?? article.quantity ?? 0) * (this.getUnitPrice(article) ?? article.totalPrice ?? 0)
+      totalPrice: (article.quantity ?? 0) * (this.getUnitPrice(article) ?? article.totalPrice ?? 0)
     }));
   }
 
