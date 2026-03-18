@@ -120,6 +120,11 @@ import { CreditLateComponent } from './credit/credit-late/credit-late.component'
 import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
 import { CreditLateFilterComponent } from './credit/credit-late/components/credit-late-filter/credit-late-filter.component';
 import { CreditLateTableComponent } from './credit/credit-late/components/credit-late-table/credit-late-table.component';
+import { CreditEcheanceComponent } from './credit/credit-echeance/credit-echeance.component';
+import { CreditEcheanceKpiComponent } from './credit/credit-echeance/components/credit-echeance-kpi/credit-echeance-kpi.component';
+import { CreditEcheanceCalendarComponent } from './credit/credit-echeance/components/credit-echeance-calendar/credit-echeance-calendar.component';
+import { CreditEcheanceFilterComponent } from './credit/credit-echeance/components/credit-echeance-filter/credit-echeance-filter.component';
+import { CreditEcheanceTableComponent } from './credit/credit-echeance/components/credit-echeance-table/credit-echeance-table.component';
 
 @NgModule({
   declarations: [
@@ -204,7 +209,12 @@ import { CreditLateTableComponent } from './credit/credit-late/components/credit
     CreditLateComponent,
     CreditLateKpiComponent,
     CreditLateFilterComponent,
-    CreditLateTableComponent
+    CreditLateTableComponent,
+    CreditEcheanceComponent,
+    CreditEcheanceKpiComponent,
+    CreditEcheanceCalendarComponent,
+    CreditEcheanceFilterComponent,
+    CreditEcheanceTableComponent
     // --- NOUVELLES COMPOSANTS DÉPLACÉS DANS SHARED ---
   ],
   imports: [

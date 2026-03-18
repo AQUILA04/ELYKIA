@@ -1,0 +1,104 @@
+<div class="table-card a5">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:130px">Urgence</th>
+        <th>Référence / Client</th>
+        <th>Échéance</th>
+        <th class="col-hide">Agent collecteur</th>
+        <th class="col-hide">Remboursement</th>
+        <th class="col-hide">Montant restant</th>
+        <th style="width:90px">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="isLoading">
+        <td colspan="7">
+          <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
+        </td>
+      </tr>
+      <tr *ngIf="!isLoading && credits.length === 0">
+        <td colspan="7">
+          <div class="empty-state">
+            <div class="empty-icon">✅</div>
+            <div class="empty-title">Aucun crédit pour cette période</div>
+            <div class="empty-sub">Sélectionnez une autre date ou un autre commercial.</div>
+          </div>
+        </td>
+      </tr>
+      <tr *ngFor="let d of paginatedCredits" [class]="getUrgClass(d)">
+        <td>
+          <div class="urg-cell">
+            <div class="urg-bar-wrap">
+              <div class="urg-bar-track">
+                <div class="urg-bar-fill" [class]="getBarClass(d)" [style.width.%]="getBarPct(d)"></div>
+              </div>
+            </div>
+            <div>
+              <div class="urg-days" [class]="getDaysClass(d)">{{ getDaysLabel(d) }}</div>
+              <div class="urg-sublabel">{{ getUrgLabel(d) }}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="col-ref">{{ d.reference }}</div>
+          <div class="col-client">{{ d.clientName }}</div>
+          <div class="col-client-sub">{{ d.clientPhone }}</div>
+        </td>
+        <td>
+          <span class="echeance-badge" [class]="getEchClass(d)">{{ getEchLabel(d) }}</span>
+          <div style="margin-top:4px;font-size:11px;color:var(--text-muted)">{{ d.expectedEndDate | date:'dd/MM/yyyy' }}</div>
+        </td>
+        <td class="col-hide">
+          <div class="col-collector">
+            <div class="collector-dot">{{ getInitials(d.collector) }}</div>
+            {{ d.collector }}
+          </div>
+        </td>
+        <td class="col-hide">
+          <div class="repay-cell">
+            <div class="repay-header">
+              <span class="repay-pct">{{ getPaidPct(d) }}%</span>
+              <span class="repay-rest">{{ d.totalAmountPaid | number }} / {{ d.totalAmount | number }}</span>
+            </div>
+            <div class="repay-track">
+              <div class="repay-fill" [style.width.%]="getPaidPct(d)"></div>
+            </div>
+          </div>
+        </td>
+        <td class="col-hide">
+          <div class="col-amount">{{ d.totalAmountRemaining | number }} FCFA</div>
+          <div class="col-amount-sub">{{ d.totalAmountRemaining === 0 ? '✓ Soldé' : 'À recouvrer' }}</div>
+        </td>
+        <td>
+          <button class="btn-detail" (click)="viewDetails(d.id)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            Voir
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="pagination">
+    <span class="page-info">{{ getPaginationInfo() }}</span>
+    <div class="page-btns">
+      <button class="page-btn" (click)="changePage(-1)" [disabled]="currentPage === 1">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <button *ngFor="let p of pageNumbers" class="page-btn" [class.active]="currentPage === p" (click)="goPage(p)">{{ p }}</button>
+      <button class="page-btn" (click)="changePage(1)" [disabled]="currentPage === maxPage">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>

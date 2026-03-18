@@ -190,6 +190,16 @@
           </a>
         </li>
 
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT']">
+          <a class="sidebar-link" routerLink="/credits/echeance" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/credits/echeance') }">
+            <span>
+              <mat-icon>event_available</mat-icon>
+            </span>
+            <span class="hide-menu">Échéances</span>
+          </a>
+        </li>
+
 <!--        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER']"-->
 <!--          [ngClass]="{ 'active': isRouteActive('/out-list') }">-->
 <!--          <a class="sidebar-link" routerLink="/out-list" aria-expanded="false">-->

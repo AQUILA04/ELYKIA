@@ -612,4 +612,43 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
           )
     """, nativeQuery = true)
     List<String> findLateCreditsCollectors();
+
+    // ==========================================
+    // MÉTHODES POUR LES CRÉDITS À ÉCHÉANCE
+    // ==========================================
+
+    /**
+     * Crédits actifs dont la date de fin est dans une plage.
+     * JOIN FETCH client pour éviter le problème N+1.
+     */
+    @Query("""
+        SELECT c FROM Credit c
+        LEFT JOIN FETCH c.client
+        WHERE c.status IN :statuses
+        AND c.expectedEndDate BETWEEN :from AND :to
+        ORDER BY c.expectedEndDate ASC
+    """)
+    List<Credit> findActiveByEndDateBetween(
+        @Param("statuses") List<CreditStatus> statuses,
+        @Param("from")     LocalDate from,
+        @Param("to")       LocalDate to
+    );
+
+    /**
+     * Idem, filtré par commercial.
+     */
+    @Query("""
+        SELECT c FROM Credit c
+        LEFT JOIN FETCH c.client
+        WHERE c.status IN :statuses
+        AND c.expectedEndDate BETWEEN :from AND :to
+        AND c.collector = :collector
+        ORDER BY c.expectedEndDate ASC
+    """)
+    List<Credit> findActiveByEndDateBetweenAndCollector(
+        @Param("statuses")  List<CreditStatus> statuses,
+        @Param("from")      LocalDate from,
+        @Param("to")        LocalDate to,
+        @Param("collector") String collector
+    );
 }

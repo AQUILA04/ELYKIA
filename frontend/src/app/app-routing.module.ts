@@ -58,6 +58,7 @@ import { CreateTontineComponent } from "./credit/components/create-tontine/creat
 import { AuthGuard } from "./auth/guards/auth.guard";
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 import { CreditLateComponent } from './credit/credit-late/credit-late.component';
+import { CreditEcheanceComponent } from './credit/credit-echeance/credit-echeance.component';
 
 const routes: Routes = [
   // Route publique - Login
@@ -213,6 +214,12 @@ const routes: Routes = [
     component: CreditLateComponent,
     canActivate: [AuthGuard],
     data: { breadcrumb: '' }
+  },
+  {
+    path: 'credits/echeance',
+    component: CreditEcheanceComponent,
+    canActivate: [AuthGuard],
+    data: { breadcrumb: 'Crédits à Échéance' }
   },
   {
     path: 'credit-details/:id',
