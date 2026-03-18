@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -103,6 +104,11 @@ public class ClientController {
     @GetMapping(value = "profil-photo/{id}")
     public ResponseEntity<Response> getClientProfilPhoto(@PathVariable Long id) {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getProfilPhoto(id)), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "profil-photo-stream/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public @ResponseBody byte[] getProfilPhotoStream(@PathVariable Long id) {
+        return clientService.getProfilPhotoStream(id);
     }
 
     @GetMapping(value = "card-photo/{id}")

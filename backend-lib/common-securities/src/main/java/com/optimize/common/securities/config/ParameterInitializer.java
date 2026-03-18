@@ -1,6 +1,5 @@
-package com.optimize.common.securities.service;
+package com.optimize.common.securities.config;
 
-import com.optimize.common.securities.config.ParameterProperties;
 import com.optimize.common.securities.models.Parameter;
 import com.optimize.common.securities.repository.ParameterRepository;
 import jakarta.annotation.PostConstruct;

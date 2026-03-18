@@ -65,6 +65,8 @@ public class Client extends Auditable<String> {
     private String recoveryCollector;
     @Column(columnDefinition = "boolean default false")
     private boolean isTontineMember;
+    @Column(columnDefinition = "boolean default false")
+    private boolean hasOrderInProgress;
 
 
     public Long getAccountId() {
@@ -126,5 +128,10 @@ public class Client extends Auditable<String> {
         }
         return Objects.equals(this.firstname, client.getFirstname()) &&
                Objects.equals(this.lastname, client.getLastname());
+    }
+
+    public void removePhotos() {
+        this.profilPhoto = null;
+        this.IDDoc = null;
     }
 }

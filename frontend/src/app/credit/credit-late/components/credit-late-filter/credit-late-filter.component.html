@@ -1,0 +1,16 @@
+<div class="toolbar a4">
+  <app-commercial-selector (commercialSelected)="onCommercialSelected($event)"></app-commercial-selector>
+
+  <div class="divider"></div>
+
+  <span class="toolbar-label">Type</span>
+  <div class="type-tabs">
+    <button class="tab-btn" [class.active]="currentType === 'all'" (click)="setTypeFilter('all')">Tous</button>
+    <button class="tab-btn" [class.active-red]="currentType === 'DELAI'" (click)="setTypeFilter('DELAI')">Retard délai</button>
+    <button class="tab-btn" [class.active-orange]="currentType === 'ECHEANCE'" (click)="setTypeFilter('ECHEANCE')">Retard échéance</button>
+  </div>
+
+  <span class="result-count">
+    <strong>{{ resultCount }}</strong> résultat(s)
+  </span>
+</div>

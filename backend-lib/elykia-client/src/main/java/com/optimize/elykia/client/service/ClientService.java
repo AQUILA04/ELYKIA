@@ -10,11 +10,14 @@ import com.optimize.elykia.client.config.ClientProperties;
 import com.optimize.elykia.client.dto.*;
 import com.optimize.elykia.client.entity.Account;
 import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.client.entity.PhotoStore;
 import com.optimize.elykia.client.enumeration.AccountStatus;
 import com.optimize.elykia.client.enumeration.ClientType;
+import com.optimize.elykia.client.enumeration.PhotoType;
 import com.optimize.elykia.client.event.ClientCreatedEvent;
 import com.optimize.elykia.client.mapper.ClientMapper;
 import com.optimize.elykia.client.repository.ClientRepository;
+import com.optimize.elykia.client.repository.PhotoStoreRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,17 +38,20 @@ public class ClientService extends GenericService<Client, Long> {
     private final ClientAutoInitProperties clientAutoInitProperties;
     private final AccountService accountService;
     private final ApplicationEventPublisher eventPublisher;
+    private final PhotoStoreRepository photoStoreRepository;
 
     protected ClientService(ClientRepository repository, ClientMapper clientMapper,
             ClientProperties clientProperties,
             ClientAutoInitProperties clientAutoInitProperties, AccountService accountService,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+                            PhotoStoreRepository photoStoreRepository) {
         super(repository);
         this.clientMapper = clientMapper;
         this.clientProperties = clientProperties;
         this.clientAutoInitProperties = clientAutoInitProperties;
         this.accountService = accountService;
         this.eventPublisher = eventPublisher;
+        this.photoStoreRepository = photoStoreRepository;
     }
 
     @Transactional
@@ -55,7 +61,13 @@ public class ClientService extends GenericService<Client, Long> {
         if (existingClient != null) {
             return ClientRespDto.fromClient(existingClient);
         }
+        PhotoStore profilPhoto = PhotoStore.buildClientProfil(client);
+        PhotoStore cardPhoto = PhotoStore.buildClientCard(client);
+        client.removePhotos();
         Client savedClient = create(client);
+        profilPhoto.setClientId(savedClient.getId());
+        cardPhoto.setClientId(savedClient.getId());
+        photoStoreRepository.saveProfilAndCard(profilPhoto, cardPhoto);
 
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new ClientCreatedEvent(
@@ -108,10 +120,10 @@ public class ClientService extends GenericService<Client, Long> {
         }
         Client client = getById(dto.clientId());
         if (StringUtils.hasText(dto.profilPhoto())) {
-            client.setProfilPhoto(Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto())));
+            photoStoreRepository.updateProfil(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto())));
         }
         if (StringUtils.hasText(dto.cardPhoto())) {
-            client.setIDDoc(Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto())));
+            photoStoreRepository.updateProfil(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto())));
         }
         if (StringUtils.hasText(dto.cardType())) {
             client.setCardType(dto.cardType());
@@ -128,29 +140,27 @@ public class ClientService extends GenericService<Client, Long> {
     @Transactional
     public Boolean updatePhotosBatch(List<ClientPhotoBatchUpdateDto> dtos) {
         for (ClientPhotoBatchUpdateDto dto : dtos) {
-            Client client = getById(dto.clientId());
             if (StringUtils.hasText(dto.profilPhoto())) {
-                client.setProfilPhoto(Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto())));
+                photoStoreRepository.updateProfil(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto())));
             }
             if (StringUtils.hasText(dto.cardPhoto())) {
-                client.setIDDoc(Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto())));
+                photoStoreRepository.updateProfil(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto())));
             }
-            repository.save(client);
         }
-        repository.flush();
         return Boolean.TRUE;
     }
 
     public List<ClientPhotoCheckDto> checkMissingPhotos(List<Long> ids) {
-        List<Client> clients = getRepository().findAllByIds(ids);
         List<ClientPhotoCheckDto> result = new ArrayList<>();
-        
-        for (Client client : clients) {
-            boolean missingProfil = client.getProfilPhoto() == null || client.getProfilPhoto().length < 512;
-            boolean missingCard = client.getIDDoc() == null || client.getIDDoc().length < 512;
-            
+
+        for (Long id : ids) {
+            PhotoStore clientPhoto = photoStoreRepository.getClientProfil(id);
+            PhotoStore cardPhoto = photoStoreRepository.getClientCard(id);
+            boolean missingProfil = clientPhoto.getPhoto() == null || clientPhoto.getPhoto().length < 512;
+            boolean missingCard = cardPhoto.getPhoto() == null || cardPhoto.getPhoto().length < 512;
+
             if (missingProfil || missingCard) {
-                result.add(new ClientPhotoCheckDto(client.getId(), missingProfil, missingCard));
+                result.add(new ClientPhotoCheckDto(id, missingProfil, missingCard));
             }
         }
         return result;
@@ -174,7 +184,7 @@ public class ClientService extends GenericService<Client, Long> {
                 if (phoneClient.isSameClient(client)) {
                     existingClient = phoneClient;
                 } else {
-                    throw new CustomValidationException(phoneErrorMsg + " (" + phoneClient.getFirstname() + " " + phoneClient.getLastname() + ")");
+                    throw new CustomValidationException(phoneErrorMsg + " (" + phoneClient.getFirstname() + " " + phoneClient.getLastname() + ") | Commercial associé : " + phoneClient.getCollector());
                 }
             }
         }
@@ -210,19 +220,19 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     public byte[] getProfilPhoto(Long id) {
-        return getRepository().getProfilPhoto(id);
+        return photoStoreRepository.getClientProfil(id).getPhoto();
     }
 
     public byte[] getCardPhoto(Long id) {
-        return getRepository().getCardPhoto(id);
+        return photoStoreRepository.getClientCard(id).getPhoto();
     }
 
     public List<ClientPhotoDto> getProfilPhotos(List<Long> ids) {
-        return getRepository().getProfilPhotos(ids);
+        return photoStoreRepository.getPhotos(ids, PhotoType.PROFIL);
     }
 
     public List<ClientPhotoDto> getCardPhotos(List<Long> ids) {
-        return getRepository().getCardPhotos(ids);
+        return photoStoreRepository.getPhotos(ids, PhotoType.CARD);
     }
 
     public Page<Client> getByOperator(String username, Pageable pageable) {
@@ -303,6 +313,32 @@ public class ClientService extends GenericService<Client, Long> {
 
         }
         return super.deleteSoft(id);
+    }
+
+    public byte[] getProfilPhotoStream(Long clientId) {
+        return photoStoreRepository.getClientProfil(clientId).getPhoto();
+    }
+
+
+    @Transactional
+    public void migratePhoto() {
+        int page = 0;
+        int size = 5;
+        Page<Client> clients;
+        do {
+            clients = getRepository().findAll(Pageable.ofSize(size).withPage(page));
+            page++;
+            for (Client client : clients) {
+                if (!photoStoreRepository.existsByClientId(client.getId())) {
+                    PhotoStore profilPhoto = PhotoStore.buildClientProfil(client);
+                    PhotoStore cardPhoto = PhotoStore.buildClientCard(client);
+                    photoStoreRepository.saveProfilAndCard(profilPhoto, cardPhoto);
+                    client.removePhotos();
+                    repository.saveAndFlush(client);
+                }
+
+            }
+        } while (clients.hasNext());
     }
 
     @Override

@@ -574,6 +574,42 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     @Query("UPDATE Client cl SET cl.recoveryCollector = :newCollector WHERE cl.id IN (SELECT c.client.id FROM Credit c WHERE c.id IN :creditIds)")
     void bulkUpdateClientRecoveryCollector(@Param("creditIds") List<Long> creditIds, @Param("newCollector") String newCollector);
 
+    // ==========================================
+    // MÉTHODES POUR LES CRÉDITS EN RETARD
+    // ==========================================
 
+    @Query(value = """
+        SELECT c.* FROM credit c 
+        WHERE c.status = 'INPROGRESS'
+          AND (
+               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
+               OR 
+               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
+          )
+    """, nativeQuery = true)
+    List<Credit> findLateCredits();
 
+    @Query(value = """
+        SELECT c.* FROM credit c 
+        WHERE c.status = 'INPROGRESS'
+          AND c.collector = :collector
+          AND (
+               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
+               OR 
+               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
+          )
+    """, nativeQuery = true)
+    List<Credit> findLateCreditsByCollector(@Param("collector") String collector);
+
+    @Query(value = """
+        SELECT DISTINCT c.collector FROM credit c 
+        WHERE c.status = 'INPROGRESS'
+          AND c.collector IS NOT NULL
+          AND (
+               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
+               OR 
+               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
+          )
+    """, nativeQuery = true)
+    List<String> findLateCreditsCollectors();
 }

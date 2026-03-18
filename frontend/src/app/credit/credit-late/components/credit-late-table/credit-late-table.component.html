@@ -1,0 +1,111 @@
+<div class="table-card a5">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:130px">
+          Gravité <span class="sort-icon">↓</span>
+        </th>
+        <th>Référence / Client</th>
+        <th>Type de retard</th>
+        <th class="col-hide">Agent collecteur</th>
+        <th class="col-hide">Montant restant</th>
+        <th class="col-hide">Date fin prévue</th>
+        <th style="width:90px">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="isLoading">
+        <td colspan="7">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
+        </td>
+      </tr>
+      <tr *ngIf="!isLoading && credits.length === 0">
+        <td colspan="7">
+          <div class="empty-state">
+            <div class="empty-icon">✅</div>
+            <div class="empty-title">Aucun retard trouvé</div>
+            <div class="empty-sub">Aucun crédit ne correspond aux filtres sélectionnés.</div>
+          </div>
+        </td>
+      </tr>
+
+      <tr *ngFor="let d of paginatedCredits" [class]="getGraviteClass(d)">
+        <td>
+          <div class="gravite-cell">
+            <div class="gravite-bar-wrap">
+              <div class="gravite-bar-track">
+                <div class="gravite-bar-fill" [class]="getBarClass(d)" [style.width.%]="getBarPct(d)"></div>
+              </div>
+            </div>
+            <div>
+              <div class="gravite-days" [class]="getDaysClass(d)">{{ getLateDays(d) }}j</div>
+              <div class="gravite-label" style="color:var(--text-light)">{{ getGraviteLabel(d) }}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="col-ref">{{ d.reference }}</div>
+          <div class="col-client">{{ d.clientName }}</div>
+          <div class="col-client-sub">{{ d.clientPhone }}</div>
+        </td>
+        <td>
+          <ng-container *ngIf="d.lateType === 'DELAI'">
+            <span class="retard-badge retard-delai">⚠ Délai dépassé ({{ d.lateDaysDelai }}j)</span>
+          </ng-container>
+          <ng-container *ngIf="d.lateType === 'ECHEANCE'">
+            <span class="retard-badge retard-echeance">⏱ Échéance ({{ d.lateDaysEcheance }}j)</span>
+          </ng-container>
+        </td>
+        <td class="col-hide">
+          <div class="col-collector">
+            <div class="col-collector-dot">{{ getInitials(d.collector) }}</div>
+            {{ d.collector }}
+          </div>
+        </td>
+        <td class="col-hide">
+          <div class="col-amount">{{ d.totalAmountRemaining | number }} FCFA</div>
+          <div class="col-amount-sub">
+            Payé: {{ getPaidPct(d) }}% ({{ d.totalAmountPaid | number }} FCFA)
+          </div>
+        </td>
+        <td class="col-hide">
+          <div [class]="isDateOverdue(d.expectedEndDate) ? 'date-overdue' : 'date-ok'">
+            {{ d.expectedEndDate | date:'dd/MM/yyyy' }}
+          </div>
+          <div class="date-label">
+            {{ isDateOverdue(d.expectedEndDate) ? '⚠ Dépassée' : 'Échéance prévue' }}
+          </div>
+        </td>
+        <td>
+          <button class="btn-detail" (click)="viewDetails(d.id)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            Voir
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    <span class="page-info">{{ getPaginationInfo() }}</span>
+    <div class="page-btns">
+      <button class="page-btn" (click)="changePage(-1)" [disabled]="currentPage === 1">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <ng-container *ngFor="let _ of [].constructor(maxPage); let i = index">
+         <button *ngIf="i < 3 || i === currentPage - 1 || i === maxPage - 1 || (i >= currentPage - 2 && i <= currentPage)" class="page-btn" [class.active]="currentPage === i + 1" (click)="goPage(i + 1)">
+           {{ i + 1 }}
+         </button>
+      </ng-container>
+      <button class="page-btn" (click)="changePage(1)" [disabled]="currentPage === maxPage">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+</div>

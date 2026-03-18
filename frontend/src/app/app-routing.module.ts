@@ -57,6 +57,7 @@ import { ChangeDailyStakeComponent } from './credit/change-daily-stake/change-da
 import { CreateTontineComponent } from "./credit/components/create-tontine/create-tontine.component";
 import { AuthGuard } from "./auth/guards/auth.guard";
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
+import { CreditLateComponent } from './credit/credit-late/credit-late.component';
 
 const routes: Routes = [
   // Route publique - Login
@@ -206,6 +207,12 @@ const routes: Routes = [
     path: 'credit-list',
     component: CreditListComponent,
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'credits/late',
+    component: CreditLateComponent,
+    canActivate: [AuthGuard],
+    data: { breadcrumb: '' }
   },
   {
     path: 'credit-details/:id',

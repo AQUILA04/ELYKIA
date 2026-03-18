@@ -1,0 +1,696 @@
+/* ============================================================
+   credit-late.component.scss
+   ViewEncapsulation.None  →  styles globaux pour tous les
+   sous-composants (kpi, filter, table).
+
+   Palette projet : #003366 (navy), blanc, gris #f2f4f8
+   Police : Inter + DM Mono (chargées via index.html ou styles.scss)
+   ============================================================ */
+
+/* ── VARIABLES ─────────────────────────────────────────────── */
+:root {
+  /* Projet */
+  --navy:          #003366;
+  --navy-dark:     #002244;
+  --navy-pale:     #e8eef6;
+  --navy-xpale:    #f0f4f9;
+
+  /* Fonds */
+  --bg-page:       #f2f4f8;
+  --bg-white:      #ffffff;
+
+  /* Bordures */
+  --border:        #dde3ec;
+  --border-dark:   #c5cfe0;
+
+  /* Textes */
+  --text-body:     #333333;
+  --text-muted:    #6b7a99;
+  --text-light:    #9aacc4;
+
+  /* Statuts */
+  --green:         #1d8a3c;
+  --green-pale:    #e6f5eb;
+  --orange:        #c75000;
+  --orange-pale:   #fff3e6;
+  --red:           #b91c1c;
+  --red-mid:       #dc2626;
+  --red-pale:      #fef2f2;
+  --red-border:    #fca5a5;
+  --yellow:        #b45309;
+  --yellow-pale:   #fefce8;
+  --yellow-border: #fde68a;
+
+  /* KPI accents (bandes latérales) */
+  --kpi-navy:   #003366;
+  --kpi-red:    #b91c1c;
+  --kpi-orange: #c75000;
+  --kpi-cyan:   #0095c8;
+
+  /* Ombres */
+  --shadow-sm:  0 1px 3px rgba(0, 51, 102, 0.08);
+  --shadow-md:  0 4px 16px rgba(0, 51, 102, 0.10);
+
+  /* Rayons */
+  --radius:     12px;
+  --radius-sm:  8px;
+}
+
+/* ── ANIMATIONS ─────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.a1 { animation: fadeUp .3s .00s ease both; }
+.a2 { animation: fadeUp .3s .05s ease both; }
+.a3 { animation: fadeUp .3s .10s ease both; }
+.a4 { animation: fadeUp .3s .15s ease both; }
+.a5 { animation: fadeUp .3s .20s ease both; }
+
+/* ── CONTENEUR PRINCIPAL ────────────────────────────────────── */
+.main-container {
+  padding: 28px 24px 60px;
+  max-width: 1200px;
+  margin: 80px auto 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-page);
+  min-height: 100vh;
+}
+
+/* ── BREADCRUMB ─────────────────────────────────────────────── */
+.breadcrumb-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color .18s;
+}
+.breadcrumb-link:hover { color: var(--navy); }
+.breadcrumb-link svg   { width: 16px; height: 16px; }
+
+.date-display {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+/* ── PAGE HEADER ────────────────────────────────────────────── */
+.page-header-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 26px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 18px;
+}
+
+.header-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.header-surtitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  font-family: 'DM Mono', monospace;
+}
+
+.last-update {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.header-card-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.title-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Neutralise toute marge/padding que le navigateur
+   ou Angular Material applique au h1 dans ce contexte */
+.title-group h1,
+.title-group .page-title {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.alert-icon {
+  /* display:block supprime l'espace de descente des SVG inline */
+  display: block;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  color: var(--red);
+  flex-shrink: 0;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .18s, transform .18s;
+  box-shadow: var(--shadow-sm);
+}
+.btn-refresh:hover {
+  background: var(--navy-dark);
+  transform: translateY(-1px);
+}
+.btn-refresh svg { width: 14px; height: 14px; }
+
+/* ── KPI STRIP ──────────────────────────────────────────────── */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.kpi-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow .18s, transform .18s;
+  /* Retire le border-left précédent et utilise ::before comme la maquette */
+  border-left: 1px solid var(--border);
+}
+.kpi-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Bande colorée gauche (4px, pleine hauteur) */
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 12px 0 0 12px;
+}
+.kpi-total::before   { background: var(--kpi-navy); }
+.kpi-delai::before   { background: var(--kpi-red); }
+.kpi-echeance::before { background: var(--kpi-orange); }
+.kpi-amount::before  { background: var(--kpi-cyan); }
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.kpi-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.kpi-total .kpi-value    { color: var(--navy); }
+.kpi-delai .kpi-value    { color: var(--red); }
+.kpi-echeance .kpi-value { color: var(--orange); }
+.kpi-amount .kpi-value   { color: var(--kpi-cyan); }
+
+.kpi-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── TOOLBAR ────────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+  /* Le dropdown doit pouvoir sortir visuellement du conteneur */
+  overflow: visible;
+  position: relative;
+  z-index: 50;
+}
+
+/* app-commercial-selector : le composant et son overlay
+   doivent passer au-dessus du tableau (.table-card) */
+app-commercial-selector {
+  position: relative;
+  z-index: 100;
+}
+
+/* Dropdown Material (mat-select-panel, mat-autocomplete-panel) */
+.mat-select-panel,
+.mat-autocomplete-panel,
+.mat-mdc-select-panel {
+  z-index: 1000 !important;
+}
+
+/* Dropdown ng-select */
+.ng-dropdown-panel {
+  z-index: 1000 !important;
+}
+
+/* Overlay CDK Angular Material — racine des overlays */
+.cdk-overlay-container,
+.cdk-overlay-pane {
+  z-index: 1000 !important;
+}
+
+.toolbar-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* Tabs type de retard */
+.type-tabs {
+  display: flex;
+  gap: 6px;
+  /* Retire le fond conteneur de la version précédente */
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.tab-btn {
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--bg-white);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .18s;
+  white-space: nowrap;
+}
+.tab-btn:hover { border-color: var(--border-dark); color: var(--navy); }
+
+.tab-btn.active {
+  background: var(--navy);
+  color: white;
+  border-color: var(--navy);
+  box-shadow: none;
+}
+.tab-btn.active-red {
+  background: var(--red);
+  color: white;
+  border-color: var(--red);
+  box-shadow: none;
+}
+.tab-btn.active-orange {
+  background: var(--orange);
+  color: white;
+  border-color: var(--orange);
+  box-shadow: none;
+}
+
+.result-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.result-count strong { color: var(--navy); }
+
+/* ── TABLE CARD ─────────────────────────────────────────────── */
+.table-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+thead th {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--navy);
+  background: var(--navy-xpale);
+  border-bottom: 2px solid var(--navy-pale);
+  white-space: nowrap;
+}
+
+/* Supprime le hover sur th */
+thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+thead th.sortable:hover { background: var(--navy-pale); }
+
+.sort-icon { margin-left: 5px; opacity: .4; font-size: 10px; }
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .12s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover td  { background: var(--navy-xpale); }
+
+tbody td {
+  padding: 12px 14px;
+  font-size: 13px;
+  vertical-align: middle;
+  /* Retire border-bottom individuel (géré par tr) */
+  border-bottom: none;
+}
+
+/* Bande latérale colorée par gravité (bordure gauche de la 1re cellule) */
+tbody tr.row-critique td:first-child { border-left: 3px solid var(--red); }
+tbody tr.row-grave    td:first-child { border-left: 3px solid var(--orange); }
+tbody tr.row-moyen    td:first-child { border-left: 3px solid #eab308; }
+tbody tr.row-faible   td:first-child { border-left: 3px solid var(--green); }
+
+/* Légère teinte de fond pour les critiques */
+tbody tr.row-critique { background: rgba(185, 28, 28, 0.015); }
+
+/* ── COLONNE GRAVITÉ ────────────────────────────────────────── */
+.gravite-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Barre HORIZONTALE fine (comme la maquette) */
+.gravite-bar-wrap {
+  flex: 1;
+  max-width: 72px;
+}
+.gravite-bar-track {
+  height: 5px;
+  background: var(--border);
+  border-radius: 100px;
+  overflow: hidden;
+  /* Supprime position absolute / bottom / display flex de l'ancienne version */
+  position: static;
+}
+.gravite-bar-fill {
+  height: 100%;
+  border-radius: 100px;
+  /* La largeur est gérée par [style.width.%] dans le template */
+  transition: width .5s ease;
+}
+
+.fill-critique { background: var(--red); }
+.fill-grave    { background: var(--orange); }
+.fill-moyen    { background: #eab308; }
+.fill-faible   { background: var(--green); }
+
+/* Nombre de jours */
+.gravite-days {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 36px;
+}
+.days-critique { color: var(--red); }
+.days-grave    { color: var(--orange); }
+.days-moyen    { color: #b45309; }
+.days-faible   { color: var(--green); }
+
+.gravite-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* ── COLONNES DONNÉES ───────────────────────────────────────── */
+.col-ref {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);       /* discret, pas violet */
+  margin-bottom: 2px;
+}
+
+.col-client {
+  font-weight: 600;
+  color: var(--navy);
+  font-size: 13px;
+}
+
+.col-client-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── BADGES RETARD ──────────────────────────────────────────── */
+.retard-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.retard-delai {
+  background: var(--red-pale);
+  color: var(--red);
+  border: 1px solid var(--red-border);
+}
+
+.retard-echeance {
+  background: var(--orange-pale);
+  color: var(--orange);
+  border: 1px solid rgba(199, 80, 0, .25);
+}
+
+.retard-double {
+  background: #fff0f0;
+  color: var(--red);
+  border: 1px solid var(--red-border);
+  /* Retire le ::before "!!!" */
+}
+.retard-double::before { content: none; }
+
+/* ── AGENT COLLECTEUR ───────────────────────────────────────── */
+.col-collector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.col-collector-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;           /* carré arrondi, pas cercle */
+  background: var(--navy);      /* navy, pas violet */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── MONTANTS ────────────────────────────────────────────────── */
+.col-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+}
+.col-amount-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── DATES ───────────────────────────────────────────────────── */
+.date-overdue {
+  color: var(--red);
+  font-weight: 600;
+  font-size: 12px;
+}
+.date-ok {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.date-label {
+  font-size: 10px;
+  color: var(--text-light);
+  margin-top: 1px;
+}
+
+/* ── BOUTON DÉTAIL ───────────────────────────────────────────── */
+.btn-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--navy-xpale);
+  color: var(--navy);
+  border: 1px solid var(--navy-pale);
+  cursor: pointer;
+  transition: all .18s;
+  white-space: nowrap;
+}
+.btn-detail:hover {
+  background: var(--navy);
+  color: white;
+  border-color: var(--navy);
+}
+.btn-detail svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ── EMPTY STATE ─────────────────────────────────────────────── */
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+}
+.empty-icon  { font-size: 48px; margin-bottom: 12px; opacity: .3; }
+.empty-title { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+.empty-sub   { font-size: 13px; color: var(--text-muted); }
+
+/* ── PAGINATION ──────────────────────────────────────────────── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  /* Retire le fond #fafafa */
+  background: var(--bg-white);
+}
+.page-info {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.page-btns { display: flex; gap: 6px; }
+
+.page-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-white);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .18s;
+}
+.page-btn:hover:not(:disabled) {
+  border-color: var(--border-dark);
+  color: var(--navy);
+  /* Retire le fond violet */
+  background: var(--navy-xpale);
+}
+.page-btn.active {
+  background: var(--navy);    /* navy, pas violet */
+  color: white;
+  border-color: var(--navy);
+}
+.page-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  background: var(--navy-xpale);
+}
+.page-btn svg { width: 14px; height: 14px; }
+
+/* ── RESPONSIVE ──────────────────────────────────────────────── */
+@media (max-width: 1000px) {
+  .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  .col-hide  { display: none; }
+}
+@media (max-width: 680px) {
+  .kpi-strip   { grid-template-columns: 1fr 1fr; }
+  .toolbar     { flex-direction: column; align-items: flex-start; }
+  .result-count { margin-left: 0; }
+  .main-container { padding: 14px 12px 40px; }
+}

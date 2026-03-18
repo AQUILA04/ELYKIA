@@ -56,6 +56,7 @@ export class ClientDetailsComponent implements OnInit {
     this.loadClientDetails(this.clientId);
     this.loadCredits(this.clientId);
     this.loadCotisations(this.clientId);
+    this.loadProfilPhoto(this.clientId);
   }
 
   loadClient(clientId: number): void {
@@ -63,16 +64,24 @@ export class ClientDetailsComponent implements OnInit {
       (response: any) => {
         if (response && response.data) {
           this.client = response.data;
-          if (this.client && this.client.profilPhoto) {
-            const imageUrl = `data:image/jpeg;base64,${this.client.profilPhoto}`;
-            this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(imageUrl);
-          }
         }
         this.checkLoadingComplete();
       },
       error => {
         console.error('Erreur chargement client', error);
         this.checkLoadingComplete();
+      }
+    );
+  }
+
+  loadProfilPhoto(clientId: number): void {
+    this.clientService.getProfilPhotoStream(clientId).subscribe(
+      (image: Blob) => {
+        const objectURL = URL.createObjectURL(image);
+        this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(objectURL);
+      },
+      error => {
+        console.error('Erreur chargement photo de profil', error);
       }
     );
   }

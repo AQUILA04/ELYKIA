@@ -116,6 +116,10 @@ import { PriceCardComponent } from './article/details/components/price-card/pric
 import { MovementTableComponent } from './article/details/components/movement-table/movement-table.component';
 import { StateTimelineComponent } from './article/details/components/state-timeline/state-timeline.component';
 import { QuickStockEntryComponent } from './article/details/components/quick-stock-entry/quick-stock-entry.component';
+import { CreditLateComponent } from './credit/credit-late/credit-late.component';
+import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
+import { CreditLateFilterComponent } from './credit/credit-late/components/credit-late-filter/credit-late-filter.component';
+import { CreditLateTableComponent } from './credit/credit-late/components/credit-late-table/credit-late-table.component';
 
 @NgModule({
   declarations: [
@@ -196,7 +200,11 @@ import { QuickStockEntryComponent } from './article/details/components/quick-sto
     PriceCardComponent,
     MovementTableComponent,
     StateTimelineComponent,
-    QuickStockEntryComponent
+    QuickStockEntryComponent,
+    CreditLateComponent,
+    CreditLateKpiComponent,
+    CreditLateFilterComponent,
+    CreditLateTableComponent
     // --- NOUVELLES COMPOSANTS DÉPLACÉS DANS SHARED ---
   ],
   imports: [

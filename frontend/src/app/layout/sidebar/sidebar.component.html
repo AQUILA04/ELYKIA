@@ -180,6 +180,16 @@
           </a>
         </li>
 
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT']">
+          <a class="sidebar-link" routerLink="/credits/late" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/credits/late') }">
+            <span>
+              <mat-icon>assignment_late</mat-icon>
+            </span>
+            <span class="hide-menu">Retards</span>
+          </a>
+        </li>
+
 <!--        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER']"-->
 <!--          [ngClass]="{ 'active': isRouteActive('/out-list') }">-->
 <!--          <a class="sidebar-link" routerLink="/out-list" aria-expanded="false">-->

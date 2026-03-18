@@ -133,6 +133,11 @@ export class ClientService {
     return this.http.get<any>(`${this.apiUrl}/${id}`, { headers });
   }
 
+  getProfilPhotoStream(id: number): Observable<Blob> {
+    const headers = this.getHeader();
+    return this.http.get(`${this.apiUrl}/profil-photo-stream/${id}`, { headers, responseType: 'blob' });
+  }
+
   getClientByCommercial(username: string, page: number, size: number, sort: string, searchTerm: string = ''): Observable<any> {
     const headers = this.getHeader();
     let params = new HttpParams()

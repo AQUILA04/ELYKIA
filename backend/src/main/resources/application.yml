@@ -195,6 +195,8 @@ optimize:
   client:
     auto-init:
       enabled: false
+    migrate-photo:
+      enabled: false
     info:
       "COM001":
         firstname: "COM001"
