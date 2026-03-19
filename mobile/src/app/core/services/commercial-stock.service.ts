@@ -48,17 +48,18 @@ export class CommercialStockService {
             commercialUsername: item.commercialUsername || username,
             month: item.month || new Date().getMonth() + 1,
             year: item.year || new Date().getFullYear(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
+            unitPrice: item.creditSalePrice || 0
           } as CommercialStockItem))),
           // Après la sauvegarde locale, créer/réinitialiser le snapshot de stock.
-          // Le stock total est la somme des quantityRemaining de tous les articles reçus.
+          // Le stock total est la somme des (quantityRemaining * unitPrice) de tous les articles reçus.
           tap(async (stockItems) => {
             try {
-              const totalStock = items.reduce((sum, item) => sum + (item.quantityRemaining || 0), 0);
+              const totalStock = items.reduce((sum, item) => sum + ((item.quantityRemaining || 0) * (item.creditSalePrice || 0)), 0);
               await this.snapshotRepository.upsertSnapshot(username, totalStock);
               this.log.log(
                 `[CommercialStockService] Stock snapshot initialized for ${username}: ` +
-                `${items.length} articles, totalStock=${totalStock}`
+                `${items.length} articles, totalStockValues=${totalStock}`
               );
             } catch (snapshotError) {
               // Le snapshot est une sécurité supplémentaire, son échec ne doit pas

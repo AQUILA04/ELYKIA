@@ -285,53 +285,71 @@ export class DistributionService {
 
     // --- STOCK VALIDATION START ---
     // Verify strict stock availability before proceeding
-    // OPTIMIZATION: Fetch only needed articles
+    // Fetch needed articles just in case we need their names for error messages
     const articleIds = distributionData.articles.map(a => a.articleId);
     const neededArticles = await this.articleRepository.findByIds(articleIds);
 
+    const stockItemsCache = new Map<string, any>();
+
     for (const item of distributionData.articles) {
-      const currentStock = await this.commercialStockRepository.getCurrentStock(item.articleId, this.commercialUsername);
+      const stockItem = await this.commercialStockRepository.getStockItem(item.articleId, this.commercialUsername);
+      const currentStock = stockItem ? stockItem.quantityRemaining : 0;
       if (currentStock < item.quantity) {
         const article = neededArticles.find(a => a.id === item.articleId);
         const articleName = article ? article.name : `Article ${item.articleId}`;
         throw new Error(`Stock insuffisant pour ${articleName}. Disponible: ${currentStock}, Demandé: ${item.quantity}`);
       }
+      if (stockItem) {
+          stockItemsCache.set(item.articleId, stockItem);
+      }
     }
 
-    // --- SNAPSHOT VALIDATION START ---
-    // Vérifier que le commercial ne dépasse pas son stock reçu lors de la dernière initialisation.
-    // Cela protège contre le cas où des distributions locales non synchronisées coexistent avec
-    // un rechargement du stock serveur (qui ne tient pas compte des ventes non encore validées).
-    const newDistributionTotal = distributionData.articles.reduce((sum, item) => sum + item.quantity, 0);
-    const snapshotCheck = await this.stockSnapshotRepository.canDistribute(
-      this.commercialUsername,
-      newDistributionTotal
-    );
-    if (!snapshotCheck.allowed) {
-      throw new Error(
-        `Stock épuisé. Vous avez reçu ${snapshotCheck.stockAtInit} article(s) du bureau et ` +
-        `déjà vendu ${snapshotCheck.localSalesTotal} en local (non synchronisé). ` +
-        `Il vous reste ${snapshotCheck.available} article(s) disponible(s). ` +
-        `Veuillez synchroniser vos données avec le serveur de toute urgence.`
-      );
-    }
-    // --- SNAPSHOT VALIDATION END ---
-
-    // Now, create the distribution items
+    // Now, create the distribution items and calculate total amount
+    let calculatedTotalAmount = 0;
     const distributionItems: DistributionItem[] = distributionData.articles.map(item => {
-      const articleDetails = neededArticles.find(a => a.id === item.articleId);
-      const unitPrice = articleDetails?.creditSalePrice || 0;
+      const stockItem = stockItemsCache.get(item.articleId);
+      const unitPrice = stockItem?.unitPrice || 0;
+      const totalPrice = unitPrice * item.quantity;
+      calculatedTotalAmount += totalPrice;
       return {
         id: `d-item-${distribution.id}-${item.articleId}`,
         distributionId: distribution.id,
         articleId: item.articleId,
         quantity: item.quantity,
         unitPrice: unitPrice,
-        totalPrice: unitPrice * item.quantity
+        totalPrice: totalPrice
       };
     });
 
     distribution.items = distributionItems;
+    
+    // Update distribution monetary values based on calculated local pricing
+    distribution.totalAmount = calculatedTotalAmount;
+    if (distributionData.advance !== undefined) {
+      distribution.paidAmount = distributionData.advance;
+      distribution.remainingAmount = calculatedTotalAmount - distributionData.advance;
+    } else {
+      distribution.remainingAmount = calculatedTotalAmount;
+    }
+
+    // --- SNAPSHOT VALIDATION START ---
+    // Vérifier que le commercial ne dépasse pas son stock reçu lors de la dernière initialisation.
+    // Cela protège contre le cas où des distributions locales non synchronisées coexistent avec
+    // un rechargement du stock serveur (qui ne tient pas compte des ventes non encore validées).
+    const newDistributionTotal = calculatedTotalAmount;
+    const snapshotCheck = await this.stockSnapshotRepository.canDistribute(
+      this.commercialUsername,
+      newDistributionTotal
+    );
+    if (!snapshotCheck.allowed) {
+      throw new Error(
+        `Stock épuisé. Le montant total du stock octroyé par le bureau est de ${snapshotCheck.stockAtInit} et ` +
+        `vous avez déjà vendu ${snapshotCheck.localSalesTotal} en local (non synchronisé). ` +
+        `Il vous reste l'équivalent de ${snapshotCheck.available} disponible. ` +
+        `Veuillez synchroniser vos données avec le serveur de toute urgence.`
+      );
+    }
+    // --- SNAPSHOT VALIDATION END ---
 
     if (distribution.items.length < 1) {
       throw new Error(`Aucun items pour la distribution`);

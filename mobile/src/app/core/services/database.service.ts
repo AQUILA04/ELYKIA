@@ -77,7 +77,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 19; // Incremented for commercial_stock_snapshot table
+        const targetVersion = 20; // Incremented for unitPrice in commercial_stock_items
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -180,6 +180,7 @@ export class DatabaseService {
             month INTEGER,
             year INTEGER,
             updatedAt DATETIME,
+            unitPrice REAL DEFAULT 0,
             FOREIGN KEY(articleId) REFERENCES articles(id)
         );
 
@@ -583,8 +584,8 @@ export class DatabaseService {
         CREATE TABLE IF NOT EXISTS commercial_stock_snapshot (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             commercialUsername TEXT NOT NULL UNIQUE,
-            stockAtInit INTEGER NOT NULL DEFAULT 0,
-            localSalesTotal INTEGER NOT NULL DEFAULT 0,
+            stockAtInit REAL NOT NULL DEFAULT 0,
+            localSalesTotal REAL NOT NULL DEFAULT 0,
             initDate TEXT NOT NULL,
             updatedAt TEXT NOT NULL
         );

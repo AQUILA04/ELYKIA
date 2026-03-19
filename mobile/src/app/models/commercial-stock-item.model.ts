@@ -9,6 +9,7 @@ export interface CommercialStockItem {
   month: number;
   year: number;
   updatedAt: string;
+  unitPrice?: number;
 }
 
 export interface CommercialStockItemDto {

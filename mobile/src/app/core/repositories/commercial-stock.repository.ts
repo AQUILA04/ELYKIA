@@ -32,7 +32,7 @@ export class CommercialStockRepository {
       const currentYear = now.getFullYear();
       const timestamp = now.toISOString();
 
-      const insertSql = `INSERT INTO commercial_stock_items (articleId, quantityRemaining, quantityTaken, quantitySold, quantityReturned, commercialUsername, month, year, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const insertSql = `INSERT INTO commercial_stock_items (articleId, quantityRemaining, quantityTaken, quantitySold, quantityReturned, commercialUsername, month, year, updatedAt, unitPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       for (const item of items) {
         batch.push({
@@ -46,7 +46,8 @@ export class CommercialStockRepository {
             username,
             item.month || currentMonth,
             item.year || currentYear,
-            timestamp
+            timestamp,
+            item.creditSalePrice || 0
           ]
         });
       }
@@ -134,6 +135,23 @@ export class CommercialStockRepository {
     } catch (error) {
       this.log.error(`[CommercialStockRepository] Error getting current stock for article ${articleId}`, error);
       return 0;
+    }
+  }
+
+  async getStockItem(articleId: string, username: string): Promise<CommercialStockItem | null> {
+    try {
+      const result = await this.db.query(
+        'SELECT * FROM commercial_stock_items WHERE articleId = ? AND commercialUsername = ?',
+        [String(articleId), username]
+      );
+
+      if (result && result.values && result.values.length > 0) {
+        return result.values[0] as CommercialStockItem;
+      }
+      return null;
+    } catch (error) {
+      this.log.error(`[CommercialStockRepository] Error getting stock item for article ${articleId}`, error);
+      return null;
     }
   }
 

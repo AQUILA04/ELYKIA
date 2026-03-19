@@ -52,18 +52,25 @@ export class StockSnapshotRepository {
    */
   async upsertSnapshot(commercialUsername: string, stockAtInit: number): Promise<void> {
     try {
+      // Calculate localSalesTotal = SUM(totalAmount) of distributions isLocal = true
+      const localSalesResult = await this.db.query(
+        `SELECT COALESCE(SUM(totalAmount), 0) as total FROM distributions WHERE isLocal = 1 AND commercialId = ?`,
+        [commercialUsername]
+      );
+      const localSalesTotal = localSalesResult?.values?.[0]?.total || 0;
+
       const now = new Date().toISOString();
       await this.db.executeSql(
         `INSERT INTO commercial_stock_snapshot (commercialUsername, stockAtInit, localSalesTotal, initDate, updatedAt)
-         VALUES (?, ?, 0, ?, ?)
+         VALUES (?, ?, ?, ?, ?)
          ON CONFLICT(commercialUsername) DO UPDATE SET
            stockAtInit = excluded.stockAtInit,
-           localSalesTotal = 0,
+           localSalesTotal = excluded.localSalesTotal,
            initDate = excluded.initDate,
            updatedAt = excluded.updatedAt`,
-        [commercialUsername, stockAtInit, now, now]
+        [commercialUsername, stockAtInit, localSalesTotal, now, now]
       );
-      this.log.log(`[StockSnapshotRepository] Snapshot upserted for ${commercialUsername}: stockAtInit=${stockAtInit}`);
+      this.log.log(`[StockSnapshotRepository] Snapshot upserted for ${commercialUsername}: stockAtInit=${stockAtInit}, localSalesTotal=${localSalesTotal}`);
     } catch (error) {
       this.log.error('[StockSnapshotRepository] Error upserting snapshot', error);
       throw error;

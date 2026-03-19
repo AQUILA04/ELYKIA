@@ -81,6 +81,9 @@ export class MigrationService {
       case 19:
         await this.migrateToV19(db);
         break;
+      case 20:
+        await this.migrateToV20(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -477,8 +480,8 @@ export class MigrationService {
         CREATE TABLE IF NOT EXISTS commercial_stock_snapshot (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             commercialUsername TEXT NOT NULL UNIQUE,
-            stockAtInit INTEGER NOT NULL DEFAULT 0,
-            localSalesTotal INTEGER NOT NULL DEFAULT 0,
+            stockAtInit REAL NOT NULL DEFAULT 0,
+            localSalesTotal REAL NOT NULL DEFAULT 0,
             initDate TEXT NOT NULL,
             updatedAt TEXT NOT NULL
         );
@@ -490,6 +493,17 @@ export class MigrationService {
       // Table creation is idempotent (IF NOT EXISTS), so we can safely ignore errors
       // for existing databases but still log them
       console.warn('Migration v19: table may already exist, continuing...');
+    }
+  }
+
+  private async migrateToV20(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v20: Adding unitPrice to commercial_stock_items...');
+      await db.execute("ALTER TABLE commercial_stock_items ADD COLUMN unitPrice REAL DEFAULT 0;");
+      this.log.log('Migration to v20 successful.');
+    } catch (error: any) {
+      // Ignore if duplicate column
+      this.log.log(`Migration v20: ${error}`);
     }
   }
 }

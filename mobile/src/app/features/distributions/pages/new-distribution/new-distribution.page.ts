@@ -599,7 +599,8 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
         .filter(id => currentQuantities[id] > 0 && !currentCache[id]);
 
       if (missingFromCacheIds.length > 0) {
-        this.log.log('[NewDistributionPage] Articles manquants dans le cache, récupération depuis la DB', { missingFromCacheIds });
+        this.log.log(`[NewDistributionPage] Articles manquants dans le cache, récupération depuis la DB: ${missingFromCacheIds.join(', ')}`);
+        console.log('[NewDistributionPage] Articles manquants dans le cache, récupération depuis la DB', { missingFromCacheIds });
         try {
           // Récupère les articles manquants directement depuis la base de données locale.
           const missingArticles = await this.articleRepository.findByIds(missingFromCacheIds);
