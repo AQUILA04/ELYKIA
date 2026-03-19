@@ -215,9 +215,9 @@ export class ClientEffects {
           }));
         }
 
-        if (!pagination || !pagination.hasMore || pagination.loading) {
-          // No more pages to load or already loading
-          return of({ type: 'NO_OP' });
+        if (!pagination || !pagination.hasMore) {
+          // No more pages to load
+          return of(ClientActions.loadNextPageClientsFailure({ error: 'No more pages to load' }));
         }
 
         const nextPage = pagination.currentPage + 1;

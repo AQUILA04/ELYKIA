@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Store } from '@ngrx/store';
 import { Observable, BehaviorSubject, combineLatest, Subject } from 'rxjs';
-import { filter, map, switchMap, tap, take, takeUntil, debounceTime, distinctUntilChanged, shareReplay } from 'rxjs/operators';
+import { filter, map, switchMap, tap, take, takeUntil, debounceTime, distinctUntilChanged, shareReplay, withLatestFrom } from 'rxjs/operators';
 import { ClientView } from 'src/app/models/client-view.model';
 import { User } from 'src/app/models/auth.model';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
@@ -99,9 +99,13 @@ export class RecoveryClientListPage implements OnInit {
 
     this.isLoading$.pipe(
       filter(loading => !loading),
+      withLatestFrom(this.hasMore$),
       take(1)
-    ).subscribe(() => {
+    ).subscribe(([_, hasMore]) => {
       event.target.complete();
+      if (!hasMore) {
+        event.target.disabled = true;
+      }
     });
   }
 
