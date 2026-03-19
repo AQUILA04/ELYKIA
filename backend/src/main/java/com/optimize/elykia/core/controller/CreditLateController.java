@@ -25,17 +25,32 @@ public class CreditLateController {
     private final CreditLateService creditLateService;
 
     @GetMapping
-    public ResponseEntity<Response> getLateCredits(@RequestParam(required = false) String collector) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getLateCredits(collector)), HttpStatus.OK);
+    public ResponseEntity<Response> getLateCredits(@RequestParam(required = false) String collector,
+                                                   @RequestParam(required = false) Integer month) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getLateCredits(collector, month)), HttpStatus.OK);
     }
 
     @GetMapping("/summary")
-    public ResponseEntity<Response> getSummary(@RequestParam(required = false) String collector) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getSummary(collector)), HttpStatus.OK);
+    public ResponseEntity<Response> getSummary(@RequestParam(required = false) String collector,
+                                               @RequestParam(required = false) Integer month) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getSummary(collector, month)), HttpStatus.OK);
     }
 
     @GetMapping("/collectors")
     public ResponseEntity<Response> getLateCollectors() {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getLateCollectors()), HttpStatus.OK);
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportLateCredits(@RequestParam(required = false) String collector,
+                                                    @RequestParam(required = false) Integer month,
+                                                    @RequestParam(required = false) String type) {
+        byte[] pdfBytes = creditLateService.generatePdfExport(collector, month, type);
+        
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("filename", "credits_en_retard.pdf");
+        
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
     }
 }

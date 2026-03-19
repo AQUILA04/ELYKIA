@@ -9,18 +9,25 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import com.itextpdf.html2pdf.HtmlConverter;
+import java.io.ByteArrayOutputStream;
 
 @Service
 @RequiredArgsConstructor
 public class CreditLateService {
 
     private final CreditRepository creditRepository;
+    private final TemplateEngine templateEngine;
 
-    public List<CreditLateDTO> getLateCredits(String collector) {
+    public List<CreditLateDTO> getLateCredits(String collector, Integer month) {
         List<Credit> credits;
         if (collector != null && !collector.isBlank()) {
             credits = creditRepository.findLateCreditsByCollector(collector);
@@ -29,8 +36,14 @@ public class CreditLateService {
         }
 
         LocalDate today = LocalDate.now();
+        int currentYear = today.getYear();
 
         return credits.stream()
+                .filter(c -> {
+                    if (month == null) return true;
+                    if (c.getExpectedEndDate() == null) return false;
+                    return c.getExpectedEndDate().getMonthValue() == month && c.getExpectedEndDate().getYear() == currentYear;
+                })
                 .map(c -> buildLateDTO(c, today))
                 .filter(dto -> dto.getLateType() != null)
                 .sorted(Comparator
@@ -40,8 +53,8 @@ public class CreditLateService {
                 .collect(Collectors.toList());
     }
 
-    public CreditLateSummaryDTO getSummary(String collector) {
-        List<CreditLateDTO> lates = getLateCredits(collector);
+    public CreditLateSummaryDTO getSummary(String collector, Integer month) {
+        List<CreditLateDTO> lates = getLateCredits(collector, month);
 
         long totalLate     = lates.size();
         long totalDelai    = lates.stream().filter(d -> d.getLateType() == LateType.DELAI).count();
@@ -58,6 +71,33 @@ public class CreditLateService {
     
     public List<String> getLateCollectors() {
         return creditRepository.findLateCreditsCollectors();
+    }
+
+    public byte[] generatePdfExport(String collector, Integer month, String lateType) {
+        List<CreditLateDTO> credits = getLateCredits(collector, month);
+        
+        if (lateType != null && !lateType.equals("all")) {
+            LateType typeEnum = LateType.valueOf(lateType);
+            credits = credits.stream()
+                    .filter(c -> c.getLateType() == typeEnum)
+                    .collect(Collectors.toList());
+        }
+
+        long totalAmountRemaining = credits.stream().mapToLong(c -> c.getTotalAmountRemaining() != null ? c.getTotalAmountRemaining().longValue() : 0L).sum();
+
+        Context context = new Context();
+        context.setVariable("credits", credits);
+        context.setVariable("collectorName", collector != null && !collector.isBlank() ? collector : "Tous");
+        context.setVariable("month", month != null ? String.format("%02d/%d", month, LocalDate.now().getYear()) : "Tous");
+        context.setVariable("generationDate", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        context.setVariable("totalAmountRemaining", totalAmountRemaining);
+        context.setVariable("lateType", lateType != null && lateType.equals("DELAI") ? "Retard délai" : (lateType != null && lateType.equals("ECHEANCE") ? "Retard échéance" : "Tous"));
+        
+        String html = templateEngine.process("credit-late-export", context);
+
+        ByteArrayOutputStream target = new ByteArrayOutputStream();
+        HtmlConverter.convertToPdf(html, target);
+        return target.toByteArray();
     }
 
     private CreditLateDTO buildLateDTO(Credit credit, LocalDate today) {

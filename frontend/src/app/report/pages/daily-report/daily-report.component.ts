@@ -39,6 +39,7 @@ export class DailyReportComponent implements OnInit {
     isLoading = false;
     isPromoter = false;
     isManager = false;
+    isSecretary = false;
     showMargins = false; // Toggle for margin visibility
 
     // Operations Log
@@ -72,6 +73,7 @@ export class DailyReportComponent implements OnInit {
         // Check if profil is object with name or just string, handling both just in case
         this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
         this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
+        this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
 
         if (!this.isPromoter) {
             this.loadAgents();

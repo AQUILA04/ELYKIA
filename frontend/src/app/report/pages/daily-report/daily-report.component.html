@@ -251,7 +251,7 @@
                                     </div>
                                 </div>
                                 <div class="mt-3"
-                                    *ngIf="isManager && isSingleDay && (report.totalAmountToDeposit || 0) > 0 && ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0)) > 0">
+                                    *ngIf="(isManager || isSecretary) && isSingleDay && (report.totalAmountToDeposit || 0) > 0 && ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0)) > 0">
                                     <button mat-raised-button color="primary" class="w-100 py-3 text-lg"
                                         (click)="openDepositModal(report)">
                                         <mat-icon class="mr-2">payment</mat-icon> FAIRE UN VERSEMENT

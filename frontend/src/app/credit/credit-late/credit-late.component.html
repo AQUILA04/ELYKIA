@@ -37,8 +37,11 @@
 
   <app-credit-late-filter
     [resultCount]="filteredCredits.length"
+    [isDownloading]="isDownloading"
     (typeChanged)="onTypeChanged($event)"
-    (commercialChanged)="onCommercialChanged($event)">
+    (commercialChanged)="onCommercialChanged($event)"
+    (monthChanged)="onMonthChanged($event)"
+    (downloadClicked)="onDownloadClicked()">
   </app-credit-late-filter>
 
   <app-credit-late-table

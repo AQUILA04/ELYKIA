@@ -11,23 +11,37 @@ export class CreditLateService {
 
   constructor(private http: HttpClient) {}
 
-  getLateCredits(collector?: string): Observable<any> {
+  getLateCredits(collector?: string, month?: number): Observable<any> {
     let params = new HttpParams();
     if (collector) {
       params = params.set('collector', collector);
     }
+    if (month) {
+      params = params.set('month', month.toString());
+    }
     return this.http.get<any>(this.apiUrl, { params });
   }
 
-  getSummary(collector?: string): Observable<any> {
+  getSummary(collector?: string, month?: number): Observable<any> {
     let params = new HttpParams();
     if (collector) {
       params = params.set('collector', collector);
+    }
+    if (month) {
+      params = params.set('month', month.toString());
     }
     return this.http.get<any>(`${this.apiUrl}/summary`, { params });
   }
 
   getCollectors(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/collectors`);
+  }
+
+  exportPdf(collector?: string, month?: number, type?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (collector) params = params.set('collector', collector);
+    if (month) params = params.set('month', month.toString());
+    if (type) params = params.set('type', type);
+    return this.http.get(`${this.apiUrl}/export`, { params, responseType: 'blob' });
   }
 }

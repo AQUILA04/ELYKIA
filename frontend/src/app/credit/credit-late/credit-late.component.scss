@@ -381,6 +381,48 @@ app-commercial-selector {
 }
 .result-count strong { color: var(--navy); }
 
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .18s, transform .18s;
+  box-shadow: var(--shadow-sm);
+  margin-left: 12px;
+}
+.btn-download:hover {
+  background: var(--navy-dark);
+  transform: translateY(-1px);
+}
+.btn-download svg { width: 14px; height: 14px; }
+
+.btn-download.loading {
+  opacity: 0.8;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── TABLE CARD ─────────────────────────────────────────────── */
 .table-card {
   background: var(--bg-white);

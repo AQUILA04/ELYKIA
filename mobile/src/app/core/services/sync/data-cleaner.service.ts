@@ -77,7 +77,7 @@ export class DataCleanerService implements IDataCleaner {
       // Supprimer les membres
       const deleteSql = `
         DELETE FROM tontine_members 
-        WHERE tontineSessionId = ? AND commercialUsername = ?
+        WHERE tontineSessionId = ? AND commercialUsername = ? AND isSync = 1
       `;
       await this.databaseService.execute(deleteSql, [sessionId, commercialUsername]);
     } catch (error) {
@@ -99,7 +99,7 @@ export class DataCleanerService implements IDataCleaner {
     try {
       const deleteSql = `
         DELETE FROM tontine_collections 
-        WHERE commercialUsername = ?
+        WHERE commercialUsername = ? AND isSync = 1
       `;
       await this.databaseService.execute(deleteSql, [commercialUsername]);
     } catch (error) {
@@ -121,7 +121,7 @@ export class DataCleanerService implements IDataCleaner {
     try {
       const deleteSql = `
         DELETE FROM tontine_stocks 
-        WHERE commercial = ?
+        WHERE commercial = ? AND isSync = 1
       `;
       await this.databaseService.execute(deleteSql, [commercialUsername]);
     } catch (error) {
@@ -141,7 +141,7 @@ export class DataCleanerService implements IDataCleaner {
         DELETE FROM tontine_member_amount_history 
         WHERE tontineMemberId IN (
           SELECT id FROM tontine_members 
-          WHERE tontineSessionId = ? AND commercialUsername = ?
+          WHERE tontineSessionId = ? AND commercialUsername = ? AND isSync = 1
         )
       `;
       await this.databaseService.execute(deleteSql, [sessionId, commercialUsername]);
@@ -162,7 +162,7 @@ export class DataCleanerService implements IDataCleaner {
         DELETE FROM tontine_delivery_items 
         WHERE tontineDeliveryId IN (
           SELECT id FROM tontine_deliveries 
-          WHERE commercialUsername = ?
+          WHERE commercialUsername = ? AND isSync = 1
         )
       `;
       await this.databaseService.execute(deleteItemsSql, [commercialUsername]);
@@ -170,7 +170,7 @@ export class DataCleanerService implements IDataCleaner {
       // Puis nettoyer les livraisons
       const deleteDeliveriesSql = `
         DELETE FROM tontine_deliveries 
-        WHERE commercialUsername = ?
+        WHERE commercialUsername = ? AND isSync = 1
       `;
       await this.databaseService.execute(deleteDeliveriesSql, [commercialUsername]);
     } catch (error) {
@@ -190,7 +190,7 @@ export class DataCleanerService implements IDataCleaner {
       const countSql = `
         SELECT COUNT(*) as count 
         FROM tontine_members 
-        WHERE tontineSessionId = ? AND commercialUsername = ?
+        WHERE tontineSessionId = ? AND commercialUsername = ? AND isSync = 1
       `;
       const result = await this.databaseService.query(countSql, [sessionId, commercialUsername]);
       return result?.values?.[0]?.count || 0;
@@ -210,7 +210,7 @@ export class DataCleanerService implements IDataCleaner {
       const countSql = `
         SELECT COUNT(*) as count 
         FROM tontine_collections 
-        WHERE commercialUsername = ?
+        WHERE commercialUsername = ? AND isSync = 1
       `;
       const result = await this.databaseService.query(countSql, [commercialUsername]);
       return result?.values?.[0]?.count || 0;
@@ -230,7 +230,7 @@ export class DataCleanerService implements IDataCleaner {
       const countSql = `
         SELECT COUNT(*) as count 
         FROM tontine_stocks 
-        WHERE commercial = ?
+        WHERE commercial = ? AND isSync = 1
       `;
       const result = await this.databaseService.query(countSql, [commercialUsername]);
       return result?.values?.[0]?.count || 0;

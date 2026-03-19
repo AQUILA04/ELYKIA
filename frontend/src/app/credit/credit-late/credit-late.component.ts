@@ -17,10 +17,13 @@ export class CreditLateComponent implements OnInit {
   
   currentCollector: string = '';
   currentType: string = 'all';
+  currentMonth: number | null = null;
 
   currentDate: Date = new Date();
   lastUpdate: Date = new Date();
-
+  
+  isDownloading: boolean = false;
+  
   constructor(private creditLateService: CreditLateService) {}
 
   ngOnInit() {
@@ -34,7 +37,7 @@ export class CreditLateComponent implements OnInit {
     this.isLoading = true;
     
     // Load summary
-    this.creditLateService.getSummary(this.currentCollector).subscribe({
+    this.creditLateService.getSummary(this.currentCollector, this.currentMonth || undefined).subscribe({
       next: (res: any) => {
         if (res.statusCode === 200 && res.data) {
           this.summary = res.data;
@@ -45,7 +48,7 @@ export class CreditLateComponent implements OnInit {
     });
 
     // Load credits
-    this.creditLateService.getLateCredits(this.currentCollector).subscribe({
+    this.creditLateService.getLateCredits(this.currentCollector, this.currentMonth || undefined).subscribe({
       next: (res: any) => {
         if (res.statusCode === 200 && res.data) {
           this.allCredits = res.data;
@@ -77,5 +80,31 @@ export class CreditLateComponent implements OnInit {
     } else {
       this.filteredCredits = this.allCredits.filter(c => c.lateType === this.currentType);
     }
+  }
+
+  onMonthChanged(month: number | null) {
+    this.currentMonth = month;
+    this.loadData();
+  }
+
+  onDownloadClicked() {
+    this.isDownloading = true;
+    this.creditLateService.exportPdf(this.currentCollector, this.currentMonth || undefined, this.currentType).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `credits_en_retard_${new Date().getTime()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.isDownloading = false;
+      },
+      error: (err) => {
+        console.error('Erreur lors du téléchargement du PDF', err);
+        this.isDownloading = false;
+      }
+    });
   }
 }
