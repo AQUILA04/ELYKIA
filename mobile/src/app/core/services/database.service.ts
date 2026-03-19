@@ -77,7 +77,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 18; // Incremented for UNIQUE indexes on clients.phone and clients.cardID
+        const targetVersion = 19; // Incremented for commercial_stock_snapshot table
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -575,14 +575,26 @@ export class DatabaseService {
             FOREIGN KEY(tontineSessionId) REFERENCES tontine_sessions(id),
             FOREIGN KEY(articleId) REFERENCES articles(id)
         );
-    `;
 
-    await this.db?.execute(createTables);
+        -- Table de snapshot du stock commercial à l'initialisation.
+        -- Permet de détecter si un commercial effectue plus de ventes locales que son stock
+        -- reçu du serveur (cas où des distributions non synchronisées coexistent avec un
+        -- rechargement du stock serveur). Réinitialisée à chaque initializeCommercialStock().
+        CREATE TABLE IF NOT EXISTS commercial_stock_snapshot (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            commercialUsername TEXT NOT NULL UNIQUE,
+            stockAtInit INTEGER NOT NULL DEFAULT 0,
+            localSalesTotal INTEGER NOT NULL DEFAULT 0,
+            initDate TEXT NOT NULL,
+            updatedAt TEXT NOT NULL
+        );
+    `;
+    await this.db?.execute(createTables);;
   }
 
   private async verifyTables(): Promise<void> {
     try {
-      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items', 'tontine_member_amount_history'];
+      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items', 'tontine_member_amount_history', 'commercial_stock_snapshot'];
       const result = await this.db?.query(`SELECT name FROM sqlite_master WHERE type='table'`);
       const existingTables = result?.values?.map(row => row.name) || [];
       const missingTables = expectedTables.filter(table => !existingTables.includes(table));
@@ -1460,7 +1472,9 @@ export class DatabaseService {
         // Dépend de : articles (FK)
         'tontine_delivery_items',
         // Dépend de : tontine_sessions, articles (FK)
-        'tontine_stocks'
+        'tontine_stocks',
+        // Aucune dépendance FK
+        'commercial_stock_snapshot'
       ];
 
       for (const tableName of tables) {

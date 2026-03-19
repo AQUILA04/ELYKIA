@@ -78,6 +78,9 @@ export class MigrationService {
       case 18:
         await this.migrateToV18(db);
         break;
+      case 19:
+        await this.migrateToV19(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -464,6 +467,29 @@ export class MigrationService {
       this.log.log(`Error in migration v18: ${error}`);
       console.error('Error in migration v18', error);
       throw error;
+    }
+  }
+
+  private async migrateToV19(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v19: Creating commercial_stock_snapshot table...');
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS commercial_stock_snapshot (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            commercialUsername TEXT NOT NULL UNIQUE,
+            stockAtInit INTEGER NOT NULL DEFAULT 0,
+            localSalesTotal INTEGER NOT NULL DEFAULT 0,
+            initDate TEXT NOT NULL,
+            updatedAt TEXT NOT NULL
+        );
+      `);
+      this.log.log('Migration to v19 successful: commercial_stock_snapshot table created.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v19: ${error}`);
+      console.error('Error in migration v19', error);
+      // Table creation is idempotent (IF NOT EXISTS), so we can safely ignore errors
+      // for existing databases but still log them
+      console.warn('Migration v19: table may already exist, continuing...');
     }
   }
 }

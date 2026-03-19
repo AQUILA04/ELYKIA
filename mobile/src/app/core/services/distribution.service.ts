@@ -17,6 +17,7 @@ import { CommercialStockRepository } from '../repositories/commercial-stock.repo
 import { DistributionRepositoryExtensions, DistributionRepositoryFilters } from '../repositories/distribution.repository.extensions';
 import { DistributionRepository } from '../repositories/distribution.repository';
 import { ArticleRepository } from '../repositories/article.repository';
+import { StockSnapshotRepository } from '../repositories/stock-snapshot.repository';
 
 interface CreateDistributionData {
   clientId: string;
@@ -44,7 +45,8 @@ export class DistributionService {
     private commercialStockRepository: CommercialStockRepository,
     private distributionRepositoryExtensions: DistributionRepositoryExtensions,
     private distributionRepository: DistributionRepository,
-    private articleRepository: ArticleRepository
+    private articleRepository: ArticleRepository,
+    private stockSnapshotRepository: StockSnapshotRepository
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -295,7 +297,25 @@ export class DistributionService {
         throw new Error(`Stock insuffisant pour ${articleName}. Disponible: ${currentStock}, Demandé: ${item.quantity}`);
       }
     }
-    // --- STOCK VALIDATION END ---
+
+    // --- SNAPSHOT VALIDATION START ---
+    // Vérifier que le commercial ne dépasse pas son stock reçu lors de la dernière initialisation.
+    // Cela protège contre le cas où des distributions locales non synchronisées coexistent avec
+    // un rechargement du stock serveur (qui ne tient pas compte des ventes non encore validées).
+    const newDistributionTotal = distributionData.articles.reduce((sum, item) => sum + item.quantity, 0);
+    const snapshotCheck = await this.stockSnapshotRepository.canDistribute(
+      this.commercialUsername,
+      newDistributionTotal
+    );
+    if (!snapshotCheck.allowed) {
+      throw new Error(
+        `Stock épuisé. Vous avez reçu ${snapshotCheck.stockAtInit} article(s) du bureau et ` +
+        `déjà vendu ${snapshotCheck.localSalesTotal} en local (non synchronisé). ` +
+        `Il vous reste ${snapshotCheck.available} article(s) disponible(s). ` +
+        `Veuillez synchroniser vos données avec le serveur de toute urgence.`
+      );
+    }
+    // --- SNAPSHOT VALIDATION END ---
 
     // Now, create the distribution items
     const distributionItems: DistributionItem[] = distributionData.articles.map(item => {
@@ -339,6 +359,21 @@ export class DistributionService {
 
     // Update the stock for each article
     await this.updateArticleStock(distributionData.articles);
+
+    // --- SNAPSHOT INCREMENT ---
+    // Incrémenter le cumul des ventes locales dans le snapshot.
+    // Fait après la persistance réussie pour garantir la cohérence.
+    try {
+      await this.stockSnapshotRepository.incrementLocalSales(
+        this.commercialUsername,
+        newDistributionTotal
+      );
+    } catch (snapshotError) {
+      // L'incrément du snapshot est non-bloquant : la distribution est déjà persistée.
+      // On log l'erreur mais on ne fait pas échouer la distribution.
+      console.warn('[DistributionService] Failed to increment stock snapshot (non-blocking):', snapshotError);
+    }
+    // --- SNAPSHOT INCREMENT END ---
 
     // Return the created distribution
     return distribution;
