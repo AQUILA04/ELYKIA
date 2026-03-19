@@ -20,6 +20,7 @@ export interface ClientRepositoryFilters extends RepositoryViewFilters {
     hasCredit?: boolean;
     orderBy?: 'quarter' | 'name';
     tontineCollector?: string;
+    excludeRecoveredToday?: boolean;
 }
 
 /**
@@ -148,6 +149,12 @@ export class ClientRepositoryExtensions {
 
         if (filters?.hasCredit) {
             whereConditions.push('c.creditInProgress = 1');
+        }
+
+        if (filters?.excludeRecoveredToday) {
+            const today = new Date().toISOString().split('T')[0];
+            whereConditions.push(`c.id NOT IN (SELECT clientId FROM recoveries WHERE paymentDate LIKE ?)`);
+            params.push(`${today}%`);
         }
 
         const whereClause = whereConditions.join(' AND ');
@@ -403,6 +410,12 @@ export class ClientRepositoryExtensions {
         if (filters?.isSync !== undefined) {
             whereConditions.push('isSync = ?');
             params.push(filters.isSync ? 1 : 0);
+        }
+
+        if (filters?.excludeRecoveredToday) {
+            const today = new Date().toISOString().split('T')[0];
+            whereConditions.push(`id NOT IN (SELECT clientId FROM recoveries WHERE paymentDate LIKE ?)`);
+            params.push(`${today}%`);
         }
     }
 }

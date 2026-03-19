@@ -76,6 +76,7 @@ export class RecoveryClientListPage implements OnInit {
           filters: {
             searchQuery: query,
             hasCredit: true,
+            excludeRecoveredToday: true,
             orderBy: 'quarter'
           }
         }));
@@ -91,6 +92,7 @@ export class RecoveryClientListPage implements OnInit {
           filters: {
             searchQuery: this.searchControl.value || '',
             hasCredit: true,
+            excludeRecoveredToday: true,
             orderBy: 'quarter'
           }
         }));

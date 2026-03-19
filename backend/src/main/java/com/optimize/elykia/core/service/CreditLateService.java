@@ -40,26 +40,28 @@ public class CreditLateService {
 
         return credits.stream()
                 .filter(c -> {
-                    if (month == null) return true;
-                    if (c.getExpectedEndDate() == null) return false;
-                    return c.getExpectedEndDate().getMonthValue() == month && c.getExpectedEndDate().getYear() == currentYear;
+                    if (month == null)
+                        return true;
+                    if (c.getExpectedEndDate() == null)
+                        return false;
+                    return c.getExpectedEndDate().getMonthValue() == month
+                            && c.getExpectedEndDate().getYear() == currentYear;
                 })
                 .map(c -> buildLateDTO(c, today))
                 .filter(dto -> dto.getLateType() != null)
                 .sorted(Comparator
                         .comparing((CreditLateDTO d) -> d.getLateType() == LateType.DELAI ? 0 : 1)
-                        .thenComparing(d -> -Math.max(d.getLateDaysDelai(), d.getLateDaysEcheance()))
-                )
+                        .thenComparing(d -> -Math.max(d.getLateDaysDelai(), d.getLateDaysEcheance())))
                 .collect(Collectors.toList());
     }
 
     public CreditLateSummaryDTO getSummary(String collector, Integer month) {
         List<CreditLateDTO> lates = getLateCredits(collector, month);
 
-        long totalLate     = lates.size();
-        long totalDelai    = lates.stream().filter(d -> d.getLateType() == LateType.DELAI).count();
+        long totalLate = lates.size();
+        long totalDelai = lates.stream().filter(d -> d.getLateType() == LateType.DELAI).count();
         long totalEcheance = lates.stream().filter(d -> d.getLateType() == LateType.ECHEANCE).count();
-        double totalDu     = lates.stream().mapToDouble(CreditLateDTO::getTotalAmountRemaining).sum();
+        double totalDu = lates.stream().mapToDouble(CreditLateDTO::getTotalAmountRemaining).sum();
 
         return CreditLateSummaryDTO.builder()
                 .totalLate(totalLate)
@@ -68,14 +70,14 @@ public class CreditLateService {
                 .totalAmountRemaining(totalDu)
                 .build();
     }
-    
+
     public List<String> getLateCollectors() {
         return creditRepository.findLateCreditsCollectors();
     }
 
     public byte[] generatePdfExport(String collector, Integer month, String lateType) {
         List<CreditLateDTO> credits = getLateCredits(collector, month);
-        
+
         if (lateType != null && !lateType.equals("all")) {
             LateType typeEnum = LateType.valueOf(lateType);
             credits = credits.stream()
@@ -83,16 +85,21 @@ public class CreditLateService {
                     .collect(Collectors.toList());
         }
 
-        long totalAmountRemaining = credits.stream().mapToLong(c -> c.getTotalAmountRemaining() != null ? c.getTotalAmountRemaining().longValue() : 0L).sum();
+        long totalAmountRemaining = credits.stream()
+                .mapToLong(c -> c.getTotalAmountRemaining() != null ? c.getTotalAmountRemaining().longValue() : 0L)
+                .sum();
 
         Context context = new Context();
         context.setVariable("credits", credits);
         context.setVariable("collectorName", collector != null && !collector.isBlank() ? collector : "Tous");
-        context.setVariable("month", month != null ? String.format("%02d/%d", month, LocalDate.now().getYear()) : "Tous");
-        context.setVariable("generationDate", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        context.setVariable("month",
+                month != null ? String.format("%02d/%d", month, LocalDate.now().getYear()) : "Tous");
+        context.setVariable("generationDate",
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
         context.setVariable("totalAmountRemaining", totalAmountRemaining);
-        context.setVariable("lateType", lateType != null && lateType.equals("DELAI") ? "Retard délai" : (lateType != null && lateType.equals("ECHEANCE") ? "Retard échéance" : "Tous"));
-        
+        context.setVariable("lateType", lateType != null && lateType.equals("DELAI") ? "Retard délai"
+                : (lateType != null && lateType.equals("ECHEANCE") ? "Retard échéance" : "Tous"));
+
         String html = templateEngine.process("credit-late-export", context);
 
         ByteArrayOutputStream target = new ByteArrayOutputStream();
@@ -106,7 +113,7 @@ public class CreditLateService {
 
         if (credit.getExpectedEndDate() != null && today.isAfter(credit.getExpectedEndDate())) {
             lateDaysDelai = (int) ChronoUnit.DAYS.between(credit.getExpectedEndDate(), today);
-            isLateDelai   = true;
+            isLateDelai = true;
         }
 
         int lateDaysEcheance = 0;
@@ -117,15 +124,16 @@ public class CreditLateService {
                     ? ChronoUnit.DAYS.between(credit.getBeginDate(), credit.getExpectedEndDate())
                     : Long.MAX_VALUE;
 
-            long rawElapsed    = ChronoUnit.DAYS.between(credit.getBeginDate(), today);
-            long elapsedDays   = Math.min(rawElapsed, totalDuration);
+            long rawElapsed = ChronoUnit.DAYS.between(credit.getBeginDate(), today);
+            long elapsedDays = Math.min(rawElapsed, totalDuration);
 
-            long paidDays      = (long) Math.floor((credit.getTotalAmountPaid() != null ? credit.getTotalAmountPaid() : 0.0) / credit.getDailyStake());
-            long lateEcheance  = Math.max(0L, elapsedDays - paidDays);
+            long paidDays = (long) Math.floor(
+                    (credit.getTotalAmountPaid() != null ? credit.getTotalAmountPaid() : 0.0) / credit.getDailyStake());
+            long lateEcheance = Math.max(0L, elapsedDays - paidDays);
 
             if (lateEcheance > 0) {
                 lateDaysEcheance = (int) lateEcheance;
-                isLateEcheance   = true;
+                isLateEcheance = true;
             }
         }
 
