@@ -11,7 +11,7 @@ import { IDataCleaner, CleanupResult } from '../../models/tontine-sync.models';
 })
 export class DataCleanerService implements IDataCleaner {
 
-  constructor(private databaseService: DatabaseService) {}
+  constructor(private databaseService: DatabaseService) { }
 
   /**
    * Nettoie toutes les données tontine pour un commercial
@@ -121,7 +121,7 @@ export class DataCleanerService implements IDataCleaner {
     try {
       const deleteSql = `
         DELETE FROM tontine_stocks 
-        WHERE commercial = ? AND isSync = 1
+        WHERE commercial = ?
       `;
       await this.databaseService.execute(deleteSql, [commercialUsername]);
     } catch (error) {
@@ -230,7 +230,7 @@ export class DataCleanerService implements IDataCleaner {
       const countSql = `
         SELECT COUNT(*) as count 
         FROM tontine_stocks 
-        WHERE commercial = ? AND isSync = 1
+        WHERE commercial = ?
       `;
       const result = await this.databaseService.query(countSql, [commercialUsername]);
       return result?.values?.[0]?.count || 0;
