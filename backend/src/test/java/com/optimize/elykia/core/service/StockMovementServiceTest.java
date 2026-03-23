@@ -1,8 +1,8 @@
 package com.optimize.elykia.core.service;
 
-import com.optimize.elykia.core.entity.Articles;
-import com.optimize.elykia.core.entity.Credit;
-import com.optimize.elykia.core.entity.StockMovement;
+import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.entity.stock.StockMovement;
 import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.repository.StockMovementRepository;
 import com.optimize.elykia.core.service.stock.StockMovementService;

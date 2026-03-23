@@ -1,7 +1,6 @@
 package com.optimize.elykia.core.dto;
 
-import com.optimize.elykia.core.entity.TontineDelivery;
-import com.optimize.elykia.core.entity.TontineDeliveryItem;
+import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 
 import java.time.LocalDateTime;
 import java.util.List;

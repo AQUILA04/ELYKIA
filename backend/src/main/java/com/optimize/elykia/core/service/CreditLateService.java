@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service;
 
 import com.optimize.elykia.core.dto.CreditLateDTO;
 import com.optimize.elykia.core.dto.CreditLateSummaryDTO;
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.LateType;
 import com.optimize.elykia.core.repository.CreditRepository;
 import lombok.RequiredArgsConstructor;

@@ -2,7 +2,7 @@ package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.dto.CommercialStockItemDto;
-import com.optimize.elykia.core.entity.CommercialMonthlyStock;
+import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;

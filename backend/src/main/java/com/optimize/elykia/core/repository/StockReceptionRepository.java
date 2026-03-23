@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.BaseRepository;
-import com.optimize.elykia.core.entity.StockReception;
+import com.optimize.elykia.core.entity.stock.StockReception;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;

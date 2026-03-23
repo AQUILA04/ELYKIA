@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.stock;
 
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.core.dto.StockReceptionDto;
-import com.optimize.elykia.core.entity.StockReception;
+import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.mapper.StockReceptionMapper;
 import com.optimize.elykia.core.repository.StockReceptionRepository;
 import org.springframework.data.domain.Page;

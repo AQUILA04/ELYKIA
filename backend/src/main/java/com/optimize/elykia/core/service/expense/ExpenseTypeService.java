@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.expense;
 
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.core.dto.ExpenseTypeDto;
-import com.optimize.elykia.core.entity.ExpenseType;
+import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.mapper.ExpenseTypeMapper;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import lombok.extern.slf4j.Slf4j;

@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.ArticleStateHistory;
+import com.optimize.elykia.core.entity.article.ArticleStateHistory;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

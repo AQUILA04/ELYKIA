@@ -2,8 +2,8 @@ package com.optimize.elykia.core.service.agency;
 
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.core.dto.AgencyDailyReportDto;
-import com.optimize.elykia.core.entity.AgencyDailyReport;
-import com.optimize.elykia.core.entity.AgencyWeeklyReport;
+import com.optimize.elykia.core.entity.agency.AgencyDailyReport;
+import com.optimize.elykia.core.entity.agency.AgencyWeeklyReport;
 import com.optimize.elykia.core.enumaration.WeekStatus;
 import com.optimize.elykia.core.mapper.AgencyDailyReportMapper;
 import com.optimize.elykia.core.repository.AgencyDailyReportRepository;

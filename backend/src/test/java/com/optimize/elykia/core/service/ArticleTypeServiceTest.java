@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.service;
 
 import com.optimize.elykia.core.dto.ArticleTypeDto;
-import com.optimize.elykia.core.entity.ArticleType;
+import com.optimize.elykia.core.entity.article.ArticleType;
 import com.optimize.elykia.core.mapper.ArticleTypeMapper;
 import com.optimize.elykia.core.repository.ArticleTypeRepository;
 import com.optimize.elykia.core.service.store.ArticleTypeService;

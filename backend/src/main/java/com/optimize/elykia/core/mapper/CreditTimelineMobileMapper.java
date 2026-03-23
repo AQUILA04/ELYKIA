@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.mapper;
 
 import com.optimize.elykia.core.dto.CreditTimelineMobileDto;
-import com.optimize.elykia.core.entity.CreditTimeline;
+import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;

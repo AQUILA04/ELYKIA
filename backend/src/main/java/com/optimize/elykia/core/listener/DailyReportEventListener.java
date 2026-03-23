@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.listener;
 
-import com.optimize.elykia.core.entity.DailyCommercialReport;
+import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.event.*;
 import com.optimize.elykia.core.event.CreditCollectionEvent;
 import com.optimize.elykia.client.event.*;

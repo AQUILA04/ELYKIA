@@ -1,8 +1,8 @@
 package com.optimize.elykia.core.service.sale;
 
 import com.optimize.common.entities.service.GenericService;
-import com.optimize.elykia.core.entity.Credit;
-import com.optimize.elykia.core.entity.CreditPaymentEvent;
+import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.entity.sale.CreditPaymentEvent;
 import com.optimize.elykia.core.repository.CreditPaymentEventRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

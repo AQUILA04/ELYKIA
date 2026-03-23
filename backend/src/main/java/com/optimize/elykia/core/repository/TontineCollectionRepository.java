@@ -3,7 +3,7 @@ package com.optimize.elykia.core.repository;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.dto.TontineCollectionRespDto;
-import com.optimize.elykia.core.entity.TontineCollection;
+import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;

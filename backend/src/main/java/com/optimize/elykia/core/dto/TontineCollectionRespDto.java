@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.dto;
 
-import com.optimize.elykia.core.entity.TontineCollection;
+import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;

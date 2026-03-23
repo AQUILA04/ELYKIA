@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.dto;
 
-import com.optimize.elykia.core.entity.CreditCollectorHistory;
+import com.optimize.elykia.core.entity.sale.CreditCollectorHistory;
 
 import java.time.LocalDateTime;
 

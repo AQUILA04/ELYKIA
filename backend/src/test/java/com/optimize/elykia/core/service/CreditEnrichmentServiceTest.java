@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service;
 
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.RiskLevel;
 import com.optimize.elykia.core.service.sale.CreditEnrichmentService;
 import com.optimize.elykia.core.service.sale.CreditPaymentEventService;

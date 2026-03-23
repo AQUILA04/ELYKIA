@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.store;
 
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.core.dto.ArticleTypeDto;
-import com.optimize.elykia.core.entity.ArticleType;
+import com.optimize.elykia.core.entity.article.ArticleType;
 import com.optimize.elykia.core.mapper.ArticleTypeMapper;
 import com.optimize.elykia.core.repository.ArticleTypeRepository;
 import lombok.extern.slf4j.Slf4j;

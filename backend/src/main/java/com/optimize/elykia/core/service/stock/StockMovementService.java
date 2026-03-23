@@ -1,10 +1,10 @@
 package com.optimize.elykia.core.service.stock;
 
 import com.optimize.common.entities.service.GenericService;
-import com.optimize.elykia.core.entity.ArticleHistory;
-import com.optimize.elykia.core.entity.Articles;
-import com.optimize.elykia.core.entity.Credit;
-import com.optimize.elykia.core.entity.StockMovement;
+import com.optimize.elykia.core.entity.article.ArticleHistory;
+import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.entity.stock.StockMovement;
 import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.enumaration.StockOperationType;
 import com.optimize.elykia.core.repository.StockMovementRepository;

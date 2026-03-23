@@ -6,9 +6,9 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.*;
-import com.optimize.elykia.core.entity.Articles;
-import com.optimize.elykia.core.entity.Order;
-import com.optimize.elykia.core.entity.OrderItem;
+import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.sale.Order;
+import com.optimize.elykia.core.entity.sale.OrderItem;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.repository.OrderItemRepository;
 import com.optimize.elykia.core.repository.OrderRepository;
@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 
 import com.optimize.elykia.core.repository.OrderStatusHistoryRepository;
 

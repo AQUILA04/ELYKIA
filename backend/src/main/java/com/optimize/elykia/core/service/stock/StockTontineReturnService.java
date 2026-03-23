@@ -4,7 +4,7 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.entity.StockTontineReturn;
+import com.optimize.elykia.core.entity.stock.StockTontineReturn;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.StockTontineReturnRepository;
 import com.optimize.elykia.core.service.tontine.TontineStockService;

@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.sale;
 
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.RiskLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

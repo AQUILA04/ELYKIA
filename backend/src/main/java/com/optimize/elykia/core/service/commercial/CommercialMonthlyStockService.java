@@ -3,7 +3,7 @@ package com.optimize.elykia.core.service.commercial;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.entity.CommercialMonthlyStock;
+import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import org.springframework.data.domain.Page;

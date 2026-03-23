@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.BaseRepository;
-import com.optimize.elykia.core.entity.DailyCommercialReport;
+import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import org.springframework.stereotype.Repository;
 
 import org.springframework.data.jpa.repository.Query;
@@ -18,7 +18,7 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
         List<DailyCommercialReport> findByCommercialUsernameAndDateBetweenOrderByDateAsc(String commercialUsername,
                         LocalDate startDate, LocalDate endDate);
 
-        @Query("SELECT new com.optimize.elykia.core.entity.DailyCommercialReport(" +
+        @Query("SELECT new com.optimize.elykia.core.entity.report.DailyCommercialReport(" +
                         "d.commercialUsername, " +
                         "SUM(d.totalStockRequestAmount), " +
                         "SUM(d.creditSalesCount), " +
@@ -45,7 +45,7 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
         List<DailyCommercialReport> findAggregatedByDateBetween(@Param("startDate") LocalDate startDate,
                         @Param("endDate") LocalDate endDate);
 
-        @Query("SELECT new com.optimize.elykia.core.entity.DailyCommercialReport(" +
+        @Query("SELECT new com.optimize.elykia.core.entity.report.DailyCommercialReport(" +
                         "d.commercialUsername, " +
                         "SUM(d.totalStockRequestAmount), " +
                         "SUM(d.creditSalesCount), " +

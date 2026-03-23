@@ -1,12 +1,11 @@
 package com.optimize.elykia.core.service.accounting;
 
-import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.core.dto.CloseCollectorOperationDto;
-import com.optimize.elykia.core.entity.AccountingDay;
-import com.optimize.elykia.core.entity.DailyAccountancy;
-import com.optimize.elykia.core.entity.DailyAccounting;
+import com.optimize.elykia.core.entity.accounting.AccountingDay;
+import com.optimize.elykia.core.entity.accounting.DailyAccountancy;
+import com.optimize.elykia.core.entity.accounting.DailyAccounting;
 import com.optimize.elykia.core.enumaration.AccountingDayStatus;
 import com.optimize.elykia.core.repository.AccountingDayRepository;
 import com.optimize.elykia.core.repository.CreditRepository;

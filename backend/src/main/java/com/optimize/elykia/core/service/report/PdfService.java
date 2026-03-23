@@ -9,6 +9,7 @@ import com.optimize.elykia.core.dto.InventoryControlPdfDto;
 import com.optimize.elykia.core.dto.ItemReleaseSheetDto;
 import com.optimize.elykia.core.dto.PrintOperationDto;
 import com.optimize.elykia.core.dto.StockReceptionDto;
+import com.optimize.elykia.core.entity.inventory.Inventory;
 import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.core.service.store.InventoryService;
 import com.optimize.elykia.core.service.stock.StockReceptionService;
@@ -240,7 +241,7 @@ public class PdfService {
     }
 
     public InputStream generateInventoryControlPdf(Long inventoryId) throws DocumentException {
-        com.optimize.elykia.core.entity.Inventory inventory = inventoryService.getInventoryById(inventoryId);
+        Inventory inventory = inventoryService.getInventoryById(inventoryId);
         List<com.optimize.elykia.core.dto.InventoryItemDto> items = inventoryService.getInventoryItems(inventoryId);
 
         InventoryControlPdfDto dto = new InventoryControlPdfDto();

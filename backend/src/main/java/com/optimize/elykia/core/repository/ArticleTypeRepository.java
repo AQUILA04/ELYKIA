@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.ArticleType;
+import com.optimize.elykia.core.entity.article.ArticleType;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;

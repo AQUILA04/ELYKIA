@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.CreditPaymentEvent;
+import com.optimize.elykia.core.entity.sale.CreditPaymentEvent;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 

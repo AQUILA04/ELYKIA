@@ -4,7 +4,7 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.bi.CollectionTrendDto;
 import com.optimize.elykia.core.dto.bi.OverdueAnalysisDto;
 import com.optimize.elykia.core.dto.bi.OverdueRangeProjection;
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;

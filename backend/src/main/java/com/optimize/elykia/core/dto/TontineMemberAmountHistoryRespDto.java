@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 
-import com.optimize.elykia.core.entity.TontineMemberAmountHistory;
+import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistory;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;

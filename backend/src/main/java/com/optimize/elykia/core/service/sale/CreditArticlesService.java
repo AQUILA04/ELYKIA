@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.sale;
 
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.core.dto.CreditArticleDetailDto;
-import com.optimize.elykia.core.entity.CreditArticles;
+import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.repository.CreditArticlesRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

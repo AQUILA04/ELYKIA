@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.service.sale;
 
 import com.optimize.common.entities.service.GenericService;
-import com.optimize.elykia.core.entity.CreditReturnHistory;
+import com.optimize.elykia.core.entity.sale.CreditReturnHistory;
 import com.optimize.elykia.core.repository.CreditReturnHistoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

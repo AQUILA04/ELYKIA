@@ -2,7 +2,7 @@ package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.dto.CreditTimelineMobileDto;
-import com.optimize.elykia.core.entity.CreditTimeline;
+import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;

@@ -2,6 +2,7 @@ package com.optimize.elykia.core.entity;
 
 import com.optimize.common.entities.entity.Auditable;
 import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

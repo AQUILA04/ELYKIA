@@ -2,7 +2,7 @@ package com.optimize.elykia.core.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.optimize.elykia.core.dto.ArticlesDto;
-import com.optimize.elykia.core.entity.Articles;
+import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import org.junit.jupiter.api.BeforeEach;

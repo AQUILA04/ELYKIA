@@ -1,8 +1,8 @@
 package com.optimize.elykia.core.dto;
 
 import com.optimize.elykia.client.dto.ClientRespDto;
-import com.optimize.elykia.core.entity.TontineMember;
-import com.optimize.elykia.core.entity.TontineSession;
+import com.optimize.elykia.core.entity.tontine.TontineMember;
+import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
 import org.springframework.data.domain.Page;

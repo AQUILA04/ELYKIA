@@ -2,7 +2,6 @@ package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.Credit;
 import com.optimize.elykia.core.entity.Locality;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

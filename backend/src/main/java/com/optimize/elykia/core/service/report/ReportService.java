@@ -6,7 +6,7 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.AccountingReportDto;
 import com.optimize.elykia.core.dto.DownloadData;
 import com.optimize.elykia.core.dto.ItemReleaseSheetDto;
-import com.optimize.elykia.core.entity.DailyAccountancy;
+import com.optimize.elykia.core.entity.accounting.DailyAccountancy;
 import com.optimize.elykia.core.entity.view.AccountancyReportView;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.PeriodState;

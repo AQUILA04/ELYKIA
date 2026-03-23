@@ -3,7 +3,7 @@ package com.optimize.elykia.core.service.util;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.entity.ClientAccountMovement;
-import com.optimize.elykia.core.entity.TontineDelivery;
+import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.repository.ClientAccountMovementRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

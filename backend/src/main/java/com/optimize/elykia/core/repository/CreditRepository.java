@@ -4,7 +4,7 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.*;
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
@@ -155,7 +155,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             FROM Credit c
             WHERE c.status = :status
               AND c.state = :state
-              AND collector = :commercial
+              AND c.collector = :commercial
               AND (
                 (c.clientType = :promoterType)
                 OR

@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.service;
 
 import com.optimize.elykia.core.dto.ExpenseTypeDto;
-import com.optimize.elykia.core.entity.ExpenseType;
+import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.mapper.ExpenseTypeMapper;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import com.optimize.elykia.core.service.expense.ExpenseTypeService;

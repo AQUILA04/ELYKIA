@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.ExpenseType;
+import com.optimize.elykia.core.entity.expense.ExpenseType;
 import org.springframework.stereotype.Repository;
 
 @Repository

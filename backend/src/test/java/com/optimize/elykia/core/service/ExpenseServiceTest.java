@@ -2,8 +2,8 @@ package com.optimize.elykia.core.service;
 
 import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.dto.ExpenseKpiDto;
-import com.optimize.elykia.core.entity.Expense;
-import com.optimize.elykia.core.entity.ExpenseType;
+import com.optimize.elykia.core.entity.expense.Expense;
+import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.mapper.ExpenseMapper;
 import com.optimize.elykia.core.repository.ExpenseRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;

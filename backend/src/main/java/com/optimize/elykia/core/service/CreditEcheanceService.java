@@ -3,7 +3,7 @@ package com.optimize.elykia.core.service;
 import com.optimize.elykia.core.dto.CreditCalendarDayDTO;
 import com.optimize.elykia.core.dto.CreditEcheanceDTO;
 import com.optimize.elykia.core.dto.CreditEcheanceSummaryDTO;
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.UrgencyLevel;
 import com.optimize.elykia.core.repository.CreditRepository;

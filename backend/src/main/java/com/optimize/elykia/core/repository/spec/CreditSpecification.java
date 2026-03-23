@@ -2,7 +2,7 @@ package com.optimize.elykia.core.repository.spec;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.dto.CreditSearchDto;
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;

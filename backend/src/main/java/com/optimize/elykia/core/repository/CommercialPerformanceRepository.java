@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.CommercialPerformance;
+import com.optimize.elykia.core.entity.bi.CommercialPerformance;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 

@@ -2,9 +2,9 @@ package com.optimize.elykia.core.service.bi;
 
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.client.enumeration.ClientType;
-import com.optimize.elykia.core.entity.Articles;
-import com.optimize.elykia.core.entity.Credit;
-import com.optimize.elykia.core.entity.DailyBusinessSnapshot;
+import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.entity.bi.DailyBusinessSnapshot;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;

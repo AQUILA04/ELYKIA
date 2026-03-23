@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.dto;
 
-import com.optimize.elykia.core.entity.Articles;
-import com.optimize.elykia.core.entity.TontineDeliveryItem;
+import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.tontine.TontineDeliveryItem;
 
 import java.util.List;
 

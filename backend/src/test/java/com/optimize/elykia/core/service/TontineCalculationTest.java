@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service;
 
-import com.optimize.elykia.core.entity.TontineMember;
+import com.optimize.elykia.core.entity.tontine.TontineMember;
 
 import com.optimize.elykia.core.service.tontine.TontineService;
 import org.junit.jupiter.api.Test;

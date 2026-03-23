@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.report;
 
-import com.optimize.elykia.core.entity.DailyOperationLog;
+import com.optimize.elykia.core.entity.report.DailyOperationLog;
 import com.optimize.elykia.core.dto.DailyOperationExportPdfDto;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.DailyOperationLogRepository;

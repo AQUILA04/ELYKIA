@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.dto;
 
-import com.optimize.elykia.core.entity.DailyOperationLog;
+import com.optimize.elykia.core.entity.report.DailyOperationLog;
 import lombok.Builder;
 import lombok.Data;
 

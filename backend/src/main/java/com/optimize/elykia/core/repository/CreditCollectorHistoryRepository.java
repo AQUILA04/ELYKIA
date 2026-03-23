@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.repository;
 
-import com.optimize.elykia.core.entity.CreditCollectorHistory;
+import com.optimize.elykia.core.entity.sale.CreditCollectorHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

@@ -8,9 +8,9 @@ import com.optimize.elykia.core.dto.CreditTimelineDto;
 import com.optimize.elykia.core.dto.CreditTimelineMobileDto;
 import com.optimize.elykia.core.dto.SpecialDailyStakeDto;
 import com.optimize.elykia.core.dto.SpecialDailyStakeResponseDto;
-import com.optimize.elykia.core.entity.Credit;
-import com.optimize.elykia.core.entity.CreditTimeline;
-import com.optimize.elykia.core.entity.DailyAccountancy;
+import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.entity.sale.CreditTimeline;
+import com.optimize.elykia.core.entity.accounting.DailyAccountancy;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.event.CreditCollectionEvent;
 import com.optimize.elykia.core.mapper.CreditMapper;
@@ -24,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service

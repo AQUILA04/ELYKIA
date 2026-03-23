@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.store;
 
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.core.dto.ArticleHistoryDto;
-import com.optimize.elykia.core.entity.ArticleHistory;
+import com.optimize.elykia.core.entity.article.ArticleHistory;
 import com.optimize.elykia.core.repository.ArticleHistoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

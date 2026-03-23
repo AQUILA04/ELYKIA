@@ -2,7 +2,7 @@ package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.DailyAccounting;
+import com.optimize.elykia.core.entity.accounting.DailyAccounting;
 import com.optimize.elykia.core.enumaration.AccountingDayStatus;
 import org.springframework.data.jpa.repository.Query;
 

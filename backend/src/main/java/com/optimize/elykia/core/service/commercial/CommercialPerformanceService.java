@@ -2,8 +2,8 @@ package com.optimize.elykia.core.service.commercial;
 
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.client.enumeration.ClientType;
-import com.optimize.elykia.core.entity.CommercialPerformance;
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.bi.CommercialPerformance;
+import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.RiskLevel;
 import com.optimize.elykia.core.repository.CommercialPerformanceRepository;

@@ -4,7 +4,7 @@ import com.lowagie.text.DocumentException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.elykia.core.dto.SessionStatsDto;
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
-import com.optimize.elykia.core.entity.TontineMember;
+import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.service.report.PdfService;
 import lombok.RequiredArgsConstructor;

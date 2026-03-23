@@ -1,86 +1,76 @@
 <div class="amount-input-container">
-  <!-- Montant attendu -->
-  <div class="expected-amount">
-    <div class="expected-label">Montant attendu</div>
-    <div class="expected-value">{{ formatAmount(getExpectedAmount()) }} FCFA</div>
+
+  <!-- En-tête : label + badge "déjà payé" + badge retard -->
+  <div class="mise-header">
+    <span class="mise-header-label">Sélectionner les mises à collecter</span>
+    <div class="mise-header-badges">
+      <div class="mise-paid-info">
+        <span class="mise-paid-text">Payé</span>
+        <div class="mise-paid-badge">{{ getPaidMisesCount() }}</div>
+      </div>
+      <div class="mise-late-info" *ngIf="getLateCount() > 0">
+        <span class="mise-late-text">Retard</span>
+        <div class="mise-late-badge">{{ getLateCount() }}</div>
+      </div>
+    </div>
   </div>
 
-  <!-- Boutons de sélection rapide -->
-  <div class="quick-selection">
-    <ion-button 
-      size="small" 
-      fill="outline" 
-      color="success"
-      (click)="setDailyAmount()"
-      [disabled]="!isMultipleAvailable(1)">
-      1× ({{ formatAmount(getExpectedAmount()) }})
-    </ion-button>
-    <ion-button 
-      size="small" 
-      fill="outline" 
-      color="success"
-      (click)="setMultipleAmount(2)"
-      [disabled]="!isMultipleAvailable(2)">
-      2× ({{ formatAmount(getExpectedAmount() * 2) }})
-    </ion-button>
-    <ion-button 
-      size="small" 
-      fill="outline" 
-      color="success"
-      (click)="setMultipleAmount(3)"
-      [disabled]="!isMultipleAvailable(3)">
-      3× ({{ formatAmount(getExpectedAmount() * 3) }})
-    </ion-button>
-    <ion-button 
-      size="small" 
-      fill="outline" 
-      color="success"
-      (click)="setMultipleAmount(4)"
-      [disabled]="!isMultipleAvailable(4)">
-      4× ({{ formatAmount(getExpectedAmount() * 4) }})
-    </ion-button>
+  <!-- Grille de pastilles numérotées -->
+  <div class="mise-grid" *ngIf="getMiseChips().length > 0">
+    <div
+      *ngFor="let chip of getMiseChips()"
+      class="mise-chip"
+      [class.late]="chip.late && !isInRange(chip.num) && !isSelected(chip.num)"
+      [class.in-range]="isInRange(chip.num)"
+      [class.selected]="isSelected(chip.num)"
+      (click)="onChipClick(chip.num)">
+      {{ chip.num }}
+    </div>
   </div>
 
-  <!-- Informations sur les limites -->
-  <div class="amount-limits">
-    <ion-note color="medium">
-      Maximum possible: {{ formatAmount(getMaxAmount()) }} FCFA 
-      ({{ getMaxMultiplier() }}× la mise journalière)
-    </ion-note>
+  <!-- Aucune mise restante -->
+  <div class="mise-empty" *ngIf="getMiseChips().length === 0">
+    <ion-icon name="checkmark-circle" color="success"></ion-icon>
+    <span>Toutes les mises sont à jour</span>
   </div>
 
-  <!-- Champ de saisie -->
-  <div class="amount-input-group">
-    <ion-item class="amount-input-item" [class.is-valid]="isValid">
-      <ion-input
-        type="number"
-        [formControl]="amountControl"
-        (ionInput)="onAmountInput($event)"
-        placeholder="0"
-        class="amount-input"
-        inputmode="numeric"
-        [max]="getMaxAmount()">
-      </ion-input>
-      <ion-note slot="end" class="currency-label">FCFA</ion-note>
-    </ion-item>
+  <!-- Légende retard (affichée uniquement s'il y a des retards et rien de sélectionné) -->
+  <div class="mise-legend" *ngIf="getLateCount() > 0 && selectedUpTo === null">
+    <span class="legend-dot late-dot"></span>
+    <span class="legend-text">{{ getLateCount() }} mise{{ getLateCount() > 1 ? 's' : '' }} en retard</span>
   </div>
 
-  <!-- Message de validation -->
-  <div class="validation-message" 
-       [class.success]="isValid" 
-       [class.error]="!isValid && validationMessage"
+  <!-- Séparateur -->
+  <div class="mise-divider"></div>
+
+  <!-- Récap montant calculé -->
+  <div class="mise-result" [class.has-value]="selectedUpTo !== null">
+    <div class="mise-result-left">
+      <span class="mise-result-label">Montant à collecter</span>
+      <span class="mise-result-count" *ngIf="selectedUpTo !== null">
+        {{ getSelectedCount() }} mise{{ getSelectedCount() > 1 ? 's' : '' }}
+        &times; {{ formatAmount(getExpectedAmount()) }}
+      </span>
+      <span class="mise-result-count mise-result-hint" *ngIf="selectedUpTo === null">
+        Appuyez sur un numéro
+      </span>
+    </div>
+    <span class="mise-result-amount" *ngIf="selectedUpTo !== null">
+      {{ formatAmount(getCollectAmount()) }} FCFA
+    </span>
+    <span class="mise-result-dash" *ngIf="selectedUpTo === null">—</span>
+  </div>
+
+  <!-- Message de validation (succès ou erreur) -->
+  <div class="validation-message"
+       [class.success]="isValid"
+       [class.error]="!isValid && !!validationMessage"
        *ngIf="validationMessage">
-    <ion-icon 
-      [name]="isValid ? 'checkmark-circle' : 'alert-circle'" 
+    <ion-icon
+      [name]="isValid ? 'checkmark-circle' : 'alert-circle'"
       [color]="isValid ? 'success' : 'danger'">
     </ion-icon>
     <span>{{ validationMessage }}</span>
   </div>
 
-  <!-- Aide contextuelle -->
-  <div class="help-text" *ngIf="!validationMessage">
-    <ion-icon name="information-circle" color="medium"></ion-icon>
-    <span>Saisissez un montant ou utilisez les boutons de sélection rapide</span>
-  </div>
 </div>
-

@@ -1,8 +1,8 @@
 package com.optimize.elykia.core.service.order;
 
 import com.optimize.common.entities.service.GenericService;
-import com.optimize.elykia.core.entity.Order;
-import com.optimize.elykia.core.entity.OrderStatusHistory;
+import com.optimize.elykia.core.entity.sale.Order;
+import com.optimize.elykia.core.entity.sale.OrderStatusHistory;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.repository.OrderStatusHistoryRepository;
 import org.springframework.stereotype.Service;

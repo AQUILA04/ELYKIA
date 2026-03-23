@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.agency;
 
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
-import com.optimize.elykia.core.entity.AgencyWeeklyReport;
+import com.optimize.elykia.core.entity.agency.AgencyWeeklyReport;
 import com.optimize.elykia.core.enumaration.WeekStatus;
 import com.optimize.elykia.core.repository.AgencyWeeklyReportRepository;
 import org.springframework.stereotype.Service;

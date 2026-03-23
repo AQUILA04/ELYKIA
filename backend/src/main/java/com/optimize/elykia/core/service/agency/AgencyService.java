@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.agency;
 
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.core.dto.AgencyDto;
-import com.optimize.elykia.core.entity.Agency;
+import com.optimize.elykia.core.entity.agency.Agency;
 import com.optimize.elykia.core.mapper.AgencyMapper;
 import com.optimize.elykia.core.repository.AgencyRepository;
 import org.springframework.stereotype.Service;
