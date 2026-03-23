@@ -220,6 +220,17 @@ jobs:
       run: |
         echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json    
         
+    - name: Configure Gradle for Crashlytics
+      run: |
+        # 1. Ajouter le classpath dans build.gradle (racine)
+        sed -i "/dependencies {/a \        classpath 'com.google.gms:google-services:4.4.0'\n        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'" android/build.gradle
+        
+        # 2. Appliquer les plugins dans app/build.gradle
+        sed -i "/apply plugin: 'com.android.application'/a apply plugin: 'com.google.gms.google-services'\napply plugin: 'com.google.firebase.crashlytics'" android/app/build.gradle
+        
+        # 3. Ajouter les dépendances Firebase dans app/build.gradle
+        sed -i "/dependencies {/a \    implementation platform('com.google.firebase:firebase-bom:32.7.0')\n    implementation 'com.google.firebase:firebase-crashlytics'\n    implementation 'com.google.firebase:firebase-analytics'" android/app/build.gradle    
+        
     - name: Sync Capacitor
       run: |
         npx cap sync android
