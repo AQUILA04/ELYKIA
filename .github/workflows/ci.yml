@@ -230,7 +230,12 @@ jobs:
         
         # 3. Ajouter les dépendances Firebase dans app/build.gradle
         sed -i "/dependencies {/a \    implementation platform('com.google.firebase:firebase-bom:32.7.0')\n    implementation 'com.google.firebase:firebase-crashlytics'\n    implementation 'com.google.firebase:firebase-analytics'" android/app/build.gradle    
-        
+
+    - name: Debug google-services.json
+      run: |
+        cat android/app/google-services.json
+        python -m json.tool android/app/google-services.json
+
     - name: Sync Capacitor
       run: |
         npx cap sync android
