@@ -282,12 +282,27 @@ export class ClientService {
       throw error;
     }
 
-    let clientCode: string;
-    let accountNumber: string;
+    let clientCode: string = '';
+    let accountNumber: string = '';
     let newClientIndex = totalClients + 1;
+    let codeExists = true;
+    let accountExists = true;
 
-    clientCode = `${commercialUsername.slice(-2)}${newClientIndex.toString().padStart(3, '0')}`;
-    accountNumber = `0021${commercialUsername.slice(-2)}${newClientIndex.toString().padStart(4, '0')}`;
+    while (codeExists || accountExists) {
+        clientCode = `${commercialUsername.slice(-2)}${newClientIndex.toString().padStart(3, '0')}`;
+        accountNumber = `0021${commercialUsername.slice(-2)}${newClientIndex.toString().padStart(4, '0')}`;
+
+        const codeResult = await this.dbService.query('SELECT COUNT(*) as count FROM clients WHERE code = ?', [clientCode]);
+        codeExists = (codeResult.values?.[0]?.count ?? 0) > 0;
+
+        const accountResult = await this.dbService.query('SELECT COUNT(*) as count FROM accounts WHERE accountNumber = ?', [accountNumber]);
+        accountExists = (accountResult.values?.[0]?.count ?? 0) > 0;
+
+        if (codeExists || accountExists) {
+            newClientIndex++;
+        }
+    }
+
 
     const now = new Date();
     const timezoneOffset = now.getTimezoneOffset() * 60000;

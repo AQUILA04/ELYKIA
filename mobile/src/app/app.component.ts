@@ -1,14 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertController, Platform } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { selectIsLoggedIn, selectAuthUser } from './store/auth/auth.selectors';
+import {  selectAuthUser } from './store/auth/auth.selectors';
 import { DataInitializationService } from './core/services/data-initialization.service';
 import { filter, take, switchMap } from 'rxjs/operators';
 import { Storage } from '@ionic/storage-angular';
 import { NavController } from "@ionic/angular";
 import { ActivityService } from './core/services/activity.service';
 import * as AuthActions from './store/auth/auth.actions';
-import { from } from "rxjs";
 import { InitializationStateService } from './core/services/initialization-state.service';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { MemoryAlertService } from './core/services/memory-alert.service';
@@ -16,6 +15,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { SynchronizationService } from "./core/services/synchronization.service";
 import { Router } from "@angular/router";
 import { App } from "@capacitor/app";
+import {FirebaseCrashlytics} from "@capacitor-firebase/crashlytics";
 
 @Component({
   selector: 'app-root',
@@ -38,7 +38,7 @@ export class AppComponent implements OnInit {
     private synchronizationService: SynchronizationService,
     private alertController: AlertController,
     private router: Router
-  ) { }
+  ) { this.initializeApp().then(r => console.log(r) ); }
 
   async ngOnInit() {
     this.platform.ready().then(() => {
@@ -146,6 +146,15 @@ export class AppComponent implements OnInit {
       this.store.dispatch(AuthActions.logout());
     }
   }
+
+  async initializeApp() {
+  await this.platform.ready();
+
+  // Activer la collecte Crashlytics
+  await FirebaseCrashlytics.setEnabled({
+    enabled: true,
+  });
+ }
 
   async saveToDownloads(imageData: string, fileName: string) {
     const savedFile = await Filesystem.writeFile({
