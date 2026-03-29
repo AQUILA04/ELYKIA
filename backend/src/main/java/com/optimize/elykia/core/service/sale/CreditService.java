@@ -63,6 +63,7 @@ public class CreditService extends GenericService<Credit, Long> {
     private SharedService sharedService;
     private final CommercialMonthlyStockRepository commercialMonthlyStockRepository;
     private final CreditCollectorHistoryRepository creditCollectorHistoryRepository;
+    private final CreditDailyStakeHistoryRepository creditDailyStakeHistoryRepository;
     private CommercialMonthlyStockItemRepository commercialMonthlyStockItemRepository;
 
     // Services BI pour enrichissement automatique
@@ -91,7 +92,8 @@ public class CreditService extends GenericService<Credit, Long> {
             CreditDistributionViewRepository creditDistributionViewRepository,
             CreditDistributionMapper creditDistributionMapper,
             CommercialMonthlyStockRepository commercialMonthlyStockRepository,
-            com.optimize.elykia.core.repository.CreditCollectorHistoryRepository creditCollectorHistoryRepository,
+            CreditCollectorHistoryRepository creditCollectorHistoryRepository,
+            CreditDailyStakeHistoryRepository creditDailyStakeHistoryRepository,
             org.springframework.context.ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.creditMapper = creditMapper;
@@ -105,6 +107,7 @@ public class CreditService extends GenericService<Credit, Long> {
         this.creditDistributionMapper = creditDistributionMapper;
         this.commercialMonthlyStockRepository = commercialMonthlyStockRepository;
         this.creditCollectorHistoryRepository = creditCollectorHistoryRepository;
+        this.creditDailyStakeHistoryRepository = creditDailyStakeHistoryRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -422,9 +425,25 @@ public class CreditService extends GenericService<Credit, Long> {
 
     public boolean changeDailyStake(ChangeDailyStakeDto dto) {
         Credit credit = getById(dto.creditId());
+
+        CreditDailyStakeHistory history = new CreditDailyStakeHistory();
+        history.setCredit(credit);
+        history.setOldDailyStake(credit.getDailyStake());
+        history.setNewDailyStake(dto.dailyStake());
+        history.setChangeDate(java.time.LocalDateTime.now());
+        history.setAmountRemaining(credit.getTotalAmountRemaining());
+        creditDailyStakeHistoryRepository.save(history);
+
         credit.changeDailyStake(dto.dailyStake());
         repository.saveAndFlush(credit);
         return Boolean.TRUE;
+    }
+
+    public List<CreditDailyStakeHistoryDto> getDailyStakeHistory(Long creditId) {
+        return creditDailyStakeHistoryRepository.findByCreditIdOrderByChangeDateDesc(creditId)
+                .stream()
+                .map(CreditDailyStakeHistoryDto::fromEntity)
+                .toList();
     }
 
     @Transactional

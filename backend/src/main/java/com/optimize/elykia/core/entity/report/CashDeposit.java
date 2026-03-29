@@ -31,6 +31,8 @@ public class CashDeposit extends Auditable<String> {
     @Column(columnDefinition = "TEXT")
     private String billetage; // JSON storing { "10000": 5, "5000": 2 }
 
+    private String reference;
+
     private String receivedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)

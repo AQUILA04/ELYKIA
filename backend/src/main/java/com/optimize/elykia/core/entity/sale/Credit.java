@@ -265,14 +265,14 @@ public class Credit extends BaseEntity<String> {
         if (CreditStatus.SETTLED.equals(status)) {
             throw new CustomValidationException("La vente est déjà clôturée, on ne peut plus modifier sa mise journalière !!!");
         }
-        if (newDailyStake < 200) {
+        if (newDailyStake < 200 && this.totalAmountRemaining > 200) {
             throw new CustomValidationException("La valeur de la mise journalière ne peut pas être inférieur à 200 FCFA !!!");
         }
         this.dailyStake = newDailyStake;
         double exactDays = this.totalAmountRemaining / this.dailyStake;
         this.remainingDaysCount = (int) Math.ceil(exactDays);
-        if (ChronoUnit.DAYS.between(this.beginDate, LocalDate.now().plusDays(this.remainingDaysCount)) > 30) {
-            throw new CustomValidationException("La nouvelle mise ne respecte pas le temps requis pour payer totalement le crédit, il faut augmenter la mise !!!");
+        if ((ChronoUnit.DAYS.between(this.beginDate, LocalDate.now().plusDays(this.remainingDaysCount)) > 30) && newDailyStake < this.totalAmountRemaining) {
+            throw new CustomValidationException("La nouvelle mise de " + newDailyStake + " ne respecte pas le temps requis pour payer totalement le crédit, il faut augmenter la mise !!!");
         }
         this.expectedEndDate = LocalDate.now().plusDays(this.remainingDaysCount);
     }

@@ -12,6 +12,7 @@ import { DailyOperationService } from '../../service/daily-operation.service';
 import { CashDepositService } from '../../service/cash-deposit.service';
 import { UserService } from "../../../user/service/user.service";
 import { UserProfile } from "../../../shared/models/user-profile.enum";
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
     selector: 'app-daily-report',
@@ -66,7 +67,8 @@ export class DailyReportComponent implements OnInit {
         private dialog: MatDialog,
         private dailyOperationService: DailyOperationService,
         private cashDepositService: CashDepositService,
-        private userService: UserService
+        private userService: UserService,
+        private alertService: AlertService
     ) { }
 
     ngOnInit(): void {
@@ -313,6 +315,47 @@ export class DailyReportComponent implements OnInit {
         } else {
             return 'status-orange';
         }
+    }
+
+    canCancelDeposit(dep: any): boolean {
+        if (!this.isManager || dep.amount <= 0) return false;
+        
+        // Ensure not already cancelled
+        const origRef = dep.reference || dep.id;
+        const isAlreadyCancelled = this.deposits.some((d: any) => 
+            d.amount < 0 && d.reference === `CANCEL-${origRef}`);
+        if (isAlreadyCancelled) return false;
+        
+        const depDate = new Date(dep.date);
+        const today = new Date();
+        depDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        
+        const diffTime = today.getTime() - depDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        return diffDays <= 3;
+    }
+
+    confirmCancelDeposit(dep: any) {
+        this.alertService.showConfirmation(
+            'Annulation',
+            'Êtes-vous sûr de vouloir annuler ce versement ?',
+            'Oui, annuler'
+        ).then((confirmed) => {
+            if (confirmed) {
+                this.cashDepositService.cancelDeposit(dep.id).subscribe({
+                    next: () => {
+                        this.alertService.showSuccess('Versement annulé avec succès.');
+                        this.loadReports(); // Refresh data
+                    },
+                    error: (err) => {
+                        console.error('Erreur lors de l\'annulation', err);
+                        this.alertService.showError(err.error?.message || 'Erreur lors de l\'annulation du versement');
+                    }
+                });
+            }
+        });
     }
 
     onExportJournal() {

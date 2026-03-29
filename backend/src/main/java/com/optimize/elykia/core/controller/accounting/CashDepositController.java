@@ -30,6 +30,11 @@ public class CashDepositController {
         return ResponseEntity.ok(cashDepositService.createDeposit(deposit));
     }
 
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<CashDeposit> cancelDeposit(@PathVariable Long id) {
+        return ResponseEntity.ok(cashDepositService.cancelDeposit(id));
+    }
+
     @GetMapping
     public ResponseEntity<Page<CashDeposit>> getDeposits(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,

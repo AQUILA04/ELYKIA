@@ -93,7 +93,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 
 // MODULES MANQUANTS AJOUTÉS ICI
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { OldReleaseListComponent } from './out/old-release-list/old-release-list.component';
 import { CreditMergeModalComponent } from './credit/credit-merge-modal/credit-merge-modal.component';
@@ -125,6 +125,8 @@ import { CreditEcheanceKpiComponent } from './credit/credit-echeance/components/
 import { CreditEcheanceCalendarComponent } from './credit/credit-echeance/components/credit-echeance-calendar/credit-echeance-calendar.component';
 import { CreditEcheanceFilterComponent } from './credit/credit-echeance/components/credit-echeance-filter/credit-echeance-filter.component';
 import { CreditEcheanceTableComponent } from './credit/credit-echeance/components/credit-echeance-table/credit-echeance-table.component';
+import {NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule} from "ngx-google-analytics";
+import {environment} from "../environments/environment";
 
 @NgModule({
   declarations: [
@@ -251,12 +253,17 @@ import { CreditEcheanceTableComponent } from './credit/credit-echeance/component
     MatNativeDateModule,
     SharedComponentsModule,
     ToastrModule.forRoot(),
-    MatExpansionModule
+    MatExpansionModule,
+    // Initialise GA avec votre ID
+    NgxGoogleAnalyticsModule.forRoot(environment.gaMeasurementId),
+    // Track automatique les changements de routes (pages vues)
+    NgxGoogleAnalyticsRouterModule
   ],
   providers: [
     // --- CORRECTION DES PROVIDERS ---
     { provide: HTTP_INTERCEPTORS, useClass: LicenseInterceptorService, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' }
   ],
   bootstrap: [AppComponent]
 })

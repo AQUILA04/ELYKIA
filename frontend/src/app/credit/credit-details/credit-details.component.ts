@@ -23,6 +23,7 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
 
   timelines: any[] = [];
   collectorHistory: any[] = [];
+  dailyStakeHistory: any[] = [];
   lateMetrics: any = null;
 
   showChangeCollectorModal = false;
@@ -93,6 +94,16 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
         }
       },
       error: (error) => this.handleError(error, 'Erreur de chargement de l\'historique commercial')
+    });
+
+    // Load Daily Stake History
+    this.creditService.getDailyStakeHistory(creditId).subscribe({
+      next: (response: any) => {
+        if (response.data) {
+          this.dailyStakeHistory = response.data;
+        }
+      },
+      error: (error) => this.handleError(error, 'Erreur de chargement de l\'historique des mises')
     });
 
     // Hide spinner once all requests are initiated

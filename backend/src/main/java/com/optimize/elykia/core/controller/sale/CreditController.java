@@ -131,6 +131,11 @@ public class CreditController {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.changeDailyStake(dto)), HttpStatus.OK);
     }
 
+    @GetMapping(value = "{id}/daily-stake-history")
+    public ResponseEntity<Response> getDailyStakeHistory(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getDailyStakeHistory(id)), HttpStatus.OK);
+    }
+
     @PostMapping(value = "default-daily-stake")
     public ResponseEntity<Response> defaultDailyStake(@RequestBody @Valid CollectorDailyStakeDto dto) {
         return new ResponseEntity<>(

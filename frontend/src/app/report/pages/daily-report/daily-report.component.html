@@ -329,20 +329,30 @@
                         <thead>
                             <tr class="border-b border-gray-200">
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Heure</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Référence</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Commercial</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Reçu par</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Montant</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-center" *ngIf="isManager">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr *ngFor="let dep of deposits" class="border-b border-gray-100 hover:bg-gray-50">
                                 <td class="py-2 px-4 text-sm">{{ dep.date | date:'dd/MM' }} {{ dep.createdAt |
                                     date:'HH:mm' }}</td>
+                                <td class="py-2 px-4 text-sm font-mono text-gray-500">{{ dep.reference }}</td>
                                 <td class="py-2 px-4 text-sm text-gray-700 font-medium">{{ dep.commercialUsername }}
                                 </td>
                                 <td class="py-2 px-4 text-sm font-semibold text-gray-700">{{ dep.receivedBy }}</td>
                                 <td class="py-2 px-4 text-sm font-mono text-right font-medium text-green-600">
                                     {{ dep.amount | currency:'XOF':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="py-2 px-4 text-sm text-center" *ngIf="isManager">
+                                    <button mat-icon-button color="warn" matTooltip="Annuler le versement" 
+                                            *ngIf="canCancelDeposit(dep)" 
+                                            (click)="confirmCancelDeposit(dep)">
+                                        <mat-icon>cancel</mat-icon>
+                                    </button>
                                 </td>
                             </tr>
                         </tbody>

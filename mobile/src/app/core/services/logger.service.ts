@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import {FirebaseCrashlytics} from "@capacitor-firebase/crashlytics";
 
 @Injectable({
   providedIn: 'root'
@@ -77,6 +78,7 @@ export class LoggerService {
 
     // Essayer de sauvegarder dans le fichier (non-bloquant)
     this.saveToFileAsync(logMessage);
+    await FirebaseCrashlytics.log({ message: logMessage });
   }
 
   async error(message: string, error?: any) {

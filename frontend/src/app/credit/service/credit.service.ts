@@ -109,6 +109,10 @@ export class CreditService extends BaseHttpService {
     return this.patch(`${this.apiUrl}/change-daily-stake`, dto);
   }
 
+  getDailyStakeHistory(creditId: number): Observable<ApiResponse<any[]>> {
+    return this.get(`${this.apiUrl}/${creditId}/daily-stake-history`);
+  }
+
   changeCollector(creditId: number, newCollector: string): Observable<any> {
     return this.post(`${this.apiUrl}/${creditId}/change-collector`, { newCollector }, {
       observe: 'response'

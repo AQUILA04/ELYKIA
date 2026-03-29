@@ -197,6 +197,8 @@
     </div>
   </div>
 
+
+
   <!-- ARTICLES -->
   <div class="cd-full-card a6">
     <div class="section-title">
@@ -330,6 +332,38 @@
         Aucun recouvrement enregistré pour le moment.
       </div>
 
+    </div>
+
+    <!-- HISTORIQUE DES MISES -->
+    <div class="cd-full-card a6">
+      <div class="section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
+        </svg>
+        Historique des changements de mise
+      </div>
+      <div class="stake-history-timeline" *ngIf="dailyStakeHistory && dailyStakeHistory.length > 0">
+        <div class="sh-item" *ngFor="let hist of dailyStakeHistory; let first = first">
+          <div class="sh-dot" [class.active]="first"></div>
+          <div class="sh-date">{{ hist.changeDate | date:'dd MMM yyyy HH:mm' }}</div>
+          <div class="sh-change-container">
+            <div class="sh-change">
+              <span class="sh-old-stake">{{ hist.oldDailyStake | number }} FCFA</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="sh-arrow">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+              <span class="sh-new-stake">{{ hist.newDailyStake | number }} FCFA</span>
+            </div>
+            <div class="sh-meta">
+              <span *ngIf="hist.amountRemaining !== undefined">Restant : <strong>{{ hist.amountRemaining | number }} FCFA</strong></span>
+              <span *ngIf="hist.author"> · Modifié par : <strong>{{ hist.author }}</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="!dailyStakeHistory || dailyStakeHistory.length === 0" style="text-align: center; color: var(--text-muted); padding: 20px;">
+        Aucun changement de mise enregistré.
+      </div>
     </div>
 
   </div><!-- /page-wrapper -->
