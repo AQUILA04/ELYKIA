@@ -90,7 +90,12 @@ export class DistributionService {
       switchMap(isOnline => {
         if (isOnline) {
           console.log('DistributionService: Backend online, starting sync...');
-          return this.fetchAndSaveDistributions().pipe(
+          const deleteSynced$ = this.commercialUsername
+            ? from(this.distributionRepository.deleteSyncedDistributions(this.commercialUsername))
+            : of(void 0);
+
+          return deleteSynced$.pipe(
+            switchMap(() => this.fetchAndSaveDistributions()),
             map(() => true),
             catchError((error) => {
               console.error('Failed to fetch distributions from API, usage local data', error);

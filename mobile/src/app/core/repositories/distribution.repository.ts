@@ -382,4 +382,33 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
         }
     }
 
+    /**
+     * Delete all synced distributions and their items for a commercial
+     * @param commercialUsername Commercial username
+     */
+    async deleteSyncedDistributions(commercialUsername: string): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+
+        try {
+            const deleteSet: capSQLiteSet[] = [
+                {
+                    statement: `DELETE FROM distribution_items WHERE distributionId IN (SELECT id FROM distributions WHERE isSync = 1 AND commercialId = ?)`,
+                    values: [commercialUsername]
+                },
+                {
+                    statement: `DELETE FROM distributions WHERE isSync = 1 AND commercialId = ?`,
+                    values: [commercialUsername]
+                }
+            ];
+
+            await this.databaseService.executeSet(deleteSet);
+            console.log(`Successfully deleted synced distributions and their items for ${commercialUsername}.`);
+        } catch (error) {
+            console.error(`Failed to delete synced distributions for commercial ${commercialUsername}:`, error);
+            throw error;
+        }
+    }
+
 }
