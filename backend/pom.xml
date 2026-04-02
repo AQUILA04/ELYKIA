@@ -132,11 +132,6 @@
             <artifactId>logstash-logback-encoder</artifactId>
             <version>7.2</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.loki4j</groupId>
-            <artifactId>loki-logback-appender</artifactId>
-            <version>1.5.1</version>
-        </dependency>
 
         <!-- Flyway pour la gestion des migrations de base de données -->
         <dependency>
