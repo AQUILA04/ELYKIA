@@ -196,7 +196,7 @@ optimize:
     auto-init:
       enabled: false
     migrate-photo:
-      enabled: false
+      enabled: true
     info:
       "COM001":
         firstname: "COM001"
