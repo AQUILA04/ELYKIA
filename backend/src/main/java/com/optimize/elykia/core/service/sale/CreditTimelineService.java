@@ -17,6 +17,7 @@ import com.optimize.elykia.core.mapper.CreditMapper;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
 import com.optimize.elykia.core.service.bi.BiAggregationService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@Slf4j
 public class CreditTimelineService extends GenericService<CreditTimeline, Long> {
     private final CreditMapper creditMapper;
     private final CreditService creditService;
@@ -88,6 +90,10 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         creditTimeline.setCollector(credit.getCollector());
         creditService.update(credit);
         create(creditTimeline);
+        if (CreditStatus.SETTLED.equals(credit.getStatus())) {
+            clientService.updateCreditStatus(credit.getClientId(), Boolean.FALSE);
+        }
+
 
         // === INTÉGRATION BI : Enregistrement de l'événement de paiement ===
         if (creditPaymentEventService != null) {
@@ -129,12 +135,19 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     }
 
     @Transactional
-    public List<String> defaultDailyStakeByCollector(CollectorDailyStakeDto dto) {
+    public SpecialDailyStakeResponseDto defaultDailyStakeByCollector(CollectorDailyStakeDto dto) {
         List<String> successRecoveryIds = new ArrayList<>();
+        List<SpecialDailyStakeResponseDto.FailedRecoveryDto> failedRecoveries = new ArrayList<>();
         dto.getStakeUnits().forEach(stakeUnit -> {
+            try {
             processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), null, true, successRecoveryIds, false);
+            } catch (Exception e) {
+                failedRecoveries.add(new SpecialDailyStakeResponseDto.FailedRecoveryDto(stakeUnit.getRecoveryId(), e.getMessage()));
+            }
         });
-        return successRecoveryIds;
+        failedRecoveries.forEach(failure -> log.error("Échec de la mise quotidienne pour Recovery ID: {}. Erreur: {}", failure.getRecoveryId(), failure.getErrorMessage()));
+
+        return new SpecialDailyStakeResponseDto(successRecoveryIds, failedRecoveries);
     }
 
 
@@ -173,12 +186,12 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         Double stakeAmount = amount;
         if (isNormalStake) {
             stakeAmount = credit.getDailyStake();
-        } else {
-            // Validation for special stake
-            if (stakeAmount > credit.getTotalAmountRemaining()) {
-                throw new CustomValidationException(
-                        "Le montant de la mise spéciale ne peut pas dépasser le montant restant à payer ! Ref: " + credit.getReference() + " Montant restant: " + credit.getTotalAmountRemaining() + " Montant mise: " + stakeAmount);                        }
         }
+        if (stakeAmount > credit.getTotalAmountRemaining()) {
+                throw new CustomValidationException(
+                        "Le montant de la mise spéciale ne peut pas dépasser le montant restant à payer ! Ref: " + credit.getReference() + " Montant restant: " + credit.getTotalAmountRemaining() + " Montant mise: " + stakeAmount);
+        }
+
 
         CreditTimeline creditTimeline = new CreditTimeline();
         creditTimeline.setCredit(credit);

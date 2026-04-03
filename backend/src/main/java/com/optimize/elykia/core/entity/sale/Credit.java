@@ -50,11 +50,16 @@ public class Credit extends BaseEntity<String> {
     @Enumerated(EnumType.STRING)
     private SolvencyStatus solvencyNote = SolvencyStatus.ND;
     private Integer lateDaysCount = 0;
+    @Positive
     private Double totalAmount;
     @Column(columnDefinition = "double precision default 0")
+    @PositiveOrZero
     private Double totalPurchase;
+    @PositiveOrZero
     private Double totalAmountPaid;
+    @PositiveOrZero
     private Double totalAmountRemaining;
+    @Positive
     private Double dailyStake;
     @Enumerated(EnumType.STRING)
     private CreditStatus status;
@@ -67,8 +72,10 @@ public class Credit extends BaseEntity<String> {
     private Boolean dailyPaid = false;
     @Enumerated(EnumType.STRING)
     private ClientType clientType;
+    @Deprecated
     @ManyToOne
     private Credit parent;
+    @Deprecated
     @Column(columnDefinition = "boolean default true")
     private Boolean updatable = true;
     @Column(unique = true)
@@ -83,24 +90,31 @@ public class Credit extends BaseEntity<String> {
 
     // AJOUTÉ : Le champ 'advance' avec une valeur par défaut de 0
     @Column(name = "advance", columnDefinition = "double precision default 0")
+    @PositiveOrZero
     private Double advance = 0.0;
 
     // ===== NOUVEAUX CHAMPS POUR BI DASHBOARD =====
     @Column(name = "profit_margin")
+    @PositiveOrZero
     private Double profitMargin; // Marge bénéficiaire = totalAmount - totalPurchase
 
+    @PositiveOrZero
     @Column(name = "profit_margin_percentage")
     private Double profitMarginPercentage; // (profitMargin / totalPurchase) * 100
 
+    @PositiveOrZero
     @Column(name = "payment_completion_rate")
     private Double paymentCompletionRate; // (totalAmountPaid / totalAmount) * 100
 
+    @PositiveOrZero
     @Column(name = "expected_duration_days")
     private Integer expectedDurationDays; // Durée prévue en jours
 
+    @PositiveOrZero
     @Column(name = "actual_duration_days")
     private Integer actualDurationDays; // Durée réelle si terminé
 
+    @PositiveOrZero
     @Column(name = "payment_regularity_score")
     private Double paymentRegularityScore; // Score de régularité des paiements (0-100)
 
@@ -206,6 +220,8 @@ public class Credit extends BaseEntity<String> {
         }
 
         if (totalAmountRemaining == 0) {
+            this.remainingDaysCount = 0;
+            this.client.setCreditInProgress(false);
             effectiveEndDate = LocalDate.now();
             status = CreditStatus.SETTLED;
 

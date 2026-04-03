@@ -59,6 +59,7 @@ import { AuthGuard } from "./auth/guards/auth.guard";
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 import { CreditLateComponent } from './credit/credit-late/credit-late.component';
 import { CreditEcheanceComponent } from './credit/credit-echeance/credit-echeance.component';
+import { RecouvrementComponent } from './credit/recouvrement/recouvrement.component';
 
 const routes: Routes = [
   // Route publique - Login
@@ -220,6 +221,12 @@ const routes: Routes = [
     component: CreditEcheanceComponent,
     canActivate: [AuthGuard],
     data: { breadcrumb: 'Crédits à Échéance' }
+  },
+  {
+    path: 'credits/recouvrements',
+    component: RecouvrementComponent,
+    canActivate: [AuthGuard],
+    data: { breadcrumb: 'Recouvrements' }
   },
   {
     path: 'credit-details/:id',

@@ -43,4 +43,60 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             @Param("commercial") String commercial,
             @Param("state") State state,
             Pageable pageable);
+
+    @Query("SELECT new com.optimize.elykia.core.dto.TontineCollectionWebDto(" +
+            "tc.id, tc.reference, CONCAT(cl.firstname, ' ', cl.lastname), tc.commercialUsername, " +
+            "tc.amount, tc.collectionDate) " +
+            "FROM TontineCollection tc " +
+            "LEFT JOIN tc.tontineMember tm " +
+            "LEFT JOIN tm.client cl " +
+            "WHERE tc.collectionDate >= :dateFrom " +
+            "AND tc.collectionDate <= :dateTo")
+    Page<com.optimize.elykia.core.dto.TontineCollectionWebDto> findWebDtosByDateRange(
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo,
+            Pageable pageable);
+
+    @Query("SELECT new com.optimize.elykia.core.dto.TontineCollectionWebDto(" +
+            "tc.id, tc.reference, CONCAT(cl.firstname, ' ', cl.lastname), tc.commercialUsername, " +
+            "tc.amount, tc.collectionDate) " +
+            "FROM TontineCollection tc " +
+            "LEFT JOIN tc.tontineMember tm " +
+            "LEFT JOIN tm.client cl " +
+            "WHERE tc.commercialUsername = :commercial " +
+            "AND tc.collectionDate >= :dateFrom " +
+            "AND tc.collectionDate <= :dateTo")
+    Page<com.optimize.elykia.core.dto.TontineCollectionWebDto> findWebDtosByCommercialAndDateRange(
+            @Param("commercial") String commercial,
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo,
+            Pageable pageable);
+
+    @Query("SELECT sum(tc.amount) FROM TontineCollection tc " +
+            "WHERE tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Double sumAmountByDateRange(
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
+
+    @Query("SELECT count(tc.id) FROM TontineCollection tc " +
+            "WHERE tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Long countCollectionsByDateRange(
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
+
+    @Query("SELECT sum(tc.amount) FROM TontineCollection tc " +
+            "WHERE tc.commercialUsername = :commercial " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Double sumAmountByCommercialAndDateRange(
+            @Param("commercial") String commercial,
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
+
+    @Query("SELECT count(tc.id) FROM TontineCollection tc " +
+            "WHERE tc.commercialUsername = :commercial " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Long countCollectionsByCommercialAndDateRange(
+            @Param("commercial") String commercial,
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
 }

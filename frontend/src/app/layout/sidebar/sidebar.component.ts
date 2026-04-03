@@ -21,6 +21,8 @@ export class SidebarComponent implements OnInit {
   isSecurityOpen: boolean = false;
   isStockOpen: boolean = false;
   isStockTontineOpen: boolean = false; // AJOUTÉ
+  isVentesOpen: boolean = false; // AJOUTÉ
+  isTontineOpen: boolean = false;
   isConfigurationOpen: boolean = false;
   activeRoute: string = '';
 
@@ -44,12 +46,25 @@ export class SidebarComponent implements OnInit {
       return this.activeRoute.startsWith('/stock-tontine');
     }
 
+    // Gestion pour le menu Ventes
+    if (route === '/ventes') {
+      return this.activeRoute.startsWith('/credit-list') ||
+             this.activeRoute.startsWith('/credits/late') ||
+             this.activeRoute.startsWith('/credits/echeance') ||
+             this.activeRoute.startsWith('/credits/recouvrements');
+    }
+
     // Gestion pour le menu Configuration
     if (route === '/configuration') {
       return this.activeRoute.startsWith('/localitylist') ||
              this.activeRoute.startsWith('/article-type') ||
              this.activeRoute.startsWith('/expense/types') ||
              this.activeRoute.startsWith('/parameters');
+    }
+
+    // Gestion pour le menu Tontines
+    if (route === '/tontine') {
+      return this.activeRoute.startsWith('/tontine');
     }
 
     // Pour toutes les autres routes, utiliser une correspondance exacte ou avec un slash
@@ -114,6 +129,33 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  // Gestionnaire de clic pour le menu Ventes
+  onVentesClick() {
+    const isVentesActive = this.activeRoute.startsWith('/credit-list') ||
+                           this.activeRoute.startsWith('/credits/late') ||
+                           this.activeRoute.startsWith('/credits/echeance') ||
+                           this.activeRoute.startsWith('/credits/recouvrements');
+
+    if (isVentesActive) {
+      this.isVentesOpen = !this.isVentesOpen;
+    } else {
+      this.router.navigate(['/credit-list']);
+      this.isVentesOpen = true;
+    }
+  }
+
+  // Gestionnaire de clic pour le menu Tontines
+  onTontineClick() {
+    const isTontineActive = this.activeRoute.startsWith('/tontine');
+
+    if (isTontineActive) {
+      this.isTontineOpen = !this.isTontineOpen;
+    } else {
+      this.router.navigate(['/tontine']);
+      this.isTontineOpen = true;
+    }
+  }
+
   // Gestionnaire de clic pour le menu Configuration
   onConfigurationClick() {
     const isConfigActive = this.activeRoute.startsWith('/localitylist') ||
@@ -167,6 +209,23 @@ export class SidebarComponent implements OnInit {
         this.isStockTontineOpen = false;
       }
 
+      // Gestion de l'état ouvert/fermé pour Ventes
+      if (this.activeRoute.startsWith('/credit-list') ||
+          this.activeRoute.startsWith('/credits/late') ||
+          this.activeRoute.startsWith('/credits/echeance') ||
+          this.activeRoute.startsWith('/credits/recouvrements')) {
+        this.isVentesOpen = true;
+      } else {
+        this.isVentesOpen = false;
+      }
+
+      // Gestion de l'état ouvert/fermé pour Tontines
+      if (this.activeRoute.startsWith('/tontine')) {
+        this.isTontineOpen = true;
+      } else {
+        this.isTontineOpen = false;
+      }
+
       // Gestion de l'état ouvert/fermé pour Configuration
       if (this.activeRoute.startsWith('/localitylist') ||
           this.activeRoute.startsWith('/article-type') ||
@@ -186,6 +245,8 @@ export class SidebarComponent implements OnInit {
     this.isSecurityOpen = false;
     this.isStockOpen = false;
     this.isStockTontineOpen = false; // AJOUTÉ
+    this.isVentesOpen = false;
+    this.isTontineOpen = false;
     this.isConfigurationOpen = false;
 
     // Initialiser activeRoute avec la route actuelle au démarrage

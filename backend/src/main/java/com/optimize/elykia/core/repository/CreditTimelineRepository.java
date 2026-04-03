@@ -65,4 +65,32 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
             @Param("collector") String collector,
             @Param("dateFrom") LocalDateTime dateFrom,
             @Param("dateTo") LocalDateTime dateTo);
+
+    @Query("SELECT new com.optimize.elykia.core.dto.RecouvrementWebDto(" +
+            "ct.id, ct.reference, c.reference, CONCAT(cl.firstname, ' ', cl.lastname), ct.collector, " +
+            "ct.amount, ct.totalAmountRemaining, ct.createdDate) " +
+            "FROM CreditTimeline ct " +
+            "LEFT JOIN ct.credit c " +
+            "LEFT JOIN c.client cl " +
+            "WHERE ct.createdDate >= :dateFrom " +
+            "AND ct.createdDate <= :dateTo")
+    Page<com.optimize.elykia.core.dto.RecouvrementWebDto> findWebDtosByDateRange(
+            @Param("dateFrom") LocalDateTime dateFrom,
+            @Param("dateTo") LocalDateTime dateTo,
+            Pageable pageable);
+
+    @Query("SELECT new com.optimize.elykia.core.dto.RecouvrementWebDto(" +
+            "ct.id, ct.reference, c.reference, CONCAT(cl.firstname, ' ', cl.lastname), ct.collector, " +
+            "ct.amount, ct.totalAmountRemaining, ct.createdDate) " +
+            "FROM CreditTimeline ct " +
+            "LEFT JOIN ct.credit c " +
+            "LEFT JOIN c.client cl " +
+            "WHERE ct.collector = :collector " +
+            "AND ct.createdDate >= :dateFrom " +
+            "AND ct.createdDate <= :dateTo")
+    Page<com.optimize.elykia.core.dto.RecouvrementWebDto> findWebDtosByCollectorAndDateRange(
+            @Param("collector") String collector,
+            @Param("dateFrom") LocalDateTime dateFrom,
+            @Param("dateTo") LocalDateTime dateTo,
+            Pageable pageable);
 }

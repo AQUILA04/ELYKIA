@@ -201,6 +201,14 @@ export interface DefaultDailyStakeRequest {
   }>;
 }
 
+export interface DefaultDailyStakeResponse {
+  successRecoveryIds: string[];
+  failedRecoveries: Array<{
+    recoveryId: string;
+    errorMessage: string;
+  }>;
+}
+
 export interface SpecialDailyStakeRequest {
   collector: string;
   stakeUnits: Array<{

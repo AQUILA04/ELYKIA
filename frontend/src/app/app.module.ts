@@ -125,6 +125,10 @@ import { CreditEcheanceKpiComponent } from './credit/credit-echeance/components/
 import { CreditEcheanceCalendarComponent } from './credit/credit-echeance/components/credit-echeance-calendar/credit-echeance-calendar.component';
 import { CreditEcheanceFilterComponent } from './credit/credit-echeance/components/credit-echeance-filter/credit-echeance-filter.component';
 import { CreditEcheanceTableComponent } from './credit/credit-echeance/components/credit-echeance-table/credit-echeance-table.component';
+import { RecouvrementComponent } from './credit/recouvrement/recouvrement.component';
+import { RecouvrementKpiComponent } from './credit/recouvrement/components/recouvrement-kpi/recouvrement-kpi.component';
+import { RecouvrementFilterComponent } from './credit/recouvrement/components/recouvrement-filter/recouvrement-filter.component';
+import { RecouvrementTableComponent } from './credit/recouvrement/components/recouvrement-table/recouvrement-table.component';
 import {NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule} from "ngx-google-analytics";
 import {environment} from "../environments/environment";
 
@@ -216,7 +220,11 @@ import {environment} from "../environments/environment";
     CreditEcheanceKpiComponent,
     CreditEcheanceCalendarComponent,
     CreditEcheanceFilterComponent,
-    CreditEcheanceTableComponent
+    CreditEcheanceTableComponent,
+    RecouvrementComponent,
+    RecouvrementKpiComponent,
+    RecouvrementFilterComponent,
+    RecouvrementTableComponent
     // --- NOUVELLES COMPOSANTS DÉPLACÉS DANS SHARED ---
   ],
   imports: [
