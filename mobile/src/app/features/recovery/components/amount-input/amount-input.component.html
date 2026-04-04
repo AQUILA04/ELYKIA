@@ -49,7 +49,12 @@
       <span class="mise-result-label">Montant à collecter</span>
       <span class="mise-result-count" *ngIf="selectedUpTo !== null">
         {{ getSelectedCount() }} mise{{ getSelectedCount() > 1 ? 's' : '' }}
-        &times; {{ formatAmount(getExpectedAmount()) }}
+        <ng-container *ngIf="getCollectAmount() === (getSelectedCount() * getExpectedAmount())">
+          &times; {{ formatAmount(getExpectedAmount()) }}
+        </ng-container>
+        <ng-container *ngIf="getCollectAmount() !== (getSelectedCount() * getExpectedAmount())">
+          (Solde partiel)
+        </ng-container>
       </span>
       <span class="mise-result-count mise-result-hint" *ngIf="selectedUpTo === null">
         Appuyez sur un numéro

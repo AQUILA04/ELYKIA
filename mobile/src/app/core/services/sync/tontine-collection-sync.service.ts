@@ -108,7 +108,8 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
             memberId: parseInt(serverMemberId, 10),
             amount: collection.amount,
             isDeliveryCollection: collection.isDeliveryCollection,
-            reference: collection.id
+            reference: collection.id,
+            notes: collection.notes
         };
 
         const headers = this.getAuthHeaders();

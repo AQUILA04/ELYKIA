@@ -7,15 +7,10 @@ import { Commercial } from 'src/app/models/commercial.model';
 import { DistributionItem } from 'src/app/models/distribution-item.model';
 import { Distribution } from 'src/app/models/distribution.model';
 import { Locality } from 'src/app/models/locality.model';
-import { StockOutput } from 'src/app/models/stock-output.model';
-import { StockOutputItem } from 'src/app/models/stock-ouput-item';
 import { Recovery } from 'src/app/models/recovery.model';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
-import { Util } from '../util/util';
 import { DistributionMapper } from '../../shared/mapper/distribution.mapper';
-import { StockOutputMapper } from '../../shared/mapper/stock-outpout.mapper';
-import { ClientMapper } from '../../shared/mapper/client.mapper';
 import { LoggerService } from './logger.service';
 import { MigrationService } from './migration.service';
 import { User } from '../../models/auth.model';
@@ -77,7 +72,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 20; // Incremented for unitPrice in commercial_stock_items
+        const targetVersion = 21; // Incremented for notes in tontine_collections
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -518,7 +513,8 @@ export class DatabaseService {
             isSync BOOLEAN DEFAULT 0,
             syncDate DATETIME,
             syncHash TEXT,
-            isDeliveryCollection BOOLEAN DEFAULT 0
+            isDeliveryCollection BOOLEAN DEFAULT 0,
+            notes TEXT
             -- IMPORTANT:
             -- Pas de contrainte FOREIGN KEY(tontineMemberId) ici pour éviter les erreurs
             -- lors du passage de l'ID membre de tontine local à l'ID serveur pendant la synchro.

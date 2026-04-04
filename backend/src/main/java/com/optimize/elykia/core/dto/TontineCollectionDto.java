@@ -14,4 +14,5 @@ public class TontineCollectionDto {
     private Double amount;
     private Boolean isDeliveryCollection = Boolean.FALSE;
     private String reference;
+    private String notes;
 }

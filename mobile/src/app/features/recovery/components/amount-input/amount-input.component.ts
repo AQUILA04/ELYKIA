@@ -163,7 +163,14 @@ export class AmountInputComponent implements OnInit, OnDestroy, OnChanges {
    * Montant total de la collecte en cours
    */
   getCollectAmount(): number {
-    return this.getSelectedCount() * this.getExpectedAmount();
+    const calculatedAmount = this.getSelectedCount() * this.getExpectedAmount();
+    const remainingAmount = this.selectedCredit?.remainingAmount || 0;
+    
+    if (remainingAmount > 0 && calculatedAmount > remainingAmount) {
+      return remainingAmount;
+    }
+    
+    return calculatedAmount;
   }
 
   // ─── États des chips ────────────────────────────────────────────────────────
@@ -215,7 +222,7 @@ export class AmountInputComponent implements OnInit, OnDestroy, OnChanges {
     const dailyPayment = this.getExpectedAmount();
     if (dailyPayment <= 0 || amount <= 0) return;
     const paid = this.getPaidMisesCount();
-    const count = Math.round(amount / dailyPayment);
+    const count = Math.ceil(amount / dailyPayment);
     if (count > 0) {
       this.selectedUpTo = paid + count;
     }

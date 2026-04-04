@@ -331,6 +331,7 @@ export interface TontineCollectionSyncRequest {
   amount: number;
   isDeliveryCollection?: boolean;
   reference?: string;
+  notes?: string;
 }
 
 export interface TontineDeliverySyncRequest {

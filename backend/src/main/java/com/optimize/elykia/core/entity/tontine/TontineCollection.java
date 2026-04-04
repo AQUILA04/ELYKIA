@@ -33,4 +33,7 @@ public class TontineCollection extends BaseEntity<String> {
 
     @Column(unique = true)
     private String reference;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 }

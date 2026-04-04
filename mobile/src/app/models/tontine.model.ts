@@ -50,6 +50,7 @@ export interface TontineCollection {
     clientName?: string;
     clientQuarter?: string;
     memberUniqueId?: string; // e.g. code or other identifier
+    notes?: string;
 }
 
 export interface TontineCollectionView extends TontineCollection {

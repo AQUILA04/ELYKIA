@@ -84,6 +84,9 @@ export class MigrationService {
       case 20:
         await this.migrateToV20(db);
         break;
+      case 21:
+        await this.migrateToV21(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -504,6 +507,17 @@ export class MigrationService {
     } catch (error: any) {
       // Ignore if duplicate column
       this.log.log(`Migration v20: ${error}`);
+    }
+  }
+
+  private async migrateToV21(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v21: Adding notes to tontine_collections...');
+      await db.execute("ALTER TABLE tontine_collections ADD COLUMN notes TEXT;");
+      this.log.log('Migration to v21 successful.');
+    } catch (error: any) {
+      // Ignore if duplicate column
+      this.log.log(`Migration v21: ${error}`);
     }
   }
 }

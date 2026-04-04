@@ -212,7 +212,8 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
                 commercialUsername: this.commercialUsername,
                 isLocal: true,
                 isSync: false,
-                isDeliveryCollection: returnToDelivery
+                isDeliveryCollection: returnToDelivery,
+                notes: formValue.notes
             };
 
             await this.collectionRepo.save(newCollection);
