@@ -6,6 +6,7 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Account;
 import com.optimize.elykia.client.service.AccountService;
+import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.CreateDeliveryDto;
 import com.optimize.elykia.core.dto.DeliveryItemDto;
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
@@ -51,6 +52,7 @@ public class TontineDeliveryService {
     private final ClientAccountService clientAccountService;
     private final AccountService accountService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final ClientService clientService;
 
     @Transactional
     public TontineDeliveryDto createDelivery(CreateDeliveryDto dto) {
@@ -232,15 +234,9 @@ public class TontineDeliveryService {
                     delivery.getCommercialUsername(),
                     member.getClient().getFullName()));
 
-            // Publier l'événement de collecte tontine (car une livraison implique une
-            // collecte du montant total)
-//            eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineCollectionEvent(
-//                    this,
-//                    delivery.getTotalAmount(),
-//                    delivery.getCommercialUsername(),
-//                    member.getClient().getFullName()));
         }
 
+        clientService.updateTontineStatus(member.getClient().getId(), Boolean.FALSE);
         log.info("Delivery {} marked as DELIVERED.", delivery.getId());
         return mapToDto(delivery);
     }

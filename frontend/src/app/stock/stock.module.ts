@@ -24,6 +24,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { StockReceptionListComponent } from './pages/stock-reception-list/stock-reception-list.component';
 import { StockReceptionDetailComponent } from './pages/stock-reception-detail/stock-reception-detail.component';
+import { RattrapageCreditAddComponent } from './rattrapage/rattrapage-credit-add.component';
 
 
 @NgModule({
@@ -35,7 +36,8 @@ import { StockReceptionDetailComponent } from './pages/stock-reception-detail/st
     StockReturnCreateComponent,
     SalesDetailsDialogComponent,
     StockReceptionListComponent,
-    StockReceptionDetailComponent
+    StockReceptionDetailComponent,
+    RattrapageCreditAddComponent
   ],
   imports: [
     CommonModule,

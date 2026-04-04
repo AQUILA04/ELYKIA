@@ -1,0 +1,56 @@
+<div class="table-card a6">
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Chargement des recouvrements...</p>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && recouvrements.length === 0">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <h3>Aucun recouvrement</h3>
+    <p>Aucune donnée ne correspond à vos filtres actuels.</p>
+  </div>
+
+  <div class="table-responsive" *ngIf="!isLoading && recouvrements.length > 0">
+    <table class="elykia-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Réf. Recouv.</th>
+          <th>Réf. Crédit</th>
+          <th>Client</th>
+          <th>Commercial</th>
+          <th class="text-right">Montant</th>
+          <th class="text-right">Reste dû</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of paginatedRecouvrements">
+          <td class="date-cell">
+            <span class="d-date">{{ row.creationDate | date:'dd/MM/yyyy' }}</span>
+            <span class="d-time">{{ row.creationDate | date:'HH:mm' }}</span>
+          </td>
+          <td><span class="mono-badge">{{ row.reference }}</span></td>
+          <td><span class="mono-badge secondary">{{ row.creditReference }}</span></td>
+          <td class="client-cell">
+            <span class="c-name">{{ row.clientName }}</span>
+          </td>
+          <td class="commercial-cell">
+            <span class="cm-name">{{ row.commercial || 'N/A' }}</span>
+          </td>
+          <td class="text-right amount-val">{{ row.amount | number }} <small>FCFA</small></td>
+          <td class="text-right remaining-val">{{ row.totalAmountRemaining | number }} <small>FCFA</small></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <mat-paginator
+      [length]="recouvrements.length"
+      [pageSize]="itemsPerPage"
+      [pageSizeOptions]="[10, 20, 50, 100]"
+      (page)="onPageChange($event)"
+      aria-label="Sélectionner la page">
+    </mat-paginator>
+  </div>
+</div>

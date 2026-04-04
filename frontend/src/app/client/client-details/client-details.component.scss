@@ -194,15 +194,41 @@
   .text-primary { color: #007bff !important; }
 
   .badge {
-    padding: 0.5em 0.75em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.4em 0.75em;
     font-size: 0.75rem;
     font-weight: 600;
-    border-radius: 0.25rem;
+    border-radius: 1rem;
 
     &.badge-success { background-color: #d4edda; color: #155724; }
     &.badge-warning { background-color: #fff3cd; color: #856404; }
-    &.badge-danger { background-color: #f8d7da; color: #721c24; }
+    &.badge-danger  { background-color: #f8d7da; color: #721c24; }
     &.badge-secondary { background-color: #e2e3e5; color: #383d41; }
+    &.badge-info    { background-color: #d1ecf1; color: #0c5460; }
+    &.badge-primary { background-color: #cce5ff; color: #004085; }
+
+    .badge-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+      line-height: 14px;
+    }
+  }
+
+  .client-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    h1 { margin-bottom: 0; }
+  }
+
+  .client-status-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .table {

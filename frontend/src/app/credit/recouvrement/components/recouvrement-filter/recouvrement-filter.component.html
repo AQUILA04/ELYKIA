@@ -1,0 +1,43 @@
+<div class="filter-card a5">
+  <div class="filter-controls">
+    
+    <div class="filter-group">
+      <label class="filter-label">Période Rapide</label>
+      <div class="period-pills">
+        <button 
+          *ngFor="let opt of periodOptions"
+          class="pill-btn"
+          [class.active]="selectedPeriod === opt.value"
+          (click)="selectPeriod(opt.value)">
+          {{ opt.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Custom Date Range -->
+    <div class="filter-group" *ngIf="selectedPeriod === 'custom'">
+      <label class="filter-label">Dates Personnalisées</label>
+      <div class="date-inputs">
+        <input type="date" lang="fr-FR" [(ngModel)]="customDateFrom" [max]="today" class="filter-input">
+        <span class="date-sep">à</span>
+        <input type="date" lang="fr-FR" [(ngModel)]="customDateTo" [max]="today" class="filter-input">
+        <button class="btn-apply-dates" (click)="applyCustomDates()">Appliquer</button>
+      </div>
+    </div>
+
+    <div class="filter-group" style="flex: 1; max-width: 300px;">
+      <label class="filter-label">Commercial</label>
+      <app-commercial-selector
+        [initialValue]="currentCollector"
+        (commercialSelected)="onCommercialSelected($event)">
+      </app-commercial-selector>
+    </div>
+  </div>
+
+  <div class="filter-stats">
+    <div class="stat-badge">
+      <span class="stat-num">{{ resultCount }}</span>
+      <span class="stat-text">recouvrement(s) trouvé(s)</span>
+    </div>
+  </div>
+</div>

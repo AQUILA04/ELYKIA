@@ -208,6 +208,13 @@
                 <span class="hide-menu">Recouvrements</span>
               </a>
             </li>
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/stock/credit/rattrapage"
+                 [ngClass]="{ 'active': isSubRouteActive('/stock/credit/rattrapage') }">
+                <span class="material-icons">settings_backup_restore</span>
+                <span class="hide-menu">Rattrapages</span>
+              </a>
+            </li>
           </ul>
         </li>
 

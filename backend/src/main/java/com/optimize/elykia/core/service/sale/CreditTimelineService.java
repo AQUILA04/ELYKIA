@@ -20,11 +20,14 @@ import com.optimize.elykia.core.service.bi.BiAggregationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -88,9 +91,16 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         creditTimeline = credit.dailyStakeOperation(creditTimeline);
         creditTimeline.setDailyAccountancy(dailyAccountancy);
         creditTimeline.setCollector(credit.getCollector());
+        if (StringUtils.hasText(creditTimeline.getReference())) {
+            LocalDate now = LocalDate.now();
+            Random random = new Random();
+            int nombreAleatoire = random.nextInt();
+            String hexString = String.format("%08x", nombreAleatoire & 0xFFFFFFFFL);
+            creditTimeline.setReference("REC-"+ now.getYear() + now.getMonthValue()+ "-" + hexString);
+        }
         creditService.update(credit);
         create(creditTimeline);
-        if (CreditStatus.SETTLED.equals(credit.getStatus())) {
+        if (CreditStatus.SETTLED.equals(credit.getStatus()) || credit.getTotalAmountRemaining() == 0) {
             clientService.updateCreditStatus(credit.getClientId(), Boolean.FALSE);
         }
 
@@ -128,10 +138,6 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
             }
         }
 
-        if (CreditStatus.SETTLED.equals(credit.getStatus())) {
-            clientService.updateCreditStatus(credit.getClientId(), Boolean.FALSE);
-        }
-        clientService.updateCreditStatus(credit.getClientId(), Boolean.TRUE);
     }
 
     @Transactional

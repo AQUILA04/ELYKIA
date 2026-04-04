@@ -19,10 +19,12 @@ export interface Client {
   contactPersonPhone: string;
   contactPersonAddress: string;
   collector: string;
-  tontineCollector?: string; // Ajout du champ tontineCollector
+  tontineCollector?: string;
   occupation: string;
   quarter: string;
   creditInProgress?: boolean;
+  isTontineMember?: boolean;
+  hasOrderInProgress?: boolean;
   iddoc?: string;
   clientType: string;
   profilPhotoUrl?: string;

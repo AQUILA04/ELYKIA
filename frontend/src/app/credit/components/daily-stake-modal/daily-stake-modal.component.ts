@@ -28,7 +28,8 @@ export class DailyStakeModalComponent implements OnInit {
     // D'après le CreditController, on n'a pas forcément le remainingAmount directement dans le DTO de liste.
     // Mais la demande dit "montant total restant". Je vais utiliser 'remainingAmount' s'il existe, sinon 'totalAmount'.
 
-    const maxAmount = this.credit.remainingAmount ?? this.credit.totalAmount;
+    const maxAmount = this.credit.totalAmountRemaining;
+    this.minAmount = this.credit.totalAmountRemaining < 200 ? this.credit.totalAmountRemaining : 200;
 
     // Utiliser dailyStake comme valeur par défaut si disponible, sinon minAmount
     const defaultAmount = this.credit.dailyStake ? this.credit.dailyStake : this.minAmount;

@@ -42,4 +42,18 @@ public interface CommercialMonthlyStockRepository extends GenericRepository<Comm
             @Param("collector") String collector,
             @Param("month") Integer month,
             @Param("year") Integer year);
+
+    @Query("""
+            SELECT DISTINCT s FROM CommercialMonthlyStock s
+            JOIN FETCH s.items i
+            WHERE s.collector = :collector
+            AND (s.year < :currentYear
+                 OR (s.year = :currentYear AND s.month < :currentMonth))
+            AND i.quantityRemaining > 0
+            ORDER BY s.year DESC, s.month DESC
+            """)
+    List<CommercialMonthlyStock> findResidualStocksByCollector(
+            @Param("collector") String collector,
+            @Param("currentMonth") int currentMonth,
+            @Param("currentYear") int currentYear);
 }

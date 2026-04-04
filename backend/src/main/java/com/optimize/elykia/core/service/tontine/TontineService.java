@@ -155,6 +155,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
                     savedMember.getCreatedBy(),
                     savedMember.getClient().getFullName()));
         }
+        clientService.updateTontineStatus(client.getId(), Boolean.TRUE);
 
         return TontineMemberRespDto.fromTontineMember(savedMember);
     }

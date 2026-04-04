@@ -264,6 +264,22 @@ public class ClientService extends GenericService<Client, Long> {
         return super.update(client);
     }
 
+    @Transactional
+    public boolean updateTontineStatus(Long clientId, Boolean status) {
+        Client client = getById(clientId);
+        client.setTontineMember(status);
+        update(client);
+        return Boolean.TRUE;
+    }
+
+    @Transactional
+    public boolean updateOrderStatus(Long clientId, Boolean status) {
+        Client client = getById(clientId);
+        client.setHasOrderInProgress(status);
+        update(client);
+        return Boolean.TRUE;
+    }
+
     public Page<Client> elasticsearch(String keyword, String username, Boolean tontine, Pageable pageable) {
         return getRepository().elasticsearch(keyword, username, tontine, pageable);
     }

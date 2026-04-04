@@ -135,7 +135,7 @@ public class OrderService extends GenericService<Order, Long> {
         order.setStatus(OrderStatus.SOLD);
         this.update(order);
         historyService.createHistory(order, OrderStatus.ACCEPTED, OrderStatus.SOLD, username);
-
+        clientService.updateOrderStatus(order.getClient().getId(), Boolean.FALSE);
         return creditService.getById(newCreditId);
     }
 
@@ -248,6 +248,8 @@ public class OrderService extends GenericService<Order, Long> {
                     savedOrder.getCreatedBy(),
                     savedOrder.getId()));
         }
+
+        clientService.updateOrderStatus(client.getId(), Boolean.TRUE);
 
         return savedOrder;
     }
