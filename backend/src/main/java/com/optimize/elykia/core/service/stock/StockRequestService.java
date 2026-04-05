@@ -9,6 +9,7 @@ import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.stock.StockRequest;
 import com.optimize.elykia.core.entity.stock.StockRequestItem;
+import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
@@ -56,6 +57,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private final TemplateEngine templateEngine;
     private CommercialMonthlyStockItemRepository monthlyStockItemRepository;
     private StockReturnRepository stockReturnRepository;
+    private CommercialStockMovementService commercialStockMovementService;
 
     public StockRequestService(StockRequestRepository repository,
             ArticlesService articlesService,
@@ -73,6 +75,11 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         this.stockMovementService = stockMovementService;
         this.eventPublisher = eventPublisher;
         this.templateEngine = templateEngine;
+    }
+
+    @Autowired
+    public void setCommercialStockMovementService(CommercialStockMovementService commercialStockMovementService) {
+        this.commercialStockMovementService = commercialStockMovementService;
     }
 
     public StockRequest createRequest(StockRequest request) {
@@ -291,42 +298,61 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                     .filter(item -> item.getArticle().getId().equals(reqItem.getArticle().getId()))
                     .findFirst();
 
+            CommercialMonthlyStockItem stockItem;
+            Integer quantityBefore;
+
             if (existingItem.isPresent()) {
-                CommercialMonthlyStockItem item = existingItem.get();
+                stockItem = existingItem.get();
+                quantityBefore = stockItem.getQuantityRemaining();
 
                 // Calcul du nouveau prix moyen pondéré
-                int currentNetQuantity = item.getQuantityRemaining();
-                double currentTotalValue = currentNetQuantity * item.getWeightedAverageUnitPrice();
+                int currentNetQuantity = stockItem.getQuantityRemaining();
+                double currentTotalValue = currentNetQuantity * stockItem.getWeightedAverageUnitPrice();
                 double newRequestValue = reqItem.getQuantity() * reqItem.getUnitPrice();
                 int newNetQuantity = currentNetQuantity + reqItem.getQuantity();
 
                 if (newNetQuantity > 0) {
-                    item.setWeightedAverageUnitPrice(Math.ceil((currentTotalValue + newRequestValue) / newNetQuantity));
+                    stockItem.setWeightedAverageUnitPrice(Math.ceil((currentTotalValue + newRequestValue) / newNetQuantity));
                 }
 
                 // Idem pour le prix d'achat
-                double currentTotalPurchaseValue = currentNetQuantity * item.getWeightedAveragePurchasePrice();
+                double currentTotalPurchaseValue = currentNetQuantity * stockItem.getWeightedAveragePurchasePrice();
                 double newRequestPurchaseValue = reqItem.getQuantity() * reqItem.getPurchasePrice();
 
                 if (newNetQuantity > 0) {
-                    item.setWeightedAveragePurchasePrice(
+                    stockItem.setWeightedAveragePurchasePrice(
                             Math.ceil((currentTotalPurchaseValue + newRequestPurchaseValue) / newNetQuantity));
                 }
 
-                item.setQuantityTaken(item.getQuantityTaken() + reqItem.getQuantity());
-                item.setLastUnitPrice(reqItem.getUnitPrice());
-                item.setLastPurchasePrice(reqItem.getPurchasePrice());
-                item.updateRemaining();
+                stockItem.setQuantityTaken(stockItem.getQuantityTaken() + reqItem.getQuantity());
+                stockItem.setLastUnitPrice(reqItem.getUnitPrice());
+                stockItem.setLastPurchasePrice(reqItem.getPurchasePrice());
+                stockItem.updateRemaining();
             } else {
-                CommercialMonthlyStockItem newItem = new CommercialMonthlyStockItem();
-                newItem.setArticle(reqItem.getArticle());
-                newItem.setQuantityTaken(reqItem.getQuantity());
-                newItem.setWeightedAverageUnitPrice(Math.ceil(reqItem.getUnitPrice()));
-                newItem.setWeightedAveragePurchasePrice(Math.ceil(reqItem.getPurchasePrice()));
-                newItem.setLastUnitPrice(reqItem.getUnitPrice());
-                newItem.setLastPurchasePrice(reqItem.getPurchasePrice());
-                newItem.updateRemaining();
-                monthlyStock.addItem(newItem);
+                stockItem = new CommercialMonthlyStockItem();
+                stockItem.setArticle(reqItem.getArticle());
+                stockItem.setMonthlyStock(monthlyStock);
+                stockItem.setQuantityTaken(reqItem.getQuantity());
+                stockItem.setWeightedAverageUnitPrice(Math.ceil(reqItem.getUnitPrice()));
+                stockItem.setWeightedAveragePurchasePrice(Math.ceil(reqItem.getPurchasePrice()));
+                stockItem.setLastUnitPrice(reqItem.getUnitPrice());
+                stockItem.setLastPurchasePrice(reqItem.getPurchasePrice());
+                stockItem.updateRemaining();
+                quantityBefore = 0;
+                monthlyStock.addItem(stockItem);
+            }
+
+            // Enregistrement du mouvement de stock STOCK_IN pour le commercial
+            if (commercialStockMovementService != null) {
+                commercialStockMovementService.recordWithStockReturn(
+                        stockItem,
+                        null,
+                        CommercialStockMovementType.STOCK_IN,
+                        quantityBefore,
+                        reqItem.getQuantity(),
+                        stockItem.getQuantityRemaining(),
+                        request.getId()
+                );
             }
         }
         monthlyStockRepository.save(monthlyStock);

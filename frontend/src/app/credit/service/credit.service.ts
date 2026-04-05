@@ -284,7 +284,7 @@ export class CreditService extends BaseHttpService {
     return this.get(`${this.apiUrl}/${creditId}/articles`);
   }
 
-  getSalesDetails(stockItemId: number): Observable<any[]> {
+  getSalesDetails(stockItemId: number): Observable<any> {
     return this.get(`${this.apiUrl}/articles/details/${stockItemId}`);
   }
 

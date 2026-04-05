@@ -9,6 +9,7 @@ import { UserService } from "../../../user/service/user.service";
 import { UserProfile } from "../../../shared/models/user-profile.enum";
 import { MatDialog } from '@angular/material/dialog';
 import { SalesDetailsDialogComponent } from '../../components/sales-details-dialog/sales-details-dialog.component';
+import { StockMovementDialogComponent } from '../../components/stock-movement-dialog/stock-movement-dialog.component';
 
 @Component({
   selector: 'app-my-stock-dashboard',
@@ -128,6 +129,17 @@ export class MyStockDashboardComponent implements OnInit {
         stockItemId: item.id,
         articleName: item.article.commercialName + ' ' + item.article.name,
         totalSold: item.quantitySold
+      }
+    });
+  }
+
+  openStockMovements(item: any): void {
+    this.dialog.open(StockMovementDialogComponent, {
+      width: '700px',
+      data: {
+        stockItemId: item.id,
+        articleName: item.article.commercialName + ' ' + item.article.name,
+        quantityTaken: item.quantityTaken
       }
     });
   }

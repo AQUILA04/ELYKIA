@@ -19,6 +19,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { SalesDetailsDialogComponent } from './components/sales-details-dialog/sales-details-dialog.component';
+import { StockMovementDialogComponent } from './components/stock-movement-dialog/stock-movement-dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -35,6 +36,7 @@ import { RattrapageCreditAddComponent } from './rattrapage/rattrapage-credit-add
     StockReturnListComponent,
     StockReturnCreateComponent,
     SalesDetailsDialogComponent,
+    StockMovementDialogComponent,
     StockReceptionListComponent,
     StockReceptionDetailComponent,
     RattrapageCreditAddComponent

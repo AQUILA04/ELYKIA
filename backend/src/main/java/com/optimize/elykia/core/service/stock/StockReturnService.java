@@ -9,6 +9,7 @@ import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.stock.StockReturn;
 import com.optimize.elykia.core.entity.stock.StockReturnItem;
+import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
@@ -36,6 +37,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     private final CommercialMonthlyStockItemRepository monthlyStockItemRepository;
     private final UserService userService;
     private final StockMovementService stockMovementService;
+    private CommercialStockMovementService commercialStockMovementService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     public StockReturnService(StockReturnRepository repository,
@@ -52,6 +54,11 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         this.userService = userService;
         this.stockMovementService = stockMovementService;
         this.eventPublisher = eventPublisher;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setCommercialStockMovementService(CommercialStockMovementService commercialStockMovementService) {
+        this.commercialStockMovementService = commercialStockMovementService;
     }
 
     public StockReturn createReturn(StockReturn stockReturn) {
@@ -195,8 +202,24 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                             "Quantité retournée supérieure au stock restant pour l'article : "
                                     + item.getArticle().getCommercialName());
                 }
+
+                Integer quantityBefore = item.getQuantityRemaining();
+
                 item.setQuantityReturned(item.getQuantityReturned() + returnItem.getQuantity());
                 item.updateRemaining();
+
+                // Enregistrement du mouvement de stock RETURN pour le commercial
+                if (commercialStockMovementService != null) {
+                    commercialStockMovementService.recordWithStockReturn(
+                            item,
+                            null,
+                            CommercialStockMovementType.RETURN,
+                            quantityBefore,
+                            returnItem.getQuantity(),
+                            item.getQuantityRemaining(),
+                            stockReturn.getId()
+                    );
+                }
                 
                 // Set unit price from monthly stock item
                 returnItem.setUnitPrice(item.getWeightedAverageUnitPrice());

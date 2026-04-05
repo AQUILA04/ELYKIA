@@ -10,9 +10,11 @@ import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
+import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
+import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
 import com.optimize.elykia.core.repository.CreditRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,12 @@ public class RattrapageCreditService {
     private final CommercialMonthlyStockRepository commercialMonthlyStockRepository;
     private final CreditRepository creditRepository;
     private final ClientService clientService;
+    private CommercialStockMovementService commercialStockMovementService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setCommercialStockMovementService(CommercialStockMovementService commercialStockMovementService) {
+        this.commercialStockMovementService = commercialStockMovementService;
+    }
 
     /**
      * Récupère les stocks résiduels (mois antérieurs) ayant au moins un article avec quantityRemaining > 0.
@@ -70,8 +78,8 @@ public class RattrapageCreditService {
         creditRepository.save(credit);
         log.info("[RattrapageCreditService] Crédit RAT persisté id={} reference={}", credit.getId(), credit.getReference());
 
-        // 6. Mettre à jour le stock source
-        updateSourceStock(dto, sourceStock);
+        // 6. Mettre à jour le stock source et enregistrer les mouvements
+        updateSourceStock(dto, sourceStock, credit);
 
         return credit;
     }
@@ -195,13 +203,15 @@ public class RattrapageCreditService {
         return credit;
     }
 
-    private void updateSourceStock(RattrapageCreditDto dto, CommercialMonthlyStock sourceStock) {
+    private void updateSourceStock(RattrapageCreditDto dto, CommercialMonthlyStock sourceStock, Credit credit) {
         for (RattrapageCreditDto.RattrapageItemDto itemDto : dto.getItems()) {
             CommercialMonthlyStockItem stockItem = sourceStock.getItems().stream()
                     .filter(i -> i.getId().equals(itemDto.getStockItemId()))
                     .findFirst()
                     .orElseThrow(() -> new CustomValidationException(
                             "Erreur lors de la mise à jour du stock : stockItemId=" + itemDto.getStockItemId()));
+
+            Integer quantityBefore = stockItem.getQuantityRemaining();
 
             // Incrémenter quantitySold et recalculer quantityRemaining
             stockItem.setQuantitySold(stockItem.getQuantitySold() + itemDto.getQuantity());
@@ -210,6 +220,18 @@ public class RattrapageCreditService {
             // Mettre à jour totalSoldValue
             double currentSoldValue = stockItem.getTotalSoldValue() != null ? stockItem.getTotalSoldValue() : 0.0;
             stockItem.setTotalSoldValue(currentSoldValue + (itemDto.getQuantity() * itemDto.getUnitPrice()));
+
+            // Enregistrement du mouvement de stock CREDIT_SALE pour le rattrapage
+            if (commercialStockMovementService != null) {
+                commercialStockMovementService.record(
+                        stockItem,
+                        credit,
+                        CommercialStockMovementType.CREDIT_SALE,
+                        quantityBefore,
+                        itemDto.getQuantity(),
+                        stockItem.getQuantityRemaining()
+                );
+            }
 
             log.debug("[RattrapageCreditService] Stock mis à jour stockItemId={} quantitySold={} quantityRemaining={} totalSoldValue={}",
                     stockItem.getId(), stockItem.getQuantitySold(), stockItem.getQuantityRemaining(), stockItem.getTotalSoldValue());

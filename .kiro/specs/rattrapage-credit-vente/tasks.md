@@ -7,22 +7,22 @@ Implémentation de la fonctionnalité de rattrapage crédit vente en Java (Sprin
 ## Tâches
 
 - [ ] 1. Backend — DTO `RattrapageCreditDto` avec Bean Validation
-  - [~] 1.1 Créer la classe `RattrapageCreditDto` dans le package `com.optimize.elykia.core.dto.sale`
+  - [ ] 1.1 Créer la classe `RattrapageCreditDto` dans le package `com.optimize.elykia.core.dto.sale`
     - Champs : `commercial` (`@NotBlank`), `clientId` (`@NotNull`), `sourceStockId` (`@NotNull`), `beginDate` (`@NotNull`), `dailyStake` (`@NotNull @Min(200)`), `advance` (`@PositiveOrZero`, défaut `0.0`), `expectedEndDate` (optionnel), `note` (optionnel), `items` (`@NotEmpty @Valid`)
     - Inner class `RattrapageItemDto` avec `stockItemId`, `articleId`, `quantity` (`@NotNull @Positive`), `unitPrice` (`@NotNull @Positive`)
     - _Requirements: 5.1, 8.5_
 
 - [ ] 2. Backend — Requête JPQL `findResidualStocksByCollector`
-  - [~] 2.1 Ajouter la méthode `findResidualStocksByCollector` dans `CommercialMonthlyStockRepository`
+  - [ ] 2.1 Ajouter la méthode `findResidualStocksByCollector` dans `CommercialMonthlyStockRepository`
     - Requête JPQL avec `SELECT DISTINCT s FROM CommercialMonthlyStock s JOIN FETCH s.items i WHERE s.collector = :collector AND (s.year < :currentYear OR (s.year = :currentYear AND s.month < :currentMonth)) AND i.quantityRemaining > 0 ORDER BY s.year DESC, s.month DESC`
     - Paramètres : `@Param("collector") String collector`, `@Param("currentMonth") int currentMonth`, `@Param("currentYear") int currentYear`
     - _Requirements: 2.3, 2.4, 2.5_
 
 - [ ] 3. Backend — `RattrapageCreditService`
-  - [~] 3.1 Créer `RattrapageCreditService` dans `com.optimize.elykia.core.service.sale` avec `@Service @Transactional`
+  - [ ] 3.1 Créer `RattrapageCreditService` dans `com.optimize.elykia.core.service.sale` avec `@Service @Transactional`
     - Méthode publique `List<CommercialMonthlyStock> getResidualStocks(String collector)` : appelle `findResidualStocksByCollector` avec `LocalDate.now()`
     - _Requirements: 2.3, 2.4_
-  - [~] 3.2 Implémenter `Credit createRattrapage(RattrapageCreditDto dto)` avec transaction atomique
+  - [ ] 3.2 Implémenter `Credit createRattrapage(RattrapageCreditDto dto)` avec transaction atomique
     - Appeler `resolveSourceStock` : `findById(sourceStockId)`, vérifier `stock.collector == dto.commercial`, vérifier que le stock n'est pas le mois courant
     - Appeler `resolveClient(dto.clientId)` et `resolveCommercial(dto.commercial)`
     - Appeler `buildAndValidateArticles` : pour chaque item, trouver le `CommercialMonthlyStockItem`, vérifier `qty <= quantityRemaining`, construire `CreditArticles`
@@ -33,7 +33,7 @@ Implémentation de la fonctionnalité de rattrapage crédit vente en Java (Sprin
     - _Requirements: 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 8.1, 8.2, 8.3, 8.4_
 
 - [ ] 4. Backend — `RattrapageCreditController`
-  - [~] 4.1 Créer `RattrapageCreditController` dans `com.optimize.elykia.core.controller.sale`
+  - [ ] 4.1 Créer `RattrapageCreditController` dans `com.optimize.elykia.core.controller.sale`
     - `GET /api/v1/commercial-stock/residual` : `@RequestParam String collector` → appelle `service.getResidualStocks(collector)` → HTTP 200 via `ResponseUtil.successResponse`
     - `POST /api/v1/credits/rattrapage` : `@RequestBody @Valid RattrapageCreditDto dto` → appelle `service.createRattrapage(dto)` → HTTP 201 via `ResponseUtil.successResponse`
     - _Requirements: 2.2, 5.1, 5.10_
@@ -83,36 +83,36 @@ Implémentation de la fonctionnalité de rattrapage crédit vente en Java (Sprin
   - S'assurer que tous les tests unitaires et de propriétés backend passent. Demander à l'utilisateur si des questions se posent.
 
 - [ ] 8. Frontend — `RattrapageCreditService` Angular
-  - [~] 8.1 Créer `RattrapageCreditService` dans `src/app/stock/services/rattrapage-credit.service.ts`
+  - [ ] 8.1 Créer `RattrapageCreditService` dans `src/app/stock/services/rattrapage-credit.service.ts`
     - `getResidualStocks(collector: string): Observable<CommercialMonthlyStock[]>` → `GET /api/v1/commercial-stock/residual?collector={collector}`
     - `createRattrapage(dto: RattrapageCreditDto): Observable<any>` → `POST /api/v1/credits/rattrapage`
     - Déclarer les interfaces `RattrapageCreditDto` et `RattrapageItemDto` dans le même fichier ou dans un fichier de modèles dédié
     - _Requirements: 2.1, 6.1_
 
 - [ ] 9. Frontend — `RattrapageCreditAddComponent` (logique TypeScript)
-  - [~] 9.1 Créer `RattrapageCreditAddComponent` dans `src/app/stock/rattrapage/`
+  - [ ] 9.1 Créer `RattrapageCreditAddComponent` dans `src/app/stock/rattrapage/`
     - Déclarer les propriétés d'état : `currentStep` (1–4), `isLoading`, `loadingMonths`, `isPromoter`, `isManager`
     - Déclarer les propriétés de données : `commercials`, `clients`, `residualStocks`, `selectedItems`
     - Déclarer les propriétés de calcul : `totalAmount`, `remainingAmount`, `computedEndDate`, `computedDays`
     - Injecter `RattrapageCreditService`, `ClientService`, `AuthService`/`UserService`, `ToastrService`, `Router`
     - _Requirements: 1.1, 1.2, 1.3_
-  - [~] 9.2 Implémenter `ngOnInit` : détecter le profil (`isPromoter`, `isManager`), pré-remplir le commercial si `PROMOTER`, charger la liste des commerciaux si gestionnaire
+  - [ ] 9.2 Implémenter `ngOnInit` : détecter le profil (`isPromoter`, `isManager`), pré-remplir le commercial si `PROMOTER`, charger la liste des commerciaux si gestionnaire
     - _Requirements: 1.1, 1.2_
-  - [~] 9.3 Implémenter `onCommercialChange()` et `loadResidualStocks(username)` : appeler `getResidualStocks`, gérer le cas liste vide avec message "Aucun stock résiduel trouvé pour ce commercial."
+  - [ ] 9.3 Implémenter `onCommercialChange()` et `loadResidualStocks(username)` : appeler `getResidualStocks`, gérer le cas liste vide avec message "Aucun stock résiduel trouvé pour ce commercial."
     - _Requirements: 2.1, 2.6, 2.7_
-  - [~] 9.4 Implémenter `onStockMonthSelect(stock)` : sélectionner le stock, passer à l'étape 3
+  - [ ] 9.4 Implémenter `onStockMonthSelect(stock)` : sélectionner le stock, passer à l'étape 3
     - _Requirements: 2.8_
-  - [~] 9.5 Implémenter `toggleArticle(item, event)` et `onQtyChange(item, event)` : gérer la sélection/désélection, initialiser qty à 1 à la coche, valider `0 < qty <= quantityRemaining`, conserver la dernière valeur valide si dépassement
+  - [ ] 9.5 Implémenter `toggleArticle(item, event)` et `onQtyChange(item, event)` : gérer la sélection/désélection, initialiser qty à 1 à la coche, valider `0 < qty <= quantityRemaining`, conserver la dernière valeur valide si dépassement
     - _Requirements: 3.3, 3.4, 3.5_
-  - [~] 9.6 Implémenter `recalculateTotals()` : calculer `totalAmount = Σ(qty × lastUnitPrice)` et les sous-totaux par article
+  - [ ] 9.6 Implémenter `recalculateTotals()` : calculer `totalAmount = Σ(qty × lastUnitPrice)` et les sous-totaux par article
     - _Requirements: 3.6_
-  - [~] 9.7 Implémenter `recalculateEndDate()` : calculer `computedEndDate = beginDate + ceil((totalAmount - advance) / dailyStake)` et `computedDays`
+  - [ ] 9.7 Implémenter `recalculateEndDate()` : calculer `computedEndDate = beginDate + ceil((totalAmount - advance) / dailyStake)` et `computedDays`
     - _Requirements: 4.4, 4.5, 4.6_
-  - [~] 9.8 Implémenter `onSubmit()` : valider le formulaire, marquer les champs `touched` si invalide + `toastr.warning`, appeler `createRattrapage`, gérer succès (toastr + navigate `/credit-list`) et erreur (toastr.error sans navigation), gérer le spinner
+  - [ ] 9.8 Implémenter `onSubmit()` : valider le formulaire, marquer les champs `touched` si invalide + `toastr.warning`, appeler `createRattrapage`, gérer succès (toastr + navigate `/credit-list`) et erreur (toastr.error sans navigation), gérer le spinner
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
 - [ ] 10. Frontend — Template HTML du composant
-  - [~] 10.1 Créer le template `rattrapage-credit-add.component.html` avec la structure en 4 étapes
+  - [ ] 10.1 Créer le template `rattrapage-credit-add.component.html` avec la structure en 4 étapes
     - Étape 1 : dropdown commercial (conditionnel profil gestionnaire) + dropdown client avec recherche
     - Étape 2 : cartes cliquables des stocks résiduels (nom mois, année, nb articles, qty totale, valeur estimée) + message si liste vide
     - Étape 3 : liste des articles avec checkbox, champ qty, prix unitaire, sous-total en temps réel + total général
@@ -122,9 +122,9 @@ Implémentation de la fonctionnalité de rattrapage crédit vente en Java (Sprin
     - _Requirements: 1.4, 2.6, 2.7, 3.1, 3.2, 3.6, 4.1, 4.2, 4.3, 4.5, 4.7, 4.8, 6.5, 7.1, 7.2, 7.3_
 
 - [ ] 11. Frontend — Routing et bouton d'accès depuis `credit-list`
-  - [~] 11.1 Ajouter la route `{ path: 'credit/rattrapage', component: RattrapageCreditAddComponent, canActivate: [AuthGuard], data: { title: 'Distribution de rattrapage' } }` dans le module de routing concerné
+  - [ ] 11.1 Ajouter la route `{ path: 'credit/rattrapage', component: RattrapageCreditAddComponent, canActivate: [AuthGuard], data: { title: 'Distribution de rattrapage' } }` dans le module de routing concerné
     - _Requirements: 6.6_
-  - [~] 11.2 Ajouter un bouton "Rattrapage stock antérieur" dans le template de `credit-list` visible pour les profils `PROMOTER`, `GESTIONNAIRE` et `ADMIN`, naviguant vers `/credit/rattrapage`
+  - [ ] 11.2 Ajouter un bouton "Rattrapage stock antérieur" dans le template de `credit-list` visible pour les profils `PROMOTER`, `GESTIONNAIRE` et `ADMIN`, naviguant vers `/credit/rattrapage`
     - _Requirements: 6.7_
 
 - [ ] 12. Frontend — Tests unitaires Jest du composant

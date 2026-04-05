@@ -10,6 +10,7 @@ import { ErrorHandlerService } from 'src/app/shared/service/error-handler.servic
   providedIn: 'root'
 })
 export class CommercialStockService extends BaseHttpService {
+  movementUrl = '/api/v1/stock/movements';
 
   constructor(
     protected override http: HttpClient,
@@ -17,6 +18,7 @@ export class CommercialStockService extends BaseHttpService {
     protected override errorHandler: ErrorHandlerService
   ) {
     super(http, tokenStorage, errorHandler);
+    this.movementUrl = this.baseUrl + this.movementUrl;
     this.baseUrl += '/api/commercial-stocks';
   }
 
@@ -45,5 +47,9 @@ export class CommercialStockService extends BaseHttpService {
     }
 
     return this.http.get<any>(`${this.baseUrl}`, { params });
+  }
+
+  getStockMovements(stockItemId: number): Observable<any> {
+    return this.http.get<any>(`${this.movementUrl}/item/${stockItemId}`);
   }
 }

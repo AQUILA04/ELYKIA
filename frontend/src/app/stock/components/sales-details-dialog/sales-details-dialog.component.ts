@@ -23,8 +23,9 @@ export class SalesDetailsDialogComponent implements OnInit {
 
   loadSalesDetails(): void {
     this.creditService.getSalesDetails(this.data.stockItemId).subscribe({
-      next: (data) => {
-        this.salesDetails = data;
+      next: (resp) => {
+
+        this.salesDetails = resp.data;
         this.loading = false;
       },
       error: (err) => {

@@ -23,6 +23,7 @@ import com.optimize.elykia.core.enumaration.SolvencyStatus;
 import com.optimize.elykia.core.mapper.CreditMapper;
 import com.optimize.elykia.core.repository.*;
 import com.optimize.elykia.core.repository.spec.CreditSpecification;
+import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.util.SharedService;
 import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
@@ -71,6 +72,7 @@ public class CreditService extends GenericService<Credit, Long> {
     private CreditPaymentEventService creditPaymentEventService;
     private StockMovementService stockMovementService;
     private BiAggregationService biAggregationService; // Added for real-time aggregation
+    private CommercialStockMovementService commercialStockMovementService;
     private final CreditDistributionViewRepository creditDistributionViewRepository;
     private final CreditDistributionMapper creditDistributionMapper;
     private TontineStockService tontineStockService;
@@ -129,6 +131,11 @@ public class CreditService extends GenericService<Credit, Long> {
     @Autowired
     public void setBiAggregationService(BiAggregationService biAggregationService) {
         this.biAggregationService = biAggregationService;
+    }
+
+    @Autowired
+    public void setCommercialStockMovementService(CommercialStockMovementService commercialStockMovementService) {
+        this.commercialStockMovementService = commercialStockMovementService;
     }
 
     @Transactional
@@ -395,11 +402,15 @@ public class CreditService extends GenericService<Credit, Long> {
                         newOne.setUnitPrice(existingOne.getUnitPrice());
                         newOne.setId(existingOne.getId());
                         newOne.setArticles(existingOne.getArticles());
+                        newOne.setStockItemId(existingOne.getStockItemId());
                     }
                 }
                 if (Objects.isNull(newOne.getId())) {
                     newOne.setArticles(articlesService.getById(newOne.getArticlesId()));
                     newOne.setUnitPrice(newOne.getArticles().getCreditSalePrice());
+                    Long stockItemId = commercialMonthlyStockItemRepository
+                            .getIdByArticleId(newOne.getId(), now.getMonthValue(), now.getYear(), credit.getCollector());
+                    newOne.setStockItemId(stockItemId);
                 }
                 creditArticles.add(newOne);
             }
@@ -490,6 +501,8 @@ public class CreditService extends GenericService<Credit, Long> {
                         + creditArticles.getArticles().getCommercialName());
             }
 
+            Integer quantityBefore = stockItem.getQuantityRemaining();
+
             // Mise à jour des compteurs et de la valeur financière vendue exacte
             stockItem.setQuantitySold(stockItem.getQuantitySold() + creditArticles.getQuantity());
             double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0 : stockItem.getTotalSoldValue();
@@ -499,7 +512,19 @@ public class CreditService extends GenericService<Credit, Long> {
             stockItem.setTotalSoldValue(currentTotalSold + (creditArticles.getQuantity() * currentPMP));
             stockItem.setTotalMargeValue(currentTotalMarge + (creditArticles.getQuantity() * stockItem.getWeightedAveragePurchasePrice()));
             stockItem.updateRemaining();
-            
+
+            // Enregistrement du mouvement de stock
+            if (commercialStockMovementService != null) {
+                commercialStockMovementService.record(
+                        stockItem,
+                        clientCredit,
+                        com.optimize.elykia.core.enumaration.CommercialStockMovementType.CREDIT_SALE,
+                        quantityBefore,
+                        creditArticles.getQuantity(),
+                        stockItem.getQuantityRemaining()
+                );
+            }
+
             // Set stockItemId in CreditArticles
             creditArticles.setStockItemId(stockItem.getId());
         });
@@ -673,6 +698,8 @@ public class CreditService extends GenericService<Credit, Long> {
                                 return newItem;
                             });
 
+                    Integer quantityBefore = stockItem.getQuantityRemaining();
+
                     // Pour une vente CASH, on considère que c'est pris du stock ET vendu
                     stockItem.setQuantityTaken(stockItem.getQuantityTaken() + creditArticle.getQuantity());
                     stockItem.setQuantitySold(stockItem.getQuantitySold() + creditArticle.getQuantity());
@@ -682,6 +709,18 @@ public class CreditService extends GenericService<Credit, Long> {
                             : stockItem.getWeightedAverageUnitPrice();
                     stockItem.setTotalSoldValue(currentTotalSold + (creditArticle.getQuantity() * currentPMP));
                     stockItem.updateRemaining();
+
+                    // Enregistrement du mouvement de stock CASH
+                    if (commercialStockMovementService != null) {
+                        commercialStockMovementService.record(
+                                stockItem,
+                                cashCredit,
+                                com.optimize.elykia.core.enumaration.CommercialStockMovementType.CASH_SALE,
+                                quantityBefore,
+                                creditArticle.getQuantity(),
+                                stockItem.getQuantityRemaining()
+                        );
+                    }
                 });
                 commercialMonthlyStockRepository.save(monthlyStock);
             }
