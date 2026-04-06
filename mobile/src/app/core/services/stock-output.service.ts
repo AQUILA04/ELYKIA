@@ -7,6 +7,9 @@ import { DatabaseService } from './database.service';
 import { StockOutput } from '../../models/stock-output.model';
 import { ApiResponse } from '../../models/api-response.model';
 import { HealthCheckService } from './health-check.service';
+import { StockOutputRepository } from '../repositories/stock-output.repository';
+import { StockOutputRepositoryExtensions, StockOutputRepositoryFilters } from '../repositories/stock-output.repository.extensions';
+import { Page } from '../repositories/repository.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +18,9 @@ export class StockOutputService {
   constructor(
     private http: HttpClient,
     private dbService: DatabaseService,
-    private healthCheckService: HealthCheckService
+    private healthCheckService: HealthCheckService,
+    private stockOutputRepository: StockOutputRepository,
+    private stockOutputRepositoryExtensions: StockOutputRepositoryExtensions
   ) { }
 
   initializeStockOutputs(commercialUsername: string): Observable<StockOutput[]> {
@@ -24,16 +29,17 @@ export class StockOutputService {
         if (isOnline) {
           return this.fetchStockOutputsFromApi(commercialUsername).pipe(
             tap(async (stockOutputs) => {
-              await this.dbService.saveStockOutputs(stockOutputs);
+              await this.stockOutputRepository.saveAll(stockOutputs);
               console.log('Stock Outputs fetched from API and saved locally.');
             }),
             catchError(async (error) => {
               console.error('Failed to fetch stock outputs from API, attempting local:', error);
-              return this.getLocalStockOutputs();
+              // Return empty to avoid loading all
+              return [];
             })
           );
         } else {
-          return from(this.getLocalStockOutputs());
+          return of([]);
         }
       })
     );
@@ -47,14 +53,8 @@ export class StockOutputService {
   }
 
   private async getLocalStockOutputs(): Promise<StockOutput[]> {
-    const stockOutputs = await this.dbService.getStockOutputs();
-    if (stockOutputs.length > 0) {
-      console.log('Using locally stored stock outputs.');
-      return stockOutputs;
-    } else {
-      console.error('No stock outputs available locally.');
-      return [];
-    }
+    console.warn('getLocalStockOutputs is deprecated. Use getStockOutputsPaginated instead.');
+    return [];
   }
 
   /**
@@ -62,16 +62,19 @@ export class StockOutputService {
    * Utilise la logique de récupération locale existante.
    */
   public getStockOutputs(): Observable<StockOutput[]> {
-    return from(this.getLocalStockOutputs());
+    console.warn('getStockOutputs is deprecated. Use getStockOutputsPaginated instead.');
+    return of([]);
   }
 
   public getStockOutputsByCommercialUsername(username: string): Observable<StockOutput[]> {
-    return from(this.dbService.getStockOutputs()).pipe(
-      map(stockOutputs => stockOutputs.filter(so => so.commercialId === username)),
-      catchError(error => {
-        console.error('Failed to get stock outputs by commercial username from local database:', error);
-        return of([]);
-      })
-    );
+    console.warn('getStockOutputsByCommercialUsername is deprecated. Use getStockOutputsPaginated instead.');
+    return of([]);
+  }
+
+  /**
+   * Get paginated stock outputs
+   */
+  getStockOutputsPaginated(commercialUsername: string, page: number, size: number, filters?: StockOutputRepositoryFilters): Observable<Page<StockOutput>> {
+    return from(this.stockOutputRepositoryExtensions.findByCommercialPaginated(commercialUsername, page, size, filters));
   }
 }

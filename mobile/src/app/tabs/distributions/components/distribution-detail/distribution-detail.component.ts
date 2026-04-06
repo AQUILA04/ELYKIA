@@ -8,8 +8,6 @@ import { filter, take } from 'rxjs/operators';
 import { DistributionView, DistributionItemView } from '../../../../models/distribution-view.model';
 import { DistributionService } from '../../../../core/services/distribution.service';
 import { RecoveryService } from '../../../../core/services/recovery.service';
-import { selectAllArticles } from '../../../../store/article/article.selectors';
-import { loadArticles } from '../../../../store/article/article.actions';
 import * as DistributionActions from '../../../../store/distribution/distribution.actions';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 
@@ -21,12 +19,12 @@ import { selectAuthUser } from '../../../../store/auth/auth.selectors';
   imports: [CommonModule, IonicModule],
   providers: [DecimalPipe]
 })
-export class DistributionDetailComponent  implements OnInit {
+export class DistributionDetailComponent implements OnInit {
 
   @Input() distribution!: DistributionView;
 
   constructor(
-    private modalController: ModalController, 
+    private modalController: ModalController,
     private decimalPipe: DecimalPipe,
     private distributionService: DistributionService,
     private recoveryService: RecoveryService,
@@ -37,50 +35,10 @@ export class DistributionDetailComponent  implements OnInit {
   ) { }
 
   ngOnInit() {
-    console.log('[DistributionDetail] Data received in modal:', JSON.stringify(this.distribution, null, 2));
-    console.log('[DistributionDetail] Is data valid?', this.hasValidData());
-
-    if (!this.distribution.items || this.distribution.items.length === 0) {
-      console.log(`[DistributionDetail] Items array is empty for distribution ${this.distribution.id}. Fetching...`);
-      this.loadAndEnrichItems();
+    // No need to load items manually, they are already populated in DistributionView
+    if (this.distribution && (!this.distribution.items || this.distribution.items.length === 0)) {
+      console.warn('[DistributionDetail] Distribution items are empty, this might be expected if no items exist.');
     }
-  }
-
-  loadAndEnrichItems(): void {
-    console.log('[DistributionDetail] Dispatching loadArticles action.');
-    this.store.dispatch(loadArticles());
-
-    const articlesLoaded$ = this.store.select(selectAllArticles).pipe(
-      filter(articles => articles && articles.length > 0),
-      take(1)
-    );
-
-    const distributionItems$ = this.distributionService.getDistributionItems(this.distribution.id);
-
-    combineLatest([articlesLoaded$, distributionItems$]).pipe(
-      take(1)
-    ).subscribe({
-      next: ([allArticles, items]) => {
-        console.log(`[DistributionDetail] Enriching data: Found ${items.length} items and ${allArticles.length} total articles.`);
-        
-        const enrichedItems: DistributionItemView[] = items.map(item => {
-          const article = allArticles.find(a => String(a.id) === String(item.articleId));
-          if (!article) {
-            console.warn(`[DistributionDetail]   -> Article NOT FOUND for articleId: '${item.articleId}'`);
-          }
-          return {
-            ...item,
-            article: article!
-          };
-        }).filter(item => !!item.article);
-
-        this.distribution.items = enrichedItems;
-        console.log('[DistributionDetail] Final distribution object with enriched items:', JSON.stringify(this.distribution, null, 2));
-      },
-      error: (err) => {
-        console.error(`[DistributionDetail] Error during items enrichment:`, err);
-      }
-    });
   }
 
   dismiss() {
@@ -146,13 +104,13 @@ export class DistributionDetailComponent  implements OnInit {
   canModifyOrDelete(): boolean {
     const isLocal = this.distribution?.isLocal;
     if (!isLocal) return false;
-    
+
     // Handle different data types for isLocal field
-    return isLocal === true || 
-           isLocal === 1 || 
-           isLocal === '1' || 
-           isLocal === 'true' ||
-           String(isLocal).toLowerCase() === 'true';
+    return isLocal === true ||
+      isLocal === 1 ||
+      isLocal === '1' ||
+      isLocal === 'true' ||
+      String(isLocal).toLowerCase() === 'true';
   }
 
   async editDistribution() {
@@ -198,19 +156,19 @@ export class DistributionDetailComponent  implements OnInit {
   private async confirmDelete() {
     try {
       console.log(`Starting deletion process for distribution: ${this.distribution.id}`);
-      
+
       // 1. Skip recovery deletion for now to avoid syncHash column error
       console.log('Skipping recovery deletion to avoid database schema issues');
-      
+
       // 2. Delete the distribution (this will also restore stock and attempt to delete transactions)
       const deleteResult = await firstValueFrom(this.distributionService.deleteDistribution(this.distribution.id));
-      
+
       if (!deleteResult) {
         throw new Error('Failed to delete distribution');
       }
-      
+
       console.log('Distribution and related data deleted successfully');
-      
+
       // Reload distributions to update the list
       this.store.select(selectAuthUser).pipe(
         filter(user => !!user),
@@ -220,7 +178,7 @@ export class DistributionDetailComponent  implements OnInit {
           this.store.dispatch(DistributionActions.loadDistributions({ commercialUsername: user.username }));
         }
       });
-      
+
       const toast = await this.toastController.create({
         message: 'Distribution supprimée avec succès. Le stock a été restauré.',
         duration: 4000,
@@ -232,13 +190,13 @@ export class DistributionDetailComponent  implements OnInit {
       await this.modalController.dismiss({ deleted: true });
     } catch (error) {
       console.error('Error deleting distribution:', error);
-      
+
       // Show more specific error message
       let errorMessage = 'Erreur lors de la suppression de la distribution.';
       if (error instanceof Error && error.message && error.message.includes('syncHash')) {
         errorMessage = 'Erreur de base de données. La distribution a été partiellement supprimée.';
       }
-      
+
       await this.showErrorToast(errorMessage);
     }
   }

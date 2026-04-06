@@ -2,7 +2,7 @@ package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.AccountingDay;
+import com.optimize.elykia.core.entity.accounting.AccountingDay;
 import com.optimize.elykia.core.enumaration.AccountingDayStatus;
 
 import java.time.LocalDate;

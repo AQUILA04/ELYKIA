@@ -1,16 +1,18 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { AccountState } from './account.reducer';
+import { AccountState, accountAdapter } from './account.reducer';
 import { Account } from '../../models/account.model';
 
 export const selectAccountState = createFeatureSelector<AccountState>('account');
 
-export const selectAllAccounts = createSelector(
-  selectAccountState,
-  (state) => state.accounts
-);
+const {
+  selectEntities,
+  selectAll
+} = accountAdapter.getSelectors(selectAccountState);
+
+export const selectAccountEntities = selectEntities;
 
 export const selectAccountByClientId = (clientId: string) => createSelector(
-  selectAllAccounts,
+  selectAll,
   (accounts: Account[]) => accounts.find(a => a.clientId === clientId)
 );
 

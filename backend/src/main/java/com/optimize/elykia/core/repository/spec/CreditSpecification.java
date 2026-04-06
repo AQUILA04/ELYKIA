@@ -2,7 +2,7 @@ package com.optimize.elykia.core.repository.spec;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.dto.CreditSearchDto;
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -44,6 +44,11 @@ public class CreditSpecification {
 
             if (StringUtils.hasText(dto.commercial())) {
                 predicates.add(cb.equal(root.get("collector"), dto.commercial().trim()));
+            }
+
+            // clientId
+            if (dto.clientId() != null) {
+                predicates.add(cb.equal(root.get("client").get("id"), dto.clientId()));
             }
 
             // keyword handling
@@ -135,6 +140,9 @@ public class CreditSpecification {
             }
 
             predicates.add(cb.equal(root.get("state"), State.ENABLED));
+            
+            // Default sort by id desc if no sort is applied by pageable (though pageable usually handles it)
+            // But Specification is for filtering. Sorting is handled by Pageable passed to repository.
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

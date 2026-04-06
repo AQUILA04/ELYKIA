@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import {FirebaseCrashlytics} from "@capacitor-firebase/crashlytics";
 
 @Injectable({
   providedIn: 'root'
@@ -8,7 +9,7 @@ export class LoggerService {
   private static inMemoryLogs: string[] = [];
   // Chemin dans le répertoire de données de l'application
   // Utilise un fichier directement dans le répertoire Documents sans sous-dossier
-  private logFileName = 'elykia_app_logs.txt';
+  private logFileName = 'elykia/app_logs.txt';
   private logDirectory = Directory.Documents;
 
   constructor() {
@@ -77,6 +78,7 @@ export class LoggerService {
 
     // Essayer de sauvegarder dans le fichier (non-bloquant)
     this.saveToFileAsync(logMessage);
+    await FirebaseCrashlytics.log({ message: logMessage });
   }
 
   async error(message: string, error?: any) {

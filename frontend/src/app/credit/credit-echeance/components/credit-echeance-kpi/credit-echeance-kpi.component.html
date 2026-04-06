@@ -1,0 +1,22 @@
+<div class="kpi-strip a3">
+  <div class="kpi-card kpi-today">
+    <div class="kpi-label">Aujourd'hui</div>
+    <div class="kpi-value">{{ totalToday }}</div>
+    <div class="kpi-sub">arrivant à terme</div>
+  </div>
+  <div class="kpi-card kpi-week">
+    <div class="kpi-label">Cette semaine</div>
+    <div class="kpi-value">{{ totalWeek }}</div>
+    <div class="kpi-sub">dans les 7 prochains jours</div>
+  </div>
+  <div class="kpi-card kpi-urgent">
+    <div class="kpi-label">Dont non soldés</div>
+    <div class="kpi-value">{{ totalUnsettled }}</div>
+    <div class="kpi-sub">restant à payer</div>
+  </div>
+  <div class="kpi-card kpi-amount">
+    <div class="kpi-label">Montant à recouvrer</div>
+    <div class="kpi-value">{{ totalAmountRemaining | number }}</div>
+    <div class="kpi-sub">FCFA (cette semaine)</div>
+  </div>
+</div>

@@ -1,0 +1,63 @@
+<div class="table-card a4">
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Chargement des collectes...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && collectes.length === 0">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:48px;height:48px;opacity:.3;margin-bottom:12px">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div class="empty-title">Aucune collecte</div>
+    <div class="empty-sub">Aucune donnée ne correspond à vos filtres actuels.</div>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!isLoading && collectes.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Réf. Collecte</th>
+          <th>Client</th>
+          <th>Commercial</th>
+          <th class="text-right">Montant</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of paginatedCollectes">
+          <td>
+            <div class="date-ok">{{ row.collectionDate | date:'dd/MM/yyyy' }}</div>
+            <div class="date-label">{{ row.collectionDate | date:'HH:mm' }}</div>
+          </td>
+          <td>
+            <span class="col-ref">{{ row.reference }}</span>
+          </td>
+          <td>
+            <span class="col-client">{{ row.clientName }}</span>
+          </td>
+          <td>
+            <div class="col-collector">
+              <div class="col-collector-dot">{{ (row.commercialUsername || 'N/A') | slice:0:2 | uppercase }}</div>
+              <span>{{ row.commercialUsername || 'N/A' }}</span>
+            </div>
+          </td>
+          <td class="text-right">
+            <span class="col-amount">{{ row.amount | number }}</span>
+            <div class="col-amount-sub">FCFA</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <mat-paginator
+      [length]="collectes.length"
+      [pageSize]="itemsPerPage"
+      [pageSizeOptions]="[10, 20, 50, 100]"
+      (page)="onPageChange($event)"
+      aria-label="Sélectionner la page">
+    </mat-paginator>
+  </div>
+</div>

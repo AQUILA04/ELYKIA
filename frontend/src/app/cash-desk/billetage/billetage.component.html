@@ -9,8 +9,8 @@
           <input 
             type="number" 
             [attr.data-value]="getBilletValue(billet)" 
-            [(ngModel)]="ticketingData[billet]" 
-            (ngModelChange)="updateTotal(getBilletValue(billet), $event)" 
+            [(ngModel)]="ticketingData[billet + 'B']" 
+            (ngModelChange)="updateTotal(billet + 'B', $event)" 
             placeholder="Quantité">
         </div>
       </div>
@@ -22,8 +22,8 @@
           <input 
             type="number" 
             [attr.data-value]="getPieceValue(piece)" 
-            [(ngModel)]="ticketingData[piece]" 
-            (ngModelChange)="updateTotal(getPieceValue(piece), $event)" 
+            [(ngModel)]="ticketingData[piece + 'P']" 
+            (ngModelChange)="updateTotal(piece + 'P', $event)" 
             placeholder="Quantité">
         </div>
       </div>

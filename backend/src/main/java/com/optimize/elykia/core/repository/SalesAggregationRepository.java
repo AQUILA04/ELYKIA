@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.repository;
 
-import com.optimize.elykia.core.entity.SalesAnalyticsDaily;
+import com.optimize.elykia.core.entity.bi.SalesAnalyticsDaily;
 import com.optimize.elykia.core.dto.bi.SalesTrendProjection;
 import com.optimize.elykia.core.dto.bi.CommercialSalesProjection;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { LoggerService } from './logger.service';
+import { Store } from '@ngrx/store';
+import { resetAppData } from '../../store/app.actions';
 
 export interface MemoryStats {
   usedJSHeapSize: number;
@@ -19,7 +21,10 @@ export class MemoryManagementService {
   private memoryStats$ = new BehaviorSubject<MemoryStats | null>(null);
   private monitoringInterval: any;
 
-  constructor(private logger: LoggerService) {
+  constructor(
+    private logger: LoggerService,
+    private store: Store
+  ) {
     this.startMemoryMonitoring();
   }
 
@@ -37,6 +42,10 @@ export class MemoryManagementService {
     try {
       const beforeStats = this.getCurrentMemoryStats();
       this.logger.log('[MemoryManagement] Début du nettoyage mémoire');
+
+      // 0. Réinitialiser les données de l'application via le store (garde l'auth)
+      this.store.dispatch(resetAppData());
+      this.logger.log('[MemoryManagement] Store application reset (auth preserved)');
 
       // 1. Forcer le garbage collection si disponible (mode développement)
       if (window.gc && typeof window.gc === 'function') {
@@ -64,7 +73,7 @@ export class MemoryManagementService {
 
       const afterStats = this.getCurrentMemoryStats();
       const memoryFreed = beforeStats ? beforeStats.usedJSHeapSize - afterStats.usedJSHeapSize : 0;
-      
+
       this.logger.log('[MemoryManagement] Nettoyage mémoire terminé');
 
       return {
@@ -113,11 +122,11 @@ export class MemoryManagementService {
    */
   private getCurrentMemoryStats(): MemoryStats {
     const performance = (window as any).performance;
-    
+
     if (performance && performance.memory) {
       const memory = performance.memory;
       const usedPercentage = (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100;
-      
+
       return {
         usedJSHeapSize: memory.usedJSHeapSize,
         totalJSHeapSize: memory.totalJSHeapSize,
@@ -200,7 +209,7 @@ export class MemoryManagementService {
           keysToRemove.push(key);
         }
       }
-      
+
       keysToRemove.forEach(key => localStorage.removeItem(key));
 
       // Nettoyer le sessionStorage
@@ -211,7 +220,7 @@ export class MemoryManagementService {
           sessionKeysToRemove.push(key);
         }
       }
-      
+
       sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
 
       this.logger.log('[MemoryManagement] Cache du navigateur nettoyé');
@@ -228,12 +237,12 @@ export class MemoryManagementService {
       // Nettoyer les variables globales temporaires
       if (typeof window !== 'undefined') {
         const windowAny = window as any;
-        
+
         // Nettoyer les caches personnalisés s'ils existent
         if (windowAny._appCache) {
           windowAny._appCache = {};
         }
-        
+
         if (windowAny._tempData) {
           windowAny._tempData = {};
         }
@@ -277,11 +286,11 @@ export class MemoryManagementService {
    */
   private formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B';
-    
+
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
@@ -298,7 +307,7 @@ export class MemoryManagementService {
    */
   getMemoryAlertLevel(): 'low' | 'medium' | 'high' | 'critical' {
     const stats = this.getCurrentMemoryStats();
-    
+
     if (stats.usedPercentage < 50) return 'low';
     if (stats.usedPercentage < 70) return 'medium';
     if (stats.usedPercentage < 85) return 'high';

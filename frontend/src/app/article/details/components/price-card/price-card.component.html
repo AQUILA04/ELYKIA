@@ -1,0 +1,60 @@
+<ng-container *ngIf="isGestionnaire">
+    <!-- Grille des 3 prix -->
+    <div class="price-grid">
+        <div class="price-card">
+            <div class="pc-label">Prix d'achat</div>
+            <div class="pc-value">
+                {{ article.purchasePrice | number:'1.0-0' }}&nbsp;<span class="pc-currency">FCFA</span>
+            </div>
+        </div>
+
+        <div class="price-card featured">
+            <div class="pc-label">Prix de vente</div>
+            <div class="pc-value">
+                {{ article.sellingPrice | number:'1.0-0' }}&nbsp;<span class="pc-currency">FCFA</span>
+            </div>
+        </div>
+
+        <div class="price-card" *ngIf="canViewCreditPrice && article.creditSalePrice !== undefined">
+            <div class="pc-label">Vente à crédit</div>
+            <div class="pc-value">
+                {{ article.creditSalePrice | number:'1.0-0' }}&nbsp;<span class="pc-currency">FCFA</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marges auto-calculées -->
+    <hr class="divider">
+    <div class="margin-row">
+        <div class="margin-item">
+            <div class="mi-label">Marge vente comptant</div>
+            <div class="mi-value">
+                +{{ marginCash | number:'1.0-0' }} FCFA&nbsp;
+                <span class="mi-pct">{{ marginCashPct }}</span>
+            </div>
+        </div>
+        <div class="margin-item" *ngIf="canViewCreditPrice && article.creditSalePrice !== undefined">
+            <div class="mi-label">Marge vente crédit</div>
+            <div class="mi-value">
+                +{{ marginCredit | number:'1.0-0' }} FCFA&nbsp;
+                <span class="mi-pct">{{ marginCreditPct }}</span>
+            </div>
+        </div>
+        <div class="last-restock" *ngIf="article.lastRestockDate">
+            <div class="lr-label">Dernier réappro.</div>
+            <div class="lr-value">{{ formatDate(article.lastRestockDate) }}</div>
+        </div>
+    </div>
+</ng-container>
+
+<!-- Prix crédit seul pour non-gestionnaire -->
+<ng-container *ngIf="!isGestionnaire && canViewCreditPrice && article.creditSalePrice !== undefined">
+    <div class="price-grid price-grid--single">
+        <div class="price-card featured">
+            <div class="pc-label">Prix de vente à crédit</div>
+            <div class="pc-value">
+                {{ article.creditSalePrice | number:'1.0-0' }}&nbsp;<span class="pc-currency">FCFA</span>
+            </div>
+        </div>
+    </div>
+</ng-container>

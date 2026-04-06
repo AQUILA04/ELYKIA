@@ -19,14 +19,7 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
             throw new Error('Database not initialized.');
         }
 
-        const keysToInclude = ['id', 'amount', 'paymentDate', 'paymentMethod', 'notes', 'distributionId', 'clientId', 'commercialId'];
-        const existingRows = await this.databaseService.query('SELECT id, syncHash FROM recoveries');
-        const existingRecoveryMap = new Map<string, string>(
-            existingRows.values?.map((row: { id: string | number; syncHash: string }) => [String(row.id), row.syncHash]) ?? []
-        );
-
-        const recoveriesToInsert: capSQLiteSet[] = [];
-        const recoveriesToUpdate: capSQLiteSet[] = [];
+        const sqlSet: capSQLiteSet[] = [];
         const now = new Date().toISOString();
 
         for (const recovery of entities) {
@@ -35,73 +28,74 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
             }
             const recoveryIdStr = String(recovery.id);
 
-            const normalizedRecovery = {
-                ...recovery,
-                distributionId: recovery.distribution?.id,
-                clientId: recovery.client?.id,
-                commercialId: recovery.commercialId
-            };
-            const newHash = this.generateHash(normalizedRecovery, keysToInclude);
+            // INSERT OR REPLACE pour mettre à jour ou insérer le recouvrement
+            // On ne compare plus les hashs, on écrase systématiquement avec les données du serveur
+            const sql = `INSERT OR REPLACE INTO recoveries (
+                id, amount, paymentDate, paymentMethod, notes, distributionId, clientId,
+                commercialId, isLocal, isSync, syncDate, syncHash, isDefaultStake, createdAt
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-            const isExisting = existingRecoveryMap.has(recoveryIdStr);
-            const needsUpdate = isExisting && existingRecoveryMap.get(recoveryIdStr) !== newHash;
+            const params = [
+                recoveryIdStr,
+                recovery.amount ?? 0,
+                recovery.paymentDate ?? null,
+                recovery.paymentMethod ?? null,
+                recovery.notes ?? null,
+                recovery.distribution?.id ?? recovery.distributionId ?? null,
+                recovery.client?.id ?? recovery.clientId ?? null,
+                recovery.commercialId ?? null,
+                recovery.isLocal ? 1 : 0,
+                recovery.isSync ? 1 : 0,
+                now,
+                null, // Plus de hash
+                recovery.isDefaultStake ? 1 : 0,
+                recovery.createdAt ?? now
+            ];
 
-            const IS_LOCAL = 0;
-            const IS_SYNC = 1;
-
-            if (needsUpdate) {
-                const sql = `UPDATE recoveries SET amount = ?, paymentDate = ?, paymentMethod = ?, notes = ?, distributionId = ?, clientId = ?, commercialId = ?, isLocal = ?, isSync = ?, syncDate = ?, syncHash = ?, isDefaultStake = ? WHERE id = ?`;
-                const updateParams = [
-                    recovery.amount ?? 0,
-                    recovery.paymentDate ?? null,
-                    recovery.paymentMethod ?? null,
-                    recovery.notes ?? null,
-                    recovery.distribution?.id ?? null,
-                    recovery.client?.id ?? null,
-                    recovery.commercialId ?? null,
-                    IS_LOCAL,
-                    IS_SYNC,
-                    now,
-                    newHash,
-                    recovery.isDefaultStake ? 1 : 0,
-                    recoveryIdStr
-                ];
-                recoveriesToUpdate.push({ statement: sql, values: updateParams });
-
-            } else if (!isExisting) {
-                const sql = `INSERT INTO recoveries (id, amount, paymentDate, paymentMethod, notes, distributionId, clientId, commercialId, isLocal, isSync, syncDate, syncHash, isDefaultStake, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-                const insertParams = [
-                    recoveryIdStr,
-                    recovery.amount ?? 0,
-                    recovery.paymentDate ?? null,
-                    recovery.paymentMethod ?? null,
-                    recovery.notes ?? null,
-                    recovery.distribution?.id ?? null,
-                    recovery.client?.id ?? null,
-                    recovery.commercialId ?? null,
-                    IS_LOCAL,
-                    IS_SYNC,
-                    now,
-                    newHash,
-                    recovery.isDefaultStake ? 1 : 0,
-                    recovery.createdAt ?? now
-                ];
-                recoveriesToInsert.push({ statement: sql, values: insertParams });
-            }
+            sqlSet.push({ statement: sql, values: params });
         }
 
         try {
-            if (recoveriesToUpdate.length > 0) {
-                await this.databaseService.executeSet(recoveriesToUpdate);
-            }
-
-            if (recoveriesToInsert.length > 0) {
-                await this.databaseService.executeSet(recoveriesToInsert);
+            if (sqlSet.length > 0) {
+                await this.databaseService.executeSet(sqlSet);
+                console.log(`Successfully saved ${entities.length} recoveries (INSERT OR REPLACE).`);
             }
         } catch (error) {
             console.error('Failed to save recoveries in repository.', error);
             throw error;
         }
+    }
+
+    /**
+     * Get unsynced recoveries with pagination
+     * @param commercialUsername Commercial username
+     * @param limit Max number of items
+     * @param offset Offset
+     */
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<Recovery[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `SELECT * FROM recoveries WHERE isSync = 0 AND isLocal = 1 AND commercialId = ? ORDER BY createdAt ASC LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => this.mapRowToRecovery(row));
+    }
+
+    async markAsSynced(localId: string): Promise<void> {
+        if (!this.databaseService['db']) return;
+        await this.databaseService.execute(
+            `UPDATE recoveries SET isSync = 1, isLocal = 0, syncDate = datetime('now') WHERE id = ?`,
+            [localId]
+        );
+    }
+
+    private mapRowToRecovery(row: any): Recovery {
+        return {
+            ...row,
+            isLocal: row.isLocal === 1,
+            isSync: row.isSync === 1,
+            isDefaultStake: row.isDefaultStake === 1
+        } as Recovery;
     }
 
     // ==================== SPECIFIC QUERY METHODS ====================
@@ -121,18 +115,79 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
     }
 
     /**
-     * Mark a recovery as synchronized with the server
-     * @param recoveryId ID of the recovery to mark as synced
+     * Get recoveries created on a specific date for a commercial
+     * @param commercialUsername Commercial username
+     * @param date Date string (YYYY-MM-DD)
+     * @returns Array of recoveries with client names
      */
-    async markAsSynced(recoveryId: string): Promise<void> {
+    async findByCommercialAndDate(commercialUsername: string, date: string): Promise<any[]> {
         if (!this.databaseService['db']) {
-            console.error('Database not initialized.');
-            return;
+            throw new Error('Database not initialized.');
         }
-        const now = new Date().toISOString();
-        const sql = `UPDATE recoveries SET isSync = 1, isLocal = 0, syncDate = ? WHERE id = ?`;
-        await this.databaseService.execute(sql, [now, recoveryId]);
-        console.log(`Recovery ${recoveryId} marked as synced.`);
+        const sql = `
+            SELECT r.*, c.fullName as clientName
+            FROM recoveries r
+            LEFT JOIN clients c ON r.clientId = c.id
+            WHERE r.commercialId = ? AND r.createdAt LIKE ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, `${date}%`]);
+        return (result.values || []).map((row: any) => ({
+            ...this.mapRowToRecovery(row),
+            clientName: row.clientName
+        }));
+    }
+
+    /**
+     * Delete recoveries by distribution IDs
+     * @param distributionIds List of distribution IDs
+     */
+    async deleteByDistributionIds(distributionIds: string[]): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        if (distributionIds.length === 0) return;
+
+        const placeholders = distributionIds.map(() => '?').join(',');
+        const sql = `DELETE FROM recoveries WHERE distributionId IN (${placeholders})`;
+        await this.databaseService.execute(sql, distributionIds);
+    }
+
+    /**
+     * Count recoveries for a specific client on a specific date
+     * @param clientId Client ID
+     * @param date Date string (YYYY-MM-DD)
+     * @returns Number of recoveries
+     */
+    async countByClientAndDate(clientId: string, date: string): Promise<number> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        // We use paymentDate for the check as it represents the date of the recovery
+        const sql = `SELECT COUNT(*) as total FROM recoveries WHERE clientId = ? AND paymentDate LIKE ?`;
+        const result = await this.databaseService.query(sql, [clientId, `${date}%`]);
+        return result.values?.[0]?.total || 0;
+    }
+
+    /**
+     * Get unsynced recoveries that belong to closed (SETTLED) distributions
+     * These should be synced before creating new distributions to ensure the server closes the old one.
+     */
+    async findUnsyncedForClosedDistributions(commercialUsername: string): Promise<Recovery[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `
+            SELECT r.*
+            FROM recoveries r
+            INNER JOIN distributions d ON r.distributionId = d.id
+            WHERE r.isSync = 0
+              AND r.isLocal = 1
+              AND r.commercialId = ?
+              AND d.status = 'SETTLED'
+            ORDER BY r.createdAt ASC
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername]);
+        return (result.values || []).map((row: any) => this.mapRowToRecovery(row));
     }
 
 }

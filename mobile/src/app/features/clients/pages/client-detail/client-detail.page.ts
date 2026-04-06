@@ -1,14 +1,16 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
+import * as ClientSelectors from '../../../../store/client/client.selectors';
 import { Observable, of, from, Subject, merge, combineLatest } from 'rxjs';
 import { switchMap, map, catchError, filter, take, tap, takeUntil } from 'rxjs/operators';
-import { selectAllClients, selectClientViewById } from '../../../../store/client/client.selectors';
+// Removed redundant import since we're importing everything as ClientSelectors
+// import { selectClientViewById } from '../../../../store/client/client.selectors';
 import { selectDistributionsByClientId } from '../../../../store/distribution/distribution.selectors';
-import { selectTransactionsByClientId } from '../../../../store/transaction/transaction.selectors';
+import { selectTransactionsByClientId, selectTransactionPaginationHasMore, selectTransactionCurrentPage } from '../../../../store/transaction/transaction.selectors';
 import { loadClients } from '../../../../store/client/client.actions';
 import { DatePipe } from '@angular/common';
-import { loadTransactions } from '../../../../store/transaction/transaction.actions';
+import { loadTransactionsByClient } from '../../../../store/transaction/transaction.actions';
 import { AlertController, ModalController, PopoverController, ToastController } from '@ionic/angular';
 import { MapPreviewComponent } from '../../../../shared/components/map-preview/map-preview.component';
 import { ImagePreviewComponent } from 'src/app/shared/components/image-preview/image-preview.component';
@@ -20,6 +22,9 @@ import { LocationUpdateComponent } from 'src/app/shared/components/location-upda
 import { ClientMenuComponent } from '../../components/client-menu/client-menu.component';
 import * as ClientActions from '../../../../store/client/client.actions';
 import * as AccountActions from '../../../../store/account/account.actions';
+import * as DistributionActions from '../../../../store/distribution/distribution.actions';
+import { Capacitor } from '@capacitor/core';
+import { ThumbnailService } from '../../../../core/services/thumbnail.service';
 
 @Component({
   selector: 'app-client-detail',
@@ -32,7 +37,10 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   client$!: Observable<any>;
   credits$!: Observable<any[]>;
   history$!: Observable<any[]>;
+  hasMoreTransactions$!: Observable<boolean>;
+  clientId: string | null = null;
   today = new Date();
+  private basePath: string = '';
 
   private destroy$ = new Subject<void>();
 
@@ -46,14 +54,28 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     private popoverController: PopoverController,
     private alertController: AlertController,
     private toastController: ToastController,
-    private actions$: Actions
+    private actions$: Actions,
+    private thumbnailService: ThumbnailService,
+    private cdr: ChangeDetectorRef
   ) { }
 
-  ngOnInit() {
-    const clientId = this.route.snapshot.paramMap.get('id');
-    if (clientId) {
-      this.store.dispatch(loadTransactions());
-      this.initObservables(clientId);
+  async ngOnInit() {
+    try {
+      const { uri } = await Filesystem.getUri({
+        path: '',
+        directory: Directory.ExternalStorage
+      });
+      this.basePath = uri;
+      this.cdr.markForCheck();
+    } catch (e) {
+      console.warn('Error getting base path:', e);
+    }
+
+    this.clientId = this.route.snapshot.paramMap.get('id');
+    if (this.clientId) {
+      this.store.dispatch(loadTransactionsByClient({ clientId: this.clientId, page: 0, size: 20 }));
+      this.store.dispatch(DistributionActions.loadDistributionsByClient({ clientId: this.clientId }));
+      this.initObservables(this.clientId);
       this.setupActionListeners();
     }
   }
@@ -64,33 +86,41 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   }
 
   private initObservables(clientId: string) {
-    this.client$ = this.store.select(selectClientViewById(clientId)).pipe(
+    this.client$ = this.store.select(ClientSelectors.selectClientViewById(clientId)).pipe(
       switchMap(client => {
         if (!client) {
-          this.store.select(selectAllClients).pipe(take(1)).subscribe(clients => {
-            if (!clients.some(c => String(c.id) === String(clientId))) {
+          this.store.select(ClientSelectors.selectAllClients).pipe(take(1)).subscribe(clients => {
+            if (!Array.isArray(clients) || !(clients as any[]).some(c => String(c.id) === String(clientId))) {
               this.store.dispatch(loadClients({ commercialUsername: 'COM003' })); // Fallback
             }
           });
           return of(null);
         }
         // Combine photo loading observables
-        const profilePhoto$ = this.getLocalPhotoUrl(client.profilPhoto || client.profilPhotoUrl, 'assets/icon/person-circle-outline.svg');
-        const cardPhoto$ = this.getLocalPhotoUrl(client.cardPhoto || client.cardPhotoUrl, '');
+        // Use optimized getPhotoUrl which returns SafeUrl directly
+        const profilePhoto = this.getPhotoUrl(client.profilPhoto || client.profilPhotoUrl);
+        const cardPhoto = this.getPhotoUrl(client.cardPhoto || client.cardPhotoUrl);
 
-        return combineLatest([profilePhoto$, cardPhoto$]).pipe(
-          map(([photoUrl, cardPhotoSafeUrl]) => ({
+        return of({
             ...client,
-            photoUrl,
-            cardPhotoSafeUrl
-          }))
-        );
+            photoUrl: profilePhoto,
+            cardPhotoSafeUrl: cardPhoto
+        });
       }),
       filter(client => client !== null) // Ne pas émettre si le client est null
     );
 
     this.credits$ = this.store.select(selectDistributionsByClientId(clientId));
     this.history$ = this.store.select(selectTransactionsByClientId(clientId));
+    this.hasMoreTransactions$ = this.store.select(selectTransactionPaginationHasMore);
+  }
+
+  loadMoreTransactions(event: any) {
+    if (!this.clientId) return;
+    this.store.select(selectTransactionCurrentPage).pipe(take(1)).subscribe(currentPage => {
+      this.store.dispatch(loadTransactionsByClient({ clientId: this.clientId!, page: currentPage + 1, size: 20 }));
+      setTimeout(() => event.target.complete(), 500);
+    });
   }
 
   private setupActionListeners() {
@@ -166,30 +196,35 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     return await modal.present();
   }
 
-  private getLocalPhotoUrl(localPath: string | undefined | null, defaultAsset: string): Observable<SafeUrl | string> {
+  /**
+   * Optimized photo URL retrieval using Capacitor.convertFileSrc.
+   * This avoids reading the file into memory (base64) and uses the native WebView rendering.
+   */
+  private getPhotoUrl(localPath: string | undefined | null): SafeUrl {
     if (!localPath) {
-      return of(defaultAsset);
+      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
     }
-    console.log(`[PhotoDebug] Attempting to load local photo from path: ${localPath}`);
-    return from(Filesystem.readFile({ path: localPath, directory: Directory.ExternalStorage })).pipe(
-      map(file => {
-        console.log(`[PhotoDebug] Successfully read localFile from ExternalStorage: ${localPath}`);
-        return this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`);
-      }),
-      catchError((error) => {
-        console.log(`[PhotoDebug] Failed to read from ExternalStorage, trying Data: ${localPath}`);
-        return from(Filesystem.readFile({ path: localPath, directory: Directory.Data })).pipe(
-          map(file => {
-            console.log(`[PhotoDebug] Successfully read localFile from Data: ${localPath}`);
-            return this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${file.data}`);
-          }),
-          catchError((err) => {
-            console.error(`[PhotoDebug] Failed to read localFile ${localPath}. Error:`, err);
-            return of(defaultAsset);
-          })
-        );
-      })
-    );
+
+    // Sur le Web, les chemins de fichiers natifs ne fonctionneront pas directement.
+    // On retourne l'image par défaut pour éviter les erreurs 404 dans la console,
+    // sauf si c'est une URL http ou un asset.
+    if (Capacitor.getPlatform() === 'web' && !localPath.startsWith('http') && !localPath.startsWith('assets')) {
+      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
+    }
+
+    // Si le chemin est déjà une URL complète ou un asset
+    if (localPath.startsWith('http') || localPath.startsWith('assets') || localPath.startsWith('file://') || localPath.startsWith('content://')) {
+      return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(localPath));
+    }
+
+    // Si c'est un chemin relatif, on a besoin du basePath
+    if (!this.basePath) {
+      // En attendant que le basePath soit chargé, on affiche l'image par défaut pour éviter les 404
+      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
+    }
+
+    const finalPath = this.basePath + (localPath.startsWith('/') ? '' : '/') + localPath;
+    return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(finalPath));
   }
 
   async presentPopover(event: any) {
@@ -236,7 +271,9 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   async processPhotoUpdate(data: any, client: any) {
     try {
       let profilePhotoPath: string | null = client.profilPhoto;
+      let profilePhotoThumbPath: string | null = client.profilPhotoThumbUrl;
       let cardPhotoPath: string | null = client.cardPhoto;
+      let cardPhotoThumbPath: string | null = client.cardPhotoThumbUrl;
 
       if (data.newProfilePhoto) {
         profilePhotoPath = `Pictures/Elykia/client_photos/profile_${Date.now()}.png`;
@@ -246,6 +283,9 @@ export class ClientDetailPage implements OnInit, OnDestroy {
         } catch (e) { }
 
         await Filesystem.writeFile({ path: profilePhotoPath, data: data.newProfilePhoto.base64, directory: Directory.ExternalStorage });
+
+        // Generate thumbnail
+        profilePhotoThumbPath = await this.thumbnailService.generateThumbnail(profilePhotoPath, 200, 200);
       }
       if (data.newCardPhoto) {
         cardPhotoPath = `Pictures/Elykia/card_photos/card_${Date.now()}.png`;
@@ -255,6 +295,9 @@ export class ClientDetailPage implements OnInit, OnDestroy {
         } catch (e) { }
 
         await Filesystem.writeFile({ path: cardPhotoPath, data: data.newCardPhoto.base64, directory: Directory.ExternalStorage });
+
+        // Generate thumbnail
+        cardPhotoThumbPath = await this.thumbnailService.generateThumbnail(cardPhotoPath, 200, 200);
       }
 
       this.store.dispatch(ClientActions.updateClientPhotosAndInfo({
@@ -264,7 +307,9 @@ export class ClientDetailPage implements OnInit, OnDestroy {
         profilPhoto: profilePhotoPath,
         cardPhoto: cardPhotoPath,
         profilPhotoUrl: profilePhotoPath, // Initialiser avec le même chemin
-        cardPhotoUrl: cardPhotoPath       // Initialiser avec le même chemin
+        cardPhotoUrl: cardPhotoPath,       // Initialiser avec le même chemin
+        profilPhotoThumbUrl: profilePhotoThumbPath,
+        cardPhotoThumbUrl: cardPhotoThumbPath
       }));
     } catch (error) {
       this.presentToast('Erreur lors de la sauvegarde des photos.', 'danger', 'top');

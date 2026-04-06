@@ -5,12 +5,18 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.StockEntry;
 import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.dto.StockEntryDto;
-import com.optimize.elykia.core.entity.ArticleHistory;
-import com.optimize.elykia.core.entity.Articles;
-import com.optimize.elykia.core.entity.ExpenseType;
+import com.optimize.elykia.core.entity.article.ArticleHistory;
+import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.expense.ExpenseType;
+import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
+import com.optimize.elykia.core.repository.ArticleStateHistoryRepository;
 import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
+import com.optimize.elykia.core.repository.StockReceptionRepository;
+import com.optimize.elykia.core.service.expense.ExpenseService;
+import com.optimize.elykia.core.service.store.ArticleHistoryService;
+import com.optimize.elykia.core.service.store.ArticlesService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,8 +24,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,6 +40,8 @@ class ArticlesServiceTest {
     @Mock private ArticleHistoryService articleHistoryService;
     @Mock private ExpenseService expenseService;
     @Mock private ExpenseTypeRepository expenseTypeRepository;
+    @Mock private StockReceptionRepository stockReceptionRepository;
+    @Mock private ArticleStateHistoryRepository articleStateHistoryRepository;
 
     @InjectMocks
     private ArticlesService articlesService;
@@ -86,6 +92,9 @@ class ArticlesServiceTest {
         // Verify History creation
         verify(articleHistoryService, times(1)).create(any(ArticleHistory.class));
         
+        // Verify StockReception creation
+        verify(stockReceptionRepository, times(1)).save(any(StockReception.class));
+
         // Verify Expense creation logic
         verify(expenseService, times(1)).createExpense(any(ExpenseDto.class));
     }
@@ -104,7 +113,24 @@ class ArticlesServiceTest {
 
         String result = articlesService.makeStockEntries(stockEntryDto);
         
+        // Verify StockReception creation
+        verify(stockReceptionRepository, times(1)).save(any(StockReception.class));
+
         // With 0 quantity, total cost is 0. Condition if (totalCheck.get() > 0) should fail.
         verify(expenseService, never()).createExpense(any(ExpenseDto.class));
+    }
+
+    @Test
+    void resetStockForArticle_ShouldResetQuantityAndCreateHistory() {
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(article));
+        // GenericService.update calls saveAndFlush
+        when(articlesRepository.saveAndFlush(any(Articles.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Articles result = articlesService.resetStockForArticle(1L);
+
+        assertThat(result.getStockQuantity()).isEqualTo(0);
+        verify(articleHistoryService, times(1)).create(any(ArticleHistory.class));
+        verify(articlesRepository, times(1)).saveAndFlush(any(Articles.class));
     }
 }

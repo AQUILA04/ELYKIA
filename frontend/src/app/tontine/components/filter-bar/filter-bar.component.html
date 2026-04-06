@@ -4,14 +4,16 @@
     <input
       matInput
       [(ngModel)]="currentSearchTerm"
-      (ngModelChange)="onSearchChange($event)"
+      (keydown.enter)="onSearchEnter()"
       placeholder="Nom, code client...">
-    <mat-icon matPrefix>search</mat-icon>
+    <button mat-icon-button matSuffix (click)="onSearchEnter()">
+      <mat-icon>search</mat-icon>
+    </button>
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="commercial-field">
     <mat-label>Commercial</mat-label>
-    <mat-select [(ngModel)]="currentSelectedCommercial" (ngModelChange)="onCommercialChange($event)">
+    <mat-select [(ngModel)]="currentSelectedCommercial" (selectionChange)="onCommercialChange($event.value)">
       <mat-option value="ALL">Tous</mat-option>
       <mat-option *ngFor="let comm of commerciaux" [value]="comm.username">{{ comm.username }}</mat-option>
     </mat-select>
@@ -19,7 +21,7 @@
 
   <mat-form-field appearance="outline" class="status-field">
     <mat-label>Statut de livraison</mat-label>
-    <mat-select [(ngModel)]="currentSelectedStatus" (ngModelChange)="onStatusChange($event)">
+    <mat-select [(ngModel)]="currentSelectedStatus" (selectionChange)="onStatusChange($event.value)">
       <mat-option value="ALL">Tous</mat-option>
       <mat-option [value]="TontineMemberDeliveryStatus.SESSION_INPROGRESS">Session en cours</mat-option>
       <mat-option [value]="TontineMemberDeliveryStatus.PENDING">En attente</mat-option>

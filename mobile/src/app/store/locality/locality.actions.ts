@@ -1,11 +1,22 @@
 import { createAction, props } from '@ngrx/store';
 import { Locality } from 'src/app/models/locality.model';
 
-export const loadLocalities = createAction('[Locality] Load Localities');
+import { LocalityRepositoryFilters } from 'src/app/core/repositories/locality.repository.extensions';
+import { Page } from 'src/app/core/repositories/repository.interface';
+
+export const loadFirstPage = createAction(
+  '[Locality] Load First Page',
+  props<{ pageSize?: number, filters?: LocalityRepositoryFilters }>()
+);
+
+export const loadNextPage = createAction(
+  '[Locality] Load Next Page',
+  props<{ filters?: LocalityRepositoryFilters }>()
+);
 
 export const loadLocalitiesSuccess = createAction(
   '[Locality] Load Localities Success',
-  props<{ localities: Locality[] }>()
+  props<{ page: Page<Locality> }>()
 );
 
 export const loadLocalitiesFailure = createAction(

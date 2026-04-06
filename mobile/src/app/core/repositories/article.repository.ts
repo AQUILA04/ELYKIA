@@ -107,11 +107,11 @@ export class ArticleRepository extends BaseRepository<Article, string> {
         const offset = page * size;
         const searchTerm = `%${query}%`;
 
-        const countSql = `SELECT COUNT(*) as total FROM ${this.tableName} 
+        const countSql = `SELECT COUNT(*) as total FROM ${this.tableName}
                          WHERE name LIKE ? OR commercialName LIKE ?`;
 
-        const dataSql = `SELECT * FROM ${this.tableName} 
-                        WHERE name LIKE ? OR commercialName LIKE ? 
+        const dataSql = `SELECT * FROM ${this.tableName}
+                        WHERE name LIKE ? OR commercialName LIKE ?
                         LIMIT ${size} OFFSET ${offset}`;
 
         const countResult = await this.databaseService.query(countSql, [searchTerm, searchTerm]);
@@ -128,5 +128,25 @@ export class ArticleRepository extends BaseRepository<Article, string> {
             page,
             size
         };
+    }
+
+    /**
+     * Find multiple articles by their IDs
+     * @param ids Array of article IDs
+     * @returns Array of found articles
+     */
+    async findByIds(ids: string[]): Promise<Article[]> {
+        if (!ids || ids.length === 0) {
+            return [];
+        }
+
+        // Remove duplicates
+        const uniqueIds = [...new Set(ids)];
+
+        const placeholders = uniqueIds.map(() => '?').join(',');
+        const sql = `SELECT * FROM ${this.tableName} WHERE id IN (${placeholders})`;
+
+        const result = await this.databaseService.query(sql, uniqueIds);
+        return (result.values || []) as Article[];
     }
 }

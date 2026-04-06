@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.StockMovement;
+import com.optimize.elykia.core.entity.stock.StockMovement;
 import com.optimize.elykia.core.enumaration.MovementType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Fiche de Réception de Stock</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 100%;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .details {
+            margin-bottom: 20px;
+        }
+        .details p {
+            margin: 5px 0;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .items-table th, .items-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .items-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Fiche de Réception de Stock</h1>
+    </div>
+    <div class="details">
+        <p><strong>Référence:</strong> <span th:text="${reception.reference}"></span></p>
+        <p><strong>Date de Réception:</strong> <span th:text="${#temporals.format(reception.receptionDate, 'dd/MM/yyyy')}"></span></p>
+        <p><strong>Reçu par:</strong> <span th:text="${reception.receivedBy}"></span></p>
+        <p><strong>Montant Total:</strong> <span th:text="${#numbers.formatCurrency(reception.totalAmount)}"></span></p>
+    </div>
+    <table class="items-table">
+        <thead>
+        <tr>
+            <th>Article</th>
+            <th>Quantité</th>
+            <th>Prix Unitaire</th>
+            <th>Prix Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${reception.items}">
+            <td th:text="${item.articleName}"></td>
+            <td th:text="${item.quantity}"></td>
+            <td th:text="${#numbers.formatCurrency(item.unitPrice)}"></td>
+            <td th:text="${#numbers.formatCurrency(item.totalPrice)}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

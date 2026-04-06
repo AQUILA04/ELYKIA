@@ -6,4 +6,5 @@ export interface ClientView extends Client {
   account?: Account;
   photoUrl?: SafeUrl;
   cardPhotoSafeUrl?: SafeUrl; // Renommé pour éviter le conflit avec Client.cardPhotoUrl
+  thumbUrl?: String;
 }

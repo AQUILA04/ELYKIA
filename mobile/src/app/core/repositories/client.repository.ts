@@ -20,19 +20,7 @@ export class ClientRepository extends BaseRepository<Client, string> {
             throw new Error('Database not initialized.');
         }
 
-        const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress', 'profilPhotoUrl', 'cardPhotoUrl'];
-
-        const existingRows = await this.databaseService.query('SELECT id, syncHash FROM clients');
-        interface ClientRow {
-            id: string | number;
-            syncHash: string;
-        }
-        const existingClientMap = new Map<string, string>(
-            existingRows.values?.map((row: ClientRow) => [String(row.id), row.syncHash]) ?? []
-        );
-
-        const clientsToInsert: capSQLiteSet[] = [];
-        const clientsToUpdate: capSQLiteSet[] = [];
+        const sqlSet: capSQLiteSet[] = [];
         const now = new Date().toISOString();
 
         for (const client of entities) {
@@ -40,52 +28,61 @@ export class ClientRepository extends BaseRepository<Client, string> {
             if (!localClient.id) { continue; }
             const clientIdStr = String(localClient.id);
 
-            const newHash = this.generateHash(localClient, keysToInclude);
-            const isExisting = existingClientMap.has(clientIdStr);
-            const needsUpdate = isExisting && existingClientMap.get(clientIdStr) !== newHash;
+            // INSERT OR REPLACE pour mettre à jour ou insérer le client
+            // On ne compare plus les hashs, on écrase systématiquement avec les données du serveur
+            const sql = `INSERT OR REPLACE INTO clients (
+                id, firstname, lastname, fullName, phone, address, dateOfBirth, occupation,
+                clientType, cardType, cardID, quarter, commercial, isLocal, isSync, syncDate,
+                syncHash, latitude, longitude, mll, contactPersonName, contactPersonPhone,
+                contactPersonAddress, code, profilPhoto, creditInProgress, cardPhoto,
+                profilPhotoUrl, cardPhotoUrl, profilPhotoThumbUrl, cardPhotoThumbUrl,
+                updatedPhotoUrl, tontineCollector, createdAt
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-            if (needsUpdate) {
-                const sql = `UPDATE clients SET firstname = ?, lastname = ?, fullName = ?, phone = ?, address = ?, dateOfBirth = ?, occupation = ?, clientType = ?, cardType = ?, cardID = ?, quarter = ?, commercial = ?, isLocal = ?, isSync = ?, syncDate = ?, syncHash = ?, latitude = ?, longitude = ?, mll = ?, contactPersonName = ?, contactPersonPhone = ?, contactPersonAddress = ?, code = ?, profilPhoto = ?, creditInProgress = ?, cardPhoto = ?, profilPhotoUrl = ?, cardPhotoUrl = ?, updatedPhotoUrl = ? WHERE id = ?`;
-                const updateParams = [
-                    localClient.firstname ?? null, localClient.lastname ?? null, localClient.fullName ?? null,
-                    localClient.phone ?? null, localClient.address ?? null, localClient.dateOfBirth ?? null,
-                    localClient.occupation ?? null, localClient.clientType ?? null, localClient.cardType ?? null,
-                    localClient.cardID ?? null, localClient.quarter ?? null, localClient.commercial ?? null,
-                    localClient.isLocal ? 1 : 0, localClient.isSync ? 1 : 0,
-                    now, newHash, localClient.latitude ?? 0, localClient.longitude ?? 0,
-                    localClient.mll ?? null, localClient.contactPersonName ?? null, localClient.contactPersonPhone ?? null,
-                    localClient.contactPersonAddress ?? null, localClient.code ?? null, localClient.profilPhoto ?? null,
-                    localClient.creditInProgress ? 1 : 0, localClient.cardPhoto ?? null,
-                    localClient.profilPhotoUrl ?? null, localClient.cardPhotoUrl ?? null, localClient.updatedPhotoUrl ? 1 : 0,
-                    clientIdStr
-                ];
-                clientsToUpdate.push({ statement: sql, values: updateParams });
+            const params = [
+                clientIdStr,
+                localClient.firstname ?? null,
+                localClient.lastname ?? null,
+                localClient.fullName ?? null,
+                localClient.phone ?? null,
+                localClient.address ?? null,
+                localClient.dateOfBirth ?? null,
+                localClient.occupation ?? null,
+                localClient.clientType ?? null,
+                localClient.cardType ?? null,
+                localClient.cardID ?? null,
+                localClient.quarter ?? null,
+                localClient.commercial ?? null,
+                localClient.isLocal ? 1 : 0,
+                localClient.isSync ? 1 : 0,
+                now,
+                null, // Plus de hash
+                localClient.latitude ?? 0,
+                localClient.longitude ?? 0,
+                localClient.mll ?? null,
+                localClient.contactPersonName ?? null,
+                localClient.contactPersonPhone ?? null,
+                localClient.contactPersonAddress ?? null,
+                localClient.code ?? null,
+                localClient.profilPhoto ?? null,
+                localClient.creditInProgress ? 1 : 0,
+                localClient.cardPhoto ?? null,
+                localClient.profilPhotoUrl ?? null,
+                localClient.cardPhotoUrl ?? null,
+                localClient.profilPhotoThumbUrl ?? null,
+                localClient.cardPhotoThumbUrl ?? null,
+                localClient.updatedPhotoUrl ? 1 : 0,
+                localClient.tontineCollector ?? null,
+                localClient.createdAt ?? now
+            ];
 
-            } else if (!isExisting) {
-                const sql = `INSERT INTO clients (id, firstname, lastname, fullName, phone, address, dateOfBirth, occupation, clientType, cardType, cardID, quarter, commercial, isLocal, isSync, syncDate, syncHash, latitude, longitude, mll, contactPersonName, contactPersonPhone, contactPersonAddress, code, profilPhoto, creditInProgress, cardPhoto, profilPhotoUrl, cardPhotoUrl, updatedPhotoUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-                const insertParams = [
-                    clientIdStr, localClient.firstname ?? null, localClient.lastname ?? null, localClient.fullName ?? null,
-                    localClient.phone ?? null, localClient.address ?? null, localClient.dateOfBirth ?? null,
-                    localClient.occupation ?? null, localClient.clientType ?? null, localClient.cardType ?? null,
-                    localClient.cardID ?? null, localClient.quarter ?? null, localClient.commercial ?? null,
-                    localClient.isLocal ? 1 : 0, localClient.isSync ? 1 : 0,
-                    now, newHash, localClient.latitude ?? 0, localClient.longitude ?? 0,
-                    localClient.mll ?? null, localClient.contactPersonName ?? null, localClient.contactPersonPhone ?? null,
-                    localClient.contactPersonAddress ?? null, localClient.code ?? null, localClient.profilPhoto ?? null,
-                    localClient.creditInProgress ? 1 : 0, localClient.cardPhoto ?? null,
-                    localClient.profilPhotoUrl ?? null, localClient.cardPhotoUrl ?? null, localClient.updatedPhotoUrl ? 1 : 0, localClient.createdAt ?? new Date()
-                ];
-                clientsToInsert.push({ statement: sql, values: insertParams });
-            }
+            sqlSet.push({ statement: sql, values: params });
         }
 
         try {
-            if (clientsToUpdate.length > 0) {
-                await this.databaseService.executeSet(clientsToUpdate);
-            }
-
-            if (clientsToInsert.length > 0) {
-                await this.databaseService.executeSet(clientsToInsert);
+            if (sqlSet.length > 0) {
+                await this.databaseService.executeSet(sqlSet);
+                console.log(`Successfully saved ${entities.length} clients (INSERT OR REPLACE).`);
             }
         } catch (error) {
             console.error('Failed to save clients in repository.', error);
@@ -121,12 +118,15 @@ export class ClientRepository extends BaseRepository<Client, string> {
      * Get clients that have been updated locally
      * @returns Array of updated clients
      */
-    async getUpdatedClients(): Promise<Client[]> {
-        if (!this.databaseService['db']) {
-            throw new Error('Database not initialized.');
-        }
-        const result = await this.databaseService.query('SELECT * FROM clients WHERE updated = 1');
-        return (result.values || []).map((row: any) => this.mapRowToClient(row));
+    /**
+     * Get clients that have been updated locally (Server origin but modified)
+     * @param limit Limit results
+     * @returns Array of updated clients
+     */
+    async findUpdated(limit: number = 50): Promise<Client[]> {
+        const sql = `SELECT * FROM clients WHERE isLocal = 0 AND isSync = 0 LIMIT ?`;
+        const result = await this.databaseService.query(sql, [limit]);
+        return (result.values || []).map((row: any) => ClientMapper.fromLocal(row));
     }
 
     /**
@@ -142,6 +142,18 @@ export class ClientRepository extends BaseRepository<Client, string> {
     }
 
     /**
+     * Get clients with updated location
+     * @returns Array of clients with updated location
+     */
+    async getUpdatedLocationClients(): Promise<Client[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const result = await this.databaseService.query('SELECT * FROM clients WHERE updated = 1');
+        return (result.values || []).map((row: any) => this.mapRowToClient(row));
+    }
+
+    /**
      * Get clients with updated photos
      * @returns Array of clients with updated photos
      */
@@ -150,6 +162,18 @@ export class ClientRepository extends BaseRepository<Client, string> {
             throw new Error('Database not initialized.');
         }
         const result = await this.databaseService.query('SELECT * FROM clients WHERE updatedPhoto = 1');
+        return (result.values || []).map((row: any) => this.mapRowToClient(row));
+    }
+
+    /**
+     * Get clients with updated photo URLs
+     * @returns Array of clients with updated photo URLs
+     */
+    async getUpdatedPhotoUrlClients(): Promise<Client[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const result = await this.databaseService.query('SELECT * FROM clients WHERE updatedPhotoUrl = 1');
         return (result.values || []).map((row: any) => this.mapRowToClient(row));
     }
 
@@ -166,16 +190,28 @@ export class ClientRepository extends BaseRepository<Client, string> {
     }
 
     /**
+     * Mark client photo URLs as synced
+     * @param clientId Client ID
+     */
+    async markAsPhotoUrlSynced(clientId: string): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `UPDATE clients SET updatedPhotoUrl = 0 WHERE id = ?`;
+        await this.databaseService.execute(sql, [clientId]);
+    }
+
+    /**
      * Update client photos and info
      * @param data Object containing update data
      * @returns Updated client
      */
-    async updatePhotosAndInfo(data: { clientId: string; cardType: string; cardID: string; profilPhoto: string | null; cardPhoto: string | null; profilPhotoUrl?: string | null; cardPhotoUrl?: string | null; }): Promise<Client> {
+    async updatePhotosAndInfo(data: { clientId: string; cardType: string; cardID: string; profilPhoto: string | null; cardPhoto: string | null; profilPhotoUrl?: string | null; cardPhotoUrl?: string | null; profilPhotoThumbUrl?: string | null; cardPhotoThumbUrl?: string | null; }): Promise<Client> {
         if (!this.databaseService['db']) {
             throw new Error('Database not initialized.');
         }
 
-        const sql = `UPDATE clients SET cardType = ?, cardID = ?, profilPhoto = ?, cardPhoto = ?, profilPhotoUrl = ?, cardPhotoUrl = ?, updatedPhoto = 1, updatedPhotoUrl = 1 WHERE id = ?`;
+        const sql = `UPDATE clients SET cardType = ?, cardID = ?, profilPhoto = ?, cardPhoto = ?, profilPhotoUrl = ?, cardPhotoUrl = ?, profilPhotoThumbUrl = ?, cardPhotoThumbUrl = ?, updatedPhoto = 1, updatedPhotoUrl = 1 WHERE id = ?`;
 
         const params = [
             data.cardType ?? null,
@@ -184,6 +220,8 @@ export class ClientRepository extends BaseRepository<Client, string> {
             data.cardPhoto ?? null,
             data.profilPhotoUrl ?? data.profilPhoto ?? null,
             data.cardPhotoUrl ?? data.cardPhoto ?? null,
+            data.profilPhotoThumbUrl ?? null,
+            data.cardPhotoThumbUrl ?? null,
             data.clientId
         ];
 
@@ -207,7 +245,7 @@ export class ClientRepository extends BaseRepository<Client, string> {
             throw new Error('Database not initialized.');
         }
 
-        const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress'];
+        const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress', 'tontineCollector'];
         const newSyncHash = this.generateHash(client, keysToInclude);
 
         const sql = `UPDATE clients SET
@@ -215,7 +253,7 @@ export class ClientRepository extends BaseRepository<Client, string> {
           clientType = ?, cardType = ?, cardID = ?, quarter = ?, latitude = ?, longitude = ?, mll = ?,
           profilPhoto = ?, contactPersonName = ?, contactPersonPhone = ?, contactPersonAddress = ?,
           commercial = ?, creditInProgress = ?, isLocal = ?, isSync = ?, syncDate = ?, createdAt = ?,
-          syncHash = ?, code = ?, cardPhoto = ?
+          syncHash = ?, code = ?, cardPhoto = ?, tontineCollector = ?
           WHERE id = ?`;
 
         const fullName = `${client.firstname} ${client.lastname}`;
@@ -226,7 +264,7 @@ export class ClientRepository extends BaseRepository<Client, string> {
             client.latitude, client.longitude, client.mll, client.profilPhoto, client.contactPersonName,
             client.contactPersonPhone, client.contactPersonAddress, client.commercial,
             client.creditInProgress ? 1 : 0, client.isLocal ? 1 : 0, client.isSync ? 1 : 0,
-            client.syncDate, client.createdAt, newSyncHash, client.code, client.cardPhoto, client.id
+            client.syncDate, client.createdAt, newSyncHash, client.code, client.cardPhoto, client.tontineCollector, client.id
         ]);
 
         const updatedClient = await this.databaseService.query('SELECT * FROM clients WHERE id = ?', [client.id]);
@@ -235,6 +273,49 @@ export class ClientRepository extends BaseRepository<Client, string> {
         } else {
             throw new Error(`Client with id ${client.id} not found after update.`);
         }
+    }
+
+    /**
+     * Get unsynced clients with pagination
+     * @param commercialUsername Commercial username
+     * @param limit Max number of items
+     * @param offset Offset
+     * @returns Array of unsynced clients
+     */
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<Client[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        // Client table uses 'commercial' as the column for username
+        const sql = `SELECT * FROM clients WHERE isSync = 0 AND isLocal = 1 AND commercial = ? ORDER BY createdAt ASC LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => this.mapRowToClient(row));
+    }
+
+    /**
+     * Mark client as synced and update ID refs
+     */
+    async markAsSynced(localId: string, serverId: string, profilPhotoUrl?: string, cardPhotoUrl?: string): Promise<void> {
+        if (!this.databaseService['db'] || localId === serverId) return;
+
+        const updateSet: any[] = [
+            { statement: `UPDATE accounts SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE distributions SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE recoveries SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            // transactions table might not exist in repository but was in SyncService? I'll check if table exists or if I should skip.
+            // SyncService line 1184: UPDATE transactions ...
+            // I'll include it if I'm sure. I'll rely on SyncService being correct.
+            // But if specific tables belong to other modules, it's a bit messy.
+            // I'll stick to what SyncService had:
+            { statement: `UPDATE transactions SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE orders SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE tontine_members SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
+            {
+                statement: `UPDATE clients SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime'), profilPhotoUrl = ?, cardPhotoUrl = ? WHERE id = ?`,
+                values: [serverId, profilPhotoUrl || null, cardPhotoUrl || null, localId]
+            }
+        ];
+        await this.databaseService.executeSet(updateSet);
     }
 
     /**
@@ -295,6 +376,45 @@ export class ClientRepository extends BaseRepository<Client, string> {
             console.error('Failed to delete client and related data:', error);
             throw error;
         }
+    }
+
+    /**
+     * Get all clients for a commercial (for daily report)
+     * @param commercialUsername Commercial username
+     * @returns Array of all clients
+     */
+    async findAllByCommercial(commercialUsername: string): Promise<Client[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `SELECT * FROM clients WHERE commercial = ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername]);
+        return (result.values || []).map((row: any) => this.mapRowToClient(row));
+    }
+
+    /**
+     * Get new clients created on a specific date for a commercial
+     * @param commercialUsername Commercial username
+     * @param date Date string (YYYY-MM-DD)
+     * @returns Array of new clients with their accounts
+     */
+    async findNewClientsByDate(commercialUsername: string, date: string): Promise<any[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        // We join with accounts to get the balance
+        const sql = `
+            SELECT c.*, a.accountNumber, a.accountBalance
+            FROM clients c
+            LEFT JOIN accounts a ON c.id = a.clientId
+            WHERE c.commercial = ? AND c.createdAt LIKE ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, `${date}%`]);
+        return (result.values || []).map((row: any) => ({
+            ...this.mapRowToClient(row),
+            accountNumber: row.accountNumber,
+            accountBalance: row.accountBalance
+        }));
     }
 
 }

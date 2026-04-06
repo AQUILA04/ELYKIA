@@ -1,0 +1,69 @@
+<div class="qse-header">
+    <div class="qse-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14" />
+        </svg>
+    </div>
+    <div>
+        <h2 class="qse-title">Entrée de stock</h2>
+        <p class="qse-subtitle">Ajout de stock pour cet article</p>
+    </div>
+    <button class="qse-close" (click)="onCancel()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3l10 10M13 3L3 13" />
+        </svg>
+    </button>
+</div>
+
+<!-- Infos article -->
+<div class="article-info">
+    <div class="ai-badge">{{ article.type }}</div>
+    <div class="ai-name">{{ article.name }}</div>
+    <div class="ai-meta">
+        <ng-container *ngIf="article.marque">Marque : {{ article.marque }}</ng-container>
+        <ng-container *ngIf="article.model"> · Modèle : {{ article.model }}</ng-container>
+    </div>
+    <div class="ai-stock-row">
+        <div class="ai-stock-chip">
+            <span class="ai-stock-label">Stock actuel</span>
+            <strong class="ai-stock-value">{{ article.stockQuantity ?? 0 }}</strong>
+            <span class="ai-stock-unit">unités</span>
+        </div>
+        <div class="ai-arrow">→</div>
+        <div class="ai-stock-chip ai-stock-chip--new">
+            <span class="ai-stock-label">Nouveau stock</span>
+            <strong class="ai-stock-value">{{ newTotal }}</strong>
+            <span class="ai-stock-unit">unités</span>
+        </div>
+    </div>
+</div>
+
+<!-- Formulaire -->
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="qse-form">
+    <div class="field-wrap">
+        <label class="field-label" for="qty">Quantité à ajouter</label>
+        <input id="qty" type="number" class="field-input"
+            [class.field-input--error]="quantityControl?.invalid && quantityControl?.touched" formControlName="quantity"
+            placeholder="Ex : 50" min="1" autofocus />
+        <span class="field-error" *ngIf="quantityControl?.touched && quantityControl?.hasError('required')">
+            La quantité est requise.
+        </span>
+        <span class="field-error" *ngIf="quantityControl?.touched && quantityControl?.hasError('min')">
+            La quantité doit être supérieure à 0.
+        </span>
+    </div>
+
+    <div class="qse-actions">
+        <button type="button" class="btn btn-ghost" (click)="onCancel()" [disabled]="isSubmitting">
+            Annuler
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+            <svg *ngIf="!isSubmitting" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                stroke-width="2.5">
+                <path d="M2 8l4 4 8-8" />
+            </svg>
+            <span *ngIf="isSubmitting">Enregistrement...</span>
+            <span *ngIf="!isSubmitting">Confirmer l'entrée</span>
+        </button>
+    </div>
+</form>

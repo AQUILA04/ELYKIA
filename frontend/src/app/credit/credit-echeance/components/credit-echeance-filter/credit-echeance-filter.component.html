@@ -1,0 +1,24 @@
+<div class="toolbar a4">
+  <span class="toolbar-label">Période</span>
+  <div class="period-tabs">
+    <button class="ptab" [class.active]="selectedPeriod === 'today'" (click)="setPeriod('today')">Aujourd'hui</button>
+    <button class="ptab" [class.active-cyan]="selectedPeriod === 'week'" (click)="setPeriod('week')">Cette semaine</button>
+    <button class="ptab" [class.active-orange]="selectedPeriod === 'custom'" (click)="setPeriod('custom')">Date précise</button>
+  </div>
+
+  <div class="date-picker-wrap" *ngIf="selectedPeriod === 'custom'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--text-muted)">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+    </svg>
+    <input #dateInput class="date-input" type="date" [value]="selectedDate" (change)="onDateChange(dateInput.value)">
+  </div>
+
+  <div class="divider"></div>
+
+  <app-commercial-selector (commercialSelected)="onCommercialSelected($event)"></app-commercial-selector>
+
+  <span class="result-count">
+    <strong>{{ resultCount }}</strong> résultat(s)
+  </span>
+</div>

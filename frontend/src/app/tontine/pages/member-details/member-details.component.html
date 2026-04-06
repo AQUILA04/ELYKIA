@@ -15,6 +15,10 @@
         <mat-icon>local_shipping</mat-icon>
         Préparer la Livraison
       </button>
+      <button mat-stroked-button color="primary" (click)="onEditMember()" *ngIf="isSessionActive">
+        <mat-icon>edit</mat-icon>
+        Modifier
+      </button>
       <ng-container *ngxPermissionsOnly="['ROLE_REPORT', 'ROLE_ADMIN']">
         <button mat-raised-button color="warn" (click)="onValidateDelivery()"
                 *ngIf="member?.deliveryStatus === 'PENDING'">
@@ -45,8 +49,10 @@
           <span class="summary-value highlight">{{ formatCurrency(member.totalContribution) }}</span>
         </div>
         <div class="summary-item">
-          <span class="summary-label">Part Société</span>
-          <span class="summary-value">{{ formatCurrency(member.societyShare || 0) }}</span>
+          <span class="summary-label">Part Société (Payé / Dû)</span>
+          <span class="summary-value" [class.text-warn]="getSocietyShareStatusColor() === 'warn'">
+            {{ formatCurrency(member.societyShare || 0) }} / {{ formatCurrency(getTheoreticalSocietyShare()) }}
+          </span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Solde Disponible</span>
@@ -121,7 +127,7 @@
           <span class="label">Montant total:</span>
           <span class="value highlight">{{ formatCurrency(member.delivery?.totalAmount ?? 0) }}</span>
         </div>
-        <div class="info-row" *ngIf="member?.delivery?.remainingBalance ?? 0 > 0">
+        <div class="info-row" *ngIf="(member?.delivery?.remainingBalance ?? 0) > 0">
           <span class="label">Solde non utilisé:</span>
           <span class="value">{{ formatCurrency(member.delivery?.remainingBalance ?? 0) }}</span>
         </div>

@@ -1,0 +1,371 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container">
+
+  <!-- En-tête page -->
+  <div class="page-header">
+    <button class="btn-back" (click)="onCancel()">
+      <mat-icon>arrow_back</mat-icon>
+      Retour
+    </button>
+    <div class="header-title-block">
+      <h1 class="page-title">
+        <mat-icon class="title-icon">history</mat-icon>
+        Distribution de rattrapage
+      </h1>
+      <p class="page-subtitle">Distribuer des articles restants d'un stock d'un mois antérieur</p>
+    </div>
+  </div>
+
+  <!-- Stepper -->
+  <div class="stepper-bar">
+    <div class="step" [class.done]="currentStep > 1" [class.active]="currentStep === 1">
+      <div class="step-circle">
+        <mat-icon *ngIf="currentStep > 1">check</mat-icon>
+        <span *ngIf="currentStep <= 1">1</span>
+      </div>
+      <span class="step-label">Commercial &amp; Client</span>
+    </div>
+    <div class="step-connector" [class.done]="currentStep > 1"></div>
+    <div class="step" [class.done]="currentStep > 2" [class.active]="currentStep === 2">
+      <div class="step-circle">
+        <mat-icon *ngIf="currentStep > 2">check</mat-icon>
+        <span *ngIf="currentStep <= 2">2</span>
+      </div>
+      <span class="step-label">Stock antérieur</span>
+    </div>
+    <div class="step-connector" [class.done]="currentStep > 2"></div>
+    <div class="step" [class.done]="currentStep > 3" [class.active]="currentStep === 3">
+      <div class="step-circle">
+        <mat-icon *ngIf="currentStep > 3">check</mat-icon>
+        <span *ngIf="currentStep <= 3">3</span>
+      </div>
+      <span class="step-label">Articles</span>
+    </div>
+    <div class="step-connector" [class.done]="currentStep > 3"></div>
+    <div class="step" [class.active]="currentStep === 4">
+      <div class="step-circle">4</div>
+      <span class="step-label">Paramètres crédit</span>
+    </div>
+  </div>
+
+  <form [formGroup]="rattrapageForm" (ngSubmit)="onSubmit()">
+
+    <!-- ─────────────────────────────────────────────── -->
+    <!-- SECTION 1 — Commercial & Client                -->
+    <!-- ─────────────────────────────────────────────── -->
+    <div class="form-section">
+      <div class="section-header">
+        <span class="section-num">1</span>
+        <h2 class="section-title">Commercial &amp; Client</h2>
+        <span class="badge badge-required">Requis</span>
+      </div>
+      <div class="section-body">
+        <div class="form-row">
+
+          <!-- Commercial -->
+          <div class="form-group" *ngIf="!isPromoter">
+            <label class="form-label">Commercial <span class="req">*</span></label>
+            <ng-select formControlName="commercial" [items]="commercials" bindLabel="username" bindValue="username"
+              [searchFn]="searchCommercial" (change)="onCommercialChange()" appendTo="body"
+              placeholder="Sélectionner un commercial" [clearable]="false">
+              <ng-template ng-option-tmp let-item="item">
+                <div class="ng-option-custom">
+                  <strong>{{ item.username }}</strong>
+                  <span class="ng-option-sub">{{ item.firstname }} {{ item.lastname }}</span>
+                </div>
+              </ng-template>
+            </ng-select>
+            <mat-error *ngIf="rattrapageForm.get('commercial')?.invalid && rattrapageForm.get('commercial')?.touched">
+              Le commercial est requis.
+            </mat-error>
+          </div>
+
+          <!-- Client -->
+          <div class="form-group">
+            <label class="form-label">Client <span class="req">*</span></label>
+            <ng-select formControlName="clientId" [items]="clients" bindLabel="firstname" bindValue="id"
+              [searchFn]="searchClient" appendTo="body" placeholder="Rechercher un client"
+              notFoundText="Aucun client trouvé">
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.firstname }} {{ item.lastname }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                <div>{{ item.firstname }} {{ item.lastname }}</div>
+              </ng-template>
+            </ng-select>
+            <mat-error *ngIf="rattrapageForm.get('clientId')?.invalid && rattrapageForm.get('clientId')?.touched">
+              Le client est requis.
+            </mat-error>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────── -->
+    <!-- SECTION 2 — Mois de stock antérieur            -->
+    <!-- ─────────────────────────────────────────────── -->
+    <div class="form-section" *ngIf="selectedCommercial || isPromoter">
+      <div class="section-header">
+        <span class="section-num">2</span>
+        <h2 class="section-title">Stock antérieur à rattraper</h2>
+        <span class="badge badge-required">Requis</span>
+      </div>
+      <div class="section-body">
+        <p class="section-hint">
+          <mat-icon style="font-size:14px;vertical-align:middle;">info_outline</mat-icon>
+          Seuls les mois avec des articles non entièrement distribués ou retournés sont affichés.
+        </p>
+
+        <!-- Loading state -->
+        <div class="loading-months" *ngIf="loadingMonths">
+          <mat-spinner diameter="24"></mat-spinner>
+          <span>Chargement des stocks antérieurs...</span>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-months" *ngIf="!loadingMonths && residualStocks.length === 0">
+          <mat-icon>inventory_2</mat-icon>
+          <p>Aucun stock résiduel trouvé pour ce commercial.</p>
+        </div>
+
+        <!-- Month cards -->
+        <div class="month-cards" *ngIf="!loadingMonths && residualStocks.length > 0">
+          <div class="month-card" *ngFor="let stock of residualStocks" [class.selected]="selectedStockId === stock.id"
+            (click)="onStockMonthSelect(stock)">
+            <div class="month-card-top">
+              <div class="month-name">{{ getMonthName(stock.month) | titlecase }} {{ stock.year }}</div>
+              <mat-icon class="month-check" *ngIf="selectedStockId === stock.id">check_circle</mat-icon>
+            </div>
+            <div class="month-card-stats">
+              <div class="month-stat">
+                <span class="month-stat-val">{{ getTotalResidualItems(stock) }}</span>
+                <span class="month-stat-label">articles</span>
+              </div>
+              <div class="month-stat">
+                <span class="month-stat-val orange">{{ getTotalResidualQty(stock) }}</span>
+                <span class="month-stat-label">unités restantes</span>
+              </div>
+            </div>
+            <div class="month-card-value">
+              Valeur : {{ getTotalStockValue(stock) | number:'1.0-0' }} FCFA
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────── -->
+    <!-- SECTION 3 — Articles du stock sélectionné      -->
+    <!-- ─────────────────────────────────────────────── -->
+    <div class="form-section" *ngIf="selectedStockMonth">
+      <div class="section-header">
+        <span class="section-num">3</span>
+        <h2 class="section-title">
+          Articles — Stock {{ getMonthName(selectedStockMonth.month) | titlecase }} {{ selectedStockMonth.year }}
+        </h2>
+        <span class="badge badge-info">Au moins 1 article</span>
+      </div>
+      <div class="section-body">
+        <div class="article-table-wrap">
+          <table class="article-table">
+            <thead>
+              <tr>
+                <th style="width:40px;"></th>
+                <th>Article</th>
+                <th class="text-center">Restant en stock</th>
+                <th class="text-center" style="width:120px;">Qté à distribuer</th>
+                <th class="text-right">Prix crédit</th>
+                <th class="text-right">Sous-total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of selectedStockMonth.items; let i = index"
+                [class.row-selected]="isItemSelected(item)">
+                <td>
+                  <input type="checkbox" [checked]="isItemSelected(item)" (change)="toggleArticle(item, $event)"
+                    [disabled]="item.quantityRemaining <= 0" />
+                </td>
+                <td>
+                  <div class="article-name">{{ item.article.commercialName }} {{ item.article.name }}</div>
+                </td>
+                <td class="text-center">
+                  <span class="stock-badge" [class.low]="item.quantityRemaining <= 3">
+                    {{ item.quantityRemaining }} unités
+                  </span>
+                </td>
+                <td class="text-center">
+                  <input type="number" class="qty-input" [value]="getSelectedQty(item)"
+                    (change)="onQtyChange(item, $event)" [disabled]="!isItemSelected(item)" min="1"
+                    [max]="item.quantityRemaining" />
+                </td>
+                <td class="text-right">{{ (item.weightedAverageUnitPrice || 0) | number:'1.0-0' }} FCFA</td>
+                <td class="text-right fw-600">
+                  {{ (getSelectedQty(item) * (item.weightedAverageUnitPrice || 0)) | number:'1.0-0' }} FCFA
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <mat-error *ngIf="rattrapageForm.get('selectedItems')?.invalid && rattrapageForm.get('selectedItems')?.touched">
+          Veuillez sélectionner au moins un article.
+        </mat-error>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────── -->
+    <!-- SECTION 4 — Paramètres du crédit étalé         -->
+    <!-- ─────────────────────────────────────────────── -->
+    <div class="form-section" *ngIf="selectedStockMonth && selectedItems.length > 0">
+      <div class="section-header">
+        <span class="section-num">4</span>
+        <h2 class="section-title">Paramètres du crédit étalé</h2>
+        <span class="badge badge-required">Requis</span>
+      </div>
+      <div class="section-body">
+
+        <!-- Row 1 : Date début + Mise journalière + Date fin (calculée) -->
+        <div class="form-row triple">
+          <div class="form-group">
+            <label class="form-label">Date de début <span class="req">*</span></label>
+            <input type="date" formControlName="beginDate" class="form-control" (change)="recalculateEndDate()" />
+            <div class="form-hint">Peut être une date passée</div>
+            <mat-error *ngIf="rattrapageForm.get('beginDate')?.invalid && rattrapageForm.get('beginDate')?.touched">
+              La date de début est requise.
+            </mat-error>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mise journalière <span class="req">*</span></label>
+            <div class="input-suffix-wrap">
+              <input type="number" formControlName="dailyStake" class="form-control" placeholder="500"
+                (input)="recalculateEndDate()" />
+              <span class="input-suffix">FCFA / jour</span>
+            </div>
+            <mat-error *ngIf="rattrapageForm.get('dailyStake')?.invalid && rattrapageForm.get('dailyStake')?.touched">
+              La mise journalière est requise (min 200 FCFA).
+            </mat-error>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Date de fin estimée</label>
+            <div class="computed-field" [class.ready]="computedEndDate">
+              <mat-icon class="computed-icon">event</mat-icon>
+              <div class="computed-content">
+                <span class="computed-value" *ngIf="computedEndDate">{{ computedEndDate | date:'dd/MM/yyyy' }}</span>
+                <span class="computed-placeholder" *ngIf="!computedEndDate">— renseigner la mise</span>
+                <span class="computed-sub" *ngIf="computedDays">{{ computedDays }} jours</span>
+              </div>
+              <span class="badge badge-auto">Auto</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2 : Avance/Déjà payé + Total calculé -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Montant déjà payé (avance)</label>
+            <div class="input-suffix-wrap">
+              <input type="number" formControlName="advance" class="form-control" placeholder="0"
+                (input)="recalculateEndDate()" />
+              <span class="input-suffix">FCFA</span>
+            </div>
+            <div class="form-hint">Avance reçue avant cette distribution</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Montant total de la vente</label>
+            <div class="computed-field ready">
+              <mat-icon class="computed-icon" style="color:#1D9E75;">payments</mat-icon>
+              <div class="computed-content">
+                <span class="computed-value green">{{ totalAmount | number:'1.0-0' }} FCFA</span>
+                <span class="computed-sub">{{ selectedItems.length }} article(s) · {{ totalQty }} unités</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3 : Reste dû + Note -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Reste dû après avance</label>
+            <div class="computed-field" [class.ready]="remainingAmount > 0">
+              <mat-icon class="computed-icon" style="color:#E8853C;">receipt_long</mat-icon>
+              <div class="computed-content">
+                <span class="computed-value orange">{{ remainingAmount | number:'1.0-0' }} FCFA</span>
+                <span class="computed-sub" *ngIf="computedDays">Sur {{ computedDays }} jours</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Observation / Note</label>
+            <input type="text" formControlName="note" class="form-control"
+              placeholder="Ex: Rattrapage stock Décembre non soldé" />
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────── -->
+    <!-- RÉSUMÉ AVANT SOUMISSION                        -->
+    <!-- ─────────────────────────────────────────────── -->
+    <div class="summary-panel" *ngIf="selectedItems.length > 0 && rattrapageForm.get('beginDate')?.value">
+      <div class="summary-title">
+        <mat-icon>summarize</mat-icon>
+        Récapitulatif de l'opération
+      </div>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="summary-key">Commercial</span>
+          <span class="summary-val">{{ selectedCommercial || currentUser?.username }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-key">Stock d'origine</span>
+          <span class="summary-val orange" *ngIf="selectedStockMonth">
+            {{ getMonthName(selectedStockMonth.month) | titlecase }} {{ selectedStockMonth.year }}
+          </span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-key">Articles</span>
+          <span class="summary-val">{{ selectedItems.length }} réf. · {{ totalQty }} unités</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-key">Période crédit</span>
+          <span class="summary-val" *ngIf="computedEndDate">
+            {{ rattrapageForm.get('beginDate')?.value | date:'dd/MM/yyyy' }}
+            → {{ computedEndDate | date:'dd/MM/yyyy' }}
+            ({{ computedDays }} j)
+          </span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-key">Mise journalière</span>
+          <span class="summary-val">{{ rattrapageForm.get('dailyStake')?.value | number:'1.0-0' }} FCFA / jour</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-key">Déjà payé</span>
+          <span class="summary-val">{{ rattrapageForm.get('advance')?.value | number:'1.0-0' }} FCFA</span>
+        </div>
+        <div class="summary-item total">
+          <span class="summary-key">Montant total</span>
+          <span class="summary-val green large">{{ totalAmount | number:'1.0-0' }} FCFA</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button type="button" class="btn btn-cancel" (click)="onCancel()" [disabled]="isLoading">
+        Annuler
+      </button>
+      <button type="submit" class="btn btn-submit"
+        [disabled]="rattrapageForm.invalid || isLoading || selectedItems.length === 0">
+        <mat-icon *ngIf="!isLoading">check_circle</mat-icon>
+        <mat-spinner *ngIf="isLoading" diameter="18" style="margin-right:8px;"></mat-spinner>
+        {{ isLoading ? 'Enregistrement...' : 'Valider le rattrapage' }}
+      </button>
+    </div>
+
+  </form>
+</div>

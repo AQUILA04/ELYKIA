@@ -1,0 +1,131 @@
+.stock-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.stock-panel__title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ad-text-muted);
+    margin-bottom: 18px;
+    align-self: flex-start;
+}
+
+.stock-ring {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin-bottom: 16px;
+
+    svg {
+        transform: rotate(-90deg);
+    }
+}
+
+.ring-bg {
+    fill: none;
+    stroke: var(--ad-border);
+    stroke-width: 10;
+}
+
+.ring-fill {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset .6s ease;
+}
+
+.ring-ok {
+    stroke: var(--ad-teal);
+}
+
+.ring-low {
+    stroke: var(--ad-amber);
+}
+
+.ring-out {
+    stroke: var(--ad-red);
+}
+
+.stock-number {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.stock-qty {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--ad-navy);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.stock-unit {
+    font-size: 11px;
+    color: var(--ad-text-muted);
+    margin-top: 2px;
+}
+
+.stock-status {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 100px;
+    margin-bottom: 16px;
+
+    &.st-ok {
+        background: var(--ad-green-bg);
+        color: var(--ad-green);
+        border: 1px solid rgba(46, 125, 50, .2);
+    }
+
+    &.st-low {
+        background: var(--ad-amber-bg);
+        color: #b45309;
+        border: 1px solid rgba(245, 158, 11, .3);
+    }
+
+    &.st-out {
+        background: var(--ad-red-bg);
+        color: var(--ad-red);
+        border: 1px solid rgba(229, 57, 53, .25);
+    }
+}
+
+.stock-thresholds {
+    width: 100%;
+    border-top: 1px solid var(--ad-border);
+    padding-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.threshold-item {
+    .t-label {
+        font-size: 10px;
+        color: var(--ad-text-muted);
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .t-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--ad-text-primary);
+        font-variant-numeric: tabular-nums;
+
+        &.t-warn {
+            color: #b45309;
+        }
+    }
+}

@@ -1,17 +1,18 @@
-import {Component, OnInit} from '@angular/core';
-import {FormControl, FormGroup} from '@angular/forms';
-import {DailyReportService} from '../../service/daily-report.service';
-import {DailyCommercialReport} from '../../models/daily-commercial-report.model';
-import {TokenStorageService} from 'src/app/shared/service/token-storage.service';
-import {ClientService} from 'src/app/client/service/client.service';
-import {DatePipe} from '@angular/common';
-import {MatDialog} from '@angular/material/dialog';
-import {CashDepositModalComponent} from '../../components/cash-deposit-modal/cash-deposit-modal.component';
-import {DailyOperationLog} from '../../models/daily-operation-log.model';
-import {DailyOperationService} from '../../service/daily-operation.service';
-import {CashDepositService} from '../../service/cash-deposit.service';
-import {UserService} from "../../../user/service/user.service";
-import {UserProfile} from "../../../shared/models/user-profile.enum";
+import { Component, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
+import { DailyReportService } from '../../service/daily-report.service';
+import { DailyCommercialReport } from '../../models/daily-commercial-report.model';
+import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
+import { ClientService } from 'src/app/client/service/client.service';
+import { DatePipe } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { CashDepositModalComponent } from '../../components/cash-deposit-modal/cash-deposit-modal.component';
+import { DailyOperationLog } from '../../models/daily-operation-log.model';
+import { DailyOperationService } from '../../service/daily-operation.service';
+import { CashDepositService } from '../../service/cash-deposit.service';
+import { UserService } from "../../../user/service/user.service";
+import { UserProfile } from "../../../shared/models/user-profile.enum";
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
     selector: 'app-daily-report',
@@ -38,6 +39,8 @@ export class DailyReportComponent implements OnInit {
     // UI State
     isLoading = false;
     isPromoter = false;
+    isManager = false;
+    isSecretary = false;
     showMargins = false; // Toggle for margin visibility
 
     // Operations Log
@@ -64,12 +67,15 @@ export class DailyReportComponent implements OnInit {
         private dialog: MatDialog,
         private dailyOperationService: DailyOperationService,
         private cashDepositService: CashDepositService,
-        private userService : UserService
+        private userService: UserService,
+        private alertService: AlertService
     ) { }
 
     ngOnInit(): void {
         // Check if profil is object with name or just string, handling both just in case
         this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
+        this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
+        this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
 
         if (!this.isPromoter) {
             this.loadAgents();
@@ -186,6 +192,7 @@ export class DailyReportComponent implements OnInit {
             totalAmountDeposited: this.reports.reduce((sum, r) => sum + (r.totalAmountDeposited || 0), 0),
             creditSalesMargin: this.reports.reduce((sum, r) => sum + (r.creditSalesMargin || 0), 0),
             stockRequestMargin: this.reports.reduce((sum, r) => sum + (r.stockRequestMargin || 0), 0),
+            totalAdvancesAmount: this.reports.reduce((sum, r) => sum + (r.totalAdvancesAmount || 0), 0),
         };
     }
 
@@ -250,6 +257,18 @@ export class DailyReportComponent implements OnInit {
         return this.totalAmountToDeposit - this.totalAmountDeposited;
     }
 
+    get isSingleDay(): boolean {
+        if (this.selectedFilter === 'today') {
+            return true;
+        }
+        if (this.selectedFilter === 'custom' && this.range.value.start && this.range.value.end) {
+            const start = this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd');
+            const end = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd');
+            return start === end;
+        }
+        return false;
+    }
+
     openDepositModal(report?: DailyCommercialReport) {
         const commercialToUse = report?.commercialUsername || this.selectedAgent;
 
@@ -261,12 +280,20 @@ export class DailyReportComponent implements OnInit {
         const amountDeposited = report ? (report.totalAmountDeposited || 0) : this.totalAmountDeposited;
         const remaining = amountToDeposit - amountDeposited;
 
+        // Determine the date to pass
+        let depositDate: string | null = null;
+        if (this.isSingleDay) {
+            // If single day, use the end date (which is same as start date)
+            depositDate = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd');
+        }
+
         const dialogRef = this.dialog.open(CashDepositModalComponent, {
             width: '800px',
             data: {
                 commercialUsername: commercialToUse,
                 totalAmountToDeposit: amountToDeposit,
-                remainingAmount: remaining
+                remainingAmount: remaining,
+                date: depositDate // Pass the date
             },
             disableClose: true
         });
@@ -288,5 +315,65 @@ export class DailyReportComponent implements OnInit {
         } else {
             return 'status-orange';
         }
+    }
+
+    canCancelDeposit(dep: any): boolean {
+        if (!this.isManager || dep.amount <= 0) return false;
+        
+        // Ensure not already cancelled
+        const origRef = dep.reference || dep.id;
+        const isAlreadyCancelled = this.deposits.some((d: any) => 
+            d.amount < 0 && d.reference === `CANCEL-${origRef}`);
+        if (isAlreadyCancelled) return false;
+        
+        const depDate = new Date(dep.date);
+        const today = new Date();
+        depDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        
+        const diffTime = today.getTime() - depDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        return diffDays <= 3;
+    }
+
+    confirmCancelDeposit(dep: any) {
+        this.alertService.showConfirmation(
+            'Annulation',
+            'Êtes-vous sûr de vouloir annuler ce versement ?',
+            'Oui, annuler'
+        ).then((confirmed) => {
+            if (confirmed) {
+                this.cashDepositService.cancelDeposit(dep.id).subscribe({
+                    next: () => {
+                        this.alertService.showSuccess('Versement annulé avec succès.');
+                        this.loadReports(); // Refresh data
+                    },
+                    error: (err) => {
+                        console.error('Erreur lors de l\'annulation', err);
+                        this.alertService.showError(err.error?.message || 'Erreur lors de l\'annulation du versement');
+                    }
+                });
+            }
+        });
+    }
+
+    onExportJournal() {
+        const start = this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd') || '';
+        const end = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '';
+        const collector = this.selectedAgent || (this.isPromoter ? this.tokenStorage.getUser().username : undefined);
+
+        this.dailyOperationService.exportPdf(start, end, collector).subscribe({
+            next: (data: Blob) => {
+                const blob = new Blob([data], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `journal_operations_${start}_${end}.pdf`;
+                link.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: (err) => console.error('Error downloading PDF', err)
+        });
     }
 }

@@ -46,41 +46,106 @@
             Actifs</div>
         <div class="chip" [class.active]="(statusFilter$ | async) === 'pending'" (click)="filterByStatus('pending')">En
             attente</div>
-        <div class="chip" [class.active]="(statusFilter$ | async) === 'delivered'"
-            (click)="filterByStatus('delivered')">Livrés</div>
+        <div class="chip" [class.active]="(statusFilter$ | async) === 'todo'" (click)="filterByStatus('todo')">A faire
+        </div>
     </div>
 
     <!-- Members List -->
     <div class="members-list">
-        <ng-container *ngIf="(displayedMembers$ | async) as members">
-            <div *ngIf="members.length === 0 && (filteredMembers$ | async)?.length === 0" class="empty-state">
-                <div class="empty-icon">🎯</div>
-                <h3>Aucun membre trouvé</h3>
-                <p>Aucun membre ne correspond à vos critères de recherche.</p>
-            </div>
-
-            <div class="member-card" *ngFor="let member of members" (click)="viewMemberDetails(member.id)">
-                <div class="member-avatar">{{ member.clientName?.charAt(0) || '?' }}</div>
-                <div class="member-info">
-                    <div class="member-name">{{ member.clientName || 'Client Inconnu' }}</div>
-                    <div class="member-details">
-                        <span>📱 {{ member.clientPhone || '-' }}</span>
-                        <!-- Frequency is not in DB yet, placeholder -->
-                        <span>📅 Hebdomadaire</span>
-                    </div>
-                    <div class="member-amount">{{ member.totalContribution | number:'1.0-0':'fr-FR' }} FCFA</div>
-                    <span class="member-status" [ngClass]="getStatusClass(member.deliveryStatus || member.status)">
-                        {{ getStatusLabel(member.deliveryStatus || member.status) }}
-                    </span>
+        <!-- Grouped View -->
+        <ng-container *ngIf="(isGroupedView$ | async); else flatList">
+            <ng-container *ngIf="(groupedMembers$ | async) as groups">
+                <div *ngIf="groups.length === 0" class="empty-state">
+                    <div class="empty-icon">🎯</div>
+                    <h3>Aucun membre trouvé</h3>
+                    <p>Tout est à jour pour aujourd'hui !</p>
                 </div>
-                <div style="color: var(--text-secondary); font-size: 20px;">›</div>
-            </div>
+
+                <div *ngFor="let group of groups">
+                    <div class="group-header"
+                        style="background: #f4f5f8; padding: 8px 16px; font-weight: 600; color: var(--ion-color-medium); font-size: 14px; position: sticky; top: 0; z-index: 10;">
+                        {{ group.quarter }}
+                    </div>
+                    <div class="member-card" *ngFor="let member of group.members"
+                        (click)="viewMemberDetails(member.id)">
+                        <div class="member-avatar">{{ (member.clientName || '?').charAt(0) }}</div>
+                        <div class="member-info">
+                            <div class="member-name">{{ member.clientName || 'Client Inconnu' }}</div>
+                            <div class="member-details">
+                                <span>📱 {{ member.clientPhone || '-' }}</span>
+                                <span>📅 Hebdomadaire</span>
+                            </div>
+                            <div class="member-amount">{{ member.totalContribution | number:'1.0-0':'fr-FR' }} FCFA
+                            </div>
+                            <div style="display: flex; gap: 6px; margin-top: 4px;">
+                                <span class="member-status" [ngClass]="getStatusClass(member.deliveryStatus)">
+                                    {{ getStatusLabel(member.deliveryStatus) }}
+                                </span>
+                                <ion-badge *ngIf="member.isLocal && !member.isSync" color="medium"
+                                    style="font-size: 10px; padding: 4px 6px;">
+                                    <ion-icon name="cloud-offline-outline"
+                                        style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                                    Local
+                                </ion-badge>
+                                <ion-badge *ngIf="member.isSync" color="success"
+                                    style="font-size: 10px; padding: 4px 6px;">
+                                    <ion-icon name="cloud-done-outline"
+                                        style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                                    Sync
+                                </ion-badge>
+                            </div>
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 20px;">›</div>
+                    </div>
+                </div>
+            </ng-container>
         </ng-container>
 
-        <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreMembers($event)">
-            <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement plus de membres...">
-            </ion-infinite-scroll-content>
-        </ion-infinite-scroll>
+        <!-- Flat List -->
+        <ng-template #flatList>
+            <ng-container *ngIf="(members$ | async) as members">
+                <div *ngIf="members.length === 0" class="empty-state">
+                    <div class="empty-icon">🎯</div>
+                    <h3>Aucun membre trouvé</h3>
+                    <p>Aucun membre ne correspond à vos critères de recherche.</p>
+                </div>
+
+                <div class="member-card" *ngFor="let member of members" (click)="viewMemberDetails(member.id)">
+                    <div class="member-avatar">{{ (member.clientName || '?').charAt(0) }}</div>
+                    <div class="member-info">
+                        <div class="member-name">{{ member.clientName || 'Client Inconnu' }}</div>
+                        <div class="member-details">
+                            <span>📱 {{ member.clientPhone || '-' }}</span>
+                            <!-- Frequency is not in DB yet, placeholder -->
+                            <span>📅 Hebdomadaire</span>
+                        </div>
+                        <div class="member-amount">{{ member.totalContribution | number:'1.0-0':'fr-FR' }} FCFA</div>
+                        <div style="display: flex; gap: 6px; margin-top: 4px;">
+                            <span class="member-status" [ngClass]="getStatusClass(member.deliveryStatus)">
+                                {{ getStatusLabel(member.deliveryStatus) }}
+                            </span>
+                            <ion-badge *ngIf="member.isLocal && !member.isSync" color="medium"
+                                style="font-size: 10px; padding: 4px 6px;">
+                                <ion-icon name="cloud-offline-outline"
+                                    style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                                Local
+                            </ion-badge>
+                            <ion-badge *ngIf="member.isSync" color="success" style="font-size: 10px; padding: 4px 6px;">
+                                <ion-icon name="cloud-done-outline"
+                                    style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                                Sync
+                            </ion-badge>
+                        </div>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 20px;">›</div>
+                </div>
+            </ng-container>
+
+            <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreMembers($event)" [disabled]="!(hasMore$ | async)">
+                <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement plus de membres...">
+                </ion-infinite-scroll-content>
+            </ion-infinite-scroll>
+        </ng-template>
         <!-- FAB Button -->
         <button class="fab" *ngIf="(session$ | async)?.status === 'ACTIVE'" (click)="registerNewMember()"
             title="Inscrire un nouveau membre">

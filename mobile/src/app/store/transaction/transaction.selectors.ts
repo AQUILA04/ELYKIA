@@ -1,16 +1,18 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { TransactionState } from './transaction.reducer';
+import { transactionAdapter } from './transaction.reducer';
 
 export const selectTransactionState = createFeatureSelector<TransactionState>('transaction');
 
+const { selectAll } = transactionAdapter.getSelectors();
+
 export const selectAllTransactions = createSelector(
   selectTransactionState,
-  (state) => state.transactions
+  selectAll
 );
 
-export const selectTransactionsByClientId = (clientId: string) => createSelector(
-  selectAllTransactions,
-  (transactions) => transactions
-    .filter(t => t.clientId === clientId)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-);
+export const selectTransactionsByClientId = (clientId: string) => selectAllTransactions;
+
+export const selectTransactionPaginationHasMore = createSelector(selectTransactionState, state => state.hasMore);
+export const selectTransactionPaginationLoading = createSelector(selectTransactionState, state => state.loading);
+export const selectTransactionCurrentPage = createSelector(selectTransactionState, state => state.currentPage);

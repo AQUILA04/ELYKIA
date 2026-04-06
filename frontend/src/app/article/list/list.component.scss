@@ -19,7 +19,7 @@ h1 {
   background-color: #fff;
   border: 1px solid #ced4da;
   border-radius: 0.25rem;
-  transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+  transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
 }
 
 .w-50 {
@@ -28,12 +28,15 @@ h1 {
 
 .button-group {
   display: flex;
-  gap: 8px; /* Espacement entre les boutons */
+  gap: 8px;
+  /* Espacement entre les boutons */
 }
 
-.refresh-button, .add {
+.refresh-button,
+.add,
+.btn-enable,
+.btn-disable {
   color: white;
-  background-color: #003366;
   border: none;
   border-radius: 4px;
   padding: 8px 16px;
@@ -48,6 +51,31 @@ h1 {
     margin-right: 5px;
     color: white;
   }
+}
+
+.refresh-button,
+.add {
+  background-color: #003366;
+}
+
+.btn-enable {
+  background-color: #198754;
+  /* Vert standard */
+}
+
+.btn-disable {
+  background-color: #6c757d;
+  /* Gris standard */
+}
+
+/* Override check box colors to match blue theme */
+::ng-deep .mat-checkbox-checked .mat-checkbox-background,
+::ng-deep .mat-checkbox-indeterminate .mat-checkbox-background {
+  background-color: #003366 !important;
+}
+
+::ng-deep .mat-checkbox-frame {
+  border-color: #003366;
 }
 
 /* Le style de la table reste inchangé */
@@ -82,6 +110,29 @@ h1 {
         border-bottom: 1px solid #ddd;
         vertical-align: middle;
         text-align: center;
+
+        /* Badge styles */
+        .badge {
+          padding: 5px 10px;
+          border-radius: 4px;
+          color: white;
+          font-weight: normal;
+        }
+
+        .badge-enabled {
+          background-color: #198754 !important;
+          /* Vert du bouton Activer */
+        }
+
+        .badge-disabled {
+          background-color: #6c757d !important;
+          /* Gris du bouton Désactiver */
+        }
+
+        .badge-deleted {
+          background-color: #ff0000 !important;
+          /* Rouge pur et vif */
+        }
 
         button {
           margin-right: 5px;

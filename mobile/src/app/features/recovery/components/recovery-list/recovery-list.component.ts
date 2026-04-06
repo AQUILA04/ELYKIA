@@ -1,18 +1,18 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, combineLatest, Subject } from 'rxjs';
-import { map, startWith, filter, switchMap, takeUntil, take } from 'rxjs/operators';
+import { map, startWith, filter, switchMap, takeUntil, take, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Recovery } from '../../../../models/recovery.model';
 import * as RecoveryActions from '../../../../store/recovery/recovery.actions';
 import * as RecoverySelectors from '../../../../store/recovery/recovery.selectors';
+import * as KpiSelectors from '../../../../store/kpi/kpi.selectors';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
-import { ModalController } from '@ionic/angular';
+import { Actions, ofType } from '@ngrx/effects';
+import { ModalController, IonInfiniteScroll } from '@ionic/angular';
 import { RecoveryDetailComponent } from '../recovery-detail/recovery-detail.component';
 import { FormControl } from '@angular/forms';
 import { RecoveryView } from '../../../../models/recovery-view.model';
-import { selectRecoveryViews } from '../../../../store/recovery/recovery.selectors';
 import { User } from '../../../../models/auth.model';
-import { Commercial } from '../../../../models/commercial.model';
 
 @Component({
   selector: 'app-recovery-list',
@@ -22,106 +22,162 @@ import { Commercial } from '../../../../models/commercial.model';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RecoveryListComponent implements OnInit, OnDestroy {
+  @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
+
   private destroy$ = new Subject<void>();
 
+  // Use Paginated Selectors
   recoveries$: Observable<RecoveryView[]>;
-  recoveries: RecoveryView[] = [];
-  searchControl = new FormControl();
-  typeFilterControl = new FormControl('all');
+  loading$: Observable<boolean>;
+  error$: Observable<any>;
+
+  // For filters
+  searchControl = new FormControl('');
+  typeFilterControl = new FormControl({ value: 'all', disabled: true }); // Disabled as requested
   periodFilterControl = new FormControl('all');
 
-  // Observables pour les statistiques
-  stats$: Observable<{ total: number; today: number; totalAmount: number }>;
-  stats = { total: 0, today: 0, totalAmount: 0 };
+  // View Model
+  vm$: Observable<{
+    recoveries: RecoveryView[];
+    loading: boolean;
+    error: any;
+    hasMore: boolean;
+    stats: { total: number; today: number; totalAmount: number };
+  }>;
 
-  constructor(private store: Store, private modalController: ModalController, private cdr: ChangeDetectorRef) {
-    const baseRecoveries$ = this.store.select(selectAuthUser).pipe(
-      filter((user: User | null): user is User => !!user),
-      switchMap((user: User) => this.store.select(RecoverySelectors.selectRecoveryViewsByCommercialUsername(user.username)))
-    );
+  constructor(private store: Store, private modalController: ModalController, private cdr: ChangeDetectorRef, private actions$: Actions) {
+    this.recoveries$ = this.store.select(RecoverySelectors.selectPaginatedRecoveryViews);
+    this.loading$ = this.store.select(RecoverySelectors.selectRecoveryPaginationLoading);
+    this.error$ = this.store.select(RecoverySelectors.selectRecoveryPaginationError);
 
-    const filteredRecoveries$ = combineLatest([
-      baseRecoveries$,
-      this.searchControl.valueChanges.pipe(startWith('')),
-      this.typeFilterControl.valueChanges.pipe(startWith('all')),
-      this.periodFilterControl.valueChanges.pipe(startWith('all'))
+    // Use KPI Store for stats
+    const kpiStats$ = this.store.select(KpiSelectors.selectRecoveryListStats);
+    const hasMore$ = this.store.select(RecoverySelectors.selectRecoveryPaginationHasMore);
+
+    this.vm$ = combineLatest([
+      this.recoveries$,
+      this.loading$,
+      this.error$,
+      kpiStats$,
+      hasMore$
     ]).pipe(
-      map(([recoveries, searchTerm, type, period]) => {
-        const lowerCaseSearchTerm = (searchTerm as string).toLowerCase();
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-        return (recoveries as RecoveryView[]).filter((r: RecoveryView) => {
-          const recoveryDate = new Date(r.paymentDate);
-          let periodMatch = false;
-          if (period === 'all') {
-            periodMatch = true;
-          } else if (period === 'today') {
-            periodMatch = recoveryDate >= today;
-          } else if (period === 'week') {
-            const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
-            periodMatch = recoveryDate >= weekStart;
-          } else if (period === 'month') {
-            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-            periodMatch = recoveryDate >= monthStart;
+      map(([recoveries, loading, error, stats, hasMore]) => {
+        return {
+          recoveries,
+          loading,
+          error,
+          hasMore,
+          stats: {
+            total: stats.total,
+            today: stats.today,
+            totalAmount: stats.totalAmount
           }
-
-          const typeMatch = type === 'all' || r.paymentMethod === type;
-          const searchMatch = !searchTerm || (r.client && r.client.fullName && r.client.fullName.toLowerCase().includes(lowerCaseSearchTerm));
-
-          return periodMatch && typeMatch && searchMatch;
-        });
+        };
       })
     );
 
-    this.recoveries$ = filteredRecoveries$.pipe(
+    // Setup filter listeners to reload first page
+    combineLatest([
+      this.searchControl.valueChanges.pipe(startWith(''), debounceTime(400), distinctUntilChanged()),
+      this.typeFilterControl.valueChanges.pipe(startWith('all')),
+      this.periodFilterControl.valueChanges.pipe(startWith('all'))
+    ]).pipe(
       takeUntil(this.destroy$)
-    );
-
-    // Subscribe to update the synchronous property for virtual scrolling
-    this.recoveries$.subscribe(recoveries => {
-      this.recoveries = recoveries;
-      this.cdr.markForCheck();
-    });
-
-    this.stats$ = filteredRecoveries$.pipe(
-      map((recoveries: RecoveryView[]) => {
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const todayRecoveries = recoveries.filter((r: RecoveryView) => new Date(r.paymentDate) >= today);
-
-        return {
-          total: recoveries.length,
-          today: todayRecoveries.length,
-          totalAmount: recoveries.reduce((sum: number, r: RecoveryView) => sum + r.amount, 0)
-        };
-      }),
-      takeUntil(this.destroy$)
-    );
-
-    // Subscribe to update the synchronous stats property
-    this.stats$.subscribe(stats => {
-      this.stats = stats;
-      this.cdr.markForCheck();
+    ).subscribe(([search, type, period]) => {
+      this.loadFirstPage(search || '', type || 'all', period || 'all');
     });
   }
 
   ngOnInit() {
-    // Ne pas charger ici pour éviter le double chargement
+    // Initial load handled by valueChanges subscription startWith
   }
 
   ionViewWillEnter() {
-    // Recharger les données à chaque fois qu'on entre dans la vue
-    this.loadRecoveries();
+    // Force reload on enter to ensure data is fresh
+    this.loadFirstPage(
+      this.searchControl.value || '',
+      this.typeFilterControl.value || 'all',
+      this.periodFilterControl.value || 'all'
+    );
   }
 
-  private loadRecoveries() {
+  private loadFirstPage(search: string, type: string, period: string) {
     this.store.select(selectAuthUser).pipe(
       filter((user): user is User => !!user),
-      take(1) // Prendre seulement la première valeur pour éviter les multiples dispatches
+      take(1)
     ).subscribe(user => {
-      this.store.dispatch(RecoveryActions.loadRecoveries({ commercialUsername: user.username }));
+      // Load List
+      this.store.dispatch(RecoveryActions.loadFirstPageRecoveries({
+        commercialId: user.username,
+        pageSize: 20,
+        filters: {
+          clientId: search,
+          paymentMethod: type !== 'all' ? type : undefined,
+          dateFilter: this.mapPeriodToDateFilter(period)
+        }
+      }));
+
+      // Load KPIs with same filters (except search which doesn't apply to global KPIs usually, but period does)
+      // Note: KPI actions might need to be updated to accept filters if we want dynamic KPIs on this page.
+      // Currently KpiActions.loadRecoveryKpi accepts dateFilter.
+      // We should dispatch it here to update the stats cards based on the period filter.
+
+      // Import KpiActions dynamically or add import
+      import('../../../../store/kpi/kpi.actions').then(KpiActions => {
+        this.store.dispatch(KpiActions.loadRecoveryKpi({
+          commercialId: user.username,
+          dateFilter: this.mapPeriodToDateFilter(period)
+        }));
+      });
     });
+  }
+
+  loadMore(event: any) {
+    this.store.select(selectAuthUser).pipe(
+      filter((user): user is User => !!user),
+      take(1)
+    ).subscribe(user => {
+      this.store.dispatch(RecoveryActions.loadNextPageRecoveries({
+        commercialId: user.username,
+        filters: {
+          clientId: this.searchControl.value || undefined,
+          paymentMethod: this.typeFilterControl.value !== 'all' ? (this.typeFilterControl.value || undefined) : undefined,
+          dateFilter: this.mapPeriodToDateFilter(this.periodFilterControl.value || 'all')
+        }
+      }));
+    });
+
+    // Complete infinite scroll when loading finishes
+    this.actions$.pipe(
+      ofType(
+        RecoveryActions.loadNextPageRecoveriesSuccess,
+        RecoveryActions.loadNextPageRecoveriesFailure
+      ),
+      take(1)
+    ).subscribe(() => {
+      event.target.complete();
+    });
+  }
+
+  private mapPeriodToDateFilter(period: string): any {
+    switch (period) {
+      case 'today': return { startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0] };
+      case 'week': return { startDate: this.getWeekStartDate() };
+      case 'month': return { startDate: this.getMonthStartDate() };
+      default: return undefined;
+    }
+  }
+
+  private getWeekStartDate(): string {
+    const now = new Date();
+    const weekStartDate = new Date(now.setDate(now.getDate() - now.getDay()));
+    return weekStartDate.toISOString().split('T')[0];
+  }
+
+  private getMonthStartDate(): string {
+    const now = new Date();
+    const monthStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    return monthStartDate.toISOString().split('T')[0];
   }
 
   ngOnDestroy() {

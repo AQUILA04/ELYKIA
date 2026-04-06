@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.config;
 
 import com.optimize.elykia.client.service.ClientService;
-import com.optimize.elykia.core.service.UserManagement;
+import com.optimize.elykia.core.service.user.UserManagement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;

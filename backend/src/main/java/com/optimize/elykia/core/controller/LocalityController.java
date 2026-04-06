@@ -4,7 +4,7 @@ import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.LocalityDto;
-import com.optimize.elykia.core.service.LocalityService;
+import com.optimize.elykia.core.service.masterdata.LocalityService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

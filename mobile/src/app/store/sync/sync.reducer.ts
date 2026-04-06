@@ -1,5 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
-import { SyncProgress, SyncResult, SyncError, ManualSyncState, SyncStatus, SyncSelection } from '../../models/sync.model';
+import { SyncProgress, SyncResult, SyncError, ManualSyncState, SyncStatus, SyncSelection, PaginationState, ParentSelectionState } from '../../models/sync.model';
 import * as SyncActions from './sync.actions';
 
 export interface SyncState {
@@ -17,8 +17,14 @@ export interface SyncState {
     availableClients: any[];
     availableDistributions: any[];
     availableRecoveries: any[];
+    availableTontineMembers: any[];
+    availableTontineCollections: any[];
+    availableTontineDeliveries: any[];
     syncingEntities: string[];
   };
+
+  // État de la sélection de parent (Modale)
+  parentSelection: ParentSelectionState;
 
   // Gestion des erreurs
   errors: {
@@ -52,6 +58,22 @@ const initialProgress: SyncProgress = {
   canCancel: true
 };
 
+const initialPaginationState: PaginationState = {
+  page: 0,
+  size: 20,
+  totalPages: 0,
+  totalElements: 0,
+  loading: false,
+  hasMore: true
+};
+
+const initialParentSelectionState: ParentSelectionState = {
+  clients: { data: [], pagination: { ...initialPaginationState }, loading: false },
+  distributions: { data: [], pagination: { ...initialPaginationState }, loading: false },
+  tontineMembers: { data: [], pagination: { ...initialPaginationState }, loading: false },
+  searchQuery: ''
+};
+
 const initialManualSyncState: ManualSyncState = {
   clients: {
     entityType: 'client',
@@ -71,8 +93,34 @@ const initialManualSyncState: ManualSyncState = {
     totalCount: 0,
     isSelectAll: false
   },
+  tontineMembers: {
+    entityType: 'tontine-member',
+    selectedIds: [],
+    totalCount: 0,
+    isSelectAll: false
+  },
+  tontineCollections: {
+    entityType: 'tontine-collection',
+    selectedIds: [],
+    totalCount: 0,
+    isSelectAll: false
+  },
+  tontineDeliveries: {
+    entityType: 'tontine-delivery',
+    selectedIds: [],
+    totalCount: 0,
+    isSelectAll: false
+  },
   isLoading: false,
-  activeTab: 'clients'
+  activeTab: 'clients',
+  pagination: {
+    clients: { ...initialPaginationState },
+    distributions: { ...initialPaginationState },
+    recoveries: { ...initialPaginationState },
+    tontineMembers: { ...initialPaginationState },
+    tontineCollections: { ...initialPaginationState },
+    tontineDeliveries: { ...initialPaginationState }
+  }
 };
 
 const initialState: SyncState = {
@@ -88,8 +136,12 @@ const initialState: SyncState = {
     availableClients: [],
     availableDistributions: [],
     availableRecoveries: [],
+    availableTontineMembers: [],
+    availableTontineCollections: [],
+    availableTontineDeliveries: [],
     syncingEntities: []
   },
+  parentSelection: initialParentSelectionState,
   errors: {
     list: [],
     loading: false,
@@ -105,6 +157,43 @@ const initialState: SyncState = {
   loading: false,
   error: null
 };
+
+// Helper function to map entity types to ManualSyncState keys
+function getEntityStateKeys(entityType: string): {
+  listKey: keyof SyncState['manualSync'],
+  selectionKey: keyof SyncState['manualSync']
+} {
+  switch (entityType) {
+    case 'client':
+      return { listKey: 'availableClients', selectionKey: 'clients' };
+    case 'distribution':
+      return { listKey: 'availableDistributions', selectionKey: 'distributions' };
+    case 'recovery':
+      return { listKey: 'availableRecoveries', selectionKey: 'recoveries' };
+    case 'tontine-member':
+      return { listKey: 'availableTontineMembers', selectionKey: 'tontineMembers' };
+    case 'tontine-collection':
+      return { listKey: 'availableTontineCollections', selectionKey: 'tontineCollections' };
+    case 'tontine-delivery':
+      return { listKey: 'availableTontineDeliveries', selectionKey: 'tontineDeliveries' };
+    default:
+      console.warn(`Unknown entity type: ${entityType}`);
+      return {
+        listKey: `available${entityType}s` as any,
+        selectionKey: `${entityType}s` as any
+      };
+  }
+}
+
+// Helper for parent selection keys
+function getParentSelectionKey(entityType: string): keyof ParentSelectionState {
+  switch (entityType) {
+    case 'client': return 'clients';
+    case 'distribution': return 'distributions';
+    case 'tontine-member': return 'tontineMembers';
+    default: return 'clients'; // Fallback
+  }
+}
 
 export const syncReducer = createReducer(
   initialState,
@@ -188,7 +277,7 @@ export const syncReducer = createReducer(
     }
   })),
 
-  on(SyncActions.loadManualSyncDataSuccess, (state, { clients, distributions, recoveries }) => ({
+  on(SyncActions.loadManualSyncDataSuccess, (state, { clients, distributions, recoveries, tontineMembers, tontineCollections, tontineDeliveries }) => ({
     ...state,
     manualSync: {
       ...state.manualSync,
@@ -196,6 +285,9 @@ export const syncReducer = createReducer(
       availableClients: clients,
       availableDistributions: distributions,
       availableRecoveries: recoveries,
+      availableTontineMembers: tontineMembers || [],
+      availableTontineCollections: tontineCollections || [],
+      availableTontineDeliveries: tontineDeliveries || [],
       clients: {
         ...state.manualSync.clients,
         totalCount: clients.length,
@@ -210,6 +302,21 @@ export const syncReducer = createReducer(
         ...state.manualSync.recoveries,
         totalCount: recoveries.length,
         selectedIds: []
+      },
+      tontineMembers: {
+        ...state.manualSync.tontineMembers,
+        totalCount: (tontineMembers || []).length,
+        selectedIds: []
+      },
+      tontineCollections: {
+        ...state.manualSync.tontineCollections,
+        totalCount: (tontineCollections || []).length,
+        selectedIds: []
+      },
+      tontineDeliveries: {
+        ...state.manualSync.tontineDeliveries,
+        totalCount: (tontineDeliveries || []).length,
+        selectedIds: []
       }
     }
   })),
@@ -223,6 +330,173 @@ export const syncReducer = createReducer(
     error
   })),
 
+  // ==================== PAGINATION (MANUAL SYNC) ====================
+
+  on(SyncActions.loadManualSyncDataPaginated, (state, { entityType }) => {
+    const { selectionKey } = getEntityStateKeys(entityType);
+    const paginationKey = selectionKey as keyof typeof state.manualSync.pagination;
+
+    return {
+      ...state,
+      manualSync: {
+        ...state.manualSync,
+        pagination: {
+          ...state.manualSync.pagination,
+          [paginationKey]: {
+            ...state.manualSync.pagination[paginationKey],
+            loading: true
+          }
+        }
+      }
+    };
+  }),
+
+  on(SyncActions.loadManualSyncDataPaginatedSuccess, (state, { entityType, data, pageInfo }) => {
+    const { listKey, selectionKey } = getEntityStateKeys(entityType);
+    const paginationKey = selectionKey as keyof typeof state.manualSync.pagination;
+
+    // Append data if page > 0, replace if page === 0
+    const currentList = pageInfo.page === 0 ? [] : (state.manualSync[listKey] as any[]);
+    const newList = [...currentList, ...data];
+
+    // Cast selection to SyncSelection to avoid spread error
+    const currentSelection = state.manualSync[selectionKey] as SyncSelection;
+
+    return {
+      ...state,
+      manualSync: {
+        ...state.manualSync,
+        [listKey]: newList,
+        pagination: {
+          ...state.manualSync.pagination,
+          [paginationKey]: {
+            ...state.manualSync.pagination[paginationKey],
+            loading: false,
+            page: pageInfo.page,
+            size: pageInfo.size,
+            totalPages: pageInfo.totalPages,
+            totalElements: pageInfo.totalElements,
+            hasMore: pageInfo.page < pageInfo.totalPages - 1
+          }
+        },
+        // Update selection total count
+        [selectionKey]: {
+          ...currentSelection,
+          totalCount: pageInfo.totalElements
+        }
+      }
+    };
+  }),
+
+  on(SyncActions.loadManualSyncDataPaginatedFailure, (state, { entityType, error }) => {
+    const { selectionKey } = getEntityStateKeys(entityType);
+    const paginationKey = selectionKey as keyof typeof state.manualSync.pagination;
+
+    return {
+      ...state,
+      manualSync: {
+        ...state.manualSync,
+        pagination: {
+          ...state.manualSync.pagination,
+          [paginationKey]: {
+            ...state.manualSync.pagination[paginationKey],
+            loading: false
+          }
+        }
+      },
+      error
+    };
+  }),
+
+  // ==================== PARENT SELECTION (MODALE) ====================
+
+  on(SyncActions.loadSyncedParentsPaginated, (state, { entityType }) => {
+    const key = getParentSelectionKey(entityType);
+    // Cast to any to avoid complex TS mapping issues in reducer
+    const currentEntityState = state.parentSelection[key] as any;
+
+    return {
+      ...state,
+      parentSelection: {
+        ...state.parentSelection,
+        [key]: {
+          ...currentEntityState,
+          loading: true,
+          pagination: {
+            ...currentEntityState.pagination,
+            loading: true
+          }
+        }
+      }
+    };
+  }),
+
+  on(SyncActions.loadSyncedParentsPaginatedSuccess, (state, { entityType, data, pageInfo }) => {
+    const key = getParentSelectionKey(entityType);
+    const currentEntityState = state.parentSelection[key] as any;
+
+    // Append data if page > 0, replace if page === 0
+    const currentList = pageInfo.page === 0 ? [] : currentEntityState.data;
+    const newList = [...currentList, ...data];
+
+    return {
+      ...state,
+      parentSelection: {
+        ...state.parentSelection,
+        [key]: {
+          ...currentEntityState,
+          data: newList,
+          loading: false,
+          pagination: {
+            ...currentEntityState.pagination,
+            loading: false,
+            page: pageInfo.page,
+            size: pageInfo.size,
+            totalPages: pageInfo.totalPages,
+            totalElements: pageInfo.totalElements,
+            hasMore: pageInfo.page < pageInfo.totalPages - 1
+          }
+        }
+      }
+    };
+  }),
+
+  on(SyncActions.loadSyncedParentsPaginatedFailure, (state, { entityType, error }) => {
+    const key = getParentSelectionKey(entityType);
+    const currentEntityState = state.parentSelection[key] as any;
+
+    return {
+      ...state,
+      parentSelection: {
+        ...state.parentSelection,
+        [key]: {
+          ...currentEntityState,
+          loading: false,
+          pagination: {
+            ...currentEntityState.pagination,
+            loading: false
+          }
+        }
+      },
+      error
+    };
+  }),
+
+  on(SyncActions.searchSyncedParents, (state, { query }) => ({
+    ...state,
+    parentSelection: {
+      ...state.parentSelection,
+      searchQuery: query
+    }
+  })),
+
+  on(SyncActions.clearParentSelectionState, (state) => ({
+    ...state,
+    parentSelection: initialParentSelectionState
+  })),
+
+  // ==================== UI & SELECTION ====================
+
   on(SyncActions.setActiveTab, (state, { tab }) => ({
     ...state,
     manualSync: {
@@ -232,9 +506,12 @@ export const syncReducer = createReducer(
   })),
 
   on(SyncActions.toggleEntitySelection, (state, { entityType, entityId }) => {
-    // Convertir entityType au pluriel pour accéder aux propriétés de ManualSyncState
-    const entityTypeKey = `${entityType}s` as keyof ManualSyncState;
-    const selection = state.manualSync[entityTypeKey] as SyncSelection;
+    const { selectionKey } = getEntityStateKeys(entityType);
+    const selection = state.manualSync[selectionKey] as SyncSelection;
+
+    // Safety check
+    if (!selection) return state;
+
     let newSelectedIds = [...selection.selectedIds];
 
     const index = newSelectedIds.indexOf(entityId);
@@ -254,18 +531,20 @@ export const syncReducer = createReducer(
       ...state,
       manualSync: {
         ...state.manualSync,
-        [entityTypeKey]: updatedSelection
+        [selectionKey]: updatedSelection
       }
     };
   }),
 
   on(SyncActions.selectAllEntities, (state, { entityType }) => {
-    const availableEntities = state.manualSync[`available${entityType.charAt(0).toUpperCase() + entityType.slice(1)}s` as keyof typeof state.manualSync] as any[];
-    const allIds = availableEntities.map(entity => entity.id);
+    const { listKey, selectionKey } = getEntityStateKeys(entityType);
 
-    // Convertir entityType au pluriel pour accéder aux propriétés de ManualSyncState
-    const entityTypeKey = `${entityType}s` as keyof ManualSyncState;
-    const currentSelection = state.manualSync[entityTypeKey] as SyncSelection;
+    // Safety check
+    const availableEntities = (state.manualSync[listKey] as any) as any[];
+    if (!availableEntities) return state;
+
+    const allIds = availableEntities.map(entity => entity.id);
+    const currentSelection = state.manualSync[selectionKey] as SyncSelection;
 
     const updatedSelection: SyncSelection = {
       ...currentSelection,
@@ -277,15 +556,17 @@ export const syncReducer = createReducer(
       ...state,
       manualSync: {
         ...state.manualSync,
-        [entityTypeKey]: updatedSelection
+        [selectionKey]: updatedSelection
       }
     };
   }),
 
   on(SyncActions.clearEntitySelection, (state, { entityType }) => {
-    // Convertir entityType au pluriel pour accéder aux propriétés de ManualSyncState
-    const entityTypeKey = `${entityType}s` as keyof ManualSyncState;
-    const currentSelection = state.manualSync[entityTypeKey] as SyncSelection;
+    const { selectionKey } = getEntityStateKeys(entityType);
+    const currentSelection = state.manualSync[selectionKey] as SyncSelection;
+
+    // Safety check
+    if (!currentSelection) return state;
 
     const updatedSelection: SyncSelection = {
       ...currentSelection,
@@ -297,12 +578,12 @@ export const syncReducer = createReducer(
       ...state,
       manualSync: {
         ...state.manualSync,
-        [entityTypeKey]: updatedSelection
+        [selectionKey]: updatedSelection
       }
     };
   }),
 
-  on(SyncActions.startManualSync, (state, { entityType }) => ({
+  on(SyncActions.startManualSync, (state) => ({
     ...state,
     manualSync: {
       ...state.manualSync,
@@ -310,19 +591,17 @@ export const syncReducer = createReducer(
     }
   })),
 
-  on(SyncActions.manualSyncSuccess, (state, { entityType, successCount }) => {
-    // Retirer les éléments synchronisés avec succès de la liste
-    const availableKey = `available${entityType.charAt(0).toUpperCase() + entityType.slice(1)}s` as keyof typeof state.manualSync;
-    const currentAvailable = state.manualSync[availableKey] as any[];
+  on(SyncActions.manualSyncSuccess, (state, { entityType }) => {
+    const { listKey, selectionKey } = getEntityStateKeys(entityType);
 
-    // Convertir entityType au pluriel pour accéder aux propriétés de ManualSyncState
-    const entityTypeKey = `${entityType}s` as keyof ManualSyncState;
-    const currentSelection = state.manualSync[entityTypeKey] as SyncSelection;
+    const currentAvailable = (state.manualSync[listKey] as any) as any[];
+    const currentSelection = state.manualSync[selectionKey] as SyncSelection;
+
+    if (!currentAvailable || !currentSelection) return state;
+
     const selectedIds = currentSelection.selectedIds;
-
     const updatedAvailable = currentAvailable.filter(entity => !selectedIds.includes(entity.id));
 
-    // Mettre à jour la sélection
     const updatedSelection: SyncSelection = {
       ...currentSelection,
       selectedIds: [],
@@ -335,8 +614,8 @@ export const syncReducer = createReducer(
       manualSync: {
         ...state.manualSync,
         isLoading: false,
-        [availableKey]: updatedAvailable,
-        [entityTypeKey]: updatedSelection
+        [listKey]: updatedAvailable,
+        [selectionKey]: updatedSelection
       }
     };
   }),
@@ -359,18 +638,22 @@ export const syncReducer = createReducer(
   })),
 
   on(SyncActions.syncSingleEntitySuccess, (state, { entityType, entityId }) => {
-    // Retirer l'entité de la liste disponible et des entités en cours de sync
-    const availableKey = `available${entityType.charAt(0).toUpperCase() + entityType.slice(1)}s` as keyof typeof state.manualSync;
-    const currentAvailable = state.manualSync[availableKey] as any[];
-    const updatedAvailable = currentAvailable.filter(entity => entity.id !== entityId);
+    const { listKey, selectionKey } = getEntityStateKeys(entityType);
 
-    // Convertir entityType au pluriel pour accéder aux propriétés de ManualSyncState
-    const entityTypeKey = `${entityType}s` as keyof ManualSyncState;
-
+    const currentAvailable = (state.manualSync[listKey] as any) as any[];
     const newSyncingEntities = state.manualSync.syncingEntities.filter(id => id !== entityId);
 
-    // Mettre à jour la sélection correspondante
-    const currentSelection = state.manualSync[entityTypeKey] as SyncSelection;
+    if (!currentAvailable) return {
+      ...state,
+      manualSync: {
+        ...state.manualSync,
+        syncingEntities: newSyncingEntities
+      }
+    };
+
+    const updatedAvailable = currentAvailable.filter(entity => entity.id !== entityId);
+    const currentSelection = state.manualSync[selectionKey] as SyncSelection;
+
     const updatedSelection: SyncSelection = {
       ...currentSelection,
       totalCount: updatedAvailable.length
@@ -380,9 +663,9 @@ export const syncReducer = createReducer(
       ...state,
       manualSync: {
         ...state.manualSync,
-        [availableKey]: updatedAvailable,
+        [listKey]: updatedAvailable,
         syncingEntities: newSyncingEntities,
-        [entityTypeKey]: updatedSelection
+        [selectionKey]: updatedSelection
       }
     };
   }),

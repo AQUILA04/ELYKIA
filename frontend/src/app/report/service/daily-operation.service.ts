@@ -26,4 +26,19 @@ export class DailyOperationService {
 
         return this.http.get<any>(this.operationsUrl, { params });
     }
+
+    exportPdf(startDate: string, endDate: string, commercialUsername?: string): Observable<Blob> {
+        let params = new HttpParams()
+            .set('startDate', startDate)
+            .set('endDate', endDate);
+
+        if (commercialUsername) {
+            params = params.set('commercialUsername', commercialUsername);
+        }
+
+        return this.http.get(this.operationsUrl + '/export/pdf', {
+            params: params,
+            responseType: 'blob'
+        });
+    }
 }

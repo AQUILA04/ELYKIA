@@ -2,11 +2,14 @@ package com.optimize.elykia.core.service;
 
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.bi.*;
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.core.service.bi.BiDashboardService;
+import com.optimize.elykia.core.service.stock.StockMovementService;
+import com.optimize.elykia.core.service.store.ArticlesService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

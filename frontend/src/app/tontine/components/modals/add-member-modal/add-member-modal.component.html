@@ -1,14 +1,22 @@
-<h2 mat-dialog-title>Ajouter un Membre à la Tontine</h2>
+<h2 mat-dialog-title>{{ isEditMode ? 'Modifier le Membre' : 'Ajouter un Membre à la Tontine' }}</h2>
 
 <mat-dialog-content>
   <form [formGroup]="form">
-    <mat-form-field appearance="outline" class="full-width">
+    <!-- Client Selection (Search only visible in Add Mode) -->
+    <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditMode">
       <mat-label>Rechercher un client</mat-label>
       <input matInput formControlName="clientSearch" placeholder="Nom ou code client...">
       <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
+    <!-- Read-only Client Display for Edit Mode -->
+    <mat-form-field appearance="outline" class="full-width" *ngIf="isEditMode">
+      <mat-label>Client</mat-label>
+      <input matInput [value]="getClientDisplay(data.member!.client)" disabled>
+    </mat-form-field>
+
+    <!-- Client Select for Add Mode -->
+    <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditMode">
       <mat-label>Sélectionner un client *</mat-label>
       <mat-select formControlName="clientId" required>
         <mat-option *ngFor="let client of filteredClients" [value]="client.id">
@@ -34,6 +42,16 @@
       <input matInput type="number" formControlName="amount" placeholder="0">
     </mat-form-field>
 
+    <!-- Update Scope Section (Only visible when editing amount) -->
+    <div class="scope-section" *ngIf="showUpdateScope">
+        <p class="scope-label">Portée de la modification du montant :</p>
+        <mat-radio-group formControlName="updateScope" class="scope-radio-group">
+            <mat-radio-button value="CURRENT_AND_FUTURE">Mois en cours et futurs</mat-radio-button>
+            <mat-radio-button value="FUTURE_ONLY">Mois futurs uniquement</mat-radio-button>
+            <mat-radio-button value="GLOBAL">Rétroactif (Tout recalculer)</mat-radio-button>
+        </mat-radio-group>
+    </div>
+
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Notes</mat-label>
       <textarea matInput formControlName="notes" placeholder="Observations..."></textarea>
@@ -49,6 +67,6 @@
   <button mat-button (click)="onCancel()" [disabled]="loading">Annuler</button>
   <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="loading || form.invalid">
     <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-    <span *ngIf="!loading">Ajouter</span>
+    <span *ngIf="!loading">{{ isEditMode ? 'Modifier' : 'Ajouter' }}</span>
   </button>
 </mat-dialog-actions>

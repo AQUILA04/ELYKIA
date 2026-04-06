@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { LoadingController, ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Distribution } from '../../../models/distribution.model';
 import { Client } from '../../../models/client.model';
@@ -7,6 +7,7 @@ import { Article } from '../../../models/article.model';
 import { User } from '../../../models/auth.model';
 import { PrintableDistribution, PrintingService } from '../../../core/services/printing.service';
 import * as DistributionActions from '../../../store/distribution/distribution.actions';
+import { PdfService } from '../../../core/services/pdf.service';
 
 @Component({
   selector: 'app-print-receipt-modal',
@@ -25,8 +26,10 @@ export class PrintReceiptModalComponent implements OnInit {
 
   constructor(
     private modalController: ModalController,
-    private store: Store
-  ) {}
+    private loadingController: LoadingController,
+    private store: Store,
+    private pdfService: PdfService
+  ) { }
 
   ngOnInit() {
     this.printableDistribution = {
@@ -52,6 +55,30 @@ export class PrintReceiptModalComponent implements OnInit {
       date: this.distribution.createdAt
     };
     this.qrCodeData = JSON.stringify(receiptData);
+  }
+
+  async ionViewDidEnter() {
+    setTimeout(async () => {
+      const content = document.getElementById('receipt-content');
+      if (content) {
+        const loading = await this.loadingController.create({
+          message: 'Enregistrement des données en cours...',
+          backdropDismiss: false
+        });
+        await loading.present();
+        try {
+          await this.pdfService.saveReceipt(
+            content,
+            'distribution',
+            this.distribution.reference || `DIST-${this.distribution.id}`
+          );
+          await loading.dismiss();
+        } catch (e) {
+          console.error('Failed to auto-save PDF receipt', e);
+          await loading.dismiss();
+        }
+      }
+    }, 500);
   }
 
   dismiss() {

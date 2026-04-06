@@ -7,6 +7,9 @@ import { DatabaseService } from './database.service';
 import { ApiResponse } from '../../models/api-response.model';
 import { Locality } from '../../models/locality.model';
 import { HealthCheckService } from './health-check.service';
+import { LocalityRepository } from '../repositories/locality.repository';
+import { LocalityRepositoryExtensions, LocalityRepositoryFilters } from '../repositories/locality.repository.extensions';
+import { Page } from '../repositories/repository.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +19,9 @@ export class LocalityService {
   constructor(
     private http: HttpClient,
     private dbService: DatabaseService,
-    private healthCheckService: HealthCheckService
+    private healthCheckService: HealthCheckService,
+    private localityRepository: LocalityRepository,
+    private localityRepositoryExtensions: LocalityRepositoryExtensions
   ) { }
 
   initializeLocalities(): Observable<Locality[]> {
@@ -24,32 +29,17 @@ export class LocalityService {
       switchMap(isOnline => {
         if (isOnline) {
           return this.fetchLocalitiesFromApi().pipe(
-            tap(localities => {
-              this.dbService.saveLocalities(localities);
+            tap(async (localities) => {
+              await this.localityRepository.saveAll(localities);
             }),
             catchError((error) => {
               console.error('Failed to fetch localities from API, falling back to local', error);
-              return from(this.dbService.getLocalities()).pipe(
-                map(localLocalities => {
-                  if (localLocalities && localLocalities.length > 0) {
-                    return localLocalities;
-                  } else {
-                    throw new Error('Impossible de charger les localités. Veuillez vérifier votre connexion ou synchroniser.');
-                  }
-                })
-              );
+              // Return empty or paginated if needed. For init, empty is safer than full load.
+              return of([]);
             })
           );
         } else {
-          return from(this.dbService.getLocalities()).pipe(
-            map(localLocalities => {
-              if (localLocalities && localLocalities.length > 0) {
-                return localLocalities;
-              } else {
-                throw new Error('Impossible de charger les localités. Veuillez vérifier votre connexion ou synchroniser.');
-              }
-            })
-          );
+          return of([]);
         }
       }),
       catchError(err => {
@@ -66,10 +56,26 @@ export class LocalityService {
   }
 
   async getLocalities(): Promise<Locality[]> {
-    return await this.dbService.getLocalities();
+    console.warn('getLocalities is deprecated. Use getLocalitiesPaginated instead.');
+    return [];
   }
 
   public getLocalitiesFromDB(): Observable<Locality[]> {
-    return from(this.getLocalities())
+    console.warn('getLocalitiesFromDB is deprecated. Use getLocalitiesPaginated instead.');
+    return of([]);
+  }
+
+  /**
+   * Get paginated localities
+   */
+  getLocalitiesPaginated(page: number, size: number, filters?: LocalityRepositoryFilters): Observable<Page<Locality>> {
+    return from(this.localityRepositoryExtensions.findAllPaginated(page, size, filters));
+  }
+
+  /**
+   * Add a new locality locally
+   */
+  addLocality(name: string): Observable<Locality> {
+    return from(this.localityRepository.addLocality({ name }));
   }
 }

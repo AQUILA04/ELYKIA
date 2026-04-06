@@ -183,7 +183,10 @@
                         <span class="collection-date">{{formatDate(collection.collectionDate)}}</span>
                         <span class="collection-amount">{{formatCurrency(collection.amount)}}</span>
                     </div>
-                    <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                    <div class="status-indicator">
+                        <ion-badge *ngIf="!collection.isSync" color="warning" mode="ios">Local</ion-badge>
+                        <ion-icon *ngIf="collection.isSync" name="checkmark-circle" color="success"></ion-icon>
+                    </div>
                 </div>
             </div>
         </div>

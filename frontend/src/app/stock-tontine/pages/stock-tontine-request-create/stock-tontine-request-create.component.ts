@@ -52,7 +52,7 @@ export class StockTontineRequestCreateComponent implements OnInit {
 
   loadArticles() {
     this.spinner.show();
-    this.itemService.getAllArticles().subscribe({
+    this.itemService.getAllEnabledArticles().subscribe({
       next: (response: any) => {
         this.articles = response.data?.content || response.data || [];
         this.spinner.hide();

@@ -43,7 +43,7 @@
   text-align: center;
 
   .distribution-title {
-    color: #1976d2;
+    color: #fff;
     font-size: 20px;
     font-weight: 600;
     margin: 0;
@@ -186,7 +186,7 @@
 @media (min-width: 768px) {
   .action-buttons {
     flex-direction: row;
-    
+
     .action-button {
       flex: 1;
     }
@@ -202,12 +202,12 @@
         font-weight: 600 !important;
       }
     }
-    
+
     .alert-message {
       color: #495057 !important;
       line-height: 1.5 !important;
     }
-    
+
     .alert-button-group {
       .alert-button.alert-button-confirm-delete {
         .alert-button-inner {
@@ -215,19 +215,19 @@
           background-color: #dc3545 !important;
           font-weight: 600 !important;
         }
-        
+
         &:hover .alert-button-inner {
           background-color: #c82333 !important;
         }
       }
-      
+
       .alert-button.alert-button-cancel {
         .alert-button-inner {
           color: #6c757d !important;
           background-color: transparent !important;
           border: 1px solid #6c757d !important;
         }
-        
+
         &:hover .alert-button-inner {
           background-color: #f8f9fa !important;
         }
