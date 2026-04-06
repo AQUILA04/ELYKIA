@@ -93,12 +93,44 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
     return null;
   }
 
+  private getPaginationStorageKey(): string | null {
+    if (this.currentUser && this.currentUser.id) {
+      return `credit_pagination_${this.currentUser.id || this.currentUser.username}`;
+    }
+    return null;
+  }
+
+  private getSearchTermStorageKey(): string | null {
+    if (this.currentUser && this.currentUser.id) {
+      return `credit_search_term_${this.currentUser.id || this.currentUser.username}`;
+    }
+    return null;
+  }
+
   private loadInitialSearch(): void {
     const storageKey = this.getSearchStorageKey();
     if (storageKey) {
       const savedSearch = localStorage.getItem(storageKey);
       if (savedSearch) {
         this.currentSearchDto = JSON.parse(savedSearch);
+      }
+    }
+
+    const paginationKey = this.getPaginationStorageKey();
+    if (paginationKey) {
+      const savedPagination = localStorage.getItem(paginationKey);
+      if (savedPagination) {
+        const pagination = JSON.parse(savedPagination);
+        this.pageSize = pagination.pageSize || 5;
+        this.currentPage = pagination.currentPage || 0;
+      }
+    }
+
+    const searchTermKey = this.getSearchTermStorageKey();
+    if (searchTermKey) {
+      const savedSearchTerm = localStorage.getItem(searchTermKey);
+      if (savedSearchTerm) {
+        this.searchTerm = savedSearchTerm;
       }
     }
   }
@@ -214,10 +246,16 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
   onSearchReset(): void {
     this.currentSearchDto = null;
     this.currentPage = 0;
+    this.searchTerm = '';
 
     const storageKey = this.getSearchStorageKey();
     if (storageKey) {
       localStorage.removeItem(storageKey);
+    }
+
+    const searchTermKey = this.getSearchTermStorageKey();
+    if (searchTermKey) {
+      localStorage.removeItem(searchTermKey);
     }
 
     this.loadCredits();
@@ -233,12 +271,24 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
+
+    const paginationKey = this.getPaginationStorageKey();
+    if (paginationKey) {
+      localStorage.setItem(paginationKey, JSON.stringify({ pageSize: this.pageSize, currentPage: this.currentPage }));
+    }
+
     this.loadCredits();
   }
 
   // MODIFIÉ : La recherche recharge les données depuis le serveur
   filterCredits(): void {
     this.currentPage = 0; // On retourne à la première page
+
+    const searchTermKey = this.getSearchTermStorageKey();
+    if (searchTermKey) {
+      localStorage.setItem(searchTermKey, this.searchTerm);
+    }
+
     this.loadCredits();
   }
 
