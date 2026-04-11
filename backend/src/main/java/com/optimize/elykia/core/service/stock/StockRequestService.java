@@ -344,14 +344,18 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
 
             // Enregistrement du mouvement de stock STOCK_IN pour le commercial
             if (commercialStockMovementService != null) {
-                commercialStockMovementService.recordWithStockReturn(
-                        stockItem,
+                commercialStockMovementService.record(
+                        stockItem.getId(),
+                        null,
                         null,
                         CommercialStockMovementType.STOCK_IN,
                         quantityBefore,
                         reqItem.getQuantity(),
                         stockItem.getQuantityRemaining(),
-                        request.getId()
+                        request.getId(),
+                        monthlyStock.getCollector(),
+                        reqItem.getArticle().getId(),
+                        reqItem.getArticle().getCommercialName()
                 );
             }
         }

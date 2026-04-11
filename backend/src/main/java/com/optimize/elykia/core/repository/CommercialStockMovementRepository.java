@@ -10,7 +10,7 @@ public interface CommercialStockMovementRepository extends GenericRepository<Com
 
     List<CommercialStockMovement> findByStockItem_IdOrderByOperationDateDesc(Long stockItemId);
 
-    List<CommercialStockMovement> findByCredit_IdOrderByOperationDateDesc(Long creditId);
+    List<CommercialStockMovement> findByCreditIdOrderByOperationDateDesc(Long creditId);
 
     List<CommercialStockMovement> findByCollectorAndMovementTypeOrderByOperationDateDesc(
             String collector, CommercialStockMovementType type);

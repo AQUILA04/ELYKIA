@@ -224,12 +224,17 @@ public class RattrapageCreditService {
             // Enregistrement du mouvement de stock CREDIT_SALE pour le rattrapage
             if (commercialStockMovementService != null) {
                 commercialStockMovementService.record(
-                        stockItem,
-                        credit,
+                        stockItem.getId(),
+                        credit.getId(),
+                        credit.getReference(),
                         CommercialStockMovementType.CREDIT_SALE,
                         quantityBefore,
                         itemDto.getQuantity(),
-                        stockItem.getQuantityRemaining()
+                        stockItem.getQuantityRemaining(),
+                        null,
+                        sourceStock.getCollector(),
+                        stockItem.getArticle().getId(),
+                        stockItem.getArticle().getCommercialName()
                 );
             }
 

@@ -210,14 +210,18 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
 
                 // Enregistrement du mouvement de stock RETURN pour le commercial
                 if (commercialStockMovementService != null) {
-                    commercialStockMovementService.recordWithStockReturn(
-                            item,
+                    commercialStockMovementService.record(
+                            item.getId(),
+                            null,
                             null,
                             CommercialStockMovementType.RETURN,
                             quantityBefore,
                             returnItem.getQuantity(),
                             item.getQuantityRemaining(),
-                            stockReturn.getId()
+                            stockReturn.getId(),
+                            monthlyStock.getCollector(),
+                            item.getArticle().getId(),
+                            item.getArticle().getCommercialName()
                     );
                 }
                 

@@ -516,12 +516,17 @@ public class CreditService extends GenericService<Credit, Long> {
             // Enregistrement du mouvement de stock
             if (commercialStockMovementService != null) {
                 commercialStockMovementService.record(
-                        stockItem,
-                        clientCredit,
+                        stockItem.getId(),
+                        clientCredit.getId(),
+                        clientCredit.getReference(),
                         com.optimize.elykia.core.enumaration.CommercialStockMovementType.CREDIT_SALE,
                         quantityBefore,
                         creditArticles.getQuantity(),
-                        stockItem.getQuantityRemaining()
+                        stockItem.getQuantityRemaining(),
+                        null,
+                        monthlyStock.getCollector(),
+                        stockItem.getArticle().getId(),
+                        stockItem.getArticle().getCommercialName()
                 );
             }
 
@@ -713,12 +718,17 @@ public class CreditService extends GenericService<Credit, Long> {
                     // Enregistrement du mouvement de stock CASH
                     if (commercialStockMovementService != null) {
                         commercialStockMovementService.record(
-                                stockItem,
-                                cashCredit,
+                                stockItem.getId(),
+                                cashCredit.getId(),
+                                cashCredit.getReference(),
                                 com.optimize.elykia.core.enumaration.CommercialStockMovementType.CASH_SALE,
                                 quantityBefore,
                                 creditArticle.getQuantity(),
-                                stockItem.getQuantityRemaining()
+                                stockItem.getQuantityRemaining(),
+                                null,
+                                monthlyStock.getCollector(),
+                                stockItem.getArticle().getId(),
+                                stockItem.getArticle().getCommercialName()
                         );
                     }
                 });

@@ -7,13 +7,13 @@ import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.repository.CommercialStockMovementRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@Transactional
 @Slf4j
 public class CommercialStockMovementService {
 
@@ -23,32 +23,25 @@ public class CommercialStockMovementService {
         this.repository = repository;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CommercialStockMovement record(
-            CommercialMonthlyStockItem stockItem,
-            Credit credit,
-            CommercialStockMovementType movementType,
-            Integer quantityBefore,
-            Integer quantityMoved,
-            Integer quantityAfter) {
-        return recordWithStockReturn(stockItem, credit, movementType, quantityBefore, quantityMoved, quantityAfter, null);
-    }
-
-    public CommercialStockMovement recordWithStockReturn(
-            CommercialMonthlyStockItem stockItem,
-            Credit credit,
+            Long stockItemId,
+            Long creditId,
+            String creditReference,
             CommercialStockMovementType movementType,
             Integer quantityBefore,
             Integer quantityMoved,
             Integer quantityAfter,
-            Long stockReturnId) {
+            Long stockReturnId,
+            String collector,
+            Long articleId,
+            String articleName) {
 
         CommercialStockMovement movement = new CommercialStockMovement();
-        movement.setStockItem(stockItem);
-        movement.setCredit(credit);
-        movement.setCreditReference(credit != null ? credit.getReference() : null);
+        movement.setCreditId(creditId);
+        movement.setCreditReference(creditReference);
         movement.setStockReturnId(stockReturnId);
-        movement.setCollector(stockItem.getMonthlyStock().getCollector());
-        movement.setArticle(stockItem.getArticle());
+        movement.setCollector(collector);
         movement.setMovementType(movementType);
         movement.setQuantityBefore(quantityBefore);
         movement.setQuantityMoved(quantityMoved);
@@ -56,10 +49,11 @@ public class CommercialStockMovementService {
         movement.setOperationDate(LocalDateTime.now());
 
         try {
-            return repository.save(movement);
+            CommercialStockMovement saved = repository.save(movement);
+            log.debug("Stock movement recorded successfully: type={}, stockItemId={}", movementType, stockItemId);
+            return saved;
         } catch (Exception e) {
-            log.error("Failed to record stock movement for stockItem {}: {}",
-                    stockItem.getId(), e.getMessage());
+            log.error("Failed to record stock movement for stockItemId {}: {}", stockItemId, e.getMessage());
             return null;
         }
     }
@@ -69,7 +63,7 @@ public class CommercialStockMovementService {
     }
 
     public List<CommercialStockMovement> getByCredit(Long creditId) {
-        return repository.findByCredit_IdOrderByOperationDateDesc(creditId);
+        return repository.findByCreditIdOrderByOperationDateDesc(creditId);
     }
 
     public List<CommercialStockMovement> getByCollectorAndType(String collector, CommercialStockMovementType type) {

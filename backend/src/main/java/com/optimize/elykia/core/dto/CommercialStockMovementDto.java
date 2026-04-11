@@ -22,7 +22,7 @@ public record CommercialStockMovementDto(
         return new CommercialStockMovementDto(
                 m.getId(),
                 m.getStockItem().getId(),
-                m.getCredit() != null ? m.getCredit().getId() : null,
+                m.getCreditId(),
                 m.getCreditReference(),
                 m.getStockReturnId(),
                 m.getCollector(),

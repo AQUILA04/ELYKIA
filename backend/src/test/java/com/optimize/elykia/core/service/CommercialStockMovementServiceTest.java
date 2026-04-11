@@ -1,17 +1,11 @@
 package com.optimize.elykia.core.service;
 
-import com.optimize.elykia.core.entity.article.Articles;
-import com.optimize.elykia.core.entity.sale.Credit;
-import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
-import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.stock.CommercialStockMovement;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.repository.CommercialStockMovementRepository;
 import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,44 +26,23 @@ class CommercialStockMovementServiceTest {
     @InjectMocks
     private CommercialStockMovementService service;
 
-    private CommercialMonthlyStockItem stockItem;
-    private CommercialMonthlyStock monthlyStock;
-    private Credit credit;
-    private Articles article;
-
-    @BeforeEach
-    void setUp() {
-        article = new Articles();
-        article.setId(1L);
-        article.setName("iPhone 13");
-
-        monthlyStock = new CommercialMonthlyStock();
-        monthlyStock.setId(1L);
-        monthlyStock.setCollector("collector1");
-
-        stockItem = new CommercialMonthlyStockItem();
-        stockItem.setId(1L);
-        stockItem.setArticle(article);
-        stockItem.setMonthlyStock(monthlyStock);
-        stockItem.setQuantityRemaining(10);
-
-        credit = new Credit();
-        credit.setId(1L);
-        credit.setReference("CR-001");
-    }
-
     @Test
     void testRecord_CREDIT_SALE() {
         when(repository.save(any(CommercialStockMovement.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CommercialStockMovement movement = service.record(
-                stockItem,
-                credit,
+                1L,
+                10L,
+                "CR-001",
                 CommercialStockMovementType.CREDIT_SALE,
                 10,
                 3,
-                7
+                7,
+                null,
+                "collector1",
+                100L,
+                "iPhone 13"
         );
 
         assertNotNull(movement);
@@ -77,11 +50,10 @@ class CommercialStockMovementServiceTest {
         assertEquals(10, movement.getQuantityBefore());
         assertEquals(3, movement.getQuantityMoved());
         assertEquals(7, movement.getQuantityAfter());
-        assertEquals(stockItem, movement.getStockItem());
-        assertEquals(credit, movement.getCredit());
+        assertEquals(10L, movement.getCreditId());
         assertEquals("CR-001", movement.getCreditReference());
         assertEquals("collector1", movement.getCollector());
-        assertEquals(article, movement.getArticle());
+        assertNull(movement.getStockReturnId());
         assertNotNull(movement.getOperationDate());
 
         verify(repository).save(any(CommercialStockMovement.class));
@@ -93,12 +65,17 @@ class CommercialStockMovementServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CommercialStockMovement movement = service.record(
-                stockItem,
-                credit,
+                1L,
+                20L,
+                "CASH-001",
                 CommercialStockMovementType.CASH_SALE,
                 20,
                 5,
-                15
+                15,
+                null,
+                "collector2",
+                101L,
+                "Samsung Galaxy"
         );
 
         assertNotNull(movement);
@@ -106,28 +83,67 @@ class CommercialStockMovementServiceTest {
         assertEquals(20, movement.getQuantityBefore());
         assertEquals(5, movement.getQuantityMoved());
         assertEquals(15, movement.getQuantityAfter());
+        assertEquals(20L, movement.getCreditId());
 
         verify(repository).save(any(CommercialStockMovement.class));
     }
 
     @Test
-    void testRecord_WithNullCredit() {
+    void testRecord_STOCK_IN() {
         when(repository.save(any(CommercialStockMovement.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CommercialStockMovement movement = service.record(
-                stockItem,
+                1L,
+                null,
                 null,
                 CommercialStockMovementType.STOCK_IN,
+                0,
                 10,
                 10,
-                20
+                50L,
+                "collector1",
+                102L,
+                "Xiaomi"
         );
 
         assertNotNull(movement);
         assertEquals(CommercialStockMovementType.STOCK_IN, movement.getMovementType());
-        assertNull(movement.getCredit());
+        assertEquals(0, movement.getQuantityBefore());
+        assertEquals(10, movement.getQuantityMoved());
+        assertEquals(10, movement.getQuantityAfter());
+        assertNull(movement.getCreditId());
         assertNull(movement.getCreditReference());
+        assertEquals(50L, movement.getStockReturnId());
+
+        verify(repository).save(any(CommercialStockMovement.class));
+    }
+
+    @Test
+    void testRecord_RETURN() {
+        when(repository.save(any(CommercialStockMovement.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        CommercialStockMovement movement = service.record(
+                1L,
+                null,
+                null,
+                CommercialStockMovementType.RETURN,
+                10,
+                3,
+                7,
+                60L,
+                "collector1",
+                103L,
+                "OPPO"
+        );
+
+        assertNotNull(movement);
+        assertEquals(CommercialStockMovementType.RETURN, movement.getMovementType());
+        assertEquals(10, movement.getQuantityBefore());
+        assertEquals(3, movement.getQuantityMoved());
+        assertEquals(7, movement.getQuantityAfter());
+        assertEquals(60L, movement.getStockReturnId());
 
         verify(repository).save(any(CommercialStockMovement.class));
     }
@@ -142,12 +158,17 @@ class CommercialStockMovementServiceTest {
         int quantityAfter = quantityBefore - quantityMoved;
 
         CommercialStockMovement movement = service.record(
-                stockItem,
-                credit,
+                1L,
+                1L,
+                "TEST-REF",
                 CommercialStockMovementType.CREDIT_SALE,
                 quantityBefore,
                 quantityMoved,
-                quantityAfter
+                quantityAfter,
+                null,
+                "collector1",
+                1L,
+                "Test Article"
         );
 
         assertEquals(quantityAfter, movement.getQuantityBefore() - movement.getQuantityMoved());
@@ -163,36 +184,22 @@ class CommercialStockMovementServiceTest {
             int quantityMoved = 2;
 
             CommercialStockMovement movement = service.record(
-                    stockItem,
-                    credit,
+                    1L,
+                    1L,
+                    "TEST-REF",
                     CommercialStockMovementType.CREDIT_SALE,
                     quantityBefore,
                     quantityMoved,
-                    quantityBefore - quantityMoved
+                    quantityBefore - quantityMoved,
+                    null,
+                    "collector1",
+                    1L,
+                    "Test Article"
             );
 
             assertTrue(movement.getQuantityAfter() >= 0,
                     "quantityAfter should not be negative");
         }
-    }
-
-    @Test
-    void testProperty_P4_CreditReferenceConsistency() {
-        when(repository.save(any(CommercialStockMovement.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        credit.setReference("TEST-REF-123");
-
-        CommercialStockMovement movement = service.record(
-                stockItem,
-                credit,
-                CommercialStockMovementType.CREDIT_SALE,
-                10,
-                3,
-                7
-        );
-
-        assertEquals(credit.getReference(), movement.getCreditReference());
     }
 
     @Test
@@ -216,14 +223,14 @@ class CommercialStockMovementServiceTest {
         List<CommercialStockMovement> movements = Arrays.asList(
                 createMovement(CommercialStockMovementType.CREDIT_SALE)
         );
-        when(repository.findByCredit_IdOrderByOperationDateDesc(1L))
+        when(repository.findByCreditIdOrderByOperationDateDesc(1L))
                 .thenReturn(movements);
 
         List<CommercialStockMovement> result = service.getByCredit(1L);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(repository).findByCredit_IdOrderByOperationDateDesc(1L);
+        verify(repository).findByCreditIdOrderByOperationDateDesc(1L);
     }
 
     @Test
@@ -247,12 +254,17 @@ class CommercialStockMovementServiceTest {
                 .thenThrow(new RuntimeException("Database error"));
 
         CommercialStockMovement movement = service.record(
-                stockItem,
-                credit,
+                1L,
+                1L,
+                "TEST-REF",
                 CommercialStockMovementType.CREDIT_SALE,
                 10,
                 3,
-                7
+                7,
+                null,
+                "collector1",
+                1L,
+                "Test Article"
         );
 
         assertNull(movement);
@@ -262,9 +274,8 @@ class CommercialStockMovementServiceTest {
     private CommercialStockMovement createMovement(CommercialStockMovementType type) {
         CommercialStockMovement movement = new CommercialStockMovement();
         movement.setId(1L);
-        movement.setStockItem(stockItem);
-        movement.setCredit(credit);
-        movement.setArticle(article);
+        movement.setCreditId(1L);
+        movement.setCreditReference("CR-001");
         movement.setCollector("collector1");
         movement.setMovementType(type);
         movement.setQuantityBefore(10);

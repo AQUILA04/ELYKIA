@@ -8,6 +8,7 @@
         <option value="$PROJECT_DIR$/backend-lib/optimize-elykia-client/pom.xml" />
         <option value="$PROJECT_DIR$/backend-lib/common-security-service/pom.xml" />
         <option value="$PROJECT_DIR$/backend-lib/common-entities-dependencies/pom.xml" />
+        <option value="$PROJECT_DIR$/backend-lib/elykia-client/pom.xml" />
       </list>
     </option>
   </component>
