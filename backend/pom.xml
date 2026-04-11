@@ -137,6 +137,11 @@
             <artifactId>loki-logback-appender</artifactId>
             <version>1.5.1</version>
         </dependency>
+        <!-- Janino for conditional logback configuration -->
+        <dependency>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>janino</artifactId>
+        </dependency>
 
         <!-- Flyway pour la gestion des migrations de base de données -->
         <dependency>

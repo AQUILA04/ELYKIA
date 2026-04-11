@@ -132,47 +132,54 @@
         <level value="DEBUG" />
     </logger>
 
-    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
-        <http>
-            <url>${LOKI_URL}</url>
-            <auth>
-                <username>${LOKI_USER_ID}</username>
-                <password>${LOKI_API_KEY}</password>
-            </auth>
-        </http>
-        <labels>
-            app = ${springAppName}
-            env = ${activeProfile}
-        </labels>
-        <message class="com.github.loki4j.logback.JsonLayout">
-            <loggerName>
-                <fieldName>logger</fieldName>
-            </loggerName>
-            <threadName>
-                <fieldName>thread</fieldName>
-            </threadName>
-            <logLevel>
-                <fieldName>level</fieldName>
-            </logLevel>
-            <message>
-                <fieldName>message</fieldName>
-            </message>
-            <stackTrace>
-                <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
-                    <maxDepthPerThrowable>30</maxDepthPerThrowable>
-                    <maxLength>2048</maxLength>
-                    <shortenedClassNameLength>20</shortenedClassNameLength>
-                    <rootCauseFirst>true</rootCauseFirst>
-                </throwableConverter>
-            </stackTrace>
-        </message>
-    </appender>
+    <!-- Loki appender: activated only if LOKI_API_KEY is provided -->
+    <if condition='!property("LOKI_API_KEY").isEmpty()'>
+        <then>
+            <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+                <http>
+                    <url>${LOKI_URL}</url>
+                    <auth>
+                        <username>${LOKI_USER_ID}</username>
+                        <password>${LOKI_API_KEY}</password>
+                    </auth>
+                </http>
+                <labels>
+                    app = ${springAppName}
+                    env = ${activeProfile}
+                </labels>
+                <message class="com.github.loki4j.logback.JsonLayout">
+                    <loggerName>
+                        <fieldName>logger</fieldName>
+                    </loggerName>
+                    <threadName>
+                        <fieldName>thread</fieldName>
+                    </threadName>
+                    <logLevel>
+                        <fieldName>level</fieldName>
+                    </logLevel>
+                    <message>
+                        <fieldName>message</fieldName>
+                    </message>
+                    <stackTrace>
+                        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                            <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                            <maxLength>2048</maxLength>
+                            <shortenedClassNameLength>20</shortenedClassNameLength>
+                            <rootCauseFirst>true</rootCauseFirst>
+                        </throwableConverter>
+                    </stackTrace>
+                </message>
+            </appender>
+        </then>
+    </if>
 
     <!-- LOG everything at INFO level -->
     <root level="INFO">
         <appender-ref ref="MainRollingFile"/>
         <appender-ref ref="Console"/>
-        <appender-ref ref="LOKI"/>
+        <if condition='!property("LOKI_API_KEY").isEmpty()'>
+            <then><appender-ref ref="LOKI"/></then>
+        </if>
 <!--        <appender-ref ref="LOGSTASH"/>-->
     </root>
     </springProfile>
