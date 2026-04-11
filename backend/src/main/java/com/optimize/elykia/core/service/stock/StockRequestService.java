@@ -340,6 +340,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 stockItem.updateRemaining();
                 quantityBefore = 0;
                 monthlyStock.addItem(stockItem);
+                monthlyStockItemRepository.save(stockItem);
             }
 
             // Enregistrement du mouvement de stock STOCK_IN pour le commercial
