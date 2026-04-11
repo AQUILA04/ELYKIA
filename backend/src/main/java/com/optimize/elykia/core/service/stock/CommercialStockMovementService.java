@@ -1,9 +1,9 @@
 package com.optimize.elykia.core.service.stock;
 
-import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.stock.CommercialStockMovement;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
+import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.core.repository.CommercialStockMovementRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,15 +12,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
 public class CommercialStockMovementService {
 
     private final CommercialStockMovementRepository repository;
+    private final CommercialMonthlyStockItemRepository stockItemRepository;
 
-    public CommercialStockMovementService(CommercialStockMovementRepository repository) {
+    public CommercialStockMovementService(
+            CommercialStockMovementRepository repository,
+            CommercialMonthlyStockItemRepository stockItemRepository) {
         this.repository = repository;
+        this.stockItemRepository = stockItemRepository;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -49,6 +54,15 @@ public class CommercialStockMovementService {
         movement.setOperationDate(LocalDateTime.now());
 
         try {
+            Optional<CommercialMonthlyStockItem> stockItemOpt = stockItemRepository.findById(stockItemId);
+            if (stockItemOpt.isPresent()) {
+                CommercialMonthlyStockItem stockItem = stockItemOpt.get();
+                movement.setStockItem(stockItem);
+            } else {
+                log.error("Stock item not found for id: {}", stockItemId);
+                return null;
+            }
+
             CommercialStockMovement saved = repository.save(movement);
             log.debug("Stock movement recorded successfully: type={}, stockItemId={}", movementType, stockItemId);
             return saved;
