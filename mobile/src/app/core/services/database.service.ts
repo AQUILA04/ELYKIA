@@ -910,6 +910,14 @@ export class DatabaseService {
       const distIdStr = String(localDist.id);
       if (!distIdStr) { continue; }
 
+      // Vérification stricte : on refuse de persister une distribution sans items
+      if (!localDist.items || localDist.items.length === 0) {
+        const errMsg = `[saveDistributionsAndItems] Refus de persister la distribution ${distIdStr} : aucun item trouvé après mapping.`;
+        this.log.log(errMsg);
+        console.error(errMsg);
+        throw new Error(errMsg);
+      }
+
       // 1. Supprimer les items existants pour cette distribution
       sqlSet.push({
         statement: 'DELETE FROM distribution_items WHERE distributionId = ?',
@@ -940,7 +948,7 @@ export class DatabaseService {
           localDist.isSync ? 1 : 0,
           now,
           localDist.createdAt ?? now,
-          null, // Plus de hash
+          null,
           localDist.articleCount ?? 0,
           localDist.remainingAmount ?? localDist.totalAmount ?? 0,
           localDist.paidAmount ?? 0,
@@ -949,55 +957,51 @@ export class DatabaseService {
       });
 
       // 3. Insérer les items
-      if (localDist.items && localDist.items.length > 0) {
-        const itemSql = `INSERT INTO distribution_items (id, distributionId, articleId, quantity, unitPrice, totalPrice) VALUES (?,?,?,?,?,?)`;
-        for (const item of localDist.items) {
-          sqlSet.push({
-            statement: itemSql,
-            values: [
-              item.id ?? this.generateUuid(),
-              distIdStr,
-              item.articleId ?? null,
-              item.quantity ?? 0,
-              item.unitPrice ?? 0,
-              item.totalPrice ?? 0
-            ]
-          });
-        }
+      const itemSql = `INSERT INTO distribution_items (id, distributionId, articleId, quantity, unitPrice, totalPrice) VALUES (?,?,?,?,?,?)`;
+      for (const item of localDist.items) {
+        sqlSet.push({
+          statement: itemSql,
+          values: [
+            item.id ?? this.generateUuid(),
+            distIdStr,
+            item.articleId ?? null,
+            item.quantity ?? 0,
+            item.unitPrice ?? 0,
+            item.totalPrice ?? 0
+          ]
+        });
       }
     }
 
+    if (sqlSet.length === 0) { return; }
+
+    // executeSet est transactionnel par défaut (transaction: true) dans @capacitor-community/sqlite.
+    // Tous les statements (DELETE + INSERT distribution + INSERT items) sont exécutés atomiquement.
     try {
-      if (sqlSet.length > 0) {
-        await this.db.executeSet(sqlSet);
-        const msg = `Successfully saved ${distributions.length} distributions and their items (INSERT OR REPLACE).`;
-        this.log.log(msg);
-        console.log(msg);
-      }
+      await this.db.executeSet(sqlSet);
+      const msg = `Successfully saved ${distributions.length} distributions and their items.`;
+      this.log.log(msg);
+      console.log(msg);
     } catch (error: any) {
       const errMsg = `Failed to save distributions and items in transaction: ${error.message || JSON.stringify(error)}`;
       this.log.log(errMsg);
       console.error(errMsg, error);
 
-      if (error && error.message && error.message.includes('FOREIGN KEY constraint failed')) {
+      if (error?.message?.includes('FOREIGN KEY constraint failed')) {
         try {
           const articleIds = new Set<string>();
           distributions.forEach(d => {
             const localDist = DistributionMapper.toLocal(d);
-            if (localDist.items) {
-              localDist.items.forEach(i => i.articleId && articleIds.add(String(i.articleId)));
-            }
+            localDist.items?.forEach(i => i.articleId && articleIds.add(String(i.articleId)));
           });
-
           if (articleIds.size > 0) {
             const idsArr = Array.from(articleIds);
             const placeholders = idsArr.map(() => '?').join(',');
             const res = await this.db.query(`SELECT id FROM articles WHERE id IN (${placeholders})`, idsArr);
             const foundIds = new Set((res.values || []).map(r => String(r.id)));
             const missingIds = idsArr.filter(id => !foundIds.has(id));
-
             if (missingIds.length > 0) {
-              const exactCause = `EXACT CAUSE: FOREIGN KEY constraint failed. Missing article IDs in local DB: ${missingIds.join(', ')}`;
+              const exactCause = `EXACT CAUSE: Missing article IDs in local DB: ${missingIds.join(', ')}`;
               this.log.log(exactCause);
               console.error(exactCause);
             }

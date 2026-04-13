@@ -16,7 +16,7 @@ import { Client } from '../../../../models/client.model';
 import { Article } from '../../../../models/article.model';
 
 import * as DistributionActions from '../../../../store/distribution/distribution.actions';
-import { selectAvailableArticles, selectSelectedClient, selectArticleQuantities, selectDistributionTotalAmount, selectSelectedArticlesWithDetails, selectArticlesPaginationHasMore, selectSelectedArticlesCache } from '../../../../store/distribution/distribution.selectors';
+import { selectAvailableArticles, selectSelectedClient, selectArticleQuantities, selectDistributionTotalAmount, selectSelectedArticlesWithDetails, selectArticlesPaginationHasMore } from '../../../../store/distribution/distribution.selectors';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 import { CanComponentDeactivate } from '../../../../core/guards/unsaved-changes.guard';
 import { LoggerService } from '../../../../core/services/logger.service';
@@ -532,169 +532,108 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
   async confirmDistribution() {
     if (!this.canConfirm()) return;
 
-    this.store.select(selectAuthUser).pipe(take(1)).subscribe(async user => {
-      if (!user) {
-        await this.presentErrorAlert('Erreur', 'Utilisateur non identifié');
-        return;
+    const user = await firstValueFrom(this.store.select(selectAuthUser).pipe(take(1)));
+    if (!user) {
+      await this.presentErrorAlert('Erreur', 'Utilisateur non identifié');
+      return;
+    }
+
+    const vm = this.vm;
+
+    // Règle 1: Vérifier s'il y a déjà un crédit en cours pour ce client
+    const existingDistributions = await firstValueFrom(
+      this.distributionService.getDistributionsByClient(vm.client!.id)
+    );
+    if (existingDistributions.some(d => d.status === 'INPROGRESS')) {
+      await this.presentErrorAlert(
+        'Crédit Existant',
+        'Ce client a déjà un crédit en cours. Veuillez le solder avant d\'en créer un nouveau.'
+      );
+      return;
+    }
+
+    // --- Construction des articles directement depuis vm.quantities + DB ---
+    // On ne passe PLUS par le store/cache pour construire les articles.
+    // vm.quantities est la source de vérité : c'est ce que l'utilisateur a sélectionné.
+    const selectedArticleIds = Object.keys(vm.quantities).filter(id => vm.quantities[id] > 0);
+
+    if (selectedArticleIds.length === 0) {
+      await this.presentErrorAlert('Sélection vide', 'Veuillez sélectionner au moins un article.');
+      return;
+    }
+
+    // Récupération directe depuis la DB locale — pas de dépendance au store
+    let articlesFromDb: Article[];
+    try {
+      articlesFromDb = await this.articleRepository.findByIds(selectedArticleIds);
+    } catch (dbError) {
+      this.log.error('[NewDistributionPage] Échec de la récupération des articles depuis la DB', dbError);
+      await this.presentErrorAlert('Erreur', 'Impossible de charger les articles sélectionnés. Veuillez réessayer.');
+      return;
+    }
+
+    // Vérification de cohérence : tous les articles doivent être trouvés en DB
+    if (articlesFromDb.length !== selectedArticleIds.length) {
+      const foundIds = new Set(articlesFromDb.map(a => a.id));
+      const missingIds = selectedArticleIds.filter(id => !foundIds.has(id));
+      this.log.error('[NewDistributionPage] Articles introuvables en DB', { missingIds });
+      await this.presentErrorAlert(
+        'Erreur de sélection',
+        `${missingIds.length} article(s) introuvable(s) en base locale. Veuillez rafraîchir et re-sélectionner.`
+      );
+      return;
+    }
+
+    const articlesPayload = articlesFromDb.map(article => ({
+      articleId: article.id,
+      quantity: vm.quantities[article.id]
+    }));
+    // --- Fin construction articles ---
+
+    const adjustedAdvance = vm.adjustedAdvance;
+    const remainingAmount = vm.totalAmount - adjustedAdvance;
+    const dailyPayment = vm.dailyPayment;
+    const paymentPeriod = vm.paymentPeriod;
+
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + paymentPeriod);
+
+    const distributionData = {
+      creditId: undefined,
+      clientId: vm.client!.id,
+      client: vm.client,
+      articles: articlesPayload,
+      totalAmount: vm.totalAmount,
+      advance: adjustedAdvance,
+      paidAmount: adjustedAdvance,
+      remainingAmount: remainingAmount,
+      dailyPayment: dailyPayment,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      type: 'CLIENT'
+    };
+
+    this.log.log('[NewDistributionPage] Confirming distribution');
+    console.log('[NewDistributionPage] Confirming distribution', distributionData);
+
+    this.store.dispatch(DistributionActions.createDistribution({ distributionData }));
+
+    const loading = await this.loadingController.create({
+      message: 'Création de la distribution...',
+      duration: 10000
+    });
+    await loading.present();
+
+    this.actions$.pipe(
+      ofType(DistributionActions.createDistributionSuccess, DistributionActions.createDistributionFailure),
+      take(1)
+    ).subscribe(async action => {
+      await loading.dismiss();
+      if (action.type === DistributionActions.createDistributionFailure.type) {
+        const failureAction = action as ReturnType<typeof DistributionActions.createDistributionFailure>;
+        await this.presentErrorAlert('Erreur', failureAction.error);
       }
-
-      const vm = this.vm;
-      const articlesCount = this.getSelectedArticlesCount();
-
-      // Règle 1: Vérifier s'il y a déjà un crédit en cours pour ce client
-      // We need to fetch distributions for this client.
-      // Using a selector or service? The old code used selectDistributionsByClientId.
-      // We need to ensure we have them loaded.
-      // Assuming they are in the store or we fetch them.
-      // Since we are moving to pagination, we might not have ALL distributions.
-      // SAFE APPROACH: Use DistributionService to check (async check) or trust the store if likely loaded.
-      // However, for "New Distribution", we probably haven't loaded this client's history specifically if we just came here.
-      // Better to check via service to be safe, OR if the store has everything (offline first).
-      // The old code used: this.store.select(selectDistributionsByClientId(vm.client.id))
-      // Let's assume offline-first means we have them in the store/db.
-      // But we need to import selectDistributionsByClientId.
-
-      // Checking via service for robustness if store might be empty of specific client data
-      const existingDistributions = await firstValueFrom(this.distributionService.getDistributionsByClient(vm.client!.id));
-      const hasInProgressCredit = existingDistributions.some(d => d.status === 'INPROGRESS');
-
-      if (hasInProgressCredit) {
-        await this.presentErrorAlert('Crédit Existant', 'Ce client a déjà un crédit en cours. Veuillez le solder avant d\'en créer un nouveau.');
-        return;
-      }
-
-      // Règle 2: Vérifier le solde du compte
-      // const allAccounts = await this.accountService.getAccounts();
-      // const account = allAccounts.find(acc => acc.clientId === vm.client!.id);
-      // const accountBalance = account?.accountBalance || 0;
-
-      const adjustedAdvance = vm.adjustedAdvance;
-      const remainingAmount = vm.totalAmount - adjustedAdvance;
-
-      // if (remainingAmount > (accountBalance * 6)) {
-      //   await this.presentErrorAlert(
-      //     'Plafond de Crédit Dépassé',
-      //     `Le montant de ce crédit (${remainingAmount.toLocaleString('fr-FR')} FCFA) dépasse le plafond autorisé pour ce client (6 x ${accountBalance.toLocaleString('fr-FR')} = ${(accountBalance * 6).toLocaleString('fr-FR')} FCFA). Réduisez le nombre d\'articles.`
-      //   );
-      //   return;
-      // }
-
-      // Récupérer le creditId (Migration: undefined)
-      const creditId = undefined;
-
-      const dailyPayment = vm.dailyPayment;
-      const paymentPeriod = vm.paymentPeriod;
-
-      const startDate = new Date();
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + paymentPeriod);
-
-      // --- Fix Cause Racine 1 : Enrichissement du cache avant soumission ---
-      // Récupère les quantités et le cache actuels depuis le store.
-      const currentQuantities = await firstValueFrom(this.store.select(selectArticleQuantities).pipe(take(1)));
-      const currentCache = await firstValueFrom(this.store.select(selectSelectedArticlesCache).pipe(take(1)));
-
-      // Identifie les IDs d'articles sélectionnés (quantité > 0) qui ne sont PAS dans le cache.
-      const missingFromCacheIds = Object.keys(currentQuantities)
-        .filter(id => currentQuantities[id] > 0 && !currentCache[id]);
-
-      if (missingFromCacheIds.length > 0) {
-        this.log.log(`[NewDistributionPage] Articles manquants dans le cache, récupération depuis la DB: ${missingFromCacheIds.join(', ')}`);
-        console.log('[NewDistributionPage] Articles manquants dans le cache, récupération depuis la DB', { missingFromCacheIds });
-        try {
-          // Récupère les articles manquants directement depuis la base de données locale.
-          const missingArticles = await this.articleRepository.findByIds(missingFromCacheIds);
-          if (missingArticles.length > 0) {
-            // Dispatch l'action pour enrichir le cache dans le store.
-            this.store.dispatch(DistributionActions.enrichArticlesCache({ articles: missingArticles }));
-            // Laisse le temps au store de se mettre à jour avant de lire le sélecteur.
-            await new Promise(resolve => setTimeout(resolve, 50));
-          }
-        } catch (cacheError) {
-          this.log.error('[NewDistributionPage] Échec de l\'enrichissement du cache', cacheError);
-          // Non bloquant : on continue, la validation suivante détectera les articles manquants.
-        }
-      }
-      // --- Fin Fix Cause Racine 1 ---
-
-      // Prepare distribution items (après enrichissement du cache)
-      const selectedArticles = await firstValueFrom(this.store.select(selectSelectedArticlesWithDetails).pipe(take(1)));
-
-      // Vérifier qu'il y a au moins un article sélectionné
-      if (selectedArticles.length === 0) {
-        await this.presentErrorAlert('Sélection vide', 'Veuillez sélectionner au moins un article.');
-        return;
-      }
-
-      // --- Fix Cause Racine 5 : Vérification de cohérence améliorée ---
-      // Compare le nombre d'articles dans le cache (après enrichissement) avec le nombre attendu.
-      // Si des articles sont toujours manquants après l'enrichissement, on bloque avec un message précis.
-      if (selectedArticles.length !== articlesCount) {
-        const missingCount = articlesCount - selectedArticles.length;
-        this.log.error('[NewDistributionPage] Incohérence persistante après enrichissement du cache', {
-          selectedArticlesCount: selectedArticles.length,
-          expectedCount: articlesCount,
-          missingCount
-        });
-
-        const alert = await this.alertController.create({
-          header: 'Erreur de sélection',
-          message: `${missingCount} article(s) sélectionné(s) n'ont pas pu être chargés. Veuillez re-sélectionner vos articles.`,
-          buttons: [
-            {
-              text: 'Rafraîchir',
-              handler: () => {
-                this.refreshList(this.searchTerm$.value);
-              }
-            }
-          ],
-          cssClass: 'error-alert'
-        });
-        await alert.present();
-        return;
-      }
-      // --- Fin Fix Cause Racine 5 ---
-
-      const distributionData = {
-        creditId: creditId,
-        clientId: vm.client!.id,
-        // client: vm.client,
-        client: vm.client,
-        articles: selectedArticles.map(item => ({
-          articleId: item.article.id,
-          quantity: item.quantity
-        })),
-        totalAmount: vm.totalAmount,
-        advance: adjustedAdvance,
-        paidAmount: adjustedAdvance,
-        remainingAmount: remainingAmount,
-        dailyPayment: dailyPayment,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        type: 'CLIENT'
-      };
-
-      this.log.log('[NewDistributionPage] Confirming distribution');
-      console.log('[NewDistributionPage] Confirming distribution', distributionData);
-
-      this.store.dispatch(DistributionActions.createDistribution({ distributionData }));
-
-      const loading = await this.loadingController.create({
-        message: 'Création de la distribution...',
-        duration: 10000 // Timeout safety
-      });
-      await loading.present();
-
-      this.actions$.pipe(
-        ofType(DistributionActions.createDistributionSuccess, DistributionActions.createDistributionFailure),
-        take(1)
-      ).subscribe(async action => {
-        await loading.dismiss();
-        if (action.type === DistributionActions.createDistributionFailure.type) {
-          const failureAction = action as ReturnType<typeof DistributionActions.createDistributionFailure>;
-          await this.presentErrorAlert('Erreur', failureAction.error);
-        }
-      });
     });
   }
 
