@@ -6,6 +6,8 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { DatabaseService } from './database.service';
 import { SyncErrorService } from './sync-error.service';
+import { SyncArchiveService } from './sync-archive.service';
+import { CrashlyticsReporterService } from './crashlytics-reporter.service';
 import { updateSyncProgress } from '../../store/sync/sync.actions';
 
 // Domain Specific Services
@@ -47,6 +49,8 @@ export class SyncMasterService {
     private authService: AuthService,
     private databaseService: DatabaseService,
     private syncErrorService: SyncErrorService,
+    private syncArchiveService: SyncArchiveService,
+    private crashlyticsReporterService: CrashlyticsReporterService,
     private cashDeskService: CashDeskService,
     // Domain Services
     private localitySyncService: LocalitySyncService,
@@ -85,6 +89,9 @@ export class SyncMasterService {
     };
 
     try {
+      // 0. Archive old sync logs before new sync
+      await this.syncArchiveService.archiveOldErrors();
+
       // 1. Calculate Total Items for Progress
       const totalItems = await this.calculateTotalItems();
       let processedItems = 0;
@@ -190,7 +197,7 @@ export class SyncMasterService {
       const totalSuccess = this.sumSuccess(batchResult);
       const totalErrors = this.sumErrors(batchResult);
 
-      return {
+      const syncResult: SyncResult = {
         success: totalErrors === 0,
         totalProcessed: totalSuccess + totalErrors,
         successCount: totalSuccess,
@@ -198,6 +205,11 @@ export class SyncMasterService {
         errors: await this.syncErrorService.getSyncErrors(),
         duration
       };
+
+      // Report errors to Crashlytics
+      await this.crashlyticsReporterService.reportSyncErrors(syncResult);
+
+      return syncResult;
 
     } catch (error) {
       console.error('Erreur critique lors de l\'orchestration de la synchronisation:', error);

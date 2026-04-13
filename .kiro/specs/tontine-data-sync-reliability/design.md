@@ -292,9 +292,7 @@ interface RestorePoint {
 *Pour toute* synchronisation de données volumineuses, le traitement doit être effectué par batches pour optimiser les performances
 **Valide : Exigences 5.3**
 
-### Propriété 11: Mise à jour du progrès de synchronisation
-*Pour toute* synchronisation en cours, l'indicateur de progression doit être mis à jour de manière monotone croissante jusqu'à 100%
-**Valide : Exigences 5.5**
+
 
 ### Configuration des Tests Property-Based
 

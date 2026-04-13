@@ -209,6 +209,14 @@ export class LoggerService {
       return false;
     }
   }
+
+  async recordException(message: string): Promise<void> {
+    try {
+      await FirebaseCrashlytics.recordException({ message });
+    } catch (error) {
+      console.error('Failed to record exception to Crashlytics:', error);
+    }
+  }
 }
 
 export interface LogFileInfo {
