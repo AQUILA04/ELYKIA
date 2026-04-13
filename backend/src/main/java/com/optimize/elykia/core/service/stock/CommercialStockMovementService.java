@@ -58,6 +58,7 @@ public class CommercialStockMovementService {
             if (stockItemOpt.isPresent()) {
                 CommercialMonthlyStockItem stockItem = stockItemOpt.get();
                 movement.setStockItem(stockItem);
+                movement.setArticle(stockItem.getArticle());
             } else {
                 log.error("Stock item not found for id: {}", stockItemId);
                 return null;
