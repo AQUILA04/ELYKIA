@@ -12,6 +12,7 @@ import { BaseSyncService } from './base-sync.service';
 import { ClientSyncResponse } from 'src/app/models/api-sync-response.model';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { ClientPhotoUrlUpdateDto } from '../../../models/client-photo-url-update.dto';
+import { DateFilter } from '../../models/date-filter.model';
 
 @Injectable({
     providedIn: 'root'
@@ -23,7 +24,7 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
         protected override repository: ClientRepository,
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
-        private clientRepositoryExtensions: ClientRepositoryExtensions
+        private readonly clientRepositoryExtensions: ClientRepositoryExtensions
     ) {
         super(http, repository, authService, syncErrorService, 'client');
     }
@@ -36,9 +37,9 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
      * 3. Mise à jour des URLs de photos
      * 4. Mise à jour de la localisation
      */
-    override async syncAll(batchSize: number = 20): Promise<{ success: number; errors: number; failedIds: string[] }> {
+    override async syncAll(batchSize: number = 20, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
         // 1. Synchronisation standard (Nouveaux clients et Mises à jour complètes)
-        const baseResult = await super.syncAll(batchSize);
+        const baseResult = await super.syncAll(batchSize, dateFilter);
 
         // 2. Synchronisation des photos modifiées
         const photoResult = await this.syncUpdatedPhotos();
@@ -57,9 +58,9 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
         };
     }
 
-    override async syncBatch(limit: number = 20): Promise<{ success: number; errors: number; failedIds: string[] }> {
+    override async syncBatch(limit: number = 20, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
         // Synchronisation standard (Nouveaux clients et Mises à jour complètes)
-        return super.syncBatch(limit);
+        return super.syncBatch(limit, dateFilter);
     }
 
     /**
@@ -123,7 +124,7 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
     /**
      * Override to use Repository Extensions
      */
-    protected override async fetchUnsynced(limit: number): Promise<Client[]> {
+    protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<Client[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
 
@@ -154,7 +155,7 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
             this.http.post<ApiResponse<ClientSyncResponse>>(`${this.baseUrl}/api/v1/clients`, syncRequest, { headers })
         );
 
-        if (!response || !response.data) {
+        if (!response?.data) {
             throw new Error(response?.message || 'Invalid response from server');
         }
 
@@ -177,7 +178,7 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
             this.http.put<ApiResponse<ClientSyncResponse>>(`${this.baseUrl}/api/v1/clients/${serverId}`, syncRequest, { headers })
         );
 
-        if (!response || !response.data) {
+        if (!response?.data) {
             throw new Error(response?.message || 'Invalid response from server for client update');
         }
 

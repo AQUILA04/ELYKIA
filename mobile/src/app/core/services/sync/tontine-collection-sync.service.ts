@@ -9,6 +9,7 @@ import { TontineCollection } from '../../../models/tontine.model';
 import { TontineCollectionSyncRequest, TontineCollectionSyncResponse } from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
+import { DateFilter } from '../../models/date-filter.model';
 
 @Injectable({
     providedIn: 'root'
@@ -22,7 +23,7 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
         protected override repository: TontineCollectionRepository,
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
-        private tontineCollectionRepositoryExtensions: TontineCollectionRepositoryExtensions
+        private readonly tontineCollectionRepositoryExtensions: TontineCollectionRepositoryExtensions
     ) {
         super(http, repository, authService, syncErrorService, 'tontine-collection');
     }
@@ -35,17 +36,15 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
      * Synchronize a batch of unsynced tontine collections
      * Overridden to handle failedMemberIds dependency
      */
-    override async syncBatch(limit: number = 50, failedMemberIds: string[] = []): Promise<{ success: number; errors: number; failedIds: string[] }> {
-        const unsyncedCollections = await this.fetchUnsynced(limit);
+    override async syncBatch(limit: number = 50, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        const unsyncedCollections = await this.fetchUnsynced(limit, dateFilter);
 
         let success = 0;
         let errors = 0;
         const failedIds: string[] = [];
 
-        const memberIdsToCheck = failedMemberIds.length > 0 ? failedMemberIds : this.failedMemberIds;
-
         for (const collection of unsyncedCollections) {
-            if (memberIdsToCheck.includes(collection.tontineMemberId)) {
+            if (this.failedMemberIds.includes(collection.tontineMemberId)) {
                 errors++;
                 await this.syncErrorService.logSyncError(
                     'tontine-collection',
@@ -76,15 +75,24 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
         return this.syncSingleTontineCollection(item);
     }
 
-    protected override async fetchUnsynced(limit: number): Promise<TontineCollection[]> {
+    protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<TontineCollection[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
+
+        const filters: any = { isSync: false, isLocal: true };
+
+        if (dateFilter && (dateFilter.startDate || dateFilter.endDate)) {
+            filters.dateFilter = {
+                ...dateFilter,
+                dateColumn: 'collectionDate'
+            };
+        }
 
         const page = await this.tontineCollectionRepositoryExtensions.findByCommercialPaginated(
             commercialUsername,
             0,
             limit,
-            { isSync: false, isLocal: true }
+            filters
         );
         return page.content;
     }
@@ -105,7 +113,7 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
         }
 
         const syncRequest: TontineCollectionSyncRequest = {
-            memberId: parseInt(serverMemberId, 10),
+            memberId: Number.parseInt(serverMemberId, 10),
             amount: collection.amount,
             isDeliveryCollection: collection.isDeliveryCollection,
             reference: collection.id,
@@ -118,7 +126,7 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
             this.http.post<ApiResponse<TontineCollectionSyncResponse>>(`${this.baseUrl}/api/v1/tontines/collections`, syncRequest, { headers })
         );
 
-        if (!response || !response.data) {
+        if (!response?.data) {
             throw new Error(response?.message || 'Invalid response from server for tontine collection sync');
         }
 

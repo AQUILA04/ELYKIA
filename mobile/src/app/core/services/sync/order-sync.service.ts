@@ -9,6 +9,7 @@ import { Order } from '../../../models/order.model';
 import { OrderSyncRequest, OrderSyncResponse } from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
+import { DateFilter } from '../../models/date-filter.model';
 
 @Injectable({
     providedIn: 'root'
@@ -22,7 +23,7 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
         protected override repository: OrderRepository,
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
-        private orderRepositoryExtensions: OrderRepositoryExtensions
+        private readonly orderRepositoryExtensions: OrderRepositoryExtensions
     ) {
         super(http, repository, authService, syncErrorService, 'order');
     }
@@ -35,18 +36,15 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
      * Synchronize a batch of unsynced orders
      * Overridden to handle failedClientIds dependency
      */
-    override async syncBatch(limit: number = 20, failedClientIds: string[] = []): Promise<{ success: number; errors: number; failedIds: string[] }> {
-        const unsyncedOrders = await this.fetchUnsynced(limit);
+    override async syncBatch(limit: number = 20, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        const unsyncedOrders = await this.fetchUnsynced(limit, dateFilter);
 
         let success = 0;
         let errors = 0;
         const failedIds: string[] = [];
 
-        const clientIdsToCheck = failedClientIds.length > 0 ? failedClientIds : this.failedClientIds;
-
         for (const order of unsyncedOrders) {
-            if (clientIdsToCheck.includes(order.clientId)) {
-                // Check if client is actually synced (failedClientIds contains local IDs)
+            if (this.failedClientIds.includes(order.clientId)) {
                 errors++;
                 await this.syncErrorService.logSyncError(
                     'order',
@@ -77,7 +75,7 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
         return this.syncSingleOrder(item);
     }
 
-    protected override async fetchUnsynced(limit: number): Promise<Order[]> {
+    protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<Order[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
 
@@ -98,7 +96,7 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
             this.http.post<ApiResponse<OrderSyncResponse>>(`${this.baseUrl}/api/v1/orders`, syncRequest, { headers })
         );
 
-        if (!response || !response.data) {
+        if (!response?.data) {
             throw new Error(response?.message || 'Invalid response from server for order sync');
         }
 
@@ -119,9 +117,9 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
         }
 
         return {
-            clientId: parseInt(clientServerId, 10),
+            clientId: Number.parseInt(clientServerId, 10),
             items: items.map(item => ({
-                articleId: parseInt(item.articleId, 10),
+                articleId: Number.parseInt(item.articleId, 10),
                 quantity: item.quantity
             }))
         };

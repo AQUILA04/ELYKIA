@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { BaseSyncService } from './base-sync.service';
 import { Locality } from '../../../models/locality.model';
@@ -8,6 +8,7 @@ import { LocalityRepositoryExtensions } from '../../repositories/locality.reposi
 import { AuthService } from '../auth.service';
 import { SyncErrorService } from '../sync-error.service';
 import { ApiResponse } from '../../../models/api-response.model';
+import { DateFilter } from '../../models/date-filter.model';
 
 @Injectable({
     providedIn: 'root'
@@ -19,7 +20,7 @@ export class LocalitySyncService extends BaseSyncService<Locality, LocalityRepos
         protected override repository: LocalityRepository,
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
-        private localityRepositoryExtensions: LocalityRepositoryExtensions
+        private readonly localityRepositoryExtensions: LocalityRepositoryExtensions
     ) {
         super(http, repository, authService, syncErrorService, 'locality');
     }
@@ -40,7 +41,7 @@ export class LocalitySyncService extends BaseSyncService<Locality, LocalityRepos
         }
     }
 
-    protected override async fetchUnsynced(limit: number): Promise<Locality[]> {
+    protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<Locality[]> {
         // LocalityRepositoryExtensions.findAllPaginated supports isSync filter now.
         // It does NOT filter by commercial because localities are global/tenant based.
         const page = await this.localityRepositoryExtensions.findAllPaginated(0, limit, { isSync: false, isActive: undefined });
@@ -57,7 +58,7 @@ export class LocalitySyncService extends BaseSyncService<Locality, LocalityRepos
             this.http.post<ApiResponse<Locality>>(`${this.baseUrl}/api/v1/localities`, syncRequest, { headers })
         );
 
-        if (!response || !response.data) {
+        if (!response?.data) {
             throw new Error(response?.message || 'Invalid response from server for locality sync');
         }
 
@@ -83,7 +84,7 @@ export class LocalitySyncService extends BaseSyncService<Locality, LocalityRepos
             this.http.put<ApiResponse<Locality>>(`${this.baseUrl}/api/v1/localities/${serverId}`, syncRequest, { headers })
         );
 
-        if (!response || !response.data) {
+        if (!response?.data) {
             throw new Error(response?.message || 'Invalid response from server for locality update');
         }
 

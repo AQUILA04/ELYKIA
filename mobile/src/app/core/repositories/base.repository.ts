@@ -1,5 +1,6 @@
 import { DatabaseService } from '../services/database.service';
 import { Repository, Page } from './repository.interface';
+import { DateFilter } from '../models/date-filter.model';
 
 export abstract class BaseRepository<T, ID> implements Repository<T, ID> {
     protected abstract tableName: string;
@@ -15,7 +16,7 @@ export abstract class BaseRepository<T, ID> implements Repository<T, ID> {
     async findById(id: ID): Promise<T | null> {
         const sql = `SELECT * FROM ${this.tableName} WHERE id = ?`;
         const result = await this.databaseService.query(sql, [id]);
-        if (result && result.values && result.values.length > 0) {
+        if (result?.values && result.values.length > 0) {
             return result.values[0] as T;
         }
         return null;
@@ -66,7 +67,7 @@ export abstract class BaseRepository<T, ID> implements Repository<T, ID> {
 
     protected generateUuid(): string {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+          let r = Math.trunc(Math.random() * 16), v = c == 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
     }
@@ -93,7 +94,7 @@ export abstract class BaseRepository<T, ID> implements Repository<T, ID> {
             'SELECT serverId FROM id_mappings WHERE localId = ? AND entityType = ?',
             [localId, entityType]
         );
-        if (result && result.values && result.values.length > 0) {
+        if (result?.values && result.values.length > 0) {
             return result.values[0].serverId;
         }
         // FALLBACK : si l'ID est déjà numérique, c'est un ID serveur direct
@@ -128,9 +129,17 @@ export abstract class BaseRepository<T, ID> implements Repository<T, ID> {
      * Find unsynced entities (isSync = 0 AND isLocal = 1)
      * Subclasses should override this if they need to filter by commercialUsername
      */
-    async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<T[]> {
-        const sql = `SELECT * FROM ${this.tableName} WHERE isSync = 0 AND isLocal = 1 LIMIT ? OFFSET ?`;
-        const result = await this.databaseService.query(sql, [limit, offset]);
+    async findUnsynced(commercialUsername: string, limit: number, offset: number, dateFilter?: DateFilter): Promise<T[]> {
+        let sql = `SELECT * FROM ${this.tableName} WHERE isSync = 0 AND isLocal = 1`;
+        const params: any[] = [limit, offset];
+
+        if (dateFilter) {
+            sql = `SELECT * FROM ${this.tableName} WHERE isSync = 0 AND isLocal = 1 AND created_at >= ? AND created_at <= ?`;
+            params.unshift(dateFilter.startDate, dateFilter.endDate);
+        }
+
+        sql += ` LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, params);
         return (result.values || []) as T[];
     }
 

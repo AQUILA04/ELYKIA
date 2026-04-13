@@ -9,6 +9,7 @@ import { Distribution } from '../../../models/distribution.model';
 import { DistributionSyncRequest, DistributionSyncResponse } from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
+import { DateFilter } from '../../models/date-filter.model';
 
 @Injectable({
     providedIn: 'root'
@@ -22,7 +23,7 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
         protected override repository: DistributionRepository,
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
-        private distributionRepositoryExtensions: DistributionRepositoryExtensions
+        private readonly distributionRepositoryExtensions: DistributionRepositoryExtensions
     ) {
         super(http, repository, authService, syncErrorService, 'distribution');
     }
@@ -35,18 +36,15 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
      * Synchronize a batch of unsynced distributions
      * Overridden to handle failedClientIds dependency
      */
-    override async syncBatch(limit: number = 20, failedClientIds: string[] = []): Promise<{ success: number; errors: number; failedIds: string[] }> {
-        const unsyncedDistributions = await this.fetchUnsynced(limit);
+    override async syncBatch(limit: number = 20, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        const unsyncedDistributions = await this.fetchUnsynced(limit, dateFilter);
 
         let success = 0;
         let errors = 0;
         const failedIds: string[] = [];
 
-        // Use local failedClientIds if not provided as argument
-        const clientIdsToCheck = failedClientIds.length > 0 ? failedClientIds : this.failedClientIds;
-
         for (const distribution of unsyncedDistributions) {
-            if (clientIdsToCheck.includes(distribution.clientId)) {
+            if (this.failedClientIds.includes(distribution.clientId)) {
                 errors++;
                 await this.syncErrorService.logSyncError(
                     'distribution',
@@ -77,7 +75,7 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
         return this.syncSingleDistribution(item);
     }
 
-    protected override async fetchUnsynced(limit: number): Promise<Distribution[]> {
+    protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<Distribution[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
 
@@ -98,7 +96,7 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
             this.http.patch<ApiResponse<DistributionSyncResponse>>(`${this.baseUrl}/api/v1/credits/distribute-articles`, syncRequest, { headers })
         );
 
-        if (!response || !response.data) {
+        if (!response?.data) {
             throw new Error(response?.message || 'Invalid response from server for distribution sync');
         }
 
@@ -117,12 +115,12 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
         return {
             articles: {
                 articleEntries: items.map(item => ({
-                    articleId: parseInt(item.articleId),
+                    articleId: Number.parseInt(item.articleId),
                     quantity: item.quantity
                 }))
             },
-            clientId: parseInt(clientServerId || '0'),
-            creditId: parseInt(distribution.creditId || '0'),
+            clientId: Number.parseInt(clientServerId || '0'),
+            creditId: Number.parseInt(distribution.creditId || '0'),
             advance: distribution.advance || 0,
             dailyStake: distribution.dailyPayment || 0,
             startDate: distribution.startDate || new Date().toISOString(),

@@ -6,10 +6,10 @@ import { takeUntil, take, filter } from 'rxjs/operators';
 import { Commercial } from 'src/app/models/commercial.model';
 import { selectCommercial } from 'src/app/store/commercial/commercial.selectors';
 import * as AuthActions from 'src/app/store/auth/auth.actions';
+import * as PreferencesActions from 'src/app/store/preferences/preferences.actions';
+import { selectSyncDateFilter } from 'src/app/store/preferences/preferences.selectors';
 import { Storage } from '@ionic/storage-angular';
-import { selectClientKpiTotalByCommercial } from 'src/app/store/kpi/kpi.selectors';
-import { selectDistributionKpiActiveByCommercial } from 'src/app/store/kpi/kpi.selectors';
-import { selectCollectionRateKpi } from 'src/app/store/kpi/kpi.selectors';
+import { selectClientKpiTotalByCommercial, selectDistributionKpiActiveByCommercial, selectCollectionRateKpi } from 'src/app/store/kpi/kpi.selectors';
 import * as KpiActions from 'src/app/store/kpi/kpi.actions';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { DatabaseService } from '../../core/services/database.service';
@@ -19,7 +19,8 @@ import { DataInitializationService } from '../../core/services/data-initializati
 import { MemoryManagementService, MemoryStats } from '../../core/services/memory-management.service';
 import { PhotoSyncService } from '../../core/services/photo-sync.service';
 import { SynchronizationService } from 'src/app/core/services/synchronization.service';
-import { environment } from 'src/environments/environment'; // Import environment
+import { environment } from 'src/environments/environment';
+import { SyncDateFilterOption, SYNC_DATE_FILTER_LABELS } from 'src/app/models/sync-date-filter.model';
 
 @Component({
   selector: 'app-more',
@@ -29,7 +30,7 @@ import { environment } from 'src/environments/environment'; // Import environmen
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MorePage implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   user$: Observable<Commercial | null>;
   autoSync = false;
@@ -41,7 +42,10 @@ export class MorePage implements OnInit, OnDestroy {
   activeCreditsCount$: Observable<number>;
   collectionRate$: Observable<number>;
   pendingErrorsCount$!: Observable<number>;
-  appVersion: string = environment.version; // Expose version to template
+  appVersion: string = environment.version;
+
+  syncDateFilter: SyncDateFilterOption = 'today';
+  syncDateFilterLabels = SYNC_DATE_FILTER_LABELS;
 
   // Propriétés pour la gestion mémoire
   memoryStats$: Observable<MemoryStats | null>;
@@ -49,19 +53,19 @@ export class MorePage implements OnInit, OnDestroy {
   isMemoryCritical = false;
 
   constructor(
-    private store: Store,
-    private storage: Storage,
-    private databaseService: DatabaseService,
-    private alertController: AlertController,
-    private toastController: ToastController,
-    private loadingController: LoadingController,
-    private syncErrorService: SyncErrorService,
-    private dataInitializationService: DataInitializationService,
-    private memoryManagementService: MemoryManagementService,
-    private photoSyncService: PhotoSyncService,
-    private cdr: ChangeDetectorRef,
-    private synchronizationService: SynchronizationService,
-    private router: Router
+    private readonly store: Store,
+    private readonly storage: Storage,
+    private readonly databaseService: DatabaseService,
+    private readonly alertController: AlertController,
+    private readonly toastController: ToastController,
+    private readonly loadingController: LoadingController,
+    private readonly syncErrorService: SyncErrorService,
+    private readonly dataInitializationService: DataInitializationService,
+    private readonly memoryManagementService: MemoryManagementService,
+    private readonly photoSyncService: PhotoSyncService,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly synchronizationService: SynchronizationService,
+    private readonly router: Router
   ) {
     this.user$ = this.store.select(selectCommercial);
     this.totalClients$ = this.store.select(selectClientKpiTotalByCommercial);
@@ -79,6 +83,13 @@ export class MorePage implements OnInit, OnDestroy {
     const photoPrefs = await this.photoSyncService.getPhotoSyncPreferences();
     this.enableProfilePhotoSync = photoPrefs.enableProfilePhotoSync;
     this.enableCardPhotoSync = photoPrefs.enableCardPhotoSync;
+
+    // Charger la préférence de filtre de date
+    this.store.select(selectSyncDateFilter).pipe(
+      take(1)
+    ).subscribe(filter => {
+      this.syncDateFilter = filter;
+    });
 
     // Surveiller les statistiques mémoire
     this.memoryStats$.pipe(
@@ -162,6 +173,10 @@ export class MorePage implements OnInit, OnDestroy {
     const preferences = await this.photoSyncService.getPhotoSyncPreferences();
     preferences.enableCardPhotoSync = this.enableCardPhotoSync;
     await this.photoSyncService.setPhotoSyncPreferences(preferences);
+  }
+
+  onSyncDateFilterChange() {
+    this.store.dispatch(PreferencesActions.setSyncDateFilter({ filter: this.syncDateFilter }));
   }
 
   async restoreBackup() {
@@ -319,7 +334,7 @@ export class MorePage implements OnInit, OnDestroy {
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   async presentToast(message: string, color: string, position?: 'top' | 'bottom' | 'middle') {

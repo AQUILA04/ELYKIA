@@ -26,17 +26,14 @@ import {
   SyncResult,
   SyncBatchResult
 } from '../../models/sync.model';
+import { DateFilter } from '../models/date-filter.model';
 
-import {
-  ApiResponse,
-  CashDeskStatusResponse
-} from '../../models/api-sync-response.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SyncMasterService {
-  private baseUrl = environment.apiUrl;
+  private readonly baseUrl = environment.apiUrl;
 
   // State for dependency management
   private failedClientIds: string[] = [];
@@ -44,31 +41,31 @@ export class SyncMasterService {
   private failedTontineMemberIds: string[] = [];
 
   constructor(
-    private http: HttpClient,
-    private store: Store,
-    private authService: AuthService,
-    private databaseService: DatabaseService,
-    private syncErrorService: SyncErrorService,
-    private syncArchiveService: SyncArchiveService,
-    private crashlyticsReporterService: CrashlyticsReporterService,
-    private cashDeskService: CashDeskService,
+    private readonly http: HttpClient,
+    private readonly store: Store,
+    private readonly authService: AuthService,
+    private readonly databaseService: DatabaseService,
+    private readonly syncErrorService: SyncErrorService,
+    private readonly syncArchiveService: SyncArchiveService,
+    private readonly crashlyticsReporterService: CrashlyticsReporterService,
+    private readonly cashDeskService: CashDeskService,
     // Domain Services
-    private localitySyncService: LocalitySyncService,
-    private clientSyncService: ClientSyncService,
-    private accountSyncService: AccountSyncService,
-    private orderSyncService: OrderSyncService,
-    private distributionSyncService: DistributionSyncService,
-    private recoverySyncService: RecoverySyncService,
-    private tontineMemberSyncService: TontineMemberSyncService,
-    private tontineCollectionSyncService: TontineCollectionSyncService,
-    private tontineDeliverySyncService: TontineDeliverySyncService
+    private readonly localitySyncService: LocalitySyncService,
+    private readonly clientSyncService: ClientSyncService,
+    private readonly accountSyncService: AccountSyncService,
+    private readonly orderSyncService: OrderSyncService,
+    private readonly distributionSyncService: DistributionSyncService,
+    private readonly recoverySyncService: RecoverySyncService,
+    private readonly tontineMemberSyncService: TontineMemberSyncService,
+    private readonly tontineCollectionSyncService: TontineCollectionSyncService,
+    private readonly tontineDeliverySyncService: TontineDeliverySyncService
   ) { }
 
   /**
    * Orchestrates the complete synchronization process.
    * Replaces SynchronizationService.synchronizeAllData
    */
-  async synchronizeAllData(): Promise<SyncResult> {
+  async synchronizeAllData(dateFilter?: DateFilter): Promise<SyncResult> {
     const startTime = Date.now();
     this.resetState();
 
@@ -111,7 +108,7 @@ export class SyncMasterService {
 
       // 4. Sync Clients (Includes Create, Update, Photos, Locations)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'clients' } }));
-      const clientResult = await this.clientSyncService.syncAll();
+      const clientResult = await this.clientSyncService.syncAll(20, dateFilter);
       batchResult.clientsSync = { success: clientResult.success, errors: clientResult.errors };
       this.failedClientIds = clientResult.failedIds; // Capture failed IDs for dependencies
       processedItems += (clientResult.success + clientResult.errors);
@@ -145,7 +142,7 @@ export class SyncMasterService {
       // 8. Sync Distributions (Depends on Clients)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'distributions' } }));
       this.distributionSyncService.setFailedClientIds(this.failedClientIds);
-      const distResult = await this.distributionSyncService.syncAll();
+      const distResult = await this.distributionSyncService.syncAll(50, dateFilter);
       batchResult.distributionsSync = { success: distResult.success, errors: distResult.errors };
       this.failedDistributionIds = distResult.failedIds; // Capture failed IDs for Recoveries
       processedItems += (distResult.success + distResult.errors);
@@ -155,7 +152,7 @@ export class SyncMasterService {
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'recoveries' } }));
       this.recoverySyncService.setFailedClientIds(this.failedClientIds);
       this.recoverySyncService.setFailedDistributionIds(this.failedDistributionIds);
-      const recResult = await this.recoverySyncService.syncAll();
+      const recResult = await this.recoverySyncService.syncAll(50, dateFilter);
       batchResult.recoveriesSync.success += recResult.success;
       batchResult.recoveriesSync.errors += recResult.errors;
       processedItems += (recResult.success + recResult.errors);
@@ -168,7 +165,7 @@ export class SyncMasterService {
       if (typeof (this.tontineMemberSyncService as any).setFailedClientIds === 'function') {
         (this.tontineMemberSyncService as any).setFailedClientIds(this.failedClientIds);
       }
-      const tmResult = await this.tontineMemberSyncService.syncAll();
+      const tmResult = await this.tontineMemberSyncService.syncAll(50, dateFilter);
       batchResult.tontineMembersSync = { success: tmResult.success, errors: tmResult.errors };
       this.failedTontineMemberIds = tmResult.failedIds;
       processedItems += (tmResult.success + tmResult.errors);
@@ -177,7 +174,7 @@ export class SyncMasterService {
       // 11. Sync Tontine Collections (Depends on Tontine Members)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-collections' } }));
       this.tontineCollectionSyncService.setFailedMemberIds(this.failedTontineMemberIds);
-      const tcResult = await this.tontineCollectionSyncService.syncAll();
+      const tcResult = await this.tontineCollectionSyncService.syncAll(50, dateFilter);
       batchResult.tontineCollectionsSync = { success: tcResult.success, errors: tcResult.errors };
       processedItems += (tcResult.success + tcResult.errors);
       this.updateProgress(processedItems, totalItems);
@@ -185,7 +182,7 @@ export class SyncMasterService {
       // 12. Sync Tontine Deliveries (Depends on Tontine Members)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-deliveries' } }));
       this.tontineDeliverySyncService.setFailedMemberIds(this.failedTontineMemberIds);
-      const tdResult = await this.tontineDeliverySyncService.syncAll();
+      const tdResult = await this.tontineDeliverySyncService.syncAll(50, dateFilter);
       batchResult.tontineDeliveriesSync = { success: tdResult.success, errors: tdResult.errors };
       processedItems += (tdResult.success + tdResult.errors);
       this.updateProgress(processedItems, totalItems);

@@ -9,6 +9,7 @@ import { TontineDelivery } from '../../../models/tontine.model';
 import { TontineDeliverySyncRequest, TontineDeliverySyncResponse } from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
+import { DateFilter } from '../../models/date-filter.model';
 
 @Injectable({
     providedIn: 'root'
@@ -22,7 +23,7 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
         protected override repository: TontineDeliveryRepository,
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
-        private tontineDeliveryRepositoryExtensions: TontineDeliveryRepositoryExtensions
+        private readonly tontineDeliveryRepositoryExtensions: TontineDeliveryRepositoryExtensions
     ) {
         super(http, repository, authService, syncErrorService, 'tontine-delivery');
     }
@@ -35,17 +36,15 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
      * Synchronize a batch of unsynced tontine deliveries
      * Overridden to handle failedMemberIds dependency
      */
-    override async syncBatch(limit: number = 50, failedMemberIds: string[] = []): Promise<{ success: number; errors: number; failedIds: string[] }> {
-        const unsyncedDeliveries = await this.fetchUnsynced(limit);
+    override async syncBatch(limit: number = 50, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        const unsyncedDeliveries = await this.fetchUnsynced(limit, dateFilter);
 
         let success = 0;
         let errors = 0;
         const failedIds: string[] = [];
 
-        const memberIdsToCheck = failedMemberIds.length > 0 ? failedMemberIds : this.failedMemberIds;
-
         for (const delivery of unsyncedDeliveries) {
-            if (memberIdsToCheck.includes(delivery.tontineMemberId)) {
+            if (this.failedMemberIds.includes(delivery.tontineMemberId)) {
                 errors++;
                 await this.syncErrorService.logSyncError(
                     'tontine-delivery',
@@ -76,15 +75,24 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
         return this.syncSingleTontineDelivery(item);
     }
 
-    protected override async fetchUnsynced(limit: number): Promise<TontineDelivery[]> {
+    protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<TontineDelivery[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
+
+        const filters: any = { isSync: false, isLocal: true };
+
+        if (dateFilter && (dateFilter.startDate || dateFilter.endDate)) {
+            filters.dateFilter = {
+                ...dateFilter,
+                dateColumn: 'deliveryDate'
+            };
+        }
 
         const page = await this.tontineDeliveryRepositoryExtensions.findByCommercialPaginated(
             commercialUsername,
             0,
             limit,
-            { isSync: false, isLocal: true }
+            filters
         );
         return page.content;
     }
@@ -106,7 +114,7 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
             this.http.post<ApiResponse<TontineDeliverySyncResponse>>(`${this.baseUrl}/api/v1/tontines/deliveries/distribute`, syncRequest, { headers })
         );
 
-        if (!response || !response.data) {
+        if (!response?.data) {
             throw new Error(response?.message || 'Invalid response from server for tontine delivery sync');
         }
 
@@ -126,10 +134,10 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
         }
 
         return {
-            tontineMemberId: parseInt(serverMemberId, 10),
+            tontineMemberId: Number.parseInt(serverMemberId, 10),
             requestDate: delivery.requestDate,
             items: items.map(item => ({
-                articleId: parseInt(item.articleId, 10),
+                articleId: Number.parseInt(item.articleId, 10),
                 quantity: item.quantity,
                 unitPrice: item.unitPrice
             }))

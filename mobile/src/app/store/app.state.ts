@@ -11,6 +11,7 @@ import { TransactionState } from './transaction/transaction.reducer';
 import { SyncState } from './sync/sync.reducer';
 import { LocalityState } from './locality/locality.reducer';
 import { KpiState } from './kpi/kpi.reducer';
+import { PreferencesState } from './preferences/preferences.reducer';
 
 export interface AppState {
   auth: AuthState | undefined;
@@ -26,4 +27,5 @@ export interface AppState {
   sync: SyncState | undefined;
   locality: LocalityState | undefined;
   kpi: KpiState | undefined;
+  preferences: PreferencesState | undefined;
 }

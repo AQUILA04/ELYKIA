@@ -9,6 +9,7 @@ import { Recovery } from '../../../models/recovery.model';
 import { DefaultDailyStakeRequest, DefaultDailyStakeResponse, SpecialDailyStakeRequest, SpecialDailyStakeResponse } from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
+import { DateFilter } from '../../models/date-filter.model';
 
 @Injectable({
     providedIn: 'root'
@@ -40,22 +41,19 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
      * Synchronize all unsynced recoveries
      * Overridden to handle batching and dependencies
      */
-    override async syncBatch(limit: number = 100, failedClientIds: string[] = [], failedDistributionIds: string[] = []): Promise<{ success: number; errors: number; failedIds: string[] }> {
-        const unsyncedRecoveries = await this.fetchUnsynced(limit);
+    override async syncBatch(limit: number = 100, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        const unsyncedRecoveries = await this.fetchUnsynced(limit, dateFilter);
 
         const validRecoveries: Recovery[] = [];
         let success = 0;
         let errors = 0;
         const failedIds: string[] = [];
 
-        const clientIdsToCheck = failedClientIds.length > 0 ? failedClientIds : this.failedClientIds;
-        const distIdsToCheck = failedDistributionIds.length > 0 ? failedDistributionIds : this.failedDistributionIds;
-
         for (const recovery of unsyncedRecoveries) {
-            if (clientIdsToCheck.includes(recovery.clientId)) {
+            if (this.failedClientIds.includes(recovery.clientId)) {
                 errors++;
                 await this.syncErrorService.logSyncError('recovery', recovery.id, 'SKIP', new Error('Parent client failed sync'), recovery, `Recovery ${recovery.id}`, recovery);
-            } else if (distIdsToCheck.includes(recovery.distributionId)) {
+            } else if (this.failedDistributionIds.includes(recovery.distributionId)) {
                 errors++;
                 await this.syncErrorService.logSyncError('recovery', recovery.id, 'SKIP', new Error('Parent distribution failed sync'), recovery, `Recovery ${recovery.id}`, recovery);
             } else {
@@ -103,7 +101,7 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
         }
     }
 
-    protected override async fetchUnsynced(limit: number): Promise<Recovery[]> {
+    protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<Recovery[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
 
@@ -175,7 +173,7 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
             const distributionServerId = await this.repository.getServerId(recovery.distributionId, 'distribution');
             if (distributionServerId) {
                 stakeUnits.push({
-                    creditId: parseInt(distributionServerId),
+                    creditId: Number.parseInt(distributionServerId),
                     recoveryId: recovery.id
                 });
             }
@@ -241,10 +239,10 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                 const distributionServerId = await this.repository.getServerId(recovery.distributionId, 'distribution');
 
                 if (clientServerId && distributionServerId) {
-                    const parsedCreditId = parseInt(distributionServerId, 10);
-                    const parsedClientId = parseInt(clientServerId, 10);
+                    const parsedCreditId = Number.parseInt(distributionServerId, 10);
+                    const parsedClientId = Number.parseInt(clientServerId, 10);
 
-                    if (!isNaN(parsedCreditId) && !isNaN(parsedClientId)) {
+                    if (!Number.isNaN(parsedCreditId) && !Number.isNaN(parsedClientId)) {
                         stakeUnits.push({
                             amount: recovery.amount,
                             creditId: parsedCreditId,

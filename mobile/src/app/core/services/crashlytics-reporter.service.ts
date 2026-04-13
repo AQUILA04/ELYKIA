@@ -10,8 +10,8 @@ import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
 export class CrashlyticsReporterService {
 
   constructor(
-    private syncErrorService: SyncErrorService,
-    private loggerService: LoggerService
+    private readonly syncErrorService: SyncErrorService,
+    private readonly loggerService: LoggerService
   ) { }
 
   async reportSyncErrors(syncResult: SyncResult): Promise<void> {
@@ -27,14 +27,14 @@ export class CrashlyticsReporterService {
 
       for (const error of errors) {
         let errorDetail = `Entity: ${error.entityType} | ID: ${error.entityId} | Code: ${error.errorCode || 'N/A'} | Message: ${error.errorMessage || 'Unknown error'}`;
-        
+
         if (error.entityType !== 'client' && error.requestData) {
           errorDetail += ` | Request: ${JSON.stringify(error.requestData)}`;
         }
-        if (error.entityType !== 'client' && error.responseData) {
+        if (error.responseData) {
           errorDetail += ` | Response: ${JSON.stringify(error.responseData)}`;
         }
-        
+
         await FirebaseCrashlytics.log({ message: errorDetail });
       }
     } catch (error) {

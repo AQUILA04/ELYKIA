@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, firstValueFrom } from 'rxjs';
 import { SyncErrorService } from '../sync-error.service';
 import { AuthService } from '../auth.service';
 import { environment } from '../../../../environments/environment';
-import { ApiResponse } from '../../../models/api-response.model';
 import { BaseRepository } from '../../repositories/base.repository';
+import { DateFilter } from '../../models/date-filter.model';
 
 @Injectable({
     providedIn: 'root'
@@ -27,9 +26,10 @@ export abstract class BaseSyncService<T extends { id: string }, R extends BaseRe
      * et peut être surchargée pour inclure des synchronisations spécifiques.
      *
      * @param batchSize Taille du lot (défaut: 50)
+     * @param dateFilter Optional date filter to limit data to sync
      * @returns Résultat de la synchronisation incluant les IDs ayant échoué
      */
-    async syncAll(batchSize: number = 50): Promise<{ success: number; errors: number; failedIds: string[] }> {
+    async syncAll(batchSize: number = 50, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
         const result: { success: number; errors: number; failedIds: string[] } = { success: 0, errors: 0, failedIds: [] };
 
         // 1. Récupérer le nombre total d'éléments non synchronisés
@@ -44,7 +44,7 @@ export abstract class BaseSyncService<T extends { id: string }, R extends BaseRe
 
         // 3. Itérer sur les lots
         for (let i = 0; i < totalBatches; i++) {
-            const batchResult = await this.syncBatch(batchSize);
+            const batchResult = await this.syncBatch(batchSize, dateFilter);
 
             result.success += batchResult.success;
             result.errors += batchResult.errors;
@@ -65,9 +65,10 @@ export abstract class BaseSyncService<T extends { id: string }, R extends BaseRe
     /**
      * Synchronize a batch of unsynced items
      * @param limit Batch size
+     * @param dateFilter Optional date filter
      */
-    async syncBatch(limit: number): Promise<{ success: number; errors: number; failedIds: string[] }> {
-        const items = await this.fetchUnsynced(limit);
+    async syncBatch(limit: number, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        const items = await this.fetchUnsynced(limit, dateFilter);
         const result: { success: number; errors: number; failedIds: string[] } = { success: 0, errors: 0, failedIds: [] };
 
         for (const item of items) {
@@ -93,8 +94,8 @@ export abstract class BaseSyncService<T extends { id: string }, R extends BaseRe
      * Fetch unsynced items
      * Override this method if repository extensions are used
      */
-    protected async fetchUnsynced(limit: number): Promise<T[]> {
-        return this.repository.findUnsynced(this.authService.currentUser?.username || '', limit, 0);
+    protected async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<T[]> {
+        return this.repository.findUnsynced(this.authService.currentUser?.username || '', limit, 0, dateFilter);
     }
 
     protected getAuthHeaders(): HttpHeaders {

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { of, from, timer, EMPTY, Observable } from 'rxjs';
+import { of, from, EMPTY, Observable } from 'rxjs';
 import {
   map,
   catchError,
@@ -23,16 +23,18 @@ import { ClientService } from '../../core/services/client.service';
 import { DistributionService } from '../../core/services/distribution.service';
 import { RecoveryService } from '../../core/services/recovery.service';
 import { CashDeskService } from '../../core/services/cash-desk.service';
+import { SyncDateFilterPreferenceService } from '../../core/services/sync-date-filter-preference.service';
+import { selectSyncDateFilter } from '../preferences/preferences.selectors';
 
 import * as SyncActions from './sync.actions';
-import { selectAutomaticSyncIsActive, selectManualSyncPagination, selectParentSelectionState } from './sync.selectors';
-import { SyncProgress, SyncPhase, ParentSelectionState } from '../../models/sync.model';
+import { selectManualSyncPagination, selectParentSelectionState } from './sync.selectors';
+import { ParentSelectionState } from '../../models/sync.model';
 import * as ClientActions from '../../store/client/client.actions';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import * as RecoveryActions from '../../store/recovery/recovery.actions';
 import * as TontineActions from '../../store/tontine/tontine.actions';
 import * as KpiActions from '../../store/kpi/kpi.actions';
-import { selectAuthUser } from '../../store/auth/auth.selectors';
+import { selectAuthUser } from '../auth/auth.selectors';
 
 // Repository Extensions
 import { ClientRepositoryExtensions } from '../../core/repositories/client.repository.extensions';
@@ -58,44 +60,46 @@ import { TontineMemberSyncService } from '../../core/services/sync/tontine-membe
 import { TontineCollectionSyncService } from '../../core/services/sync/tontine-collection-sync.service';
 import { TontineDeliverySyncService } from '../../core/services/sync/tontine-delivery-sync.service';
 import { Page } from '../../core/repositories/repository.interface';
+import { DateFilter } from '../../core/models/date-filter.model';
 
 @Injectable()
 export class SyncEffects {
 
   constructor(
-    private actions$: Actions,
-    private store: Store,
-    private syncMasterService: SyncMasterService,
-    private syncErrorService: SyncErrorService,
-    private syncLogsExportService: SyncLogsExportService,
-    private clientService: ClientService,
-    private distributionService: DistributionService,
-    private recoveryService: RecoveryService,
-    private cashDeskService: CashDeskService,
+    private readonly actions$: Actions,
+    private readonly store: Store,
+    private readonly syncMasterService: SyncMasterService,
+    private readonly syncErrorService: SyncErrorService,
+    private readonly syncLogsExportService: SyncLogsExportService,
+    private readonly clientService: ClientService,
+    private readonly distributionService: DistributionService,
+    private readonly recoveryService: RecoveryService,
+    private readonly cashDeskService: CashDeskService,
+    private readonly syncDateFilterPreferenceService: SyncDateFilterPreferenceService,
 
     // Repository Extensions
-    private clientRepoExt: ClientRepositoryExtensions,
-    private distRepoExt: DistributionRepositoryExtensions,
-    private recRepoExt: RecoveryRepositoryExtensions,
-    private tmRepoExt: TontineMemberRepositoryExtensions,
-    private tcRepoExt: TontineCollectionRepositoryExtensions,
-    private tdRepoExt: TontineDeliveryRepositoryExtensions,
+    private readonly clientRepoExt: ClientRepositoryExtensions,
+    private readonly distRepoExt: DistributionRepositoryExtensions,
+    private readonly recRepoExt: RecoveryRepositoryExtensions,
+    private readonly tmRepoExt: TontineMemberRepositoryExtensions,
+    private readonly tcRepoExt: TontineCollectionRepositoryExtensions,
+    private readonly tdRepoExt: TontineDeliveryRepositoryExtensions,
 
     // Repositories
-    private clientRepo: ClientRepository,
-    private distRepo: DistributionRepository,
-    private recRepo: RecoveryRepository,
-    private tmRepo: TontineMemberRepository,
-    private tcRepo: TontineCollectionRepository,
-    private tdRepo: TontineDeliveryRepository,
+    private readonly clientRepo: ClientRepository,
+    private readonly distRepo: DistributionRepository,
+    private readonly recRepo: RecoveryRepository,
+    private readonly tmRepo: TontineMemberRepository,
+    private readonly tcRepo: TontineCollectionRepository,
+    private readonly tdRepo: TontineDeliveryRepository,
 
     // Domain Sync Services
-    private clientSync: ClientSyncService,
-    private distSync: DistributionSyncService,
-    private recSync: RecoverySyncService,
-    private tmSync: TontineMemberSyncService,
-    private tcSync: TontineCollectionSyncService,
-    private tdSync: TontineDeliverySyncService
+    private readonly clientSync: ClientSyncService,
+    private readonly distSync: DistributionSyncService,
+    private readonly recSync: RecoverySyncService,
+    private readonly tmSync: TontineMemberSyncService,
+    private readonly tcSync: TontineCollectionSyncService,
+    private readonly tdSync: TontineDeliverySyncService
   ) { }
 
   // ==================== EFFETS SYNCHRONISATION AUTOMATIQUE ====================
@@ -106,9 +110,11 @@ export class SyncEffects {
   startAutomaticSync$ = createEffect(() =>
     this.actions$.pipe(
       ofType(SyncActions.startAutomaticSync),
-      switchMap(() => {
+      withLatestFrom(this.store.select(selectSyncDateFilter)),
+      switchMap(([_, filterOption]) => {
+        const dateFilter = this.syncDateFilterPreferenceService.resolveDateFilter(filterOption);
         // Créer un observable qui émet des mises à jour de progression
-        return from(this.performAutomaticSync()).pipe(
+        return from(this.performAutomaticSync(dateFilter)).pipe(
           takeUntil(this.actions$.pipe(ofType(SyncActions.cancelAutomaticSync))),
           catchError(error => {
             console.error('Erreur lors de la synchronisation automatique:', error);
@@ -349,7 +355,7 @@ export class SyncEffects {
         const currentEntityState = parentSelectionState[key] as any;
         const currentPagination = currentEntityState.pagination;
 
-        if (!currentPagination || !currentPagination.hasMore || currentPagination.loading) {
+        if (!currentPagination?.hasMore || currentPagination.loading) {
           return EMPTY;
         }
 
@@ -547,10 +553,7 @@ export class SyncEffects {
         const actionsToDispatch = [];
 
         if (action.type === SyncActions.automaticSyncSuccess.type) {
-          actionsToDispatch.push(ClientActions.loadClients({ commercialUsername: username }));
-          actionsToDispatch.push(DistributionActions.loadDistributions({ commercialUsername: username }));
-          actionsToDispatch.push(RecoveryActions.loadRecoveries({ commercialUsername: username }));
-          actionsToDispatch.push(TontineActions.loadTontineSession());
+          actionsToDispatch.push(ClientActions.loadClients({ commercialUsername: username }), DistributionActions.loadDistributions({commercialUsername: username}), RecoveryActions.loadRecoveries({commercialUsername: username}), TontineActions.loadTontineSession());
 
           // Refresh KPIs with default month filter so dashboard shows correct data
           const now = new Date();
@@ -594,7 +597,7 @@ export class SyncEffects {
 
   // ==================== MÉTHODES PRIVÉES ====================
 
-  private async performAutomaticSync(): Promise<any> {
+  private async performAutomaticSync(dateFilter?: DateFilter): Promise<any> {
     const progressUpdates: any[] = [];
 
     try {
@@ -616,7 +619,7 @@ export class SyncEffects {
         await this.delay(100);
       }
 
-      const result = await this.syncMasterService.synchronizeAllData();
+      const result = await this.syncMasterService.synchronizeAllData(dateFilter);
       return SyncActions.automaticSyncSuccess({ result });
 
     } catch (error) {
@@ -771,7 +774,7 @@ export class SyncEffects {
         // Extract the most relevant error message
         let errorMessage = 'Erreur inconnue';
         if (error) {
-          if (error.error && error.error.message) {
+          if (error.error?.message) {
             errorMessage = error.error.message;
           } else if (error.message) {
             errorMessage = error.message;

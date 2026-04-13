@@ -9,6 +9,7 @@ import { TontineMember } from '../../../models/tontine.model';
 import { TontineMemberSyncRequest, TontineMemberSyncResponse } from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
+import { DateFilter } from '../../models/date-filter.model';
 
 @Injectable({
     providedIn: 'root'
@@ -21,7 +22,7 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
         protected override repository: TontineMemberRepository,
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
-        private tontineMemberRepositoryExtensions: TontineMemberRepositoryExtensions
+        private readonly tontineMemberRepositoryExtensions: TontineMemberRepositoryExtensions
     ) {
         super(http, repository, authService, syncErrorService, 'tontine-member');
     }
@@ -30,9 +31,9 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
         this.failedClientIds = ids;
     }
 
-    override async syncBatch(limit: number = 50, failedClientIds: string[] = []): Promise<{ success: number; errors: number; failedIds: string[] }> {
+    override async syncBatch(limit: number = 50, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
         // Sync des entités locales (CREATE)
-        const unsyncedMembers = await this.fetchUnsynced(limit);
+        const unsyncedMembers = await this.fetchUnsynced(limit, dateFilter);
         // Sync des entités modifiées (UPDATE)
         const modifiedMembers = await this.fetchModified(limit);
 
@@ -40,11 +41,9 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
         let errors = 0;
         const failedIds: string[] = [];
 
-        const clientIdsToCheck = failedClientIds.length > 0 ? failedClientIds : this.failedClientIds;
-
         // Process unsynced (CREATE)
         for (const member of unsyncedMembers) {
-            if (clientIdsToCheck.includes(member.clientId)) {
+            if (this.failedClientIds.includes(member.clientId)) {
                 errors++;
                 await this.syncErrorService.logSyncError(
                     'tontine-member',
@@ -91,15 +90,24 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
         }
     }
 
-    protected override async fetchUnsynced(limit: number): Promise<TontineMember[]> {
+    protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<TontineMember[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
+
+        const filters: any = { isSync: false, isLocal: true };
+
+        if (dateFilter && (dateFilter.startDate || dateFilter.endDate)) {
+            filters.dateFilter = {
+                ...dateFilter,
+                dateColumn: 'registrationDate'
+            };
+        }
 
         const page = await this.tontineMemberRepositoryExtensions.findByCommercialPaginated(
             commercialUsername,
             0,
             limit,
-            { isSync: false, isLocal: true }
+            filters
         );
         return page.content;
     }
@@ -134,7 +142,7 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
             this.http.post<ApiResponse<TontineMemberSyncResponse>>(`${this.baseUrl}/api/v1/tontines/members`, syncRequest, { headers })
         );
 
-        if (!response || !response.data) {
+        if (!response?.data) {
             throw new Error(response?.message || 'Invalid response from server for tontine member sync');
         }
 
@@ -153,7 +161,7 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
             this.http.put<ApiResponse<TontineMemberSyncResponse>>(`${this.baseUrl}/api/v1/tontines/members/${member.id}`, syncRequest, { headers })
         );
 
-        if (!response || !response.data) {
+        if (!response?.data) {
             throw new Error(response?.message || 'Invalid response from server for tontine member update');
         }
 
@@ -169,7 +177,7 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
             throw new Error(`Impossible de trouver l'ID serveur pour le client local ${member.clientId}`);
         }
         return {
-            clientId: parseInt(clientServerId, 10),
+            clientId: Number.parseInt(clientServerId, 10),
             frequency: member.frequency,
             amount: member.amount,
             notes: member.notes,
