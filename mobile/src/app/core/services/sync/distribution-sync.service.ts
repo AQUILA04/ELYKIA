@@ -83,7 +83,7 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
             commercialUsername,
             0,
             limit,
-            { isSync: false }
+            { isSync: false, isLocal: true }
         );
         return page.content;
     }
@@ -112,6 +112,14 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
         const items = await this.repository.getItemsForDistribution(distribution.id);
         const clientServerId = await this.repository.getServerId(distribution.clientId, 'client');
 
+        if (!items || items.length === 0) {
+            throw new Error(`No items found for distribution ${distribution.id} (ref: ${distribution.reference}). Cannot sync.`);
+        }
+
+        if (!clientServerId) {
+            throw new Error(`No server ID found for client ${distribution.clientId} of distribution ${distribution.id}. Sync client first.`);
+        }
+
         return {
             articles: {
                 articleEntries: items.map(item => ({
@@ -119,7 +127,7 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
                     quantity: item.quantity
                 }))
             },
-            clientId: Number.parseInt(clientServerId || '0'),
+            clientId: Number.parseInt(clientServerId),
             creditId: Number.parseInt(distribution.creditId || '0'),
             advance: distribution.advance || 0,
             dailyStake: distribution.dailyPayment || 0,
