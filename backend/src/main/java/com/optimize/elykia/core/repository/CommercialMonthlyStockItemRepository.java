@@ -44,5 +44,6 @@ public interface CommercialMonthlyStockItemRepository extends GenericRepository<
                           @Param("collector") String collector);
 
     @EntityGraph(attributePaths = {"article", "monthlyStock"})
-    Optional<CommercialMonthlyStockItem> findByIdWithArticle(Long id);
+    @Query("SELECT s FROM CommercialMonthlyStockItem s WHERE s.id = :id")
+    Optional<CommercialMonthlyStockItem> findByIdWithArticle(@Param("id") Long id);
 }
