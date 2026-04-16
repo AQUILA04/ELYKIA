@@ -1243,6 +1243,12 @@ export class SynchronizationService {
           values: [serverId, localId]
         },
 
+        // Étape 1b : Mettre à jour distribution_items avec le nouvel ID de la distribution.
+        {
+          statement: `UPDATE distribution_items SET distributionId = ? WHERE distributionId = ?`,
+          values: [serverId, localId]
+        },
+
         // Étape 2 : Maintenant que les enfants sont à jour, on peut modifier le parent.
         {
           statement: `UPDATE distributions SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`,

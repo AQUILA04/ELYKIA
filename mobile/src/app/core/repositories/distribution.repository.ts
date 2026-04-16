@@ -47,7 +47,12 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
                 continue;
             }
 
-            if (needsUpdate) {
+            const hasNewItems = localDist.items && localDist.items.length > 0;
+
+            // Ne supprimer les items existants que si on a de nouveaux items à insérer.
+            // Si items absents (ex: updateDistributionAmounts/updateDistributionStatus),
+            // on préserve les items existants pour ne pas les perdre.
+            if (needsUpdate && hasNewItems) {
                 distributionIdsToClearItems.push(distIdStr);
             }
 
@@ -81,9 +86,9 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
                 });
             }
 
-            if (localDist.items && localDist.items.length > 0) {
+            if (hasNewItems) {
                 const sql = `INSERT INTO distribution_items (id, distributionId, articleId, quantity, unitPrice, totalPrice) VALUES (?,?,?,?,?,?)`;
-                for (const item of localDist.items) {
+                for (const item of localDist.items!) {
                     allItemsToInsert.push({
                         statement: sql,
                         values: [
@@ -192,6 +197,7 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
         if (!this.databaseService['db'] || localId === serverId) return;
         const updateSet = [
             { statement: `UPDATE recoveries SET distributionId = ? WHERE distributionId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE distribution_items SET distributionId = ? WHERE distributionId = ?`, values: [serverId, localId] },
             { statement: `UPDATE distributions SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`, values: [serverId, localId] }
         ];
         await this.databaseService.executeSet(updateSet);
