@@ -5,6 +5,7 @@ import { TontineDashboardComponent } from './pages/tontine-dashboard/tontine-das
 import { MemberDetailsComponent } from './pages/member-details/member-details.component';
 import { SessionComparisonComponent } from './pages/session-comparison/session-comparison.component';
 import { TontineMagasinierDashboardComponent } from './pages/magasinier-dashboard/tontine-magasinier-dashboard.component'; // New component
+import { TontineCollecteComponent } from './collecte/tontine-collecte.component';
 
 const routes: Routes = [
   {
@@ -24,6 +25,10 @@ const routes: Routes = [
     component: TontineMagasinierDashboardComponent,
     canActivate: [AuthGuard],
     data: { roles: ['ROLE_MAGASINIER'] } // Protect with role guard
+  },
+  {
+    path: 'collectes',
+    component: TontineCollecteComponent
   }
 ];
 

@@ -17,6 +17,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
@@ -27,7 +30,7 @@ public class AccountService extends GenericService<Account, Long> {
     private final ClientRepository clientRepository;
 
     protected AccountService(AccountRepository repository, AccountMapper accountMapper,
-                             org.springframework.context.ApplicationEventPublisher eventPublisher, ClientRepository clientRepository) {
+            org.springframework.context.ApplicationEventPublisher eventPublisher, ClientRepository clientRepository) {
         super(repository);
         this.accountMapper = accountMapper;
         this.eventPublisher = eventPublisher;
@@ -35,49 +38,49 @@ public class AccountService extends GenericService<Account, Long> {
     }
 
     @Transactional
-    public Account createAccount(AccountDto accountDto) {
+    public AccountRespDto createAccount(AccountDto accountDto) {
         Account account = accountMapper.toEntity(accountDto);
         account.setStatus(AccountStatus.CREATED);
         Account savedAccount = create(account);
 
-       publishAccountCreationEvent(savedAccount);
+        publishAccountCreationEvent(savedAccount);
 
-        return savedAccount;
+        return AccountRespDto.fromAccount(savedAccount);
     }
 
     @Transactional
-    public Account syncAccount(AccountDto accountDto) {
+    public AccountRespDto syncAccount(AccountDto accountDto) {
         Account account = accountMapper.toEntity(accountDto);
         account.setStatus(AccountStatus.ACTIF);
         Account savedAccount = create(account);
 
         publishAccountCreationEvent(savedAccount);
 
-        return savedAccount;
+        return AccountRespDto.fromAccount(savedAccount);
     }
 
     private void publishAccountCreationEvent(Account account) {
         if (eventPublisher != null && account.getClient() != null) {
-            Client client = clientRepository.findById(account.getClient().getId()).orElseThrow(() -> new ResourceNotFoundException("Client non trouvé avec l'id: " + account.getClient().getId()));
+            Client client = clientRepository.findById(account.getClient().getId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Client non trouvé avec l'id: " + account.getClient().getId()));
 
             eventPublisher.publishEvent(new com.optimize.elykia.client.event.AccountCreatedEvent(
                     this,
                     account.getAccountBalance(),
-                    client.getCollector()));
+                    client.getCollector(),
+                    account.getAccountNumber()));
         }
     }
 
     // MODIFIÉ : La méthode utilise maintenant le searchTerm pour filtrer les
     // résultats
-    public Page<Account> getAll(Pageable pageable, String searchTerm) {
-        Specification<Account> spec = Specification.where(null); // Spécification de base
-
-        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            spec = spec.and(getSearchSpecification(searchTerm));
-            return getRepository().findAll(spec, pageable);
+    public Page<AccountRespDto> getAll(Pageable pageable, String searchTerm) {
+        String effectiveSearchTerm = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm : null;
+        if (Objects.isNull(effectiveSearchTerm)) {
+            return getRepository().findAccountsDto(State.DELETED, pageable);
+        } else {
+            return getRepository().findAccountsDtoWithSearch(effectiveSearchTerm, State.DELETED, pageable);
         }
-
-        return findByStateNot(State.DELETED, pageable);
     }
 
     public Page<AccountRespDto> getAllForCommercial(String commercial, Pageable pageable) {
@@ -85,7 +88,7 @@ public class AccountService extends GenericService<Account, Long> {
                 AccountStatus.ACTIF, pageable);
     }
 
-    // NOUVEAU : Méthode privée pour construire la logique de recherche
+    // RESTAURÉ : Méthode privée pour construire la logique de recherche
     private Specification<Account> getSearchSpecification(String keyword) {
         final String searchKeyword = String.format("%%%s%%", keyword.toLowerCase());
 
@@ -104,12 +107,12 @@ public class AccountService extends GenericService<Account, Long> {
     }
 
     @Transactional
-    public Account updateAccount(AccountDto accountDto, Long id) {
+    public AccountRespDto updateAccount(AccountDto accountDto, Long id) {
         accountDto.setId(id);
         Account existingOne = getById(id);
         Account account = accountMapper.toEntity(accountDto);
         account.setStatus(existingOne.getStatus()); // Preserve the status
-        return update(account);
+        return AccountRespDto.fromAccount(update(account));
     }
 
     @Transactional

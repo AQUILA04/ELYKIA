@@ -2,8 +2,8 @@ package com.optimize.elykia.core.mapper;
 
 import com.optimize.elykia.core.dto.CreditArticlesDto;
 import com.optimize.elykia.core.dto.CreditTimelineDto;
-import com.optimize.elykia.core.entity.CreditArticles;
-import com.optimize.elykia.core.entity.CreditTimeline;
+import com.optimize.elykia.core.entity.sale.CreditArticles;
+import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

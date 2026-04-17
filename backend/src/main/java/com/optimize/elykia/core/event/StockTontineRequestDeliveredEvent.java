@@ -8,9 +8,12 @@ public class StockTontineRequestDeliveredEvent extends ApplicationEvent {
     private final Double amount;
     private final String collector;
 
-    public StockTontineRequestDeliveredEvent(Object source, Double amount, String collector) {
+    private final String reference;
+
+    public StockTontineRequestDeliveredEvent(Object source, Double amount, String collector, String reference) {
         super(source);
         this.amount = amount;
         this.collector = collector;
+        this.reference = reference;
     }
 }

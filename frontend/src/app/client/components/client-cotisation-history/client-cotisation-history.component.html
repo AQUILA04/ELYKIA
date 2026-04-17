@@ -1,0 +1,30 @@
+<div class="tab-content p-3">
+  <div *ngIf="cotisations.length === 0" class="text-center p-4 text-muted">
+    Aucune cotisation enregistrée.
+  </div>
+
+  <div class="table-responsive" *ngIf="cotisations.length > 0">
+    <table class="table table-hover align-middle">
+      <thead class="thead-light">
+        <tr>
+          <th>Date</th>
+          <th>Référence</th>
+          <th>Montant</th>
+          <th>Montant restant</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cot of cotisations">
+          <td>{{ cot.creationDate | date:'dd/MM/yyyy' }}</td>
+          <td>{{ cot.reference }}</td>
+          <td class="font-weight-bold">{{ cot.amount | currency:'XOF':'symbol':'1.0-0' }}</td>
+          <td class="font-weight-bold">{{ cot.totalAmountRemaining | currency:'XOF':'symbol':'1.0-0' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <mat-paginator [length]="totalCotisationElements" [pageSize]="cotisationPageSize"
+    [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)" *ngIf="totalCotisationElements > 0">
+  </mat-paginator>
+</div>

@@ -4,9 +4,9 @@ import com.optimize.common.entities.mapper.BaseMapper;
 import com.optimize.elykia.core.dto.CreditArticlesDto;
 import com.optimize.elykia.core.dto.CreditDto;
 import com.optimize.elykia.core.dto.CreditTimelineDto;
-import com.optimize.elykia.core.entity.Credit;
-import com.optimize.elykia.core.entity.CreditArticles;
-import com.optimize.elykia.core.entity.CreditTimeline;
+import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.entity.sale.CreditArticles;
+import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -18,6 +18,7 @@ public interface CreditMapper extends BaseMapper<Credit, CreditDto> {
 
     @Mapping(source = "creditId", target = "credit.id")
     @Mapping(source = "articleId", target = "articles.id")
+    @Mapping(source = "stockItemId", target = "stockItemId")
     CreditArticles toCreditArticles(CreditArticlesDto creditArticlesDto);
 
     @Override

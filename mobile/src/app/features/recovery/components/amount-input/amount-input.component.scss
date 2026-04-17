@@ -1,161 +1,258 @@
-// Variables spécifiques au composant Amount Input
+// ─── Variables ────────────────────────────────────────────────────────────────
 :root {
   --amount-input-background: #FFFFFF;
   --amount-input-border: #E0E0E0;
-  --amount-input-focus-border: #4CAF50;
   --amount-input-radius: 12px;
   --amount-input-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  
-  // Couleurs des boutons de sélection rapide
-  --quick-btn-background: #FFFFFF;
-  --quick-btn-border: #4CAF50;
-  --quick-btn-color: #4CAF50;
-  --quick-btn-disabled-color: #BDBDBD;
-  
-  // Couleurs de validation
   --validation-success-color: #4CAF50;
   --validation-success-background: #E8F5E8;
   --validation-error-color: #F44336;
   --validation-error-background: #FFEBEE;
-  
-  // Couleur d'aide
-  --help-text-color: #757575;
 }
 
+// ─── Conteneur principal ──────────────────────────────────────────────────────
 .amount-input-container {
   background: var(--amount-input-background);
   border-radius: var(--amount-input-radius);
-  padding: 16px;
+  padding: 14px;
   box-shadow: var(--amount-input-shadow);
   border: 1px solid var(--amount-input-border);
 }
 
-// Section montant attendu
-.expected-amount {
-  text-align: center;
-  margin-bottom: 16px;
-  padding: 12px;
-  background: #F8F9FA;
-  border-radius: 8px;
-  
-  .expected-label {
-    font-size: 12px;
-    color: #757575;
-    margin-bottom: 4px;
-  }
-  
-  .expected-value {
-    font-size: 18px;
-    font-weight: 600;
-    color: #2E7D32;
-  }
-}
-
-// Boutons de sélection rapide
-.quick-selection {
+// ─── En-tête ──────────────────────────────────────────────────────────────────
+.mise-header {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.mise-header-label {
+  font-size: 13px;
+  color: #757575;
+  flex: 1;
+  padding-right: 8px;
+  line-height: 1.3;
+}
+
+.mise-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.mise-paid-info,
+.mise-late-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mise-paid-text,
+.mise-late-text {
+  font-size: 11px;
+  color: #9E9E9E;
+  white-space: nowrap;
+}
+
+.mise-paid-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #2E7D32;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  
-  ion-button {
-    --border-radius: 20px;
-    --border-width: 1px;
-    --border-color: var(--quick-btn-border);
-    --color: var(--quick-btn-color);
-    --background: var(--quick-btn-background);
-    height: 36px;
-    font-size: 12px;
-    font-weight: 500;
-    flex: 1;
-    min-width: 80px;
-    
-    &[disabled] {
-      --color: var(--quick-btn-disabled-color);
-      --border-color: var(--quick-btn-disabled-color);
-      opacity: 0.5;
-    }
-    
-    &:not([disabled]):hover {
-      --background: var(--quick-btn-border);
-      --color: white;
-    }
+}
+
+.mise-late-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #C62828;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// ─── Grille de pastilles ──────────────────────────────────────────────────────
+.mise-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.mise-chip {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1.5px solid #E0E0E0;
+  background: #FAFAFA;
+  color: #757575;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    transform: scale(0.88);
+  }
+
+  // En retard — pas encore sélectionné
+  &.late {
+    background: #FFEBEE;
+    border-color: #EF9A9A;
+    color: #C62828;
+  }
+
+  // Mises intermédiaires sélectionnées (vert clair) — écrase .late
+  &.in-range {
+    background: #E8F5E9;
+    border-color: #4CAF50;
+    color: #1B5E20;
+  }
+
+  // Dernière mise sélectionnée (vert foncé) — écrase .late
+  &.selected {
+    background: #2E7D32;
+    border-color: #1B5E20;
+    color: #fff;
+    transform: scale(1.08);
   }
 }
 
-// Informations sur les limites
-.amount-limits {
-  text-align: center;
-  margin-bottom: 16px;
-  
-  ion-note {
-    font-size: 11px;
-    line-height: 1.3;
+// ─── Légende retard ───────────────────────────────────────────────────────────
+.mise-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.late-dot {
+    background: #EF9A9A;
+    border: 1px solid #C62828;
   }
 }
 
-// Groupe de saisie
-.amount-input-group {
-  margin-bottom: 16px;
-  
-  .amount-input-item {
-    --background: #FAFAFA;
-    --border-radius: 8px;
-    --border-width: 1px;
-    --border-color: var(--amount-input-border);
-    --highlight-color-focused: var(--amount-input-focus-border);
-    
-    .amount-input {
-      font-size: 24px;
-      font-weight: 600;
-      text-align: center;
-      --color: #333;
-      
-      &::placeholder {
-        color: #BDBDBD;
-        font-weight: 400;
-      }
-    }
-    
-    .currency-label {
-      font-size: 14px;
-      font-weight: 500;
-      color: #757575;
-      margin-right: 8px;
-    }
-    
-    &.item-has-focus {
-      --border-color: var(--amount-input-focus-border);
-      --highlight-color-focused: var(--amount-input-focus-border);
-    }
+.legend-text {
+  font-size: 11px;
+  color: #C62828;
+}
 
-    &.is-valid {
-      --border-color: #4CAF50 !important; // Forcer la couleur verte
-    }
+// ─── État vide ────────────────────────────────────────────────────────────────
+.mise-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 0 14px;
+  font-size: 13px;
+  color: #4CAF50;
+
+  ion-icon {
+    font-size: 16px;
   }
 }
 
-// Message de validation
+// ─── Séparateur ───────────────────────────────────────────────────────────────
+.mise-divider {
+  height: 1px;
+  background: #F0F0F0;
+  margin-bottom: 12px;
+}
+
+// ─── Bloc résultat ────────────────────────────────────────────────────────────
+.mise-result {
+  background: #F8F9FA;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.2s;
+
+  &.has-value {
+    background: #F1F8E9;
+  }
+}
+
+.mise-result-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mise-result-label {
+  font-size: 11px;
+  color: #558B2F;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mise-result-count {
+  font-size: 12px;
+  color: #33691E;
+}
+
+.mise-result-hint {
+  color: #BDBDBD;
+}
+
+.mise-result-amount {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1B5E20;
+}
+
+.mise-result-dash {
+  font-size: 18px;
+  color: #BDBDBD;
+}
+
+// ─── Message de validation ────────────────────────────────────────────────────
 .validation-message {
   display: flex;
   align-items: center;
-  padding: 12px;
+  padding: 10px 12px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  
+  margin-top: 12px;
+  animation: slideIn 0.25s ease;
+
   ion-icon {
     margin-right: 8px;
-    font-size: 18px;
+    font-size: 16px;
+    flex-shrink: 0;
   }
-  
+
   &.success {
     background: var(--validation-success-background);
     color: var(--validation-success-color);
     border: 1px solid var(--validation-success-color);
   }
-  
+
   &.error {
     background: var(--validation-error-background);
     color: var(--validation-error-color);
@@ -163,92 +260,24 @@
   }
 }
 
-// Texte d'aide
-.help-text {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--help-text-color);
-  font-size: 12px;
-  text-align: center;
-  
-  ion-icon {
-    margin-right: 6px;
-    font-size: 14px;
-  }
-}
-
-// Responsive design
-@media (max-width: 480px) {
-  .amount-input-container {
-    padding: 12px;
-  }
-  
-  .quick-selection {
-    gap: 6px;
-    
-    ion-button {
-      font-size: 11px;
-      height: 32px;
-      min-width: 70px;
-    }
-  }
-  
-  .amount-input-group {
-    .amount-input-item {
-      .amount-input {
-        font-size: 20px;
-      }
-    }
-  }
-  
-  .expected-amount {
-    .expected-value {
-      font-size: 16px;
-    }
-  }
-}
-
-// Animation pour les changements de validation
-.validation-message {
-  animation: slideIn 0.3s ease;
-}
-
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-// États spéciaux
-.amount-input-container {
-  &.loading {
-    opacity: 0.7;
-    pointer-events: none;
+// ─── Responsive petits écrans ─────────────────────────────────────────────────
+@media (max-width: 360px) {
+  .mise-chip {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
   }
-  
-  &.error-state {
-    border-color: var(--validation-error-color);
-    box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2);
+
+  .mise-grid {
+    gap: 6px;
   }
-  
-  &.success-state {
-    border-color: var(--validation-success-color);
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+
+  .mise-result-amount {
+    font-size: 18px;
   }
 }
-
-// Animation pour les boutons de sélection rapide
-.quick-selection ion-button {
-  transition: all 0.2s ease;
-  
-  &:active {
-    transform: scale(0.95);
-  }
-}
-

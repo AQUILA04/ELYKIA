@@ -14,7 +14,7 @@ La vente au comptant permet de vendre des articles directement à un client (`Cl
 ### `com.optimize.elykia.core.enumaration.OperationType`
 - Ajout de la valeur `CASH`.
 
-### `com.optimize.elykia.core.entity.Credit`
+### `com.optimize.elykia.core.entity.sale.Credit`
 - **Attributs** : Utilisation de l'attribut `agencyCommercial` pour stocker le commercial d'agence si applicable.
 - **Méthode `checkAdvance()`** :
   - Adaptation pour le type `CASH`.

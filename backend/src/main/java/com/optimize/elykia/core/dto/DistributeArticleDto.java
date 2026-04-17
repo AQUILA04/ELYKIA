@@ -2,7 +2,7 @@ package com.optimize.elykia.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.common.entities.exception.CustomValidationException;
-import com.optimize.elykia.core.entity.Order;
+import com.optimize.elykia.core.entity.sale.Order;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -30,6 +30,7 @@ public class DistributeArticleDto {
     private Double totalAmountPaid;
     private Double totalAmountRemaining;
     private Boolean mobile;
+    private String reference;
 
     public void validateEntryArticles() {
         if (Objects.isNull(articles) || articles.getArticleEntries().isEmpty()) {

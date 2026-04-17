@@ -93,7 +93,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 
 // MODULES MANQUANTS AJOUTÉS ICI
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { OldReleaseListComponent } from './out/old-release-list/old-release-list.component';
 import { CreditMergeModalComponent } from './credit/credit-merge-modal/credit-merge-modal.component';
@@ -106,6 +106,31 @@ import { ParameterListComponent } from './parameters/parameter-list/parameter-li
 import { ParameterEditComponent } from './parameters/parameter-edit/parameter-edit.component';
 import { CashDepositModalComponent } from './report/components/cash-deposit-modal/cash-deposit-modal.component';
 import { DailyStakeModalComponent } from './credit/components/daily-stake-modal/daily-stake-modal.component';
+import { ClientKpiCardsComponent } from './client/components/client-kpi-cards/client-kpi-cards.component';
+import { ClientInfoCardComponent } from './client/components/client-info-card/client-info-card.component';
+import { ClientCreditListComponent } from './client/components/client-credit-list/client-credit-list.component';
+import { ClientCotisationHistoryComponent } from './client/components/client-cotisation-history/client-cotisation-history.component';
+// --- Article Detail Sub-Components ---
+import { StockGaugeComponent } from './article/details/components/stock-gauge/stock-gauge.component';
+import { PriceCardComponent } from './article/details/components/price-card/price-card.component';
+import { MovementTableComponent } from './article/details/components/movement-table/movement-table.component';
+import { StateTimelineComponent } from './article/details/components/state-timeline/state-timeline.component';
+import { QuickStockEntryComponent } from './article/details/components/quick-stock-entry/quick-stock-entry.component';
+import { CreditLateComponent } from './credit/credit-late/credit-late.component';
+import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
+import { CreditLateFilterComponent } from './credit/credit-late/components/credit-late-filter/credit-late-filter.component';
+import { CreditLateTableComponent } from './credit/credit-late/components/credit-late-table/credit-late-table.component';
+import { CreditEcheanceComponent } from './credit/credit-echeance/credit-echeance.component';
+import { CreditEcheanceKpiComponent } from './credit/credit-echeance/components/credit-echeance-kpi/credit-echeance-kpi.component';
+import { CreditEcheanceCalendarComponent } from './credit/credit-echeance/components/credit-echeance-calendar/credit-echeance-calendar.component';
+import { CreditEcheanceFilterComponent } from './credit/credit-echeance/components/credit-echeance-filter/credit-echeance-filter.component';
+import { CreditEcheanceTableComponent } from './credit/credit-echeance/components/credit-echeance-table/credit-echeance-table.component';
+import { RecouvrementComponent } from './credit/recouvrement/recouvrement.component';
+import { RecouvrementKpiComponent } from './credit/recouvrement/components/recouvrement-kpi/recouvrement-kpi.component';
+import { RecouvrementFilterComponent } from './credit/recouvrement/components/recouvrement-filter/recouvrement-filter.component';
+import { RecouvrementTableComponent } from './credit/recouvrement/components/recouvrement-table/recouvrement-table.component';
+import {NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule} from "ngx-google-analytics";
+import {environment} from "../environments/environment";
 
 @NgModule({
   declarations: [
@@ -176,7 +201,30 @@ import { DailyStakeModalComponent } from './credit/components/daily-stake-modal/
     ParameterListComponent,
     ParameterEditComponent,
     CashDepositModalComponent,
-    DailyStakeModalComponent
+    DailyStakeModalComponent,
+    ClientKpiCardsComponent,
+    ClientInfoCardComponent,
+    ClientCreditListComponent,
+    ClientCotisationHistoryComponent,
+    // --- Article Detail Sub-Components ---
+    StockGaugeComponent,
+    PriceCardComponent,
+    MovementTableComponent,
+    StateTimelineComponent,
+    QuickStockEntryComponent,
+    CreditLateComponent,
+    CreditLateKpiComponent,
+    CreditLateFilterComponent,
+    CreditLateTableComponent,
+    CreditEcheanceComponent,
+    CreditEcheanceKpiComponent,
+    CreditEcheanceCalendarComponent,
+    CreditEcheanceFilterComponent,
+    CreditEcheanceTableComponent,
+    RecouvrementComponent,
+    RecouvrementKpiComponent,
+    RecouvrementFilterComponent,
+    RecouvrementTableComponent
     // --- NOUVELLES COMPOSANTS DÉPLACÉS DANS SHARED ---
   ],
   imports: [
@@ -213,12 +261,17 @@ import { DailyStakeModalComponent } from './credit/components/daily-stake-modal/
     MatNativeDateModule,
     SharedComponentsModule,
     ToastrModule.forRoot(),
-    MatExpansionModule
+    MatExpansionModule,
+    // Initialise GA avec votre ID
+    NgxGoogleAnalyticsModule.forRoot(environment.gaMeasurementId),
+    // Track automatique les changements de routes (pages vues)
+    NgxGoogleAnalyticsRouterModule
   ],
   providers: [
     // --- CORRECTION DES PROVIDERS ---
     { provide: HTTP_INTERCEPTORS, useClass: LicenseInterceptorService, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' }
   ],
   bootstrap: [AppComponent]
 })

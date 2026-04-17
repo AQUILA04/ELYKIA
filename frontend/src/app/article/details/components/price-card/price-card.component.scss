@@ -1,0 +1,108 @@
+.price-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+
+    &.price-grid--single {
+        grid-template-columns: 1fr;
+    }
+}
+
+.price-card {
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius-sm);
+    padding: 16px 18px;
+    transition: box-shadow .2s;
+
+    &:hover {
+        box-shadow: var(--ad-shadow-md);
+    }
+
+    .pc-label {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: var(--ad-text-muted);
+        margin-bottom: 6px;
+    }
+
+    .pc-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--ad-text-primary);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .pc-currency {
+        font-size: 11px;
+        color: var(--ad-text-muted);
+        font-weight: 400;
+        margin-left: 2px;
+    }
+
+    &.featured {
+        border-color: var(--ad-navy);
+        background: var(--ad-navy-pale);
+
+        .pc-value {
+            color: var(--ad-navy);
+        }
+    }
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--ad-border);
+    margin: 20px 0;
+}
+
+.margin-row {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.margin-item {
+    .mi-label {
+        font-size: 11px;
+        color: var(--ad-text-muted);
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: 3px;
+    }
+
+    .mi-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--ad-green);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .mi-pct {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ad-text-secondary);
+    }
+}
+
+.last-restock {
+    margin-left: auto;
+    text-align: right;
+
+    .lr-label {
+        font-size: 11px;
+        color: var(--ad-text-muted);
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: 3px;
+    }
+
+    .lr-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--ad-text-secondary);
+    }
+}

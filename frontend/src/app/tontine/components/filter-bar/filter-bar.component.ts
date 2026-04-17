@@ -31,8 +31,7 @@ export class TontineFilterBarComponent implements OnInit {
     );
   }
 
-  onSearchChange(value: string): void {
-    this.currentSearchTerm = value;
+  onSearchEnter(): void {
     this.emitFilterChanges();
   }
 

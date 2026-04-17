@@ -2,8 +2,8 @@ package com.optimize.elykia.core.mapper;
 
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
 import com.optimize.elykia.core.dto.TontineDeliveryItemDto;
-import com.optimize.elykia.core.entity.TontineDelivery;
-import com.optimize.elykia.core.entity.TontineDeliveryItem;
+import com.optimize.elykia.core.entity.tontine.TontineDelivery;
+import com.optimize.elykia.core.entity.tontine.TontineDeliveryItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

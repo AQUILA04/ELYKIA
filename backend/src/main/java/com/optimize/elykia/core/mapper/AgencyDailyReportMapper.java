@@ -2,7 +2,7 @@ package com.optimize.elykia.core.mapper;
 
 import com.optimize.common.entities.mapper.BaseMapper;
 import com.optimize.elykia.core.dto.AgencyDailyReportDto;
-import com.optimize.elykia.core.entity.AgencyDailyReport;
+import com.optimize.elykia.core.entity.agency.AgencyDailyReport;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

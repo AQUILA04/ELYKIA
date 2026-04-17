@@ -17,11 +17,6 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
     }
 
     async saveAll(entities: Distribution[]): Promise<void> {
-        // This implements saveDistributions logic.
-        // Note: DatabaseService also has saveDistributionsAndItems.
-        // For a repository, save(Distribution) should probably save items too if they are present.
-        // I will implement the logic from saveDistributionsAndItems as it is more complete for an aggregate.
-
         if (!this.databaseService['db']) {
             throw new Error('Database not initialized.');
         }
@@ -92,7 +87,7 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
                     allItemsToInsert.push({
                         statement: sql,
                         values: [
-                            item.id ?? this.databaseService['generateUuid'](), // Accessing private or need helper
+                            item.id ?? this.generateUuid(),
                             distIdStr,
                             item.articleId ?? null,
                             item.quantity ?? 0,
@@ -108,7 +103,7 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
             if (distributionIdsToClearItems.length > 0) {
                 const placeholders = distributionIdsToClearItems.map(() => '?').join(',');
                 const sql = `DELETE FROM distribution_items WHERE distributionId IN (${placeholders})`;
-                await this.databaseService['db'].run(sql, distributionIdsToClearItems);
+                await this.databaseService.execute(sql, distributionIdsToClearItems);
             }
 
             if (distributionsToUpdate.length > 0) {
@@ -124,7 +119,7 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
             }
 
         } catch (error) {
-            console.error('Failed to save distributions and items in repository.', error);
+            console.error('Failed to save distributions in repository.', error);
             throw error;
         }
     }
@@ -178,6 +173,30 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
         return ret.values || [];
     }
 
+    /**
+     * Get unsynced distributions with pagination
+     * @param commercialUsername Commercial username (filtered by ID in Distributions table, assuming username matches commercialId or need mapping? SyncService uses commercialId=username)
+     * @param limit Max number of items
+     * @param offset Offset
+     */
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<Distribution[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `SELECT * FROM distributions WHERE isSync = 0 AND isLocal = 1 AND commercialId = ? ORDER BY createdAt ASC LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => this.mapRowToDistribution(row));
+    }
+
+    async markAsSynced(localId: string, serverId: string): Promise<void> {
+        if (!this.databaseService['db'] || localId === serverId) return;
+        const updateSet = [
+            { statement: `UPDATE recoveries SET distributionId = ? WHERE distributionId = ?`, values: [serverId, localId] },
+            { statement: `UPDATE distributions SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`, values: [serverId, localId] }
+        ];
+        await this.databaseService.executeSet(updateSet);
+    }
+
     // ==================== SPECIFIC UPDATE METHODS ====================
 
     /**
@@ -190,13 +209,16 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
             throw new Error('Database not initialized.');
         }
 
-        const keysToInclude = ['id', 'reference', 'totalAmount', 'dailyPayment', 'startDate', 'endDate', 'status'];
+        const keysToInclude = ['id', 'reference', 'totalAmount', 'dailyPayment', 'paidAmount', 'remainingAmount', 'advance', 'startDate', 'endDate', 'status'];
         const newSyncHash = this.generateHash(distribution, keysToInclude);
         const now = new Date().toISOString();
 
         const sql = `UPDATE distributions SET reference = ?, creditId = ?, totalAmount = ?, dailyPayment = ?, startDate = ?, endDate = ?, status = ?, clientId = ?, commercialId = ?, isLocal = ?, isSync = ?, syncDate = ?, createdAt = ?, syncHash = ?, articleCount = ?, remainingAmount = ?, paidAmount = ?, advance = ? WHERE id = ?`;
 
         const localDist = DistributionMapper.toLocal(distribution);
+        if (localDist.totalAmount == localDist.paidAmount) {
+          localDist.status = 'SETTLED';
+        }
 
         await this.databaseService.execute(sql, [
             localDist.reference ?? null,
@@ -304,6 +326,87 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
 
         } catch (error) {
             console.error('Failed to save distribution items in repository.', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get distributions created on a specific date for a commercial
+     * @param commercialUsername Commercial username
+     * @param date Date string (YYYY-MM-DD)
+     * @returns Array of distributions with client names
+     */
+    async findByCommercialAndDate(commercialUsername: string, date: string): Promise<any[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `
+            SELECT d.*, c.fullName as clientName
+            FROM distributions d
+            LEFT JOIN clients c ON d.clientId = c.id
+            WHERE d.commercialId = ? AND d.createdAt LIKE ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, `${date}%`]);
+        return (result.values || []).map((row: any) => ({
+            ...this.mapRowToDistribution(row),
+            clientName: row.clientName
+        }));
+    }
+
+    /**
+     * Delete a distribution and its items
+     * @param distributionId ID of the distribution to delete
+     */
+    async deleteDistribution(distributionId: string): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+
+        try {
+            const deleteSet: capSQLiteSet[] = [
+                {
+                    statement: `DELETE FROM distribution_items WHERE distributionId = ?`,
+                    values: [distributionId]
+                },
+                {
+                    statement: `DELETE FROM distributions WHERE id = ?`,
+                    values: [distributionId]
+                }
+            ];
+
+            await this.databaseService.executeSet(deleteSet);
+            console.log(`Successfully deleted distribution ${distributionId} and its items.`);
+        } catch (error) {
+            console.error(`Failed to delete distribution ${distributionId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Delete all synced distributions and their items for a commercial
+     * @param commercialUsername Commercial username
+     */
+    async deleteSyncedDistributions(commercialUsername: string): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+
+        try {
+            const deleteSet: capSQLiteSet[] = [
+                {
+                    statement: `DELETE FROM distribution_items WHERE distributionId IN (SELECT id FROM distributions WHERE isSync = 1 AND commercialId = ?)`,
+                    values: [commercialUsername]
+                },
+                {
+                    statement: `DELETE FROM distributions WHERE isSync = 1 AND commercialId = ?`,
+                    values: [commercialUsername]
+                }
+            ];
+
+            await this.databaseService.executeSet(deleteSet);
+            console.log(`Successfully deleted synced distributions and their items for ${commercialUsername}.`);
+        } catch (error) {
+            console.error(`Failed to delete synced distributions for commercial ${commercialUsername}:`, error);
             throw error;
         }
     }

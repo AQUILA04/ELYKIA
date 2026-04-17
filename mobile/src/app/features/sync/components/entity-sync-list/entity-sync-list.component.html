@@ -1,0 +1,92 @@
+<div class="entity-sync-list">
+  <!-- En-tête avec "Tout sélectionner" -->
+  <div class="list-header" *ngIf="entities && entities.length > 0">
+    <ion-item lines="none" class="select-all-item">
+      <ion-checkbox 
+        slot="start" 
+        [checked]="isAllSelected"
+        (ionChange)="onToggleAll()">
+      </ion-checkbox>
+      <ion-label>
+        <h3>Tout sélectionner</h3>
+        <p>{{ entities.length }} élément(s) disponible(s)</p>
+      </ion-label>
+    </ion-item>
+  </div>
+
+  <!-- Liste des entités -->
+  <ion-list *ngIf="entities && entities.length > 0">
+    <ion-item 
+      *ngFor="let entity of entities" 
+      [class.item-selected]="isSelected(entity.id)"
+      [class.item-syncing]="isSyncing(entity.id)"
+      lines="full">
+      
+      <!-- Checkbox de sélection -->
+      <ion-checkbox 
+        slot="start" 
+        [checked]="isSelected(entity.id)"
+        [disabled]="isSyncing(entity.id)"
+        (ionChange)="onToggle(entity.id)">
+      </ion-checkbox>
+
+      <!-- Icône de l'entité -->
+      <ion-icon 
+        [name]="getEntityIcon()" 
+        slot="start" 
+        class="entity-icon"
+        [color]="isSyncing(entity.id) ? 'warning' : 'primary'">
+      </ion-icon>
+
+      <!-- Informations de l'entité -->
+      <ion-label>
+        <h2>{{ getDisplayName(entity) }}</h2>
+        <p>{{ getDisplayDetails(entity) }}</p>
+      </ion-label>
+
+      <!-- Badge de statut -->
+      <ion-badge 
+        slot="end" 
+        [color]="getStatusColor(entity.id)"
+        class="status-badge">
+        {{ getStatusLabel(entity.id) }}
+      </ion-badge>
+
+      <!-- Spinner pendant la synchronisation -->
+      <ion-spinner 
+        *ngIf="isSyncing(entity.id)" 
+        slot="end" 
+        name="crescent"
+        color="warning">
+      </ion-spinner>
+
+      <!-- Bouton Modifier (uniquement pour entités avec dépendances) -->
+      <ion-button 
+        *ngIf="!isSyncing(entity.id) && canEditParent()"
+        slot="end" 
+        fill="clear" 
+        (click)="onEditParent(entity.id, $event)"
+        class="edit-button"
+        title="Modifier le parent">
+        <ion-icon name="create-outline"></ion-icon>
+      </ion-button>
+
+      <!-- Bouton de synchronisation individuelle -->
+      <ion-button 
+        *ngIf="!isSyncing(entity.id)"
+        slot="end" 
+        fill="clear" 
+        (click)="onSync(entity.id, $event)"
+        class="sync-button">
+        <ion-icon name="sync-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+  <!-- État vide -->
+  <div class="empty-state" *ngIf="!entities || entities.length === 0">
+    <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+    <h3>Aucune donnée à synchroniser</h3>
+    <p>Toutes les {{ entityType === 'client' ? 'clients' : entityType === 'distribution' ? 'distributions' : 'recouvrements' }} sont déjà synchronisé(e)s.</p>
+  </div>
+</div>

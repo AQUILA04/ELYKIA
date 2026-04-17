@@ -1,122 +1,44 @@
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable, BehaviorSubject, combineLatest, Subject } from 'rxjs';
-import { map, distinctUntilChanged, startWith, takeUntil, debounceTime } from 'rxjs/operators';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { takeUntil, take, distinctUntilChanged, debounceTime, filter } from 'rxjs/operators';
 import { Article } from '../../../../models/article.model';
-import { selectAllArticles } from '../../../../store/article/article.selectors';
-import * as ArticleActions from '../../../../store/article/article.actions';
-import * as CommercialStockActions from '../../../../store/commercial-stock/commercial-stock.actions';
-import { selectAvailableStockItems } from '../../../../store/commercial-stock/commercial-stock.selectors';
-import { CommercialStockItem } from '../../../../models/commercial-stock-item.model';
-
-// L'événement peut être typé 'any' pour plus de simplicité, car il est géré par le module.
-// import { InfiniteScrollCustomEvent } from '@ionic/angular';
+import * as DistributionActions from '../../../../store/distribution/distribution.actions';
+import {
+  selectAvailableArticles,
+  selectArticlesPaginationLoading,
+  selectArticlesPaginationHasMore
+} from '../../../../store/distribution/distribution.selectors';
+import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 
 @Component({
   selector: 'app-article-list',
   templateUrl: './article-list.page.html',
   styleUrls: ['./article-list.page.scss'],
-  standalone: false, // CORRECTION : On revient à un composant non-autonome
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ArticleListPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-
-  private allArticles: Article[] = [];
-  public displayedArticles: Article[] = [];
-  private page = 0;
-  private readonly pageSize = 20;
-  public isInfiniteScrollDisabled = false;
-
-  public articleCount$!: Observable<number>;
   private searchTerm$ = new BehaviorSubject<string>('');
 
-  constructor(
-    private store: Store,
-    private cdr: ChangeDetectorRef
-  ) {}
+  articles$: Observable<Article[]>;
+  isLoading$: Observable<boolean>;
+  hasMore$: Observable<boolean>;
+
+  constructor(private store: Store) {
+    this.articles$ = this.store.select(selectAvailableArticles);
+    this.isLoading$ = this.store.select(selectArticlesPaginationLoading);
+    this.hasMore$ = this.store.select(selectArticlesPaginationHasMore);
+  }
 
   ngOnInit() {
-    this.setupDataStreams();
+    this.setupSearch();
+    this.loadFirstPage();
   }
 
   ionViewWillEnter() {
-    // Dispatch l'action pour recharger les articles à chaque fois que la vue est active
-    this.store.dispatch(ArticleActions.loadArticles());
-    // On pourrait aussi recharger le stock commercial ici si nécessaire, mais il est généralement chargé au démarrage
-  }
-
-  private setupDataStreams() {
-    const articles$ = this.store.select(selectAllArticles);
-    const stockItems$ = this.store.select(selectAvailableStockItems);
-
-    const availableArticles$ = combineLatest([articles$, stockItems$]).pipe(
-      map(([articles, stockItems]) => {
-        // Filter articles based on available stock in CommercialStockItems
-        // Only show articles that have quantityRemaining > 0 in stockItems
-        // Also update the stockQuantity property of the article object to reflect the actual available stock
-
-        return articles.map(article => {
-            const stockItem = stockItems.find(item => item.articleId === article.id);
-            return {
-                ...article,
-                stockQuantity: stockItem ? stockItem.quantityRemaining : 0
-            };
-        }).filter(article => article.stockQuantity > 0);
-      })
-    );
-
-    const searchTermAction$ = this.searchTerm$.asObservable().pipe(
-      debounceTime(300),
-      map(term => (term || '').toLowerCase()),
-      distinctUntilChanged()
-    );
-
-    combineLatest([availableArticles$, searchTermAction$]).pipe(
-      map(([articles, searchTerm]) => {
-        if (!searchTerm) {
-          return articles;
-        }
-        return articles.filter(article =>
-          (article.name && article.name.toLowerCase().includes(searchTerm)) ||
-          (article.commercialName && article.commercialName.toLowerCase().includes(searchTerm)) ||
-          (article.reference && article.reference.toLowerCase().includes(searchTerm))
-        );
-      }),
-      takeUntil(this.destroy$)
-    ).subscribe(filteredArticles => {
-      this.allArticles = filteredArticles;
-      this.resetAndLoadFirstPage();
-    });
-
-    this.articleCount$ = availableArticles$.pipe(map(articles => articles.length));
-  }
-
-  private resetAndLoadFirstPage() {
-    this.page = 0;
-    this.displayedArticles = [];
-    this.isInfiniteScrollDisabled = false;
-    this.loadMoreData();
-  }
-
-  loadMoreData(event?: any) { // Le type 'any' est utilisé pour éviter les problèmes d'import
-    const startIndex = this.page * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-
-    const nextChunk = this.allArticles.slice(startIndex, endIndex);
-    this.displayedArticles.push(...nextChunk);
-
-    this.page++;
-
-    if (this.displayedArticles.length >= this.allArticles.length) {
-      this.isInfiniteScrollDisabled = true;
-    }
-
-    if (event) {
-      event.target.complete();
-    }
-
-    this.cdr.markForCheck();
+    // Optional: Refresh if needed, but ngOnInit should handle initial load
   }
 
   ngOnDestroy() {
@@ -124,8 +46,51 @@ export class ArticleListPage implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private setupSearch() {
+    this.searchTerm$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(term => {
+      this.loadFirstPage(term);
+    });
+  }
+
+  loadFirstPage(query: string = this.searchTerm$.value) {
+    this.store.select(selectAuthUser).pipe(
+      take(1),
+      filter(user => !!user)
+    ).subscribe(user => {
+      this.store.dispatch(DistributionActions.loadFirstPageAvailableArticles({
+        commercialUsername: user!.username,
+        pageSize: 20,
+        filters: {
+          searchQuery: query
+        }
+      }));
+    });
+  }
+
+  loadMoreData(event: any) {
+    this.store.select(selectAuthUser).pipe(
+      take(1),
+      filter(user => !!user)
+    ).subscribe(user => {
+      this.store.dispatch(DistributionActions.loadNextPageAvailableArticles({
+        commercialUsername: user!.username,
+        filters: {
+          searchQuery: this.searchTerm$.value
+        }
+      }));
+
+      // Complete infinite scroll event when data loads or if valid
+      // Ideally should listen to loading state, but for simplicity:
+      setTimeout(() => event.target.complete(), 500);
+    });
+  }
+
   onSearchInput(event: any) {
-    this.searchTerm$.next(event.target.value);
+    this.searchTerm$.next(event.target.value || '');
   }
 
   trackByArticleId(index: number, article: Article): string {

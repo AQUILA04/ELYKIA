@@ -1,8 +1,8 @@
 package com.optimize.elykia.core.scheduler;
 
 import com.optimize.common.entities.enums.State;
-import com.optimize.elykia.core.entity.TontineMember;
-import com.optimize.elykia.core.entity.TontineSession;
+import com.optimize.elykia.core.entity.tontine.TontineMember;
+import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.TontineMemberRepository;

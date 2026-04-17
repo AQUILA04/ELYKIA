@@ -16,5 +16,6 @@ public class ClientDetails {
     private Double totalInProgressAmountCollected;
     private Integer totalCreditClosed;
     private Integer totalCreditDelayed;
+    private Double totalAmountRemaining;
 
 }

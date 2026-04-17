@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.BaseRepository;
-import com.optimize.elykia.core.entity.StockReceptionItem;
+import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import org.springframework.stereotype.Repository;
 
 @Repository

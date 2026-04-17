@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,7 +43,7 @@ public class ClientController {
 
     @PutMapping(value = "{id}")
     public ResponseEntity<Response> update(@RequestBody @Valid ClientDto dto, @PathVariable Long id) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.updateclient(dto, id)), HttpStatus.OK);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.updateClient(dto, id)), HttpStatus.OK);
     }
 
     @PatchMapping(value = "location-update")
@@ -105,9 +106,24 @@ public class ClientController {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getProfilPhoto(id)), HttpStatus.OK);
     }
 
+    @GetMapping(value = "profil-photo-stream/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public @ResponseBody byte[] getProfilPhotoStream(@PathVariable Long id) {
+        return clientService.getProfilPhotoStream(id);
+    }
+
     @GetMapping(value = "card-photo/{id}")
     public ResponseEntity<Response> getClientCardPhoto(@PathVariable Long id) {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getCardPhoto(id)), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "profil-photos")
+    public ResponseEntity<Response> getClientProfilPhotos(@RequestBody List<Long> ids) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getProfilPhotos(ids)), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "card-photos")
+    public ResponseEntity<Response> getClientCardPhotos(@RequestBody List<Long> ids) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getCardPhotos(ids)), HttpStatus.OK);
     }
 
     @DeleteMapping(value = "{id}")
@@ -118,6 +134,16 @@ public class ClientController {
     @PostMapping(value = "elasticsearch")
     public ResponseEntity<Response> elasticSearch(@RequestBody ElasticSearchWrapper wrapper, String username, Boolean tontine, Pageable pageable) {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.elasticsearch(wrapper.getKeyword(), username, tontine, pageable)), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "check-missing-photos")
+    public ResponseEntity<Response> checkMissingPhotos(@RequestBody List<Long> ids) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.checkMissingPhotos(ids)), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "photos-batch-update")
+    public ResponseEntity<Response> updatePhotosBatch(@RequestBody List<ClientPhotoBatchUpdateDto> dtos) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.updatePhotosBatch(dtos)), HttpStatus.OK);
     }
 
 }

@@ -2,7 +2,7 @@ package com.optimize.elykia.core.mapper;
 
 import com.optimize.common.entities.mapper.BaseMapper;
 import com.optimize.elykia.core.dto.ExpenseDto;
-import com.optimize.elykia.core.entity.Expense;
+import com.optimize.elykia.core.entity.expense.Expense;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

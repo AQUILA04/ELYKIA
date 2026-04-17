@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewChild, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, OnChanges, SimpleChanges, AfterViewInit } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort, Sort } from '@angular/material/sort';
@@ -9,7 +9,7 @@ import { TontineMember, formatCurrency, formatDate, getDeliveryStatusLabel, getD
   templateUrl: './member-table.component.html',
   styleUrls: ['./member-table.component.scss']
 })
-export class TontineMemberTableComponent implements OnChanges {
+export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
   @Input() loading: boolean = false;
   @Input() paginatedResponse: PaginatedResponse<TontineMember> | null = null;
   @Input() pageSize: number = 20; // Default page size
@@ -21,14 +21,14 @@ export class TontineMemberTableComponent implements OnChanges {
   @Output() sortChange = new EventEmitter<string>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) matSort!: MatSort; // Renamed to avoid conflict with `Sort` interface
+  @ViewChild(MatSort) matSort!: MatSort;
 
   displayedColumns: string[] = ['client', 'totalContribution', 'deliveryStatus', 'registrationDate', 'actions'];
   dataSource = new MatTableDataSource<TontineMember>([]);
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['paginatedResponse'] && this.paginatedResponse) {
-      this.dataSource.data = this.paginatedResponse.content ? [...this.paginatedResponse.content] : [];
+      this.dataSource = new MatTableDataSource(this.paginatedResponse.content ? [...this.paginatedResponse.content] : []);
       if (this.paginatedResponse.page) {
         this.totalElements = this.paginatedResponse.page.totalElements;
         this.pageSize = this.paginatedResponse.page.size;
@@ -38,11 +38,13 @@ export class TontineMemberTableComponent implements OnChanges {
   }
 
   ngAfterViewInit() {
-    // Only emit sort change, paginator is handled by input properties
-    this.matSort.sortChange.subscribe((sortEvent: Sort) => {
-      const sortString = `${sortEvent.active},${sortEvent.direction}`;
-      this.sortChange.emit(sortString);
-    });
+    if (this.matSort) {
+      this.dataSource.sort = this.matSort;
+      this.matSort.sortChange.subscribe((sortEvent: Sort) => {
+        const sortString = `${sortEvent.active},${sortEvent.direction}`;
+        this.sortChange.emit(sortString);
+      });
+    }
   }
 
   onPageChange(event: PageEvent): void {

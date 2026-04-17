@@ -1,0 +1,67 @@
+.kpi-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease-in-out;
+  border: none;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .mat-card-header {
+    padding: 16px 16px 0;
+  }
+
+  .mat-card-subtitle {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+  }
+
+  .mat-card-content {
+    padding: 0 16px 16px;
+  }
+
+  .kpi-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #212529;
+  }
+
+  .kpi-subvalue {
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+}
+
+.badge-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #007bff;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  margin-left: 8px;
+
+  &.badge-large {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+    margin-left: 0;
+    background-color: #28a745; /* Couleur success (verte) */
+    margin-top: -10px; /* Remonte le badge pour réduire l'espace */
+  }
+}
+
+.text-success { color: #28a745 !important; }
+.text-danger { color: #dc3545 !important; }
+.text-primary { color: #003366 !important; }

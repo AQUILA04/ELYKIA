@@ -1,0 +1,22 @@
+.badge {
+  padding: 0.5em 0.75em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 0.25rem;
+
+  &.badge-success { background-color: #d4edda; color: #155724; }
+  &.badge-warning { background-color: #fff3cd; color: #856404; }
+  &.badge-danger { background-color: #f8d7da; color: #721c24; }
+  &.badge-secondary { background-color: #e2e3e5; color: #383d41; }
+}
+
+.table {
+  th {
+    font-weight: 600;
+    color: #495057;
+    border-top: none;
+  }
+  td {
+    vertical-align: middle;
+  }
+}

@@ -70,4 +70,16 @@ export class TransactionRepository extends BaseRepository<Transaction, string> {
         const ret = await this.databaseService.query(sql, [commercialId]);
         return ret.values || [];
     }
+
+    /**
+     * Get transactions for a specific client with pagination
+     */
+    async findTransactionsByClientPaginated(clientId: string, offset: number, limit: number): Promise<Transaction[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `SELECT * FROM transactions WHERE clientId = ? ORDER BY date DESC LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [clientId, limit, offset]);
+        return result.values || [];
+    }
 }

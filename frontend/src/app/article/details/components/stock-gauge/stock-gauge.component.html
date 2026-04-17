@@ -1,0 +1,44 @@
+<div class="stock-panel">
+    <div class="stock-panel__title">Stock actuel</div>
+
+    <div class="stock-ring">
+        <svg viewBox="0 0 120 120" width="120" height="120">
+            <circle class="ring-bg" cx="60" cy="60" r="50" />
+            <circle [class]="'ring-fill ' + ringClass" cx="60" cy="60" r="50" stroke-dasharray="314"
+                [attr.stroke-dashoffset]="dashOffset" />
+        </svg>
+        <div class="stock-number">
+            <span class="stock-qty">{{ article.stockQuantity ?? 0 }}</span>
+            <span class="stock-unit">unités</span>
+        </div>
+    </div>
+
+    <span [class]="'stock-status ' + statusClass">{{ statusLabel }}</span>
+
+    <div class="stock-thresholds">
+        <div class="threshold-item">
+            <div class="t-label">Seuil réappro.</div>
+            <div class="t-value" [class.t-warn]="reorderAlert">
+                {{ article.reorderPoint ?? '—' }}
+            </div>
+        </div>
+        <div class="threshold-item">
+            <div class="t-label">Stock optimal</div>
+            <div class="t-value">{{ article.optimalStockLevel ?? '—' }}</div>
+        </div>
+        <ng-container *ngIf="article.averageMonthlySales">
+            <div class="threshold-item">
+                <div class="t-label">Jours restants</div>
+                <div class="t-value" [class.t-warn]="daysCoverage < 30">
+                    ~{{ daysCoverage }}&nbsp;j
+                </div>
+            </div>
+        </ng-container>
+        <ng-container *ngIf="article.stockTurnoverRate">
+            <div class="threshold-item">
+                <div class="t-label">Rotation stock</div>
+                <div class="t-value">{{ article.stockTurnoverRate | number:'1.1-1' }}×</div>
+            </div>
+        </ng-container>
+    </div>
+</div>

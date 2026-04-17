@@ -1,0 +1,45 @@
+<div class="kpi-dashboard row mb-4">
+  <div class="col-md-3 col-sm-6 mb-3">
+    <mat-card class="kpi-card h-100">
+      <mat-card-header>
+        <mat-card-subtitle>
+          Achats en cours
+          <span class="badge-circle ml-2">{{ clientDetails.totalInProgressCredit || 0 }}</span>
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="kpi-value text-primary">{{ (clientDetails.totalInProgressCreditAmount || 0) | currency:'XOF':'symbol':'1.0-0' }}</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <div class="col-md-3 col-sm-6 mb-3">
+    <mat-card class="kpi-card h-100">
+      <mat-card-header>
+        <mat-card-subtitle>Reste à payer</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="kpi-value text-danger">{{ (clientDetails.totalAmountRemaining || 0) | currency:'XOF':'symbol':'1.0-0' }}</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <div class="col-md-3 col-sm-6 mb-3">
+    <mat-card class="kpi-card h-100">
+      <mat-card-header>
+        <mat-card-subtitle>Montant payé</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="kpi-value text-success">{{ (clientDetails.totalInProgressAmountCollected || 0) | currency:'XOF':'symbol':'1.0-0' }}</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <div class="col-md-3 col-sm-6 mb-3">
+    <mat-card class="kpi-card h-100">
+      <mat-card-header>
+        <mat-card-subtitle>Achats terminés</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="d-flex justify-content-center">
+        <div class="badge-circle badge-large">{{ clientDetails.totalCreditClosed || 0 }}</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

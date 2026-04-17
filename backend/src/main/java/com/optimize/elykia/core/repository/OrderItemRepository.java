@@ -3,7 +3,7 @@ package com.optimize.elykia.core.repository;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.dto.ArticleOrderSummaryDto;
 import com.optimize.elykia.core.dto.RestockNeededDto;
-import com.optimize.elykia.core.entity.OrderItem;
+import com.optimize.elykia.core.entity.sale.OrderItem;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

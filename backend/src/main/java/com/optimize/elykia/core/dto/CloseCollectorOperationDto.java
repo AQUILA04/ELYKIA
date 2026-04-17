@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.optimize.elykia.core.entity.DailyAccounting;
+import com.optimize.elykia.core.entity.accounting.DailyAccounting;
 import lombok.Data;
 
 import java.time.LocalDate;

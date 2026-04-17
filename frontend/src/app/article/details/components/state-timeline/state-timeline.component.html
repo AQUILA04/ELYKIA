@@ -1,0 +1,63 @@
+<!-- Timeline des changements d'état -->
+<div class="state-timeline" *ngIf="displayedHistory.length > 0; else noHistory">
+    <div class="state-event" *ngFor="let sh of displayedHistory; let last = last">
+        <div class="event-connector">
+            <div [class]="'state-dot ' + dotClass(sh.newState)"></div>
+            <div class="connector-line" *ngIf="!last"></div>
+        </div>
+        <div class="event-content">
+            <div class="s-title">
+                <span class="s-from">{{ stateLabel(sh.previousState) }}</span>
+                <svg class="arrow-icon" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M1 8h14M9 2l6 6-6 6" />
+                </svg>
+                <strong [style.color]="stateColor(sh.newState)">{{ stateLabel(sh.newState) }}</strong>
+            </div>
+            <div class="s-meta">{{ formatDateTime(sh.createdDate) }} · {{ sh.createdBy }}</div>
+        </div>
+    </div>
+</div>
+
+<ng-template #noHistory>
+    <div class="empty-state">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v4l3 3" />
+        </svg>
+        <p>Aucun changement d'état enregistré</p>
+    </div>
+</ng-template>
+
+<!-- Bloc Audit -->
+<ng-container *ngIf="article">
+    <div class="audit-title">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="12" height="12" rx="2" />
+            <path d="M5 8h6M8 5v6" />
+        </svg>
+        Audit
+    </div>
+    <div class="audit-grid">
+        <div class="audit-cell">
+            <div class="a-label">Créé par</div>
+            <div class="a-value">{{ article.articleCreatedBy || '—' }}</div>
+        </div>
+        <div class="audit-cell">
+            <div class="a-label">Créé le</div>
+            <div class="a-value">{{ formatDate(article.articleCreatedDate) }}</div>
+        </div>
+        <div class="audit-cell">
+            <div class="a-label">Modifié par</div>
+            <div class="a-value">{{ article.articleLastModifiedBy || '—' }}</div>
+        </div>
+        <div class="audit-cell">
+            <div class="a-label">Modifié le</div>
+            <div class="a-value">{{ formatDate(article.articleLastModifiedDate) }}</div>
+        </div>
+        <div class="audit-cell audit-cell--full">
+            <div class="a-label">ID Article</div>
+            <div class="a-value a-value--mono">#{{ article.id }}</div>
+        </div>
+    </div>
+</ng-container>

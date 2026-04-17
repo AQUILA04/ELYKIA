@@ -8,22 +8,26 @@
 
   <div class="d-flex justify-content-between align-items-center mb-3">
 
-    <input
-      type="text"
-      placeholder="Rechercher un article..."
-      [(ngModel)]="searchTerm"
-      (input)="onSearch()"
-      class="form-control w-50"
-    />
+    <input type="text" placeholder="Rechercher un article..." [(ngModel)]="searchTerm" (input)="onSearch()"
+      class="form-control w-50" />
 
     <div class="button-group" *ngxPermissionsOnly="['ROLE_EDIT_ARTICLE', 'ROLE_STOREKEEPER']">
+      <button *ngIf="selectedArticles.size > 0" class="btn btn-disable btn-sm me-2" (click)="disableSelected()">
+        <mat-icon>block</mat-icon>
+        <span>Désactiver ({{selectedArticles.size}})</span>
+      </button>
+      <button *ngIf="selectedArticles.size > 0" class="btn btn-enable btn-sm me-2" (click)="enableSelected()">
+        <mat-icon>check_circle</mat-icon>
+        <span>Activer ({{selectedArticles.size}})</span>
+      </button>
+
       <button class="btn refresh-button btn-sm" (click)="refresh()">
-        <mat-icon >refresh</mat-icon>
+        <mat-icon>refresh</mat-icon>
         <span>Rafraîchir</span>
       </button>
       <button class="btn add btn-sm" (click)="addArticle()">
         <mat-icon>add</mat-icon>
-        <span >Ajouter</span>
+        <span>Ajouter</span>
       </button>
     </div>
   </div>
@@ -32,40 +36,65 @@
   <div class="table-container">
     <table class="article-table">
       <thead>
-      <tr>
-        <th>#</th>
-        <th>Nom</th>
-        <th>Marque</th>
-        <th>Modèle</th>
-        <th>Type</th>
-        <th>Action</th>
-      </tr>
+        <tr>
+          <th>
+            <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected"
+              [indeterminate]="selectedArticles.size > 0 && !isAllSelected">
+            </mat-checkbox>
+          </th>
+          <th>#</th>
+          <th>Nom</th>
+          <th>Marque</th>
+          <th>Modèle</th>
+          <th>Type</th>
+          <th>Statut</th>
+          <th>Action</th>
+        </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let article of articles; let i = index">
-        <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-        <td>{{ article.name }}</td>
-        <td>{{ article.marque }}</td>
-        <td>{{ article.model }}</td>
-        <td>{{ article.type }}</td>
+        <tr *ngFor="let article of articles; let i = index">
+          <td>
+            <mat-checkbox (click)="$event.stopPropagation()" (change)="toggleSelection(article)"
+              [checked]="selectedArticles.has(article.id)">
+            </mat-checkbox>
+          </td>
+          <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+          <td>{{ article.name }}</td>
+          <td>{{ article.marque }}</td>
+          <td>{{ article.model }}</td>
+          <td>{{ article.type }}</td>
+          <td>
+            <span class="badge"
+              [ngClass]="{'badge-enabled': article.status === 'ENABLED', 'badge-disabled': article.status === 'DISABLED', 'badge-deleted': article.status === 'DELETED'}">
+              {{ article.status === 'ENABLED' ? 'Actif' : (article.status === 'DISABLED' ? 'Désactivé' : 'Supprimé') }}
+            </span>
+          </td>
 
-        <td>
-          <button mat-icon-button matTooltip="Détails" (click)="viewDetails(article.id)">
-            <mat-icon>visibility</mat-icon>
-          </button>
+          <td>
+            <button mat-icon-button matTooltip="Détails" (click)="viewDetails(article.id)">
+              <mat-icon>visibility</mat-icon>
+            </button>
 
-          <button *ngIf="isGestionnaire" mat-icon-button matTooltip="Modifier" (click)="editArticle(article.id)">
-            <mat-icon style="color: #003366;">edit</mat-icon>
-          </button>
+            <button *ngIf="isGestionnaire" mat-icon-button matTooltip="Modifier" (click)="editArticle(article.id)">
+              <mat-icon style="color: #003366;">edit</mat-icon>
+            </button>
 
-          <button *ngxPermissionsOnly="['ROLE_DEL_ARTICLE']"  mat-icon-button matTooltip="Supprimer" (click)="deleteArticle(article.id)">
-            <mat-icon style="color: #c90a17;">delete</mat-icon>
-          </button>
-        </td>
-      </tr>
+            <button *ngIf="isGestionnaire" mat-icon-button
+              [matTooltip]="article.status === 'ENABLED' ? 'Désactiver' : 'Activer'" (click)="toggleState(article)">
+              <mat-icon [style.color]="article.status === 'ENABLED' ? '#dc3545' : '#198754'">{{ article.status ===
+                'ENABLED' ? 'block' : 'check_circle' }}</mat-icon>
+            </button>
+
+            <button *ngxPermissionsOnly="['ROLE_DEL_ARTICLE']" mat-icon-button matTooltip="Supprimer"
+              (click)="deleteArticle(article.id)">
+              <mat-icon style="color: #c90a17;">delete</mat-icon>
+            </button>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
-  <mat-paginator [length]="totalElement" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPageChange($event)">
+  <mat-paginator [length]="totalElement" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]"
+    (page)="onPageChange($event)">
   </mat-paginator>
 </div>

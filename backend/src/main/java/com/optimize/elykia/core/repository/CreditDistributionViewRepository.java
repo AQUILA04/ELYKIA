@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
-import com.optimize.elykia.core.entity.CreditDistributionView;
-import com.optimize.elykia.core.entity.CreditDistributionViewId;
+import com.optimize.elykia.core.entity.sale.CreditDistributionView;
+import com.optimize.elykia.core.entity.sale.CreditDistributionViewId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

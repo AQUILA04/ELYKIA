@@ -4,7 +4,7 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.*;
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
@@ -155,7 +155,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             FROM Credit c
             WHERE c.status = :status
               AND c.state = :state
-              AND collector = :commercial
+              AND c.collector = :commercial
               AND (
                 (c.clientType = :promoterType)
                 OR
@@ -512,4 +512,143 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
      */
     List<Credit> findByTypeAndClientType(OperationType type, ClientType clientType);
 
+    boolean existsByReference(String reference);
+    Optional<Credit> findByReference(String reference);
+
+    @Query(""" 
+           SELECT new com.optimize.elykia.core.dto.CreditRespDto(
+               c.id, c.client.id, c.beginDate, c.expectedEndDate, c.effectiveEndDate, c.solvencyNote,
+               c.lateDaysCount, c.totalAmount, c.totalPurchase, c.totalAmountPaid,
+               c.totalAmountRemaining, c.dailyStake, c.status, c.remainingDaysCount, c.collector,
+               c.type, c.dailyPaid, c.clientType, c.parent.id, c.updatable, c.reference,
+               c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference,
+               null,
+               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate))
+           FROM Credit c
+           LEFT JOIN c.client cl
+           WHERE c.state = :state
+               AND (:collector IS NULL OR c.collector = :collector)
+               AND (:status IS NULL OR c.status = :status)
+               AND c.type = :type
+           """)
+    Page<CreditRespDto> findCreditsDto(
+            @Param("collector") String collector,
+            @Param("status") CreditStatus status,
+            @Param("type") OperationType type,
+            @Param("state") State state,
+            Pageable pageable);
+
+    @Query(""" 
+           SELECT new com.optimize.elykia.core.dto.CreditRespDto(
+               c.id, c.client.id, c.beginDate, c.expectedEndDate, c.effectiveEndDate, c.solvencyNote,
+               c.lateDaysCount, c.totalAmount, c.totalPurchase, c.totalAmountPaid,
+               c.totalAmountRemaining, c.dailyStake, c.status, c.remainingDaysCount, c.collector,
+               c.type, c.dailyPaid, c.clientType, c.parent.id, c.updatable, c.reference,
+               c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference,
+               null,
+               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate))
+           FROM Credit c
+           LEFT JOIN c.client cl
+           WHERE c.state = :state
+               AND (:collector IS NULL OR c.collector = :collector)
+               AND (:status IS NULL OR c.status = :status)
+               AND c.type = :type
+               AND (:searchTerm IS NULL OR (
+                   LOWER(c.reference) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR
+                   LOWER(cl.firstname) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR
+                   LOWER(cl.lastname) LIKE LOWER(CONCAT('%', :searchTerm, '%'))))
+           """)
+    Page<CreditRespDto> findCreditsDtoWithSearch(
+            @Param("searchTerm") String searchTerm,
+            @Param("collector") String collector,
+            @Param("status") CreditStatus status,
+            @Param("type") OperationType type,
+            @Param("state") State state,
+            Pageable pageable);
+
+    @Modifying
+    @Query("UPDATE Credit c SET c.collector = :newCollector WHERE c.id IN :creditIds")
+    int bulkUpdateCollector(@Param("creditIds") List<Long> creditIds, @Param("newCollector") String newCollector);
+
+    @Modifying
+    @Query("UPDATE Client cl SET cl.recoveryCollector = :newCollector WHERE cl.id IN (SELECT c.client.id FROM Credit c WHERE c.id IN :creditIds)")
+    void bulkUpdateClientRecoveryCollector(@Param("creditIds") List<Long> creditIds, @Param("newCollector") String newCollector);
+
+    // ==========================================
+    // MÉTHODES POUR LES CRÉDITS EN RETARD
+    // ==========================================
+
+    @Query(value = """
+        SELECT c.* FROM credit c 
+        WHERE c.status = 'INPROGRESS'
+          AND (
+               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
+               OR 
+               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
+          )
+    """, nativeQuery = true)
+    List<Credit> findLateCredits();
+
+    @Query(value = """
+        SELECT c.* FROM credit c 
+        WHERE c.status = 'INPROGRESS'
+          AND c.collector = :collector
+          AND (
+               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
+               OR 
+               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
+          )
+    """, nativeQuery = true)
+    List<Credit> findLateCreditsByCollector(@Param("collector") String collector);
+
+    @Query(value = """
+        SELECT DISTINCT c.collector FROM credit c 
+        WHERE c.status = 'INPROGRESS'
+          AND c.collector IS NOT NULL
+          AND (
+               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
+               OR 
+               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
+          )
+    """, nativeQuery = true)
+    List<String> findLateCreditsCollectors();
+
+    // ==========================================
+    // MÉTHODES POUR LES CRÉDITS À ÉCHÉANCE
+    // ==========================================
+
+    /**
+     * Crédits actifs dont la date de fin est dans une plage.
+     * JOIN FETCH client pour éviter le problème N+1.
+     */
+    @Query("""
+        SELECT c FROM Credit c
+        LEFT JOIN FETCH c.client
+        WHERE c.status IN :statuses
+        AND c.expectedEndDate BETWEEN :from AND :to
+        ORDER BY c.expectedEndDate ASC
+    """)
+    List<Credit> findActiveByEndDateBetween(
+        @Param("statuses") List<CreditStatus> statuses,
+        @Param("from")     LocalDate from,
+        @Param("to")       LocalDate to
+    );
+
+    /**
+     * Idem, filtré par commercial.
+     */
+    @Query("""
+        SELECT c FROM Credit c
+        LEFT JOIN FETCH c.client
+        WHERE c.status IN :statuses
+        AND c.expectedEndDate BETWEEN :from AND :to
+        AND c.collector = :collector
+        ORDER BY c.expectedEndDate ASC
+    """)
+    List<Credit> findActiveByEndDateBetweenAndCollector(
+        @Param("statuses")  List<CreditStatus> statuses,
+        @Param("from")      LocalDate from,
+        @Param("to")        LocalDate to,
+        @Param("collector") String collector
+    );
 }

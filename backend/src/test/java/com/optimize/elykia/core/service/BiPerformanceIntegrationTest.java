@@ -1,19 +1,16 @@
 package com.optimize.elykia.core.service;
 
-import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.bi.*;
-import com.optimize.elykia.core.entity.Credit;
-import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.service.bi.BiCollectionAnalyticsService;
+import com.optimize.elykia.core.service.bi.BiDashboardService;
+import com.optimize.elykia.core.service.bi.BiSalesAnalyticsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;

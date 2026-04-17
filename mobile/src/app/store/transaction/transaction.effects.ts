@@ -10,15 +10,20 @@ export class TransactionEffects {
   constructor(
     private actions$: Actions,
     private transactionService: TransactionService
-  ) {}
+  ) { }
 
-  loadTransactions$ = createEffect(() =>
+  loadTransactionsByClient$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(TransactionActions.loadTransactions),
-      switchMap(() =>
-        this.transactionService.initializeTransactions().pipe(
-          map((transactions) => TransactionActions.loadTransactionsSuccess({ transactions })),
-          catchError((error) => of(TransactionActions.loadTransactionsFailure({ error: error.message })))
+      ofType(TransactionActions.loadTransactionsByClient),
+      switchMap((action) =>
+        this.transactionService.getTransactionsByClientPaginated(action.clientId, action.page, action.size).pipe(
+          map((transactions) => TransactionActions.loadTransactionsByClientSuccess({
+            transactions,
+            page: action.page,
+            hasMore: transactions.length === action.size,
+            clientId: action.clientId
+          })),
+          catchError((error) => of(TransactionActions.loadTransactionsByClientFailure({ error: error.message })))
         )
       )
     )
@@ -29,11 +34,8 @@ export class TransactionEffects {
       ofType(TransactionActions.addTransaction),
       switchMap(({ transaction }) =>
         from(this.transactionService.addTransaction(transaction)).pipe(
-          switchMap((addedTransaction) => [
-            TransactionActions.addTransactionSuccess({ transaction: addedTransaction }),
-            TransactionActions.loadTransactions()
-          ]),
-          catchError((error) => of(TransactionActions.loadTransactionsFailure({ error: error.message })))
+          map((addedTransaction) => TransactionActions.addTransactionSuccess({ transaction: addedTransaction })),
+          catchError((error) => of(TransactionActions.loadTransactionsByClientFailure({ error: error.message })))
         )
       )
     )

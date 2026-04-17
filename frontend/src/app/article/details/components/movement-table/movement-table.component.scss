@@ -1,0 +1,126 @@
+.table-wrap {
+    border-radius: var(--ad-radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--ad-border);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead th {
+    background: #f8fafc;
+    padding: 9px 10px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ad-text-muted);
+    font-weight: 700;
+    border-bottom: 1px solid var(--ad-border);
+}
+
+tbody tr {
+    border-bottom: 1px solid var(--ad-border);
+    transition: background .12s;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: var(--ad-navy-pale);
+    }
+}
+
+tbody td {
+    padding: 8px 10px;
+    color: var(--ad-text-secondary);
+    font-size: 12px;
+    vertical-align: middle;
+}
+
+.stock-flow {
+    color: var(--ad-text-muted);
+    font-family: monospace;
+    font-size: 11px;
+}
+
+.arrow {
+    color: var(--ad-text-muted);
+    font-size: 10px;
+}
+
+.col-user {
+    font-size: 11px;
+    color: var(--ad-text-muted);
+}
+
+.op-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    padding: 2px 7px;
+    border-radius: 5px;
+    text-transform: uppercase;
+
+    &.op-entree {
+        background: var(--ad-green-bg);
+        color: var(--ad-green);
+    }
+
+    &.op-sortie {
+        background: var(--ad-red-bg);
+        color: var(--ad-red);
+    }
+
+    &.op-reset {
+        background: var(--ad-info-bg);
+        color: var(--ad-info);
+    }
+}
+
+.qty-plus {
+    color: var(--ad-green);
+    font-weight: 700;
+}
+
+.qty-minus {
+    color: var(--ad-red);
+    font-weight: 700;
+}
+
+.qty-reset {
+    color: var(--ad-info);
+    font-weight: 700;
+}
+
+.view-all {
+    margin-top: 12px;
+    text-align: center;
+
+    .count-badge {
+        font-size: 11px;
+        color: var(--ad-text-muted);
+        background: var(--ad-bg-page);
+        border: 1px solid var(--ad-border);
+        border-radius: 100px;
+        padding: 3px 12px;
+    }
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 28px 0;
+    color: var(--ad-text-muted);
+
+    p {
+        font-size: 13px;
+        margin: 0;
+    }
+}

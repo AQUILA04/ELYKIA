@@ -5,6 +5,10 @@
     <h1>Demandes de Sortie Stock</h1>
   </div>
 
+  <app-stock-export-filter [canSelectPromoter]="canSelectPromoter" [promoters]="promoters"
+    (export)="onExportPdf($event)">
+  </app-stock-export-filter>
+
   <div class="d-flex justify-content-end mb-3">
     <button *ngIf="isPromoter || isManager" class="btn add btn-sm" routerLink="/stock/request/create">
       <mat-icon>add</mat-icon>
@@ -18,6 +22,7 @@
         <tr>
           <th>Référence</th>
           <th>Date Demande</th>
+          <th>Date de livraison</th>
           <th>Commercial</th>
           <th>Statut</th>
           <th class="text-right">Actions</th>
@@ -27,6 +32,7 @@
         <tr *ngFor="let req of requests">
           <td>{{ req.reference || '-' }}</td>
           <td>{{ req.requestDate | date:'dd/MM/yyyy' }}</td>
+          <td>{{ (req.deliveryDate | date:'dd/MM/yyyy') || '-' }}</td>
           <td>{{ req.collector }}</td>
           <td>
             <span class="badge" [ngClass]="getStatusBadge(req.status!)">{{ getStatusLabel(req.status) }}</span>
@@ -44,6 +50,14 @@
               matTooltip="Livrer">
               <mat-icon style="color: #003366;">local_shipping</mat-icon>
             </button>
+            <button *ngIf="(isManager || (currentUser?.username === req.collector)) && req.status === 'CREATED'"
+                    mat-icon-button (click)="cancel(req)" matTooltip="Annuler">
+              <mat-icon style="color: red;">cancel</mat-icon>
+            </button>
+             <button *ngIf="(isManager || isSecretary) && req.status === 'CREATED'"
+                    mat-icon-button (click)="refuse(req)" matTooltip="Refuser">
+              <mat-icon style="color: darkred;">block</mat-icon>
+            </button>
           </td>
         </tr>
         <tr *ngIf="requests.length === 0">
@@ -51,11 +65,19 @@
         </tr>
       </tbody>
     </table>
+    <mat-paginator
+      [length]="totalElement"
+      [pageSize]="size"
+      [pageSizeOptions]="[5, 10, 25, 100]"
+      (page)="pageChanged($event)"
+      showFirstLastButtons>
+    </mat-paginator>
   </div>
 </div>
 
 <!-- Modal Détails -->
-<div class="modal" tabindex="-1" role="dialog" [ngStyle]="{'display': selectedRequest ? 'block' : 'none'}" style="background: rgba(0,0,0,0.5)">
+<div class="modal" tabindex="-1" role="dialog" [ngStyle]="{'display': selectedRequest ? 'block' : 'none'}"
+  style="background: rgba(0,0,0,0.5)">
   <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
@@ -70,10 +92,13 @@
         <div class="row mb-3">
           <div class="col-md-6">
             <p><strong>Commercial:</strong> {{ selectedRequest.collector }}</p>
-            <p><strong>Date:</strong> {{ selectedRequest.requestDate | date:'dd/MM/yyyy' }}</p>
+            <p><strong>Date demande:</strong> {{ selectedRequest.requestDate | date:'dd/MM/yyyy' }}</p>
+            <p><strong>Date validation:</strong> {{ (selectedRequest.validationDate | date:'dd/MM/yyyy') || '-' }}</p>
+            <p><strong>Date livraison:</strong> {{ (selectedRequest.deliveryDate | date:'dd/MM/yyyy') || '-' }}</p>
           </div>
           <div class="col-md-6 text-right">
-            <p><strong>Statut:</strong> <span class="badge" [ngClass]="getStatusBadge(selectedRequest.status!)">{{ selectedRequest.status }}</span></p>
+            <p><strong>Statut:</strong> <span class="badge" [ngClass]="getStatusBadge(selectedRequest.status!)">{{
+                selectedRequest.status }}</span></p>
           </div>
         </div>
 
@@ -85,7 +110,7 @@
                 <th>Article</th>
                 <th>Quantité</th>
                 <th>Prix Vente Unitaire</th>
-                <th>Prix Achat Unitaire</th>
+                <th *ngIf="isManager">Prix Achat Unitaire</th>
               </tr>
             </thead>
             <tbody>
@@ -93,14 +118,14 @@
                 <td>{{ item.itemName }}</td>
                 <td>{{ item.quantity }}</td>
                 <td>{{ item.unitPrice | number:'1.0-0' }} FCFA</td>
-                <td>{{ item.purchasePrice | number:'1.0-0' }} FCFA</td>
+                <td *ngIf="isManager">{{ item.purchasePrice | number:'1.0-0' }} FCFA</td>
               </tr>
             </tbody>
             <tfoot>
               <tr class="font-weight-bold">
                 <td colspan="2" class="text-right">Total :</td>
                 <td>{{ selectedRequest.totalCreditSalePrice | number:'1.0-0' }} FCFA</td>
-                <td>{{ selectedRequest.totalPurchasePrice | number:'1.0-0' }} FCFA</td>
+                <td *ngIf="isManager">{{ selectedRequest.totalPurchasePrice | number:'1.0-0' }} FCFA</td>
               </tr>
             </tfoot>
           </table>
@@ -111,4 +136,5 @@
       </div>
     </div>
   </div>
+
 </div>

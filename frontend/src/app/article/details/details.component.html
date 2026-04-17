@@ -1,60 +1,192 @@
-<div class="details-container" *ngIf="!isLoading">
-  <div class="form-header">
-    <h1>Détails de l'article</h1>
-  </div>
-
-  <div class="details-content" *ngIf="article">
-    <!-- Infos article existantes -->
-    <div class="details-row">
-      <div class="details-label">Nom</div>
-      <div class="details-value">{{ article.name }}</div>
-    </div>
-    <div class="details-row">
-      <div class="details-label">Marque</div>
-      <div class="details-value">{{ article.marque }}</div>
-    </div>
-    <div class="details-row">
-      <div class="details-label">Modèle</div>
-      <div class="details-value">{{ article.model }}</div>
-    </div>
-    <div class="details-row">
-      <div class="details-label">Type</div>
-      <div class="details-value">{{ article.type }}</div>
-    </div>
-
-    <!-- Section visible uniquement par le GESTIONNAIRE -->
-    <div class="details-row" *ngIf="isGestionnaire">
-      <div class="details-label">Prix d'achat</div>
-      <div class="details-value">{{ article.purchasePrice | currency:'XOF':'symbol':'1.0-0' }}</div>
-    </div>
-    <div class="details-row" *ngIf="isGestionnaire">
-      <div class="details-label">Prix de vente</div>
-      <div class="details-value">{{ article.sellingPrice | currency:'XOF':'symbol':'1.0-0' }}</div>
-    </div>
-
-    <!-- MODIFIÉ : Section visible par GESTIONNAIRE, SECRETAIRE, et COMMERCIAL -->
-    <div class="details-row" *ngIf="article && article.creditSalePrice !== undefined && canViewCreditPrice">
-      <div class="details-label">Prix de vente à crédit</div>
-      <div class="details-value">{{ article.creditSalePrice | currency:'XOF':'symbol':'1.0-0' }}</div>
-    </div>
-  </div>
-
-  <div class="form-actions">
-    <a (click)="onCancel()" class="link-back">
-      <i class="ti ti-arrow-left"></i> Retour à la liste
-    </a>
-
-    <!-- Bouton "Modifier" visible uniquement par le GESTIONNAIRE -->
-    <div class="form-actions" *ngIf="isGestionnaire">
-      <a (click)="navigateToEdit(article!.id)" class="link-edit">
-        <i class="ti ti-pencil"></i> Modifier
-      </a>
-    </div>
-  </div>
-</div>
-
-<!-- Affichage pendant le chargement -->
-<div *ngIf="isLoading" class="loading-indicator">
+<!-- Chargement -->
+<div *ngIf="isLoading" class="loading-overlay">
   <ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
-  <p>Chargement...</p>
 </div>
+
+<!-- Corps principal -->
+<div class="detail-page" *ngIf="!isLoading && article">
+
+  <!-- =================== HERO =================== -->
+  <div class="hero">
+
+    <!-- Identité article + Prix + Marges -->
+    <div class="card hero-main">
+
+      <div class="article-type-badge">
+        <span *ngIf="article.category">{{ article.category }}&nbsp;·&nbsp;</span>{{ article.type }}
+      </div>
+
+      <h1 class="article-name">{{ article.name }}</h1>
+
+      <p class="article-commercial">
+        Type&nbsp;: {{ article.type }}
+        <ng-container *ngIf="article.marque">&nbsp;·&nbsp;Marque&nbsp;: {{ article.marque }}</ng-container>
+        <ng-container *ngIf="article.model">&nbsp;·&nbsp;Modèle&nbsp;: {{ article.model }}</ng-container>
+      </p>
+
+      <div class="meta-row">
+        <div class="meta-chip" *ngIf="article.category">
+          <span class="lbl">Catégorie</span> {{ article.category }}
+        </div>
+        <div class="meta-chip chip-active" *ngIf="article.status === 'ENABLED'">● Actif</div>
+        <div class="meta-chip chip-disabled" *ngIf="article.status === 'DISABLED'">✕ Inactif</div>
+        <div class="meta-chip chip-seasonal" *ngIf="article.isSeasonal">★ Saisonnier</div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- ── Sous-composant Prix + Marges ── -->
+      <app-price-card [article]="article" [isGestionnaire]="isGestionnaire" [canViewCreditPrice]="canViewCreditPrice">
+      </app-price-card>
+
+    </div><!-- /hero-main -->
+
+    <!-- Stock + Actions rapides -->
+    <div class="hero-side">
+
+      <!-- ── Sous-composant Jauge de Stock ── -->
+      <div class="card">
+        <app-stock-gauge [article]="article"></app-stock-gauge>
+      </div>
+
+      <!-- Actions rapides -->
+      <div class="card actions-panel">
+        <div class="actions-title">Actions rapides</div>
+        <button *ngIf="isGestionnaire" class="btn btn-primary" (click)="openStockEntryDialog()"
+          [disabled]="article.status !== 'ENABLED'"
+          [title]="article.status !== 'ENABLED' ? 'Article inactif — entrée de stock impossible' : ''">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M8 3v10M3 8h10" />
+          </svg>
+          Entrée de stock
+        </button>
+        <button class="btn btn-outline" (click)="onCancel()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 8H1M1 8l5-5M1 8l5 5" />
+          </svg>
+          Retour à la liste
+        </button>
+        <button *ngIf="isGestionnaire" class="btn btn-ghost" (click)="navigateToEdit(article.id)">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 11l3 0 6-6-2-2-6 6zM9 3l2 2" />
+          </svg>
+          Modifier l'article
+        </button>
+        <button *ngIf="isGestionnaire" class="btn btn-danger" (click)="toggleArticleState()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 1v6M5 3.5A6 6 0 1 0 11 3.5" />
+          </svg>
+          {{ article.status === 'ENABLED' ? 'Désactiver' : 'Activer' }}
+        </button>
+      </div>
+
+    </div><!-- /hero-side -->
+  </div><!-- /hero -->
+
+  <!-- =================== GRILLE 3 COLONNES =================== -->
+  <div class="bottom-grid">
+
+    <!-- Colonne 1 : Analyse & Performance (KPIs) -->
+    <div class="card section-panel">
+      <div class="panel-title">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="1,12 5,7 9,9 15,3" />
+        </svg>
+        Analyse &amp; Performance
+      </div>
+      <div class="kpi-list">
+        <div class="kpi-item" *ngIf="article.averageMonthlySales">
+          <span class="k-label">Ventes moy. / mois</span>
+          <span class="k-value">{{ article.averageMonthlySales | number:'1.0-0' }} u.</span>
+        </div>
+        <div class="kpi-item" *ngIf="article.stockTurnoverRate">
+          <span class="k-label">Taux de rotation</span>
+          <span class="k-value" [class.k-good]="article.stockTurnoverRate >= 4">
+            {{ article.stockTurnoverRate | number:'1.1-1' }}×
+          </span>
+        </div>
+        <div class="kpi-item kpi-item--progress" *ngIf="article.averageMonthlySales">
+          <div class="kpi-item__top">
+            <span class="k-label">Couverture stock</span>
+            <span class="k-value" [class.k-warn]="daysCoverage < 30" [class.k-bad]="daysCoverage === 0">
+              {{ daysCoverage > 0 ? '~' + daysCoverage + ' j' : 'N/A' }}
+            </span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [class.fill-ok]="coveragePct >= 50" [class.fill-warn]="coveragePct < 50"
+              [style.width]="coveragePct + '%'">
+            </div>
+          </div>
+        </div>
+        <div class="kpi-item" *ngIf="isGestionnaire">
+          <span class="k-label">Valeur du stock</span>
+          <span class="k-value">{{ stockValue | number:'1.0-0' }} <span class="k-currency">FCFA</span></span>
+        </div>
+        <div class="kpi-item" *ngIf="isGestionnaire">
+          <span class="k-label">Revenu potentiel</span>
+          <span class="k-value k-good">{{ potentialRevenue | number:'1.0-0' }} <span
+              class="k-currency">FCFA</span></span>
+        </div>
+        <div class="kpi-item">
+          <span class="k-label">Alerte réappro.</span>
+          <span class="k-value" [class.k-bad]="reorderAlert" [class.k-good]="!reorderAlert">
+            {{ reorderAlert ? '⚠ Requise' : '✓ OK' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne 2 : Mouvements récents -->
+    <div class="card section-panel">
+      <div class="panel-title">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="4" width="14" height="10" rx="1" />
+          <path d="M5 4V3a2 2 0 0 1 4 0v1" />
+        </svg>
+        Mouvements récents
+      </div>
+      <!-- ── Sous-composant Table des Mouvements ── -->
+      <app-movement-table [movements]="articleHistory" [limit]="6"></app-movement-table>
+    </div>
+
+    <!-- Colonne 3 : Historique d'états & Audit -->
+    <div class="card section-panel">
+      <div class="panel-title">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="8" cy="8" r="6" />
+          <path d="M8 5v4l3 2" />
+        </svg>
+        Historique d'états
+      </div>
+      <!-- ── Sous-composant State Timeline + Audit ── -->
+      <app-state-timeline [stateHistory]="articleStateHistory" [article]="article" [limit]="5">
+      </app-state-timeline>
+    </div>
+
+  </div><!-- /bottom-grid -->
+
+  <!-- =================== FOOTER BAR =================== -->
+  <div class="footer-bar">
+    <span class="footer-info">
+      Article #{{ article.id }}
+      <ng-container *ngIf="article.articleLastModifiedDate">
+        &nbsp;·&nbsp;Dernière modification : {{ formatDateTime(article.articleLastModifiedDate) }}
+        <ng-container *ngIf="article.articleLastModifiedBy">&nbsp;par {{ article.articleLastModifiedBy }}</ng-container>
+      </ng-container>
+    </span>
+    <div class="footer-actions">
+      <button class="btn btn-ghost btn-sm">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M13 11v3H3v-3M8 1v9M5 7l3 3 3-3" />
+        </svg>
+        Exporter PDF
+      </button>
+      <button *ngIf="isGestionnaire" class="btn btn-primary btn-sm" (click)="openStockEntryDialog()"
+        [disabled]="article.status !== 'ENABLED'"
+        [title]="article.status !== 'ENABLED' ? 'Article inactif — entrée de stock impossible' : ''">
+        + Entrée rapide de stock
+      </button>
+    </div>
+  </div>
+
+</div><!-- /detail-page -->

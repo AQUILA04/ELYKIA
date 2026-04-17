@@ -1,17 +1,16 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, Subject } from 'rxjs';
 import { Locality } from 'src/app/models/locality.model';
-import { selectAllLocalities } from 'src/app/store/locality/locality.selectors';
+import { selectAllLocalities, selectLocalityHasMore, selectLocalitiesLoading } from 'src/app/store/locality/locality.selectors';
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import * as ClientActions from 'src/app/store/client/client.actions';
 import * as ClientSelectors from 'src/app/store/client/client.selectors';
-import { AlertController, NavController, ToastController } from '@ionic/angular';
+import { AlertController, NavController, ToastController, IonInfiniteScroll } from '@ionic/angular';
 import { Actions, ofType } from '@ngrx/effects';
-import { map, take, filter } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { take, filter, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import * as LocalityActions from 'src/app/store/locality/locality.actions';
 import { ActivatedRoute } from '@angular/router';
@@ -46,12 +45,12 @@ export function ageValidator(minAge: number): ValidatorFn {
 export class EditClientPage implements OnInit, OnDestroy {
 
   clientForm: FormGroup;
-  localities$: Observable<Locality[]>;
-  filteredLocalities$: Observable<Locality[]>;
+  localities$!: Observable<Locality[]>;
+  loadingLocalities$!: Observable<boolean>;
+  hasMoreLocalities$!: Observable<boolean>;
   coordinates: { latitude: number, longitude: number } | null = null;
   manualGeolocation = false;
   isLocalityModalOpen = false;
-  private localities: Locality[] = [];
   private searchSubject = new BehaviorSubject<string>('');
 
   private subscriptions: Subscription[] = [];
@@ -101,31 +100,33 @@ export class EditClientPage implements OnInit, OnDestroy {
       cardPhoto: [null],
       balance: [{ value: 0, disabled: true }]
     });
-
-    this.localities$ = this.store.select(selectAllLocalities);
-    this.localities$.subscribe(localities => {
-      this.localities = localities;
-    });
-
-    this.filteredLocalities$ = this.searchSubject.asObservable().pipe(
-      map(searchTerm =>
-        this.localities.filter(locality =>
-          locality.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
-    );
   }
 
   ngOnInit() {
-    this.store.dispatch(LocalityActions.loadLocalities());
-    this.store.dispatch(AccountActions.loadAccounts()); // Load accounts
+    this.localities$ = this.store.select(selectAllLocalities);
+    this.loadingLocalities$ = this.store.select(selectLocalitiesLoading);
+    this.hasMoreLocalities$ = this.store.select(selectLocalityHasMore);
+
+    // Initial load
+    this.loadLocalities();
+
+    // Search subscription
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(searchTerm => {
+      this.loadLocalities(searchTerm);
+    });
 
     this.clientId = this.route.snapshot.paramMap.get('id') || '';
     if (this.clientId) {
+      this.store.dispatch(AccountActions.loadAccountByClientId({ clientId: this.clientId }));
+
       this.store.select(ClientSelectors.selectClientById(this.clientId)).pipe(
         filter(client => !!client),
         take(1)
-      ).subscribe(client => {
+      ).subscribe((client: any) => {
         this.originalClient = client;
         this.clientForm.patchValue(client);
       });
@@ -149,6 +150,24 @@ export class EditClientPage implements OnInit, OnDestroy {
         this.navCtrl.navigateBack('/tabs/clients');
       })
     );
+  }
+
+  loadLocalities(searchTerm: string = '') {
+    const filters = searchTerm ? { searchQuery: searchTerm } : undefined;
+    this.store.dispatch(LocalityActions.loadFirstPage({ pageSize: 20, filters }));
+  }
+
+  loadMoreLocalities(event: any) {
+    this.store.dispatch(LocalityActions.loadNextPage({ filters: { searchQuery: this.searchSubject.value } }));
+
+    this.loadingLocalities$.pipe(
+      filter(loading => !loading),
+      take(1)
+    ).subscribe(() => {
+      if (event && event.target) {
+        (event.target as IonInfiniteScroll).complete();
+      }
+    });
   }
 
   ngOnDestroy() {

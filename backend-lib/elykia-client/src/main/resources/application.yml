@@ -19,6 +19,8 @@ optimize:
   client:
     auto-init:
       enabled: true
+    migrate-photo:
+      enabled: false
     info:
       "COM001":
           firstname: "Promoter"

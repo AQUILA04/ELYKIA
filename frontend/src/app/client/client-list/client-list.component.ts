@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
-import {AuthService} from "../../auth/service/auth.service";
+import { AuthService } from "../../auth/service/auth.service";
 
 @Component({
   selector: 'app-client-list',
@@ -21,6 +21,8 @@ export class ClientListComponent implements OnInit {
 
   // NOUVEAU: Propriété pour le terme de recherche
   searchTerm: string = '';
+  selectedCommercial: string | null = null;
+  private readonly STORAGE_KEY = 'client_list_selected_commercial';
 
   constructor(
     private clientService: ClientService,
@@ -34,17 +36,26 @@ export class ClientListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-     this.loadClient();
+    this.restoreFilter();
+    this.loadClient();
+  }
+
+  restoreFilter(): void {
+    const savedCommercial = sessionStorage.getItem(this.STORAGE_KEY);
+    if (savedCommercial) {
+      this.selectedCommercial = savedCommercial;
+    }
   }
 
   loadClient(): void {
     this.spinner.show();
     const currentUser = this.authService.getCurrentUser();
+    const usernameToUse = this.selectedCommercial || currentUser.username;
 
     // MODIFIÉ: On passe le searchTerm au service
-    this.clientService.getClients(this.currentPage, this.pageSize, this.sortField, currentUser, this.searchTerm).subscribe({
+    this.clientService.getClients(this.currentPage, this.pageSize, this.sortField, usernameToUse, this.searchTerm).subscribe({
       next: (data) => {
-        if(data.statusCode === 200){
+        if (data.statusCode === 200) {
           this.clients = data.data.content;
           this.totalElement = data.data.page.totalElements;
         } else {
@@ -75,6 +86,8 @@ export class ClientListComponent implements OnInit {
   // MODIFIÉ: La méthode refresh réinitialise la recherche
   refresh(): void {
     this.searchTerm = '';
+    this.selectedCommercial = null;
+    sessionStorage.removeItem(this.STORAGE_KEY);
     this.onSearch();
   }
 
@@ -84,13 +97,13 @@ export class ClientListComponent implements OnInit {
         if (result) {
           this.clientService.deleteClient(id).subscribe({
             next: (resp: any) => {
-              if(resp.statusCode === 200){
+              if (resp.statusCode === 200) {
                 this.alertService.showSuccess('Le client a été supprimé avec succès.', 'Suppression réussie!');
-                              this.loadClient(); //
-                }else{
-                  this.alertService.showError('Erreur lors de la suppression du client : '+ resp.message );
-                                console.error('Erreur lors de la suppression du client', resp);
-                  }
+                this.loadClient(); //
+              } else {
+                this.alertService.showError('Erreur lors de la suppression du client : ' + resp.message);
+                console.error('Erreur lors de la suppression du client', resp);
+              }
             },
             error: (error) => {
               this.alertService.showError('Erreur lors de la suppression du client');
@@ -106,11 +119,22 @@ export class ClientListComponent implements OnInit {
   }
 
   viewDetails(clientId: number): void {
-  console.log('Client details avec id :' ,clientId );
+    console.log('Client details avec id :', clientId);
     this.router.navigate(['/client-details', clientId]);
   }
 
   editClient(clientId: number): void {
     this.router.navigate(['/client-add', clientId]);
+  }
+
+  onCommercialSelected(commercial: string | null): void {
+    this.selectedCommercial = commercial;
+    if (commercial) {
+      sessionStorage.setItem(this.STORAGE_KEY, commercial);
+    } else {
+      sessionStorage.removeItem(this.STORAGE_KEY);
+    }
+    this.currentPage = 0;
+    this.loadClient();
   }
 }

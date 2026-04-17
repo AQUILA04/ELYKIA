@@ -6,7 +6,7 @@ spring:
 
   # Configuration Flyway pour la gestion des migrations de base de données
   flyway:
-    enabled: true
+    enabled: false
     baseline-on-migrate: true
     baseline-version: 0
     locations: classpath:db/migration
@@ -15,7 +15,7 @@ spring:
     placeholder-replacement: true
     placeholders:
       project: optimize-elykia-core
-debug: true
+#debug: true
 security:
   licence:
     prod:
@@ -194,6 +194,8 @@ security:
 optimize:
   client:
     auto-init:
+      enabled: false
+    migrate-photo:
       enabled: false
     info:
       "COM001":
@@ -423,3 +425,12 @@ app:
         key: AGENCY_COLLECTOR
         value: COM001
         description: Le Username du commercial qui comptabilise les opération de vente en agence
+      init-data[2]:
+        key: USE_MEMBER_REGISTRATION_DATE_FOR_SHARE
+        value: true
+        description: Utiliser la date d'adhésion d'un membre tontine pour calculer la part société à prélever (si désactiver, on utilise la date debut de la session de tontine)
+
+loki:
+  url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}
+  user-id: ${LOKI_USER_ID:1114217}
+  api-key: ${LOKI_API_KEY}

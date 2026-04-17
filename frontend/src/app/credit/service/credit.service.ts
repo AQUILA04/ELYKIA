@@ -83,7 +83,7 @@ export class CreditService extends BaseHttpService {
     super(http, tokenStorage, errorHandler);
   }
 
-  getHeader(){
+  getHeader() {
     const token = this.tokenStorage.getToken();
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`
@@ -109,11 +109,32 @@ export class CreditService extends BaseHttpService {
     return this.patch(`${this.apiUrl}/change-daily-stake`, dto);
   }
 
+  getDailyStakeHistory(creditId: number): Observable<ApiResponse<any[]>> {
+    return this.get(`${this.apiUrl}/${creditId}/daily-stake-history`);
+  }
+
+  changeCollector(creditId: number, newCollector: string): Observable<any> {
+    return this.post(`${this.apiUrl}/${creditId}/change-collector`, { newCollector }, {
+      observe: 'response'
+    }).pipe(
+      map(response => response)
+    );
+  }
+
+  bulkChangeCollector(dto: { creditIds: number[], newCollector: string }): Observable<any> {
+    return this.post(`${this.apiUrl}/bulk-change-collector`, dto);
+  }
+
+  getCollectorHistory(creditId: number): Observable<ApiResponse<any[]>> {
+    return this.get(`${this.apiUrl}/${creditId}/collector-history`);
+  }
+
   searchCredits(searchDto: any, page: number, size: number): Observable<any> {
     const headers = this.getHeader();
     let params = new HttpParams()
       .set('page', page.toString())
-      .set('size', size.toString());
+      .set('size', size.toString())
+      .set('sort', 'id,desc'); // Ajout du tri par défaut
 
     return this.http.post(`${this.apiUrl}/fetch`, searchDto, { headers, params });
   }
@@ -191,7 +212,8 @@ export class CreditService extends BaseHttpService {
   }
 
   getCreditHistoryByClient(clientId: number, page: number, size: number, sort: string): Observable<any> {
-    return this.get(`${this.apiUrl}/history/by-client/${clientId}?page=${page}&size=${size}&sort=${sort}`);
+    // Updated to use the new endpoint for timelines (cotisations)
+    return this.get(`${this.apiUrl}/timelines/by-client/${clientId}?page=${page}&size=${size}&sort=${sort}`);
   }
 
   getPendingCreditsByClient(clientId: number, page: number, size: number, sort: string): Observable<any> {
@@ -214,9 +236,6 @@ export class CreditService extends BaseHttpService {
     return this.get(`${this.apiUrl}/article-quantity-distributed?creditId=${creditId}&articleId=${articleId}`);
   }
 
-  getCreditDistributionDetails(creditId: number): Observable<ApiResponse<CreditDistributionDetail[]>> {
-    return this.get(`${this.apiUrl}/${creditId}/distribution-details`);
-  }
 
   // Enhanced methods for credit merge functionality with validation
   getMergeableCredits(commercialUsername: string): Observable<ApiResponse<CreditSummaryDto[]>> {
@@ -261,7 +280,13 @@ export class CreditService extends BaseHttpService {
     return this.post(`${this.apiUrl}/daily-stake`, dto);
   }
 
+  getCreditArticles(creditId: number): Observable<any> {
+    return this.get(`${this.apiUrl}/${creditId}/articles`);
+  }
 
+  getSalesDetails(stockItemId: number): Observable<any> {
+    return this.get(`${this.apiUrl}/articles/details/${stockItemId}`);
+  }
 
   // Input validation and sanitization helper methods
   private sanitizeUsername(username: string): string {
@@ -284,9 +309,9 @@ export class CreditService extends BaseHttpService {
 
   private isValidCreditId(creditId: number): boolean {
     return typeof creditId === 'number' &&
-           creditId > 0 &&
-           Number.isInteger(creditId) &&
-           creditId <= Number.MAX_SAFE_INTEGER;
+      creditId > 0 &&
+      Number.isInteger(creditId) &&
+      creditId <= Number.MAX_SAFE_INTEGER;
   }
 
   private isValidMergeData(mergeData: MergeCreditDto): boolean {

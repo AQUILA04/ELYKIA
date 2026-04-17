@@ -25,5 +25,6 @@ export interface Distribution {
   syncHash?: string;
   articleCount?: number;
   items?: DistributionItem[];
+  clientName?: string;
 
 }

@@ -13,6 +13,7 @@ export class CashDepositModalComponent implements OnInit {
     commercialUsername: string;
     totalAmountToDeposit: number;
     remainingAmount: number;
+    date: string;
 
     depositAmount: number = 0;
     billetageData: any = {};
@@ -28,6 +29,7 @@ export class CashDepositModalComponent implements OnInit {
         this.commercialUsername = data.commercialUsername;
         this.totalAmountToDeposit = data.totalAmountToDeposit;
         this.remainingAmount = data.remainingAmount;
+        this.date = data.date;
     }
 
     ngOnInit(): void {
@@ -52,7 +54,8 @@ export class CashDepositModalComponent implements OnInit {
         const deposit = {
             commercialUsername: this.commercialUsername,
             amount: this.depositAmount,
-            billetage: JSON.stringify(this.billetageData)
+            billetage: JSON.stringify(this.billetageData),
+            date: this.date
         };
 
         this.cashDepositService.createDeposit(deposit).subscribe({

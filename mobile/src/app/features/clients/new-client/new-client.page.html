@@ -16,13 +16,14 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-icon name="camera-outline" ></ion-icon>
+                <ion-icon name="camera-outline"></ion-icon>
                 <span class="input-group required-field">Photo de Profil</span>
               </ion-card-title>
             </ion-card-header>
             <ion-card-content class="photo-section">
               <div class="photo-zone" (click)="takePicture()">
-                <img *ngIf="clientForm.get('profilPhoto')?.value" [src]="clientForm.get('profilPhoto')?.value" class="photo-preview" />
+                <img *ngIf="clientForm.get('profilPhoto')?.value" [src]="this.photoToSave.dataUrl"
+                  class="photo-preview" />
                 <div *ngIf="!clientForm.get('profilPhoto')?.value" class="photo-placeholder">📷</div>
               </div>
               <ion-button (click)="takePicture()" expand="block" fill="outline">
@@ -35,7 +36,7 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-icon name="person-outline" ></ion-icon>
+                <ion-icon name="person-outline"></ion-icon>
                 <span>Informations Personnelles</span>
               </ion-card-title>
             </ion-card-header>
@@ -57,7 +58,8 @@
                 <ion-item>
                   <ion-input type="date" formControlName="dateOfBirth"></ion-input>
                 </ion-item>
-                <div *ngIf="clientForm.get('dateOfBirth')?.errors && clientForm.get('dateOfBirth')?.touched" class="validation-errors">
+                <div *ngIf="clientForm.get('dateOfBirth')?.errors && clientForm.get('dateOfBirth')?.touched"
+                  class="validation-errors">
                   <ion-text color="danger" *ngIf="clientForm.get('dateOfBirth')?.hasError('required')">
                     La date de naissance est requise.
                   </ion-text>
@@ -77,7 +79,9 @@
                 <ion-item>
                   <ion-input type="tel" formControlName="phone"></ion-input>
                 </ion-item>
-                <div *ngIf="clientForm.get('phone')?.errors && (clientForm.get('phone')?.touched || clientForm.get('phone')?.dirty)" class="validation-errors">
+                <div
+                  *ngIf="clientForm.get('phone')?.errors && (clientForm.get('phone')?.touched || clientForm.get('phone')?.dirty)"
+                  class="validation-errors">
                   <ion-text color="danger" *ngIf="clientForm.get('phone')?.hasError('required')">
                     Le numéro de téléphone est requis.
                   </ion-text>
@@ -95,7 +99,7 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-icon name="card-outline" ></ion-icon>
+                <ion-icon name="card-outline"></ion-icon>
                 <span>Pièce d'Identité</span>
               </ion-card-title>
             </ion-card-header>
@@ -129,7 +133,7 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-icon name="location-outline" ></ion-icon>
+                <ion-icon name="location-outline"></ion-icon>
                 <span>Adresse et Localisation</span>
               </ion-card-title>
             </ion-card-header>
@@ -237,10 +241,20 @@
       </ion-header>
       <ion-content>
         <ion-list>
-          <ion-item *ngFor="let locality of filteredLocalities$ | async" (click)="selectLocality(locality)">
+          <ion-item *ngFor="let locality of localities$ | async" (click)="selectLocality(locality)">
             {{ locality.name }}
           </ion-item>
         </ion-list>
+
+        <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreLocalities($event)"
+          [disabled]="!(hasMoreLocalities$ | async)">
+          <ion-infinite-scroll-content loadingSpinner="bubbles"
+            loadingText="Chargement..."></ion-infinite-scroll-content>
+        </ion-infinite-scroll>
+
+        <div *ngIf="loadingLocalities$ | async" class="ion-text-center ion-padding">
+          <ion-spinner *ngIf="(localities$ | async)?.length === 0"></ion-spinner>
+        </div>
       </ion-content>
     </ng-template>
   </ion-modal>

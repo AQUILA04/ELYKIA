@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.CashDeposit;
+import com.optimize.elykia.core.entity.report.CashDeposit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -16,4 +16,6 @@ public interface CashDepositRepository extends GenericRepository<CashDeposit, Lo
             String commercialUsername, Pageable pageable);
 
     Page<CashDeposit> findByDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
+
+    boolean existsByReference(String reference);
 }

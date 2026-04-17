@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.StockTontineReturn;
+import com.optimize.elykia.core.entity.stock.StockTontineReturn;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

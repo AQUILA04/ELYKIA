@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.OrderStatusHistory;
+import com.optimize.elykia.core.entity.sale.OrderStatusHistory;
 
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import org.springframework.data.jpa.repository.Query;

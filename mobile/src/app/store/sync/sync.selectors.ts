@@ -143,6 +143,70 @@ export const selectCurrentTabData = createSelector(
   }
 );
 
+// ==================== SÉLECTEURS PAGINATION ====================
+
+export const selectManualSyncPagination = createSelector(
+  selectManualSyncState,
+  (manualSync) => manualSync.pagination
+);
+
+export const selectClientPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.clients
+);
+
+export const selectDistributionPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.distributions
+);
+
+export const selectRecoveryPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.recoveries
+);
+
+export const selectTontineMemberPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.tontineMembers
+);
+
+export const selectTontineCollectionPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.tontineCollections
+);
+
+export const selectTontineDeliveryPagination = createSelector(
+  selectManualSyncPagination,
+  (pagination) => pagination.tontineDeliveries
+);
+
+// ==================== SÉLECTEURS SÉLECTION PARENT ====================
+
+export const selectParentSelectionState = createSelector(
+  selectSyncState,
+  (state) => state.parentSelection
+);
+
+export const selectParentSelectionClients = createSelector(
+  selectParentSelectionState,
+  (state) => state.clients
+);
+
+export const selectParentSelectionDistributions = createSelector(
+  selectParentSelectionState,
+  (state) => state.distributions
+);
+
+export const selectParentSelectionTontineMembers = createSelector(
+  selectParentSelectionState,
+  (state) => state.tontineMembers
+);
+
+export const selectParentSelectionSearchQuery = createSelector(
+  selectParentSelectionState,
+  (state) => state.searchQuery
+);
+
 // ==================== SÉLECTEURS GESTION DES ERREURS ====================
 
 export const selectSyncErrorsState = createSelector(
@@ -281,36 +345,36 @@ export const selectSyncSteps = createSelector(
   selectAutomaticSyncProgress,
   (progress) => {
     if (!progress) return [];
-    
+
     const steps = [
       {
         id: 'cash-check',
         name: 'Vérification caisse',
-        status: progress.currentPhase === 'cash-check' ? 'active' : 
+        status: progress.currentPhase === 'cash-check' ? 'active' :
                 ['clients', 'distributions', 'recoveries', 'updates', 'completed'].includes(progress.currentPhase) ? 'completed' : 'pending'
       },
       {
         id: 'clients',
         name: 'Synchronisation clients',
-        status: progress.currentPhase === 'clients' ? 'active' : 
+        status: progress.currentPhase === 'clients' ? 'active' :
                 ['distributions', 'recoveries', 'updates', 'completed'].includes(progress.currentPhase) ? 'completed' : 'pending'
       },
       {
         id: 'distributions',
         name: 'Synchronisation distributions',
-        status: progress.currentPhase === 'distributions' ? 'active' : 
+        status: progress.currentPhase === 'distributions' ? 'active' :
                 ['recoveries', 'updates', 'completed'].includes(progress.currentPhase) ? 'completed' : 'pending'
       },
       {
         id: 'recoveries',
         name: 'Synchronisation recouvrements',
-        status: progress.currentPhase === 'recoveries' ? 'active' : 
+        status: progress.currentPhase === 'recoveries' ? 'active' :
                 ['updates', 'completed'].includes(progress.currentPhase) ? 'completed' : 'pending'
       },
       {
         id: 'updates',
         name: 'Mise à jour données',
-        status: progress.currentPhase === 'updates' ? 'active' : 
+        status: progress.currentPhase === 'updates' ? 'active' :
                 progress.currentPhase === 'completed' ? 'completed' : 'pending'
       }
     ];
@@ -323,4 +387,107 @@ export const selectCanStartSync = createSelector(
   selectCashDeskReady,
   selectAnySyncActive,
   (cashDeskReady, syncActive) => cashDeskReady && !syncActive
+);
+// ==================== SÉLECTEURS SUPPLÉMENTAIRES POUR SYNC MANUELLE ====================
+
+export const selectManualSyncClients = createSelector(
+  selectManualSyncState,
+  (manualSync) => manualSync.availableClients
+);
+
+export const selectManualSyncDistributions = createSelector(
+  selectManualSyncState,
+  (manualSync) => manualSync.availableDistributions
+);
+
+export const selectManualSyncRecoveries = createSelector(
+  selectManualSyncState,
+  (manualSync) => manualSync.availableRecoveries
+);
+
+export const selectManualSyncSelectedClients = createSelector(
+  selectManualSyncState,
+  (manualSync) => manualSync.clients.selectedIds
+);
+
+export const selectManualSyncSelectedDistributions = createSelector(
+  selectManualSyncState,
+  (manualSync) => manualSync.distributions.selectedIds
+);
+
+export const selectManualSyncSelectedRecoveries = createSelector(
+  selectManualSyncState,
+  (manualSync) => manualSync.recoveries.selectedIds
+);
+
+export const selectManualSyncSyncingEntities = createSelector(
+  selectManualSyncState,
+  (manualSync) => manualSync.syncingEntities
+);
+
+export const selectManualSyncLoading = createSelector(
+  selectManualSyncState,
+  (manualSync) => manualSync.isLoading
+);
+
+// ==================== SÉLECTEURS TONTINES ====================
+
+export const selectAvailableTontineMembers = createSelector(
+  selectManualSyncState,
+  (manualSync) => (manualSync as any).availableTontineMembers || []
+);
+
+export const selectAvailableTontineCollections = createSelector(
+  selectManualSyncState,
+  (manualSync) => (manualSync as any).availableTontineCollections || []
+);
+
+export const selectAvailableTontineDeliveries = createSelector(
+  selectManualSyncState,
+  (manualSync) => (manualSync as any).availableTontineDeliveries || []
+);
+
+export const selectTontineMemberSelection = createSelector(
+  selectManualSyncState,
+  (manualSync) => (manualSync as any).tontineMembers || { entityType: 'tontine-member', selectedIds: [], totalCount: 0, isSelectAll: false }
+);
+
+export const selectTontineCollectionSelection = createSelector(
+  selectManualSyncState,
+  (manualSync) => (manualSync as any).tontineCollections || { entityType: 'tontine-collection', selectedIds: [], totalCount: 0, isSelectAll: false }
+);
+
+export const selectTontineDeliverySelection = createSelector(
+  selectManualSyncState,
+  (manualSync) => (manualSync as any).tontineDeliveries || { entityType: 'tontine-delivery', selectedIds: [], totalCount: 0, isSelectAll: false }
+);
+
+export const selectManualSyncTontineMembers = createSelector(
+  selectAvailableTontineMembers,
+  (members) => members
+);
+
+export const selectManualSyncTontineCollections = createSelector(
+  selectAvailableTontineCollections,
+  (collections) => collections
+);
+
+export const selectManualSyncTontineDeliveries = createSelector(
+  selectAvailableTontineDeliveries,
+  (deliveries) => deliveries
+);
+
+export const selectManualSyncSelectedTontineMembers = createSelector(
+  selectTontineMemberSelection,
+  (selection) => selection.selectedIds
+);
+
+export const selectManualSyncSelectedTontineCollections = createSelector(
+  selectTontineCollectionSelection,
+  (selection) => selection.selectedIds
+);
+
+export const selectManualSyncSelectedTontineDeliveries = createSelector(
+  selectTontineDeliverySelection,
+  (selection) => selection.selectedIds
 );

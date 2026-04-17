@@ -17,7 +17,14 @@
               "path": "./webpack.config.js"
             },
             "allowedCommonJsDependencies": [
-              "localforage"
+              "localforage",
+              "qrcode",
+              "core-js",
+              "raf",
+              "rgbcolor",
+              "crypto",
+              "html2pdf.js",
+              "leaflet"
             ],
             "outputPath": "www",
             "index": "src/index.html",

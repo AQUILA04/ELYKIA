@@ -32,7 +32,7 @@ export class CommercialStockRepository {
       const currentYear = now.getFullYear();
       const timestamp = now.toISOString();
 
-      const insertSql = `INSERT INTO commercial_stock_items (articleId, quantityRemaining, quantityTaken, quantitySold, quantityReturned, commercialUsername, month, year, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const insertSql = `INSERT INTO commercial_stock_items (articleId, quantityRemaining, quantityTaken, quantitySold, quantityReturned, commercialUsername, month, year, updatedAt, unitPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       for (const item of items) {
         batch.push({
@@ -46,7 +46,8 @@ export class CommercialStockRepository {
             username,
             item.month || currentMonth,
             item.year || currentYear,
-            timestamp
+            timestamp,
+            item.creditSalePrice || 0
           ]
         });
       }
@@ -112,11 +113,143 @@ export class CommercialStockRepository {
           sql += ` WHERE articleId = ? AND commercialUsername = ?`;
           params.push(String(articleId), username); // Ensure articleId is string
 
-          // UPDATE is not a query, so executeSql (which calls run) is correct here
-          await this.db.executeSql(sql, params);
-      } catch (error) {
-          this.log.error('[CommercialStockRepository] Error updating stock quantity', error);
-          throw error;
+      // UPDATE is not a query, so executeSql (which calls run) is correct here
+      await this.db.executeSql(sql, params);
+    } catch (error) {
+      this.log.error('[CommercialStockRepository] Error updating stock quantity', error);
+      throw error;
+    }
+  }
+
+  async getCurrentStock(articleId: string, username: string): Promise<number> {
+    try {
+      const result = await this.db.query(
+        'SELECT quantityRemaining FROM commercial_stock_items WHERE articleId = ? AND commercialUsername = ?',
+        [String(articleId), username]
+      );
+
+      if (result && result.values && result.values.length > 0) {
+        return result.values[0].quantityRemaining;
       }
+      return 0;
+    } catch (error) {
+      this.log.error(`[CommercialStockRepository] Error getting current stock for article ${articleId}`, error);
+      return 0;
+    }
+  }
+
+  async getStockItem(articleId: string, username: string): Promise<CommercialStockItem | null> {
+    try {
+      const result = await this.db.query(
+        'SELECT * FROM commercial_stock_items WHERE articleId = ? AND commercialUsername = ?',
+        [String(articleId), username]
+      );
+
+      if (result && result.values && result.values.length > 0) {
+        return result.values[0] as CommercialStockItem;
+      }
+      return null;
+    } catch (error) {
+      this.log.error(`[CommercialStockRepository] Error getting stock item for article ${articleId}`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Calculate total value of remaining stock for a commercial
+   *
+   * @param username Commercial username
+   * @returns Total value (quantityRemaining * creditSalePrice)
+   */
+  async getTotalStockValue(username: string): Promise<number> {
+    try {
+      // Join with articles table to get creditSalePrice
+      const query = `
+              SELECT COALESCE(SUM(s.quantityRemaining * a.creditSalePrice), 0) as totalValue
+              FROM commercial_stock_items s
+              JOIN articles a ON s.articleId = a.id
+              WHERE s.commercialUsername = ?
+          `;
+      const result = await this.db.query(query, [username]);
+      return result?.values?.[0]?.totalValue || 0;
+    } catch (error) {
+      this.log.error('[CommercialStockRepository] Error calculating total stock value', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Find available articles (with stock) paginated
+   *
+   * @param username Commercial username
+   * @param page Page index (0-based)
+   * @param size Page size
+   * @param filters Optional filters (searchQuery)
+   * @returns Page of Articles with stockQuantity populated
+   */
+  async findAvailableArticlesPaginated(
+    username: string,
+    page: number,
+    size: number,
+    filters?: { searchQuery?: string }
+  ): Promise<{ content: any[], totalElements: number, totalPages: number }> {
+    try {
+      const offset = page * size;
+      const params: any[] = [username];
+
+      let baseQuery = `
+        FROM commercial_stock_items s
+        JOIN articles a ON s.articleId = a.id
+        WHERE s.commercialUsername = ? AND s.quantityRemaining > 0
+      `;
+
+      if (filters?.searchQuery) {
+        baseQuery += ` AND (LOWER(a.name) LIKE ? OR LOWER(a.reference) LIKE ?)`;
+        const term = `%${filters.searchQuery.toLowerCase()}%`;
+        params.push(term, term);
+      }
+
+      // Count Query
+      const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
+      // Log count query for debugging
+      // console.log('[CommercialStockRepository] Count Query:', countQuery, params);
+
+      const countResult = await this.db.query(countQuery, params);
+      const totalElements = countResult?.values?.[0]?.total || 0;
+      const totalPages = Math.ceil(totalElements / size);
+
+      // Data Query
+      const dataQuery = `
+        SELECT a.*, s.quantityRemaining as stockQuantity
+        ${baseQuery}
+        ORDER BY a.name ASC
+        LIMIT ? OFFSET ?
+      `;
+
+      const dataParams = [...params, size, offset];
+      // Log data query for debugging
+      // console.log('[CommercialStockRepository] Data Query:', dataQuery, dataParams);
+
+      const dataResult = await this.db.query(dataQuery, dataParams);
+      const content = dataResult?.values || [];
+
+      // Parse JSON fields if necessary (like existing dbService does for Articles)
+      // Usually dbService handles this if using getArticles, but here we do raw query.
+      // We might need to parse 'image', 'packaging', etc if they are JSON strings.
+      // But typically SQLite plugin returns columns as is. If Article entity has special types, we might need mapping.
+      // For now, assuming direct mapping is fine or handled by consumer.
+      // Actually, 'isSync', 'isLocal' are integers (0/1) in SQLite usually?
+      // Let's ensure basic boolean mapping if needed, but often JS treats 1 as true-ish.
+
+      return {
+        content,
+        totalElements,
+        totalPages
+      };
+
+    } catch (error) {
+      this.log.error('[CommercialStockRepository] Error finding available articles paginated', error);
+      return { content: [], totalElements: 0, totalPages: 0 };
+    }
   }
 }

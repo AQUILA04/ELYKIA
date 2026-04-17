@@ -1,5 +1,5 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Component, OnInit, Output, EventEmitter, Input, OnDestroy } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
@@ -32,9 +32,13 @@ import {
     ])
   ]
 })
-export class AdvancedSearchComponent implements OnInit, OnDestroy {
+export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
   @Input() commercials: any[] = [];
   @Input() isVisible: boolean = false;
+  @Input() initialSearchDto: CreditSearchDto | null = null;
+  @Input() isPromoter: boolean = false;
+  @Input() currentUsername: string | null = null;
+
   @Output() search = new EventEmitter<CreditSearchDto>();
   @Output() close = new EventEmitter<void>();
   @Output() reset = new EventEmitter<void>();
@@ -54,8 +58,20 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Plus de setupAutoSearch() - recherche manuelle uniquement
     this.setupFilterCounter();
+    this.initFormValues();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['initialSearchDto'] && !changes['initialSearchDto'].firstChange) {
+      if (this.initialSearchDto) {
+        this.searchForm.patchValue(this.initialSearchDto);
+      }
+    }
+    // Re-apply promoter restrictions if inputs change
+    if (changes['isPromoter'] || changes['currentUsername']) {
+      this.applyPromoterRestrictions();
+    }
   }
 
   ngOnDestroy(): void {
@@ -76,6 +92,21 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
     });
   }
 
+  private initFormValues(): void {
+    if (this.initialSearchDto) {
+      this.searchForm.patchValue(this.initialSearchDto);
+    }
+    this.applyPromoterRestrictions();
+    this.calculateActiveFilters();
+  }
+
+  private applyPromoterRestrictions(): void {
+    if (this.isPromoter && this.currentUsername) {
+      this.searchForm.patchValue({ commercial: this.currentUsername });
+      this.searchForm.get('commercial')?.disable();
+    }
+  }
+
   private setupFilterCounter(): void {
     // Mettre à jour le compteur de filtres à chaque changement
     const sub = this.searchForm.valueChanges.subscribe(() => {
@@ -85,11 +116,12 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
+    // Use getRawValue to include disabled fields (like commercial for promoter)
+    const formValue = this.searchForm.getRawValue();
+
     if (!this.hasActiveFilters()) {
       return;
     }
-
-    const formValue = this.searchForm.value;
 
     const searchDto: CreditSearchDto = {
       keyword: formValue.keyword || undefined,
@@ -110,7 +142,13 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
       status: null,
       commercial: null
     });
+
+    // Re-apply promoter restriction after reset
+    this.applyPromoterRestrictions();
+
     this.activeFiltersCount = 0;
+    this.calculateActiveFilters();
+
     this.reset.emit();
   }
 
@@ -119,7 +157,7 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
   }
 
   private calculateActiveFilters(): void {
-    const formValue = this.searchForm.value;
+    const formValue = this.searchForm.getRawValue();
     let count = 0;
 
     if (formValue.keyword && formValue.keyword.trim()) count++;

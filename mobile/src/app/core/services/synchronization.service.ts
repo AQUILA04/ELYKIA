@@ -113,10 +113,11 @@ export class SynchronizationService {
     const unsyncedAccounts = await this.getUnsyncedAccounts();
     const updatedAccounts = await this.getUpdatedAccounts();
     const unsyncedTontineMembers = await this.getUnsyncedTontineMembers();
+    const modifiedTontineMembers = await this.getModifiedTontineMembers();
     const unsyncedTontineCollections = await this.getUnsyncedTontineCollections();
     const unsyncedTontineDeliveries = await this.getUnsyncedTontineDeliveries();
 
-    const totalItems = unsyncedLocalities.length + unsyncedClients.length + updatedClients.length + updatedPhotoClients.length + updatedPhotoUrlClients.length + unsyncedDistributions.length + unsyncedOrders.length + unsyncedRecoveries + unsyncedAccounts.length + updatedAccounts.length + unsyncedTontineMembers.length + unsyncedTontineCollections.length + unsyncedTontineDeliveries.length;
+    const totalItems = unsyncedLocalities.length + unsyncedClients.length + updatedClients.length + updatedPhotoClients.length + updatedPhotoUrlClients.length + unsyncedDistributions.length + unsyncedOrders.length + unsyncedRecoveries + unsyncedAccounts.length + updatedAccounts.length + unsyncedTontineMembers.length + modifiedTontineMembers.length + unsyncedTontineCollections.length + unsyncedTontineDeliveries.length;
     let processedItems = 0;
 
     this.store.dispatch(updateSyncProgress({ progress: { totalItems, processedItems, percentage: 0 } }));
@@ -165,9 +166,12 @@ export class SynchronizationService {
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'recoveries' } }));
       processedItems = await this.syncAllRecoveries(result, processedItems, totalItems);
 
-      // 6.1 Synchroniser les membres de tontine
+      // 6.1 Synchroniser les membres de tontine (Nouveaux)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-members' } }));
       processedItems = await this.syncAllTontineMembers(result, unsyncedTontineMembers, processedItems, totalItems);
+
+      // 6.1.5 Synchroniser les membres de tontine (Modifiés)
+      processedItems = await this.syncModifiedTontineMembers(result, modifiedTontineMembers, processedItems, totalItems);
 
       // 6.2 Synchroniser les collectes de tontine
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-collections' } }));
@@ -403,11 +407,11 @@ export class SynchronizationService {
 
     try {
       if (client.profilPhoto) {
-        const file = await Filesystem.readFile({ path: client.profilPhoto, directory: Directory.Data });
+        const file = await Filesystem.readFile({ path: client.profilPhoto, directory: Directory.ExternalStorage });
         profilPhotoBase64 = file.data as string;
       }
       if (client.cardPhoto) {
-        const file = await Filesystem.readFile({ path: client.cardPhoto, directory: Directory.Data });
+        const file = await Filesystem.readFile({ path: client.cardPhoto, directory: Directory.ExternalStorage });
         cardPhotoBase64 = file.data as string;
       }
     } catch (error) {
@@ -686,39 +690,36 @@ export class SynchronizationService {
   /**
    * Synchroniser les mises journalières normales
    */
-  private async syncDefaultDailyStakes(recoveries: Recovery[]): Promise<void> {
-    const clientIds: number[] = [];
-    const creditIds: number[] = [];
+  public async syncDefaultDailyStakes(recoveries: Recovery[]): Promise<void> {
+    const stakeUnits = [];
     const currentUser = this.authService.currentUser;
 
     for (const recovery of recoveries) {
-      const clientServerId = await this.getServerIdForEntity(recovery.clientId, 'client');
       const distributionServerId = await this.getServerIdForEntity(recovery.distributionId, 'distribution');
 
-      console.log('clientServerId: ', clientServerId);
-      console.log('distributionServerId: ', distributionServerId);
-
-      if (clientServerId && distributionServerId) {
-        clientIds.push(parseInt(clientServerId));
-        creditIds.push(parseInt(distributionServerId));
+      if (distributionServerId) {
+        stakeUnits.push({
+          creditId: parseInt(distributionServerId),
+          recoveryId: recovery.id
+        });
       }
     }
 
     const syncRequest: DefaultDailyStakeRequest = {
-      clientIds,
       collector: currentUser?.username || '',
-      creditIds
+      stakeUnits
     };
 
     const headers = this.getAuthHeaders();
 
     try {
-      const response = await this.http.post<ApiResponse<number[]>>(`${this.baseUrl}/api/v1/credits/default-daily-stake`, syncRequest, { headers }).toPromise();
+      const response = await this.http.post<ApiResponse<string[]>>(`${this.baseUrl}/api/v1/credits/default-daily-stake`, syncRequest, { headers }).toPromise();
 
-      if (response?.data.length === recoveries.length) {
-        // Marquer tous les recouvrements comme synchronisés
-        for (const recovery of recoveries) {
-          await this.markRecoveryAsSynced(recovery.id);
+      if (response?.data && Array.isArray(response.data)) {
+        const syncedRecoveryIds = response.data;
+        // Marquer tous les recouvrements retournés comme synchronisés
+        for (const recoveryId of syncedRecoveryIds) {
+          await this.markRecoveryAsSynced(recoveryId);
         }
       }
     } catch (error) {
@@ -732,7 +733,7 @@ export class SynchronizationService {
   /**
    * Synchroniser les mises journalières spéciales
    */
-  private async syncSpecialDailyStakes(recoveries: Recovery[]): Promise<void> {
+  public async syncSpecialDailyStakes(recoveries: Recovery[]): Promise<void> {
     const stakeUnits = [];
     const currentUser = this.authService.currentUser;
     console.log('SPECIAL STAKES SIZE: ', recoveries.length);
@@ -750,7 +751,8 @@ export class SynchronizationService {
             stakeUnits.push({
               amount: recovery.amount,
               creditId: parsedCreditId,
-              clientId: parsedClientId
+              clientId: parsedClientId,
+              recoveryId: recovery.id
             });
           } else {
             console.error(`Skipping special stake for recovery ${recovery.id} due to invalid parent server ID. Client ID: ${clientServerId}, Distribution ID: ${distributionServerId}`);
@@ -768,12 +770,13 @@ export class SynchronizationService {
     const headers = this.getAuthHeaders();
     if (stakeUnits.length > 0) {
       try {
-        const response = await this.http.post<ApiResponse<number[]>>(`${this.baseUrl}/api/v1/credits/special-daily-stake`, syncRequest, { headers }).toPromise();
+        const response = await this.http.post<ApiResponse<string[]>>(`${this.baseUrl}/api/v1/credits/special-daily-stake`, syncRequest, { headers }).toPromise();
 
-        if (response?.data.length === recoveries.length) {
-          // Marquer tous les recouvrements comme synchronisés
-          for (const recovery of recoveries) {
-            await this.markRecoveryAsSynced(recovery.id);
+        if (response?.data && Array.isArray(response.data)) {
+          const syncedRecoveryIds = response.data;
+          // Marquer tous les recouvrements retournés comme synchronisés
+          for (const recoveryId of syncedRecoveryIds) {
+            await this.markRecoveryAsSynced(recoveryId);
           }
         }
       } catch (error) {
@@ -985,11 +988,11 @@ export class SynchronizationService {
 
     try {
       if (client.cardPhoto) {
-        const file = await Filesystem.readFile({ path: client.cardPhoto, directory: Directory.Data });
+        const file = await Filesystem.readFile({ path: client.cardPhoto, directory: Directory.ExternalStorage });
         iddocBase64 = file.data as string;
       }
       if (client.profilPhoto) {
-        const file = await Filesystem.readFile({ path: client.profilPhoto, directory: Directory.Data });
+        const file = await Filesystem.readFile({ path: client.profilPhoto, directory: Directory.ExternalStorage });
         profilPhotoBase64 = file.data as string;
       }
     } catch (error) {
@@ -1067,7 +1070,8 @@ export class SynchronizationService {
       totalAmount: distribution.totalAmount || 0,
       totalAmountPaid: distribution.paidAmount || 0,
       totalAmountRemaining: distribution.remainingAmount || 0,
-      mobile: true
+      mobile: true,
+      reference: distribution.reference || distribution.id // Ajout de la référence
     };
   }
 
@@ -1523,19 +1527,19 @@ export class SynchronizationService {
   }
 
   // Méthodes de génération de noms d'affichage
-  private getClientDisplayName(client: Client): string {
+  public getClientDisplayName(client: Client): string {
     return `${client.firstname} ${client.lastname}`;
   }
 
-  private getDistributionDisplayName(distribution: Distribution): string {
+  public getDistributionDisplayName(distribution: Distribution): string {
     return `Distribution ${distribution.reference || distribution.id}`;
   }
 
-  private getOrderDisplayName(order: Order): string {
+  public getOrderDisplayName(order: Order): string {
     return `Commande ${order.reference || order.id}`;
   }
 
-  private getRecoveryDisplayName(recovery: Recovery): string {
+  public getRecoveryDisplayName(recovery: Recovery): string {
     return `Recouvrement ${recovery.amount} FCFA`;
   }
 
@@ -1546,13 +1550,34 @@ export class SynchronizationService {
       const user = this.authService.currentUser;
       if (!user) return [];
 
+      const sql = `
+        SELECT tm.*,
+        COALESCE(c.fullName, (COALESCE(c.firstname, '') || ' ' || COALESCE(c.lastname, ''))) as clientName
+        FROM tontine_members tm
+        LEFT JOIN clients c ON tm.clientId = c.id
+        WHERE tm.isSync = 0 AND tm.isLocal = 1 AND tm.commercialUsername = ?
+      `;
+
+      const result = await this.databaseService.query(sql, [user.username]);
+      return result.values?.map((row: any) => this.mapRowToTontineMember(row)) || [];
+    } catch (error) {
+      console.error('Erreur lors de la récupération des membres de tontine non synchronisés:', error);
+      return [];
+    }
+  }
+
+  async getModifiedTontineMembers(): Promise<TontineMember[]> {
+    try {
+      const user = this.authService.currentUser;
+      if (!user) return [];
+
       const result = await this.databaseService.query(
-        `SELECT * FROM tontine_members WHERE isSync = 0 AND isLocal = 1 AND commercialUsername = ?`,
+        `SELECT * FROM tontine_members WHERE isSync = 0 AND isLocal = 0 AND commercialUsername = ?`,
         [user.username]
       );
       return result.values?.map((row: any) => this.mapRowToTontineMember(row)) || [];
     } catch (error) {
-      console.error('Erreur lors de la récupération des membres de tontine non synchronisés:', error);
+      console.error('Erreur lors de la récupération des membres de tontine modifiés:', error);
       return [];
     }
   }
@@ -1562,10 +1587,19 @@ export class SynchronizationService {
       const user = this.authService.currentUser;
       if (!user) return [];
 
-      const result = await this.databaseService.query(
-        `SELECT * FROM tontine_collections WHERE isSync = 0 AND isLocal = 1 AND commercialUsername = ?`,
-        [user.username]
-      );
+      const sql = `
+        SELECT tc.*,
+        COALESCE(c.fullName, (COALESCE(c.firstname, '') || ' ' || COALESCE(c.lastname, ''))) as clientName,
+        tm.id as _debug_tmId,
+        c.id as _debug_clientId
+        FROM tontine_collections tc
+        LEFT JOIN tontine_members tm ON tc.tontineMemberId = tm.id
+        LEFT JOIN clients c ON tm.clientId = c.id
+        WHERE tc.isSync = 0 AND tc.isLocal = 1 AND tc.commercialUsername = ?
+      `;
+
+      const result = await this.databaseService.query(sql, [user.username]);
+      console.log('[SynchronizationService] getUnsyncedTontineCollections result:', JSON.stringify(result.values, null, 2));
       return result.values?.map((row: any) => this.mapRowToTontineCollection(row)) || [];
     } catch (error) {
       console.error('Erreur lors de la récupération des collectes de tontine non synchronisées:', error);
@@ -1578,10 +1612,16 @@ export class SynchronizationService {
       const user = this.authService.currentUser;
       if (!user) return [];
 
-      const result = await this.databaseService.query(
-        `SELECT * FROM tontine_deliveries WHERE isSync = 0 AND isLocal = 1 AND commercialUsername = ?`,
-        [user.username]
-      );
+      const sql = `
+        SELECT td.*,
+        COALESCE(c.fullName, (COALESCE(c.firstname, '') || ' ' || COALESCE(c.lastname, ''))) as clientName
+        FROM tontine_deliveries td
+        LEFT JOIN tontine_members tm ON td.tontineMemberId = tm.id
+        LEFT JOIN clients c ON tm.clientId = c.id
+        WHERE td.isSync = 0 AND td.isLocal = 1 AND td.commercialUsername = ?
+      `;
+
+      const result = await this.databaseService.query(sql, [user.username]);
       return result.values?.map((row: any) => this.mapRowToTontineDelivery(row)) || [];
     } catch (error) {
       console.error('Erreur lors de la récupération des livraisons de tontine non synchronisées:', error);
@@ -1626,7 +1666,8 @@ export class SynchronizationService {
       syncHash: row.syncHash,
       frequency: row.frequency,
       amount: row.amount,
-      notes: row.notes
+      notes: row.notes,
+      clientName: row.clientName
     } as TontineMember;
   }
 
@@ -1640,7 +1681,8 @@ export class SynchronizationService {
       isSync: row.isSync === 1,
       syncDate: row.syncDate,
       syncHash: row.syncHash,
-      isDeliveryCollection: row.isDeliveryCollection === 1
+      isDeliveryCollection: row.isDeliveryCollection === 1,
+      clientName: row.clientName
     } as TontineCollection;
   }
 
@@ -1656,21 +1698,22 @@ export class SynchronizationService {
       isLocal: row.isLocal === 1,
       isSync: row.isSync === 1,
       syncDate: row.syncDate,
-      syncHash: row.syncHash
+      syncHash: row.syncHash,
+      clientName: row.clientName
     } as TontineDelivery;
   }
 
   // ==================== TONTINE DISPLAY NAME METHODS ====================
 
-  private getTontineMemberDisplayName(member: TontineMember): string {
+  public getTontineMemberDisplayName(member: TontineMember): string {
     return `Membre Tontine ${member.id}`;
   }
 
-  private getTontineCollectionDisplayName(collection: TontineCollection): string {
+  public getTontineCollectionDisplayName(collection: TontineCollection): string {
     return `Collecte Tontine ${collection.id}`;
   }
 
-  private getTontineDeliveryDisplayName(delivery: TontineDelivery): string {
+  public getTontineDeliveryDisplayName(delivery: TontineDelivery): string {
     return `Livraison Tontine ${delivery.id}`;
   }
 
@@ -1693,7 +1736,8 @@ export class SynchronizationService {
     return {
       memberId: serverMemberId,
       amount: collection.amount,
-      isDeliveryCollection: collection.isDeliveryCollection
+      isDeliveryCollection: collection.isDeliveryCollection,
+      reference: collection.id // Utiliser l'ID local comme référence
     };
   }
 
@@ -1791,6 +1835,22 @@ export class SynchronizationService {
     }
   }
 
+  private async markTontineMemberAsUpdated(localId: string): Promise<void> {
+    if (!this.databaseService) {
+      return;
+    }
+    try {
+      await this.databaseService.execute(
+        `UPDATE tontine_members SET isSync = 1, syncDate = datetime('now', 'localtime') WHERE id = ?`,
+        [localId]
+      );
+      console.log(`Tontine member ${localId} marked as updated/synced.`);
+    } catch (error) {
+      console.error(`Erreur lors du marquage du membre de tontine ${localId} comme mis à jour:`, error);
+      throw error;
+    }
+  }
+
   // ==================== TONTINE SYNC SINGLE ENTITY METHODS ====================
 
   async syncSingleTontineMember(member: TontineMember): Promise<TontineMemberSyncResponse> {
@@ -1861,6 +1921,42 @@ export class SynchronizationService {
   }
 
   // ==================== TONTINE SYNC ALL METHODS ====================
+
+  async updateSingleTontineMember(member: TontineMember): Promise<TontineMemberSyncResponse> {
+    const syncRequest = await this.prepareTontineMemberSyncRequest(member);
+    const headers = this.getAuthHeaders();
+    return firstValueFrom(
+      this.http.put<ApiResponse<TontineMemberSyncResponse>>(`${this.baseUrl}/api/v1/tontines/members/${member.id}`, syncRequest, { headers })
+        .pipe(
+          switchMap(async (response) => {
+            if (!response || !response.data) {
+              const errorMessage = response?.message || 'La mise à jour du membre de tontine a renvoyé une réponse vide ou invalide.';
+              throw new Error(errorMessage);
+            }
+            const syncedMember = response.data;
+            await this.markTontineMemberAsUpdated(member.id);
+            return syncedMember;
+          }),
+          catchError(this.handleError)
+        )
+    );
+  }
+
+  private async syncModifiedTontineMembers(result: SyncBatchResult, modifiedMembers: TontineMember[], processedItems: number, totalItems: number): Promise<number> {
+    for (const member of modifiedMembers) {
+      try {
+        await this.updateSingleTontineMember(member);
+        // We reuse the same counter for success
+        result.tontineMembersSync.success++;
+      } catch (error) {
+        result.tontineMembersSync.errors++;
+        await this.logSyncError('tontine-member', member.id, 'UPDATE', error, member, this.getTontineMemberDisplayName(member), member);
+      }
+      processedItems++;
+      this.store.dispatch(updateSyncProgress({ progress: { processedItems, percentage: (processedItems / totalItems) * 100 } }));
+    }
+    return processedItems;
+  }
 
   private async syncAllTontineMembers(result: SyncBatchResult, unsyncedMembers: TontineMember[], processedItems: number, totalItems: number): Promise<number> {
     for (const member of unsyncedMembers) {

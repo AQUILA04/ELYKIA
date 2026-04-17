@@ -8,13 +8,11 @@
 
   <div class="d-flex justify-content-between align-items-center mb-3">
 
-    <input
-      type="text"
-      placeholder="Rechercher un client..."
-      [(ngModel)]="searchTerm"
-      (keyup.enter)="onSearch()"
-      class="form-control w-50"
-    />
+    <input type="text" placeholder="Rechercher un client..." [(ngModel)]="searchTerm" (keyup.enter)="onSearch()"
+      class="form-control w-50" />
+
+    <app-commercial-selector [initialValue]="selectedCommercial"
+      (commercialSelected)="onCommercialSelected($event)"></app-commercial-selector>
 
     <div class="button-group">
       <button class="btn refresh-button btn-sm" (click)="refresh()">
@@ -31,37 +29,41 @@
   <div class="table-container">
     <table class="article-table">
       <thead>
-      <tr>
-        <th>#</th>
-        <th>Nom</th>
-        <th>Prénom</th>
-        <th>Localité</th>
-        <th>Numéro de téléphone</th>
-        <th>Action</th>
-      </tr>
+        <tr>
+          <th>#</th>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>Localité</th>
+          <th>Numéro de téléphone</th>
+          <th>Action</th>
+        </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let client of this.clients; let i = index">
-        <td>{{(currentPage * pageSize) + (i + 1)}}</td>
-        <td><a [routerLink]="['/client-view', client.id]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{client.lastname}}</a></td>
-        <td>{{client.firstname}}</td>
-        <td>{{client.address}}</td>
-        <td>{{client.phone}}</td>
-        <td>
-          <button mat-icon-button matTooltip="Détails" (click)="viewDetails(client.id)">
-            <mat-icon>visibility</mat-icon>
-          </button>
-          <button *ngxPermissionsOnly="['ROLE_EDIT_CLIENT']" mat-icon-button matTooltip="Modifier" (click)="editClient(client.id)">
-            <mat-icon style="color: #003366;">edit</mat-icon>
-          </button>
-          <button *ngxPermissionsOnly="['ROLE_DEL_CLIENT']" mat-icon-button matTooltip="Supprimer" (click)="deleteClient(client.id)">
-            <mat-icon style="color: #c90a17;">delete</mat-icon>
-          </button>
-        </td>
-      </tr>
+        <tr *ngFor="let client of this.clients; let i = index">
+          <td>{{(currentPage * pageSize) + (i + 1)}}</td>
+          <td><a [routerLink]="['/client-view', client.id]"
+              style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{client.lastname}}</a></td>
+          <td>{{client.firstname}}</td>
+          <td>{{client.address}}</td>
+          <td>{{client.phone}}</td>
+          <td>
+            <button mat-icon-button matTooltip="Détails" (click)="viewDetails(client.id)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button *ngxPermissionsOnly="['ROLE_EDIT_CLIENT']" mat-icon-button matTooltip="Modifier"
+              (click)="editClient(client.id)">
+              <mat-icon style="color: #003366;">edit</mat-icon>
+            </button>
+            <button *ngxPermissionsOnly="['ROLE_DEL_CLIENT']" mat-icon-button matTooltip="Supprimer"
+              (click)="deleteClient(client.id)">
+              <mat-icon style="color: #c90a17;">delete</mat-icon>
+            </button>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
-  <mat-paginator [length]="totalElement" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPageChange($event)">
+  <mat-paginator [length]="totalElement" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]"
+    (page)="onPageChange($event)">
   </mat-paginator>
 </div>

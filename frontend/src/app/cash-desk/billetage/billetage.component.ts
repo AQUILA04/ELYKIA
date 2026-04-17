@@ -23,11 +23,11 @@ export class BilletageComponent implements OnInit {
     return parseInt(piece, 10);
   }
 
-  updateTotal(value: number, quantity: number): void {
+  updateTotal(key: string, quantity: number): void {
     if (quantity > 0) {
-      this.ticketingData[value] = quantity; 
+      this.ticketingData[key] = quantity; 
     } else {
-      delete this.ticketingData[value];
+      delete this.ticketingData[key];
     }
     this.calculateTotal();
   }

@@ -1,0 +1,143 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="navigateBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Synchronisation Manuelle</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onRefresh()">
+        <ion-icon name="refresh"></ion-icon>
+      </ion-button>
+      <ion-button (click)="navigateToErrors()">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Segment pour les onglets (scrollable pour 6 onglets) -->
+  <ion-toolbar class="segment-toolbar">
+    <ion-segment scrollable [(ngModel)]="activeTab" (ionChange)="onSegmentChange($event)">
+      <ion-segment-button value="clients">
+        <ion-icon name="people-outline"></ion-icon>
+        <ion-label>Clients</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="distributions">
+        <ion-icon name="cube-outline"></ion-icon>
+        <ion-label>Distributions</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="recoveries">
+        <ion-icon name="cash-outline"></ion-icon>
+        <ion-label>Recouvrements</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="tontine-members">
+        <ion-icon name="people-circle-outline"></ion-icon>
+        <ion-label>Membres</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="tontine-collections">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <ion-label>Collectes</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="tontine-deliveries">
+        <ion-icon name="gift-outline"></ion-icon>
+        <ion-label>Livraisons</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Pull to refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loader pendant le chargement -->
+  <div class="loading-container" *ngIf="loading$ | async">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Chargement des données...</p>
+  </div>
+
+  <!-- Contenu des onglets -->
+  <div class="sync-content" *ngIf="!(loading$ | async)">
+    <!-- Onglet Clients -->
+    <div *ngIf="activeTab === 'clients'">
+      <app-entity-sync-list [entities]="(clients$ | async) || []" [selectedIds]="(selectedClientIds$ | async) || []"
+        [syncingIds]="(syncingEntities$ | async) || []" entityType="client"
+        (toggleSelection)="onToggleSelection('client', $event)" (selectAll)="onSelectAll('client')"
+        (clearSelection)="onClearSelection('client')" (syncSingle)="onSyncSingle('client', $event)">
+      </app-entity-sync-list>
+    </div>
+
+    <!-- Onglet Distributions -->
+    <div *ngIf="activeTab === 'distributions'">
+      <app-entity-sync-list [entities]="(distributions$ | async) || []"
+        [selectedIds]="(selectedDistributionIds$ | async) || []" [syncingIds]="(syncingEntities$ | async) || []"
+        entityType="distribution" (toggleSelection)="onToggleSelection('distribution', $event)"
+        (selectAll)="onSelectAll('distribution')" (clearSelection)="onClearSelection('distribution')"
+        (syncSingle)="onSyncSingle('distribution', $event)" (editParent)="onEditParent($event)">
+      </app-entity-sync-list>
+    </div>
+
+    <!-- Onglet Recouvrements -->
+    <div *ngIf="activeTab === 'recoveries'">
+      <app-entity-sync-list [entities]="(recoveries$ | async) || []"
+        [selectedIds]="(selectedRecoveryIds$ | async) || []" [syncingIds]="(syncingEntities$ | async) || []"
+        entityType="recovery" (toggleSelection)="onToggleSelection('recovery', $event)"
+        (selectAll)="onSelectAll('recovery')" (clearSelection)="onClearSelection('recovery')"
+        (syncSingle)="onSyncSingle('recovery', $event)" (editParent)="onEditParent($event)">
+      </app-entity-sync-list>
+    </div>
+
+    <!-- Onglet Membres Tontine -->
+    <div *ngIf="activeTab === 'tontine-members'">
+      <app-entity-sync-list [entities]="(tontineMembers$ | async) || []"
+        [selectedIds]="(selectedTontineMemberIds$ | async) || []" [syncingIds]="(syncingEntities$ | async) || []"
+        entityType="tontine-member" (toggleSelection)="onToggleSelection('tontine-member', $event)"
+        (selectAll)="onSelectAll('tontine-member')" (clearSelection)="onClearSelection('tontine-member')"
+        (syncSingle)="onSyncSingle('tontine-member', $event)" (editParent)="onEditParent($event)">
+      </app-entity-sync-list>
+    </div>
+
+    <!-- Onglet Collectes Tontine -->
+    <div *ngIf="activeTab === 'tontine-collections'">
+      <app-entity-sync-list [entities]="(tontineCollections$ | async) || []"
+        [selectedIds]="(selectedTontineCollectionIds$ | async) || []" [syncingIds]="(syncingEntities$ | async) || []"
+        entityType="tontine-collection" (toggleSelection)="onToggleSelection('tontine-collection', $event)"
+        (selectAll)="onSelectAll('tontine-collection')" (clearSelection)="onClearSelection('tontine-collection')"
+        (syncSingle)="onSyncSingle('tontine-collection', $event)" (editParent)="onEditParent($event)">
+      </app-entity-sync-list>
+    </div>
+
+    <!-- Onglet Livraisons Tontine -->
+    <div *ngIf="activeTab === 'tontine-deliveries'">
+      <app-entity-sync-list [entities]="(tontineDeliveries$ | async) || []"
+        [selectedIds]="(selectedTontineDeliveryIds$ | async) || []" [syncingIds]="(syncingEntities$ | async) || []"
+        entityType="tontine-delivery" (toggleSelection)="onToggleSelection('tontine-delivery', $event)"
+        (selectAll)="onSelectAll('tontine-delivery')" (clearSelection)="onClearSelection('tontine-delivery')"
+        (syncSingle)="onSyncSingle('tontine-delivery', $event)" (editParent)="onEditParent($event)">
+      </app-entity-sync-list>
+    </div>
+  </div>
+
+  <!-- Infinite Scroll -->
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)"
+    [disabled]="activeTab === 'clients' ? !((clientPagination$ | async)?.hasMore) :
+                activeTab === 'distributions' ? !((distributionPagination$ | async)?.hasMore) :
+                activeTab === 'recoveries' ? !((recoveryPagination$ | async)?.hasMore) :
+                activeTab === 'tontine-members' ? !((tontineMemberPagination$ | async)?.hasMore) :
+                activeTab === 'tontine-collections' ? !((tontineCollectionPagination$ | async)?.hasMore) :
+                !((tontineDeliveryPagination$ | async)?.hasMore)">
+    <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement plus de données...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+  <!-- Floating Action Button pour synchronisation groupée -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="((selectedCount$ | async) ?? 0) > 0">
+    <ion-fab-button (click)="onSyncSelected()" color="primary">
+      <ion-icon name="sync"></ion-icon>
+    </ion-fab-button>
+    <ion-badge class="fab-badge" color="danger">{{ (selectedCount$ | async) ?? 0 }}</ion-badge>
+  </ion-fab>
+</ion-content>

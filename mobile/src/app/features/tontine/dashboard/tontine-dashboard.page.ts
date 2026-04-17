@@ -1,11 +1,15 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, combineLatest, BehaviorSubject } from 'rxjs';
-import { takeUntil, map, startWith, tap, take } from 'rxjs/operators';
+import { takeUntil, map, startWith, tap, take, filter, switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TontineService } from 'src/app/core/services/tontine.service';
-import { selectTontineSession, selectTontineMembers } from 'src/app/store/tontine/tontine.selectors';
-import { loadTontineSession, loadTontineMembers } from 'src/app/store/tontine/tontine.actions';
+import { selectTontineSession, selectPaginatedTontineMembers, selectTontineMemberPaginationLoading, selectTontineMemberPaginationHasMore } from 'src/app/store/tontine/tontine.selectors';
+import { loadTontineSession, loadFirstPageTontineMembers, loadNextPageTontineMembers } from 'src/app/store/tontine/tontine.actions';
 import { ActionSheetController, NavController } from '@ionic/angular';
+import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
+import * as KpiActions from 'src/app/store/kpi/kpi.actions';
+import * as KpiSelectors from 'src/app/store/kpi/kpi.selectors';
+import { TontineMemberView } from 'src/app/models/tontine.model';
 
 @Component({
     selector: 'app-tontine-dashboard',
@@ -15,8 +19,13 @@ import { ActionSheetController, NavController } from '@ionic/angular';
 })
 export class TontineDashboardPage implements OnInit, OnDestroy {
     session$: Observable<any>;
-    members$: Observable<any[]>;
-    filteredMembers$: Observable<any[]>;
+    members$: Observable<TontineMemberView[]>;
+    loading$: Observable<boolean>;
+    hasMore$: Observable<boolean>;
+
+    // Derived streams for UI
+    groupedMembers$: Observable<{ quarter: string, members: TontineMemberView[] }[]>;
+    isGroupedView$: Observable<boolean>;
 
     // Stats
     totalMembers$: Observable<number>;
@@ -24,111 +33,108 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
     pendingDeliveries$: Observable<number>;
     currentYear$: Observable<number>;
 
-    // Filters
+    // Filters (Local State for API calls)
     searchTerm$ = new BehaviorSubject<string>('');
-    statusFilter$ = new BehaviorSubject<string>('all');
+    statusFilter$ = new BehaviorSubject<string>('todo'); // Default to 'todo' as it is the most useful view
 
     private destroy$ = new Subject<void>();
-
-    // Pagination
-    displayedMembers$ = new BehaviorSubject<any[]>([]);
-    private allFilteredMembers: any[] = [];
-    private pageSize = 20;
-    private currentPage = 1;
+    private sessionId: string | null = null;
 
     constructor(
         private store: Store,
-        private tontineService: TontineService,
         private navCtrl: NavController,
         private actionSheetCtrl: ActionSheetController,
     ) {
-        this.session$ = this.store.select(selectTontineSession).pipe(
-            tap(session => console.log('Dashboard: Session from store:', session))
-        );
-        this.members$ = this.store.select(selectTontineMembers).pipe(
-            tap(members => console.log('Dashboard: Members from store:', members))
+        this.session$ = this.store.select(selectTontineSession);
+        this.members$ = this.store.select(selectPaginatedTontineMembers);
+        this.loading$ = this.store.select(selectTontineMemberPaginationLoading);
+        this.hasMore$ = this.store.select(selectTontineMemberPaginationHasMore);
+
+        this.isGroupedView$ = this.statusFilter$.pipe(
+            map(status => status === 'todo')
         );
 
         this.currentYear$ = this.session$.pipe(
             map(session => session ? session.year : new Date().getFullYear())
         );
 
-        this.totalMembers$ = this.members$.pipe(
-            map(members => members.length)
-        );
+        // KPI Selectors from KpiStore
+        this.totalMembers$ = this.store.select(KpiSelectors.selectTontineKpiTotalMembersBySession);
+        this.totalCollected$ = this.store.select(KpiSelectors.selectTontineKpiTotalCollected);
+        this.pendingDeliveries$ = this.store.select(KpiSelectors.selectTontineKpiPendingDeliveries);
 
-        this.totalCollected$ = this.members$.pipe(
-            map(members => members.reduce((sum, m) => sum + (m.totalContribution || 0), 0))
-        );
-
-        this.pendingDeliveries$ = this.members$.pipe(
-            map(members => members.filter(m => m.deliveryStatus === 'PENDING').length)
-        );
-
-        this.filteredMembers$ = combineLatest([
+        // Grouping logic (Local, based on current page of members)
+        // When status is 'todo', the backend sorts by Quarter, so grouping should be consistent.
+        this.groupedMembers$ = combineLatest([
             this.members$,
-            this.searchTerm$,
             this.statusFilter$
         ]).pipe(
-            tap(([members, term, status]) => console.log('Dashboard: Filtering members...', { total: members?.length, term, status })),
-            map(([members, searchTerm, statusFilter]) => {
-                const filtered = members.filter(member => {
-                    // Filter by status
-                    const matchesStatus = statusFilter === 'all' ||
-                        (statusFilter === 'active' && member.status === 'ACTIVE') ||
-                        (statusFilter === 'pending' && member.deliveryStatus === 'PENDING') ||
-                        (statusFilter === 'delivered' && member.deliveryStatus === 'DELIVERED');
+            map(([members, status]) => {
+                if (status !== 'todo') return [];
 
-                    const term = searchTerm.toLowerCase();
-                    const matchesSearch = !term ||
-                        (member.clientName && member.clientName.toLowerCase().includes(term)) ||
-                        (member.clientPhone && member.clientPhone.includes(term));
-
-                    return matchesStatus && matchesSearch;
+                const groups: { [key: string]: TontineMemberView[] } = {};
+                members.forEach(m => {
+                    const quarter = m.clientQuarter || 'Autre';
+                    if (!groups[quarter]) {
+                        groups[quarter] = [];
+                    }
+                    groups[quarter].push(m);
                 });
 
-                console.log('Dashboard: Filtered members count:', filtered.length);
-
-                // Reset pagination when filter changes
-                this.allFilteredMembers = filtered;
-                this.currentPage = 1;
-                this.loadInitialMembers();
-
-                return filtered;
+                return Object.keys(groups).sort().map(quarter => ({
+                    quarter,
+                    members: groups[quarter]
+                }));
             })
         );
     }
 
     ngOnInit() {
-        // Subscribe to filteredMembers to trigger the pipe and initial load
-        this.filteredMembers$.pipe(takeUntil(this.destroy$)).subscribe();
-
         // Load Tontine Session
         this.store.dispatch(loadTontineSession());
 
-        // Load Members when Session is available
-        this.session$.pipe(
+        // Handle Session & User Loading -> Trigger Initial Load
+        combineLatest([
+            this.session$.pipe(filter(s => !!s && !!s.id)),
+            this.store.select(selectAuthUser).pipe(filter(u => !!u))
+        ]).pipe(
             takeUntil(this.destroy$),
-            tap(session => {
-                if (session && session.id) {
-                    console.log('Dashboard: Session loaded, dispatching loadTontineMembers for session', session.id);
-                    this.store.dispatch(loadTontineMembers({ sessionId: session.id }));
+            tap(([session, user]) => {
+                this.sessionId = session.id;
+                const commercialUsername = user.username;
+
+                if (this.sessionId) {
+                    // Load KPIs
+                    this.store.dispatch(KpiActions.loadTontineKpi({
+                        sessionId: this.sessionId,
+                        commercialUsername,
+                        dateFilter: { startDate: new Date().toISOString(), endDate: new Date().toISOString() }
+                    }));
                 }
+            })
+        ).subscribe();
+
+        // Handle Filter Changes -> Trigger Pagination Load
+        combineLatest([
+            this.session$.pipe(filter(s => !!s && !!s.id)),
+            this.searchTerm$.pipe(debounceTime(300), distinctUntilChanged()),
+            this.statusFilter$.pipe(distinctUntilChanged())
+        ]).pipe(
+            takeUntil(this.destroy$),
+            tap(([session, search, status]) => {
+                this.loadFirstPage(session.id, search, status);
             })
         ).subscribe();
     }
 
     ionViewWillEnter() {
-        // Reload members when returning to this page
-        this.session$.pipe(
-            take(1),
-            tap(session => {
-                if (session && session.id) {
-                    console.log('Dashboard: Reloading members on view enter');
-                    this.store.dispatch(loadTontineMembers({ sessionId: session.id }));
-                }
-            })
-        ).subscribe();
+        // Refresh logic if needed, but Reactive streams likely handle it if state is preserved.
+        // If we want to force refresh on enter:
+        if (this.sessionId) {
+            const search = this.searchTerm$.value;
+            const status = this.statusFilter$.value;
+            this.loadFirstPage(this.sessionId, search, status);
+        }
     }
 
     ngOnDestroy() {
@@ -136,26 +142,51 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
         this.destroy$.complete();
     }
 
-    loadInitialMembers() {
-        const initialMembers = this.allFilteredMembers.slice(0, this.pageSize);
-        this.displayedMembers$.next(initialMembers);
+    loadFirstPage(sessionId: string, search: string, status: string) {
+        console.log('Dashboard: Loading First Page', { sessionId, search, status });
+
+        // Map UI status to API filters
+        // UI: 'all', 'active' (status), 'pending' (delivery), 'todo' (!hasPaidToday)
+        const filters: any = {};
+
+        if (search) filters.searchQuery = search;
+
+        if (status === 'todo') {
+            filters.status = 'todo'; // Handled by Repository Extension
+        } else if (status === 'active') {
+            // In UI 'active' usually means member status ACTIVE.
+            // But existing code checked `member.status === 'ACTIVE'`.
+            filters.status = 'ACTIVE';
+        } else if (status === 'pending') {
+            filters.deliveryStatus = 'PENDING';
+        }
+
+        this.store.dispatch(loadFirstPageTontineMembers({
+            sessionId,
+            filters
+        }));
     }
 
     loadMoreMembers(event: any) {
-        const currentLength = this.displayedMembers$.value.length;
-        const totalLength = this.allFilteredMembers.length;
+        if (this.sessionId) {
+            const search = this.searchTerm$.value;
+            const status = this.statusFilter$.value;
+            const filters: any = {}; // Reconstruct filters logic similar to above
+            if (search) filters.searchQuery = search;
+            if (status === 'todo') filters.status = 'todo';
+            else if (status === 'active') filters.status = 'ACTIVE';
+            else if (status === 'pending') filters.deliveryStatus = 'PENDING';
 
-        if (currentLength < totalLength) {
-            this.currentPage++;
-            const nextMembers = this.allFilteredMembers.slice(0, this.currentPage * this.pageSize);
-            this.displayedMembers$.next(nextMembers);
+            this.store.dispatch(loadNextPageTontineMembers({ sessionId: this.sessionId, filters }));
         }
 
-        event.target.complete();
-
-        if (this.displayedMembers$.value.length >= totalLength) {
-            event.target.disabled = true;
-        }
+        // Listen to loading state to complete the infinite scroll
+        this.loading$.pipe(
+            filter(loading => !loading),
+            take(1)
+        ).subscribe(() => {
+            event.target.complete();
+        });
     }
 
     filterByStatus(status: string) {
@@ -175,7 +206,7 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
     }
 
     goBack() {
-        this.navCtrl.back();
+        this.navCtrl.navigateBack('/tabs/dashboard');
     }
 
     async showMenu() {
@@ -207,8 +238,10 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
                     text: 'Annuler',
                     icon: 'close',
                     role: 'cancel',
+                    cssClass: 'action-sheet-cancel' // Added class for better styling control
                 },
             ],
+            cssClass: 'custom-action-sheet' // Added class for better styling control
         });
         await actionSheet.present();
     }

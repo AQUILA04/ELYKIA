@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { LoadingController, ModalController } from '@ionic/angular';
 import { PrintingService, PrintableTontineDelivery } from 'src/app/core/services/printing.service';
+import { PdfService } from 'src/app/core/services/pdf.service';
 
 @Component({
     selector: 'app-tontine-delivery-receipt-modal',
@@ -13,8 +14,34 @@ export class TontineDeliveryReceiptModalComponent {
 
     constructor(
         private modalCtrl: ModalController,
-        private printingService: PrintingService
+        private loadingController: LoadingController,
+        private printingService: PrintingService,
+        private pdfService: PdfService
     ) { }
+
+    async ionViewDidEnter() {
+        setTimeout(async () => {
+            const content = document.getElementById('receipt-content');
+            if (content) {
+                const loading = await this.loadingController.create({
+                    message: 'Enregistrement des données en cours...',
+                    backdropDismiss: false
+                });
+                await loading.present();
+                try {
+                    await this.pdfService.saveReceipt(
+                        content,
+                        'livraison_tontine',
+                        this.data.delivery.id
+                    );
+                    await loading.dismiss();
+                } catch (e) {
+                    console.error('Failed to auto-save PDF receipt', e);
+                    await loading.dismiss();
+                }
+            }
+        }, 500);
+    }
 
     dismiss() {
         this.modalCtrl.dismiss();

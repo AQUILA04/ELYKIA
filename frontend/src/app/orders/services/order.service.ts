@@ -22,7 +22,7 @@ import {
   OrderState,
   ORDER_CONSTANTS
 } from '../types/order.types';
-import {AuthService} from "../../auth/service/auth.service";
+import { AuthService } from "../../auth/service/auth.service";
 
 @Injectable({
   providedIn: 'root'
@@ -474,7 +474,7 @@ export class OrderService {
 
     if (searchTerm && searchTerm.trim() !== '') {
       // Utiliser l'API de recherche Elasticsearch comme dans credit-add
-      const searchUrl = `${environment.apiUrl}/api/v1/articles/elasticsearch`;
+      const searchUrl = `${environment.apiUrl}/api/v1/articles/elasticsearch/enabled`;
       const body = { keyword: searchTerm.trim() };
       let params = new HttpParams()
         .set('page', '0')
@@ -494,7 +494,7 @@ export class OrderService {
       let params = new HttpParams()
         .set('size', '10000');
 
-      return this.http.get<ApiResponse<PaginatedResponse<OrderArticle>>>(`${environment.apiUrl}/api/v1/articles`, { headers, params })
+      return this.http.get<ApiResponse<PaginatedResponse<OrderArticle>>>(`${environment.apiUrl}/api/v1/articles/enabled`, { headers, params })
         .pipe(
           map(response => ({
             ...response,
@@ -520,8 +520,8 @@ export class OrderService {
         const clientName = `${order.client?.firstname || ''} ${order.client?.lastname || ''}`.trim();
         const commercial = order.commercial || '';
         return clientName.toLowerCase().includes(searchLower) ||
-               commercial.toLowerCase().includes(searchLower) ||
-               order.id.toString().includes(searchLower);
+          commercial.toLowerCase().includes(searchLower) ||
+          order.id.toString().includes(searchLower);
       });
     }
 

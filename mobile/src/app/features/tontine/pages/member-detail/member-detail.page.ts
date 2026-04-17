@@ -226,9 +226,8 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                 {
                     text: 'Modifier',
                     icon: 'create-outline',
-                    cssClass: 'disabled-action',
                     handler: () => {
-                        return false; // Prevent action
+                        this.editMember();
                     }
                 },
                 {
@@ -271,8 +270,11 @@ export class MemberDetailPage implements OnInit, OnDestroy {
     }
 
     editMember() {
-        // TODO: Navigate to edit page
-        console.log('Edit member:', this.memberId);
+        if (this.memberId) {
+            this.navCtrl.navigateForward(['/tontine/member-registration'], {
+                queryParams: { memberId: this.memberId }
+            });
+        }
     }
 
     async deleteMember() {

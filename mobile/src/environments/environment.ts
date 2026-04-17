@@ -4,9 +4,9 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://192.168.1.126:8081',
+  apiUrl: 'http://192.168.1.85:8081',
   appName: 'Elykia',
-  version: '2.2.4'
+  version: '2.7.5'
 };
 
 /*
@@ -16,4 +16,3 @@ export const environment = {
  * This import should be commented out in production mode because it will have a negative impact
  * on performance if an error is thrown. apiUrl: 'http://192.168.1.77:8081',
  */
-// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.

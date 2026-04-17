@@ -5,6 +5,8 @@ import { map, mergeMap, catchError, tap } from 'rxjs/operators';
 import * as CommercialStockActions from './commercial-stock.actions';
 import { CommercialStockService } from '../../core/services/commercial-stock.service';
 import { LoggerService } from '../../core/services/logger.service';
+import { CommercialStockRepository } from '../../core/repositories/commercial-stock.repository';
+import { from } from 'rxjs';
 
 @Injectable()
 export class CommercialStockEffects {
@@ -15,8 +17,8 @@ export class CommercialStockEffects {
       .pipe(
         map(stockItems => CommercialStockActions.loadCommercialStockSuccess({ stockItems })),
         catchError(error => {
-            this.log.error('Error loading commercial stock', error);
-            return of(CommercialStockActions.loadCommercialStockFailure({ error }));
+          this.log.error('Error loading commercial stock', error);
+          return of(CommercialStockActions.loadCommercialStockFailure({ error }));
         })
       ))
   ));
@@ -27,15 +29,18 @@ export class CommercialStockEffects {
       .pipe(
         map(stockItems => CommercialStockActions.syncCommercialStockSuccess({ stockItems })),
         catchError(error => {
-            this.log.error('Error syncing commercial stock', error);
-            return of(CommercialStockActions.syncCommercialStockFailure({ error }));
+          this.log.error('Error syncing commercial stock', error);
+          return of(CommercialStockActions.syncCommercialStockFailure({ error }));
         })
       ))
   ));
 
+
+
   constructor(
     private actions$: Actions,
     private commercialStockService: CommercialStockService,
-    private log: LoggerService
-  ) {}
+    private log: LoggerService,
+    private commercialStockRepository: CommercialStockRepository
+  ) { }
 }

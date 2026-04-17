@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.scheduler;
 
-import com.optimize.elykia.core.service.CommercialPerformanceService;
-import com.optimize.elykia.core.service.DailyBusinessSnapshotService;
+import com.optimize.elykia.core.service.commercial.CommercialPerformanceService;
+import com.optimize.elykia.core.service.bi.DailyBusinessSnapshotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
