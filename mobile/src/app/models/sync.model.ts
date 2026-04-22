@@ -16,7 +16,7 @@ export interface SyncError {
   entityType: 'locality' | 'client' | 'distribution' | 'recovery' | 'account' | 'order' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery';
   entityId: string;
   entityDisplayName: string;
-  operation: 'CREATE' | 'UPDATE' | 'DELETE' | 'UPDATE_LOCATION' | 'UPDATE_PHOTO' | 'SKIP';
+  operation: 'CREATE' | 'UPDATE' | 'DELETE' | 'UPDATE_LOCATION' | 'UPDATE_PHOTO' | 'UPDATE_PHOTO_URL' | 'SKIP';
   errorMessage: string;
   errorCode?: string;
   syncDate: Date;
@@ -100,19 +100,29 @@ export interface ClientSyncRequest {
   occupation: string;
   phone: string;
   quarter: string;
-  id: null; // Toujours null pour création
+  id: number | null;
   contactPersonName?: string;
   contactPersonPhone?: string;
   contactPersonAddress?: string;
-  clientType: 'CLIENT';
+  clientType?: 'CLIENT';
   iddoc?: string;
   profilPhoto?: string;
   longitude?: number;
   latitude?: number;
   mll?: string;
-  code: string;
-  profilPhotoUrl: string;
-  cardPhotoUrl: string;
+  code?: string;
+  profilPhotoUrl?: string;
+  cardPhotoUrl?: string;
+  profilPhotoThumbUrl?: string;
+  cardPhotoThumbUrl?: string;
+  city?: string;
+  status?: string;
+  nic?: string;
+  profession?: string;
+  tontineCollector?: string;
+  agencyCollector?: string;
+  profilePicture?: string;
+  cardPicture?: string;
 }
 
 export interface AccountSyncRequest {
@@ -120,6 +130,7 @@ export interface AccountSyncRequest {
   accountNumber: string;
   clientId: number; // ID serveur du client
   accountBalance: number;
+  status?: string;
 }
 
 export interface AccountUpdateRequest {
@@ -147,7 +158,7 @@ export interface DistributionSyncRequest {
   totalAmountPaid: number;
   totalAmountRemaining: number;
   mobile: boolean;
-
+  reference?: string;
 }
 
 export interface OrderSyncRequest {
@@ -158,16 +169,44 @@ export interface OrderSyncRequest {
   }>;
 }
 
+export interface AccountSyncResponse {
+  id: number;
+  clientId: number;
+  accountNumber: string;
+  accountBalance: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface OrderSyncResponse {
   id: number;
   // Inclure d'autres champs si nécessaire, basés sur la réponse réelle de l'API
 }
 
+export interface DistributionSyncResponse {
+  id: number;
+  clientId: number;
+  totalAmount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 
 export interface DefaultDailyStakeRequest {
-  clientIds: number[]; // IDs serveur des clients
   collector: string;
-  creditIds: number[]; // IDs serveur des distributions
+  stakeUnits: Array<{
+    creditId: number; // ID serveur de la distribution
+    recoveryId: string; // ID local du recouvrement (mobile)
+  }>;
+}
+
+export interface DefaultDailyStakeResponse {
+  successRecoveryIds: string[];
+  failedRecoveries: Array<{
+    recoveryId: string;
+    errorMessage: string;
+  }>;
 }
 
 export interface SpecialDailyStakeRequest {
@@ -176,24 +215,60 @@ export interface SpecialDailyStakeRequest {
     amount: number;
     creditId: number; // ID serveur de la distribution
     clientId: number; // ID serveur du client
+    recoveryId: string; // ID local du recouvrement (mobile)
+  }>;
+}
+
+export interface SpecialDailyStakeResponse {
+  successRecoveryIds: string[];
+  failedRecoveries: Array<{
+    recoveryId: string;
+    errorMessage: string;
   }>;
 }
 
 // Types pour la synchronisation manuelle
 
 export interface SyncSelection {
-  entityType: 'client' | 'distribution' | 'recovery';
+  entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery';
   selectedIds: string[];
   totalCount: number;
   isSelectAll: boolean;
+}
+
+export interface PaginationState {
+  page: number;
+  size: number;
+  totalPages: number;
+  totalElements: number;
+  loading: boolean;
+  hasMore: boolean;
+}
+
+export interface ParentSelectionState {
+  clients: { data: any[], pagination: PaginationState, loading: boolean };
+  distributions: { data: any[], pagination: PaginationState, loading: boolean };
+  tontineMembers: { data: any[], pagination: PaginationState, loading: boolean };
+  searchQuery: string;
 }
 
 export interface ManualSyncState {
   clients: SyncSelection;
   distributions: SyncSelection;
   recoveries: SyncSelection;
+  tontineMembers: SyncSelection;
+  tontineCollections: SyncSelection;
+  tontineDeliveries: SyncSelection;
   isLoading: boolean;
-  activeTab: 'clients' | 'distributions' | 'recoveries' | 'all';
+  activeTab: 'clients' | 'distributions' | 'recoveries' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries' | 'all';
+  pagination: {
+    clients: PaginationState;
+    distributions: PaginationState;
+    recoveries: PaginationState;
+    tontineMembers: PaginationState;
+    tontineCollections: PaginationState;
+    tontineDeliveries: PaginationState;
+  };
 }
 
 // Énumérations
@@ -248,12 +323,15 @@ export interface TontineMemberSyncRequest {
   frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
   amount?: number;
   notes?: string;
+  updateScope?: 'GLOBAL' | 'CURRENT_AND_FUTURE' | 'FUTURE_ONLY' | null;
 }
 
 export interface TontineCollectionSyncRequest {
   memberId: number;
   amount: number;
   isDeliveryCollection?: boolean;
+  reference?: string;
+  notes?: string;
 }
 
 export interface TontineDeliverySyncRequest {
@@ -291,4 +369,3 @@ export interface TontineDeliverySyncResponse {
   status: string;
   requestDate: string;
 }
-

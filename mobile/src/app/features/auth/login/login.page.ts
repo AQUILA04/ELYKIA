@@ -13,6 +13,7 @@ import { Actions, ofType } from '@ngrx/effects';
 import { DataInitializationService } from 'src/app/core/services/data-initialization.service';
 import { DatabaseService } from 'src/app/core/services/database.service'; // Import DatabaseService
 import { environment } from 'src/environments/environment'; // Import environment
+import { RestoreResult } from 'src/app/core/models/restore.models';
 
 @Component({
   selector: 'app-login',
@@ -26,6 +27,7 @@ export class LoginPage implements OnInit, OnDestroy {
   password!: string;
   passwordVisible: boolean = false;
   appVersion: string = environment.version; // Expose version to template
+  environment = environment; // Exposer environment pour le template
 
   isOnline$: Observable<boolean>;
   error$: Observable<any>;
@@ -69,7 +71,24 @@ export class LoginPage implements OnInit, OnDestroy {
     const backupFiles = await this.dbService.findAllBackupFiles();
 
     if (backupFiles.length === 0) {
-      await this.presentAlert('Aucune sauvegarde', 'Aucun fichier de sauvegarde n\'a été trouvé sur cet appareil.');
+      // Proposer la sélection manuelle via SAF si aucun fichier trouvé automatiquement
+      const alert = await this.alertController.create({
+        header: 'Aucune sauvegarde trouvée',
+        message: 'Aucun fichier de sauvegarde n\'a été trouvé automatiquement. Voulez-vous sélectionner manuellement un fichier de sauvegarde ?',
+        buttons: [
+          {
+            text: 'Annuler',
+            role: 'cancel'
+          },
+          {
+            text: 'Sélectionner manuellement',
+            handler: async () => {
+              await this.onManualRestore();
+            }
+          }
+        ]
+      });
+      await alert.present();
       return;
     }
 
@@ -82,7 +101,7 @@ export class LoginPage implements OnInit, OnDestroy {
           // Convert to readable format: YYYY-MM-DD HH:MM:SS
           const datePart = match[1].substring(0, 10);
           const timePart = match[1].substring(11).replace(/-/g, ':');
-          
+
           // Format file size
           const fileSizeKB = (fileObj.size / 1024).toFixed(2); // Convert bytes to KB
           label = `Sauvegarde du ${datePart} à ${timePart} (${fileSizeKB} KB)`;
@@ -110,6 +129,12 @@ export class LoginPage implements OnInit, OnDestroy {
           role: 'cancel'
         },
         {
+          text: 'Sélection manuelle',
+          handler: async () => {
+            await this.onManualRestore();
+          }
+        },
+        {
           text: 'Restaurer',
           handler: async (selectedFilePath: string) => {
             if (!selectedFilePath) {
@@ -123,12 +148,19 @@ export class LoginPage implements OnInit, OnDestroy {
             await loading.present();
 
             try {
-              await this.dataInitializationService.restoreFromBackup(selectedFilePath);
+              const result = await this.dataInitializationService.restoreFromBackup(selectedFilePath);
               await loading.dismiss();
+
+              const message = result.success
+                ? `Restauration terminée.\nSuccès: ${result.successfulStatements}\nErreurs: ${result.failedStatements}`
+                : `Restauration terminée avec des erreurs.\nSuccès: ${result.successfulStatements}\nErreurs: ${result.failedStatements}`;
+
+              const color = result.success ? 'success' : 'warning';
+
               const toast = await this.toastController.create({
-                message: 'Restauration terminée. Vous pouvez maintenant vous connecter.',
-                duration: 3000,
-                color: 'success',
+                message: message,
+                duration: 5000,
+                color: color,
                 position: 'top'
               });
               await toast.present();
@@ -142,6 +174,82 @@ export class LoginPage implements OnInit, OnDestroy {
     });
 
     await selectAlert.present();
+  }
+
+  /**
+   * Restauration manuelle via Storage Access Framework
+   */
+  async onManualRestore() {
+    const loading = await this.loadingController.create({
+      message: 'Ouverture du sélecteur de fichiers...'
+    });
+    await loading.present();
+
+    try {
+      // Utiliser la nouvelle méthode de restauration manuelle
+      const result = await this.dbService.restoreFromManualSelection();
+
+      await loading.dismiss();
+
+      if (result.success) {
+        const message = `Restauration manuelle terminée.\nSuccès: ${result.successfulStatements}\nErreurs: ${result.failedStatements}`;
+        const toast = await this.toastController.create({
+          message: message,
+          duration: 5000,
+          color: 'success',
+          position: 'top'
+        });
+        await toast.present();
+      } else {
+        const errorMsg = result.errors.length > 0
+          ? result.errors.map((e: any) => e.error).join('\n')
+          : 'Erreur inconnue';
+
+        await this.presentAlert('Echec de la restauration', `La restauration a échoué.\n${errorMsg}`);
+      }
+
+    } catch (error: any) {
+      await loading.dismiss();
+
+      if (error.message?.includes('No backup file selected')) {
+        // L'utilisateur a annulé la sélection
+        return;
+      }
+
+      await this.presentAlert('Erreur de restauration manuelle', error.message || 'Une erreur est survenue lors de la restauration manuelle.');
+    }
+  }
+
+  /**
+   * Méthode de test pour diagnostiquer les problèmes d'accès aux fichiers
+   */
+  async onTestFileAccess() {
+    console.log('🧪 Starting file access test from UI...');
+
+    const loading = await this.loadingController.create({
+      message: 'Test d\'accès aux fichiers en cours...'
+    });
+    await loading.present();
+
+    try {
+      // Appeler la méthode de test du service
+      await this.dbService.testCrossInstallationFileAccess();
+
+      await loading.dismiss();
+
+      // Afficher les résultats
+      const files = await this.dbService.findAllBackupFiles();
+      const message = files.length > 0
+        ? `✅ Test réussi ! ${files.length} fichier(s) trouvé(s):\n${files.map(f => `• ${f.path} (${f.size} bytes)`).join('\n')}`
+        : '❌ Aucun fichier de backup trouvé';
+
+      await this.presentAlert('Résultat du test', message);
+
+    } catch (error) {
+      await loading.dismiss();
+      console.error('Test failed:', error);
+      await this.presentAlert('Erreur', `Le test a échoué: ${error}`);
+    }
   }
 
   togglePasswordVisibility() {

@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Distribution } from '../../../../models/distribution.model';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
+import {DistributionView} from "../../../../models/distribution-view.model";
 
 @Component({
   selector: 'app-distribution-item',
@@ -12,7 +13,7 @@ import { IonicModule } from '@ionic/angular';
 })
 export class DistributionItemComponent  implements OnInit {
 
-  @Input() distribution!: Distribution;
+  @Input() distribution!: DistributionView;
 
   constructor() { }
 

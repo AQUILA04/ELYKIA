@@ -10,6 +10,9 @@ import { Distribution } from '../../models/distribution.model';
 import { ApiResponse } from '../../models/api-response.model';
 import { Store } from '@ngrx/store';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
+import { RecoveryRepository } from '../repositories/recovery.repository';
+import { RecoveryRepositoryExtensions, RecoveryRepositoryFilters } from '../repositories/recovery.repository.extensions';
+import { DistributionRepository } from '../repositories/distribution.repository';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +23,10 @@ export class RecoveryService {
   constructor(
     private http: HttpClient,
     private dbService: DatabaseService,
-    private store: Store
+    private store: Store,
+    private recoveryRepository: RecoveryRepository,
+    private recoveryRepositoryExtensions: RecoveryRepositoryExtensions,
+    private distributionRepository: DistributionRepository
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -39,16 +45,30 @@ export class RecoveryService {
         if (status.connected) {
           return this.fetchRecoveriesFromApi().pipe(
             tap(async (recoveries) => {
-              await this.dbService.saveRecoveries(recoveries);
+              // Ensure commercialId is set correctly before saving
+              const enrichedRecoveries = recoveries.map(r => ({
+                ...r,
+                // Use reference as ID if available, otherwise fallback to existing ID
+                id: r.reference || r.id,
+                commercialId: r.commercialId || currentCommercialId // Fallback to current user if missing
+              }));
+              await this.recoveryRepository.saveAll(enrichedRecoveries);
               console.log('Recoveries fetched from API and saved locally.');
             }),
             catchError(async (error) => {
               console.error('Failed to fetch recoveries from API, attempting local:', error);
-              return this.dbService.getRecoveries(currentCommercialId);
+              // This still loads all recoveries. Should be paginated if used in UI.
+              // For initialization, it might be ok if we don't return the data.
+              // The method returns Observable<Recovery[]>, so we need to return something.
+              // Let's return empty and log a warning.
+              console.warn('initializeRecoveries: returning empty array on API error.');
+              return [];
             })
           );
         } else {
-          return from(this.dbService.getRecoveries(currentCommercialId));
+          // Same here, avoid loading all.
+          console.warn('initializeRecoveries: offline, returning empty array.');
+          return of([]);
         }
       })
     );
@@ -59,9 +79,13 @@ export class RecoveryService {
       console.error('Recovery service: Commercial username not available for API fetch.');
       return of([]);
     }
-    const url = `${environment.apiUrl}/api/v1/credits/daily-stakes?commercialId=${this.commercialUsername}`;
+    // Utiliser le nouvel endpoint qui récupère les CreditTimeline des 30 derniers jours
+    const url = `${environment.apiUrl}/api/v1/mobiles/credit-timelines/${this.commercialUsername}`;
     return this.http.get<ApiResponse<Recovery[]>>(url).pipe(
-      map(response => response.data)
+      map(response => {
+        console.log(`[RecoveryService] Récupéré ${response.data.length} recouvrements depuis le serveur`);
+        return response.data;
+      })
     );
   }
 
@@ -69,16 +93,13 @@ export class RecoveryService {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
-    return await this.dbService.getRecoveries(this.commercialUsername);
+    console.warn('getRecoveries is deprecated. Use getRecoveriesPaginated instead.');
+    return [];
   }
 
   getRecoveriesByCommercialUsername(username: string): Observable<Recovery[]> {
-    return from(this.dbService.getRecoveries(username)).pipe(
-      catchError(error => {
-        console.error('Failed to get recoveries by commercial username:', error);
-        return of([]);
-      })
-    );
+    console.warn('getRecoveriesByCommercialUsername is deprecated. Use getRecoveriesPaginated instead.');
+    return of([]);
   }
 
   // Nouvelles méthodes pour l'US008
@@ -90,12 +111,12 @@ export class RecoveryService {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
-    const totalRecoveries = (await this.dbService.getRecoveries(this.commercialUsername)).length;
+    // Génération d'un suffixe aléatoire pour éviter les collisions (sur 6 caractères hexadécimaux)
     const year = new Date().getFullYear();
-    const newCount = (totalRecoveries + 1).toString().padStart(6, '0');
+    const uniqueSuffix = Math.floor(Math.random() * 0x1000000).toString(16).toUpperCase().padStart(6, '0');
     const usernameSuffix = this.commercialUsername.slice(-3); // Récupère les 3 derniers caractères
 
-    const newId = `REC-${year}${usernameSuffix}-${newCount}`;
+    const newId = `REC-${year}${usernameSuffix}-${uniqueSuffix}`;
 
 
     const newRecovery: Recovery = {
@@ -115,7 +136,7 @@ export class RecoveryService {
     };
 
     // Sauvegarder localement
-    await this.dbService.saveRecovery(newRecovery);
+    await this.recoveryRepository.save(newRecovery);
 
     // Mettre à jour le solde de la distribution
     await this.updateDistributionBalance(newRecovery.distributionId, newRecovery.amount);
@@ -128,14 +149,14 @@ export class RecoveryService {
    * Récupérer les crédits actifs d'un client
    */
   async getClientActiveCredits(clientId: string): Promise<Distribution[]> {
-    return await this.dbService.getClientActiveDistributions(clientId);
+    return await this.distributionRepository.getActiveByClientId(clientId);
   }
 
   /**
    * Valider le montant d'un recouvrement
    */
-  validateRecoveryAmount(amount: number, distributionId: string): Observable<{isValid: boolean, message: string}> {
-    return from(this.dbService.getDistributionById(distributionId)).pipe(
+  validateRecoveryAmount(amount: number, distributionId: string): Observable<{ isValid: boolean, message: string }> {
+    return from(this.distributionRepository.findById(distributionId)).pipe(
       map(distribution => {
         if (!distribution) {
           return { isValid: false, message: 'Distribution non trouvée' };
@@ -169,14 +190,14 @@ export class RecoveryService {
    * Mettre à jour le solde d'une distribution après un recouvrement
    */
   private async updateDistributionBalance(distributionId: string, recoveryAmount: number): Promise<void> {
-    const distribution = await this.dbService.getDistributionById(distributionId);
+    const distribution = await this.distributionRepository.findById(distributionId);
     if (distribution) {
       const updatedDistribution = {
         ...distribution,
         remainingAmount: (distribution.remainingAmount || 0) - recoveryAmount,
         paidAmount: (distribution.paidAmount || 0) + recoveryAmount
       };
-      await this.dbService.updateDistribution(updatedDistribution);
+      await this.distributionRepository.updateDistribution(updatedDistribution);
     }
   }
 
@@ -184,12 +205,12 @@ export class RecoveryService {
    * Synchroniser les recouvrements avec le serveur
    */
   async syncRecoveries(): Promise<void> {
-    const localRecoveries = await this.dbService.getUnsyncedRecoveries();
+    const localRecoveries = await this.recoveryRepository.getUnsynced();
 
     for (const recovery of localRecoveries) {
       try {
         // Déterminer le type de mise (normale ou spéciale)
-        const distribution = await this.dbService.getDistributionById(recovery.distributionId);
+        const distribution = await this.distributionRepository.findById(recovery.distributionId);
         const isNormalStake = distribution && recovery.amount === distribution.dailyPayment;
 
         if (isNormalStake) {
@@ -199,7 +220,7 @@ export class RecoveryService {
         }
 
         // Marquer comme synchronisé
-        await this.dbService.markRecoveryAsSynced(recovery.id);
+        await this.recoveryRepository.markAsSynced(recovery.id);
       } catch (error) {
         console.error('Failed to sync recovery:', recovery.id, error);
       }
@@ -235,8 +256,44 @@ export class RecoveryService {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
-    const recoveries = await this.dbService.getRecoveries(this.commercialUsername);
-    const updatedRecoveries = recoveries.filter(r => !distributionIds.includes(r.distributionId));
-    await this.dbService.saveRecoveries(updatedRecoveries);
+    await this.recoveryRepository.deleteByDistributionIds(distributionIds);
+  }
+
+  // ==================== PAGINATION METHODS ====================
+
+  /**
+   * Get paginated recoveries from local database
+   *
+   * **SECURITY**: This method requires commercialId for data isolation
+   *
+   * @param commercialId ID of the commercial (REQUIRED)
+   * @param page Page number (zero-indexed)
+   * @param size Number of items per page
+   * @param filters Optional filters
+   * @returns Page of recoveries
+   */
+  async getRecoveriesPaginated(
+    commercialId: string,
+    page: number,
+    size: number,
+    filters?: RecoveryRepositoryFilters
+  ): Promise<{ content: Recovery[]; totalElements: number; totalPages: number; page: number; size: number }> {
+    if (!commercialId) {
+      throw new Error('commercialId is required for security');
+    }
+
+    return this.recoveryRepositoryExtensions.findByCommercialPaginated(commercialId, page, size, filters);
+  }
+
+  /**
+   * Check if a recovery already exists for a client on a specific date
+   * @param clientId Client ID
+   * @param date Date string (YYYY-MM-DD)
+   * @returns True if a recovery exists, false otherwise
+   */
+  async checkExistingRecoveryForToday(clientId: string): Promise<boolean> {
+    const today = new Date().toISOString().split('T')[0];
+    const count = await this.recoveryRepository.countByClientAndDate(clientId, today);
+    return count > 0;
   }
 }

@@ -1,21 +1,28 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, Input, ViewChild } from '@angular/core';
+import { ModalController, IonInfiniteScroll } from '@ionic/angular';
 import { Observable, Subject, BehaviorSubject, combineLatest } from 'rxjs';
-import { takeUntil, map, startWith, distinctUntilChanged, switchMap, filter } from 'rxjs/operators';
+import { takeUntil, map, startWith, distinctUntilChanged, debounceTime, filter, withLatestFrom } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 
-import { loadClients } from 'src/app/store/client/client.actions';
+import { loadFirstPageClients, loadNextPageClients } from 'src/app/store/client/client.actions';
 import { LoggerService } from '../../../core/services/logger.service';
 import { Client } from '../../../models/client.model';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
-import { selectClientsByCommercialUsername, selectClientsLoading, selectClientsError } from 'src/app/store/client/client.selectors';
+import {
+  selectPaginatedClients,
+  selectClientPaginationLoading,
+  selectClientPaginationError,
+  selectClientPaginationHasMore
+} from 'src/app/store/client/client.selectors';
 import { User } from '../../../models/auth.model';
+import { ClientRepositoryFilters } from '../../../core/repositories/client.repository.extensions';
 
 interface ClientSelectorViewModel {
   clients: Client[];
   loading: boolean;
-  error: string | null;
+  error: any;
   searchTerm: string;
+  hasMore: boolean;
 }
 
 @Component({
@@ -25,6 +32,9 @@ interface ClientSelectorViewModel {
   standalone: false
 })
 export class ClientSelectorModalComponent implements OnInit, OnDestroy {
+  @Input() filterByTontineCollector: string | null = null;
+  @ViewChild(IonInfiniteScroll) infiniteScroll?: IonInfiniteScroll;
+
   private destroy$ = new Subject<void>();
   private searchSubject = new BehaviorSubject<string>('');
 
@@ -33,58 +43,93 @@ export class ClientSelectorModalComponent implements OnInit, OnDestroy {
     clients: [],
     loading: false,
     error: null,
-    searchTerm: ''
+    searchTerm: '',
+    hasMore: false
   };
+
+  private commercialUsername: string | null = null;
 
   constructor(
     private modalController: ModalController,
     private log: LoggerService,
     private store: Store,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit() {
-    this.store.dispatch(loadClients({ commercialUsername: 'unused' }));
+    this.store.select(selectAuthUser).pipe(
+      filter((user): user is User => !!user),
+      takeUntil(this.destroy$)
+    ).subscribe(user => {
+      this.commercialUsername = user.username;
+      this.loadData();
+    });
 
-    const clients$ = this.store.select(selectAuthUser).pipe(
-      filter((user: User | null): user is User => !!user),
-      switchMap(user => this.store.select(selectClientsByCommercialUsername(user.username)))
-    );
+    // Handle search changes
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(searchTerm => {
+      this.vm.searchTerm = searchTerm;
+      if (this.commercialUsername) {
+        this.loadData(searchTerm);
+      }
+    });
 
-    const search$ = this.searchSubject.asObservable().pipe(
-      startWith(''),
-      distinctUntilChanged()
-    );
-
-    const filteredClients$ = combineLatest([clients$, search$]).pipe(
-      map(([clients, searchTerm]) => {
-        if (!searchTerm.trim()) {
-          return clients;
-        }
-        const term = searchTerm.toLowerCase().trim();
-        return clients.filter(client =>
-          client.firstname?.toLowerCase().includes(term) ||
-          client.lastname?.toLowerCase().includes(term) ||
-          client.fullName?.toLowerCase().includes(term) ||
-          client.phone?.includes(term)
-        );
-      })
-    );
-
+    // View Model
     this.vm$ = combineLatest({
-      clients: filteredClients$,
-      loading: this.store.select(selectClientsLoading),
-      error: this.store.select(selectClientsError),
-      searchTerm: search$
+      clients: this.store.select(selectPaginatedClients),
+      loading: this.store.select(selectClientPaginationLoading),
+      error: this.store.select(selectClientPaginationError),
+      hasMore: this.store.select(selectClientPaginationHasMore),
+      searchTerm: this.searchSubject.asObservable() // Use behavior subject value
     }).pipe(
+      map(state => ({
+        ...state,
+        // Error might be null or string or object
+        error: state.error ? (typeof state.error === 'string' ? state.error : 'Erreur inconnue') : null
+      })),
       takeUntil(this.destroy$)
     );
 
-    // Subscribe to update the synchronous property for virtual scrolling
     this.vm$.subscribe(vm => {
       this.vm = vm;
+      if (this.infiniteScroll && !vm.loading) {
+        this.infiniteScroll.complete();
+      }
       this.cdr.detectChanges();
     });
+  }
+
+  loadData(searchTerm: string = '') {
+    if (!this.commercialUsername) return;
+
+    const filters: ClientRepositoryFilters = {
+      searchQuery: searchTerm,
+      tontineCollector: this.filterByTontineCollector || undefined
+    };
+
+    this.store.dispatch(loadFirstPageClients({
+      commercialUsername: this.commercialUsername,
+      pageSize: 50,
+      filters
+    }));
+  }
+
+  loadMore(event: any) {
+    if (this.commercialUsername && this.vm.hasMore && !this.vm.loading) {
+      const filters: ClientRepositoryFilters = {
+        searchQuery: this.vm.searchTerm,
+        tontineCollector: this.filterByTontineCollector || undefined
+      };
+      this.store.dispatch(loadNextPageClients({
+        commercialUsername: this.commercialUsername,
+        filters
+      }));
+    } else {
+      event.target.complete();
+    }
   }
 
   ngOnDestroy() {
@@ -105,7 +150,9 @@ export class ClientSelectorModalComponent implements OnInit, OnDestroy {
   }
 
   retry() {
-    this.store.dispatch(loadClients({ commercialUsername: 'unused' }));
+    if (this.commercialUsername) {
+      this.loadData(this.vm.searchTerm);
+    }
   }
 
   // Helper methods for template

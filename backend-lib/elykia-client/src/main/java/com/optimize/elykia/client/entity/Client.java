@@ -10,6 +10,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.Where;
 import org.hibernate.proxy.HibernateProxy;
 
@@ -21,6 +22,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @Where(clause = "visibility <> 'DELETED'")
+//@SQLRestriction(value = "visibility <> 'DELETED'")
 public class Client extends Auditable<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,10 +58,15 @@ public class Client extends Auditable<String> {
     private String code;
     private String profilPhotoUrl;
     private String cardPhotoUrl;
+    private String profilPhotoThumbUrl;
+    private String cardPhotoThumbUrl;
     private String tontineCollector;
     private String agencyCollector;
+    private String recoveryCollector;
     @Column(columnDefinition = "boolean default false")
     private boolean isTontineMember;
+    @Column(columnDefinition = "boolean default false")
+    private boolean hasOrderInProgress;
 
 
     public Long getAccountId() {
@@ -113,5 +120,18 @@ public class Client extends Auditable<String> {
 
     public void finishTontine() {
         this.isTontineMember = Boolean.FALSE;
+    }
+    
+    public boolean isSameClient(Client client) {
+        if (client == null) {
+            return false;
+        }
+        return Objects.equals(this.firstname, client.getFirstname()) &&
+               Objects.equals(this.lastname, client.getLastname());
+    }
+
+    public void removePhotos() {
+        this.profilPhoto = null;
+        this.IDDoc = null;
     }
 }

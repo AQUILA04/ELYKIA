@@ -37,6 +37,19 @@ import { syncReducer } from './store/sync/sync.reducer';
 import { SyncEffects } from './store/sync/sync.effects';
 import { reducer as tontineReducer } from './store/tontine/tontine.reducer';
 import { TontineEffects } from './store/tontine/tontine.effects';
+import { commercialStockReducer } from './store/commercial-stock/commercial-stock.reducer';
+import { CommercialStockEffects } from './store/commercial-stock/commercial-stock.effects';
+import { kpiReducer } from './store/kpi/kpi.reducer';
+import { KpiEffects } from './store/kpi/kpi.effects';
+import { preferencesReducer } from './store/preferences/preferences.reducer';
+import { PreferencesEffects } from './store/preferences/preferences.effects';
+import { reducer as orderReducer } from './store/order/order.reducer';
+import { OrderEffects } from './store/order/order.effects';
+import { ClientRepositoryExtensions } from './core/repositories/client.repository.extensions';
+import { RecoveryRepositoryExtensions } from './core/repositories/recovery.repository.extensions';
+import { DistributionRepositoryExtensions } from './core/repositories/distribution.repository.extensions';
+import { OrderRepositoryExtensions } from './core/repositories/order.repository.extensions';
+import { TontineMemberRepositoryExtensions } from './core/repositories/tontine-member.repository.extensions';
 import { DataInitializationService } from './core/services/data-initialization.service';
 import { DatabaseService } from './core/services/database.service';
 import { Drivers, Storage } from '@ionic/storage';
@@ -44,6 +57,7 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import localeFrExtra from '@angular/common/locales/extra/fr';
 import { TimeoutInterceptor } from './core/interceptors/timeout.interceptor';
+import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { metaReducers } from './store/meta-reducers';
 
 function initializeDatabase(databaseService: DatabaseService) {
@@ -65,8 +79,8 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
       ]
     }),
     AppRoutingModule,
-    StoreModule.forRoot({ auth: authReducer, client: clientReducer, article: articleReducer, commercial: commercialReducer, stockOutput: stockOutputReducer, distribution: distributionReducer, account: accountReducer, healthCheck: healthCheckReducer, recovery: recoveryReducer, transaction: transactionReducer, sync: syncReducer, tontine: tontineReducer }, { metaReducers }),
-    EffectsModule.forRoot([AuthEffects, ClientEffects, ArticleEffects, CommercialEffects, StockOutputEffects, DistributionEffects, AccountEffects, HealthCheckEffects, RecoveryEffects, TransactionEffects, SyncEffects, TontineEffects]),
+    StoreModule.forRoot({ auth: authReducer, client: clientReducer, article: articleReducer, commercial: commercialReducer, stockOutput: stockOutputReducer, distribution: distributionReducer, account: accountReducer, healthCheck: healthCheckReducer, recovery: recoveryReducer, transaction: transactionReducer, sync: syncReducer, tontine: tontineReducer, commercialStock: commercialStockReducer, kpi: kpiReducer, order: orderReducer, preferences: preferencesReducer }, { metaReducers }),
+    EffectsModule.forRoot([AuthEffects, ClientEffects, ArticleEffects, CommercialEffects, StockOutputEffects, DistributionEffects, AccountEffects, HealthCheckEffects, RecoveryEffects, TransactionEffects, SyncEffects, TontineEffects, CommercialStockEffects, KpiEffects, OrderEffects, PreferencesEffects]),
     StoreDevtoolsModule.instrument({
       maxAge: 25,
       logOnly: !isDevMode(),
@@ -74,9 +88,13 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    Storage,
     DataInitializationService,
     DatabaseService,
+    ClientRepositoryExtensions,
+    RecoveryRepositoryExtensions,
+    DistributionRepositoryExtensions,
+    OrderRepositoryExtensions,
+    TontineMemberRepositoryExtensions,
     {
       provide: APP_INITIALIZER,
       useFactory: initializeDatabase,
@@ -84,8 +102,19 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
       multi: true,
     },
     {
+      provide: APP_INITIALIZER,
+      useFactory: (storage: Storage) => () => storage.create(),
+      deps: [Storage],
+      multi: true,
+    },
+    {
       provide: HTTP_INTERCEPTORS,
       useClass: TimeoutInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
       multi: true,
     },
   ],

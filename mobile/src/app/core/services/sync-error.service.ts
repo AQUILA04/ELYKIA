@@ -45,7 +45,7 @@ export class SyncErrorService {
         errorMessage,
         errorCode,
         JSON.stringify(requestData),
-        JSON.stringify(error.response || {}),
+        JSON.stringify(error.response || error),
         today.toISOString(),
         0,
         entityDisplayName,
@@ -66,6 +66,9 @@ export class SyncErrorService {
         WHERE status = 'ERROR'
         ORDER BY syncDate DESC
       `);
+
+      // LOG AJOUTÉ POUR LE DÉBOGAGE
+      console.log('Raw DB result from getSyncErrors:', result.values);
 
       return result.values?.map((row: any) => this.mapRowToSyncError(row)) || [];
     } catch (error) {
@@ -357,7 +360,7 @@ export class SyncErrorService {
         SET errorMessage = ?, errorCode = ?, responseData = ?,
             retryCount = retryCount + 1, lastRetryDate = datetime('now'), status = 'ERROR'
         WHERE id = ?
-      `, [errorMessage, errorCode, JSON.stringify(error.response || {}), errorId]);
+      `, [errorMessage, errorCode, JSON.stringify(error.response || error), errorId]);
     } catch (dbError) {
       console.error('Erreur lors de la mise à jour de l\'erreur:', dbError);
     }
@@ -366,21 +369,69 @@ export class SyncErrorService {
   /**
    * Mapper une ligne de base de données vers un objet SyncError
    */
-  private mapRowToSyncError(row: any[]): SyncError {
+  private mapRowToSyncError(row: any): SyncError {
+    // Si row est un objet (ce qui est le cas avec CapacitorSQLite quand on utilise query),
+    // on accède aux propriétés par leur nom.
+    // Si c'est un tableau (ce qui peut arriver avec certaines configurations), on utilise les index.
+
+    // Détection du type de row
+    if (row && typeof row === 'object' && !Array.isArray(row)) {
+        // Cas objet (nom des colonnes)
+        return {
+            id: row.id,
+            entityType: row.entityType,
+            entityId: row.entityId,
+            operation: row.operation,
+            errorMessage: row.errorMessage || 'Erreur inconnue',
+            errorCode: row.errorCode,
+            syncDate: new Date(row.syncDate),
+            retryCount: row.retryCount || 0,
+            entityDisplayName: row.entityDisplayName || 'Élément inconnu',
+            entityDetails: row.entityDetails ? JSON.parse(row.entityDetails) : {},
+            canRetry: (row.retryCount || 0) < 3,
+            requestData: row.requestData ? JSON.parse(row.requestData) : null,
+            responseData: row.responseData ? JSON.parse(row.responseData) : null
+        };
+    }
+
+    // Cas tableau (index) - Fallback si jamais le plugin retourne des tableaux
+    // Ordre des colonnes dans CREATE TABLE sync_logs :
+    // 0: id, 1: entityType, 2: entityId, 3: operation, 4: status, 5: errorMessage, 6: errorCode,
+    // 7: requestData, 8: responseData, 9: syncDate, 10: retryCount, 11: entityDisplayName, 12: entityDetails
+    // ATTENTION: L'ordre dépend de la requête SELECT *
+    // Dans CREATE TABLE:
+    // id, entityType, entityId, operation, status, errorCode, requestData, responseData, entityDisplayName, entityDetails, errorMessage, syncDate, retryCount
+
+    // Si on utilise SELECT *, l'ordre est celui de la création.
+    // 0: id
+    // 1: entityType
+    // 2: entityId
+    // 3: operation
+    // 4: status
+    // 5: errorCode
+    // 6: requestData
+    // 7: responseData
+    // 8: entityDisplayName
+    // 9: entityDetails
+    // 10: errorMessage
+    // 11: syncDate
+    // 12: retryCount
+
+    const r = row as any[];
     return {
-      id: row[0],
-      entityType: row[1] as any,
-      entityId: row[2],
-      operation: row[3],
-      errorMessage: row[5] || 'Erreur inconnue',
-      errorCode: row[6],
-      syncDate: new Date(row[9]),
-      retryCount: row[10] || 0,
-      entityDisplayName: row[13] || 'Élément inconnu',
-      entityDetails: JSON.parse(row[14] || '{}'),
-      canRetry: (row[10] || 0) < 3, // Maximum 3 tentatives
-      requestData: row[7] ? JSON.parse(row[7]) : null,
-      responseData: row[8] ? JSON.parse(row[8]) : null
+      id: r[0],
+      entityType: r[1],
+      entityId: r[2],
+      operation: r[3],
+      errorCode: r[5],
+      requestData: r[6] ? JSON.parse(r[6]) : null,
+      responseData: r[7] ? JSON.parse(r[7]) : null,
+      entityDisplayName: r[8] || 'Élément inconnu',
+      entityDetails: r[9] ? JSON.parse(r[9]) : {},
+      errorMessage: r[10] || 'Erreur inconnue',
+      syncDate: new Date(r[11]),
+      retryCount: r[12] || 0,
+      canRetry: (r[12] || 0) < 3
     };
   }
 
@@ -388,9 +439,43 @@ export class SyncErrorService {
    * Extraire le message d'erreur
    */
   private extractErrorMessage(error: any): string {
-    if (error?.error?.message) return error.error.message;
-    if (error?.message) return error.message;
-    if (typeof error === 'string') return error;
+    // Cas où l'erreur est dans error.error (réponse API structurée)
+    if (error?.error) {
+      // Si error.error est un objet avec un message
+      if (typeof error.error === 'object') {
+        if (error.error.message) {
+            return error.error.message;
+        }
+        // Parfois l'erreur est imbriquée dans error.error.error
+        if (error.error.error && typeof error.error.error === 'object' && error.error.error.message) {
+             return error.error.error.message;
+        }
+      }
+
+      // Si error.error est une chaîne (peut-être du JSON stringifié)
+      if (typeof error.error === 'string') {
+        try {
+          const parsed = JSON.parse(error.error);
+          if (parsed && parsed.message) {
+            return parsed.message;
+          }
+        } catch (e) {
+          // Ce n'est pas du JSON, on retourne la chaîne telle quelle
+          return error.error;
+        }
+      }
+    }
+
+    // Cas standard HttpErrorResponse ou Error
+    if (error?.message) {
+      return error.message;
+    }
+
+    // Cas où l'erreur est une simple chaîne
+    if (typeof error === 'string') {
+      return error;
+    }
+
     return 'Erreur inconnue lors de la synchronisation';
   }
 
@@ -399,6 +484,7 @@ export class SyncErrorService {
    */
   private extractErrorCode(error: any): string | undefined {
     if (error?.error?.statusCode) return error.error.statusCode.toString();
+    if (error?.error?.status) return error.error.status.toString();
     if (error?.status) return error.status.toString();
     if (error?.code) return error.code.toString();
     return undefined;

@@ -162,6 +162,29 @@ export class TontineService {
       );
   }
 
+  updateMember(memberId: number, memberData: CreateTontineMemberDto): Observable<ApiResponse<TontineMember>> {
+    this.setLoading(true);
+    const headers = this.getHeaders();
+
+    return this.http.put<ApiResponse<TontineMember>>(`${this.apiUrl}/members/${memberId}`, memberData, { headers })
+      .pipe(
+        tap(response => {
+          if (response.statusCode === 200 && response.data) {
+            const currentState = this.stateSubject.value;
+            const updatedMembers = currentState.members.map(m => m.id === memberId ? response.data! : m);
+            this.updateState({
+              members: updatedMembers,
+              filteredMembers: updatedMembers,
+              loading: false,
+              error: null
+            });
+          }
+        }),
+        catchError(this.handleApiError.bind(this)),
+        finalize(() => this.setLoading(false))
+      );
+  }
+
   addMembersList(dtos: CreateTontineMemberDto[]): Observable<any> {
     const headers = this.getHeaders();
     return this.http.post(`${this.apiUrl}/members/add-list`, dtos, { headers });

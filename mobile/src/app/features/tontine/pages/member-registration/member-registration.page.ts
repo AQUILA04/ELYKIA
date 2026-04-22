@@ -1,11 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { NavController, ModalController, AlertController, LoadingController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { TontineMemberRepository } from 'src/app/core/repositories/tontine-member.repository';
+import { ClientRepository } from 'src/app/core/repositories/client.repository';
 import { ClientSelectorModalComponent } from 'src/app/shared/components/client-selector-modal/client-selector-modal.component';
 import { Client } from 'src/app/models/client.model';
 import { TontineMember } from 'src/app/models/tontine.model';
@@ -22,14 +24,24 @@ import { loadTontineMembers } from 'src/app/store/tontine/tontine.actions';
 export class MemberRegistrationPage implements OnInit, OnDestroy {
     registrationForm!: FormGroup;
     selectedClient: Client | null = null;
+    isEditMode = false;
+    memberId: string | null = null;
     private destroy$ = new Subject<void>();
     private sessionId: string | null = null;
     private commercialUsername: string | null = null;
+    private initialAmount: number | null = null;
+    showUpdateScope = false;
 
     frequencyOptions = [
         { value: 'DAILY', label: 'Quotidien' },
         { value: 'WEEKLY', label: 'Hebdomadaire' },
         { value: 'MONTHLY', label: 'Mensuel' }
+    ];
+
+    updateScopeOptions = [
+        { value: 'CURRENT_AND_FUTURE', label: 'Mois en cours et futurs' },
+        { value: 'FUTURE_ONLY', label: 'Mois futurs uniquement' },
+        { value: 'GLOBAL', label: 'Rétroactif (Tout recalculer)' }
     ];
 
     constructor(
@@ -39,12 +51,14 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
         private alertCtrl: AlertController,
         private loadingCtrl: LoadingController,
         private store: Store,
-        private tontineMemberRepo: TontineMemberRepository
+        private route: ActivatedRoute,
+        private tontineMemberRepo: TontineMemberRepository,
+        private clientRepo: ClientRepository
     ) {
         this.initializeForm();
     }
 
-    ngOnInit() {
+    async ngOnInit() {
         // Get current session
         this.store.select(selectTontineSession)
             .pipe(takeUntil(this.destroy$))
@@ -62,6 +76,70 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
                     this.commercialUsername = user.username;
                 }
             });
+
+        this.route.queryParams.subscribe(async params => {
+            if (params['memberId']) {
+                this.memberId = params['memberId'];
+                this.isEditMode = true;
+                await this.loadMemberData();
+            }
+        });
+
+        // Monitor amount changes to show/hide update scope
+        this.registrationForm.get('amount')?.valueChanges
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(newAmount => {
+                if (this.isEditMode && this.initialAmount !== null && newAmount !== this.initialAmount) {
+                    this.showUpdateScope = true;
+                    this.registrationForm.get('updateScope')?.setValidators(Validators.required);
+                } else {
+                    this.showUpdateScope = false;
+                    this.registrationForm.get('updateScope')?.clearValidators();
+                    this.registrationForm.get('updateScope')?.setValue('CURRENT_AND_FUTURE'); // Default
+                }
+                this.registrationForm.get('updateScope')?.updateValueAndValidity();
+            });
+    }
+
+    private async loadMemberData() {
+        if (!this.memberId) return;
+
+        const loading = await this.loadingCtrl.create({
+            message: 'Chargement...'
+        });
+        await loading.present();
+
+        try {
+            // Using findById from BaseRepository
+            const member = await this.tontineMemberRepo.findById(this.memberId);
+
+            if (member) {
+                this.initialAmount = member.amount || 0;
+                this.registrationForm.patchValue({
+                    frequency: member.frequency,
+                    amount: member.amount,
+                    notes: member.notes
+                });
+
+                // Load client details
+                if (member.clientId) {
+                    const client = await this.clientRepo.findById(member.clientId);
+                    if (client) {
+                        this.selectedClient = client;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading member:', error);
+            this.alertCtrl.create({
+                header: 'Erreur',
+                message: 'Impossible de charger les informations du membre.',
+                buttons: ['OK']
+            }).then(a => a.present());
+            this.navCtrl.back();
+        } finally {
+            loading.dismiss();
+        }
     }
 
     ngOnDestroy() {
@@ -73,13 +151,17 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
         this.registrationForm = this.fb.group({
             frequency: ['DAILY', Validators.required],
             amount: [null, [Validators.required, Validators.min(0)]],
-            notes: ['']
+            notes: [''],
+            updateScope: ['CURRENT_AND_FUTURE']
         });
     }
 
     async selectClient() {
         const modal = await this.modalCtrl.create({
-            component: ClientSelectorModalComponent
+            component: ClientSelectorModalComponent,
+            componentProps: {
+                filterByTontineCollector: this.commercialUsername
+            }
         });
 
         await modal.present();
@@ -140,24 +222,66 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
 
         try {
             // Check if client is already registered in this session
-            const clientExists = await this.tontineMemberRepo.checkClientExists(
-                this.sessionId,
-                this.selectedClient.id
-            );
+            // Skip this check in edit mode since the client is already associated with this member
+            if (!this.isEditMode) {
+                const clientExists = await this.tontineMemberRepo.checkClientExists(
+                    this.sessionId,
+                    this.selectedClient.id
+                );
 
-            if (clientExists) {
+                if (clientExists) {
+                    await loading.dismiss();
+
+                    const alert = await this.alertCtrl.create({
+                        header: 'Client déjà enregistré',
+                        message: `${this.getClientDisplayName()} est déjà membre de cette session de tontine. Un client ne peut être enregistré qu'une seule fois par session.`,
+                        buttons: ['OK']
+                    });
+                    await alert.present();
+                    return;
+                }
+            }
+
+            const formValue = this.registrationForm.value;
+
+            if (this.isEditMode && this.memberId) {
+                // Update existing member
+                const updatedMember: TontineMember = {
+                    ...await this.tontineMemberRepo.findById(this.memberId) as TontineMember, // Fetch current state to be safe or use what we loaded if we stored it
+                    frequency: formValue.frequency,
+                    amount: formValue.amount,
+                    notes: formValue.notes || null,
+                    updateScope: this.showUpdateScope ? formValue.updateScope : null,
+                    // IMPORTANT: isSync is handled by repo.updateMember (sets to 0)
+                    // isLocal remains as is (handled by repo not touching it, or we pass it)
+                    // Actually repo.updateMember only updates specific fields and sync status.
+                    // We just need to pass an object with id and the fields to update.
+                    id: this.memberId
+                };
+
+                // We construct a partial member object just for the update method to use
+                // The repository updateMember method uses: frequency, amount, notes, id.
+                // So this is sufficient.
+                await this.tontineMemberRepo.updateMember(updatedMember);
+
                 await loading.dismiss();
 
+                // Reload members list to reflect the changes
+                this.store.dispatch(loadTontineMembers({ sessionId: this.sessionId }));
+
                 const alert = await this.alertCtrl.create({
-                    header: 'Client déjà enregistré',
-                    message: `${this.getClientDisplayName()} est déjà membre de cette session de tontine. Un client ne peut être enregistré qu'une seule fois par session.`,
-                    buttons: ['OK']
+                    header: 'Succès',
+                    message: 'Le membre a été modifié avec succès.',
+                    buttons: [{
+                        text: 'OK',
+                        handler: () => {
+                            this.navCtrl.back();
+                        }
+                    }]
                 });
                 await alert.present();
                 return;
             }
-
-            const formValue = this.registrationForm.value;
 
             const newMember: TontineMember = {
                 id: this.generateUuid(),

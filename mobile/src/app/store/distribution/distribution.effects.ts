@@ -15,6 +15,10 @@ import { selectAuthUser } from '../auth/auth.selectors';
 import { selectDistributionsByClientId } from './distribution.selectors';
 import { deleteRecoveriesByDistributionIds } from '../recovery/recovery.actions';
 import * as ArticleActions from '../article/article.actions';
+import * as CommercialStockActions from '../commercial-stock/commercial-stock.actions';
+import { selectDistributionState } from './distribution.selectors';
+import { DistributionRepositoryExtensions } from '../../core/repositories/distribution.repository.extensions';
+import * as KpiActions from '../kpi/kpi.actions';
 
 @Injectable()
 export class DistributionEffects {
@@ -24,15 +28,16 @@ export class DistributionEffects {
     private distributionService: DistributionService,
     private printingService: PrintingService,
     private toastController: ToastController,
-    private store: Store
-  ) {}
+    private store: Store,
+    private distributionRepositoryExtensions: DistributionRepositoryExtensions
+  ) { }
 
   // Load Distributions Effect - from local database only
   loadDistributions$ = createEffect(() =>
     this.actions$.pipe(
       ofType(DistributionActions.loadDistributions, DistributionActions.refreshDistributions),
       switchMap((action: { commercialUsername: string }) =>
-        this.distributionService.getDistributionsByCommercialUsername(action.commercialUsername).pipe(
+        this.distributionService. getDistributionsByCommercialUsername(action.commercialUsername).pipe(
           map(distributions => DistributionActions.loadDistributionsSuccess({ distributions })),
           catchError(error => {
             console.error('Load distributions failed:', error);
@@ -42,6 +47,60 @@ export class DistributionEffects {
           })
         )
       )
+    )
+  );
+
+  // Load Distributions By Client Effect - from local database only
+  loadDistributionsByClient$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadDistributionsByClient),
+      switchMap((action) =>
+        this.distributionService.getDistributionsByClient(action.clientId).pipe(
+          map(distributions => DistributionActions.loadDistributionsByClientSuccess({ distributions })),
+          catchError(error => {
+            console.error('Load distributions by client failed:', error);
+            return of(DistributionActions.loadDistributionsByClientFailure({
+              error: error.message || 'Erreur lors du chargement des distributions du client'
+            }));
+          })
+        )
+      )
+    )
+  );
+
+  /**
+   * Pagination Effects (US001/US002)
+   */
+  loadFirstPageDistributions$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadFirstPageDistributions),
+      // Use DEFAULT_PAGE_SIZE = 20 from config, hardcoded for now or use constant
+      switchMap(({ commercialUsername, filters }) =>
+        this.distributionService.getDistributionsPaginated(0, 20, filters).pipe( // Page 0, Size 20
+          map(page => DistributionActions.loadFirstPageDistributionsSuccess({
+            distributions: page.content,
+            totalElements: page.totalElements,
+            totalPages: page.totalPages
+          })),
+          catchError(error => of(DistributionActions.loadFirstPageDistributionsFailure({ error: error.message })))
+        )
+      )
+    )
+  );
+
+  loadNextPageDistributions$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadNextPageDistributions),
+      withLatestFrom(this.store.select(selectDistributionState)), // To get current page
+      switchMap(([{ commercialUsername, filters }, state]) => {
+        const nextPage = state.pagination.currentPage + 1;
+        return this.distributionService.getDistributionsPaginated(nextPage, 20, filters).pipe(
+          map(page => DistributionActions.loadNextPageDistributionsSuccess({
+            distributions: page.content
+          })),
+          catchError(error => of(DistributionActions.loadNextPageDistributionsFailure({ error: error.message })))
+        );
+      })
     )
   );
 
@@ -60,6 +119,38 @@ export class DistributionEffects {
           })
         )
       )
+    )
+  );
+
+  loadFirstPageAvailableArticles$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadFirstPageAvailableArticles),
+      switchMap(({ commercialUsername, pageSize, filters }) =>
+        this.distributionService.getAvailableArticlesPaginated(0, pageSize || 20, filters).pipe(
+          map(page => DistributionActions.loadFirstPageAvailableArticlesSuccess({
+            articles: page.content,
+            totalElements: page.totalElements,
+            totalPages: page.totalPages
+          })),
+          catchError(error => of(DistributionActions.loadFirstPageAvailableArticlesFailure({ error: error.message })))
+        )
+      )
+    )
+  );
+
+  loadNextPageAvailableArticles$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadNextPageAvailableArticles),
+      withLatestFrom(this.store.select(selectDistributionState)),
+      switchMap(([{ commercialUsername, pageSize, filters }, state]) => {
+        const nextPage = state.articlesPagination.currentPage + 1;
+        return this.distributionService.getAvailableArticlesPaginated(nextPage, pageSize || 20, filters).pipe(
+          map(page => DistributionActions.loadNextPageAvailableArticlesSuccess({
+            articles: page.content
+          })),
+          catchError(error => of(DistributionActions.loadNextPageAvailableArticlesFailure({ error: error.message })))
+        );
+      })
     )
   );
 
@@ -165,10 +256,24 @@ export class DistributionEffects {
     this.actions$.pipe(
       ofType(DistributionActions.createDistributionSuccess),
       withLatestFrom(this.store.select(selectAuthUser)),
-      switchMap(([action, user]) => [
-        ClientActions.updateClientCreditStatus({ clientId: action.distribution.clientId, creditInProgress: true }),
-        ClientActions.loadClients({ commercialUsername: user?.username || '' })
-      ])
+      switchMap(([action, user]) => {
+        const actions: Action[] = [
+          ClientActions.updateClientCreditStatus({ clientId: action.distribution.clientId, creditInProgress: true }),
+          ClientActions.loadClients({ commercialUsername: user?.username || '' })
+        ];
+
+        // Update local stock for each item in the distribution
+        if (action.distribution.items) {
+          action.distribution.items.forEach(item => {
+            actions.push(CommercialStockActions.updateStockQuantity({
+              articleId: item.articleId,
+              quantityChange: -item.quantity
+            }));
+          });
+        }
+
+        return actions;
+      })
     )
   );
 
@@ -248,6 +353,22 @@ export class DistributionEffects {
   loadDistributionsError$ = createEffect(() =>
     this.actions$.pipe(
       ofType(DistributionActions.loadDistributionsFailure),
+      tap(async ({ error }) => {
+        const toast = await this.toastController.create({
+          message: error,
+          duration: 5000,
+          color: 'danger',
+          position: 'top'
+        });
+        await toast.present();
+      })
+    ),
+    { dispatch: false }
+  );
+
+  loadDistributionsByClientError$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.loadDistributionsByClientFailure),
       tap(async ({ error }) => {
         const toast = await this.toastController.create({
           message: error,
@@ -418,4 +539,32 @@ export class DistributionEffects {
     ),
     { dispatch: false }
   );
+  // ==================== KPI REFRESH AFTER DISTRIBUTION ====================
+
+  /**
+   * Rafraîchir les KPIs après la création d'une distribution.
+   * Utilise le filtre par défaut du dashboard (mois en cours).
+   */
+  refreshKpiAfterDistribution$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DistributionActions.createDistributionSuccess),
+      withLatestFrom(this.store.select(selectAuthUser)),
+      filter(([_, user]) => !!user),
+      switchMap(([_, user]) => {
+        const username = user!.username;
+        const now = new Date();
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const endDate = now.toISOString().split('T')[0];
+        const dateFilter = { startDate, endDate };
+
+        console.log('[DistributionEffects] Refreshing KPIs after distribution creation');
+
+        return [
+          KpiActions.loadDistributionKpi({ commercialId: username, dateFilter }),
+          KpiActions.loadCommercialStockKpi({ commercialUsername: username })
+        ];
+      })
+    )
+  );
+
 }

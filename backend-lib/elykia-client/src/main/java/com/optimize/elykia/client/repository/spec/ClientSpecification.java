@@ -49,6 +49,13 @@ public class ClientSpecification {
 
             // case-insensitive string filters
             addLikeIgnoreCaseIfPresent(cb, root, predicates, "collector", dto.collector());
+            if (dto.collector() != null && !dto.collector().isBlank()) {
+                Predicate p1 = cb.like(cb.lower(root.get("collector")),
+                        "%" + dto.collector().trim().toLowerCase() + "%");
+                Predicate p2 = cb.like(cb.lower(root.get("recoveryCollector")),
+                        "%" + dto.collector().trim().toLowerCase() + "%");
+                predicates.add(cb.or(p1, p2));
+            }
             addLikeIgnoreCaseIfPresent(cb, root, predicates, "tontineCollector", dto.tontineCollector());
             addLikeIgnoreCaseIfPresent(cb, root, predicates, "agencyCollector", dto.agencyCollector());
 
@@ -64,13 +71,15 @@ public class ClientSpecification {
                         LocalDate start = LocalDate.parse(parts[0], DTF);
                         LocalDate end = LocalDate.parse(parts[1], DTF);
                         if (start.isAfter(end)) {
-                            throw new ResponseStatusException(BAD_REQUEST, "Date de début ne doit pas être supérieure à date de fin");
+                            throw new ResponseStatusException(BAD_REQUEST,
+                                    "Date de début ne doit pas être supérieure à date de fin");
                         }
                         Predicate p1 = cb.between(root.get("dateOfBirth"), start, end);
                         Predicate p2 = cb.between(root.get("syncDate"), start, end);
                         predicates.add(cb.or(p1, p2));
                     } catch (DateTimeParseException ex) {
-                        throw new ResponseStatusException(BAD_REQUEST, "Format de date invalide, attendu dd/MM/yyyy-dd/MM/yyyy");
+                        throw new ResponseStatusException(BAD_REQUEST,
+                                "Format de date invalide, attendu dd/MM/yyyy-dd/MM/yyyy");
                     }
                 }
                 // single date dd/MM/yyyy
@@ -91,33 +100,36 @@ public class ClientSpecification {
                     try {
                         long id = Long.parseLong(keyword.split("\\.")[0]);
                         orPreds.add(cb.equal(root.get("id"), id));
-                    } catch (NumberFormatException ignored) { }
+                    } catch (NumberFormatException ignored) {
+                    }
 
                     try {
                         Double d = Double.valueOf(keyword);
                         orPreds.add(cb.equal(root.get("latitude"), d));
                         orPreds.add(cb.equal(root.get("longitude"), d));
-                    } catch (NumberFormatException ignored) { }
+                    } catch (NumberFormatException ignored) {
+                    }
 
                     // also search textual fields (case-insensitive contains)
                     addOrLikeIgnoreCase(root, cb, orPreds, keyword,
                             "firstname", "lastname", "address", "phone", "cardID", "cardType",
                             "contactPersonName", "contactPersonPhone", "contactPersonAddress",
                             "collector", "quarter", "mll", "occupation", "code",
-                            "profilPhotoUrl", "cardPhotoUrl", "tontineCollector", "agencyCollector"
-                    );
+                            "profilPhotoUrl", "cardPhotoUrl", "tontineCollector", "agencyCollector",
+                            "recoveryCollector");
 
                     predicates.add(cb.or(orPreds.toArray(new Predicate[0])));
                 }
-                // default: full-text-like search across string fields (case-insensitive contains)
+                // default: full-text-like search across string fields (case-insensitive
+                // contains)
                 else {
                     List<Predicate> orPreds = new ArrayList<>();
                     addOrLikeIgnoreCase(root, cb, orPreds, keyword,
                             "firstname", "lastname", "address", "phone", "cardID", "cardType",
                             "contactPersonName", "contactPersonPhone", "contactPersonAddress",
                             "collector", "quarter", "mll", "occupation", "code",
-                            "profilPhotoUrl", "cardPhotoUrl", "tontineCollector", "agencyCollector"
-                    );
+                            "profilPhotoUrl", "cardPhotoUrl", "tontineCollector", "agencyCollector",
+                            "recoveryCollector");
                     predicates.add(cb.or(orPreds.toArray(new Predicate[0])));
                 }
             }
@@ -126,13 +138,15 @@ public class ClientSpecification {
         };
     }
 
-    private static void addLikeIgnoreCaseIfPresent(CriteriaBuilder cb, Root<Client> root, List<Predicate> predicates, String field, String value) {
+    private static void addLikeIgnoreCaseIfPresent(CriteriaBuilder cb, Root<Client> root, List<Predicate> predicates,
+            String field, String value) {
         if (value != null && !value.isBlank()) {
             predicates.add(cb.like(cb.lower(root.get(field)), "%" + value.trim().toLowerCase() + "%"));
         }
     }
 
-    private static void addOrLikeIgnoreCase(Root<Client> root, CriteriaBuilder cb, List<Predicate> orPreds, String keyword, String... fields) {
+    private static void addOrLikeIgnoreCase(Root<Client> root, CriteriaBuilder cb, List<Predicate> orPreds,
+            String keyword, String... fields) {
         String kw = "%" + keyword.toLowerCase() + "%";
         for (String f : fields) {
             orPreds.add(cb.like(cb.lower(root.get(f)), kw));

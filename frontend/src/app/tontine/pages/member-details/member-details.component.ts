@@ -14,13 +14,14 @@ import {
   formatDateTime,
   TontineMemberDeliveryStatus,
   TontineSessionStatus,
-  TONTINE_DELIVERY_STATUS_LABELS, // Added import
-  TONTINE_DELIVERY_STATUS_COLORS // Added import
+  TONTINE_DELIVERY_STATUS_LABELS,
+  TONTINE_DELIVERY_STATUS_COLORS
 } from '../../types/tontine.types';
-import { AuthService } from 'src/app/auth/service/auth.service'; // Assuming this path for Auth service
+import { AuthService } from 'src/app/auth/service/auth.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { RecordCollectionModalComponent } from '../../components/modals/record-collection-modal/record-collection-modal.component';
 import { DeliveryArticleSelectionModalComponent } from '../../components/modals/delivery-article-selection-modal/delivery-article-selection-modal.component';
+import { AddMemberModalComponent } from '../../components/modals/add-member-modal/add-member-modal.component';
 
 @Component({
   selector: 'app-member-details',
@@ -33,8 +34,8 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   member: TontineMember | null = null;
   collections: readonly TontineCollection[] = [];
   loading: boolean = false;
-  currentSessionStatus: TontineSessionStatus | null = null; // New property
-  isSessionActive: boolean = false; // New property
+  currentSessionStatus: TontineSessionStatus | null = null;
+  isSessionActive: boolean = false;
 
   monthsList = [
     'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -48,7 +49,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     private deliveryService: TontineDeliveryService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private authService: AuthService, // Injected AuthService
+    private authService: AuthService,
     private alertService: AlertService
   ) {}
 
@@ -154,11 +155,44 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     return TONTINE_DELIVERY_STATUS_COLORS[status] || 'secondary';
   }
 
+  // Calculate theoretical society share due
+  getTheoreticalSocietyShare(): number {
+    if (!this.member || !this.member.tontineSession) return 0;
 
+    const dailyAmount = this.member.amount ?? 0;
+    const startDateStr = this.member.tontineSession.startDate;
+    const registrationDateStr = this.member.registrationDate;
 
+    if (!startDateStr) return 0;
 
+    let startDate = new Date(startDateStr);
+    const now = new Date();
 
+    // Logic to use registration date if it's later than session start
+    if (registrationDateStr) {
+      const regDate = new Date(registrationDateStr);
+      if (regDate > startDate) {
+        startDate = regDate;
+      }
+    }
 
+    let monthsStarted = 0;
+    if (now >= startDate) {
+      monthsStarted = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth()) + 1;
+    }
+
+    const MAX_MONTHS = 10;
+    if (monthsStarted > MAX_MONTHS) monthsStarted = MAX_MONTHS;
+    if (monthsStarted < 0) monthsStarted = 0;
+
+    return monthsStarted * dailyAmount;
+  }
+
+  getSocietyShareStatusColor(): string {
+    const paid = this.member?.societyShare || 0;
+    const due = this.getTheoreticalSocietyShare();
+    return paid < due ? 'warn' : 'primary';
+  }
 
   async onValidateDelivery(): Promise<void> {
     if (!this.member?.delivery?.id) return;
@@ -202,6 +236,22 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
+  onEditMember(): void {
+    if (!this.member) return;
+
+    const dialogRef = this.dialog.open(AddMemberModalComponent, {
+      width: '500px',
+      data: { member: this.member }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && this.member) {
+        this.loadMemberDetails(this.member.id);
+        this.showSuccess('Membre modifié avec succès');
+      }
+    });
+  }
+
   async onMarkAsDelivered(): Promise<void> {
     if (!this.member?.delivery?.id) return;
 
@@ -237,16 +287,12 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result === true && this.member) { // Check for true to indicate successful creation
+      if (result === true && this.member) {
         this.showSuccess('Livraison créée avec succès');
         this.loadMemberDetails(this.member!.id);
       }
     });
   }
-
-
-
-
 
   goBack(): void {
     this.router.navigate(['/tontine']);

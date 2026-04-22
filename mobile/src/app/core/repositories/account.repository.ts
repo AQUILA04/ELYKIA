@@ -14,6 +14,52 @@ export class AccountRepository extends BaseRepository<Account, string> {
         super(databaseService);
     }
 
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<Account[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `
+            SELECT a.* FROM accounts a
+            JOIN clients c ON a.clientId = c.id
+            WHERE a.isSync = 0 AND c.commercial = ?
+            LIMIT ? OFFSET ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => this.mapRowToAccount(row));
+    }
+
+    async findByClientId(clientId: string): Promise<Account | null> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `SELECT * FROM accounts WHERE clientId = ? LIMIT 1`;
+        const result = await this.databaseService.query(sql, [clientId]);
+        if (result.values && result.values.length > 0) {
+            return this.mapRowToAccount(result.values[0]);
+        }
+        return null;
+    }
+
+    async findByClientIds(clientIds: string[]): Promise<Account[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        if (!clientIds || clientIds.length === 0) return [];
+
+        const placeholders = clientIds.map(() => '?').join(',');
+        const sql = `SELECT * FROM accounts WHERE clientId IN (${placeholders})`;
+        const result = await this.databaseService.query(sql, clientIds);
+        return (result.values || []).map((row: any) => this.mapRowToAccount(row));
+    }
+
+    async markAsSynced(localId: string, serverId: string): Promise<void> {
+        if (!this.databaseService['db'] || localId === serverId) return;
+        await this.databaseService.execute(
+            `UPDATE accounts SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now') WHERE id = ?`,
+            [serverId, localId]
+        );
+    }
+
     async saveAll(entities: Account[]): Promise<void> {
         if (!this.databaseService['db']) {
             throw new Error('Database not initialized.');
@@ -103,5 +149,20 @@ export class AccountRepository extends BaseRepository<Account, string> {
         }
     }
 
-
+    private mapRowToAccount(row: any): Account {
+        return {
+            id: row.id,
+            accountNumber: row.accountNumber,
+            accountBalance: row.accountBalance,
+            status: row.status,
+            clientId: row.clientId,
+            isLocal: row.isLocal === 1,
+            isSync: row.isSync === 1,
+            syncDate: row.syncDate,
+            createdAt: row.createdAt,
+            updated: row.updated === 1,
+            syncHash: row.syncHash,
+            old_balance: row.old_balance
+        };
+    }
 }

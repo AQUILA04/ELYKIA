@@ -16,6 +16,10 @@ export class CashDepositService {
         return this.http.post(this.apiUrl, deposit);
     }
 
+    cancelDeposit(id: number): Observable<any> {
+        return this.http.post(`${this.apiUrl}/${id}/cancel`, {});
+    }
+
     getDeposits(startDate: string, endDate: string, commercialUsername?: string, page: number = 0, size: number = 20): Observable<any> {
         let params = new HttpParams()
             .set('startDate', startDate)

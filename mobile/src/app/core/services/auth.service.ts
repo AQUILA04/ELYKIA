@@ -12,6 +12,9 @@ import { HealthCheckService } from './health-check.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '../../store/app.state';
 import * as AuthActions from '../../store/auth/auth.actions';
+import { Storage } from '@ionic/storage-angular';
+import { MemoryManagementService } from './memory-management.service';
+import { InitializationValidationService } from './initialization-validation.service';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +28,10 @@ export class AuthService {
     private dbService: DatabaseService,
     private log: LoggerService,
     private healthCheckService: HealthCheckService,
-    private store: Store<AppState>
+    private store: Store<AppState>,
+    private storage: Storage,
+    private memoryManagementService: MemoryManagementService,
+    private initValidationService: InitializationValidationService
   ) {
     this.loadUserFromPreferences();
   }
@@ -36,6 +42,8 @@ export class AuthService {
       const user = JSON.parse(value);
       this._user = user;
       this._isAuthenticated = true;
+      // Dispatch login success to update the store
+      this.store.dispatch(AuthActions.loginSuccess({ user }));
     }
   }
 
@@ -91,6 +99,8 @@ export class AuthService {
     this._user = null;
     this._isAuthenticated = false;
     await Preferences.remove({ key: 'currentUser' });
+    await this.storage.remove('initialization_complete');
+    await this.memoryManagementService.clearMemoryCache();
     this.log.log('User logged out and local state reset.');
   }
 
@@ -106,10 +116,25 @@ export class AuthService {
     };
     this._user = user;
     await this.saveUserLocally(user);
+    // Dispatch login success to update the store
+    this.store.dispatch(AuthActions.loginSuccess({ user }));
     return true;
   }
 
   private async authenticateOffline(username: string, passwordPlain: string): Promise<boolean> {
+    // Vérifier si l'initialisation est complète pour aujourd'hui
+    const isInitComplete = await this.initValidationService.isInitializationCompleteForToday();
+
+    if (!isInitComplete) {
+      console.warn('Offline login blocked: Initialization not complete for today');
+      await this.log.log('Offline login blocked: Initialization not complete for today');
+      throw new Error(
+        'Initialisation incomplète pour aujourd\'hui.\n\n' +
+        'Veuillez vous connecter au réseau de l\'entreprise pour initialiser vos données avant de travailler en mode hors ligne.\n\n' +
+        'Cela garantit que vous disposez de toutes les informations nécessaires pour votre journée de travail.'
+      );
+    }
+
     try {
       // Vérifier si les tables critiques sont vides
       const tablesEmpty = await this.dbService.areTablesEmpty();
@@ -159,6 +184,8 @@ export class AuthService {
       this._isAuthenticated = true;
       console.log('Offline login successful');
       await this.log.log('Offline login successful');
+      // Dispatch login success to update the store
+      this.store.dispatch(AuthActions.loginSuccess({ user: storedUser }));
       return true;
     } else if (storedUser && storedUser.username === username && storedUser.passwordHash !== this.hashPassword(passwordPlain)) {
       console.warn('Offline login failed: Incorrect password');

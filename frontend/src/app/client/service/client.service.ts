@@ -19,9 +19,12 @@ export interface Client {
   contactPersonPhone: string;
   contactPersonAddress: string;
   collector: string;
+  tontineCollector?: string;
   occupation: string;
   quarter: string;
   creditInProgress?: boolean;
+  isTontineMember?: boolean;
+  hasOrderInProgress?: boolean;
   iddoc?: string;
   clientType: string;
   profilPhotoUrl?: string;
@@ -46,7 +49,8 @@ export interface NewClientData {
   contactPersonPhone: string;
   contactPersonAddress: string;
   collector: string;
-  occupation:string;
+  tontineCollector?: string; // Ajout du champ tontineCollector
+  occupation: string;
   quarter: string;
   creditInProgress?: boolean;
 
@@ -75,7 +79,7 @@ export class ClientService {
 
   constructor(private http: HttpClient,
     private tokenStorage: TokenStorageService
-  ) {}
+  ) { }
 
   getHeader() {
     const token = this.tokenStorage.getToken();
@@ -91,7 +95,9 @@ export class ClientService {
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
-      .set('sort', sort);
+      .set('sort', sort)
+      .set('username', username)
+      .set('tontine', false);
 
     // Si une recherche est en cours, on utilise l'endpoint POST /elasticsearch
     if (search && search.trim() !== '') {
@@ -101,7 +107,7 @@ export class ClientService {
     } else {
       // Comportement normal si pas de recherche
       // On ajoute le paramètre 'username' seulement pour la requête GET standard
-      const getParams = params.set('username', username.username);
+      const getParams = params.set('username', username);
       return this.http.get<any>(this.apiUrl, { params: getParams, headers });
     }
   }
@@ -129,6 +135,11 @@ export class ClientService {
     return this.http.get<any>(`${this.apiUrl}/${id}`, { headers });
   }
 
+  getProfilPhotoStream(id: number): Observable<Blob> {
+    const headers = this.getHeader();
+    return this.http.get(`${this.apiUrl}/profil-photo-stream/${id}`, { headers, responseType: 'blob' });
+  }
+
   getClientByCommercial(username: string, page: number, size: number, sort: string, searchTerm: string = ''): Observable<any> {
     const headers = this.getHeader();
     let params = new HttpParams()
@@ -139,7 +150,7 @@ export class ClientService {
     if (searchTerm) {
       params = params.set('search', searchTerm);
     }
-    
+
     return this.http.get<any>(`${this.apiUrl}/by-commercial/${username}`, { params, headers });
   }
 
@@ -165,4 +176,3 @@ export class ClientService {
     );
   }
 }
-

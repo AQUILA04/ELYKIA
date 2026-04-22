@@ -1,0 +1,628 @@
+// ─── Variables design system (cohérent avec les autres composants) ──────────
+$navy:        #003366;
+$navy-light:  #1a4a80;
+$teal:        #0d7a6e;
+$teal-light:  #e6f4f2;
+$orange:      #E8853C;
+$orange-light:#fff3eb;
+$green:       #1D9E75;
+$green-light: #e6f7f2;
+$red:         #E24B4A;
+$red-light:   #fef2f2;
+$border:      #e2e8f0;
+$bg:          #f8fafc;
+$text:        #1a202c;
+$muted:       #718096;
+$white:       #ffffff;
+
+// ─── Container ───────────────────────────────────────────────────────────────
+.container {
+  margin: 80px auto 40px;
+  padding: 24px 32px;
+  background: $white;
+  border-radius: 14px;
+  max-width: 960px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+}
+
+// ─── En-tête ─────────────────────────────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 13px;
+  color: $muted;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+  margin-top: 2px;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  &:hover { color: $navy; border-color: $navy; background: $bg; }
+}
+
+.header-title-block { flex: 1; }
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  color: $navy;
+  margin: 0 0 4px;
+
+  .title-icon {
+    color: $orange;
+    font-size: 24px;
+  }
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: $muted;
+  margin: 0;
+}
+
+// ─── Stepper ─────────────────────────────────────────────────────────────────
+.stepper-bar {
+  display: flex;
+  align-items: center;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+
+  .step-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    background: $white;
+    border: 2px solid $border;
+    color: $muted;
+    transition: all .2s;
+
+    mat-icon { font-size: 14px; width: 14px; height: 14px; }
+  }
+
+  .step-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: $muted;
+    white-space: nowrap;
+  }
+
+  &.active {
+    .step-circle {
+      background: $navy;
+      border-color: $navy;
+      color: $white;
+    }
+    .step-label { color: $navy; font-weight: 600; }
+  }
+
+  &.done {
+    .step-circle {
+      background: $green;
+      border-color: $green;
+      color: $white;
+    }
+    .step-label { color: $green; }
+  }
+}
+
+.step-connector {
+  flex: 1;
+  height: 2px;
+  min-width: 20px;
+  background: $border;
+  margin: 0 8px;
+  border-radius: 2px;
+  transition: background .2s;
+
+  &.done { background: $green; }
+}
+
+// ─── Sections formulaire ─────────────────────────────────────────────────────
+.form-section {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: box-shadow .2s;
+
+  &:hover { box-shadow: 0 2px 12px rgba(0,51,102,.06); }
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid $border;
+  background: $bg;
+}
+
+.section-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: $navy;
+  color: $white;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: $navy;
+  margin: 0;
+  flex: 1;
+}
+
+.section-body {
+  padding: 20px;
+}
+
+.section-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: $muted;
+  background: #f0f7ff;
+  border: 1px solid #bee3f8;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+
+// ─── Badges ──────────────────────────────────────────────────────────────────
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+
+.badge-required  { background: #fff5f5; color: $red;   border: 1px solid #fed7d7; }
+.badge-info      { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+.badge-auto      { background: $teal-light; color: $teal; border: 1px solid #b2dfdb; font-size: 10px; }
+
+// ─── Form elements ───────────────────────────────────────────────────────────
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+
+  &.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: $muted;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+
+  .req { color: $red; margin-left: 2px; }
+}
+
+.form-control {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: $text;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  width: 100%;
+
+  &:focus {
+    border-color: $navy;
+    box-shadow: 0 0 0 3px rgba(0, 51, 102, .08);
+  }
+
+  &:disabled { background: $bg; color: $muted; cursor: not-allowed; }
+}
+
+.form-hint {
+  font-size: 11px;
+  color: $muted;
+}
+
+.input-suffix-wrap {
+  position: relative;
+
+  .form-control { padding-right: 90px; }
+
+  .input-suffix {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: $muted;
+    pointer-events: none;
+  }
+}
+
+// ─── Champ calculé ───────────────────────────────────────────────────────────
+.computed-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-height: 44px;
+  transition: all .2s;
+
+  &.ready {
+    background: $teal-light;
+    border-color: #b2dfdb;
+  }
+
+  .computed-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: $teal;
+    flex-shrink: 0;
+  }
+
+  .computed-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .computed-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: $teal;
+
+    &.green  { color: $green; }
+    &.orange { color: $orange; }
+  }
+
+  .computed-placeholder { font-size: 13px; color: $muted; font-style: italic; }
+  .computed-sub { font-size: 11px; color: $muted; margin-top: 1px; }
+}
+
+// ─── Month cards ─────────────────────────────────────────────────────────────
+.month-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.month-card {
+  background: $white;
+  border: 1.5px solid $border;
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  min-width: 150px;
+  flex: 1;
+  max-width: 200px;
+  transition: all .2s;
+
+  &:hover { border-color: $navy; box-shadow: 0 2px 8px rgba(0,51,102,.1); }
+
+  &.selected {
+    border-color: $navy;
+    background: #edf2f8;
+
+    .month-name { color: $navy; }
+  }
+
+  .month-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+
+    .month-check { color: $green; font-size: 18px; }
+  }
+
+  .month-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: $text;
+  }
+
+  .month-card-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .month-stat {
+    display: flex;
+    flex-direction: column;
+
+    .month-stat-val {
+      font-size: 18px;
+      font-weight: 700;
+      color: $navy;
+      line-height: 1;
+
+      &.orange { color: $orange; }
+    }
+
+    .month-stat-label {
+      font-size: 10px;
+      color: $muted;
+      text-transform: uppercase;
+    }
+  }
+
+  .month-card-value {
+    font-size: 11px;
+    color: $muted;
+    border-top: 1px solid $border;
+    padding-top: 8px;
+  }
+}
+
+.loading-months {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  color: $muted;
+  font-size: 14px;
+}
+
+.empty-months {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: $muted;
+  text-align: center;
+
+  mat-icon { font-size: 40px; width: 40px; height: 40px; opacity: .3; margin-bottom: 8px; }
+  p { font-size: 14px; margin: 0; }
+}
+
+// ─── Article table ───────────────────────────────────────────────────────────
+.article-table-wrap { overflow-x: auto; }
+
+.article-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: $muted;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    padding: 10px 14px;
+    border-bottom: 2px solid $border;
+    background: $bg;
+  }
+
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid $border;
+    vertical-align: middle;
+    color: $text;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: $bg; }
+
+  tr.row-selected td {
+    background: $teal-light;
+
+    &:first-child { border-left: 3px solid $teal; }
+  }
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: $navy;
+    cursor: pointer;
+  }
+}
+
+.article-name {
+  font-weight: 500;
+  color: $text;
+}
+
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+.fw-600      { font-weight: 600; }
+
+.stock-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: $green-light;
+  color: $green;
+
+  &.low { background: $orange-light; color: $orange; }
+}
+
+.qty-input {
+  width: 80px;
+  text-align: center;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+  color: $text;
+  outline: none;
+
+  &:focus { border-color: $navy; }
+  &:disabled { background: $bg; color: $muted; }
+}
+
+// ─── Résumé ──────────────────────────────────────────────────────────────────
+.summary-panel {
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+
+  .summary-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: $navy;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 16px;
+
+    mat-icon { font-size: 18px; color: $orange; }
+  }
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: $white;
+  border-radius: 8px;
+  border: 1px solid $border;
+
+  &.total {
+    grid-column: 1 / -1;
+    background: $teal-light;
+    border-color: #b2dfdb;
+  }
+
+  .summary-key  { font-size: 12px; color: $muted; }
+  .summary-val  { font-size: 13px; font-weight: 600; color: $text; }
+  .summary-val.orange { color: $orange; }
+  .summary-val.green  { color: $green; }
+  .summary-val.large  { font-size: 16px; }
+}
+
+// ─── Boutons d'action ────────────────────────────────────────────────────────
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all .15s;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+.btn-cancel {
+  background: $white;
+  border: 1px solid $border;
+  color: $muted;
+
+  &:hover:not(:disabled) { color: $text; border-color: $text; }
+  &:disabled { opacity: .5; cursor: not-allowed; }
+}
+
+.btn-submit {
+  background: $navy;
+  color: $white;
+
+  &:hover:not(:disabled) { background: $navy-light; }
+  &:disabled { opacity: .5; cursor: not-allowed; }
+}
+
+// ─── ng-select customisation ─────────────────────────────────────────────────
+.ng-option-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong { color: $navy; font-size: 13px; }
+  .ng-option-sub { color: $muted; font-size: 11px; }
+}
+
+// ─── Responsive ──────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .container { padding: 16px; margin-top: 60px; }
+  .form-row,
+  .form-row.triple { grid-template-columns: 1fr; }
+  .summary-grid { grid-template-columns: 1fr; }
+  .stepper-bar { padding: 12px 16px; }
+  .step-label { display: none; }
+}

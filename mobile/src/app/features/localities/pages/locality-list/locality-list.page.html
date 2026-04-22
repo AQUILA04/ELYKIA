@@ -12,22 +12,29 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <div *ngIf="loading$ | async" class="ion-text-center ion-padding-top">
-    <ion-spinner></ion-spinner>
-  </div>
+  <ion-list *ngIf="(localities$ | async) as localities">
+    <ng-container *ngIf="localities.length > 0; else emptyState">
+      <ion-item *ngFor="let locality of localities">
+        <ion-label>
+          <h2>{{ locality.name }}</h2>
+          <p>{{ locality?.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+        </ion-label>
+      </ion-item>
+    </ng-container>
 
-  <ion-list *ngIf="((localities$ | async) ?? []).length > 0">
-    <ion-item *ngFor="let locality of localities$ | async">
-      <ion-label>
-        <h2>{{ locality.name }}</h2>
-        <p>{{ locality?.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
-      </ion-label>
-    </ion-item>
+    <ng-template #emptyState>
+      <div *ngIf="loading$ | async" class="ion-text-center ion-padding-top">
+        <ion-spinner></ion-spinner>
+      </div>
+      <div *ngIf="!(loading$ | async)" class="ion-text-center ion-padding-top">
+        <p>Aucune localité trouvée.</p>
+      </div>
+    </ng-template>
   </ion-list>
 
-  <div *ngIf="!(loading$ | async) && (localities$ | async)?.length === 0" class="ion-text-center ion-padding-top">
-    <p>Aucune localité trouvée.</p>
-  </div>
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" [disabled]="!(hasMore$ | async)">
+    <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement..."></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button (click)="navigateToAddLocality()">

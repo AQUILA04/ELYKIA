@@ -1,5 +1,6 @@
 import { createAction, props } from '@ngrx/store';
 import { Recovery } from '../../models/recovery.model';
+import { DateFilter } from '../../core/models/date-filter.model';
 import { Distribution } from '../../models/distribution.model';
 import { Client } from '../../models/client.model';
 import { PrintableRecovery } from '../../core/services/printing.service';
@@ -118,3 +119,56 @@ export const deleteRecoveriesByDistributionIds = createAction(
   '[Recovery] Delete Recoveries By Distribution Ids',
   props<{ distributionIds: string[] }>()
 );
+
+// ==================== PAGINATION ACTIONS ====================
+
+export const loadFirstPageRecoveries = createAction(
+  '[Recovery] Load First Page Recoveries',
+  props<{
+    commercialId: string;
+    pageSize?: number;
+    filters?: {
+      dateFilter?: DateFilter;
+      paymentMethod?: string;
+      clientId?: string;
+    }
+  }>()
+);
+
+export const loadFirstPageRecoveriesSuccess = createAction(
+  '[Recovery] Load First Page Recoveries Success',
+  props<{ page: { content: import('../../models/recovery-view.model').RecoveryView[]; totalElements: number; totalPages: number; page: number; size: number } }>()
+);
+
+export const loadFirstPageRecoveriesFailure = createAction(
+  '[Recovery] Load First Page Recoveries Failure',
+  props<{ error: any }>()
+);
+
+export const loadNextPageRecoveries = createAction(
+  '[Recovery] Load Next Page Recoveries',
+  props<{
+    commercialId: string;
+    filters?: {
+      dateFilter?: DateFilter;
+      paymentMethod?: string;
+      clientId?: string;
+    }
+  }>()
+);
+
+export const loadNextPageRecoveriesSuccess = createAction(
+  '[Recovery] Load Next Page Recoveries Success',
+  props<{ page: { content: import('../../models/recovery-view.model').RecoveryView[]; totalElements: number; totalPages: number; page: number; size: number } }>()
+);
+
+export const loadNextPageRecoveriesFailure = createAction(
+  '[Recovery] Load Next Page Recoveries Failure',
+  props<{ error: any }>()
+);
+
+export const resetRecoveryPagination = createAction(
+  '[Recovery] Reset Recovery Pagination'
+);
+
+

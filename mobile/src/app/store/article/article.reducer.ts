@@ -23,7 +23,6 @@ export const articleReducer = createReducer(
   })),
   on(ArticleActions.loadArticlesSuccess, (state, { articles }) => ({
     ...state,
-    articles,
     loading: false,
     error: null,
   })),

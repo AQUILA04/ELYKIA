@@ -65,6 +65,29 @@
           </ion-label>
           <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
         </ion-item>
+        <ion-item>
+          <ion-icon name="calendar-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Filtre de date de synchronisation</h3>
+            <p>Données à synchroniser</p>
+          </ion-label>
+          <ion-select [(ngModel)]="syncDateFilter" (ionChange)="onSyncDateFilterChange()" slot="end">
+            <ion-select-option value="today">Aujourd'hui</ion-select-option>
+            <ion-select-option value="2days">2 derniers jours</ion-select-option>
+            <ion-select-option value="3days">3 derniers jours</ion-select-option>
+            <ion-select-option value="week">1 semaine</ion-select-option>
+            <ion-select-option value="2weeks">2 semaines</ion-select-option>
+            <ion-select-option value="month">1 mois</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item button [routerLink]="['/sync/manual']" detail="true">
+          <ion-icon name="cloud-upload-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <h3>Synchronisation manuelle</h3>
+            <p>Synchroniser manuellement vos données</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
         <ion-item button [routerLink]="['/sync-errors']" detail="true">
           <ion-icon name="warning-outline" slot="start" color="danger"></ion-icon>
           <ion-label>
@@ -73,38 +96,17 @@
           </ion-label>
           <ion-badge color="danger" slot="end">{{ pendingErrorsCount$ | async }}</ion-badge>
         </ion-item>
+        <ion-item button (click)="repairServerPhotos()">
+          <ion-icon name="construct-outline" slot="start" color="warning"></ion-icon>
+          <ion-label>
+            <h3>Réparer les photos serveur</h3>
+            <p>Renvoyer les photos manquantes sur le serveur</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
       </ion-list>
     </ion-card>
 
-    <!--  <ion-card>-->
-    <!--    <ion-list-header>Notifications</ion-list-header>-->
-    <!--    <ion-list>-->
-    <!--      <ion-item>-->
-    <!--        <ion-icon name="notifications-outline" slot="start"></ion-icon>-->
-    <!--        <ion-label>-->
-    <!--          <h3>Notifications push</h3>-->
-    <!--          <p>Recevoir les notifications importantes</p>-->
-    <!--        </ion-label>-->
-    <!--        <ion-toggle slot="end"></ion-toggle>-->
-    <!--      </ion-item>-->
-    <!--      <ion-item>-->
-    <!--        <ion-icon name="volume-medium-outline" slot="start"></ion-icon>-->
-    <!--        <ion-label>-->
-    <!--          <h3>Sons de notification</h3>-->
-    <!--          <p>Jouer un son pour les notifications</p>-->
-    <!--        </ion-label>-->
-    <!--        <ion-toggle slot="end"></ion-toggle>-->
-    <!--      </ion-item>-->
-    <!--      <ion-item>-->
-    <!--        <ion-icon name="pulse-outline" slot="start"></ion-icon>-->
-    <!--        <ion-label>-->
-    <!--          <h3>Vibration</h3>-->
-    <!--          <p>Vibrer lors des notifications</p>-->
-    <!--        </ion-label>-->
-    <!--        <ion-toggle slot="end"></ion-toggle>-->
-    <!--      </ion-item>-->
-    <!--    </ion-list>-->
-    <!--  </ion-card>-->
 
     <ion-card>
       <ion-list-header>Tontine</ion-list-header>

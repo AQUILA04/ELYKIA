@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
-import com.optimize.elykia.core.entity.CreditReturnHistory;
+import com.optimize.elykia.core.entity.sale.CreditReturnHistory;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

@@ -1,18 +1,23 @@
 import { createAction, props } from '@ngrx/store';
 import { Transaction } from '../../models/transaction.model';
 
-export const loadTransactions = createAction(
-  '[Transaction] Load Transactions'
+export const loadTransactionsByClient = createAction(
+  '[Transaction] Load Transactions By Client',
+  props<{ clientId: string; page: number; size: number }>()
 );
 
-export const loadTransactionsSuccess = createAction(
-  '[Transaction] Load Transactions Success',
-  props<{ transactions: Transaction[] }>()
+export const loadTransactionsByClientSuccess = createAction(
+  '[Transaction] Load Transactions By Client Success',
+  props<{ transactions: Transaction[]; page: number; hasMore: boolean; clientId: string }>()
 );
 
-export const loadTransactionsFailure = createAction(
-  '[Transaction] Load Transactions Failure',
+export const loadTransactionsByClientFailure = createAction(
+  '[Transaction] Load Transactions By Client Failure',
   props<{ error: any }>()
+);
+
+export const resetTransactions = createAction(
+  '[Transaction] Reset Transactions'
 );
 
 export const addTransaction = createAction(

@@ -7,10 +7,16 @@ import org.springframework.context.ApplicationEvent;
 public class AccountCreatedEvent extends ApplicationEvent {
     private final Double initialBalance;
     private final String collector;
+    private final String accountNumber;
 
-    public AccountCreatedEvent(Object source, Double initialBalance, String collector) {
+    public AccountCreatedEvent(Object source, Double initialBalance, String collector, String accountNumber) {
         super(source);
         this.initialBalance = initialBalance;
         this.collector = collector;
+        this.accountNumber = accountNumber;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
     }
 }

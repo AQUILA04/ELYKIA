@@ -26,11 +26,14 @@ export interface TontineMember {
     frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
     amount?: number;
     notes?: string;
+    clientName?: string;
+    updateScope?: 'GLOBAL' | 'CURRENT_AND_FUTURE' | 'FUTURE_ONLY';
 }
 
 export interface TontineMemberView extends TontineMember {
-    clientName: string;
     clientPhone: string;
+    clientQuarter?: string;
+    hasPaidToday?: boolean;
 }
 
 export interface TontineCollection {
@@ -44,6 +47,15 @@ export interface TontineCollection {
     syncDate?: string;
     syncHash?: string;
     isDeliveryCollection?: boolean;
+    clientName?: string;
+    clientQuarter?: string;
+    memberUniqueId?: string; // e.g. code or other identifier
+    notes?: string;
+}
+
+export interface TontineCollectionView extends TontineCollection {
+    clientName: string;
+    clientQuarter?: string;
 }
 
 export interface TontineDeliveryItem {
@@ -69,6 +81,12 @@ export interface TontineDelivery {
     isSync: boolean;
     syncDate?: string;
     syncHash?: string;
+    clientName?: string;
+}
+
+export interface TontineDeliveryView extends TontineDelivery {
+    clientName: string;
+    clientQuarter?: string;
 }
 
 export interface TontineStock {

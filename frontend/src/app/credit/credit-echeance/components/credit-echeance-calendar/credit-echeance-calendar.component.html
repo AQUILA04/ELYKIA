@@ -1,0 +1,35 @@
+<div class="week-strip a3">
+  <div class="week-strip-header">
+    <span class="week-strip-title">Vue calendrier</span>
+    <div class="week-nav">
+      <button class="week-nav-btn" (click)="shiftWeek(-1)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <span class="week-label">{{ weekLabel }}</span>
+      <button class="week-nav-btn" (click)="shiftWeek(1)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="week-days">
+    <div *ngFor="let day of weekDays"
+         class="day-cell"
+         [class.active]="isActiveDay(day)"
+         [class.today-cell]="day.isToday"
+         [class.has-credits]="day.count > 0 && !isActiveDay(day)"
+         (click)="selectDay(day)">
+      <div class="day-name">{{ day.label }}</div>
+      <div class="day-num">{{ day.date | date:'d' }}</div>
+      <div class="day-badge"
+           [class.orange]="day.count > 0 && day.hasUrgent"
+           [class.navy]="day.count > 0 && !day.hasUrgent"
+           [class.empty]="day.count === 0">
+        {{ day.count > 0 ? day.count : '' }}
+      </div>
+    </div>
+  </div>
+</div>

@@ -6,6 +6,7 @@ export interface Account {
   updated?: boolean;
   status: string;
   clientId: string;
+  commercialUsername?: string;
   isLocal: boolean;
   isSync: boolean;
   createdAt: string;

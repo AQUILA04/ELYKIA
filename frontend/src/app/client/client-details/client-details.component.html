@@ -1,114 +1,75 @@
-<!-- Affiche un message de chargement pendant que les données sont récupérées -->
-<div class="loading-container" *ngIf="isLoading">Chargement...</div>
-
-<!-- Ce conteneur ne s'affichera que si le chargement est terminé ET si le client a des données -->
-<div class="details-container" *ngIf="!isLoading && client">
-
-  <!-- CORRECTION : Utilise la nouvelle variable 'safeProfilPhotoUrl' -->
-  <div class="profile-photo-container" *ngIf="safeProfilPhotoUrl">
-    <img [src]="safeProfilPhotoUrl" alt="Photo de profil du client" class="profile-photo">
-  </div>
-  <!-- Espace réservé si pas de photo -->
-  <div class="profile-photo-container" *ngIf="!safeProfilPhotoUrl">
-    <img src="https://placehold.co/120x120/003366/FFFFFF?text=Profil" alt="Pas de photo de profil" class="profile-photo">
+<div class="container client-details-page">
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
   </div>
 
-  <div class="form-header">
-    <h1>Détails du client</h1>
-  </div>
-
-    <div class="details-content" *ngIf="client">
-
-    <!-- (Le reste du contenu des détails reste identique) -->
-    <div class="details-row" *ngIf="client.iddoc">
-      <span class="details-label">Pièce d'identité</span>
-      <div class="details-value">
-        <a [href]="client.iddoc" target="_blank" class="document-link">
-          Voir le document
-        </a>
+  <div *ngIf="!isLoading && client">
+    <!-- 1. Header & Actions -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+      <div class="client-title-group">
+        <h1>{{ client.firstname }} {{ client.lastname }}</h1>
+        <div class="client-status-badges">
+          <span *ngIf="client.creditInProgress" class="badge badge-warning">
+            <mat-icon class="badge-icon">account_balance</mat-icon>
+            Crédit en cours
+          </span>
+          <span *ngIf="client.isTontineMember" class="badge badge-info">
+            <mat-icon class="badge-icon">groups</mat-icon>
+            Membre tontine
+          </span>
+          <span *ngIf="client.hasOrderInProgress" class="badge badge-primary">
+            <mat-icon class="badge-icon">shopping_cart</mat-icon>
+            Commande en cours
+          </span>
+        </div>
+      </div>
+      <div class="actions d-flex gap-3">
+        <button mat-stroked-button (click)="onCancel()">
+          <mat-icon>arrow_back</mat-icon> Retour
+        </button>
+        <button mat-raised-button class="btn-brand" (click)="navigateToEdit(client.id)">
+          <mat-icon>edit</mat-icon> Modifier
+        </button>
       </div>
     </div>
 
-    <div class="details-row">
-      <span class="details-label">Nom</span>
-      <div class="details-value">{{ client.lastname }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Prénom</span>
-      <div class="details-value">{{ client.firstname }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Adresse</span>
-      <div class="details-value">{{ client.address }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Numéro de téléphone</span>
-      <div class="details-value">{{ client.phone }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">N° de pièce d'identité</span>
-      <div class="details-value">{{ client.cardID}}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Type de pièce</span>
-      <div class="details-value">{{ client.cardType }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Date de naissance</span>
-      <div class="details-value">{{ client.dateOfBirth | date: 'dd/MM/yyyy' }}</div>
-    </div>
-          <div class="details-row">
-            <span class="details-label">Occupation</span>
-            <div class="details-value">{{ client.occupation  }}</div>
-          </div>
-              <div class="details-row">
-      <span class="details-label">Nom personne à contacter</span>
-      <div class="details-value">{{ client.contactPersonName }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Téléphone personne à contacter</span>
-      <div class="details-value">{{ client.contactPersonPhone }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Adresse personne à contacter</span>
-      <div class="details-value">{{ client.contactPersonAddress }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Agent associé</span>
-      <div class="details-value">{{ client.collector }}</div>
-    </div>
-    <div class="details-row" *ngIf="client && client.quarter !== undefined">
-      <span class="details-label">Localité:</span>
-      <div class="details-value">{{ client.quarter }}</div>
-    </div>
+    <!-- 2. Résumé des Opérations (KPIs) -->
+    <app-client-kpi-cards [clientDetails]="clientDetails"></app-client-kpi-cards>
 
-    <div class="details-row" *ngIf="client.latitude && client.longitude">
-      <span class="details-label">Localisation</span>
-      <div class="details-value">
-        <span>Lat: {{ client.latitude }}, Lon: {{ client.longitude }}</span>
-        <a [href]="'https://www.google.com/maps?q=' + client.latitude + ',' + client.longitude" target="_blank" class="map-link">
-          Voir sur la carte
-        </a>
+    <div class="row">
+      <!-- 3. Informations Personnelles (Sidebar ou Colonne Gauche) -->
+      <div class="col-md-4 mb-4">
+        <app-client-info-card [client]="client" [safeProfilPhotoUrl]="safeProfilPhotoUrl"></app-client-info-card>
       </div>
-    </div>
 
-    <div class="details-row">
-      <span class="details-label">Type de client</span>
-      <div class="details-value" *ngIf="client.clientType==='PROMOTER'">{{ 'Commercial' }}</div>
-      <div class="details-value" *ngIf="client.clientType==='CLIENT'">{{ 'Client' }}</div>
-    </div>
-  </div>
+      <!-- 4. Contenu Principal (Onglets Droite) -->
+      <div class="col-md-8">
+        <mat-card class="tabs-card">
+          <mat-tab-group animationDuration="0ms" mat-stretch-tabs="false" mat-align-tabs="start">
 
-  <div class="form-actions">
-    <a (click)="onCancel()" class="link-back">
-      <i class="ti ti-arrow-left"></i> Retour à la liste
-    </a>
+            <!-- Onglet Achats (Expandable) -->
+            <mat-tab label="Historique des Achats">
+              <app-client-credit-list
+                [credits]="credits"
+                [totalCreditElements]="totalCreditElements"
+                [creditPageSize]="creditPageSize"
+                (pageChange)="onCreditPageChange($event)">
+              </app-client-credit-list>
+            </mat-tab>
 
-    <div class="form-actions">
-      <!-- On utilise client.id sans '!' car on est dans le bloc *ngIf="client" -->
-      <a (click)="navigateToEdit(client.id)" class="link-edit">
-        <i class="ti ti-pencil"></i> Modifier
-      </a>
+            <!-- Onglet Dernières Cotisations -->
+            <mat-tab label="Historique des Cotisations">
+              <app-client-cotisation-history
+                [cotisations]="cotisations"
+                [totalCotisationElements]="totalCotisationElements"
+                [cotisationPageSize]="cotisationPageSize"
+                (pageChange)="onCotisationPageChange($event)">
+              </app-client-cotisation-history>
+            </mat-tab>
+
+          </mat-tab-group>
+        </mat-card>
+      </div>
     </div>
   </div>
 </div>

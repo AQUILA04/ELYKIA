@@ -34,6 +34,7 @@ export interface TontineMember {
   readonly validatedMonths?: number;
   readonly currentMonthDays?: number;
   readonly totalDeliveryCollections?: number;
+  readonly clientId?: number; // Added for compatibility
 }
 
 export interface TontineCollection {
@@ -111,6 +112,7 @@ export interface CreateTontineMemberDto {
   readonly frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
   readonly amount?: number;
   readonly notes?: string;
+  readonly updateScope?: 'GLOBAL' | 'CURRENT_AND_FUTURE' | 'FUTURE_ONLY';
 }
 
 export interface CreateTontineCollectionDto {

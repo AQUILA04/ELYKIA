@@ -216,9 +216,62 @@ jobs:
       run: |
         npx cap add android
         
+    - name: Create google-services.json
+      run: |
+        echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json    
+        
+    - name: Configure Gradle for Crashlytics
+      run: |
+        # 1. Ajouter le classpath dans build.gradle (racine)
+        sed -i "/dependencies {/a \        classpath 'com.google.gms:google-services:4.4.0'\n        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'" android/build.gradle
+        
+        # 2. Appliquer les plugins dans app/build.gradle
+        sed -i "/apply plugin: 'com.android.application'/a apply plugin: 'com.google.gms.google-services'\napply plugin: 'com.google.firebase.crashlytics'" android/app/build.gradle
+        
+        # 3. Ajouter les dépendances Firebase dans app/build.gradle
+        sed -i "/dependencies {/a \    implementation platform('com.google.firebase:firebase-bom:32.7.0')\n    implementation 'com.google.firebase:firebase-crashlytics'\n    implementation 'com.google.firebase:firebase-analytics'" android/app/build.gradle    
+
+    - name: Debug google-services.json
+      run: |
+        cat android/app/google-services.json
+        python -m json.tool android/app/google-services.json
+
     - name: Sync Capacitor
       run: |
         npx cap sync android
+
+    - name: Prepare Android Configuration
+      run: |
+        echo "=== Preparing Android configuration files ==="
+        mkdir -p android/app/src/main/res/xml
+        echo "Configuration files ready for post-sync copy"
+
+    - name: Final Capacitor Sync
+      run: |
+        echo "=== Final sync after configuration ==="
+        npx cap sync android
+        
+        echo "=== Capacitor sync completed, now re-applying our configurations ==="
+        
+        # Re-copier nos fichiers APRÈS le sync qui les a écrasés
+        echo "Re-copying AndroidManifest.xml (simplified version) after sync..."
+        cp .github/workflows/android-config/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+        
+        echo "Re-copying config.xml after sync..."
+        cp .github/workflows/android-config/config.xml android/app/src/main/res/xml/config.xml
+        
+        echo "Re-copying network_security_config.xml after sync..."
+        cp .github/workflows/android-config/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml
+        
+        echo "Re-copying file_paths.xml after sync..."
+        cp .github/workflows/android-config/file_paths.xml android/app/src/main/res/xml/file_paths.xml
+        
+        echo "=== Final verification after re-copy ==="
+        echo "Checking permissions count:"
+        grep -c "uses-permission" android/app/src/main/AndroidManifest.xml || echo "No permissions found!"
+        
+        echo "Checking application tag:"
+        grep -A 5 "usesCleartextTraffic" android/app/src/main/AndroidManifest.xml || echo "No cleartext traffic config found!"
 
     - name: Grant execute permission for gradlew
       run: |
@@ -229,9 +282,16 @@ jobs:
         cd android
         ./gradlew assembleDebug
       
+    - name: Extract App Version and Rename APK
+      run: |
+        VERSION=$(grep "version:" src/environments/environment.ts | sed "s/.*version: '\([^']*\)'.*/\1/")
+        echo "Detected version: $VERSION"
+        echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+        mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/elykia-mobile-v$VERSION.apk
+
     - name: Upload APK as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: elykia-mobile-debug-apk
-        path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+        name: elykia-mobile-v${{ env.APP_VERSION }}.apk
+        path: mobile/android/app/build/outputs/apk/debug/elykia-mobile-v${{ env.APP_VERSION }}.apk
         retention-days: ${{ github.ref == 'refs/heads/main' && 90 || 10 }}

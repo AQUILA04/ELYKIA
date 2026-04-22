@@ -8,6 +8,10 @@
 
       <div class="header-title">Rapport Journalier</div>
 
+      <ion-button fill="clear" class="save-pdf-button" (click)="savePDF()">
+        <ion-icon name="download" slot="icon-only"></ion-icon>
+      </ion-button>
+
       <ion-button fill="clear" class="print-button" (click)="printReport()"
         [disabled]="reportData.distributions.count === 0 && reportData.recoveries.count === 0">
         <ion-icon name="print" slot="icon-only"></ion-icon>
@@ -77,109 +81,294 @@
     <!-- Section des détails -->
     <div class="details-section">
       <!-- Onglets -->
-      <div class="tabs-container">
-        <button class="tab-button" [class.active]="activeTab === 'distributions'" (click)="switchTab('distributions')">
-          Distributions
-        </button>
-        <button class="tab-button" [class.active]="activeTab === 'recouvrements'" (click)="switchTab('recouvrements')">
-          Recouvrements
-        </button>
-        <button class="tab-button" [class.active]="activeTab === 'clients'" (click)="switchTab('clients')">
-          Clients
-        </button>
-      </div>
+      <ion-segment [(ngModel)]="activeTab" scrollable="true" (ionChange)="onSegmentChanged($event)">
+        <ion-segment-button value="distributions">
+          <ion-label>
+            Distributions
+            <ion-badge color="primary" class="count-badge">{{ reportData.distributions.count }}</ion-badge>
+          </ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="recouvrements">
+          <ion-label>
+            Recouvrements
+            <ion-badge color="primary" class="count-badge">{{ reportData.recoveries.count }}</ion-badge>
+          </ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="clients">
+          <ion-label>
+            Clients
+            <ion-badge color="primary" class="count-badge">{{ reportData.newClients.count }}</ion-badge>
+          </ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="tontine-membres">
+          <ion-label>
+            Membres
+            <ion-badge color="primary" class="count-badge">{{ reportData.tontineMembers?.count || 0 }}</ion-badge>
+          </ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="tontine-collectes">
+          <ion-label>
+            Collectes
+            <ion-badge color="primary" class="count-badge">{{ reportData.tontineCollections?.count || 0 }}</ion-badge>
+          </ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="tontine-livraisons">
+          <ion-label>
+            Livraisons
+            <ion-badge color="primary" class="count-badge">{{ reportData.tontineDeliveries?.count || 0 }}</ion-badge>
+          </ion-label>
+        </ion-segment-button>
+      </ion-segment>
 
       <!-- Contenu des onglets -->
 
       <!-- Onglet Distributions -->
-      @if (activeTab === 'distributions') {
-      <div class="tab-content active">
-        @if (reportData.distributions.items.length > 0) {
-        <cdk-virtual-scroll-viewport itemSize="80" class="transaction-list-viewport">
-          <div class="transaction-item"
-            *cdkVirtualFor="let item of reportData.distributions.items; trackBy: trackByDistributionId">
-            <div class="transaction-time">{{ item.time }}</div>
-            <div class="transaction-info">
-              <div class="transaction-client">{{ item.clientName }}</div>
-              <div class="transaction-details">{{ item.details }}</div>
-            </div>
-            <div class="transaction-amount amount-distribution">
-              {{ item.amount | number:'1.0-0':'fr-FR' }} FCFA
-            </div>
+      <div class="tab-content" [class.active]="activeTab === 'distributions'">
+        <ng-container *ngIf="activeTab === 'distributions'">
+          <div *ngIf="(loadingDistributions$ | async)" class="loading-state">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Chargement des distributions...</p>
           </div>
-        </cdk-virtual-scroll-viewport>
-        } @else {
-        <!-- État vide pour distributions -->
-        <div class="empty-state">
-          <div class="empty-icon">
-            <ion-icon name="basket-outline"></ion-icon>
+          <div *ngIf="!(loadingDistributions$ | async) && reportData.distributions.items.length === 0"
+            class="empty-state">
+            <div class="empty-icon">
+              <ion-icon name="basket-outline"></ion-icon>
+            </div>
+            <div class="empty-title">Aucune distribution</div>
+            <div class="empty-message">Aucune distribution n'a été effectuée aujourd'hui.</div>
           </div>
-          <div class="empty-title">Aucune distribution</div>
-          <div class="empty-message">Aucune distribution n'a été effectuée aujourd'hui.</div>
-        </div>
-        }
+
+          <cdk-virtual-scroll-viewport itemSize="80" class="transaction-list-viewport"
+            (scrolledIndexChange)="onScrollIndexChange($event)" *ngIf="reportData.distributions.items.length > 0">
+            <div class="transaction-item"
+              *cdkVirtualFor="let item of reportData.distributions.items; trackBy: trackByFn">
+              <div class="transaction-time">{{ item.time }}</div>
+              <div class="transaction-info">
+                <div class="transaction-client">{{ item.clientName }}</div>
+                <div class="transaction-details">{{ item.details }}</div>
+              </div>
+              <div class="transaction-amount amount-distribution">
+                <div>{{ item.amount | number:'1.0-0':'fr-FR' }} FCFA</div>
+                <ion-badge *ngIf="!item.isSync" color="medium" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-offline-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Local
+                </ion-badge>
+                <ion-badge *ngIf="item.isSync" color="success" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-done-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Sync
+                </ion-badge>
+              </div>
+            </div>
+          </cdk-virtual-scroll-viewport>
+        </ng-container>
       </div>
-      }
 
       <!-- Onglet Recouvrements -->
-      @if (activeTab === 'recouvrements') {
-      <div class="tab-content active">
-        @if (reportData.recoveries.items.length > 0) {
-        <cdk-virtual-scroll-viewport itemSize="80" class="transaction-list-viewport">
-          <div class="transaction-item"
-            *cdkVirtualFor="let item of reportData.recoveries.items; trackBy: trackByRecoveryId">
-            <div class="transaction-time">{{ item.time }}</div>
-            <div class="transaction-info">
-              <div class="transaction-client">{{ item.clientName }}</div>
-              <div class="transaction-details">{{ item.details }}</div>
-            </div>
-            <div class="transaction-amount amount-recovery">
-              {{ item.amount | number:'1.0-0':'fr-FR' }} FCFA
-            </div>
+      <div class="tab-content" [class.active]="activeTab === 'recouvrements'">
+        <ng-container *ngIf="activeTab === 'recouvrements'">
+          <div *ngIf="(loadingRecoveries$ | async)" class="loading-state">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Chargement des recouvrements...</p>
           </div>
-        </cdk-virtual-scroll-viewport>
-        } @else {
-        <!-- État vide pour recouvrements -->
-        <div class="empty-state">
-          <div class="empty-icon">
-            <ion-icon name="wallet-outline"></ion-icon>
+          <div *ngIf="!(loadingRecoveries$ | async) && reportData.recoveries.items.length === 0" class="empty-state">
+            <div class="empty-icon">
+              <ion-icon name="wallet-outline"></ion-icon>
+            </div>
+            <div class="empty-title">Aucun recouvrement</div>
+            <div class="empty-message">Aucun recouvrement n'a été effectué aujourd'hui.</div>
           </div>
-          <div class="empty-title">Aucun recouvrement</div>
-          <div class="empty-message">Aucun recouvrement n'a été effectué aujourd'hui.</div>
-        </div>
-        }
+
+          <cdk-virtual-scroll-viewport itemSize="80" class="transaction-list-viewport"
+            (scrolledIndexChange)="onScrollIndexChange($event)" *ngIf="reportData.recoveries.items.length > 0">
+            <div class="transaction-item" *cdkVirtualFor="let item of reportData.recoveries.items; trackBy: trackByFn">
+              <div class="transaction-time">{{ item.time }}</div>
+              <div class="transaction-info">
+                <div class="transaction-client">{{ item.clientName }}</div>
+                <div class="transaction-details">{{ item.details }}</div>
+              </div>
+              <div class="transaction-amount amount-recovery">
+                <div>{{ item.amount | number:'1.0-0':'fr-FR' }} FCFA</div>
+                <ion-badge *ngIf="!item.isSync" color="medium" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-offline-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Local
+                </ion-badge>
+                <ion-badge *ngIf="item.isSync" color="success" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-done-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Sync
+                </ion-badge>
+              </div>
+            </div>
+          </cdk-virtual-scroll-viewport>
+        </ng-container>
       </div>
-      }
 
       <!-- Onglet Clients -->
-      @if (activeTab === 'clients') {
-      <div class="tab-content active">
-        @if (reportData.newClients.items.length > 0) {
-        <cdk-virtual-scroll-viewport itemSize="80" class="transaction-list-viewport">
-          <div class="transaction-item"
-            *cdkVirtualFor="let item of reportData.newClients.items; trackBy: trackByClientId">
-            <div class="transaction-time">{{ item.time }}</div>
-            <div class="transaction-info">
-              <div class="transaction-client">{{ item.clientName }}</div>
-              <div class="transaction-details">{{ item.accountNumber }}</div>
-            </div>
-            <div class="transaction-amount amount-new-client">
-              {{ item.balance | number:'1.0-0':'fr-FR' }} FCFA
-            </div>
+      <div class="tab-content" [class.active]="activeTab === 'clients'">
+        <ng-container *ngIf="activeTab === 'clients'">
+          <div *ngIf="(loadingClients$ | async)" class="loading-state">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Chargement des clients...</p>
           </div>
-        </cdk-virtual-scroll-viewport>
-        } @else {
-        <!-- État vide pour clients -->
-        <div class="empty-state">
-          <div class="empty-icon">
-            <ion-icon name="person-add-outline"></ion-icon>
+          <div *ngIf="!(loadingClients$ | async) && reportData.newClients.items.length === 0" class="empty-state">
+            <div class="empty-icon">
+              <ion-icon name="person-add-outline"></ion-icon>
+            </div>
+            <div class="empty-title">Aucun nouveau client</div>
+            <div class="empty-message">Aucun nouveau client n'a été enregistré aujourd'hui.</div>
           </div>
-          <div class="empty-title">Aucun nouveau client</div>
-          <div class="empty-message">Aucun nouveau client n'a été enregistré aujourd'hui.</div>
-        </div>
-        }
+
+          <cdk-virtual-scroll-viewport itemSize="80" class="transaction-list-viewport"
+            (scrolledIndexChange)="onScrollIndexChange($event)" *ngIf="reportData.newClients.items.length > 0">
+            <div class="transaction-item" *cdkVirtualFor="let item of reportData.newClients.items; trackBy: trackByFn">
+              <div class="transaction-time">{{ item.time }}</div>
+              <div class="transaction-info">
+                <div class="transaction-client">{{ item.clientName }}</div>
+                <div class="transaction-details">{{ item.accountNumber }}</div>
+              </div>
+              <div class="transaction-amount amount-new-client">
+                <div>{{ item.balance | number:'1.0-0':'fr-FR' }} FCFA</div>
+                <ion-badge *ngIf="!item.isSync" color="medium" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-offline-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Local
+                </ion-badge>
+                <ion-badge *ngIf="item.isSync" color="success" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-done-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Sync
+                </ion-badge>
+              </div>
+            </div>
+          </cdk-virtual-scroll-viewport>
+        </ng-container>
       </div>
-      }
+
+      <!-- Onglet Membres Tontine -->
+      <div class="tab-content" [class.active]="activeTab === 'tontine-membres'">
+        <ng-container *ngIf="activeTab === 'tontine-membres'">
+          <div *ngIf="(loadingTontineMembers$ | async)" class="loading-state">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Chargement des membres...</p>
+          </div>
+          <div
+            *ngIf="!(loadingTontineMembers$ | async) && (!reportData.tontineMembers || reportData.tontineMembers.items.length === 0)"
+            class="empty-state">
+            <div class="empty-icon">
+              <ion-icon name="people-circle-outline"></ion-icon>
+            </div>
+            <div class="empty-title">Aucun membre</div>
+            <div class="empty-message">Aucun membre de tontine n'a été créé aujourd'hui.</div>
+          </div>
+
+          <cdk-virtual-scroll-viewport itemSize="80" class="transaction-list-viewport"
+            (scrolledIndexChange)="onScrollIndexChange($event)"
+            *ngIf="reportData.tontineMembers && reportData.tontineMembers.items.length > 0">
+            <div class="transaction-item"
+              *cdkVirtualFor="let item of reportData.tontineMembers.items; trackBy: trackByFn">
+              <div class="transaction-time">{{ item.time }}</div>
+              <div class="transaction-info">
+                <div class="transaction-client">{{ item.memberName }}</div>
+                <div class="transaction-details">{{ item.details }}</div>
+              </div>
+              <div class="transaction-amount amount-tontine">
+                <div>{{ item.contribution | number:'1.0-0':'fr-FR' }} FCFA</div>
+                <ion-badge *ngIf="!item.isSync" color="medium" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-offline-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Local
+                </ion-badge>
+                <ion-badge *ngIf="item.isSync" color="success" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-done-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Sync
+                </ion-badge>
+              </div>
+            </div>
+          </cdk-virtual-scroll-viewport>
+        </ng-container>
+      </div>
+
+      <!-- Onglet Collectes Tontine -->
+      <div class="tab-content" [class.active]="activeTab === 'tontine-collectes'">
+        <ng-container *ngIf="activeTab === 'tontine-collectes'">
+          <div *ngIf="(loadingTontineCollections$ | async)" class="loading-state">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Chargement des collectes...</p>
+          </div>
+          <div
+            *ngIf="!(loadingTontineCollections$ | async) && (!reportData.tontineCollections || reportData.tontineCollections.items.length === 0)"
+            class="empty-state">
+            <div class="empty-icon">
+              <ion-icon name="wallet-outline"></ion-icon>
+            </div>
+            <div class="empty-title">Aucune collecte</div>
+            <div class="empty-message">Aucune collecte de tontine n'a été effectuée aujourd'hui.</div>
+          </div>
+
+          <cdk-virtual-scroll-viewport itemSize="80" class="transaction-list-viewport"
+            (scrolledIndexChange)="onScrollIndexChange($event)"
+            *ngIf="reportData.tontineCollections && reportData.tontineCollections.items.length > 0">
+            <div class="transaction-item"
+              *cdkVirtualFor="let item of reportData.tontineCollections.items; trackBy: trackByFn">
+              <div class="transaction-time">{{ item.time }}</div>
+              <div class="transaction-info">
+                <div class="transaction-client">{{ item.memberName }}</div>
+                <div class="transaction-details">{{ item.details }}</div>
+              </div>
+              <div class="transaction-amount amount-tontine">
+                <div>{{ item.amount | number:'1.0-0':'fr-FR' }} FCFA</div>
+                <ion-badge *ngIf="!item.isSync" color="medium" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-offline-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Local
+                </ion-badge>
+                <ion-badge *ngIf="item.isSync" color="success" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-done-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Sync
+                </ion-badge>
+              </div>
+            </div>
+          </cdk-virtual-scroll-viewport>
+        </ng-container>
+      </div>
+
+      <!-- Onglet Livraisons Tontine -->
+      <div class="tab-content" [class.active]="activeTab === 'tontine-livraisons'">
+        <ng-container *ngIf="activeTab === 'tontine-livraisons'">
+          <div *ngIf="(loadingTontineDeliveries$ | async)" class="loading-state">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Chargement des livraisons...</p>
+          </div>
+          <div
+            *ngIf="!(loadingTontineDeliveries$ | async) && (!reportData.tontineDeliveries || reportData.tontineDeliveries.items.length === 0)"
+            class="empty-state">
+            <div class="empty-icon">
+              <ion-icon name="cube-outline"></ion-icon>
+            </div>
+            <div class="empty-title">Aucune livraison</div>
+            <div class="empty-message">Aucune livraison de tontine n'a été effectuée aujourd'hui.</div>
+          </div>
+
+          <cdk-virtual-scroll-viewport itemSize="80" class="transaction-list-viewport"
+            (scrolledIndexChange)="onScrollIndexChange($event)"
+            *ngIf="reportData.tontineDeliveries && reportData.tontineDeliveries.items.length > 0">
+            <div class="transaction-item"
+              *cdkVirtualFor="let item of reportData.tontineDeliveries.items; trackBy: trackByFn">
+              <div class="transaction-time">{{ item.time }}</div>
+              <div class="transaction-info">
+                <div class="transaction-client">{{ item.memberName }}</div>
+                <div class="transaction-details">{{ item.details }}</div>
+              </div>
+              <div class="transaction-amount amount-tontine">
+                <div>{{ item.amount | number:'1.0-0':'fr-FR' }} FCFA</div>
+                <ion-badge *ngIf="!item.isSync" color="medium" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-offline-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Local
+                </ion-badge>
+                <ion-badge *ngIf="item.isSync" color="success" style="margin-top: 4px; font-size: 10px;">
+                  <ion-icon name="cloud-done-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
+                  Sync
+                </ion-badge>
+              </div>
+            </div>
+          </cdk-virtual-scroll-viewport>
+        </ng-container>
+      </div>
     </div>
   </div>
 

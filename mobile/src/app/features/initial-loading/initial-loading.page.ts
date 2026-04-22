@@ -1,13 +1,21 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { DataInitializationService } from '../../core/services/data-initialization.service';
-import { interval, Subject } from 'rxjs';
+import { interval, Subject, from } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import { AlertController } from '@ionic/angular';
 import { InitializationStateService } from '../../core/services/initialization-state.service';
 import { Storage } from '@ionic/storage-angular';
 import { LoggerService } from '../../core/services/logger.service';
 import { HealthCheckService } from '../../core/services/health-check.service';
+import { InitializationValidationService } from '../../core/services/initialization-validation.service';
+import { resetAppData } from '../../store/app.actions';
+import { Store } from '@ngrx/store';
+import { MemoryManagementService } from '../../core/services/memory-management.service';
+import { DatabaseService } from '../../core/services/database.service';
+import { selectAuthUser } from '../../store/auth/auth.selectors';
+import { AuthService } from '../../core/services/auth.service';
+import * as KpiActions from '../../store/kpi/kpi.actions';
 
 @Component({
   selector: 'app-initial-loading',
@@ -16,25 +24,29 @@ import { HealthCheckService } from '../../core/services/health-check.service';
   standalone: false
 })
 export class InitialLoadingPage implements OnInit, OnDestroy {
-  progress: number = 0;
-  statusText: string = 'Préparation...';
-  showSuccessAnimation: boolean = false;
-  showCompletionMessage: boolean = false;
+  progress = 0;
+  statusText = 'Démarrage...';
+  showSuccessAnimation = false;
+  showCompletionMessage = false;
   private destroy$ = new Subject<void>();
+  currentStepIndex = 0;
 
-  private initSteps = [
-    { text: "Récupération des articles...", method: () => this.dataInitService.initializeArticles() },
-    { text: "Récupération des commerciaux...", method: () => this.dataInitService.initializeCommercial() },
-    { text: "Récupération des localités...", method: () => this.dataInitService.initializeLocalities() },
-    { text: "Récupération des clients...", method: () => this.dataInitService.initializeClients() },
-    { text: "Récupération du sorties d'articles...", method: () => this.dataInitService.initializeStockOutputs() },
-    { text: "Récupération des distributions...", method: () => this.dataInitService.initializeDistributions() },
-    { text: "Récupération des comptes client...", method: () => this.dataInitService.initializeAccounts() },
-    { text: "Récupération des tontines...", method: () => this.dataInitService.initializeTontine() },
-    { text: "Finalisation...", method: () => this.dataInitService.calculateArticleStocks() },
+  initSteps: { text: string; method: () => any }[] = [
+    { text: 'Vérification de la connexion...', method: () => this.healthCheckService.pingBackend() },
+    { text: 'Chargement des paramètres...', method: () => this.dataInitService.initializeParameters() },
+    { text: 'Chargement des articles...', method: () => this.dataInitService.initializeArticles() },
+    { text: 'Chargement des infos commerciales...', method: () => this.dataInitService.initializeCommercial() },
+    { text: 'Chargement des localités...', method: () => this.dataInitService.initializeLocalities() },
+    { text: 'Chargement des clients...', method: () => this.dataInitService.initializeClients() },
+    { text: 'Chargement des sorties de stock...', method: () => this.dataInitService.initializeStockOutputs() },
+    { text: 'Sync du stock commercial...', method: () => this.dataInitService.initializeCommercialStock() },
+    { text: 'Chargement des distributions...', method: () => this.dataInitService.initializeDistributions() },
+    { text: 'Chargement des comptes...', method: () => this.dataInitService.initializeAccounts() },
+    { text: 'Chargement des recouvrements...', method: () => this.dataInitService.initializeRecoveries() },
+    { text: 'Chargement de la tontine...', method: () => this.dataInitService.initializeTontine() },
+    { text: 'Calcul des stocks...', method: () => this.dataInitService.calculateArticleStocks() },
+    { text: 'Détection des correspondances...', method: () => from(this.detectOrphanedDependencies()) }
   ];
-  private currentStepIndex: number = 0;
-  private initializationComplete?: boolean;
 
   constructor(
     private router: Router,
@@ -42,20 +54,16 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     private alertController: AlertController,
     private storage: Storage,
     private log: LoggerService,
-    private healthCheckService: HealthCheckService
+    private healthCheckService: HealthCheckService,
+    private store: Store,
+    private memoryManagementService: MemoryManagementService,
+    private dbService: DatabaseService,
+    private initValidationService: InitializationValidationService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
-    this.loadInitializationStatus();
     this.startInitialization();
-    this.pulseAnimation();
-  }
-
-  private async loadInitializationStatus(): Promise<void> {
-    this.initializationComplete = await this.storage.get('initialization_complete');
-  }
-  isInitializationComplete(): boolean {
-    return this.initializationComplete ?? false;
   }
 
   ngOnDestroy() {
@@ -64,13 +72,34 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
   }
 
   private async startInitialization() {
+    // Nettoyage de la mémoire avant le début de l'initialisation (uniquement au début)
+    if (this.currentStepIndex === 0) {
+      try {
+        // Nettoyage de la mémoire avant le début de l'initialisation (uniquement au début)
+        if (this.currentStepIndex === 0) {
+          try {
+            // 2. Nettoyer la mémoire cache
+            this.statusText = "Optimisation de la mémoire...";
+            await this.memoryManagementService.clearMemoryCache();
+            this.log.log('[InitialLoadingPage] Memory cache cleared successfully');
+          } catch (error) {
+            this.log.log(`[InitialLoadingPage] Failed to clear memory/state: ${error}`);
+            console.warn('Failed to clear memory cache:', error);
+          }
+        }
+      } catch (error) {
+        this.log.log(`[InitialLoadingPage] Failed to clear memory/state: ${error}`);
+        console.warn('Failed to clear memory cache:', error);
+      }
+    }
+
     const isOnline = await this.healthCheckService.pingBackend().pipe(take(1)).toPromise();
 
     if (!isOnline) {
       this.skipInitializationForOfflineMode();
       return;
     }
-// ...
+
     if (this.currentStepIndex < this.initSteps.length) {
       const step = this.initSteps[this.currentStepIndex];
       this.statusText = step.text;
@@ -78,7 +107,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
       this.progress = stepProgress;
 
       step.method().pipe(take(1)).subscribe({
-        next: (success) => {
+        next: (success: boolean) => {
           if (success) {
             this.currentStepIndex++;
             this.startInitialization();
@@ -88,7 +117,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
             this.presentErrorAlert(`Échec de l'initialisation: ${step.text.replace('...', '')}`);
           }
         },
-        error: (err) => {
+        error: (err: any) => {
           this.log.log(`[InitialLoadingPage] Step failed with error: ${step.text} - ${JSON.stringify(err)}`);
           this.presentErrorAlert(`Erreur lors de l'initialisation: ${step.text.replace('...', '')}. Détails: ${err.message || err}`);
         }
@@ -113,7 +142,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
         {
           text: 'Continuer (données limitées)',
           handler: () => {
-            this.router.navigateByUrl('/tabs');
+            this.router.navigateByUrl('/tabs', { replaceUrl: true });
           },
         },
       ],
@@ -132,17 +161,86 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
         setTimeout(() => {
           this.showCompletionMessage = true;
           setTimeout(() => {
-            this.router.navigateByUrl('/tabs');
+            this.router.navigateByUrl('/tabs', { replaceUrl: true });
           }, 1000);
         }, 300);
       }, 500);
     }, 500);
   }
 
-  private completeInitialization() {
-    this.storage.set('initialization_complete', true);
-    this.statusText = "Initialisation terminée !";
-    this.progress = 100;
+  private async completeInitialization() {
+    // Vérifier la complétude des données
+    this.statusText = "Vérification de la complétude des données...";
+
+    try {
+      let user = await this.store.select(selectAuthUser).pipe(take(1)).toPromise();
+
+      // Fallback: si l'utilisateur n'est pas dans le store, essayer via AuthService
+      if (!user || !user.username) {
+        this.log.log('[InitialLoadingPage] User not found in store, checking AuthService...');
+        user = this.authService.currentUser;
+      }
+
+      if (user && user.username) {
+        this.log.log('[InitialLoadingPage] Validating data completeness for: ' + user.username);
+
+        const comparisonResult = await this.initValidationService.validateInitialization(user.username)
+          .pipe(take(1)).toPromise();
+
+        if (comparisonResult && comparisonResult.isComplete) {
+          this.log.log('[InitialLoadingPage] ✅ Data validation successful - all data complete');
+          await this.initValidationService.markInitializationComplete();
+          await this.storage.set('initialization_complete', true);
+          this.statusText = "Initialisation terminée !";
+          this.progress = 100;
+        } else if (comparisonResult) {
+          this.log.log('[InitialLoadingPage] ⚠️ Data validation warning - some data missing: ' + JSON.stringify(comparisonResult.missingData));
+          // Afficher un avertissement mais continuer
+          await this.presentDataIncompleteWarning(comparisonResult.missingData);
+          // Marquer quand même comme complète pour permettre le travail, mais ne pas marquer la date si incomplet?
+          // Décision: Marquer la date pour éviter le blocage offline, car l'utilisateur a vu l'avertissement.
+          // OU: Ne pas marquer la date pour forcer une ré-init propre le lendemain?
+          // Le doc VALIDATION dit: "Affiche un avertissement mais continue".
+          // Et "connexion hors ligne (nouvelle journée) -> NON (car nouvelle journée)"
+          // Donc on doit mettre à jour la date pour permettre le travail offline AUJOURD'HUI.
+          await this.initValidationService.markInitializationComplete();
+          await this.storage.set('initialization_complete', true);
+          this.statusText = "Initialisation terminée (avec avertissements)";
+          this.progress = 100;
+        }
+
+        // --- PRELOAD KPIS START ---
+        this.statusText = "Préchargement des indicateurs...";
+        // Use username as commercialId because repositories expect username for filtering
+        const commercialId = user.username;
+        const username = user.username;
+        const today = new Date();
+        const startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0]; // Start of month
+        const endDate = today.toISOString().split('T')[0];
+
+        this.store.dispatch(KpiActions.loadAllKpi({
+          commercialUsername: username,
+          commercialId: commercialId, // Pass username as ID
+          dateFilter: { startDate, endDate }
+        }));
+        // --- PRELOAD KPIS END ---
+
+      } else {
+        this.log.log('[InitialLoadingPage] CRITICAL: No user found even after fallback. Initialization incomplete.');
+        // Ne PAS marquer initialization_complete pour éviter de coincer l'utilisateur
+        // Rediriger vers login? Ou laisser l'utilisateur réessayer?
+        this.presentErrorAlert("Erreur critique: Utilisateur non identifié. Veuillez vous reconnecter.");
+        return;
+      }
+    } catch (error) {
+      this.log.log(`[InitialLoadingPage] Data validation failed: ${error}`);
+      console.error('Data validation error:', error);
+      // En cas d'erreur technique (réseau, crash), on marque comme complet pour ne pas bloquer
+      // mais on ne met pas à jour la date de validation stricte (donc offline login pourrait échouer demain, ce qui est bien)
+      await this.storage.set('initialization_complete', true);
+      this.statusText = "Initialisation terminée (validation ignorée)";
+      this.progress = 100;
+    }
 
     this.performBackgroundBackup();
 
@@ -151,7 +249,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
       setTimeout(() => {
         this.showCompletionMessage = true;
         setTimeout(() => {
-          this.router.navigateByUrl('/tabs');
+          this.router.navigateByUrl('/tabs', { replaceUrl: true });
         }, 2000);
       }, 600);
     }, 500);
@@ -173,6 +271,35 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Détecter les dépendances orphelines et proposer des correspondances
+   */
+  private async detectOrphanedDependencies() {
+    try {
+      // Import dynamique du service de matching
+      const { SyncDependencyMatcherService } = await import('../../core/services/sync-dependency-matcher.service');
+
+      const matcherService = new SyncDependencyMatcherService(this.dbService);
+
+      // Détecter les correspondances avec timeout de 5 secondes
+      const summary = await matcherService.detectDependencyMatches();
+
+      // Stocker les résultats dans le storage pour affichage ultérieur
+      if (summary && summary.matches && summary.matches.length > 0) {
+        await this.storage.set('orphaned_dependencies_detected', summary.matches);
+        this.log.log(`[InitialLoadingPage] Detected ${summary.matches.length} orphaned dependencies with ${summary.highConfidenceMatches} high confidence matches`);
+      }
+
+      // Retourner Observable pour compatibilité avec initSteps
+      return new Promise(resolve => resolve(true));
+    } catch (error) {
+      this.log.log(`[InitialLoadingPage] Error detecting orphaned dependencies: ${error}`);
+      console.warn('Failed to detect orphaned dependencies:', error);
+      // Ne pas bloquer l'initialisation en cas d'erreur
+      return new Promise(resolve => resolve(true));
+    }
+  }
+
   private pulseAnimation() {
     const logo = document.querySelector('.loading-logo');
     if (logo) {
@@ -187,5 +314,22 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
         });
       });
     }
+  }
+
+  /**
+   * Affiche un avertissement si les données sont incomplètes
+   */
+  private async presentDataIncompleteWarning(missingData: string[]) {
+    const alert = await this.alertController.create({
+      header: '⚠️ Données incomplètes',
+      message: `Certaines données ne correspondent pas au serveur :\n\n${missingData.join('\n')}\n\nVous pouvez continuer à travailler, mais certaines informations peuvent être manquantes.`,
+      buttons: [
+        {
+          text: 'Continuer',
+          role: 'cancel'
+        }
+      ]
+    });
+    await alert.present();
   }
 }

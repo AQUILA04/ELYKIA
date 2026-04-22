@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BaseRepository } from './base.repository';
 import { Locality } from '../../models/locality.model';
 import { DatabaseService } from '../services/database.service';
+import { capSQLiteSet } from '@capacitor-community/sqlite';
 
 @Injectable({
     providedIn: 'root'
@@ -18,68 +19,40 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
             throw new Error('Database not initialized.');
         }
 
-        const keysToInclude = ['id', 'name'];
-        const existingRows = await this.databaseService.query('SELECT id, syncHash FROM localities');
-        const existingLocalityMap = new Map<string, string>(
-            existingRows.values?.map((row: { id: string; syncHash: string }) => [row.id, row.syncHash]) ?? []
-        );
-
-        const localitiesToInsert: any[][] = [];
-        const localitiesToUpdate: any[][] = [];
+        const sqlSet: capSQLiteSet[] = [];
+        const now = new Date().toISOString();
 
         for (const locality of entities) {
             if (!locality || locality.id === undefined || locality.id === null) {
                 continue;
             }
-            const newHash = this.generateHash(locality, keysToInclude);
-            const isExisting = existingLocalityMap.has(locality.id);
-            const needsUpdate = isExisting && existingLocalityMap.get(locality.id) !== newHash;
+            const localityIdStr = String(locality.id);
 
-            const REGION = 'Maritime';
-            const IS_ACTIVE = 1;
+            // INSERT OR REPLACE pour mettre à jour ou insérer la localité
+            // On ne compare plus les hashs, on écrase systématiquement avec les données du serveur
+            const sql = `INSERT OR REPLACE INTO localities (
+                id, name, region, isActive, isLocal, isSync, syncDate, createdAt, syncHash
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-            if (needsUpdate) {
-                const updateParams = [
-                    locality.name,
-                    REGION,
-                    IS_ACTIVE,
-                    newHash,
-                    locality.id
-                ];
-                localitiesToUpdate.push(updateParams);
-            } else if (!isExisting) {
-                const insertParams = [
-                    locality.id,
-                    locality.name,
-                    REGION,
-                    IS_ACTIVE,
-                    newHash,
-                    locality.isLocal ? 1 : 0,
-                    locality.isSync ? 1 : 0,
-                    new Date().toISOString(),
-                    locality.createdAt ?? new Date().toISOString()
-                ];
-                localitiesToInsert.push(insertParams);
-            }
+            const params = [
+                localityIdStr,
+                locality.name,
+                locality.region ?? 'Maritime',
+                locality.isActive !== undefined ? (locality.isActive ? 1 : 0) : 1,
+                locality.isLocal ? 1 : 0,
+                locality.isSync ? 1 : 0,
+                now,
+                locality.createdAt ?? now,
+                null // Plus de hash
+            ];
+
+            sqlSet.push({ statement: sql, values: params });
         }
 
         try {
-            if (localitiesToUpdate.length > 0) {
-                const sql = `UPDATE localities SET name = ?, region = ?, isActive = ?, syncHash = ? WHERE id = ?`;
-                await this.databaseService['db'].run(sql, localitiesToUpdate); // Using run for batch if supported or need loop? DBService uses run with array of arrays for batch in some plugins but here it seems it might be loop or specific plugin feature.
-                // Wait, DatabaseService.saveLocalities uses this.db.run(sql, localitiesToUpdate) for update?
-                // Let's check DatabaseService.saveLocalities implementation again.
-                // Line 685: await this.db.run(sql, localitiesToUpdate);
-                // If the plugin supports it, great. If not, I should stick to what DatabaseService does.
-                // It seems DatabaseService uses `run` with array of arrays for batch updates in `saveLocalities`.
-                // I will assume it works as per existing code.
-            }
-
-            if (localitiesToInsert.length > 0) {
-                const sql = `INSERT INTO localities (id, name, region, isActive, syncHash, isLocal, isSync, syncDate, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-                for (const params of localitiesToInsert) {
-                    await this.databaseService.execute(sql, params);
-                }
+            if (sqlSet.length > 0) {
+                await this.databaseService.executeSet(sqlSet);
+                console.log(`Successfully saved ${entities.length} localities (INSERT OR REPLACE).`);
             }
         } catch (error) {
             console.error('Failed to save localities in repository.', error);
@@ -109,14 +82,13 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
      * Get all localities that have not been synchronized with the server
      * @returns Array of unsynced localities
      */
-    async getUnsyncedLocalities(): Promise<Locality[]> {
+    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<Locality[]> {
         if (!this.databaseService['db']) {
-            console.error('Database not initialized.');
-            return [];
+            throw new Error('Database not initialized.');
         }
-        const sql = `SELECT * FROM localities WHERE isSync = 0 AND isLocal = 1`;
-        const ret = await this.databaseService.query(sql);
-        return ret.values || [];
+        const sql = `SELECT * FROM localities WHERE isSync = 0 AND isLocal = 1 LIMIT ? OFFSET ?`;
+        const result = await this.databaseService.query(sql, [limit, offset]);
+        return (result.values || []).map((row: any) => ({ ...row, isLocal: row.isLocal === 1, isSync: row.isSync === 1 }));
     }
 
     /**
@@ -124,7 +96,7 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
      * @param localId Local ID of the locality
      * @param serverId Server ID assigned to the locality
      */
-    async markAsSynced(localId: string, serverId: number): Promise<void> {
+    async markAsSynced(localId: string, serverId: string): Promise<void> {
         if (!this.databaseService['db']) {
             console.error('Database not initialized.');
             return;
@@ -138,5 +110,4 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
 
         console.log(`Locality ${localId} marked as synced with server ID ${serverId}.`);
     }
-
 }

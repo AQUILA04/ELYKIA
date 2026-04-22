@@ -53,7 +53,7 @@ export class StockRequestCreateComponent implements OnInit {
 
   loadArticles() {
     this.spinner.show();
-    this.itemService.getAllArticles().subscribe({
+    this.itemService.getAllEnabledArticles().subscribe({
       next: (response: any) => {
         // According to reference: response.data.content
         this.articles = response.data?.content || response.data || [];
@@ -112,13 +112,19 @@ export class StockRequestCreateComponent implements OnInit {
 
     this.spinner.show();
     this.stockRequestService.create(request).subscribe({
-      next: () => {
-        this.toastr.success('Demande créée avec succès');
-        this.spinner.hide();
-        this.router.navigate(['/stock/request']);
+      next: (resp: any) => {
+        if (resp && resp.statusCode && resp.statusCode !== 200) {
+          this.toastr.error(resp.message || 'Erreur lors de la création de la demande');
+          this.spinner.hide();
+        } else {
+          this.toastr.success('Demande créée avec succès');
+          this.spinner.hide();
+          this.router.navigate(['/stock/request']);
+        }
+
       },
-      error: () => {
-        this.toastr.error('Erreur lors de la création de la demande');
+      error: (error: any) => {
+        this.toastr.error(error.error?.message || error.message || 'Erreur lors de la création de la demande');
         this.spinner.hide();
       }
     });

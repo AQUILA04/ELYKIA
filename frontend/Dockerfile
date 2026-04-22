@@ -2,9 +2,9 @@
 FROM node:14 AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 COPY . .
-RUN npm run build
+RUN npm run build -- --configuration production
 
 # Stage 2: Serve the application with Nginx
 FROM nginx:alpine

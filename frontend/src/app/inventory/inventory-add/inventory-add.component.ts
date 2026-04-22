@@ -46,7 +46,7 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
 
   loadArticles(): void {
     this.spinner.show();
-    const loadSub = this.inventoryService.getInventories(0, 10000).subscribe({
+    const loadSub = this.inventoryService.getEnabledArticles(0, 10000).subscribe({
       next: (response: ApiResponse) => {
         this.spinner.hide();
         if (response.statusCode === 200) {

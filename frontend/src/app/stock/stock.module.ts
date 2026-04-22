@@ -18,6 +18,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { SalesDetailsDialogComponent } from './components/sales-details-dialog/sales-details-dialog.component';
+import { StockMovementDialogComponent } from './components/stock-movement-dialog/stock-movement-dialog.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatTableModule } from '@angular/material/table';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { StockReceptionListComponent } from './pages/stock-reception-list/stock-reception-list.component';
+import { StockReceptionDetailComponent } from './pages/stock-reception-detail/stock-reception-detail.component';
+import { RattrapageCreditAddComponent } from './rattrapage/rattrapage-credit-add.component';
 
 
 @NgModule({
@@ -26,7 +34,12 @@ import { MatPaginatorModule } from '@angular/material/paginator';
     StockRequestCreateComponent,
     MyStockDashboardComponent,
     StockReturnListComponent,
-    StockReturnCreateComponent
+    StockReturnCreateComponent,
+    SalesDetailsDialogComponent,
+    StockMovementDialogComponent,
+    StockReceptionListComponent,
+    StockReceptionDetailComponent,
+    RattrapageCreditAddComponent
   ],
   imports: [
     CommonModule,
@@ -42,7 +55,10 @@ import { MatPaginatorModule } from '@angular/material/paginator';
     MatFormFieldModule,
     NgSelectModule,
     MatExpansionModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatDialogModule,
+    MatTableModule,
+    MatProgressSpinnerModule
   ]
 })
 export class StockModule { }

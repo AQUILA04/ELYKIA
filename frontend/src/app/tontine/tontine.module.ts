@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { NgxPermissionsModule } from 'ngx-permissions'; // Added NgxPermissionsModule import
+import { SharedComponentsModule } from '../shared/components/shared-components.module';
 
 import { MatOptionModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -32,6 +33,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatRadioModule } from '@angular/material/radio'; // Added MatRadioModule
 
 // Pages
 import { TontineDashboardComponent } from './pages/tontine-dashboard/tontine-dashboard.component';
@@ -57,6 +59,12 @@ import { TontineDeliveryService } from './services/tontine-delivery.service';
 import { TontineSessionService } from './services/tontine-session.service';
 import { AddMultipleMembersModalComponent } from './components/modals/add-multiple-members-modal';
 
+// Import des composants de Collectes de Tontine
+import { TontineCollecteComponent } from './collecte/tontine-collecte.component';
+import { TontineCollecteKpiComponent } from './collecte/components/tontine-collecte-kpi/tontine-collecte-kpi.component';
+import { TontineCollecteFilterComponent } from './collecte/components/tontine-collecte-filter/tontine-collecte-filter.component';
+import { TontineCollecteTableComponent } from './collecte/components/tontine-collecte-table/tontine-collecte-table.component';
+
 @NgModule({
   declarations: [
     // Pages
@@ -64,19 +72,25 @@ import { AddMultipleMembersModalComponent } from './components/modals/add-multip
     MemberDetailsComponent,
     SessionComparisonComponent,
     TontineMagasinierDashboardComponent, // Declared new component
-    
+
     // Components
     TontineKpiCardComponent,
     TontineFilterBarComponent,
     TontineMemberTableComponent,
     SessionSelectorComponent,
-    
+
     // Modals
     AddMemberModalComponent,
     AddMultipleMembersModalComponent,
     RecordCollectionModalComponent,
     SessionSettingsModalComponent,
-    DeliveryArticleSelectionModalComponent
+    DeliveryArticleSelectionModalComponent,
+
+    // Collectes
+    TontineCollecteComponent,
+    TontineCollecteKpiComponent,
+    TontineCollecteFilterComponent,
+    TontineCollecteTableComponent
   ],
   imports: [
     // Modules Angular de base
@@ -85,7 +99,7 @@ import { AddMultipleMembersModalComponent } from './components/modals/add-multip
     ReactiveFormsModule,
     RouterModule,
     TontineRoutingModule,
-    
+
     // Modules Angular Material
     MatIconModule,
     MatButtonModule,
@@ -108,6 +122,9 @@ import { AddMultipleMembersModalComponent } from './components/modals/add-multip
     MatProgressBarModule,
     MatOptionModule,
     MatCheckboxModule,
+    MatRadioModule, // Added MatRadioModule to imports
+
+    SharedComponentsModule
   ],
   providers: [
     TontineService,

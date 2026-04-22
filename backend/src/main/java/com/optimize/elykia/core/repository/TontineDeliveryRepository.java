@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.repository;
 
-import com.optimize.elykia.core.entity.TontineDelivery;
+import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

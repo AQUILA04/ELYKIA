@@ -25,6 +25,11 @@ import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { LoggerService } from './logger.service';
 import { TontineService } from './tontine.service';
 import * as TontineActions from '../../store/tontine/tontine.actions';
+import * as CommercialStockActions from '../../store/commercial-stock/commercial-stock.actions';
+import { CommercialStockService } from './commercial-stock.service';
+import { User } from '../../models/auth.model';
+import { RestoreResult } from '../models/restore.models';
+import { ParameterService } from './parameter.service';
 
 @Injectable({
   providedIn: 'root'
@@ -45,11 +50,23 @@ export class DataInitializationService {
     private recoveryService: RecoveryService,
     private transactionService: TransactionService,
     private log: LoggerService,
-    private tontineService: TontineService
+    private tontineService: TontineService,
+    private commercialStockService: CommercialStockService,
+    private parameterService: ParameterService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
     });
+  }
+
+  initializeParameters(): Observable<boolean> {
+    return this.parameterService.initializeParameters().pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Error initializing parameters:', error);
+        return of(false);
+      })
+    );
   }
 
   initializeArticles(): Observable<boolean> {
@@ -68,7 +85,6 @@ export class DataInitializationService {
   initializeLocalities(): Observable<boolean> {
     return this.localityService.initializeLocalities().pipe(
       map(() => {
-        this.store.dispatch(LocalityActions.loadLocalities());
         return true;
       }),
       catchError((error) => {
@@ -80,11 +96,10 @@ export class DataInitializationService {
 
   initializeClients(forceRefresh: boolean = false): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
-      take(1), // On prend la valeur une seule fois et on se désabonne
-      filter(user => !!user), // On s'assure que l'utilisateur existe
+      take(1),
+      filter((user): user is User => !!user),
       switchMap(user => {
         const commercialUsername = user.username;
-        // On a maintenant la certitude d'avoir le username
         return this.clientService.initializeClients(commercialUsername, forceRefresh).pipe(
           map(() => {
             this.store.dispatch(ClientActions.loadClients({ commercialUsername }));
@@ -112,15 +127,20 @@ export class DataInitializationService {
   initializeCommercial(): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
       take(1),
-      filter(user => !!user),
+      filter((user): user is User => !!user),
       switchMap(user => {
         const commercialUsername = user.username;
+        this.log.log(`[DataInit] Initializing commercial for: ${commercialUsername}`);
         return this.commercialService.initializeCommercial(commercialUsername).pipe(
           map(() => {
+            this.log.log(`[DataInit] Commercial initialized, dispatching load for: ${commercialUsername}`);
             this.store.dispatch(CommercialActions.loadCommercial({ commercialUsername }));
             return true;
           }),
-          catchError(error => of(false))
+          catchError(error => {
+            this.log.log(`[DataInit] Error initializing commercial: ${error}`);
+            return of(false);
+          })
         );
       })
     );
@@ -130,12 +150,11 @@ export class DataInitializationService {
   initializeStockOutputs(): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
       take(1),
-      filter(user => !!user),
+      filter((user): user is User => !!user),
       switchMap(user => {
         const commercialUsername = user.username;
         return this.stockOutputService.initializeStockOutputs(commercialUsername).pipe(
           map(() => {
-            this.store.dispatch(StockOutputActions.loadStockOutputs({ commercialUsername }));
             return true;
           }),
           catchError(error => of(false))
@@ -144,10 +163,30 @@ export class DataInitializationService {
     );
   }
 
+  initializeCommercialStock(): Observable<boolean> {
+    return this.store.select(selectAuthUser).pipe(
+      take(1),
+      filter((user): user is User => !!user),
+      switchMap(user => {
+        const commercialUsername = user.username;
+        return this.commercialStockService.syncCommercialStock(commercialUsername).pipe(
+          map(() => {
+            this.store.dispatch(CommercialStockActions.loadCommercialStock({ commercialUsername }));
+            return true;
+          }),
+          catchError(error => {
+            console.error('Error initializing commercial stock:', error);
+            return of(false);
+          })
+        );
+      })
+    );
+  }
+
   initializeDistributions(): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
       take(1),
-      filter(user => !!user),
+      filter((user): user is User => !!user),
       switchMap(user => {
         return this.distributionService.initializeDistributions().pipe(
           map(() => {
@@ -166,7 +205,6 @@ export class DataInitializationService {
   initializeAccounts(): Observable<boolean> {
     return this.accountService.initializeAccounts().pipe(
       map(() => {
-        this.store.dispatch(AccountActions.loadAccounts());
         return true;
       }),
       catchError((error) => {
@@ -179,7 +217,7 @@ export class DataInitializationService {
   initializeRecoveries(): Observable<boolean> {
     return this.store.select(selectAuthUser).pipe(
       take(1),
-      filter(user => !!user),
+      filter((user): user is User => !!user),
       switchMap(user => {
         return this.recoveryService.initializeRecoveries().pipe(
           map(() => {
@@ -196,19 +234,24 @@ export class DataInitializationService {
   }
 
   initializeTransactions(): Observable<boolean> {
-    this.store.dispatch(TransactionActions.loadTransactions());
     return of(true);
   }
 
   initializeTontine(): Observable<boolean> {
-    return this.tontineService.initializeTontine().pipe(
-      map(() => {
-        this.store.dispatch(TontineActions.loadTontineSession());
-        return true;
-      }),
-      catchError(error => {
-        console.error('Error initializing tontine:', error);
-        return of(false);
+    return this.store.select(selectAuthUser).pipe(
+      take(1),
+      filter((user): user is User => !!user),
+      switchMap(user => {
+        return this.tontineService.initializeTontine(user.username).pipe(
+          map(() => {
+            this.store.dispatch(TontineActions.loadTontineSession());
+            return true;
+          }),
+          catchError(error => {
+            console.error('Error initializing tontine:', error);
+            return of(false);
+          })
+        );
       })
     );
   }
@@ -325,7 +368,7 @@ export class DataInitializationService {
 
   }
 
-  async restoreFromBackup(backupFilePath?: string): Promise<void> {
+  async restoreFromBackup(backupFilePath?: string): Promise<RestoreResult> {
     this.log.log('[DataInitializationService] Starting restore from backup...');
 
     let fileToRestore: string | null | undefined = backupFilePath;
@@ -339,8 +382,9 @@ export class DataInitializationService {
     }
 
     this.log.log(`[DataInitializationService] Found backup file: ${fileToRestore}, starting restore.`);
-    await this.dbService.restoreFromBackup(fileToRestore);
-    this.log.log('[DataInitializationService] Restore complete.');
+    const result = await this.dbService.restoreFromBackup(fileToRestore);
+    this.log.log(`[DataInitializationService] Restore complete. Success: ${result.success}, Statements: ${result.successfulStatements}/${result.totalStatements}`);
+    return result;
   }
 
 
@@ -350,13 +394,13 @@ export class DataInitializationService {
       concatMap(() => this.initializeLocalities()),
       concatMap(() => this.initializeClients()),
       concatMap(() => this.initializeStockOutputs()),
+      concatMap(() => this.initializeCommercialStock()),
       concatMap(() => this.initializeDistributions()),
       concatMap(() => this.initializeAccounts()),
       concatMap(() => this.initializeRecoveries()),
       concatMap(() => this.initializeTontine()),
       concatMap(() => from(this.validateInitialData()))
-    );
+    ) as Observable<boolean>;
   }
 
 }
-

@@ -5,7 +5,7 @@
                 <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
             </ion-button>
         </ion-buttons>
-        <ion-title>Nouvel Enregistrement</ion-title>
+        <ion-title>{{ isEditMode ? 'Modification du Membre' : 'Nouvel Enregistrement' }}</ion-title>
     </ion-toolbar>
 </ion-header>
 
@@ -18,7 +18,8 @@
             <h2>Sélection du Client</h2>
         </div>
 
-        <div class="client-selector-card" *ngIf="!selectedClient" (click)="selectClient()">
+        <div class="client-selector-card" *ngIf="!selectedClient" (click)="!isEditMode && selectClient()"
+            [class.disabled]="isEditMode">
             <ion-icon name="add-circle-outline" class="add-icon"></ion-icon>
             <p class="selector-text">Appuyez pour sélectionner un client</p>
         </div>
@@ -33,7 +34,7 @@
                     <p>{{getClientInfo()}}</p>
                 </div>
             </div>
-            <ion-button fill="clear" color="danger" (click)="removeClient()">
+            <ion-button fill="clear" color="danger" (click)="removeClient()" *ngIf="!isEditMode">
                 <ion-icon slot="icon-only" name="close-circle"></ion-icon>
             </ion-button>
         </div>
@@ -65,7 +66,8 @@
         </div>
 
         <ion-item class="amount-input" lines="none">
-            <ion-input type="number" formControlName="amount" placeholder="Entrez le montant" min="200" max="500000" step="100">
+            <ion-input type="number" formControlName="amount" placeholder="Entrez le montant" min="100" max="50000000"
+                step="100">
             </ion-input>
             <span class="currency" slot="end">FCFA</span>
         </ion-item>
@@ -74,6 +76,26 @@
             *ngIf="registrationForm.get('amount')?.invalid && registrationForm.get('amount')?.touched">
             <ion-icon name="alert-circle-outline"></ion-icon>
             <span>Le montant est requis et doit être supérieur à 0</span>
+        </div>
+
+        <!-- Update Scope Section (Only visible when editing amount) -->
+        <div *ngIf="showUpdateScope">
+            <div class="section-header">
+                <ion-icon name="options-outline"></ion-icon>
+                <h2>Portée de la modification</h2>
+            </div>
+            <p class="helper-text">Le montant a changé. Veuillez choisir comment appliquer ce changement :</p>
+
+            <ion-list class="scope-list">
+                <ion-radio-group formControlName="updateScope">
+                    <ion-item *ngFor="let option of updateScopeOptions" lines="none" class="scope-item">
+                        <ion-radio [value]="option.value" slot="start"></ion-radio>
+                        <ion-label class="ion-text-wrap">
+                            <h3>{{option.label}}</h3>
+                        </ion-label>
+                    </ion-item>
+                </ion-radio-group>
+            </ion-list>
         </div>
 
         <!-- Notes Section -->
@@ -92,7 +114,7 @@
         <ion-button expand="block" type="submit" class="submit-button"
             [disabled]="!selectedClient || registrationForm.invalid">
             <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-            Enregistrer le Membre
+            {{ isEditMode ? 'Modifier le Membre' : 'Enregistrer le Membre' }}
         </ion-button>
 
     </form>

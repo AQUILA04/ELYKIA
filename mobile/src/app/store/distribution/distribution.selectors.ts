@@ -37,7 +37,33 @@ export const selectSelectedClient = createSelector(
 
 export const selectAvailableArticles = createSelector(
   selectDistributionState,
-  (state) => state.availableArticles
+  (state) => state.articlesPagination.items
+);
+
+// Add selectors for articles pagination
+export const selectArticlesPaginationLoading = createSelector(
+  selectDistributionState,
+  (state) => state.articlesPagination.loading
+);
+
+export const selectArticlesPaginationError = createSelector(
+  selectDistributionState,
+  (state) => state.articlesPagination.error
+);
+
+export const selectArticlesPaginationTotal = createSelector(
+  selectDistributionState,
+  (state) => state.articlesPagination.totalItems
+);
+
+export const selectArticlesPaginationHasMore = createSelector(
+  selectDistributionState,
+  (state) => state.articlesPagination.hasMore
+);
+
+export const selectSelectedArticlesCache = createSelector(
+  selectDistributionState,
+  (state) => state.selectedArticlesCache
 );
 
 export const selectArticleQuantities = createSelector(
@@ -47,12 +73,12 @@ export const selectArticleQuantities = createSelector(
 
 export const selectArticlesLoading = createSelector(
   selectDistributionState,
-  (state) => state.articlesLoading
+  (state) => state.articlesLoading || state.articlesPagination.loading
 );
 
 export const selectArticlesError = createSelector(
   selectDistributionState,
-  (state) => state.articlesError
+  (state) => state.articlesError || state.articlesPagination.error
 );
 
 export const selectCreatingDistribution = createSelector(
@@ -87,17 +113,20 @@ export const selectCanCreateDistribution = createSelector(
 );
 
 export const selectSelectedArticlesWithDetails = createSelector(
-  selectAvailableArticles,
+  selectSelectedArticlesCache,
   selectArticleQuantities,
-  (articles, quantities) => {
-    return articles
-      .filter((article: any) => quantities[article.id] > 0)
-      .map((article: any) => ({
-        article,
-        quantity: quantities[article.id],
-        unitPrice: article.creditSalePrice,
-        totalPrice: article.creditSalePrice * quantities[article.id]
-      }));
+  (cache, quantities) => {
+    return Object.keys(quantities)
+      .filter(id => quantities[id] > 0 && cache[id])
+      .map(id => {
+        const article = cache[id];
+        return {
+          article,
+          quantity: quantities[id],
+          unitPrice: article.creditSalePrice,
+          totalPrice: article.creditSalePrice * quantities[id]
+        };
+      });
   }
 );
 
@@ -174,7 +203,47 @@ export const selectDistributionsByCommercialId = (commercialId: string) => creat
   (distributions) => distributions.filter(d => d.commercialId === commercialId)
 );
 
+
 export const selectDistributionsByCommercialUsername = (commercialUsername: string) => createSelector(
   selectAllDistributions,
   (distributions) => distributions.filter(d => d.commercialId === commercialUsername)
 );
+
+// Pagination Selectors
+export const selectDistributionPagination = createSelector(
+  selectDistributionState,
+  (state) => state.pagination
+);
+
+export const selectPaginatedDistributions = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.items
+);
+
+export const selectDistributionPaginationLoading = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.loading
+);
+
+export const selectDistributionPaginationError = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.error
+);
+
+export const selectDistributionPaginationHasMore = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.hasMore
+);
+
+export const selectDistributionPaginationTotalItems = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.totalItems
+);
+
+export const selectDistributionPaginationPage = createSelector(
+  selectDistributionPagination,
+  (pagination) => pagination.currentPage
+);
+
+// KPI Stats Selectors
+

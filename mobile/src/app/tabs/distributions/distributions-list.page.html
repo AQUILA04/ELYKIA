@@ -10,97 +10,116 @@
 </ion-header>
 
 <ion-content>
-  <!-- Pull to Refresh -->
-  <ion-refresher slot="fixed" (ionRefresh)="refreshDistributions($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
+  <ng-container *ngIf="vm$ | async as vm">
+    <!-- Pull to Refresh -->
+    <ion-refresher slot="fixed" (ionRefresh)="refreshDistributions($event)">
+      <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
 
-  <!-- Quick Actions -->
-  <div class="quick-actions">
-    <ion-card class="action-card" button (click)="goToNewDistribution()">
-      <ion-card-content><div class="action-content"><ion-icon name="add-circle" class="action-icon primary"></ion-icon><div class="action-text"><h3>Nouvelle Distribution</h3><p>Enregistrer une vente à crédit</p></div></div></ion-card-content>
-    </ion-card>
-    <ion-card class="action-card" button (click)="goToNewOrder()">
-      <ion-card-content><div class="action-content"><ion-icon name="receipt" class="action-icon success"></ion-icon><div class="action-text"><h3>Nouvelle Commande</h3><p>Enregistrer une commande client</p></div></div></ion-card-content>
-    </ion-card>
-  </div>
-
-  <!-- Search and Filters -->
-  <div class="search-section">
-    <ion-searchbar
-      placeholder="Rechercher par client, référence..."
-      (ionInput)="onSearchChange($event)"
-      (ionClear)="clearSearch()"
-      debounce="300">
-    </ion-searchbar>
-  </div>
-
-  <!-- Stats Section -->
-  @if (vm.stats) {
-  <div class="stats-section">
-    <ion-card><ion-card-content><div class="stat-number">{{ vm.stats.total }}</div><div class="stat-label">Total</div></ion-card-content></ion-card>
-    <ion-card><ion-card-content><div class="stat-number">{{ vm.stats.active }}</div><div class="stat-label">En cours</div></ion-card-content></ion-card>
-    <ion-card><ion-card-content><div class="stat-number">{{ vm.stats.totalAmount | number:'1.0-0' }}</div><div class="stat-label">FCFA</div></ion-card-content></ion-card>
-  </div>
-  }
-
-  <!-- Loading State -->
-  @if (vm.loading && vm.displayedDistributions.length === 0) {
-  <div class="loading-container">
-    <ion-spinner name="crescent" color="primary"></ion-spinner>
-    <p>Chargement des distributions...</p>
-  </div>
-  }
-
-  <!-- Error State -->
-  @if (vm.error) {
-  <div class="error-container">
-    <ion-card color="danger">
-      <ion-card-content>
-        <div class="error-content">
-          <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
-          <h3>Erreur de chargement</h3>
-          <p>{{ vm.error }}</p>
-          <ion-button fill="outline" color="light" (click)="retryLoadDistributions()">
-            <ion-icon name="refresh-outline" slot="start"></ion-icon>
-            Réessayer
-          </ion-button>
-        </div>
-      </ion-card-content>
-    </ion-card>
-  </div>
-  }
-
-  <!-- Distributions List -->
-  @if (!vm.loading || vm.displayedDistributions.length > 0) {
-  <div class="distributions-list">
-    <div class="list-header">
-      <div class="list-title">Historique des Distributions</div>
-      <div class="list-count">{{ vm.stats.total }}</div>
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <ion-card class="action-card" button (click)="goToNewDistribution()">
+        <ion-card-content>
+          <div class="action-content"><ion-icon name="add-circle" class="action-icon primary"></ion-icon>
+            <div class="action-text">
+              <h3>Nouvelle Distribution</h3>
+              <p>Enregistrer une vente à crédit</p>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="action-card" button (click)="goToNewOrder()">
+        <ion-card-content>
+          <div class="action-content"><ion-icon name="receipt" class="action-icon success"></ion-icon>
+            <div class="action-text">
+              <h3>Nouvelle Commande</h3>
+              <p>Enregistrer une commande client</p>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
     </div>
 
-    <!-- Empty State: S'affiche si la recherche ne renvoie aucun résultat -->
-    @if (!vm.loading && allDistributions.length === 0) {
-    <div class="empty-state">
+    <!-- Search and Filters -->
+    <div class="search-section">
+      <ion-searchbar placeholder="Rechercher par client, référence..." [formControl]="searchControl"
+        (ionClear)="clearSearch()">
+      </ion-searchbar>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats-section" *ngIf="vm.stats">
+      <ion-card><ion-card-content>
+          <div class="stat-number">{{ vm.stats.total }}</div>
+          <div class="stat-label">Total</div>
+        </ion-card-content></ion-card>
+      <ion-card><ion-card-content>
+          <div class="stat-number">{{ vm.stats.active }}</div>
+          <div class="stat-label">En cours</div>
+        </ion-card-content></ion-card>
+      <ion-card><ion-card-content>
+          <div class="stat-number">{{ vm.stats.totalAmount | number:'1.0-0' }}</div>
+          <div class="stat-label">FCFA</div>
+        </ion-card-content></ion-card>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="vm.loading && vm.distributions.length === 0">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Chargement des distributions...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-container" *ngIf="vm.error">
+      <ion-card color="danger">
+        <ion-card-content>
+          <div class="error-content">
+            <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+            <h3>Erreur de chargement</h3>
+            <p>{{ vm.error }}</p>
+            <ion-button fill="outline" color="light" (click)="retryLoadDistributions()">
+              <ion-icon name="refresh-outline" slot="start"></ion-icon>
+              Réessayer
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Debug Info (Temporary) -->
+    <!-- <div style="padding: 10px; background: #f0f0f0; font-size: 10px;">
+      DEBUG: Distributions: {{ vm.distributions.length }}, Loading: {{ vm.loading }}, Total: {{ vm.totalItems }}
+    </div> -->
+
+    <!-- Distributions List -->
+    <div class="distributions-list" *ngIf="vm.distributions.length > 0 || (!vm.loading && vm.totalItems > 0)">
+      <div class="list-header">
+        <div class="list-title">Historique des Distributions</div>
+        <!-- Display filtered count here -->
+        <div class="list-count">{{ vm.totalItems }}</div>
+      </div>
+
+      <ion-list>
+        <app-distribution-item *ngFor="let distribution of vm.distributions; trackBy: trackByDistributionId"
+          [distribution]="distribution" (click)="openDistributionDetail(distribution)">
+        </app-distribution-item>
+      </ion-list>
+
+      <ion-infinite-scroll (ionInfinite)="loadMoreData($event)">
+        <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement...">
+        </ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    </div>
+
+    <!-- Empty State (Moved outside the list container to ensure visibility) -->
+    <div class="empty-state" *ngIf="!vm.loading && vm.distributions.length === 0 && !vm.error">
       <ion-icon name="receipt-outline" class="empty-icon"></ion-icon>
       <h3>Aucune distribution trouvée</h3>
       <p>Essayez un autre terme de recherche ou créez une nouvelle distribution.</p>
       <ion-button fill="solid" color="primary" (click)="goToNewDistribution()">Nouvelle Distribution</ion-button>
     </div>
-    }
 
-    <ion-list>
-      <app-distribution-item *ngFor="let distribution of vm.displayedDistributions; trackBy: trackByDistributionId"
-                             [distribution]="distribution" (click)="openDistributionDetail(distribution)">
-      </app-distribution-item>
-    </ion-list>
-
-    <ion-infinite-scroll (ionInfinite)="loadMoreData($event)" [disabled]="isInfiniteScrollDisabled">
-      <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement...">
-      </ion-infinite-scroll-content>
-    </ion-infinite-scroll>
-  </div>
-  }
+  </ng-container>
 
   <!-- Floating Action Button -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
@@ -109,4 +128,3 @@
     </ion-fab-button>
   </ion-fab>
 </ion-content>
-

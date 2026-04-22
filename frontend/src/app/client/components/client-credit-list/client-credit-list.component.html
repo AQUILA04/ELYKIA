@@ -1,0 +1,96 @@
+<div class="tab-content p-3">
+  <div *ngIf="credits.length === 0" class="text-center p-4 text-muted">
+    Aucun achat enregistré.
+  </div>
+
+  <mat-accordion multi>
+    <mat-expansion-panel *ngFor="let credit of credits" class="mb-2 shadow-sm" (opened)="onExpand(credit.id)">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <strong>{{ credit.reference }}</strong>
+        </mat-panel-title>
+        <mat-panel-description class="d-flex justify-content-between align-items-center w-100">
+          <span class="d-none d-sm-inline">{{ credit.beginDate | date:'dd/MM/yyyy' }}</span>
+          <span class="font-weight-bold mx-3">{{ credit.totalAmount | currency:'XOF':'symbol':'1.0-0' }}</span>
+          <span class="badge ml-2" [ngClass]="getStatusClass(credit.status)">{{ getStatusLabel(credit.status) }}</span>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <!-- Détail Crédit : Articles -->
+      <div class="articles-section mt-3">
+        <h6 class="text-primary border-bottom pb-2">Articles achetés</h6>
+
+        <div *ngIf="loadingArticles[credit.id]" class="text-center py-3">
+          <mat-spinner diameter="30" class="mx-auto"></mat-spinner>
+        </div>
+
+        <div *ngIf="!loadingArticles[credit.id] && (!creditArticles[credit.id] || creditArticles[credit.id].length === 0)" class="text-center text-muted py-2">
+          Aucun article trouvé pour cet achat.
+        </div>
+
+        <div class="table-responsive" *ngIf="!loadingArticles[credit.id] && creditArticles[credit.id] && creditArticles[credit.id].length > 0">
+          <table class="table table-sm table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th>Article</th>
+                <th>Qté</th>
+                <th class="text-right">P.U.</th>
+                <th class="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of creditArticles[credit.id]">
+                <td>{{ item.articles?.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td class="text-right">{{ item.articles?.creditSalePrice | number:'1.0-0' }}</td>
+                <td class="text-right">{{ (item.quantity * item.articles?.creditSalePrice) | number:'1.0-0' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Détail Crédit : Cotisations (Timelines) -->
+      <div class="cotisations-section mt-4">
+        <h6 class="text-primary border-bottom pb-2">Historique des paiements</h6>
+
+        <div *ngIf="loadingTimelines[credit.id]" class="text-center py-3">
+          <mat-spinner diameter="30" class="mx-auto"></mat-spinner>
+        </div>
+
+        <div *ngIf="!loadingTimelines[credit.id] && (!creditTimelines[credit.id] || creditTimelines[credit.id].length === 0)" class="text-center text-muted py-2">
+          Aucun paiement enregistré pour cet achat.
+        </div>
+
+        <div class="table-responsive" *ngIf="!loadingTimelines[credit.id] && creditTimelines[credit.id] && creditTimelines[credit.id].length > 0">
+          <table class="table table-sm table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th>Date</th>
+                <th>Référence</th>
+                <th class="text-right">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let timeline of creditTimelines[credit.id]">
+                <td>{{ timeline.creationDate | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ timeline.reference }}</td>
+                <td class="text-right font-weight-bold text-success">{{ timeline.amount | currency:'XOF':'symbol':'1.0-0' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <!-- Pagination toujours visible si des crédits existent -->
+  <mat-paginator
+    [length]="totalCreditElements"
+    [pageSize]="creditPageSize"
+    [pageSizeOptions]="[5, 10, 20, 50]"
+    (page)="onPageChange($event)"
+    [hidden]="credits.length === 0">
+  </mat-paginator>
+</div>

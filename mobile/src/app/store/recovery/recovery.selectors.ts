@@ -3,6 +3,7 @@ import { RecoveryState } from './recovery.reducer';
 import { selectAllClients, selectClientViewsByCommercialUsername } from '../client/client.selectors';
 import { selectAllDistributions } from '../distribution/distribution.selectors';
 import { RecoveryView } from '../../models/recovery-view.model';
+import { Client } from '../../models/client.model';
 
 export const selectRecoveryState = createFeatureSelector<RecoveryState>('recovery');
 
@@ -19,19 +20,21 @@ export const selectRecoveryViews = createSelector(
     return recoveries.map(recovery => {
       const client = clients.find(c => c.id === recovery.clientId);
       const distribution = distributions.find(d => d.id === recovery.distributionId);
-      const { clientId, distributionId, ...recoveryProps } = recovery;
+      const { clientId, distributionId, ...recoveryProps } = recovery as any;
       return {
         ...recoveryProps,
         client,
-        distribution
+        distribution,
+        clientName: client ? (client.fullName || `${client.firstname} ${client.lastname}`) : 'Inconnu',
+        distributionReference: distribution?.reference
       } as RecoveryView;
     });
   }
 );
 
 export const selectRecoveryViewById = (id: string) => createSelector(
-    selectRecoveryViews,
-    (recoveryViews: RecoveryView[]) => recoveryViews.find(rv => rv.id === id)
+  selectRecoveryViews,
+  (recoveryViews: RecoveryView[]) => recoveryViews.find(rv => rv.id === id)
 );
 
 
@@ -159,4 +162,51 @@ export const selectClientsForRecovery = (username: string) => createSelector(
 
     return clientViews.filter(client => client.creditInProgress && !recoveredTodayClientIds.has(String(client.id)));
   }
+);
+
+// ==================== PAGINATION SELECTORS ====================
+
+export const selectRecoveryPagination = createSelector(
+  selectRecoveryState,
+  (state) => state.pagination
+);
+
+export const selectPaginatedRecoveries = createSelector(
+  selectRecoveryPagination,
+  (pagination) => pagination.items
+);
+
+export const selectRecoveryPaginationLoading = createSelector(
+  selectRecoveryPagination,
+  (pagination) => pagination.loading
+);
+
+export const selectRecoveryPaginationError = createSelector(
+  selectRecoveryPagination,
+  (pagination) => pagination.error
+);
+
+export const selectRecoveryPaginationHasMore = createSelector(
+  selectRecoveryPagination,
+  (pagination) => pagination.hasMore
+);
+
+export const selectRecoveryPaginationCurrentPage = createSelector(
+  selectRecoveryPagination,
+  (pagination) => pagination.currentPage
+);
+
+export const selectRecoveryPaginationTotalItems = createSelector(
+  selectRecoveryPagination,
+  (pagination) => pagination.totalItems
+);
+
+
+
+/**
+ * Selector for paginated recovery views (already mapped by repository)
+ */
+export const selectPaginatedRecoveryViews = createSelector(
+  selectPaginatedRecoveries,
+  (recoveries) => recoveries // recoveries is already RecoveryView[]
 );

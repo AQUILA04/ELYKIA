@@ -1,9 +1,10 @@
 package com.optimize.elykia.core.service;
 
 import com.optimize.elykia.core.dto.ExpenseTypeDto;
-import com.optimize.elykia.core.entity.ExpenseType;
+import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.mapper.ExpenseTypeMapper;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
+import com.optimize.elykia.core.service.expense.ExpenseTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +17,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;

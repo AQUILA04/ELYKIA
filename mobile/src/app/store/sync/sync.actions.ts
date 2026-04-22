@@ -34,10 +34,13 @@ export const loadManualSyncData = createAction(
 
 export const loadManualSyncDataSuccess = createAction(
   '[Sync] Load Manual Sync Data Success',
-  props<{ 
-    clients: any[], 
-    distributions: any[], 
-    recoveries: any[] 
+  props<{
+    clients: any[],
+    distributions: any[],
+    recoveries: any[],
+    tontineMembers?: any[],
+    tontineCollections?: any[],
+    tontineDeliveries?: any[]
   }>()
 );
 
@@ -46,41 +49,137 @@ export const loadManualSyncDataFailure = createAction(
   props<{ error: any }>()
 );
 
+// ==================== ACTIONS PAGINATION (MANUAL SYNC) ====================
+
+export const loadManualSyncDataPaginated = createAction(
+  '[Sync] Load Manual Sync Data Paginated',
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
+    page: number,
+    size: number,
+    filters?: any
+  }>()
+);
+
+export const loadManualSyncDataPaginatedSuccess = createAction(
+  '[Sync] Load Manual Sync Data Paginated Success',
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
+    data: any[],
+    pageInfo: {
+      page: number,
+      size: number,
+      totalPages: number,
+      totalElements: number
+    }
+  }>()
+);
+
+export const loadManualSyncDataPaginatedFailure = createAction(
+  '[Sync] Load Manual Sync Data Paginated Failure',
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
+    error: any
+  }>()
+);
+
+export const loadMoreManualSyncData = createAction(
+  '[Sync] Load More Manual Sync Data',
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery'
+  }>()
+);
+
+// ==================== ACTIONS SÉLECTION PARENT (MODALE) ====================
+
+export const loadSyncedParentsPaginated = createAction(
+  '[Sync] Load Synced Parents Paginated',
+  props<{
+    entityType: 'client' | 'distribution' | 'tontine-member',
+    page: number,
+    size: number,
+    filters?: any
+  }>()
+);
+
+export const loadSyncedParentsPaginatedSuccess = createAction(
+  '[Sync] Load Synced Parents Paginated Success',
+  props<{
+    entityType: 'client' | 'distribution' | 'tontine-member',
+    data: any[],
+    pageInfo: {
+      page: number,
+      size: number,
+      totalPages: number,
+      totalElements: number
+    }
+  }>()
+);
+
+export const loadSyncedParentsPaginatedFailure = createAction(
+  '[Sync] Load Synced Parents Paginated Failure',
+  props<{
+    entityType: 'client' | 'distribution' | 'tontine-member',
+    error: any
+  }>()
+);
+
+export const searchSyncedParents = createAction(
+  '[Sync] Search Synced Parents',
+  props<{
+    entityType: 'client' | 'distribution' | 'tontine-member',
+    query: string
+  }>()
+);
+
+export const loadMoreSyncedParents = createAction(
+  '[Sync] Load More Synced Parents',
+  props<{
+    entityType: 'client' | 'distribution' | 'tontine-member'
+  }>()
+);
+
+export const clearParentSelectionState = createAction(
+  '[Sync] Clear Parent Selection State'
+);
+
+// ==================== ACTIONS UI & SELECTION ====================
+
 export const setActiveTab = createAction(
   '[Sync] Set Active Tab',
-  props<{ tab: 'clients' | 'distributions' | 'recoveries' | 'all' }>()
+  props<{ tab: 'clients' | 'distributions' | 'recoveries' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries' | 'all' }>()
 );
 
 export const toggleEntitySelection = createAction(
   '[Sync] Toggle Entity Selection',
-  props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
-    entityId: string 
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
+    entityId: string
   }>()
 );
 
 export const selectAllEntities = createAction(
   '[Sync] Select All Entities',
-  props<{ entityType: 'client' | 'distribution' | 'recovery' }>()
+  props<{ entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery' }>()
 );
 
 export const clearEntitySelection = createAction(
   '[Sync] Clear Entity Selection',
-  props<{ entityType: 'client' | 'distribution' | 'recovery' }>()
+  props<{ entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery' }>()
 );
 
 export const startManualSync = createAction(
   '[Sync] Start Manual Sync',
-  props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
-    selectedIds: string[] 
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery' | 'clients' | 'distributions' | 'recoveries' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries',
+    selectedIds: string[]
   }>()
 );
 
 export const manualSyncProgress = createAction(
   '[Sync] Manual Sync Progress',
-  props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
     processed: number,
     total: number,
     currentItem: string
@@ -89,8 +188,8 @@ export const manualSyncProgress = createAction(
 
 export const manualSyncSuccess = createAction(
   '[Sync] Manual Sync Success',
-  props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery' | 'clients' | 'distributions' | 'recoveries' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries',
     successCount: number,
     errorCount: number
   }>()
@@ -98,34 +197,34 @@ export const manualSyncSuccess = createAction(
 
 export const manualSyncFailure = createAction(
   '[Sync] Manual Sync Failure',
-  props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
-    error: any 
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery' | 'clients' | 'distributions' | 'recoveries' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries',
+    error: any
   }>()
 );
 
 export const syncSingleEntity = createAction(
   '[Sync] Sync Single Entity',
-  props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
-    entityId: string 
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
+    entityId: string
   }>()
 );
 
 export const syncSingleEntitySuccess = createAction(
   '[Sync] Sync Single Entity Success',
-  props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
-    entityId: string 
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
+    entityId: string
   }>()
 );
 
 export const syncSingleEntityFailure = createAction(
   '[Sync] Sync Single Entity Failure',
-  props<{ 
-    entityType: 'client' | 'distribution' | 'recovery',
+  props<{
+    entityType: 'client' | 'distribution' | 'recovery' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery',
     entityId: string,
-    error: any 
+    error: any
   }>()
 );
 

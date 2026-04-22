@@ -10,6 +10,8 @@ import { RecoveryState } from './recovery/recovery.reducer';
 import { TransactionState } from './transaction/transaction.reducer';
 import { SyncState } from './sync/sync.reducer';
 import { LocalityState } from './locality/locality.reducer';
+import { KpiState } from './kpi/kpi.reducer';
+import { PreferencesState } from './preferences/preferences.reducer';
 
 export interface AppState {
   auth: AuthState | undefined;
@@ -24,4 +26,6 @@ export interface AppState {
   transaction: TransactionState | undefined;
   sync: SyncState | undefined;
   locality: LocalityState | undefined;
+  kpi: KpiState | undefined;
+  preferences: PreferencesState | undefined;
 }

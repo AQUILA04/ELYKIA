@@ -56,6 +56,19 @@ form {
         font-size: 16px;
         font-weight: 500;
     }
+
+    &.disabled {
+        opacity: 0.6;
+        pointer-events: none;
+        background: #f8f9fa;
+        border-style: solid;
+        border-color: #e0e0e0;
+        box-shadow: none;
+
+        .add-icon {
+            color: var(--ion-color-medium);
+        }
+    }
 }
 
 // Selected Client Card

@@ -5,6 +5,9 @@ import { StockRequestCreateComponent } from './pages/stock-request-create/stock-
 import { MyStockDashboardComponent } from './pages/my-stock-dashboard/my-stock-dashboard.component';
 import { StockReturnListComponent } from './pages/stock-return-list/stock-return-list.component';
 import { StockReturnCreateComponent } from './pages/stock-return-create/stock-return-create.component';
+import { StockReceptionListComponent } from './pages/stock-reception-list/stock-reception-list.component';
+import { StockReceptionDetailComponent } from './pages/stock-reception-detail/stock-reception-detail.component';
+import { RattrapageCreditAddComponent } from './rattrapage/rattrapage-credit-add.component';
 
 const routes: Routes = [
   {
@@ -26,6 +29,19 @@ const routes: Routes = [
   {
     path: 'return/create',
     component: StockReturnCreateComponent
+  },
+  {
+    path: 'receptions',
+    component: StockReceptionListComponent
+  },
+  {
+    path: 'receptions/:id',
+    component: StockReceptionDetailComponent
+  },
+  {
+    path: 'credit/rattrapage',
+    component: RattrapageCreditAddComponent,
+    data: { title: 'Distribution de rattrapage' }
   }
 ];
 

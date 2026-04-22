@@ -6,6 +6,7 @@ export interface Transaction {
     amount: number;
     details: string;
     date: string;
+    commercialUsername?: string;
     isSync: boolean;
     isLocal: boolean;
 }

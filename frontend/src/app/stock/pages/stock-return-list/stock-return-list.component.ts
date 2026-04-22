@@ -8,6 +8,7 @@ import { UserProfile } from '../../../shared/models/user-profile.enum';
 import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-stock-return-list',
@@ -18,8 +19,8 @@ export class StockReturnListComponent implements OnInit {
 
   returns: StockReturn[] = [];
   page: number = 0;
-  size: number = 20;
-  totalPages: number = 0;
+  size: number = 10;
+  totalElements: number = 0;
   isPromoter: boolean = false;
   isStoreKeeper: boolean = false;
   currentUser: any;
@@ -53,9 +54,15 @@ export class StockReturnListComponent implements OnInit {
       });
   }
 
-  handlePage(page: Page<StockReturn>) {
+  handlePage(page: any) {
     this.returns = page.content;
-    this.totalPages = page.totalPages;
+    this.totalElements = page.page.totalElements;
+  }
+
+  onPageChange(event: PageEvent) {
+    this.page = event.pageIndex;
+    this.size = event.pageSize;
+    this.loadReturns();
   }
 
   validate(stockReturn: StockReturn) {
@@ -72,6 +79,40 @@ export class StockReturnListComponent implements OnInit {
     });
   }
 
+  cancel(ret: StockReturn) {
+    this.alertService.showConfirmation('Confirmation', 'Annuler ce retour ?').then((confirmed) => {
+      if (confirmed) {
+        this.stockReturnService.cancel(ret.id!).subscribe({
+          next: () => {
+            this.toastr.success('Retour annulé');
+            this.loadReturns();
+          },
+          error: (err) => {
+            console.error('Error', err);
+            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors de l\'annulation du retour', 'Erreur d\'annulation');
+          }
+        });
+      }
+    });
+  }
+
+  refuse(ret: StockReturn) {
+    this.alertService.showConfirmation('Confirmation', 'Refuser ce retour ?').then((confirmed) => {
+      if (confirmed) {
+        this.stockReturnService.refuse(ret.id!).subscribe({
+          next: () => {
+            this.toastr.success('Retour refusé');
+            this.loadReturns();
+          },
+          error: (err) => {
+            console.error('Error', err);
+            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors du refus du retour', 'Erreur de refus');
+          }
+        });
+      }
+    });
+  }
+
   showDetails(stockReturn: StockReturn) {
     this.selectedReturn = stockReturn;
   }
@@ -81,10 +122,22 @@ export class StockReturnListComponent implements OnInit {
   }
 
   getStatusBadge(status: string): string {
-    return status === 'RECEIVED' ? 'badge-success' : 'badge-secondary';
+    switch (status) {
+      case 'RECEIVED': return 'badge-success';
+      case 'CREATED': return 'badge-secondary';
+      case 'CANCELLED': return 'badge-danger';
+      case 'REFUSED': return 'badge-danger';
+      default: return 'badge-secondary';
+    }
   }
 
   getStatusLabel(status: string | undefined): string {
-    return status === 'RECEIVED' ? 'Réceptionné' : 'En attente';
+    switch (status) {
+      case 'RECEIVED': return 'Réceptionné';
+      case 'CREATED': return 'En attente';
+      case 'CANCELLED': return 'Annulé';
+      case 'REFUSED': return 'Refusé';
+      default: return 'Inconnu';
+    }
   }
 }

@@ -115,7 +115,7 @@ export class ClientAddComponent implements OnInit {
   initAccountForm(): void {
     // Ajout des contrôles pour le compte
     this.clientForm.addControl('accountNumber', this.formBuilder.control({ value: '', disabled: true }));
-    this.clientForm.addControl('accountBalance', this.formBuilder.control('', [Validators.required, Validators.min(500), Validators.max(2000000)]));
+    this.clientForm.addControl('accountBalance', this.formBuilder.control('0', []));
 
     // Génération du numéro de compte
     this.generateAccountNumber();

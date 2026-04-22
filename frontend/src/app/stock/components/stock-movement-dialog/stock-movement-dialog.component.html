@@ -1,0 +1,112 @@
+<div class="smd-header">
+  <div class="smd-header-content">
+    <div class="smd-title">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Historique des Mouvements
+    </div>
+    <div class="smd-subtitle">{{ data.articleName }}</div>
+  </div>
+  <button class="smd-close-btn" (click)="close()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </button>
+</div>
+
+<div class="smd-body">
+  <div *ngIf="loading" class="smd-loading">
+    <div class="smd-spinner"></div>
+    <span>Chargement des mouvements...</span>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div class="smd-summary">
+      <div class="smd-summary-item">
+        <span class="smd-summary-label">Total Mov.</span>
+        <span class="smd-summary-value">{{ movements.length }}</span>
+      </div>
+      <div class="smd-summary-item" *ngIf="getTotalQuantity() > 0">
+        <span class="smd-summary-label">Qté Totale</span>
+        <span class="smd-summary-value">{{ getTotalQuantity() }}</span>
+      </div>
+    </div>
+
+    <div class="smd-timeline" *ngIf="movements.length > 0">
+      <div class="smd-timeline-item" *ngFor="let movement of movements; let last = last">
+        <div class="smd-dot" [ngClass]="getMovementTypeClass(movement.movementType)"></div>
+        <div class="smd-line" *ngIf="!last"></div>
+        
+        <div class="smd-content">
+          <div class="smd-content-header">
+            <div class="smd-type-badge" [ngClass]="getMovementTypeClass(movement.movementType)">
+              {{ getMovementTypeLabel(movement.movementType) }}
+            </div>
+            <div class="smd-date">{{ movement.operationDate | date:'dd MMM yyyy HH:mm' }}</div>
+          </div>
+          
+          <div class="smd-quantities">
+            <div class="smd-qty-item">
+              <span class="smd-qty-label">Avant</span>
+              <span class="smd-qty-value">{{ movement.quantityBefore }}</span>
+            </div>
+            <div class="smd-qty-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </div>
+            <div class="smd-qty-item">
+              <span class="smd-qty-label">Mouvement</span>
+              <span class="smd-qty-value smd-qty-moved" [ngClass]="getQuantityClass(movement.movementType)">
+                {{ getQuantitySign(movement.movementType) }}{{ movement.quantityMoved }}
+              </span>
+            </div>
+            <div class="smd-qty-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </div>
+            <div class="smd-qty-item">
+              <span class="smd-qty-label">Après</span>
+              <span class="smd-qty-value">{{ movement.quantityAfter }}</span>
+            </div>
+          </div>
+          
+          <div class="smd-meta" *ngIf="movement.creditReference || movement.stockReturnId">
+            <div class="smd-meta-item" *ngIf="movement.creditReference">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>Réf. Crédit: <strong>{{ movement.creditReference }}</strong></span>
+            </div>
+            <div class="smd-meta-item" *ngIf="getReferenceLabel(movement)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3M9 7H4a2 2 0 00-2 2v10a2 2 0 002 2h9.586a1 1 0 00.707-.293l3.414-3.414a1 1 0 00.293-.707V9a2 2 0 00-2-2h-1a2 2 0 01-2-2v-1" />
+              </svg>
+              <span>{{ getReferenceLabel(movement) }}</span>
+            </div>
+          </div>
+          
+          <div class="smd-collector">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>{{ movement.collector }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="smd-empty" *ngIf="movements.length === 0">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+      <p>Aucun mouvement enregistré pour cet article.</p>
+    </div>
+  </ng-container>
+</div>
+
+<div class="smd-footer">
+  <button class="smd-btn-close" (click)="close()">Fermer</button>
+</div>

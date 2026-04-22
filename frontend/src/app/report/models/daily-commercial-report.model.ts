@@ -20,4 +20,5 @@ export interface DailyCommercialReport {
     totalAmountDeposited: number;
     creditSalesMargin?: number;
     stockRequestMargin?: number;
+    totalAdvancesAmount?: number;
 }

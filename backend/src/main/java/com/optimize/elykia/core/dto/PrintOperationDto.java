@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 import com.optimize.common.entities.util.DateUtils;
-import com.optimize.elykia.core.entity.Credit;
+import com.optimize.elykia.core.entity.sale.Credit;
 import lombok.Data;
 
 import java.util.*;
