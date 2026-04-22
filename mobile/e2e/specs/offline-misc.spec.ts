@@ -9,8 +9,8 @@ test.describe('Offline Misc (Localities, Tontines)', () => {
     await interceptor.setup();
 
     await page.goto('/login');
-    await page.getByPlaceholder("Saisissez votre nom d'utilisateur").fill('COM002');
-    await page.getByPlaceholder("Saisissez votre mot de passe").fill('password');
+    await page.locator('input[name="username"]').fill('COM002');
+    await page.locator('input[name="password"]').fill('password');
     await page.getByText('SE CONNECTER').click();
     await expect(page).toHaveURL(/\/tabs/, { timeout: 15000 });
   });
@@ -56,7 +56,7 @@ test.describe('Offline Misc (Localities, Tontines)', () => {
     await page.locator('ion-fab-button').click();
 
     // Fill form
-    await page.getByLabel('Nom de la localité').fill('Quartier E2E');
+    await page.locator('ion-item').filter({ hasText: 'Nom de la localité' }).locator('input').first().fill('Quartier E2E');
 
     // Save
     await page.getByText('Enregistrer').click();

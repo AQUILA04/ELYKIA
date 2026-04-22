@@ -10,8 +10,8 @@ test.describe('Offline Clients Management', () => {
 
     // Login and wait for initial load to finish so we are at /tabs
     await page.goto('/login');
-    await page.getByPlaceholder("Saisissez votre nom d'utilisateur").fill('COM002');
-    await page.getByPlaceholder("Saisissez votre mot de passe").fill('password');
+    await page.locator('input[name="username"]').fill('COM002');
+    await page.locator('input[name="password"]').fill('password');
     await page.getByText('SE CONNECTER').click();
     await expect(page).toHaveURL(/\/tabs/, { timeout: 15000 });
     
@@ -44,9 +44,9 @@ test.describe('Offline Clients Management', () => {
 
     // Expect to be on create client page
     // Fill form (adjust selectors based on actual implementation)
-    await page.getByLabel('Nom').fill('Test Client Offline');
-    await page.getByLabel('Prénom').fill('E2E');
-    await page.getByLabel('Téléphone').fill('0123456789');
+    await page.locator('ion-item').filter({ hasText: 'Nom' }).locator('input').first().fill('Test Client Offline');
+    await page.locator('ion-item').filter({ hasText: 'Prénom' }).locator('input').first().fill('E2E');
+    await page.locator('ion-item').filter({ hasText: 'Téléphone' }).locator('input').first().fill('0123456789');
     
     // Select locality if required
     const localitySelect = page.locator('ion-select[name="locality"]');

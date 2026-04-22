@@ -29,8 +29,8 @@ test.describe('Offline Initialization', () => {
     // Fill credentials
     const usernameInput = page.locator('ion-input[name="username"] input').first();
     // Sometimes ionic inputs are shadow DOM, but playwright pierces it, or we can use getByPlaceholder
-    await page.getByPlaceholder("Saisissez votre nom d'utilisateur").fill('COM002');
-    await page.getByPlaceholder("Saisissez votre mot de passe").fill('password');
+    await page.locator('input[name="username"]').fill('COM002');
+    await page.locator('input[name="password"]').fill('password');
 
     // Click Login
     await page.getByText('SE CONNECTER').click();
@@ -53,8 +53,8 @@ test.describe('Offline Initialization', () => {
     await interceptor.goOffline();
     
     // Fill credentials
-    await page.getByPlaceholder("Saisissez votre nom d'utilisateur").fill('COM002');
-    await page.getByPlaceholder("Saisissez votre mot de passe").fill('password');
+    await page.locator('input[name="username"]').fill('COM002');
+    await page.locator('input[name="password"]').fill('password');
 
     // Click Login
     await page.getByText('SE CONNECTER').click();
