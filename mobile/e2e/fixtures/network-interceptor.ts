@@ -8,6 +8,15 @@ export class NetworkInterceptor {
    * Initializes network interception for all API calls
    */
   async setup() {
+    // Mock health check to simulate online backend
+    await this.page.route('**/actuator/health', async (route: Route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'UP' }),
+      });
+    });
+
     await this.page.route('**/api/**', async (route: Route) => {
       const request = route.request();
       const url = new URL(request.url());
