@@ -19,9 +19,8 @@ export default defineConfig({
       use: { ...devices['Pixel 5'] },
     },
   ],
-  // Ignore the regular Angular component tests if any exist outside e2e
-  testIgnore: '*spec.ts',
-  testMatch: 'e2e/**/*.spec.ts',
+  // The testDir specifies where tests are located
+  testMatch: '**/*.spec.ts',
   webServer: {
     command: 'npx ionic serve --port 8100 --no-open',
     url: 'http://localhost:8100',
