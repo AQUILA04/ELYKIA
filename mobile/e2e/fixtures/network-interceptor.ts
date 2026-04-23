@@ -43,6 +43,13 @@ export class NetworkInterceptor {
         } else {
           await route.continue();
         }
+      } else if (request.method() === 'GET' && url.pathname.includes('/api/commercial-stocks/available/')) {
+        console.log(`[Mock] Intercepting ${request.method()} ${apiPath} with empty stock array`);
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify([]),
+        });
       } else {
         console.log(`[Mock-Warning] No mock found for ${apiPath}, intercepting with empty success to prevent failure.`);
         // For offline initialization, if we miss a mock, we should just return a generic success

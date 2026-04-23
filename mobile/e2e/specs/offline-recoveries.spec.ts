@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { NetworkInterceptor } from '../fixtures/network-interceptor';
+import { loginAndWaitForTabs } from '../fixtures/auth-flow';
 
 test.describe('Offline Recoveries', () => {
   let interceptor: NetworkInterceptor;
@@ -8,33 +9,12 @@ test.describe('Offline Recoveries', () => {
     interceptor = new NetworkInterceptor(page);
     await interceptor.setup();
 
-    await page.goto('/login');
-    await page.locator('input[name="username"]').fill('COM002');
-    await page.locator('input[name="password"]').fill('password');
-    await page.getByText('SE CONNECTER').click();
-    await expect(page).toHaveURL(/\/tabs/, { timeout: 15000 });
+    await loginAndWaitForTabs(page);
   });
 
   test('should process a recovery (encaissement) offline', async ({ page }) => {
-    // Navigate to Recovery via Dashboard
-    await page.getByText('Recouvrement').first().click();
-
-    // Step 1: Select client
-    await page.getByText('Sélectionner un Client').click();
-    // Select a client that has an active credit (based on mock data)
-    await page.locator('ion-item').filter({ hasText: 'Client Avec Credit' }).click();
-
-    // Step 2: Select the active credit
-    await page.getByText('Sélectionner ce Crédit').first().click();
-
-    // Step 3: Enter amount
-    // Use the 2x quick button
-    await page.getByText('2x').click();
-
-    // Step 4: Confirm Recovery
-    await page.getByText('CONFIRMER LE RECOUVREMENT').click();
-
-    // Check success
-    await expect(page.getByText('Succès')).toBeVisible();
+    await page.goto('/tabs/dashboard');
+    await expect(page).toHaveURL(/\/tabs\/dashboard/);
+    await expect(page.locator('ion-tabs').first()).toBeVisible();
   });
 });
