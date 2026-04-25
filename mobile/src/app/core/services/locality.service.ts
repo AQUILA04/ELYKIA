@@ -17,11 +17,11 @@ import { Page } from '../repositories/repository.interface';
 export class LocalityService {
 
   constructor(
-    private http: HttpClient,
-    private dbService: DatabaseService,
-    private healthCheckService: HealthCheckService,
-    private localityRepository: LocalityRepository,
-    private localityRepositoryExtensions: LocalityRepositoryExtensions
+    private readonly http: HttpClient,
+    private readonly dbService: DatabaseService,
+    private readonly healthCheckService: HealthCheckService,
+    private readonly localityRepository: LocalityRepository,
+    private readonly localityRepositoryExtensions: LocalityRepositoryExtensions
   ) { }
 
   initializeLocalities(): Observable<Locality[]> {

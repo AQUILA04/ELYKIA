@@ -54,5 +54,56 @@ Le développement mobile devra s'interfacer avec les contrôleurs existants du b
   - Création/Annulation/Liste : `/api/v1/stock-tontine-request`
   - Création/Liste : `/api/v1/stock-tontine-return`
 
+## 5. Structures de Données et Inputs UI (Pour Conception Visuelle)
+
+Afin de faciliter le maquettage (wireframing) et le développement de l'interface utilisateur, voici la structure des données basées sur les entités backend :
+
+### 5.1. Demandes de Sortie de Stock (Standard & Tontine)
+
+**Formulaire de Création (Inputs) :**
+- `requestDate` (Date) : Date de la demande (pré-remplie à la date du jour).
+- `collector` (Texte caché) : Nom d'utilisateur ou ID du commercial connecté.
+- **Liste des articles (Répéteur) :**
+  - Sélection d'un article existant (Dropdown/Recherche).
+  - `itemName` (Texte) : Nom de l'article sélectionné (lecture seule).
+  - `quantity` (Nombre) : Quantité demandée.
+  - *Note : Les prix (`unitPrice`, `purchasePrice`) sont gérés par le système selon le référentiel d'articles et ne sont généralement pas saisis manuellement par l'agent.*
+
+**Affichage en Liste Principale :**
+- `reference` (Texte) : Référence unique de la demande.
+- `requestDate` (Date) : Date de la demande.
+- `deliveryDate` (Date) : Date de livraison.
+- `collector` (Texte) : Commercial (Agent connecté).
+- `status` (Badge/Étiquette) : Statut (CREATED, VALIDATED, DELIVERED, CANCELLED, REFUSED).
+
+**Affichage des Détails (Vue détaillée) :**
+- Toutes les informations de la liste principale + `validationDate` (Date de validation).
+- **Tableau des articles de la demande :**
+  - `itemName` (Texte) : Nom de l'article.
+  - `quantity` (Nombre) : Quantité.
+  - `unitPrice` (Monétaire) : Prix de vente unitaire.
+- **Pied de page (Totaux) :**
+  - `totalCreditSalePrice` / `totalSalePrice` (Monétaire) : Total de la demande.
+
+### 5.2. Demandes de Retour en Stock (Standard & Tontine)
+
+**Formulaire de Création (Inputs) :**
+- `returnDate` (Date) : Date de restitution (pré-remplie à la date du jour).
+- `collector` (Texte caché) : Nom d'utilisateur ou ID du commercial connecté.
+- **Liste des articles restitués (Répéteur) :**
+  - Sélection d'un article existant (Dropdown/Recherche).
+  - `quantity` (Nombre) : Quantité retournée.
+
+**Affichage en Liste Principale :**
+- `returnDate` (Date) : Date de la demande de retour.
+- `collector` (Texte) : Commercial (Agent connecté).
+- `status` (Badge/Étiquette) : Statut (CREATED, VALIDATED, CANCELLED, REFUSED).
+
+**Affichage des Détails (Vue détaillée) :**
+- Toutes les informations de la liste principale.
+- **Tableau des articles retournés :**
+  - `Article` (Texte) : Concaténation de `article.commercialName` et `article.name`.
+  - `quantity` (Nombre) : Quantité.
+
 ---
 *Ce cahier des charges s'inscrit dans les normes qualité du projet ELYKIA et fait office de référence technique pour l'implémentation des modules par le prestataire.*

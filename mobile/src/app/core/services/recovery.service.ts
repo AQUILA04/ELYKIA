@@ -13,6 +13,8 @@ import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { RecoveryRepository } from '../repositories/recovery.repository';
 import { RecoveryRepositoryExtensions, RecoveryRepositoryFilters } from '../repositories/recovery.repository.extensions';
 import { DistributionRepository } from '../repositories/distribution.repository';
+import {LoggerService} from "./logger.service";
+import {HealthCheckService} from "./health-check.service";
 
 @Injectable({
   providedIn: 'root'
@@ -21,12 +23,14 @@ export class RecoveryService {
   private commercialUsername: string | undefined;
 
   constructor(
-    private http: HttpClient,
-    private dbService: DatabaseService,
-    private store: Store,
-    private recoveryRepository: RecoveryRepository,
-    private recoveryRepositoryExtensions: RecoveryRepositoryExtensions,
-    private distributionRepository: DistributionRepository
+    private readonly http: HttpClient,
+    private readonly dbService: DatabaseService,
+    private readonly store: Store,
+    private readonly recoveryRepository: RecoveryRepository,
+    private readonly recoveryRepositoryExtensions: RecoveryRepositoryExtensions,
+    private readonly distributionRepository: DistributionRepository,
+    private  readonly log: LoggerService,
+    private readonly healthCheckService: HealthCheckService,
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -40,9 +44,9 @@ export class RecoveryService {
     }
     const currentCommercialId = this.commercialUsername;
 
-    return from(Network.getStatus()).pipe(
-      switchMap(status => {
-        if (status.connected) {
+    return this.healthCheckService.pingBackend().pipe(
+      switchMap(isOnline => {
+        if (isOnline) {
           return this.fetchRecoveriesFromApi().pipe(
             tap(async (recoveries) => {
               // Ensure commercialId is set correctly before saving
@@ -66,10 +70,13 @@ export class RecoveryService {
             })
           );
         } else {
-          // Same here, avoid loading all.
           console.warn('initializeRecoveries: offline, returning empty array.');
           return of([]);
         }
+      }),
+      catchError(err => {
+        console.error('Recoveries initialization failed:', err);
+        return of([]); // Return an empty array on final failure
       })
     );
   }
@@ -174,12 +181,12 @@ export class RecoveryService {
         }
 
         // Vérifier que le montant est un multiple de la mise journalière
-        if (dailyPayment > 0 && amount % dailyPayment !== 0) {
-          return {
-            isValid: false,
-            message: `Le montant doit être un multiple de ${dailyPayment} FCFA`
-          };
-        }
+        // if (dailyPayment > 0 && amount % dailyPayment !== 0) {
+        //   return {
+        //     isValid: false,
+        //     message: `Le montant doit être un multiple de ${dailyPayment} FCFA`
+        //   };
+        // }
 
         return { isValid: true, message: 'Montant valide' };
       })
@@ -199,57 +206,6 @@ export class RecoveryService {
       };
       await this.distributionRepository.updateDistribution(updatedDistribution);
     }
-  }
-
-  /**
-   * Synchroniser les recouvrements avec le serveur
-   */
-  async syncRecoveries(): Promise<void> {
-    const localRecoveries = await this.recoveryRepository.getUnsynced();
-
-    for (const recovery of localRecoveries) {
-      try {
-        // Déterminer le type de mise (normale ou spéciale)
-        const distribution = await this.distributionRepository.findById(recovery.distributionId);
-        const isNormalStake = distribution && recovery.amount === distribution.dailyPayment;
-
-        if (isNormalStake) {
-          await this.syncNormalStake(recovery);
-        } else {
-          await this.syncSpecialStake(recovery);
-        }
-
-        // Marquer comme synchronisé
-        await this.recoveryRepository.markAsSynced(recovery.id);
-      } catch (error) {
-        console.error('Failed to sync recovery:', recovery.id, error);
-      }
-    }
-  }
-
-  private async syncNormalStake(recovery: Recovery): Promise<void> {
-    const url = `${environment.apiUrl}/api/v1/credits/default-daily-stake`;
-    const payload = {
-      collector: recovery.commercialId,
-      clientIds: [recovery.clientId],
-      creditIds: [recovery.distributionId]
-    };
-
-    await this.http.post<ApiResponse<string[]>>(url, payload).toPromise();
-  }
-
-  private async syncSpecialStake(recovery: Recovery): Promise<void> {
-    const url = `${environment.apiUrl}/api/v1/credits/special-daily-stake`;
-    const payload = {
-      collector: recovery.commercialId,
-      stakeUnits: [{
-        creditId: recovery.distributionId,
-        clientId: recovery.clientId,
-        amount: recovery.amount
-      }]
-    };
-
-    await this.http.post<ApiResponse<string[]>>(url, payload).toPromise();
   }
 
   async deleteRecoveriesByDistributionIds(distributionIds: string[]): Promise<void> {
