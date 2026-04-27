@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
+import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
 import com.itextpdf.html2pdf.HtmlConverter;
 import java.io.ByteArrayOutputStream;
 import org.thymeleaf.TemplateEngine;
@@ -75,17 +76,16 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
                 request.setCollector(userService.getCurrentUser().getUsername());
             }
 
-            // Génération de la référence (Logique identique à StockRequestService)
-            String collector = request.getCollector();
-            String collectorSuffix = (collector != null && collector.length() >= 3)
-                    ? collector.substring(collector.length() - 3)
-                    : (collector != null ? collector : "UNK");
-
+            // Génération de la référence
             Long maxId = ((StockTontineRequestRepository) getRepository()).findMaxId();
             long nextId = (maxId != null ? maxId : 0) + 1;
 
-            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyyHHmmss"));
-            String reference = "T#" + collectorSuffix + nextId + timestamp; // T# pour Tontine
+            LocalDate nowRef = LocalDate.now();
+            String year = String.format("%04d", nowRef.getYear());
+            String month = String.format("%02d", nowRef.getMonthValue());
+            String hexId = String.format("%08X", nextId);
+
+            String reference = "TRQ-" + year + "-" + month + "-" + hexId;
             request.setReference(reference);
 
             double totalSale = 0;
@@ -128,33 +128,55 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         return update(request);
     }
 
-    public StockTontineRequest deliver(Long id) {
+    public PartialDeliveryResponseDTO deliver(Long id) {
         StockTontineRequest request = getById(id);
         if (request.getStatus() != StockRequestStatus.VALIDATED) {
             throw new CustomValidationException("Seules les demandes au statut VALIDATED peuvent être livrées.");
         }
 
         User currentUser = userService.getCurrentUser();
-        List<String> insufficientStockItems = new ArrayList<>();
 
-        // 1. Vérifier le stock magasin pour tous les articles
-        for (StockTontineRequestItem item : request.getItems()) {
+        List<StockTontineRequestItem> deliverableItems = new ArrayList<>();
+        List<StockTontineRequestItem> pendingRequestItems = new ArrayList<>();
+        List<PartialDeliveryResponseDTO.DeliveredItemDTO> deliveredItemDTOs = new ArrayList<>();
+        List<PartialDeliveryResponseDTO.PendingItemDTO> pendingItemDTOs = new ArrayList<>();
+
+        // 1. Classification
+        for (StockTontineRequestItem item : new ArrayList<>(request.getItems())) {
             Articles article = articlesService.getById(item.getArticle().getId());
-            if (article.getStockQuantity() < item.getQuantity()) {
-                insufficientStockItems.add(
-                        article.getCommercialName() + " " + article.getName() +
-                                " (Demandé: " + item.getQuantity() + ", Dispo: " + article.getStockQuantity() + ")");
+            if (article.getStockQuantity() >= item.getQuantity()) {
+                deliverableItems.add(item);
+                deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(item.getItemName(), item.getQuantity(), item.getUnitPrice()));
+            } else if (article.getStockQuantity() > 0) {
+                int availableQty = article.getStockQuantity();
+                int missingQty = item.getQuantity() - availableQty;
+
+                item.setQuantity(availableQty);
+                deliverableItems.add(item);
+                deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(item.getItemName(), availableQty, item.getUnitPrice()));
+
+                StockTontineRequestItem pendingItem = new StockTontineRequestItem();
+                pendingItem.setArticle(item.getArticle());
+                pendingItem.setItemName(item.getItemName());
+                pendingItem.setQuantity(missingQty);
+                pendingItem.setUnitPrice(item.getUnitPrice());
+                pendingItem.setPurchasePrice(item.getPurchasePrice());
+                pendingRequestItems.add(pendingItem);
+
+                pendingItemDTOs.add(new PartialDeliveryResponseDTO.PendingItemDTO(item.getItemName(), missingQty, (double)availableQty, item.getUnitPrice()));
+            } else {
+                request.removeItem(item);
+                pendingRequestItems.add(item);
+                pendingItemDTOs.add(new PartialDeliveryResponseDTO.PendingItemDTO(item.getItemName(), item.getQuantity(), 0.0, item.getUnitPrice()));
             }
         }
 
-        if (!insufficientStockItems.isEmpty()) {
-            throw new CustomValidationException(
-                    "Stock magasin insuffisant pour les articles suivants : "
-                            + String.join("| ", insufficientStockItems));
+        if (deliverableItems.isEmpty()) {
+            throw new CustomValidationException("Stock magasin insuffisant pour tous les articles.");
         }
 
         // 2. Procéder aux mouvements de sortie magasin
-        for (StockTontineRequestItem item : request.getItems()) {
+        for (StockTontineRequestItem item : deliverableItems) {
             Articles article = articlesService.getById(item.getArticle().getId());
 
             stockMovementService.recordMovement(
@@ -168,6 +190,12 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             article.makeRelease(item.getQuantity());
             articlesService.update(article);
         }
+
+        // update totals
+        double totalSale = deliverableItems.stream().mapToDouble(i -> i.getQuantity() * (i.getUnitPrice() != null ? i.getUnitPrice() : 0.0)).sum();
+        double totalPurchase = deliverableItems.stream().mapToDouble(i -> i.getQuantity() * (i.getPurchasePrice() != null ? i.getPurchasePrice() : 0.0)).sum();
+        request.setTotalSalePrice(totalSale);
+        request.setTotalPurchasePrice(totalPurchase);
 
         request.setDeliveryDate(LocalDate.now());
         // 3. Mise à jour du stock Tontine du commercial
@@ -186,7 +214,50 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
                 savedRequest.getCollector(),
                 savedRequest.getReference()));
 
-        return savedRequest;
+        PartialDeliveryResponseDTO response = new PartialDeliveryResponseDTO();
+        response.setDeliveredRequestId(savedRequest.getId());
+        response.setDeliveredRequestReference(savedRequest.getReference());
+        response.setDeliveredItems(deliveredItemDTOs);
+
+        if (pendingRequestItems.isEmpty()) {
+            response.setDeliveryType(PartialDeliveryResponseDTO.DeliveryType.FULL);
+            response.setPendingItems(new ArrayList<>());
+        } else {
+            response.setDeliveryType(PartialDeliveryResponseDTO.DeliveryType.PARTIAL);
+            response.setPendingItems(pendingItemDTOs);
+
+            // Create new pending request
+            StockTontineRequest pendingRequest = new StockTontineRequest();
+            pendingRequest.setCollector(request.getCollector());
+            pendingRequest.setRequestDate(LocalDate.now());
+            pendingRequest.setValidationDate(LocalDate.now());
+            pendingRequest.setStatus(StockRequestStatus.VALIDATED);
+
+            Long maxId = ((StockTontineRequestRepository) getRepository()).findMaxId();
+            long nextId = (maxId != null ? maxId : 0) + 1;
+            LocalDate nowRef = LocalDate.now();
+            String year = String.format("%04d", nowRef.getYear());
+            String month = String.format("%02d", nowRef.getMonthValue());
+            String hexId = String.format("%08X", nextId);
+            pendingRequest.setReference("TRQ-" + year + "-" + month + "-" + hexId);
+
+            double pendTotalSale = 0.0;
+            double pendTotalPurchase = 0.0;
+            
+            for (StockTontineRequestItem pi : pendingRequestItems) {
+                pendingRequest.addItem(pi);
+                pendTotalSale += pi.getQuantity() * (pi.getUnitPrice() != null ? pi.getUnitPrice() : 0.0);
+                pendTotalPurchase += pi.getQuantity() * (pi.getPurchasePrice() != null ? pi.getPurchasePrice() : 0.0);
+            }
+            pendingRequest.setTotalSalePrice(pendTotalSale);
+            pendingRequest.setTotalPurchasePrice(pendTotalPurchase);
+
+            StockTontineRequest savedPending = update(pendingRequest);
+            response.setPendingRequestId(savedPending.getId());
+            response.setPendingRequestReference(savedPending.getReference());
+        }
+
+        return response;
     }
 
     public void cancelRequest(Long requestId) {

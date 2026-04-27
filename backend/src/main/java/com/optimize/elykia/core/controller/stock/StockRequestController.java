@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.controller.stock;
 
 import com.optimize.elykia.core.entity.stock.StockRequest;
+import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.service.stock.StockRequestService;
 import org.springframework.data.domain.Page;
@@ -33,7 +34,7 @@ public class StockRequestController {
     }
 
     @PutMapping("/{id}/deliver")
-    public ResponseEntity<StockRequest> deliverRequest(@PathVariable Long id) {
+    public ResponseEntity<PartialDeliveryResponseDTO> deliverRequest(@PathVariable Long id) {
         return ResponseEntity.ok(service.deliverRequest(id));
     }
 

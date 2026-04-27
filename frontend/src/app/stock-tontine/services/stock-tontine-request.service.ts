@@ -3,6 +3,7 @@ import { BaseHttpService } from '../../shared/service/base-http.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { StockTontineRequest } from '../models/stock-tontine-request.model';
+import { PartialDeliveryResponseDTO } from '../../stock/models/stock-request.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 import { Page } from '../../shared/models/page.model';
@@ -29,8 +30,8 @@ export class StockTontineRequestService extends BaseHttpService {
     return this.put<StockTontineRequest>(`${this.baseUrl}/${id}/validate`, {});
   }
 
-  deliver(id: number): Observable<any> {
-    return this.put<any>(`${this.baseUrl}/${id}/deliver`, {});
+  deliver(id: number): Observable<PartialDeliveryResponseDTO> {
+    return this.put<PartialDeliveryResponseDTO>(`${this.baseUrl}/${id}/deliver`, {});
   }
 
   cancel(id: number): Observable<StockTontineRequest> {

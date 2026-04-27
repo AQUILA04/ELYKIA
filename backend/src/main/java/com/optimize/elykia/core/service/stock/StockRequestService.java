@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.Map;
 
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
+import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
 import com.itextpdf.html2pdf.HtmlConverter;
 import java.io.ByteArrayOutputStream;
 import org.thymeleaf.TemplateEngine;
@@ -87,17 +88,15 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         request.setRequestDate(LocalDate.now());
 
         // Générer référence
-        String collector = request.getCollector();
-        String collectorSuffix = (collector != null && collector.length() >= 3)
-                ? collector.substring(collector.length() - 3)
-                : (collector != null ? collector : "UNK");
-
         Long maxId = ((StockRequestRepository) repository).findMaxId();
         long nextId = (maxId != null ? maxId : 0) + 1;
 
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyyHHmmss"));
+        LocalDate nowRef = LocalDate.now();
+        String year = String.format("%04d", nowRef.getYear());
+        String month = String.format("%02d", nowRef.getMonthValue());
+        String hexId = String.format("%08X", nextId);
 
-        String reference = "#" + collectorSuffix + nextId + timestamp;
+        String reference = "REQ-" + year + "-" + month + "-" + hexId;
         request.setReference(reference);
 
         double totalCreditSalePrice = 0.0;
@@ -151,32 +150,58 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         return repository.save(request);
     }
 
-    public StockRequest deliverRequest(Long requestId) {
+    public PartialDeliveryResponseDTO deliverRequest(Long requestId) {
         StockRequest request = getById(requestId);
         if (request.getStatus() != StockRequestStatus.VALIDATED) {
             throw new CustomValidationException("La demande doit être validée avant livraison.");
         }
 
         User currentUser = userService.getCurrentUser();
-        List<String> insufficientStockItems = new ArrayList<>();
+        
+        List<StockRequestItem> deliverableItems = new ArrayList<>();
+        List<StockRequestItem> pendingRequestItems = new ArrayList<>();
+        List<PartialDeliveryResponseDTO.DeliveredItemDTO> deliveredItemDTOs = new ArrayList<>();
+        List<PartialDeliveryResponseDTO.PendingItemDTO> pendingItemDTOs = new ArrayList<>();
 
-        // 1. Vérifier le stock magasin pour tous les articles
-        for (StockRequestItem item : request.getItems()) {
+        // 1. Classification
+        for (StockRequestItem item : new ArrayList<>(request.getItems())) {
             Articles article = articlesService.getById(item.getArticle().getId());
-            if (article.getStockQuantity() < item.getQuantity()) {
-                insufficientStockItems.add(
-                        article.getCommercialName() + " " + article.getName() + " : " + article.getCreditSalePrice()
-                                + " (Demandé: " + item.getQuantity() + ", Dispo: " + article.getStockQuantity() + ")");
+            if (article.getStockQuantity() >= item.getQuantity()) {
+                deliverableItems.add(item);
+                deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(item.getItemName(), item.getQuantity(), item.getUnitPrice()));
+            } else if (article.getStockQuantity() > 0) {
+                // partial quantity available
+                int availableQty = article.getStockQuantity();
+                int missingQty = item.getQuantity() - availableQty;
+                
+                // modify item for available quantity
+                item.setQuantity(availableQty);
+                deliverableItems.add(item);
+                deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(item.getItemName(), availableQty, item.getUnitPrice()));
+                
+                // create new item for pending
+                StockRequestItem pendingItem = new StockRequestItem();
+                pendingItem.setArticle(item.getArticle());
+                pendingItem.setItemName(item.getItemName());
+                pendingItem.setQuantity(missingQty);
+                pendingItem.setUnitPrice(item.getUnitPrice());
+                pendingItem.setPurchasePrice(item.getPurchasePrice());
+                pendingRequestItems.add(pendingItem);
+                
+                pendingItemDTOs.add(new PartialDeliveryResponseDTO.PendingItemDTO(item.getItemName(), missingQty, (double)availableQty, item.getUnitPrice()));
+            } else {
+                request.removeItem(item);
+                pendingRequestItems.add(item);
+                pendingItemDTOs.add(new PartialDeliveryResponseDTO.PendingItemDTO(item.getItemName(), item.getQuantity(), 0.0, item.getUnitPrice()));
             }
         }
 
-        if (!insufficientStockItems.isEmpty()) {
-            throw new CustomValidationException(
-                    "Stock insuffisant pour les articles suivants : " + String.join("| ", insufficientStockItems));
+        if (deliverableItems.isEmpty()) {
+            throw new CustomValidationException("Aucun article disponible pour la livraison.");
         }
 
-        // Si tout est OK, procéder aux mouvements
-        for (StockRequestItem item : request.getItems()) {
+        // Si tout est OK, procéder aux mouvements pour deliverableItems
+        for (StockRequestItem item : deliverableItems) {
             Articles article = articlesService.getById(item.getArticle().getId());
 
             stockMovementService.recordMovement(
@@ -190,10 +215,6 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             article.makeRelease(item.getQuantity());
             articlesService.update(article);
 
-            // S'assurer que les prix sont bien fixés (au cas où ils n'auraient pas été mis
-            // à la création ou auraient changé)
-            // Note: Idéalement, on garde ceux de la création, mais si null, on prend les
-            // actuels
             if (item.getUnitPrice() == null || item.getUnitPrice() == 0) {
                 item.setUnitPrice(article.getCreditSalePrice());
             }
@@ -201,6 +222,12 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 item.setPurchasePrice(article.getPurchasePrice());
             }
         }
+
+        // update totals
+        double totalCreditSalePrice = deliverableItems.stream().mapToDouble(i -> i.getQuantity() * (i.getUnitPrice() != null ? i.getUnitPrice() : 0.0)).sum();
+        double totalPurchasePrice = deliverableItems.stream().mapToDouble(i -> i.getQuantity() * (i.getPurchasePrice() != null ? i.getPurchasePrice() : 0.0)).sum();
+        request.setTotalCreditSalePrice(totalCreditSalePrice);
+        request.setTotalPurchasePrice(totalPurchasePrice);
 
         // 2. Mettre à jour le stock mensuel du commercial
         updateCommercialMonthlyStock(request);
@@ -212,8 +239,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
 
         // Calculate margin
         Double margin = (savedRequest.getTotalCreditSalePrice() != null ? savedRequest.getTotalCreditSalePrice() : 0.0)
-                -
-                (savedRequest.getTotalPurchasePrice() != null ? savedRequest.getTotalPurchasePrice() : 0.0);
+                - (savedRequest.getTotalPurchasePrice() != null ? savedRequest.getTotalPurchasePrice() : 0.0);
 
         // Publish Event
         if (eventPublisher != null) {
@@ -225,7 +251,50 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                     savedRequest.getReference()));
         }
 
-        return savedRequest;
+        PartialDeliveryResponseDTO response = new PartialDeliveryResponseDTO();
+        response.setDeliveredRequestId(savedRequest.getId());
+        response.setDeliveredRequestReference(savedRequest.getReference());
+        response.setDeliveredItems(deliveredItemDTOs);
+
+        if (pendingRequestItems.isEmpty()) {
+            response.setDeliveryType(PartialDeliveryResponseDTO.DeliveryType.FULL);
+            response.setPendingItems(new ArrayList<>());
+        } else {
+            response.setDeliveryType(PartialDeliveryResponseDTO.DeliveryType.PARTIAL);
+            response.setPendingItems(pendingItemDTOs);
+
+            // Create new pending request
+            StockRequest pendingRequest = new StockRequest();
+            pendingRequest.setCollector(request.getCollector());
+            pendingRequest.setRequestDate(LocalDate.now());
+            pendingRequest.setValidationDate(LocalDate.now());
+            pendingRequest.setStatus(StockRequestStatus.VALIDATED);
+
+            Long maxId = ((StockRequestRepository) repository).findMaxId();
+            long nextId = (maxId != null ? maxId : 0) + 1;
+            LocalDate nowRef = LocalDate.now();
+            String year = String.format("%04d", nowRef.getYear());
+            String month = String.format("%02d", nowRef.getMonthValue());
+            String hexId = String.format("%08X", nextId);
+            pendingRequest.setReference("REQ-" + year + "-" + month + "-" + hexId);
+
+            double pendTotalCreditSale = 0.0;
+            double pendTotalPurchase = 0.0;
+            
+            for (StockRequestItem pi : pendingRequestItems) {
+                pendingRequest.addItem(pi);
+                pendTotalCreditSale += pi.getQuantity() * (pi.getUnitPrice() != null ? pi.getUnitPrice() : 0.0);
+                pendTotalPurchase += pi.getQuantity() * (pi.getPurchasePrice() != null ? pi.getPurchasePrice() : 0.0);
+            }
+            pendingRequest.setTotalCreditSalePrice(pendTotalCreditSale);
+            pendingRequest.setTotalPurchasePrice(pendTotalPurchase);
+
+            StockRequest savedPending = repository.save(pendingRequest);
+            response.setPendingRequestId(savedPending.getId());
+            response.setPendingRequestReference(savedPending.getReference());
+        }
+
+        return response;
     }
 
     public void cancelRequest(Long requestId) {
