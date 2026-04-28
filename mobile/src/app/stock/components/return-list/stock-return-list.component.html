@@ -20,7 +20,7 @@
     </div>
 
     <ion-list *ngIf="returns.length > 0">
-      <ion-item *ngFor="let returnItem of returns; trackBy: trackById" class="da-list-item min-touch-target">
+      <ion-item *ngFor="let returnItem of returns; trackBy: trackById" class="da-list-item min-touch-target" button="true" (click)="onOperationTap(returnItem)">
         <ion-label>
           <div class="item-header">
             <h3>{{ returnItem.reference || returnItem.id }}</h3>

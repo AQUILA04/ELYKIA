@@ -19,6 +19,7 @@ export class StockApiService {
   }
 
   getTontineRequests(): Observable<ApiResponse<StockRequest[]>> {
+    console.log('getTontineRequests called');
     return this.http.get<ApiResponse<StockRequest[]>>(`${this.baseUrl}/api/v1/stock-tontine-request`);
   }
 

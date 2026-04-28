@@ -77,6 +77,7 @@ describe('StockDashboardComponent', () => {
     segmentElement.triggerEventHandler('ionChange', mockEvent);
 
     // Flush the context-change triggered HTTP calls
+    console.log('Pending requests:', httpMock.match(() => true).map(r => r.request.url));
     httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ data: [] });
     httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).flush({ data: [] });
 

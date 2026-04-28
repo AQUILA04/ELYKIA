@@ -8,5 +8,6 @@ export interface StockRequest {
   status: string;
   createdAt: string;
   commercialUsername?: string;
+  items?: any[];
   [key: string]: any; // Allow additional backend fields without breaking the model
 }

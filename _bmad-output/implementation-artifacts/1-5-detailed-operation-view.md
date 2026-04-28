@@ -1,6 +1,6 @@
 # Story 1.5: Detailed Operation View (FR5)
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 

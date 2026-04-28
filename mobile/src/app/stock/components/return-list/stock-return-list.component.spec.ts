@@ -74,4 +74,18 @@ describe('StockReturnListComponent', () => {
       expect(component.trackById(0, mockReturn)).toBe(42);
     });
   });
+
+  describe('operationTap event', () => {
+    it('should emit operationTap when an item is clicked', () => {
+      spyOn(component.operationTap, 'emit');
+      const mockReturns: StockReturn[] = [{ id: 1, reference: 'RET-001', status: 'PENDING', createdAt: '2026-01-01' }];
+      component.returns = mockReturns;
+      fixture.detectChanges();
+
+      const item = fixture.debugElement.query(By.css('.da-list-item'));
+      item.triggerEventHandler('click', null);
+
+      expect(component.operationTap.emit).toHaveBeenCalledWith(mockReturns[0]);
+    });
+  });
 });

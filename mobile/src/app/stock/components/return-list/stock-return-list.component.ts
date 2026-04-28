@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { StockReturn } from '../../models/stock-return.model';
 
 @Component({
@@ -11,6 +11,11 @@ export class StockReturnListComponent {
   @Input() context: 'STANDARD' | 'TONTINE' = 'STANDARD';
   @Input() returns: StockReturn[] = [];
   @Input() loading: boolean = false;
+  @Output() operationTap = new EventEmitter<StockReturn>();
+
+  onOperationTap(returnItem: StockReturn): void {
+    this.operationTap.emit(returnItem);
+  }
 
   /**
    * Returns the CSS modifier class for a return status badge.

@@ -6,12 +6,14 @@ import { StockDashboardComponent } from './dashboard/stock-dashboard.component';
 
 import { RequestListComponent } from './components/request-list/request-list.component';
 import { StockReturnListComponent } from './components/return-list/stock-return-list.component';
+import { StockDetailModalComponent } from './components/detail-modal/stock-detail-modal.component';
 
 @NgModule({
   declarations: [
     StockDashboardComponent,
     RequestListComponent,
-    StockReturnListComponent
+    StockReturnListComponent,
+    StockDetailModalComponent
   ],
   imports: [
     CommonModule,

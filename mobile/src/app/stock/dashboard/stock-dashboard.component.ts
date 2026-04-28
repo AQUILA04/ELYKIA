@@ -2,7 +2,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { switchMap, tap, catchError, takeUntil } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { SegmentCustomEvent } from '@ionic/angular';
+import { SegmentCustomEvent, ModalController } from '@ionic/angular';
+import { StockDetailModalComponent } from '../components/detail-modal/stock-detail-modal.component';
 import { StockStateService, OperationalContext } from '../services/stock-state.service';
 import { StockApiService } from '../services/stock-api.service';
 import { StockRequest } from '../models/stock-request.model';
@@ -38,7 +39,8 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private stockStateService: StockStateService,
-    private stockApiService: StockApiService
+    private stockApiService: StockApiService,
+    private modalCtrl: ModalController
   ) {
     this.context$ = this.stockStateService.context$;
   }
@@ -54,6 +56,7 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
         this.requests = [];
       }),
       switchMap((ctx) => {
+        console.log('switchMap triggered with ctx', ctx);
         const req$ = ctx === 'STANDARD'
           ? this.stockApiService.getStandardRequests()
           : this.stockApiService.getTontineRequests();
@@ -89,9 +92,11 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
    * Updates StockStateService with the newly selected context.
    */
   onContextChange(event: any): void {
+    console.log('onContextChange called with', event.detail.value);
     const customEvent = event as SegmentCustomEvent;
     if (customEvent.detail.value) {
       const value = customEvent.detail.value as OperationalContext;
+      console.log('calling setContext with', value);
       this.stockStateService.setContext(value);
     }
   }
@@ -109,6 +114,17 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  async openDetailModal(operation: StockRequest | StockReturn, type: 'request' | 'return'): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: StockDetailModalComponent,
+      componentProps: {
+        operation,
+        type
+      }
+    });
+    await modal.present();
   }
 }
 

@@ -94,4 +94,18 @@ describe('RequestListComponent', () => {
       expect(emptyState).toBeTruthy();
     });
   });
+
+  describe('operationTap event', () => {
+    it('should emit operationTap when an item is clicked', () => {
+      spyOn(component.operationTap, 'emit');
+      const mockRequests: StockRequest[] = [{ id: 1, reference: 'REQ-001', status: 'PENDING', createdAt: '2026-01-01' }];
+      component.requests = mockRequests;
+      fixture.detectChanges();
+
+      const item = fixture.debugElement.query(By.css('.da-list-item'));
+      item.triggerEventHandler('click', null);
+
+      expect(component.operationTap.emit).toHaveBeenCalledWith(mockRequests[0]);
+    });
+  });
 });

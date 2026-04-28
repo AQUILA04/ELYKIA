@@ -11,4 +11,6 @@ export interface StockReturn {
   status: string;
   createdAt: string;
   commercialUsername?: string;
+  items?: any[];
+  [key: string]: any;
 }

@@ -20,7 +20,7 @@
     </div>
 
     <ion-list *ngIf="requests.length > 0">
-      <ion-item *ngFor="let request of requests; trackBy: trackById" class="da-list-item">
+      <ion-item *ngFor="let request of requests; trackBy: trackById" class="da-list-item" button="true" (click)="onOperationTap(request)">
         <ion-label>
           <div class="item-header">
             <h3>{{ request.reference || request.id }}</h3>

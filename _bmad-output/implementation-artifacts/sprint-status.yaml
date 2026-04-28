@@ -45,18 +45,18 @@ development_status:
   1-2-context-toggle-state-management: done
   1-3-stock-requests-list-view: done
   1-4-stock-returns-list-view: done
-  1-5-detailed-operation-view: ready-for-dev
+  1-5-detailed-operation-view: in-progress
   epic-1-retrospective: optional
 
-  epic-2: backlog
-  2-1-cancel-pending-standard-operations: backlog
-  2-2-create-standard-stock-request: backlog
-  2-3-create-standard-stock-return: backlog
-  2-4-prevent-duplicate-submissions: backlog
+  epic-2: in-progress
+  2-1-cancel-pending-standard-operations: ready-for-dev
+  2-2-create-standard-stock-request: ready-for-dev
+  2-3-create-standard-stock-return: ready-for-dev
+  2-4-prevent-duplicate-submissions: ready-for-dev
   epic-2-retrospective: optional
 
-  epic-3: backlog
-  3-1-cancel-pending-tontine-operations: backlog
-  3-2-create-tontine-stock-request: backlog
-  3-3-create-tontine-stock-return: backlog
+  epic-3: in-progress
+  3-1-cancel-pending-tontine-operations: ready-for-dev
+  3-2-create-tontine-stock-request: ready-for-dev
+  3-3-create-tontine-stock-return: ready-for-dev
   epic-3-retrospective: optional

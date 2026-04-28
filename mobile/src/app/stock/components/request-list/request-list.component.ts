@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { StockRequest } from '../../models/stock-request.model';
 
 @Component({
@@ -11,6 +11,11 @@ export class RequestListComponent {
   @Input() context: 'STANDARD' | 'TONTINE' = 'STANDARD';
   @Input() requests: StockRequest[] = [];
   @Input() loading: boolean = false;
+  @Output() operationTap = new EventEmitter<StockRequest>();
+
+  onOperationTap(request: StockRequest): void {
+    this.operationTap.emit(request);
+  }
 
   /**
    * Returns the CSS modifier class for a request status badge.
