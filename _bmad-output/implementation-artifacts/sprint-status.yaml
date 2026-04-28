@@ -43,7 +43,7 @@ development_status:
   epic-1: in-progress
   1-1-dashboard-scaffold-and-interceptors: done
   1-2-context-toggle-state-management: done
-  1-3-stock-requests-list-view: ready-for-dev
+  1-3-stock-requests-list-view: done
   1-4-stock-returns-list-view: ready-for-dev
   1-5-detailed-operation-view: ready-for-dev
   epic-1-retrospective: optional

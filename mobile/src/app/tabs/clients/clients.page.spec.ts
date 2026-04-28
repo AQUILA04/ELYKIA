@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ClientsPage } from './clients.page';
 import { Store } from '@ngrx/store';
 import { DomSanitizer } from '@angular/platform-browser';
-import { of } from 'rxjs';
 
 describe('ClientsPage - Photo Fallback', () => {
   let component: ClientsPage;
@@ -28,35 +27,27 @@ describe('ClientsPage - Photo Fallback', () => {
     mockSanitizer = TestBed.inject(DomSanitizer) as jasmine.SpyObj<DomSanitizer>;
   });
 
-  it('should use profilPhoto as primary path', (done) => {
-    const primaryPath = 'client_photos/profile_123.png';
-    const fallbackPath = 'client_photos/profile_456.png';
-
-    // Mock du sanitizer
+  it('should use localPath when provided', () => {
+    const localPath = 'client_photos/profile_123.png';
     mockSanitizer.bypassSecurityTrustUrl.and.returnValue('mocked-url' as any);
 
-    component.getPhotoUrl(primaryPath, fallbackPath).subscribe(result => {
-      // Vérifier que la méthode utilise le primaryPath en priorité
-      expect(result).toBeDefined();
-      done();
-    });
+    const result = component.getPhotoUrl(localPath);
+    expect(result).toBeDefined();
   });
 
-  it('should fallback to profilPhotoUrl when profilPhoto is null', (done) => {
-    const primaryPath = null;
-    const fallbackPath = 'client_photos/profile_456.png';
+  it('should fallback to default icon when localPath is null', () => {
+    mockSanitizer.bypassSecurityTrustUrl.and.returnValue('default-icon-url' as any);
 
-    component.getPhotoUrl(primaryPath, fallbackPath).subscribe(result => {
-      // Vérifier que la méthode utilise le fallbackPath quand primaryPath est null
-      expect(result).toBeDefined();
-      done();
-    });
+    const result = component.getPhotoUrl(null);
+    expect(mockSanitizer.bypassSecurityTrustUrl).toHaveBeenCalledWith('assets/icon/person-circle-outline.svg');
+    expect(result).toBeDefined();
   });
 
-  it('should return default icon when both paths are null', (done) => {
-    component.getPhotoUrl(null, null).subscribe(result => {
-      expect(result).toBe('assets/icon/person-circle-outline.svg');
-      done();
-    });
+  it('should fallback to default icon when localPath is undefined', () => {
+    mockSanitizer.bypassSecurityTrustUrl.and.returnValue('default-icon-url' as any);
+
+    const result = component.getPhotoUrl(undefined);
+    expect(mockSanitizer.bypassSecurityTrustUrl).toHaveBeenCalledWith('assets/icon/person-circle-outline.svg');
+    expect(result).toBeDefined();
   });
 });

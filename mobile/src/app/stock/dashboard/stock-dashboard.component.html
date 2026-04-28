@@ -18,9 +18,12 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <!-- The current context is exposed to presenter child components via async pipe -->
   <ng-container *ngIf="context$ | async as currentContext">
-    <!-- Presenter components will receive currentContext as @Input() here -->
-    <p class="context-label">Active context: {{ currentContext }}</p>
+    <!-- RequestListComponent receives context, data, and loading state from container -->
+    <app-request-list
+      [context]="currentContext"
+      [requests]="requests"
+      [loading]="loading">
+    </app-request-list>
   </ng-container>
 </ion-content>
