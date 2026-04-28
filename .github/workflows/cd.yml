@@ -1,0 +1,100 @@
+name: ELYKIA CD Pipeline
+
+# This workflow runs after the CI workflow ("ELYKIA CI Pipeline") completes successfully.
+# It deploys to 'test' when CI ran on branch 'main', and to 'prod' when CI ran on branches matching 'prod/**'.
+# It also supports a manual 'promote' workflow_dispatch to promote the current test release to prod.
+
+on:
+  workflow_run:
+    workflows: ["ELYKIA CI Pipeline"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform (promote)'
+        required: true
+        default: 'promote'
+
+jobs:
+  deploy-after-ci:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    name: Deploy after CI
+    steps:
+    - name: Determine branch and target
+      id: target
+      run: |
+        BRANCH="${{ github.event.workflow_run.head_branch }}"
+        echo "Branch is $BRANCH"
+        if [ "$BRANCH" = "main" ]; then
+          echo "env=test" >> $GITHUB_OUTPUT
+        elif [[ "$BRANCH" == prod/* ]]; then
+          echo "env=prod" >> $GITHUB_OUTPUT
+        else
+          echo "No deployment rule for branch $BRANCH. Exiting." >&2
+          exit 78
+        fi
+
+    - name: Deploy to target server
+      uses: appleboy/ssh-action@v0.1.7
+      with:
+        host: ${{ secrets.TEST_SERVER_HOST }}
+        username: ${{ secrets.TEST_SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 22
+        script: |
+          set -euo pipefail
+          # Determine deploy env
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          if [ "$BRANCH" = "main" ]; then
+            ENV=test
+          else
+            ENV=prod
+          fi
+          REPO="${{ github.repository }}"
+          SHA="${{ github.event.workflow_run.head_sha }}"
+          FRONTEND_IMAGE="ghcr.io/$REPO-frontend:$SHA"
+          BACKEND_IMAGE="ghcr.io/$REPO-backend:$SHA"
+          echo "Deploying $FRONTEND_IMAGE and $BACKEND_IMAGE to $ENV"
+          # export GHCR creds if provided as secrets
+          export GHCR_USERNAME="${{ secrets.GHCR_USERNAME }}" || true
+          export GHCR_TOKEN="${{ secrets.GHCR_TOKEN }}" || true
+          cd "${{ secrets.TEST_DEPLOY_PATH }}" || exit 2
+          ./deploy/deploy.sh "$ENV" "$FRONTEND_IMAGE" "$BACKEND_IMAGE"
+
+  promote:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'promote'
+    runs-on: ubuntu-latest
+    name: Promote test -> prod
+    steps:
+    - name: Fetch current test release info from test server and deploy to prod server
+      uses: appleboy/ssh-action@v0.1.7
+      with:
+        host: ${{ secrets.TEST_SERVER_HOST }}
+        username: ${{ secrets.TEST_SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 22
+        script: |
+          set -euo pipefail
+          DEPLOY_PATH="${{ secrets.TEST_DEPLOY_PATH }}"
+          # read current pointer file on test server
+          CURRENT_FILE="$DEPLOY_PATH/releases/test_current.txt"
+          if [ ! -f "$CURRENT_FILE" ]; then
+            echo "No current release pointer found on test server: $CURRENT_FILE" >&2
+            exit 1
+          fi
+          echo "Reading release file: $CURRENT_FILE"
+          cat "$CURRENT_FILE"
+          FRONTEND_IMAGE=$(grep '^FRONTEND_IMAGE=' "$CURRENT_FILE" | cut -d= -f2-)
+          BACKEND_IMAGE=$(grep '^BACKEND_IMAGE=' "$CURRENT_FILE" | cut -d= -f2-)
+          echo "Promoting FRONTEND_IMAGE=$FRONTEND_IMAGE BACKEND_IMAGE=$BACKEND_IMAGE"
+          # Now SSH to PROD server to deploy those images
+          PROD_HOST="${{ secrets.PROD_SERVER_HOST }}"
+          PROD_USER="${{ secrets.PROD_SERVER_USER }}"
+          PROD_PATH="${{ secrets.PROD_DEPLOY_PATH }}"
+          echo "Deploying to prod server $PROD_HOST"
+          ssh -o StrictHostKeyChecking=no -i /tmp/private_key -l "$PROD_USER" "$PROD_HOST" "cd $PROD_PATH && export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' && export GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' && ./deploy/deploy.sh prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+      env:
+        # appleboy/ssh-action exposes the private key as an ssh-agent key, but we also need a file for nested ssh; write it here
+        PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+

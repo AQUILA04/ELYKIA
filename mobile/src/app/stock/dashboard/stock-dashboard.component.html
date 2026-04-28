@@ -2,7 +2,25 @@
   <ion-toolbar>
     <ion-title>Stock Dashboard</ion-title>
   </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment
+      id="stock-context-segment"
+      [value]="context$ | async"
+      (ionChange)="onContextChange($event)">
+      <ion-segment-button value="STANDARD" id="segment-btn-standard">
+        <ion-label>Standard</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="TONTINE" id="segment-btn-tontine">
+        <ion-label>Tontine</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
 </ion-header>
+
 <ion-content class="ion-padding">
-  <p>stock-dashboard works!</p>
+  <!-- The current context is exposed to presenter child components via async pipe -->
+  <ng-container *ngIf="context$ | async as currentContext">
+    <!-- Presenter components will receive currentContext as @Input() here -->
+    <p class="context-label">Active context: {{ currentContext }}</p>
+  </ng-container>
 </ion-content>

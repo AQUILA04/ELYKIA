@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-elykia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strong_prod_password}
+      POSTGRES_DB: ${POSTGRES_DB:-elykia_db}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    # Ne publie pas le port 5432 publiquement en prod par défaut
+
+  backend:
+    image: ${BACKEND_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://db:5432/${POSTGRES_DB}}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+
+volumes:
+  db_data:
+
