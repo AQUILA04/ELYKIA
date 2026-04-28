@@ -32,6 +32,12 @@ echo "BACKEND_IMAGE=$BACKEND_IMAGE" >> "$RELEASE_FILE"
 echo "TIMESTAMP=$TIMESTAMP" >> "$RELEASE_FILE"
 
 echo "Pulling images..."
+# If GHCR credentials are provided in the environment, attempt to login so private images can be pulled
+if [ -n "${GHCR_USERNAME:-}" ] && [ -n "${GHCR_TOKEN:-}" ]; then
+  echo "Logging in to ghcr.io as $GHCR_USERNAME"
+  echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+fi
+
 docker compose -f "$COMPOSE_FILE" pull
 
 echo "Starting services..."

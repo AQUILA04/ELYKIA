@@ -16,85 +16,91 @@ on:
         default: 'promote'
 
 jobs:
-  deploy-after-ci:
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+  deploy-test:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
-    name: Deploy after CI
+    name: Deploy to TEST after CI
     steps:
-    - name: Determine branch and target
-      id: target
+    - name: Prepare SSH key
       run: |
-        BRANCH="${{ github.event.workflow_run.head_branch }}"
-        echo "Branch is $BRANCH"
-        if [ "$BRANCH" = "main" ]; then
-          echo "env=test" >> $GITHUB_OUTPUT
-        elif [[ "$BRANCH" == prod/* ]]; then
-          echo "env=prod" >> $GITHUB_OUTPUT
-        else
-          echo "No deployment rule for branch $BRANCH. Exiting." >&2
-          exit 78
-        fi
+        echo "$SSH_PRIVATE_KEY" > private_key
+        chmod 600 private_key
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Deploy to target server
-      uses: appleboy/ssh-action@v0.1.7
-      with:
-        host: ${{ secrets.TEST_SERVER_HOST }}
-        username: ${{ secrets.TEST_SERVER_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 22
-        script: |
-          set -euo pipefail
-          # Determine deploy env
-          BRANCH="${{ github.event.workflow_run.head_branch }}"
-          if [ "$BRANCH" = "main" ]; then
-            ENV=test
-          else
-            ENV=prod
-          fi
-          REPO="${{ github.repository }}"
-          SHA="${{ github.event.workflow_run.head_sha }}"
-          FRONTEND_IMAGE="ghcr.io/$REPO-frontend:$SHA"
-          BACKEND_IMAGE="ghcr.io/$REPO-backend:$SHA"
-          echo "Deploying $FRONTEND_IMAGE and $BACKEND_IMAGE to $ENV"
-          # export GHCR creds if provided as secrets
-          export GHCR_USERNAME="${{ secrets.GHCR_USERNAME }}" || true
-          export GHCR_TOKEN="${{ secrets.GHCR_TOKEN }}" || true
-          cd "${{ secrets.TEST_DEPLOY_PATH }}" || exit 2
-          ./deploy/deploy.sh "$ENV" "$FRONTEND_IMAGE" "$BACKEND_IMAGE"
+    - name: Deploy to test server
+      run: |
+        REPO='${{ github.repository }}'
+        SHA='${{ github.event.workflow_run.head_sha }}'
+        FRONTEND_IMAGE="ghcr.io/$REPO-frontend:$SHA"
+        BACKEND_IMAGE="ghcr.io/$REPO-backend:$SHA"
+        echo "Deploying $FRONTEND_IMAGE and $BACKEND_IMAGE to test"
+        ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' && cd ${{ secrets.TEST_DEPLOY_PATH }} && ./deploy/deploy.sh test '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+
+    - name: Cleanup SSH key
+      run: rm -f private_key || true
+
+  deploy-prod:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'prod/')
+    runs-on: ubuntu-latest
+    name: Deploy to PROD after CI
+    steps:
+    - name: Prepare SSH key
+      run: |
+        echo "$SSH_PRIVATE_KEY" > private_key
+        chmod 600 private_key
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Deploy to prod server
+      run: |
+        REPO='${{ github.repository }}'
+        SHA='${{ github.event.workflow_run.head_sha }}'
+        FRONTEND_IMAGE="ghcr.io/$REPO-frontend:$SHA"
+        BACKEND_IMAGE="ghcr.io/$REPO-backend:$SHA"
+        echo "Deploying $FRONTEND_IMAGE and $BACKEND_IMAGE to prod"
+        ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' && cd ${{ secrets.PROD_DEPLOY_PATH }} && ./deploy/deploy.sh prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+
+    - name: Cleanup SSH key
+      run: rm -f private_key || true
 
   promote:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'promote'
     runs-on: ubuntu-latest
     name: Promote test -> prod
     steps:
-    - name: Fetch current test release info from test server and deploy to prod server
-      uses: appleboy/ssh-action@v0.1.7
-      with:
-        host: ${{ secrets.TEST_SERVER_HOST }}
-        username: ${{ secrets.TEST_SERVER_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 22
-        script: |
-          set -euo pipefail
-          DEPLOY_PATH="${{ secrets.TEST_DEPLOY_PATH }}"
-          # read current pointer file on test server
-          CURRENT_FILE="$DEPLOY_PATH/releases/test_current.txt"
-          if [ ! -f "$CURRENT_FILE" ]; then
-            echo "No current release pointer found on test server: $CURRENT_FILE" >&2
-            exit 1
-          fi
-          echo "Reading release file: $CURRENT_FILE"
-          cat "$CURRENT_FILE"
-          FRONTEND_IMAGE=$(grep '^FRONTEND_IMAGE=' "$CURRENT_FILE" | cut -d= -f2-)
-          BACKEND_IMAGE=$(grep '^BACKEND_IMAGE=' "$CURRENT_FILE" | cut -d= -f2-)
-          echo "Promoting FRONTEND_IMAGE=$FRONTEND_IMAGE BACKEND_IMAGE=$BACKEND_IMAGE"
-          # Now SSH to PROD server to deploy those images
-          PROD_HOST="${{ secrets.PROD_SERVER_HOST }}"
-          PROD_USER="${{ secrets.PROD_SERVER_USER }}"
-          PROD_PATH="${{ secrets.PROD_DEPLOY_PATH }}"
-          echo "Deploying to prod server $PROD_HOST"
-          ssh -o StrictHostKeyChecking=no -i /tmp/private_key -l "$PROD_USER" "$PROD_HOST" "cd $PROD_PATH && export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' && export GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' && ./deploy/deploy.sh prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+    - name: Prepare SSH key
+      run: |
+        echo "$SSH_PRIVATE_KEY" > private_key
+        chmod 600 private_key
       env:
-        # appleboy/ssh-action exposes the private key as an ssh-agent key, but we also need a file for nested ssh; write it here
-        PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Promote current test release to prod
+      run: |
+        set -euo pipefail
+        TEST_HOST=${{ secrets.TEST_SERVER_HOST }}
+        TEST_USER=${{ secrets.TEST_SERVER_USER }}
+        TEST_PATH=${{ secrets.TEST_DEPLOY_PATH }}
+        PROD_HOST=${{ secrets.PROD_SERVER_HOST }}
+        PROD_USER=${{ secrets.PROD_SERVER_USER }}
+        PROD_PATH=${{ secrets.PROD_DEPLOY_PATH }}
+
+        echo "Fetching current test release file"
+        ssh -o StrictHostKeyChecking=no -i private_key "$TEST_USER@$TEST_HOST" "cat $TEST_PATH/releases/test_current.txt" > release.txt
+        cat release.txt
+        FRONTEND_IMAGE=$(grep '^FRONTEND_IMAGE=' release.txt | cut -d= -f2-)
+        BACKEND_IMAGE=$(grep '^BACKEND_IMAGE=' release.txt | cut -d= -f2-)
+
+        if [ -z "$FRONTEND_IMAGE" ] || [ -z "$BACKEND_IMAGE" ]; then
+          echo "Could not determine images to promote" >&2
+          exit 2
+        fi
+
+        echo "Promoting FRONTEND_IMAGE=$FRONTEND_IMAGE BACKEND_IMAGE=$BACKEND_IMAGE to prod ($PROD_HOST)"
+        ssh -o StrictHostKeyChecking=no -i private_key "$PROD_USER@$PROD_HOST" "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' && cd $PROD_PATH && ./deploy/deploy.sh prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+
+    - name: Cleanup
+      run: rm -f private_key release.txt || true
+
 

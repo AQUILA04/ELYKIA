@@ -11,6 +11,11 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     # Ne publie pas le port 5432 publiquement en prod par défaut
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   backend:
     image: ${BACKEND_IMAGE}
@@ -25,11 +30,12 @@ services:
       restart_policy:
         condition: on-failure
 
+# In production, we do NOT publish the frontend port on the host. A reverse-proxy (nginx) on the host
+# will route TLS traffic to the containers. This improves security and allows certbot to manage HTTPS.
   frontend:
     image: ${FRONTEND_IMAGE}
     restart: unless-stopped
-    ports:
-      - "80:80"
+    # Do not bind port 80 on the host in prod; let nginx handle external traffic
 
 volumes:
   db_data:

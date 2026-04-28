@@ -62,6 +62,45 @@ ssh user@server
 Notes:
 - Le script `import-db.sh` démarre le service `db` si nécessaire.
 - Les variables de connexion PostgreSQL peuvent être définies dans le fichier `.env` situé dans le même dossier (généré automatiquement par `deploy.sh`).
+ - En production, le fichier `docker-compose.prod.yml` n'expose pas le port 80 du frontend sur l'hôte: un reverse-proxy (nginx) sur le serveur doit être configuré pour gérer TLS et le routage.
+
+Configurer nginx et TLS (Let's Encrypt)
+--------------------------------------
+Un script d'exemple `setup_nginx.sh` est fourni dans ce dossier. Il installe `nginx` et `certbot`, déploie une configuration template (`nginx/elykia.conf`) et tente d'obtenir un certificat Let's Encrypt pour le domaine fourni.
+
+Exemple (sur le serveur):
+
+```bash
+cd /opt/elykia/deploy
+sudo ./setup_nginx.sh your.domain.tld you@example.com
+```
+
+Éditez le fichier template `deploy/nginx/elykia.conf` pour ajuster les chemins ou les routes avant d'exécuter le script si nécessaire.
+
+Backups automatiques de la base
+------------------------------
+Un script `db_backup.sh` est fourni pour effectuer des sauvegardes de la base Postgres (format custom via `pg_dump -Fc`) et stocker les fichiers sur le serveur dans `/var/backups/elykia/<YYYY-MM-DD>/`.
+
+Le comportement par défaut :
+- Sauvegarde au moment de l'exécution du script dans `/var/backups/elykia/<date>/`.
+- Supprime les dossiers plus anciens que la semaine précédente (garde la semaine en cours et la précédente).
+
+Planification (cron) recommandée sur le serveur Ubuntu (hors container)
+------------------------------------------------------------------------
+Éditez la crontab pour l'utilisateur qui exécute Docker et ajoutez la ligne suivante pour exécuter la sauvegarde à 08:00 et 19:00 du lundi au samedi :
+
+```cron
+0 8,19 * * 1-6 cd /opt/elykia/deploy && /opt/elykia/deploy/db_backup.sh prod >> /var/log/elykia_db_backup.log 2>&1
+```
+
+Remarques :
+- Le script s'attend à trouver le dossier `deploy` déployé sur le serveur (ex : `/opt/elykia/deploy`) et au moins Docker et docker-compose installés.
+- Les backups sont stockées sur le serveur hôte (pas dans le conteneur) pour faciliter la rétention et la rotation.
+
+Backup avant import de dump
+---------------------------
+Le script `import-db.sh` appellera automatiquement `db_backup.sh` avant d'appliquer la restauration, afin d'assurer un point de retour en cas de problème.
+
 
 CI / GitHub Actions — secrets nécessaires
 ----------------------------------------
