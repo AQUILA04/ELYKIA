@@ -6,6 +6,10 @@ import { SegmentCustomEvent } from '@ionic/angular';
 import { StockStateService, OperationalContext } from '../services/stock-state.service';
 import { StockApiService } from '../services/stock-api.service';
 import { StockRequest } from '../models/stock-request.model';
+import { StockReturn } from '../models/stock-return.model';
+
+/** Active content tab on the dashboard. */
+export type DashboardTab = 'requests' | 'returns';
 
 @Component({
   selector: 'app-stock-dashboard',
@@ -17,11 +21,18 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
   /** Observable of the current operational context, consumed via async pipe in template. */
   context$: Observable<OperationalContext>;
 
+  /** Currently active content tab. */
+  activeTab: DashboardTab = 'requests';
+
   /** List of stock requests for the active context. */
   requests: StockRequest[] = [];
-
-  /** True while the API call is in-flight — triggers the skeleton loader. */
+  /** True while the requests API call is in-flight. */
   loading = false;
+
+  /** List of stock returns for the active context. */
+  returns: StockReturn[] = [];
+  /** True while the returns API call is in-flight. */
+  returnsLoading = false;
 
   private destroy$ = new Subject<void>();
 
@@ -36,7 +47,7 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
     // Reset to predictable default state whenever the dashboard is loaded
     this.stockStateService.setContext('STANDARD');
 
-    // React to context switches: show skeleton immediately, then fetch the correct endpoint
+    // React to context switches: show skeleton immediately, then fetch requests endpoint
     this.context$.pipe(
       tap(() => {
         this.loading = true;
@@ -53,10 +64,28 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
       this.loading = false;
       this.requests = response?.data ?? [];
     });
+
+    // React to context switches: fetch returns endpoint in parallel
+    this.context$.pipe(
+      tap(() => {
+        this.returnsLoading = true;
+        this.returns = [];
+      }),
+      switchMap((ctx) => {
+        const ret$ = ctx === 'STANDARD'
+          ? this.stockApiService.getStandardReturns()
+          : this.stockApiService.getTontineReturns();
+        return ret$.pipe(catchError(() => of(null)));
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe((response) => {
+      this.returnsLoading = false;
+      this.returns = response?.data ?? [];
+    });
   }
 
   /**
-   * Handles Ionic segment ionChange events.
+   * Handles Ionic segment ionChange events for the operational context.
    * Updates StockStateService with the newly selected context.
    */
   onContextChange(event: any): void {
@@ -67,8 +96,19 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Handles the content tab switch between 'requests' and 'returns'.
+   */
+  onTabChange(event: any): void {
+    const customEvent = event as SegmentCustomEvent;
+    if (customEvent.detail.value) {
+      this.activeTab = customEvent.detail.value as DashboardTab;
+    }
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 }
+

@@ -15,15 +15,40 @@
       </ion-segment-button>
     </ion-segment>
   </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment
+      id="stock-content-tab-segment"
+      [value]="activeTab"
+      (ionChange)="onTabChange($event)">
+      <ion-segment-button value="requests" id="tab-btn-requests">
+        <ion-label>Requests</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="returns" id="tab-btn-returns">
+        <ion-label>Returns</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
   <ng-container *ngIf="context$ | async as currentContext">
-    <!-- RequestListComponent receives context, data, and loading state from container -->
-    <app-request-list
-      [context]="currentContext"
-      [requests]="requests"
-      [loading]="loading">
-    </app-request-list>
+    <!-- Requests tab -->
+    <ng-container *ngIf="activeTab === 'requests'">
+      <app-request-list
+        [context]="currentContext"
+        [requests]="requests"
+        [loading]="loading">
+      </app-request-list>
+    </ng-container>
+
+    <!-- Returns tab (AC1: fetches from the context-aware returns endpoint) -->
+    <ng-container *ngIf="activeTab === 'returns'">
+      <app-stock-return-list
+        [context]="currentContext"
+        [returns]="returns"
+        [loading]="returnsLoading">
+      </app-stock-return-list>
+    </ng-container>
   </ng-container>
 </ion-content>
+

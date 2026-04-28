@@ -1,0 +1,43 @@
+<div class="return-list-container">
+  <!-- Loading Skeleton -->
+  <ng-container *ngIf="loading">
+    <ion-list>
+      <ion-item *ngFor="let i of [1, 2, 3]">
+        <ion-label>
+          <h3><ion-skeleton-text [animated]="true" class="skeleton-title"></ion-skeleton-text></h3>
+          <p><ion-skeleton-text [animated]="true" class="skeleton-detail"></ion-skeleton-text></p>
+          <p><ion-skeleton-text [animated]="true" class="skeleton-meta"></ion-skeleton-text></p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+
+  <!-- Data List -->
+  <ng-container *ngIf="!loading">
+    <div class="empty-state" *ngIf="returns.length === 0">
+      <ion-icon name="return-down-back-outline" class="empty-icon"></ion-icon>
+      <p>No returns found.</p>
+    </div>
+
+    <ion-list *ngIf="returns.length > 0">
+      <ion-item *ngFor="let returnItem of returns; trackBy: trackById" class="da-list-item min-touch-target">
+        <ion-label>
+          <div class="item-header">
+            <h3>{{ returnItem.reference || returnItem.id }}</h3>
+            <span class="status-badge" [ngClass]="getBadgeClass(returnItem.status)">
+              {{ returnItem.status || 'EN ATTENTE' }}
+            </span>
+          </div>
+          <p class="item-detail">
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ returnItem.createdAt | date:'shortDate' }}
+          </p>
+          <p class="item-context">
+            <ion-icon name="pricetag-outline"></ion-icon>
+            {{ context }}
+          </p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+</div>

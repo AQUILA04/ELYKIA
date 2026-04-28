@@ -5,11 +5,13 @@ import { StockRoutingModule } from './stock-routing.module';
 import { StockDashboardComponent } from './dashboard/stock-dashboard.component';
 
 import { RequestListComponent } from './components/request-list/request-list.component';
+import { StockReturnListComponent } from './components/return-list/stock-return-list.component';
 
 @NgModule({
   declarations: [
     StockDashboardComponent,
-    RequestListComponent
+    RequestListComponent,
+    StockReturnListComponent
   ],
   imports: [
     CommonModule,
@@ -17,7 +19,9 @@ import { RequestListComponent } from './components/request-list/request-list.com
     StockRoutingModule
   ],
   exports: [
-    RequestListComponent
+    RequestListComponent,
+    StockReturnListComponent
   ]
 })
 export class StockModule { }
+
