@@ -11,10 +11,21 @@ export class StockReturnListComponent {
   @Input() context: 'STANDARD' | 'TONTINE' = 'STANDARD';
   @Input() returns: StockReturn[] = [];
   @Input() loading: boolean = false;
+  @Input() cancellingId: number | null = null;
   @Output() operationTap = new EventEmitter<StockReturn>();
+  @Output() cancelTap = new EventEmitter<StockReturn>();
 
   onOperationTap(returnItem: StockReturn): void {
     this.operationTap.emit(returnItem);
+  }
+
+  onCancelTap(event: Event, returnItem: StockReturn): void {
+    event.stopPropagation(); // prevent triggering operationTap
+    this.cancelTap.emit(returnItem);
+  }
+
+  isCancellable(status: string | null | undefined): boolean {
+    return status === 'CREATED' || status === 'PENDING';
   }
 
   /**

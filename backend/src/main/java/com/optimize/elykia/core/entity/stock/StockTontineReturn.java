@@ -24,6 +24,8 @@ public class StockTontineReturn extends Auditable<String> {
 
     private LocalDate returnDate;
 
+    private String comment;
+
     @Enumerated(EnumType.STRING)
     private StockReturnStatus status = StockReturnStatus.CREATED;
 

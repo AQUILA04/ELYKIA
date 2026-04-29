@@ -1,0 +1,72 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Nouvelle Demande Tontine</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onCancel()" [disabled]="isSubmitting">Fermer</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="form-container">
+    <div class="items-list">
+      <div class="item-row" *ngFor="let item of items; let i = index">
+        <ion-item lines="none" class="article-input">
+          <ion-select
+            label="Article"
+            labelPlacement="floating"
+            [value]="item.article.id || ''"
+            (ionChange)="onArticleChange(i, $event)"
+            [disabled]="isSubmitting"
+          >
+            <!-- Mock articles for MVP, real data would come from an endpoint -->
+            <ion-select-option [value]="12">Article A (ID: 12)</ion-select-option>
+            <ion-select-option [value]="13">Article B (ID: 13)</ion-select-option>
+            <ion-select-option [value]="14">Article C (ID: 14)</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item lines="none" class="qty-input">
+          <ion-input
+            type="number"
+            label="Qté"
+            labelPlacement="floating"
+            [(ngModel)]="item.quantity"
+            [disabled]="isSubmitting"
+            min="1"
+          ></ion-input>
+        </ion-item>
+
+        <ion-button
+          fill="clear"
+          color="danger"
+          (click)="removeItem(i)"
+          [disabled]="isSubmitting || items.length === 1"
+          class="remove-btn"
+        >
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <ion-button expand="block" fill="outline" (click)="addItem()" [disabled]="isSubmitting" class="add-btn">
+      <ion-icon name="add-outline" slot="start"></ion-icon>
+      Ajouter un article
+    </ion-button>
+
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-button
+      expand="block"
+      class="submit-btn"
+      (click)="onSubmit()"
+      [disabled]="!isValid || isSubmitting"
+    >
+      <ion-spinner *ngIf="isSubmitting" name="crescent"></ion-spinner>
+      <span *ngIf="!isSubmitting">Créer la demande</span>
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>
