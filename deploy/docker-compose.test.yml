@@ -30,13 +30,17 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       # Ajoutez d'autres variables d'environnement nécessaires ici
     ports:
-      - "8080:8080"
+      # bind backend only on localhost so host reverse-proxy (nginx) can reach it
+      - "127.0.0.1:8080:8080"
 
   frontend:
     image: ${FRONTEND_IMAGE}
     restart: unless-stopped
     ports:
-      - "80:80"
+      # bind frontend on localhost (different port) so nginx on the host can proxy to it
+      - "127.0.0.1:8081:80"
+    volumes:
+      - /opt/elykia/assets/env.js:/usr/share/nginx/html/assets/js/env.js:ro
 
 volumes:
   db_data:

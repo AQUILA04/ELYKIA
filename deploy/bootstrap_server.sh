@@ -96,6 +96,39 @@ if [[ -d "$DEPLOY_PATH/deploy" ]]; then
   chmod +x "$DEPLOY_PATH"/deploy/*.sh || true
 fi
 
+# Create a template .env in the deploy folder if it doesn't exist
+ENV_FILE="$DEPLOY_PATH/deploy/.env"
+if [[ -d "$DEPLOY_PATH/deploy" && ! -f "$ENV_FILE" ]]; then
+  echo "Creating template .env at $ENV_FILE"
+  cat > "$ENV_FILE" <<EOF
+# ELYKIA deploy environment file
+# Do NOT commit secrets into git. Fill values below.
+# Postgres (container) settings
+POSTGRES_DB=elykia
+POSTGRES_USER=elykia
+POSTGRES_PASSWORD=change_me
+
+# Spring Boot datasource (example)
+SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/
+SPRING_DATASOURCE_USERNAME=
+SPRING_DATASOURCE_PASSWORD=
+
+# GHCR credentials (if images are private)
+GHCR_USERNAME=
+GHCR_TOKEN=
+
+# Application / server settings
+FRONTEND_IMAGE=ghcr.io/owner/elykia-frontend:latest
+BACKEND_IMAGE=ghcr.io/owner/elykia-backend:latest
+
+EOF
+  # Secure the .env and set ownership to deploy user if exists
+  chmod 600 "$ENV_FILE" || true
+  if id "$SSH_USER" >/dev/null 2>&1; then
+    chown "$SSH_USER":"$SSH_USER" "$ENV_FILE" || true
+  fi
+fi
+
 echo "6/10 - Install nginx and certbot"
 apt-get install -y nginx certbot python3-certbot-nginx || true
 
@@ -138,12 +171,23 @@ systemctl enable elykia.service || true
 
 echo "9/10 - Setup cron job for DB backups (08:00 and 19:00 Mon-Sat)"
 CRON_CMD="0 8,19 * * 1-6 cd $DEPLOY_PATH/deploy && $DEPLOY_PATH/deploy/db_backup.sh prod >> /var/log/elykia_db_backup.log 2>&1"
-# add to specified user crontab if not present
-crontab -u "$SSH_USER" -l 2>/dev/null | grep -F "$DEPLOY_PATH/deploy/db_backup.sh" >/dev/null 2>&1 || (
-  (crontab -u "$SSH_USER" -l 2>/dev/null; echo "$CRON_CMD") | crontab -u "$SSH_USER" -
-)
 
-echo "10/10 - Final notes"
+# Only attempt to install crontab if the user exists. Be robust: don't fail the whole script on crontab errors.
+if id "$SSH_USER" >/dev/null 2>&1; then
+  EXISTING_CRONTAB=$(crontab -u "$SSH_USER" -l 2>/dev/null || true)
+  echo "$EXISTING_CRONTAB" | grep -F "$DEPLOY_PATH/deploy/db_backup.sh" >/dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    echo "Cron job already present for user $SSH_USER"
+  else
+    # Safely append the cron line to the user's crontab (preserve existing crontab)
+    (printf "%s
+%s
+" "$EXISTING_CRONTAB" "$CRON_CMD" | sed '/^$/d') | crontab -u "$SSH_USER" - 2>/dev/null || true
+    echo "Cron job installed for user $SSH_USER"
+  fi
+else
+  echo "User $SSH_USER does not exist; skipping cron setup"
+fi
 echo "Bootstrap completed."
 echo "- Deploy folder: $DEPLOY_PATH"
 echo "- Ensure you edit $DEPLOY_PATH/deploy/.env with production variables (DB password, SPRING_DATASOURCE_*, GHCR credentials if needed)."
