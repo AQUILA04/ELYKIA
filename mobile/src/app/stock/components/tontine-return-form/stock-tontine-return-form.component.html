@@ -19,9 +19,17 @@
             (ionChange)="onArticleChange(i, $event)"
             [disabled]="isSubmitting || availableArticles.length === 0"
           >
-            <ion-select-option *ngFor="let article of availableArticles" [value]="article.id">
-              {{ article.name }} (ID: {{ article.id }})
-            </ion-select-option>
+            <div slot="content">
+              <ion-searchbar debounce="300" (ionInput)="onSearch($event)"></ion-searchbar>
+              <ion-list>
+                <ion-select-option *ngFor="let article of availableArticles" [value]="article.id">
+                  {{ article.name }} (ID: {{ article.id }})
+                </ion-select-option>
+              </ion-list>
+              <ion-infinite-scroll (ionInfinite)="loadArticles($event)">
+                <ion-infinite-scroll-content></ion-infinite-scroll-content>
+              </ion-infinite-scroll>
+            </div>
           </ion-select>
         </ion-item>
 

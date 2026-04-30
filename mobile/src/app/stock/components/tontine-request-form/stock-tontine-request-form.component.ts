@@ -29,12 +29,49 @@ export class StockTontineRequestFormComponent {
     this.addItem(); // Start with one empty item
   }
 
+  currentPage = 0;
+  pageSize = 20;
+  hasMoreArticles = true;
+
   ngOnInit() {
-    this.articleService.getArticles().subscribe({
-      next: (articles) => {
-        this.availableArticles = articles;
+    this.loadArticles();
+  }
+
+  loadArticles(event?: any) {
+    if (!this.hasMoreArticles) {
+      if (event) event.target.complete();
+      return;
+    }
+
+    this.articleService.searchArticlesPaginated('', this.currentPage, this.pageSize).subscribe({
+      next: (page) => {
+        this.availableArticles = [...this.availableArticles, ...page.content];
+        this.hasMoreArticles = page.content.length === this.pageSize;
+        this.currentPage++;
+        if (event) {
+          event.target.complete();
+        }
       },
-      error: (err) => console.error('Failed to load articles', err)
+      error: (err) => {
+        console.error('Failed to load paginated articles', err);
+        if (event) event.target.complete();
+      }
+    });
+  }
+
+  onSearch(event: any) {
+    const query = event.detail.value;
+    this.currentPage = 0;
+    this.availableArticles = [];
+    this.hasMoreArticles = true;
+
+    this.articleService.searchArticlesPaginated(query || '', this.currentPage, this.pageSize).subscribe({
+      next: (page) => {
+        this.availableArticles = page.content;
+        this.hasMoreArticles = page.content.length === this.pageSize;
+        this.currentPage++;
+      },
+      error: (err) => console.error('Failed to search articles', err)
     });
   }
 
