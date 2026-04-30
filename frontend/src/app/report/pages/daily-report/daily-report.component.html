@@ -43,7 +43,7 @@
         </button>
 
         <!-- Margin Toggle Button -->
-        <button mat-icon-button (click)="toggleMargins()" matTooltip="Afficher/Masquer les marges" *ngIf="!isPromoter">
+        <button mat-icon-button (click)="toggleMargins()" matTooltip="Afficher/Masquer les marges" *ngIf="!isPromoter && !isRecoveryManager">
             <mat-icon>{{ showMargins ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
     </div>
@@ -348,8 +348,8 @@
                                     {{ dep.amount | currency:'XOF':'symbol':'1.0-0' }}
                                 </td>
                                 <td class="py-2 px-4 text-sm text-center" *ngIf="isManager">
-                                    <button mat-icon-button color="warn" matTooltip="Annuler le versement" 
-                                            *ngIf="canCancelDeposit(dep)" 
+                                    <button mat-icon-button color="warn" matTooltip="Annuler le versement"
+                                            *ngIf="canCancelDeposit(dep)"
                                             (click)="confirmCancelDeposit(dep)">
                                         <mat-icon>cancel</mat-icon>
                                     </button>

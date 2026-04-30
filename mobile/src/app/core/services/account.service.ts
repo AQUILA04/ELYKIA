@@ -10,6 +10,7 @@ import { Store } from '@ngrx/store';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { HealthCheckService } from './health-check.service';
 import { AccountRepository } from '../repositories/account.repository';
+import {LoggerService} from "./logger.service";
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +23,8 @@ export class AccountService {
     private dbService: DatabaseService,
     private accountRepository: AccountRepository,
     private store: Store,
-    private healthCheckService: HealthCheckService
+    private healthCheckService: HealthCheckService,
+    private readonly log: LoggerService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -51,6 +53,7 @@ export class AccountService {
                   if (localAccounts && localAccounts.length > 0) {
                     return localAccounts;
                   } else {
+                    this.log.log('ERROR:' + 'AccountService: Failed to fetch accounts from API, falling back to local' + JSON.stringify(error, null, 2));
                     throw new Error('Impossible de charger les comptes. Veuillez vérifier votre connexion ou synchroniser.');
                   }
                 })

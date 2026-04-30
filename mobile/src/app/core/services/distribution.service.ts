@@ -18,6 +18,7 @@ import { DistributionRepositoryExtensions, DistributionRepositoryFilters } from 
 import { DistributionRepository } from '../repositories/distribution.repository';
 import { ArticleRepository } from '../repositories/article.repository';
 import { StockSnapshotRepository } from '../repositories/stock-snapshot.repository';
+import {LoggerService} from "./logger.service";
 
 interface CreateDistributionData {
   clientId: string;
@@ -38,15 +39,16 @@ interface CreateDistributionData {
 export class DistributionService {
   private commercialUsername: string | undefined;
 
-  constructor(private http: HttpClient,
-    private dbService: DatabaseService,
-    private store: Store,
-    private healthCheckService: HealthCheckService,
-    private commercialStockRepository: CommercialStockRepository,
-    private distributionRepositoryExtensions: DistributionRepositoryExtensions,
-    private distributionRepository: DistributionRepository,
-    private articleRepository: ArticleRepository,
-    private stockSnapshotRepository: StockSnapshotRepository
+  constructor(private readonly http: HttpClient,
+    private readonly dbService: DatabaseService,
+    private readonly store: Store,
+    private readonly healthCheckService: HealthCheckService,
+    private readonly commercialStockRepository: CommercialStockRepository,
+    private readonly distributionRepositoryExtensions: DistributionRepositoryExtensions,
+    private readonly distributionRepository: DistributionRepository,
+    private readonly articleRepository: ArticleRepository,
+    private readonly stockSnapshotRepository: StockSnapshotRepository,
+              private readonly log: LoggerService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -98,6 +100,8 @@ export class DistributionService {
             switchMap(() => this.fetchAndSaveDistributions()),
             map(() => true),
             catchError((error) => {
+              this.log.log('ERROR:' + 'DistributionService: Failed to fetch distributions from API, usage local data' + JSON.stringify(error, null, 2));
+              this.log.recordException(JSON.stringify(error, null, 2));
               console.error('Failed to fetch distributions from API, usage local data', error);
               return of(true);
             })
@@ -157,6 +161,7 @@ export class DistributionService {
             }
           }),
           catchError(err => {
+            this.log.recordException(`DistributionService: Error saving page ${currentPage + 1}: ${JSON.stringify(err, null, 2)}`);
             console.error(`DistributionService: Error saving page ${currentPage + 1}:`, err);
             throw err;
           })
@@ -327,7 +332,7 @@ export class DistributionService {
     });
 
     distribution.items = distributionItems;
-    
+
     // Update distribution monetary values based on calculated local pricing
     distribution.totalAmount = calculatedTotalAmount;
     if (distributionData.advance !== undefined) {

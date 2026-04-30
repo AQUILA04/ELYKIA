@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, from, of, concat, forkJoin } from 'rxjs';
-import { catchError, map, switchMap, tap, take, toArray } from 'rxjs/operators';
+import { Observable, from, of, forkJoin } from 'rxjs';
+import { catchError, map, switchMap, tap, take } from 'rxjs/operators';
 import { DatabaseService } from './database.service';
 import { environment } from 'src/environments/environment';
 import { LoggerService } from './logger.service';
@@ -41,22 +41,22 @@ import { SyncOptions } from '../models/tontine-sync.models';
     providedIn: 'root'
 })
 export class TontineService {
-    private apiUrl = environment.apiUrl + '/api/v1';
+    private readonly apiUrl = environment.apiUrl + '/api/v1';
     private commercialUsername: string | undefined;
 
     constructor(
-        private http: HttpClient,
-        private dbService: DatabaseService,
-        private log: LoggerService,
-        private store: Store,
-        private collectionRepo: TontineCollectionRepository,
-        private tontineMemberRepositoryExtensions: TontineMemberRepositoryExtensions,
-        private tontineCollectionRepositoryExtensions: TontineCollectionRepositoryExtensions,
-        private tontineDeliveryRepositoryExtensions: TontineDeliveryRepositoryExtensions,
-        private tontineStockRepositoryExtensions: TontineStockRepositoryExtensions,
-        private memberRepo: TontineMemberRepository,
-        private historyRepo: TontineMemberAmountHistoryRepository,
-        private syncOrchestrator: SyncOrchestratorService
+        private readonly http: HttpClient,
+        private readonly dbService: DatabaseService,
+        private readonly log: LoggerService,
+        private readonly store: Store,
+        private readonly collectionRepo: TontineCollectionRepository,
+        private readonly tontineMemberRepositoryExtensions: TontineMemberRepositoryExtensions,
+        private readonly tontineCollectionRepositoryExtensions: TontineCollectionRepositoryExtensions,
+        private readonly tontineDeliveryRepositoryExtensions: TontineDeliveryRepositoryExtensions,
+        private readonly tontineStockRepositoryExtensions: TontineStockRepositoryExtensions,
+        private readonly memberRepo: TontineMemberRepository,
+        private readonly historyRepo: TontineMemberAmountHistoryRepository,
+        private readonly syncOrchestrator: SyncOrchestratorService
     ) {
         this.store.select(selectAuthUser).subscribe(user => {
             this.commercialUsername = user?.username;
@@ -156,6 +156,7 @@ export class TontineService {
                     return from(this.dbService.saveTontineSession(session)).pipe(
                         map(() => session),
                         catchError(err => {
+                          this.log.log('TontineService: Error saving session to DB: ' + JSON.stringify(err));
                             console.error('TontineService: Error saving session to DB:', err);
                             throw err;
                         })
@@ -164,6 +165,7 @@ export class TontineService {
                 return of(null);
             }),
             catchError(error => {
+              this.log.recordException('TontineService.fetchAndSaveSession' + JSON.stringify(error));
                 console.error('TontineService: Error fetching tontine session:', error);
                 return of(null);
             })
@@ -334,6 +336,7 @@ export class TontineService {
             }),
             catchError(error => {
                 console.warn('TontineService: Could not fetch history.', error);
+                this.log.recordException('TontineService.fetchAndSaveAmountHistory' + JSON.stringify(error));
                 return of(null);
             })
         );

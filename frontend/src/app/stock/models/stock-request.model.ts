@@ -27,3 +27,26 @@ export interface StockRequest {
   totalPurchasePrice?: number;
   accountingDate?: string;
 }
+
+export interface PartialDeliveryResponseDTO {
+    deliveryType: 'FULL' | 'PARTIAL';
+    deliveredRequestId: number;
+    deliveredRequestReference: string;
+    deliveredItems: DeliveredItemDTO[];
+    pendingItems: PendingItemDTO[];
+    pendingRequestId?: number;
+    pendingRequestReference?: string;
+}
+
+export interface DeliveredItemDTO {
+    itemName: string;
+    quantity: number;
+    unitPrice: number;
+}
+
+export interface PendingItemDTO {
+    itemName: string;
+    requestedQuantity: number;
+    availableQuantity: number;
+    unitPrice: number;
+}

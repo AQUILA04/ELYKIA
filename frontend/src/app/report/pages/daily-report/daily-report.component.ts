@@ -39,6 +39,7 @@ export class DailyReportComponent implements OnInit {
     // UI State
     isLoading = false;
     isPromoter = false;
+    isRecoveryManager = false;
     isManager = false;
     isSecretary = false;
     showMargins = false; // Toggle for margin visibility
@@ -76,6 +77,7 @@ export class DailyReportComponent implements OnInit {
         this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
         this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
         this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
+        this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
 
         if (!this.isPromoter) {
             this.loadAgents();
@@ -319,21 +321,21 @@ export class DailyReportComponent implements OnInit {
 
     canCancelDeposit(dep: any): boolean {
         if (!this.isManager || dep.amount <= 0) return false;
-        
+
         // Ensure not already cancelled
         const origRef = dep.reference || dep.id;
-        const isAlreadyCancelled = this.deposits.some((d: any) => 
+        const isAlreadyCancelled = this.deposits.some((d: any) =>
             d.amount < 0 && d.reference === `CANCEL-${origRef}`);
         if (isAlreadyCancelled) return false;
-        
+
         const depDate = new Date(dep.date);
         const today = new Date();
         depDate.setHours(0, 0, 0, 0);
         today.setHours(0, 0, 0, 0);
-        
+
         const diffTime = today.getTime() - depDate.getTime();
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        
+
         return diffDays <= 3;
     }
 

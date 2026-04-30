@@ -6,6 +6,7 @@ import com.optimize.common.securities.config.ProfileProperties;
 import com.optimize.common.securities.models.UserPermission;
 import com.optimize.common.securities.repository.UserPermissionRepository;
 import com.optimize.common.securities.util.AuthorityConstant;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,7 @@ import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
+@Slf4j
 public class UserPermissionService extends GenericService<UserPermission, Long> {
     private final ProfileProperties profileProperties;
     protected UserPermissionService(UserPermissionRepository repository,
@@ -26,10 +28,21 @@ public class UserPermissionService extends GenericService<UserPermission, Long> 
     public void initPermissions() {
         if (profileProperties.getAutoInitialize().isEnabled()) {
             String[] permissions = profileProperties.getPermissions().split(",");
-            for (String permission : permissions) {
-                if (!existsByName(permission.trim())) {
-                    create(new UserPermission(permission.trim(), Boolean.TRUE));
-                }
+            addPermissions(permissions);
+
+            String[] profils = profileProperties.getProfiles().split(",");
+            for (String profil : profils) {
+                log.info("Initializing permissions for profile: {}", profil.trim());
+                permissions = profileProperties.getProfilPermissions().get(profil.trim()).split(",");
+                addPermissions(permissions);
+            }
+        }
+    }
+
+    private void addPermissions(String[] permissions) {
+        for (String permission : permissions) {
+            if (!existsByName(permission.trim())) {
+                repository.save(new UserPermission(permission.trim(), Boolean.TRUE));
             }
         }
     }
@@ -38,7 +51,7 @@ public class UserPermissionService extends GenericService<UserPermission, Long> 
     public void addDefaultPermissions(Set<UserPermission> permissions) {
         permissions.forEach(permission -> {
             if (!getRepository().existsByName(permission.getName())) {
-                create(permission);
+                repository.save(permission);
             }
         });
     }
@@ -60,13 +73,14 @@ public class UserPermissionService extends GenericService<UserPermission, Long> 
     }
 
     public UserPermission getByName (String name) {
-        return getRepository().findByName(name).orElseThrow(() -> new ResourceNotFoundException("permission.not.found: " +name));
+        return getRepository().findByName(name).orElseThrow(() -> new ResourceNotFoundException("Permission with name " + name + " not found"));
     }
 
     public boolean existsByName (String name) {
         return getRepository().existsByName(name);
     }
 
+    @Override
     public UserPermissionRepository getRepository() {
         return (UserPermissionRepository) repository;
     }

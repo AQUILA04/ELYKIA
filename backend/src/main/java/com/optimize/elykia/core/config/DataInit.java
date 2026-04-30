@@ -18,7 +18,6 @@ public class DataInit implements ApplicationListener<ApplicationReadyEvent> {
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
-        userManagement.initialize();
         clientService.initClient();
         log.info("APPLICATION INITIALIZED SUCCESSFUL !!!");
     }

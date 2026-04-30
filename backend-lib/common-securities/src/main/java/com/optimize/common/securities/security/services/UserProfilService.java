@@ -8,7 +8,7 @@ import com.optimize.common.securities.models.UserPermission;
 import com.optimize.common.securities.models.UserProfil;
 import com.optimize.common.securities.repository.ProfilPermissionRepository;
 import com.optimize.common.securities.repository.UserProfilRepository;
-import com.optimize.common.securities.util.ProfilConstant;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,9 +88,11 @@ public class UserProfilService extends GenericService<UserProfil, Long> {
             Set<String> profiles = profilesPermissions.keySet();
             profiles.forEach(profile -> {
                 String[] profilPermissions = profilesPermissions.get(profile).split(",");
-                Arrays.asList(profilPermissions).forEach(permission -> {
+                UserProfil profil = getByName(profile.trim());
+                Set<String> permissionsSet = new HashSet<>(Arrays.asList(profilPermissions));
+                permissionsSet.forEach(permission -> {
                     if(!profilPermissionRepository.existsByUserProfil_nameAndUserPermission_name(profile, permission.trim())) {
-                        UserProfil profil = getByName(profile);
+
                         UserPermission userPermission = userPermissionService.getByName(permission.trim());
                         ProfilPermission profilPermission = new ProfilPermission();
                         profilPermission.setUserProfil(profil);
@@ -103,14 +105,15 @@ public class UserProfilService extends GenericService<UserProfil, Long> {
     }
 
     public boolean existsByName(String name) {
-        return getRepository().existsByName(name);
+        return getRepository().existsByName(name.trim());
     }
 
-    public UserProfil getByName(String name) {
-        return getRepository().findByName(name)
-                .orElseThrow(() -> new ResourceNotFoundException("profile.not.found"));
+    public UserProfil getByName(@NotNull String name) {
+        return getRepository().findByName(name.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("UserProfil with name " + name + " not found"));
     }
 
+    @Override
     public UserProfilRepository getRepository() {
         return (UserProfilRepository) repository;
     }

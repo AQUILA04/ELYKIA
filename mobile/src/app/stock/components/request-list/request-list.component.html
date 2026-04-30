@@ -1,0 +1,54 @@
+<div class="request-list-container">
+  <!-- Loading Skeleton (AC3 / NFR1: visible immediately, no blocking spinner) -->
+  <ng-container *ngIf="loading">
+    <ion-list>
+      <ion-item *ngFor="let i of [1, 2, 3]">
+        <ion-label>
+          <h3><ion-skeleton-text [animated]="true" class="skeleton-title"></ion-skeleton-text></h3>
+          <p><ion-skeleton-text [animated]="true" class="skeleton-detail"></ion-skeleton-text></p>
+          <p><ion-skeleton-text [animated]="true" class="skeleton-meta"></ion-skeleton-text></p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+
+  <!-- Data List (AC1 & AC2: displayed after fetch completes) -->
+  <ng-container *ngIf="!loading">
+    <div class="empty-state" *ngIf="requests.length === 0">
+      <ion-icon name="archive-outline" class="empty-icon"></ion-icon>
+      <p>Aucune demande trouvée.</p>
+    </div>
+
+    <ion-list *ngIf="requests.length > 0">
+      <ion-item *ngFor="let request of requests; trackBy: trackById" class="da-list-item" button="true" (click)="onOperationTap(request)">
+        <ion-label>
+          <div class="item-header">
+            <h3>{{ request.reference || request.id }}</h3>
+            <span class="status-badge" [ngClass]="getBadgeClass(request.status)">
+              {{ request.status || 'EN ATTENTE' }}
+            </span>
+          </div>
+          <p class="item-detail">
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ request.createdAt | date:'shortDate' }}
+          </p>
+          <p class="item-context">
+            <ion-icon name="pricetag-outline"></ion-icon>
+            {{ context }}
+          </p>
+        </ion-label>
+
+        <ion-button
+          fill="clear"
+          color="danger"
+          slot="end"
+          class="cancel-btn min-touch-target"
+          *ngIf="isCancellable(request.status)"
+          [disabled]="cancellingId === request.id"
+          (click)="onCancelTap($event, request)">
+          <ion-icon name="close-circle-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+</div>

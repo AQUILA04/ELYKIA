@@ -24,8 +24,10 @@ export class CrashlyticsReporterService {
 
       const summaryMessage = `Sync completed with ${errors.length} error(s)`;
       await this.loggerService.recordException(summaryMessage);
+      await this.loggerService.recordException(errors.map(error => error.errorMessage).join('\n'));
 
       for (const error of errors) {
+        await this.loggerService.log('ERROR: ' + JSON.stringify(error, null, 2));
         let errorDetail = `Entity: ${error.entityType} | ID: ${error.entityId} | Code: ${error.errorCode || 'N/A'} | Message: ${error.errorMessage || 'Unknown error'}`;
 
         if (error.entityType !== 'client' && error.requestData) {
