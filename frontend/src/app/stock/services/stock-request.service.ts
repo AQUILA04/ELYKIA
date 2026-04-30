@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../../shared/service/base-http.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { StockRequest, StockRequestStatus } from '../models/stock-request.model';
+import { StockRequest, StockRequestStatus, PartialDeliveryResponseDTO } from '../models/stock-request.model';
 import { Page } from '../../shared/models/page.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
@@ -29,8 +29,8 @@ export class StockRequestService extends BaseHttpService {
     return this.http.put<StockRequest>(`${this.baseUrl}/${id}/validate`, {});
   }
 
-  deliver(id: number): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}/${id}/deliver`, {});
+  deliver(id: number): Observable<PartialDeliveryResponseDTO> {
+    return this.http.put<PartialDeliveryResponseDTO>(`${this.baseUrl}/${id}/deliver`, {});
   }
 
   cancel(id: number): Observable<StockRequest> {

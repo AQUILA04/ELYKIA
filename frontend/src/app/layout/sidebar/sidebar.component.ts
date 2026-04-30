@@ -267,6 +267,10 @@ export class SidebarComponent implements OnInit {
     return this.userService.hasProfile(UserProfile.STOREKEEPER);
   }
 
+  isRecoveryManager(): boolean {
+    return this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
+  }
+
   isPromoter(): boolean {
     return this.userService.hasProfile(UserProfile.PROMOTER);
   }

@@ -111,6 +111,11 @@ const routes: Routes = [
     loadChildren: () => import('./features/tontine/pages/collection-recording/collection-recording.module').then(m => m.CollectionRecordingPageModule),
     canActivate: [AuthGuard]
   },
+  {
+    path: 'stock',
+    loadChildren: () => import('./stock/stock.module').then(m => m.StockModule),
+    canActivate: [AuthGuard]
+  },
   { path: '**', redirectTo: '/tabs/dashboard', pathMatch: 'full' },
 
 ];

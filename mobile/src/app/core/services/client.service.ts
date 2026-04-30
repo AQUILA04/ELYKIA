@@ -129,10 +129,10 @@ export class ClientService {
                 // this.log.log('[ClientService] Photo synchronization completed');
 
                 // Alternative: Trigger photo sync for local clients that need it, or just rely on background sync.
-                 this.log.log('[ClientService] Photo synchronization skipped in initializeClients to save memory. Should be handled by background sync.');
+                 await this.log.log('[ClientService] Photo synchronization skipped in initializeClients to save memory. Should be handled by background sync.');
 
               } catch (error) {
-                this.log.log(`[ClientService] Photo synchronization failed: ${error}`);
+                await this.log.log(`[ClientService] Photo synchronization failed: ${error}`);
               }
 
               this.updateProgress({
@@ -218,7 +218,7 @@ export class ClientService {
                   message: `Chargement page ${page + 1}/${pageInfo.totalPages}...`
               });
 
-              this.log.log(`[ClientService] Processed page ${page + 1}/${pageInfo.totalPages}, saved ${clients.length} clients.`);
+              await this.log.log(`[ClientService] Processed page ${page + 1}/${pageInfo.totalPages}, saved ${clients.length} clients.`);
 
               // If there are more pages, fetch the next one
               if (page < pageInfo.totalPages - 1) {
@@ -277,7 +277,7 @@ export class ClientService {
       totalClients = await this.clientRepositoryExtensions.countByCommercial(this.commercialUsername);
     } catch (error: any) {
       const errorMessage = `[ClientService] createClientLocally: Error counting clients. Message: ${error.message}`;
-      this.log.log(errorMessage);
+      await this.log.log(errorMessage);
       console.error('Error counting clients:', error);
       throw error;
     }
@@ -408,10 +408,10 @@ export class ClientService {
 
     try {
       await this.dbService.executeSet(transactionSet);
-      this.log.log(`[ClientService] createClientLocally: Client and account saved atomically.`);
+      await this.log.log(`[ClientService] createClientLocally: Client and account saved atomically.`);
     } catch (error: any) {
       const errorMessage = `[ClientService] createClientLocally: Atomic transaction failed. Message: ${error?.message ?? JSON.stringify(error)}`;
-      this.log.log(errorMessage);
+      await this.log.log(errorMessage);
       console.error('Atomic transaction failed:', error);
       // Relancer une erreur lisible
       throw new Error(errorMessage);
@@ -477,7 +477,7 @@ export class ClientService {
         activeAccounts
       };
     } catch (error: any) {
-      this.log.log(`[ClientService] getClientStats error: ${error.message}`);
+      await this.log.log(`[ClientService] getClientStats error: ${error.message}`);
       return {
         total: 0,
         local: 0,

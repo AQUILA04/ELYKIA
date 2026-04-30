@@ -8,6 +8,9 @@ import { ErrorHandlerService } from 'src/app/shared/service/error-handler.servic
 import { ErrorHandlingMixin } from 'src/app/shared/mixins/error-handling.mixin';
 import { ClientService } from 'src/app/client/service/client.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import {UserService} from "../../user/service/user.service";
+import {UserProfilConstant} from "../../shared/constants/user-profil.constant";
+import {UserProfile} from "../../shared/models/user-profile.enum";
 
 @Component({
   selector: 'app-credit-details',
@@ -29,15 +32,17 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
   showChangeCollectorModal = false;
   agents: any[] = [];
   selectedCommercial = '';
+  isRecoveryManager: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private creditService: CreditService,
-    private spinner: NgxSpinnerService,
-    private router: Router,
-    private tokenStorage: TokenStorageService,
-    private clientService: ClientService,
-    private alertService: AlertService,
+    private readonly route: ActivatedRoute,
+    private readonly creditService: CreditService,
+    private readonly spinner: NgxSpinnerService,
+    private readonly router: Router,
+    private readonly tokenStorage: TokenStorageService,
+    private readonly clientService: ClientService,
+    private readonly alertService: AlertService,
+    private readonly userService: UserService,
     errorHandler: ErrorHandlerService
   ) {
     super(errorHandler);
@@ -53,6 +58,7 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
         this.loadAllCreditData(creditId);
       }
     });
+    this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
   }
 
   onCancel(): void {

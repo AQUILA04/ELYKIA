@@ -137,13 +137,18 @@ export class StockRequestListComponent implements OnInit {
       if (confirmed) {
         this.stockRequestService.deliver(request.id!).subscribe({
           next: (resp: any) => {
-            if (resp && resp.statusCode && resp.statusCode !== 500) {
+            if (resp && resp.statusCode && resp.statusCode >= 400) {
               this.alertService.showError(resp.message ?? 'Erreur de livraison', 'Erreur de livraison');
-            } else {
-              this.toastr.success('Demande livrée');
-              this.loadRequests();
+              return;
             }
-
+            const payload = resp.data || resp;
+            if (payload && payload.deliveryType === 'PARTIAL') {
+               const msg = `Livraison partielle effectuée.\nArticles livrés : ${payload.deliveredItems?.length || 0}.\nUne nouvelle demande ${payload.pendingRequestReference} a été créée pour les articles manquants.`;
+               this.alertService.showInfo(msg, 'Livraison Partielle');
+            } else {
+               this.toastr.success('Demande livrée entièrement');
+            }
+            this.loadRequests();
           },
           error: (err) => {
             console.error('Error', err);

@@ -58,6 +58,8 @@ import localeFr from '@angular/common/locales/fr';
 import localeFrExtra from '@angular/common/locales/extra/fr';
 import { TimeoutInterceptor } from './core/interceptors/timeout.interceptor';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { NetworkErrorHandlerInterceptor } from './core/interceptors/network-error.interceptor';
+import { SecurityContextInterceptor } from './core/interceptors/security-context.interceptor';
 import { metaReducers } from './store/meta-reducers';
 
 function initializeDatabase(databaseService: DatabaseService) {
@@ -115,6 +117,16 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: NetworkErrorHandlerInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: SecurityContextInterceptor,
       multi: true,
     },
   ],

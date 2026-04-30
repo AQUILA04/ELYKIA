@@ -138,16 +138,22 @@ export class StockTontineRequestListComponent implements OnInit {
         this.spinner.show();
         this.requestService.deliver(request.id!).subscribe({
           next: (resp: any) => {
-            if (resp && resp.statusCode && resp.statusCode == 500) {
+            if (resp && resp.statusCode && resp.statusCode >= 400) {
               console.error('Error', resp);
               this.spinner.hide();
               this.alertService.showError(resp.message ?? 'Erreur de livraison', 'Erreur de livraison');
-            } else {
-              this.toastr.success('Demande livrée');
-              this.loadRequests();
-              this.spinner.hide();
+              return;
             }
-
+            
+            const payload = resp.data || resp;
+            if (payload && payload.deliveryType === 'PARTIAL') {
+               const msg = `Livraison partielle effectuée.\nArticles livrés : ${payload.deliveredItems?.length || 0}.\nUne nouvelle demande ${payload.pendingRequestReference} a été créée pour les articles manquants.`;
+               this.alertService.showInfo(msg, 'Livraison Partielle');
+            } else {
+               this.toastr.success('Demande livrée entièrement');
+            }
+            this.loadRequests();
+            this.spinner.hide();
           },
           error: (err) => {
             console.error('Error', err);

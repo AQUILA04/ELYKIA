@@ -1,0 +1,92 @@
+.request-list-container {
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 2rem;
+    color: var(--ion-color-medium);
+    gap: 8px;
+
+    .empty-icon {
+      font-size: 3rem;
+      opacity: 0.4;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+  }
+
+  .da-list-item {
+    --padding-start: 16px;
+    --inner-padding-end: 16px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+
+    ion-label {
+      margin-top: 12px;
+      margin-bottom: 12px;
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+
+      h3 {
+        font-weight: 600;
+        margin: 0;
+        color: var(--ion-color-dark);
+      }
+
+      .status-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 12px;
+        text-transform: uppercase;
+
+        &.status-pending {
+          background-color: var(--ion-color-warning-tint, #ffecd1);
+          color: var(--ion-color-warning-shade, #b37400);
+        }
+        &.status-approved,
+        &.status-validated,
+        &.status-livré,
+        &.status-delivered {
+          background-color: var(--ion-color-success-tint, #d8f5e1);
+          color: var(--ion-color-success-shade, #1b7a3a);
+        }
+        &.status-rejected,
+        &.status-annulé,
+        &.status-cancelled {
+          background-color: var(--ion-color-danger-tint, #fce4e4);
+          color: var(--ion-color-danger-shade, #c51212);
+        }
+      }
+    }
+
+    .item-detail,
+    .item-context {
+      display: flex;
+      align-items: center;
+      font-size: 0.875rem;
+      color: var(--ion-color-medium);
+      margin: 4px 0;
+
+      ion-icon {
+        margin-right: 6px;
+        font-size: 1rem;
+      }
+    }
+  }
+
+  // Skeleton placeholder widths (moved from inline styles — L3 fix)
+  ion-skeleton-text {
+    &.skeleton-title { width: 50%; }
+    &.skeleton-detail { width: 80%; }
+    &.skeleton-meta { width: 30%; }
+  }
+}

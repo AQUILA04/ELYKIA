@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.controller.stock;
 
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
+import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
 import com.optimize.elykia.core.service.stock.StockTontineRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,7 +31,7 @@ public class StockTontineRequestController {
     }
 
     @PutMapping("/{id}/deliver")
-    public ResponseEntity<StockTontineRequest> deliverRequest(@PathVariable Long id) {
+    public ResponseEntity<PartialDeliveryResponseDTO> deliverRequest(@PathVariable Long id) {
         return ResponseEntity.ok(service.deliver(id));
     }
 

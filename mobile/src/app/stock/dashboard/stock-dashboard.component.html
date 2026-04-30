@@ -1,0 +1,71 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Stock Dashboard</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment
+      id="stock-context-segment"
+      [value]="context$ | async"
+      (ionChange)="onContextChange($event)">
+      <ion-segment-button value="STANDARD" id="segment-btn-standard">
+        <ion-label>Standard</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="TONTINE" id="segment-btn-tontine">
+        <ion-label>Tontine</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment
+      id="stock-content-tab-segment"
+      [value]="activeTab"
+      (ionChange)="onTabChange($event)">
+      <ion-segment-button value="requests" id="tab-btn-requests">
+        <ion-label>Requests</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="returns" id="tab-btn-returns">
+        <ion-label>Returns</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ng-container *ngIf="context$ | async as currentContext">
+    <!-- Requests tab -->
+    <ng-container *ngIf="activeTab === 'requests'">
+      <app-request-list
+        [context]="currentContext"
+        [requests]="requests"
+        [loading]="loading"
+        [cancellingId]="cancellingId"
+        (cancelTap)="onCancelRequestTap($event)">
+      </app-request-list>
+    </ng-container>
+
+    <!-- Returns tab (AC1: fetches from the context-aware returns endpoint) -->
+    <ng-container *ngIf="activeTab === 'returns'">
+      <app-stock-return-list
+        [context]="currentContext"
+        [returns]="returns"
+        [loading]="returnsLoading"
+        [cancellingId]="cancellingId"
+        (cancelTap)="onCancelReturnTap($event)">
+      </app-stock-return-list>
+    </ng-container>
+  </ng-container>
+
+  <!-- Tontine Fab Context Mapping -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="(context$ | async) === 'TONTINE' && activeTab === 'requests'">
+    <ion-fab-button (click)="openCreateTontineRequestForm()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="(context$ | async) === 'TONTINE' && activeTab === 'returns'">
+    <ion-fab-button (click)="openCreateTontineReturnForm()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
+

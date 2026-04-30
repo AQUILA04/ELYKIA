@@ -1,0 +1,49 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>
+      {{ isRequest ? 'Détails Demande' : 'Détails Retour' }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="operation" class="operation-header">
+    <div class="reference">
+      <h3>{{ operation.reference || ('# ' + operation.id) }}</h3>
+      <ion-badge [color]="operation.status === 'VALIDATED' ? 'success' : (operation.status === 'PENDING' ? 'warning' : 'medium')">
+        {{ operation.status }}
+      </ion-badge>
+    </div>
+    <div class="date" *ngIf="operation.createdAt">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <span>{{ operation.createdAt | date:'short' }}</span>
+    </div>
+  </div>
+
+  <div class="items-list">
+    <h4>Articles ({{ items.length }})</h4>
+    <ion-list lines="full" *ngIf="items.length > 0; else noItems">
+      <ion-item *ngFor="let item of items" class="item-row">
+        <ion-label>
+          <div class="item-name">{{ item.itemName || item.article?.name || 'Article inconnu' }}</div>
+          <p *ngIf="item.unitPrice">Prix unitaire: {{ item.unitPrice | currency:'XOF':'symbol':'1.0-0' }}</p>
+        </ion-label>
+        <ion-badge slot="end" color="light" class="quantity-badge">
+          Qté: {{ item.quantity || 0 }}
+        </ion-badge>
+      </ion-item>
+    </ion-list>
+
+    <ng-template #noItems>
+      <div class="no-items-message">
+        <ion-icon name="cube-outline"></ion-icon>
+        <p>Aucun article trouvé pour cette opération.</p>
+      </div>
+    </ng-template>
+  </div>
+</ion-content>

@@ -10,9 +10,7 @@ import { Client } from '../../models/client.model';
 import * as AccountActions from '../account/account.actions';
 
 // Import the selectors properly
-import { selectAllClients } from './client.selectors';
 import { selectClientById } from './client.selectors';
-import { deleteDistributionsByClient } from "../distribution/distribution.actions";
 
 @Injectable()
 export class ClientEffects {
@@ -22,20 +20,6 @@ export class ClientEffects {
     private store: Store
   ) { }
 
-  /**
-   * @deprecated Use loadFirstPageClients$ instead.
-   */
-  loadClients$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(ClientActions.loadClients),
-      switchMap((action) =>
-        this.clientService.getClients().pipe(
-          map((clients) => ClientActions.loadClientsSuccess({ clients })),
-          catchError((error) => of(ClientActions.loadClientsFailure({ error: error.message })))
-        )
-      )
-    )
-  );
 
   addClient$ = createEffect(() =>
     this.actions$.pipe(

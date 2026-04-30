@@ -29,20 +29,11 @@
         <span>Rafraîchir</span>
       </button>
 
-      <button class="btn add btn-sm" (click)="addCredit()">
+      <button class="btn add btn-sm" (click)="addCredit()" *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']">
         <mat-icon>add</mat-icon>
         <span>Nouvelle Vente</span>
       </button>
 
-<!--      <button class="btn tontine btn-sm" (click)="addTontineDelivery()">-->
-<!--        <mat-icon>local_shipping</mat-icon>-->
-<!--        <span>+ Livraison tontine</span>-->
-<!--      </button>-->
-
-<!--      <button class="btn add btn-sm" (click)="openMergeModal()">-->
-<!--        <mat-icon>merge_type</mat-icon>-->
-<!--        <span>Fusion</span>-->
-<!--      </button>-->
     </div>
   </div>
 
@@ -112,24 +103,19 @@
             <mat-icon>visibility</mat-icon>
           </button>
 
-          <button *ngIf="['CREATED', 'VALIDATED', 'INPROGRESS'].includes(credit.status)" mat-icon-button matTooltip="Changer la mise" (click)="changeDailyStake(credit.id)">
+          <button *ngIf="['CREATED', 'VALIDATED', 'INPROGRESS'].includes(credit.status) && !isRecoveryManager" mat-icon-button matTooltip="Changer la mise" (click)="changeDailyStake(credit.id)">
             <mat-icon>monetization_on</mat-icon>
           </button>
 
           <!-- Bouton de mise journalière -->
           <button
-            *ngIf="credit.status === 'INPROGRESS' && credit.type === 'CREDIT' && credit.clientType === 'CLIENT'"
+            *ngIf="credit.status === 'INPROGRESS' && credit.type === 'CREDIT' && credit.clientType === 'CLIENT' && !isRecoveryManager"
             mat-icon-button
             matTooltip="Faire une mise"
             (click)="openDailyStakeModal(credit)">
             <mat-icon style="color: #28a745;">attach_money</mat-icon>
           </button>
 
-          <span *ngIf="credit.updatable === true && credit.status === 'INPROGRESS' && credit.type === 'CREDIT'">
-              <button *ngIf="credit.clientType === 'PROMOTER'" mat-icon-button matTooltip="Distribuer" (click)="distributeCredit(credit.id)">
-                <mat-icon>share</mat-icon>
-              </button>
-            </span>
           <span *ngIf="['CREATED', 'VALIDATED'].includes(credit.status)">
               <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" mat-icon-button matTooltip="Modifier" (click)="editCredit(credit.id)">
                 <mat-icon style="color: #003366;">edit</mat-icon>
