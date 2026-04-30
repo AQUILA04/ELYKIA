@@ -52,6 +52,7 @@ jobs:
         # Ensure repository name is lowercase for Docker tags (GHCR requires lowercase repository names)
         echo "IMAGE_NAME_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
+
     - name: Set lowercase image name
       run: |
         # Ensure repository name is lowercase for Docker tags (GHCR requires lowercase repository names)
