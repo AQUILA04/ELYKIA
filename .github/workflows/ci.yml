@@ -51,12 +51,6 @@ jobs:
       run: |
         # Ensure repository name is lowercase for Docker tags (GHCR requires lowercase repository names)
         echo "IMAGE_NAME_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-
-    - name: Set lowercase image name
-      run: |
-        # Ensure repository name is lowercase for Docker tags (GHCR requires lowercase repository names)
-        echo "IMAGE_NAME_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -93,6 +87,11 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Set lowercase image name
+      run: |
+        # Ensure repository name is lowercase for Docker tags (GHCR requires lowercase repository names)
+        echo "IMAGE_NAME_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
