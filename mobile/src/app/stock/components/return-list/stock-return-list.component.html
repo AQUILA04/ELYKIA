@@ -37,6 +37,17 @@
             {{ context }}
           </p>
         </ion-label>
+
+        <ion-button
+          fill="clear"
+          color="danger"
+          slot="end"
+          class="cancel-btn min-touch-target"
+          *ngIf="isCancellable(returnItem.status)"
+          [disabled]="cancellingId === returnItem.id"
+          (click)="onCancelTap($event, returnItem)">
+          <ion-icon name="close-circle-outline" slot="icon-only"></ion-icon>
+        </ion-button>
       </ion-item>
     </ion-list>
   </ng-container>

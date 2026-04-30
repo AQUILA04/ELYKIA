@@ -25,6 +25,12 @@ public class StockTontineReturnController {
         return ResponseEntity.ok(service.validate(id));
     }
 
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelReturn(@PathVariable Long id) {
+        service.cancelReturn(id);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/collector/{collector}")
     public ResponseEntity<Page<StockTontineReturn>> getByCollector(@PathVariable String collector, Pageable pageable) {
         // Note: Il faudra ajouter la méthode paginée dans le repository si elle n'existe pas

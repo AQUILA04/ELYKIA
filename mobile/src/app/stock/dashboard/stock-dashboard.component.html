@@ -37,7 +37,9 @@
       <app-request-list
         [context]="currentContext"
         [requests]="requests"
-        [loading]="loading">
+        [loading]="loading"
+        [cancellingId]="cancellingId"
+        (cancelTap)="onCancelRequestTap($event)">
       </app-request-list>
     </ng-container>
 
@@ -46,9 +48,24 @@
       <app-stock-return-list
         [context]="currentContext"
         [returns]="returns"
-        [loading]="returnsLoading">
+        [loading]="returnsLoading"
+        [cancellingId]="cancellingId"
+        (cancelTap)="onCancelReturnTap($event)">
       </app-stock-return-list>
     </ng-container>
   </ng-container>
+
+  <!-- Tontine Fab Context Mapping -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="(context$ | async) === 'TONTINE' && activeTab === 'requests'">
+    <ion-fab-button (click)="openCreateTontineRequestForm()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="(context$ | async) === 'TONTINE' && activeTab === 'returns'">
+    <ion-fab-button (click)="openCreateTontineReturnForm()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>
 
