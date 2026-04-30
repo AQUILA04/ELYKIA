@@ -11,10 +11,21 @@ export class RequestListComponent {
   @Input() context: 'STANDARD' | 'TONTINE' = 'STANDARD';
   @Input() requests: StockRequest[] = [];
   @Input() loading: boolean = false;
+  @Input() cancellingId: number | null = null;
   @Output() operationTap = new EventEmitter<StockRequest>();
+  @Output() cancelTap = new EventEmitter<StockRequest>();
 
   onOperationTap(request: StockRequest): void {
     this.operationTap.emit(request);
+  }
+
+  onCancelTap(event: Event, request: StockRequest): void {
+    event.stopPropagation(); // prevent triggering operationTap
+    this.cancelTap.emit(request);
+  }
+
+  isCancellable(status: string | null | undefined): boolean {
+    return status === 'CREATED' || status === 'PENDING';
   }
 
   /**
