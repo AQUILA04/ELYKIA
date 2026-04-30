@@ -53,6 +53,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
   // User-specific properties
   currentUser: any = null;
   isPromoter: boolean = false;
+  isRecoveryManager: boolean = false;
 
   constructor(
     private creditService: CreditService,
@@ -69,6 +70,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
     this.tokenStorage.checkConnectedUser();
     this.currentUser = this.tokenStorage.getUser();
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
+    this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
   }
 
   ngOnInit(): void {

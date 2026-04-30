@@ -121,7 +121,7 @@ const routes: Routes = [
     canActivate: [AuthGuard, NgxPermissionsGuard],
     data: {
       permissions: {
-        only: ['ROLE_TONTINE', 'ROLE_EDIT_TONTINE'],
+        only: ['ROLE_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_CONSULT_TONTINE'],
         redirectTo: '/home'
       },
       breadcrumb: 'Gestion des Tontines'

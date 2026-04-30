@@ -41,7 +41,7 @@ public class TontineSessionController {
     private final TontineExportService exportService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ROLE_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_TONTINE', 'ROLE_CONSULT_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_ADMIN')")
     @Operation(summary = "Lister toutes les sessions de tontine")
     public ResponseEntity<Response> getAllSessions() {
         List<TontineSessionDto> sessions = sessionService.getAllSessions();
@@ -52,7 +52,7 @@ public class TontineSessionController {
     }
 
     @GetMapping("/{sessionId}")
-    @PreAuthorize("hasAnyRole('ROLE_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_TONTINE', 'ROLE_CONSULT_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_ADMIN')")
     @Operation(summary = "Obtenir les détails d'une session")
     public ResponseEntity<Response> getSessionById(@PathVariable Long sessionId) {
         TontineSessionDto session = sessionService.getSessionById(sessionId);
@@ -63,7 +63,7 @@ public class TontineSessionController {
     }
 
     @GetMapping("/{sessionId}/members")
-    @PreAuthorize("hasAnyRole('ROLE_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_TONTINE', 'ROLE_CONSULT_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_ADMIN')")
     @Operation(summary = "Obtenir les membres d'une session spécifique")
     public ResponseEntity<Response> getSessionMembers(
             @PathVariable Long sessionId,
@@ -76,7 +76,7 @@ public class TontineSessionController {
     }
 
     @GetMapping("/{sessionId}/stats")
-    @PreAuthorize("hasAnyRole('ROLE_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_TONTINE','ROLE_CONSULT_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_ADMIN')")
     @Operation(summary = "Obtenir les statistiques d'une session")
     public ResponseEntity<Response> getSessionStats(@PathVariable Long sessionId) {
         SessionStatsDto stats = sessionService.getSessionStats(sessionId);

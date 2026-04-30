@@ -23,30 +23,93 @@ security:
       society: "AMENOUVEVE-YAVEH"
   config:
     auto-initialize:
-      enabled: false
-    profiles: SUPER_ADMIN,ADMIN,USER,PROMOTER,GESTIONNAIRE,STOREKEEPER,SECRETARY
+      enabled: true
+    profiles: SUPER_ADMIN,ADMIN,USER,PROMOTER,GESTIONNAIRE,STOREKEEPER,SECRETARY,RECOVERY_MANAGER
     permissions: ROLE_ADMIN,ROLE_USER,ROLE_SUPER_ADMIN,ROLE_CONSULT_CLIENT,ROLE_CONSULT_LOCALITY,ROLE_CONSULT_CREDIT,ROLE_CONSULT_TONTINE,ROLE_CONSULT_ACCOUNT,
       ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY,
       ROLE_EDIT_ARTICLE,ROLE_EDIT_ACCOUNT,ROLE_EDIT_CLIENT,ROLE_OPEN_ACCOUNTING_DAY,ROLE_CLOSE_ACCOUNTING_DAY,ROLE_EDIT_LOCALITY,ROLE_SHOW_PURCHASE_PRICE,ROLE_DEL_ACCOUNT,
       ROLE_DEL_CLIENT,ROLE_DEL_LOCALITY,ROLE_CONSULT_DASHBOARD,ROLE_VALIDATE_CREDIT,ROLE_DEL_TONTINE,ROLE_REPORT,ROLE_STOREKEEPER_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY
-      ROLE_PROMOTER
+      ROLE_PROMOTER,ROLE_RECOVERY_MANAGER,ROLE_RATTRAPAGE,ROLE_CONSULT_ORDER,ROLE_EDIT_ORDER,ROLE_DEL_ORDER,ROLE_ROOT,ROLE_STOCK_MANAGEMENT
     profil-permissions:
+      SUPER_ADMIN: ROLE_ADMIN,ROLE_ROOT
       ADMIN: ROLE_ADMIN
       USER: ROLE_USER
       PROMOTER: ROLE_CONSULT_CLIENT,ROLE_CONSULT_LOCALITY,ROLE_CONSULT_CREDIT,ROLE_CONSULT_TONTINE,ROLE_CONSULT_ACCOUNT,ROLE_EDIT_CLIENT,ROLE_EDIT_ACCOUNT,
-        ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY
+        ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,
+        ROLE_CONSULT_OPEN_ACCOUNTING_DAY,ROLE_RATTRAPAGE,ROLE_CONSULT_ORDER,ROLE_EDIT_ORDER,ROLE_STOCK_MANAGEMENT
       GESTIONNAIRE: ROLE_CONSULT_CLIENT,ROLE_CONSULT_LOCALITY,ROLE_CONSULT_CREDIT,ROLE_CONSULT_TONTINE,ROLE_CONSULT_ACCOUNT,
         ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY,
         ROLE_EDIT_ARTICLE,ROLE_EDIT_ACCOUNT,ROLE_EDIT_CLIENT,ROLE_OPEN_ACCOUNTING_DAY,ROLE_CLOSE_ACCOUNTING_DAY,ROLE_EDIT_LOCALITY,ROLE_SHOW_PURCHASE_PRICE,ROLE_DEL_ACCOUNT,
         ROLE_DEL_CLIENT,ROLE_DEL_LOCALITY,ROLE_CONSULT_DASHBOARD,ROLE_VALIDATE_CREDIT,ROLE_DEL_TONTINE,ROLE_REPORT,ROLE_STOREKEEPER_DASHBOARD,ROLE_STOREKEEPER,
-        ROLE_CREATE_INVENTORY,ROLE_RECONCILE_INVENTORY,ROLE_FINALIZE_INVENTORY
-      STOREKEEPER: ROLE_STOREKEEPER,ROLE_STOREKEEPER_DASHBOARD,ROLE_CREATE_INVENTORY
+        ROLE_CREATE_INVENTORY,ROLE_RECONCILE_INVENTORY,ROLE_FINALIZE_INVENTORY,ROLE_RATTRAPAGE,ROLE_CONSULT_ORDER,ROLE_EDIT_ORDER
+      STOREKEEPER: ROLE_STOREKEEPER,ROLE_STOREKEEPER_DASHBOARD,ROLE_CREATE_INVENTORY,ROLE_STOCK_MANAGEMENT
       SECRETARY: ROLE_CONSULT_CLIENT,ROLE_CONSULT_LOCALITY,ROLE_CONSULT_CREDIT,ROLE_CONSULT_TONTINE,ROLE_CONSULT_ACCOUNT,
         ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY,
         ROLE_EDIT_ARTICLE,ROLE_EDIT_ACCOUNT,ROLE_EDIT_CLIENT,ROLE_OPEN_ACCOUNTING_DAY,ROLE_CLOSE_ACCOUNTING_DAY,ROLE_EDIT_LOCALITY,ROLE_SHOW_PURCHASE_PRICE,
-        ROLE_DEL_LOCALITY,ROLE_CONSULT_DASHBOARD,ROLE_STOREKEEPER_DASHBOARD
+        ROLE_DEL_LOCALITY,ROLE_CONSULT_DASHBOARD,ROLE_STOREKEEPER_DASHBOARD,ROLE_RATTRAPAGE,ROLE_CONSULT_ORDER,ROLE_EDIT_ORDER,ROLE_STOCK_MANAGEMENT
+      RECOVERY_MANAGER: ROLE_RECOVERY_MANAGER,ROLE_CONSULT_CREDIT,ROLE_CONSULT_TONTINE,ROLE_CONSULT_DASHBOARD
     users:
       accounts:
+        "root":
+          username: root
+          password: Africa
+          profil: SUPER_ADMIN
+          user-details:
+            firstname: root
+            lastname: SUPER_ADMIN
+            phone: 70000001
+            gender: MALE
+            email: root@elykia.com
+        "manager":
+          username: manager
+          password: Africa
+          profil: ADMIN
+          user-details:
+            firstname: Manager
+            lastname: ADMIN
+            phone: 70000002
+            gender: MALE
+            email: manager@elykia.com
+        "ges003":
+          username: ges003
+          password: Abcd1234
+          profil: GESTIONNAIRE
+          user-details:
+            firstname: ges003
+            lastname: GESTIONNAIRE
+            phone: 70000003
+            gender: MALE
+            email: gestionnaire03@elykia.com
+        "secret001":
+          username: secret001
+          password: Secret1234
+          profil: SECRETARY
+          user-details:
+            firstname: secretaire
+            lastname: SECRETARY
+            phone: 70000004
+            gender: MALE
+            email: secretaire001@elykia.com
+        "mag001":
+          username: mag001
+          password: Maga1234
+          profil: STOREKEEPER
+          user-details:
+            firstname: Magasinier
+            lastname: STOREKEEPER
+            phone: 70000005
+            gender: MALE
+            email: magasinier01@elykia.com
+        "recov001":
+          username: recov001
+          password: Recover1234
+          profil: RECOVERY_MANAGER
+          user-details:
+            firstname: Chef recouvrement
+            lastname: RECOVERY_MANAGER
+            phone: 70000006
+            gender: MALE
+            email: chef.recouvrement@elykia.com
         "COM001":
           username: COM001
           password: ChangeMe001
@@ -212,204 +275,6 @@ optimize:
         type: PROMOTER
         account:
           accountNumber: "0011010001"
-          accountBalance: 100000.00
-      "COM002":
-        firstname: "COM002"
-        lastname: "COM002"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM002"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011020001"
-          accountBalance: 100000.00
-      "COM003":
-        firstname: "COM003"
-        lastname: "COM003"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM003"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011030001"
-          accountBalance: 100000.00
-      "COM004":
-        firstname: "COM004"
-        lastname: "COM004"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM004"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011040001"
-          accountBalance: 100000.00
-      "COM005":
-        firstname: "COM005"
-        lastname: "COM005"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM005"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011050001"
-          accountBalance: 100000.00
-      "COM006":
-        firstname: "COM006"
-        lastname: "COM006"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM006"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011060001"
-          accountBalance: 100000.00
-      "COM007":
-        firstname: "COM007"
-        lastname: "COM007"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM007"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011070001"
-          accountBalance: 100000.00
-      "COM008":
-        firstname: "COM008"
-        lastname: "COM008"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM008"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011080001"
-          accountBalance: 100000.00
-      "COM009":
-        firstname: "COM009"
-        lastname: "COM009"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM009"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011090001"
-          accountBalance: 100000.00
-      "COM010":
-        firstname: "COM010"
-        lastname: "COM010"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM010"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011100001"
-          accountBalance: 100000.00
-      "COM011":
-        firstname: "COM011"
-        lastname: "COM011"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM011"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011100002"
-          accountBalance: 100000.00
-
-      "COM012":
-        firstname: "COM012"
-        lastname: "COM012"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM012"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011100012"
-          accountBalance: 100000.00
-
-      "COM013":
-        firstname: "COM013"
-        lastname: "COM013"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM013"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011100013"
-          accountBalance: 100000.00
-
-      "COM014":
-        firstname: "COM014"
-        lastname: "COM014"
-        phone: ""
-        address: "Lomé"
-        cardID: ""
-        cardType: "CNI"
-        dateOfBirth: "1990-01-01"
-        collector: "COM014"
-        quarter: "Tokoin"
-        occupation: "Commercial"
-        type: PROMOTER
-        account:
-          accountNumber: "0011100014"
           accountBalance: 100000.00
 
 app:

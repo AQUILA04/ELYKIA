@@ -101,7 +101,7 @@
           </a>
         </li>
         <!-- MENU STOCK COMMERCIAL -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT', 'ROLE_STOREKEEPER']">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOCK_MANAGEMENT', 'ROLE_STOREKEEPER']">
           <a class="sidebar-link has-arrow" (click)="onStockClick()" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/stock') }">
             <span>
@@ -135,7 +135,7 @@
         </li>
 
         <!-- NOUVEAU MENU STOCK TONTINE -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_TONTINE', 'ROLE_STOREKEEPER', 'ROLE_REPORT']">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOCK_MANAGEMENT', 'ROLE_STOREKEEPER', 'ROLE_REPORT']">
           <a class="sidebar-link has-arrow" (click)="onStockTontineClick()" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/stock-tontine') }">
             <span>
@@ -208,7 +208,7 @@
                 <span class="hide-menu">Recouvrements</span>
               </a>
             </li>
-            <li class="sidebar-item submenu-item">
+            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_RATTRAPAGE']">
               <a class="sidebar-link" routerLink="/stock/credit/rattrapage"
                  [ngClass]="{ 'active': isSubRouteActive('/stock/credit/rattrapage') }">
                 <span class="material-icons">settings_backup_restore</span>
@@ -227,7 +227,7 @@
 <!--            <span class="hide-menu">Sortie</span>-->
 <!--          </a>-->
 <!--        </li>-->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_TONTINE','ROLE_EDIT_TONTINE']">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_TONTINE','ROLE_CONSULT_TONTINE','ROLE_EDIT_TONTINE']">
           <a class="sidebar-link has-arrow" (click)="onTontineClick()" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/tontine') }">
             <span>
@@ -252,7 +252,7 @@
             </li>
           </ul>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT','ROLE_EDIT_CREDIT']">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER']">
           <a class="sidebar-link" routerLink="/orders" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/orders') }">
             <span>
@@ -261,7 +261,7 @@
             <span class="hide-menu">Commandes</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isPromoter()">
+        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isPromoter() && !isRecoveryManager()">
           <a class="sidebar-link" routerLink="/expense" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/expense') }">
             <span>
@@ -272,7 +272,7 @@
         </li>
 
         <!-- MENU CONFIGURATION -->
-        <li class="sidebar-item" *ngIf="!isStorekeeper()">
+        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">
           <a class="sidebar-link has-arrow" (click)="onConfigurationClick()" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/configuration') }">
             <span>
