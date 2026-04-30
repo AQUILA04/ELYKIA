@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { StockTontineReturnFormComponent } from './stock-tontine-return-form.component';
 
 describe('StockTontineReturnFormComponent', () => {
@@ -10,7 +11,7 @@ describe('StockTontineReturnFormComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ StockTontineReturnFormComponent ],
-      imports: [IonicModule.forRoot(), FormsModule]
+      imports: [IonicModule.forRoot(), FormsModule, HttpClientTestingModule]
     }).compileComponents();
 
     fixture = TestBed.createComponent(StockTontineReturnFormComponent);

@@ -214,12 +214,12 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
 
   async onCancelRequestTap(request: StockRequest): Promise<void> {
     const alert = await this.alertCtrl.create({
-      header: 'Confirm Cancellation',
-      message: 'Are you sure you want to cancel this operation? This cannot be undone.',
+      header: 'Confirmer l\'annulation',
+      message: 'Êtes-vous sûr de vouloir annuler cette opération ? Cette action est irréversible.',
       buttons: [
-        { text: 'Keep', role: 'cancel' },
+        { text: 'Garder', role: 'cancel' },
         {
-          text: 'Cancel Operation',
+          text: 'Annuler l\'opération',
           role: 'destructive',
           handler: () => { this.executeCancelRequest(request); }
         }
@@ -253,12 +253,12 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
 
   async onCancelReturnTap(stockReturn: StockReturn): Promise<void> {
     const alert = await this.alertCtrl.create({
-      header: 'Confirm Cancellation',
-      message: 'Are you sure you want to cancel this operation? This cannot be undone.',
+      header: 'Confirmer l\'annulation',
+      message: 'Êtes-vous sûr de vouloir annuler cette opération ? Cette action est irréversible.',
       buttons: [
-        { text: 'Keep', role: 'cancel' },
+        { text: 'Garder', role: 'cancel' },
         {
-          text: 'Cancel Operation',
+          text: 'Annuler l\'opération',
           role: 'destructive',
           handler: () => { this.executeCancelReturn(stockReturn); }
         }

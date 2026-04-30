@@ -1,6 +1,8 @@
-import { Component, EventEmitter, Input, Output, Optional } from '@angular/core';
+import { Component, EventEmitter, Input, Output, Optional, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { CreateTontineRequestPayload, TontineRequestItemPayload } from '../../models/stock-tontine-request.model';
+import { ArticleService } from '../../../core/services/article.service';
+import { Article } from '../../../models/article.model';
 
 @Component({
   selector: 'app-stock-tontine-request-form',
@@ -14,13 +16,26 @@ export class StockTontineRequestFormComponent {
   @Output() formCancel = new EventEmitter<void>();
 
   items: TontineRequestItemPayload[] = [];
+  availableArticles: Article[] = [];
 
   // Note: Client and Contract references do not exist on StockTontineRequest entity
   // as per backend code inspection. We are omitting them to ensure alignment with
   // the actual API schema.
 
-  constructor(@Optional() private modalCtrl?: ModalController) {
+  constructor(
+    private articleService: ArticleService,
+    @Optional() private modalCtrl?: ModalController
+  ) {
     this.addItem(); // Start with one empty item
+  }
+
+  ngOnInit() {
+    this.articleService.getArticles().subscribe({
+      next: (articles) => {
+        this.availableArticles = articles;
+      },
+      error: (err) => console.error('Failed to load articles', err)
+    });
   }
 
   get isValid(): boolean {

@@ -20,3 +20,9 @@ Unit testing via karma currently presents failures mapping strictly to Ionic com
 1. Addressed AOT compile failure by ensuring dashboard properties like `currentContext` bound in templates are kept public.
 2. Verified `isSubmitting` property on new UI form components accurately hooks up with Angular lifecycle and blocks duplicate API hits across slow network responses while keeping UI alive via removing the premature child `.dismiss()` modal triggers.
 3. Included the `StockTontineReturnController.java` addition properly tracking the missing backend API endpoint implementation for `.cancelReturn` mapping correctly to UI action hooks.
+
+### Pre-commit review findings updates
+1. Addressed AOT compile failure by ensuring dashboard properties like `currentContext` bound in templates are kept public.
+2. Verified `isSubmitting` property on new UI form components accurately hooks up with Angular lifecycle and blocks duplicate API hits across slow network responses while keeping UI alive via removing the premature child `.dismiss()` modal triggers.
+3. Included the `StockTontineReturnController.java` addition properly tracking the missing backend API endpoint implementation for `.cancelReturn` mapping correctly to UI action hooks.
+4. Resolved secondary testing mock issues caused by HttpClient dependency injection for the `ArticleService` updates inside of unit testing configuration arrays.

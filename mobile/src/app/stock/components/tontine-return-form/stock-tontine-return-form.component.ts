@@ -1,6 +1,8 @@
-import { Component, EventEmitter, Input, Output, Optional } from '@angular/core';
+import { Component, EventEmitter, Input, Output, Optional, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { CreateTontineReturnPayload, TontineReturnItemPayload } from '../../models/stock-tontine-return.model';
+import { ArticleService } from '../../../core/services/article.service';
+import { Article } from '../../../models/article.model';
 
 @Component({
   selector: 'app-stock-tontine-return-form',
@@ -14,10 +16,23 @@ export class StockTontineReturnFormComponent {
   @Output() formCancel = new EventEmitter<void>();
 
   items: TontineReturnItemPayload[] = [];
+  availableArticles: Article[] = [];
   comment: string = '';
 
-  constructor(@Optional() private modalCtrl?: ModalController) {
+  constructor(
+    private articleService: ArticleService,
+    @Optional() private modalCtrl?: ModalController
+  ) {
     this.addItem(); // Start with one empty item
+  }
+
+  ngOnInit() {
+    this.articleService.getArticles().subscribe({
+      next: (articles) => {
+        this.availableArticles = articles;
+      },
+      error: (err) => console.error('Failed to load articles', err)
+    });
   }
 
   get isValid(): boolean {

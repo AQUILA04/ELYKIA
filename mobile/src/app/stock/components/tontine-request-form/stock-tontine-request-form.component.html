@@ -17,12 +17,11 @@
             labelPlacement="floating"
             [value]="item.article.id || ''"
             (ionChange)="onArticleChange(i, $event)"
-            [disabled]="isSubmitting"
+            [disabled]="isSubmitting || availableArticles.length === 0"
           >
-            <!-- Mock articles for MVP, real data would come from an endpoint -->
-            <ion-select-option [value]="12">Article A (ID: 12)</ion-select-option>
-            <ion-select-option [value]="13">Article B (ID: 13)</ion-select-option>
-            <ion-select-option [value]="14">Article C (ID: 14)</ion-select-option>
+            <ion-select-option *ngFor="let article of availableArticles" [value]="article.id">
+              {{ article.name }} (ID: {{ article.id }})
+            </ion-select-option>
           </ion-select>
         </ion-item>
 
