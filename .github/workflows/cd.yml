@@ -16,6 +16,13 @@ name: ELYKIA CD Pipeline
 #   - A pure deploy/ change deploys the last known-good images unchanged.
 #   - A backend-only change deploys the new backend + last known-good frontend.
 #   - Both changed → both new images are deployed.
+#
+# DEPLOY FILE SYNC STRATEGY
+# --------------------------
+# Before running deploy.sh on the server, the CD copies the deploy/ directory
+# from the repo (checked out at the triggering commit) to the server via scp.
+# This ensures docker-compose.*.yml and deploy.sh are always up to date on the
+# server, even when only infra files were changed (no image rebuild triggered).
 
 on:
   workflow_run:
@@ -92,12 +99,26 @@ jobs:
     name: Deploy to TEST after CI
     environment: test
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Prepare SSH key
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Sync deploy/ files to test server
+        run: |
+          # Ensure the deploy directory exists on the server, then rsync deploy/ files.
+          # This keeps docker-compose.*.yml, deploy.sh and other infra files up to date
+          # on the server without requiring a manual git pull.
+          ssh -o StrictHostKeyChecking=no -i private_key \
+            ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} \
+            "mkdir -p ${{ secrets.TEST_DEPLOY_PATH }}/deploy"
+          scp -o StrictHostKeyChecking=no -i private_key -r deploy/* \
+            ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }}:${{ secrets.TEST_DEPLOY_PATH }}/deploy/
 
       - name: Deploy to test server
         run: |
@@ -123,12 +144,23 @@ jobs:
     name: Deploy to PROD after CI
     environment: prod
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Prepare SSH key
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Sync deploy/ files to prod server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key \
+            ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
+            "mkdir -p ${{ secrets.PROD_DEPLOY_PATH }}/deploy"
+          scp -o StrictHostKeyChecking=no -i private_key -r deploy/* \
+            ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }}:${{ secrets.PROD_DEPLOY_PATH }}/deploy/
 
       - name: Deploy to prod server
         run: |
@@ -152,12 +184,23 @@ jobs:
     runs-on: ubuntu-latest
     name: Promote test -> prod
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Prepare SSH key
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Sync deploy/ files to prod server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key \
+            ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
+            "mkdir -p ${{ secrets.PROD_DEPLOY_PATH }}/deploy"
+          scp -o StrictHostKeyChecking=no -i private_key -r deploy/* \
+            ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }}:${{ secrets.PROD_DEPLOY_PATH }}/deploy/
 
       - name: Promote current test release to prod
         run: |
