@@ -213,7 +213,7 @@ jobs:
           PROD_PATH=${{ secrets.PROD_DEPLOY_PATH }}
 
           echo "Fetching current test release file"
-          ssh -o StrictHostKeyChecking=no -i private_key "$TEST_USER@$TEST_HOST" "cat $TEST_PATH/releases/test_current.txt" > release.txt
+          ssh -o StrictHostKeyChecking=no -i private_key "$TEST_USER@$TEST_HOST" "cat /opt/elykia/test/releases/test_current.txt" > release.txt
           cat release.txt
           FRONTEND_IMAGE=$(grep '^FRONTEND_IMAGE=' release.txt | cut -d= -f2-)
           BACKEND_IMAGE=$(grep '^BACKEND_IMAGE=' release.txt | cut -d= -f2-)

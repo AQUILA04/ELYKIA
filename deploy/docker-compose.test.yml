@@ -1,56 +1,78 @@
 version: '3.8'
 
+# TEST stack — project name: elykia-test
+# Domain: elykia-test.amenouveve-yaveh.com
+# Start:  docker compose -f docker-compose.test.yml --project-name elykia-test up -d
+# Stop:   docker compose -f docker-compose.test.yml --project-name elykia-test down
+
 services:
   db:
     image: postgres:15
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-elykia}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-elykia_pwd}
-      POSTGRES_DB: ${POSTGRES_DB:-elykia_db}
+      POSTGRES_USER: ${POSTGRES_USER:-elykia_test}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-elykia_test_pwd}
+      POSTGRES_DB: ${POSTGRES_DB:-elykia_test_db}
     volumes:
       - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432" # accessible for test environment
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
+    networks:
+      - internal
 
   backend:
     image: ${BACKEND_IMAGE}
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
-      # Variables communes — adaptez selon votre application (Spring Boot, etc.)
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://db:5432/${POSTGRES_DB}}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      # logging.file.path → LOGGING_FILE_PATH (Spring Boot relaxed binding: dots→underscores, uppercase)
       LOGGING_FILE_PATH: /home/app/.optimize-elykia-core/logs
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
-      # Swagger: allow access from any host (server IP, domain, etc.)
       SPRINGDOC_SWAGGER_UI_DISABLE_SWAGGER_DEFAULT_URL: "true"
       SERVER_PORT: ${SERVER_PORT:-8080}
     volumes:
-      # Mount backend logs to host for live tailing: tail -f /opt/elykia/logs/main.json
-      - ${LOG_PATH:-/opt/elykia/logs}:/home/app/.optimize-elykia-core/logs
-    ports:
-      # bind backend only on localhost so host reverse-proxy (nginx) can reach it
-      - "127.0.0.1:${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
+      - ${LOG_PATH:-/opt/elykia/test/logs}:/home/app/.optimize-elykia-core/logs
+    networks:
+      - internal
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # HTTPS router
+      - "traefik.http.routers.elykia-test-backend.rule=Host(`elykia-test.amenouveve-yaveh.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.elykia-test-backend.entrypoints=websecure"
+      - "traefik.http.routers.elykia-test-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.elykia-test-backend.loadbalancer.server.port=${SERVER_PORT:-8080}"
 
   frontend:
     image: ${FRONTEND_IMAGE}
     restart: unless-stopped
     environment:
-      # Injected at container startup into assets/js/env.js by docker-entrypoint.sh
-      API_URL: ${API_URL:-http://localhost/api}
+      API_URL: ${API_URL:-https://elykia-test.amenouveve-yaveh.com/api}
       GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
-    ports:
-      # bind frontend on localhost (different port) so nginx on the host can proxy to it
-      - "127.0.0.1:8081:80"
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # HTTPS router
+      - "traefik.http.routers.elykia-test-frontend.rule=Host(`elykia-test.amenouveve-yaveh.com`)"
+      - "traefik.http.routers.elykia-test-frontend.entrypoints=websecure"
+      - "traefik.http.routers.elykia-test-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.elykia-test-frontend.loadbalancer.server.port=80"
 
 volumes:
   db_data:
+
+networks:
+  internal:
+    # Internal network: only db ↔ backend communicate here
+  traefik-public:
+    external: true

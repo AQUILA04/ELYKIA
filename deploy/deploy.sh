@@ -18,14 +18,20 @@ BACKEND_ARG="${3:-}"
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 COMPOSE_FILE="$ROOT_DIR/docker-compose.$ENV.yml"
-RELEASES_DIR="$ROOT_DIR/releases"
+
+# Each stack has its own directory and .env under /opt/elykia/<env>/
+# This keeps test and prod secrets fully isolated from each other.
+STACK_DIR="/opt/elykia/$ENV"
+ENV_FILE="$STACK_DIR/.env"
+RELEASES_DIR="$STACK_DIR/releases"
 mkdir -p "$RELEASES_DIR"
 
-# Load existing .env if present (do not fail if absent)
-ENV_FILE="$ROOT_DIR/.env"
+# Load stack-specific .env if present (do not fail if absent)
 if [[ -f "$ENV_FILE" ]]; then
   # shellcheck disable=SC1090
-  source "$ENV_FILE"
+  set -a; source "$ENV_FILE"; set +a
+else
+  echo "Warning: $ENV_FILE not found. Run setup-server.sh first." >&2
 fi
 
 # Determine images: prefer CLI args, fall back to values from .env
@@ -50,6 +56,7 @@ fi
 # Ensure .env exists and update only the image variables when CLI args are provided
 touch "$ENV_FILE"
 chmod 600 "$ENV_FILE" || true
+mkdir -p "$(dirname "$ENV_FILE")"
 
 set_env_var() {
   key="$1"
@@ -81,9 +88,7 @@ RELEASE_FILE="$RELEASES_DIR/${ENV}_${TIMESTAMP}.txt"
 
 echo "DEPLOY: env=$ENV"
 echo "Using compose file: $COMPOSE_FILE"
-
-# Note: .env updated only for provided image args above; other variables remain intact
-
+echo "Using env file:     $ENV_FILE"
 echo "Saving release metadata to $RELEASE_FILE"
 echo "FRONTEND_IMAGE=$FRONTEND_IMAGE" > "$RELEASE_FILE"
 echo "BACKEND_IMAGE=$BACKEND_IMAGE" >> "$RELEASE_FILE"
@@ -96,10 +101,18 @@ if [ -n "${GHCR_USERNAME:-}" ] && [ -n "${GHCR_TOKEN:-}" ]; then
   echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 fi
 
-docker compose -f "$COMPOSE_FILE" pull
+docker compose \
+  -f "$COMPOSE_FILE" \
+  --project-name "elykia-$ENV" \
+  --env-file "$ENV_FILE" \
+  pull
 
 echo "Starting services..."
-docker compose -f "$COMPOSE_FILE" up -d
+docker compose \
+  -f "$COMPOSE_FILE" \
+  --project-name "elykia-$ENV" \
+  --env-file "$ENV_FILE" \
+  up -d
 
 echo "Deployment finished. Latest release metadata:"
 tail -n +1 "$RELEASE_FILE"
