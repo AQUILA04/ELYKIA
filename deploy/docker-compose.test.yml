@@ -28,26 +28,29 @@ services:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://db:5432/${POSTGRES_DB}}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      # Fix: user.home inside the container resolves to /root (Alpine default) but the
-      # process runs as 'app' which has no write access to /root. We override the
-      # logging path and app folder explicitly so they point to the app user's home.
       # logging.file.path → LOGGING_FILE_PATH (Spring Boot relaxed binding: dots→underscores, uppercase)
       LOGGING_FILE_PATH: /home/app/.optimize-elykia-core/logs
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      # Swagger: allow access from any host (server IP, domain, etc.)
+      SPRINGDOC_SWAGGER_UI_DISABLE_SWAGGER_DEFAULT_URL: "true"
       SERVER_PORT: ${SERVER_PORT:-8080}
+    volumes:
+      # Mount backend logs to host for live tailing: tail -f /opt/elykia/logs/main.json
+      - ${LOG_PATH:-/opt/elykia/logs}:/home/app/.optimize-elykia-core/logs
     ports:
       # bind backend only on localhost so host reverse-proxy (nginx) can reach it
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
 
   frontend:
     image: ${FRONTEND_IMAGE}
     restart: unless-stopped
+    environment:
+      # Injected at container startup into assets/js/env.js by docker-entrypoint.sh
+      API_URL: ${API_URL:-http://localhost/api}
+      GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
     ports:
       # bind frontend on localhost (different port) so nginx on the host can proxy to it
       - "127.0.0.1:8081:80"
-    volumes:
-      - /opt/elykia/assets/env.js:/usr/share/nginx/html/assets/js/env.js:ro
 
 volumes:
   db_data:
-
