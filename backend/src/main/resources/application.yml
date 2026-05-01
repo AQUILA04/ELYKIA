@@ -278,7 +278,7 @@ optimize:
           accountBalance: 100000.00
 
 app:
-  folder: /home/app/.optimize-elykia-core/operations/
+  folder: ${user.home}/.optimize-elykia-core/operations/
   security:
     parameter:
       init-enabled: true

@@ -26,6 +26,11 @@ services:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://db:5432/${POSTGRES_DB}}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      # Fix: user.home inside the container resolves to /root (Alpine default) but the
+      # process runs as 'app' which has no write access to /root. We override the
+      # logging path and app folder explicitly so they point to the app user's home.
+      # logging.file.path → LOGGING_FILE_PATH (Spring Boot relaxed binding: dots→underscores, uppercase)
+      LOGGING_FILE_PATH: /home/app/.optimize-elykia-core/logs
     deploy:
       restart_policy:
         condition: on-failure
