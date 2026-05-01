@@ -56,7 +56,13 @@ set_env_var() {
   val="$2"
   file="$ENV_FILE"
   if grep -q -E "^${key}=" "$file" 2>/dev/null; then
-    sed -i "s~^${key}=.*~${key}=${val}~" "$file"
+    # sed -i needs directory write permission (temp file in same dir).
+    # Instead, write to /tmp then overwrite the file in-place with cat,
+    # which only requires write permission on the file itself.
+    tmp=$(mktemp)
+    sed "s~^${key}=.*~${key}=${val}~" "$file" > "$tmp"
+    cat "$tmp" > "$file"
+    rm -f "$tmp"
   else
     echo "${key}=${val}" >> "$file"
   fi
