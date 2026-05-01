@@ -30,10 +30,10 @@ jobs:
 
     - name: Deploy to test server
       run: |
-        REPO='${{ github.repository }}'
+        REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
         SHA='${{ github.event.workflow_run.head_sha }}'
-        FRONTEND_IMAGE="ghcr.io/$REPO-frontend:$SHA"
-        BACKEND_IMAGE="ghcr.io/$REPO-backend:$SHA"
+        FRONTEND_IMAGE="ghcr.io/$REPO_LOWER-frontend:$SHA"
+        BACKEND_IMAGE="ghcr.io/$REPO_LOWER-backend:$SHA"
         echo "Deploying $FRONTEND_IMAGE and $BACKEND_IMAGE to test"
         ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' && cd ${{ secrets.TEST_DEPLOY_PATH }} && ./deploy/deploy.sh test '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
 
@@ -54,10 +54,10 @@ jobs:
 
     - name: Deploy to prod server
       run: |
-        REPO='${{ github.repository }}'
+        REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
         SHA='${{ github.event.workflow_run.head_sha }}'
-        FRONTEND_IMAGE="ghcr.io/$REPO-frontend:$SHA"
-        BACKEND_IMAGE="ghcr.io/$REPO-backend:$SHA"
+        FRONTEND_IMAGE="ghcr.io/$REPO_LOWER-frontend:$SHA"
+        BACKEND_IMAGE="ghcr.io/$REPO_LOWER-backend:$SHA"
         echo "Deploying $FRONTEND_IMAGE and $BACKEND_IMAGE to prod"
         ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' && cd ${{ secrets.PROD_DEPLOY_PATH }} && ./deploy/deploy.sh prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
 
