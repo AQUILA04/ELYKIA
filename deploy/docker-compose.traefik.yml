@@ -33,10 +33,12 @@ services:
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
 
-      # --- Let's Encrypt (TLS-ALPN-01 challenge) ---
+      # --- Let's Encrypt (HTTP-01 challenge) ---
+      # NOTE: TLS-ALPN-01 is blocked by Cloudflare proxy; HTTP-01 works correctly.
       - "--certificatesresolvers.letsencrypt.acme.email=francis.ahonsou@gmail.com"
       - "--certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
 
       # --- Logging ---
       - "--log.level=INFO"
