@@ -1,5 +1,3 @@
-version: '3.8'
-
 # PROD stack — project name: elykia-prod
 # Domain: elykia.amenouveve-yaveh.com
 # Start:  docker compose -f docker-compose.prod.yml --project-name elykia-prod up -d
@@ -45,10 +43,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
-      # HTTPS router
+      # HTTPS router — higher priority (10) than frontend (1) so /api routes hit backend first
       - "traefik.http.routers.elykia-prod-backend.rule=Host(`elykia.amenouveve-yaveh.com`) && PathPrefix(`/api`)"
       - "traefik.http.routers.elykia-prod-backend.entrypoints=websecure"
       - "traefik.http.routers.elykia-prod-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.elykia-prod-backend.priority=10"
       - "traefik.http.services.elykia-prod-backend.loadbalancer.server.port=${SERVER_PORT:-8080}"
 
   frontend:
@@ -62,10 +61,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
-      # HTTPS router
+      # HTTPS router — lower priority (1), catches all remaining traffic
       - "traefik.http.routers.elykia-prod-frontend.rule=Host(`elykia.amenouveve-yaveh.com`)"
       - "traefik.http.routers.elykia-prod-frontend.entrypoints=websecure"
       - "traefik.http.routers.elykia-prod-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.elykia-prod-frontend.priority=1"
       - "traefik.http.services.elykia-prod-frontend.loadbalancer.server.port=80"
 
 volumes:
