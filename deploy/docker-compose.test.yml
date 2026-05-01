@@ -33,6 +33,8 @@ services:
       # logging path and app folder explicitly so they point to the app user's home.
       # logging.file.path → LOGGING_FILE_PATH (Spring Boot relaxed binding: dots→underscores, uppercase)
       LOGGING_FILE_PATH: /home/app/.optimize-elykia-core/logs
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SERVER_PORT: ${SERVER_PORT:-8080}
     ports:
       # bind backend only on localhost so host reverse-proxy (nginx) can reach it
       - "127.0.0.1:8080:8080"
