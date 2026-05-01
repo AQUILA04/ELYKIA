@@ -25,7 +25,7 @@ spring:
           service-host-type: IP
 
 app:
-  folder: ${user.home}/.optimize-elykia-core/operations/
+  folder: /home/app/.optimize-elykia-core/operations/
   credit:
     dividend: 6
   users:
@@ -55,7 +55,7 @@ logging:
           filter:
             CommonsRequestLoggingFilter: DEBUG
   file:
-    path: ${user.home}/.${spring.application.name}/logs
+    path: /home/app/.${spring.application.name}/logs
 
 
   management:
