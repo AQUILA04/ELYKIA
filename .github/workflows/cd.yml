@@ -36,7 +36,6 @@ on:
         default: 'promote'
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -50,7 +49,7 @@ jobs:
       backend_image: ${{ steps.resolve.outputs.backend_image }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 50   # enough history to find the last build commit
 
@@ -103,7 +102,7 @@ jobs:
     environment: test
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Prepare SSH key
         run: |
@@ -148,7 +147,7 @@ jobs:
     environment: prod
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Prepare SSH key
         run: |
@@ -188,7 +187,7 @@ jobs:
     name: Promote test -> prod
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Prepare SSH key
         run: |
