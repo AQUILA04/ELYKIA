@@ -28,8 +28,6 @@ on:
         required: true
         default: 'promote'
 
-env:
-
 jobs:
   # ---------------------------------------------------------------------------
   # Resolve the last published image SHA for each component
