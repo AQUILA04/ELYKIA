@@ -44,10 +44,13 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
       # HTTPS router — higher priority (10) than frontend (1) so /api routes hit backend first
+      # stripprefix removes /api before forwarding to Spring Boot (backend uses /actuator, not /api/actuator)
       - "traefik.http.routers.elykia-prod-backend.rule=Host(`elykia.amenouveve-yaveh.com`) && PathPrefix(`/api`)"
       - "traefik.http.routers.elykia-prod-backend.entrypoints=websecure"
       - "traefik.http.routers.elykia-prod-backend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.elykia-prod-backend.priority=10"
+      - "traefik.http.routers.elykia-prod-backend.middlewares=elykia-prod-strip-api"
+      - "traefik.http.middlewares.elykia-prod-strip-api.stripprefix.prefixes=/api"
       - "traefik.http.services.elykia-prod-backend.loadbalancer.server.port=${SERVER_PORT:-8080}"
 
   frontend:
