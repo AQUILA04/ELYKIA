@@ -29,7 +29,7 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
             return {
                 statement: query,
                 values: [
-                    member.id, member.tontineSessionId, member.clientId, member.commercialUsername, member.totalContribution, member.deliveryStatus,
+                    String(member.id), member.tontineSessionId, member.clientId != null ? String(member.clientId) : null, member.commercialUsername, member.totalContribution, member.deliveryStatus,
                     member.registrationDate, member.isLocal ? 1 : 0, member.isSync ? 1 : 0, member.syncDate || new Date().toISOString(), member.syncHash,
                     member.frequency || null, member.amount || null, member.notes || null, member.updateScope || null
                 ]
