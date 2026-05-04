@@ -34,7 +34,7 @@
 
 
   <div class="table-container">
-    <table class="article-table">
+    <table class="article-table mobile-responsive">
       <thead>
         <tr>
           <th>
@@ -53,24 +53,24 @@
       </thead>
       <tbody>
         <tr *ngFor="let article of articles; let i = index">
-          <td>
+          <td data-label="Sélectionner">
             <mat-checkbox (click)="$event.stopPropagation()" (change)="toggleSelection(article)"
               [checked]="selectedArticles.has(article.id)">
             </mat-checkbox>
           </td>
-          <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-          <td>{{ article.name }}</td>
-          <td>{{ article.marque }}</td>
-          <td>{{ article.model }}</td>
-          <td>{{ article.type }}</td>
-          <td>
+          <td data-label="#">{{ (currentPage * pageSize) + (i + 1) }}</td>
+          <td data-label="Nom">{{ article.name }}</td>
+          <td data-label="Marque">{{ article.marque }}</td>
+          <td data-label="Modèle">{{ article.model }}</td>
+          <td data-label="Type">{{ article.type }}</td>
+          <td data-label="Statut">
             <span class="badge"
               [ngClass]="{'badge-enabled': article.status === 'ENABLED', 'badge-disabled': article.status === 'DISABLED', 'badge-deleted': article.status === 'DELETED'}">
               {{ article.status === 'ENABLED' ? 'Actif' : (article.status === 'DISABLED' ? 'Désactivé' : 'Supprimé') }}
             </span>
           </td>
 
-          <td>
+          <td data-label="Action">
             <button mat-icon-button matTooltip="Détails" (click)="viewDetails(article.id)">
               <mat-icon>visibility</mat-icon>
             </button>
