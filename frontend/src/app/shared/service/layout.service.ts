@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
@@ -8,25 +9,25 @@ export class LayoutService {
     private isSidebarOpenSubject = new BehaviorSubject<boolean>(false);
     public isSidebarOpen$ = this.isSidebarOpenSubject.asObservable();
 
-    constructor() { }
+    constructor(@Inject(DOCUMENT) private document: Document) { }
 
     toggleSidebar() {
         const isOpen = !this.isSidebarOpenSubject.value;
         this.isSidebarOpenSubject.next(isOpen);
         if (isOpen) {
-            document.body.classList.add('sidebar-open');
+            this.document.body.classList.add('sidebar-open');
         } else {
-            document.body.classList.remove('sidebar-open');
+            this.document.body.classList.remove('sidebar-open');
         }
     }
 
     openSidebar() {
         this.isSidebarOpenSubject.next(true);
-        document.body.classList.add('sidebar-open');
+        this.document.body.classList.add('sidebar-open');
     }
 
     closeSidebar() {
         this.isSidebarOpenSubject.next(false);
-        document.body.classList.remove('sidebar-open');
+        this.document.body.classList.remove('sidebar-open');
     }
 }

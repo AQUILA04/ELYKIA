@@ -710,7 +710,7 @@ input.ng-invalid {
 
   .mobile-responsive td[data-label]::before {
     content: attr(data-label) !important;
-    float: left !important;
+
     font-weight: bold !important;
     text-transform: uppercase !important;
     color: #003366 !important;
@@ -732,21 +732,39 @@ input.ng-invalid {
     margin-left: auto !important;
   }
 
+
   /* Adjust Search bars and top controls on mobile */
-  .d-flex.justify-content-between.align-items-center.mb-3.responsive-controls {
-    flex-direction: column;
+  .responsive-controls {
+    flex-direction: column !important;
     align-items: stretch !important;
-    gap: 10px;
+    gap: 10px !important;
   }
 
-  .d-flex.justify-content-between.align-items-center.mb-3.responsive-controls .form-control,
-  .d-flex.justify-content-between.align-items-center.mb-3.responsive-controls input.w-50 {
+  .responsive-controls .form-control,
+  .responsive-controls input.w-50 {
     width: 100% !important;
   }
 
-  .d-flex.justify-content-between.align-items-center.mb-3.responsive-controls .button-group {
-    width: 100%;
-    justify-content: space-between;
+  .responsive-controls .button-group {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .responsive-controls .button-group button,
+  .responsive-controls > button {
+    flex: 1 1 auto;
+    font-size: 0.85em !important;
+    padding: 6px 12px !important;
+    margin: 0 !important;
+  }
+
+  .responsive-controls .button-group button mat-icon,
+  .responsive-controls > button mat-icon {
+    font-size: 18px !important;
   }
 
   /* Fix paginator width on mobile */
