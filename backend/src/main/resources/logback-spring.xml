@@ -132,7 +132,7 @@
         <level value="DEBUG" />
     </logger>
 
-    <!-- Loki appender: activated only if LOKI_API_KEY is provided -->
+    <!-- Loki + root: Janino <if> must not nest inside <root> (breaks appenders). Branch at configuration level. -->
     <if condition='property("LOKI_API_KEY") != null &amp;&amp; !property("LOKI_API_KEY").trim().isEmpty()'>
         <then>
             <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
@@ -170,18 +170,19 @@
                     </stackTrace>
                 </message>
             </appender>
+            <root level="INFO">
+                <appender-ref ref="MainRollingFile"/>
+                <appender-ref ref="Console"/>
+                <appender-ref ref="LOKI"/>
+            </root>
         </then>
+        <else>
+            <root level="INFO">
+                <appender-ref ref="MainRollingFile"/>
+                <appender-ref ref="Console"/>
+            </root>
+        </else>
     </if>
-
-    <!-- LOG everything at INFO level -->
-    <root level="INFO">
-        <appender-ref ref="MainRollingFile"/>
-        <appender-ref ref="Console"/>
-        <if condition='property("LOKI_API_KEY") != null &amp;&amp; !property("LOKI_API_KEY").trim().isEmpty()'>
-            <then><appender-ref ref="LOKI"/></then>
-        </if>
-<!--        <appender-ref ref="LOGSTASH"/>-->
-    </root>
     </springProfile>
 
     <springProfile name="test">
