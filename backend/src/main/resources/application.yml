@@ -299,3 +299,16 @@ loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}
   user-id: ${LOKI_USER_ID:1114217}
   api-key: ${LOKI_API_KEY:}
+
+springdoc:
+  swagger-ui:
+    # Allow Swagger UI to load the local api-docs regardless of the host (IP, domain, etc.)
+    # Without this, Swagger UI tries to load petstore by default when accessed from an external IP
+    disable-swagger-default-url: true
+    url: /v3/api-docs
+  api-docs:
+    enabled: true
+
+logging:
+  file:
+    path: ${user.home}/.${spring.application.name}/logs

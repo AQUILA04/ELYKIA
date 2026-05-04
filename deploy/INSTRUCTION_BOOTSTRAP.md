@@ -1,17 +1,13 @@
-INSTRUCTION D'UTILISATION - bootstrap_server.sh
-===============================================
+INSTRUCTION D'UTILISATION - Création de l'utilisateur de déploiement
+====================================================================
 
-Ce fichier décrit les étapes et commandes recommandées pour créer un utilisateur de déploiement sur
-le serveur Ubuntu et exécuter le script `bootstrap_server.sh` fourni dans ce dépôt.
+Ce document décrit les étapes recommandées pour créer un utilisateur dédié au déploiement (`deploy`) sur le serveur Ubuntu et préparer la connexion avec GitHub Actions.
 
-1) Création de l'utilisateur de déploiement (ex: `deploy`)
---------------------------------------------------------
-Exécutez ces commandes en tant que root (ou avec `sudo`) sur le serveur Ubuntu.
-
-Remarque : nous créons l'utilisateur sans mot de passe et autorisons uniquement l'accès par clé SSH.
+## 1) Création de l'utilisateur de déploiement
+Exécutez ces commandes en tant que root (ou avec `sudo`) sur le serveur Ubuntu. L'utilisateur est créé sans mot de passe interactif, l'accès se fera uniquement par clé SSH.
 
 ```bash
-# 1. Créer l'utilisateur (sans mot de passe interactif)
+# 1. Créer l'utilisateur
 sudo adduser --disabled-password --gecos "" deploy
 
 # 2. Donner les droits sudo (si nécessaire pour administration)
@@ -27,83 +23,33 @@ echo 'ssh-rsa AAAA... your-key-comment' | sudo tee /home/deploy/.ssh/authorized_
 sudo chmod 600 /home/deploy/.ssh/authorized_keys
 sudo chown deploy:deploy /home/deploy/.ssh/authorized_keys
 
-# 5. (Optionnel) Ajouter l'utilisateur au groupe docker pour pouvoir exécuter docker sans sudo
+# 5. Ajouter l'utilisateur au groupe docker pour exécuter docker sans sudo
 sudo usermod -aG docker deploy
 
-# 6. Créer le dossier de déploiement et attribuer la propriété à l'utilisateur deploy
+# 6. Créer le dossier de déploiement de base et attribuer la propriété
 sudo mkdir -p /opt/elykia
 sudo chown deploy:deploy /opt/elykia
-
-# Après ces étapes, vous pouvez vous connecter en SSH avec l'utilisateur 'deploy'
-# Exemple local :
-# ssh deploy@your.server.ip
 ```
 
-2) Préparer les secrets GitHub (pour GitHub Actions)
---------------------------------------------------
-Ajoutez dans les Secrets du dépôt GitHub les éléments suivants (Settings → Secrets):
+## 2) Préparer les secrets GitHub (pour GitHub Actions)
+Dans votre dépôt GitHub, allez dans **Settings → Secrets and variables → Actions**.
 
-- `SSH_PRIVATE_KEY` : la clé privée correspondant à la clé publique ajoutée dans `authorized_keys`.
-- `SSH_KNOWN_HOSTS` : résultat de `ssh-keyscan your.server.tld` (recommandé).
+**Créer les Repository Secrets (globaux) :**
+- `SSH_PRIVATE_KEY` : la clé privée correspondant à la clé publique ajoutée ci-dessus.
+- `SSH_KNOWN_HOSTS` : le résultat de la commande `ssh-keyscan your.server.ip` (recommandé pour éviter les avertissements SSH).
+- `GHCR_USERNAME` : votre nom d'utilisateur GitHub.
+- `GHCR_TOKEN` : un Personal Access Token (PAT) avec le scope `read:packages`.
 
-Exemple pour obtenir la valeur de `SSH_KNOWN_HOSTS` :
+**Créer les Environment Secrets (Settings → Environments) :**
+Créez deux environnements (`test` et `prod`) et ajoutez ces secrets dans chacun d'eux :
+- `SERVER_USER` : `deploy` (ou `root` selon votre choix).
+- `SERVER_HOST` : l'adresse IP de votre serveur.
+- `DEPLOY_PATH` : `/opt/elykia` (c'est le dossier parent où se trouve le dossier `deploy`).
 
-```bash
-ssh-keyscan your.server.tld
-```
+## 3) Configuration Initiale du Serveur
+Une fois l'utilisateur créé et le code récupéré sur le serveur, veuillez suivre les étapes décrites dans le fichier **`INSTRUCTION_SETUP.md`** pour initialiser l'infrastructure Traefik et préparer les environnements `test` et `prod`.
 
-3) Copier le code et le script bootstrap sur le serveur
------------------------------------------------------
-Si vous avez cloné le repo directement sur le serveur en tant qu'utilisateur `deploy`, vous pouvez
-ignorer cette étape. Sinon, depuis votre poste local, copiez le dossier `deploy/` vers `/opt/elykia` :
-
-```bash
-# depuis votre poste local
-scp -r deploy deploy_user@your.server.tld:/tmp/deploy
-# puis sur le serveur
-sudo mv /tmp/deploy /opt/elykia/deploy
-sudo chown -R deploy:deploy /opt/elykia/deploy
-```
-
-4) Exécuter le script bootstrap
--------------------------------
-Le script installe Docker, nginx, certbot, crée un service systemd et planifie les backups.
-Exécutez-le en tant que root (sudo) :
-
-```bash
-sudo bash /opt/elykia/deploy/bootstrap_server.sh --deploy-path /opt/elykia --repo https://github.com/AQUILA04/ELYKIA.git --branch main --user deploy
-```
-
-Options utiles :
-- `--deploy-path` : chemin où placer le dossier (défaut `/opt/elykia`)
-- `--repo` : URL du dépôt si vous voulez que le script clone le dépôt
-- `--branch` : branche à cloner (défaut `main`)
-- `--user` : nom de l'utilisateur de déploiement (par défaut `ubuntu` dans le script, ici utilisez `deploy`)
-
-5) Après exécution du bootstrap
--------------------------------
-- Editez `/opt/elykia/deploy/.env` pour y renseigner les variables sensibles (mot de passe Postgres, `SPRING_DATASOURCE_*`, `GHCR_TOKEN` etc.).
-- Si vous utilisez des images privées GHCR, ajoutez `GHCR_USERNAME` et `GHCR_TOKEN` dans les secrets GitHub et dans `.env` si nécessaire.
-- Obtenez un certificat TLS si vous avez un domaine pointant sur le serveur :
-
-```bash
-sudo certbot --nginx -d your.domain.tld --email you@example.com --agree-tos --no-eff-email
-```
-
-6) Lancer un premier déploiement manuel (test)
----------------------------------------------
-Se connecter en SSH avec l'utilisateur `deploy` puis lancer :
-
-```bash
-cd /opt/elykia/deploy
-./deploy.sh test ghcr.io/OWNER/ELYKIA-frontend:<sha> ghcr.io/OWNER/ELYKIA-backend:<sha>
-```
-
-7) Remarques de sécurité
-------------------------
-- Préferez l'accès SSH par clés (pas de mots de passe). Ne mettez jamais la clé privée dans le dépôt.
-- Restreignez l'accès SSH au besoin (pare-feu, fail2ban).
-- Testez d'abord sur l'environnement `test` avant de promouvoir en `prod`.
-
-Si tu veux, je peux générer un example d'action GitHub (workflow) qui se connecte en SSH et exécute `deploy.sh` en utilisant les secrets ci-dessus.
-
+## 4) Remarques de sécurité
+- Préférez toujours l'accès SSH par clés. Ne mettez jamais la clé privée dans le dépôt.
+- Restreignez l'accès SSH si possible (configuration du pare-feu `ufw`, utilisation de `fail2ban`).
+- L'architecture actuelle utilise des dossiers `.env` isolés pour chaque environnement (`/opt/elykia/test/.env` et `/opt/elykia/prod/.env`) pour garantir que les secrets de production ne soient pas exposés à l'environnement de test.

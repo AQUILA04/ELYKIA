@@ -1,0 +1,72 @@
+# Traefik reverse proxy — standalone stack
+# Deploy once on the server: docker compose -f docker-compose.traefik.yml up -d
+# This stack owns ports 80 and 443 and routes traffic to the test/prod stacks
+# via the shared 'traefik-public' network.
+#
+# Prerequisites on the server:
+#   mkdir -p /opt/elykia/traefik
+#   touch /opt/elykia/traefik/acme.json
+#   chmod 600 /opt/elykia/traefik/acme.json
+
+services:
+  traefik:
+    image: traefik:v3.6.15
+    restart: unless-stopped
+    environment:
+      # Force Traefik to use the current Docker API version
+      - DOCKER_API_VERSION=1.54
+    command:
+      # --- API / Dashboard ---
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
+
+      # --- Docker provider ---
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik-public"
+
+      # --- Entrypoints ---
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      # --- Automatic HTTP → HTTPS redirect ---
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+
+      # --- Let's Encrypt (HTTP-01 challenge) ---
+      # NOTE: TLS-ALPN-01 is blocked by Cloudflare proxy; HTTP-01 works correctly.
+      - "--certificatesresolvers.letsencrypt.acme.email=francis.ahonsou@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+
+      # --- Logging ---
+      - "--log.level=INFO"
+      - "--accesslog=true"
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /opt/elykia/traefik/acme.json:/acme/acme.json
+
+    networks:
+      - traefik-public
+
+    labels:
+      - "traefik.enable=true"
+      # Dashboard — accessible at https://traefik.amenouveve-yaveh.com (optional)
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.amenouveve-yaveh.com`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      # Basic auth for dashboard — generate with: echo $(htpasswd -nb admin yourpassword) | sed -e s/\\$/\\$\\$/g
+      - "traefik.http.routers.traefik-dashboard.middlewares=dashboard-auth"
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH}"
+
+networks:
+  traefik-public:
+    external: true

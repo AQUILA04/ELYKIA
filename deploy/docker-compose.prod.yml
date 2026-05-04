@@ -1,42 +1,81 @@
-version: '3.8'
+# PROD stack — project name: elykia-prod
+# Domain: elykia.amenouveve-yaveh.com
+# Start:  docker compose -f docker-compose.prod.yml --project-name elykia-prod up -d
+# Stop:   docker compose -f docker-compose.prod.yml --project-name elykia-prod down
 
 services:
   db:
     image: postgres:15
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-elykia}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strong_prod_password}
-      POSTGRES_DB: ${POSTGRES_DB:-elykia_db}
+      POSTGRES_USER: ${POSTGRES_USER:-elykia_prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_strong_password}
+      POSTGRES_DB: ${POSTGRES_DB:-elykia_prod_db}
     volumes:
       - db_data:/var/lib/postgresql/data
-    # Ne publie pas le port 5432 publiquement en prod par défaut
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
+    networks:
+      - internal
 
   backend:
     image: ${BACKEND_IMAGE}
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://db:5432/${POSTGRES_DB}}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-    deploy:
-      restart_policy:
-        condition: on-failure
+      LOGGING_FILE_PATH: /home/app/.optimize-elykia-core/logs
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SPRINGDOC_SWAGGER_UI_DISABLE_SWAGGER_DEFAULT_URL: "true"
+      SERVER_PORT: ${SERVER_PORT:-8080}
+    volumes:
+      - ${LOG_PATH:-/opt/elykia/prod/logs}:/home/app/.optimize-elykia-core/logs
+    networks:
+      - internal
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # HTTPS router — higher priority (10) than frontend (1) so /api routes hit backend first
+      # stripprefix removes /api before forwarding to Spring Boot (backend uses /actuator, not /api/actuator)
+      - "traefik.http.routers.elykia-prod-backend.rule=Host(`elykia.amenouveve-yaveh.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.elykia-prod-backend.entrypoints=websecure"
+      - "traefik.http.routers.elykia-prod-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.elykia-prod-backend.priority=10"
+      - "traefik.http.routers.elykia-prod-backend.middlewares=elykia-prod-strip-api"
+      - "traefik.http.middlewares.elykia-prod-strip-api.stripprefix.prefixes=/api"
+      - "traefik.http.services.elykia-prod-backend.loadbalancer.server.port=${SERVER_PORT:-8080}"
 
-# In production, we do NOT publish the frontend port on the host. A reverse-proxy (nginx) on the host
-# will route TLS traffic to the containers. This improves security and allows certbot to manage HTTPS.
   frontend:
     image: ${FRONTEND_IMAGE}
     restart: unless-stopped
-    # Do not bind port 80 on the host in prod; let nginx handle external traffic
+    environment:
+      API_URL: ${API_URL:-https://elykia.amenouveve-yaveh.com/api}
+      GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # HTTPS router — lower priority (1), catches all remaining traffic
+      - "traefik.http.routers.elykia-prod-frontend.rule=Host(`elykia.amenouveve-yaveh.com`)"
+      - "traefik.http.routers.elykia-prod-frontend.entrypoints=websecure"
+      - "traefik.http.routers.elykia-prod-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.elykia-prod-frontend.priority=1"
+      - "traefik.http.services.elykia-prod-frontend.loadbalancer.server.port=80"
 
 volumes:
   db_data:
 
+networks:
+  internal:
+    # Internal network: only db ↔ backend communicate here
+  traefik-public:
+    external: true
