@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { OperationService } from '../service/operation.service';
-import { PageEvent } from '@angular/material/paginator';
+import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
 import { Router } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
 import Swal from 'sweetalert2';

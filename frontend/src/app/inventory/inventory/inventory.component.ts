@@ -2,13 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { InventoryService, Inventory, ApiResponse, InventoryDto } from '../service/inventory.service';
 import { Router } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
-import { PageEvent } from '@angular/material/paginator';
+import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ItemService, StockValues } from '../../article/service/item.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import {AuthService} from "../../auth/service/auth.service";
 import { saveAs } from 'file-saver';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { PhysicalQuantityModalComponent } from '../physical-quantity-modal/physical-quantity-modal.component';
 
 

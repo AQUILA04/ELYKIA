@@ -1,5 +1,5 @@
 import { Component, Input, ViewChild, AfterViewInit } from '@angular/core';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatLegacyPaginator as MatPaginator } from '@angular/material/legacy-paginator';
 import { TontineCollectionWebDto } from '../../../models/tontine-collecte.model';
 
 @Component({

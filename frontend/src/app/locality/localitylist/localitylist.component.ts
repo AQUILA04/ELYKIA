@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { LocalityService, Locality } from '../service/locality.service';
-import { PageEvent } from '@angular/material/paginator';
+import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
 import { Router } from '@angular/router';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';

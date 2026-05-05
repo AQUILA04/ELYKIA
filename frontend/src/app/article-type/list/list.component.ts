@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { PageEvent } from '@angular/material/paginator';
+import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ArticleTypeService, ArticleType } from '../service/article-type.service';
 import { AlertService } from 'src/app/shared/service/alert.service';

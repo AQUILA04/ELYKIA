@@ -22,8 +22,8 @@ import {
   startWith,
   map
 } from 'rxjs/operators';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 
 import { OrderService } from '../../services/order.service';
 import {

@@ -37,7 +37,7 @@
   </div>
 
   <!-- Member Summary -->
-  <mat-card class="summary-card">
+  <mat-card class="summary-card" *ngIf="member">
     <mat-card-content>
       <div class="summary-grid">
         <div class="summary-item">
@@ -60,7 +60,7 @@
         </div>
         <div class="summary-item">
           <span class="summary-label">Statut Session</span>
-          <span class="summary-value">{{ member.tontineSession?.status }}</span>
+          <span class="summary-value">{{ member.tontineSession.status }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Statut de Livraison</span>

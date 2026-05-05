@@ -4,7 +4,7 @@ import { AuthService } from '../../../auth/service/auth.service';
 import { TontineStock } from '../../models/tontine-stock.model';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ClientService } from 'src/app/client/service/client.service';
-import { PageEvent } from '@angular/material/paginator';
+import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
 
 @Component({
   selector: 'app-my-tontine-stock-dashboard',

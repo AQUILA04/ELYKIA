@@ -9,7 +9,7 @@ import {
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { AuthService } from '../../auth/service/auth.service';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { QuickStockEntryComponent } from './components/quick-stock-entry/quick-stock-entry.component';
 
 @Component({

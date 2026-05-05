@@ -4,10 +4,10 @@ import { AuthService } from '../../../auth/service/auth.service';
 import { CommercialMonthlyStock } from '../../models/commercial-stock.model';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ClientService } from 'src/app/client/service/client.service';
-import { PageEvent } from '@angular/material/paginator';
+import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
 import { UserService } from "../../../user/service/user.service";
 import { UserProfile } from "../../../shared/models/user-profile.enum";
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { SalesDetailsDialogComponent } from '../../components/sales-details-dialog/sales-details-dialog.component';
 import { StockMovementDialogComponent } from '../../components/stock-movement-dialog/stock-movement-dialog.component';
 

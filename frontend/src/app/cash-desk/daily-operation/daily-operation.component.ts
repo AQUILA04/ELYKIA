@@ -8,7 +8,7 @@ import { saveAs } from 'file-saver';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import Swal from 'sweetalert2';
 import { HttpErrorResponse } from '@angular/common/http';
-import { PageEvent } from '@angular/material/paginator'; // Utiliser le type PageEvent pour plus de clarté
+import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator'; // Utiliser le type PageEvent pour plus de clarté
 
 @Component({
   selector: 'app-daily-operation',

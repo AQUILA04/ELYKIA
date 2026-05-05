@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NgxPermissionsService } from 'ngx-permissions';
-import { MatPaginatorIntl } from '@angular/material/paginator';
+import { MatLegacyPaginatorIntl as MatPaginatorIntl } from '@angular/material/legacy-paginator';
 import { OutService } from '../service/out.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { Router } from '@angular/router';

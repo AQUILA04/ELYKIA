@@ -5,7 +5,7 @@ import { DailyCommercialReport } from '../../models/daily-commercial-report.mode
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ClientService } from 'src/app/client/service/client.service';
 import { DatePipe } from '@angular/common';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { CashDepositModalComponent } from '../../components/cash-deposit-modal/cash-deposit-modal.component';
 import { DailyOperationLog } from '../../models/daily-operation-log.model';
 import { DailyOperationService } from '../../service/daily-operation.service';

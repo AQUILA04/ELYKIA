@@ -10,7 +10,7 @@ import { UserService } from 'src/app/user/service/user.service';
 import { CreditSearchDto } from '../components/advanced-search/advanced-search.types';
 import { CreditService } from '../service/credit.service';
 import { Collector } from '../types/credit-merge.types';
-import { PageEvent } from '@angular/material/paginator';
+import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 import { ErrorHandlingMixin } from 'src/app/shared/mixins/error-handling.mixin';
 import { CreditTimelineDto } from '../types/credit.types';
