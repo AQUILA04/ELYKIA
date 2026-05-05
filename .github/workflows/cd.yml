@@ -112,6 +112,139 @@ jobs:
              && cd ${{ secrets.TEST_DEPLOY_PATH }} \
              && ./deploy/deploy.sh test '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
 
+      - name: Check if mobile was built in CI
+        id: check_mobile
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          run_id=${{ github.event.workflow_run.id }}
+          echo "triggering run id: $run_id"
+          # ensure jq is present
+          sudo apt-get update -y && sudo apt-get install -y jq
+          jobs_json=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/actions/runs/$run_id/jobs")
+          mobile_conclusion=$(echo "$jobs_json" | jq -r '.jobs[] | select(.name=="build-mobile") | .conclusion' | head -n1 || true)
+          echo "mobile_conclusion=$mobile_conclusion"
+          if [ "$mobile_conclusion" = "success" ]; then
+            echo "mobile_built=true" >> $GITHUB_OUTPUT
+          else
+            echo "mobile_built=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build APK from mobile (TEST)
+        if: ${{ steps.check_mobile.outputs.mobile_built == 'true' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: Setup Java JDK for APK build
+        if: ${{ steps.check_mobile.outputs.mobile_built == 'true' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Android SDK for APK build
+        if: ${{ steps.check_mobile.outputs.mobile_built == 'true' }}
+        uses: android-actions/setup-android@v3
+
+      - name: Inject TEST API URL into environment.prod.ts
+        if: ${{ steps.check_mobile.outputs.mobile_built == 'true' }}
+        run: |
+          mkdir -p mobile/src/environments
+          cat > mobile/src/environments/environment.prod.ts <<'EOF'
+          export const environment = {
+            production: true,
+            apiUrl: "${API_URL}"
+          };
+          EOF
+        env:
+          API_URL: ${{ secrets.TEST_API_URL }}
+
+      - name: Install mobile dependencies and build APK (TEST)
+        if: ${{ steps.check_mobile.outputs.mobile_built == 'true' }}
+        run: |
+          set -euo pipefail
+          cd mobile
+          npm cache clean --force
+          npm install --legacy-peer-deps
+          npx playwright install --with-deps chromium || true
+          npm install -g @ionic/cli @capacitor/cli
+          npm run test:e2e || true
+          ionic build --prod
+          npx cap add android || true
+          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+          # Configure Gradle for Crashlytics (same changes as CI)
+          sed -i "/dependencies {/a \\        classpath 'com.google.gms:google-services:4.4.0'\\n        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'" android/build.gradle || true
+          sed -i "/apply plugin: 'com.android.application'/a apply plugin: 'com.google.gms.google-services'\\napply plugin: 'com.google.firebase.crashlytics'" android/app/build.gradle || true
+          sed -i "/dependencies {/a \\    implementation platform('com.google.firebase:firebase-bom:32.7.0')\\n    implementation 'com.google.firebase:firebase-crashlytics'\\n    implementation 'com.google.firebase:firebase-analytics'" android/app/build.gradle || true
+
+      - name: Prepare Android config and sync (TEST)
+        if: ${{ steps.check_mobile.outputs.mobile_built == 'true' }}
+        run: |
+          set -euo pipefail
+          cd mobile
+          python -m json.tool android/app/google-services.json || true
+          npx cap sync android
+          mkdir -p android/app/src/main/res/xml
+          # Re-apply project-specific android config files that may be overwritten by sync
+          cp .github/workflows/android-config/AndroidManifest.xml android/app/src/main/AndroidManifest.xml || true
+          cp .github/workflows/android-config/config.xml android/app/src/main/res/xml/config.xml || true
+          cp .github/workflows/android-config/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml || true
+          cp .github/workflows/android-config/file_paths.xml android/app/src/main/res/xml/file_paths.xml || true
+          grep -c "uses-permission" android/app/src/main/AndroidManifest.xml || echo "No permissions found!"
+          grep -A 5 "usesCleartextTraffic" android/app/src/main/AndroidManifest.xml || echo "No cleartext traffic config found!"
+
+      - name: Prepare Android keystore for RELEASE build (TEST)
+        if: ${{ steps.check_mobile.outputs.mobile_built == 'true' }}
+        run: |
+          set -euo pipefail
+          # Decode keystore (provide ANDROID_KEYSTORE_BASE64 secret)
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "$AND_KS_BASE64" | base64 --decode > mobile/android/keystore.jks || true
+          fi
+          # Create key.properties expected by many Android projects
+          cat > mobile/android/key.properties <<'EOF'
+          storeFile=keystore.jks
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+        env:
+          AND_KS_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: Grant gradlew permission & Build Android RELEASE APK (TEST)
+        if: ${{ steps.check_mobile.outputs.mobile_built == 'true' }}
+        run: |
+          set -euo pipefail
+          chmod +x mobile/android/gradlew || true
+          cd mobile/android
+          ./gradlew clean assembleRelease
+
+      - name: Extract App Version and Rename APK (TEST)
+        if: ${{ steps.check_mobile.outputs.mobile_built == 'true' }}
+        run: |
+          VERSION=$(grep "version:" mobile/src/environments/environment.ts | sed "s/.*version: '\([^']*\)'.*/\1/")
+          echo "Detected version: $VERSION"
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          APK_SRC=mobile/android/app/build/outputs/apk/release/app-release.apk
+          APK_DEST=mobile/android/app/build/outputs/apk/release/elykia-mobile-test-v${VERSION}.apk
+          if [ ! -f "$APK_SRC" ]; then
+            echo "APK not found at $APK_SRC"
+            exit 1
+          fi
+          mv "$APK_SRC" "$APK_DEST"
+
+      - name: Upload Test APK as artifact
+        if: ${{ steps.check_mobile.outputs.mobile_built == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: elykia-mobile-test-v${{ env.APP_VERSION }}.apk
+          path: mobile/android/app/build/outputs/apk/debug/elykia-mobile-test-v${{ env.APP_VERSION }}.apk
+          retention-days: ${{ github.ref == 'refs/heads/main' && 90 || 10 }}
+
       - name: Cleanup SSH key
         if: always()
         run: rm -f private_key
@@ -145,6 +278,133 @@ jobs:
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
              && cd ${{ secrets.PROD_DEPLOY_PATH }} \
              && ./deploy/deploy.sh prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+
+      - name: Check if mobile was built in CI
+        id: check_mobile_prod
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          run_id=${{ github.event.workflow_run.id }}
+          echo "triggering run id: $run_id"
+          sudo apt-get update -y && sudo apt-get install -y jq
+          jobs_json=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/actions/runs/$run_id/jobs")
+          mobile_conclusion=$(echo "$jobs_json" | jq -r '.jobs[] | select(.name=="build-mobile") | .conclusion' | head -n1 || true)
+          echo "mobile_conclusion=$mobile_conclusion"
+          if [ "$mobile_conclusion" = "success" ]; then
+            echo "mobile_built=true" >> $GITHUB_OUTPUT
+          else
+            echo "mobile_built=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build APK from mobile (PROD)
+        if: ${{ steps.check_mobile_prod.outputs.mobile_built == 'true' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: Setup Java JDK for APK build (PROD)
+        if: ${{ steps.check_mobile_prod.outputs.mobile_built == 'true' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Android SDK for APK build (PROD)
+        if: ${{ steps.check_mobile_prod.outputs.mobile_built == 'true' }}
+        uses: android-actions/setup-android@v3
+
+      - name: Inject PROD API URL into environment.prod.ts
+        if: ${{ steps.check_mobile_prod.outputs.mobile_built == 'true' }}
+        run: |
+          mkdir -p mobile/src/environments
+          cat > mobile/src/environments/environment.prod.ts <<'EOF'
+          export const environment = {
+            production: true,
+            apiUrl: "${API_URL}"
+          };
+          EOF
+        env:
+          API_URL: ${{ secrets.PROD_API_URL }}
+
+      - name: Install mobile dependencies and build APK (PROD)
+        if: ${{ steps.check_mobile_prod.outputs.mobile_built == 'true' }}
+        run: |
+          set -euo pipefail
+          cd mobile
+          npm cache clean --force
+          npm install --legacy-peer-deps
+          npx playwright install --with-deps chromium || true
+          npm install -g @ionic/cli @capacitor/cli
+          npm run test:e2e || true
+          ionic build --prod
+          npx cap add android || true
+          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+          sed -i "/dependencies {/a \\        classpath 'com.google.gms:google-services:4.4.0'\\n        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'" android/build.gradle || true
+          sed -i "/apply plugin: 'com.android.application'/a apply plugin: 'com.google.gms.google-services'\\napply plugin: 'com.google.firebase.crashlytics'" android/app/build.gradle || true
+          sed -i "/dependencies {/a \\    implementation platform('com.google.firebase:firebase-bom:32.7.0')\\n    implementation 'com.google.firebase:firebase-crashlytics'\\n    implementation 'com.google.firebase:firebase-analytics'" android/app/build.gradle || true
+
+      - name: Prepare Android config and sync (PROD)
+        if: ${{ steps.check_mobile_prod.outputs.mobile_built == 'true' }}
+        run: |
+          set -euo pipefail
+          cd mobile
+          python -m json.tool android/app/google-services.json || true
+          npx cap sync android
+          mkdir -p android/app/src/main/res/xml
+          cp .github/workflows/android-config/AndroidManifest.xml android/app/src/main/AndroidManifest.xml || true
+          cp .github/workflows/android-config/config.xml android/app/src/main/res/xml/config.xml || true
+          cp .github/workflows/android-config/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml || true
+          cp .github/workflows/android-config/file_paths.xml android/app/src/main/res/xml/file_paths.xml || true
+          grep -c "uses-permission" android/app/src/main/AndroidManifest.xml || echo "No permissions found!"
+
+      - name: Prepare Android keystore for RELEASE build (PROD)
+        if: ${{ steps.check_mobile_prod.outputs.mobile_built == 'true' }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "$AND_KS_BASE64" | base64 --decode > mobile/android/keystore.jks || true
+          fi
+          cat > mobile/android/key.properties <<'EOF'
+          storeFile=keystore.jks
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+        env:
+          AND_KS_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: Grant gradlew permission & Build Android RELEASE APK (PROD)
+        if: ${{ steps.check_mobile_prod.outputs.mobile_built == 'true' }}
+        run: |
+          set -euo pipefail
+          chmod +x mobile/android/gradlew || true
+          cd mobile/android
+          ./gradlew clean assembleRelease
+
+      - name: Extract App Version and Rename APK (PROD)
+        if: ${{ steps.check_mobile_prod.outputs.mobile_built == 'true' }}
+        run: |
+          VERSION=$(grep "version:" mobile/src/environments/environment.ts | sed "s/.*version: '\([^']*\)'.*/\1/")
+          echo "Detected version: $VERSION"
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          APK_SRC=mobile/android/app/build/outputs/apk/release/app-release.apk
+          APK_DEST=mobile/android/app/build/outputs/apk/release/elykia-mobile-prod-v${VERSION}.apk
+          if [ ! -f "$APK_SRC" ]; then
+            echo "APK not found at $APK_SRC"
+            exit 1
+          fi
+          mv "$APK_SRC" "$APK_DEST"
+
+      - name: Upload Prod APK as artifact
+        if: ${{ steps.check_mobile_prod.outputs.mobile_built == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: elykia-mobile-prod-v${{ env.APP_VERSION }}.apk
+          path: mobile/android/app/build/outputs/apk/debug/elykia-mobile-prod-v${{ env.APP_VERSION }}.apk
+          retention-days: ${{ github.ref == 'refs/heads/main' && 90 || 10 }}
 
       - name: Cleanup SSH key
         if: always()

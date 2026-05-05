@@ -306,11 +306,12 @@ jobs:
         VERSION=$(grep "version:" src/environments/environment.ts | sed "s/.*version: '\([^']*\)'.*/\1/")
         echo "Detected version: $VERSION"
         echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
-        mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/elykia-mobile-v$VERSION.apk
+        # include 'dev' in the APK name for CI builds
+        mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/elykia-mobile-dev-v$VERSION.apk
 
     - name: Upload APK as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: elykia-mobile-v${{ env.APP_VERSION }}.apk
-        path: mobile/android/app/build/outputs/apk/debug/elykia-mobile-v${{ env.APP_VERSION }}.apk
+        name: elykia-mobile-dev-v${{ env.APP_VERSION }}.apk
+        path: mobile/android/app/build/outputs/apk/debug/elykia-mobile-dev-v${{ env.APP_VERSION }}.apk
         retention-days: ${{ github.ref == 'refs/heads/main' && 90 || 10 }}
