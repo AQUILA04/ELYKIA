@@ -2025,7 +2025,7 @@ export class DatabaseService {
     const set: capSQLiteSet[] = members.map(m => ({
       statement: query,
       values: [
-        m.id, m.tontineSessionId, m.clientId, m.commercialUsername, m.totalContribution, m.deliveryStatus,
+        String(m.id), m.tontineSessionId, m.clientId != null ? String(m.clientId) : null, m.commercialUsername, m.totalContribution, m.deliveryStatus,
         m.registrationDate, m.isLocal ? 1 : 0, m.isSync ? 1 : 0, m.syncDate || new Date().toISOString(), m.syncHash, m.frequency, m.amount, m.notes, m.updateScope || null
       ]
     }));
