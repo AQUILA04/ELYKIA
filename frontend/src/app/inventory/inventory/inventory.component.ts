@@ -1,13 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { InventoryService, Inventory, ApiResponse, InventoryDto, InventoryItemDto } from '../service/inventory.service';
+import { InventoryService, Inventory, ApiResponse, InventoryDto } from '../service/inventory.service';
 import { Router } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { PageEvent } from '@angular/material/paginator';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-// AJOUTÉ : Import du service et de l'interface nécessaires
 import { ItemService, StockValues } from '../../article/service/item.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
-import {AuthService} from "../../auth/service/auth.service"; // AJOUTÉ : Importation de AlertService
+import {AuthService} from "../../auth/service/auth.service";
 import { saveAs } from 'file-saver';
 import { MatDialog } from '@angular/material/dialog';
 import { PhysicalQuantityModalComponent } from '../physical-quantity-modal/physical-quantity-modal.component';
@@ -34,20 +33,20 @@ export class InventoryComponent implements OnInit {
    currentInventory: InventoryDto | null = null;
 
   constructor(
-    private inventoryService: InventoryService,
-    private router: Router,
-    private spinner: NgxSpinnerService,
-    private tokenStorage: TokenStorageService,
-    private itemService: ItemService, // AJOUTÉ : Injection de ItemService
-    private alertService: AlertService, // AJOUTÉ : Injection de AlertService
-    private authService: AuthService,
-    private dialog: MatDialog
+    private readonly inventoryService: InventoryService,
+    private readonly router: Router,
+    private readonly spinner: NgxSpinnerService,
+    private readonly tokenStorage: TokenStorageService,
+    private readonly itemService: ItemService, // AJOUTÉ : Injection de ItemService
+    private readonly alertService: AlertService, // AJOUTÉ : Injection de AlertService
+    private readonly authService: AuthService,
+    private readonly dialog: MatDialog
   ) {
     this.tokenStorage.checkConnectedUser();
     // AJOUTÉ : Logique pour vérifier si l'utilisateur est un gestionnaire
         try {
           const user = this.authService.getCurrentUser();
-          if (user && user.roles && Array.isArray(user.roles)) {
+          if (user?.roles && Array.isArray(user.roles)) {
             // Mettez ici un rôle qui est spécifique au gestionnaire
             this.isGestionnaire = user.roles.includes('ROLE_REPORT');
           }
@@ -222,13 +221,13 @@ export class InventoryComponent implements OnInit {
 
 
   downloadInventoryPdf(): void {
-    if (!this.currentInventory || !this.currentInventory.id) {
-      this.alertService.showError('Aucun inventaire disponible pour télécharger.');
+    if (!this.currentInventory?.id) {
+      this.alertService.toastError('Aucun inventaire disponible pour télécharger.');
       return;
     }
 
-    if (!this.currentInventory || !this.currentInventory.id) {
-      this.alertService.showError('Aucun inventaire disponible pour télécharger.');
+    if (!this.currentInventory?.id) {
+      this.alertService.toastError('Aucun inventaire disponible pour télécharger.');
       return;
     }
 
@@ -239,19 +238,19 @@ export class InventoryComponent implements OnInit {
         this.spinner.hide();
         const filename = `fiche_controle_inventaire_${inventoryId}.pdf`;
         saveAs(blob, filename);
-        this.alertService.showDefaultSucces('PDF téléchargé avec succès.');
+        this.alertService.toastSuccess('PDF téléchargé avec succès.');
       },
       error: (err) => {
         this.spinner.hide();
-        this.alertService.showError('Erreur lors du téléchargement du PDF.');
+        this.alertService.toastError('Erreur lors du téléchargement du PDF.');
         console.error(err);
       }
     });
   }
 
   togglePhysicalInput(): void {
-    if (!this.currentInventory || !this.currentInventory.id) {
-      this.alertService.showError('Aucun inventaire disponible.');
+    if (!this.currentInventory?.id) {
+      this.alertService.toastError('Aucun inventaire disponible.');
       return;
     }
 
@@ -272,14 +271,14 @@ export class InventoryComponent implements OnInit {
   }
 
   navigateToReconciliation(): void {
-    if (this.currentInventory && this.currentInventory.id) {
+    if (this.currentInventory?.id) {
       this.router.navigate(['/inventory-reconciliation', this.currentInventory.id]);
     }
   }
 
   finalizeInventory(): void {
-    if (!this.currentInventory || !this.currentInventory.id) {
-      this.alertService.showError('Aucun inventaire disponible à clôturer.');
+    if (!this.currentInventory?.id) {
+      this.alertService.toastError('Aucun inventaire disponible à clôturer.');
       return;
     }
 
@@ -292,14 +291,19 @@ export class InventoryComponent implements OnInit {
         this.inventoryService.finalizeInventory(this.currentInventory!.id).subscribe({
           next: (response: any) => {
             this.spinner.hide();
-            this.alertService.showDefaultSucces('Inventaire clôturé avec succès.');
-            // Recharger l'inventaire pour mettre à jour le statut
-            this.loadCurrentInventory();
+            if (response?.statusCode && response.statusCode > 400) {
+              this.alertService.toastError(response.message || 'Une erreur est survenue lors de la clôture de l\'inventaire.');
+            } else {
+              this.alertService.toastSuccess('Inventaire clôturé avec succès.');
+              // Recharger l'inventaire pour mettre à jour le statut
+              this.loadCurrentInventory();
+            }
+
           },
           error: (err) => {
             this.spinner.hide();
             const errorMessage = err?.error?.message || 'Une erreur est survenue lors de la clôture de l\'inventaire.';
-            this.alertService.showError(errorMessage);
+            this.alertService.toastError(errorMessage);
             console.error(err);
           }
         });

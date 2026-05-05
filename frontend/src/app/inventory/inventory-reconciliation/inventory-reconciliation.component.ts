@@ -23,16 +23,16 @@ export class InventoryReconciliationComponent implements OnInit {
   inputErrors: any[] = [];
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private inventoryService: InventoryService,
-    private spinner: NgxSpinnerService,
-    private alertService: AlertService,
-    private authService: AuthService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly inventoryService: InventoryService,
+    private readonly spinner: NgxSpinnerService,
+    private readonly alertService: AlertService,
+    private readonly authService: AuthService
   ) {
     try {
       const user = this.authService.getCurrentUser();
-      if (user && user.roles && Array.isArray(user.roles)) {
+      if (user?.roles && Array.isArray(user.roles)) {
         this.isGestionnaire = user.roles.includes('ROLE_REPORT') || user.roles.includes('ROLE_RECONCILE_INVENTORY');
       }
     } catch (e) {
@@ -132,14 +132,19 @@ export class InventoryReconciliationComponent implements OnInit {
     this.inventoryService.reconcileItem(reconciliationData).subscribe({
       next: (response: any) => {
         this.spinner.hide();
-        this.alertService.showDefaultSucces('Réconciliation effectuée avec succès.');
-        this.selectedItem = null;
-        this.loadDiscrepancies();
+        if (response?.statusCode && response.statusCode > 400) {
+          this.alertService.toastError(response.message || 'Une erreur est survenue lors de la réconciliation.');
+        } else {
+          this.alertService.toastSuccess('Réconciliation effectuée avec succès.');
+          this.selectedItem = null;
+          this.loadDiscrepancies();
+        }
+
       },
       error: (err) => {
         this.spinner.hide();
         const errorMessage = err?.error?.message || 'Une erreur est survenue lors de la réconciliation.';
-        this.alertService.showError(errorMessage);
+        this.alertService.toastError(errorMessage);
         console.error(err);
       }
     });
