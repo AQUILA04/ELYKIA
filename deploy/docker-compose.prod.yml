@@ -35,6 +35,8 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       SPRINGDOC_SWAGGER_UI_DISABLE_SWAGGER_DEFAULT_URL: "true"
       SERVER_PORT: ${SERVER_PORT:-8080}
+      LOKI_API_KEY: ${LOKI_API_KEY:-}
+      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-false}
     volumes:
       - ${LOG_PATH:-/opt/elykia/prod/logs}:/home/app/.optimize-elykia-core/logs
     networks:
