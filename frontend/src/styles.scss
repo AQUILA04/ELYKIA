@@ -660,3 +660,174 @@ input.ng-invalid {
     left: 0;
   }
 }
+
+/* Responsive Cards specific layout */
+@media screen and (max-width: 1024px) {
+  .mobile-responsive {
+    border: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-responsive thead {
+    border: none !important;
+    clip: rect(0 0 0 0) !important;
+    height: 1px !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    position: absolute !important;
+    width: 1px !important;
+  }
+
+  .mobile-responsive tbody,
+  .mobile-responsive tr {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .mobile-responsive tr {
+    border-bottom: 2px solid #ddd !important;
+    margin-bottom: 1em !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background-color: #fff !important;
+    padding: 0 !important;
+  }
+
+  .mobile-responsive td {
+    border-bottom: 1px solid #eee !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 0.9em !important;
+    padding: 12px 16px !important;
+    text-align: right !important;
+  }
+
+  .mobile-responsive td[data-label]::before {
+    content: attr(data-label) !important;
+
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    color: #003366 !important;
+    margin-right: 15px !important;
+    text-align: left !important;
+    flex-basis: 40% !important;
+    min-width: 40% !important;
+  }
+
+  .mobile-responsive td:last-child {
+    border-bottom: 0 !important;
+  }
+
+  /* Action buttons container in mobile table cards */
+  .mobile-responsive td .button-group-cell,
+  .mobile-responsive td button {
+    display: inline-flex !important;
+    justify-content: flex-end !important;
+    margin-left: auto !important;
+  }
+
+
+  /* Adjust Search bars and top controls on mobile */
+  .responsive-controls {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .responsive-controls .form-control,
+  .responsive-controls input.w-50 {
+    width: 100% !important;
+  }
+
+  .responsive-controls .button-group {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .responsive-controls .button-group button,
+  .responsive-controls > button {
+    flex: 1 1 auto;
+    font-size: 0.85em !important;
+    padding: 6px 12px !important;
+    margin: 0 !important;
+  }
+
+  .responsive-controls .button-group button mat-icon,
+  .responsive-controls > button mat-icon {
+    font-size: 18px !important;
+  }
+
+  /* Fix paginator width on mobile */
+  mat-paginator {
+    width: 100% !important;
+    overflow-x: auto !important;
+  }
+  .mat-paginator-container {
+    padding: 0 8px !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+  .mat-paginator-range-label {
+    margin: 8px 0 !important;
+  }
+}
+
+/* Sidebar Mobile Specific Fixes */
+@media screen and (max-width: 1199px) {
+  /* Ensure sidebar opens correctly over content on small screens */
+  aside.left-sidebar, .sidebar {
+    left: -270px;
+    transition: left 0.3s ease-in-out;
+    z-index: 1040 !important; /* Above header */
+    width: 270px !important;
+    position: fixed !important;
+    height: 100vh !important;
+    background: #fff;
+    box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+  }
+
+  aside.left-sidebar.show-sidebar, .sidebar.show-sidebar {
+    left: 0;
+  }
+
+  /* Overlay effect when sidebar is open */
+  body.sidebar-open::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 1030; /* Below sidebar, above content */
+  }
+
+  /* Close button inside sidebar */
+  .close-btn {
+    display: block !important;
+  }
+
+  /* Adjust main container to full width */
+  .page-wrapper {
+    width: 100% !important;
+  }
+  .body-wrapper {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  /* Make app-header adjust correctly */
+  .app-header {
+    width: 100% !important;
+  }
+}

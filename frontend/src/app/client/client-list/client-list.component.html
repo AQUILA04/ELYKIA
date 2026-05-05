@@ -6,7 +6,7 @@
     </div>
   </div>
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-3 responsive-controls">
 
     <input type="text" placeholder="Rechercher un client..." [(ngModel)]="searchTerm" (keyup.enter)="onSearch()"
       class="form-control w-50" />
@@ -27,7 +27,7 @@
   </div>
 
   <div class="table-container">
-    <table class="article-table">
+    <table class="article-table mobile-responsive">
       <thead>
         <tr>
           <th>#</th>
@@ -40,13 +40,13 @@
       </thead>
       <tbody>
         <tr *ngFor="let client of this.clients; let i = index">
-          <td>{{(currentPage * pageSize) + (i + 1)}}</td>
-          <td><a [routerLink]="['/client-view', client.id]"
+          <td data-label="#">{{(currentPage * pageSize) + (i + 1)}}</td>
+          <td data-label="Nom"><a [routerLink]="['/client-view', client.id]"
               style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{client.lastname}}</a></td>
-          <td>{{client.firstname}}</td>
-          <td>{{client.address}}</td>
-          <td>{{client.phone}}</td>
-          <td>
+          <td data-label="Prénom">{{client.firstname}}</td>
+          <td data-label="Localité">{{client.address}}</td>
+          <td data-label="Numéro de téléphone">{{client.phone}}</td>
+          <td data-label="Action">
             <button mat-icon-button matTooltip="Détails" (click)="viewDetails(client.id)">
               <mat-icon>visibility</mat-icon>
             </button>

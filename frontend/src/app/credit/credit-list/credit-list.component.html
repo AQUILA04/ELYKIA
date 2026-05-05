@@ -8,7 +8,7 @@
   </div>
 
   <!-- Conteneur recherche + boutons -->
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 responsive-controls">
     <!-- Bouton de recherche avancée -->
     <button
       class="btn search-toggle-btn btn-sm"
@@ -50,7 +50,7 @@
   </app-advanced-search>
 
   <div class="table-container">
-    <table class="article-table">
+    <table class="article-table mobile-responsive">
       <thead>
       <tr>
         <th>
@@ -69,21 +69,21 @@
       </thead>
       <tbody>
       <tr *ngFor="let credit of filteredCredits; let i = index">
-        <td>
+        <td data-label="Sélectionner">
           <mat-checkbox (change)="toggleSelection(credit.id)" [checked]="isSelected(credit.id)"></mat-checkbox>
         </td>
-        <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-        <td>{{ credit.client?.firstname }} {{ credit.client?.lastname }}</td>
-        <td>{{ credit.collector }}</td>
-        <td>{{ credit.beginDate | date: 'dd/MM/yyyy' }}</td>
-        <td>{{ credit.totalAmount | currency }}</td>
-        <td>{{ credit.dailyStake }}</td>
-        <td>
+        <td data-label="#">{{ (currentPage * pageSize) + (i + 1) }}</td>
+        <td data-label="Nom du Client">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</td>
+        <td data-label="Commercial">{{ credit.collector }}</td>
+        <td data-label="Date de début">{{ credit.beginDate | date: 'dd/MM/yyyy' }}</td>
+        <td data-label="Montant">{{ credit.totalAmount | currency }}</td>
+        <td data-label="Mise journalière">{{ credit.dailyStake }}</td>
+        <td data-label="Statut">
           <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
             {{ (credit.status | statusBadge).label }}
           </span>
         </td>
-        <td>
+        <td data-label="Nombre de jours restants">
             <span class="badge" [ngClass]="getBadgeClass(credit.remainingDaysCount)">
               {{ credit.remainingDaysCount ?? 0 }}
             </span>

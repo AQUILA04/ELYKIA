@@ -5,7 +5,6 @@
     <springProperty scope="context" name="springAppName" source="spring.application.name"/>
     <springProperty scope="context" name="logFolder" source="logging.file.path"/>
     <springProperty scope="context" name="activeProfile" source="spring.profiles.active"/>
-<!--    <springProperty scope="context" name="logstashServer" source="logging.logstash.server.url"/>-->
 
     <springProperty scope="context" name="LOKI_URL" source="loki.url" defaultValue=""/>
     <springProperty scope="context" name="LOKI_USER_ID" source="loki.user-id" defaultValue=""/>
@@ -126,13 +125,12 @@
 
     <logger name="EventLog" level="DEBUG" additivity="false">
         <appender-ref ref="AppEventRollingFile"/>
-<!--        <appender-ref ref="LOGSTASH"/>-->
     </logger>
     <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter">
         <level value="DEBUG" />
     </logger>
 
-    <!-- Loki appender: activated only if LOKI_API_KEY is provided -->
+    <!-- Loki + root: Janino <if> must not nest inside <root> (breaks appenders). Branch at configuration level. -->
     <if condition='property("LOKI_API_KEY") != null &amp;&amp; !property("LOKI_API_KEY").trim().isEmpty()'>
         <then>
             <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
@@ -170,18 +168,19 @@
                     </stackTrace>
                 </message>
             </appender>
+            <root level="INFO">
+                <appender-ref ref="MainRollingFile"/>
+                <appender-ref ref="Console"/>
+                <appender-ref ref="LOKI"/>
+            </root>
         </then>
+        <else>
+            <root level="INFO">
+                <appender-ref ref="MainRollingFile"/>
+                <appender-ref ref="Console"/>
+            </root>
+        </else>
     </if>
-
-    <!-- LOG everything at INFO level -->
-    <root level="INFO">
-        <appender-ref ref="MainRollingFile"/>
-        <appender-ref ref="Console"/>
-        <if condition='property("LOKI_API_KEY") != null &amp;&amp; !property("LOKI_API_KEY").trim().isEmpty()'>
-            <then><appender-ref ref="LOKI"/></then>
-        </if>
-<!--        <appender-ref ref="LOGSTASH"/>-->
-    </root>
     </springProfile>
 
     <springProfile name="test">
