@@ -5,11 +5,10 @@ import { filter } from 'rxjs/operators';
 
 import { NgxPermissionsService } from 'ngx-permissions';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { AuthService } from "../../auth/service/auth.service";
+import { AuthService } from '../../auth/service/auth.service';
 import { LayoutService } from 'src/app/shared/service/layout.service';
 import { UserService } from 'src/app/user/service/user.service';
-import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
-import {UserProfile} from "../../shared/models/user-profile.enum";
+import { UserProfile } from '../../shared/models/user-profile.enum';
 
 @Component({
   selector: 'app-sidebar',
@@ -17,67 +16,95 @@ import {UserProfile} from "../../shared/models/user-profile.enum";
   styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent implements OnInit {
-  isCaisseOpen: boolean = false;
-  isSecurityOpen: boolean = false;
-  isStockOpen: boolean = false;
-  isStockTontineOpen: boolean = false; // AJOUTÉ
-  isVentesOpen: boolean = false; // AJOUTÉ
-  isTontineOpen: boolean = false;
-  isConfigurationOpen: boolean = false;
-  activeRoute: string = '';
 
+  // ── Submenu open state ──────────────────────────────────────
+  isCaisseOpen         = false;
+  isSecurityOpen       = false;
+  isStockOpen          = false;
+  isStockTontineOpen   = false;
+  isVentesOpen         = false;
+  isTontineOpen        = false;
+  isConfigurationOpen  = false;
+
+  activeRoute = '';
+
+  // ── User display ────────────────────────────────────────────
+  username = '';
+  userRole = '';
+
+  // ── Constructor ─────────────────────────────────────────────
+  constructor(
+    private router: Router,
+    private tokenStorageService: TokenStorageService,
+    private permissionsService: NgxPermissionsService,
+    private tokenStorage: TokenStorageService,
+    private authService: AuthService,
+    public layoutService: LayoutService,
+    private userService: UserService
+  ) {
+    // Track route changes to update active state and submenu open/close
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      this.activeRoute = event.url;
+      this.syncSubmenusToRoute();
+    });
+  }
+
+  // ── Lifecycle ────────────────────────────────────────────────
+  ngOnInit(): void {
+    const currentUser = this.authService.getCurrentUser();
+    this.permissionsService.loadPermissions(currentUser.roles);
+
+    // Populate user display info
+    this.username = this.authService.getUsername() ?? '';
+    this.userRole = this.resolveRoleLabel(currentUser.roles ?? []);
+
+    // Init route tracking
+    this.activeRoute = this.router.url;
+    this.syncSubmenusToRoute();
+  }
+
+  // ── Route Helpers ────────────────────────────────────────────
   isRouteActive(route: string): boolean {
-    // Gestion spécifique pour le menu Caisse et ses sous-menus
     if (route === '/open-cashDesk') {
       return this.activeRoute.startsWith('/open-cashDesk') || this.activeRoute.startsWith('/daily-operation');
     }
-
     if (route === '/security') {
       return this.activeRoute.startsWith('/security');
     }
-
-    // Gestion pour le menu Stock Commercial
     if (route === '/stock') {
       return this.activeRoute.startsWith('/stock') && !this.activeRoute.startsWith('/stock-tontine');
     }
-
-    // AJOUTÉ : Gestion pour le menu Stock Tontine
     if (route === '/stock-tontine') {
       return this.activeRoute.startsWith('/stock-tontine');
     }
-
-    // Gestion pour le menu Ventes
     if (route === '/ventes') {
-      return this.activeRoute.startsWith('/credit-list') ||
-             this.activeRoute.startsWith('/credits/late') ||
-             this.activeRoute.startsWith('/credits/echeance') ||
-             this.activeRoute.startsWith('/credits/recouvrements');
+      return this.activeRoute.startsWith('/credit-list')
+        || this.activeRoute.startsWith('/credits/late')
+        || this.activeRoute.startsWith('/credits/echeance')
+        || this.activeRoute.startsWith('/credits/recouvrements');
     }
-
-    // Gestion pour le menu Configuration
     if (route === '/configuration') {
-      return this.activeRoute.startsWith('/localitylist') ||
-             this.activeRoute.startsWith('/article-type') ||
-             this.activeRoute.startsWith('/expense/types') ||
-             this.activeRoute.startsWith('/parameters');
+      return this.activeRoute.startsWith('/localitylist')
+        || this.activeRoute.startsWith('/article-type')
+        || this.activeRoute.startsWith('/expense/types')
+        || this.activeRoute.startsWith('/parameters');
     }
-
-    // Gestion pour le menu Tontines
     if (route === '/tontine') {
       return this.activeRoute.startsWith('/tontine');
     }
-
-    // Pour toutes les autres routes, utiliser une correspondance exacte ou avec un slash
-    // Cela évite les conflits entre routes similaires
-    return this.activeRoute === route || this.activeRoute === route + '/' ||
-      (this.activeRoute.startsWith(route + '/') && !this.hasConflictingRoute(route));
+    return (
+      this.activeRoute === route ||
+      this.activeRoute === route + '/' ||
+      (this.activeRoute.startsWith(route + '/') && !this.hasConflictingRoute(route))
+    );
   }
 
   isSubRouteActive(route: string): boolean {
     return this.activeRoute === route || this.activeRoute.startsWith(route + '/');
   }
 
-  // Méthode pour détecter les routes qui peuvent entrer en conflit
   private hasConflictingRoute(route: string): boolean {
     const allRoutes = [
       '/home', '/accounting-day', '/open-cashDesk', '/daily-operation',
@@ -86,12 +113,33 @@ export class SidebarComponent implements OnInit {
       '/operation-list', '/deposit-list', '/user-list', '/commercial-list',
       '/article-type', '/expense/types', '/parameters', '/stock', '/stock-tontine'
     ];
-
-    // Vérifier si une autre route commence par la même base
     return allRoutes.some(r => r !== route && r.startsWith(route) && r !== route + '/');
   }
 
-  onCaisseClick() {
+  // ── Sync submenus open state based on current route ─────────
+  private syncSubmenusToRoute(): void {
+    const r = this.activeRoute;
+
+    this.isCaisseOpen = r.startsWith('/open-cashDesk') || r.startsWith('/daily-operation');
+    this.isSecurityOpen = r.startsWith('/security');
+    this.isStockOpen = r.startsWith('/stock') && !r.startsWith('/stock-tontine');
+    this.isStockTontineOpen = r.startsWith('/stock-tontine');
+
+    this.isVentesOpen = r.startsWith('/credit-list')
+      || r.startsWith('/credits/late')
+      || r.startsWith('/credits/echeance')
+      || r.startsWith('/credits/recouvrements');
+
+    this.isTontineOpen = r.startsWith('/tontine');
+
+    this.isConfigurationOpen = r.startsWith('/localitylist')
+      || r.startsWith('/article-type')
+      || r.startsWith('/expense/types')
+      || r.startsWith('/parameters');
+  }
+
+  // ── Submenu Click Handlers ───────────────────────────────────
+  onCaisseClick(): void {
     if (this.activeRoute.startsWith('/open-cashDesk') || this.activeRoute.startsWith('/daily-operation')) {
       this.isCaisseOpen = !this.isCaisseOpen;
     } else {
@@ -100,7 +148,7 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  onSecurityClick() {
+  onSecurityClick(): void {
     if (this.activeRoute.startsWith('/security')) {
       this.isSecurityOpen = !this.isSecurityOpen;
     } else {
@@ -109,8 +157,7 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  // Gestionnaire de clic pour le menu Stock Commercial
-  onStockClick() {
+  onStockClick(): void {
     if (this.activeRoute.startsWith('/stock') && !this.activeRoute.startsWith('/stock-tontine')) {
       this.isStockOpen = !this.isStockOpen;
     } else {
@@ -119,8 +166,7 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  // AJOUTÉ : Gestionnaire de clic pour le menu Stock Tontine
-  onStockTontineClick() {
+  onStockTontineClick(): void {
     if (this.activeRoute.startsWith('/stock-tontine')) {
       this.isStockTontineOpen = !this.isStockTontineOpen;
     } else {
@@ -129,14 +175,10 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  // Gestionnaire de clic pour le menu Ventes
-  onVentesClick() {
-    const isVentesActive = this.activeRoute.startsWith('/credit-list') ||
-                           this.activeRoute.startsWith('/credits/late') ||
-                           this.activeRoute.startsWith('/credits/echeance') ||
-                           this.activeRoute.startsWith('/credits/recouvrements');
-
-    if (isVentesActive) {
+  onVentesClick(): void {
+    const active = this.activeRoute.startsWith('/credit-list')
+      || this.activeRoute.startsWith('/credits/');
+    if (active) {
       this.isVentesOpen = !this.isVentesOpen;
     } else {
       this.router.navigate(['/credit-list']);
@@ -144,11 +186,8 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  // Gestionnaire de clic pour le menu Tontines
-  onTontineClick() {
-    const isTontineActive = this.activeRoute.startsWith('/tontine');
-
-    if (isTontineActive) {
+  onTontineClick(): void {
+    if (this.activeRoute.startsWith('/tontine')) {
       this.isTontineOpen = !this.isTontineOpen;
     } else {
       this.router.navigate(['/tontine']);
@@ -156,107 +195,23 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  // Gestionnaire de clic pour le menu Configuration
-  onConfigurationClick() {
-    const isConfigActive = this.activeRoute.startsWith('/localitylist') ||
-                           this.activeRoute.startsWith('/article-type') ||
-                           this.activeRoute.startsWith('/expense/types') ||
-                           this.activeRoute.startsWith('/parameters');
-
-    if (isConfigActive) {
+  onConfigurationClick(): void {
+    const active = this.activeRoute.startsWith('/localitylist')
+      || this.activeRoute.startsWith('/article-type')
+      || this.activeRoute.startsWith('/expense/types')
+      || this.activeRoute.startsWith('/parameters');
+    if (active) {
       this.isConfigurationOpen = !this.isConfigurationOpen;
     } else {
-      // On ouvre simplement le menu sans navigation automatique pour éviter les problèmes de permissions
       this.isConfigurationOpen = true;
     }
   }
 
-  constructor(private router: Router,
-    private tokenStorageService: TokenStorageService,
-    private permissionsService: NgxPermissionsService,
-    private tokenStorage: TokenStorageService,
-    private authService: AuthService,
-    public layoutService: LayoutService,
-    private userService: UserService) {
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
-    ).subscribe((event: NavigationEnd) => {
-      this.activeRoute = event.url;
-      // Gérer l'état de isCaisseOpen en fonction de la route active
-      if (this.activeRoute.startsWith('/open-cashDesk') || this.activeRoute.startsWith('/daily-operation')) {
-        this.isCaisseOpen = true;
-      } else {
-        this.isCaisseOpen = false;
-      }
-
-      if (this.activeRoute.startsWith('/security')) {
-        this.isSecurityOpen = true;
-      } else {
-        this.isSecurityOpen = false;
-      }
-
-      // Gestion de l'état ouvert/fermé pour Stock Commercial
-      if (this.activeRoute.startsWith('/stock') && !this.activeRoute.startsWith('/stock-tontine')) {
-        this.isStockOpen = true;
-      } else {
-        this.isStockOpen = false;
-      }
-
-      // AJOUTÉ : Gestion de l'état ouvert/fermé pour Stock Tontine
-      if (this.activeRoute.startsWith('/stock-tontine')) {
-        this.isStockTontineOpen = true;
-      } else {
-        this.isStockTontineOpen = false;
-      }
-
-      // Gestion de l'état ouvert/fermé pour Ventes
-      if (this.activeRoute.startsWith('/credit-list') ||
-          this.activeRoute.startsWith('/credits/late') ||
-          this.activeRoute.startsWith('/credits/echeance') ||
-          this.activeRoute.startsWith('/credits/recouvrements')) {
-        this.isVentesOpen = true;
-      } else {
-        this.isVentesOpen = false;
-      }
-
-      // Gestion de l'état ouvert/fermé pour Tontines
-      if (this.activeRoute.startsWith('/tontine')) {
-        this.isTontineOpen = true;
-      } else {
-        this.isTontineOpen = false;
-      }
-
-      // Gestion de l'état ouvert/fermé pour Configuration
-      if (this.activeRoute.startsWith('/localitylist') ||
-          this.activeRoute.startsWith('/article-type') ||
-          this.activeRoute.startsWith('/expense/types') ||
-          this.activeRoute.startsWith('/parameters')) {
-        this.isConfigurationOpen = true;
-      } else {
-        this.isConfigurationOpen = false;
-      }
-    });
-  }
-
-  ngOnInit(): void {
-    const currentUser = this.authService.getCurrentUser();
-    this.permissionsService.loadPermissions(currentUser.roles);
-    this.isCaisseOpen = false;
-    this.isSecurityOpen = false;
-    this.isStockOpen = false;
-    this.isStockTontineOpen = false; // AJOUTÉ
-    this.isVentesOpen = false;
-    this.isTontineOpen = false;
-    this.isConfigurationOpen = false;
-
-    // Initialiser activeRoute avec la route actuelle au démarrage
-    this.activeRoute = this.router.url;
-  }
-
+  // ── Role / Access helpers ────────────────────────────────────
   hasAccessToParameters(): boolean {
-    return this.userService.hasProfile('GESTIONNAIRE') ||
-           this.userService.hasProfile('MANAGER') ||
-           this.userService.hasProfile('SUPER_ADMIN');
+    return this.userService.hasProfile('GESTIONNAIRE')
+      || this.userService.hasProfile('MANAGER')
+      || this.userService.hasProfile('SUPER_ADMIN');
   }
 
   hasCaisseAccess(): boolean {
@@ -288,33 +243,42 @@ export class SidebarComponent implements OnInit {
     return '/user-guide/index.html';
   }
 
+  /** Resolve a human-readable role label from the roles array */
+  private resolveRoleLabel(roles: string[]): string {
+    const map: Record<string, string> = {
+      ROLE_ADMIN:      'Administrateur',
+      ROLE_MANAGER:    'Manager',
+      ROLE_GESTIONNAIRE: 'Gestionnaire',
+      ROLE_PROMOTER:   'Commercial',
+      ROLE_STOREKEEPER: 'Magasinier',
+      ROLE_REPORT:     'Rapports',
+      ROLE_EDIT_USER:  'Admin Utilisateurs',
+    };
+    for (const r of roles) {
+      if (map[r]) return map[r];
+    }
+    return roles[0] ?? 'Utilisateur';
+  }
+
+  // ── Logout ───────────────────────────────────────────────────
   confirmLogout(): void {
     Swal.fire({
-      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">Êtes-vous sûr ?</span>',
-      html: '<span style="font-size: 16px; color: #555;">Vous êtes sur le point de vous déconnecter.</span>',
-      icon: 'question', // Ou 'info', 'warning', ou une icône personnalisée via imageUrl
-      // imageUrl: 'path/to/your/custom-logout-icon.svg', // Exemple avec icône personnalisée
-      // imageWidth: 80,
-      // imageHeight: 80,
+      title: 'Êtes-vous sûr ?',
+      html: 'Vous êtes sur le point de vous déconnecter.',
+      icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Oui, déconnectez-moi !',
       cancelButtonText: 'Annuler',
-      buttonsStyling: false, // Important pour appliquer nos propres classes
+      buttonsStyling: false,
       customClass: {
-        popup: 'custom-swal-popup',
-        title: 'custom-swal-title',
+        popup:         'custom-swal-popup',
+        title:         'custom-swal-title',
         htmlContainer: 'custom-swal-html-container',
         confirmButton: 'custom-swal-confirm-button btn btn-primary',
-        cancelButton: 'custom-swal-cancel-button btn btn-outline-secondary'
+        cancelButton:  'custom-swal-cancel-button btn btn-outline'
       },
       reverseButtons: true,
-      focusCancel: true, // Met le focus sur le bouton Annuler par défaut
-      backdrop: `
-        rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif")
-        left top
-        no-repeat
-      ` // Optionnel: pour un fond amusant ou thématique
+      focusCancel: true,
     }).then((result) => {
       if (result.isConfirmed) {
         this.logout();
@@ -323,13 +287,12 @@ export class SidebarComponent implements OnInit {
   }
 
   logout(): void {
-    // Clear user data from localStorage or any other storage
     localStorage.removeItem('currentUser');
     this.tokenStorageService.signOut();
     this.router.navigate(['/login']);
   }
 
-  closeSidebar() {
+  closeSidebar(): void {
     this.layoutService.closeSidebar();
   }
 }

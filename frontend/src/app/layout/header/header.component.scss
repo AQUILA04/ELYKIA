@@ -1,24 +1,332 @@
-.header {
-    position: absolute;
-    top: 0;
-    left: 0;
+// ============================================================
+// ELYKIA — Header Component
+// Clean white bar with navy accents
+// ============================================================
+
+:host {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 500;
+}
+
+// ── App Header ───────────────────────────────────────────────
+.app-header {
+  height: var(--header-height);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: 0 1px 0 rgba(10, 36, 114, 0.06), 0 4px 16px rgba(10, 36, 114, 0.04);
+  transition: box-shadow 0.2s ease;
+
+  .navbar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+  }
+
+  .navbar-nav {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+// ── Hamburger Toggle ─────────────────────────────────────────
+.sidebartoggler {
+  .nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    transition: background 0.15s, color 0.15s;
+    font-size: 22px;
+
+    &:hover {
+      background: var(--navy-pale);
+      color: var(--navy-700);
+    }
+  }
+}
+
+// ── Breadcrumb / Page info ───────────────────────────────────
+.header-breadcrumb {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+
+  .header-page-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .header-crumb {
+    font-size: 11.5px;
+    color: var(--text-muted);
+
+    .crumb-active {
+      color: var(--navy-500);
+      font-weight: 500;
+    }
+  }
+}
+
+// ── Right side ───────────────────────────────────────────────
+.navbar-collapse {
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+// ── Search Bar ───────────────────────────────────────────────
+.header-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--navy-pale);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  width: 220px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    opacity: 0.5;
+  }
+
+  &:focus-within {
+    border-color: var(--navy-400);
+    box-shadow: 0 0 0 3px rgba(30, 79, 194, 0.1);
+    background: white;
+
+    mat-icon { opacity: 0.8; }
+  }
+
+  input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 13px;
+    color: var(--text-primary);
+    font-family: var(--font-main);
     width: 100%;
-    height: 60px;
-    background-color: #333; /* Couleur de fond opaque */
-    color: white;
-    z-index: 1000; 
-    padding: 10px 20px; 
 
+    &::placeholder { color: var(--text-muted); }
+  }
+}
+
+// ── Icon Buttons ─────────────────────────────────────────────
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--navy-pale);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  position: relative;
+  color: var(--text-secondary);
+
+  mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
   }
 
-  .app-header{
-    top: 0;
+  &:hover {
+    background: var(--navy-50);
+    border-color: var(--border-medium);
+    color: var(--navy-700);
+    transform: translateY(-1px);
   }
-  .message-body{
-    background-color: white;
+}
+
+// Notification dot
+.notif-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  background: var(--rose-500);
+  border-radius: 50%;
+  border: 1.5px solid white;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.2); opacity: 0.8; }
+}
+
+// ── Username display ─────────────────────────────────────────
+.username-display {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+// ── Avatar Dropdown ──────────────────────────────────────────
+.avatar-dropdown {
+  position: relative;
+}
+
+.header-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid var(--border-light);
+  transition: border-color 0.15s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--navy-700), var(--navy-500));
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
-  .username {
-    color: #003366; 
-    font-weight: bold; 
+
+  &:hover {
+    border-color: var(--navy-400);
+    transform: translateY(-1px);
   }
-  
+}
+
+// ── Dropdown Menu ────────────────────────────────────────────
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 200px;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  z-index: 1000;
+  animation: dropdown-in 0.15s ease;
+}
+
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// Animated dropdown (Bootstrap class override)
+.dropdown-menu-animate-up {
+  @extend .dropdown-menu;
+}
+
+.message-body {
+  padding: 8px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: background 0.15s;
+  cursor: pointer;
+  text-decoration: none;
+
+  i.ti {
+    font-size: 16px;
+    color: var(--text-muted);
+    width: 16px;
+    text-align: center;
+  }
+
+  p { margin: 0; font-size: 13px; font-weight: 500; color: var(--text-primary); }
+
+  &:hover {
+    background: var(--navy-pale);
+    color: var(--navy-700);
+
+    i.ti { color: var(--navy-700); }
+  }
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 6px 8px;
+}
+
+// Logout button inside dropdown
+.dropdown-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: calc(100% - 16px);
+  margin: 4px 8px 6px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  background: var(--navy-700);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: var(--font-main);
+
+  mat-icon, i.ti {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover { background: var(--navy-600); }
+}
+
+// ── Responsive ───────────────────────────────────────────────
+@media (max-width: 768px) {
+  .header-search {
+    display: none;
+  }
+
+  .username-display {
+    display: none;
+  }
+
+  .app-header .navbar {
+    padding: 0 16px;
+  }
+}

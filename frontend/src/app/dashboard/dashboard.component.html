@@ -1,129 +1,218 @@
-<div class="row dashboard-summary">
-  <div class="col-sm-3">
-    <div class="card summary-card">
-      <div class="card-body">
-        <div class="icon bg-primary">
-          <span class="material-icons">analytics</span>
-        </div>
-        <div class="text">
-          <h2 class="card-value">{{ totalClients }}</h2>
-          <h3 class="card-title">Total Clients</h3>
-          <p class="card-subtitle">+10% depuis hier</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-3">
-    <div class="card summary-card">
-      <div class="card-body">
-        <div class="icon bg-success">
-          <span class="material-icons">account_balance_wallet</span>
-        </div>
-        <div class="text" href="/accountlist">
-          <h2 class="card-value">{{ totalAccounts }}</h2>
-          <h3 class="card-title">Total Accounts</h3>
-          <p class="card-subtitle">+8% depuis hier</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-3">
-    <div class="card summary-card">
-      <div class="card-body">
-        <div class="icon bg-warning">
-          <span class="material-icons">location_on</span>
-        </div>
-        <div class="text">
-          <h2 class="card-value">{{ totalLocalities }}</h2>
-          <h3 class="card-title">Total Localities</h3>
-          <p class="card-subtitle">+2% depuis hier</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-3">
-    <div class="card summary-card">
-      <div class="card-body">
-        <div class="icon bg-danger">
-          <span class="material-icons">shopping_cart</span>
-        </div>
-        <div class="text">
-          <h2 class="card-value">{{ totalArticles }}</h2>
-          <h3 class="card-title">Total Articles</h3>
-          <p class="card-subtitle">+3% depuis hier</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <app-dashboard-chart></app-dashboard-chart>
-  <div class="container" *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
-    <div class="header-fixed">
-      <div class="d-flex justify-content-center">
-        <h1>Liste des articles en rupture de stock</h1>
-      </div>
-    </div>
-  
-    <div class="table-container">
-      <table class="article-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Nom</th>
-            <th>Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let article of outOfStockArticles; let i = index">
-            <td>{{ (currentPageOutOfStock * pageSizeOutOfStock) + (i + 1) }}</td>
-            <td>{{ article.name }}</td>
-            <td>{{ article.type }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <mat-paginator [length]="totalOutOfStockElement"
-      [pageSize]="pageSizeOutOfStock"
-      [pageSizeOptions]="[5, 10, 25, 100]"
-      (page)="onOutOfStockPageChange($event)">
-</mat-paginator>
+<!-- ============================================================
+     ELYKIA — Dashboard Component
+     ============================================================ -->
 
+<div class="dashboard-root">
+
+  <!-- ── Page Header ─────────────────────────────────────── -->
+  <div class="dash-header">
+    <div class="dash-titles">
+      <h1 class="dash-title">Tableau de bord</h1>
+      <p class="dash-subtitle">Vue d'ensemble de votre activité</p>
+    </div>
+    <div class="date-chip">
+      <mat-icon>calendar_today</mat-icon>
+      {{ today | date:'EEEE d MMMM yyyy' : '' : 'fr' }}
     </div>
   </div>
-  
-  <div class="container" *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
-    <div class="header-fixed">
-      <div class="d-flex justify-content-center">
-        <h1>Article en rupture imminente</h1>
+
+  <!-- ── KPI Cards ──────────────────────────────────────── -->
+  <div class="kpi-grid">
+
+    <!-- Total Clients -->
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-top">
+        <div class="kpi-icon icon-blue">
+          <mat-icon>groups</mat-icon>
+        </div>
+        <span class="kpi-trend up">
+          <mat-icon>trending_up</mat-icon>
+          +10%
+        </span>
+      </div>
+      <div class="kpi-value">{{ totalClients | number }}</div>
+      <div class="kpi-label">Total Clients</div>
+    </div>
+
+    <!-- Total Comptes -->
+    <div class="kpi-card kpi-teal">
+      <div class="kpi-top">
+        <div class="kpi-icon icon-teal">
+          <mat-icon>account_balance</mat-icon>
+        </div>
+        <span class="kpi-trend up">
+          <mat-icon>trending_up</mat-icon>
+          +8%
+        </span>
+      </div>
+      <div class="kpi-value">{{ totalAccounts | number }}</div>
+      <div class="kpi-label">Total Comptes</div>
+    </div>
+
+    <!-- Total Localités -->
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-top">
+        <div class="kpi-icon icon-amber">
+          <mat-icon>location_on</mat-icon>
+        </div>
+        <span class="kpi-trend up">
+          <mat-icon>trending_up</mat-icon>
+          +2%
+        </span>
+      </div>
+      <div class="kpi-value">{{ totalLocalities | number }}</div>
+      <div class="kpi-label">Total Localités</div>
+    </div>
+
+    <!-- Total Articles -->
+    <div class="kpi-card kpi-rose">
+      <div class="kpi-top">
+        <div class="kpi-icon icon-rose">
+          <mat-icon>shopping_bag</mat-icon>
+        </div>
+        <span class="kpi-trend down">
+          <mat-icon>trending_down</mat-icon>
+          -3%
+        </span>
+      </div>
+      <div class="kpi-value">{{ totalArticles | number }}</div>
+      <div class="kpi-label">Total Articles</div>
+    </div>
+
+  </div>
+  <!-- End KPI Grid -->
+
+  <!-- ── Chart section (preserved from original) ────────── -->
+  <app-dashboard-chart></app-dashboard-chart>
+
+  <!-- ── Stock en rupture (ROLE_STOREKEEPER) ────────────── -->
+  <div *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
+
+    <!-- Articles en rupture de stock -->
+    <div class="section-card">
+      <div class="section-card-header">
+        <span class="section-card-title">
+          <mat-icon>remove_shopping_cart</mat-icon>
+          Articles en rupture de stock
+        </span>
+        <span class="badge badge-danger">
+          {{ totalOutOfStockElement }} article{{ totalOutOfStockElement !== 1 ? 's' : '' }}
+        </span>
+      </div>
+
+      <div class="section-card-body">
+        <ng-container *ngIf="outOfStockArticles.length > 0; else emptyOutOfStock">
+          <table class="dash-table">
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom de l'article</th>
+              <th>Type</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let article of outOfStockArticles; let i = index">
+              <td>
+                  <span class="row-index">
+                    {{ (currentPageOutOfStock * pageSizeOutOfStock) + (i + 1) }}
+                  </span>
+              </td>
+              <td>{{ article.name }}</td>
+              <td>
+                <span class="badge badge-info">{{ article.type }}</span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </ng-container>
+
+        <ng-template #emptyOutOfStock>
+          <div style="padding: 28px; text-align: center; color: var(--text-muted); font-size: 13px;">
+            <mat-icon style="font-size: 36px; width: 36px; height: 36px; color: var(--border-medium); display: block; margin: 0 auto 8px;">inventory_2</mat-icon>
+            Aucun article en rupture de stock
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="card-paginator">
+        <mat-paginator
+          [length]="totalOutOfStockElement"
+          [pageSize]="pageSizeOutOfStock"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="onOutOfStockPageChange($event)"
+          aria-label="Pagination rupture de stock">
+        </mat-paginator>
       </div>
     </div>
-  
-    <div class="table-container">
-      <table class="article-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Nom</th>
-            <th>Type</th>
-            <th>Quantité</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let article of imminentOutOfStockArticles; let i = index">
-            <td>{{ (currentPageImminent * pageSizeImminent) + (i + 1) }}</td>
-            <td>{{ article.name }}</td>
-            <td>{{ article.type }}</td>
-            <td>
-              <span class="badge" [ngClass]="getBadgeClass(article.stockQuantity)">
-                {{ article.stockQuantity !== null ? article.stockQuantity : 0 }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <mat-paginator [length]="totalImminentElement"
-                     [pageSize]="pageSizeImminent"
-                     [pageSizeOptions]="[2, 5, 10, 25, 100]"
-                     (page)="onImminentPageChange($event)">
-      </mat-paginator>
+    <!-- End rupture card -->
+
+    <!-- Articles en rupture imminente -->
+    <div class="section-card">
+      <div class="section-card-header">
+        <span class="section-card-title">
+          <mat-icon>warning_amber</mat-icon>
+          Articles en rupture imminente
+        </span>
+        <span class="badge badge-warning">
+          {{ totalImminentElement }} article{{ totalImminentElement !== 1 ? 's' : '' }}
+        </span>
+      </div>
+
+      <div class="section-card-body">
+        <ng-container *ngIf="imminentOutOfStockArticles.length > 0; else emptyImminent">
+          <table class="dash-table">
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom de l'article</th>
+              <th>Type</th>
+              <th>Quantité restante</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let article of imminentOutOfStockArticles; let i = index">
+              <td>
+                  <span class="row-index">
+                    {{ (currentPageImminent * pageSizeImminent) + (i + 1) }}
+                  </span>
+              </td>
+              <td>{{ article.name }}</td>
+              <td>
+                <span class="badge badge-info">{{ article.type }}</span>
+              </td>
+              <td>
+                  <span class="qty-badge"
+                        [ngClass]="getQtyBadgeClass(article.stockQuantity)">
+                    {{ article.stockQuantity !== null ? article.stockQuantity : 0 }}
+                  </span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </ng-container>
+
+        <ng-template #emptyImminent>
+          <div style="padding: 28px; text-align: center; color: var(--text-muted); font-size: 13px;">
+            <mat-icon style="font-size: 36px; width: 36px; height: 36px; color: var(--border-medium); display: block; margin: 0 auto 8px;">check_circle_outline</mat-icon>
+            Aucun article en rupture imminente
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="card-paginator">
+        <mat-paginator
+          [length]="totalImminentElement"
+          [pageSize]="pageSizeImminent"
+          [pageSizeOptions]="[2, 5, 10, 25, 100]"
+          (page)="onImminentPageChange($event)"
+          aria-label="Pagination rupture imminente">
+        </mat-paginator>
+      </div>
     </div>
+    <!-- End imminente card -->
+
   </div>
-  
+  <!-- End ngxPermissionsOnly ROLE_STOREKEEPER -->
+
+</div>
+<!-- End dashboard-root -->
