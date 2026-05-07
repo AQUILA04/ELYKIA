@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, ViewChild, OnChanges, SimpleChanges, AfterViewInit } from '@angular/core';
-import { MatLegacyPaginator as MatPaginator, LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
-import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 import { MatSort, Sort } from '@angular/material/sort';
 import { TontineMember, formatCurrency, formatDate, getDeliveryStatusLabel, getDeliveryStatusColor, TontineMemberDeliveryStatus, PaginatedResponse } from '../../types/tontine.types';
 
@@ -75,3 +75,4 @@ export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
     this.memberClick.emit(member);
   }
 }
+

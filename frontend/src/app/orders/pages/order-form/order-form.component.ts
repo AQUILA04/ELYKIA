@@ -22,8 +22,8 @@ import {
   startWith,
   map
 } from 'rxjs/operators';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 
 import { OrderService } from '../../services/order.service';
 import {
@@ -317,4 +317,5 @@ export class OrderFormComponent implements OnInit, OnDestroy {
   trackByIndex(index: number): number { return index; }
   getClientName(order: Order): string { return `${order.client?.firstname || ''} ${order.client?.lastname || ''}`.trim() || 'Client inconnu'; }
 }
+
 

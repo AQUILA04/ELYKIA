@@ -8,7 +8,7 @@ import { UserProfile } from '../../../shared/models/user-profile.enum';
 import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-stock-return-list',
@@ -141,3 +141,4 @@ export class StockReturnListComponent implements OnInit {
     }
   }
 }
+

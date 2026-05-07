@@ -32,7 +32,6 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, ControlValue
   @Input() priceType: PriceType = 'credit'; // 'credit', 'tontine' ou 'inventory'
   @Input() showPrices: boolean = true; // Nouvelle option pour afficher/masquer les prix
   @Input() showStock: boolean = true;
-  // ✅ Propriété de validation
   @Input() validateStock: boolean = false;
   @Output() articlesChange = new EventEmitter<ArticleSelection[]>();
   @Output() totalAmountChange = new EventEmitter<number>();
@@ -117,13 +116,13 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, ControlValue
   private updateAvailableArticleLists(): void {
     const allControls = this.articlesArray.controls;
     this.availableArticlesPerRow = allControls.map((_, currentIndex) => {
-      const selectedIdsInOtherRows = allControls
+      const selectedIdsInOtherRows = new Set(allControls
         .filter((__, index) => index !== currentIndex)
         .map(control => control.get('articleId')?.value)
-        .filter(id => id != null);
+        .filter(id => id != null));
 
       return this.articles.filter(
-        article => !selectedIdsInOtherRows.includes(article.id)
+        article => !selectedIdsInOtherRows.has(article.id)
       );
     });
   }
@@ -159,7 +158,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, ControlValue
 
   searchArticle = (term: string, item: any) => {
     term = term.toLowerCase();
-    return item.commercialName && item.commercialName.toLowerCase().includes(term);
+    return item.commercialName?.toLowerCase().includes(term) || item.name?.toLowerCase().includes(term);
   }
 
   // Méthode pour obtenir le prix d'un article selon le type

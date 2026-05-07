@@ -105,7 +105,7 @@
           <ng-template ng-option-tmp let-item="item">
             <div class="commercial-option">
               <div class="commercial-name">{{ item.firstname }} {{ item.lastname }}</div>
-              <small class="commercial-username">@{{ item.username }}</small>
+              <small class="commercial-username">{{ '@' }}{{ item.username }}</small>
             </div>
           </ng-template>
         </ng-select>

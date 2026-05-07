@@ -5,7 +5,7 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 import { NgxSpinnerService } from 'ngx-spinner';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { CreditService } from 'src/app/credit/service/credit.service';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-client-details',
@@ -177,3 +177,4 @@ export class ClientDetailsComponent implements OnInit {
     }
   }
 }
+

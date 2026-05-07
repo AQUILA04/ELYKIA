@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-client-cotisation-history',
@@ -45,3 +45,4 @@ export class ClientCotisationHistoryComponent {
     return badgeClasses[status] || 'badge-secondary';
   }
 }
+

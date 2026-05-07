@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit, ChangeDetectorRef } from '@angular/core';
-import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, switchMap, catchError, map, tap, startWith } from 'rxjs/operators';
 import { of, Observable } from 'rxjs';
@@ -218,3 +218,4 @@ export class DeliveryArticleSelectionModalComponent implements OnInit {
     });
   }
 }
+

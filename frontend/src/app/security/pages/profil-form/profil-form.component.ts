@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProfilService, UserProfil } from '../../services/profil.service';
 import { PermissionService } from '../../services/permission.service';
 
@@ -112,3 +112,4 @@ export class ProfilFormComponent implements OnInit {
         });
     }
 }
+

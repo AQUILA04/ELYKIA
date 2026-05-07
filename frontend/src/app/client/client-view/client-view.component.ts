@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { MatLegacyTabChangeEvent as MatTabChangeEvent } from '@angular/material/legacy-tabs';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ClientService } from 'src/app/client/service/client.service';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { CreditService } from 'src/app/credit/service/credit.service';
 
@@ -213,3 +213,4 @@ export class ClientViewComponent implements OnInit {
     this.loadHistoriquesData();
   }
 }
+

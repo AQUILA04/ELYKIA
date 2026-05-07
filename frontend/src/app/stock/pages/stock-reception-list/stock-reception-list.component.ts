@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { StockReceptionService } from '../../services/stock-reception.service';
@@ -71,3 +71,4 @@ export class StockReceptionListComponent implements OnInit {
     this.router.navigate(['/stock/receptions', id]);
   }
 }
+

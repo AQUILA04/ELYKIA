@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { CreditService } from 'src/app/credit/service/credit.service';
 
 @Component({
@@ -97,3 +97,4 @@ export class ClientCreditListComponent {
     );
   }
 }
+

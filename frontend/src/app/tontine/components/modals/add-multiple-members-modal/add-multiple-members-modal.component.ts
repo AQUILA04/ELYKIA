@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { MatDialogRef } from '@angular/material/dialog';
 import { ClientService } from 'src/app/client/service/client.service';
 import { TontineService } from '../../../services/tontine.service';
 import { CreateTontineMemberDto } from '../../../types/tontine.types';
@@ -166,3 +166,4 @@ export class AddMultipleMembersModalComponent implements OnInit {
     });
   }
 }
+

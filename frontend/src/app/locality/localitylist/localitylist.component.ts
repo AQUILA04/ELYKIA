@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { LocalityService, Locality } from '../service/locality.service';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
@@ -112,3 +112,4 @@ export class LocalityListComponent implements OnInit {
     this.router.navigate(['/locality-add', localityId]);
   }
 }
+

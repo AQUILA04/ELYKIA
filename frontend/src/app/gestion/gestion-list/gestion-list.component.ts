@@ -4,7 +4,7 @@ import { NgxPermissionsService } from 'ngx-permissions';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { GestionService } from '../service/gestion.service';
 import Swal from 'sweetalert2';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({

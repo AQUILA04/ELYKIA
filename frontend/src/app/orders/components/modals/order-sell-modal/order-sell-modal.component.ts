@@ -1,5 +1,5 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Order, formatCurrency, formatDateTime } from '../../../types/order.types';
 
 export interface SellModalData {
@@ -60,3 +60,4 @@ export class OrderSellModalComponent {
     return `${order.client?.firstname || ''} ${order.client?.lastname || ''}`.trim() || 'Client inconnu';
   }
 }
+

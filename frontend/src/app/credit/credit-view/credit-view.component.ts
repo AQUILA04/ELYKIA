@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { MatLegacyTabChangeEvent as MatTabChangeEvent } from '@angular/material/legacy-tabs';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { CreditService } from '../service/credit.service';
 
@@ -184,3 +184,4 @@ export class CreditViewComponent implements OnInit {
     this.router.navigate(['/credit-details', creditId]);
   }
 }
+
