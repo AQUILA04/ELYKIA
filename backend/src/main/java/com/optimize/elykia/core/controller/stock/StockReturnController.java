@@ -3,7 +3,12 @@ package com.optimize.elykia.core.controller.stock;
 import com.optimize.elykia.core.entity.stock.StockReturn;
 import com.optimize.elykia.core.service.stock.StockReturnService;
 import org.springframework.data.domain.Page;
+import com.optimize.common.entities.util.Response;
+import com.optimize.common.entities.util.ResponseUtil;
+import com.optimize.elykia.core.dto.stock.StockReturnDto;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +25,13 @@ public class StockReturnController  {
     @PostMapping("/create")
     public ResponseEntity<StockReturn> createReturn(@RequestBody StockReturn stockReturn) {
         return ResponseEntity.ok(service.createReturn(stockReturn));
+    }
+
+    @PostMapping(value = { "/historique", "/v1/historique" })
+    public ResponseEntity<Response> createHistoriqueReturn(@RequestBody @Valid StockReturnDto dto) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(service.createHistoriqueReturn(dto)),
+                HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}/validate")
