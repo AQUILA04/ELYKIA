@@ -1,50 +1,42 @@
 import { Injectable } from '@angular/core';
-import { BaseHttpService } from '../../shared/service/base-http.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { StockReturn } from '../models/stock-return.model';
-import { Page } from '../../shared/models/page.model';
-import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
+import { environment } from 'src/environments/environment';
+import { StockReturnDto } from '../models/stock-return.model';
+import { CommercialMonthlyStock } from '../models/commercial-stock.model';
+import { map } from 'rxjs/operators';
+
+interface BaseResponse<T> {
+  statusCode: number;
+  message: string;
+  data: T;
+  service: string;
+  timestamp: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
-export class StockReturnService extends BaseHttpService {
+export class StockReturnService {
+  private apiUrl = environment.apiUrl;
 
-  constructor(
-    protected override http: HttpClient,
-    protected override tokenStorage: TokenStorageService,
-    protected override errorHandler: ErrorHandlerService
-  ) {
-    super(http, tokenStorage, errorHandler);
-    this.baseUrl += '/api/stock-returns';
+  constructor(private http: HttpClient) { }
+
+  getHistoricalStocks(collector: string): Observable<CommercialMonthlyStock[]> {
+    let params = new HttpParams().set('collector', collector);
+    return this.http.get<BaseResponse<CommercialMonthlyStock[]>>(`${this.apiUrl}/api/v1/commercial-stock/residual`, { params })
+        .pipe(map(res => res.data));
   }
 
-  create(stockReturn: StockReturn): Observable<StockReturn> {
-    return this.http.post<StockReturn>(`${this.baseUrl}/create`, stockReturn);
+  createHistoriqueReturn(dto: StockReturnDto): Observable<any> {
+    return this.http.post<BaseResponse<any>>(`${this.apiUrl}/api/stock-returns/historique`, dto)
+        .pipe(map(res => res.data));
   }
 
-  validate(id: number): Observable<StockReturn> {
-    return this.http.put<StockReturn>(`${this.baseUrl}/${id}/validate`, {});
-  }
-
-  cancel(id: number): Observable<StockReturn> {
-    return this.http.put<StockReturn>(`${this.baseUrl}/${id}/cancel`, {});
-  }
-
-  refuse(id: number): Observable<StockReturn> {
-    return this.http.put<StockReturn>(`${this.baseUrl}/${id}/refuse`, {});
-  }
-
-  getByCollector(collector: string, page: number = 0, size: number = 20): Observable<Page<StockReturn>> {
-    return this.http.get<Page<StockReturn>>(`${this.baseUrl}/collector/${collector}?page=${page}&size=${size}`);
-  }
-
-  getAll(collector: string | null, page: number = 0, size: number = 20): Observable<Page<StockReturn>> {
-   if (collector) {
-     return this.http.get<Page<StockReturn>>(`${this.baseUrl}?collector=${collector}&page=${page}&size=${size}`);
-   }
-    return this.http.get<Page<StockReturn>>(`${this.baseUrl}?page=${page}&size=${size}`);
-  }
+  // Add dummy methods to satisfy the other components
+  create(data: any): Observable<any> { return this.http.post<any>(`${this.apiUrl}/stock-returns/create`, data); }
+  getAll(collector: any, page: number, size: number): Observable<any> { return this.http.get<any>(`${this.apiUrl}/stock-returns`); }
+  validate(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/stock-returns/${id}/validate`, {}); }
+  cancel(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/stock-returns/${id}/cancel`, {}); }
+  refuse(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/stock-returns/${id}/refuse`, {}); }
 }

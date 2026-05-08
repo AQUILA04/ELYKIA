@@ -6,6 +6,12 @@
   </div>
 
   <div class="filter-row">
+    <div class="header-actions">
+      <button mat-raised-button class="historic-btn" [routerLink]="['/stock/return/historique']" *ngxPermissionsOnly="['ROLE_PROMOTER', 'ROLE_GESTIONNAIRE', 'ROLE_ADMIN']">
+        <mat-icon>assignment_return</mat-icon>
+        Retour stock antérieur
+      </button>
+    </div>
     <div class="agent-select" *ngIf="this.isManager || this.isSecretary">
       <ng-select [items]="agents" bindLabel="username" bindValue="username" placeholder="Sélectionner un commercial"
         [searchFn]="searchAgent" (change)="onAgentChange($event)">

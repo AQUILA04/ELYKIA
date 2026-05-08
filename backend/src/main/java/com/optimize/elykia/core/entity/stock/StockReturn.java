@@ -20,7 +20,14 @@ public class StockReturn extends Auditable<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String reference;
+
     private String collector; // Le commercial
+
+    @ManyToOne
+    private CommercialMonthlyStock targetStock;
+
+    private String note;
 
     private LocalDate returnDate;
 

@@ -36,6 +36,18 @@ public class InventoryReconciliationController {
     private final InventoryReconciliationService reconciliationService;
     private final InventoryService inventoryService;
 
+    @PostMapping("/bulk-reconcile")
+    @PreAuthorize("hasAnyRole('ROLE_RECONCILE_INVENTORY', 'ROLE_REPORT')")
+    @Operation(summary = "Réconcilier plusieurs écarts en lot")
+    public ResponseEntity<Response> bulkReconcile(@RequestBody @Valid com.optimize.elykia.core.dto.BulkReconciliationDto dto) {
+        List<com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult> results = reconciliationService.bulkReconcile(dto);
+
+        com.optimize.elykia.core.dto.BulkReconciliationResultDto resultDto = new com.optimize.elykia.core.dto.BulkReconciliationResultDto(results);
+
+        // On renvoie un code 200 avec les détails des succès/échecs
+        return new ResponseEntity<>(ResponseUtil.successResponse(resultDto), HttpStatus.OK);
+    }
+
     @PostMapping("/reconcile")
     @PreAuthorize("hasAnyRole('ROLE_RECONCILE_INVENTORY', 'ROLE_REPORT')")
     @Operation(summary = "Réconcilier un écart")

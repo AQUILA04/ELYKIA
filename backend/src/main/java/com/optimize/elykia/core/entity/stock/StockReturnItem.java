@@ -22,6 +22,9 @@ public class StockReturnItem extends Auditable<String> {
     private StockReturn stockReturn;
 
     @ManyToOne
+    private CommercialMonthlyStockItem stockItem;
+
+    @ManyToOne
     private Articles article;
 
     private Integer quantity;

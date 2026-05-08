@@ -1,0 +1,239 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container">
+
+  <!-- En-tête page -->
+  <div class="page-header">
+    <button class="btn-back" (click)="onCancel()">
+      <mat-icon>arrow_back</mat-icon>
+      Retour
+    </button>
+    <div class="header-title-block">
+      <h1 class="page-title">
+        <mat-icon class="title-icon">history</mat-icon>
+        Retour en stock historique
+      </h1>
+      <p class="page-subtitle">Réintégrer des articles d'un stock d'un mois antérieur</p>
+    </div>
+  </div>
+
+  <!-- Stepper -->
+  <div class="stepper-bar">
+    <div class="step" [class.done]="currentStep > 1" [class.active]="currentStep === 1">
+      <div class="step-circle">
+        <mat-icon *ngIf="currentStep > 1">check</mat-icon>
+        <span *ngIf="currentStep <= 1">1</span>
+      </div>
+      <span class="step-label">Commercial</span>
+    </div>
+    <div class="step-connector" [class.done]="currentStep > 1"></div>
+    <div class="step" [class.done]="currentStep > 2" [class.active]="currentStep === 2">
+      <div class="step-circle">
+        <mat-icon *ngIf="currentStep > 2">check</mat-icon>
+        <span *ngIf="currentStep <= 2">2</span>
+      </div>
+      <span class="step-label">Stock antérieur</span>
+    </div>
+    <div class="step-connector" [class.done]="currentStep > 2"></div>
+    <div class="step" [class.done]="currentStep > 3" [class.active]="currentStep === 3">
+      <div class="step-circle">
+        <mat-icon *ngIf="currentStep > 3">check</mat-icon>
+        <span *ngIf="currentStep <= 3">3</span>
+      </div>
+      <span class="step-label">Articles & Validation</span>
+    </div>
+  </div>
+
+  <form [formGroup]="returnForm" (ngSubmit)="onSubmit()">
+
+    <!-- ÉTAPE 1 : Commercial -->
+    <div class="form-section">
+      <div class="section-header">
+        <span class="section-num">1</span>
+        <h2 class="section-title">Sélection du commercial</h2>
+        <span class="badge badge-required">Requis</span>
+      </div>
+      <div class="section-body">
+        <div class="form-row" style="grid-template-columns: 1fr;">
+          <div class="form-group ">
+            <label class="form-label">Commercial / Vendeur <span class="req">*</span></label>
+            <ng-select [items]="commercials" bindLabel="username" bindValue="username"
+              placeholder="Sélectionner un commercial" formControlName="commercial" (change)="onCommercialChange()"
+              [clearable]="false" [readonly]="isPromoter" appendTo="body">
+              <ng-template ng-option-tmp let-item="item">
+                <div class="select-item-custom">
+
+                  <div class="select-item-text">
+
+                    <span class="main-text">{{item.username}} {{item.firtname}} {{item.lastname}}</span>
+                  </div>
+                </div>
+              </ng-template>
+            </ng-select>
+            <mat-error *ngIf="returnForm.get('commercial')?.invalid && returnForm.get('commercial')?.touched">
+              Veuillez sélectionner un commercial.
+            </mat-error>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 2 : Stock antérieur -->
+    <div class="form-section" *ngIf="selectedCommercial">
+      <div class="section-header">
+        <span class="section-num">2</span>
+        <h2 class="section-title">Sélection du stock antérieur</h2>
+        <span class="badge badge-required">Requis</span>
+      </div>
+      <div class="section-body">
+
+        <div class="loading-state" *ngIf="loadingStocks">
+          <mat-spinner diameter="30"></mat-spinner>
+          <span>Recherche des stocks antérieurs avec reliquat...</span>
+        </div>
+
+        <div class="empty-state" *ngIf="!loadingStocks && historicalStocks.length === 0">
+          <mat-icon class="empty-icon">inbox</mat-icon>
+          <h3>Aucun stock historique trouvé pour ce commercial.</h3>
+          <p>Seuls les mois avec des articles restants sont affichés.</p>
+        </div>
+
+        <div class="months-grid" *ngIf="!loadingStocks && historicalStocks.length > 0">
+          <div class="month-card" *ngFor="let stock of historicalStocks"
+            [class.selected]="selectedStock?.id === stock.id" (click)="onStockSelect(stock)">
+            <div class="month-card-header">
+              <span class="month-name">{{ getMonthName(stock.month) | titlecase }}</span>
+              <span class="month-year">{{ stock.year }}</span>
+            </div>
+            <div class="month-card-body">
+              <div class="stat-item">
+                <span class="stat-val">{{ getTotalResidualItems(stock) }}</span>
+                <span class="stat-lbl">réf(s)</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-val">{{ getTotalResidualQty(stock) }}</span>
+                <span class="stat-lbl">unités</span>
+              </div>
+            </div>
+            <div class="month-card-footer">
+              <span class="val-label">Valeur dispo :</span>
+              <span class="val-amount">{{ getTotalStockValue(stock) | number:'1.0-0' }} FCFA</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ÉTAPE 3 : Articles & Validation -->
+    <div class="form-section" *ngIf="selectedStock">
+      <div class="section-header">
+        <span class="section-num">3</span>
+        <h2 class="section-title">
+          Articles — Stock {{ getMonthName(selectedStock.month) | titlecase }} {{ selectedStock.year }}
+        </h2>
+        <span class="badge badge-info">Au moins 1 article</span>
+      </div>
+      <div class="section-body">
+        <div class="article-table-wrap">
+          <table class="article-table">
+            <thead>
+              <tr>
+                <th style="width:40px;"></th>
+                <th>Article</th>
+                <th class="text-center">Restant en stock</th>
+                <th class="text-center" style="width:120px;">Qté à retourner</th>
+                <th class="text-right">Prix</th>
+                <th class="text-right">Sous-total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of selectedStock.items; let i = index"
+                [class.row-selected]="isItemSelected(item)">
+                <td>
+                  <input type="checkbox" [checked]="isItemSelected(item)" (change)="toggleArticle(item, $event)"
+                    [disabled]="item.quantityRemaining <= 0" />
+                </td>
+                <td>
+                  <div class="article-name">{{ item.article.commercialName }} {{ item.article.name }}</div>
+                </td>
+                <td class="text-center">
+                  <span class="stock-badge" [class.low]="item.quantityRemaining <= 3">
+                    {{ item.quantityRemaining }} unités
+                  </span>
+                </td>
+                <td class="text-center">
+                  <input type="number" class="qty-input" [value]="getSelectedQty(item)"
+                    (change)="onQtyChange(item, $event)" [disabled]="!isItemSelected(item)" min="1"
+                    [max]="item.quantityRemaining" />
+                </td>
+                <td class="text-right">{{ item.weightedAverageUnitPrice ? (item.weightedAverageUnitPrice | number:'1.0-0') : 0 }} FCFA</td>
+                <td class="text-right fw-600">
+                  {{ (getSelectedQty(item) * (item.weightedAverageUnitPrice ? item.weightedAverageUnitPrice : 0)) | number:'1.0-0' }} FCFA
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <mat-error *ngIf="returnForm.get('selectedItems')?.invalid && returnForm.get('selectedItems')?.touched">
+          Veuillez sélectionner au moins un article.
+        </mat-error>
+      </div>
+
+      <div class="section-body mt-4">
+        <div class="form-row">
+            <div class="form-group ">
+              <label class="form-label">Date du retour <span class="req">*</span></label>
+              <input type="date" formControlName="returnDate" class="form-control" />
+            </div>
+            <div class="form-group ">
+              <label class="form-label">Note / Observation</label>
+              <input type="text" formControlName="note" class="form-control" placeholder="Ex: Retour des invendus..." />
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RÉSUMÉ AVANT SOUMISSION -->
+    <div class="summary-panel" *ngIf="selectedItems.length > 0">
+      <div class="summary-title">
+        <mat-icon>summarize</mat-icon>
+        Récapitulatif de l'opération
+      </div>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="summary-key">Commercial</span>
+          <span class="summary-val">{{ selectedCommercial || currentUser?.username }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-key">Stock d'origine</span>
+          <span class="summary-val orange" *ngIf="selectedStock">
+            {{ getMonthName(selectedStock.month) | titlecase }} {{ selectedStock.year }}
+          </span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-key">Articles retournés</span>
+          <span class="summary-val">{{ selectedItems.length }} réf. · {{ totalQty }} unités</span>
+        </div>
+        <div class="summary-item total">
+          <span class="summary-key">Valeur totale</span>
+          <span class="summary-val green large">{{ totalReturnValue | number:'1.0-0' }} FCFA</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button type="button" class="btn btn-cancel" (click)="onCancel()" [disabled]="isLoading">
+        Annuler
+      </button>
+      <button type="submit" class="btn btn-submit"
+        [disabled]="returnForm.invalid || isLoading || selectedItems.length === 0">
+        <mat-icon *ngIf="!isLoading">check_circle</mat-icon>
+        <mat-spinner *ngIf="isLoading" diameter="18" style="margin-right:8px;"></mat-spinner>
+        {{ isLoading ? 'Enregistrement...' : 'Valider le retour' }}
+      </button>
+    </div>
+
+  </form>
+</div>
