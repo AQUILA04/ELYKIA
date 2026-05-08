@@ -59,13 +59,13 @@
             <label class="form-label">Commercial / Vendeur <span class="req">*</span></label>
             <ng-select [items]="commercials" bindLabel="username" bindValue="username"
               placeholder="Sélectionner un commercial" formControlName="commercial" (change)="onCommercialChange()"
-              [clearable]="false" [readonly]="isPromoter">
+              [clearable]="false" [readonly]="isPromoter" appendTo="body">
               <ng-template ng-option-tmp let-item="item">
                 <div class="select-item-custom">
-                  <mat-icon>person</mat-icon>
+
                   <div class="select-item-text">
-                    <span class="main-text">{{item.firstname}} {{item.lastname}}</span>
-                    <span class="sub-text">&#64;{{item.username}}</span>
+
+                    <span class="main-text">{{item.username}} {{item.firtname}} {{item.lastname}}</span>
                   </div>
                 </div>
               </ng-template>

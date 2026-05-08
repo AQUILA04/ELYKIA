@@ -24,12 +24,12 @@ export class StockReturnService {
 
   getHistoricalStocks(collector: string): Observable<CommercialMonthlyStock[]> {
     let params = new HttpParams().set('collector', collector);
-    return this.http.get<BaseResponse<CommercialMonthlyStock[]>>(`${this.apiUrl}/v1/commercial-stock/residual`, { params })
+    return this.http.get<BaseResponse<CommercialMonthlyStock[]>>(`${this.apiUrl}/api/v1/commercial-stock/residual`, { params })
         .pipe(map(res => res.data));
   }
 
   createHistoriqueReturn(dto: StockReturnDto): Observable<any> {
-    return this.http.post<BaseResponse<any>>(`${this.apiUrl}/v1/stock-returns/historique`, dto)
+    return this.http.post<BaseResponse<any>>(`${this.apiUrl}/api/stock-returns/historique`, dto)
         .pipe(map(res => res.data));
   }
 

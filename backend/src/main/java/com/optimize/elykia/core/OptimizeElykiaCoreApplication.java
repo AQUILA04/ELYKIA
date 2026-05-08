@@ -34,7 +34,7 @@ public class OptimizeElykiaCoreApplication {
         if (env.getProperty("server.ssl.key-store") != null) {
             protocol = "https";
         }
-        log.info("""
+        log.info(""" 
 
                         ----------------------------------------------------------
                         | Application '{}' is running! Access URLs:
