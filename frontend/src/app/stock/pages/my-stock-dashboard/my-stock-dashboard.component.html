@@ -7,7 +7,7 @@
 
   <div class="filter-row">
     <div class="header-actions">
-      <button mat-raised-button color="primary" [routerLink]="['/stock/return/historique']" *ngxPermissionsOnly="['ROLE_PROMOTER', 'ROLE_GESTIONNAIRE', 'ROLE_ADMIN']">
+      <button mat-raised-button class="historic-btn" [routerLink]="['/stock/return/historique']" *ngxPermissionsOnly="['ROLE_PROMOTER', 'ROLE_GESTIONNAIRE', 'ROLE_ADMIN']">
         <mat-icon>assignment_return</mat-icon>
         Retour stock antérieur
       </button>
