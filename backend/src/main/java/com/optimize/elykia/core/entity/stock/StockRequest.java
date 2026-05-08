@@ -25,6 +25,10 @@ public class StockRequest extends Auditable<String> {
 
     private String collector; // Le commercial
 
+    private Integer month;
+
+    private Integer year;
+
     private LocalDate requestDate;
     
     private LocalDate validationDate;

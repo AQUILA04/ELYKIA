@@ -44,6 +44,8 @@ import java.io.ByteArrayOutputStream;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import com.optimize.elykia.core.dto.StockExportPdfContextDto;
+import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
+import com.optimize.elykia.core.util.MonthEndCalculator;
 
 @Service
 @Transactional
@@ -59,6 +61,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private CommercialMonthlyStockItemRepository monthlyStockItemRepository;
     private StockReturnRepository stockReturnRepository;
     private CommercialStockMovementService commercialStockMovementService;
+    private CommercialMonthlyStockService commercialMonthlyStockService;
 
     public StockRequestService(StockRequestRepository repository,
             ArticlesService articlesService,
@@ -83,9 +86,26 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         this.commercialStockMovementService = commercialStockMovementService;
     }
 
-    public StockRequest createRequest(StockRequest request) {
+    @Autowired
+    public void setCommercialMonthlyStockService(CommercialMonthlyStockService commercialMonthlyStockService) {
+        this.commercialMonthlyStockService = commercialMonthlyStockService;
+    }
+
+    public StockRequest createRequest(StockRequest request, boolean forNextMonth) {
         request.setStatus(StockRequestStatus.CREATED);
         request.setRequestDate(LocalDate.now());
+
+        if (forNextMonth) {
+            if (commercialMonthlyStockService != null) {
+                commercialMonthlyStockService.closeCurrentMonthStock(request.getCollector());
+            }
+            MonthEndCalculator.NextMonthDate nextMonthDate = MonthEndCalculator.getNextMonthDate();
+            request.setMonth(nextMonthDate.month());
+            request.setYear(nextMonthDate.year());
+        } else {
+            request.setMonth(LocalDate.now().getMonthValue());
+            request.setYear(LocalDate.now().getYear());
+        }
 
         // Générer référence
         Long maxId = ((StockRequestRepository) repository).findMaxId();
@@ -138,6 +158,10 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         request.setTotalPurchasePrice(totalPurchasePrice);
 
         return repository.save(request);
+    }
+
+    public StockRequest createRequest(StockRequest request) {
+        return createRequest(request, false);
     }
 
     public StockRequest validateRequest(Long requestId) {
@@ -348,9 +372,8 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     }
 
     private void updateCommercialMonthlyStock(StockRequest request) {
-        LocalDate date = LocalDate.now();
-        int month = date.getMonthValue();
-        int year = date.getYear();
+        int month = request.getMonth() != null ? request.getMonth() : LocalDate.now().getMonthValue();
+        int year = request.getYear() != null ? request.getYear() : LocalDate.now().getYear();
 
         CommercialMonthlyStock monthlyStock = monthlyStockRepository
                 .findByCollectorAndMonthAndYear(request.getCollector(), month, year)

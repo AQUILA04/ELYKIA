@@ -26,6 +26,13 @@ export interface StockRequest {
   totalCreditSalePrice?: number;
   totalPurchasePrice?: number;
   accountingDate?: string;
+  month?: number;
+  year?: number;
+}
+
+export interface StockRequestCreateDto {
+  request: StockRequest;
+  forNextMonth?: boolean;
 }
 
 export interface PartialDeliveryResponseDTO {
