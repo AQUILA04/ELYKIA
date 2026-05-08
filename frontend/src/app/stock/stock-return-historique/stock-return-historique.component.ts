@@ -50,14 +50,14 @@ export class StockReturnHistoriqueComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
 
   constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private spinner: NgxSpinnerService,
-    private toastr: ToastrService,
-    private authService: AuthService,
-    private userService: UserService,
-    private clientService: ClientService,
-    private stockReturnService: StockReturnService
+    private readonly fb: FormBuilder,
+    private readonly router: Router,
+    private readonly spinner: NgxSpinnerService,
+    private readonly toastr: ToastrService,
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+    private readonly clientService: ClientService,
+    private readonly stockReturnService: StockReturnService
   ) { }
 
   ngOnInit(): void {
