@@ -263,7 +263,12 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         stockReturn.setTargetStock(targetStock);
         stockReturn.setReturnDate(dto.getReturnDate());
         stockReturn.setNote(dto.getNote());
-        stockReturn.setStatus(StockReturnStatus.RECEIVED); // Automatiquement validé
+        User currentUser = userService.getCurrentUser();
+        if (currentUser.is(UserProfilConstant.MAGASINIER) || currentUser.is(UserProfilConstant.ADMIN)) {
+            stockReturn.setStatus(StockReturnStatus.RECEIVED); // Automatiquement validé
+        } else {
+            stockReturn.setStatus(StockReturnStatus.CREATED); // Doit être validé
+        }
 
         for (StockReturnDto.StockReturnItemDto itemDto : dto.getItems()) {
             CommercialMonthlyStockItem stockItem = targetStock.getItems().stream()
@@ -281,15 +286,34 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
             returnItem.setQuantity(itemDto.getQuantity());
             returnItem.setUnitPrice(itemDto.getUnitPrice());
 
+
             stockReturn.addItem(returnItem);
 
+            Integer quantityBefore = stockItem.getQuantityRemaining();
             stockItem.setQuantityReturned(stockItem.getQuantityReturned() + itemDto.getQuantity());
             stockItem.updateRemaining();
+
+            if (commercialStockMovementService != null && stockReturn.getStatus() == StockReturnStatus.RECEIVED) {
+                commercialStockMovementService.record(
+                        stockItem.getId(),
+                        null,
+                        null,
+                        CommercialStockMovementType.RETURN,
+                        quantityBefore,
+                        itemDto.getQuantity(),
+                        stockItem.getQuantityRemaining(),
+                        stockReturn.getId(),
+                        targetStock.getCollector(),
+                        stockItem.getArticle().getId(),
+                        stockItem.getArticle().getCommercialName()
+                );
+            }
 
             monthlyStockItemRepository.save(stockItem);
         }
 
         monthlyStockRepository.save(targetStock);
+
 
         return repository.save(stockReturn);
     }
