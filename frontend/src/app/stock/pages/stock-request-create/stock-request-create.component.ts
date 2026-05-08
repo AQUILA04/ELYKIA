@@ -10,6 +10,7 @@ import { Article } from 'src/app/article/model/article.model';
 import { ClientService } from 'src/app/client/service/client.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { MonthEndCalculator } from '../../../shared/utils/month-end-calculator';
 
 @Component({
   selector: 'app-stock-request-create',
@@ -22,6 +23,11 @@ export class StockRequestCreateComponent implements OnInit {
   articles: Article[] = []; // Typed as Article[]
   agents: any[] = [];
   currentUser: any;
+
+  daysUntilMonthEnd: number = -1;
+  showMonthEndAlert: boolean = false;
+  showNextMonthOption: boolean = false;
+  forNextMonth: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -41,6 +47,7 @@ export class StockRequestCreateComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.calculateDaysUntilMonthEnd();
     this.currentUser = this.authService.getCurrentUser();
     this.loadArticles();
     this.loadAgents();
@@ -49,6 +56,16 @@ export class StockRequestCreateComponent implements OnInit {
       this.form.patchValue({ collector: this.currentUser.username });
       this.form.get('collector')?.disable();
     }
+  }
+
+  calculateDaysUntilMonthEnd() {
+    this.daysUntilMonthEnd = MonthEndCalculator.getDaysUntilMonthEnd();
+    this.showMonthEndAlert = this.daysUntilMonthEnd <= 5 && this.daysUntilMonthEnd >= 0;
+    this.showNextMonthOption = this.showMonthEndAlert;
+  }
+
+  onSelectNextMonth(forNext: boolean) {
+    this.forNextMonth = forNext;
   }
 
   loadArticles() {
@@ -110,8 +127,13 @@ export class StockRequestCreateComponent implements OnInit {
       items: items
     };
 
+    const requestDto = {
+      request: request,
+      forNextMonth: this.forNextMonth
+    };
+
     this.spinner.show();
-    this.stockRequestService.create(request).subscribe({
+    this.stockRequestService.create(requestDto).subscribe({
       next: (resp: any) => {
         if (resp && resp.statusCode && resp.statusCode !== 200) {
           this.toastr.error(resp.message || 'Erreur lors de la création de la demande');

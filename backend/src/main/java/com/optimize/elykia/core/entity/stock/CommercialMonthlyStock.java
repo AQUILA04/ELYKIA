@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.entity.stock;
 
 import com.optimize.common.entities.entity.Auditable;
+import com.optimize.elykia.core.enumaration.StockStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,9 @@ public class CommercialMonthlyStock extends Auditable<String> {
     private Integer month;
 
     private Integer year;
+
+    @Enumerated(EnumType.STRING)
+    private StockStatus status = StockStatus.ACTIVE;
 
     @OneToMany(mappedBy = "monthlyStock", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CommercialMonthlyStockItem> items = new HashSet<>();

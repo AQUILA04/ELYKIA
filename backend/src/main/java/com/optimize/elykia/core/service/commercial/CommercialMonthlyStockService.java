@@ -6,6 +6,9 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.core.util.MonthEndCalculator;
+import com.optimize.elykia.core.enumaration.StockStatus;
+import com.optimize.common.exceptions.CustomValidationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,30 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
     protected CommercialMonthlyStockService(CommercialMonthlyStockRepository repository, UserService userService) {
         super(repository);
         this.userService = userService;
+    }
+
+    public long getDaysUntilMonthEnd() {
+        return MonthEndCalculator.getDaysUntilMonthEnd();
+    }
+
+    @Transactional
+    public void closeCurrentMonthStock(String collector) {
+        LocalDate now = LocalDate.now();
+        int month = now.getMonthValue();
+        int year = now.getYear();
+
+        CommercialMonthlyStock currentStock = ((CommercialMonthlyStockRepository) repository)
+                .findByCollectorAndMonthAndYear(collector, month, year)
+                .orElseThrow(() -> new CustomValidationException(
+                        "Stock courant introuvable pour le commercial " + collector));
+
+        if (currentStock.getStatus() == StockStatus.CLOSED) {
+            throw new CustomValidationException(
+                    "Le stock de ce mois est déjà clôturé.");
+        }
+
+        currentStock.setStatus(StockStatus.CLOSED);
+        repository.save(currentStock);
     }
 
     public Page<CommercialMonthlyStock> getAll(String collector, Pageable pageable, Boolean historic) {
