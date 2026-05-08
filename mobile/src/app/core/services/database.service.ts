@@ -2257,13 +2257,12 @@ export class DatabaseService {
       console.log(`📊 Parsed ${statements.length} SQL statements`);
 
       // Phase 2: Execute in transaction with monitoring
-      await transactionManager.beginTransaction();
-
-      // Désactiver temporairement les contraintes de clés étrangères pendant la restauration.
-      // Indispensable : le script SQL effectue DELETE+INSERT table par table dans un ordre qui ne peut
-      // pas satisfaire simultanément les contraintes parent→enfant et enfant→parent.
-      // Les FK sont réactivées dans le bloc finally pour garantir leur remise en place même en cas d'erreur.
+      // IMPORTANT: PRAGMA foreign_keys doit être exécuté AVANT d'ouvrir la transaction.
+      // SQLite ignore silencieusement ce PRAGMA s'il est exécuté à l'intérieur d'une transaction active,
+      // ce qui laisse les FK actives et provoque des erreurs "FOREIGN KEY constraint failed (code 787)".
       await this.db!.execute('PRAGMA foreign_keys = OFF;');
+
+      await transactionManager.beginTransaction();
 
       try {
         await this.executeStatementsWithProgress(statements, monitor);
