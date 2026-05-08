@@ -22,34 +22,26 @@
   overflow: hidden;
   position: relative;
 
-  // Glass layer
-  background: rgba(255, 255, 255, 0.06);
+  // Le fond image est géré par .page-wrapper::before dans styles.scss
+  // Le sidebar lui-même est glass au-dessus de cette image
+  background: rgba(7, 16, 48, 0.60);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-right: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.3), inset 1px 0 0 rgba(255, 255, 255, 0.08);
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.4), inset 1px 0 0 rgba(255, 255, 255, 0.08);
 
-  // Deep navy background beneath glass
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(170deg, #0d2055 0%, #071540 55%, #071030 100%);
-    z-index: -1;
-  }
-
-  // Ambient teal orb top-left
+  // Orb ambient teal (effet de lumière interne)
   &::after {
     content: '';
     position: absolute;
     width: 280px;
     height: 280px;
-    background: radial-gradient(circle, rgba(0, 194, 168, 0.12) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(0, 194, 168, 0.10) 0%, transparent 70%);
     top: -60px;
     left: -80px;
     border-radius: 50%;
     pointer-events: none;
-    z-index: -1;
+    z-index: 0;
   }
 }
 
@@ -66,6 +58,8 @@
   padding: 22px 20px 18px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 
   .logo-img {
     display: flex;
@@ -82,13 +76,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 14px rgba(0, 194, 168, 0.3);
+    box-shadow: 0 4px 14px rgba(0, 194, 168, 0.35);
     flex-shrink: 0;
 
-    img {
-      width: 22px;
-      height: 22px;
-      object-fit: contain;
+    svg {
+      width: 20px;
+      height: 20px;
     }
   }
 
@@ -96,10 +89,15 @@
     line-height: 1.2;
 
     .logo-title {
-      font-size: 13.5px;
+      font-size: 12px;
       font-weight: 800;
       color: white;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 165px;
+      display: block;
     }
 
     .logo-sub {
@@ -108,13 +106,6 @@
       font-weight: 400;
       letter-spacing: 0.3px;
     }
-  }
-
-  // If using plain img src (fallback)
-  img.logo-img-plain {
-    height: 32px;
-    width: auto;
-    object-fit: contain;
   }
 }
 
@@ -149,6 +140,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding-bottom: 8px;
+  position: relative;
+  z-index: 1;
 
   // Thin custom scrollbar
   &::-webkit-scrollbar { width: 3px; }
@@ -166,6 +159,8 @@
   gap: 8px;
   padding: 18px 20px 6px;
   pointer-events: none;
+  position: relative;
+  z-index: 1;
 
   .nav-small-cap-icon {
     color: rgba(255, 255, 255, 0.5);
@@ -187,6 +182,8 @@
 #sidebarnav {
   padding: 0 10px;
   list-style: none;
+  position: relative;
+  z-index: 1;
 }
 
 // ── Sidebar Items ────────────────────────────────────────────
@@ -199,17 +196,23 @@
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 10px 13px;
-  border-radius: var(--radius-md);
-  color: rgba(255, 255, 255, 0.65);
+  // Lisibilité garantié : fond assombri + blanc pur + text-shadow forte
+  // Fond semi-opaque pour isoler le texte de l'image de fond variable
+  color: #ffffff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
   font-size: 13.5px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
   text-decoration: none;
   position: relative;
   border: 1px solid transparent;
   line-height: 1;
+  padding: 10px 13px;
+  border-radius: var(--radius-md);
+
+  // Fond sombre léger garantissant le contraste sur tous les fonds
+  background: rgba(0, 0, 0, 0.12);
 
   // Icons
   mat-icon,
@@ -219,7 +222,9 @@
     width: 18px !important;
     height: 18px !important;
     flex-shrink: 0;
-    opacity: 0.65;
+    // Fix lisibilité: icônes pleine opacité + glow subtil
+    opacity: 1;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
     transition: opacity 0.15s;
   }
 
@@ -246,13 +251,13 @@
 
   // Hover state
   &:hover {
-    background: rgba(255, 255, 255, 0.07);
-    color: rgba(255, 255, 255, 0.9);
-    border-color: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.1);
 
     mat-icon,
     i.material-icons,
-    i.ti { opacity: 0.9; }
+    i.ti { opacity: 1; filter: none; }
   }
 
   // ── ACTIVE STATE (the crown jewel) ──────────────────────────
@@ -296,7 +301,7 @@
   }
 }
 
-// ── Submenu ──────────────────────────────────────────────────
+// ── Submenu ─────────────────────────────────────────────────
 .first-level {
   list-style: none;
   padding-left: 8px;
@@ -315,7 +320,9 @@
   .sidebar-link {
     font-size: 13px;
     padding: 9px 13px 9px 36px;
-    color: rgba(255, 255, 255, 0.75);
+    // Fix lisibilité sous-menus inactifs: blanc pur + text-shadow
+    color: rgba(255, 255, 255, 1.0);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     border-radius: 10px;
 
     // Small icon / bullet
@@ -323,13 +330,14 @@
       font-size: 16px !important;
       width: 16px !important;
       height: 16px !important;
-      opacity: 0.5;
+      opacity: 0.9;
       margin-right: 2px;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
     }
 
     &:hover {
-      color: rgba(255, 255, 255, 0.85);
-      background: rgba(255, 255, 255, 0.06);
+      color: white;
+      background: rgba(255, 255, 255, 0.08);
     }
 
     &.active {
@@ -346,11 +354,42 @@
   }
 }
 
+// ── Label MENU fixe (hors scroll) ─────────────────────────────
+// Ne scroll pas avec les items — toujours visible en haut du nav
+.sidebar-menu-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px 8px;
+  flex-shrink: 0;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+  .nav-small-cap-icon {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .hide-menu {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+}
+
 // ── User Footer ──────────────────────────────────────────────
 .sidebar-user-footer {
   flex-shrink: 0;
   padding: 10px 10px 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  z-index: 1;
 
   .user-card {
     display: flex;

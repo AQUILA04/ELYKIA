@@ -1,22 +1,22 @@
-<div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
-  data-sidebar-position="fixed" data-header-position="fixed">
+<div class="page-wrapper" id="main-wrapper" data-layout="vertical">
 
   <!-- Sidebar -->
   <div *ngIf="showHeaderAndSidebar" class="sidebar" [class.show-sidebar]="layoutService.isSidebarOpen$ | async">
     <app-sidebar></app-sidebar>
   </div>
 
-  <!-- Content -->
-  <div class="content">
-    <!-- Header -->
+  <!-- Zone contenu (header sticky + contenu scrollable) -->
+  <div class="body-wrapper">
+
+    <!-- Header sticky plein largeur -->
     <app-header *ngIf="showHeaderAndSidebar"></app-header>
 
-    <!-- Breadcrumb -->
-    <div class="table-container">
+    <!-- Contenu principal + breadcrumb -->
+    <div class="main-content">
       <app-breadcrumb *ngIf="showHeaderAndSidebar"></app-breadcrumb>
-
-      <!-- Main Router Outlet for Pages -->
       <router-outlet></router-outlet>
     </div>
+
   </div>
+
 </div>

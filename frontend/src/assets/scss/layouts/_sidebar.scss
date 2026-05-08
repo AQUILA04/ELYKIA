@@ -1,5 +1,7 @@
 // ----------------------------------------------
-// SideBar Style
+// SideBar Style — Override pour thème glassmorphism
+// La couleur $sidebar-text ($dark) est remplacée par blanc pur
+// car le sidebar a un fond sombre (glassmorphism)
 // ----------------------------------------------
 
 .left-sidebar {
@@ -55,7 +57,9 @@
   ul {
     .sidebar-item {
       .sidebar-link {
-        color: $sidebar-text;
+        // Override glassmorphism: sidebar fond sombre → texte blanc obligatoire
+        color: #ffffff !important;
+        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.75);
         display: flex;
         font-size: 14px;
         white-space: nowrap;
@@ -78,11 +82,11 @@
         }
 
         &:hover {
-          background-color: rgba($primary, 0.1);
-          color: $primary;
+          background-color: rgba(255, 255, 255, 0.12);
+          color: #ffffff !important;
 
           &.has-arrow::after {
-            border-color: $primary;
+            border-color: $white;
           }
         }
       }
