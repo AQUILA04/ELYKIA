@@ -55,6 +55,14 @@ export interface ReconciliationRequest {
   action: string;
 }
 
+export interface BulkReconciliationRequest {
+  inventoryItemIds: number[];
+  comment?: string;
+  markAsDebt?: boolean;
+  cancelDebt?: boolean;
+  action: string;
+}
+
 export interface ApiResponse {
   status: string;
   statusCode: number;
@@ -188,6 +196,13 @@ export class InventoryService {
   reconcileItem(reconciliationData: ReconciliationRequest): Observable<any> {
     const headers = this.getHeader();
     return this.http.post<any>(`${this.reconciliationApiUrl}/reconcile`, reconciliationData, { headers }).pipe(
+      map((response: any) => response.data || response)
+    );
+  }
+
+  bulkReconcile(bulkData: BulkReconciliationRequest): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.post<any>(`${this.reconciliationApiUrl}/bulk-reconcile`, bulkData, { headers }).pipe(
       map((response: any) => response.data || response)
     );
   }
