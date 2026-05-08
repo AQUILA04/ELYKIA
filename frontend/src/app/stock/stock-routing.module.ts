@@ -8,6 +8,7 @@ import { StockReturnCreateComponent } from './pages/stock-return-create/stock-re
 import { StockReceptionListComponent } from './pages/stock-reception-list/stock-reception-list.component';
 import { StockReceptionDetailComponent } from './pages/stock-reception-detail/stock-reception-detail.component';
 import { RattrapageCreditAddComponent } from './rattrapage/rattrapage-credit-add.component';
+import { StockReturnHistoriqueComponent } from './stock-return-historique/stock-return-historique.component';
 
 const routes: Routes = [
   {
@@ -42,6 +43,11 @@ const routes: Routes = [
     path: 'credit/rattrapage',
     component: RattrapageCreditAddComponent,
     data: { title: 'Distribution de rattrapage' }
+  },
+  {
+    path: 'return/historique',
+    component: StockReturnHistoriqueComponent,
+    data: { title: 'Retour en stock historique' }
   }
 ];
 

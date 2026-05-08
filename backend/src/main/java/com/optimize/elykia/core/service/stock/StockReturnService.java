@@ -23,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.optimize.elykia.core.dto.stock.StockReturnDto;
+import java.util.UUID;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -239,6 +241,65 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         }
         monthlyStockRepository.save(monthlyStock);
         return totalReturnAmount;
+    }
+
+    @Transactional
+    public StockReturn createHistoriqueReturn(StockReturnDto dto) {
+        CommercialMonthlyStock targetStock = monthlyStockRepository.findById(dto.getTargetStockId())
+                .orElseThrow(() -> new com.optimize.common.entities.exception.ResourceNotFoundException("Stock cible introuvable"));
+
+        if (!targetStock.getCollector().equals(dto.getCommercial())) {
+            throw new CustomValidationException("Le stock cible n'appartient pas à ce commercial.");
+        }
+
+        LocalDate now = LocalDate.now();
+        if (targetStock.getMonth() == now.getMonthValue() && targetStock.getYear() == now.getYear()) {
+            throw new CustomValidationException("Impossible de faire un retour historique sur le mois courant.");
+        }
+
+        StockReturn stockReturn = new StockReturn();
+        stockReturn.setReference(generateReference());
+        stockReturn.setCollector(dto.getCommercial());
+        stockReturn.setTargetStock(targetStock);
+        stockReturn.setReturnDate(dto.getReturnDate());
+        stockReturn.setNote(dto.getNote());
+        stockReturn.setStatus(StockReturnStatus.RECEIVED); // Automatiquement validé
+
+        for (StockReturnDto.StockReturnItemDto itemDto : dto.getItems()) {
+            CommercialMonthlyStockItem stockItem = targetStock.getItems().stream()
+                    .filter(i -> i.getId().equals(itemDto.getStockItemId()))
+                    .findFirst()
+                    .orElseThrow(() -> new CustomValidationException("Item de stock introuvable"));
+
+            if (itemDto.getQuantity() > stockItem.getQuantityRemaining()) {
+                throw new CustomValidationException("Quantité demandée supérieure au stock restant pour l'article : " + stockItem.getArticle().getCommercialName() + ". Dispo: " + stockItem.getQuantityRemaining() + ", Demandé: " + itemDto.getQuantity());
+            }
+
+            StockReturnItem returnItem = new StockReturnItem();
+            returnItem.setStockItem(stockItem);
+            returnItem.setArticle(stockItem.getArticle());
+            returnItem.setQuantity(itemDto.getQuantity());
+            returnItem.setUnitPrice(itemDto.getUnitPrice());
+
+            stockReturn.addItem(returnItem);
+
+            stockItem.setQuantityReturned(stockItem.getQuantityReturned() + itemDto.getQuantity());
+            stockItem.updateRemaining();
+
+            monthlyStockItemRepository.save(stockItem);
+        }
+
+        monthlyStockRepository.save(targetStock);
+
+        return repository.save(stockReturn);
+    }
+
+    private String generateReference() {
+        String ref;
+        do {
+            ref = "RET-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        } while (((StockReturnRepository) repository).existsByReference(ref));
+        return ref;
     }
 
     public Page<StockReturn> getAll(String collector, Pageable pageable) {

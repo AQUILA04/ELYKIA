@@ -15,6 +15,8 @@ public interface StockReturnRepository extends GenericRepository<StockReturn, Lo
 
     Page<StockReturn> findByStatusIn(List<StockReturnStatus> statusList, Pageable pageable);
 
+    boolean existsByReference(String reference);
+
     @Query("SELECT new com.optimize.elykia.core.dto.StockRequestExportDTO(CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name), SUM(i.quantity), i.unitPrice) " +
             "FROM StockReturn s JOIN s.items i JOIN i.article a " +
             "WHERE s.status = :status " +
