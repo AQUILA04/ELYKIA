@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.commercial;
 
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
@@ -8,7 +9,6 @@ import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.util.MonthEndCalculator;
 import com.optimize.elykia.core.enumaration.StockStatus;
-import com.optimize.common.exceptions.CustomValidationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

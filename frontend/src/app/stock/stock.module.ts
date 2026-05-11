@@ -44,7 +44,7 @@ import { StockReturnHistoriqueComponent } from './stock-return-historique/stock-
     StockReceptionDetailComponent,
     RattrapageCreditAddComponent,
     AlerteFinMoisComponent,
-    OptionMoisProchainComponent
+    OptionMoisProchainComponent,
     StockReturnHistoriqueComponent
   ],
   imports: [

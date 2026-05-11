@@ -34,9 +34,9 @@ export class StockReturnService {
   }
 
   // Add dummy methods to satisfy the other components
-  create(data: any): Observable<any> { return this.http.post<any>(`${this.apiUrl}/stock-returns/create`, data); }
-  getAll(collector: any, page: number, size: number): Observable<any> { return this.http.get<any>(`${this.apiUrl}/stock-returns`); }
-  validate(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/stock-returns/${id}/validate`, {}); }
-  cancel(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/stock-returns/${id}/cancel`, {}); }
-  refuse(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/stock-returns/${id}/refuse`, {}); }
+  create(data: any): Observable<any> { return this.http.post<any>(`${this.apiUrl}/api/stock-returns/create`, data); }
+  getAll(collector: any, page: number, size: number): Observable<any> { return this.http.get<any>(`${this.apiUrl}/api/stock-returns`); }
+  validate(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/api/stock-returns/${id}/validate`, {}); }
+  cancel(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/api/stock-returns/${id}/cancel`, {}); }
+  refuse(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/api/stock-returns/${id}/refuse`, {}); }
 }
