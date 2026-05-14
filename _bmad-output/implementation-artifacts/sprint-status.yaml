@@ -49,14 +49,14 @@ development_status:
   epic-1-retrospective: optional
 
   epic-2: in-progress
-  2-1-cancel-pending-standard-operations: ready-for-dev
-  2-2-create-standard-stock-request: ready-for-dev
-  2-3-create-standard-stock-return: ready-for-dev
-  2-4-prevent-duplicate-submissions: ready-for-dev
+  2-1-cancel-pending-standard-operations: done  # Methods in StockApiService + cancelTap in presenters + Dashboard orchestration — verified
+  2-2-create-standard-stock-request: done        # StockRequestFormComponent + createStandardRequest() + FAB Standard — implemented 2026-05-13
+  2-3-create-standard-stock-return: done         # StockReturnFormComponent + createStandardReturn() + FAB Standard — implemented 2026-05-13
+  2-4-prevent-duplicate-submissions: done        # isSubmitting guard + resetSubmitting() in all form components — verified
   epic-2-retrospective: optional
 
   epic-3: in-progress
-  3-1-cancel-pending-tontine-operations: ready-for-dev
-  3-2-create-tontine-stock-request: ready-for-dev
-  3-3-create-tontine-stock-return: ready-for-dev
+  3-1-cancel-pending-tontine-operations: done    # cancelTontine* methods in StockApiService + Dashboard context-aware routing — verified
+  3-2-create-tontine-stock-request: done         # StockTontineRequestFormComponent + createTontineRequest() — per Agent Completion Notes
+  3-3-create-tontine-stock-return: done          # StockTontineReturnFormComponent + createTontineReturn() — per Agent Completion Notes
   epic-3-retrospective: optional

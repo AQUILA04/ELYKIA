@@ -1,54 +1,96 @@
+<!-- ════════════════════════════════════════════════════════════════
+     REQUEST LIST — Enterprise SaaS Mobile Design
+     Maquette: liste-demandes.png — REQ-####, dates, badge, "Voir les détails"
+     Skill: elykia-stock-components-build / components.md §3
+     ════════════════════════════════════════════════════════════════ -->
+
 <div class="request-list-container">
-  <!-- Loading Skeleton (AC3 / NFR1: visible immediately, no blocking spinner) -->
+
+  <!-- ── Skeleton Loader (NFR1: < 200ms) ── -->
   <ng-container *ngIf="loading">
-    <ion-list>
-      <ion-item *ngFor="let i of [1, 2, 3]">
-        <ion-label>
-          <h3><ion-skeleton-text [animated]="true" class="skeleton-title"></ion-skeleton-text></h3>
-          <p><ion-skeleton-text [animated]="true" class="skeleton-detail"></ion-skeleton-text></p>
-          <p><ion-skeleton-text [animated]="true" class="skeleton-meta"></ion-skeleton-text></p>
-        </ion-label>
-      </ion-item>
-    </ion-list>
+    <div class="request-card skeleton-card" *ngFor="let i of [1, 2, 3]">
+      <div class="card-main">
+        <div class="skeleton-line skeleton-ref"></div>
+        <div class="skeleton-badge-placeholder"></div>
+      </div>
+      <div class="skeleton-line skeleton-date"></div>
+      <div class="skeleton-line skeleton-date short"></div>
+      <div class="card-details-divider"></div>
+      <div class="skeleton-line skeleton-action"></div>
+    </div>
   </ng-container>
 
-  <!-- Data List (AC1 & AC2: displayed after fetch completes) -->
-  <ng-container *ngIf="!loading">
-    <div class="empty-state" *ngIf="requests.length === 0">
-      <ion-icon name="archive-outline" class="empty-icon"></ion-icon>
-      <p>Aucune demande trouvée.</p>
+  <!-- ── Empty State ── -->
+  <div class="empty-state" *ngIf="!loading && requests.length === 0">
+    <ion-icon name="archive-outline" class="empty-icon"></ion-icon>
+    <h2>Aucune demande</h2>
+    <p>Vous n'avez aucune demande en cours.</p>
+  </div>
+
+  <!-- ── Cartes de Demande (layout maquette) ── -->
+  <div
+    *ngFor="let request of requests; trackBy: trackById"
+    class="request-card"
+    id="request-card-{{ request.id }}">
+
+    <!-- Partie haute : référence + badge statut -->
+    <div class="card-main">
+      <h3 class="card-ref">{{ request.reference || ('#' + request.id) }}</h3>
+      <span class="status-badge" [ngClass]="request.status | stockStatus:'class'">
+        {{ request.status | stockStatus:'label' }}
+      </span>
     </div>
 
-    <ion-list *ngIf="requests.length > 0">
-      <ion-item *ngFor="let request of requests; trackBy: trackById" class="da-list-item" button="true" (click)="onOperationTap(request)">
-        <ion-label>
-          <div class="item-header">
-            <h3>{{ request.reference || request.id }}</h3>
-            <span class="status-badge" [ngClass]="getBadgeClass(request.status)">
-              {{ request.status || 'EN ATTENTE' }}
-            </span>
-          </div>
-          <p class="item-detail">
-            <ion-icon name="calendar-outline"></ion-icon>
-            {{ request.createdAt | date:'shortDate' }}
-          </p>
-          <p class="item-context">
-            <ion-icon name="pricetag-outline"></ion-icon>
-            {{ context }}
-          </p>
-        </ion-label>
+    <!-- Infos dates (maquette : icône calendrier + livraison) -->
+    <div class="card-info">
+      <div class="info-row">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>Demande : {{ request.createdAt | date:'dd MMM yyyy' }}</span>
+      </div>
+      
+      <!-- Si annulée ou refusée -->
+      <div class="info-row" *ngIf="request.status === 'CANCELLED' || request.status === 'REFUSED'">
+        <ion-icon name="close-circle-outline"></ion-icon>
+        <span>{{ request.status === 'CANCELLED' ? 'Annulée' : 'Refusée' }}</span>
+      </div>
 
-        <ion-button
-          fill="clear"
-          color="danger"
-          slot="end"
-          class="cancel-btn min-touch-target"
-          *ngIf="isCancellable(request.status)"
-          [disabled]="cancellingId === request.id"
-          (click)="onCancelTap($event, request)">
-          <ion-icon name="close-circle-outline" slot="icon-only"></ion-icon>
-        </ion-button>
-      </ion-item>
-    </ion-list>
-  </ng-container>
+      <!-- Livraison prévue ou livrée -->
+      <div class="info-row" *ngIf="request.deliveryDate && request.status !== 'CANCELLED' && request.status !== 'REFUSED'">
+        <ion-icon [name]="request.status === 'DELIVERED' ? 'checkmark-circle-outline' : 'cube-outline'"></ion-icon>
+        <span>{{ request.status === 'DELIVERED' ? 'Livrée le : ' : 'Livraison prévue : ' }}{{ request.deliveryDate | date:'dd MMM yyyy' }}</span>
+      </div>
+
+      <div class="info-row" *ngIf="!request.deliveryDate && request.status !== 'CANCELLED' && request.status !== 'REFUSED'">
+        <ion-icon name="pricetag-outline"></ion-icon>
+        <span>{{ context }}</span>
+      </div>
+    </div>
+
+    <!-- Bouton annulation (seulement si statut CREATED/PENDING) -->
+    <div class="card-cancel-row" *ngIf="isCancellable(request.status)">
+      <ion-button
+        fill="clear"
+        color="danger"
+        size="small"
+        class="cancel-btn"
+        id="cancel-request-{{ request.id }}"
+        [disabled]="cancellingId === request.id"
+        (click)="onCancelTap($event, request)">
+        <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+        Annuler
+      </ion-button>
+    </div>
+
+    <!-- Séparateur + Voir les détails (maquette exacte) -->
+    <div class="card-details-divider"></div>
+    <button
+      class="card-details-btn"
+      id="details-request-{{ request.id }}"
+      (click)="onOperationTap(request)">
+      <span>Voir les détails</span>
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+    </button>
+
+  </div>
+
 </div>

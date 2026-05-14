@@ -1,49 +1,144 @@
+<!-- ════════════════════════════════════════════════════════════════
+     STOCK DETAIL MODAL — EXACT WIREFRAME MATCH
+     Maquette réelle : detail-demande.png (avec le dégradé bleu)
+     ════════════════════════════════════════════════════════════════ -->
+
 <ion-header class="ion-no-border">
-  <ion-toolbar color="primary">
-    <ion-title>
-      {{ isRequest ? 'Détails Demande' : 'Détails Retour' }}
-    </ion-title>
-    <ion-buttons slot="end">
+  <ion-toolbar class="detail-header-toolbar">
+    <ion-buttons slot="start">
       <ion-button (click)="close()">
-        <ion-icon name="close-outline"></ion-icon>
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">
+      {{ isRequest ? 'Détail de la demande' : 'Détail du retour' }}
+    </ion-title>
+    <!-- Placeholder pour respecter l'équilibre du titre centré (icône filtre dans la maquette) -->
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon name="filter-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <div *ngIf="operation" class="operation-header">
-    <div class="reference">
-      <h3>{{ operation.reference || ('# ' + operation.id) }}</h3>
-      <ion-badge [color]="operation.status === 'VALIDATED' ? 'success' : (operation.status === 'PENDING' ? 'warning' : 'medium')">
-        {{ operation.status }}
-      </ion-badge>
-    </div>
-    <div class="date" *ngIf="operation.createdAt">
-      <ion-icon name="calendar-outline"></ion-icon>
-      <span>{{ operation.createdAt | date:'short' }}</span>
-    </div>
-  </div>
+<ion-content class="stock-content">
+  <div class="detail-container">
 
-  <div class="items-list">
-    <h4>Articles ({{ items.length }})</h4>
-    <ion-list lines="full" *ngIf="items.length > 0; else noItems">
-      <ion-item *ngFor="let item of items" class="item-row">
-        <ion-label>
-          <div class="item-name">{{ item.itemName || item.article?.name || 'Article inconnu' }}</div>
-          <p *ngIf="item.unitPrice">Prix unitaire: {{ item.unitPrice | currency:'XOF':'symbol':'1.0-0' }}</p>
-        </ion-label>
-        <ion-badge slot="end" color="light" class="quantity-badge">
-          Qté: {{ item.quantity || 0 }}
-        </ion-badge>
-      </ion-item>
-    </ion-list>
-
-    <ng-template #noItems>
-      <div class="no-items-message">
-        <ion-icon name="cube-outline"></ion-icon>
-        <p>Aucun article trouvé pour cette opération.</p>
+    <!-- ── 1. CARTE DE RÉFÉRENCE ── -->
+    <div class="reference-card" *ngIf="operation">
+      
+      <div class="ref-header-row">
+        <div class="ref-label">RÉFÉRENCE</div>
+        <!-- Le badge EN ATTENTE ou autre -->
+        <span class="status-badge" [ngClass]="operation.status | stockStatus:'class':(isRequest ? 'request' : 'return')">
+          {{ operation.status | stockStatus:'label':(isRequest ? 'request' : 'return') }}
+        </span>
       </div>
-    </ng-template>
+
+      <h2 class="ref-value">{{ operation.reference || ((isRequest ? 'REQ-' : 'RET-') + operation.id) }}</h2>
+
+      <!-- Ligne des dates -->
+      <div class="ref-dates-row">
+        <ng-container *ngIf="isRequest; else returnDates">
+          <div class="date-block">
+            <div class="date-label">Date de demande</div>
+            <div class="date-value">{{ (operation['requestDate'] || operation.createdAt) | date:'dd MMM yyyy' }}</div>
+          </div>
+          <div class="date-block" *ngIf="operation['validationDate']">
+            <div class="date-label">Date de validation</div>
+            <div class="date-value">{{ operation['validationDate'] | date:'dd MMM yyyy' }}</div>
+          </div>
+          <div class="date-block" *ngIf="operation['deliveryDate'] || operation.status === 'DELIVERED'">
+            <div class="date-label">Date de livraison</div>
+            <div class="date-value">{{ (operation['deliveryDate'] || operation['updatedAt']) | date:'dd MMM yyyy' }}</div>
+          </div>
+        </ng-container>
+        <ng-template #returnDates>
+          <div class="date-block">
+            <div class="date-label">Date de retour</div>
+            <div class="date-value">{{ (operation['returnDate'] || operation.createdAt) | date:'dd MMM yyyy' }}</div>
+          </div>
+          <div class="date-block" *ngIf="operation['validationDate']">
+            <div class="date-label">Date de validation</div>
+            <div class="date-value">{{ operation['validationDate'] | date:'dd MMM yyyy' }}</div>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Collecteur (Placeholder ou data si dispo) -->
+      <div class="collector-section" *ngIf="operation['collector']">
+        <div class="collector-label">Nom du collecteur</div>
+        <div class="collector-info">
+          <div class="collector-avatar">{{ getInitials(operation['collector']) }}</div>
+          <div class="collector-name">{{ operation['collector'] }}</div>
+        </div>
+      </div>
+
+      <!-- La fameuse barre de dégradé en base de la carte ! -->
+      <div class="card-bottom-gradient"></div>
+    </div>
+
+
+    <!-- ── 2. ARTICLES ── -->
+    <div class="articles-header">
+      <h3>Articles ({{ items.length }})</h3>
+      <span class="verified-badge">Stock Vérifié</span>
+    </div>
+
+    <!-- La liste est dans une seule carte avec bordure -->
+    <div class="articles-card">
+      <div class="item-row" *ngFor="let item of items">
+        
+        <!-- Thumbnail Initiales -->
+        <div class="item-thumbnail" [style.backgroundColor]="getAvatarColor(item.itemName || item.article?.name)">
+          {{ getInitials(item.itemName || item.article?.name) }}
+        </div>
+
+        <!-- Détails -->
+        <div class="item-info">
+          <div class="item-name">{{ item.itemName || item.article?.name || 'Article inconnu' }}</div>
+          <div class="item-sku">SKU: {{ item.article?.id || 'N/A' }}</div>
+        </div>
+
+        <!-- Quantité et Prix -->
+        <div class="item-meta">
+          <div class="qty-badge">x{{ item.quantity || 0 }}</div>
+          <div class="unit-price" *ngIf="item.unitPrice">{{ item.unitPrice | currency:'XOF':'symbol':'1.0-0' }} / u</div>
+          <div class="unit-price" *ngIf="!item.unitPrice">N/A</div>
+        </div>
+
+      </div>
+
+      <div class="empty-state" *ngIf="items.length === 0">
+        <ion-icon name="cube-outline" class="empty-icon"></ion-icon>
+        <p>Aucun article.</p>
+      </div>
+    </div>
+
   </div>
 </ion-content>
+
+<!-- ── FOOTER (Total & Bouton) ── -->
+<ion-footer class="ion-no-border stock-detail-footer">
+  <div class="footer-content">
+    
+    <div class="total-row">
+      <span class="total-label">Somme Totale</span>
+      <span class="total-amount">F CFA{{ totalSum | number:'1.0-0' }}</span>
+    </div>
+
+    <!-- Bouton Annuler (Uniquement pour PENDING/CREATED) -->
+    <ion-button 
+      *ngIf="isCancellable"
+      expand="block" 
+      fill="outline"
+      color="danger" 
+      class="cancel-btn" 
+      (click)="cancelRequest()">
+      <ion-icon slot="start" name="close-circle"></ion-icon>
+      Annuler la demande
+    </ion-button>
+
+  </div>
+</ion-footer>

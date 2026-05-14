@@ -41,4 +41,19 @@ export class StockReturnListComponent {
   trackById(_index: number, returnItem: StockReturn): number {
     return returnItem.id;
   }
+
+  /** Returns a French label for a status code. */
+  getStatusLabel(status: string | null | undefined): string {
+    if (!status) return 'EN ATTENTE';
+    const map: Record<string, string> = {
+      CREATED:   'EN ATTENTE',
+      PENDING:   'EN ATTENTE',
+      VALIDATED: 'VALIDÉ',
+      APPROVED:  'VALIDÉ',
+      DELIVERED: 'LIVRÉ',
+      REFUSED:   'REFUSÉ',
+      CANCELLED: 'ANNULÉ',
+    };
+    return map[status.toUpperCase()] ?? status.toUpperCase();
+  }
 }

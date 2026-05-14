@@ -41,4 +41,22 @@ export class RequestListComponent {
   trackById(_index: number, request: StockRequest): number {
     return request.id;
   }
+
+  /**
+   * Returns a French label for a status code (maquette: EN ATTENTE / VALIDÉE / LIVRÉE).
+   * Falls back to the raw status string if not recognised.
+   */
+  getStatusLabel(status: string | null | undefined): string {
+    if (!status) return 'EN ATTENTE';
+    const map: Record<string, string> = {
+      CREATED:   'EN ATTENTE',
+      PENDING:   'EN ATTENTE',
+      VALIDATED: 'VALIDÉE',
+      APPROVED:  'VALIDÉE',
+      DELIVERED: 'LIVRÉE',
+      REFUSED:   'REFUSÉE',
+      CANCELLED: 'ANNULÉE',
+    };
+    return map[status.toUpperCase()] ?? status.toUpperCase();
+  }
 }

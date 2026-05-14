@@ -14,7 +14,10 @@ public class RefreshToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @OneToOne
+    // Use ManyToOne so multiple refresh tokens can be associated with the same user
+    // (OneToOne creates a unique constraint on the FK column which causes the
+    // DB to reject creating a second token for the same user).
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "USEID")
     private User user;
 

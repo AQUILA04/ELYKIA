@@ -123,7 +123,50 @@
         <div class="action-icon"><ion-icon name="wallet-outline"></ion-icon></div>
         <div class="action-text">Tontine</div>
       </div>
+      <div class="action-card action-stock" routerLink="/stock">
+        <div class="action-icon"><ion-icon name="layers-outline"></ion-icon></div>
+        <div class="action-text">Stock</div>
+      </div>
     </div>
+  </div>
+
+  <!-- Section Historique des versements -->
+  <div class="deposits-section">
+    <h2 class="section-title">Historique des versements</h2>
+    
+    @if (isLoadingDeposits) {
+      <div class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+    } @else {
+      @if (!isBackendUp) {
+        <div class="empty-state offline-state">
+          <ion-icon name="cloud-offline-outline"></ion-icon>
+          <p>Vous n'êtes pas connecté au serveur. L'historique n'est pas disponible hors ligne.</p>
+        </div>
+      } @else if (deposits.length === 0) {
+        <div class="empty-state">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <p>Aucun versement enregistré pour cette période.</p>
+        </div>
+      } @else {
+        <ion-list class="deposits-list">
+          @for (dep of deposits; track dep.id) {
+            <ion-item class="deposit-item" lines="full">
+              <ion-icon name="wallet-outline" slot="start" color="success"></ion-icon>
+              <ion-label>
+                <h3>{{ dep.amount | number:'1.0-0' }} FCFA</h3>
+                <p>Réf: {{ dep.reference }}</p>
+              </ion-label>
+              <div slot="end" class="deposit-meta">
+                <span class="deposit-date">{{ dep.date | date:'dd/MM' }}</span>
+                <span class="deposit-time">{{ dep.createdAt | date:'HH:mm' }}</span>
+              </div>
+            </ion-item>
+          }
+        </ion-list>
+      }
+    }
   </div>
 
   <div class="bottom-spacer"></div>

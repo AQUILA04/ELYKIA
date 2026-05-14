@@ -112,6 +112,7 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    // Route exposée pour le module Stock
     path: 'stock',
     loadChildren: () => import('./stock/stock.module').then(m => m.StockModule),
     canActivate: [AuthGuard]

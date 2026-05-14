@@ -12,6 +12,10 @@ import { CreateTontineRequestPayload } from '../models/stock-tontine-request.mod
 import { StockTontineRequestFormComponent } from '../components/tontine-request-form/stock-tontine-request-form.component';
 import { CreateTontineReturnPayload } from '../models/stock-tontine-return.model';
 import { StockTontineReturnFormComponent } from '../components/tontine-return-form/stock-tontine-return-form.component';
+import { CreateStockRequestPayload } from '../models/stock-request.model';
+import { StockRequestFormComponent } from '../components/request-form/stock-request-form.component';
+import { CreateStockReturnPayload } from '../models/stock-return.model';
+import { StockReturnFormComponent } from '../components/return-form/stock-return-form.component';
 import { LoggerService } from '../../core/services/logger.service';
 
 /** Active content tab on the dashboard. */
@@ -42,6 +46,29 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
 
   cancellingId: number | null = null;
   currentContext: OperationalContext = 'STANDARD';
+
+  /** ── Search & Filters ── */
+  searchQuery: string = '';
+  activeFilter: string = 'ALL';
+
+  get statusFilters() {
+    if (this.activeTab === 'returns') {
+      return [
+        { label: 'Toutes', value: 'ALL' },
+        { label: 'Créée', value: 'CREATED' },
+        { label: 'Réceptionnée', value: 'RECEIVED' },
+        { label: 'Annulée', value: 'CANCELLED' } // Ajouté comme optionnel suite à la traduction demandée
+      ];
+    }
+    return [
+      { label: 'Toutes', value: 'ALL' },
+      { label: 'En attente', value: 'CREATED' },
+      { label: 'Validées', value: 'VALIDATED' },
+      { label: 'Livrées', value: 'DELIVERED' },
+      { label: 'Annulées', value: 'CANCELLED' },
+      { label: 'Refusées', value: 'REFUSED' }
+    ];
+  }
 
   private destroy$ = new Subject<void>();
 
@@ -80,7 +107,7 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe((response) => {
       this.loading = false;
-      this.requests = response?.data ?? [];
+      this.requests = response?.content ?? [];
     });
 
     // React to context switches: fetch returns endpoint in parallel
@@ -98,8 +125,43 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe((response) => {
       this.returnsLoading = false;
-      this.returns = response?.data ?? [];
+      this.returns = response?.content ?? [];
     });
+  }
+
+  // ── Filters & Search ──────────────────────────────────────────────────
+
+  get filteredRequests(): StockRequest[] {
+    return this.requests.filter(req => this.matchItem(req));
+  }
+
+  get filteredReturns(): StockReturn[] {
+    return this.returns.filter(ret => this.matchItem(ret));
+  }
+
+  private matchItem(item: StockRequest | StockReturn): boolean {
+    const q = this.searchQuery.toLowerCase();
+    const matchSearch = !q ||
+      item.reference?.toLowerCase().includes(q) ||
+      item.id.toString().includes(q);
+
+    let matchFilter = true;
+    if (this.activeFilter !== 'ALL') {
+      const status = item.status?.toUpperCase() || '';
+      if (this.activeFilter === 'CREATED') {
+        matchFilter = status === 'CREATED' || status === 'PENDING';
+      } else if (this.activeFilter === 'VALIDATED') {
+        matchFilter = status === 'VALIDATED' || status === 'APPROVED';
+      } else {
+        matchFilter = status === this.activeFilter;
+      }
+    }
+
+    return matchSearch && matchFilter;
+  }
+
+  setFilter(filterValue: string): void {
+    this.activeFilter = filterValue;
   }
 
   /**
@@ -116,6 +178,11 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Handles context switch from custom pill buttons (premium UI). */
+  switchContext(ctx: OperationalContext): void {
+    this.stockStateService.setContext(ctx);
+  }
+
   /**
    * Handles the content tab switch between 'requests' and 'returns'.
    */
@@ -126,12 +193,22 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Handles tab switch from custom bottom tab bar buttons (premium UI). */
+  switchTab(tab: DashboardTab): void {
+    this.activeTab = tab;
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   async openDetailModal(operation: StockRequest | StockReturn, type: 'request' | 'return'): Promise<void> {
+    // Prevent Ionic focus trap bug that blocks modal interaction by blurring the background element
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     const modal = await this.modalCtrl.create({
       component: StockDetailModalComponent,
       componentProps: {
@@ -165,6 +242,84 @@ export class StockDashboardComponent implements OnInit, OnDestroy {
       },
       error: async (err: Error) => {
         await this.log.error(`Create tontine request failed: ${err?.message}`);
+
+        const toast = await this.toastCtrl.create({
+          message: 'Erreur réseau. Vos données sont préservées. Veuillez réessayer.',
+          duration: 4000,
+          position: 'bottom',
+          color: 'danger'
+        });
+        await toast.present();
+      }
+    });
+  }
+
+  // ── Story 2.2: Créer une demande Standard ───────────────────────────────
+
+  async openCreateRequestForm(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: StockRequestFormComponent,
+      componentProps: { isSubmitting: false }
+    });
+
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'submit' && data) {
+      this.onCreateRequestSubmit(data);
+    }
+  }
+
+  onCreateRequestSubmit(payload: CreateStockRequestPayload): void {
+    this.stockApiService.createStandardRequest(payload).subscribe({
+      next: async () => {
+        await this.log.log('Standard stock request created successfully');
+        console.log('[StockDashboard] Standard request created');
+        this.stockStateService.setContext('STANDARD'); // Refresh list
+      },
+      error: async (err: Error) => {
+        await this.log.error(`Create standard request failed: ${err?.message}`);
+        console.log('[StockDashboard] Create standard request failed:', err?.message);
+
+        const toast = await this.toastCtrl.create({
+          message: 'Erreur réseau. Vos données sont préservées. Veuillez réessayer.',
+          duration: 4000,
+          position: 'bottom',
+          color: 'danger'
+        });
+        await toast.present();
+      }
+    });
+  }
+
+  // ── Story 2.3: Créer un retour Standard ─────────────────────────────────
+
+  async openCreateReturnForm(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: StockReturnFormComponent,
+      componentProps: { isSubmitting: false }
+    });
+
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'submit' && data) {
+      this.onCreateReturnSubmit(data);
+    }
+  }
+
+  onCreateReturnSubmit(payload: CreateStockReturnPayload): void {
+    this.stockApiService.createStandardReturn(payload).subscribe({
+      next: async () => {
+        await this.log.log('Standard stock return created successfully');
+        console.log('[StockDashboard] Standard return created');
+        this.stockStateService.setContext('STANDARD'); // Refresh list
+      },
+      error: async (err: Error) => {
+        await this.log.error(`Create standard return failed: ${err?.message}`);
+        console.log('[StockDashboard] Create standard return failed:', err?.message);
 
         const toast = await this.toastCtrl.create({
           message: 'Erreur réseau. Vos données sont préservées. Veuillez réessayer.',

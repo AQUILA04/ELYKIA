@@ -2,9 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApiResponse } from '../../models/api-response.model';
-import { StockRequest } from '../models/stock-request.model';
-import { StockReturn } from '../models/stock-return.model';
+import { StockRequest, CreateStockRequestPayload } from '../models/stock-request.model';
+import { StockReturn, CreateStockReturnPayload } from '../models/stock-return.model';
 import { CreateTontineRequestPayload, StockTontineRequest } from '../models/stock-tontine-request.model';
 import { CreateTontineReturnPayload, StockTontineReturn } from '../models/stock-tontine-return.model';
 
@@ -16,21 +15,21 @@ export class StockApiService {
 
   constructor(private http: HttpClient) {}
 
-  getStandardRequests(): Observable<ApiResponse<StockRequest[]>> {
-    return this.http.get<ApiResponse<StockRequest[]>>(`${this.baseUrl}/api/stock-requests`);
+  getStandardRequests(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/api/stock-requests`);
   }
 
-  getTontineRequests(): Observable<ApiResponse<StockRequest[]>> {
+  getTontineRequests(): Observable<any> {
     console.log('getTontineRequests called');
-    return this.http.get<ApiResponse<StockRequest[]>>(`${this.baseUrl}/api/v1/stock-tontine-request`);
+    return this.http.get<any>(`${this.baseUrl}/api/v1/stock-tontine-request`);
   }
 
-  getStandardReturns(): Observable<ApiResponse<StockReturn[]>> {
-    return this.http.get<ApiResponse<StockReturn[]>>(`${this.baseUrl}/api/stock-returns`);
+  getStandardReturns(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/api/stock-returns`);
   }
 
-  getTontineReturns(): Observable<ApiResponse<StockReturn[]>> {
-    return this.http.get<ApiResponse<StockReturn[]>>(`${this.baseUrl}/api/v1/stock-tontine-return`);
+  getTontineReturns(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/api/v1/stock-tontine-return`);
   }
 
   createTontineRequest(payload: CreateTontineRequestPayload): Observable<StockTontineRequest> {
@@ -55,5 +54,15 @@ export class StockApiService {
 
   cancelStandardReturn(id: number): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/api/stock-returns/${id}/cancel`, {});
+  }
+
+  /** Story 2.2 — POST /api/stock-requests/create */
+  createStandardRequest(payload: CreateStockRequestPayload): Observable<StockRequest> {
+    return this.http.post<StockRequest>(`${this.baseUrl}/api/stock-requests/create`, payload);
+  }
+
+  /** Story 2.3 — POST /api/stock-returns/create */
+  createStandardReturn(payload: CreateStockReturnPayload): Observable<StockReturn> {
+    return this.http.post<StockReturn>(`${this.baseUrl}/api/stock-returns/create`, payload);
   }
 }

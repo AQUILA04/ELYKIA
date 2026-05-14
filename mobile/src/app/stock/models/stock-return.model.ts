@@ -14,3 +14,20 @@ export interface StockReturn {
   items?: any[];
   [key: string]: any;
 }
+
+/**
+ * Story 2.3 — Payload interfaces for creating a Standard Stock Return.
+ * CORRECT: StockReturnItem.java uses @ManyToOne Articles article — NOT variationId.
+ * `comment` requires `private String comment` in StockReturn.java (backend entity change).
+ * `collector` is injected by SecurityContextInterceptor — NOT included here.
+ */
+export interface StockReturnItemPayload {
+  article: { id: number };
+  quantity: number;
+}
+
+export interface CreateStockReturnPayload {
+  items: StockReturnItemPayload[];
+  comment?: string; // Optional — requires backend StockReturn.java entity change
+  // collector injected by SecurityContextInterceptor
+}
