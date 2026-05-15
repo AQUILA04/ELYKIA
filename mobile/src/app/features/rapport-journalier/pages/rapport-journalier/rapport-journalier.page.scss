@@ -115,6 +115,11 @@
   color: #4CAF50;
 }
 
+.reliquat-card .card-icon {
+  background: rgba(0, 150, 136, 0.1); /* Teal color for savings/reliquat */
+  color: #009688;
+}
+
 .card-number {
   font-size: 14px;
   color: #757575;
@@ -133,6 +138,10 @@
 
 .recovery-card .card-amount {
   color: #4CAF50;
+}
+
+.reliquat-card .card-amount {
+  color: #009688;
 }
 
 .card-label {

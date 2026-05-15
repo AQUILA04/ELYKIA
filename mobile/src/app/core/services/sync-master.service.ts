@@ -20,6 +20,7 @@ import { RecoverySyncService } from './sync/recovery-sync.service';
 import { TontineMemberSyncService } from './sync/tontine-member-sync.service';
 import { TontineCollectionSyncService } from './sync/tontine-collection-sync.service';
 import { TontineDeliverySyncService } from './sync/tontine-delivery-sync.service';
+import { ReliquatSyncService } from './sync/reliquat-sync.service';
 import { CashDeskService } from './cash-desk.service';
 
 import {
@@ -58,7 +59,8 @@ export class SyncMasterService {
     private readonly recoverySyncService: RecoverySyncService,
     private readonly tontineMemberSyncService: TontineMemberSyncService,
     private readonly tontineCollectionSyncService: TontineCollectionSyncService,
-    private readonly tontineDeliverySyncService: TontineDeliverySyncService
+    private readonly tontineDeliverySyncService: TontineDeliverySyncService,
+    private readonly reliquatSyncService: ReliquatSyncService
   ) { }
 
   /**
@@ -83,6 +85,7 @@ export class SyncMasterService {
       tontineMembersSync: { success: 0, errors: 0 },
       tontineCollectionsSync: { success: 0, errors: 0 },
       tontineDeliveriesSync: { success: 0, errors: 0 },
+      reliquatsSync: { success: 0, errors: 0 },
     };
 
     try {
@@ -156,6 +159,14 @@ export class SyncMasterService {
       batchResult.recoveriesSync.success += recResult.success;
       batchResult.recoveriesSync.errors += recResult.errors;
       processedItems += (recResult.success + recResult.errors);
+      this.updateProgress(processedItems, totalItems);
+
+      // 9.5 Sync Reliquats (Depends on Clients & Recoveries)
+      this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'reliquats' } }));
+      this.reliquatSyncService.setFailedClientIds(this.failedClientIds);
+      const reliquatResult = await this.reliquatSyncService.syncAll(50, dateFilter);
+      batchResult.reliquatsSync = { success: reliquatResult.success, errors: reliquatResult.errors };
+      processedItems += (reliquatResult.success + reliquatResult.errors);
       this.updateProgress(processedItems, totalItems);
 
       // 10. Sync Tontine Members (Depends on Clients)
@@ -241,7 +252,8 @@ export class SyncMasterService {
       this.tontineMemberSyncService.getUnsyncedCount(),
       this.tontineMemberSyncService.getUpdatedCount(),
       this.tontineCollectionSyncService.getUnsyncedCount(),
-      this.tontineDeliverySyncService.getUnsyncedCount()
+      this.tontineDeliverySyncService.getUnsyncedCount(),
+      this.reliquatSyncService.getUnsyncedCount()
     ]);
 
     return counts.reduce((sum, count) => sum + count, 0);

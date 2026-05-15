@@ -68,6 +68,15 @@
         <div class="card-amount">{{ reportData.tontine.totalAmount | number:'1.0-0':'fr-FR' }} FCFA</div>
         <div class="card-label">TONTINE</div>
       </div>
+
+      <div class="summary-card reliquat-card" *ngIf="reportData.recoveries.reliquatNetDuJour && reportData.recoveries.reliquatNetDuJour > 0">
+        <div class="card-icon">
+          <ion-icon name="save-outline"></ion-icon>
+        </div>
+        <div class="card-number">Reliquats conservés</div>
+        <div class="card-amount">{{ reportData.recoveries.reliquatNetDuJour | number:'1.0-0':'fr-FR' }} FCFA</div>
+        <div class="card-label">RELIQUATS</div>
+      </div>
     </div>
 
     <!-- Carte Total à Verser -->

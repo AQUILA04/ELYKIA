@@ -72,7 +72,7 @@ export class DatabaseService {
       // 2. Exécuter les migrations sur le schéma existant
       if (Capacitor.getPlatform() === 'android') {
         const currentVersion = await this.db.getVersion();
-        const targetVersion = 21; // Incremented for notes in tontine_collections
+        const targetVersion = 22; // Incremented for client_reliquats and recoveries columns
         const dbVersion = currentVersion.version ?? 2;
 
         console.log('=== DATABASE VERSION CHECK ===');
@@ -364,7 +364,9 @@ export class DatabaseService {
             syncDate DATETIME,
             createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
             isDefaultStake BOOLEAN DEFAULT 0,
-            syncHash TEXT
+            syncHash TEXT,
+            reliquatGeneratedAmount REAL DEFAULT 0,
+            reliquatUsedAmount REAL DEFAULT 0
             -- FOREIGN KEY(distributionId) REFERENCES distributions(id),
             -- FOREIGN KEY(clientId) REFERENCES clients(id)
         );
@@ -585,13 +587,30 @@ export class DatabaseService {
             initDate TEXT NOT NULL,
             updatedAt TEXT NOT NULL
         );
+
+        -- Table des reliquats
+        CREATE TABLE IF NOT EXISTS client_reliquats (
+            id TEXT PRIMARY KEY,
+            clientId TEXT NOT NULL,
+            commercialId TEXT NOT NULL,
+            totalAmount REAL NOT NULL DEFAULT 0,
+            lastRecoveryId TEXT,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            lastAccountedDate TEXT,
+            isSync INTEGER DEFAULT 0,
+            syncDate TEXT,
+            FOREIGN KEY(clientId) REFERENCES clients(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_client_reliquats_clientId ON client_reliquats(clientId);
+        CREATE INDEX IF NOT EXISTS idx_client_reliquats_commercialId ON client_reliquats(commercialId);
     `;
     await this.db?.execute(createTables);;
   }
 
   private async verifyTables(): Promise<void> {
     try {
-      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items', 'tontine_member_amount_history', 'commercial_stock_snapshot'];
+      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items', 'tontine_member_amount_history', 'commercial_stock_snapshot', 'client_reliquats'];
       const result = await this.db?.query(`SELECT name FROM sqlite_master WHERE type='table'`);
       const existingTables = result?.values?.map(row => row.name) || [];
       const missingTables = expectedTables.filter(table => !existingTables.includes(table));

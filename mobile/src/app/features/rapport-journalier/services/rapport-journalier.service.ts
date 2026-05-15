@@ -28,11 +28,15 @@ export interface DailyReportData {
   recoveries: {
     count: number;
     totalAmount: number;
+    reliquatNetDuJour?: number;
+    reliquatUtiliseDuJour?: number;
     items: Array<{
       time: string;
       clientName: string;
       details: string;
       amount: number;
+      reliquatGeneratedAmount: number;
+      reliquatUsedAmount: number;
       isSync: boolean;
     }>;
   };
@@ -111,7 +115,7 @@ export class RapportJournalierService {
         commercialName: 'N/A',
         totalToPay: 0,
         distributions: { count: 0, totalAmount: 0, items: [] },
-        recoveries: { count: 0, totalAmount: 0, items: [] },
+        recoveries: { count: 0, totalAmount: 0, reliquatNetDuJour: 0, reliquatUtiliseDuJour: 0, items: [] },
         newClients: { count: 0, totalBalance: 0, items: [] },
         advances: { count: 0, totalAmount: 0 },
         tontine: { count: 0, totalAmount: 0 }
@@ -154,7 +158,7 @@ export class RapportJournalierService {
       switchMap(recoveries => {
         const todayRecoveries = recoveries.filter(r => r.createdAt && r.createdAt.startsWith(dateString));
         if (todayRecoveries.length === 0) {
-          return of({ count: 0, totalAmount: 0, items: [] });
+          return of({ count: 0, totalAmount: 0, reliquatNetDuJour: 0, reliquatUtiliseDuJour: 0, items: [] });
         }
         return from(this.databaseService.getClients(currentCommercialId)).pipe(
           map(clients => {
@@ -164,12 +168,18 @@ export class RapportJournalierService {
               clientName: clientMap.get(r.clientId) || 'Client inconnu',
               details: `Recouvrement #${r.id}`,
               amount: r.amount,
+              reliquatGeneratedAmount: r.reliquatGeneratedAmount || 0,
+              reliquatUsedAmount: r.reliquatUsedAmount || 0,
               isSync: r.isSync || false
             }));
             const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+            const reliquatNetDuJour = items.reduce((sum, item) => sum + item.reliquatGeneratedAmount, 0);
+            const reliquatUtiliseDuJour = items.reduce((sum, item) => sum + item.reliquatUsedAmount, 0);
             return {
               count: items.length,
               totalAmount: totalAmount,
+              reliquatNetDuJour: reliquatNetDuJour,
+              reliquatUtiliseDuJour: reliquatUtiliseDuJour,
               items: items
             };
           })
@@ -251,7 +261,7 @@ export class RapportJournalierService {
       map((results: {
         commercial: Commercial | null;
         distributions: { count: number; totalAmount: number; items: any[] };
-        recoveries: { count: number; totalAmount: number; items: any[] };
+        recoveries: { count: number; totalAmount: number; reliquatNetDuJour?: number; reliquatUtiliseDuJour?: number; items: any[] };
         newClients: { count: number; totalBalance: number; items: any[] };
         advances: { count: number; totalAmount: number };
         tontineDetails: {
@@ -261,7 +271,11 @@ export class RapportJournalierService {
         };
       }) => {
         const tontineTotalAmount = results.tontineDetails.collections.totalAmount;
-        const totalToPay = results.recoveries.totalAmount + results.advances.totalAmount + tontineTotalAmount;
+        const reliquatGenere = results.recoveries.reliquatNetDuJour || 0;
+        const reliquatUtilise = results.recoveries.reliquatUtiliseDuJour || 0;
+        // Reliquat généré = le commercial le conserve en cash → doit être versé à l'agence (+)
+        // Reliquat utilisé = compensé sur une mise, pas de cash reçu → à déduire (-)
+        const totalToPay = results.recoveries.totalAmount + results.advances.totalAmount + tontineTotalAmount + reliquatGenere - reliquatUtilise;
 
         return {
           date: targetDate.toLocaleDateString('fr-FR', {
@@ -523,6 +537,23 @@ export class RapportJournalierService {
       ])
     );
 
+    // Reliquat table — only include rows where there is a reliquat (generated or used)
+    const reliquatItems = reportData.recoveries.items.filter(
+      (item: any) => (item.reliquatGeneratedAmount > 0) || (item.reliquatUsedAmount > 0)
+    );
+    const reliquatTable = reliquatItems.length > 0
+      ? this.generateTableHTML(
+        'Reliquats du Jour',
+        ['ID', 'Client', 'Reliquat Conservé', 'Reliquat Utilisé'],
+        reliquatItems.map((item: any, index: number) => [
+          (index + 1).toString(),
+          item.clientName,
+          item.reliquatGeneratedAmount > 0 ? `${formatPrice(item.reliquatGeneratedAmount)} FCFA` : '-',
+          item.reliquatUsedAmount > 0 ? `${formatPrice(item.reliquatUsedAmount)} FCFA` : '-'
+        ])
+      )
+      : '';
+
     const clientsTable = this.generateTableHTML(
       'Nouveaux Clients',
       ['ID', 'Heure', 'Nom', 'N° Compte', 'Solde', 'Statut'],
@@ -740,6 +771,14 @@ export class RapportJournalierService {
                 <span class="kpi-value">${reportData.recoveries.count} (${formatPrice(reportData.recoveries.totalAmount)} FCFA)</span>
               </div>
               <div class="kpi-item">
+                <span class="kpi-label">Reliquat Généré (Jour):</span>
+                <span class="kpi-value">${formatPrice(reportData.recoveries.reliquatNetDuJour || 0)} FCFA</span>
+              </div>
+              <div class="kpi-item">
+                <span class="kpi-label">Reliquat Utilisé (Jour):</span>
+                <span class="kpi-value">${formatPrice(reportData.recoveries.reliquatUtiliseDuJour || 0)} FCFA</span>
+              </div>
+              <div class="kpi-item">
                 <span class="kpi-label">Nouveaux Clients:</span>
                 <span class="kpi-value">${reportData.newClients.count} (${formatPrice(reportData.newClients.totalBalance)} FCFA)</span>
               </div>
@@ -775,6 +814,7 @@ export class RapportJournalierService {
           <!-- Tableaux détaillés -->
           ${distributionsTable}
           ${recoveriesTable}
+          ${reliquatTable}
           ${clientsTable}
           ${tontineMembersTable}
           ${tontineCollectionsTable}
@@ -943,6 +983,11 @@ export class RapportJournalierService {
           <span class="name">RECOUV. (MONTANT) :</span>
           <span class="price">${formatPriceWithCurrency(reportData.recoveries.totalAmount)}</span>
         </div>
+        ${reportData.recoveries.reliquatNetDuJour && reportData.recoveries.reliquatNetDuJour > 0 ? `
+        <div class="item">
+          <span class="name">RELIQUAT (CONSERVE) :</span>
+          <span class="price">${formatPriceWithCurrency(reportData.recoveries.reliquatNetDuJour)}</span>
+        </div>` : ''}
         <div class="item">
           <span class="name">NVX CLIENTS (NB) :</span>
           <span class="price">${reportData.newClients.count}</span>

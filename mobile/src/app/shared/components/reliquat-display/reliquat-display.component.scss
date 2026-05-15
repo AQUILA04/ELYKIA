@@ -1,0 +1,104 @@
+.reliquat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+
+  .reliquat-card {
+    background-color: var(--ion-color-light);
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 4px solid var(--ion-color-primary);
+
+    &.generated-reliquat {
+      border-left-color: var(--ion-color-success);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+
+      h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--ion-color-step-700);
+      }
+    }
+
+    .amount {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ion-color-primary);
+      margin-left: 24px;
+      margin-bottom: 8px;
+
+      &.success-text {
+        color: var(--ion-color-success);
+      }
+    }
+
+    .checkbox-item {
+      --background: transparent;
+      --padding-start: 24px;
+      --inner-padding-end: 0;
+      
+      ion-label {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .plan-summary {
+    ion-card {
+      margin: 0;
+      box-shadow: none;
+      border: 1px solid var(--ion-color-step-150);
+      
+      ion-card-content {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .summary-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 14px;
+
+          .label {
+            color: var(--ion-color-step-600);
+          }
+
+          .value {
+            font-weight: 600;
+            color: var(--ion-color-step-800);
+            
+            small {
+              color: var(--ion-color-step-500);
+              font-weight: normal;
+            }
+          }
+
+          &.total-row {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--ion-color-step-200);
+            font-size: 16px;
+            
+            .label {
+              color: var(--ion-color-step-800);
+              font-weight: 600;
+            }
+            .value {
+              color: var(--ion-color-primary);
+              font-weight: 700;
+            }
+          }
+        }
+      }
+    }
+  }
+}

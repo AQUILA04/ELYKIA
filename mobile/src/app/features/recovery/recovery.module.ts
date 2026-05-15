@@ -10,6 +10,7 @@ import { RecoveryPage } from './recovery.page';
 // Composants
 import { CreditCardComponent } from './components/credit-card/credit-card.component';
 import { AmountInputComponent } from './components/amount-input/amount-input.component';
+import { ReliquatDisplayComponent } from './components/reliquat-display/reliquat-display.component';
 import { RecoveryListComponent } from './components/recovery-list/recovery-list.component';
 import { RecoveryDetailComponent } from './components/recovery-detail/recovery-detail.component';
 import { FormatNumberPipe } from '../../shared/pipes/format-number.pipe';
@@ -30,6 +31,7 @@ import { FormatNumberPipe } from '../../shared/pipes/format-number.pipe';
     RecoveryPage,
     CreditCardComponent,
     AmountInputComponent,
+    ReliquatDisplayComponent,
     RecoveryListComponent,
     RecoveryDetailComponent,
     FormatNumberPipe

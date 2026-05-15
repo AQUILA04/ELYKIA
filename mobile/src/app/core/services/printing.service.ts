@@ -114,6 +114,10 @@ export class PrintingService {
   private generateRecoveryReceiptHTML(printableRecovery: PrintableRecovery): string {
     const { recovery, distribution, client, commercial } = printableRecovery;
     const oldBalance = (distribution.remainingAmount ?? 0) + recovery.amount;
+    const reliquatUsed = recovery.reliquatUsedAmount || 0;
+    const reliquatGenerated = recovery.reliquatGeneratedAmount || 0;
+    const cashReceived = recovery.amount - reliquatUsed + reliquatGenerated;
+    
     const uniqueId = `#EL${new Date(recovery.paymentDate).getTime().toString()}`;
     const remainingInstallments = distribution.dailyPayment > 0
       ? Math.ceil((distribution.remainingAmount ?? 0) / distribution.dailyPayment)
@@ -193,9 +197,23 @@ export class PrintingService {
           </div>
           <p>---------------------------</p>
           <div class="row total-row">
-            <span>Montant Paye:</span>
+            <span>Montant Facture:</span>
             <span class="value">${recovery.amount.toLocaleString('fr-FR')} FCFA</span>
           </div>
+          ${reliquatUsed > 0 ? `
+          <div class="row">
+            <span>Reliquat utilise:</span>
+            <span class="value">-${reliquatUsed.toLocaleString('fr-FR')} FCFA</span>
+          </div>` : ''}
+          <div class="row">
+            <span>Montant Remis (Especes):</span>
+            <span class="value">${cashReceived.toLocaleString('fr-FR')} FCFA</span>
+          </div>
+          ${reliquatGenerated > 0 ? `
+          <div class="row">
+            <span>Reliquat conserve:</span>
+            <span class="value">${reliquatGenerated.toLocaleString('fr-FR')} FCFA</span>
+          </div>` : ''}
           <p>---------------------------</p>
           <div class="row">
             <span>Nouveau Solde:</span>

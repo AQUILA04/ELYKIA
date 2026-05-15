@@ -98,12 +98,17 @@ public class DailyCommercialReport extends BaseEntity<String> {
     @Column(columnDefinition = "double precision default 0")
     private Double totalAdvancesAmount = 0.0;
 
+    // Reliquats
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalReliquatAmount = 0.0;
+
     public DailyCommercialReport(String commercialUsername, Double totalStockRequestAmount, Long creditSalesCount,
             Double creditSalesAmount, Long newClientsCount, Double newAccountsBalance, Long collectionsCount,
             Double collectionsAmount, Long ordersCount, Double ordersAmount, Long tontineMembersCount,
             Long tontineCollectionsCount, Double tontineCollectionsAmount, Long tontineDeliveriesCount,
             Double tontineDeliveriesAmount, Double totalAmountToDeposit, Double totalAmountDeposited,
-            Double creditSalesMargin, Double stockRequestMargin, Double totalAdvancesAmount) {
+            Double creditSalesMargin, Double stockRequestMargin, Double totalAdvancesAmount,
+            Double totalReliquatAmount) {
         this.commercialUsername = commercialUsername;
         this.totalStockRequestAmount = totalStockRequestAmount != null ? totalStockRequestAmount : 0.0;
         this.creditSalesCount = creditSalesCount != null ? creditSalesCount.intValue() : 0;
@@ -124,6 +129,7 @@ public class DailyCommercialReport extends BaseEntity<String> {
         this.creditSalesMargin = creditSalesMargin != null ? creditSalesMargin : 0.0;
         this.stockRequestMargin = stockRequestMargin != null ? stockRequestMargin : 0.0;
         this.totalAdvancesAmount = totalAdvancesAmount != null ? totalAdvancesAmount : 0.0;
+        this.totalReliquatAmount = totalReliquatAmount != null ? totalReliquatAmount : 0.0;
     }
 
     public void addAmountToDeposit(Double amount) {

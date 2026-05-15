@@ -25,6 +25,7 @@ import * as AccountActions from '../../../../store/account/account.actions';
 import * as DistributionActions from '../../../../store/distribution/distribution.actions';
 import { Capacitor } from '@capacitor/core';
 import { ThumbnailService } from '../../../../core/services/thumbnail.service';
+import { ReliquatService } from '../../../../core/services/reliquat.service';
 
 @Component({
   selector: 'app-client-detail',
@@ -56,7 +57,8 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private actions$: Actions,
     private thumbnailService: ThumbnailService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private reliquatService: ReliquatService
   ) { }
 
   async ngOnInit() {
@@ -97,15 +99,17 @@ export class ClientDetailPage implements OnInit, OnDestroy {
           return of(null);
         }
         // Combine photo loading observables
-        // Use optimized getPhotoUrl which returns SafeUrl directly
         const profilePhoto = this.getPhotoUrl(client.profilPhoto || client.profilPhotoUrl);
         const cardPhoto = this.getPhotoUrl(client.cardPhoto || client.cardPhotoUrl);
 
-        return of({
+        return from(this.reliquatService.getReliquatForClient(client.id)).pipe(
+          map(reliquat => ({
             ...client,
             photoUrl: profilePhoto,
-            cardPhotoSafeUrl: cardPhoto
-        });
+            cardPhotoSafeUrl: cardPhoto,
+            reliquatAmount: reliquat ? reliquat.totalAmount : 0
+          }))
+        );
       }),
       filter(client => client !== null) // Ne pas émettre si le client est null
     );

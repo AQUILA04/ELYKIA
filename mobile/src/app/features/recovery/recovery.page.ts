@@ -17,6 +17,8 @@ import * as ClientActions from '../../store/client/client.actions';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import { LoggerService } from '../../core/services/logger.service';
 import { RecoveryService } from '../../core/services/recovery.service';
+import { ReliquatService } from '../../core/services/reliquat.service';
+import { ClientReliquat, RecoveryPlan } from '../../models/reliquat.model';
 
 interface RecoveryViewModel {
   client: Client | null;
@@ -44,7 +46,12 @@ export class RecoveryPage implements OnInit, OnDestroy {
     isLoading: false,
     error: null
   };
-  recoveryAmount: number = 0;
+  recoveryAmount: number = 0; // Montant à collecter (sélectionné par pastilles)
+  receivedAmount: number = 0; // Montant remis par le client (saisi manuellement)
+  clientReliquat: ClientReliquat | null = null;
+  recoveryPlan: RecoveryPlan | null = null;
+  useReliquat: boolean = true;
+  keepReliquat: boolean = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -56,7 +63,8 @@ export class RecoveryPage implements OnInit, OnDestroy {
     private actions$: Actions,
     private log: LoggerService,
     private cdr: ChangeDetectorRef,
-    private recoveryService: RecoveryService
+    private recoveryService: RecoveryService,
+    private reliquatService: ReliquatService
   ) { }
 
   ngOnInit() {
@@ -86,10 +94,23 @@ export class RecoveryPage implements OnInit, OnDestroy {
 
     this.store.select(RecoverySelectors.selectSelectedClient)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(client => {
+      .subscribe(async client => {
         if (client) {
           this.store.dispatch(RecoveryActions.loadClientCredits({ clientId: client.id }));
+          this.clientReliquat = await this.reliquatService.getReliquatForClient(client.id);
+          this.updateRecoveryPlan();
+          this.cdr.markForCheck();
+        } else {
+          this.clientReliquat = null;
+          this.recoveryPlan = null;
+          this.cdr.markForCheck();
         }
+      });
+
+    this.store.select(RecoverySelectors.selectSelectedCredit)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(credit => {
+        this.updateRecoveryPlan();
       });
 
     this.setupActionListeners();
@@ -125,8 +146,15 @@ export class RecoveryPage implements OnInit, OnDestroy {
       }
 
       // Attendre un peu avant de réinitialiser le formulaire pour laisser le temps aux données de se mettre à jour
-      setTimeout(() => {
+      setTimeout(async () => {
         this.store.dispatch(RecoveryActions.resetRecoveryForm());
+        this.recoveryAmount = 0;
+        this.receivedAmount = 0;
+        this.recoveryPlan = null;
+        if (vm.client) {
+          this.clientReliquat = await this.reliquatService.getReliquatForClient(vm.client.id);
+        }
+        this.cdr.markForCheck();
         // On ne vide PAS tout l'état (clearRecoveryState) pour ne pas perdre la liste des recouvrements
         // Si besoin de désélectionner le client, on peut le faire ici, mais resetRecoveryForm est souvent suffisant
       }, 1000);
@@ -152,6 +180,55 @@ export class RecoveryPage implements OnInit, OnDestroy {
   onAmountChanged(amount: number) {
     this.recoveryAmount = amount;
     this.store.dispatch(RecoveryActions.setRecoveryAmount({ amount }));
+    this.updateRecoveryPlan();
+  }
+
+  updateRecoveryPlan() {
+    this.store.select(RecoverySelectors.selectSelectedCredit).pipe(take(1)).subscribe(credit => {
+      if (credit && this.recoveryAmount !== null) {
+        // Le montant reçu est par défaut égal au montant à collecter s'il n'a pas été saisi
+        let effectiveReceived = this.receivedAmount > 0 ? this.receivedAmount : this.recoveryAmount;
+        let amountCovered = this.recoveryAmount;
+
+        const totalAvailable = effectiveReceived + (this.useReliquat && this.clientReliquat ? this.clientReliquat.totalAmount : 0);
+        const stake = credit.dailyPayment;
+
+        if (stake > 0 && totalAvailable > amountCovered) {
+          const extraCash = totalAvailable - amountCovered;
+          // Si l'excédent dépasse ou est égal à une mise, on l'ajoute automatiquement au montant à collecter
+          if (extraCash >= stake) {
+            const extraStakes = Math.floor(extraCash / stake);
+            amountCovered += extraStakes * stake;
+            this.recoveryAmount = amountCovered; // Mettre à jour l'UI des pastilles
+          }
+        }
+
+        this.recoveryPlan = this.reliquatService.computeRecoveryPlan(
+          amountCovered,       // amountCovered (potentiellement auto-incrémenté)
+          effectiveReceived,   // received
+          this.clientReliquat ? this.clientReliquat.totalAmount : 0,
+          this.useReliquat
+        );
+        this.cdr.markForCheck();
+      } else {
+        this.recoveryPlan = null;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  onReceivedAmountChanged(amount: number) {
+    this.receivedAmount = amount;
+    this.updateRecoveryPlan();
+  }
+
+  onUseReliquatChanged(use: boolean) {
+    this.useReliquat = use;
+    this.updateRecoveryPlan();
+  }
+
+  onKeepReliquatChanged(keep: boolean) {
+    this.keepReliquat = keep;
   }
 
   onConfirmRecovery() {
@@ -192,7 +269,7 @@ export class RecoveryPage implements OnInit, OnDestroy {
   }
 
   private dispatchCreateRecovery(user: any, vm: RecoveryViewModel) {
-    if (vm.selectedCredit && vm.client) {
+    if (vm.selectedCredit && vm.client && this.recoveryPlan) {
       const isDefaultStake = this.recoveryAmount === vm.selectedCredit.dailyPayment;
       const recovery: Partial<Recovery> = {
         amount: this.recoveryAmount,
@@ -203,9 +280,11 @@ export class RecoveryPage implements OnInit, OnDestroy {
         commercialId: user.username,
         isLocal: true,
         isSync: false,
-        isDefaultStake: isDefaultStake
+        isDefaultStake: isDefaultStake,
+        reliquatGeneratedAmount: this.keepReliquat ? this.recoveryPlan.reliquatGenerated : 0,
+        reliquatUsedAmount: this.recoveryPlan.reliquatUsed
       };
-      this.store.dispatch(RecoveryActions.createRecovery({ recovery, distribution: vm.selectedCredit }));
+      this.store.dispatch(RecoveryActions.createRecovery({ recovery, distribution: vm.selectedCredit, keepReliquat: this.keepReliquat }));
     }
   }
 
@@ -214,7 +293,20 @@ export class RecoveryPage implements OnInit, OnDestroy {
   }
 
   canConfirmRecovery(vm: RecoveryViewModel): boolean {
-    return !!(vm.client && vm.selectedCredit && this.recoveryAmount > 0);
+    const hasBaseValid = !!(vm.client && vm.selectedCredit && this.recoveryAmount > 0);
+    if (!hasBaseValid) return false;
+    
+    // Le montant remis DOIT être saisi (> 0)
+    if (this.receivedAmount <= 0) return false;
+
+    if (this.recoveryPlan) {
+      // Le montant remis doit être au moins égal au cashNeeded (espèces attendues)
+      if (this.receivedAmount < this.recoveryPlan.cashNeeded) {
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   trackByCreditId(index: number, credit: Distribution): string {

@@ -143,6 +143,12 @@
           }}</span></div>
       <div class="info-row" *ngIf="credit.client?.cni"><span class="info-key">CNI</span><span class="info-val mono">{{
           credit.client?.cni }}</span></div>
+      <div class="info-row" *ngIf="credit.client?.reliquatAmount > 0">
+        <span class="info-key">Reliquat</span>
+        <span class="info-val" style="color: var(--success); font-weight: bold;">
+          {{ credit.client?.reliquatAmount | number }} FCFA
+        </span>
+      </div>
     </div>
 
     <div class="cd-card">

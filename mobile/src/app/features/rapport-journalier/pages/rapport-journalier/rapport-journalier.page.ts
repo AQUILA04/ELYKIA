@@ -88,7 +88,7 @@ export class RapportJournalierPage implements OnDestroy {
     commercialName: '',
     totalToPay: 0,
     distributions: { count: 0, totalAmount: 0, items: [] },
-    recoveries: { count: 0, totalAmount: 0, items: [] },
+    recoveries: { count: 0, totalAmount: 0, reliquatNetDuJour: 0, reliquatUtiliseDuJour: 0, items: [] },
     newClients: { count: 0, totalBalance: 0, items: [] },
     advances: { count: 0, totalAmount: 0 },
     tontine: { count: 0, totalAmount: 0 },
@@ -283,11 +283,11 @@ export class RapportJournalierPage implements OnDestroy {
     );
 
     // Subscribe to KPI updates / Pagination Counts
-    this.subscriptions.add(this.store.select(DistributionSelectors.selectDistributionPaginationTotalItems).subscribe(count => {
+    this.subscriptions.add(this.store.select(KpiSelectors.selectDistributionKpiToday).subscribe(count => {
       this.reportData.distributions.count = count;
       this.cdr.markForCheck();
     }));
-    this.subscriptions.add(this.store.select(KpiSelectors.selectDistributionKpiDailyPayment).subscribe(amount => {
+    this.subscriptions.add(this.store.select(KpiSelectors.selectDistributionKpiTodayAmount).subscribe(amount => {
       this.reportData.distributions.totalAmount = amount;
       this.cdr.markForCheck();
     }));
@@ -298,6 +298,17 @@ export class RapportJournalierPage implements OnDestroy {
     }));
     this.subscriptions.add(this.store.select(KpiSelectors.selectRecoveryKpiTodayAmount).subscribe(amount => {
       this.reportData.recoveries.totalAmount = amount;
+      this.updateTotalToPay();
+      this.cdr.markForCheck();
+    }));
+    this.subscriptions.add(this.store.select(KpiSelectors.selectRecoveryKpiTodayReliquatGenerated).subscribe(amount => {
+      this.reportData.recoveries.reliquatNetDuJour = amount;
+      this.updateTotalToPay();
+      this.cdr.markForCheck();
+    }));
+    this.subscriptions.add(this.store.select(KpiSelectors.selectRecoveryKpiTodayReliquatUsed).subscribe(amount => {
+      this.reportData.recoveries.reliquatUtiliseDuJour = amount;
+      this.updateTotalToPay();
       this.cdr.markForCheck();
     }));
 
@@ -335,7 +346,9 @@ export class RapportJournalierPage implements OnDestroy {
     this.reportData.totalToPay =
       (this.reportData.recoveries?.totalAmount || 0) +
       (this.reportData.advances?.totalAmount || 0) +
-      (this.reportData.tontine?.totalAmount || 0);
+      (this.reportData.tontine?.totalAmount || 0) +
+      (this.reportData.recoveries?.reliquatNetDuJour || 0) -
+      (this.reportData.recoveries?.reliquatUtiliseDuJour || 0);
   }
 
   onSegmentChanged(event: any) {

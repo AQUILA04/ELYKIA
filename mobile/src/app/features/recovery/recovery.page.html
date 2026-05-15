@@ -122,6 +122,17 @@
             [currentAmount]="recoveryAmount"
             (amountChanged)="onAmountChanged($event)">
           </app-amount-input>
+
+          <app-reliquat-display
+            *ngIf="recoveryAmount > 0"
+            [clientReliquat]="clientReliquat"
+            [recoveryPlan]="recoveryPlan"
+            [invoiceAmount]="recoveryAmount"
+            [receivedAmount]="receivedAmount"
+            (useReliquatChanged)="onUseReliquatChanged($event)"
+            (keepReliquatChanged)="onKeepReliquatChanged($event)"
+            (receivedAmountChanged)="onReceivedAmountChanged($event)">
+          </app-reliquat-display>
         </ion-card-content>
       </ion-card>
     }

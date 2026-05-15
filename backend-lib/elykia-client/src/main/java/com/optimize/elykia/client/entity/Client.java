@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.common.entities.entity.Auditable;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.ApplicationException;
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.client.enumeration.AccountStatus;
 import com.optimize.elykia.client.enumeration.ClientType;
 import jakarta.persistence.*;
@@ -133,5 +134,11 @@ public class Client extends Auditable<String> {
     public void removePhotos() {
         this.profilPhoto = null;
         this.IDDoc = null;
+    }
+
+    public void validateClientOperation() {
+        if (ClientType.PROMOTER.equals(this.clientType)) {
+            throw new CustomValidationException("Opération non disponible pour ce type de client !");
+        }
     }
 }

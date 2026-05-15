@@ -32,8 +32,9 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
             // On ne compare plus les hashs, on écrase systématiquement avec les données du serveur
             const sql = `INSERT OR REPLACE INTO recoveries (
                 id, amount, paymentDate, paymentMethod, notes, distributionId, clientId,
-                commercialId, isLocal, isSync, syncDate, syncHash, isDefaultStake, createdAt
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                commercialId, isLocal, isSync, syncDate, syncHash, isDefaultStake, createdAt,
+                reliquatGeneratedAmount, reliquatUsedAmount
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
             const params = [
                 recoveryIdStr,
@@ -49,7 +50,9 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
                 now,
                 null, // Plus de hash
                 recovery.isDefaultStake ? 1 : 0,
-                recovery.createdAt ?? now
+                recovery.createdAt ?? now,
+                recovery.reliquatGeneratedAmount ?? 0,
+                recovery.reliquatUsedAmount ?? 0
             ];
 
             sqlSet.push({ statement: sql, values: params });
@@ -94,7 +97,9 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
             ...row,
             isLocal: row.isLocal === 1,
             isSync: row.isSync === 1,
-            isDefaultStake: row.isDefaultStake === 1
+            isDefaultStake: row.isDefaultStake === 1,
+            reliquatGeneratedAmount: row.reliquatGeneratedAmount || 0,
+            reliquatUsedAmount: row.reliquatUsedAmount || 0
         } as Recovery;
     }
 

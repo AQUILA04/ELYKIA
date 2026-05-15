@@ -71,6 +71,16 @@ export const selectRecoveryKpiTodayAmount = createSelector(
   (recoveryKpi) => recoveryKpi.todayAmount
 );
 
+export const selectRecoveryKpiTodayReliquatGenerated = createSelector(
+  selectRecoveryKpi,
+  (recoveryKpi) => recoveryKpi.todayReliquatGenerated
+);
+
+export const selectRecoveryKpiTodayReliquatUsed = createSelector(
+  selectRecoveryKpi,
+  (recoveryKpi) => recoveryKpi.todayReliquatUsed
+);
+
 export const selectRecoveryKpiLoading = createSelector(
   selectRecoveryKpi,
   (recoveryKpi) => recoveryKpi.loading
@@ -116,6 +126,11 @@ export const selectDistributionKpiActiveByCommercial = createSelector(
   (distributionKpi) => distributionKpi.activeByCommercial
 );
 
+export const selectDistributionKpiToday = createSelector(
+  selectDistributionKpi,
+  (distributionKpi) => distributionKpi.today
+);
+
 export const selectDistributionKpiTotalAmount = createSelector(
   selectDistributionKpi,
   (distributionKpi) => distributionKpi.totalAmount
@@ -124,6 +139,11 @@ export const selectDistributionKpiTotalAmount = createSelector(
 export const selectDistributionKpiTotalAmountByCommercial = createSelector(
   selectDistributionKpi,
   (distributionKpi) => distributionKpi.totalAmountByCommercial
+);
+
+export const selectDistributionKpiTodayAmount = createSelector(
+  selectDistributionKpi,
+  (distributionKpi) => distributionKpi.todayAmount
 );
 
 export const selectDistributionKpiDailyPayment = createSelector(

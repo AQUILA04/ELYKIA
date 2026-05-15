@@ -13,8 +13,9 @@ import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { RecoveryRepository } from '../repositories/recovery.repository';
 import { RecoveryRepositoryExtensions, RecoveryRepositoryFilters } from '../repositories/recovery.repository.extensions';
 import { DistributionRepository } from '../repositories/distribution.repository';
-import {LoggerService} from "./logger.service";
-import {HealthCheckService} from "./health-check.service";
+import { LoggerService } from "./logger.service";
+import { HealthCheckService } from "./health-check.service";
+import { ReliquatService } from './reliquat.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,8 +30,9 @@ export class RecoveryService {
     private readonly recoveryRepository: RecoveryRepository,
     private readonly recoveryRepositoryExtensions: RecoveryRepositoryExtensions,
     private readonly distributionRepository: DistributionRepository,
-    private  readonly log: LoggerService,
+    private readonly log: LoggerService,
     private readonly healthCheckService: HealthCheckService,
+    private readonly reliquatService: ReliquatService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -114,7 +116,7 @@ export class RecoveryService {
   /**
    * Créer un nouveau recouvrement
    */
-  async createRecovery(recovery: Partial<Recovery>): Promise<Recovery> {
+  async createRecovery(recovery: Partial<Recovery>, keepReliquat: boolean = true): Promise<Recovery> {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
@@ -139,11 +141,21 @@ export class RecoveryService {
       isSync: false,
       syncDate: '',
       isDefaultStake: recovery.isDefaultStake,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
+      reliquatUsedAmount: recovery.reliquatUsedAmount || 0
     };
 
     // Sauvegarder localement
     await this.recoveryRepository.save(newRecovery);
+
+    // Gérer les reliquats
+    if (keepReliquat && newRecovery.reliquatGeneratedAmount && newRecovery.reliquatGeneratedAmount > 0) {
+      await this.reliquatService.addReliquat(newRecovery.clientId, this.commercialUsername, newRecovery.reliquatGeneratedAmount, newRecovery.id);
+    }
+    if (newRecovery.reliquatUsedAmount && newRecovery.reliquatUsedAmount > 0) {
+      await this.reliquatService.consumeReliquat(newRecovery.clientId, newRecovery.reliquatUsedAmount);
+    }
 
     // Mettre à jour le solde de la distribution
     await this.updateDistributionBalance(newRecovery.distributionId, newRecovery.amount);

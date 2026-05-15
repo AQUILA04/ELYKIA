@@ -39,6 +39,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     private final ClientService clientService;
     private final DailyAccountancyService dailyAccountancyService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final ClientReliquatService clientReliquatService;
     private CreditPaymentEventService creditPaymentEventService;
     private CreditEnrichmentService creditEnrichmentService;
     private BiAggregationService biAggregationService;  // Added for real-time aggregation
@@ -48,13 +49,15 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
             CreditService creditService,
             ClientService clientService,
             DailyAccountancyService dailyAccountancyService,
-            org.springframework.context.ApplicationEventPublisher eventPublisher) {
+            org.springframework.context.ApplicationEventPublisher eventPublisher,
+            ClientReliquatService clientReliquatService) {
         super(repository);
         this.creditMapper = creditMapper;
         this.creditService = creditService;
         this.clientService = clientService;
         this.dailyAccountancyService = dailyAccountancyService;
         this.eventPublisher = eventPublisher;
+        this.clientReliquatService = clientReliquatService;
     }
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -146,7 +149,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         List<SpecialDailyStakeResponseDto.FailedRecoveryDto> failedRecoveries = new ArrayList<>();
         dto.getStakeUnits().forEach(stakeUnit -> {
             try {
-            processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), null, true, successRecoveryIds, false);
+                processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), null, true, successRecoveryIds, false, stakeUnit.getReliquatGeneratedAmount(), stakeUnit.getReliquatUsedAmount());
             } catch (Exception e) {
                 failedRecoveries.add(new SpecialDailyStakeResponseDto.FailedRecoveryDto(stakeUnit.getRecoveryId(), e.getMessage()));
             }
@@ -164,7 +167,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
         dto.getStakeUnits().forEach(stakeUnit -> {
             try {
-                processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), stakeUnit.getAmount(), false, successRecoveryIds, true);
+                processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), stakeUnit.getAmount(), false, successRecoveryIds, true, stakeUnit.getReliquatGeneratedAmount(), stakeUnit.getReliquatUsedAmount());
             } catch (Exception e) {
                 failedRecoveries.add(new SpecialDailyStakeResponseDto.FailedRecoveryDto(stakeUnit.getRecoveryId(), e.getMessage()));
             }
@@ -172,7 +175,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         return new SpecialDailyStakeResponseDto(successRecoveryIds, failedRecoveries);
     }
 
-    private void processDailyStake(Long creditId, String recoveryId, Double amount, boolean isNormalStake, List<String> successRecoveryIds, boolean throwOnNotFound) {
+    private void processDailyStake(Long creditId, String recoveryId, Double amount, boolean isNormalStake, List<String> successRecoveryIds, boolean throwOnNotFound, Double reliquatGenerated, Double reliquatUsed) {
         // Check for duplicate reference
         if (getRepository().existsByReference(recoveryId)) {
             successRecoveryIds.add(recoveryId);
@@ -205,7 +208,18 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         creditTimeline.setNormalStake(isNormalStake);
         creditTimeline.setAmount(stakeAmount);
         creditTimeline.setReference(recoveryId);
+        creditTimeline.setReliquatGeneratedAmount(reliquatGenerated != null ? reliquatGenerated : 0.0);
+        creditTimeline.setReliquatUsedAmount(reliquatUsed != null ? reliquatUsed : 0.0);
+        
         dailyStakeFactor(credit, creditTimeline);
+
+        if (reliquatGenerated != null && reliquatGenerated > 0) {
+            clientReliquatService.addReliquat(credit.getClientId(), reliquatGenerated, recoveryId, null);
+        }
+        if (reliquatUsed != null && reliquatUsed > 0) {
+            clientReliquatService.consumeReliquat(credit.getClientId(), reliquatUsed, recoveryId, null);
+        }
+
         successRecoveryIds.add(recoveryId);
     }
 

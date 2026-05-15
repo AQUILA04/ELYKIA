@@ -10,6 +10,7 @@ import { DistributionService } from '../../../../core/services/distribution.serv
 import { RecoveryService } from '../../../../core/services/recovery.service';
 import * as DistributionActions from '../../../../store/distribution/distribution.actions';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
+import { ReliquatService } from '../../../../core/services/reliquat.service';
 
 @Component({
   selector: 'app-distribution-detail',
@@ -22,6 +23,7 @@ import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 export class DistributionDetailComponent implements OnInit {
 
   @Input() distribution!: DistributionView;
+  clientReliquatAmount: number = 0;
 
   constructor(
     private modalController: ModalController,
@@ -31,13 +33,21 @@ export class DistributionDetailComponent implements OnInit {
     private store: Store,
     private router: Router,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private reliquatService: ReliquatService
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
     // No need to load items manually, they are already populated in DistributionView
     if (this.distribution && (!this.distribution.items || this.distribution.items.length === 0)) {
       console.warn('[DistributionDetail] Distribution items are empty, this might be expected if no items exist.');
+    }
+
+    if (this.distribution?.clientId) {
+      const reliquat = await this.reliquatService.getReliquatForClient(this.distribution.clientId);
+      if (reliquat) {
+        this.clientReliquatAmount = reliquat.totalAmount;
+      }
     }
   }
 
