@@ -1,0 +1,144 @@
+<!-- ╔══════════════════════════════════════════════════════════════════╗ -->
+<!-- ║  STOCK DASHBOARD — Enterprise SaaS Mobile Design               ║ -->
+<!-- ║  Skill: elykia-stock-components-build                          ║ -->
+<!-- ║  Layout: Header → Context Pills → Content → Bottom Tab Bar     ║ -->
+<!-- ╚══════════════════════════════════════════════════════════════════╝ -->
+
+<ion-header class="ion-no-border stock-header">
+  <ion-toolbar class="stock-toolbar">
+
+    <ion-title class="stock-title">
+      {{ (context$ | async) === 'TONTINE' ? 'Sorties Tontine' : 'Gestion des Stocks' }}
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button id="stock-filter-btn" fill="clear" class="stock-filter-btn">
+        <ion-icon slot="icon-only" name="options-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar class="context-bar-toolbar">
+    <div class="context-pills-wrapper">
+      <ng-container *ngIf="context$ | async as ctx">
+        <button
+          id="ctx-pill-standard"
+          class="context-pill"
+          [class.active]="ctx === 'STANDARD'"
+          (click)="switchContext('STANDARD')">
+          Standard
+        </button>
+        <button
+          id="ctx-pill-tontine"
+          class="context-pill"
+          [class.active]="ctx === 'TONTINE'"
+          (click)="switchContext('TONTINE')">
+          Tontine
+        </button>
+      </ng-container>
+    </div>
+  </ion-toolbar>
+
+</ion-header>
+
+<ion-content class="stock-content">
+
+  <div class="filter-section">
+    <div class="status-pills-container">
+      <div class="status-pills-scroll">
+        <button
+          *ngFor="let filter of statusFilters"
+          class="status-pill"
+          [class.active]="activeFilter === filter.value"
+          (click)="setFilter(filter.value)">
+          {{ filter.label }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="context$ | async as currentContext">
+
+    <ng-container *ngIf="activeTab === 'requests'">
+      <app-request-list
+        [context]="currentContext"
+        [requests]="filteredRequests"
+        [loading]="loading"
+        [cancellingId]="cancellingId"
+        (cancelTap)="onCancelRequestTap($event)"
+        (operationTap)="onRequestTap($event)">
+      </app-request-list>
+    </ng-container>
+
+    <ng-container *ngIf="activeTab === 'returns'">
+      <app-stock-return-list
+        [context]="currentContext"
+        [returns]="filteredReturns"
+        [loading]="returnsLoading"
+        [cancellingId]="cancellingId"
+        (cancelTap)="onCancelReturnTap($event)"
+        (operationTap)="onReturnTap($event)">
+      </app-stock-return-list>
+    </ng-container>
+
+  </ng-container>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed"
+    *ngIf="(context$ | async) === 'STANDARD' && activeTab === 'requests'">
+    <ion-fab-button id="fab-new-standard-request" class="stock-fab" (click)="openCreateStandardRequestPage()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed"
+    *ngIf="(context$ | async) === 'STANDARD' && activeTab === 'returns'">
+    <ion-fab-button id="fab-new-standard-return" class="stock-fab" (click)="openCreateStandardReturnPage()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed"
+    *ngIf="(context$ | async) === 'TONTINE' && activeTab === 'requests'">
+    <ion-fab-button id="fab-new-tontine-request" class="stock-fab" (click)="openCreateTontineRequestPage()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed"
+    *ngIf="(context$ | async) === 'TONTINE' && activeTab === 'returns'">
+    <ion-fab-button id="fab-new-tontine-return" class="stock-fab" (click)="openCreateTontineReturnPage()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>
+
+<ion-footer class="ion-no-border stock-tab-footer">
+  <div class="bottom-tab-bar" *ngIf="context$ | async">
+    <button
+      id="tab-btn-requests"
+      class="tab-item"
+      [class.active]="activeTab === 'requests'"
+      (click)="switchTab('requests')">
+      <div class="tab-icon-wrap">
+        <ion-icon name="cube-outline"></ion-icon>
+        <span class="tab-active-dot" *ngIf="activeTab === 'requests'"></span>
+      </div>
+      <span class="tab-label">Demandes</span>
+    </button>
+
+    <div class="tab-divider"></div>
+
+    <button
+      id="tab-btn-returns"
+      class="tab-item"
+      [class.active]="activeTab === 'returns'"
+      (click)="switchTab('returns')">
+      <div class="tab-icon-wrap">
+        <ion-icon name="return-down-back-outline"></ion-icon>
+        <span class="tab-active-dot" *ngIf="activeTab === 'returns'"></span>
+      </div>
+      <span class="tab-label">Retours</span>
+    </button>
+  </div>
+</ion-footer>

@@ -1,0 +1,46 @@
+ion-footer.stock-detail-footer {
+  background: #F8FAFC;
+
+  .footer-content {
+    background: #FFFFFF;
+    border-top: 1px dashed #CBD5E1;
+    padding: 20px 24px 24px;
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+
+      .total-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #64748B;
+      }
+
+      .total-amount {
+        font-size: 22px;
+        font-weight: 800;
+        color: #1E40AF;
+      }
+    }
+
+    .cancel-btn {
+      --border-radius: 8px;
+      --border-width: 1px;
+      --border-style: solid;
+      --border-color: #DC2626;
+      --background: #FFFFFF;
+      --color: #DC2626;
+      margin: 0;
+      font-weight: 600;
+      font-size: 15px;
+      height: 48px;
+
+      ion-icon {
+        color: #DC2626;
+        font-size: 20px;
+      }
+    }
+  }
+}

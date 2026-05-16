@@ -1,0 +1,96 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="detail-header-toolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="ion-text-center">{{ pageTitle }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="stock-content">
+  <div class="detail-container" *ngIf="operation">
+
+    <div class="reference-card">
+      <div class="ref-header-row">
+        <div class="ref-label">RÉFÉRENCE</div>
+        <span class="status-badge" [ngClass]="operation.status | stockStatus:'class':(isRequest ? 'request' : 'return')">
+          {{ operation.status | stockStatus:'label':(isRequest ? 'request' : 'return') }}
+        </span>
+      </div>
+
+      <h2 class="ref-value">{{ operation.reference || ((isRequest ? 'REQ-' : 'RET-') + operation.id) }}</h2>
+
+      <div class="ref-dates-row">
+        <div class="date-block">
+          <div class="date-label">{{ isRequest ? 'Date de demande' : 'Date de retour' }}</div>
+          <div class="date-value">{{ (operation['requestDate'] || operation.createdAt) | date:'dd MMM yyyy' }}</div>
+        </div>
+        <div class="date-block" *ngIf="operation['validationDate']">
+          <div class="date-label">Date de validation</div>
+          <div class="date-value">{{ operation['validationDate'] | date:'dd MMM yyyy' }}</div>
+        </div>
+        <div class="date-block" *ngIf="isRequest && (operation['deliveryDate'] || operation.status === 'DELIVERED')">
+          <div class="date-label">Date de livraison</div>
+          <div class="date-value">{{ (operation['deliveryDate'] || operation['updatedAt']) | date:'dd MMM yyyy' }}</div>
+        </div>
+      </div>
+
+      <div class="collector-section" *ngIf="operation['collector'] || operation.commercialUsername">
+        <div class="collector-label">Nom du collecteur</div>
+        <div class="collector-info">
+          <div class="collector-avatar">{{ getInitials(operation['collector'] || operation.commercialUsername) }}</div>
+          <div class="collector-name">{{ operation['collector'] || operation.commercialUsername }}</div>
+        </div>
+      </div>
+
+      <div class="card-bottom-gradient"></div>
+    </div>
+
+    <div class="articles-header">
+      <h3>Articles ({{ items.length }})</h3>
+      <span class="verified-badge" *ngIf="isRequest">Stock Vérifié</span>
+    </div>
+
+    <div class="articles-card">
+      <div class="item-row" *ngFor="let item of items">
+        <div class="item-thumbnail" [style.backgroundColor]="getAvatarColor(item.itemName || item.article?.name)">
+          {{ getInitials(item.itemName || item.article?.name) }}
+        </div>
+        <div class="item-info">
+          <div class="item-name">{{ item.itemName || item.article?.name || 'Article inconnu' }}</div>
+          <div class="item-sku">SKU: {{ item.article?.id || 'N/A' }}</div>
+        </div>
+        <div class="item-meta">
+          <div class="qty-badge">x{{ item.quantity || 0 }}</div>
+          <div class="unit-price" *ngIf="item.unitPrice">{{ item.unitPrice | currency:'XOF':'symbol':'1.0-0' }} / u</div>
+          <div class="unit-price" *ngIf="!item.unitPrice">N/A</div>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="items.length === 0">
+        <ion-icon name="cube-outline" class="empty-icon"></ion-icon>
+        <p>Aucun article.</p>
+      </div>
+    </div>
+
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border stock-detail-footer" *ngIf="operation">
+  <div class="footer-content">
+    <div class="total-row" *ngIf="operationTotal != null">
+      <span class="total-label">Somme Totale</span>
+      <span class="total-amount">{{ operationTotal | number:'1.2-2' }} €</span>
+    </div>
+    <ion-button
+      *ngIf="isCancellable"
+      expand="block"
+      fill="outline"
+      class="cancel-btn"
+      (click)="cancelOperation()">
+      <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+      {{ cancelLabel }}
+    </ion-button>
+  </div>
+</ion-footer>

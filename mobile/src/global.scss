@@ -310,6 +310,16 @@
   }
 }
 
+/* Stock module modals — ensure content receives pointer events above backdrop */
+ion-modal.stock-modal {
+  --width: 100%;
+  --height: 100%;
+
+  &::part(content) {
+    pointer-events: auto;
+  }
+}
+
 .mobile-container {
   width: 100%;
   margin: 0 auto;

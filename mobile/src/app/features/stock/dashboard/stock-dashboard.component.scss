@@ -1,0 +1,304 @@
+/* ═══════════════════════════════════════════════════════════════════
+   STOCK DASHBOARD — Enterprise SaaS Mobile Design
+   Skill: elykia-stock-components-build / design-tokens.md
+   Layout: Header + Context Pills + Content + Bottom Tab Bar custom
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens ── */
+:host {
+  --color-primary:     #1E40AF;
+  --color-primary-light: #DBEAFE;
+  --color-secondary:   #64748B;
+  --color-background:  #F8FAFC;
+  --color-surface:     #FFFFFF;
+  --color-text-primary:#0F172A;
+  --color-text-muted:  #64748B;
+  --color-border:      #E2E8F0;
+  --radius-card:       16px;
+  --shadow-card:       0 4px 6px -1px rgba(79, 70, 229, 0.08);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   HEADER
+   ══════════════════════════════════════════════════════════════════ */
+
+ion-header.stock-header {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  &::after { display: none; } /* Remove Ionic default hairline */
+}
+
+ion-toolbar.stock-toolbar {
+  --background: #FFFFFF;
+  --border-color: transparent;
+  --min-height: 56px;
+  --padding-start: 4px;
+  --padding-end: 4px;
+}
+
+.stock-title {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+  letter-spacing: -0.3px;
+}
+
+.stock-back-btn  { --color: #1E40AF; }
+.stock-filter-btn { --color: #64748B; }
+
+/* ══════════════════════════════════════════════════════════════════
+   CONTEXT PILLS : Standard / Tontine
+   Style: fond blanc, pills gris clair / actif bleu
+   ══════════════════════════════════════════════════════════════════ */
+
+ion-toolbar.context-bar-toolbar {
+  --background: #FFFFFF;
+  --border-color: transparent;
+  --min-height: 52px;
+  --padding-start: 0;
+  --padding-end: 0;
+
+  &::after { display: none; }
+}
+
+.context-pills-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px 12px;
+  background: #FFFFFF;
+  width: 100%;
+  box-sizing: border-box;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.context-pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Hauteur min 44px (NFR5) */
+  min-height: 38px;
+  padding: 6px 20px;
+  border-radius: 999px;
+
+  /* Inactive state */
+  background: #F1F5F9;
+  color: #64748B;
+  border: 1px solid transparent;
+
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+  /* ── Active state ── */
+  &.active {
+    background: #1E40AF;
+    color: #FFFFFF;
+    border-color: #1E40AF;
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+  }
+
+  /* ── Press ripple ── */
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CONTENT & FILTERS
+   ══════════════════════════════════════════════════════════════════ */
+
+ion-content.stock-content {
+  --background: #F8FAFC;
+  --padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+.filter-section {
+  background: #FFFFFF;
+  padding: 12px 0 8px;
+  border-bottom: 1px solid #E2E8F0;
+  margin-bottom: 8px;
+}
+
+.search-container {
+  padding: 0 16px;
+  margin-bottom: 12px;
+}
+
+.custom-searchbar {
+  --background: #F1F5F9;
+  --border-radius: 12px;
+  --icon-color: #64748B;
+  --placeholder-color: #94A3B8;
+  --color: #0F172A;
+  --box-shadow: none;
+  padding: 0;
+  
+  /* Internal tuning for iOS mode searchbar to look premium */
+  .searchbar-input-container {
+    .searchbar-input {
+      font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+      font-size: 15px;
+      padding-left: 36px !important;
+    }
+  }
+}
+
+.status-pills-container {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  &::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+}
+
+.status-pills-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 8px;
+  width: max-content;
+}
+
+.status-pill {
+  background: #F1F5F9;
+  color: #64748B;
+  border: 1px solid #E2E8F0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &.active {
+    background: #1E40AF;
+    color: #FFFFFF;
+    border-color: #1E40AF;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.2);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   BOTTOM TAB BAR : Demandes / Retours (Premium — pas un ion-tab)
+   ══════════════════════════════════════════════════════════════════ */
+
+ion-footer.stock-tab-footer {
+  background: #FFFFFF;
+  box-shadow: 0 -1px 0 #E2E8F0, 0 -4px 16px rgba(0, 0, 0, 0.04);
+
+  &::before {
+    display: none;
+  }
+}
+
+.bottom-tab-bar {
+  display: flex;
+  align-items: stretch;
+  background: #FFFFFF;
+  height: 64px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.tab-divider {
+  width: 1px;
+  background: #E2E8F0;
+  margin: 12px 0;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  outline: none;
+
+  /* Tap target (NFR5) */
+  min-height: 44px;
+  padding: 8px 0;
+
+  transition: background 0.15s ease;
+
+  /* ── Icon wrapper ── */
+  .tab-icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 26px;
+
+    ion-icon {
+      font-size: 22px;
+      color: #94A3B8;
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+
+    /* ── Active indicator dot ── */
+    .tab-active-dot {
+      position: absolute;
+      top: 0;
+      right: 4px;
+      width: 6px;
+      height: 6px;
+      background: #1E40AF;
+      border-radius: 50%;
+    }
+  }
+
+  /* ── Label ── */
+  .tab-label {
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: #94A3B8;
+    letter-spacing: 0.3px;
+    transition: color 0.2s ease, font-weight 0.2s ease;
+    text-transform: uppercase;
+  }
+
+  /* ── Active tab state ── */
+  &.active {
+    .tab-icon-wrap ion-icon {
+      color: #1E40AF;
+      transform: translateY(-1px);
+    }
+
+    .tab-label {
+      color: #1E40AF;
+      font-weight: 700;
+    }
+  }
+
+  /* ── Press effect ── */
+  &:active {
+    background: #F1F5F9;
+    border-radius: 12px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   FAB (Skill: components.md)
+   ══════════════════════════════════════════════════════════════════ */
+
+.stock-fab {
+  --background: #1E40AF;
+  --background-activated: #1a36a0;
+  --color: #FFFFFF;
+  --box-shadow: 0 4px 16px rgba(30, 64, 175, 0.45);
+}

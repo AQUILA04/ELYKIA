@@ -92,9 +92,20 @@ scp /local/path/dump.sql.gz user@server:/tmp/dump.sql.gz
 2) Se connecter au serveur et lancer l'import :
 ```bash
 ssh user@server
-./deploy/import-db.sh prod /tmp/dump.sql.gz
+# Usage: ./deploy/import-db.sh <env> <dump-path-on-server> [target-container]
+# Examples:
+# - restore using compose detection (preferred):
+./deploy/import-db.sh test /tmp/dump.sql.gz
+# - force a specific container (useful when multiple stacks exist):
+./deploy/import-db.sh test /tmp/dump.sql.gz deploy-db-1
 ```
-*Note : Le script `import-db.sh` effectue automatiquement une sauvegarde de la base existante avant l'importation.*
+
+Le script `import-db.sh` :
+- tente d'abord d'identifier le container cible via `docker compose -f docker-compose.<env>.yml` (service `db`)
+- si aucune détection n'est possible, une logique heuristique essaie de choisir un container PostgreSQL approprié
+- avant d'exécuter la restauration, le script crée automatiquement une sauvegarde de la base actuelle (via `db_backup.sh`)
+- par défaut le script vous demandera une confirmation interactive avant de lancer la sauvegarde et la restauration ;
+  pour lancer en mode non interactif (p.ex. dans un job automatisé), utilisez `NONINTERACTIVE=1`.
 
 ## Backups automatiques de la base
 Un script `db_backup.sh` est fourni pour effectuer des sauvegardes de la base Postgres. Il est recommandé de planifier son exécution via `cron` sur le serveur hôte :

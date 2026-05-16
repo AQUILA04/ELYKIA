@@ -1,0 +1,187 @@
+/* ═══════════════════════════════════════════════════════════════════
+   STOCK REQUEST FORM — Story 2.2
+   Skill: elykia-stock-components-build / design-tokens.md + components.md §4
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens ── */
+:host {
+  --color-primary: #1E40AF;
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-text-primary: #0F172A;
+  --color-text-muted: #64748B;
+  --color-border: #E2E8F0;
+  --radius-card: 16px;
+  --radius-input: 8px;
+  --shadow-card: 0 4px 6px -1px rgba(79, 70, 229, 0.08);
+}
+
+/* ── Header ── */
+ion-header.form-header {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+ion-toolbar.form-toolbar {
+  --background: #F8FAFC;
+  --border-color: #E2E8F0;
+}
+
+.form-title {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.form-close-btn {
+  --color: #64748B;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ── Content ── */
+ion-content.form-content {
+  --background: #F8FAFC;
+}
+
+.form-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Section Card ── */
+.section-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+
+  .section-icon {
+    font-size: 20px;
+    color: #1E40AF;
+  }
+
+  .section-title {
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0;
+  }
+}
+
+/* ── Items List (Skill: components.md §4 — Répéteur) ── */
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #F8FAFC;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  padding: 8px;
+}
+
+.article-item {
+  flex: 2;
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --min-height: 44px;
+}
+
+.qty-item {
+  flex: 1;
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --min-height: 44px;
+}
+
+.remove-btn {
+  flex-shrink: 0;
+  --color: #DC2626;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  margin: 0;
+}
+
+/* ── Add Item Button ── */
+.add-item-btn {
+  --color: #1E40AF;
+  --border-color: #1E40AF;
+  --border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  font-weight: 600;
+  min-height: 44px;
+}
+
+/* ── Validation Hint ── */
+.validation-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: #EFF6FF;
+  border-radius: 8px;
+  border: 1px solid #BFDBFE;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  font-size: 13px;
+  color: #2563EB;
+
+  ion-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+}
+
+/* ── Footer ── */
+.form-footer-inline {
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
+}
+
+ion-toolbar.form-footer-toolbar {
+  --background: #FFFFFF;
+  --border-color: transparent;
+  padding: 8px 16px;
+}
+
+/* ── Submit Button (Skill: UX Constraints — primary #1E40AF, min 44px) ── */
+.submit-btn {
+  --background: #1E40AF;
+  --background-activated: #1e3a8a;
+  --background-hover: #1a36a0;
+  --border-radius: 8px;
+  --color: #FFFFFF;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  min-height: 52px;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+  transition: box-shadow 0.15s ease;
+
+  &[disabled] {
+    --background: #94A3B8;
+    box-shadow: none;
+  }
+}
