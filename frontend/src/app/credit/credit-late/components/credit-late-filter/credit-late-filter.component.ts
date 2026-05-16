@@ -28,7 +28,7 @@ export class CreditLateFilterComponent implements OnInit {
                         "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
     const currentMonthIndex = new Date().getMonth();
     
-    for (let i = 0; i < currentMonthIndex; i++) {
+    for (let i = 0; i <= currentMonthIndex; i++) {
         this.months.push({ index: i + 1, name: monthNames[i] });
     }
   }
