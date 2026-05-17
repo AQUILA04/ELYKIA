@@ -18,6 +18,8 @@
                         <option value="TODAY">Aujourd'hui</option>
                         <option value="WEEK">Cette Semaine</option>
                         <option value="MONTH">Ce Mois</option>
+                        <option disabled style="font-weight: bold; background: #e9ecef;">─ Mois précédents ─</option>
+                        <option *ngFor="let month of previousMonths" [value]="month.value">{{ month.label }}</option>
                     </select>
                 </div>
             </div>
