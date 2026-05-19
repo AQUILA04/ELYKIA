@@ -101,7 +101,10 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         creditTimeline = credit.dailyStakeOperation(creditTimeline);
         creditTimeline.setDailyAccountancy(dailyAccountancy);
         creditTimeline.setCollector(credit.getCollector());
-        if (StringUtils.hasText(creditTimeline.getReference())) {
+        // Générer une référence uniquement si elle n'est pas déjà renseignée.
+        // Si elle vient du mobile (ex: "REC-2026XXX-ABCDEF"), on la conserve pour
+        // permettre la réconciliation lors de la réinitialisation mobile.
+        if (!StringUtils.hasText(creditTimeline.getReference())) {
             LocalDate now = LocalDate.now();
             Random random = new Random();
             int nombreAleatoire = random.nextInt();
