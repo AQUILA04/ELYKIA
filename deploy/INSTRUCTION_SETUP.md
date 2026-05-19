@@ -77,5 +77,13 @@ cd /opt/elykia/deploy
 Dans Cloudflare, créez des enregistrements DNS de type **A** pointant vers l'IP de votre serveur :
 - `elykia` -> IP du serveur (Proxy activé - nuage orange)
 - `elykia-test` -> IP du serveur (Proxy activé - nuage orange)
+- `db` -> IP du serveur (Proxy activé - nuage orange)
 
 Assurez-vous que le mode SSL/TLS dans Cloudflare est défini sur **"Full"** (et non "Flexible" ou "Full (strict)"). Traefik utilisera le challenge `HTTP-01` pour générer automatiquement les certificats Let's Encrypt.
+
+## Étape 8 : Déployer la stack Tools (PgAdmin 4)
+Une fois les stacks `test` et `prod` déployées, démarrez les outils d'administration :
+```bash
+cd /opt/elykia/deploy
+docker compose -f docker-compose.tools.yml --project-name elykia-tools --env-file /opt/elykia/tools/.env up -d
+```

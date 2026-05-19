@@ -2,19 +2,21 @@ package com.optimize.elykia.core.controller.report;
 
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
+import com.optimize.elykia.core.service.report.DailyReportPdfService;
+import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.security.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.optimize.common.securities.models.User;
-import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.util.UserProfilConstant;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,6 +30,7 @@ public class DailyReportController {
 
     private final DailyCommercialReportRepository repository;
     private final UserService userService;
+    private final DailyReportPdfService dailyReportPdfService;
 
     @GetMapping
     @Operation(summary = "Get daily report for a specific commercial and date")
@@ -50,19 +53,36 @@ public class DailyReportController {
         User currentUser = userService.getCurrentUser();
 
         if (currentUser.is(UserProfilConstant.PROMOTER)) {
-            // Force collector to current user for promoters and return aggregated data
             return ResponseEntity.ok(repository.findAggregatedByDateBetweenAndCommercialUsername(
                     currentUser.getUsername(), startDate, endDate));
         } else {
-            // Admin/Manager logic
             if (collector != null && !collector.isEmpty()) {
-                // If collector is specified, return aggregated data for that collector
                 return ResponseEntity.ok(repository.findAggregatedByDateBetweenAndCommercialUsername(
                         collector, startDate, endDate));
             } else {
-                // Return aggregated data per commercial
                 return ResponseEntity.ok(repository.findAggregatedByDateBetween(startDate, endDate));
             }
         }
+    }
+
+    @GetMapping("/export/pdf")
+    @Operation(summary = "Export daily report as PDF for a specific commercial and date range")
+    public ResponseEntity<byte[]> exportPdf(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam("commercialUsername") String commercialUsername) {
+
+        User currentUser = userService.getCurrentUser();
+        if (currentUser.is(UserProfilConstant.PROMOTER)) {
+            commercialUsername = currentUser.getUsername();
+        }
+
+        byte[] pdfBytes = dailyReportPdfService.generatePdfExport(startDate, endDate, commercialUsername);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=rapport_journalier_" + commercialUsername + "_" + startDate + "_" + endDate + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
     }
 }

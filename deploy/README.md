@@ -30,6 +30,10 @@ graph TD
             FE_Prod -.-> BE_Prod
             BE_Prod -.-> DB_Prod
         end
+
+        subgraph Stack Tools
+            PgAdmin[PgAdmin 4]
+        end
     end
     
     Traefik -->|elykia-test.domain| FE_Test
@@ -37,20 +41,27 @@ graph TD
     
     Traefik -->|elykia.domain| FE_Prod
     Traefik -->|elykia.domain/api| BE_Prod
+
+    Traefik -->|db.domain| PgAdmin
+    PgAdmin -.-> DB_Test
+    PgAdmin -.-> DB_Prod
     
     classDef proxy fill:#f9f,stroke:#333,stroke-width:2px;
     classDef test fill:#eef,stroke:#333,stroke-width:1px;
     classDef prod fill:#fee,stroke:#333,stroke-width:1px;
+    classDef tools fill:#efe,stroke:#333,stroke-width:1px;
     
     class Traefik proxy;
     class FE_Test,BE_Test,DB_Test test;
     class FE_Prod,BE_Prod,DB_Prod prod;
+    class PgAdmin tools;
 ```
 
 ## Structure du dossier
 - `docker-compose.traefik.yml` - Compose pour le reverse proxy Traefik (à lancer une seule fois).
 - `docker-compose.test.yml` - Compose pour l'environnement de test.
 - `docker-compose.prod.yml` - Compose pour l'environnement de production.
+- `docker-compose.tools.yml` - Compose pour les outils (PgAdmin 4).
 - `setup-server.sh` - Script de configuration initiale du serveur (création des dossiers, réseau Docker, templates `.env`).
 - `deploy.sh` - Script pour déployer une paire d'images (frontend/backend) et enregistrer la release.
 - `rollback.sh` - Script pour revenir à une release précédente.
@@ -169,6 +180,40 @@ Les métriques sont exposées via `io.micrometer:micrometer-registry-prometheus`
 | `ALERT_EMAIL_TO` | Destinataire alertes email |
 | `SLACK_WEBHOOK_URL` | Webhook Slack pour notifications |
 | `ALERT_WEBHOOK_URL` | Webhook HTTP personnalisé |
+
+## Outils — PgAdmin 4
+
+Un stack d'outils (`docker-compose.tools.yml`) met à disposition **PgAdmin 4** pour administrer les bases PostgreSQL via une interface web.
+
+### Accès
+| Service | URL | Identifiants |
+|---|---|---|
+| **PgAdmin 4** | `https://db.amenouveve-yaveh.com` | Définis dans `/opt/elykia/tools/.env` (`PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD`) |
+
+### Démarrage
+```bash
+# Démarrer la stack tools
+docker compose -f docker-compose.tools.yml --project-name elykia-tools --env-file /opt/elykia/tools/.env up -d
+
+# Arrêter
+docker compose -f docker-compose.tools.yml --project-name elykia-tools --env-file /opt/elykia/tools/.env down
+```
+
+### Connexion aux bases de données
+Une fois connecté à PgAdmin via le navigateur, ajoutez les serveurs avec ces paramètres :
+
+| Environnement | Hôte | Port | Base | Utilisateur |
+|---|---|---|---|---|
+| **Test** | `elykia-test-db-1` | `5432` | `elykia_test_db` | `elykia_test` |
+| **Prod** | `elykia-prod-db-1` | `5432` | `elykia_prod_db` | `elykia_prod` |
+
+> Les mots de passe sont ceux définis dans `/opt/elykia/test/.env` et `/opt/elykia/prod/.env`.
+
+### Configuration DNS requise
+Ajoutez un enregistrement **A** dans Cloudflare :
+- `db` → IP du serveur (Proxy activé - nuage orange)
+
+---
 
 ## CI / GitHub Actions — secrets nécessaires
 Pour l'intégration continue, configurez ces secrets dans GitHub :

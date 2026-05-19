@@ -23,4 +23,16 @@ export class DailyReportService {
 
         return this.http.get<DailyCommercialReport[]>(`${this.apiUrl}/search`, { params });
     }
+
+    exportPdf(startDate: string, endDate: string, commercialUsername: string): Observable<Blob> {
+        let params = new HttpParams()
+            .set('startDate', startDate)
+            .set('endDate', endDate)
+            .set('commercialUsername', commercialUsername);
+
+        return this.http.get(`${this.apiUrl}/export/pdf`, {
+            params,
+            responseType: 'blob'
+        });
+    }
 }

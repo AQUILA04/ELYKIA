@@ -1,0 +1,44 @@
+# Tools stack — PgAdmin 4
+# Domain: db.amenouveve-yaveh.com
+# Start:  docker compose -f docker-compose.tools.yml --project-name elykia-tools up -d
+# Stop:   docker compose -f docker-compose.tools.yml --project-name elykia-tools down
+#
+# Requires: traefik-public network   (created by docker-compose.traefik.yml)
+# Requires: elykia-prod-internal network  (created by docker-compose.prod.yml)
+# Requires: elykia-test-internal network  (created by docker-compose.test.yml)
+
+services:
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: elykia-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@elykia.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-change_me_pgadmin_password}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - elykia-prod-internal
+      - elykia-test-internal
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.pgadmin.rule=Host(`db.amenouveve-yaveh.com`)"
+      - "traefik.http.routers.pgadmin.entrypoints=websecure"
+      - "traefik.http.routers.pgadmin.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
+
+volumes:
+  pgadmin_data:
+
+networks:
+  elykia-prod-internal:
+    name: elykia-prod-internal
+    external: true
+  elykia-test-internal:
+    name: elykia-test-internal
+    external: true
+  traefik-public:
+    name: traefik-public
+    external: true

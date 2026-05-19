@@ -22,6 +22,7 @@ export interface DailyReportData {
       clientName: string;
       details: string;
       amount: number;
+      advance?: number;
       isSync: boolean;
     }>;
   };
@@ -141,6 +142,7 @@ export class RapportJournalierService {
               clientName: clientMap.get(d.clientId) || 'Client inconnu',
               details: `Distribution #${d.reference}`,
               amount: d.totalAmount,
+              advance: d.advance,
               isSync: d.isSync || false
             }));
             const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
@@ -513,13 +515,14 @@ export class RapportJournalierService {
     // Générer les tableaux pour chaque entité
     const distributionsTable = this.generateTableHTML(
       'Distributions',
-      ['ID', 'Heure', 'Client', 'Détails', 'Montant', 'Statut'],
+      ['ID', 'Heure', 'Client', 'Détails', 'Montant', 'Avance', 'Statut'],
       reportData.distributions.items.map((item: any, index: number) => [
         (index + 1).toString(),
         item.time,
         item.clientName,
         item.details,
         `${formatPrice(item.amount)} FCFA`,
+        item.advance ? `${formatPrice(item.advance)} FCFA` : '-',
         item.isSync ? 'Sync' : 'Local'
       ])
     );

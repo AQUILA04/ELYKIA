@@ -43,6 +43,7 @@ export class DailyReportComponent implements OnInit {
     isManager = false;
     isSecretary = false;
     showMargins = false; // Toggle for margin visibility
+    isDownloading = false;
 
     // Operations Log
     operations: DailyOperationLog[] = [];
@@ -195,6 +196,8 @@ export class DailyReportComponent implements OnInit {
             creditSalesMargin: this.reports.reduce((sum, r) => sum + (r.creditSalesMargin || 0), 0),
             stockRequestMargin: this.reports.reduce((sum, r) => sum + (r.stockRequestMargin || 0), 0),
             totalAdvancesAmount: this.reports.reduce((sum, r) => sum + (r.totalAdvancesAmount || 0), 0),
+            totalReliquatGeneratedAmount: this.reports.reduce((sum, r) => sum + (r.totalReliquatGeneratedAmount || 0), 0),
+            totalReliquatUsedAmount: this.reports.reduce((sum, r) => sum + (r.totalReliquatUsedAmount || 0), 0),
         };
     }
 
@@ -376,6 +379,33 @@ export class DailyReportComponent implements OnInit {
                 window.URL.revokeObjectURL(url);
             },
             error: (err) => console.error('Error downloading PDF', err)
+        });
+    }
+
+    onDownloadReportPdf(report: DailyCommercialReport) {
+        if (this.isDownloading) return;
+        this.isDownloading = true;
+        const start = this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd') || '';
+        const end = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '';
+        const commercialUsername = report.commercialUsername;
+
+        this.dailyReportService.exportPdf(start, end, commercialUsername).subscribe({
+            next: (data: Blob) => {
+                const blob = new Blob([data], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `rapport_journalier_${commercialUsername}_${start}_${end}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                this.isDownloading = false;
+            },
+            error: (err) => {
+                console.error('Error downloading PDF', err);
+                this.isDownloading = false;
+            }
         });
     }
 }

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Rapport Journalier</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            color: #333;
+            margin: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 15px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #003366;
+            font-size: 18px;
+        }
+        .header h2 {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .header .info {
+            font-size: 11px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .header .info p {
+            margin: 2px 0;
+        }
+        .kpi-section {
+            margin-bottom: 20px;
+        }
+        .kpi-section h3 {
+            font-size: 13px;
+            color: #003366;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .kpi-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .kpi-item {
+            flex: 1 1 22%;
+            min-width: 120px;
+            background: #f5f7fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 6px 10px;
+        }
+        .kpi-label {
+            display: block;
+            font-size: 9px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .kpi-value {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #003366;
+        }
+        .total-section {
+            margin-top: 15px;
+            text-align: right;
+            border-top: 2px solid #003366;
+            padding-top: 10px;
+        }
+        .total-section .total-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #003366;
+        }
+        .total-section .total-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #b91c1c;
+        }
+        .table-section {
+            margin-top: 20px;
+            page-break-inside: avoid;
+        }
+        .table-section h3 {
+            font-size: 12px;
+            color: #003366;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 5px 6px;
+            text-align: left;
+        }
+        th {
+            background-color: #003366;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 8px;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-center {
+            text-align: center;
+        }
+        /* Allow long client names to wrap instead of being truncated with ellipses */
+        .wrap {
+            white-space: normal; /* allow wrapping */
+            word-break: break-word; /* break long words */
+            overflow-wrap: anywhere; /* better break opportunities */
+        }
+        .client-name {
+            max-width: none; /* don't constrain width so content can wrap across lines */
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 8px;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 10px;
+            font-style: italic;
+            color: #999;
+        }
+        .status-sync {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 th:text="${report.companyName}">AMENOUVEVE - YAVEH</h1>
+        <h2 th:text="${report.title}">Rapport Journalier</h2>
+        <div class="info">
+            <p><strong>Commercial :</strong> <span th:text="${report.commercialUsername}"></span></p>
+            <p><strong>Période :</strong> <span th:text="${report.startDate}"></span> au <span th:text="${report.endDate}"></span></p>
+            <p><strong>Généré le :</strong> <span th:text="${report.generationDate}"></span></p>
+        </div>
+    </div>
+
+    <!-- KPI Summary -->
+    <div class="kpi-section">
+        <h3>Résumé du Jour</h3>
+        <div class="kpi-grid">
+            <div class="kpi-item">
+                <span class="kpi-label">Distributions</span>
+                <span class="kpi-value" th:text="${report.distributionCount} + ' (' + ${#numbers.formatDecimal(report.distributionAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
+            </div>
+            <div class="kpi-item">
+                <span class="kpi-label">Recouvrements</span>
+                <span class="kpi-value" th:text="${report.recoveryCount} + ' (' + ${#numbers.formatDecimal(report.recoveryAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
+            </div>
+            <div class="kpi-item">
+                <span class="kpi-label">Nouveaux Clients</span>
+                <span class="kpi-value" th:text="${report.newClientCount}"></span>
+            </div>
+            <div class="kpi-item">
+                <span class="kpi-label">Solde Nx Comptes</span>
+                <span class="kpi-value" th:text="${#numbers.formatDecimal(report.newClientBalance, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></span>
+            </div>
+            <div class="kpi-item">
+                <span class="kpi-label">Avances</span>
+                <span class="kpi-value" th:text="${#numbers.formatDecimal(report.totalAdvancesAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></span>
+            </div>
+            <div class="kpi-item">
+                <span class="kpi-label">Membres Tontine</span>
+                <span class="kpi-value" th:text="${report.tontineMemberCount}"></span>
+            </div>
+            <div class="kpi-item">
+                <span class="kpi-label">Collectes Tontine</span>
+                <span class="kpi-value" th:text="${report.tontineCollectionCount} + ' (' + ${#numbers.formatDecimal(report.tontineCollectionAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
+            </div>
+            <div class="kpi-item">
+                <span class="kpi-label">Livraisons Tontine</span>
+                <span class="kpi-value" th:text="${report.tontineDeliveryCount} + ' (' + ${#numbers.formatDecimal(report.tontineDeliveryAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
+            </div>
+        </div>
+        <div class="total-section">
+            <span class="total-label">TOTAL À PAYER : </span>
+            <span class="total-value" th:text="${#numbers.formatDecimal(report.totalToPay, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></span>
+        </div>
+    </div>
+
+    <!-- Distributions Table -->
+    <div class="table-section" th:if="${!#lists.isEmpty(report.distributions)}">
+        <h3>Distributions</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Heure</th>
+                    <th>Client</th>
+                    <th>Détails</th>
+                    <th class="text-right">Montant</th>
+                    <th class="text-right">Avance</th>
+                    <th class="text-center">Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${report.distributions}">
+                    <td th:text="${item.index}"></td>
+                    <td th:text="${item.time}"></td>
+                    <td class="wrap client-name" th:text="${item.clientName}"></td>
+                    <td th:text="${item.details}"></td>
+                    <td class="text-right" th:text="${item.amount}"></td>
+                    <td class="text-right" th:text="${item.extra} ?: '-'"></td>
+                    <td class="text-center status-sync" th:text="${item.status}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Recoveries Table -->
+    <div class="table-section" th:if="${!#lists.isEmpty(report.recoveries)}">
+        <h3>Recouvrements</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Heure</th>
+                    <th>Client</th>
+                    <th>Détails</th>
+                    <th class="text-right">Montant</th>
+                    <th class="text-center">Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${report.recoveries}">
+                    <td th:text="${item.index}"></td>
+                    <td th:text="${item.time}"></td>
+                    <td class="wrap client-name" th:text="${item.clientName}"></td>
+                    <td th:text="${item.details}"></td>
+                    <td class="text-right" th:text="${item.amount}"></td>
+                    <td class="text-center status-sync" th:text="${item.status}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- New Clients Table -->
+    <div class="table-section" th:if="${!#lists.isEmpty(report.newClients)}">
+        <h3>Nouveaux Clients</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Heure</th>
+                    <th>Nom</th>
+                    <th>N° Compte</th>
+                    <th class="text-right">Solde</th>
+                    <th class="text-center">Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${report.newClients}">
+                    <td th:text="${item.index}"></td>
+                    <td th:text="${item.time}"></td>
+                    <td class="wrap client-name" th:text="${item.clientName}"></td>
+                    <td th:text="${item.details}"></td>
+                    <td class="text-right" th:text="${item.amount}"></td>
+                    <td class="text-center status-sync" th:text="${item.status}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tontine Members Table -->
+    <div class="table-section" th:if="${!#lists.isEmpty(report.tontineMembers)}">
+        <h3>Membres Tontine</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Heure</th>
+                    <th>Nom</th>
+                    <th>Détails</th>
+                    <th class="text-right">Contribution</th>
+                    <th class="text-center">Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${report.tontineMembers}">
+                    <td th:text="${item.index}"></td>
+                    <td th:text="${item.time}"></td>
+                    <td class="wrap client-name" th:text="${item.clientName}"></td>
+                    <td th:text="${item.details}"></td>
+                    <td class="text-right" th:text="${item.amount}"></td>
+                    <td class="text-center status-sync" th:text="${item.status}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tontine Collections Table -->
+    <div class="table-section" th:if="${!#lists.isEmpty(report.tontineCollections)}">
+        <h3>Collectes Tontine</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Heure</th>
+                    <th>Membre</th>
+                    <th>Détails</th>
+                    <th class="text-right">Montant</th>
+                    <th class="text-center">Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${report.tontineCollections}">
+                    <td th:text="${item.index}"></td>
+                    <td th:text="${item.time}"></td>
+                    <td class="wrap client-name" th:text="${item.clientName}"></td>
+                    <td th:text="${item.details}"></td>
+                    <td class="text-right" th:text="${item.amount}"></td>
+                    <td class="text-center status-sync" th:text="${item.status}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tontine Deliveries Table -->
+    <div class="table-section" th:if="${!#lists.isEmpty(report.tontineDeliveries)}">
+        <h3>Livraisons Tontine</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Heure</th>
+                    <th>Membre</th>
+                    <th>Détails</th>
+                    <th class="text-right">Montant</th>
+                    <th class="text-center">Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${report.tontineDeliveries}">
+                    <td th:text="${item.index}"></td>
+                    <td th:text="${item.time}"></td>
+                    <td class="wrap client-name" th:text="${item.clientName}"></td>
+                    <td th:text="${item.details}"></td>
+                    <td class="text-right" th:text="${item.amount}"></td>
+                    <td class="text-center status-sync" th:text="${item.status}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        <p>Document généré le <span th:text="${report.generationDate}"></span></p>
+        <p>&copy; ELYKIA - Tous droits réservés</p>
+    </div>
+</body>
+</html>

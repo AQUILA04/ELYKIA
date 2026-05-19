@@ -43,7 +43,8 @@
         </button>
 
         <!-- Margin Toggle Button -->
-        <button mat-icon-button (click)="toggleMargins()" matTooltip="Afficher/Masquer les marges" *ngIf="!isPromoter && !isRecoveryManager">
+        <button mat-icon-button (click)="toggleMargins()" matTooltip="Afficher/Masquer les marges"
+            *ngIf="!isPromoter && !isRecoveryManager">
             <mat-icon>{{ showMargins ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
     </div>
@@ -80,11 +81,11 @@
                                             aggregatedReportData.stockRequestMargin | currency:'XOF':'symbol':'1.0-0'
                                             }}</span>
                                     </div>
-                                  <div class="kpi-card">
-                                    <span class="kpi-label">Tontine Sortie Stock</span>
-                                    <span class="kpi-value">{{ aggregatedReportData.totalTontineStockRequestAmount |
-                                      currency:'XOF':'symbol':'1.0-0' }}</span>
-                                  </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Tontine Sortie Stock</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.totalTontineStockRequestAmount |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">Ventes à Crédit</span>
                                         <span class="kpi-value">{{ aggregatedReportData.creditSalesCount }} ({{
@@ -94,11 +95,11 @@
                                             aggregatedReportData.creditSalesMargin | currency:'XOF':'symbol':'1.0-0'
                                             }}</span>
                                     </div>
-                                  <div class="kpi-card">
-                                    <span class="kpi-label">Total Avances</span>
-                                    <span class="kpi-value">{{ aggregatedReportData.totalAdvancesAmount |
-                                      currency:'XOF':'symbol':'1.0-0' }}</span>
-                                  </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Total Avances</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.totalAdvancesAmount |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">Nouveaux Clients</span>
                                         <span class="kpi-value">{{ aggregatedReportData.newClientsCount }}</span>
@@ -137,6 +138,16 @@
                                             currency:'XOF':'symbol':'1.0-0' }})</span>
                                     </div>
                                     <div class="kpi-card">
+                                        <span class="kpi-label">Reliquat Généré</span>
+                                        <span class="kpi-value text-orange-600">{{ (aggregatedReportData.totalReliquatGeneratedAmount || 0) |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Reliquat Utilisé</span>
+                                        <span class="kpi-value text-blue-600">{{ (aggregatedReportData.totalReliquatUsedAmount || 0) |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
                                         <span class="kpi-label">A Verser</span>
                                         <span class="kpi-value">{{ (aggregatedReportData.totalAmountToDeposit || 0) |
                                             currency:'XOF':'symbol':'1.0-0' }}</span>
@@ -169,6 +180,19 @@
                                 <mat-expansion-panel-header>
                                     <mat-panel-title>
                                         <strong>{{ report.commercialUsername | uppercase }}</strong>
+                                        <button class="btn-download btn-download--sm ml-auto"
+                                            (click)="$event.stopPropagation(); onDownloadReportPdf(report)"
+                                            [disabled]="isDownloading" [class.loading]="isDownloading">
+                                            <svg *ngIf="!isDownloading" xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="7 10 12 15 17 10"></polyline>
+                                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                                            </svg>
+                                            <div class="spinner-small" *ngIf="isDownloading"></div>
+                                            Télécharger
+                                        </button>
                                     </mat-panel-title>
                                     <mat-panel-description>
                                         Total Ventes: {{ report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }} |
@@ -225,6 +249,16 @@
                                         <span class="kpi-label">Tontine Livraisons</span>
                                         <span class="kpi-value">{{ report.tontineDeliveriesCount }} ({{
                                             report.tontineDeliveriesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Reliquat Généré</span>
+                                        <span class="kpi-value text-orange-600">{{ (report.totalReliquatGeneratedAmount || 0) |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Reliquat Utilisé</span>
+                                        <span class="kpi-value text-blue-600">{{ (report.totalReliquatUsedAmount || 0) |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
                                     </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">A Verser</span>
@@ -333,7 +367,8 @@
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Commercial</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Reçu par</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Montant</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-center" *ngIf="isManager">Actions</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-center" *ngIf="isManager">
+                                    Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -349,8 +384,7 @@
                                 </td>
                                 <td class="py-2 px-4 text-sm text-center" *ngIf="isManager">
                                     <button mat-icon-button color="warn" matTooltip="Annuler le versement"
-                                            *ngIf="canCancelDeposit(dep)"
-                                            (click)="confirmCancelDeposit(dep)">
+                                        *ngIf="canCancelDeposit(dep)" (click)="confirmCancelDeposit(dep)">
                                         <mat-icon>cancel</mat-icon>
                                     </button>
                                 </td>
