@@ -201,10 +201,10 @@ jobs:
           npx cap sync android
           mkdir -p android/app/src/main/res/xml
           # Re-apply project-specific android config files that may be overwritten by sync
-          cp .github/workflows/android-config/AndroidManifest.xml android/app/src/main/AndroidManifest.xml || true
-          cp .github/workflows/android-config/config.xml android/app/src/main/res/xml/config.xml || true
-          cp .github/workflows/android-config/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml || true
-          cp .github/workflows/android-config/file_paths.xml android/app/src/main/res/xml/file_paths.xml || true
+          cp ../.github/workflows/android-config-prod/AndroidManifest.xml android/app/src/main/AndroidManifest.xml || true
+          cp ../.github/workflows/android-config-prod/config.xml android/app/src/main/res/xml/config.xml || true
+          cp ../.github/workflows/android-config-prod/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml || true
+          cp ../.github/workflows/android-config-prod/file_paths.xml android/app/src/main/res/xml/file_paths.xml || true
           grep -c "uses-permission" android/app/src/main/AndroidManifest.xml || echo "No permissions found!"
           grep -A 5 "usesCleartextTraffic" android/app/src/main/AndroidManifest.xml || echo "No cleartext traffic config found!"
 
@@ -371,10 +371,10 @@ jobs:
           python -m json.tool android/app/google-services.json || true
           npx cap sync android
           mkdir -p android/app/src/main/res/xml
-          cp .github/workflows/android-config/AndroidManifest.xml android/app/src/main/AndroidManifest.xml || true
-          cp .github/workflows/android-config/config.xml android/app/src/main/res/xml/config.xml || true
-          cp .github/workflows/android-config/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml || true
-          cp .github/workflows/android-config/file_paths.xml android/app/src/main/res/xml/file_paths.xml || true
+          cp ../.github/workflows/android-config-prod/AndroidManifest.xml android/app/src/main/AndroidManifest.xml || true
+          cp ../.github/workflows/android-config-prod/config.xml android/app/src/main/res/xml/config.xml || true
+          cp ../.github/workflows/android-config-prod/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml || true
+          cp ../.github/workflows/android-config-prod/file_paths.xml android/app/src/main/res/xml/file_paths.xml || true
           grep -c "uses-permission" android/app/src/main/AndroidManifest.xml || echo "No permissions found!"
 
       - name: Prepare Android keystore for RELEASE build (PROD)

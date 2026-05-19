@@ -46,6 +46,7 @@ security:
             phone: 90000001
             gender: MALE
             email: admin@email.com
+    allow-origin: *
 server:
   ssl:
     enabled: false

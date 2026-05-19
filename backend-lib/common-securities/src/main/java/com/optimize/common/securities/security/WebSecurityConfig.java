@@ -2,6 +2,7 @@ package com.optimize.common.securities.security;
 
 import org.springframework.beans.factory.ObjectProvider; // Import ObjectProvider
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -33,6 +34,9 @@ public class WebSecurityConfig {
 
     @Autowired
     UserDetailsServiceImpl userDetailsService;
+
+    @Value(value = "${security.config.allow-origin:http://localhost:4200}")
+    private String allowedOrigin = "http://localhost:4200"; // Remplacez par l'URL de votre frontend
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
@@ -73,8 +77,10 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+
+        List<String> allowedOrigins = Arrays.asList(allowedOrigin.split(","));
         // Autoriser l'origine de votre application frontend
-        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedOrigins(allowedOrigins.stream().map(String::trim).toList());
         // Autoriser les méthodes HTTP courantes
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         // Autoriser les en-têtes spécifiques
