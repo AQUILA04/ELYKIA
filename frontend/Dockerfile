@@ -1,5 +1,5 @@
 # Stage 1: Build the Angular application
-FROM node:14 AS build
+FROM node:20.19.3 AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
