@@ -1,0 +1,69 @@
+# Monitoring stack — Prometheus + Grafana + Node Exporter
+# Start:  docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d
+# Stop:   docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring down
+#
+# Requires: traefik-public network (created by docker-compose.traefik.yml)
+# Requires: elykia-prod-internal network (created by docker-compose.prod.yml)
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: elykia-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    networks:
+      - elykia-prod-internal
+      - traefik-public
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: elykia-grafana
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/alerting:/etc/grafana/provisioning/alerting
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_UNIFIED_ALERTING_ENABLED=true
+      - GF_ALERTING_ENABLED=true
+    networks:
+      - traefik-public
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.0
+    container_name: elykia-node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    networks:
+      - elykia-prod-internal
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  elykia-prod-internal:
+    name: elykia-prod-internal
+    external: true
+  traefik-public:
+    name: traefik-public
+    external: true

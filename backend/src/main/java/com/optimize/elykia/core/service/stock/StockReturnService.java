@@ -17,6 +17,7 @@ import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +42,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     private final StockMovementService stockMovementService;
     private CommercialStockMovementService commercialStockMovementService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private BusinessMetricsPublisher metricsPublisher;
 
     public StockReturnService(StockReturnRepository repository,
             ArticlesService articlesService,
@@ -61,6 +63,11 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     @org.springframework.beans.factory.annotation.Autowired
     public void setCommercialStockMovementService(CommercialStockMovementService commercialStockMovementService) {
         this.commercialStockMovementService = commercialStockMovementService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
+        this.metricsPublisher = metricsPublisher;
     }
 
     public StockReturn createReturn(StockReturn stockReturn) {
@@ -88,6 +95,9 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
             }
         }
         repository.save(stockReturn);
+        if (metricsPublisher != null) {
+            metricsPublisher.stockReturnCreated(stockReturn.getCollector());
+        }
         if (currentUser.is(UserProfilConstant.MAGASINIER)) {
             validateReturn(stockReturn.getId());
         }
@@ -126,6 +136,9 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
 
         stockReturn.setStatus(StockReturnStatus.RECEIVED);
         StockReturn saved = repository.save(stockReturn);
+        if (metricsPublisher != null) {
+            metricsPublisher.stockReturnProcessed(stockReturn.getCollector());
+        }
 
         double totalReturnAmount = stockReturn.getItems().stream()
                 .mapToDouble(item -> item.getQuantity() * item.getArticle().getSellingPrice())
@@ -200,6 +213,9 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                 CommercialMonthlyStockItem item = existingItem.get();
                 // Vérifier que le commercial a assez de stock à retourner
                 if (item.getQuantityRemaining() < returnItem.getQuantity()) {
+                    if (metricsPublisher != null) {
+                        metricsPublisher.stockReturnExceedsStock(stockReturn.getCollector());
+                    }
                     throw new CustomValidationException(
                             "Quantité retournée supérieure au stock restant pour l'article : "
                                     + item.getArticle().getCommercialName());

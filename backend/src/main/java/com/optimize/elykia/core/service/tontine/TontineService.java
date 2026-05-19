@@ -22,6 +22,7 @@ import com.optimize.elykia.core.repository.TontineMemberAmountHistoryRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -49,6 +50,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     private final UserService userService;
     private final ParameterService parameterService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private BusinessMetricsPublisher metricsPublisher;
 
     public TontineService(TontineMemberRepository repository,
                           TontineSessionRepository tontineSessionRepository,
@@ -69,6 +71,11 @@ public class TontineService extends GenericService<TontineMember, Long> {
     @Autowired
     public void setTontineMemberAmountHistoryRepository(TontineMemberAmountHistoryRepository tontineMemberAmountHistoryRepository) {
         this.tontineMemberAmountHistoryRepository = tontineMemberAmountHistoryRepository;
+    }
+
+    @Autowired(required = false)
+    public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
+        this.metricsPublisher = metricsPublisher;
     }
 
     public TontineSession getActiveSession() {
@@ -156,6 +163,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
                     savedMember.getClient().getFullName()));
         }
         clientService.updateTontineStatus(client.getId(), Boolean.TRUE);
+
+        if (metricsPublisher != null) {
+            metricsPublisher.tontineMemberRegistered(client.getCollector());
+        }
 
         return TontineMemberRespDto.fromTontineMember(savedMember);
     }
@@ -355,6 +366,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
         updateSessionRevenue(session);
 
         TontineCollection savedCollection = tontineCollectionRepository.save(collection);
+
+        if (metricsPublisher != null) {
+            metricsPublisher.tontineCollectionRecorded(commercialUsername, dto.getAmount());
+        }
 
         // Publish Event
         if (eventPublisher != null) {

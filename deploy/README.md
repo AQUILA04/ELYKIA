@@ -114,6 +114,62 @@ Un script `db_backup.sh` est fourni pour effectuer des sauvegardes de la base Po
 0 8,19 * * 1-6 cd /opt/elykia/deploy && /opt/elykia/deploy/db_backup.sh prod >> /var/log/elykia_db_backup.log 2>&1
 ```
 
+## Monitoring et Alerting
+
+Un stack de monitoring complet (Prometheus + Grafana + Node Exporter) est disponible dans `monitoring/`.
+
+### Composition
+| Service | Description | Accès |
+|---|---|---|
+| **Prometheus** | Collecte des métriques Spring Boot via `/actuator/prometheus` + métriques système | `prometheus.amenouveve-yaveh.com` (auth basique) |
+| **Grafana** | Dashboards métier + alerting Grafana-managed | `grafana.amenouveve-yaveh.com` |
+| **Node Exporter** | Métriques système (CPU, RAM, disque) | Réseau interne uniquement |
+
+### Démarrage
+```bash
+# Démarrer le stack monitoring
+docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d
+
+# Arrêter
+docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring down
+```
+
+### Alertes configurées (Grafana-managed)
+Les règles d'alerting sont provisionnées automatiquement dans `monitoring/grafana/alerting/alertrules.yml`.
+
+**Critiques (P1) :**
+- Échec création de crédit (`elykia_credit_creation_failed_total`)
+- Stock insuffisant pour démarrer/distribuer un crédit
+- Livraison de stock impossible (aucun article disponible)
+- Conflit de prix bloquant une demande de stock
+- Retour de stock excédentaire
+
+**Warning (P2) :**
+- Changements de commercial fréquents (>5/h)
+- Erreurs d'agrégation BI
+- Livraisons partielles de stock
+- Stock insuffisant pour rattrapage
+- Livraison tontine > contribution disponible
+
+**Info (P3) :**
+- Articles en rupture / stock faible
+- Inventaire bloqué (écarts non réconciliés)
+- Demandes de stock auto-annulées
+
+### Backend : métriques custom
+Les métriques sont exposées via `io.micrometer:micrometer-registry-prometheus` :
+- Package : `com.optimize.elykia.core.monitoring.BusinessMetricsPublisher`
+- Endpoint : `GET /actuator/prometheus` (interne, réseau Docker `elykia-prod-internal`)
+
+### Variables d'environnement requises
+| Variable | Description |
+|---|---|
+| `GRAFANA_ADMIN_USER` | Admin Grafana (défaut: `admin`) |
+| `GRAFANA_ADMIN_PASSWORD` | Mot de passe admin Grafana (défaut: `admin`) |
+| `ALERT_EMAIL_TO` | Destinataire alertes email |
+| `SLACK_WEBHOOK_URL` | Webhook Slack pour notifications |
+| `ALERT_WEBHOOK_URL` | Webhook HTTP personnalisé |
+
 ## CI / GitHub Actions — secrets nécessaires
 Pour l'intégration continue, configurez ces secrets dans GitHub :
 

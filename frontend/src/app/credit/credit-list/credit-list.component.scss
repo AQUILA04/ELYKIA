@@ -531,3 +531,41 @@ button[matTooltip="Changer la mise"] {
     transform: scale(1.1);
   }
 }
+
+// Bouton "Changer l'agent" dans la liste
+.button-group .btn-change-collector {
+  background-color: #003366;
+  color: white;
+  border: none;
+
+  &:hover {
+    background-color: #002244;
+  }
+}
+
+// Bouton Annuler du modal (gris)
+.modal-footer .btn-cancel {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+
+  &:hover {
+    background-color: #5a6268;
+  }
+}
+
+// Bouton Valider du modal (bleu comme le refresh)
+.modal-footer .btn-validate {
+  background-color: #003366;
+  color: white;
+  border: none;
+
+  &:hover {
+    background-color: #002244;
+  }
+
+  &[disabled] {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}

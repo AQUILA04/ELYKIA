@@ -17,6 +17,7 @@ import com.optimize.elykia.core.mapper.CreditMapper;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
 import com.optimize.elykia.core.service.bi.BiAggregationService;
+import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     private CreditPaymentEventService creditPaymentEventService;
     private CreditEnrichmentService creditEnrichmentService;
     private BiAggregationService biAggregationService;  // Added for real-time aggregation
+    private BusinessMetricsPublisher metricsPublisher;
 
     protected CreditTimelineService(CreditTimelineRepository repository,
             CreditMapper creditMapper,
@@ -73,6 +75,11 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setBiAggregationService(BiAggregationService biAggregationService) {
         this.biAggregationService = biAggregationService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
+        this.metricsPublisher = metricsPublisher;
     }
 
     @Transactional
@@ -117,6 +124,13 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         if (creditEnrichmentService != null) {
             creditEnrichmentService.enrichCredit(credit);
             creditService.update(credit);
+        }
+
+        if (metricsPublisher != null) {
+            metricsPublisher.collectionRecorded(credit.getCollector(), creditTimeline.getAmount());
+            if (CreditStatus.SETTLED.equals(credit.getStatus())) {
+                metricsPublisher.creditSettled(credit.getCollector());
+            }
         }
 
         // Publish CreditCollectionEvent
@@ -185,6 +199,9 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         Optional<Credit> creditOptional = creditService.getRepository().findByIdAndStatus(creditId, CreditStatus.INPROGRESS);
 
         if (!creditOptional.isPresent()) {
+            if (metricsPublisher != null) {
+                metricsPublisher.collectionFailed("unknown", "CREDIT_NOT_FOUND");
+            }
             if (throwOnNotFound) {
                 throw new CustomValidationException("Crédit introuvable ou statut incorrect pour l'ID: " + creditId);
             }

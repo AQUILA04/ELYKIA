@@ -19,7 +19,7 @@
     </button>
 
     <div class="button-group d-flex gap-2">
-      <button *ngIf="selectedCredits.size > 0" class="btn btn-warning btn-sm" (click)="openBulkChangeCollectorModal()">
+      <button *ngIf="selectedCredits.size > 0 && !isRecoveryManager && !isPromoter" class="btn btn-change-collector btn-sm" (click)="openBulkChangeCollectorModal()">
         <mat-icon>people</mat-icon>
         <span>Changer l'agent ({{ selectedCredits.size }})</span>
       </button>
@@ -53,7 +53,7 @@
     <table class="article-table mobile-responsive">
       <thead>
       <tr>
-        <th>
+        <th *ngIf="!isRecoveryManager && !isPromoter">
           <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected"></mat-checkbox>
         </th>
         <th>#</th>
@@ -69,8 +69,11 @@
       </thead>
       <tbody>
       <tr *ngFor="let credit of filteredCredits; let i = index">
-        <td data-label="Sélectionner">
+        <td data-label="Sélectionner" *ngIf="!isRecoveryManager && !isPromoter && 'SETTLED' !== credit.status">
           <mat-checkbox (change)="toggleSelection(credit.id)" [checked]="isSelected(credit.id)"></mat-checkbox>
+        </td>
+        <td data-label="Sélectionner" *ngIf="'SETTLED' === credit.status && !isRecoveryManager && !isPromoter">
+         -
         </td>
         <td data-label="#">{{ (currentPage * pageSize) + (i + 1) }}</td>
         <td data-label="Nom du Client">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</td>
@@ -177,8 +180,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeBulkChangeCollectorModal()">Annuler</button>
-        <button type="button" class="btn btn-primary" (click)="confirmBulkChangeCollector()" [disabled]="!selectedNewCollector">Valider</button>
+        <button type="button" class="btn btn-cancel" (click)="closeBulkChangeCollectorModal()">Annuler</button>
+        <button type="button" class="btn btn-validate" (click)="confirmBulkChangeCollector()" [disabled]="!selectedNewCollector">Valider</button>
       </div>
     </div>
   </div>

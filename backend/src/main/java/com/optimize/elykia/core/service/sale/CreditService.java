@@ -29,6 +29,7 @@ import com.optimize.elykia.core.service.bi.BiAggregationService;
 import com.optimize.elykia.core.service.stock.StockMovementService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -70,6 +71,7 @@ public class CreditService extends GenericService<Credit, Long> {
     private CommercialStockMovementService commercialStockMovementService;
     private TontineStockService tontineStockService;
     private ParameterService parameterService;
+    private BusinessMetricsPublisher metricsPublisher;
 
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private CreditTimelineService creditTimelineService;
@@ -128,11 +130,19 @@ public class CreditService extends GenericService<Credit, Long> {
 
         if (ClientType.CLIENT.equals(credit.getClientType())
                 && getRepository().hasCreditInProgress(credit.getClientId())) {
+            if (metricsPublisher != null) {
+                metricsPublisher.creditCreationFailed("DUPLICATE_IN_PROGRESS");
+            }
             throw new CustomValidationException("Le client " + credit.getClient().getFullName()
                     + " possède déjà une vente en cours et ne peut donc pas bénéficier d'une autre vente !");
         }
 
-        return createAndProcessCredit(credit, creditDto.getClientId());
+        CreditRespDto result = createAndProcessCredit(credit, creditDto.getClientId());
+        if (metricsPublisher != null) {
+            metricsPublisher.creditCreated(credit.getCollector(),
+                    credit.getType() != null ? credit.getType().name() : "CREDIT");
+        }
+        return result;
     }
 
     @SneakyThrows
@@ -445,6 +455,9 @@ public class CreditService extends GenericService<Credit, Long> {
 
         credit.changeDailyStake(dto.dailyStake());
         repository.saveAndFlush(credit);
+        if (metricsPublisher != null) {
+            metricsPublisher.creditDailyStakeChanged(credit.getId());
+        }
         return Boolean.TRUE;
     }
 
@@ -503,6 +516,9 @@ public class CreditService extends GenericService<Credit, Long> {
                             + creditArticles.getArticles().getCommercialName()));
 
             if (stockItem.getQuantityRemaining() < creditArticles.getQuantity()) {
+                if (metricsPublisher != null) {
+                    metricsPublisher.creditDistributionStockOut(clientCredit.getCollector());
+                }
                 throw new CustomValidationException("Stock insuffisant chez le commercial pour l'article : "
                         + creditArticles.getArticles().getCommercialName());
             }
@@ -566,6 +582,9 @@ public class CreditService extends GenericService<Credit, Long> {
             });
 
             if (!articleOutOfStock.isEmpty()) {
+                if (metricsPublisher != null) {
+                    metricsPublisher.creditStartStockOut(credit.getCollector());
+                }
                 throw new CustomValidationException("Stock manquant pour démarrer le crédit: Articles Manquants: "
                         + String.join("; \n", articleOutOfStock));
             }
@@ -686,6 +705,9 @@ public class CreditService extends GenericService<Credit, Long> {
                 biAggregationService.updateSalesAggregation(credit);
             } catch (Exception e) {
                 log.error("Error updating sales aggregation: {}", e.getMessage(), e);
+                if (metricsPublisher != null) {
+                    metricsPublisher.creditBiAggregationError(credit.getReference());
+                }
                 // Log error but don't fail the main credit operation
                 // This ensures aggregation errors don't impact business operations
             }
@@ -905,6 +927,11 @@ public class CreditService extends GenericService<Credit, Long> {
         this.parameterService = parameterService;
     }
 
+    @Autowired
+    public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
+        this.metricsPublisher = metricsPublisher;
+    }
+
     @Transactional
     public CreditRespDto changeCollector(Long creditId, String newCollector) {
         Credit credit = getById(creditId);
@@ -927,6 +954,10 @@ public class CreditService extends GenericService<Credit, Long> {
 
         // 2. Mettre à jour le crédit
         credit.setCollector(newCollector);
+
+        if (metricsPublisher != null) {
+            metricsPublisher.creditCollectorChanged(history.getOldCollector(), newCollector);
+        }
 
         // 3. Mettre à jour le recoveryCollector du client
         Client client = credit.getClient();

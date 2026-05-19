@@ -1,0 +1,28 @@
+apiVersion: 1
+
+contactPoints:
+  - name: "Email Admins"
+    receivers:
+      - uid: "email-admins"
+        type: email
+        settings:
+          addresses: "${ALERT_EMAIL_TO:-admin@amenouveve-yaveh.com}"
+        disableResolveMessage: false
+
+  - name: "Slack Alerts"
+    receivers:
+      - uid: "slack-alerts"
+        type: slack
+        settings:
+          url: "${SLACK_WEBHOOK_URL}"
+          title: "🔔 ELYKIA Alert"
+        disableResolveMessage: false
+
+  - name: "Webhook Business"
+    receivers:
+      - uid: "webhook-business"
+        type: webhook
+        settings:
+          url: "${ALERT_WEBHOOK_URL}"
+          httpMethod: "POST"
+        disableResolveMessage: false

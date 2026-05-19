@@ -27,6 +27,11 @@ on:
         description: 'Action to perform (promote)'
         required: true
         default: 'promote'
+  push:
+    paths:
+      - 'deploy/monitoring/**'
+    branches:
+      - main
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -111,6 +116,12 @@ jobs:
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
              && cd ${{ secrets.TEST_DEPLOY_PATH }} \
              && ./deploy/deploy.sh test '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+
+      - name: Deploy monitoring stack (test)
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} \
+            "cd ${{ secrets.TEST_DEPLOY_PATH }} \
+             && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
 
       - name: Check if mobile was built in CI
         id: check_mobile
@@ -278,6 +289,12 @@ jobs:
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
              && cd ${{ secrets.PROD_DEPLOY_PATH }} \
              && ./deploy/deploy.sh prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+
+      - name: Deploy monitoring stack (Prometheus + Grafana)
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
+            "cd ${{ secrets.PROD_DEPLOY_PATH }} \
+             && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
 
       - name: Check if mobile was built in CI
         id: check_mobile_prod
@@ -458,3 +475,31 @@ jobs:
       - name: Cleanup
         if: always()
         run: rm -f private_key release.txt
+
+  # ---------------------------------------------------------------------------
+  # Deploy monitoring stack on config changes
+  # ---------------------------------------------------------------------------
+  deploy-monitoring:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    name: Deploy monitoring stack
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Prepare SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key
+          chmod 600 private_key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy monitoring stack
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
+            "cd ${{ secrets.PROD_DEPLOY_PATH }} \
+             && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
+
+      - name: Cleanup
+        if: always()
+        run: rm -f private_key

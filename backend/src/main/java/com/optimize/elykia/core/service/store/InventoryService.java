@@ -12,6 +12,7 @@ import com.optimize.elykia.core.entity.inventory.Inventory;
 import com.optimize.elykia.core.entity.inventory.InventoryItem;
 import com.optimize.elykia.core.enumaration.InventoryItemStatus;
 import com.optimize.elykia.core.enumaration.InventoryStatus;
+import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.InventoryItemRepository;
 import com.optimize.elykia.core.repository.InventoryRepository;
@@ -35,6 +36,12 @@ public class InventoryService extends GenericService<Inventory, Long> {
     private final InventoryItemRepository inventoryItemRepository;
     private final ArticlesRepository articlesRepository;
     private final UserService userService;
+    private BusinessMetricsPublisher metricsPublisher;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
+        this.metricsPublisher = metricsPublisher;
+    }
 
     protected InventoryService(InventoryRepository repository,
                                InventoryItemRepository inventoryItemRepository,
@@ -62,6 +69,9 @@ public class InventoryService extends GenericService<Inventory, Long> {
         inventory.setInventoryDate(LocalDate.now());
         inventory.setStatus(InventoryStatus.DRAFT);
         inventory.setCreatedByUser(userService.getCurrentUser().getUsername());
+        if (metricsPublisher != null) {
+            metricsPublisher.inventoryCreated();
+        }
 
         // Récupérer tous les articles actifs
         Page<Articles> articlesPage = articlesRepository.findByState(State.ENABLED, Pageable.unpaged());
@@ -152,10 +162,16 @@ public class InventoryService extends GenericService<Inventory, Long> {
                 .collect(Collectors.toList());
 
         if (!unreconciledItems.isEmpty()) {
+            if (metricsPublisher != null) {
+                metricsPublisher.inventoryFinalizationBlocked();
+            }
             throw new ApplicationException("Impossible de finaliser l'inventaire. Il reste des écarts non réconciliés.");
         }
 
         inventory.setStatus(InventoryStatus.COMPLETED);
+        if (metricsPublisher != null) {
+            metricsPublisher.inventoryFinalized();
+        }
         inventory.setCompletedAt(LocalDateTime.now());
         return update(inventory);
     }
