@@ -286,55 +286,52 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         User currentUser = userService.getCurrentUser();
         if (currentUser.is(UserProfilConstant.MAGASINIER) || currentUser.is(UserProfilConstant.ADMIN)) {
             stockReturn.setStatus(StockReturnStatus.RECEIVED); // Automatiquement validé
+            for (StockReturnDto.StockReturnItemDto itemDto : dto.getItems()) {
+                CommercialMonthlyStockItem stockItem = targetStock.getItems().stream()
+                        .filter(i -> i.getId().equals(itemDto.getStockItemId()))
+                        .findFirst()
+                        .orElseThrow(() -> new CustomValidationException("Item de stock introuvable"));
+
+                if (itemDto.getQuantity() > stockItem.getQuantityRemaining()) {
+                    throw new CustomValidationException("Quantité demandée supérieure au stock restant pour l'article : " + stockItem.getArticle().getCommercialName() + ". Dispo: " + stockItem.getQuantityRemaining() + ", Demandé: " + itemDto.getQuantity());
+                }
+
+                StockReturnItem returnItem = new StockReturnItem();
+                returnItem.setStockItem(stockItem);
+                returnItem.setArticle(stockItem.getArticle());
+                returnItem.setQuantity(itemDto.getQuantity());
+                returnItem.setUnitPrice(itemDto.getUnitPrice());
+
+
+                stockReturn.addItem(returnItem);
+
+                Integer quantityBefore = stockItem.getQuantityRemaining();
+                stockItem.setQuantityReturned(stockItem.getQuantityReturned() + itemDto.getQuantity());
+                stockItem.updateRemaining();
+
+                if (commercialStockMovementService != null && stockReturn.getStatus() == StockReturnStatus.RECEIVED) {
+                    commercialStockMovementService.record(
+                            stockItem.getId(),
+                            null,
+                            null,
+                            CommercialStockMovementType.RETURN,
+                            quantityBefore,
+                            itemDto.getQuantity(),
+                            stockItem.getQuantityRemaining(),
+                            stockReturn.getId(),
+                            targetStock.getCollector(),
+                            stockItem.getArticle().getId(),
+                            stockItem.getArticle().getCommercialName()
+                    );
+                }
+
+                monthlyStockItemRepository.save(stockItem);
+            }
+
+            monthlyStockRepository.save(targetStock);
         } else {
             stockReturn.setStatus(StockReturnStatus.CREATED); // Doit être validé
         }
-
-        for (StockReturnDto.StockReturnItemDto itemDto : dto.getItems()) {
-            CommercialMonthlyStockItem stockItem = targetStock.getItems().stream()
-                    .filter(i -> i.getId().equals(itemDto.getStockItemId()))
-                    .findFirst()
-                    .orElseThrow(() -> new CustomValidationException("Item de stock introuvable"));
-
-            if (itemDto.getQuantity() > stockItem.getQuantityRemaining()) {
-                throw new CustomValidationException("Quantité demandée supérieure au stock restant pour l'article : " + stockItem.getArticle().getCommercialName() + ". Dispo: " + stockItem.getQuantityRemaining() + ", Demandé: " + itemDto.getQuantity());
-            }
-
-            StockReturnItem returnItem = new StockReturnItem();
-            returnItem.setStockItem(stockItem);
-            returnItem.setArticle(stockItem.getArticle());
-            returnItem.setQuantity(itemDto.getQuantity());
-            returnItem.setUnitPrice(itemDto.getUnitPrice());
-
-
-            stockReturn.addItem(returnItem);
-
-            Integer quantityBefore = stockItem.getQuantityRemaining();
-            stockItem.setQuantityReturned(stockItem.getQuantityReturned() + itemDto.getQuantity());
-            stockItem.updateRemaining();
-
-            if (commercialStockMovementService != null && stockReturn.getStatus() == StockReturnStatus.RECEIVED) {
-                commercialStockMovementService.record(
-                        stockItem.getId(),
-                        null,
-                        null,
-                        CommercialStockMovementType.RETURN,
-                        quantityBefore,
-                        itemDto.getQuantity(),
-                        stockItem.getQuantityRemaining(),
-                        stockReturn.getId(),
-                        targetStock.getCollector(),
-                        stockItem.getArticle().getId(),
-                        stockItem.getArticle().getCommercialName()
-                );
-            }
-
-            monthlyStockItemRepository.save(stockItem);
-        }
-
-        monthlyStockRepository.save(targetStock);
-
-
         return repository.save(stockReturn);
     }
 
