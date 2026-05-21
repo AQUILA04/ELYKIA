@@ -35,8 +35,8 @@ describe('StockDashboardComponent', () => {
     fixture.detectChanges();
 
     // Flush initial context-triggered requests (STANDARD by default)
-    httpMock.expectOne(`${environment.apiUrl}/api/stock-requests`).flush({ data: [] });
-    httpMock.expectOne(`${environment.apiUrl}/api/stock-returns`).flush({ data: [] });
+    httpMock.expectOne(`${environment.apiUrl}/api/stock-requests`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
+    httpMock.expectOne(`${environment.apiUrl}/api/stock-returns`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
   });
 
   afterEach(() => {
@@ -57,13 +57,13 @@ describe('StockDashboardComponent', () => {
   it('should reset context to STANDARD on init', (done) => {
     stockStateService.setContext('TONTINE');
     // Flush the context-change triggered calls
-    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ data: [] });
-    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).flush({ data: [] });
+    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
+    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
 
     component.ngOnInit();
     // ngOnInit resets to STANDARD → new HTTP calls
-    httpMock.expectOne(`${environment.apiUrl}/api/stock-requests`).flush({ data: [] });
-    httpMock.expectOne(`${environment.apiUrl}/api/stock-returns`).flush({ data: [] });
+    httpMock.expectOne(`${environment.apiUrl}/api/stock-requests`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
+    httpMock.expectOne(`${environment.apiUrl}/api/stock-returns`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
 
     stockStateService.context$.pipe(take(1)).subscribe(ctx => {
       expect(ctx).toBe('STANDARD');
@@ -78,8 +78,8 @@ describe('StockDashboardComponent', () => {
 
     // Flush the context-change triggered HTTP calls
     console.log('Pending requests:', httpMock.match(() => true).map(r => r.request.url));
-    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ data: [] });
-    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).flush({ data: [] });
+    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
+    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
 
     stockStateService.context$.pipe(take(1)).subscribe(ctx => {
       expect(ctx).toBe('TONTINE');
@@ -90,12 +90,12 @@ describe('StockDashboardComponent', () => {
   it('should call stockStateService.setContext with STANDARD when ion-segment fires ionChange with STANDARD', (done) => {
     const segmentElement = fixture.debugElement.query(By.css('#stock-context-segment'));
     segmentElement.triggerEventHandler('ionChange', { detail: { value: 'TONTINE' } } as unknown as SegmentCustomEvent);
-    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ data: [] });
-    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).flush({ data: [] });
+    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
+    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
 
     segmentElement.triggerEventHandler('ionChange', { detail: { value: 'STANDARD' } } as unknown as SegmentCustomEvent);
-    httpMock.expectOne(`${environment.apiUrl}/api/stock-requests`).flush({ data: [] });
-    httpMock.expectOne(`${environment.apiUrl}/api/stock-returns`).flush({ data: [] });
+    httpMock.expectOne(`${environment.apiUrl}/api/stock-requests`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
+    httpMock.expectOne(`${environment.apiUrl}/api/stock-returns`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
 
     stockStateService.context$.pipe(take(1)).subscribe(ctx => {
       expect(ctx).toBe('STANDARD');
@@ -105,8 +105,8 @@ describe('StockDashboardComponent', () => {
 
   it('should reflect context changes from service in context$ Observable', (done) => {
     stockStateService.setContext('TONTINE');
-    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ data: [] });
-    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).flush({ data: [] });
+    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
+    httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
 
     component.context$.pipe(take(1)).subscribe(ctx => {
       expect(ctx).toBe('TONTINE');
@@ -125,12 +125,12 @@ describe('StockDashboardComponent', () => {
     it('should call getTontineReturns() when context switches to TONTINE', () => {
       stockStateService.setContext('TONTINE');
 
-      httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ data: [] });
+      httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
       const retReq = httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`);
       expect(retReq.request.method).toBe('GET');
 
       const mockReturns = [{ id: 1, reference: 'RET-2026-01-00000001', status: 'PENDING', createdAt: '2026-01-01' }];
-      retReq.flush({ data: mockReturns });
+      retReq.flush({ content: mockReturns, totalElements: 1, totalPages: 1, size: 100, number: 0, first: true, last: true, empty: false, numberOfElements: 1 });
 
       expect(component.returns).toEqual(mockReturns);
     });
@@ -138,14 +138,14 @@ describe('StockDashboardComponent', () => {
     it('should populate returns[] after a successful STANDARD returns API response', () => {
       // Re-trigger STANDARD fetch by toggling to TONTINE then back to STANDARD
       stockStateService.setContext('TONTINE');
-      httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ data: [] });
-      httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).flush({ data: [] });
+      httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
+      httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
 
       stockStateService.setContext('STANDARD');
-      httpMock.expectOne(`${environment.apiUrl}/api/stock-requests`).flush({ data: [] });
+      httpMock.expectOne(`${environment.apiUrl}/api/stock-requests`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
 
       const mockReturns = [{ id: 5, reference: 'RET-STD', status: 'APPROVED', createdAt: '2026-01-05' }];
-      httpMock.expectOne(`${environment.apiUrl}/api/stock-returns`).flush({ data: mockReturns });
+      httpMock.expectOne(`${environment.apiUrl}/api/stock-returns`).flush({ content: mockReturns, totalElements: 1, totalPages: 1, size: 100, number: 0, first: true, last: true, empty: false, numberOfElements: 1 });
 
       expect(component.returns).toEqual(mockReturns);
       expect(component.returnsLoading).toBeFalse();
@@ -153,7 +153,7 @@ describe('StockDashboardComponent', () => {
 
     it('should set returnsLoading=false and returns=[] on returns API error', () => {
       stockStateService.setContext('TONTINE');
-      httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ data: [] });
+      httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-request`).flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0, first: true, last: true, empty: true, numberOfElements: 0 });
       httpMock.expectOne(`${environment.apiUrl}/api/v1/stock-tontine-return`).error(new ErrorEvent('network error'));
 
       expect(component.returnsLoading).toBeFalse();

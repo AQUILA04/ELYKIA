@@ -4,9 +4,9 @@ export interface TontineReturnItemPayload {
 }
 
 export interface CreateTontineReturnPayload {
+  collector?: string;
   items: TontineReturnItemPayload[];
   comment?: string;
-  // collector injected by SecurityContextInterceptor
 }
 
 export interface StockTontineReturn {
@@ -14,8 +14,7 @@ export interface StockTontineReturn {
   reference?: string;
   collector?: string;
   status: string;
-  createdAt?: string;
+  returnDate?: string;
   items?: TontineReturnItemPayload[];
   comment?: string;
-  [key: string]: any;
 }

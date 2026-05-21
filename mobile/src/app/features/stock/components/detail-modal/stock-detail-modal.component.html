@@ -38,25 +38,25 @@
         <ng-container *ngIf="isRequest; else returnDates">
           <div class="date-block">
             <div class="date-label">Date de demande</div>
-            <div class="date-value">{{ (operation['requestDate'] || operation.createdAt) | date:'dd MMM yyyy' }}</div>
+            <div class="date-value">{{ requestPrimaryDate | date:'dd MMM yyyy' }}</div>
           </div>
-          <div class="date-block" *ngIf="operation['validationDate']">
+          <div class="date-block" *ngIf="requestValidationDate">
             <div class="date-label">Date de validation</div>
-            <div class="date-value">{{ operation['validationDate'] | date:'dd MMM yyyy' }}</div>
+            <div class="date-value">{{ requestValidationDate | date:'dd MMM yyyy' }}</div>
           </div>
-          <div class="date-block" *ngIf="operation['deliveryDate'] || operation.status === 'DELIVERED'">
+          <div class="date-block" *ngIf="requestDeliveryDate || operation.status === 'DELIVERED'">
             <div class="date-label">Date de livraison</div>
-            <div class="date-value">{{ (operation['deliveryDate'] || operation['updatedAt']) | date:'dd MMM yyyy' }}</div>
+            <div class="date-value">{{ requestDeliveryDate | date:'dd MMM yyyy' }}</div>
           </div>
         </ng-container>
         <ng-template #returnDates>
           <div class="date-block">
             <div class="date-label">Date de retour</div>
-            <div class="date-value">{{ (operation['returnDate'] || operation.createdAt) | date:'dd MMM yyyy' }}</div>
+            <div class="date-value">{{ returnPrimaryDate | date:'dd MMM yyyy' }}</div>
           </div>
-          <div class="date-block" *ngIf="operation['validationDate']">
+          <div class="date-block" *ngIf="returnValidationDate">
             <div class="date-label">Date de validation</div>
-            <div class="date-value">{{ operation['validationDate'] | date:'dd MMM yyyy' }}</div>
+            <div class="date-value">{{ returnValidationDate | date:'dd MMM yyyy' }}</div>
           </div>
         </ng-template>
       </div>

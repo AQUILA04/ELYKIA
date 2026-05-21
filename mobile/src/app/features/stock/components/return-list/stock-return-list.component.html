@@ -48,7 +48,7 @@
 
       <div class="info-row" *ngIf="returnItem.status !== 'CANCELLED' && returnItem.status !== 'REFUSED'">
         <ion-icon name="calendar-outline"></ion-icon>
-        <span>Retour : {{ returnItem.createdAt | date:'dd MMM yyyy' }}</span>
+        <span>Retour : {{ (returnItem.returnDate || returnItem.createdAt) | date:'dd MMM yyyy' }}</span>
       </div>
       <div class="info-row" *ngIf="returnItem.status !== 'CANCELLED' && returnItem.status !== 'REFUSED'">
         <ion-icon name="pricetag-outline"></ion-icon>

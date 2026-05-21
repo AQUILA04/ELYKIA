@@ -46,11 +46,38 @@ export class StockDetailModalComponent implements OnInit {
     }
     const op = this.operation;
     if (this.isRequest) {
-      const total = op.totalCreditSalePrice ?? op.totalSalePrice;
-      return total != null ? total : null;
+      const req = op as StockRequest;
+      return this.asNumber(req.totalCreditSalePrice ?? req.totalSalePrice);
     }
-    const total = op.totalSalePrice ?? op.totalAmount ?? op.totalCreditSalePrice;
-    return total != null ? total : null;
+    const ret = op as StockReturn;
+    return this.asNumber(ret.totalSalePrice ?? ret.totalAmount ?? ret.totalCreditSalePrice);
+  }
+
+  private asNumber(value: unknown): number | null {
+    return typeof value === 'number' && !Number.isNaN(value) ? value : null;
+  }
+
+  get requestPrimaryDate(): string | null {
+    const op = this.operation as StockRequest;
+    return op?.requestDate ?? op?.createdAt ?? null;
+  }
+
+  get requestValidationDate(): string | null {
+    return (this.operation as StockRequest)?.validationDate ?? null;
+  }
+
+  get requestDeliveryDate(): string | null {
+    const op = this.operation as StockRequest;
+    return op?.deliveryDate ?? op?.updatedAt ?? null;
+  }
+
+  get returnPrimaryDate(): string | null {
+    const op = this.operation as StockReturn;
+    return op?.returnDate ?? op?.createdAt ?? null;
+  }
+
+  get returnValidationDate(): string | null {
+    return (this.operation as StockReturn)?.validationDate ?? null;
   }
 
   itemDisplayName(item: StockOperationLineItem): string {

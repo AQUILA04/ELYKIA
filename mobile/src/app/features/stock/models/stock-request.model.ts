@@ -7,34 +7,43 @@ export interface StockOperationLineItem {
 }
 
 /**
- * Represents a single Stock Request item returned by the API.
- * Covers both Standard (/api/stock-requests) and Tontine (/api/v1/stock-tontine-request) endpoints.
+ * Demande de stock standard ou tontine (réponse API).
+ * Dates : le backend expose `requestDate` (pas `createdAt`, ignoré côté JPA).
  */
 export interface StockRequest {
   id: number;
-  reference: string;
+  reference?: string;
   status: string;
-  createdAt: string;
+  collector?: string;
+  requestDate?: string;
+  /** Non renvoyé par le backend (createdDate est @JsonIgnore) — conservé pour compatibilité UI. */
+  createdAt?: string;
+  validationDate?: string;
   deliveryDate?: string;
   commercialUsername?: string;
   totalCreditSalePrice?: number;
   totalSalePrice?: number;
   totalPurchasePrice?: number;
   items?: StockOperationLineItem[];
-  [key: string]: any; // Allow additional backend fields without breaking the model
+  updatedAt?: string;
 }
 
-/**
- * Story 2.2 — Payload interfaces for creating a Standard Stock Request.
- * CORRECT: StockRequestItem.java uses @ManyToOne Articles article — NOT variationId.
- * `collector` is injected by SecurityContextInterceptor — NOT included here.
- */
 export interface StockRequestItemPayload {
   article: { id: number };
   quantity: number;
 }
 
+/** POST /api/stock-requests/create — corps attendu par StockRequestCreateDto. */
+export interface StockRequestCreateDto {
+  request: {
+    collector?: string;
+    items: StockRequestItemPayload[];
+  };
+  forNextMonth?: boolean;
+}
+
+/** @deprecated Utiliser StockRequestCreateDto via StockApiService.createStandardRequest */
 export interface CreateStockRequestPayload {
   items: StockRequestItemPayload[];
-  // collector injected by SecurityContextInterceptor
+  forNextMonth?: boolean;
 }

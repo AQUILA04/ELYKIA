@@ -4,8 +4,7 @@ import { ModalController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Article } from '../../../../models/article.model';
 import { StockArticlePickerModalComponent } from '../../components/article-picker-modal/stock-article-picker-modal.component';
-import { CreateStockRequestPayload } from '../../models/stock-request.model';
-import { CreateStockReturnPayload } from '../../models/stock-return.model';
+import { StockRequestItemPayload } from '../../models/stock-request.model';
 import { CreateTontineRequestPayload } from '../../models/stock-tontine-request.model';
 import { CreateTontineReturnPayload } from '../../models/stock-tontine-return.model';
 import { StockApiService } from '../../services/stock-api.service';
@@ -163,17 +162,12 @@ export class StockOperationCreatePage implements OnInit {
     };
 
     if (this.kind === 'request' && this.context === 'STANDARD') {
-      const payload: CreateStockRequestPayload = { items };
-      this.stockApiService.createStandardRequest(payload).subscribe({ next: onSuccess, error: onError });
+      this.stockApiService.createStandardRequest(items).subscribe({ next: onSuccess, error: onError });
       return;
     }
 
     if (this.kind === 'return' && this.context === 'STANDARD') {
-      const payload: CreateStockReturnPayload = {
-        items,
-        comment: this.comment.trim() || undefined
-      };
-      this.stockApiService.createStandardReturn(payload).subscribe({ next: onSuccess, error: onError });
+      this.stockApiService.createStandardReturn(items, this.comment).subscribe({ next: onSuccess, error: onError });
       return;
     }
 

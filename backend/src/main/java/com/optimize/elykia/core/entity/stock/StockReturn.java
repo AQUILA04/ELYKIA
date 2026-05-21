@@ -30,6 +30,8 @@ public class StockReturn extends Auditable<String> {
     private String note;
 
     private LocalDate returnDate;
+    private LocalDate receivedDate;
+    private LocalDate targetStockDate;
 
     @Enumerated(EnumType.STRING)
     private StockReturnStatus status = StockReturnStatus.CREATED;

@@ -4,9 +4,9 @@ export interface TontineRequestItemPayload {
 }
 
 export interface CreateTontineRequestPayload {
-  requestDate?: string; // ISO date string e.g. "2023-10-25"
+  collector?: string;
+  requestDate?: string;
   items: TontineRequestItemPayload[];
-  // clientId / contractReference not mapped on backend entity as discovered
 }
 
 export interface StockTontineRequest {
@@ -15,6 +15,7 @@ export interface StockTontineRequest {
   collector?: string;
   status: string;
   requestDate?: string;
+  totalSalePrice?: number;
+  totalPurchasePrice?: number;
   items?: TontineRequestItemPayload[];
-  [key: string]: any;
 }

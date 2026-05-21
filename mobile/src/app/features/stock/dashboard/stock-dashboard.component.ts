@@ -1,9 +1,8 @@
 import { Component, OnDestroy, OnInit, Type } from '@angular/core';
 import { ViewWillEnter } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { Observable, Subject } from 'rxjs';
-import { switchMap, tap, catchError, takeUntil } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { Observable, Subject, of, switchMap, tap, catchError, takeUntil } from 'rxjs';
+import { StockPage } from '../models/stock-page.model';
 import { SegmentCustomEvent, ModalController, AlertController, ToastController } from '@ionic/angular';
 import { StockDetailModalComponent } from '../components/detail-modal/stock-detail-modal.component';
 import { StockStateService, OperationalContext } from '../services/stock-state.service';
@@ -101,11 +100,10 @@ export class StockDashboardComponent implements OnInit, OnDestroy, ViewWillEnter
         this.requests = [];
       }),
       switchMap((ctx) => {
-        console.log('switchMap triggered with ctx', ctx);
-        const req$ = ctx === 'STANDARD'
+        const req$ = (ctx === 'STANDARD'
           ? this.stockApiService.getStandardRequests()
-          : this.stockApiService.getTontineRequests();
-        return req$.pipe(catchError(() => of(null)));
+          : this.stockApiService.getTontineRequests()) as Observable<StockPage<StockRequest>>;
+        return req$.pipe(catchError(() => of(this.emptyStockPage<StockRequest>())));
       }),
       takeUntil(this.destroy$)
     ).subscribe((response) => {
@@ -120,10 +118,10 @@ export class StockDashboardComponent implements OnInit, OnDestroy, ViewWillEnter
         this.returns = [];
       }),
       switchMap((ctx) => {
-        const ret$ = ctx === 'STANDARD'
+        const ret$ = (ctx === 'STANDARD'
           ? this.stockApiService.getStandardReturns()
-          : this.stockApiService.getTontineReturns();
-        return ret$.pipe(catchError(() => of(null)));
+          : this.stockApiService.getTontineReturns()) as Observable<StockPage<StockReturn>>;
+        return ret$.pipe(catchError(() => of(this.emptyStockPage<StockReturn>())));
       }),
       takeUntil(this.destroy$)
     ).subscribe((response) => {
@@ -204,6 +202,20 @@ export class StockDashboardComponent implements OnInit, OnDestroy, ViewWillEnter
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private emptyStockPage<T>(): StockPage<T> {
+    return {
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      size: 0,
+      number: 0,
+      first: true,
+      last: true,
+      empty: true,
+      numberOfElements: 0
+    };
   }
 
   ionViewWillEnter(): void {

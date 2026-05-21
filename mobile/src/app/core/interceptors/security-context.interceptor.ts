@@ -5,16 +5,8 @@ import { AuthService } from '../services/auth.service';
 import { LoggerService } from '../services/logger.service';
 
 /**
- * Intercepts outgoing mutating requests to stock endpoints and automatically
- * injects the current user's `commercialUsername` into the request body.
- *
- * Applies to: POST, PUT, PATCH (DELETE with body is intentionally excluded
- * as the current API contract does not use body payloads on DELETE verbs).
- *
- * Target endpoints:
- *   - /api/stock-requests
- *   - /api/stock-returns
- *   - /api/v1/stock-tontine-*
+ * Injecte le `collector` (username commercial) dans les corps des requêtes stock mutantes,
+ * conformément aux entités backend (StockRequest.collector, StockReturn.collector, etc.).
  */
 @Injectable()
 export class SecurityContextInterceptor implements HttpInterceptor {
@@ -35,25 +27,36 @@ export class SecurityContextInterceptor implements HttpInterceptor {
       const username = this.authService.currentUser?.username;
 
       if (!username) {
-        const msg = `[SecurityContextInterceptor] WARNING: commercialUsername could not be injected — no authenticated user found for ${request.method} ${request.url}`;
+        const msg = `[SecurityContextInterceptor] WARNING: collector could not be injected — no authenticated user for ${request.method} ${request.url}`;
         this.log.log(msg);
-        console.log(msg);
-        // Pass through without mutation; the backend will reject with 401/403 if authentication is required.
         return next.handle(request);
       }
 
-      // Clone the request body and inject commercialUsername.
-      let body = request.body;
-      if (body && typeof body === 'object') {
-        body = { ...body, commercialUsername: username };
-      } else {
-        body = { commercialUsername: username };
-      }
-
-      const modifiedRequest = request.clone({ body });
-      return next.handle(modifiedRequest);
+      const body = this.injectCollector(request.body, username);
+      return next.handle(request.clone({ body }));
     }
 
     return next.handle(request);
+  }
+
+  private injectCollector(body: unknown, username: string): unknown {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return { collector: username };
+    }
+
+    const record = { ...(body as Record<string, unknown>) };
+
+    // StockRequestCreateDto : { request: { items, collector? }, forNextMonth? }
+    if (record['request'] && typeof record['request'] === 'object' && !Array.isArray(record['request'])) {
+      const requestBody = { ...(record['request'] as Record<string, unknown>) };
+      if (!requestBody['collector']) {
+        requestBody['collector'] = username;
+      }
+      record['request'] = requestBody;
+    } else if (!record['collector']) {
+      record['collector'] = username;
+    }
+
+    return record;
   }
 }

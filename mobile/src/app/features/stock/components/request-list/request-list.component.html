@@ -45,7 +45,7 @@
     <div class="card-info">
       <div class="info-row">
         <ion-icon name="calendar-outline"></ion-icon>
-        <span>Demande : {{ request.createdAt | date:'dd MMM yyyy' }}</span>
+        <span>Demande : {{ (request.requestDate || request.createdAt) | date:'dd MMM yyyy' }}</span>
       </div>
       
       <!-- Si annulée ou refusée -->

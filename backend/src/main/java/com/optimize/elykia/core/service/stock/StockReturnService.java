@@ -25,6 +25,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.optimize.elykia.core.dto.stock.StockReturnDto;
+
+import java.util.Objects;
 import java.util.UUID;
 
 import java.time.LocalDate;
@@ -111,6 +113,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         }
 
         User currentUser = userService.getCurrentUser();
+        stockReturn.setReceivedDate(LocalDate.now());
 
         // 1. Mettre à jour le stock mensuel du commercial
         updateCommercialMonthlyStock(stockReturn);
@@ -194,7 +197,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     }
 
     private double updateCommercialMonthlyStock(StockReturn stockReturn) {
-        LocalDate date = LocalDate.now();
+        LocalDate date = Objects.nonNull(stockReturn.getTargetStockDate()) ? stockReturn.getTargetStockDate() : LocalDate.now();
         int month = date.getMonthValue();
         int year = date.getYear();
 
@@ -279,6 +282,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         stockReturn.setTargetStock(targetStock);
         stockReturn.setReturnDate(dto.getReturnDate());
         stockReturn.setNote(dto.getNote());
+        stockReturn.setTargetStockDate(targetStock.getCreatedDate().toLocalDate());
         User currentUser = userService.getCurrentUser();
         if (currentUser.is(UserProfilConstant.MAGASINIER) || currentUser.is(UserProfilConstant.ADMIN)) {
             stockReturn.setStatus(StockReturnStatus.RECEIVED); // Automatiquement validé

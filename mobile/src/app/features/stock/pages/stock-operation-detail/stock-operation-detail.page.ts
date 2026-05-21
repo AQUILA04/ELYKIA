@@ -73,11 +73,34 @@ export class StockOperationDetailPage implements OnInit {
       return null;
     }
     if (this.isRequest) {
-      const total = op.totalCreditSalePrice ?? op.totalSalePrice;
-      return total != null ? total : null;
+      const req = op as StockRequest;
+      return this.asNumber(req.totalCreditSalePrice ?? req.totalSalePrice ?? req.totalPurchasePrice);
     }
-    const total = op.totalSalePrice ?? op.totalAmount ?? op.totalCreditSalePrice;
-    return total != null ? total : null;
+    const ret = op as StockReturn;
+    return this.asNumber(ret.totalSalePrice ?? ret.totalAmount ?? ret.totalCreditSalePrice);
+  }
+
+  get primaryDate(): string | null {
+    if (!this.operation) return null;
+    if (this.isRequest) {
+      return (this.operation as StockRequest).requestDate ?? null;
+    }
+    return (this.operation as StockReturn).returnDate ?? null;
+  }
+
+  get validationDate(): string | null {
+    if (!this.operation) return null;
+    return 'validationDate' in this.operation ? (this.operation.validationDate ?? null) : null;
+  }
+
+  get deliveryDate(): string | null {
+    if (!this.operation || !this.isRequest) return null;
+    const req = this.operation as StockRequest;
+    return req.deliveryDate ?? req.updatedAt ?? null;
+  }
+
+  private asNumber(value: unknown): number | null {
+    return typeof value === 'number' && !Number.isNaN(value) ? value : null;
   }
 
   getInitials(name: string | null | undefined): string {
