@@ -92,6 +92,21 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
         );
     }
 
+    /**
+     * Supprime tous les recouvrements déjà synchronisés (isSync = 1) pour un commercial.
+     * Appelé avant de réinsérer les données du serveur lors de l'initialisation,
+     * pour éviter les doublons causés par le décalage d'ID entre mobile et backend.
+     * Les recouvrements non synchronisés (isSync = 0) sont préservés.
+     */
+    async deleteSynced(commercialId: string): Promise<void> {
+        if (!this.databaseService['db']) return;
+        await this.databaseService.execute(
+            `DELETE FROM recoveries WHERE isSync = 1 AND commercialId = ?`,
+            [commercialId]
+        );
+        console.log(`[RecoveryRepository] Synced recoveries deleted for ${commercialId} before re-initialization.`);
+    }
+
     private mapRowToRecovery(row: any): Recovery {
         return {
             ...row,

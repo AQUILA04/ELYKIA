@@ -135,7 +135,13 @@ public class MobileController {
                     // To keep it simple, we use a dedicated sync method in ClientReliquatService, 
                     // but since we only have add/consume, let's do a delta.
                     double delta = r.getTotalAmount() - existing;
-                    java.time.LocalDate date = r.getLastAccountedDate() != null ? java.time.LocalDate.parse(r.getLastAccountedDate()) : null;
+                    java.time.LocalDate date = null;
+                    if (r.getLastAccountedDate() != null) {
+                        String raw = r.getLastAccountedDate();
+                        // Le mobile envoie un datetime ISO complet (ex: "2026-05-19T12:16:00.763Z").
+                        // On extrait uniquement la partie date avant le 'T'.
+                        date = java.time.LocalDate.parse(raw.contains("T") ? raw.substring(0, raw.indexOf('T')) : raw);
+                    }
                     if (delta > 0) {
                         clientReliquatService.addReliquat(r.getClientId(), delta, r.getLastRecoveryId(), date);
                     } else if (delta < 0) {
