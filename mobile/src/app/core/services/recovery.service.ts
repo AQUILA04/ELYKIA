@@ -51,22 +51,24 @@ export class RecoveryService {
         if (isOnline) {
           return this.fetchRecoveriesFromApi().pipe(
             tap(async (recoveries) => {
-              // Ensure commercialId is set correctly before saving
+              // Supprimer d'abord tous les recouvrements déjà synchronisés en local.
+              // Cela évite les doublons causés par le décalage entre l'ID mobile (ex: "REC-A")
+              // et l'ID numérique backend (ex: "42") renvoyé lors de la réinitialisation.
+              // Les recouvrements non synchronisés (isSync = 0) sont conservés.
+              await this.recoveryRepository.deleteSynced(currentCommercialId);
+
               const enrichedRecoveries = recoveries.map(r => ({
                 ...r,
-                // Use reference as ID if available, otherwise fallback to existing ID
+                // Utiliser la référence comme ID si disponible (= ID mobile original),
+                // sinon fallback sur l'ID numérique backend.
                 id: r.reference || r.id,
-                commercialId: r.commercialId || currentCommercialId // Fallback to current user if missing
+                commercialId: r.commercialId || currentCommercialId
               }));
               await this.recoveryRepository.saveAll(enrichedRecoveries);
               console.log('Recoveries fetched from API and saved locally.');
             }),
             catchError(async (error) => {
               console.error('Failed to fetch recoveries from API, attempting local:', error);
-              // This still loads all recoveries. Should be paginated if used in UI.
-              // For initialization, it might be ok if we don't return the data.
-              // The method returns Observable<Recovery[]>, so we need to return something.
-              // Let's return empty and log a warning.
               console.warn('initializeRecoveries: returning empty array on API error.');
               return [];
             })
@@ -78,7 +80,7 @@ export class RecoveryService {
       }),
       catchError(err => {
         console.error('Recoveries initialization failed:', err);
-        return of([]); // Return an empty array on final failure
+        return of([]);
       })
     );
   }
