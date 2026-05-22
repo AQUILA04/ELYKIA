@@ -1,51 +1,114 @@
-<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+<div class="main-container a1">
 
-<div class="container" *ngIf="reception">
-  <div class="header-fixed">
-    <div class="d-flex justify-content-center mb-3">
-      <h1>Détails de l'entrée de stock</h1>
-    </div>
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb-bar">
+    <a routerLink="/stock/receptions" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Historique des entrées
+    </a>
   </div>
 
-  <div class="card mb-3">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="card-title mb-0">Informations Générales</h5>
-        <button class="btn refresh-button btn-sm" (click)="downloadPdf()">
-          <mat-icon>picture_as_pdf</mat-icon>
-          <span>Télécharger PDF</span>
-        </button>
+  <!-- SKELETON si pas encore chargé -->
+  <div *ngIf="!reception" class="empty-state" style="margin-top:60px">
+    <div class="empty-icon">⏳</div>
+    <div class="empty-title">Chargement…</div>
+  </div>
+
+  <ng-container *ngIf="reception">
+
+    <!-- HEADER -->
+    <div class="page-header-card">
+      <div class="header-card-top">
+        <span class="header-surtitle">DÉTAIL DE L'ENTRÉE</span>
+        <span class="ref-badge">{{ reception.reference }}</span>
       </div>
-      <p class="card-text"><strong>Référence:</strong> {{ reception.reference }}</p>
-      <p class="card-text"><strong>Date de Réception:</strong> {{ reception.receptionDate | date: 'dd/MM/yyyy' }}</p>
-      <p class="card-text"><strong>Reçu par:</strong> {{ reception.receivedBy }}</p>
-      <p class="card-text"><strong>Montant Total:</strong> {{ reception.totalAmount | currency }}</p>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+               class="entry-icon" style="display:block;flex-shrink:0">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+          <h1 class="page-title" style="margin:0;padding:0;line-height:1">Réception de stock</h1>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-download" (click)="downloadPdf()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Télécharger PDF
+          </button>
+          <button class="btn-refresh" (click)="goBack()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Retour
+          </button>
+        </div>
+      </div>
+      <p class="page-subtitle">{{ reception.receptionDate | date:'dd/MM/yyyy' }} · Reçu par {{ reception.receivedBy }}</p>
     </div>
-  </div>
 
-  <div class="table-container">
-    <h5>Liste des Articles</h5>
-    <table class="article-table">
-      <thead>
-      <tr>
-        <th>#</th>
-        <th>Article</th>
-        <th>Quantité</th>
-        <th>Prix Unitaire</th>
-        <th>Prix Total</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr *ngFor="let item of reception.items; let i = index">
-        <td>{{ i + 1 }}</td>
-        <td>{{ item.articleName }}</td>
-        <td>{{ item.quantity }}</td>
-        <td>{{ item.unitPrice | currency }}</td>
-        <td>{{ item.totalPrice | currency }}</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
+    <!-- KPI STRIP -->
+    <div class="kpi-strip a3">
+      <div class="kpi-card kpi-ref">
+        <div class="kpi-label">Référence</div>
+        <div class="kpi-value kpi-mono">{{ reception.reference }}</div>
+        <div class="kpi-sub">identifiant unique</div>
+      </div>
+      <div class="kpi-card kpi-date">
+        <div class="kpi-label">Date de réception</div>
+        <div class="kpi-value kpi-mono">{{ reception.receptionDate | date:'dd/MM/yyyy' }}</div>
+        <div class="kpi-sub">date d'entrée</div>
+      </div>
+      <div class="kpi-card kpi-by">
+        <div class="kpi-label">Reçu par</div>
+        <div class="kpi-value">{{ reception.receivedBy }}</div>
+        <div class="kpi-sub">responsable</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Montant total</div>
+        <div class="kpi-value kpi-mono">{{ reception.totalAmount | number }}</div>
+        <div class="kpi-sub">FCFA</div>
+      </div>
+    </div>
 
-  <button class="btn refresh-button mt-3" (click)="goBack()">Retour</button>
+    <!-- TABLE ARTICLES -->
+    <div class="table-card a5">
+      <div class="table-header-bar">
+        <span class="table-title">Articles réceptionnés</span>
+        <span class="result-count"><strong>{{ reception.items?.length || 0 }}</strong> article(s)</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Article</th>
+            <th>Quantité</th>
+            <th>Prix unitaire</th>
+            <th>Prix total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="!reception.items || reception.items.length === 0">
+            <td colspan="5">
+              <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <div class="empty-title">Aucun article</div>
+              </div>
+            </td>
+          </tr>
+          <tr *ngFor="let item of reception.items; let i = index">
+            <td><span class="row-num">{{ i + 1 }}</span></td>
+            <td><div class="col-article">{{ item.articleName }}</div></td>
+            <td>
+              <span class="qty-badge">{{ item.quantity }}</span>
+            </td>
+            <td><div class="col-amount">{{ item.unitPrice | number }} FCFA</div></td>
+            <td><div class="col-amount col-total">{{ item.totalPrice | number }} FCFA</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </ng-container>
+
 </div>
