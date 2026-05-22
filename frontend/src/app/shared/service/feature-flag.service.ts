@@ -6,6 +6,7 @@ export enum FeatureFlags {
   StockReturnHistory = 'stockReturnHistory',
   NextMonthStockCreation = 'nextMonthStockCreation',
   EndOfMonthAlerts = 'endOfMonthAlerts',
+  InventoryReconciliationMultiSelect = 'inventoryReconciliationMultiSelect',
 }
 
 @Injectable({
@@ -16,6 +17,7 @@ export class FeatureFlagService {
     [FeatureFlags.StockReturnHistory]: false,
     [FeatureFlags.NextMonthStockCreation]: false,
     [FeatureFlags.EndOfMonthAlerts]: false,
+    [FeatureFlags.InventoryReconciliationMultiSelect]: false,
   };
 
   private flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);

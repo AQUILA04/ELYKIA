@@ -4,6 +4,7 @@ import { InventoryService, InventoryItemDto, ReconciliationRequest, BulkReconcil
 import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from 'src/app/auth/service/auth.service';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 
 @Component({
   selector: 'app-inventory-reconciliation',
@@ -14,6 +15,7 @@ export class InventoryReconciliationComponent implements OnInit {
   inventoryId!: number;
   discrepancies: InventoryItemDto[] = [];
   selectedItems: InventoryItemDto[] = [];
+  selectedItem: InventoryItemDto | null = null;
   selectedStatus: string | null = null;
   reconciliationComment: string = '';
   markAsDebt: boolean = false;
@@ -24,6 +26,7 @@ export class InventoryReconciliationComponent implements OnInit {
   inputErrors: any[] = [];
   showConfirmModal: boolean = false;
   pendingAction: string | null = null;
+  isMultiSelectEnabled: boolean = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -31,7 +34,8 @@ export class InventoryReconciliationComponent implements OnInit {
     private readonly inventoryService: InventoryService,
     private readonly spinner: NgxSpinnerService,
     private readonly alertService: AlertService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly featureFlagService: FeatureFlagService
   ) {
     try {
       const user = this.authService.getCurrentUser();
@@ -44,6 +48,9 @@ export class InventoryReconciliationComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.featureFlagService.flags$.subscribe(flags => {
+      this.isMultiSelectEnabled = flags[FeatureFlags.InventoryReconciliationMultiSelect] || false;
+    });
     this.route.params.subscribe(params => {
       this.inventoryId = +params['id'];
       this.loadDiscrepancies();
@@ -64,6 +71,8 @@ export class InventoryReconciliationComponent implements OnInit {
       }
     });
   }
+
+  // --- Methods for Multi-Select (New UI) ---
 
   toggleSelection(item: InventoryItemDto): void {
     const index = this.selectedItems.findIndex(i => i.id === item.id);
@@ -135,7 +144,7 @@ export class InventoryReconciliationComponent implements OnInit {
     this.inputErrors = [];
   }
 
-  checkInputErrors(): void {
+  checkInputErrorsMulti(): void {
     if (this.selectedItems.length !== 1) {
       this.alertService.toastError('Veuillez sélectionner un seul article pour voir ses erreurs de saisie.');
       return;
@@ -167,7 +176,7 @@ export class InventoryReconciliationComponent implements OnInit {
     });
   }
 
-  loadReconciliationHistory(): void {
+  loadReconciliationHistoryMulti(): void {
     if (this.selectedItems.length !== 1) {
       this.alertService.toastError('Veuillez sélectionner un seul article pour voir son historique.');
       return;
@@ -277,20 +286,122 @@ export class InventoryReconciliationComponent implements OnInit {
     this.pendingAction = null;
   }
 
-  adjustToPhysical(): void {
+  adjustToPhysicalMulti(): void {
     this.prepareReconcile('ADJUST_TO_PHYSICAL');
   }
 
-  markDebt(): void {
+  markDebtMulti(): void {
     this.prepareReconcile('MARK_AS_DEBT');
   }
 
-  cancelDebtAction(): void {
+  cancelDebtActionMulti(): void {
     this.prepareReconcile('CANCEL_DEBT');
   }
 
-  markSurplus(): void {
+  markSurplusMulti(): void {
     this.prepareReconcile('MARK_AS_SURPLUS');
+  }
+
+
+  // --- Methods for Single-Select (Old UI) ---
+
+  selectItemSingle(item: InventoryItemDto): void {
+    this.selectedItem = item;
+    this.reconciliationComment = item.reconciliationComment || '';
+    this.markAsDebt = item.markAsDebt || false;
+    this.cancelDebt = item.debtCancelled || false;
+    this.showHistory = false;
+    this.inputErrors = [];
+  }
+
+  checkInputErrorsSingle(): void {
+    if (!this.selectedItem) return;
+
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 1);
+    const endDate = new Date();
+
+    this.spinner.show();
+    this.inventoryService.checkForInputErrors(
+      this.selectedItem.id,
+      startDate.toISOString().split('T')[0],
+      endDate.toISOString().split('T')[0]
+    ).subscribe({
+      next: (movements: any[]) => {
+        this.inputErrors = movements;
+        this.spinner.hide();
+        if (movements.length === 0) {
+          this.alertService.showDefaultSucces('Aucune erreur de saisie détectée dans l\'historique des sorties.');
+        }
+      },
+      error: (err) => {
+        this.spinner.hide();
+        this.alertService.showError('Erreur lors de la vérification des erreurs.');
+        console.error(err);
+      }
+    });
+  }
+
+  loadReconciliationHistorySingle(): void {
+    if (!this.selectedItem) return;
+
+    this.spinner.show();
+    this.inventoryService.getReconciliationHistory(this.selectedItem.id).subscribe({
+      next: (history: any[]) => {
+        this.reconciliationHistory = history;
+        this.showHistory = true;
+        this.spinner.hide();
+      },
+      error: (err) => {
+        this.spinner.hide();
+        this.alertService.showError('Erreur lors du chargement de l\'historique.');
+        console.error(err);
+      }
+    });
+  }
+
+  reconcileSingle(action: string): void {
+    if (!this.selectedItem) return;
+
+    const reconciliationData: ReconciliationRequest = {
+      inventoryItemId: this.selectedItem.id,
+      comment: this.reconciliationComment,
+      markAsDebt: this.markAsDebt,
+      cancelDebt: this.cancelDebt,
+      action: action
+    };
+
+    this.spinner.show();
+    this.inventoryService.reconcileItem(reconciliationData).subscribe({
+      next: (response: any) => {
+        this.spinner.hide();
+        this.alertService.showDefaultSucces('Réconciliation effectuée avec succès.');
+        this.selectedItem = null;
+        this.loadDiscrepancies();
+      },
+      error: (err) => {
+        this.spinner.hide();
+        const errorMessage = err?.error?.message || 'Une erreur est survenue lors de la réconciliation.';
+        this.alertService.showError(errorMessage);
+        console.error(err);
+      }
+    });
+  }
+
+  adjustToPhysicalSingle(): void {
+    this.reconcileSingle('ADJUST_TO_PHYSICAL');
+  }
+
+  markDebtSingle(): void {
+    this.reconcileSingle('MARK_AS_DEBT');
+  }
+
+  cancelDebtActionSingle(): void {
+    this.reconcileSingle('CANCEL_DEBT');
+  }
+
+  markSurplusSingle(): void {
+    this.reconcileSingle('MARK_AS_SURPLUS');
   }
 
   back(): void {

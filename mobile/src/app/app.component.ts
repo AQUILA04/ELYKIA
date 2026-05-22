@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController, Platform } from '@ionic/angular';
+import { AlertController, Platform, NavController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import {  selectAuthUser } from './store/auth/auth.selectors';
 import { DataInitializationService } from './core/services/data-initialization.service';
-import { filter, take, switchMap } from 'rxjs/operators';
+import { filter, take } from 'rxjs/operators';
 import { Storage } from '@ionic/storage-angular';
-import { NavController } from "@ionic/angular";
 import { ActivityService } from './core/services/activity.service';
 import * as AuthActions from './store/auth/auth.actions';
 import { InitializationStateService } from './core/services/initialization-state.service';
@@ -28,18 +27,18 @@ export class AppComponent implements OnInit {
   private dataInitialized = false;
 
   constructor(
-    private platform: Platform,
-    private store: Store,
-    private dataInitializationService: DataInitializationService,
-    private storage: Storage,
-    private navCtrl: NavController,
-    private activityService: ActivityService,
-    private initState: InitializationStateService,
-    private memoryAlertService: MemoryAlertService,
-    private synchronizationService: SynchronizationService,
-    private alertController: AlertController,
-    private router: Router,
-    private featureFlagService: FeatureFlagService
+    private readonly platform: Platform,
+    private readonly store: Store,
+    private readonly dataInitializationService: DataInitializationService,
+    private readonly storage: Storage,
+    private readonly navCtrl: NavController,
+    private readonly activityService: ActivityService,
+    private readonly initState: InitializationStateService,
+    private readonly memoryAlertService: MemoryAlertService,
+    private readonly synchronizationService: SynchronizationService,
+    private readonly alertController: AlertController,
+    private readonly router: Router,
+    private readonly featureFlagService: FeatureFlagService
   ) { this.initializeApp().then(r => console.log(r) ); }
 
   async ngOnInit() {
