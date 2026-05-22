@@ -16,6 +16,7 @@ import { SynchronizationService } from "./core/services/synchronization.service"
 import { Router } from "@angular/router";
 import { App } from "@capacitor/app";
 import {FirebaseCrashlytics} from "@capacitor-firebase/crashlytics";
+import { FeatureFlagService } from './core/services/feature-flag.service';
 
 @Component({
   selector: 'app-root',
@@ -37,7 +38,8 @@ export class AppComponent implements OnInit {
     private memoryAlertService: MemoryAlertService,
     private synchronizationService: SynchronizationService,
     private alertController: AlertController,
-    private router: Router
+    private router: Router,
+    private featureFlagService: FeatureFlagService
   ) { this.initializeApp().then(r => console.log(r) ); }
 
   async ngOnInit() {
@@ -148,13 +150,16 @@ export class AppComponent implements OnInit {
   }
 
   async initializeApp() {
-  await this.platform.ready();
+    await this.platform.ready();
 
-  // Activer la collecte Crashlytics
-  await FirebaseCrashlytics.setEnabled({
-    enabled: true,
-  });
- }
+    // Initialiser les feature flags
+    await this.featureFlagService.init();
+
+    // Activer la collecte Crashlytics
+    await FirebaseCrashlytics.setEnabled({
+      enabled: true,
+    });
+   }
 
   async saveToDownloads(imageData: string, fileName: string) {
     const savedFile = await Filesystem.writeFile({
