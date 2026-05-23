@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InventoryService, InventoryItemDto, ReconciliationRequest, BulkReconciliationRequest } from '../service/inventory.service';
 import { NgxSpinnerService } from 'ngx-spinner';
@@ -35,7 +35,8 @@ export class InventoryReconciliationComponent implements OnInit {
     private readonly spinner: NgxSpinnerService,
     private readonly alertService: AlertService,
     private readonly authService: AuthService,
-    private readonly featureFlagService: FeatureFlagService
+    private readonly featureFlagService: FeatureFlagService,
+    private readonly cdr: ChangeDetectorRef
   ) {
     try {
       const user = this.authService.getCurrentUser();
@@ -50,6 +51,7 @@ export class InventoryReconciliationComponent implements OnInit {
   ngOnInit(): void {
     this.featureFlagService.flags$.subscribe(flags => {
       this.isMultiSelectEnabled = flags[FeatureFlags.InventoryReconciliationMultiSelect] || false;
+      this.cdr.detectChanges();
     });
     this.route.params.subscribe(params => {
       this.inventoryId = +params['id'];

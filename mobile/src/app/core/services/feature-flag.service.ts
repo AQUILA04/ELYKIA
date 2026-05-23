@@ -1,5 +1,5 @@
 // src/app/core/services/feature-flag.service.ts
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 import { FirebaseRemoteConfig } from '@capacitor-firebase/remote-config';
 import { BehaviorSubject } from 'rxjs';
 
@@ -31,10 +31,10 @@ export class FeatureFlagService {
    */
   public async init(): Promise<void> {
     try {
-      // Set the minimum fetch interval. The plugin's runtime may expect milliseconds,
-      // but the exact property name can vary between versions. Cast to `any` to avoid
-      // strict typing issues while keeping the intended units (ms) documented.
-      await FirebaseRemoteConfig.setMinimumFetchInterval({ minimumFetchIntervalMillis: 3600 * 1000 } as any);
+      // Use setSettings to configure the fetch interval
+      await FirebaseRemoteConfig.setSettings({
+        minimumFetchIntervalInSeconds: isDevMode() ? 0 : 3600,
+      });
 
       // Récupérer et activer les dernières valeurs depuis Firebase
       await FirebaseRemoteConfig.fetchAndActivate();

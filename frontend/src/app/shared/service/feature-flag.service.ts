@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 import { AngularFireRemoteConfig } from '@angular/fire/compat/remote-config';
 import { BehaviorSubject, Observable } from 'rxjs';
 
@@ -27,6 +27,11 @@ export class FeatureFlagService {
 
   public async init(): Promise<void> {
     try {
+      if (isDevMode()) {
+        // In development mode, fetch more frequently
+        const settings = await this.remoteConfig.settings;
+        settings.minimumFetchIntervalMillis = 0;
+      }
       await this.remoteConfig.fetchAndActivate();
       const updatedFlags = { ...this.defaultFlags };
       for (const key of Object.keys(this.defaultFlags)) {
