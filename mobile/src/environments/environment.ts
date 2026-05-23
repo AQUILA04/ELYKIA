@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://192.168.1.86:8081',
+  apiUrl: 'https://elykia-test.amenouveve-yaveh.com/api',
   appName: 'Elykia',
   version: '2.7.5'
 };
