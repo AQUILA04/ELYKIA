@@ -44,7 +44,7 @@
         <p><strong>Référence:</strong> <span th:text="${reception.reference}"></span></p>
         <p><strong>Date de Réception:</strong> <span th:text="${#temporals.format(reception.receptionDate, 'dd/MM/yyyy')}"></span></p>
         <p><strong>Reçu par:</strong> <span th:text="${reception.receivedBy}"></span></p>
-        <p><strong>Montant Total:</strong> <span th:text="${#numbers.formatCurrency(reception.totalAmount)}"></span></p>
+        <p><strong>Montant Total:</strong> <span th:text="${#numbers.formatDecimal(reception.totalAmount, 1, 'COMMA', 0, 'POINT') + ' FCFA'}"></span></p>
     </div>
     <table class="items-table">
         <thead>
@@ -59,8 +59,8 @@
         <tr th:each="item : ${reception.items}">
             <td th:text="${item.articleName}"></td>
             <td th:text="${item.quantity}"></td>
-            <td th:text="${#numbers.formatCurrency(item.unitPrice)}"></td>
-            <td th:text="${#numbers.formatCurrency(item.totalPrice)}"></td>
+            <td th:text="${#numbers.formatDecimal(item.unitPrice, 1, 'COMMA', 0, 'POINT') + ' FCFA'}"></td>
+            <td th:text="${#numbers.formatDecimal(item.totalPrice, 1, 'COMMA', 0, 'POINT') + ' FCFA'}"></td>
         </tr>
         </tbody>
     </table>
