@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { ExpenseService } from '../../services/expense.service';
 import { Expense, ExpenseType } from '../../models/expense.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -9,6 +10,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   selector: 'app-expense-form',
   templateUrl: './form.component.html',
   styleUrls: ['./form.component.scss'],
+  encapsulation: ViewEncapsulation.None,
   standalone: false
 })
 export class ExpenseFormComponent implements OnInit {
@@ -22,12 +24,13 @@ export class ExpenseFormComponent implements OnInit {
     private expenseService: ExpenseService,
     private router: Router,
     private route: ActivatedRoute,
+    private location: Location,
     private snackBar: MatSnackBar
   ) {
     this.expenseForm = this.fb.group({
       expenseTypeId: [null, Validators.required],
       amount: [null, [Validators.required, Validators.min(0)]],
-      expenseDate: [new Date(), Validators.required],
+      expenseDate: ['', Validators.required],
       description: [''],
       reference: ['']
     });
@@ -35,7 +38,6 @@ export class ExpenseFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadExpenseTypes();
-
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.isEditMode = true;
@@ -53,10 +55,14 @@ export class ExpenseFormComponent implements OnInit {
 
   loadExpense(id: number) {
     this.expenseService.getExpense(id).subscribe(data => {
+      // Convertir la date en format YYYY-MM-DD pour l'input type="date"
+      const dateStr = data.expenseDate
+        ? new Date(data.expenseDate).toISOString().split('T')[0]
+        : '';
       this.expenseForm.patchValue({
         expenseTypeId: data.expenseTypeId,
         amount: data.amount,
-        expenseDate: new Date(data.expenseDate), // Ensure date object
+        expenseDate: dateStr,
         description: data.description,
         reference: data.reference
       });
@@ -68,20 +74,22 @@ export class ExpenseFormComponent implements OnInit {
       const expenseData: Expense = {
         ...this.expenseForm.value,
         id: this.expenseId
-        // Handle date conversion if needed, Angular Material Datepicker usually returns Date object
       };
-
       if (this.isEditMode && this.expenseId) {
         this.expenseService.updateExpense(this.expenseId, expenseData).subscribe(() => {
           this.snackBar.open('Dépense modifiée avec succès', 'Fermer', { duration: 3000 });
-          this.router.navigate(['/expense/list']);
+          this.location.back();
         });
       } else {
         this.expenseService.createExpense(expenseData).subscribe(() => {
           this.snackBar.open('Dépense créée avec succès', 'Fermer', { duration: 3000 });
-          this.router.navigate(['/expense/list']);
+          this.location.back();
         });
       }
     }
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

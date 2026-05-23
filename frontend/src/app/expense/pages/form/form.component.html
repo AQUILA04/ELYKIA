@@ -1,68 +1,100 @@
-<div class="container p-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <mat-card>
-                <mat-card-header>
-                    <mat-card-title>{{ isEditMode ? 'Modifier' : 'Ajouter' }} une Dépense</mat-card-title>
-                </mat-card-header>
-                <mat-card-content class="pt-3">
-                    <form [formGroup]="expenseForm" (ngSubmit)="onSubmit()" class="d-flex flex-column gap-3">
+<div class="main-container a1">
 
-                        <mat-form-field appearance="outline" class="w-100">
-                            <mat-label>Type de Dépense</mat-label>
-                            <mat-select formControlName="expenseTypeId">
-                                <mat-option *ngFor="let type of expenseTypes" [value]="type.id">
-                                    {{type.name}}
-                                </mat-option>
-                            </mat-select>
-                            <mat-error *ngIf="expenseForm.get('expenseTypeId')?.hasError('required')">Requis</mat-error>
-                        </mat-form-field>
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb-bar">
+    <a class="breadcrumb-link" (click)="goBack()" style="cursor:pointer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Retour
+    </a>
+  </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <mat-form-field appearance="outline" class="w-100">
-                                    <mat-label>Montant</mat-label>
-                                    <input matInput type="number" formControlName="amount">
-                                    <span matPrefix>XOF&nbsp;</span>
-                                    <mat-error *ngIf="expenseForm.get('amount')?.hasError('required')">Requis
-                                    </mat-error>
-                                    <mat-error *ngIf="expenseForm.get('amount')?.hasError('min')">Doit être positif
-                                    </mat-error>
-                                </mat-form-field>
-                            </div>
-                            <div class="col-md-6">
-                                <mat-form-field appearance="outline" class="w-100">
-                                    <mat-label>Date</mat-label>
-                                    <input matInput [matDatepicker]="picker" formControlName="expenseDate">
-                                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                                    <mat-datepicker #picker></mat-datepicker>
-                                    <mat-error *ngIf="expenseForm.get('expenseDate')?.hasError('required')">Requis
-                                    </mat-error>
-                                </mat-form-field>
-                            </div>
-                        </div>
-
-                        <mat-form-field appearance="outline" class="w-100">
-                            <mat-label>Description</mat-label>
-                            <textarea matInput formControlName="description" rows="3"></textarea>
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline" class="w-100">
-                            <mat-label>Référence</mat-label>
-                            <input matInput formControlName="reference">
-                        </mat-form-field>
-
-                        <div class="d-flex justify-content-end gap-2 mt-3">
-                            <button mat-button type="button" routerLink="/expense/list">Annuler</button>
-                            <button mat-raised-button color="primary" type="submit" [disabled]="expenseForm.invalid">
-                                <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
-                                <span class="ms-2">{{ isEditMode ? 'Modifier' : 'Enregistrer' }}</span>
-                            </button>
-                        </div>
-
-                    </form>
-                </mat-card-content>
-            </mat-card>
-        </div>
+  <!-- HEADER -->
+  <div class="page-header-card">
+    <div class="header-card-top">
+      <span class="header-surtitle">GESTION DES DÉPENSES</span>
     </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="expense-icon" style="display:block;flex-shrink:0">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+        <h1 class="page-title" style="margin:0;padding:0;line-height:1">
+          {{ isEditMode ? 'Modifier la dépense' : 'Nouvelle dépense' }}
+        </h1>
+      </div>
+    </div>
+    <p class="page-subtitle">
+      {{ isEditMode ? 'Modifiez les informations de la dépense' : 'Enregistrez une nouvelle dépense' }}
+    </p>
+  </div>
+
+  <!-- FORM CARD -->
+  <div class="form-card a3">
+    <form [formGroup]="expenseForm" (ngSubmit)="onSubmit()">
+
+      <!-- Type de dépense -->
+      <div class="field-group">
+        <label class="field-label">Type de dépense <span class="req">*</span></label>
+        <select class="field-select" formControlName="expenseTypeId">
+          <option [value]="null" disabled>Sélectionner un type…</option>
+          <option *ngFor="let type of expenseTypes" [value]="type.id">{{ type.name }}</option>
+        </select>
+        <span class="field-error" *ngIf="expenseForm.get('expenseTypeId')?.invalid && expenseForm.get('expenseTypeId')?.touched">
+          Ce champ est requis
+        </span>
+      </div>
+
+      <!-- Montant + Date -->
+      <div class="form-row">
+        <div class="field-group">
+          <label class="field-label">Montant (FCFA) <span class="req">*</span></label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">XOF</span>
+            <input class="field-input with-prefix" type="number" formControlName="amount" placeholder="0">
+          </div>
+          <span class="field-error" *ngIf="expenseForm.get('amount')?.invalid && expenseForm.get('amount')?.touched">
+            Montant requis et positif
+          </span>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Date <span class="req">*</span></label>
+          <input class="field-input" type="date" formControlName="expenseDate">
+          <span class="field-error" *ngIf="expenseForm.get('expenseDate')?.invalid && expenseForm.get('expenseDate')?.touched">
+            Date requise
+          </span>
+        </div>
+      </div>
+
+      <!-- Référence -->
+      <div class="field-group">
+        <label class="field-label">Référence</label>
+        <input class="field-input" type="text" formControlName="reference" placeholder="Ex: FACT-2026-001">
+      </div>
+
+      <!-- Description -->
+      <div class="field-group">
+        <label class="field-label">Description</label>
+        <textarea class="field-textarea" formControlName="description" rows="4"
+                  placeholder="Détails sur la dépense…"></textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="goBack()">Annuler</button>
+        <button type="submit" class="btn-submit" [disabled]="expenseForm.invalid">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {{ isEditMode ? 'Enregistrer les modifications' : 'Créer la dépense' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
 </div>
