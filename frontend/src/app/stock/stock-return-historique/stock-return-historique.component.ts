@@ -12,6 +12,7 @@ import { StockReturnService } from '../services/stock-return.service';
 import { CommercialMonthlyStock } from '../models/commercial-stock.model';
 import { UserProfile } from '../../shared/models/user-profile.enum';
 import { StockReturnDto } from '../models/stock-return.model';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 
 interface ReturnSelectedItem {
   stockItemId: number;
@@ -57,10 +58,16 @@ export class StockReturnHistoriqueComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly userService: UserService,
     private readonly clientService: ClientService,
-    private readonly stockReturnService: StockReturnService
+    private readonly stockReturnService: StockReturnService,
+    private readonly featureFlagService: FeatureFlagService
   ) { }
 
   ngOnInit(): void {
+    if (!this.featureFlagService.isFeatureEnabled(FeatureFlags.StockReturnHistory)) {
+      this.router.navigate(['/']);
+      return;
+    }
+
     this.currentUser = this.authService.getCurrentUser();
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE)

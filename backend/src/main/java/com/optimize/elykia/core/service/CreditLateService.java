@@ -14,6 +14,8 @@ import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -88,9 +90,17 @@ public class CreditLateService {
         long totalAmountRemaining = credits.stream()
                 .mapToLong(c -> c.getTotalAmountRemaining() != null ? c.getTotalAmountRemaining().longValue() : 0L)
                 .sum();
+                
+        Map<String, List<CreditLateDTO>> creditsByQuarter = credits.stream()
+                .collect(Collectors.groupingBy(
+                        c -> c.getClientQuarter() != null && !c.getClientQuarter().isBlank() ? c.getClientQuarter() : "Non spécifié",
+                        TreeMap::new,
+                        Collectors.toList()
+                ));
 
         Context context = new Context();
-        context.setVariable("credits", credits);
+        context.setVariable("creditsByQuarter", creditsByQuarter);
+        context.setVariable("creditsEmpty", credits.isEmpty());
         context.setVariable("collectorName", collector != null && !collector.isBlank() ? collector : "Tous");
         context.setVariable("month",
                 month != null ? String.format("%02d/%d", month, LocalDate.now().getYear()) : "Tous");
@@ -151,6 +161,7 @@ public class CreditLateService {
                         ? credit.getClient().getLastname() + " " + credit.getClient().getFirstname()
                         : "—")
                 .clientPhone(credit.getClient() != null ? credit.getClient().getPhone() : null)
+                .clientQuarter(credit.getClient() != null ? credit.getClient().getQuarter() : null)
                 .collector(credit.getCollector())
                 .totalAmount(credit.getTotalAmount())
                 .totalAmountPaid(credit.getTotalAmountPaid())
