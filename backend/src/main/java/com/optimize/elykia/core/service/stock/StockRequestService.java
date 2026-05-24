@@ -219,7 +219,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 
                 // create new item for pending
                 StockRequestItem pendingItem = new StockRequestItem();
-                pendingItem.setArticle(item.getArticle());
+                pendingItem.setArticle(article);
                 pendingItem.setItemName(item.getItemName());
                 pendingItem.setQuantity(missingQty);
                 pendingItem.setUnitPrice(item.getUnitPrice());
@@ -229,7 +229,15 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 pendingItemDTOs.add(new PartialDeliveryResponseDTO.PendingItemDTO(item.getItemName(), missingQty, (double)availableQty, item.getUnitPrice()));
             } else {
                 request.removeItem(item);
-                pendingRequestItems.add(item);
+                
+                StockRequestItem pendingItem = new StockRequestItem();
+                pendingItem.setArticle(article);
+                pendingItem.setItemName(item.getItemName());
+                pendingItem.setQuantity(item.getQuantity());
+                pendingItem.setUnitPrice(item.getUnitPrice());
+                pendingItem.setPurchasePrice(item.getPurchasePrice());
+                pendingRequestItems.add(pendingItem);
+                
                 pendingItemDTOs.add(new PartialDeliveryResponseDTO.PendingItemDTO(item.getItemName(), item.getQuantity(), 0.0, item.getUnitPrice()));
             }
         }

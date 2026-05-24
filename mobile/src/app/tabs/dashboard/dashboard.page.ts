@@ -28,6 +28,7 @@ import {
 import { LoggerService } from '../../core/services/logger.service';
 import { CashDepositService } from '../../core/services/cash-deposit.service';
 import { HealthCheckService } from '../../core/services/health-check.service';
+import { FeatureFlagService, FeatureFlags } from '../../core/services/feature-flag.service';
 
 Chart.register(...registerables);
 
@@ -75,6 +76,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   isBackendUp: boolean = true;
   isLoadingDeposits: boolean = false;
 
+  // Expose Feature Flags to the template
+  public featureFlags = FeatureFlags;
+
   private periodFilter$ = new BehaviorSubject<string>('month');
   private destroy$ = new Subject<void>();
   private trendsChart: Chart | null = null;
@@ -86,7 +90,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private log: LoggerService,
     private cdr: ChangeDetectorRef,
     private cashDepositService: CashDepositService,
-    private healthCheckService: HealthCheckService
+    private healthCheckService: HealthCheckService,
+    public featureFlagService: FeatureFlagService
   ) { }
 
   ngOnInit() {

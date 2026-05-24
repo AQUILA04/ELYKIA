@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController, Platform } from '@ionic/angular';
+import { AlertController, Platform, NavController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import {  selectAuthUser } from './store/auth/auth.selectors';
 import { DataInitializationService } from './core/services/data-initialization.service';
-import { filter, take, switchMap } from 'rxjs/operators';
+import { filter, take } from 'rxjs/operators';
 import { Storage } from '@ionic/storage-angular';
-import { NavController } from "@ionic/angular";
 import { ActivityService } from './core/services/activity.service';
 import * as AuthActions from './store/auth/auth.actions';
 import { InitializationStateService } from './core/services/initialization-state.service';
@@ -16,6 +15,7 @@ import { SynchronizationService } from "./core/services/synchronization.service"
 import { Router } from "@angular/router";
 import { App } from "@capacitor/app";
 import {FirebaseCrashlytics} from "@capacitor-firebase/crashlytics";
+import { FeatureFlagService } from './core/services/feature-flag.service';
 
 @Component({
   selector: 'app-root',
@@ -27,17 +27,18 @@ export class AppComponent implements OnInit {
   private dataInitialized = false;
 
   constructor(
-    private platform: Platform,
-    private store: Store,
-    private dataInitializationService: DataInitializationService,
-    private storage: Storage,
-    private navCtrl: NavController,
-    private activityService: ActivityService,
-    private initState: InitializationStateService,
-    private memoryAlertService: MemoryAlertService,
-    private synchronizationService: SynchronizationService,
-    private alertController: AlertController,
-    private router: Router
+    private readonly platform: Platform,
+    private readonly store: Store,
+    private readonly dataInitializationService: DataInitializationService,
+    private readonly storage: Storage,
+    private readonly navCtrl: NavController,
+    private readonly activityService: ActivityService,
+    private readonly initState: InitializationStateService,
+    private readonly memoryAlertService: MemoryAlertService,
+    private readonly synchronizationService: SynchronizationService,
+    private readonly alertController: AlertController,
+    private readonly router: Router,
+    private readonly featureFlagService: FeatureFlagService
   ) { this.initializeApp().then(r => console.log(r) ); }
 
   async ngOnInit() {
@@ -148,13 +149,16 @@ export class AppComponent implements OnInit {
   }
 
   async initializeApp() {
-  await this.platform.ready();
+    await this.platform.ready();
 
-  // Activer la collecte Crashlytics
-  await FirebaseCrashlytics.setEnabled({
-    enabled: true,
-  });
- }
+    // Initialiser les feature flags
+    await this.featureFlagService.init();
+
+    // Activer la collecte Crashlytics
+    await FirebaseCrashlytics.setEnabled({
+      enabled: true,
+    });
+   }
 
   async saveToDownloads(imageData: string, fileName: string) {
     const savedFile = await Filesystem.writeFile({

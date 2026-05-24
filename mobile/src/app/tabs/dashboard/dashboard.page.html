@@ -123,17 +123,21 @@
         <div class="action-icon"><ion-icon name="wallet-outline"></ion-icon></div>
         <div class="action-text">Tontine</div>
       </div>
+
+      @if (featureFlagService.isFeatureEnabled(featureFlags.QuickActionStock)) {
       <div class="action-card action-stock" routerLink="/tabs/stock">
         <div class="action-icon"><ion-icon name="layers-outline"></ion-icon></div>
         <div class="action-text">Stock</div>
       </div>
+      }
     </div>
   </div>
 
   <!-- Section Historique des versements -->
+  @if (featureFlagService.isFeatureEnabled(featureFlags.VersementHistory)) {
   <div class="deposits-section">
     <h2 class="section-title">Historique des versements</h2>
-    
+
     @if (isLoadingDeposits) {
       <div class="loading-state">
         <ion-spinner name="crescent"></ion-spinner>
@@ -168,6 +172,7 @@
       }
     }
   </div>
+  }
 
   <div class="bottom-spacer"></div>
 </ion-content>

@@ -19,6 +19,7 @@ import { LoggerService } from '../../core/services/logger.service';
 import { RecoveryService } from '../../core/services/recovery.service';
 import { ReliquatService } from '../../core/services/reliquat.service';
 import { ClientReliquat, RecoveryPlan } from '../../models/reliquat.model';
+import { FeatureFlagService, FeatureFlags } from '../../core/services/feature-flag.service';
 
 interface RecoveryViewModel {
   client: Client | null;
@@ -53,6 +54,9 @@ export class RecoveryPage implements OnInit, OnDestroy {
   useReliquat: boolean = true;
   keepReliquat: boolean = true;
 
+  // Expose FeatureFlags to the template
+  public featureFlags = FeatureFlags;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -64,7 +68,8 @@ export class RecoveryPage implements OnInit, OnDestroy {
     private log: LoggerService,
     private cdr: ChangeDetectorRef,
     private recoveryService: RecoveryService,
-    private reliquatService: ReliquatService
+    private reliquatService: ReliquatService,
+    public featureFlagService: FeatureFlagService
   ) { }
 
   ngOnInit() {
@@ -97,8 +102,10 @@ export class RecoveryPage implements OnInit, OnDestroy {
       .subscribe(async client => {
         if (client) {
           this.store.dispatch(RecoveryActions.loadClientCredits({ clientId: client.id }));
-          this.clientReliquat = await this.reliquatService.getReliquatForClient(client.id);
-          this.updateRecoveryPlan();
+          if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
+            this.clientReliquat = await this.reliquatService.getReliquatForClient(client.id);
+            this.updateRecoveryPlan();
+          }
           this.cdr.markForCheck();
         } else {
           this.clientReliquat = null;
@@ -110,7 +117,9 @@ export class RecoveryPage implements OnInit, OnDestroy {
     this.store.select(RecoverySelectors.selectSelectedCredit)
       .pipe(takeUntil(this.destroy$))
       .subscribe(credit => {
-        this.updateRecoveryPlan();
+        if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
+          this.updateRecoveryPlan();
+        }
       });
 
     this.setupActionListeners();
@@ -151,12 +160,10 @@ export class RecoveryPage implements OnInit, OnDestroy {
         this.recoveryAmount = 0;
         this.receivedAmount = 0;
         this.recoveryPlan = null;
-        if (vm.client) {
+        if (vm.client && this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
           this.clientReliquat = await this.reliquatService.getReliquatForClient(vm.client.id);
         }
         this.cdr.markForCheck();
-        // On ne vide PAS tout l'état (clearRecoveryState) pour ne pas perdre la liste des recouvrements
-        // Si besoin de désélectionner le client, on peut le faire ici, mais resetRecoveryForm est souvent suffisant
       }, 1000);
     });
   }
@@ -180,13 +187,18 @@ export class RecoveryPage implements OnInit, OnDestroy {
   onAmountChanged(amount: number) {
     this.recoveryAmount = amount;
     this.store.dispatch(RecoveryActions.setRecoveryAmount({ amount }));
-    this.updateRecoveryPlan();
+    if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
+      this.updateRecoveryPlan();
+    }
   }
 
   updateRecoveryPlan() {
+    if (!this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
+      this.recoveryPlan = null;
+      return;
+    }
     this.store.select(RecoverySelectors.selectSelectedCredit).pipe(take(1)).subscribe(credit => {
       if (credit && this.recoveryAmount !== null) {
-        // Le montant reçu est par défaut égal au montant à collecter s'il n'a pas été saisi
         let effectiveReceived = this.receivedAmount > 0 ? this.receivedAmount : this.recoveryAmount;
         let amountCovered = this.recoveryAmount;
 
@@ -195,17 +207,16 @@ export class RecoveryPage implements OnInit, OnDestroy {
 
         if (stake > 0 && totalAvailable > amountCovered) {
           const extraCash = totalAvailable - amountCovered;
-          // Si l'excédent dépasse ou est égal à une mise, on l'ajoute automatiquement au montant à collecter
           if (extraCash >= stake) {
             const extraStakes = Math.floor(extraCash / stake);
             amountCovered += extraStakes * stake;
-            this.recoveryAmount = amountCovered; // Mettre à jour l'UI des pastilles
+            this.recoveryAmount = amountCovered;
           }
         }
 
         this.recoveryPlan = this.reliquatService.computeRecoveryPlan(
-          amountCovered,       // amountCovered (potentiellement auto-incrémenté)
-          effectiveReceived,   // received
+          amountCovered,
+          effectiveReceived,
           this.clientReliquat ? this.clientReliquat.totalAmount : 0,
           this.useReliquat
         );
@@ -219,12 +230,16 @@ export class RecoveryPage implements OnInit, OnDestroy {
 
   onReceivedAmountChanged(amount: number) {
     this.receivedAmount = amount;
-    this.updateRecoveryPlan();
+    if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
+      this.updateRecoveryPlan();
+    }
   }
 
   onUseReliquatChanged(use: boolean) {
     this.useReliquat = use;
-    this.updateRecoveryPlan();
+    if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
+      this.updateRecoveryPlan();
+    }
   }
 
   onKeepReliquatChanged(keep: boolean) {
@@ -236,28 +251,14 @@ export class RecoveryPage implements OnInit, OnDestroy {
       .pipe(withLatestFrom(this.vm$))
       .subscribe(async ([user, vm]) => {
         if (vm.selectedCredit && this.recoveryAmount > 0 && vm.client && user) {
-
-          // Vérifier si un recouvrement existe déjà pour ce client aujourd'hui
           const exists = await this.recoveryService.checkExistingRecoveryForToday(vm.client.id);
-
           if (exists) {
             const alert = await this.alertController.create({
               header: 'Confirmation',
               message: 'Un recouvrement a déjà été effectué pour ce client aujourd\'hui. Voulez-vous vraiment en ajouter un autre ?',
               buttons: [
-                {
-                  text: 'Annuler',
-                  role: 'cancel',
-                  cssClass: 'secondary',
-                  handler: () => {
-                    this.log.log('[RecoveryPage] Recovery cancelled by user due to existing recovery.');
-                  }
-                }, {
-                  text: 'Confirmer',
-                  handler: () => {
-                    this.dispatchCreateRecovery(user, vm);
-                  }
-                }
+                { text: 'Annuler', role: 'cancel', cssClass: 'secondary' },
+                { text: 'Confirmer', handler: () => this.dispatchCreateRecovery(user, vm) }
               ]
             });
             await alert.present();
@@ -269,23 +270,36 @@ export class RecoveryPage implements OnInit, OnDestroy {
   }
 
   private dispatchCreateRecovery(user: any, vm: RecoveryViewModel) {
-    if (vm.selectedCredit && vm.client && this.recoveryPlan) {
-      const isDefaultStake = this.recoveryAmount === vm.selectedCredit.dailyPayment;
-      const recovery: Partial<Recovery> = {
-        amount: this.recoveryAmount,
-        paymentDate: new Date().toISOString(),
-        paymentMethod: 'CASH',
-        distributionId: vm.selectedCredit.id,
-        clientId: vm.client.id,
-        commercialId: user.username,
-        isLocal: true,
-        isSync: false,
-        isDefaultStake: isDefaultStake,
-        reliquatGeneratedAmount: this.keepReliquat ? this.recoveryPlan.reliquatGenerated : 0,
-        reliquatUsedAmount: this.recoveryPlan.reliquatUsed
-      };
-      this.store.dispatch(RecoveryActions.createRecovery({ recovery, distribution: vm.selectedCredit, keepReliquat: this.keepReliquat }));
+    if (!vm.selectedCredit || !vm.client) return;
+
+    const isReliquatEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement);
+    const isDefaultStake = this.recoveryAmount === vm.selectedCredit.dailyPayment;
+
+    const recovery: Partial<Recovery> = {
+      amount: this.recoveryAmount,
+      paymentDate: new Date().toISOString(),
+      paymentMethod: 'CASH',
+      distributionId: vm.selectedCredit.id,
+      clientId: vm.client.id,
+      commercialId: user.username,
+      isLocal: true,
+      isSync: false,
+      isDefaultStake: isDefaultStake,
+    };
+
+    if (isReliquatEnabled && this.recoveryPlan) {
+      recovery.reliquatGeneratedAmount = this.keepReliquat ? this.recoveryPlan.reliquatGenerated : 0;
+      recovery.reliquatUsedAmount = this.recoveryPlan.reliquatUsed;
+    } else {
+      recovery.reliquatGeneratedAmount = 0;
+      recovery.reliquatUsedAmount = 0;
     }
+
+    this.store.dispatch(RecoveryActions.createRecovery({
+      recovery,
+      distribution: vm.selectedCredit,
+      keepReliquat: isReliquatEnabled ? this.keepReliquat : false
+    }));
   }
 
   goBack() {
@@ -295,18 +309,20 @@ export class RecoveryPage implements OnInit, OnDestroy {
   canConfirmRecovery(vm: RecoveryViewModel): boolean {
     const hasBaseValid = !!(vm.client && vm.selectedCredit && this.recoveryAmount > 0);
     if (!hasBaseValid) return false;
-    
-    // Le montant remis DOIT être saisi (> 0)
-    if (this.receivedAmount <= 0) return false;
 
-    if (this.recoveryPlan) {
-      // Le montant remis doit être au moins égal au cashNeeded (espèces attendues)
-      if (this.receivedAmount < this.recoveryPlan.cashNeeded) {
-        return false;
+    if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
+      if (this.receivedAmount <= 0) return false;
+      if (this.recoveryPlan) {
+        if (this.receivedAmount < this.recoveryPlan.cashNeeded) {
+          return false;
+        }
+        return true;
       }
-      return true;
+      return false;
+    } else {
+      // Logique simple sans reliquat : il faut juste un montant
+      return this.recoveryAmount > 0;
     }
-    return false;
   }
 
   trackByCreditId(index: number, credit: Distribution): string {

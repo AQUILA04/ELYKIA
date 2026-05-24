@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -131,6 +131,13 @@ import { RecouvrementFilterComponent } from './credit/recouvrement/components/re
 import { RecouvrementTableComponent } from './credit/recouvrement/components/recouvrement-table/recouvrement-table.component';
 import {NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule} from "ngx-google-analytics";
 import {environment} from "../environments/environment";
+import { AngularFireModule } from '@angular/fire/compat';
+import { AngularFireRemoteConfigModule, DEFAULTS } from '@angular/fire/compat/remote-config';
+import { FeatureFlagService } from './shared/service/feature-flag.service';
+
+export function initializeApp(featureFlagService: FeatureFlagService) {
+  return () => featureFlagService.init();
+}
 
 @NgModule({
   declarations: [
@@ -265,13 +272,29 @@ import {environment} from "../environments/environment";
     // Initialise GA avec votre ID
     NgxGoogleAnalyticsModule.forRoot(environment.gaMeasurementId),
     // Track automatique les changements de routes (pages vues)
-    NgxGoogleAnalyticsRouterModule
+    NgxGoogleAnalyticsRouterModule,
+    AngularFireModule.initializeApp(environment.firebase),
+    AngularFireRemoteConfigModule
   ],
   providers: [
     // --- CORRECTION DES PROVIDERS ---
     { provide: HTTP_INTERCEPTORS, useClass: LicenseInterceptorService, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' }
+    { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      deps: [FeatureFlagService],
+      multi: true
+    },
+    {
+      provide: DEFAULTS,
+      useValue: {
+        stockReturnHistory: false,
+        nextMonthStockCreation: false,
+        endOfMonthAlerts: false
+      }
+    }
   ],
   bootstrap: [AppComponent]
 })

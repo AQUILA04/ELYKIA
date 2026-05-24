@@ -11,6 +11,7 @@ import { ClientService } from 'src/app/client/service/client.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { MonthEndCalculator } from '../../../shared/utils/month-end-calculator';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 
 @Component({
   selector: 'app-stock-request-create',
@@ -38,7 +39,8 @@ export class StockRequestCreateComponent implements OnInit {
     private router: Router,
     private toastr: ToastrService,
     private spinner: NgxSpinnerService,
-    private userService: UserService
+    private userService: UserService,
+    private featureFlagService: FeatureFlagService
   ) {
     this.form = this.fb.group({
       items: [[], Validators.required], // Changed to single control for ArticleSelector
@@ -60,8 +62,9 @@ export class StockRequestCreateComponent implements OnInit {
 
   calculateDaysUntilMonthEnd() {
     this.daysUntilMonthEnd = MonthEndCalculator.getDaysUntilMonthEnd();
-    this.showMonthEndAlert = this.daysUntilMonthEnd <= 5 && this.daysUntilMonthEnd >= 0;
-    this.showNextMonthOption = this.showMonthEndAlert;
+    const isEndOfMonth = this.daysUntilMonthEnd <= 5 && this.daysUntilMonthEnd >= 0;
+    this.showMonthEndAlert = isEndOfMonth && this.featureFlagService.isFeatureEnabled(FeatureFlags.EndOfMonthAlerts);
+    this.showNextMonthOption = isEndOfMonth && this.featureFlagService.isFeatureEnabled(FeatureFlags.NextMonthStockCreation);
   }
 
   onSelectNextMonth(forNext: boolean) {

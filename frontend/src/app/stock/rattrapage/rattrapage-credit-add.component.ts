@@ -12,6 +12,7 @@ import { ClientService } from '../../client/service/client.service';
 import { CommercialStockService } from '../services/commercial-stock.service';
 import { RattrapageCreditService } from '../services/rattrapage-credit.service';
 import { CommercialMonthlyStock } from '../models/commercial-stock.model';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 
 /** Item sélectionné pour la distribution */
 interface SelectedItem {
@@ -33,6 +34,7 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
   isLoading = false;
   loadingMonths = false;
   currentStep = 1;
+  showStockReturnHistory: boolean = false;
 
   // Données
   commercials: any[] = [];
@@ -68,7 +70,8 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private clientService: ClientService,
     private commercialStockService: CommercialStockService,
-    private rattrapageCreditService: RattrapageCreditService
+    private rattrapageCreditService: RattrapageCreditService,
+    private featureFlagService: FeatureFlagService
   ) { }
 
   ngOnInit(): void {
@@ -77,6 +80,8 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
     this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE)
       || this.userService.hasProfile(UserProfile.ADMIN)
       || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
+
+    this.showStockReturnHistory = this.featureFlagService.isFeatureEnabled(FeatureFlags.StockReturnHistory);
 
     this.buildForm();
     this.loadInitialData();
