@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.repository;
 
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.dto.CommercialStockItemDto;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,4 +58,10 @@ public interface CommercialMonthlyStockRepository extends GenericRepository<Comm
             @Param("collector") String collector,
             @Param("currentMonth") int currentMonth,
             @Param("currentYear") int currentYear);
+
+    default CommercialMonthlyStock getCommercialMonthStock(String commercialUsername) {
+        LocalDate currentDate = LocalDate.now();
+        return findByCollectorAndMonthAndYear(commercialUsername, currentDate.getMonthValue(), currentDate.getYear())
+                .orElseThrow(() -> new CustomValidationException("Aucun stock trouvé pour ce commercial ce mois-ci."));
+    }
 }

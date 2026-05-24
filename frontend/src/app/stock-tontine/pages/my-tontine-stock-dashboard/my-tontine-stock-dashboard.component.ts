@@ -131,3 +131,4 @@ export class MyTontineStockDashboardComponent implements OnInit {
     return group.items.reduce((acc: number, item: TontineStock) => acc + ((item.totalQuantity - item.quantityReturned) * item.weightedAverageUnitPrice), 0);
   }
 }
+

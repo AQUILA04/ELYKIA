@@ -213,3 +213,4 @@ export class ClientViewComponent implements OnInit {
     this.loadHistoriquesData();
   }
 }
+

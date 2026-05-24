@@ -52,7 +52,7 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
         if (response.statusCode === 200) {
           this.articles = response.data.content;
         } else {
-          this.alertService.showError('Réponse inattendue du serveur.');
+          this.alertService.toastError(response?.message ?? 'Réponse inattendue du serveur.');
         }
       },
       error: (error) => {

@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy, Cha
 import { Router } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { Store } from '@ngrx/store';
-import { Observable, combineLatest, Subject, BehaviorSubject } from 'rxjs';
+import { Observable, combineLatest, Subject, BehaviorSubject, of } from 'rxjs';
 import { switchMap, take, takeUntil, distinctUntilChanged, map } from 'rxjs/operators';
 import { Commercial } from '../../models/commercial.model';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
@@ -26,6 +26,9 @@ import {
 } from '../../store/kpi/kpi.selectors';
 
 import { LoggerService } from '../../core/services/logger.service';
+import { CashDepositService } from '../../core/services/cash-deposit.service';
+import { HealthCheckService } from '../../core/services/health-check.service';
+import { FeatureFlagService, FeatureFlags } from '../../core/services/feature-flag.service';
 
 Chart.register(...registerables);
 
@@ -69,6 +72,12 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   };
   chartData$!: Observable<any>;
   activePeriod: string = 'month';
+  deposits: any[] = [];
+  isBackendUp: boolean = true;
+  isLoadingDeposits: boolean = false;
+
+  // Expose Feature Flags to the template
+  public featureFlags = FeatureFlags;
 
   private periodFilter$ = new BehaviorSubject<string>('month');
   private destroy$ = new Subject<void>();
@@ -79,7 +88,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private store: Store,
     private log: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private cashDepositService: CashDepositService,
+    private healthCheckService: HealthCheckService,
+    public featureFlagService: FeatureFlagService
   ) { }
 
   ngOnInit() {
@@ -91,6 +103,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       takeUntil(this.destroy$),
       distinctUntilChanged()
     ).subscribe(period => {
+      this.log.log('[DashboardPage] Period changed to: ' + period);
       console.log('[DashboardPage] Period changed to:', period);
       this.loadDashboardData(period);
     });
@@ -145,6 +158,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         startDate: startDate,
         endDate: todayEnd
       };
+
+      // Fetch Deposits
+      this.fetchDeposits(startDate, todayEnd, username);
 
       // Dispatch Single Load Action for All KPIs
       this.store.dispatch(KpiActions.loadAllKpi({
@@ -237,9 +253,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
     // Chart Data - Placeholder or Independent Load
     // For now, we return empty data to avoid errors if chart is accessed
-    this.chartData$ = Observable.create((observer: any) => {
-      observer.next({ labels: [], datasets: [] });
-    });
+    // H5 Fix: Observable.create() is removed in RxJS 7+ — use of() instead
+    this.chartData$ = of({ labels: [], datasets: [] });
 
     this.vm$.pipe(takeUntil(this.destroy$)).subscribe(vm => {
       this.vm = vm;
@@ -267,6 +282,36 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       case 'year': return new Date(now.getFullYear(), 0, 1);
       default: return new Date(now.getFullYear(), now.getMonth(), 1);
     }
+  }
+
+  private fetchDeposits(startDate: string, endDate: string, commercialUsername: string) {
+    this.isLoadingDeposits = true;
+    this.cdr.markForCheck();
+
+    this.healthCheckService.pingBackend().subscribe(isUp => {
+      this.isBackendUp = isUp;
+      if (isUp) {
+        this.cashDepositService.getDeposits(startDate, endDate, commercialUsername).subscribe({
+          next: (res) => {
+            this.deposits = res.content || [];
+            this.isLoadingDeposits = false;
+            this.cdr.markForCheck();
+          },
+          error: (err) => {
+            this.log.log('[DashboardPage] Error fetching deposits ' + err.message);
+            console.error(err);
+            this.deposits = [];
+            this.isLoadingDeposits = false;
+            this.cdr.markForCheck();
+          }
+        });
+      } else {
+        this.log.log('[DashboardPage] Backend is down, not fetching deposits.');
+        this.deposits = [];
+        this.isLoadingDeposits = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   // Navigation

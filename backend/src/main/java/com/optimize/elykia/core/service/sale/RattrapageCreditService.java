@@ -16,6 +16,7 @@ import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
 import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -37,10 +38,16 @@ public class RattrapageCreditService {
     private final CreditRepository creditRepository;
     private final ClientService clientService;
     private CommercialStockMovementService commercialStockMovementService;
+    private BusinessMetricsPublisher metricsPublisher;
 
     @org.springframework.beans.factory.annotation.Autowired
     public void setCommercialStockMovementService(CommercialStockMovementService commercialStockMovementService) {
         this.commercialStockMovementService = commercialStockMovementService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
+        this.metricsPublisher = metricsPublisher;
     }
 
     /**
@@ -77,6 +84,9 @@ public class RattrapageCreditService {
         // 5. Persister le crédit
         creditRepository.save(credit);
         log.info("[RattrapageCreditService] Crédit RAT persisté id={} reference={}", credit.getId(), credit.getReference());
+        if (metricsPublisher != null) {
+            metricsPublisher.rattrapageCreated(dto.getCommercial());
+        }
 
         // 6. Mettre à jour le stock source et enregistrer les mouvements
         updateSourceStock(dto, sourceStock, credit);
@@ -128,6 +138,9 @@ public class RattrapageCreditService {
 
             // Vérifier que la quantité demandée ne dépasse pas quantityRemaining
             if (itemDto.getQuantity() > stockItem.getQuantityRemaining()) {
+                if (metricsPublisher != null) {
+                    metricsPublisher.rattrapageStockInsufficient(dto.getCommercial());
+                }
                 String articleName = stockItem.getArticle() != null
                         ? stockItem.getArticle().getCommercialName()
                         : "Article id=" + itemDto.getArticleId();

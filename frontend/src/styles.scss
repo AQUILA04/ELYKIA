@@ -1,186 +1,531 @@
 @import "@ng-select/ng-select/themes/default.theme.css";
-
 @import "~material-icons/iconfont/material-icons.css";
 
-// ====================================================
-// Design System — Article Detail Page
-// Variables disponibles globalement pour tous les composants
-// ====================================================
+// ============================================================
+// ELYKIA — Global Design System
+// Glassmorphism + Navy palette
+// ============================================================
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+// ── CSS Custom Properties ────────────────────────────────────
 :root {
-  // Palette principale
-  --ad-navy: #0a2472;
-  --ad-navy-mid: #1a3a8f;
-  --ad-navy-light: #e8edf8;
-  --ad-navy-pale: #f2f5fc;
-  --ad-accent: #1565c0;
-  --ad-teal: #00897b;
-  --ad-amber: #f59e0b;
-  --ad-red: #e53935;
-  --ad-green: #2e7d32;
+  // Core palette
+  --navy-900:  #071540;
+  --navy-800:  #0d2055;
+  --navy-700:  #0d2b6e;
+  --navy-600:  #163a8f;
+  --navy-500:  #1e4fc2;
+  --navy-400:  #3b6fd4;
+  --navy-100:  #c8d8f5;
+  --navy-50:   #e8eef8;
+  --navy-pale: #f0f4fb;
 
-  // Fonds sémantiques
-  --ad-green-bg: #e8f5e9;
-  --ad-amber-bg: #fff8e1;
-  --ad-red-bg: #ffebee;
-  --ad-info: #1565c0;
-  --ad-info-bg: #e3f2fd;
+  --teal-500:  #00c2a8;
+  --teal-400:  #00d9bc;
+  --teal-300:  #6ee7e0;
+  --teal-100:  #ccf5f1;
 
-  // Texte
-  --ad-text-primary: #0d1b3e;
-  --ad-text-secondary: #4a5568;
-  --ad-text-muted: #94a3b8;
+  --amber-500: #f59e0b;
+  --amber-400: #fbbf24;
 
-  // Bordures & fond
-  --ad-border: #e2e8f0;
-  --ad-border-dark: #cbd5e1;
-  --ad-bg-page: #f7f9fc;
-  --ad-bg-card: #ffffff;
+  --rose-500:  #f43f5e;
+  --rose-400:  #fb7185;
 
-  // Coins & Ombres
-  --ad-radius: 12px;
-  --ad-radius-sm: 8px;
-  --ad-shadow: 0 1px 3px rgba(10, 36, 114, .06), 0 4px 16px rgba(10, 36, 114, .06);
-  --ad-shadow-md: 0 2px 8px rgba(10, 36, 114, .10), 0 8px 24px rgba(10, 36, 114, .08);
+  --violet-500: #7c3aed;
+
+  // Semantic
+  --color-success:  #00c2a8;
+  --color-warning:  #f59e0b;
+  --color-danger:   #f43f5e;
+  --color-info:     #1e4fc2;
+
+  --color-success-bg: rgba(0,194,168,0.1);
+  --color-warning-bg: rgba(245,158,11,0.1);
+  --color-danger-bg:  rgba(244,63,94,0.1);
+  --color-info-bg:    rgba(30,79,194,0.1);
+
+  // Text
+  --text-primary:   #0d1b3e;
+  --text-secondary: #4a5568;
+  --text-muted:     #94a3b8;
+
+  // Surfaces
+  --surface-white:  #ffffff;
+  --surface-page:   #f0f4fb;
+  --border-light:   #e2e8f0;
+  --border-medium:  #cbd5e1;
+
+  // Glass
+  --glass-bg:       rgba(255,255,255,0.06);
+  --glass-border:   rgba(255,255,255,0.12);
+  --glass-hover:    rgba(255,255,255,0.10);
+  --glass-active-bg: rgba(13,43,110,0.75);
+
+  // Layout
+  --sidebar-width:  260px;
+  --header-height:  64px;
+
+  // Typography
+  --font-main: 'Plus Jakarta Sans', sans-serif;
+
+  // Shadows
+  --shadow-sm:   0 1px 3px rgba(10,36,114,.06), 0 2px 8px rgba(10,36,114,.06);
+  --shadow-md:   0 2px 8px rgba(10,36,114,.10), 0 8px 24px rgba(10,36,114,.08);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 8px rgba(0,194,168,0.6);
+
+  // Radius
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
 }
 
-body,
-html {
+// ── Reset & Base ─────────────────────────────────────────────
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  height: 100%;
-  width: 100%;
-}
-
-.page-wrapper {
-  display: flex;
-}
-
-.sidebar {
-  width: 250px;
-  /* Ajuster la largeur selon vos besoins */
-  height: 100vh;
-  position: fixed;
-}
-
-.content {
-  margin-left: 250px;
-  /* Doit correspondre à la largeur de la barre latérale */
-  padding: 20px;
-  width: calc(100% - 250px);
-  /* Réduire la largeur de la barre latérale */
-}
-
-.table-container {
-  margin-top: 20px;
-}
-
-.add-button {
-  display: block;
-  margin-left: auto;
-  margin-bottom: 20px;
-  padding: 10px 20px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #45a049;
-  }
 }
 
 html,
 body {
   height: 100%;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 body {
-  margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: var(--font-main);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--surface-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-input.ng-invalid {
-  border-color: #f44336;
-  /* Rouge */
+a { text-decoration: none; }
+ul { list-style: none; }
+button { font-family: inherit; cursor: pointer; }
+img { display: block; max-width: 100%; }
+
+// ── Page Layout ──────────────────────────────────────────────
+.page-wrapper {
+  display: flex;
+  min-height: 100vh;
 }
 
+// Background scene for glassmorphism pages (login, etc.)
+.glass-scene {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: -1;
 
-.error-text {
-  color: #f44336;
-  /* Rouge */
-  font-size: 0.875rem;
+  &::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,194,168,0.15) 0%, transparent 70%);
+    top: -120px; left: -120px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(30,79,194,0.18) 0%, transparent 70%);
+    bottom: -80px; right: 40px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
 }
 
+// ── Content Area ─────────────────────────────────────────────
+.body-wrapper {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content {
+  padding: 28px;
+  flex: 1;
+}
+
+// ── Glass Utilities ──────────────────────────────────────────
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-card {
+  background: var(--surface-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+// ── Typography ───────────────────────────────────────────────
+h1 { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+h2 { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+h4 { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+.text-muted    { color: var(--text-muted); }
+.text-secondary { color: var(--text-secondary); }
+
+// ── Badges & Status ──────────────────────────────────────────
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+
+  &::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  &.badge-success { background: var(--color-success-bg); color: #00a896; }
+  &.badge-warning { background: var(--color-warning-bg); color: #d97706; }
+  &.badge-danger  { background: var(--color-danger-bg);  color: var(--rose-500); }
+  &.badge-info    { background: var(--color-info-bg);    color: var(--navy-500); }
+
+  // Legacy badge styles (kept for compatibility)
+  &.badge-primary   { background-color: var(--navy-700); color: white; }
+  &.badge-secondary { background-color: #6c757d; color: white; }
+}
+
+// ── Buttons ──────────────────────────────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-main);
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+  &.btn-primary {
+    background: var(--navy-700);
+    color: white;
+    &:hover { background: var(--navy-600); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  }
+
+  &.btn-teal {
+    background: var(--teal-500);
+    color: white;
+    &:hover { background: #00a896; transform: translateY(-1px); }
+  }
+
+  &.btn-outline {
+    background: transparent;
+    color: var(--navy-700);
+    border: 1px solid var(--border-medium);
+    &:hover { background: var(--navy-pale); }
+  }
+
+  &.btn-danger {
+    background: var(--rose-500);
+    color: white;
+    &:hover { background: #d1334f; }
+  }
+
+  &.btn-success {
+    background: var(--color-success);
+    color: white;
+    &:hover { background: #00a896; }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+}
+
+// Legacy compatibility
+.validate,
+.start {
+  @extend .btn;
+  @extend .btn-primary;
+}
+
+.add-button {
+  @extend .btn;
+  @extend .btn-teal;
+  margin-left: auto;
+  margin-bottom: 20px;
+}
+
+// ── Tables ───────────────────────────────────────────────────
+.elykia-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  thead tr {
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  thead th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+    &:hover { background: var(--navy-pale); }
+    &:last-child { border-bottom: none; }
+  }
+
+  tbody td {
+    padding: 13px 16px;
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+}
+
+// Legacy table compatibility
+.article-table { @extend .elykia-table; }
+
+// ── Form Elements ────────────────────────────────────────────
+.form-control,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: var(--font-main);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--surface-white);
+  color: var(--text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+
+  &::placeholder { color: var(--text-muted); }
+
+  &:focus {
+    border-color: var(--navy-400);
+    box-shadow: 0 0 0 3px rgba(30,79,194,0.12);
+  }
+
+  &.ng-invalid.ng-touched {
+    border-color: var(--rose-500);
+    box-shadow: 0 0 0 3px rgba(244,63,94,0.1);
+  }
+}
+
+.error-text,
+.error-message {
+  color: var(--rose-500);
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+mat-error {
+  color: var(--rose-500);
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+// ── Page Sections ────────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+
+  .page-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+}
+
+.table-container {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+// ── Header Fixed ─────────────────────────────────────────────
+.header-fixed {
+  position: sticky;
+  top: 0;
+  background: var(--surface-white);
+  padding: 10px 0;
+  z-index: 100;
+}
+
+// ── Layout helpers ───────────────────────────────────────────
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  position: fixed;
+  top: 0; left: 0;
+}
+
+.content {
+  margin-left: var(--sidebar-width);
+  padding: 20px;
+  width: calc(100% - var(--sidebar-width));
+}
+
+// ── SweetAlert2 Custom Theme ─────────────────────────────────
+.custom-swal-popup {
+  border-radius: var(--radius-lg) !important;
+  padding: 28px !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
+  font-family: var(--font-main) !important;
+}
+
+.custom-swal-title {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+}
+
+.custom-swal-html-container {
+  font-size: 14px !important;
+  color: var(--text-secondary) !important;
+  line-height: 1.6 !important;
+}
+
+.custom-swal-confirm-button {
+  background: var(--navy-700) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 22px !important;
+  font-family: var(--font-main) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+
+  &:hover { background: var(--navy-600) !important; }
+
+  &.btn-primary { background: var(--navy-700) !important; }
+  &.btn-success { background: var(--teal-500) !important; }
+  &.btn-danger  { background: var(--rose-500) !important; }
+  &.btn-warning { background: var(--amber-500) !important; color: #1a1a1a !important; }
+}
+
+.custom-swal-cancel-button {
+  background: #f1f5f9 !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 22px !important;
+  font-family: var(--font-main) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+
+  &:hover { background: var(--border-light) !important; }
+}
+
+.swal2-icon {
+  &.swal2-success {
+    border-color: var(--teal-500) !important;
+    .swal2-success-line-tip,
+    .swal2-success-line-long { background: var(--teal-500) !important; }
+  }
+  &.swal2-error {
+    border-color: var(--rose-500) !important;
+    .swal2-x-mark-line-left,
+    .swal2-x-mark-line-right { background: var(--rose-500) !important; }
+  }
+  &.swal2-warning { border-color: var(--amber-500) !important; color: var(--amber-500) !important; }
+  &.swal2-question { border-color: var(--navy-500) !important; color: var(--navy-500) !important; }
+}
+
+// ── Details Container (legacy) ────────────────────────────────
 .details-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
-  background-color: white;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  padding: 24px;
+  background: var(--surface-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 
   h1 {
     text-align: center;
     margin-bottom: 20px;
-    color: #003366;
-    position: -webkit-sticky;
-    /* For Safari */
+    color: var(--navy-700);
+    font-size: 18px;
     position: sticky;
     top: 0;
-    background-color: white;
-    padding: 10px;
+    background: var(--surface-white);
+    padding: 12px;
     z-index: 10;
   }
 
-  .details-content {
-    display: flex;
-    flex-direction: column;
-    gap: 35px;
-  }
+  .details-content { display: flex; flex-direction: column; gap: 0; }
 
   .details-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--border-light);
+
+    &:last-child { border-bottom: none; }
 
     .details-label {
-      font-weight: bold;
-      color: #003366;
-      flex: 2;
-      text-align: start;
-      margin-right: 30px;
-
-      &::after {
-        content: ":";
-        align-items: center;
-        margin-left: 120px;
-
-      }
-    }
-
-    .required {
-      color: red;
-      margin-left: 0.25em;
+      font-weight: 600;
+      color: var(--navy-700);
+      flex: 1;
     }
 
     .details-value {
       flex: 2;
-      color: #333;
-      text-align: left auto;
-      margin-left: 10px;
+      color: var(--text-secondary);
+      text-align: left;
     }
   }
-}
-
-.form-actions {
-  margin-top: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .form-actions {
@@ -192,642 +537,157 @@ input.ng-invalid {
 
 .link-back,
 .link-edit {
-  color: #003366;
-  text-decoration: none;
-  font-size: 14px;
+  color: var(--navy-700);
+  font-size: 13px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  // font-weight: bold;
+  gap: 4px;
+  transition: color 0.2s;
 
+  &:hover { color: var(--navy-500); text-decoration: underline; }
+  i { margin-right: 4px; }
 }
 
-.link-back i,
-.link-edit i {
-  margin-right: 5px;
+// ── Ng-Select override ────────────────────────────────────────
+.ng-select.ng-select-single .ng-select-container {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  font-size: 13px;
+  font-family: var(--font-main);
 }
 
-.link-back:hover,
-.link-edit:hover {
-  text-decoration: underline;
+// ── Material Paginator ────────────────────────────────────────
+mat-paginator {
+  background: transparent;
+  font-family: var(--font-main);
+  font-size: 13px;
 }
 
-.badge {
-  padding: 0.5em 0.75em;
-  border-radius: 0.25rem;
-  font-size: 0.875em;
-  display: inline-block;
-}
-
-.badge-success {
-  background-color: #0c4e1b;
-  color: white;
-}
-
-.badge-primary {
-  background-color: #003366;
-  color: white;
-}
-
-.badge-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.badge-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.validate,
-.start {
-  color: white;
-  background-color: #003366;
-  /* Même couleur de fond que les autres boutons */
-  border: none;
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 15px;
-  cursor: pointer;
+// ── Responsive Controls ───────────────────────────────────────
+.responsive-controls {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 
-  mat-icon {
-    font-size: 20px;
-    margin-right: 5px;
-    color: white;
+  .form-control { flex: 1; min-width: 200px; }
+
+  .button-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 }
 
-.header-fixed {
-  position: -webkit-sticky;
-  /* For Safari */
-  position: sticky;
-  top: 0;
-  background-color: #fff;
-  /* Couleur de fond pour s'assurer que le texte reste lisible */
-  z-index: 1000;
-  /* Assure que l'en-tête reste au-dessus du contenu défilant */
-  padding: 10px;
-
-}
-
-// Styles pour le modal de déconnexion personnalisé
-.custom-swal-popup {
-  border-radius: 15px !important;
-  padding: 25px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
-}
-
-.custom-swal-title {
-  font-size: 24px !important; // La taille est déjà dans le HTML, mais peut être ajustée ici aussi
-  font-weight: 600 !important;
-  color: #2c3e50 !important; // Une couleur de titre plus foncée et moderne
-  margin-bottom: 10px !important;
-}
-
-.custom-swal-html-container {
-  font-size: 16px !important;
-  color: #555e68 !important; // Couleur de texte plus douce
-  margin-top: 0 !important;
-  margin-bottom: 25px !important;
-}
-
-// Style de base pour les boutons (si vous n'utilisez pas Bootstrap ou similaire)
-.btn {
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  margin: 0 5px; // Ajoute un peu d'espace entre les boutons
-}
-
-.custom-swal-confirm-button {
-  background-color: #3498db !important; // Bleu moderne
-  color: white !important;
-  border: 1px solid #3498db !important;
-
-  &:hover {
-    background-color: #2980b9 !important;
-    border-color: #2980b9 !important;
-  }
-}
-
-.custom-swal-cancel-button {
-  background-color: #e8e8e8 !important; // Gris clair pour annuler
-  color: #333 !important;
-  border: 1px solid #d4d4d4 !important;
-
-  &:hover {
-    background-color: #d4d4d4 !important;
-  }
-}
-
-// Ajustement pour l'icône si vous utilisez une icône standard
-.swal2-icon.swal2-question {
-  border-color: #3498db !important;
-  color: #3498db !important;
-}
-
-.swal2-icon.swal2-warning {
-  border-color: #f1c40f !important;
-  color: #f1c40f !important;
-}
-
-// Si vous utilisez une image personnalisée, vous pouvez styler le conteneur de l'image
-.swal2-image {
-  margin: 20px auto !important;
-  // Ajoutez d'autres styles si nécessaire
-}
-
-
-// Elykia Modern Modal Styles
-.elykia-modal-container {
-  .elykia-modal-popup {
-    border-radius: 15px; // Rounded corners for the modal
-    padding: 25px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-
-    .elykia-modal-title {
-      font-size: 1.5em;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 15px;
-    }
-
-    .elykia-modal-html-container {
-      font-size: 1em;
-      color: #555;
-      line-height: 1.6;
-      margin-bottom: 25px;
-    }
-
-    // General button styling (can be overridden by specific types)
-    .elykia-modal-confirm-button,
-    .elykia-modal-cancel-button {
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-size: 1em;
-      font-weight: 500;
-      margin: 0 5px;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-
-      &:hover {
-        transform: translateY(-2px);
-      }
-
-      &:active {
-        transform: translateY(0);
-      }
-    }
-
-    // Specific button styles
-    .elykia-button-primary {
-      background-color: #007bff; // Example primary blue
-      color: white;
-
-      &:hover {
-        background-color: darken(#007bff, 10%);
-      }
-    }
-
-    .elykia-button-secondary {
-      background-color: #6c757d; // Example secondary gray
-      color: white;
-
-      &:hover {
-        background-color: darken(#6c757d, 10%);
-      }
-    }
-
-    .elykia-button-success {
-      background-color: #28a745; // Green for success
-      color: white;
-
-      &:hover {
-        background-color: darken(#28a745, 10%);
-      }
-    }
-
-    .elykia-button-error {
-      background-color: #dc3545; // Red for error
-      color: white;
-
-      &:hover {
-        background-color: darken(#dc3545, 10%);
-      }
-    }
-
-    .elykia-button-warning {
-      background-color: #ffc107; // Yellow for warning
-      color: #212529; // Dark text for better contrast on yellow
-
-      &:hover {
-        background-color: darken(#ffc107, 10%);
-      }
-    }
-  }
-
-  // Icon styling (SweetAlert2 uses ::before for icons)
-  .elykia-success-modal {
-    .swal2-icon.swal2-success {
-      border-color: #28a745 !important;
-
-      .swal2-success-line-tip,
-      .swal2-success-line-long {
-        background-color: #28a745 !important;
-      }
-    }
-  }
-
-  .elykia-error-modal {
-    .swal2-icon.swal2-error {
-      border-color: #dc3545 !important;
-
-      .swal2-x-mark-line-left,
-      .swal2-x-mark-line-right {
-        background-color: #dc3545 !important;
-      }
-    }
-  }
-
-  .elykia-warning-modal {
-    .swal2-icon.swal2-warning {
-      border-color: #ffc107 !important;
-      color: #ffc107 !important; // For the '!' symbol
-    }
-  }
-
-  .elykia-confirmation-modal {
-    .swal2-icon.swal2-question {
-      border-color: #007bff !important;
-      color: #007bff !important;
-    }
-  }
-}
-
-// Ensure SweetAlert2 icons are styled correctly with custom classes
-.swal2-icon {
-  &.swal2-success {
-    border-color: #a5dc86;
-
-    .swal2-success-line-tip,
-    .swal2-success-line-long {
-      background-color: #a5dc86;
-    }
-  }
-
-  &.swal2-error {
-    border-color: #f27474;
-
-    .swal2-x-mark-line-left,
-    .swal2-x-mark-line-right {
-      background-color: #f27474;
-    }
-  }
-
-  &.swal2-warning {
-    border-color: #f8bb86;
-    color: #f8bb86;
-  }
-
-  &.swal2-question {
-    border-color: #87adbd; // Default question icon color
-    color: #87adbd;
-  }
-}
-
-// Styles pour le modal de déconnexion personnalisé (et maintenant AlertService)
-.custom-swal-popup {
-  border-radius: 15px !important;
-  padding: 25px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
-}
-
-.custom-swal-title {
-  font-size: 22px !important; // Harmonisé avec confirmLogout
-  font-weight: 600 !important;
-  color: #333 !important; // Harmonisé avec confirmLogout
-  margin-bottom: 10px !important;
-}
-
-.custom-swal-html-container {
-  font-size: 16px !important; // Harmonisé avec confirmLogout
-  color: #555 !important; // Harmonisé avec confirmLogout
-  margin-top: 0 !important;
-  margin-bottom: 25px !important;
-  line-height: 1.6;
-}
-
-// Style de base pour les boutons (si vous n'utilisez pas Bootstrap ou similaire)
-// Ces classes .btn peuvent déjà exister si vous utilisez un framework CSS.
-// Assurez-vous qu'elles ne créent pas de conflit ou ajustez-les.
-.btn {
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  margin: 0 5px; // Ajoute un peu d'espace entre les boutons
-}
-
-.custom-swal-confirm-button {
-  // Styles de base pour le bouton de confirmation, la couleur sera surchargée par .btn-primary, .btn-success, etc.
-  color: white !important;
-  border: 1px solid transparent !important; // Rendre la bordure transparente par défaut
-
-  &.btn-primary {
-    background-color: #3498db !important; // Bleu moderne (confirmLogout)
-    border-color: #3498db !important;
-
-    &:hover {
-      background-color: #2980b9 !important;
-      border-color: #2980b9 !important;
-    }
-  }
-
-  &.btn-success {
-    background-color: #28a745 !important; // Vert pour succès
-    border-color: #28a745 !important;
-
-    &:hover {
-      background-color: darken(#28a745, 10%) !important;
-      border-color: darken(#28a745, 10%) !important;
-    }
-  }
-
-  &.btn-danger {
-    background-color: #dc3545 !important; // Rouge pour erreur
-    border-color: #dc3545 !important;
-
-    &:hover {
-      background-color: darken(#dc3545, 10%) !important;
-      border-color: darken(#dc3545, 10%) !important;
-    }
-  }
-
-  &.btn-warning {
-    background-color: #ffc107 !important; // Jaune pour avertissement
-    border-color: #ffc107 !important;
-    color: #212529 !important; // Texte foncé pour contraste sur jaune
-
-    &:hover {
-      background-color: darken(#ffc107, 10%) !important;
-      border-color: darken(#ffc107, 10%) !important;
-    }
-  }
-}
-
-.custom-swal-cancel-button {
-  background-color: #e8e8e8 !important; // Gris clair pour annuler (confirmLogout)
-  color: #333 !important;
-  border: 1px solid #d4d4d4 !important;
-
-  &:hover {
-    background-color: #d4d4d4 !important;
-  }
-}
-
-// Ajustement pour les icônes SweetAlert2 pour correspondre aux couleurs des boutons
-.swal2-icon {
-  &.swal2-success {
-    border-color: #28a745 !important;
-
-    .swal2-success-line-tip,
-    .swal2-success-line-long {
-      background-color: #28a745 !important;
-    }
-  }
-
-  &.swal2-error {
-    border-color: #dc3545 !important;
-
-    .swal2-x-mark-line-left,
-    .swal2-x-mark-line-right {
-      background-color: #dc3545 !important;
-    }
-  }
-
-  &.swal2-warning {
-    border-color: #ffc107 !important;
-    color: #ffc107 !important;
-  }
-
-  &.swal2-question {
-    border-color: #3498db !important; // Bleu pour question (confirmLogout)
-    color: #3498db !important;
-  }
-}
-
-// Supprimer les styles .elykia-modal-* car nous utilisons .custom-swal-* maintenant
-/*
-.elykia-modal-container {
-  // ... anciens styles elykia ...
-}
-*/
-
+// ── Responsive Breakpoints ────────────────────────────────────
 @media (max-width: 1199px) {
+  aside.left-sidebar,
   .sidebar {
-    left: -260px;
+    left: -280px;
     transition: left 0.3s ease-in-out;
-    z-index: 1000;
+    z-index: 1040 !important;
+    width: var(--sidebar-width) !important;
+    position: fixed !important;
+    height: 100vh !important;
   }
 
+  aside.left-sidebar.show-sidebar,
   .sidebar.show-sidebar {
     left: 0;
   }
 
-  /* Adjust content margin on small screens to prevent empty space */
+  body.sidebar-open::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(7,21,64,0.6);
+    z-index: 1030;
+  }
+
+  .body-wrapper,
   .content {
     margin-left: 0 !important;
     width: 100% !important;
   }
 
-  /* Overlay when sidebar is open could be added here */
-  .sidebar.show-sidebar+.content {
-    /* Optional: dim content */
+  .app-header { width: 100% !important; }
+  .close-btn { display: block !important; }
+  .page-wrapper { width: 100% !important; }
+}
+
+@media (max-width: 768px) {
+  .main-content { padding: 16px; }
+
+  .responsive-controls {
+    flex-direction: column;
+    align-items: stretch;
+
+    .form-control { width: 100%; }
+
+    .button-group {
+      width: 100%;
+      button { flex: 1 1 auto; }
+    }
+  }
+
+  mat-paginator {
+    width: 100% !important;
+    overflow-x: auto !important;
   }
 }
 
-@media (min-width: 1200px) {
-  .sidebar {
-    left: 0;
-  }
-}
-
-/* Responsive Cards specific layout */
+// ── Mobile Table Cards ────────────────────────────────────────
 @media screen and (max-width: 1024px) {
   .mobile-responsive {
     border: 0 !important;
     display: block !important;
     width: 100% !important;
-    background-color: transparent !important;
+    background: transparent !important;
     box-shadow: none !important;
-  }
 
-  .mobile-responsive thead {
-    border: none !important;
-    clip: rect(0 0 0 0) !important;
-    height: 1px !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    padding: 0 !important;
-    position: absolute !important;
-    width: 1px !important;
-  }
+    thead {
+      clip: rect(0 0 0 0);
+      height: 1px; width: 1px;
+      margin: -1px; overflow: hidden;
+      padding: 0; position: absolute;
+    }
 
-  .mobile-responsive tbody,
-  .mobile-responsive tr {
-    display: block !important;
-    width: 100% !important;
-  }
+    tbody, tr { display: block !important; width: 100% !important; }
 
-  .mobile-responsive tr {
-    border-bottom: 2px solid #ddd !important;
-    margin-bottom: 1em !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
-    border-radius: 8px !important;
-    overflow: hidden !important;
-    background-color: #fff !important;
-    padding: 0 !important;
-  }
+    tr {
+      border: 1px solid var(--border-light) !important;
+      border-radius: var(--radius-md) !important;
+      margin-bottom: 12px !important;
+      overflow: hidden !important;
+      background: var(--surface-white) !important;
+      box-shadow: var(--shadow-sm) !important;
+      padding: 0 !important;
+    }
 
-  .mobile-responsive td {
-    border-bottom: 1px solid #eee !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    font-size: 0.9em !important;
-    padding: 12px 16px !important;
-    text-align: right !important;
-  }
+    td {
+      border-bottom: 1px solid #f1f5f9 !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      font-size: 13px !important;
+      padding: 12px 16px !important;
+      text-align: right !important;
 
-  .mobile-responsive td[data-label]::before {
-    content: attr(data-label) !important;
+      &[data-label]::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--navy-700);
+        text-align: left;
+        flex-basis: 45%;
+        min-width: 45%;
+      }
 
-    font-weight: bold !important;
-    text-transform: uppercase !important;
-    color: #003366 !important;
-    margin-right: 15px !important;
-    text-align: left !important;
-    flex-basis: 40% !important;
-    min-width: 40% !important;
-  }
-
-  .mobile-responsive td:last-child {
-    border-bottom: 0 !important;
-  }
-
-  /* Action buttons container in mobile table cards */
-  .mobile-responsive td .button-group-cell,
-  .mobile-responsive td button {
-    display: inline-flex !important;
-    justify-content: flex-end !important;
-    margin-left: auto !important;
-  }
-
-
-  /* Adjust Search bars and top controls on mobile */
-  .responsive-controls {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
-  }
-
-  .responsive-controls .form-control,
-  .responsive-controls input.w-50 {
-    width: 100% !important;
-  }
-
-  .responsive-controls .button-group {
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: flex-start !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-  }
-
-  .responsive-controls .button-group button,
-  .responsive-controls > button {
-    flex: 1 1 auto;
-    font-size: 0.85em !important;
-    padding: 6px 12px !important;
-    margin: 0 !important;
-  }
-
-  .responsive-controls .button-group button mat-icon,
-  .responsive-controls > button mat-icon {
-    font-size: 18px !important;
-  }
-
-  /* Fix paginator width on mobile */
-  mat-paginator {
-    width: 100% !important;
-    overflow-x: auto !important;
-  }
-  .mat-paginator-container {
-    padding: 0 8px !important;
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-  }
-  .mat-paginator-range-label {
-    margin: 8px 0 !important;
-  }
-}
-
-/* Sidebar Mobile Specific Fixes */
-@media screen and (max-width: 1199px) {
-  /* Ensure sidebar opens correctly over content on small screens */
-  aside.left-sidebar, .sidebar {
-    left: -270px;
-    transition: left 0.3s ease-in-out;
-    z-index: 1040 !important; /* Above header */
-    width: 270px !important;
-    position: fixed !important;
-    height: 100vh !important;
-    background: #fff;
-    box-shadow: 2px 0 20px rgba(0,0,0,0.1);
-  }
-
-  aside.left-sidebar.show-sidebar, .sidebar.show-sidebar {
-    left: 0;
-  }
-
-  /* Overlay effect when sidebar is open */
-  body.sidebar-open::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0,0,0,0.5);
-    z-index: 1030; /* Below sidebar, above content */
-  }
-
-  /* Close button inside sidebar */
-  .close-btn {
-    display: block !important;
-  }
-
-  /* Adjust main container to full width */
-  .page-wrapper {
-    width: 100% !important;
-  }
-  .body-wrapper {
-    width: 100% !important;
-    margin-left: 0 !important;
-  }
-
-  /* Make app-header adjust correctly */
-  .app-header {
-    width: 100% !important;
+      &:last-child { border-bottom: none !important; }
+    }
   }
 }

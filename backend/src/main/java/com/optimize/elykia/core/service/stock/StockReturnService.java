@@ -17,12 +17,17 @@ import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.optimize.elykia.core.dto.stock.StockReturnDto;
+
+import java.util.Objects;
+import java.util.UUID;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,6 +44,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     private final StockMovementService stockMovementService;
     private CommercialStockMovementService commercialStockMovementService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private BusinessMetricsPublisher metricsPublisher;
 
     public StockReturnService(StockReturnRepository repository,
             ArticlesService articlesService,
@@ -59,6 +65,11 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     @org.springframework.beans.factory.annotation.Autowired
     public void setCommercialStockMovementService(CommercialStockMovementService commercialStockMovementService) {
         this.commercialStockMovementService = commercialStockMovementService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
+        this.metricsPublisher = metricsPublisher;
     }
 
     public StockReturn createReturn(StockReturn stockReturn) {
@@ -86,6 +97,9 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
             }
         }
         repository.save(stockReturn);
+        if (metricsPublisher != null) {
+            metricsPublisher.stockReturnCreated(stockReturn.getCollector());
+        }
         if (currentUser.is(UserProfilConstant.MAGASINIER)) {
             validateReturn(stockReturn.getId());
         }
@@ -99,6 +113,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         }
 
         User currentUser = userService.getCurrentUser();
+        stockReturn.setReceivedDate(LocalDate.now());
 
         // 1. Mettre à jour le stock mensuel du commercial
         updateCommercialMonthlyStock(stockReturn);
@@ -124,6 +139,9 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
 
         stockReturn.setStatus(StockReturnStatus.RECEIVED);
         StockReturn saved = repository.save(stockReturn);
+        if (metricsPublisher != null) {
+            metricsPublisher.stockReturnProcessed(stockReturn.getCollector());
+        }
 
         double totalReturnAmount = stockReturn.getItems().stream()
                 .mapToDouble(item -> item.getQuantity() * item.getArticle().getSellingPrice())
@@ -179,7 +197,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     }
 
     private double updateCommercialMonthlyStock(StockReturn stockReturn) {
-        LocalDate date = LocalDate.now();
+        LocalDate date = Objects.nonNull(stockReturn.getTargetStockDate()) ? stockReturn.getTargetStockDate() : LocalDate.now();
         int month = date.getMonthValue();
         int year = date.getYear();
 
@@ -198,6 +216,9 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                 CommercialMonthlyStockItem item = existingItem.get();
                 // Vérifier que le commercial a assez de stock à retourner
                 if (item.getQuantityRemaining() < returnItem.getQuantity()) {
+                    if (metricsPublisher != null) {
+                        metricsPublisher.stockReturnExceedsStock(stockReturn.getCollector());
+                    }
                     throw new CustomValidationException(
                             "Quantité retournée supérieure au stock restant pour l'article : "
                                     + item.getArticle().getCommercialName());
@@ -239,6 +260,87 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         }
         monthlyStockRepository.save(monthlyStock);
         return totalReturnAmount;
+    }
+
+    @Transactional
+    public StockReturn createHistoriqueReturn(StockReturnDto dto) {
+        CommercialMonthlyStock targetStock = monthlyStockRepository.findById(dto.getTargetStockId())
+                .orElseThrow(() -> new com.optimize.common.entities.exception.ResourceNotFoundException("Stock cible introuvable"));
+
+        if (!targetStock.getCollector().equals(dto.getCommercial())) {
+            throw new CustomValidationException("Le stock cible n'appartient pas à ce commercial.");
+        }
+
+        LocalDate now = LocalDate.now();
+        if (targetStock.getMonth() == now.getMonthValue() && targetStock.getYear() == now.getYear()) {
+            throw new CustomValidationException("Impossible de faire un retour historique sur le mois courant.");
+        }
+
+        StockReturn stockReturn = new StockReturn();
+        stockReturn.setReference(generateReference());
+        stockReturn.setCollector(dto.getCommercial());
+        stockReturn.setTargetStock(targetStock);
+        stockReturn.setReturnDate(dto.getReturnDate());
+        stockReturn.setNote(dto.getNote());
+        stockReturn.setTargetStockDate(targetStock.getCreatedDate().toLocalDate());
+        User currentUser = userService.getCurrentUser();
+        if (currentUser.is(UserProfilConstant.MAGASINIER) || currentUser.is(UserProfilConstant.ADMIN)) {
+            stockReturn.setStatus(StockReturnStatus.RECEIVED); // Automatiquement validé
+            for (StockReturnDto.StockReturnItemDto itemDto : dto.getItems()) {
+                CommercialMonthlyStockItem stockItem = targetStock.getItems().stream()
+                        .filter(i -> i.getId().equals(itemDto.getStockItemId()))
+                        .findFirst()
+                        .orElseThrow(() -> new CustomValidationException("Item de stock introuvable"));
+
+                if (itemDto.getQuantity() > stockItem.getQuantityRemaining()) {
+                    throw new CustomValidationException("Quantité demandée supérieure au stock restant pour l'article : " + stockItem.getArticle().getCommercialName() + ". Dispo: " + stockItem.getQuantityRemaining() + ", Demandé: " + itemDto.getQuantity());
+                }
+
+                StockReturnItem returnItem = new StockReturnItem();
+                returnItem.setStockItem(stockItem);
+                returnItem.setArticle(stockItem.getArticle());
+                returnItem.setQuantity(itemDto.getQuantity());
+                returnItem.setUnitPrice(itemDto.getUnitPrice());
+
+
+                stockReturn.addItem(returnItem);
+
+                Integer quantityBefore = stockItem.getQuantityRemaining();
+                stockItem.setQuantityReturned(stockItem.getQuantityReturned() + itemDto.getQuantity());
+                stockItem.updateRemaining();
+
+                if (commercialStockMovementService != null && stockReturn.getStatus() == StockReturnStatus.RECEIVED) {
+                    commercialStockMovementService.record(
+                            stockItem.getId(),
+                            null,
+                            null,
+                            CommercialStockMovementType.RETURN,
+                            quantityBefore,
+                            itemDto.getQuantity(),
+                            stockItem.getQuantityRemaining(),
+                            stockReturn.getId(),
+                            targetStock.getCollector(),
+                            stockItem.getArticle().getId(),
+                            stockItem.getArticle().getCommercialName()
+                    );
+                }
+
+                monthlyStockItemRepository.save(stockItem);
+            }
+
+            monthlyStockRepository.save(targetStock);
+        } else {
+            stockReturn.setStatus(StockReturnStatus.CREATED); // Doit être validé
+        }
+        return repository.save(stockReturn);
+    }
+
+    private String generateReference() {
+        String ref;
+        do {
+            ref = "RET-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        } while (((StockReturnRepository) repository).existsByReference(ref));
+        return ref;
     }
 
     public Page<StockReturn> getAll(String collector, Pageable pageable) {

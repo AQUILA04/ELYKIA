@@ -92,17 +92,17 @@
 
           <!-- Client sélectionné -->
           <div class="selected-client" *ngIf="orderForm.get('selectedClient')?.value as client">
-            <mat-chip-list>
-              <mat-chip 
-                [removable]="true" 
+            <mat-chip-set>
+              <mat-chip-row
+                [removable]="true"
                 (removed)="clearClientSelection()"
                 color="primary"
                 selected>
                 <mat-icon matChipAvatar>person</mat-icon>
                 {{ client.firstname }} {{ client.lastname }} ({{ client.code }})
                 <mat-icon matChipRemove>cancel</mat-icon>
-              </mat-chip>
-            </mat-chip-list>
+              </mat-chip-row>
+            </mat-chip-set>
           </div>
         </div>
       </mat-card-content>

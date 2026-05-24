@@ -219,3 +219,4 @@ export class ListComponent implements OnInit {
     this.router.navigate(['/add', articleId]);
   }
 }
+

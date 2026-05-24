@@ -1,192 +1,338 @@
-<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+<div *ngIf="isMultiSelectEnabled; else oldUI">
+  <ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
 
-<div class="container">
-  <div class="header-fixed">
-    <div class="d-flex justify-content-between align-items-center">
+  <div class="main-container">
+    <div class="header-fixed">
       <h1>Réconciliation d'inventaire</h1>
       <button class="btn btn-secondary" (click)="back()">
         <mat-icon>arrow_back</mat-icon>
         <span>Retour</span>
       </button>
     </div>
-  </div>
 
-  <div *ngIf="!isGestionnaire" class="alert alert-warning">
-    Vous n'avez pas les permissions nécessaires pour effectuer des réconciliations.
-  </div>
-
-  <div *ngIf="discrepancies.length === 0" class="alert alert-info">
-    Aucun écart à réconcilier pour cet inventaire.
-  </div>
-
-  <div *ngIf="discrepancies.length > 0" class="discrepancies-section">
-    <h3>Articles avec écarts ({{ discrepancies.length }})</h3>
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover">
-        <thead>
-          <tr>
-            <th>Article</th>
-            <th>Quantité Système</th>
-            <th>Quantité Physique</th>
-            <th>Écart</th>
-            <th>Statut</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of discrepancies" 
-              [ngClass]="{'table-danger': item.status === 'DEBT', 'table-warning': item.status === 'SURPLUS'}">
-            <td>{{ item.articleName }} - {{ item.articleMarque }} {{ item.articleModel }}</td>
-            <td>{{ item.systemQuantity }}</td>
-            <td>{{ item.physicalQuantity || 'Non renseigné' }}</td>
-            <td>
-              <span [ngClass]="{'text-danger': item.difference && item.difference < 0, 
-                               'text-success': item.difference && item.difference > 0}">
-                {{ item.difference || 0 }}
-              </span>
-            </td>
-            <td>{{ item.status }}</td>
-            <td>
-              <button class="btn btn-sm btn-primary" (click)="selectItem(item)">
-                <mat-icon>edit</mat-icon>
-                Réconcilier
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Formulaire de réconciliation -->
-  <div *ngIf="selectedItem" class="reconciliation-form mt-4 p-3 border rounded">
-    <h3>Réconciliation - {{ selectedItem.articleName }}</h3>
-    
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <p><strong>Quantité Système:</strong> {{ selectedItem.systemQuantity }}</p>
-        <p><strong>Quantité Physique:</strong> {{ selectedItem.physicalQuantity }}</p>
-        <p><strong>Écart:</strong> 
-          <span [ngClass]="{'text-danger': selectedItem.difference && selectedItem.difference < 0, 
-                           'text-success': selectedItem.difference && selectedItem.difference > 0}">
-            {{ selectedItem.difference || 0 }}
-          </span>
-        </p>
-      </div>
-      <div class="col-md-6">
-        <div class="form-group">
-          <label>Commentaire de réconciliation:</label>
-          <textarea class="form-control" 
-                    rows="3" 
-                    [(ngModel)]="reconciliationComment"
-                    placeholder="Expliquez la raison de la réconciliation..."></textarea>
-        </div>
-      </div>
+    <div *ngIf="!isGestionnaire" class="alert alert-warning">
+      Vous n'avez pas les permissions nécessaires pour effectuer des réconciliations.
     </div>
 
-    <div *ngIf="selectedItem.status === 'DEBT'" class="debt-actions mb-3">
-      <h4>Actions pour dette (quantité système > quantité physique)</h4>
-      <div class="form-check mb-2">
-        <input class="form-check-input" type="checkbox" id="markAsDebt" [(ngModel)]="markAsDebt">
-        <label class="form-check-label" for="markAsDebt">
-          Marquer comme dette du magasinier
-        </label>
-      </div>
-      <div class="form-check mb-2">
-        <input class="form-check-input" type="checkbox" id="cancelDebt" [(ngModel)]="cancelDebt">
-        <label class="form-check-label" for="cancelDebt">
-          Annuler la dette
-        </label>
-      </div>
-      <div class="button-group mt-3">
-        <button class="btn btn-primary" (click)="checkInputErrors()">
-          <mat-icon>search</mat-icon>
-          Vérifier les erreurs de saisie
-        </button>
-        <button class="btn btn-success ml-2" (click)="adjustToPhysical()">
-          <mat-icon>sync</mat-icon>
-          Ajuster au stock physique
-        </button>
-        <button class="btn btn-warning ml-2" (click)="markDebt()">
-          <mat-icon>flag</mat-icon>
-          Marquer comme dette
-        </button>
-        <button class="btn btn-info ml-2" (click)="cancelDebtAction()">
-          <mat-icon>cancel</mat-icon>
-          Annuler la dette
-        </button>
-      </div>
+    <div *ngIf="discrepancies.length === 0" class="alert alert-info">
+      Aucun écart à réconcilier pour cet inventaire.
     </div>
 
-    <div *ngIf="selectedItem.status === 'SURPLUS'" class="surplus-actions mb-3">
-      <h4>Actions pour surplus (quantité système < quantité physique)</h4>
-      <div class="button-group mt-3">
-        <button class="btn btn-success" (click)="markSurplus()">
-          <mat-icon>add_circle</mat-icon>
-          Marquer comme surplus et ajuster
-        </button>
-      </div>
-    </div>
-
-    <!-- Historique des erreurs de saisie -->
-    <div *ngIf="inputErrors.length > 0" class="input-errors-section mt-3">
-      <h5>Erreurs de saisie détectées dans l'historique des sorties:</h5>
-      <div class="table-responsive">
-        <table class="table table-sm table-bordered">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Type</th>
-              <th>Quantité</th>
-              <th>Raison</th>
-              <th>Effectué par</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let error of inputErrors">
-              <td>{{ error.movementDate | date:'dd/MM/yyyy HH:mm' }}</td>
-              <td>{{ error.type }}</td>
-              <td>{{ error.quantity }}</td>
-              <td>{{ error.reason }}</td>
-              <td>{{ error.performedBy }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Historique de réconciliation -->
-    <div class="history-section mt-3">
-      <button class="btn btn-sm btn-info" (click)="loadReconciliationHistory()">
-        <mat-icon>history</mat-icon>
-        Voir l'historique de réconciliation
-      </button>
-      <div *ngIf="showHistory && reconciliationHistory.length > 0" class="mt-2">
-        <h5>Historique:</h5>
+    <div *ngIf="discrepancies.length > 0" class="content-grid">
+      <div class="discrepancies-section">
+        <h3 class="section-title">
+          <mat-icon>list_alt</mat-icon>
+          <span>Articles avec écarts ({{ discrepancies.length }})</span>
+        </h3>
         <div class="table-responsive">
-          <table class="table table-sm table-bordered">
+          <table class="table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Action</th>
-                <th>Type</th>
-                <th>Commentaire</th>
-                <th>Effectué par</th>
+                <th><input type="checkbox" (click)="selectAll()"></th>
+                <th>Article</th>
+                <th>Qté. Système</th>
+                <th>Qté. Physique</th>
+                <th>Écart</th>
+                <th>Statut</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let history of reconciliationHistory">
-                <td>{{ history.performedAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td>{{ history.action }}</td>
-                <td>{{ history.reconciliationType }}</td>
-                <td>{{ history.comment }}</td>
-                <td>{{ history.performedBy }}</td>
+              <tr *ngFor="let item of discrepancies"
+                  (click)="toggleSelection(item)"
+                  [class.table-active]="isSelected(item)">
+                <td><input type="checkbox" [checked]="isSelected(item)"></td>
+                <td>{{ item.articleName }} - {{ item.articleMarque }} {{ item.articleModel }}</td>
+                <td>{{ item.systemQuantity }}</td>
+                <td>{{ item.physicalQuantity || 'N/A' }}</td>
+                <td>
+                  <span [ngClass]="{'text-danger': item.difference && item.difference < 0, 'text-success': item.difference && item.difference > 0}">
+                    {{ item.difference || 0 }}
+                  </span>
+                </td>
+                <td>{{ item.status }}</td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div *ngIf="selectedItems.length > 0" class="reconciliation-panel">
+        <div class="panel-header">
+          <h3>{{ selectedItems.length === 1 ? 'Réconciliation' : 'Réconciliation de masse' }}</h3>
+          <div *ngIf="selectedItems.length === 1 && selectedItems[0]">
+            <div class="info-row">
+              <span class="lbl">Article:</span>
+              <span class="val">{{ selectedItems[0]?.articleName }}</span>
+            </div>
+            <div class="info-row">
+              <span class="lbl">Qté. Système:</span>
+              <span class="val">{{ selectedItems[0]?.systemQuantity }}</span>
+            </div>
+            <div class="info-row">
+              <span class="lbl">Qté. Physique:</span>
+              <span class="val">{{ selectedItems[0]?.physicalQuantity }}</span>
+            </div>
+            <div class="info-row">
+              <span class="lbl">Écart:</span>
+              <span class="val" [ngClass]="{'text-danger': selectedItems[0]?.difference! < 0, 'text-success': selectedItems[0]?.difference! > 0}">
+                {{ selectedItems[0]?.difference }}
+              </span>
+            </div>
+          </div>
+           <div *ngIf="selectedItems.length > 1">
+            <p>{{ selectedItems.length }} articles sélectionnés</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="reconciliationComment">Commentaire</label>
+          <textarea id="reconciliationComment" class="form-control" rows="3" [(ngModel)]="reconciliationComment" placeholder="Expliquez la raison..."></textarea>
+        </div>
+
+        <div *ngIf="selectedStatus === 'DEBT'" class="actions-container">
+          <h4>Actions pour dette</h4>
+          <div class="form-check">
+            <input type="checkbox" id="markAsDebt" [(ngModel)]="markAsDebt">
+            <label for="markAsDebt">Marquer comme dette du magasinier</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" id="cancelDebt" [(ngModel)]="cancelDebt">
+            <label for="cancelDebt">Annuler la dette</label>
+          </div>
+          <div class="button-group">
+            <button class="btn btn-primary" (click)="checkInputErrorsMulti()">Vérifier erreurs saisie</button>
+            <button class="btn btn-success" (click)="adjustToPhysicalMulti()">Ajuster au stock physique</button>
+            <button class="btn btn-warning" (click)="markDebtMulti()">Marquer comme dette</button>
+            <button class="btn btn-info" (click)="cancelDebtActionMulti()">Annuler la dette</button>
+          </div>
+        </div>
+
+        <div *ngIf="selectedStatus === 'SURPLUS'" class="actions-container">
+          <h4>Actions pour surplus</h4>
+          <div class="button-group">
+            <button class="btn btn-success" (click)="markSurplusMulti()">Marquer comme surplus et ajuster</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showConfirmModal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirmation</h5>
+          <button type="button" class="close" (click)="cancelReconcile()">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Êtes-vous sûr de vouloir effectuer cette action pour les {{ selectedItems.length }} article(s) sélectionné(s) ?</p>
+          <ul>
+            <li *ngFor="let item of selectedItems">{{ item.articleName }}</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cancelReconcile()">Annuler</button>
+          <button type="button" class="btn btn-primary" (click)="confirmReconcile()">Confirmer</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
+<ng-template #oldUI>
+  <div class="old-ui">
+    <ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+    <div class="container">
+      <div class="header-fixed">
+        <div class="d-flex justify-content-between align-items-center">
+          <h1>Réconciliation d'inventaire</h1>
+          <button class="btn btn-secondary" (click)="back()">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Retour</span>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="!isGestionnaire" class="alert alert-warning">
+        Vous n'avez pas les permissions nécessaires pour effectuer des réconciliations.
+      </div>
+
+      <div *ngIf="discrepancies.length === 0" class="alert alert-info">
+        Aucun écart à réconcilier pour cet inventaire.
+      </div>
+
+      <div *ngIf="discrepancies.length > 0" class="discrepancies-section">
+        <h3>Articles avec écarts ({{ discrepancies.length }})</h3>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th>Article</th>
+                <th>Quantité Système</th>
+                <th>Quantité Physique</th>
+                <th>Écart</th>
+                <th>Statut</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of discrepancies"
+                  [ngClass]="{'table-danger': item.status === 'DEBT', 'table-warning': item.status === 'SURPLUS'}">
+                <td>{{ item.articleName }} - {{ item.articleMarque }} {{ item.articleModel }}</td>
+                <td>{{ item.systemQuantity }}</td>
+                <td>{{ item.physicalQuantity || 'Non renseigné' }}</td>
+                <td>
+                  <span [ngClass]="{'text-danger': item.difference && item.difference < 0,
+                                   'text-success': item.difference && item.difference > 0}">
+                    {{ item.difference || 0 }}
+                  </span>
+                </td>
+                <td>{{ item.status }}</td>
+                <td>
+                  <button class="btn btn-sm btn-primary" (click)="selectItemSingle(item)">
+                    <mat-icon>edit</mat-icon>
+                    Réconcilier
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Formulaire de réconciliation -->
+      <div *ngIf="selectedItem" class="reconciliation-form mt-4 p-3 border rounded">
+        <h3>Réconciliation - {{ selectedItem.articleName }}</h3>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p><strong>Quantité Système:</strong> {{ selectedItem?.systemQuantity }}</p>
+            <p><strong>Quantité Physique:</strong> {{ selectedItem?.physicalQuantity }}</p>
+            <p><strong>Écart:</strong>
+              <span [ngClass]="{'text-danger': selectedItem?.difference! < 0,
+                               'text-success': selectedItem?.difference! > 0}">
+                {{ selectedItem?.difference || 0 }}
+              </span>
+            </p>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Commentaire de réconciliation:</label>
+              <textarea class="form-control"
+                        rows="3"
+                        [(ngModel)]="reconciliationComment"
+                        placeholder="Expliquez la raison de la réconciliation..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="selectedItem?.status === 'DEBT'" class="debt-actions mb-3">
+          <h4>Actions pour dette (quantité système > quantité physique)</h4>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="markAsDebt" [(ngModel)]="markAsDebt">
+            <label class="form-check-label" for="markAsDebt">
+              Marquer comme dette du magasinier
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="cancelDebt" [(ngModel)]="cancelDebt">
+            <label class="form-check-label" for="cancelDebt">
+              Annuler la dette
+            </label>
+          </div>
+          <div class="button-group mt-3">
+            <button class="btn btn-primary" (click)="checkInputErrorsSingle()">
+              <mat-icon>search</mat-icon>
+              Vérifier les erreurs de saisie
+            </button>
+            <button class="btn btn-success ml-2" (click)="adjustToPhysicalSingle()">
+              <mat-icon>sync</mat-icon>
+              Ajuster au stock physique
+            </button>
+            <button class="btn btn-warning ml-2" (click)="markDebtSingle()">
+              <mat-icon>flag</mat-icon>
+              Marquer comme dette
+            </button>
+            <button class="btn btn-info ml-2" (click)="cancelDebtActionSingle()">
+              <mat-icon>cancel</mat-icon>
+              Annuler la dette
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="selectedItem?.status === 'SURPLUS'" class="surplus-actions mb-3">
+          <h4>Actions pour surplus (quantité système < quantité physique)</h4>
+          <div class="button-group mt-3">
+            <button class="btn btn-success" (click)="markSurplusSingle()">
+              <mat-icon>add_circle</mat-icon>
+              Marquer comme surplus et ajuster
+            </button>
+          </div>
+        </div>
+
+        <!-- Historique des erreurs de saisie -->
+        <div *ngIf="inputErrors.length > 0" class="input-errors-section mt-3">
+          <h5>Erreurs de saisie détectées dans l'historique des sorties:</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Quantité</th>
+                  <th>Raison</th>
+                  <th>Effectué par</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let error of inputErrors">
+                  <td>{{ error.movementDate | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td>{{ error.type }}</td>
+                  <td>{{ error.quantity }}</td>
+                  <td>{{ error.reason }}</td>
+                  <td>{{ error.performedBy }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Historique de réconciliation -->
+        <div class="history-section mt-3">
+          <button class="btn btn-sm btn-info" (click)="loadReconciliationHistorySingle()">
+            <mat-icon>history</mat-icon>
+            Voir l'historique de réconciliation
+          </button>
+          <div *ngIf="showHistory && reconciliationHistory.length > 0" class="mt-2">
+            <h5>Historique:</h5>
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Action</th>
+                    <th>Type</th>
+                    <th>Commentaire</th>
+                    <th>Effectué par</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let history of reconciliationHistory">
+                    <td>{{ history.performedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ history.action }}</td>
+                    <td>{{ history.reconciliationType }}</td>
+                    <td>{{ history.comment }}</td>
+                    <td>{{ history.performedBy }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>

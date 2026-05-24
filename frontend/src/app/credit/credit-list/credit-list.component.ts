@@ -514,14 +514,17 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
     } else {
       this.selectedCredits.add(id);
     }
-    this.isAllSelected = this.filteredCredits.length > 0 && this.selectedCredits.size === this.filteredCredits.length;
+    const selectableCredits = this.filteredCredits.filter(c => c.status !== 'SETTLED');
+    this.isAllSelected = selectableCredits.length > 0 && this.selectedCredits.size === selectableCredits.length;
   }
 
   toggleAllSelection(): void {
     if (this.isAllSelected) {
       this.selectedCredits.clear();
     } else {
-      this.filteredCredits.forEach(c => this.selectedCredits.add(c.id));
+      this.filteredCredits
+        .filter(c => c.status !== 'SETTLED')
+        .forEach(c => this.selectedCredits.add(c.id));
     }
     this.isAllSelected = !this.isAllSelected;
   }
@@ -574,3 +577,4 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
     this.subscriptions.push(sub);
   }
 }
+

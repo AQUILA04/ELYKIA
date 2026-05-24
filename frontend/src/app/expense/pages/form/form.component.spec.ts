@@ -65,3 +65,4 @@ describe('ExpenseFormComponent', () => {
         expect(expenseServiceSpy.getExpenseTypes).toHaveBeenCalled();
     });
 });
+

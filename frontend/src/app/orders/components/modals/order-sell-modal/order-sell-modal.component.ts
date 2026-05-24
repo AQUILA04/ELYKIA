@@ -60,3 +60,4 @@ export class OrderSellModalComponent {
     return `${order.client?.firstname || ''} ${order.client?.lastname || ''}`.trim() || 'Client inconnu';
   }
 }
+

@@ -143,3 +143,4 @@ export class TontineMagasinierDashboardComponent implements OnInit, AfterViewIni
     });
   }
 }
+

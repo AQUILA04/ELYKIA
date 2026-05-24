@@ -70,3 +70,4 @@ export class RecordCollectionModalComponent implements OnInit {
     this.dialogRef.close(false);
   }
 }
+

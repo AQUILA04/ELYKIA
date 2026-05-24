@@ -26,6 +26,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { StockReceptionListComponent } from './pages/stock-reception-list/stock-reception-list.component';
 import { StockReceptionDetailComponent } from './pages/stock-reception-detail/stock-reception-detail.component';
 import { RattrapageCreditAddComponent } from './rattrapage/rattrapage-credit-add.component';
+import { AlerteFinMoisComponent } from './components/alerte-fin-mois/alerte-fin-mois.component';
+import { OptionMoisProchainComponent } from './components/option-mois-prochain/option-mois-prochain.component';
+import { StockReturnHistoriqueComponent } from './stock-return-historique/stock-return-historique.component';
 
 
 @NgModule({
@@ -39,7 +42,10 @@ import { RattrapageCreditAddComponent } from './rattrapage/rattrapage-credit-add
     StockMovementDialogComponent,
     StockReceptionListComponent,
     StockReceptionDetailComponent,
-    RattrapageCreditAddComponent
+    RattrapageCreditAddComponent,
+    AlerteFinMoisComponent,
+    OptionMoisProchainComponent,
+    StockReturnHistoriqueComponent
   ],
   imports: [
     CommonModule,

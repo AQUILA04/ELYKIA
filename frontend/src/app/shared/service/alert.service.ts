@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import Swal from 'sweetalert2';
+import {ToastrService} from "ngx-toastr";
 
 @Injectable({
   providedIn: 'root'
 })
 export class AlertService {
 
-  constructor() { }
+  constructor(private readonly toast: ToastrService) { }
   showSuccess(message: string, title: string = 'Succès'): void {
     Swal.fire({
       icon: 'success',
@@ -23,11 +24,30 @@ export class AlertService {
       },
       backdrop: `
         rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif") 
+        url("assets/images/nyan-cat.gif")
         left top
         no-repeat
       `
     });
+  }
+
+  toastSuccess(message: string, title: string = 'Succès'): void {
+    this.toast.success(message, title);
+  }
+
+  toastError(message: string, title: string = 'Erreur'): void {
+    this.toast.error(message, title);
+  }
+
+  toastNotif(message: string, title: string = 'Erreur', type?: string): void {
+    if (type && type === 'error') {
+      this.toastError(message, title);
+    } else if (type && type === 'success') {
+      this.toastSuccess(message, title);
+    } else {
+      this.toast.warning(message, title);
+    }
+
   }
 
   showError(message: string, title: string = 'Erreur'): void {
@@ -46,7 +66,7 @@ export class AlertService {
       },
       backdrop: `
         rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif") 
+        url("assets/images/nyan-cat.gif")
         left top
         no-repeat
       `
@@ -72,7 +92,7 @@ export class AlertService {
       focusCancel: true,
       backdrop: `
         rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif") 
+        url("assets/images/nyan-cat.gif")
         left top
         no-repeat
       `
@@ -99,7 +119,7 @@ export class AlertService {
       focusCancel: true,
       backdrop: `
         rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif") 
+        url("assets/images/nyan-cat.gif")
         left top
         no-repeat
       `
@@ -134,7 +154,7 @@ export class AlertService {
       },
       backdrop: `
         rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif") 
+        url("assets/images/nyan-cat.gif")
         left top
         no-repeat
       `

@@ -80,16 +80,22 @@ export class KpiEffects {
           // Total Amount (Period)
           totalAmountByCommercial: this.recoveryRepoExt.getTotalAmountByCommercial(commercialId, { dateFilter }),
           // Today Amount
-          todayAmount: this.recoveryRepoExt.getTotalAmountByCommercial(commercialId, { dateFilter: todayFilter })
+          todayAmount: this.recoveryRepoExt.getTotalAmountByCommercial(commercialId, { dateFilter: todayFilter }),
+          // Today Reliquat Generated
+          todayReliquatGenerated: this.recoveryRepoExt.getTotalReliquatGeneratedAmountByCommercial(commercialId, { dateFilter: todayFilter }),
+          // Today Reliquat Used
+          todayReliquatUsed: this.recoveryRepoExt.getTotalReliquatUsedAmountByCommercial(commercialId, { dateFilter: todayFilter })
         }).pipe(
-          map(({ totalByCommercial, today, totalAmountByCommercial, todayAmount }) =>
+          map(({ totalByCommercial, today, totalAmountByCommercial, todayAmount, todayReliquatGenerated, todayReliquatUsed }) =>
             KpiActions.loadRecoveryKpiSuccess({
               total: totalByCommercial,
               totalByCommercial,
               today,
               totalAmount: totalAmountByCommercial,
               totalAmountByCommercial,
-              todayAmount
+              todayAmount,
+              todayReliquatGenerated,
+              todayReliquatUsed
             })
           ),
           catchError((error) =>
@@ -112,26 +118,36 @@ export class KpiEffects {
           }));
         }
 
+        // Calculate 'today' date filter
+        const todayStr = new Date().toISOString().split('T')[0];
+        const todayFilter = { startDate: todayStr, endDate: todayStr };
+
         return forkJoin({
           // Total Distributions (All Time Portfolio) - No date filter
           totalByCommercial: this.distributionRepoExt.countByCommercial(commercialId),
           // Active Distributions (All Time Active) - No date filter (status based)
           activeByCommercial: this.distributionRepoExt.countActiveByCommercial(commercialId),
+          // Today Distributions count
+          today: this.distributionRepoExt.countByCommercial(commercialId, { dateFilter: todayFilter }),
           // Sales Amount (Production) - Period based (Date Filter)
           totalAmountByCommercial: this.distributionRepoExt.getTotalAmountByCommercial(commercialId, { dateFilter }),
+          // Today Sales Amount
+          todayAmount: this.distributionRepoExt.getTotalAmountByCommercial(commercialId, { dateFilter: todayFilter }),
           // Remaining Amount (Debt) - All Time (No date filter)
           totalRemaining: this.distributionRepoExt.getTotalRemainingAmountByCommercial(commercialId),
           // Daily Payment Expected - All Time Active (No date filter)
           dailyPayment: this.distributionRepoExt.getTotalDailyPaymentAmountByCommercial(commercialId)
         }).pipe(
-          map(({ totalByCommercial, activeByCommercial, totalAmountByCommercial, totalRemaining, dailyPayment }) =>
+          map(({ totalByCommercial, activeByCommercial, today, totalAmountByCommercial, todayAmount, totalRemaining, dailyPayment }) =>
             KpiActions.loadDistributionKpiSuccess({
               total: totalByCommercial,
               totalByCommercial,
               active: activeByCommercial,
               activeByCommercial,
+              today,
               totalAmount: totalAmountByCommercial,
               totalAmountByCommercial,
+              todayAmount,
               totalRemaining,
               dailyPayment
             })

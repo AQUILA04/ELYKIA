@@ -1,0 +1,104 @@
+<ion-header class="ion-no-border form-header">
+  <ion-toolbar class="form-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" class="form-close-btn" (click)="goBack()" [disabled]="isSubmitting">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="form-title">{{ pageTitle }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" class="form-info-btn" [disabled]="isSubmitting">
+        <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content">
+  <div class="form-container">
+
+    <div class="meta-card">
+      <div class="meta-field" *ngIf="showRequestDate">
+        <label class="meta-label">Date de la demande</label>
+        <ion-item lines="none" class="meta-input-item">
+          <ion-icon name="calendar-outline" slot="start"></ion-icon>
+          <ion-input type="date" [(ngModel)]="requestDate" [disabled]="isSubmitting"></ion-input>
+        </ion-item>
+      </div>
+      <div class="meta-field" *ngIf="!showRequestDate">
+        <label class="meta-label">Date de la demande</label>
+        <ion-item lines="none" class="meta-input-item readonly">
+          <ion-icon name="calendar-outline" slot="start"></ion-icon>
+          <ion-input [value]="formattedRequestDate" readonly></ion-input>
+        </ion-item>
+      </div>
+      <div class="meta-field">
+        <label class="meta-label">Demandeur</label>
+        <ion-item lines="none" class="meta-input-item readonly">
+          <ion-icon name="person-outline" slot="start"></ion-icon>
+          <ion-input [value]="demandeur" readonly></ion-input>
+        </ion-item>
+      </div>
+    </div>
+
+    <div class="articles-section">
+      <h3 class="section-label">Articles</h3>
+
+      <div class="article-line-card" *ngFor="let line of lineItems; let i = index">
+        <div class="line-thumb" [style.backgroundColor]="getAvatarColor(displayName(line.article))">
+          {{ getInitials(displayName(line.article)) }}
+        </div>
+        <div class="line-info">
+          <div class="line-name">{{ displayName(line.article) }}</div>
+          <p class="line-ref">REF: {{ line.article.reference || line.article.id }}</p>
+        </div>
+        <div class="line-controls">
+          <ion-button fill="outline" size="small" (click)="decrementQty(i)" [disabled]="line.quantity <= 1 || isSubmitting">
+            <ion-icon slot="icon-only" name="remove"></ion-icon>
+          </ion-button>
+          <span class="qty-value">{{ line.quantity }}</span>
+          <ion-button fill="outline" size="small" (click)="incrementQty(i)" [disabled]="isSubmitting">
+            <ion-icon slot="icon-only" name="add"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" color="danger" (click)="removeLine(i)" [disabled]="isSubmitting">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <ion-button expand="block" fill="outline" class="add-article-btn" (click)="openArticlePicker()" [disabled]="isSubmitting">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Ajouter un article
+      </ion-button>
+    </div>
+
+    <div class="comments-section" *ngIf="showComment">
+      <label class="meta-label">Commentaires (optionnel)</label>
+      <ion-textarea
+        [(ngModel)]="comment"
+        placeholder="Ajoutez un commentaire..."
+        rows="3"
+        [disabled]="isSubmitting">
+      </ion-textarea>
+    </div>
+
+    <div class="validation-hint" *ngIf="lineItems.length > 0 && !isValid">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <span>Chaque article doit avoir une quantité ≥ 1.</span>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border form-footer">
+  <ion-toolbar class="form-footer-toolbar">
+    <ion-button
+      expand="block"
+      class="submit-btn"
+      (click)="onSubmit()"
+      [disabled]="!isValid || isSubmitting">
+      <ion-spinner *ngIf="isSubmitting" name="crescent" slot="start"></ion-spinner>
+      <ion-icon *ngIf="!isSubmitting" name="paper-plane-outline" slot="start"></ion-icon>
+      <span>{{ isSubmitting ? 'Envoi en cours...' : submitLabel }}</span>
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

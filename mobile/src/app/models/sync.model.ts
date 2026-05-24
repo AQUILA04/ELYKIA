@@ -1,7 +1,7 @@
 // Modèles pour la synchronisation des données
 
 export interface SyncProgress {
-  currentPhase: 'localities' | 'cash-check' | 'clients' | 'updated-clients' | 'updated-photo-clients' | 'updated-photo-url-clients' | 'accounts' | 'distributions' | 'recoveries' | 'orders' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries' | 'updates' | 'completed';
+  currentPhase: 'localities' | 'cash-check' | 'clients' | 'updated-clients' | 'updated-photo-clients' | 'updated-photo-url-clients' | 'accounts' | 'distributions' | 'recoveries' | 'reliquats' | 'orders' | 'tontine-members' | 'tontine-collections' | 'tontine-deliveries' | 'updates' | 'completed';
   currentStep: string;
   totalItems: number;
   processedItems: number;
@@ -49,6 +49,7 @@ export interface SyncBatchResult {
   tontineMembersSync: { success: number; errors: number };
   tontineCollectionsSync: { success: number; errors: number };
   tontineDeliveriesSync: { success: number; errors: number };
+  reliquatsSync?: { success: number; errors: number };
 }
 
 export interface IdMapping {
@@ -198,6 +199,8 @@ export interface DefaultDailyStakeRequest {
   stakeUnits: Array<{
     creditId: number; // ID serveur de la distribution
     recoveryId: string; // ID local du recouvrement (mobile)
+    reliquatGeneratedAmount?: number;
+    reliquatUsedAmount?: number;
   }>;
 }
 
@@ -216,6 +219,8 @@ export interface SpecialDailyStakeRequest {
     creditId: number; // ID serveur de la distribution
     clientId: number; // ID serveur du client
     recoveryId: string; // ID local du recouvrement (mobile)
+    reliquatGeneratedAmount?: number;
+    reliquatUsedAmount?: number;
   }>;
 }
 
@@ -225,6 +230,24 @@ export interface SpecialDailyStakeResponse {
     recoveryId: string;
     errorMessage: string;
   }>;
+}
+
+// Reliquat Sync
+export interface ReliquatSyncUnit {
+  clientId: number;
+  totalAmount: number;
+  lastRecoveryId: string;
+  lastAccountedDate: string;
+  id: string; // local ID for tracking
+}
+
+export interface ReliquatSyncRequest {
+  commercialId: string;
+  reliquats: ReliquatSyncUnit[];
+}
+
+export interface ReliquatSyncResponse {
+  successReliquatIds: string[];
 }
 
 // Types pour la synchronisation manuelle

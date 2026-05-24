@@ -31,6 +31,9 @@ public class CreditTimeline extends BaseEntity<String> {
     @Column(unique = true)
     private String reference; // This will store the mobile recovery ID
 
+    private Double reliquatGeneratedAmount = 0.0;
+    private Double reliquatUsedAmount = 0.0;
+
     @ManyToOne
     @JsonIgnore
     private DailyAccountancy dailyAccountancy;

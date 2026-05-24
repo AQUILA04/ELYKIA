@@ -6,6 +6,7 @@ import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
+import com.optimize.elykia.core.dto.DistributeArticleDto;
 import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
@@ -74,7 +75,7 @@ public class Credit extends BaseEntity<String> {
     private ClientType clientType;
     @Deprecated
     @ManyToOne
-    private Credit parent;
+    private Credit parent = null;
     @Deprecated
     @Column(columnDefinition = "boolean default true")
     private Boolean updatable = true;
@@ -301,12 +302,15 @@ public class Credit extends BaseEntity<String> {
     }
 
     public void start() {
+        LocalDate now = LocalDate.now();
+        this.setAccountingDate(now);
+        this.setReleaseDate(now);
         if (OperationType.CREDIT.equals(this.type)) {
             if (!CreditStatus.VALIDATED.equals(status)) {
                 throw new ApplicationException("Le statut du credit est invalide pour le démarré");
             }
             this.status= CreditStatus.INPROGRESS;
-            this.expectedEndDate = LocalDate.now().plusDays(30);
+            this.expectedEndDate = Objects.nonNull(this.expectedEndDate) ? this.expectedEndDate : LocalDate.now().plusDays(this.remainingDaysCount);
             this.beginDate = LocalDate.now();
         } else if (ClientType.PROMOTER.equals(this.clientType)) {
             this.status = CreditStatus.INPROGRESS;
@@ -357,13 +361,13 @@ public class Credit extends BaseEntity<String> {
     }
 
     public void supportedBackToStoreOperation() {
-        if (!isPromoterCredit() || Boolean.FALSE.equals(updatable)) {
+        if (isClientCredit() || Boolean.FALSE.equals(updatable)) {
             throw new CustomValidationException("Opération non autorisé pour cette vente !");
         }
     }
 
-    public boolean isPromoterCredit() {
-        return ClientType.PROMOTER.equals(this.clientType);
+    public boolean isClientCredit() {
+        return ClientType.CLIENT.equals(this.clientType) && OperationType.CREDIT.equals(this.type);
     }
     public void addNewArticles(Set<CreditArticles> creditArticles) {
         if ( Objects.isNull(creditArticles)) {
@@ -514,6 +518,25 @@ public class Credit extends BaseEntity<String> {
                 .collect(Collectors.toSet());
         credit.setArticles(creditArticles);
 
+        return credit;
+    }
+
+    public static Credit buildDistribution(Client client, DistributeArticleDto dto) {
+        Credit credit = new Credit();
+        credit.setClient(client);
+        credit.setArticles(CreditArticles.from(dto.getArticles()));
+        credit.setCreditToCreditArticles();
+        credit.setAdvance(dto.getAdvance());
+        if (Objects.nonNull(dto.getMobile()) && Boolean.TRUE.equals(dto.getMobile())) {
+            credit.setTotalAmount(dto.getTotalAmount());
+            credit.setDailyStake(dto.getDailyStake());
+            credit.setTotalAmountRemaining(dto.getTotalAmount() - dto.getAdvance());
+            credit.setTotalAmountPaid(dto.getAdvance());
+            credit.setBeginDate(dto.getStartDate());
+            credit.setRemainingDaysCount(
+                    (int) Math.ceil(credit.getTotalAmountRemaining() / credit.getDailyStake()));
+            credit.setExpectedEndDate(LocalDate.now().plusDays(credit.getRemainingDaysCount()));
+        }
         return credit;
     }
 }

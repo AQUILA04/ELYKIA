@@ -61,14 +61,23 @@ logging:
     path: ${user.home}/.${spring.application.name}/logs
 
 
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: "*"
-    info:
-     env:
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+    prometheus:
       enabled: true
+  info:
+    env:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      environment: prod
 
 server:
   port: 8081

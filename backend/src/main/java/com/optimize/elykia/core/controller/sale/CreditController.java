@@ -225,11 +225,6 @@ public class CreditController {
                 HttpStatus.OK);
     }
 
-    @GetMapping(value = "commercial-details/{id}")
-    public ResponseEntity<Response> getCommercialDetails(@PathVariable Long id) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getCommercialDetails(id)),
-                HttpStatus.OK);
-    }
 
     @GetMapping(value = "client-details/{clientId}")
     public ResponseEntity<Response> getClientDetails(@PathVariable Long clientId) {

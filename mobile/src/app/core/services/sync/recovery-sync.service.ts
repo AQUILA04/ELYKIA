@@ -174,7 +174,9 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
             if (distributionServerId) {
                 stakeUnits.push({
                     creditId: Number.parseInt(distributionServerId),
-                    recoveryId: recovery.id
+                    recoveryId: recovery.id,
+                    reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
+                    reliquatUsedAmount: recovery.reliquatUsedAmount || 0
                 });
             }
         }
@@ -247,7 +249,9 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                             amount: recovery.amount,
                             creditId: parsedCreditId,
                             clientId: parsedClientId,
-                            recoveryId: recovery.id
+                            recoveryId: recovery.id,
+                            reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
+                            reliquatUsedAmount: recovery.reliquatUsedAmount || 0
                         });
                     }
                 }

@@ -34,6 +34,8 @@ export const loadRecoveryKpiSuccess = createAction(
     totalAmount: number;
     totalAmountByCommercial: number;
     todayAmount: number;
+    todayReliquatGenerated: number;
+    todayReliquatUsed: number;
   }>()
 );
 
@@ -56,8 +58,10 @@ export const loadDistributionKpiSuccess = createAction(
     totalByCommercial: number;
     active: number;
     activeByCommercial: number;
+    today: number;
     totalAmount: number;
     totalAmountByCommercial: number;
+    todayAmount: number;
     totalRemaining: number;
     dailyPayment: number;
   }>()

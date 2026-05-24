@@ -1,0 +1,116 @@
+<!-- ════════════════════════════════════════════════════════════════
+     STOCK REQUEST FORM — Story 2.2
+     Skill: elykia-stock-components-build / components.md §4 (Stepper)
+     Design tokens: --color-primary #1E40AF, --radius-input 8px
+     ════════════════════════════════════════════════════════════════ -->
+
+<!-- Modal Header (Skill: components.md §1) -->
+<ion-header class="ion-no-border form-header">
+  <ion-toolbar class="form-toolbar">
+    <ion-buttons slot="start">
+      <ion-button
+        id="req-form-cancel-btn"
+        fill="clear"
+        class="form-close-btn"
+        (click)="onCancel()"
+        [disabled]="isSubmitting">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="form-title">Nouvelle Demande</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content">
+  <div class="form-container">
+
+    <!-- Section : Articles (Skill: components.md §4 — Répéteur d'Articles) -->
+    <div class="section-card">
+      <div class="section-header">
+        <ion-icon name="cube-outline" class="section-icon"></ion-icon>
+        <h2 class="section-title">Articles demandés</h2>
+      </div>
+
+      <div class="items-list">
+        <div class="item-row" *ngFor="let item of items; let i = index" [id]="'req-item-row-' + i">
+
+          <!-- Sélecteur d'article -->
+          <ion-item lines="none" class="article-item">
+            <ion-select
+              [id]="'req-article-select-' + i"
+              label="Article"
+              labelPlacement="floating"
+              [value]="item.article.id || ''"
+              (ionChange)="onArticleChange(i, $event)"
+              [disabled]="isSubmitting || availableArticles.length === 0"
+              interface="alert">
+              <ion-select-option
+                *ngFor="let article of availableArticles"
+                [value]="article.id">
+                {{ article.name }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Input quantité (Skill: components.md §4 — Stepper) -->
+          <ion-item lines="none" class="qty-item">
+            <ion-input
+              [id]="'req-qty-input-' + i"
+              type="number"
+              inputmode="numeric"
+              label="Qté"
+              labelPlacement="floating"
+              [(ngModel)]="item.quantity"
+              [disabled]="isSubmitting"
+              min="1">
+            </ion-input>
+          </ion-item>
+
+          <!-- Bouton suppression (Skill: components.md §4 — trash-outline) -->
+          <ion-button
+            [id]="'req-remove-item-' + i"
+            fill="clear"
+            color="danger"
+            class="remove-btn"
+            (click)="removeItem(i)"
+            [disabled]="isSubmitting || items.length === 1">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+
+        </div>
+      </div>
+
+      <!-- Bouton : Ajouter un article -->
+      <ion-button
+        id="req-add-item-btn"
+        expand="block"
+        fill="outline"
+        class="add-item-btn"
+        (click)="addItem()"
+        [disabled]="isSubmitting">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Ajouter un article
+      </ion-button>
+    </div>
+
+    <!-- Message de validation -->
+    <div class="validation-hint" *ngIf="items.length > 0 && !isValid">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <span>Sélectionnez un article et une quantité ≥ 1 pour chaque ligne.</span>
+    </div>
+
+  </div>
+  <div class="form-footer-inline">
+    <ion-button
+      id="req-form-submit-btn"
+      expand="block"
+      class="submit-btn"
+      (click)="onSubmit()"
+      [disabled]="!isValid || isSubmitting">
+      <ion-spinner *ngIf="isSubmitting" name="crescent" slot="start"></ion-spinner>
+      <span *ngIf="!isSubmitting">Créer la demande</span>
+      <span *ngIf="isSubmitting">Envoi en cours...</span>
+    </ion-button>
+  </div>
+
+</ion-content>

@@ -17,6 +17,7 @@ public class CreditLateDTO {
     // Client
     private String      clientName;
     private String      clientPhone;
+    private String      clientQuarter;
 
     // Commercial
     private String      collector;

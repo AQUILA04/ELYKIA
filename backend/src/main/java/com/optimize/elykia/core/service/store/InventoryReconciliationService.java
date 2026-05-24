@@ -76,14 +76,14 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
         if (dto.getAction() == ReconciliationAction.ADJUST_TO_PHYSICAL) {
             // Ajuster le stock système au niveau physique
             Integer adjustment = item.getDifference(); // différence négative
-            Integer newStock = article.getStockQuantity() + adjustment; // ajustement positif
+            Integer newStock = Math.max(0, article.getStockQuantity() + adjustment);
             article.setStockQuantity(newStock);
 
             reconciliation.setReconciliationType(ReconciliationType.ERROR_CORRECTION);
             reconciliation.setAction(ReconciliationAction.ADJUST_TO_PHYSICAL);
             reconciliation.setStockAfter(newStock);
 
-            // Enregistrer dans l'historique
+            // Enregistrer dans l'historique (on trace la quantité totale ajustée)
             ArticleHistory history = new ArticleHistory();
             history.setArticles(article);
             history.setInitialQuantity(stockBefore);
@@ -167,12 +167,12 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
 
         // Ajuster le stock système au niveau physique (surplus = quantité physique > quantité système)
         Integer adjustment = item.getDifference(); // différence positive
-        Integer newStock = article.getStockQuantity() + adjustment;
+        Integer newStock = Math.max(0, article.getStockQuantity() + adjustment);
         article.setStockQuantity(newStock);
 
         reconciliation.setStockAfter(newStock);
 
-        // Enregistrer dans l'historique
+        // Enregistrer dans l'historique (on trace la quantité totale ajustée)
         ArticleHistory history = new ArticleHistory();
         history.setArticles(article);
         history.setInitialQuantity(stockBefore);
@@ -222,6 +222,61 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
         } else {
             throw new ApplicationException("Cet article n'a pas d'écart à ajuster.");
         }
+    }
+
+    @Transactional
+    public List<com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult> bulkReconcile(com.optimize.elykia.core.dto.BulkReconciliationDto bulkDto) {
+        List<com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult> results = new java.util.ArrayList<>();
+
+        for (Long itemId : bulkDto.getInventoryItemIds()) {
+            com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult result = new com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult();
+            result.setInventoryItemId(itemId);
+
+            try {
+                ReconciliationDto dto = new ReconciliationDto();
+                dto.setInventoryItemId(itemId);
+                dto.setAction(bulkDto.getAction());
+                dto.setComment(bulkDto.getComment());
+                dto.setMarkAsDebt(bulkDto.getMarkAsDebt());
+                dto.setCancelDebt(bulkDto.getCancelDebt());
+
+                InventoryItem item;
+                if (bulkDto.getAction() == ReconciliationAction.MARK_AS_SURPLUS) {
+                    item = reconcileSurplus(dto);
+                } else {
+                    item = reconcileDebt(dto);
+                }
+
+                result.setSuccess(true);
+                result.setMessage("Succès");
+
+                // On laisse le controller le convertir en DTO (InventoryItemDto)
+                com.optimize.elykia.core.dto.InventoryItemDto itemDto = new com.optimize.elykia.core.dto.InventoryItemDto();
+                itemDto.setId(item.getId());
+                itemDto.setSystemQuantity(item.getSystemQuantity());
+                itemDto.setPhysicalQuantity(item.getPhysicalQuantity());
+                itemDto.setDifference(item.getDifference());
+                itemDto.setStatus(item.getStatus());
+                itemDto.setReconciliationComment(item.getReconciliationComment());
+                itemDto.setMarkAsDebt(item.getMarkAsDebt());
+                itemDto.setDebtCancelled(item.getDebtCancelled());
+                if (item.getArticle() != null) {
+                    itemDto.setArticleId(item.getArticle().getId());
+                    itemDto.setArticleName(item.getArticle().getCommercialName());
+                    itemDto.setArticleMarque(item.getArticle().getMarque());
+                    itemDto.setArticleModel(item.getArticle().getModel());
+                    itemDto.setArticleType(item.getArticle().getType());
+                }
+                result.setItem(itemDto);
+
+            } catch (Exception e) {
+                result.setSuccess(false);
+                result.setMessage(e.getMessage());
+            }
+            results.add(result);
+        }
+
+        return results;
     }
 
     public List<InventoryReconciliation> getReconciliationHistory(Long inventoryItemId) {

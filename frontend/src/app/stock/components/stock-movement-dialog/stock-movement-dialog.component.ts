@@ -82,3 +82,4 @@ export class StockMovementDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 }
+

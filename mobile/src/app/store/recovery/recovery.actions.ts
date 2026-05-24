@@ -74,8 +74,7 @@ export const validateRecoveryAmountFailure = createAction(
 
 export const createRecovery = createAction(
   '[Recovery] Create Recovery',
-  // AJOUTER la distribution à l'action
-  props<{ recovery: Partial<Recovery>; distribution: Distribution }>()
+  props<{ recovery: Partial<Recovery>; distribution: Distribution; keepReliquat?: boolean }>()
 );
 
 export const createRecoverySuccess = createAction(

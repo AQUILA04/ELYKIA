@@ -7,12 +7,14 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { BaseTransactionComponent } from './components/base-transaction/base-transaction.component';
 import { ArticleSelectorComponent } from './components/article-selector/article-selector.component';
 import { ClientDisplayComponent } from './components/client-display/client-display.component';
+import { ReliquatDisplayComponent } from './components/reliquat-display/reliquat-display.component';
 
 @NgModule({
   declarations: [
     BaseTransactionComponent,
     ArticleSelectorComponent,
-    ClientDisplayComponent
+    ClientDisplayComponent,
+    ReliquatDisplayComponent
   ],
   imports: [
     CommonModule,
@@ -25,6 +27,7 @@ import { ClientDisplayComponent } from './components/client-display/client-displ
     BaseTransactionComponent,
     ArticleSelectorComponent,
     ClientDisplayComponent,
+    ReliquatDisplayComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

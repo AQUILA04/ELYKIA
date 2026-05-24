@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { UserService } from '../service/user.service';
 import { Router } from '@angular/router';
 import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 
 
 

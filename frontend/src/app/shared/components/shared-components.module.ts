@@ -52,7 +52,8 @@ import { CommercialSelectorComponent } from './commercial-selector/commercial-se
         CreateTontineComponent,
         AdvancedSearchComponent,
         StockExportFilterComponent,
-        CommercialSelectorComponent
+        CommercialSelectorComponent,
+        NgxSpinnerModule
     ]
 })
 export class SharedComponentsModule { }

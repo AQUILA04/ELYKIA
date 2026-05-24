@@ -35,6 +35,9 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       SPRINGDOC_SWAGGER_UI_DISABLE_SWAGGER_DEFAULT_URL: "true"
       SERVER_PORT: ${SERVER_PORT:-8080}
+      LOKI_API_KEY: ${LOKI_API_KEY:-}
+      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-false}
+      SECURITY_CONFIG_ALLOW-ORIGIN: ${SECURITY_ALLOWED_ORIGINS:https://elykia-test.amenouveve-yaveh.com}
     volumes:
       - ${LOG_PATH:-/opt/elykia/test/logs}:/home/app/.optimize-elykia-core/logs
     networks:
@@ -76,6 +79,7 @@ volumes:
 
 networks:
   internal:
+    name: elykia-test-internal
     # Internal network: only db ↔ backend communicate here
   traefik-public:
     external: true

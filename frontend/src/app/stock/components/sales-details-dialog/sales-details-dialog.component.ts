@@ -39,3 +39,4 @@ export class SalesDetailsDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 }
+

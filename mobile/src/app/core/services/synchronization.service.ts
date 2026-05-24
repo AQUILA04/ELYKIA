@@ -54,7 +54,14 @@ import { OrderItem } from '../../models/order-item.model';
 import { PhotoSyncService } from './photo-sync.service';
 import { ClientPhotoUrlUpdateDto } from '../../models/client-photo-url-update.dto';
 import { TontineMember, TontineCollection, TontineDelivery } from '../../models/tontine.model';
+import { ReliquatRepository } from './reliquat.repository';
+import { ReliquatSyncUnit, ReliquatSyncRequest, ReliquatSyncResponse } from '../../models/sync.model';
 
+/**
+ * @deprecated Ce service (synchronization.service) est appelé à disparaître sous peu.
+ * Veuillez utiliser les domain driven sync services situés dans le dossier 'mobile/src/app/core/services/sync'
+ * qui sont consommés par le service 'mobile/src/app/core/services/sync-master.service.ts'.
+ */
 @Injectable({
   providedIn: 'root'
 })
@@ -73,7 +80,8 @@ export class SynchronizationService {
     private syncErrorService: SyncErrorService,
     private localitySyncService: LocalitySyncService,
     private photoSyncService: PhotoSyncService,
-    private store: Store
+    private store: Store,
+    private reliquatRepository: ReliquatRepository
   ) { }
 
   // ==================== MÉTHODES PRINCIPALES ====================
@@ -100,6 +108,7 @@ export class SynchronizationService {
       tontineMembersSync: { success: 0, errors: 0 },
       tontineCollectionsSync: { success: 0, errors: 0 },
       tontineDeliveriesSync: { success: 0, errors: 0 },
+      reliquatsSync: { success: 0, errors: 0 }
     };
 
     const unsyncedLocalities = await this.databaseService.getUnsyncedLocalities();
@@ -181,6 +190,8 @@ export class SynchronizationService {
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-deliveries' } }));
       processedItems = await this.syncAllTontineDeliveries(result, unsyncedTontineDeliveries, processedItems, totalItems);
 
+
+
       // 7. Récupérer les mises à jour du serveur (optionnel)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'updates' } }));
       //await this.fetchServerUpdates();
@@ -188,8 +199,8 @@ export class SynchronizationService {
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'completed' } }));
 
       const duration = Date.now() - startTime;
-      const totalSuccess = result.localitiesSync.success + result.clientsSync.success + result.updatedClientsSync.success + result.updatedPhotoClientsSync.success + result.updatedPhotoUrlClientsSync.success + result.distributionsSync.success + result.recoveriesSync.success + result.accountsSync.success + result.ordersSync.success + result.tontineMembersSync.success + result.tontineCollectionsSync.success + result.tontineDeliveriesSync.success;
-      const totalErrors = result.localitiesSync.errors + result.clientsSync.errors + result.updatedClientsSync.errors + result.updatedPhotoClientsSync.errors + result.updatedPhotoUrlClientsSync.errors + result.distributionsSync.errors + result.recoveriesSync.errors + result.accountsSync.errors + result.ordersSync.errors + result.tontineMembersSync.errors + result.tontineCollectionsSync.errors + result.tontineDeliveriesSync.errors;
+      const totalSuccess = result.localitiesSync.success + result.clientsSync.success + result.updatedClientsSync.success + result.updatedPhotoClientsSync.success + result.updatedPhotoUrlClientsSync.success + result.distributionsSync.success + result.recoveriesSync.success + result.accountsSync.success + result.ordersSync.success + result.tontineMembersSync.success + result.tontineCollectionsSync.success + result.tontineDeliveriesSync.success + (result.reliquatsSync?.success || 0);
+      const totalErrors = result.localitiesSync.errors + result.clientsSync.errors + result.updatedClientsSync.errors + result.updatedPhotoClientsSync.errors + result.updatedPhotoUrlClientsSync.errors + result.distributionsSync.errors + result.recoveriesSync.errors + result.accountsSync.errors + result.ordersSync.errors + result.tontineMembersSync.errors + result.tontineCollectionsSync.errors + result.tontineDeliveriesSync.errors + (result.reliquatsSync?.errors || 0);
 
       return {
         success: totalErrors === 0,
@@ -700,7 +711,9 @@ export class SynchronizationService {
       if (distributionServerId) {
         stakeUnits.push({
           creditId: parseInt(distributionServerId),
-          recoveryId: recovery.id
+          recoveryId: recovery.id,
+          reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
+          reliquatUsedAmount: recovery.reliquatUsedAmount || 0
         });
       }
     }
@@ -752,7 +765,9 @@ export class SynchronizationService {
               amount: recovery.amount,
               creditId: parsedCreditId,
               clientId: parsedClientId,
-              recoveryId: recovery.id
+              recoveryId: recovery.id,
+              reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
+              reliquatUsedAmount: recovery.reliquatUsedAmount || 0
             });
           } else {
             console.error(`Skipping special stake for recovery ${recovery.id} due to invalid parent server ID. Client ID: ${clientServerId}, Distribution ID: ${distributionServerId}`);
@@ -790,6 +805,7 @@ export class SynchronizationService {
     }
 
   }
+
 
   // ==================== VÉRIFICATION DE SYNCHRONISATION ====================
 

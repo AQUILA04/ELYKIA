@@ -318,3 +318,4 @@ export class OrderFormComponent implements OnInit, OnDestroy {
   getClientName(order: Order): string { return `${order.client?.firstname || ''} ${order.client?.lastname || ''}`.trim() || 'Client inconnu'; }
 }
 
+

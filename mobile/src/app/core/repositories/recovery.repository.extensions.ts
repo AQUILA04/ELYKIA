@@ -293,6 +293,72 @@ export class RecoveryRepositoryExtensions {
     }
 
     /**
+     * Get total reliquat generated amount for a specific commercial
+     *
+     * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
+     *
+     * @param commercialId ID of the commercial (REQUIRED)
+     * @param filters Optional filters
+     * @returns Total reliquat generated amount
+     */
+    async getTotalReliquatGeneratedAmountByCommercial(
+        commercialId: string,
+        filters?: {
+            dateFilter?: DateFilter;
+            paymentMethod?: string;
+        }
+    ): Promise<number> {
+        if (!commercialId) {
+            throw new Error('commercialId is required for security - cannot calculate recovery reliquat without commercial filter');
+        }
+
+        const commercialCondition = buildCommercialFilterCondition('recovery');
+        let whereConditions = [commercialCondition];
+        const params: any[] = [commercialId];
+
+        this.applyFilters(whereConditions, params, filters);
+
+        const whereClause = whereConditions.join(' AND ');
+        const sql = `SELECT COALESCE(SUM(reliquatGeneratedAmount), 0) as total FROM recoveries WHERE ${whereClause}`;
+
+        const result = await this.recoveryRepository['getDatabaseService']().query(sql, params);
+        return result.values?.[0]?.total || 0;
+    }
+
+    /**
+     * Get total reliquat used amount for a specific commercial
+     *
+     * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation
+     *
+     * @param commercialId ID of the commercial (REQUIRED)
+     * @param filters Optional filters
+     * @returns Total reliquat used amount
+     */
+    async getTotalReliquatUsedAmountByCommercial(
+        commercialId: string,
+        filters?: {
+            dateFilter?: DateFilter;
+            paymentMethod?: string;
+        }
+    ): Promise<number> {
+        if (!commercialId) {
+            throw new Error('commercialId is required for security - cannot calculate recovery reliquat without commercial filter');
+        }
+
+        const commercialCondition = buildCommercialFilterCondition('recovery');
+        let whereConditions = [commercialCondition];
+        const params: any[] = [commercialId];
+
+        this.applyFilters(whereConditions, params, filters);
+
+        const whereClause = whereConditions.join(' AND ');
+        const sql = `SELECT COALESCE(SUM(reliquatUsedAmount), 0) as total FROM recoveries WHERE ${whereClause}`;
+
+        const result = await this.recoveryRepository['getDatabaseService']().query(sql, params);
+        return result.values?.[0]?.total || 0;
+    }
+
+    /**
      * Get average recovery amount for a specific commercial
      *
      * **SECURITY**: This method ALWAYS filters by commercial to ensure data isolation

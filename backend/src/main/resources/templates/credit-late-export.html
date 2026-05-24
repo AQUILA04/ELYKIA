@@ -59,6 +59,14 @@
             background-color: #f2f2f2;
         }
 
+        .quarter-header {
+            background-color: #e6f0ff !important;
+            color: #003366 !important;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: none !important;
+        }
+
         .summary {
             margin-top: 30px;
             text-align: right;
@@ -111,21 +119,26 @@
             </tr>
         </thead>
         <tbody>
-            <tr th:if="${#lists.isEmpty(credits)}">
+            <tr th:if="${creditsEmpty}">
                 <td colspan="6" style="text-align: center; font-style: italic;">Aucun crédit en retard trouvé.</td>
             </tr>
-            <tr th:each="credit : ${credits}">
-                <td th:text="${credit.reference}"></td>
-                <td>
-                    <span th:text="${credit.clientName}"></span><br/>
-                    <small th:text="${credit.clientPhone}" style="color: #666;"></small>
-                </td>
-                <td th:class="${credit.lateType.name() == 'DELAI' ? 'badge-delai' : 'badge-echeance'}"
-                    th:text="${credit.lateType.name() == 'DELAI' ? 'Délai' : 'Échéance'}"></td>
-                <td th:text="${credit.lateType.name() == 'DELAI' ? credit.lateDaysDelai + ' jours' : credit.lateDaysEcheance + ' jours'}"></td>
-                <td th:text="${credit.collector}"></td>
-                <td th:text="${credit.totalAmountRemaining}"></td>
-            </tr>
+            <th:block th:each="quarterEntry : ${creditsByQuarter}">
+                <tr>
+                    <td colspan="6" class="quarter-header">Localité (Zone) : <span th:text="${quarterEntry.key}"></span></td>
+                </tr>
+                <tr th:each="credit : ${quarterEntry.value}">
+                    <td th:text="${credit.reference}"></td>
+                    <td>
+                        <span th:text="${credit.clientName}"></span><br/>
+                        <small th:text="${credit.clientPhone}" style="color: #666;"></small>
+                    </td>
+                    <td th:class="${credit.lateType.name() == 'DELAI' ? 'badge-delai' : 'badge-echeance'}"
+                        th:text="${credit.lateType.name() == 'DELAI' ? 'Délai' : 'Échéance'}"></td>
+                    <td th:text="${credit.lateType.name() == 'DELAI' ? credit.lateDaysDelai + ' jours' : credit.lateDaysEcheance + ' jours'}"></td>
+                    <td th:text="${credit.collector}"></td>
+                    <td th:text="${credit.totalAmountRemaining}"></td>
+                </tr>
+            </th:block>
         </tbody>
     </table>
 

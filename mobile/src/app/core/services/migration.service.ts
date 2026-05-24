@@ -87,6 +87,9 @@ export class MigrationService {
       case 21:
         await this.migrateToV21(db);
         break;
+      case 22:
+        await this.migrateToV22(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -518,6 +521,52 @@ export class MigrationService {
     } catch (error: any) {
       // Ignore if duplicate column
       this.log.log(`Migration v21: ${error}`);
+    }
+  }
+
+  private async migrateToV22(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v22: Creating client_reliquats and modifying recoveries...');
+      
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS client_reliquats (
+            id TEXT PRIMARY KEY,
+            clientId TEXT NOT NULL,
+            commercialId TEXT NOT NULL,
+            totalAmount REAL NOT NULL DEFAULT 0,
+            lastRecoveryId TEXT,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            lastAccountedDate TEXT,
+            isSync INTEGER DEFAULT 0,
+            syncDate TEXT,
+            FOREIGN KEY(clientId) REFERENCES clients(id)
+        );
+      `);
+      await db.execute("CREATE INDEX IF NOT EXISTS idx_client_reliquats_clientId ON client_reliquats(clientId);");
+      await db.execute("CREATE INDEX IF NOT EXISTS idx_client_reliquats_commercialId ON client_reliquats(commercialId);");
+
+      try {
+        await db.execute("ALTER TABLE recoveries ADD COLUMN reliquatGeneratedAmount REAL DEFAULT 0;");
+      } catch (e: any) {
+         if (!((e.message && e.message.toLowerCase().includes('duplicate column')) || (e.toString && e.toString().toLowerCase().includes('duplicate column')))) {
+            throw e;
+         }
+      }
+
+      try {
+        await db.execute("ALTER TABLE recoveries ADD COLUMN reliquatUsedAmount REAL DEFAULT 0;");
+      } catch (e: any) {
+         if (!((e.message && e.message.toLowerCase().includes('duplicate column')) || (e.toString && e.toString().toLowerCase().includes('duplicate column')))) {
+            throw e;
+         }
+      }
+
+      this.log.log('Migration to v22 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v22: ${error}`);
+      console.error('Error in migration v22', error);
+      throw error;
     }
   }
 }

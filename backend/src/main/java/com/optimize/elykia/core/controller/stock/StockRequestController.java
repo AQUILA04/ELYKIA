@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.optimize.elykia.core.dto.StockRequestCreateDto;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 import org.springframework.http.HttpHeaders;
@@ -24,8 +25,10 @@ public class StockRequestController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<StockRequest> createRequest(@RequestBody StockRequest request) {
-        return ResponseEntity.ok(service.createRequest(request));
+    public ResponseEntity<StockRequest> createRequest(@RequestBody StockRequestCreateDto dto) {
+        StockRequest request = dto.getRequest();
+        boolean forNextMonth = dto.getForNextMonth() != null ? dto.getForNextMonth() : false;
+        return ResponseEntity.ok(service.createRequest(request, forNextMonth));
     }
 
     @PutMapping("/{id}/validate")

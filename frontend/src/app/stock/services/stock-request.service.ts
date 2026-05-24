@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../../shared/service/base-http.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { StockRequest, StockRequestStatus, PartialDeliveryResponseDTO } from '../models/stock-request.model';
+import { StockRequest, StockRequestStatus, PartialDeliveryResponseDTO, StockRequestCreateDto } from '../models/stock-request.model';
 import { Page } from '../../shared/models/page.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
@@ -21,7 +21,7 @@ export class StockRequestService extends BaseHttpService {
     this.baseUrl += '/api/stock-requests';
   }
 
-  create(request: StockRequest): Observable<StockRequest> {
+  create(request: StockRequestCreateDto): Observable<StockRequest> {
     return this.http.post<StockRequest>(`${this.baseUrl}/create`, request);
   }
 

@@ -5,6 +5,17 @@
     <h1>Nouvelle Demande de Sortie Stock</h1>
   </div>
 
+  <app-alerte-fin-mois
+    [daysRemaining]="daysUntilMonthEnd"
+    [showAlert]="showMonthEndAlert">
+  </app-alerte-fin-mois>
+
+  <app-option-mois-prochain
+    [daysRemaining]="daysUntilMonthEnd"
+    [isVisible]="showNextMonthOption"
+    (selectNextMonth)="onSelectNextMonth($event)">
+  </app-option-mois-prochain>
+
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <div class="form-group">
       <label>Commercial <span class="text-danger">*</span></label>

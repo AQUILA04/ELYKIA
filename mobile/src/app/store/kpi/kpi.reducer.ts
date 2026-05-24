@@ -25,6 +25,8 @@ export interface KpiState {
     totalAmount: number;
     totalAmountByCommercial: number;
     todayAmount: number;
+    todayReliquatGenerated: number;
+    todayReliquatUsed: number;
     loading: boolean;
     error: string | null;
   };
@@ -35,8 +37,10 @@ export interface KpiState {
     totalByCommercial: number;
     active: number;
     activeByCommercial: number;
+    today: number;
     totalAmount: number;
     totalAmountByCommercial: number;
+    todayAmount: number;
     totalRemaining: number;
     dailyPayment: number;
     loading: boolean;
@@ -117,6 +121,8 @@ export const initialState: KpiState = {
     totalAmount: 0,
     totalAmountByCommercial: 0,
     todayAmount: 0,
+    todayReliquatGenerated: 0,
+    todayReliquatUsed: 0,
     loading: false,
     error: null
   },
@@ -125,8 +131,10 @@ export const initialState: KpiState = {
     totalByCommercial: 0,
     active: 0,
     activeByCommercial: 0,
+    today: 0,
     totalAmount: 0,
     totalAmountByCommercial: 0,
+    todayAmount: 0,
     totalRemaining: 0,
     dailyPayment: 0,
     loading: false,
@@ -219,7 +227,7 @@ export const kpiReducer = createReducer(
       error: null
     }
   })),
-  on(KpiActions.loadRecoveryKpiSuccess, (state, { total, totalByCommercial, today, totalAmount, totalAmountByCommercial, todayAmount }) => ({
+  on(KpiActions.loadRecoveryKpiSuccess, (state, { total, totalByCommercial, today, totalAmount, totalAmountByCommercial, todayAmount, todayReliquatGenerated, todayReliquatUsed }) => ({
     ...state,
     recoveryKpi: {
       total,
@@ -228,6 +236,8 @@ export const kpiReducer = createReducer(
       totalAmount,
       totalAmountByCommercial,
       todayAmount,
+      todayReliquatGenerated,
+      todayReliquatUsed,
       loading: false,
       error: null
     }
@@ -250,15 +260,17 @@ export const kpiReducer = createReducer(
       error: null
     }
   })),
-  on(KpiActions.loadDistributionKpiSuccess, (state, { total, totalByCommercial, active, activeByCommercial, totalAmount, totalAmountByCommercial, totalRemaining, dailyPayment }) => ({
+  on(KpiActions.loadDistributionKpiSuccess, (state, { total, totalByCommercial, active, activeByCommercial, today, totalAmount, totalAmountByCommercial, todayAmount, totalRemaining, dailyPayment }) => ({
     ...state,
     distributionKpi: {
       total,
       totalByCommercial,
       active,
       activeByCommercial,
+      today,
       totalAmount,
       totalAmountByCommercial,
+      todayAmount,
       totalRemaining,
       dailyPayment,
       loading: false,

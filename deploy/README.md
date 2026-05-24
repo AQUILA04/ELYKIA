@@ -30,6 +30,10 @@ graph TD
             FE_Prod -.-> BE_Prod
             BE_Prod -.-> DB_Prod
         end
+
+        subgraph Stack Tools
+            PgAdmin[PgAdmin 4]
+        end
     end
     
     Traefik -->|elykia-test.domain| FE_Test
@@ -37,20 +41,27 @@ graph TD
     
     Traefik -->|elykia.domain| FE_Prod
     Traefik -->|elykia.domain/api| BE_Prod
+
+    Traefik -->|db.domain| PgAdmin
+    PgAdmin -.-> DB_Test
+    PgAdmin -.-> DB_Prod
     
     classDef proxy fill:#f9f,stroke:#333,stroke-width:2px;
     classDef test fill:#eef,stroke:#333,stroke-width:1px;
     classDef prod fill:#fee,stroke:#333,stroke-width:1px;
+    classDef tools fill:#efe,stroke:#333,stroke-width:1px;
     
     class Traefik proxy;
     class FE_Test,BE_Test,DB_Test test;
     class FE_Prod,BE_Prod,DB_Prod prod;
+    class PgAdmin tools;
 ```
 
 ## Structure du dossier
 - `docker-compose.traefik.yml` - Compose pour le reverse proxy Traefik (à lancer une seule fois).
 - `docker-compose.test.yml` - Compose pour l'environnement de test.
 - `docker-compose.prod.yml` - Compose pour l'environnement de production.
+- `docker-compose.tools.yml` - Compose pour les outils (PgAdmin 4).
 - `setup-server.sh` - Script de configuration initiale du serveur (création des dossiers, réseau Docker, templates `.env`).
 - `deploy.sh` - Script pour déployer une paire d'images (frontend/backend) et enregistrer la release.
 - `rollback.sh` - Script pour revenir à une release précédente.
@@ -92,9 +103,20 @@ scp /local/path/dump.sql.gz user@server:/tmp/dump.sql.gz
 2) Se connecter au serveur et lancer l'import :
 ```bash
 ssh user@server
-./deploy/import-db.sh prod /tmp/dump.sql.gz
+# Usage: ./deploy/import-db.sh <env> <dump-path-on-server> [target-container]
+# Examples:
+# - restore using compose detection (preferred):
+./deploy/import-db.sh test /tmp/dump.sql.gz
+# - force a specific container (useful when multiple stacks exist):
+./deploy/import-db.sh test /tmp/dump.sql.gz deploy-db-1
 ```
-*Note : Le script `import-db.sh` effectue automatiquement une sauvegarde de la base existante avant l'importation.*
+
+Le script `import-db.sh` :
+- tente d'abord d'identifier le container cible via `docker compose -f docker-compose.<env>.yml` (service `db`)
+- si aucune détection n'est possible, une logique heuristique essaie de choisir un container PostgreSQL approprié
+- avant d'exécuter la restauration, le script crée automatiquement une sauvegarde de la base actuelle (via `db_backup.sh`)
+- par défaut le script vous demandera une confirmation interactive avant de lancer la sauvegarde et la restauration ;
+  pour lancer en mode non interactif (p.ex. dans un job automatisé), utilisez `NONINTERACTIVE=1`.
 
 ## Backups automatiques de la base
 Un script `db_backup.sh` est fourni pour effectuer des sauvegardes de la base Postgres. Il est recommandé de planifier son exécution via `cron` sur le serveur hôte :
@@ -102,6 +124,96 @@ Un script `db_backup.sh` est fourni pour effectuer des sauvegardes de la base Po
 ```cron
 0 8,19 * * 1-6 cd /opt/elykia/deploy && /opt/elykia/deploy/db_backup.sh prod >> /var/log/elykia_db_backup.log 2>&1
 ```
+
+## Monitoring et Alerting
+
+Un stack de monitoring complet (Prometheus + Grafana + Node Exporter) est disponible dans `monitoring/`.
+
+### Composition
+| Service | Description | Accès |
+|---|---|---|
+| **Prometheus** | Collecte des métriques Spring Boot via `/actuator/prometheus` + métriques système | `prometheus.amenouveve-yaveh.com` (auth basique) |
+| **Grafana** | Dashboards métier + alerting Grafana-managed | `grafana.amenouveve-yaveh.com` |
+| **Node Exporter** | Métriques système (CPU, RAM, disque) | Réseau interne uniquement |
+
+### Démarrage
+```bash
+# Démarrer le stack monitoring
+docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d
+
+# Arrêter
+docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring down
+```
+
+### Alertes configurées (Grafana-managed)
+Les règles d'alerting sont provisionnées automatiquement dans `monitoring/grafana/alerting/alertrules.yml`.
+
+**Critiques (P1) :**
+- Échec création de crédit (`elykia_credit_creation_failed_total`)
+- Stock insuffisant pour démarrer/distribuer un crédit
+- Livraison de stock impossible (aucun article disponible)
+- Conflit de prix bloquant une demande de stock
+- Retour de stock excédentaire
+
+**Warning (P2) :**
+- Changements de commercial fréquents (>5/h)
+- Erreurs d'agrégation BI
+- Livraisons partielles de stock
+- Stock insuffisant pour rattrapage
+- Livraison tontine > contribution disponible
+
+**Info (P3) :**
+- Articles en rupture / stock faible
+- Inventaire bloqué (écarts non réconciliés)
+- Demandes de stock auto-annulées
+
+### Backend : métriques custom
+Les métriques sont exposées via `io.micrometer:micrometer-registry-prometheus` :
+- Package : `com.optimize.elykia.core.monitoring.BusinessMetricsPublisher`
+- Endpoint : `GET /actuator/prometheus` (interne, réseau Docker `elykia-prod-internal`)
+
+### Variables d'environnement requises
+| Variable | Description |
+|---|---|
+| `GRAFANA_ADMIN_USER` | Admin Grafana (défaut: `admin`) |
+| `GRAFANA_ADMIN_PASSWORD` | Mot de passe admin Grafana (défaut: `admin`) |
+| `ALERT_EMAIL_TO` | Destinataire alertes email |
+| `SLACK_WEBHOOK_URL` | Webhook Slack pour notifications |
+| `ALERT_WEBHOOK_URL` | Webhook HTTP personnalisé |
+
+## Outils — PgAdmin 4
+
+Un stack d'outils (`docker-compose.tools.yml`) met à disposition **PgAdmin 4** pour administrer les bases PostgreSQL via une interface web.
+
+### Accès
+| Service | URL | Identifiants |
+|---|---|---|
+| **PgAdmin 4** | `https://db.amenouveve-yaveh.com` | Définis dans `/opt/elykia/tools/.env` (`PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD`) |
+
+### Démarrage
+```bash
+# Démarrer la stack tools
+docker compose -f docker-compose.tools.yml --project-name elykia-tools --env-file /opt/elykia/tools/.env up -d
+
+# Arrêter
+docker compose -f docker-compose.tools.yml --project-name elykia-tools --env-file /opt/elykia/tools/.env down
+```
+
+### Connexion aux bases de données
+Une fois connecté à PgAdmin via le navigateur, ajoutez les serveurs avec ces paramètres :
+
+| Environnement | Hôte | Port | Base | Utilisateur |
+|---|---|---|---|---|
+| **Test** | `elykia-test-db-1` | `5432` | `elykia_test_db` | `elykia_test` |
+| **Prod** | `elykia-prod-db-1` | `5432` | `elykia_prod_db` | `elykia_prod` |
+
+> Les mots de passe sont ceux définis dans `/opt/elykia/test/.env` et `/opt/elykia/prod/.env`.
+
+### Configuration DNS requise
+Ajoutez un enregistrement **A** dans Cloudflare :
+- `db` → IP du serveur (Proxy activé - nuage orange)
+
+---
 
 ## CI / GitHub Actions — secrets nécessaires
 Pour l'intégration continue, configurez ces secrets dans GitHub :

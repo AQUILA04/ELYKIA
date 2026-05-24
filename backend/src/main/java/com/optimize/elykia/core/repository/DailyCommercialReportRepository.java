@@ -38,7 +38,9 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
                         "SUM(d.totalAmountDeposited), " +
                         "SUM(d.creditSalesMargin), " +
                         "SUM(d.stockRequestMargin), " +
-                        "SUM(d.totalAdvancesAmount)) " +
+                        "SUM(d.totalAdvancesAmount), " +
+                        "SUM(d.totalReliquatGeneratedAmount), " +
+                        "SUM(d.totalReliquatUsedAmount)) " +
                         "FROM DailyCommercialReport d " +
                         "WHERE d.date BETWEEN :startDate AND :endDate " +
                         "GROUP BY d.commercialUsername")
@@ -65,7 +67,9 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
                         "SUM(d.totalAmountDeposited), " +
                         "SUM(d.creditSalesMargin), " +
                         "SUM(d.stockRequestMargin), " +
-                        "SUM(d.totalAdvancesAmount)) " +
+                        "SUM(d.totalAdvancesAmount), " +
+                        "SUM(d.totalReliquatGeneratedAmount), " +
+                        "SUM(d.totalReliquatUsedAmount)) " +
                         "FROM DailyCommercialReport d " +
                         "WHERE d.commercialUsername = :commercialUsername " +
                         "AND d.date BETWEEN :startDate AND :endDate " +

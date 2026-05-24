@@ -75,3 +75,4 @@ export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
     this.memberClick.emit(member);
   }
 }
+

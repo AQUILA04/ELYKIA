@@ -15,6 +15,14 @@
       </h1>
       <p class="page-subtitle">Distribuer des articles restants d'un stock d'un mois antérieur</p>
     </div>
+    <div class="header-actions">
+      <ng-container *ngIf="showStockReturnHistory">
+        <button class="btn btn-primary" [routerLink]="['/stock/return/historique']" *ngxPermissionsOnly="['ROLE_PROMOTER', 'ROLE_GESTIONNAIRE', 'ROLE_ADMIN']">
+          <mat-icon>assignment_return</mat-icon>
+          Retour stock antérieur
+        </button>
+      </ng-container>
+    </div>
   </div>
 
   <!-- Stepper -->
@@ -119,7 +127,8 @@
 
         <!-- Loading state -->
         <div class="loading-months" *ngIf="loadingMonths">
-          <mat-spinner diameter="24"></mat-spinner>
+          <mat-spinner diameter="24">
+          </mat-spinner>
           <span>Chargement des stocks antérieurs...</span>
         </div>
 

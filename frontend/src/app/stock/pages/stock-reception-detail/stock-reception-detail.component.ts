@@ -1,13 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NgxSpinnerService } from 'ngx-spinner';
 import { StockReceptionService } from '../../services/stock-reception.service';
-import { StockReception } from '../../../core/models/stock-reception.model';
 
 @Component({
   selector: 'app-stock-reception-detail',
   templateUrl: './stock-reception-detail.component.html',
-  styleUrls: ['./stock-reception-detail.component.scss']
+  styleUrls: ['./stock-reception-detail.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class StockReceptionDetailComponent implements OnInit {
   reception: any | null = null;
@@ -15,8 +14,7 @@ export class StockReceptionDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private stockReceptionService: StockReceptionService,
-    private spinner: NgxSpinnerService
+    private stockReceptionService: StockReceptionService
   ) {}
 
   ngOnInit(): void {
@@ -27,22 +25,14 @@ export class StockReceptionDetailComponent implements OnInit {
   }
 
   loadReception(id: number): void {
-    this.spinner.show();
     this.stockReceptionService.getReception(id).subscribe({
-      next: (response) => {
-        this.reception = response.data;
-        this.spinner.hide();
-      },
-      error: () => {
-        this.spinner.hide();
-        // Handle error (e.g., show a message or redirect)
-      }
+      next: (response) => { this.reception = response.data; },
+      error: () => {}
     });
   }
 
   downloadPdf(): void {
     if (this.reception) {
-      this.spinner.show();
       this.stockReceptionService.downloadPdf(this.reception.id).subscribe({
         next: (response) => {
           const blob = new Blob([response], { type: 'application/pdf' });
@@ -52,12 +42,8 @@ export class StockReceptionDetailComponent implements OnInit {
           link.download = `RECEPTION_${this.reception?.reference}.pdf`;
           link.click();
           window.URL.revokeObjectURL(url);
-          this.spinner.hide();
         },
-        error: () => {
-          this.spinner.hide();
-          // Handle error
-        }
+        error: () => {}
       });
     }
   }

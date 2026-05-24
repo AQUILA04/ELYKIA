@@ -31,3 +31,4 @@ export class TontineCollecteTableComponent implements AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   ngAfterViewInit() {}
 }
+

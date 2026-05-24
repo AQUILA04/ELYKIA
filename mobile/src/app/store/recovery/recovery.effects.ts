@@ -139,8 +139,8 @@ export class RecoveryEffects {
     this.actions$.pipe(
       ofType(RecoveryActions.createRecovery),
       tap(({ recovery }) => console.log('[EFFECT] processRecovery$: Triggered', recovery)),
-      switchMap(({ recovery, distribution }) =>
-        from(this.recoveryService.createRecovery(recovery)).pipe(
+      switchMap(({ recovery, distribution, keepReliquat }) =>
+        from(this.recoveryService.createRecovery(recovery, keepReliquat !== undefined ? keepReliquat : true)).pipe(
           switchMap((createdRecovery) => {
             // Préparer la nouvelle transaction pour l'historique
             console.log('Dans le switchMap de processRecovery');

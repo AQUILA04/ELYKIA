@@ -70,3 +70,4 @@ export class SessionSettingsModalComponent implements OnInit {
     this.dialogRef.close(false);
   }
 }
+

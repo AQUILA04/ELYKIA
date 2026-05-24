@@ -376,3 +376,4 @@ export class CommercialViewComponent implements OnInit {
       this.spinner.hide();
     }, 500);
   }}
+

@@ -40,6 +40,14 @@
         <div class="detail-value">{{ getClientFullName() }}</div>
       </div>
 
+      <!-- Reliquat -->
+      <div class="detail-item" *ngIf="clientReliquatAmount > 0">
+        <label class="detail-label">Reliquat disponible</label>
+        <div class="detail-value" style="color: var(--ion-color-success); font-weight: bold;">
+          {{ getFormattedAmount(clientReliquatAmount) }}
+        </div>
+      </div>
+
       <!-- Statut -->
       <div class="detail-item">
         <label class="detail-label">Statut</label>

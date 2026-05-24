@@ -22,6 +22,7 @@ import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import com.optimize.elykia.core.repository.StockReceptionRepository;
 import com.optimize.elykia.core.service.expense.ExpenseService;
+import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -47,6 +48,12 @@ public class ArticlesService extends GenericService<Articles, Long> {
     private final ExpenseTypeRepository expenseTypeRepository;
     private final StockReceptionRepository stockReceptionRepository;
     private final ArticleStateHistoryRepository articleStateHistoryRepository;
+    private BusinessMetricsPublisher metricsPublisher;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
+        this.metricsPublisher = metricsPublisher;
+    }
 
     protected ArticlesService(ArticlesRepository repository,
             ArticlesMapper articlesMapper,
@@ -297,9 +304,13 @@ public class ArticlesService extends GenericService<Articles, Long> {
 
         long totalItems = getRepository().count();
         long outOfStock = getRepository().countByStockQuantityEquals(0);
-        // Utilise le seuil de 6 pour "stock faible" cohérent avec getNextOutOfStock
         long lowStock = getRepository().countByStockQuantityLessThanEqualAndStockQuantityGreaterThan(6, 0);
         Double avgTurnover = getRepository().getAverageTurnoverRate();
+
+        if (metricsPublisher != null) {
+            metricsPublisher.setArticlesOutOfStock((int) outOfStock);
+            metricsPublisher.setArticlesLowStock((int) lowStock);
+        }
 
         return new StockMetricsDto(
                 totalValue,

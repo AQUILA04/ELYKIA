@@ -1,0 +1,55 @@
+<div class="reliquat-container">
+  
+  <div class="reliquat-card existing-reliquat" *ngIf="clientReliquat && clientReliquat.totalAmount > 0">
+    <div class="header">
+      <ion-icon name="wallet-outline" color="primary"></ion-icon>
+      <h3>Reliquat existant</h3>
+    </div>
+    <div class="amount">{{ clientReliquat.totalAmount | number:'1.0-0':'fr' }} FCFA</div>
+    
+    <ion-item lines="none" class="checkbox-item">
+      <ion-checkbox slot="start" [checked]="useReliquat" (ionChange)="onUseReliquatChange($event)"></ion-checkbox>
+      <ion-label>Utiliser le reliquat</ion-label>
+    </ion-item>
+  </div>
+
+  <div class="reliquat-card generated-reliquat" *ngIf="recoveryPlan && recoveryPlan.reliquatGenerated > 0">
+    <div class="header">
+      <ion-icon name="add-circle-outline" color="success"></ion-icon>
+      <h3>Nouveau Reliquat</h3>
+    </div>
+    <div class="amount success-text">{{ recoveryPlan.reliquatGenerated | number:'1.0-0':'fr' }} FCFA</div>
+    
+    <ion-item lines="none" class="checkbox-item">
+      <ion-checkbox slot="start" [checked]="keepReliquat" (ionChange)="onKeepReliquatChange($event)"></ion-checkbox>
+      <ion-label>Conserver le reliquat</ion-label>
+    </ion-item>
+  </div>
+
+  <div class="plan-summary" *ngIf="recoveryPlan && (recoveryPlan.misesCount > 0 || recoveryPlan.reliquatGenerated > 0 || recoveryPlan.reliquatUsed > 0)">
+    <ion-card>
+      <ion-card-content>
+        <div class="summary-row">
+          <span class="label">Mises couvertes :</span>
+          <span class="value">{{ recoveryPlan.misesCount }} <small>({{ recoveryPlan.amountCovered | number:'1.0-0':'fr' }} FCFA)</small></span>
+        </div>
+        
+        <div class="summary-row" *ngIf="recoveryPlan.reliquatUsed > 0">
+          <span class="label">Reliquat utilisé :</span>
+          <span class="value">{{ recoveryPlan.reliquatUsed | number:'1.0-0':'fr' }} FCFA</span>
+        </div>
+
+        <div class="summary-row" *ngIf="recoveryPlan.reliquatGenerated > 0">
+          <span class="label">Reliquat généré :</span>
+          <span class="value">{{ recoveryPlan.reliquatGenerated | number:'1.0-0':'fr' }} FCFA</span>
+        </div>
+
+        <div class="summary-row total-row">
+          <span class="label">Espèces à verser :</span>
+          <span class="value">{{ recoveryPlan.cashNeeded | number:'1.0-0':'fr' }} FCFA</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+</div>

@@ -14,15 +14,15 @@
     </mat-card-header>
     <mat-card-content>
       <div class="year-chips">
-        <mat-chip-list>
-          <mat-chip 
+        <mat-chip-listbox>
+          <mat-chip-option
             *ngFor="let session of sessions"
             [selected]="isYearSelected(session.year)"
             (click)="toggleYear(session.year)"
             [class.selected-chip]="isYearSelected(session.year)">
             {{ session.year }}
-          </mat-chip>
-        </mat-chip-list>
+          </mat-chip-option>
+        </mat-chip-listbox>
       </div>
       <button mat-raised-button color="primary" 
               [disabled]="!canCompare()" 

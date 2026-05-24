@@ -21,7 +21,7 @@
 
           <ng-template ng-option-tmp let-item="item">
             <div class="article-option">
-              <div class="option-title">{{ item.commercialName }}</div>
+              <div class="option-title">{{ item.commercialName + ' | ' + item.name }}</div>
               <small class="option-details">
                 Marque: {{ item.marque }} | Modèle: {{ item.model }}
                 <span *ngIf="showStock" class="stock-info" [ngClass]="getStockClass(item.id)">

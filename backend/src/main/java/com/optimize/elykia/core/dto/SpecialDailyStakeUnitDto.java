@@ -13,4 +13,6 @@ public class SpecialDailyStakeUnitDto {
     private Long creditId;
     @NotBlank(message = "La référence du recouvrement est obligatoire !")
     private String recoveryId; // Mobile recovery ID
+    private Double reliquatGeneratedAmount = 0.0;
+    private Double reliquatUsedAmount = 0.0;
 }

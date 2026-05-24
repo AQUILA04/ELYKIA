@@ -20,6 +20,7 @@ import * as RecoveryActions from '../../store/recovery/recovery.actions';
 import * as TransactionActions from '../../store/transaction/transaction.actions';
 import { DatabaseService } from "./database.service";
 import { RecoveryService } from "./recovery.service";
+import { ReliquatService } from "./reliquat.service";
 import { TransactionService } from "./transaction.service";
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { LoggerService } from './logger.service';
@@ -48,6 +49,7 @@ export class DataInitializationService {
     private store: Store,
     private dbService: DatabaseService,
     private recoveryService: RecoveryService,
+    private reliquatService: ReliquatService,
     private transactionService: TransactionService,
     private log: LoggerService,
     private tontineService: TontineService,
@@ -233,6 +235,22 @@ export class DataInitializationService {
     );
   }
 
+  initializeReliquats(): Observable<boolean> {
+    return this.store.select(selectAuthUser).pipe(
+      take(1),
+      filter((user): user is User => !!user),
+      switchMap(user => {
+        return this.reliquatService.initializeReliquats(user.username).pipe(
+          map(() => true),
+          catchError((error) => {
+            console.error('Error initializing reliquats:', error);
+            return of(false);
+          })
+        );
+      })
+    );
+  }
+
   initializeTransactions(): Observable<boolean> {
     return of(true);
   }
@@ -398,6 +416,7 @@ export class DataInitializationService {
       concatMap(() => this.initializeDistributions()),
       concatMap(() => this.initializeAccounts()),
       concatMap(() => this.initializeRecoveries()),
+      concatMap(() => this.initializeReliquats()),
       concatMap(() => this.initializeTontine()),
       concatMap(() => from(this.validateInitialData()))
     ) as Observable<boolean>;

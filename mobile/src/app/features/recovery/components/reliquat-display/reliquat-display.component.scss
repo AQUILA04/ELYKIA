@@ -1,0 +1,130 @@
+.reliquat-container {
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.reliquat-header, .input-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.reliquat-icon {
+  color: var(--ion-color-primary);
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.input-icon {
+  color: var(--ion-color-success);
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.reliquat-title, .input-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ion-color-dark);
+  flex-grow: 1;
+}
+
+.reliquat-amount {
+  font-weight: bold;
+  font-size: 16px;
+  color: var(--ion-color-primary);
+}
+
+.reliquat-toggle-item {
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-top: 4px;
+  font-size: 14px;
+
+  ion-label {
+    color: var(--ion-color-medium);
+    white-space: normal;
+  }
+}
+
+.reliquat-divider {
+  height: 1px;
+  background: rgba(0,0,0,0.05);
+  margin: 16px 0;
+}
+
+.received-input-item {
+  --background: #fff;
+  --border-radius: 8px;
+  --border-color: var(--ion-color-medium);
+  margin-bottom: 16px;
+
+  ion-input {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .currency-label {
+    color: var(--ion-color-medium);
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+
+.reliquat-summary {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.summary-label {
+  color: var(--ion-color-medium);
+}
+
+.summary-value {
+  font-weight: 600;
+}
+
+.text-success {
+  color: var(--ion-color-success);
+}
+
+.text-warning {
+  color: var(--ion-color-warning);
+}
+
+.bold {
+  font-weight: bold;
+  color: var(--ion-color-dark);
+}
+
+.highlight-row {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(0,0,0,0.1);
+  font-size: 15px;
+}
+
+.reliquat-generated {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(0,0,0,0.1);
+
+  .generated-toggle {
+    margin-top: 8px;
+  }
+}

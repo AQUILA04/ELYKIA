@@ -39,9 +39,27 @@
 
     <!-- Body -->
     <div class="row total-row">
-      <span>MONTANT PAYÉ:</span>
+      <span>MONTANT FACTURÉ:</span>
       <span>{{ recovery.amount | number:'1.0-0' }} FCFA</span>
     </div>
+
+    <div class="row" *ngIf="recovery.reliquatUsedAmount && recovery.reliquatUsedAmount > 0">
+      <span>Reliquat utilisé:</span>
+      <span>- {{ recovery.reliquatUsedAmount | number:'1.0-0' }} FCFA</span>
+    </div>
+
+    <div class="row">
+      <span>MONTANT REMIS (Espèces):</span>
+      <span>{{ (recovery.amount - (recovery.reliquatUsedAmount || 0) + (recovery.reliquatGeneratedAmount || 0)) | number:'1.0-0' }} FCFA</span>
+    </div>
+
+    <div class="row" *ngIf="recovery.reliquatGeneratedAmount && recovery.reliquatGeneratedAmount > 0">
+      <span>Reliquat conservé:</span>
+      <span>{{ recovery.reliquatGeneratedAmount | number:'1.0-0' }} FCFA</span>
+    </div>
+
+    <div class="separator"></div>
+
     <div class="row">
       <span>Ancien Solde:</span>
       <span>{{ ((distribution.remainingAmount || 0) + recovery.amount) | number:'1.0-0' }} FCFA</span>

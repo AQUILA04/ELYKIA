@@ -112,3 +112,4 @@ export class LocalityListComponent implements OnInit {
     this.router.navigate(['/locality-add', localityId]);
   }
 }
+

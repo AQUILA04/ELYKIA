@@ -45,3 +45,4 @@ export class ClientCotisationHistoryComponent {
     return badgeClasses[status] || 'badge-secondary';
   }
 }
+

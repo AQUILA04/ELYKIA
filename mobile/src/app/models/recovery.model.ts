@@ -19,4 +19,6 @@ export interface Recovery {
   reference?: string; // Référence du CreditTimeline (ID mobile si existe)
   distribution?: Distribution;
   client?: Client;
+  reliquatGeneratedAmount?: number;
+  reliquatUsedAmount?: number;
 }

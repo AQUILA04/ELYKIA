@@ -253,3 +253,4 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
 
   trackByItemId = (index: number, item: OrderItem): number => item.id;
 }
+

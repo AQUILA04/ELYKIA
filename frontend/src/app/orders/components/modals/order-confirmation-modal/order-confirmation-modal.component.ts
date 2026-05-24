@@ -67,3 +67,4 @@ export class OrderConfirmationModalComponent {
     return colors[this.data.type || 'warning'];
   }
 }
+

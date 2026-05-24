@@ -10,6 +10,7 @@ import { UserProfile } from "../../../shared/models/user-profile.enum";
 import { MatDialog } from '@angular/material/dialog';
 import { SalesDetailsDialogComponent } from '../../components/sales-details-dialog/sales-details-dialog.component';
 import { StockMovementDialogComponent } from '../../components/stock-movement-dialog/stock-movement-dialog.component';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 
 @Component({
   selector: 'app-my-stock-dashboard',
@@ -24,6 +25,7 @@ export class MyStockDashboardComponent implements OnInit {
   agents: any[] = [];
   selectedAgent: string | null = null;
   isHistoric: boolean = false;
+  showStockReturnHistory: boolean = false;
 
   // Pagination
   totalElements: number = 0;
@@ -40,7 +42,8 @@ export class MyStockDashboardComponent implements OnInit {
     private spinner: NgxSpinnerService,
     private clientService: ClientService,
     private userService: UserService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private featureFlagService: FeatureFlagService
   ) { }
 
   ngOnInit(): void {
@@ -49,6 +52,7 @@ export class MyStockDashboardComponent implements OnInit {
     this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER);
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
+    this.showStockReturnHistory = this.featureFlagService.isFeatureEnabled(FeatureFlags.StockReturnHistory);
     this.loadAgents();
     this.loadCurrentStock();
   }

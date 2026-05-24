@@ -184,3 +184,4 @@ export class CreditViewComponent implements OnInit {
     this.router.navigate(['/credit-details', creditId]);
   }
 }
+

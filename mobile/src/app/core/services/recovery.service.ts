@@ -13,8 +13,9 @@ import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { RecoveryRepository } from '../repositories/recovery.repository';
 import { RecoveryRepositoryExtensions, RecoveryRepositoryFilters } from '../repositories/recovery.repository.extensions';
 import { DistributionRepository } from '../repositories/distribution.repository';
-import {LoggerService} from "./logger.service";
-import {HealthCheckService} from "./health-check.service";
+import { LoggerService } from "./logger.service";
+import { HealthCheckService } from "./health-check.service";
+import { ReliquatService } from './reliquat.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,8 +30,9 @@ export class RecoveryService {
     private readonly recoveryRepository: RecoveryRepository,
     private readonly recoveryRepositoryExtensions: RecoveryRepositoryExtensions,
     private readonly distributionRepository: DistributionRepository,
-    private  readonly log: LoggerService,
+    private readonly log: LoggerService,
     private readonly healthCheckService: HealthCheckService,
+    private readonly reliquatService: ReliquatService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -49,22 +51,24 @@ export class RecoveryService {
         if (isOnline) {
           return this.fetchRecoveriesFromApi().pipe(
             tap(async (recoveries) => {
-              // Ensure commercialId is set correctly before saving
+              // Supprimer d'abord tous les recouvrements déjà synchronisés en local.
+              // Cela évite les doublons causés par le décalage entre l'ID mobile (ex: "REC-A")
+              // et l'ID numérique backend (ex: "42") renvoyé lors de la réinitialisation.
+              // Les recouvrements non synchronisés (isSync = 0) sont conservés.
+              await this.recoveryRepository.deleteSynced(currentCommercialId);
+
               const enrichedRecoveries = recoveries.map(r => ({
                 ...r,
-                // Use reference as ID if available, otherwise fallback to existing ID
+                // Utiliser la référence comme ID si disponible (= ID mobile original),
+                // sinon fallback sur l'ID numérique backend.
                 id: r.reference || r.id,
-                commercialId: r.commercialId || currentCommercialId // Fallback to current user if missing
+                commercialId: r.commercialId || currentCommercialId
               }));
               await this.recoveryRepository.saveAll(enrichedRecoveries);
               console.log('Recoveries fetched from API and saved locally.');
             }),
             catchError(async (error) => {
               console.error('Failed to fetch recoveries from API, attempting local:', error);
-              // This still loads all recoveries. Should be paginated if used in UI.
-              // For initialization, it might be ok if we don't return the data.
-              // The method returns Observable<Recovery[]>, so we need to return something.
-              // Let's return empty and log a warning.
               console.warn('initializeRecoveries: returning empty array on API error.');
               return [];
             })
@@ -76,7 +80,7 @@ export class RecoveryService {
       }),
       catchError(err => {
         console.error('Recoveries initialization failed:', err);
-        return of([]); // Return an empty array on final failure
+        return of([]);
       })
     );
   }
@@ -114,7 +118,7 @@ export class RecoveryService {
   /**
    * Créer un nouveau recouvrement
    */
-  async createRecovery(recovery: Partial<Recovery>): Promise<Recovery> {
+  async createRecovery(recovery: Partial<Recovery>, keepReliquat: boolean = true): Promise<Recovery> {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
@@ -139,11 +143,21 @@ export class RecoveryService {
       isSync: false,
       syncDate: '',
       isDefaultStake: recovery.isDefaultStake,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
+      reliquatUsedAmount: recovery.reliquatUsedAmount || 0
     };
 
     // Sauvegarder localement
     await this.recoveryRepository.save(newRecovery);
+
+    // Gérer les reliquats
+    if (keepReliquat && newRecovery.reliquatGeneratedAmount && newRecovery.reliquatGeneratedAmount > 0) {
+      await this.reliquatService.addReliquat(newRecovery.clientId, this.commercialUsername, newRecovery.reliquatGeneratedAmount, newRecovery.id);
+    }
+    if (newRecovery.reliquatUsedAmount && newRecovery.reliquatUsedAmount > 0) {
+      await this.reliquatService.consumeReliquat(newRecovery.clientId, newRecovery.reliquatUsedAmount);
+    }
 
     // Mettre à jour le solde de la distribution
     await this.updateDistributionBalance(newRecovery.distributionId, newRecovery.amount);

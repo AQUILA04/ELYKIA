@@ -33,6 +33,7 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
   agents: any[] = [];
   selectedCommercial = '';
   isRecoveryManager: boolean = false;
+  isCollector: boolean = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -59,6 +60,7 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
       }
     });
     this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
+    this.isCollector = this.userService.hasProfile(UserProfile.PROMOTER);
   }
 
   onCancel(): void {

@@ -44,6 +44,9 @@ import java.io.ByteArrayOutputStream;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import com.optimize.elykia.core.dto.StockExportPdfContextDto;
+import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
+import com.optimize.elykia.core.util.MonthEndCalculator;
+import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 
 @Service
 @Transactional
@@ -59,6 +62,8 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private CommercialMonthlyStockItemRepository monthlyStockItemRepository;
     private StockReturnRepository stockReturnRepository;
     private CommercialStockMovementService commercialStockMovementService;
+    private CommercialMonthlyStockService commercialMonthlyStockService;
+    private BusinessMetricsPublisher metricsPublisher;
 
     public StockRequestService(StockRequestRepository repository,
             ArticlesService articlesService,
@@ -83,9 +88,31 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         this.commercialStockMovementService = commercialStockMovementService;
     }
 
-    public StockRequest createRequest(StockRequest request) {
+    @Autowired
+    public void setCommercialMonthlyStockService(CommercialMonthlyStockService commercialMonthlyStockService) {
+        this.commercialMonthlyStockService = commercialMonthlyStockService;
+    }
+
+    @Autowired
+    public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
+        this.metricsPublisher = metricsPublisher;
+    }
+
+    public StockRequest createRequest(StockRequest request, boolean forNextMonth) {
         request.setStatus(StockRequestStatus.CREATED);
         request.setRequestDate(LocalDate.now());
+
+        if (forNextMonth) {
+            if (commercialMonthlyStockService != null) {
+                commercialMonthlyStockService.closeCurrentMonthStock(request.getCollector());
+            }
+            MonthEndCalculator.NextMonthDate nextMonthDate = MonthEndCalculator.getNextMonthDate();
+            request.setMonth(nextMonthDate.month());
+            request.setYear(nextMonthDate.year());
+        } else {
+            request.setMonth(LocalDate.now().getMonthValue());
+            request.setYear(LocalDate.now().getYear());
+        }
 
         // Générer référence
         Long maxId = ((StockRequestRepository) repository).findMaxId();
@@ -130,14 +157,25 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         }
 
         if (!unitPriceChange.isEmpty()) {
+            if (metricsPublisher != null) {
+                metricsPublisher.stockRequestPriceConflict(request.getCollector());
+            }
             throw new CustomValidationException("Le prix de ces articles en stock pour le commercial ont changé: " + String.join("| ", unitPriceChange) +
                     ". Veuillez faire le retour de stock de ces articles avant de faire une nouvelle demande de sortie");
+        }
+
+        if (metricsPublisher != null) {
+            metricsPublisher.stockRequestCreated(request.getCollector());
         }
 
         request.setTotalCreditSalePrice(totalCreditSalePrice);
         request.setTotalPurchasePrice(totalPurchasePrice);
 
         return repository.save(request);
+    }
+
+    public StockRequest createRequest(StockRequest request) {
+        return createRequest(request, false);
     }
 
     public StockRequest validateRequest(Long requestId) {
@@ -181,7 +219,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 
                 // create new item for pending
                 StockRequestItem pendingItem = new StockRequestItem();
-                pendingItem.setArticle(item.getArticle());
+                pendingItem.setArticle(article);
                 pendingItem.setItemName(item.getItemName());
                 pendingItem.setQuantity(missingQty);
                 pendingItem.setUnitPrice(item.getUnitPrice());
@@ -191,12 +229,23 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                 pendingItemDTOs.add(new PartialDeliveryResponseDTO.PendingItemDTO(item.getItemName(), missingQty, (double)availableQty, item.getUnitPrice()));
             } else {
                 request.removeItem(item);
-                pendingRequestItems.add(item);
+                
+                StockRequestItem pendingItem = new StockRequestItem();
+                pendingItem.setArticle(article);
+                pendingItem.setItemName(item.getItemName());
+                pendingItem.setQuantity(item.getQuantity());
+                pendingItem.setUnitPrice(item.getUnitPrice());
+                pendingItem.setPurchasePrice(item.getPurchasePrice());
+                pendingRequestItems.add(pendingItem);
+                
                 pendingItemDTOs.add(new PartialDeliveryResponseDTO.PendingItemDTO(item.getItemName(), item.getQuantity(), 0.0, item.getUnitPrice()));
             }
         }
 
         if (deliverableItems.isEmpty()) {
+            if (metricsPublisher != null) {
+                metricsPublisher.stockRequestDeliveryFailed(request.getCollector());
+            }
             throw new CustomValidationException("Aucun article disponible pour la livraison.");
         }
 
@@ -236,6 +285,10 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         request.setDeliveryDate(LocalDate.now());
         request.setAccountingDate(LocalDate.now());
         StockRequest savedRequest = repository.save(request);
+
+        if (metricsPublisher != null) {
+            metricsPublisher.stockRequestDelivered(request.getCollector(), !pendingRequestItems.isEmpty());
+        }
 
         // Calculate margin
         Double margin = (savedRequest.getTotalCreditSalePrice() != null ? savedRequest.getTotalCreditSalePrice() : 0.0)
@@ -344,13 +397,15 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         for (StockRequest request : oldRequests) {
             request.setStatus(StockRequestStatus.CANCELLED);
             repository.save(request);
+            if (metricsPublisher != null) {
+                metricsPublisher.stockRequestAutoCancelled();
+            }
         }
     }
 
     private void updateCommercialMonthlyStock(StockRequest request) {
-        LocalDate date = LocalDate.now();
-        int month = date.getMonthValue();
-        int year = date.getYear();
+        int month = request.getMonth() != null ? request.getMonth() : LocalDate.now().getMonthValue();
+        int year = request.getYear() != null ? request.getYear() : LocalDate.now().getYear();
 
         CommercialMonthlyStock monthlyStock = monthlyStockRepository
                 .findByCollectorAndMonthAndYear(request.getCollector(), month, year)

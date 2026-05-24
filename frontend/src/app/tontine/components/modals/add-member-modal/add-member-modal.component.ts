@@ -154,3 +154,4 @@ export class AddMemberModalComponent implements OnInit {
     this.dialogRef.close(false);
   }
 }
+

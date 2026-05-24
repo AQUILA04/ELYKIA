@@ -1,5 +1,4 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Distribution } from '../../../../models/distribution.model';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import {DistributionView} from "../../../../models/distribution-view.model";

@@ -165,6 +165,12 @@
                 <span class="info-label">Solde</span>
                 <span class="info-value">{{ client.account?.accountBalance | currency:'XOF':'symbol':'1.0-0' }}</span>
               </div>
+              <div class="info-row" *ngIf="client.reliquatAmount > 0">
+                <span class="info-label">Reliquat disponible</span>
+                <span class="info-value" style="color: var(--ion-color-success); font-weight: bold;">
+                  {{ client.reliquatAmount | number:'1.0-0':'fr' }} FCFA
+                </span>
+              </div>
             </ion-card-content>
           </ion-card>
 
@@ -193,6 +199,10 @@
       <!-- Onglet Crédits -->
       <div *ngSwitchCase="'credits'">
         <ng-container *ngIf="credits$ | async as credits">
+          <div *ngIf="client.reliquatAmount > 0" class="reliquat-banner">
+            <ion-icon name="wallet-outline"></ion-icon>
+            <span>Reliquat disponible : <strong>{{ client.reliquatAmount | number:'1.0-0' }} FCFA</strong></span>
+          </div>
           <div *ngIf="credits.length === 0" class="empty-state">
             <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
             <h2>Aucun crédit en cours</h2>

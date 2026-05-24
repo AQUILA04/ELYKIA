@@ -21,4 +21,6 @@ export interface DailyCommercialReport {
     creditSalesMargin?: number;
     stockRequestMargin?: number;
     totalAdvancesAmount?: number;
+    totalReliquatGeneratedAmount?: number;
+    totalReliquatUsedAmount?: number;
 }

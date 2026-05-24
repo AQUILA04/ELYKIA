@@ -1,5 +1,5 @@
 /* Variables CSS pour la palette de couleurs */
-:root {
+:host {
   --primary-color: #1976D2;
   --primary-variant: #1565C0;
   --secondary-color: #FF9800;
@@ -389,49 +389,49 @@
 
 /* Actions Rapides - Bordures colorées selon les icônes */
 .action-distribution {
-  border-color: var(--primary-color);
+  border-color: #1976D2;
 
   .action-icon {
     background: rgba(25, 118, 210, 0.1);
 
     ion-icon {
-      color: var(--primary-color);
+      color: #1976D2;
     }
   }
 }
 
 .action-recovery {
-  border-color: var(--success-color);
+  border-color: #4CAF50;
 
   .action-icon {
     background: rgba(76, 175, 80, 0.1);
 
     ion-icon {
-      color: var(--success-color);
+      color: #4CAF50;
     }
   }
 }
 
 .action-client {
-  border-color: var(--secondary-color);
+  border-color: #FF9800;
 
   .action-icon {
     background: rgba(255, 152, 0, 0.1);
 
     ion-icon {
-      color: var(--secondary-color);
+      color: #FF9800;
     }
   }
 }
 
 .action-report {
-  border-color: var(--info-color);
+  border-color: #2196F3;
 
   .action-icon {
     background: rgba(33, 150, 243, 0.1);
 
     ion-icon {
-      color: var(--info-color);
+      color: #2196F3;
     }
   }
 }
@@ -448,11 +448,115 @@
   }
 }
 
+.action-stock {
+  border-color: #1E40AF;
+
+  .action-icon {
+    background: rgba(30, 64, 175, 0.1);
+
+    ion-icon {
+      color: #1E40AF;
+    }
+  }
+}
+
 .action-text {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
   line-height: 1.3;
+}
+
+/* Section Historique des versements */
+.deposits-section {
+  padding: 0 16px 16px;
+  background: var(--background-color);
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    background: var(--surface-color);
+    border-radius: 12px;
+    text-align: center;
+    border: 1px dashed var(--border-color);
+
+    ion-icon {
+      font-size: 48px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    &.offline-state {
+      border-color: rgba(235, 68, 90, 0.3);
+      ion-icon {
+        color: #eb445a;
+        opacity: 1;
+      }
+    }
+  }
+
+  .loading-state {
+    display: flex;
+    justify-content: center;
+    padding: 32px;
+  }
+
+  .deposits-list {
+    background: transparent;
+    padding: 0;
+
+    .deposit-item {
+      --background: var(--surface-color);
+      --border-color: var(--border-color);
+      margin-bottom: 8px;
+      border-radius: 8px;
+      /* Material Design elevation */
+      box-shadow: 0 1px 3px var(--shadow-light);
+
+      h3 {
+        font-weight: 600;
+        color: var(--success-color);
+        margin: 0 0 4px 0;
+        font-size: 16px;
+      }
+
+      p {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      .deposit-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-secondary);
+
+        .deposit-date {
+          font-weight: 500;
+          font-size: 13px;
+        }
+
+        .deposit-time {
+          font-size: 11px;
+          opacity: 0.8;
+          margin-top: 2px;
+        }
+      }
+    }
+  }
 }
 
 /* Espace pour la navigation inférieure */

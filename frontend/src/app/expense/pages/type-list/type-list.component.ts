@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { Router } from '@angular/router';
 import { ExpenseService } from '../../services/expense.service';
@@ -77,3 +77,4 @@ export class ExpenseTypeListComponent implements OnInit {
         });
     }
 }
+

@@ -279,3 +279,4 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     });
   }
 }
+

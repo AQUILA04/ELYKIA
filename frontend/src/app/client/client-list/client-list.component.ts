@@ -138,3 +138,4 @@ export class ClientListComponent implements OnInit {
     this.loadClient();
   }
 }
+

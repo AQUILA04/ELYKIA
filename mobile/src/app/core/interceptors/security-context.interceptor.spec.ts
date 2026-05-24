@@ -37,34 +37,29 @@ describe('SecurityContextInterceptor', () => {
     httpMock.verify();
   });
 
-  it('should inject commercialUsername into POST requests to /api/stock-requests', () => {
-    client.post('/api/stock-requests', { someData: '123' }).subscribe();
+  it('should inject collector into StockRequestCreateDto.request', () => {
+    client.post('/api/stock-requests/create', {
+      request: { items: [{ article: { id: 1 }, quantity: 1 }] },
+      forNextMonth: false
+    }).subscribe();
 
-    const req = httpMock.expectOne('/api/stock-requests');
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ someData: '123', commercialUsername: 'testuser' });
+    const req = httpMock.expectOne('/api/stock-requests/create');
+    expect(req.request.body).toEqual({
+      request: { items: [{ article: { id: 1 }, quantity: 1 }], collector: 'testuser' },
+      forNextMonth: false
+    });
     req.flush({});
   });
 
-  it('should inject commercialUsername into PUT requests to /api/stock-returns', () => {
-    client.put('/api/stock-returns/42', { quantity: 5 }).subscribe();
+  it('should inject collector into stock return create body', () => {
+    client.post('/api/stock-returns/create', { items: [] }).subscribe();
 
-    const req = httpMock.expectOne('/api/stock-returns/42');
-    expect(req.request.method).toBe('PUT');
-    expect(req.request.body).toEqual({ quantity: 5, commercialUsername: 'testuser' });
+    const req = httpMock.expectOne('/api/stock-returns/create');
+    expect(req.request.body).toEqual({ items: [], collector: 'testuser' });
     req.flush({});
   });
 
-  it('should inject commercialUsername into PATCH requests to /api/v1/stock-tontine-requests', () => {
-    client.patch('/api/v1/stock-tontine-requests/1', { status: 'PENDING' }).subscribe();
-
-    const req = httpMock.expectOne('/api/v1/stock-tontine-requests/1');
-    expect(req.request.method).toBe('PATCH');
-    expect(req.request.body).toEqual({ status: 'PENDING', commercialUsername: 'testuser' });
-    req.flush({});
-  });
-
-  it('should NOT add commercialUsername to GET requests on target endpoints', () => {
+  it('should NOT modify GET requests on target endpoints', () => {
     client.get('/api/stock-requests').subscribe();
 
     const req = httpMock.expectOne('/api/stock-requests');
@@ -73,24 +68,14 @@ describe('SecurityContextInterceptor', () => {
     req.flush({});
   });
 
-  it('should NOT modify POST requests to non-target endpoints', () => {
-    client.post('/api/other', { someData: '123' }).subscribe();
-
-    const req = httpMock.expectOne('/api/other');
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ someData: '123' });
-    req.flush({});
-  });
-
-  it('should pass request through without mutation and log a warning when user is null', () => {
+  it('should pass through without mutation when user is null', () => {
     mockAuthService.currentUser = null;
 
-    client.post('/api/stock-requests', { someData: '123' }).subscribe();
+    client.post('/api/stock-requests/create', { request: { items: [] } }).subscribe();
 
-    const req = httpMock.expectOne('/api/stock-requests');
-    // Body must NOT contain commercialUsername since there is no logged-in user
-    expect(req.request.body).toEqual({ someData: '123' });
-    expect(mockLoggerService.log).toHaveBeenCalledWith(jasmine.stringContaining('commercialUsername could not be injected'));
+    const req = httpMock.expectOne('/api/stock-requests/create');
+    expect(req.request.body).toEqual({ request: { items: [] } });
+    expect(mockLoggerService.log).toHaveBeenCalledWith(jasmine.stringContaining('collector could not be injected'));
     req.flush({});
   });
 });

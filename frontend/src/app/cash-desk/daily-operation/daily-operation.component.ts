@@ -135,3 +135,4 @@ export class DailyOperationComponent implements OnInit {
     );
   }
 }
+

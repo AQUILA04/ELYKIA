@@ -1,0 +1,50 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Choisir un article</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      placeholder="Rechercher par nom, référence..."
+      [debounce]="300"
+      (ionInput)="onSearch($event)"
+      showCancelButton="focus">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="picker-loading" *ngIf="loading">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <ion-list lines="full" *ngIf="!loading">
+    <ion-item
+      button
+      detail="false"
+      *ngFor="let article of articles; trackBy: trackById"
+      (click)="selectArticle(article)">
+      <div class="article-thumb" slot="start">
+        {{ (displayName(article) || '?').substring(0, 2).toUpperCase() }}
+      </div>
+      <ion-label>
+        <h2>{{ displayName(article) }}</h2>
+        <p *ngIf="article.reference">REF: {{ article.reference }}</p>
+        <p *ngIf="!article.reference">ID: {{ article.id }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <div class="picker-empty" *ngIf="!loading && articles.length === 0">
+    <p>Aucun article trouvé.</p>
+  </div>
+
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
+    <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

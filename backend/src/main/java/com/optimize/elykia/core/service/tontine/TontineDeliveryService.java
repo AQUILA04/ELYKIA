@@ -20,6 +20,7 @@ import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.TontineDeliveryRepository;
+import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.service.util.ClientAccountService;
@@ -53,6 +54,12 @@ public class TontineDeliveryService {
     private final AccountService accountService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final ClientService clientService;
+    private BusinessMetricsPublisher metricsPublisher;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
+        this.metricsPublisher = metricsPublisher;
+    }
 
     @Transactional
     public TontineDeliveryDto createDelivery(CreateDeliveryDto dto) {
@@ -101,6 +108,9 @@ public class TontineDeliveryService {
         }
 
         if (totalAmount > member.getAvailableContribution()) {
+            if (metricsPublisher != null) {
+                metricsPublisher.tontineDeliveryAmountExceeded(member.getClient().getCollector());
+            }
             throw new CustomValidationException(
                     String.format("Le montant total (%.2f) dépasse le montant disponible (%.2f)",
                             totalAmount, member.getAvailableContribution()));
@@ -123,7 +133,9 @@ public class TontineDeliveryService {
         if (currentUser.is("GESTIONNAIRE") || currentUser.is("ADMIN")) {
             member.setDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED);
             TontineDelivery savedDelivery = deliveryRepository.save(delivery);
-            // creditService.createTontineCredit(savedDelivery);
+            if (metricsPublisher != null) {
+                metricsPublisher.tontineDeliveryCreated(member.getClient().getCollector());
+            }
             log.info("Delivery for member {} created and auto-validated.", member.getId());
             return mapToDto(savedDelivery);
         } else {

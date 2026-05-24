@@ -10,6 +10,8 @@ import { Article } from 'src/app/article/model/article.model';
 import { ClientService } from 'src/app/client/service/client.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { MonthEndCalculator } from '../../../shared/utils/month-end-calculator';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 
 @Component({
   selector: 'app-stock-request-create',
@@ -23,6 +25,11 @@ export class StockRequestCreateComponent implements OnInit {
   agents: any[] = [];
   currentUser: any;
 
+  daysUntilMonthEnd: number = -1;
+  showMonthEndAlert: boolean = false;
+  showNextMonthOption: boolean = false;
+  forNextMonth: boolean = false;
+
   constructor(
     private fb: FormBuilder,
     private stockRequestService: StockRequestService,
@@ -32,7 +39,8 @@ export class StockRequestCreateComponent implements OnInit {
     private router: Router,
     private toastr: ToastrService,
     private spinner: NgxSpinnerService,
-    private userService: UserService
+    private userService: UserService,
+    private featureFlagService: FeatureFlagService
   ) {
     this.form = this.fb.group({
       items: [[], Validators.required], // Changed to single control for ArticleSelector
@@ -41,6 +49,7 @@ export class StockRequestCreateComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.calculateDaysUntilMonthEnd();
     this.currentUser = this.authService.getCurrentUser();
     this.loadArticles();
     this.loadAgents();
@@ -49,6 +58,17 @@ export class StockRequestCreateComponent implements OnInit {
       this.form.patchValue({ collector: this.currentUser.username });
       this.form.get('collector')?.disable();
     }
+  }
+
+  calculateDaysUntilMonthEnd() {
+    this.daysUntilMonthEnd = MonthEndCalculator.getDaysUntilMonthEnd();
+    const isEndOfMonth = this.daysUntilMonthEnd <= 5 && this.daysUntilMonthEnd >= 0;
+    this.showMonthEndAlert = isEndOfMonth && this.featureFlagService.isFeatureEnabled(FeatureFlags.EndOfMonthAlerts);
+    this.showNextMonthOption = isEndOfMonth && this.featureFlagService.isFeatureEnabled(FeatureFlags.NextMonthStockCreation);
+  }
+
+  onSelectNextMonth(forNext: boolean) {
+    this.forNextMonth = forNext;
   }
 
   loadArticles() {
@@ -110,8 +130,13 @@ export class StockRequestCreateComponent implements OnInit {
       items: items
     };
 
+    const requestDto = {
+      request: request,
+      forNextMonth: this.forNextMonth
+    };
+
     this.spinner.show();
-    this.stockRequestService.create(request).subscribe({
+    this.stockRequestService.create(requestDto).subscribe({
       next: (resp: any) => {
         if (resp && resp.statusCode && resp.statusCode !== 200) {
           this.toastr.error(resp.message || 'Erreur lors de la création de la demande');

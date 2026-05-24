@@ -22,10 +22,11 @@ echo "=== Elykia Server Setup ==="
 echo ""
 
 # --- 1. Create directory structure ---
-echo "[1/5] Creating directory structure..."
+echo "[1/6] Creating directory structure..."
 mkdir -p /opt/elykia/traefik
 mkdir -p /opt/elykia/test/logs
 mkdir -p /opt/elykia/prod/logs
+mkdir -p /opt/elykia/tools
 
 # acme.json must exist and be chmod 600 for Traefik to accept it
 touch /opt/elykia/traefik/acme.json
@@ -34,7 +35,7 @@ chmod 600 /opt/elykia/traefik/acme.json
 echo "      Directories created."
 
 # --- 2. Create shared Docker network ---
-echo "[2/5] Creating shared Docker network 'traefik-public'..."
+echo "[2/6] Creating shared Docker network 'traefik-public'..."
 if docker network inspect traefik-public > /dev/null 2>&1; then
   echo "      Network 'traefik-public' already exists, skipping."
 else
@@ -43,7 +44,7 @@ else
 fi
 
 # --- 3. Generate Traefik dashboard credentials ---
-echo "[3/5] Generating Traefik dashboard credentials..."
+echo "[3/6] Generating Traefik dashboard credentials..."
 TRAEFIK_ENV_FILE="/opt/elykia/traefik/.env"
 
 if [[ -f "$TRAEFIK_ENV_FILE" ]] && grep -q "TRAEFIK_DASHBOARD_AUTH" "$TRAEFIK_ENV_FILE" 2>/dev/null; then
@@ -73,7 +74,7 @@ else
 fi
 
 # --- 4. Create .env templates for test and prod stacks ---
-echo "[4/5] Creating .env templates if they don't exist..."
+echo "[4/6] Creating .env templates if they don't exist..."
 
 TEST_ENV="/opt/elykia/test/.env"
 if [[ ! -f "$TEST_ENV" ]]; then
@@ -129,8 +130,25 @@ else
   echo "      $PROD_ENV already exists, skipping."
 fi
 
-# --- 5. Start Traefik ---
-echo "[5/5] Starting Traefik..."
+# --- 5. Create .env template for tools (PgAdmin) ---
+echo "[5/6] Creating PgAdmin .env template if it doesn't exist..."
+TOOLS_ENV="/opt/elykia/tools/.env"
+if [[ ! -f "$TOOLS_ENV" ]]; then
+  cat > "$TOOLS_ENV" << 'EOF'
+# =============================================================================
+# Elykia TOOLS stack — /opt/elykia/tools/.env
+# =============================================================================
+PGADMIN_DEFAULT_EMAIL=admin@elykia.com
+PGADMIN_DEFAULT_PASSWORD=change_me_pgadmin_password
+EOF
+  chmod 600 "$TOOLS_ENV"
+  echo "      Created $TOOLS_ENV — EDIT password before deploying!"
+else
+  echo "      $TOOLS_ENV already exists, skipping."
+fi
+
+# --- 6. Start Traefik ---
+echo "[6/6] Starting Traefik..."
 cd "$DEPLOY_DIR"
 
 if docker compose -f docker-compose.traefik.yml --env-file /opt/elykia/traefik/.env ps --quiet traefik 2>/dev/null | grep -q .; then
@@ -146,11 +164,15 @@ echo ""
 echo "Next steps:"
 echo "  1. Edit /opt/elykia/test/.env  — set POSTGRES_PASSWORD and other secrets"
 echo "  2. Edit /opt/elykia/prod/.env  — set POSTGRES_PASSWORD and other secrets"
-echo "  3. Ensure DNS records point to this server:"
+echo "  3. Edit /opt/elykia/tools/.env — set PGADMIN_DEFAULT_PASSWORD"
+echo "  4. Ensure DNS records point to this server:"
 echo "       A  elykia-test  →  $(curl -s ifconfig.me 2>/dev/null || echo '<server-ip>')"
 echo "       A  elykia       →  $(curl -s ifconfig.me 2>/dev/null || echo '<server-ip>')"
-echo "  4. Deploy stacks via the CD pipeline or manually:"
+echo "       A  db           →  $(curl -s ifconfig.me 2>/dev/null || echo '<server-ip>')"
+echo "  5. Deploy stacks via the CD pipeline or manually:"
 echo "       cd $DEPLOY_DIR"
 echo "       ./deploy.sh test  <frontend-image> <backend-image>"
 echo "       ./deploy.sh prod  <frontend-image> <backend-image>"
+echo "  6. Start the Tools stack (PgAdmin 4):"
+echo "       docker compose -f docker-compose.tools.yml --project-name elykia-tools --env-file /opt/elykia/tools/.env up -d"
 echo ""
