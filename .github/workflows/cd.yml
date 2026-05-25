@@ -117,11 +117,20 @@ jobs:
              && cd ${{ secrets.TEST_DEPLOY_PATH }} \
              && ./deploy/deploy.sh test '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
 
-     # - name: Deploy monitoring stack (test)
-    #   run: |
-    #      ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} \
-     #       "cd ${{ secrets.TEST_DEPLOY_PATH }} \
-      #       && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
+      - name: Deploy monitoring stack (test)
+        env:
+          TEST_USER: ${{ secrets.TEST_SERVER_USER }}
+          TEST_HOST: ${{ secrets.TEST_SERVER_HOST }}
+          TEST_PATH: ${{ secrets.TEST_DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          : "${TEST_USER:?Missing TEST_SERVER_USER}"
+          : "${TEST_HOST:?Missing TEST_SERVER_HOST}"
+          : "${TEST_PATH:?Missing TEST_DEPLOY_PATH}"
+
+          ssh -o StrictHostKeyChecking=no -i private_key "$TEST_USER@$TEST_HOST" \
+            "cd '$TEST_PATH' \
+             && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
 
       - name: Check if mobile was built in CI
         id: check_mobile
@@ -290,11 +299,20 @@ jobs:
              && cd ${{ secrets.PROD_DEPLOY_PATH }} \
              && ./deploy/deploy.sh prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
 
-      #- name: Deploy monitoring stack (Prometheus + Grafana)
-      #  run: |
-       #   ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
-        #    "cd ${{ secrets.PROD_DEPLOY_PATH }} \
-         #    && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
+      - name: Deploy monitoring stack (Prometheus + Grafana)
+        env:
+          PROD_USER: ${{ secrets.PROD_SERVER_USER }}
+          PROD_HOST: ${{ secrets.PROD_SERVER_HOST }}
+          PROD_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          : "${PROD_USER:?Missing PROD_SERVER_USER}"
+          : "${PROD_HOST:?Missing PROD_SERVER_HOST}"
+          : "${PROD_PATH:?Missing PROD_DEPLOY_PATH}"
+
+          ssh -o StrictHostKeyChecking=no -i private_key "$PROD_USER@$PROD_HOST" \
+            "cd '$PROD_PATH' \
+             && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
 
       - name: Check if mobile was built in CI
         id: check_mobile_prod
@@ -479,28 +497,37 @@ jobs:
   # ---------------------------------------------------------------------------
   # Deploy monitoring stack on config changes
   # ---------------------------------------------------------------------------
-  #-----------------------------------------------------------------
-  #deploy-monitoring:
-    #if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-   # runs-on: ubuntu-latest
-   # name: Deploy monitoring stack
-    #steps:
-     # - name: Checkout code
-      #  uses: actions/checkout@v6
+  deploy-monitoring:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: prod
+    name: Deploy monitoring stack
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-      #- name: Prepare SSH key
-       # run: |
-        #  echo "$SSH_PRIVATE_KEY" > private_key
-         # chmod 600 private_key
-        #env:
-         # SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Prepare SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key
+          chmod 600 private_key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      #- name: Deploy monitoring stack
-       # run: |
-        #  ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
-         #   "cd ${{ secrets.PROD_DEPLOY_PATH }} \
-          #   && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
-#------------------------------------------------------------------------------------------
+      - name: Deploy monitoring stack
+        env:
+          PROD_USER: ${{ secrets.PROD_SERVER_USER }}
+          PROD_HOST: ${{ secrets.PROD_SERVER_HOST }}
+          PROD_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          : "${PROD_USER:?Missing PROD_SERVER_USER}"
+          : "${PROD_HOST:?Missing PROD_SERVER_HOST}"
+          : "${PROD_PATH:?Missing PROD_DEPLOY_PATH}"
+
+          ssh -o StrictHostKeyChecking=no -i private_key "$PROD_USER@$PROD_HOST" \
+            "cd '$PROD_PATH' \
+             && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
+
       - name: Cleanup
         if: always()
         run: rm -f private_key
