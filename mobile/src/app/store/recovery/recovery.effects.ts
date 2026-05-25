@@ -18,6 +18,7 @@ import * as ClientActions from '../client/client.actions';
 import { filter, take } from 'rxjs/operators';
 import { RecoveryRepositoryExtensions } from '../../core/repositories/recovery.repository.extensions';
 import * as KpiActions from '../kpi/kpi.actions';
+import { selectDistributionRecoveryPagination } from './recovery.selectors';
 
 @Injectable()
 export class RecoveryEffects {
@@ -335,6 +336,61 @@ export class RecoveryEffects {
           KpiActions.loadRecoveryKpi({ commercialId: username, dateFilter }),
           KpiActions.loadDistributionKpi({ commercialId: username, dateFilter })
         ];
+      })
+    )
+  );
+
+  // ==================== DISTRIBUTION PAGINATION EFFECTS ====================
+
+  loadFirstPageDistributionRecoveries$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(RecoveryActions.loadFirstPageDistributionRecoveries),
+      switchMap((action) => {
+        if (!action.commercialId) {
+          return of(RecoveryActions.loadFirstPageDistributionRecoveriesFailure({
+            error: 'commercialId is required for security'
+          }));
+        }
+        return from(
+          this.recoveryRepositoryExtensions.findViewsByCommercialPaginated(
+            action.commercialId,
+            0,
+            action.pageSize || 20,
+            { distributionId: action.distributionId }
+          )
+        ).pipe(
+          map((page) => RecoveryActions.loadFirstPageDistributionRecoveriesSuccess({ page })),
+          catchError((error) => of(RecoveryActions.loadFirstPageDistributionRecoveriesFailure({ error: error.message })))
+        );
+      })
+    )
+  );
+
+  loadNextPageDistributionRecoveries$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(RecoveryActions.loadNextPageDistributionRecoveries),
+      withLatestFrom(this.store.select(selectDistributionRecoveryPagination)),
+      switchMap(([action, pagination]) => {
+        if (!action.commercialId) {
+          return of(RecoveryActions.loadNextPageDistributionRecoveriesFailure({
+            error: 'commercialId is required for security'
+          }));
+        }
+        if (!pagination.hasMore || pagination.loading) {
+          return of({ type: 'NO_OP' });
+        }
+        const nextPage = pagination.currentPage + 1;
+        return from(
+          this.recoveryRepositoryExtensions.findViewsByCommercialPaginated(
+            action.commercialId,
+            nextPage,
+            pagination.pageSize,
+            { distributionId: action.distributionId }
+          )
+        ).pipe(
+          map((page) => RecoveryActions.loadNextPageDistributionRecoveriesSuccess({ page })),
+          catchError((error) => of(RecoveryActions.loadNextPageDistributionRecoveriesFailure({ error: error.message })))
+        );
       })
     )
   );

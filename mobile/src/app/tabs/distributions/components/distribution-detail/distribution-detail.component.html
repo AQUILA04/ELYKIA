@@ -137,6 +137,14 @@
           Supprimer
         </ion-button>
       </div>
+
+      <!-- Historique des recouvrements liés à cette distribution -->
+      <app-distribution-recovery-history
+        *ngIf="distribution?.id"
+        [distributionId]="distribution.id"
+        [distributionReference]="distribution.reference">
+      </app-distribution-recovery-history>
+
     </div>
   </div>
 </ion-content>

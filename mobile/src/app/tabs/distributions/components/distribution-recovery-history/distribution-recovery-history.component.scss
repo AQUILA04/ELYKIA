@@ -1,0 +1,184 @@
+.recovery-history-section {
+  margin-top: 16px;
+  padding: 0 4px;
+}
+
+// ==================== Section Header ====================
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 8px;
+  border-top: 1px solid var(--ion-color-light-shade);
+
+  .section-icon {
+    font-size: 18px;
+    color: var(--ion-color-success);
+  }
+
+  .section-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .section-badge {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+}
+
+// ==================== Recovery List ====================
+
+.recovery-list {
+  background: transparent;
+  padding: 0;
+
+  ion-item {
+    --padding-start: 0;
+    --inner-padding-end: 8px;
+    --background: transparent;
+    --border-color: var(--ion-color-light-shade);
+    margin-bottom: 2px;
+  }
+}
+
+.recovery-item {
+  --min-height: 56px;
+}
+
+// ==================== Date Block ====================
+
+.recovery-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  width: 44px;
+  margin-right: 12px;
+  padding: 6px 4px;
+  background: var(--ion-color-light);
+  border: 1.5px solid var(--ion-color-success);
+  border-radius: 8px;
+
+  .date-day {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ion-color-success-shade);
+    line-height: 1.1;
+  }
+
+  .date-month {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ion-color-success);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+  }
+}
+
+// ==================== Recovery Info ====================
+
+ion-label {
+  .recovery-amount {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    margin-bottom: 2px;
+  }
+
+  .recovery-ref {
+    font-size: 11px;
+    color: var(--ion-color-medium-shade);
+    font-family: monospace;
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+  }
+
+  .recovery-meta {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+  }
+}
+
+// ==================== Sync Badge ====================
+
+.sync-badge-container {
+  display: flex;
+  align-items: center;
+}
+
+.sync-badge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  padding: 3px 6px;
+
+  ion-icon {
+    font-size: 11px;
+  }
+}
+
+// ==================== States ====================
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px;
+  gap: 8px;
+  color: var(--ion-color-medium);
+
+  p {
+    font-size: 13px;
+    margin: 0;
+  }
+}
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px;
+  gap: 8px;
+  color: var(--ion-color-danger);
+
+  .error-icon {
+    font-size: 28px;
+  }
+
+  p {
+    font-size: 13px;
+    margin: 0;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px;
+  gap: 8px;
+  color: var(--ion-color-medium);
+
+  .empty-icon {
+    font-size: 32px;
+    opacity: 0.5;
+  }
+
+  p {
+    font-size: 13px;
+    margin: 0;
+    text-align: center;
+  }
+}

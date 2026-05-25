@@ -1,0 +1,79 @@
+<div class="recovery-history-section" *ngIf="vm$ | async as vm">
+
+  <!-- En-tête de section -->
+  <div class="section-header">
+    <ion-icon name="receipt-outline" class="section-icon"></ion-icon>
+    <span class="section-title">Historique des recouvrements</span>
+    <ion-badge color="success" class="section-badge">{{ vm.totalCount }}</ion-badge>
+  </div>
+
+  <!-- État de chargement initial -->
+  <div *ngIf="vm.loading && vm.recoveries.length === 0" class="loading-state">
+    <ion-spinner name="bubbles"></ion-spinner>
+    <p>Chargement...</p>
+  </div>
+
+  <!-- État d'erreur -->
+  <div *ngIf="vm.error && vm.recoveries.length === 0" class="error-state">
+    <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+    <p>Erreur lors du chargement</p>
+  </div>
+
+  <!-- Liste des recouvrements -->
+  <ion-list *ngIf="vm.recoveries.length > 0" class="recovery-list">
+    <ion-item
+      *ngFor="let recovery of vm.recoveries; trackBy: trackByRecoveryId"
+      (click)="openRecoveryDetail(recovery)"
+      button
+      detail="false"
+      class="recovery-item">
+
+      <!-- Date -->
+      <div class="recovery-date" slot="start">
+        <div class="date-day">{{ recovery.paymentDate | date:'dd' }}</div>
+        <div class="date-month">{{ recovery.paymentDate | date:'MMM' }}</div>
+      </div>
+
+      <!-- Infos principales -->
+      <ion-label>
+        <h3 class="recovery-amount">{{ recovery.amount | number:'1.0-0' }} FCFA</h3>
+        <p class="recovery-ref">Réf: {{ recovery.reference || recovery.id }}</p>
+        <p class="recovery-meta">
+          {{ recovery.paymentDate | date:'HH:mm' }}
+          <span *ngIf="recovery.paymentMethod"> · {{ recovery.paymentMethod }}</span>
+        </p>
+      </ion-label>
+
+      <!-- Badge sync/local -->
+      <div slot="end" class="sync-badge-container">
+        <ion-badge *ngIf="recovery.isSync" color="success" class="sync-badge">
+          <ion-icon name="cloud-done-outline"></ion-icon>
+          Sync
+        </ion-badge>
+        <ion-badge *ngIf="!recovery.isSync" color="medium" class="sync-badge">
+          <ion-icon name="cloud-offline-outline"></ion-icon>
+          Local
+        </ion-badge>
+      </div>
+
+    </ion-item>
+  </ion-list>
+
+  <!-- Infinite scroll -->
+  <ion-infinite-scroll
+    (ionInfinite)="loadMore($event)"
+    [disabled]="!vm.hasMore"
+    threshold="100px">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Chargement...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+  <!-- État vide -->
+  <div *ngIf="!vm.loading && !vm.error && vm.recoveries.length === 0" class="empty-state">
+    <ion-icon name="receipt-outline" class="empty-icon"></ion-icon>
+    <p>Aucun recouvrement pour cette distribution</p>
+  </div>
+
+</div>
