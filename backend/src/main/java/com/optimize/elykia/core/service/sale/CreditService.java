@@ -992,9 +992,10 @@ public class CreditService extends GenericService<Credit, Long> {
         if (dto.getCreditIds() == null || dto.getCreditIds().isEmpty()) {
             return;
         }
+        String username = userService.getCurrentUser().getUsername();
 
         // 1. Historiser l'opération en bulk
-        creditCollectorHistoryRepository.bulkInsertHistoryForCredits(dto.getCreditIds(), dto.getNewCollector());
+        creditCollectorHistoryRepository.bulkInsertHistoryForCredits(dto.getCreditIds(), dto.getNewCollector(), username, username);
 
         // 2. Mettre à jour les crédits en bulk
         getRepository().bulkUpdateCollector(dto.getCreditIds(), dto.getNewCollector());

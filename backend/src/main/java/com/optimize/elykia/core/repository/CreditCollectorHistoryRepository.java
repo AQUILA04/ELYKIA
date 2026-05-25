@@ -14,8 +14,8 @@ public interface CreditCollectorHistoryRepository extends JpaRepository<CreditCo
     List<CreditCollectorHistory> findByCreditIdOrderByChangeDateDesc(Long creditId);
 
     @Modifying
-    @Query(value = "INSERT INTO credit_collector_history (credit_id, old_collector, new_collector, total_amount, total_amount_paid, total_amount_remaining, change_date, created_date, last_modified_date, version, state, visibility) " +
-            "SELECT id, collector, :newCollector, total_amount, total_amount_paid, total_amount_remaining, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0, 'ENABLED', 'ENABLED' " +
+    @Query(value = "INSERT INTO credit_collector_history (credit_id, old_collector, new_collector, total_amount, total_amount_paid, total_amount_remaining, change_date, DATE_REG, DATE_MOD, visibility, REG_USER_ID, MOD_USER_ID) " +
+            "SELECT id, collector, :newCollector, total_amount, total_amount_paid, total_amount_remaining, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'ENABLED', :regUserId, :modUserId " +
             "FROM credit WHERE id IN :ids", nativeQuery = true)
-    void bulkInsertHistoryForCredits(@Param("ids") List<Long> ids, @Param("newCollector") String newCollector);
+    void bulkInsertHistoryForCredits(@Param("ids") List<Long> ids, @Param("newCollector") String newCollector, @Param("regUserId") String regUserId, @Param("modUserId") String modUserId);
 }
