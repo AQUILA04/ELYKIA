@@ -170,4 +170,40 @@ export const resetRecoveryPagination = createAction(
   '[Recovery] Reset Recovery Pagination'
 );
 
+// ==================== DISTRIBUTION PAGINATION ACTIONS ====================
+
+export const loadFirstPageDistributionRecoveries = createAction(
+  '[Recovery] Load First Page Distribution Recoveries',
+  props<{ distributionId: string; commercialId: string; pageSize?: number }>()
+);
+
+export const loadFirstPageDistributionRecoveriesSuccess = createAction(
+  '[Recovery] Load First Page Distribution Recoveries Success',
+  props<{ page: { content: import('../../models/recovery-view.model').RecoveryView[]; totalElements: number; totalPages: number; page: number; size: number } }>()
+);
+
+export const loadFirstPageDistributionRecoveriesFailure = createAction(
+  '[Recovery] Load First Page Distribution Recoveries Failure',
+  props<{ error: any }>()
+);
+
+export const loadNextPageDistributionRecoveries = createAction(
+  '[Recovery] Load Next Page Distribution Recoveries',
+  props<{ distributionId: string; commercialId: string }>()
+);
+
+export const loadNextPageDistributionRecoveriesSuccess = createAction(
+  '[Recovery] Load Next Page Distribution Recoveries Success',
+  props<{ page: { content: import('../../models/recovery-view.model').RecoveryView[]; totalElements: number; totalPages: number; page: number; size: number } }>()
+);
+
+export const loadNextPageDistributionRecoveriesFailure = createAction(
+  '[Recovery] Load Next Page Distribution Recoveries Failure',
+  props<{ error: any }>()
+);
+
+export const resetDistributionRecoveryPagination = createAction(
+  '[Recovery] Reset Distribution Recovery Pagination'
+);
+
 

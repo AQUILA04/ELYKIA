@@ -6,6 +6,30 @@ import { Distribution } from '../../models/distribution.model';
 import { Client } from '../../models/client.model';
 import { PaginationState, createInitialPaginationState, resetPaginationState } from '../../core/models/pagination.model';
 
+// ==================== DISTRIBUTION PAGINATION STATE ====================
+
+export interface DistributionRecoveryPaginationState {
+  distributionId: string | null;
+  items: RecoveryView[];
+  currentPage: number;
+  pageSize: number;
+  totalItems: number;
+  hasMore: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+const initialDistributionPaginationState: DistributionRecoveryPaginationState = {
+  distributionId: null,
+  items: [],
+  currentPage: 0,
+  pageSize: 20,
+  totalItems: 0,
+  hasMore: false,
+  loading: false,
+  error: null
+};
+
 export interface RecoveryState {
   recoveries: Recovery[];
   loading: boolean;
@@ -23,8 +47,11 @@ export interface RecoveryState {
   isCreatingRecovery: boolean;
   createRecoveryError: any;
 
-  // Pagination state
+  // Pagination state (global)
   pagination: PaginationState<RecoveryView>;
+
+  // Pagination state (by distribution)
+  distributionPagination: DistributionRecoveryPaginationState;
 }
 
 export const initialState: RecoveryState = {
@@ -42,7 +69,10 @@ export const initialState: RecoveryState = {
   createRecoveryError: null,
 
   // Initialize pagination state
-  pagination: createInitialPaginationState<RecoveryView>()
+  pagination: createInitialPaginationState<RecoveryView>(),
+
+  // Initialize distribution pagination state
+  distributionPagination: initialDistributionPaginationState
 };
 
 export const recoveryReducer = createReducer(
@@ -139,6 +169,76 @@ export const recoveryReducer = createReducer(
   on(RecoveryActions.resetRecoveryPagination, (state) => ({
     ...state,
     pagination: resetPaginationState(state.pagination)
+  })),
+
+  // ==================== DISTRIBUTION PAGINATION ACTIONS ====================
+
+  on(RecoveryActions.loadFirstPageDistributionRecoveries, (state, { distributionId }) => ({
+    ...state,
+    distributionPagination: {
+      ...initialDistributionPaginationState,
+      distributionId,
+      loading: true
+    }
+  })),
+
+  on(RecoveryActions.loadFirstPageDistributionRecoveriesSuccess, (state, { page }) => ({
+    ...state,
+    distributionPagination: {
+      ...state.distributionPagination,
+      items: page.content,
+      currentPage: page.page,
+      pageSize: page.size,
+      totalItems: page.totalElements,
+      hasMore: page.page + 1 < page.totalPages,
+      loading: false,
+      error: null
+    }
+  })),
+
+  on(RecoveryActions.loadFirstPageDistributionRecoveriesFailure, (state, { error }) => ({
+    ...state,
+    distributionPagination: {
+      ...state.distributionPagination,
+      loading: false,
+      error
+    }
+  })),
+
+  on(RecoveryActions.loadNextPageDistributionRecoveries, (state) => ({
+    ...state,
+    distributionPagination: {
+      ...state.distributionPagination,
+      loading: true,
+      error: null
+    }
+  })),
+
+  on(RecoveryActions.loadNextPageDistributionRecoveriesSuccess, (state, { page }) => ({
+    ...state,
+    distributionPagination: {
+      ...state.distributionPagination,
+      items: [...state.distributionPagination.items, ...page.content],
+      currentPage: page.page,
+      totalItems: page.totalElements,
+      hasMore: page.page + 1 < page.totalPages,
+      loading: false,
+      error: null
+    }
+  })),
+
+  on(RecoveryActions.loadNextPageDistributionRecoveriesFailure, (state, { error }) => ({
+    ...state,
+    distributionPagination: {
+      ...state.distributionPagination,
+      loading: false,
+      error
+    }
+  })),
+
+  on(RecoveryActions.resetDistributionRecoveryPagination, (state) => ({
+    ...state,
+    distributionPagination: initialDistributionPaginationState
   })),
 
   // ==================== US008 RECOVERY WORKFLOW ====================

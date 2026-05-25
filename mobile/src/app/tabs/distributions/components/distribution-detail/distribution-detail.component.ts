@@ -11,13 +11,14 @@ import { RecoveryService } from '../../../../core/services/recovery.service';
 import * as DistributionActions from '../../../../store/distribution/distribution.actions';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 import { ReliquatService } from '../../../../core/services/reliquat.service';
+import { DistributionRecoveryHistoryComponent } from '../distribution-recovery-history/distribution-recovery-history.component';
 
 @Component({
   selector: 'app-distribution-detail',
   templateUrl: './distribution-detail.component.html',
   styleUrls: ['./distribution-detail.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, DistributionRecoveryHistoryComponent],
   providers: [DecimalPipe]
 })
 export class DistributionDetailComponent implements OnInit {

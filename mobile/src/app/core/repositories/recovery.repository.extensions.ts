@@ -11,6 +11,7 @@ import { Distribution } from '../../models/distribution.model';
 export interface RecoveryRepositoryFilters extends RepositoryViewFilters {
     paymentMethod?: string;
     clientId?: string;
+    distributionId?: string;
 }
 
 /**
@@ -145,6 +146,12 @@ export class RecoveryRepositoryExtensions {
         if (filters?.isSync !== undefined) {
             whereConditions.push('r.isSync = ?');
             params.push(filters.isSync ? 1 : 0);
+        }
+
+        // Filter by distribution (for distribution recovery history)
+        if (filters?.distributionId) {
+            whereConditions.push('r.distributionId = ?');
+            params.push(filters.distributionId);
         }
 
         const whereClause = whereConditions.join(' AND ');

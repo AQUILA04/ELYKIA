@@ -210,3 +210,35 @@ export const selectPaginatedRecoveryViews = createSelector(
   selectPaginatedRecoveries,
   (recoveries) => recoveries // recoveries is already RecoveryView[]
 );
+
+// ==================== DISTRIBUTION PAGINATION SELECTORS ====================
+
+export const selectDistributionRecoveryPagination = createSelector(
+  selectRecoveryState,
+  (state) => state.distributionPagination
+);
+
+export const selectDistributionRecoveryItems = createSelector(
+  selectDistributionRecoveryPagination,
+  (pagination) => pagination.items
+);
+
+export const selectDistributionRecoveryHasMore = createSelector(
+  selectDistributionRecoveryPagination,
+  (pagination) => pagination.hasMore
+);
+
+export const selectDistributionRecoveryLoading = createSelector(
+  selectDistributionRecoveryPagination,
+  (pagination) => pagination.loading
+);
+
+export const selectDistributionRecoveryTotalItems = createSelector(
+  selectDistributionRecoveryPagination,
+  (pagination) => pagination.totalItems
+);
+
+export const selectDistributionRecoveryError = createSelector(
+  selectDistributionRecoveryPagination,
+  (pagination) => pagination.error
+);
