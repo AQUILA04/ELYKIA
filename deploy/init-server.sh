@@ -16,7 +16,8 @@
 #       --db-prod "super_secret_prod" \
 #       --traefik-user "admin" \
 #       --traefik-password "admin_secret" \
-#       --pgadmin-password "pgadmin_secret"
+#       --pgadmin-password "pgadmin_secret" \
+#       --sftp-password "sftp_secret"
 # =============================================================================
 set -euo pipefail
 
@@ -27,6 +28,7 @@ DB_PROD=""
 TRAEFIK_USER=""
 TRAEFIK_PASSWORD=""
 PGADMIN_PASSWORD=""
+SFTP_PASSWORD=""
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -36,15 +38,16 @@ while [[ "$#" -gt 0 ]]; do
         --traefik-user) TRAEFIK_USER="$2"; shift ;;
         --traefik-password) TRAEFIK_PASSWORD="$2"; shift ;;
         --pgadmin-password) PGADMIN_PASSWORD="$2"; shift ;;
+        --sftp-password) SFTP_PASSWORD="$2"; shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
 done
 
 # Validate required arguments
-if [[ -z "$SSH_KEY" || -z "$DB_TEST" || -z "$DB_PROD" || -z "$TRAEFIK_USER" || -z "$TRAEFIK_PASSWORD" || -z "$PGADMIN_PASSWORD" ]]; then
+if [[ -z "$SSH_KEY" || -z "$DB_TEST" || -z "$DB_PROD" || -z "$TRAEFIK_USER" || -z "$TRAEFIK_PASSWORD" || -z "$PGADMIN_PASSWORD" || -z "$SFTP_PASSWORD" ]]; then
     echo "Error: Missing arguments."
-    echo "Usage: $0 --ssh-key \"...\" --db-test \"...\" --db-prod \"...\" --traefik-user \"...\" --traefik-password \"...\" --pgadmin-password \"...\""
+    echo "Usage: $0 --ssh-key \"...\" --db-test \"...\" --db-prod \"...\" --traefik-user \"...\" --traefik-password \"...\" --pgadmin-password \"...\" --sftp-password \"...\""
     exit 1
 fi
 
@@ -113,7 +116,18 @@ echo "=== 5. Setting Logs Permissions ==="
 chmod o+w /opt/elykia/test/logs || true
 chmod o+w /opt/elykia/prod/logs || true
 
+echo "=== 6. Setting up restricted SFTP ==="
+cd /opt/elykia/deploy
+chmod +x setup-sftp.sh
+export SFTP_PASSWORD="$SFTP_PASSWORD"
+./setup-sftp.sh
+
 echo ""
 echo "=== INITIALIZATION COMPLETED SUCCESSFULLY ==="
 echo "The server is ready for deployment."
-echo "You can now push code via GitHub Actions or run deploy.sh manually."
+echo "You can now push code via GitHub Actions or run deploy.sh manually:"
+echo ""
+echo "cd /opt/elykia/deploy"
+echo "./deploy.sh test ghcr.io/aquila04/elykia-frontend:latest ghcr.io/aquila04/elykia-backend:latest"
+echo "./deploy.sh prod ghcr.io/aquila04/elykia-frontend:latest ghcr.io/aquila04/elykia-backend:latest"
+echo "docker compose -f docker-compose.tools.yml --project-name elykia-tools --env-file /opt/elykia/tools/.env up -d"
