@@ -87,7 +87,7 @@ if [[ ! -f "$TEST_ENV" ]]; then
 # Elykia TEST stack — /opt/elykia/test/.env
 # =============================================================================
 POSTGRES_USER=elykia_test
-POSTGRES_PASSWORD=${DB_PASSWORD_TEST:-change_me_test_password}
+POSTGRES_PASSWORD='${DB_PASSWORD_TEST:-change_me_test_password}'
 POSTGRES_DB=elykia_test_db
 
 SPRING_PROFILES_ACTIVE=prod
@@ -114,7 +114,7 @@ if [[ ! -f "$PROD_ENV" ]]; then
 # Elykia PROD stack — /opt/elykia/prod/.env
 # =============================================================================
 POSTGRES_USER=elykia_prod
-POSTGRES_PASSWORD=${DB_PASSWORD_PROD:-change_me_strong_prod_password}
+POSTGRES_PASSWORD='${DB_PASSWORD_PROD:-change_me_strong_prod_password}'
 POSTGRES_DB=elykia_prod_db
 
 SPRING_PROFILES_ACTIVE=prod
@@ -143,7 +143,7 @@ if [[ ! -f "$TOOLS_ENV" ]]; then
 # Elykia TOOLS stack — /opt/elykia/tools/.env
 # =============================================================================
 PGADMIN_DEFAULT_EMAIL=admin@elykia.com
-PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-change_me_pgadmin_password}
+PGADMIN_DEFAULT_PASSWORD='${PGADMIN_PASSWORD:-change_me_pgadmin_password}'
 EOF
   chmod 600 "$TOOLS_ENV"
   echo "      Created $TOOLS_ENV — EDIT password before deploying!"
