@@ -17,6 +17,9 @@ import { OrderRepository } from '../repositories/order.repository';
 import { ArticleRepository } from '../repositories/article.repository';
 import { Page } from '../repositories/repository.interface';
 import { OrderView } from '../../models/order-view.model';
+import { DailyConsentGuardService } from '../../features/daily-consent/daily-consent-guard.service';
+import { DailyConsentStateService } from '../daily-consent/daily-consent-state.service';
+import { AmountConfirmationService } from '../../features/amount-confirmation/amount-confirmation.service';
 
 interface CreateOrderData {
   clientId: string;
@@ -38,7 +41,10 @@ export class OrderService {
     private healthCheckService: HealthCheckService,
     private orderRepositoryExtensions: OrderRepositoryExtensions,
     private orderRepository: OrderRepository,
-    private articleRepository: ArticleRepository
+    private articleRepository: ArticleRepository,
+    private dailyConsentGuard: DailyConsentGuardService,
+    private dailyConsentState: DailyConsentStateService,
+    private amountConfirmation: AmountConfirmationService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -130,6 +136,9 @@ export class OrderService {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
+
+    // Consentement journalier
+    await this.dailyConsentGuard.requireDailyConsent();
     const now = new Date().toISOString();
 
     // OPTIMIZATION: Use count instead of loading all orders
@@ -183,6 +192,11 @@ export class OrderService {
       item.orderId = order.id;
       item.id = `o-item-${order.id}-${item.articleId}`;
     });
+
+    // Confirmation du montant
+    const confirmedAmount = await this.amountConfirmation.confirmAmount(order.totalAmount);
+    order.confirmedAmount = confirmedAmount;
+    order.operationConsentCode = this.dailyConsentState.getActiveConsentCode() ?? undefined;
 
     // Save order and items in a single transaction using Repository
     await this.orderRepository.saveAll([order]);

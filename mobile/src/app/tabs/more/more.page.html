@@ -132,6 +132,14 @@
           <ion-label>Rapport journalier</ion-label>
           <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
         </ion-item>
+        <ion-item button (click)="downloadConsentHistoriesPdf()">
+          <ion-icon name="shield-checkmark-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <h3>Historique des consentements</h3>
+            <p>Télécharger en PDF l'historique des consentements</p>
+          </ion-label>
+          <ion-icon name="download-outline" slot="end"></ion-icon>
+        </ion-item>
       </ion-list>
     </ion-card>
 

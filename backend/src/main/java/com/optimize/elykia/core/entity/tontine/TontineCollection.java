@@ -36,4 +36,13 @@ public class TontineCollection extends BaseEntity<String> {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    @Column(name = "operation_consent_code")
+    private String operationConsentCode;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double confirmedAmount;
+
+    @Column(name = "sync_consent_code")
+    private String syncConsentCode;
 }

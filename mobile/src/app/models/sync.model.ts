@@ -160,6 +160,9 @@ export interface DistributionSyncRequest {
   totalAmountRemaining: number;
   mobile: boolean;
   reference?: string;
+  confirmedAmount?: number | null;
+  operationConsentCode?: string | null;
+  syncConsentCode?: string | null;
 }
 
 export interface OrderSyncRequest {
@@ -168,6 +171,9 @@ export interface OrderSyncRequest {
     articleId: number;
     quantity: number;
   }>;
+  operationConsentCode?: string | null;
+  confirmedAmount?: number | null;
+  syncConsentCode?: string | null;
 }
 
 export interface AccountSyncResponse {
@@ -196,11 +202,14 @@ export interface DistributionSyncResponse {
 
 export interface DefaultDailyStakeRequest {
   collector: string;
+  syncConsentCode?: string | null;
   stakeUnits: Array<{
-    creditId: number; // ID serveur de la distribution
-    recoveryId: string; // ID local du recouvrement (mobile)
+    creditId: number;
+    recoveryId: string;
     reliquatGeneratedAmount?: number;
     reliquatUsedAmount?: number;
+    operationConsentCode?: string | null;
+    confirmedAmount?: number | null;
   }>;
 }
 
@@ -214,13 +223,16 @@ export interface DefaultDailyStakeResponse {
 
 export interface SpecialDailyStakeRequest {
   collector: string;
+  syncConsentCode?: string | null;
   stakeUnits: Array<{
     amount: number;
-    creditId: number; // ID serveur de la distribution
-    clientId: number; // ID serveur du client
-    recoveryId: string; // ID local du recouvrement (mobile)
+    creditId: number;
+    clientId: number;
+    recoveryId: string;
     reliquatGeneratedAmount?: number;
     reliquatUsedAmount?: number;
+    operationConsentCode?: string | null;
+    confirmedAmount?: number | null;
   }>;
 }
 
@@ -347,6 +359,8 @@ export interface TontineMemberSyncRequest {
   amount?: number;
   notes?: string;
   updateScope?: 'GLOBAL' | 'CURRENT_AND_FUTURE' | 'FUTURE_ONLY' | null;
+  operationConsentCode?: string | null;
+  syncConsentCode?: string | null;
 }
 
 export interface TontineCollectionSyncRequest {
@@ -355,12 +369,17 @@ export interface TontineCollectionSyncRequest {
   isDeliveryCollection?: boolean;
   reference?: string;
   notes?: string;
+  operationConsentCode?: string | null;
+  confirmedAmount?: number | null;
+  syncConsentCode?: string | null;
 }
 
 export interface TontineDeliverySyncRequest {
   tontineMemberId: number;
-  requestDate: any
+  requestDate: any;
   items: TontineDeliveryItemSyncRequest[];
+  operationConsentCode?: string | null;
+  syncConsentCode?: string | null;
 }
 
 export interface TontineDeliveryItemSyncRequest {

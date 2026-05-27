@@ -55,14 +55,18 @@ else
     apt-get install -y apache2-utils -q
   fi
 
-  echo ""
-  echo "      Enter a username for the Traefik dashboard (default: admin):"
-  read -r TRAEFIK_USER
-  TRAEFIK_USER="${TRAEFIK_USER:-admin}"
+  if [[ -z "${TRAEFIK_USER:-}" ]]; then
+    echo ""
+    echo "      Enter a username for the Traefik dashboard (default: admin):"
+    read -r INPUT_USER
+    TRAEFIK_USER="${INPUT_USER:-admin}"
+  fi
 
-  echo "      Enter a password for the Traefik dashboard:"
-  read -rs TRAEFIK_PASSWORD
-  echo ""
+  if [[ -z "${TRAEFIK_PASSWORD:-}" ]]; then
+    echo "      Enter a password for the Traefik dashboard:"
+    read -rs TRAEFIK_PASSWORD
+    echo ""
+  fi
 
   # Generate bcrypt hash and escape $ for docker-compose
   HASHED=$(htpasswd -nbB "$TRAEFIK_USER" "$TRAEFIK_PASSWORD" | sed -e 's/\$/\$\$/g')
@@ -78,12 +82,12 @@ echo "[4/6] Creating .env templates if they don't exist..."
 
 TEST_ENV="/opt/elykia/test/.env"
 if [[ ! -f "$TEST_ENV" ]]; then
-  cat > "$TEST_ENV" << 'EOF'
+  cat > "$TEST_ENV" << EOF
 # =============================================================================
 # Elykia TEST stack — /opt/elykia/test/.env
 # =============================================================================
 POSTGRES_USER=elykia_test
-POSTGRES_PASSWORD=change_me_test_password
+POSTGRES_PASSWORD=${DB_PASSWORD_TEST:-change_me_test_password}
 POSTGRES_DB=elykia_test_db
 
 SPRING_PROFILES_ACTIVE=prod
@@ -105,12 +109,12 @@ fi
 
 PROD_ENV="/opt/elykia/prod/.env"
 if [[ ! -f "$PROD_ENV" ]]; then
-  cat > "$PROD_ENV" << 'EOF'
+  cat > "$PROD_ENV" << EOF
 # =============================================================================
 # Elykia PROD stack — /opt/elykia/prod/.env
 # =============================================================================
 POSTGRES_USER=elykia_prod
-POSTGRES_PASSWORD=change_me_strong_prod_password
+POSTGRES_PASSWORD=${DB_PASSWORD_PROD:-change_me_strong_prod_password}
 POSTGRES_DB=elykia_prod_db
 
 SPRING_PROFILES_ACTIVE=prod
@@ -134,12 +138,12 @@ fi
 echo "[5/6] Creating PgAdmin .env template if it doesn't exist..."
 TOOLS_ENV="/opt/elykia/tools/.env"
 if [[ ! -f "$TOOLS_ENV" ]]; then
-  cat > "$TOOLS_ENV" << 'EOF'
+  cat > "$TOOLS_ENV" << EOF
 # =============================================================================
 # Elykia TOOLS stack — /opt/elykia/tools/.env
 # =============================================================================
 PGADMIN_DEFAULT_EMAIL=admin@elykia.com
-PGADMIN_DEFAULT_PASSWORD=change_me_pgadmin_password
+PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-change_me_pgadmin_password}
 EOF
   chmod 600 "$TOOLS_ENV"
   echo "      Created $TOOLS_ENV — EDIT password before deploying!"

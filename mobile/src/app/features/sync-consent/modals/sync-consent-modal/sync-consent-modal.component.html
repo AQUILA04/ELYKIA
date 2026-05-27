@@ -1,0 +1,82 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Confirmation de synchronisation</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()" [disabled]="isSubmitting">Annuler</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ng-container *ngIf="step === 'password'">
+    <p class="intro">
+      Avant d'envoyer vos données vers le serveur, confirmez votre identité avec votre mot de passe
+      de connexion à l'application.
+    </p>
+
+    <ion-list lines="full">
+      <ion-item>
+        <ion-label position="stacked">Mot de passe</ion-label>
+        <ion-input
+          [type]="passwordVisible ? 'text' : 'password'"
+          [(ngModel)]="password"
+          autocomplete="current-password"
+          (keyup.enter)="submitPassword()">
+        </ion-input>
+        <ion-button fill="clear" slot="end" (click)="togglePasswordVisibility()">
+          <ion-icon [name]="passwordVisible ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+
+  <ng-container *ngIf="step === 'confirmation'">
+    <p class="intro">
+      Pour confirmer que vous lancez volontairement cette synchronisation, recopiez le code ci-dessous
+      puis validez le message de responsabilité.
+    </p>
+
+    <div class="challenge-box" aria-live="polite">
+      <span class="challenge-label">Code à recopier</span>
+      <span class="challenge-code">{{ challengeCode }}</span>
+    </div>
+
+    <ion-list lines="full">
+      <ion-item>
+        <ion-label position="stacked">Saisir le code</ion-label>
+        <ion-input
+          [(ngModel)]="challengeInput"
+          autocapitalize="characters"
+          autocomplete="off"
+          placeholder="Ex. {{ challengeCode }}"
+          (keyup.enter)="confirmSync()">
+        </ion-input>
+      </ion-item>
+    </ion-list>
+
+    <div class="consent-block">
+      <p class="consent-text">{{ consentText }}</p>
+      <ion-item lines="none" class="consent-checkbox-item">
+        <ion-checkbox slot="start" [(ngModel)]="consentChecked"></ion-checkbox>
+        <ion-label class="ion-text-wrap">{{ checkboxLabel }}</ion-label>
+      </ion-item>
+    </div>
+  </ng-container>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons slot="end">
+      <ng-container *ngIf="step === 'password'">
+        <ion-button color="primary" (click)="submitPassword()" [disabled]="isSubmitting">
+          Continuer
+        </ion-button>
+      </ng-container>
+      <ng-container *ngIf="step === 'confirmation'">
+        <ion-button color="primary" (click)="confirmSync()" [disabled]="isSubmitting">
+          Lancer la synchronisation
+        </ion-button>
+      </ng-container>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -14,6 +14,8 @@ import { TontineMember } from 'src/app/models/tontine.model';
 import { selectTontineSession } from 'src/app/store/tontine/tontine.selectors';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { loadTontineMembers } from 'src/app/store/tontine/tontine.actions';
+import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-consent-guard.service';
+import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-consent-state.service';
 
 @Component({
     selector: 'app-member-registration',
@@ -53,7 +55,9 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
         private store: Store,
         private route: ActivatedRoute,
         private tontineMemberRepo: TontineMemberRepository,
-        private clientRepo: ClientRepository
+        private clientRepo: ClientRepository,
+        private dailyConsentGuard: DailyConsentGuardService,
+        private dailyConsentState: DailyConsentStateService
     ) {
         this.initializeForm();
     }
@@ -283,6 +287,9 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
                 return;
             }
 
+            // Consentement journalier
+            await this.dailyConsentGuard.requireDailyConsent();
+
             const newMember: TontineMember = {
                 id: this.generateUuid(),
                 tontineSessionId: this.sessionId,
@@ -295,7 +302,8 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
                 isSync: false,
                 frequency: formValue.frequency,
                 amount: formValue.amount,
-                notes: formValue.notes || null
+                notes: formValue.notes || null,
+                operationConsentCode: this.dailyConsentState.getActiveConsentCode() ?? undefined
             };
 
             await this.tontineMemberRepo.save(newMember);

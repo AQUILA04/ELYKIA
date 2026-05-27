@@ -12,13 +12,15 @@ public record TontineDeliveryRespDto(Long id,
                                      Double totalAmount,
                                      Double remainingBalance,
                                      String commercialUsername,
-                                     List<TontineDeliveryItemRespDto> items) {
+                                     List<TontineDeliveryItemRespDto> items,
+                                     String operationConsentCode,
+                                     String syncConsentCode) {
 
     public static TontineDeliveryRespDto fromId(Long id) {
         if (id == null) {
             return null;
         }
-        return new TontineDeliveryRespDto(id, null, null, null, null, null, null, null);
+        return new TontineDeliveryRespDto(id, null, null, null, null, null, null, null, null, null);
     }
 
     public static TontineDeliveryRespDto fromTontineDelivery(TontineDelivery delivery) {
@@ -32,6 +34,8 @@ public record TontineDeliveryRespDto(Long id,
                 delivery.getTotalAmount(),
                 delivery.getRemainingBalance(),
                 delivery.getCommercialUsername(),
-                TontineDeliveryItemRespDto.fromDeliveryItems(delivery.getItems()));
+                TontineDeliveryItemRespDto.fromDeliveryItems(delivery.getItems()),
+                delivery.getOperationConsentCode(),
+                delivery.getSyncConsentCode());
     }
 }

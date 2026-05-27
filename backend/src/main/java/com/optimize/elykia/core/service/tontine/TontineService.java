@@ -144,6 +144,8 @@ public class TontineService extends GenericService<TontineMember, Long> {
         newMember.setFrequency(dto.getFrequency());
         newMember.setRegistrationDate(LocalDateTime.now());
         newMember.setAmount(dto.getAmount());
+        newMember.setOperationConsentCode(dto.getOperationConsentCode());
+        newMember.setSyncConsentCode(dto.getSyncConsentCode());
 
         // Initialize history with the first amount
         TontineMemberAmountHistory history = new TontineMemberAmountHistory();
@@ -355,6 +357,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
         if (StringUtils.hasText(dto.getReference())) {
             collection.setReference(dto.getReference());
         }
+
+        collection.setOperationConsentCode(dto.getOperationConsentCode());
+        collection.setConfirmedAmount(dto.getConfirmedAmount());
+        collection.setSyncConsentCode(dto.getSyncConsentCode());
 
         // Process financial logic (Society Share vs Capital)
         processCollectionAllocation(member, dto.getAmount());

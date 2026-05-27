@@ -54,7 +54,7 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
 
     @Query("SELECT new com.optimize.elykia.core.dto.CreditTimelineMobileDto(" +
             "ct.id, ct.amount, ct.createdDate, ct.normalStake, ct.collector, " +
-            "c.id, cl.id, ct.reference) " +
+            "c.id, cl.id, ct.reference, ct.operationConsentCode, ct.confirmedAmount, ct.syncConsentCode) " +
             "FROM CreditTimeline ct " +
             "LEFT JOIN ct.credit c " +
             "LEFT JOIN c.client cl " +
@@ -68,7 +68,7 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
 
     @Query("SELECT new com.optimize.elykia.core.dto.RecouvrementWebDto(" +
             "ct.id, ct.reference, c.reference, CONCAT(cl.firstname, ' ', cl.lastname), ct.collector, " +
-            "ct.amount, ct.totalAmountRemaining, ct.createdDate) " +
+            "ct.amount, ct.totalAmountRemaining, ct.createdDate, ct.operationConsentCode, ct.confirmedAmount, ct.syncConsentCode) " +
             "FROM CreditTimeline ct " +
             "LEFT JOIN ct.credit c " +
             "LEFT JOIN c.client cl " +
@@ -81,7 +81,7 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
 
     @Query("SELECT new com.optimize.elykia.core.dto.RecouvrementWebDto(" +
             "ct.id, ct.reference, c.reference, CONCAT(cl.firstname, ' ', cl.lastname), ct.collector, " +
-            "ct.amount, ct.totalAmountRemaining, ct.createdDate) " +
+            "ct.amount, ct.totalAmountRemaining, ct.createdDate, ct.operationConsentCode, ct.confirmedAmount, ct.syncConsentCode) " +
             "FROM CreditTimeline ct " +
             "LEFT JOIN ct.credit c " +
             "LEFT JOIN c.client cl " +

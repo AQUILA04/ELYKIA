@@ -21,4 +21,6 @@ public class TontineDeliveryDto {
     private String commercialUsername;
     private TontineMemberDeliveryStatus deliveryStatus;
     private List<TontineDeliveryItemDto> items;
+    private String operationConsentCode;
+    private String syncConsentCode;
 }

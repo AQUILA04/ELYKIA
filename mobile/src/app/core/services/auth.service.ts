@@ -15,6 +15,7 @@ import * as AuthActions from '../../store/auth/auth.actions';
 import { Storage } from '@ionic/storage-angular';
 import { MemoryManagementService } from './memory-management.service';
 import { InitializationValidationService } from './initialization-validation.service';
+import { DailyConsentStateService } from '../daily-consent/daily-consent-state.service';
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +32,8 @@ export class AuthService {
     private store: Store<AppState>,
     private storage: Storage,
     private memoryManagementService: MemoryManagementService,
-    private initValidationService: InitializationValidationService
+    private initValidationService: InitializationValidationService,
+    private dailyConsentState: DailyConsentStateService
   ) {
     this.loadUserFromPreferences();
   }
@@ -42,8 +44,8 @@ export class AuthService {
       const user = JSON.parse(value);
       this._user = user;
       this._isAuthenticated = true;
-      // Dispatch login success to update the store
       this.store.dispatch(AuthActions.loginSuccess({ user }));
+      await this.dailyConsentState.restoreFromPreferences(user.username);
     }
   }
 
@@ -96,11 +98,15 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
+    const username = this._user?.username;
     this._user = null;
     this._isAuthenticated = false;
     await Preferences.remove({ key: 'currentUser' });
     await this.storage.remove('initialization_complete');
     await this.memoryManagementService.clearMemoryCache();
+    if (username) {
+      await this.dailyConsentState.clearConsent(username);
+    }
     this.log.log('User logged out and local state reset.');
   }
 
@@ -116,8 +122,8 @@ export class AuthService {
     };
     this._user = user;
     await this.saveUserLocally(user);
-    // Dispatch login success to update the store
     this.store.dispatch(AuthActions.loginSuccess({ user }));
+    await this.dailyConsentState.restoreFromPreferences(user.username);
     return true;
   }
 
@@ -186,6 +192,7 @@ export class AuthService {
       await this.log.log('Offline login successful');
       // Dispatch login success to update the store
       this.store.dispatch(AuthActions.loginSuccess({ user: storedUser }));
+      await this.dailyConsentState.restoreFromPreferences(storedUser.username);
       return true;
     } else if (storedUser && storedUser.username === username && storedUser.passwordHash !== this.hashPassword(passwordPlain)) {
       console.warn('Offline login failed: Incorrect password');
@@ -207,6 +214,17 @@ export class AuthService {
   private async getUserLocally(): Promise<User | null> {
     const { value } = await Preferences.get({ key: 'currentUser' });
     return value ? JSON.parse(value) : null;
+  }
+
+  /**
+   * Vérifie le mot de passe saisi contre celui enregistré localement pour l'utilisateur courant.
+   */
+  async verifyCurrentUserPassword(passwordPlain: string): Promise<boolean> {
+    const user = this._user ?? await this.getUserLocally();
+    if (!user?.passwordHash) {
+      return false;
+    }
+    return user.passwordHash === this.hashPassword(passwordPlain);
   }
 
   // Simple hash for demonstration. In production, use a robust crypto library.

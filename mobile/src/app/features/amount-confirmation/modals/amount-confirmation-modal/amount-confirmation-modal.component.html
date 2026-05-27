@@ -1,0 +1,48 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Confirmation du montant de l'opération</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()" [disabled]="isSubmitting">Annuler</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <p class="intro">
+    Pour valider cette opération, saisissez le montant total ci-dessous. Cela confirme que vous êtes
+    bien l'auteur de cette opération et que vous en connaissez le montant exact.
+  </p>
+
+  <div class="amount-display">
+    <span class="amount-label">Montant calculé de l'opération</span>
+    <span class="amount-value">{{ formatAmount(calculatedAmount) }} FCFA</span>
+  </div>
+
+  <ion-list lines="full">
+    <ion-item>
+      <ion-label position="stacked">Saisissez ce montant pour confirmer</ion-label>
+      <ion-input
+        type="text"
+        [(ngModel)]="amountInput"
+        inputmode="decimal"
+        placeholder="{{ calculatedAmount }}"
+        (keyup.enter)="confirm()">
+      </ion-input>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button color="medium" fill="outline" (click)="cancel()" [disabled]="isSubmitting">
+        Annuler
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button color="primary" (click)="confirm()" [disabled]="isSubmitting">
+        Confirmer
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

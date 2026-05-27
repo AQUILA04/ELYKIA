@@ -43,6 +43,12 @@ public class TontineDelivery extends BaseEntity<String> {
     @Column(name = "commercial_username", nullable = false)
     private String commercialUsername;
     
+    @Column(name = "operation_consent_code")
+    private String operationConsentCode;
+
+    @Column(name = "sync_consent_code")
+    private String syncConsentCode;
+    
     @OneToMany(mappedBy = "delivery", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<TontineDeliveryItem> items = new ArrayList<>();

@@ -90,6 +90,15 @@ export class MigrationService {
       case 22:
         await this.migrateToV22(db);
         break;
+      case 23:
+        await this.migrateToV23(db);
+        break;
+      case 24:
+        await this.migrateToV24(db);
+        break;
+      case 25:
+        await this.migrateToV25(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -566,6 +575,120 @@ export class MigrationService {
     } catch (error: any) {
       this.log.log(`Error in migration v22: ${error}`);
       console.error('Error in migration v22', error);
+      throw error;
+    }
+  }
+
+  private async migrateToV23(db: SQLiteDBConnection): Promise<void> {
+    try {
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS local_data_cleanup_history (
+            id TEXT PRIMARY KEY,
+            batchId TEXT NOT NULL,
+            commercialUsername TEXT NOT NULL,
+            actionDate TEXT NOT NULL,
+            performedAt TEXT NOT NULL,
+            entityType TEXT NOT NULL,
+            entityId TEXT NOT NULL,
+            entityLabel TEXT NOT NULL,
+            entitySubtitle TEXT,
+            amount REAL,
+            entityCreatedAt TEXT,
+            triggerAction TEXT NOT NULL
+        );
+      `);
+      await db.execute(`
+        CREATE INDEX IF NOT EXISTS idx_cleanup_history_commercial_date
+        ON local_data_cleanup_history(commercialUsername, actionDate);
+      `);
+      await db.execute(`
+        CREATE INDEX IF NOT EXISTS idx_cleanup_history_batch
+        ON local_data_cleanup_history(batchId);
+      `);
+      this.log.log('Migration to v23 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v23: ${error}`);
+      console.error('Error in migration v23', error);
+      throw error;
+    }
+  }
+
+  private async migrateToV24(db: SQLiteDBConnection): Promise<void> {
+    try {
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS sync_consent_history (
+            id TEXT PRIMARY KEY,
+            commercialUsername TEXT NOT NULL,
+            actionDate TEXT NOT NULL,
+            consentedAt TEXT NOT NULL,
+            challengeCode TEXT NOT NULL,
+            challengeEntered TEXT NOT NULL,
+            consentMessageVersion TEXT NOT NULL
+        );
+      `);
+      await db.execute(`
+        CREATE INDEX IF NOT EXISTS idx_sync_consent_commercial_date
+        ON sync_consent_history(commercialUsername, actionDate);
+      `);
+      await db.execute(`
+        CREATE INDEX IF NOT EXISTS idx_sync_consent_consented_at
+        ON sync_consent_history(consentedAt);
+      `);
+      this.log.log('Migration to v24 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v24: ${error}`);
+      console.error('Error in migration v24', error);
+      throw error;
+    }
+  }
+
+  private async migrateToV25(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v25: daily_consent_history + operationConsentCode/confirmedAmount columns.');
+
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS daily_consent_history (
+            id TEXT PRIMARY KEY,
+            commercialUsername TEXT NOT NULL,
+            actionDate TEXT NOT NULL,
+            consentedAt TEXT NOT NULL,
+            challengeCode TEXT NOT NULL,
+            challengeEntered TEXT NOT NULL,
+            consentMessageVersion TEXT NOT NULL
+        );
+      `);
+      await db.execute(`
+        CREATE INDEX IF NOT EXISTS idx_daily_consent_commercial_date
+        ON daily_consent_history(commercialUsername, actionDate);
+      `);
+
+      const alterStatements: string[] = [
+        'ALTER TABLE distributions ADD COLUMN operationConsentCode TEXT',
+        'ALTER TABLE distributions ADD COLUMN confirmedAmount REAL',
+        'ALTER TABLE recoveries ADD COLUMN operationConsentCode TEXT',
+        'ALTER TABLE recoveries ADD COLUMN confirmedAmount REAL',
+        'ALTER TABLE orders ADD COLUMN operationConsentCode TEXT',
+        'ALTER TABLE orders ADD COLUMN confirmedAmount REAL',
+        'ALTER TABLE tontine_members ADD COLUMN operationConsentCode TEXT',
+        'ALTER TABLE tontine_collections ADD COLUMN operationConsentCode TEXT',
+        'ALTER TABLE tontine_collections ADD COLUMN confirmedAmount REAL',
+        'ALTER TABLE tontine_deliveries ADD COLUMN operationConsentCode TEXT',
+      ];
+
+      for (const stmt of alterStatements) {
+        try {
+          await db.execute(stmt);
+        } catch (e: any) {
+          if (!((e.message && e.message.toLowerCase().includes('duplicate column')) || (e.toString && e.toString().toLowerCase().includes('duplicate column')))) {
+            throw e;
+          }
+        }
+      }
+
+      this.log.log('Migration to v25 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v25: ${error}`);
+      console.error('Error in migration v25', error);
       throw error;
     }
   }

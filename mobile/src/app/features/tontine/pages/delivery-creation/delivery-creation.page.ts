@@ -20,6 +20,8 @@ import * as TontineActions from 'src/app/store/tontine/tontine.actions';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { TontineDeliveryReceiptModalComponent } from 'src/app/shared/components/tontine-delivery-receipt-modal/tontine-delivery-receipt-modal.component';
 import { PrintableTontineDelivery } from 'src/app/core/services/printing.service';
+import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-consent-guard.service';
+import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-consent-state.service';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 
@@ -88,7 +90,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         private stockRepo: TontineStockRepository,
         private deliveryRepo: TontineDeliveryRepository,
         private dbService: DatabaseService,
-        private tontineCalculationService: TontineCalculationService // Injected
+        private tontineCalculationService: TontineCalculationService,
+        private dailyConsentGuard: DailyConsentGuardService,
+        private dailyConsentState: DailyConsentStateService
     ) {
         this.stocks$ = this.store.select(selectPaginatedTontineStocks);
         this.isLoading$ = this.store.select(selectTontineStockPaginationLoading);
@@ -370,17 +374,21 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 }
             });
 
+            // Consentement journalier
+            await this.dailyConsentGuard.requireDailyConsent();
+
             const delivery: TontineDelivery = {
                 id: deliveryId,
                 tontineMemberId: this.memberId!,
                 commercialUsername: this.commercialUsername!,
                 requestDate: new Date().toISOString(),
-                deliveryDate: new Date().toISOString(), // Immediate delivery
+                deliveryDate: new Date().toISOString(),
                 status: 'DELIVERED',
                 totalAmount: this.vm.usedBudget,
                 items: items,
                 isLocal: true,
-                isSync: false
+                isSync: false,
+                operationConsentCode: this.dailyConsentState.getActiveConsentCode() ?? undefined
             };
 
             // Save delivery

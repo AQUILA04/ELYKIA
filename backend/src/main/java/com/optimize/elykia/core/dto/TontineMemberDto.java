@@ -18,4 +18,6 @@ public class TontineMemberDto {
     private Integer currentMonthDays;
     private Double totalDeliveryCollections;
     private TontineMemberUpdateScope updateScope;
+    private String operationConsentCode;
+    private String syncConsentCode;
 }

@@ -23,4 +23,6 @@ export interface Order {
   syncHash?: string;
   articleCount?: number;
   items?: OrderItem[];
+  operationConsentCode?: string;
+  confirmedAmount?: number;
 }

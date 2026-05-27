@@ -12,4 +12,6 @@ public class DefaultDailyStakeUnitDto {
     private String recoveryId; // Mobile recovery ID
     private Double reliquatGeneratedAmount = 0.0;
     private Double reliquatUsedAmount = 0.0;
+    private String operationConsentCode;
+    private Double confirmedAmount;
 }

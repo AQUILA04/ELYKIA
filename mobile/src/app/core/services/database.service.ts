@@ -18,6 +18,7 @@ import { FilePicker } from '@capawesome/capacitor-file-picker';
 import { RestoreMonitor, TransactionManager, DataIntegrityValidator, RestoreException } from './restore-utils';
 import { RestoreResult, SqlStatement, TableCounts, RestoreError } from '../models/restore.models';
 import { RestoreValidator } from './restore-validator.service';
+import { FinancialWriteGuardService } from '../daily-consent/financial-write-guard.service';
 
 interface DbRowWithHash {
   id: any;
@@ -33,7 +34,8 @@ export class DatabaseService {
   constructor(
     private log: LoggerService,
     private migrationService: MigrationService,
-    private restoreValidator: RestoreValidator
+    private restoreValidator: RestoreValidator,
+    private financialWriteGuard: FinancialWriteGuardService
   ) { }
 
   async initializeDatabase(): Promise<void> {
@@ -69,22 +71,19 @@ export class DatabaseService {
       // 1. Créer les tables pour s'assurer qu'elles existent pour les nouveaux utilisateurs
       await this.createTables();
 
-      // 2. Exécuter les migrations sur le schéma existant
-      if (Capacitor.getPlatform() === 'android') {
-        const currentVersion = await this.db.getVersion();
-        const targetVersion = 22; // Incremented for client_reliquats and recoveries columns
-        const dbVersion = currentVersion.version ?? 2;
+      // 2. Exécuter les migrations sur le schéma existant (Android + web pour les bases déjà créées)
+      const currentVersion = await this.db.getVersion();
+      const targetVersion = 25; // daily_consent_history + operationConsentCode
+      const dbVersion = currentVersion.version ?? 2;
 
-        console.log('=== DATABASE VERSION CHECK ===');
-        console.log('Current DB version:', dbVersion);
-        console.log('Target DB version:', targetVersion);
-        console.log('==============================');
+      console.log('=== DATABASE VERSION CHECK ===');
+      console.log('Current DB version:', dbVersion);
+      console.log('Target DB version:', targetVersion);
+      console.log('==============================');
 
-        if (dbVersion < targetVersion) {
-          await this.migrationService.runMigrations(this.db, dbVersion, targetVersion);
-
-          await this.db.run(`PRAGMA user_version = ${targetVersion}`);
-        }
+      if (dbVersion < targetVersion) {
+        await this.migrationService.runMigrations(this.db, dbVersion, targetVersion);
+        await this.db.run(`PRAGMA user_version = ${targetVersion}`);
       }
 
 
@@ -296,7 +295,9 @@ export class DatabaseService {
             syncDate DATETIME,
             createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
             syncHash TEXT,
-            articleCount INTEGER DEFAULT 0
+            articleCount INTEGER DEFAULT 0,
+            operationConsentCode TEXT,
+            confirmedAmount REAL
             -- FOREIGN KEY(creditId) REFERENCES stock_outputs(id),
             -- FOREIGN KEY(clientId) REFERENCES clients(id)
         );
@@ -332,7 +333,9 @@ export class DatabaseService {
             syncDate TEXT,
             createdAt TEXT NOT NULL,
             syncHash TEXT,
-            articleCount INTEGER DEFAULT 0
+            articleCount INTEGER DEFAULT 0,
+            operationConsentCode TEXT,
+            confirmedAmount REAL
             -- FOREIGN KEY (clientId) REFERENCES clients(id)
         );
 
@@ -366,7 +369,9 @@ export class DatabaseService {
             isDefaultStake BOOLEAN DEFAULT 0,
             syncHash TEXT,
             reliquatGeneratedAmount REAL DEFAULT 0,
-            reliquatUsedAmount REAL DEFAULT 0
+            reliquatUsedAmount REAL DEFAULT 0,
+            operationConsentCode TEXT,
+            confirmedAmount REAL
             -- FOREIGN KEY(distributionId) REFERENCES distributions(id),
             -- FOREIGN KEY(clientId) REFERENCES clients(id)
         );
@@ -480,6 +485,7 @@ export class DatabaseService {
             amount REAL CHECK(TYPEOF(amount) IN ('integer', 'real') OR amount IS NULL),
             notes TEXT,
             updateScope TEXT,
+            operationConsentCode TEXT,
             FOREIGN KEY(tontineSessionId) REFERENCES tontine_sessions(id)
             -- IMPORTANT:
             -- On ne met plus de contrainte FOREIGN KEY(clientId) ici, car l'ID du client
@@ -516,7 +522,9 @@ export class DatabaseService {
             syncDate DATETIME,
             syncHash TEXT,
             isDeliveryCollection BOOLEAN DEFAULT 0,
-            notes TEXT
+            notes TEXT,
+            operationConsentCode TEXT,
+            confirmedAmount REAL
             -- IMPORTANT:
             -- Pas de contrainte FOREIGN KEY(tontineMemberId) ici pour éviter les erreurs
             -- lors du passage de l'ID membre de tontine local à l'ID serveur pendant la synchro.
@@ -535,6 +543,7 @@ export class DatabaseService {
             isSync BOOLEAN DEFAULT 0,
             syncDate DATETIME,
             syncHash TEXT,
+            operationConsentCode TEXT,
             FOREIGN KEY(tontineMemberId) REFERENCES tontine_members(id)
             -- IMPORTANT:
             -- Pas de contrainte FOREIGN KEY(tontineMemberId) ici non plus, même raison que ci-dessus.
@@ -604,13 +613,61 @@ export class DatabaseService {
         );
         CREATE INDEX IF NOT EXISTS idx_client_reliquats_clientId ON client_reliquats(clientId);
         CREATE INDEX IF NOT EXISTS idx_client_reliquats_commercialId ON client_reliquats(commercialId);
+
+        -- Historique des suppressions du nettoyage journalier (données locales obsolètes)
+        CREATE TABLE IF NOT EXISTS local_data_cleanup_history (
+            id TEXT PRIMARY KEY,
+            batchId TEXT NOT NULL,
+            commercialUsername TEXT NOT NULL,
+            actionDate TEXT NOT NULL,
+            performedAt TEXT NOT NULL,
+            entityType TEXT NOT NULL,
+            entityId TEXT NOT NULL,
+            entityLabel TEXT NOT NULL,
+            entitySubtitle TEXT,
+            amount REAL,
+            entityCreatedAt TEXT,
+            triggerAction TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_cleanup_history_commercial_date
+            ON local_data_cleanup_history(commercialUsername, actionDate);
+        CREATE INDEX IF NOT EXISTS idx_cleanup_history_batch
+            ON local_data_cleanup_history(batchId);
+
+        -- Historique des consentements explicites avant synchronisation
+        CREATE TABLE IF NOT EXISTS sync_consent_history (
+            id TEXT PRIMARY KEY,
+            commercialUsername TEXT NOT NULL,
+            actionDate TEXT NOT NULL,
+            consentedAt TEXT NOT NULL,
+            challengeCode TEXT NOT NULL,
+            challengeEntered TEXT NOT NULL,
+            consentMessageVersion TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_sync_consent_commercial_date
+            ON sync_consent_history(commercialUsername, actionDate);
+        CREATE INDEX IF NOT EXISTS idx_sync_consent_consented_at
+            ON sync_consent_history(consentedAt);
+
+        -- Historique des consentements journaliers avant opérations financières
+        CREATE TABLE IF NOT EXISTS daily_consent_history (
+            id TEXT PRIMARY KEY,
+            commercialUsername TEXT NOT NULL,
+            actionDate TEXT NOT NULL,
+            consentedAt TEXT NOT NULL,
+            challengeCode TEXT NOT NULL,
+            challengeEntered TEXT NOT NULL,
+            consentMessageVersion TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_daily_consent_commercial_date
+            ON daily_consent_history(commercialUsername, actionDate);
     `;
     await this.db?.execute(createTables);;
   }
 
   private async verifyTables(): Promise<void> {
     try {
-      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items', 'tontine_member_amount_history', 'commercial_stock_snapshot', 'client_reliquats'];
+      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items', 'tontine_member_amount_history', 'commercial_stock_snapshot', 'client_reliquats', 'local_data_cleanup_history', 'sync_consent_history', 'daily_consent_history'];
       const result = await this.db?.query(`SELECT name FROM sqlite_master WHERE type='table'`);
       const existingTables = result?.values?.map(row => row.name) || [];
       const missingTables = expectedTables.filter(table => !existingTables.includes(table));
@@ -630,12 +687,18 @@ export class DatabaseService {
     if (!this.db) {
       throw new Error('Database not initialized.');
     }
+    this.financialWriteGuard.checkSql(sql, params);
     return await this.db.run(sql, params || []);
   }
 
   async executeSet(sqlSet: capSQLiteSet[]): Promise<any> {
     if (!this.db) {
       throw new Error('Database not initialized.');
+    }
+    for (const item of sqlSet) {
+      if (item.statement) {
+        this.financialWriteGuard.checkSql(item.statement, item.values);
+      }
     }
     return await this.db.executeSet(sqlSet);
   }
@@ -1091,8 +1154,7 @@ export class DatabaseService {
         distributionsToUpdate.push({ statement: sql, values: updateParams });
 
       } else if (!isExisting) {
-        const sql = `INSERT INTO distributions (id, reference, creditId, totalAmount, dailyPayment, startDate, endDate, status, clientId, commercialId, isLocal, isSync, syncDate, createdAt, syncHash, articleCount, remainingAmount, paidAmount, advance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        // **Amélioration : Paramètres robustes**
+        const sql = `INSERT INTO distributions (id, reference, creditId, totalAmount, dailyPayment, startDate, endDate, status, clientId, commercialId, isLocal, isSync, syncDate, createdAt, syncHash, articleCount, remainingAmount, paidAmount, advance, operationConsentCode, confirmedAmount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const insertParams = [
           distIdStr,
           localDist.reference ?? null,
@@ -1112,7 +1174,9 @@ export class DatabaseService {
           localDist.articleCount ?? 0,
           localDist.remainingAmount ?? localDist.totalAmount ?? 0,
           localDist.paidAmount ?? 0,
-          localDist.advance ?? 0
+          localDist.advance ?? 0,
+          (dist as any).operationConsentCode ?? null,
+          (dist as any).confirmedAmount ?? null
         ];
         distributionsToInsert.push({ statement: sql, values: insertParams });
       }

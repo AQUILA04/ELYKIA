@@ -70,6 +70,12 @@ public class TontineMember extends BaseEntity<String> {
     @Transient
     private Double totalDeliveryCollections = 0.0;
 
+    @Column(name = "operation_consent_code")
+    private String operationConsentCode;
+
+    @Column(name = "sync_consent_code")
+    private String syncConsentCode;
+
     @OneToMany(mappedBy = "tontineMember", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<TontineMemberAmountHistory> amountHistory = new ArrayList<>();

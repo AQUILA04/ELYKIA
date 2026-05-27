@@ -41,8 +41,8 @@ export class OrderRepository extends BaseRepository<Order, string> {
             const sql = `INSERT OR REPLACE INTO orders (
                 id, reference, totalAmount, advance, remainingAmount, dailyPayment, startDate,
                 endDate, status, clientId, commercialId, isLocal, isSync, syncDate, createdAt,
-                syncHash, articleCount
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+                syncHash, articleCount, operationConsentCode, confirmedAmount
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
             sqlSet.push({
                 statement: sql,
@@ -62,8 +62,10 @@ export class OrderRepository extends BaseRepository<Order, string> {
                     order.isSync ? 1 : 0,
                     now,
                     order.createdAt ?? now,
-                    null, // Plus de hash
-                    order.articleCount ?? 0
+                    null,
+                    order.articleCount ?? 0,
+                    order.operationConsentCode ?? null,
+                    order.confirmedAmount ?? null
                 ]
             });
 

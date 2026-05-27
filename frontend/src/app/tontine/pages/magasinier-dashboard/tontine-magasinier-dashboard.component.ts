@@ -76,7 +76,7 @@ export class TontineMagasinierDashboardComponent implements OnInit, AfterViewIni
             return [];
           }
 
-          this.resultsLength = apiResponse.data.page.totalElements;
+          this.resultsLength = apiResponse.data.page?.totalElements ?? apiResponse.data.totalElements ?? 0;
           return [...apiResponse.data.content]; // Convert readonly to mutable array
         }),
         takeUntil(this.destroy$)

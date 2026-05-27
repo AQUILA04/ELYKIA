@@ -20,8 +20,8 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
 
         const query = `
       INSERT OR REPLACE INTO tontine_members (
-        id, tontineSessionId, clientId, commercialUsername, totalContribution, deliveryStatus, registrationDate, isLocal, isSync, syncDate, syncHash, frequency, amount, notes, updateScope
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, tontineSessionId, clientId, commercialUsername, totalContribution, deliveryStatus, registrationDate, isLocal, isSync, syncDate, syncHash, frequency, amount, notes, updateScope, operationConsentCode
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
         const set: capSQLiteSet[] = entities.map(m => {
@@ -31,7 +31,8 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
                 values: [
                     member.id, member.tontineSessionId, member.clientId, member.commercialUsername, member.totalContribution, member.deliveryStatus,
                     member.registrationDate, member.isLocal ? 1 : 0, member.isSync ? 1 : 0, member.syncDate || new Date().toISOString(), member.syncHash,
-                    member.frequency || null, member.amount || null, member.notes || null, member.updateScope || null
+                    member.frequency || null, member.amount || null, member.notes || null, member.updateScope || null,
+                    member.operationConsentCode || null
                 ]
             };
         });

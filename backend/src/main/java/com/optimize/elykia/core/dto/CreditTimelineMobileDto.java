@@ -23,8 +23,11 @@ public class CreditTimelineMobileDto {
     private String reference; // reference du CreditTimeline (ID mobile si existe)
     private Boolean isSync; // Toujours true car vient du serveur
     private LocalDateTime syncDate; // Date de récupération
+    private String operationConsentCode;
+    private Double confirmedAmount;
+    private String syncConsentCode;
 
-    public CreditTimelineMobileDto(Long id, Double amount, LocalDateTime createdDate, Boolean normalStake, String collector, Long creditId, Long clientId, String reference) {
+    public CreditTimelineMobileDto(Long id, Double amount, LocalDateTime createdDate, Boolean normalStake, String collector, Long creditId, Long clientId, String reference, String operationConsentCode, Double confirmedAmount, String syncConsentCode) {
         this.id = id != null ? id.toString() : null;
         this.amount = amount;
         this.paymentDate = createdDate;
@@ -36,5 +39,8 @@ public class CreditTimelineMobileDto {
         this.reference = reference;
         this.isSync = true;
         this.syncDate = LocalDateTime.now();
+        this.operationConsentCode = operationConsentCode;
+        this.confirmedAmount = confirmedAmount;
+        this.syncConsentCode = syncConsentCode;
     }
 }

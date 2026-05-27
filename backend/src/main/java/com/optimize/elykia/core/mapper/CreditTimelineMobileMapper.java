@@ -49,6 +49,10 @@ public class CreditTimelineMobileMapper {
         
         // Toujours synchronisé car vient du serveur
         dto.setIsSync(true);
+
+        dto.setOperationConsentCode(creditTimeline.getOperationConsentCode());
+        dto.setConfirmedAmount(creditTimeline.getConfirmedAmount());
+        dto.setSyncConsentCode(creditTimeline.getSyncConsentCode());
         
         // IDs du crédit et du client
         if (creditTimeline.getCredit() != null) {

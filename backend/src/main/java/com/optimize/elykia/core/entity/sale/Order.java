@@ -39,6 +39,15 @@ public class Order extends BaseEntity<String> {
     @Column(nullable = false)
     private OrderStatus status;
 
+    @Column(name = "operation_consent_code")
+    private String operationConsentCode;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double confirmedAmount;
+
+    @Column(name = "sync_consent_code")
+    private String syncConsentCode;
+
     @JsonManagedReference
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<OrderItem> items;

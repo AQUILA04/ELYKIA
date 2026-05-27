@@ -28,8 +28,14 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
         super(http, repository, authService, syncErrorService, 'tontine-delivery');
     }
 
+    private syncConsentCode: string | undefined;
+
     setFailedMemberIds(ids: string[]) {
         this.failedMemberIds = ids;
+    }
+
+    setSyncConsentCode(code: string) {
+        this.syncConsentCode = code;
     }
 
     /**
@@ -140,7 +146,9 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
                 articleId: Number.parseInt(item.articleId, 10),
                 quantity: item.quantity,
                 unitPrice: item.unitPrice
-            }))
+            })),
+            operationConsentCode: delivery.operationConsentCode ?? null,
+            syncConsentCode: this.syncConsentCode ?? null
         };
     }
 }

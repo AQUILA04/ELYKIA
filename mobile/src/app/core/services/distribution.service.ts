@@ -19,6 +19,9 @@ import { DistributionRepository } from '../repositories/distribution.repository'
 import { ArticleRepository } from '../repositories/article.repository';
 import { StockSnapshotRepository } from '../repositories/stock-snapshot.repository';
 import {LoggerService} from "./logger.service";
+import { DailyConsentGuardService } from '../../features/daily-consent/daily-consent-guard.service';
+import { DailyConsentStateService } from '../daily-consent/daily-consent-state.service';
+import { AmountConfirmationService } from '../../features/amount-confirmation/amount-confirmation.service';
 
 interface CreateDistributionData {
   clientId: string;
@@ -48,7 +51,10 @@ export class DistributionService {
     private readonly distributionRepository: DistributionRepository,
     private readonly articleRepository: ArticleRepository,
     private readonly stockSnapshotRepository: StockSnapshotRepository,
-              private readonly log: LoggerService
+    private readonly log: LoggerService,
+    private readonly dailyConsentGuard: DailyConsentGuardService,
+    private readonly dailyConsentState: DailyConsentStateService,
+    private readonly amountConfirmation: AmountConfirmationService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -262,6 +268,9 @@ export class DistributionService {
     if (distributionData.articles.length < 1) {
       throw new Error(`Aucun items pour la distribution`);
     }
+
+    // 1. Consentement journalier
+    await this.dailyConsentGuard.requireDailyConsent();
     const now = new Date().toISOString();
 
     // const newCount = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase().padStart(6, '0');
@@ -365,10 +374,11 @@ export class DistributionService {
       throw new Error(`Aucun items pour la distribution`);
     }
 
-    // Persistance atomique : distribution + items dans un seul executeSet (une seule transaction SQLite).
-    // Si l'insertion des items échoue, la distribution n'est pas non plus persistée (rollback implicite).
-    // saveDistributionsAndItems utilise DistributionMapper.toLocal qui lit maintenant distribution.items
-    // en priorité (Fix 4 — DistributionMapper), garantissant que les items locaux sont bien inclus.
+    // 2. Confirmation du montant
+    const confirmedAmount = await this.amountConfirmation.confirmAmount(distribution.totalAmount);
+    distribution.confirmedAmount = confirmedAmount;
+    distribution.operationConsentCode = this.dailyConsentState.getActiveConsentCode() ?? undefined;
+
     await this.dbService.saveDistributionsAndItems([distribution]);
 
     // Create and save the corresponding transaction for the history
@@ -719,6 +729,73 @@ export class DistributionService {
     } catch (error) {
       console.error('Failed to restore article stock:', error);
     }
+  }
+
+  /**
+   * Supprime les distributions locales en doublon d'une distribution synchronisée
+   * (même client, même totalAmount, statut INPROGRESS), avec recouvrements liés.
+   *
+   * Pas de restauration de stock ici : le stock commercial vient du serveur (étape
+   * initializeCommercialStock) et les articles sont recalculés via calculateArticleStocks.
+   * On recalcule seulement le snapshot localSalesTotal après suppression.
+   */
+  async removeSyncedLocalDuplicateDistributions(commercialUsername: string): Promise<number> {
+    const localIds = await this.distributionRepository.findSyncedLocalDuplicateLocalIds(commercialUsername);
+    if (localIds.length === 0) {
+      return 0;
+    }
+
+    let deletedCount = 0;
+    for (const distributionId of localIds) {
+      try {
+        await this.distributionRepository.deleteDistributionCascade(distributionId);
+        deletedCount++;
+        this.log.log(`[DistributionService] Removed duplicate local distribution ${distributionId}`);
+      } catch (error) {
+        console.error(`Failed to remove duplicate local distribution ${distributionId}:`, error);
+      }
+    }
+
+    if (deletedCount > 0) {
+      await this.refreshStockSnapshotLocalSales(commercialUsername);
+    }
+
+    return deletedCount;
+  }
+
+  /**
+   * Supprime des distributions locales (cascade recouvrements + lignes) et recalcule le snapshot stock.
+   */
+  async deleteLocalDistributionsByIds(ids: string[], commercialUsername: string): Promise<number> {
+    if (ids.length === 0) {
+      return 0;
+    }
+
+    let deletedCount = 0;
+    for (const distributionId of ids) {
+      try {
+        await this.distributionRepository.deleteDistributionCascade(distributionId);
+        deletedCount++;
+        this.log.log(`[DistributionService] Deleted local distribution ${distributionId}`);
+      } catch (error) {
+        console.error(`Failed to delete local distribution ${distributionId}:`, error);
+      }
+    }
+
+    if (deletedCount > 0) {
+      await this.refreshStockSnapshotLocalSales(commercialUsername);
+    }
+
+    return deletedCount;
+  }
+
+  /** Recalcule localSalesTotal à partir des distributions isLocal restantes. */
+  private async refreshStockSnapshotLocalSales(commercialUsername: string): Promise<void> {
+    const snapshot = await this.stockSnapshotRepository.getSnapshot(commercialUsername);
+    if (!snapshot) {
+      return;
+    }
+    await this.stockSnapshotRepository.upsertSnapshot(commercialUsername, snapshot.stockAtInit);
   }
 
   // Delete distribution locally

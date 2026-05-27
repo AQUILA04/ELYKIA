@@ -51,7 +51,7 @@
         <div class="summary-item">
           <span class="summary-label">Part Société (Payé / Dû)</span>
           <span class="summary-value" [class.text-warn]="getSocietyShareStatusColor() === 'warn'">
-            {{ formatCurrency(member.societyShare || 0) }} / {{ formatCurrency(getTheoreticalSocietyShare()) }}
+            {{ formatCurrency(member.societyShare || 0) }} / {{ formatCurrency(member.societyShare || 0) }}
           </span>
         </div>
         <div class="summary-item">
@@ -96,6 +96,28 @@
               <span class="days-count">{{member.currentMonthDays || 0}}/31j</span>
             </div>
           </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Consent Section -->
+  <mat-card class="summary-card" *ngIf="member.operationConsentCode || member.syncConsentCode" style="margin-top: 16px;">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>security</mat-icon>
+        Informations de consentement
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="summary-grid">
+        <div class="summary-item" *ngIf="member.operationConsentCode">
+          <span class="summary-label">Code Opération</span>
+          <span class="summary-value" style="color: var(--primary-color); font-family: monospace; font-weight: 600;">{{ member.operationConsentCode }}</span>
+        </div>
+        <div class="summary-item" *ngIf="member.syncConsentCode">
+          <span class="summary-label">Code Synchronisation</span>
+          <span class="summary-value" style="color: var(--primary-color); font-family: monospace; font-weight: 600;">{{ member.syncConsentCode }}</span>
         </div>
       </div>
     </mat-card-content>
@@ -189,8 +211,22 @@
           <td mat-cell *matCellDef="let collection">{{ collection.commercialUsername }}</td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="['date', 'amount', 'commercial']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['date', 'amount', 'commercial'];"></tr>
+        <ng-container matColumnDef="consent">
+          <th mat-header-cell *matHeaderCellDef>Consentement</th>
+          <td mat-cell *matCellDef="let collection">
+            <div *ngIf="collection.operationConsentCode || collection.syncConsentCode || collection.confirmedAmount !== null" style="font-size: 0.9em; line-height: 1.3;">
+              <div *ngIf="collection.operationConsentCode">Op: <strong style="color: var(--primary-color);">{{ collection.operationConsentCode }}</strong></div>
+              <div *ngIf="collection.syncConsentCode">Sync: <strong style="color: var(--primary-color);">{{ collection.syncConsentCode }}</strong></div>
+              <div *ngIf="collection.confirmedAmount !== null">Conf: <strong>{{ formatCurrency(collection.confirmedAmount) }}</strong></div>
+            </div>
+            <div *ngIf="!collection.operationConsentCode && !collection.syncConsentCode && collection.confirmedAmount === null" style="color: var(--text-muted); font-size: 0.9em;">
+              N/A
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="['date', 'amount', 'commercial', 'consent']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['date', 'amount', 'commercial', 'consent'];"></tr>
       </table>
     </mat-card-content>
   </mat-card>

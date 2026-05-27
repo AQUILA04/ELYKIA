@@ -1,0 +1,64 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Données locales des jours précédents</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismissKeep()" [disabled]="isDeleting">Fermer</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <p class="intro">
+    Distributions locales des 7 derniers jours (hors aujourd'hui) encore présentes sur cet appareil.
+    Les données de plus de 7 jours ont été supprimées automatiquement.
+    Vous pouvez supprimer la sélection ou conserver le reste pour une synchronisation ultérieure.
+  </p>
+
+  <p class="selection-summary">
+    {{ selectedCount }} / {{ totalItemCount }} sélectionné(s)
+  </p>
+
+  <ng-container *ngFor="let section of sections">
+    <div class="section-header">
+      <h2>{{ section.title }}</h2>
+      <span class="section-count">{{ section.items.length }}</span>
+    </div>
+
+    <ion-list lines="full">
+      <ion-item *ngFor="let item of section.items" lines="inset">
+        <ion-checkbox
+          slot="start"
+          [checked]="isSelected(item.id)"
+          (ionChange)="onCheckboxChange(item.id, $event)">
+        </ion-checkbox>
+        <ion-label>
+          <h3>{{ item.title }}</h3>
+          <p *ngIf="item.subtitle">{{ item.subtitle }}</p>
+          <p>
+            <span *ngIf="item.amount != null">{{ item.amount | number:'1.0-0':'fr-FR' }} FCFA · </span>
+            {{ item.date | date:'dd/MM/yyyy HH:mm':'fr-FR' }}
+          </p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="selectAll()" [disabled]="isDeleting">Tout sélectionner</ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button fill="outline" color="medium" (click)="dismissKeep()" [disabled]="isDeleting">
+        Conserver
+      </ion-button>
+      <ion-button fill="outline" color="danger" (click)="confirmDeleteAll()" [disabled]="isDeleting || totalItemCount === 0">
+        Supprimer tout
+      </ion-button>
+      <ion-button color="danger" (click)="confirmDeleteSelected()" [disabled]="isDeleting || selectedCount === 0">
+        Supprimer ({{ selectedCount }})
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

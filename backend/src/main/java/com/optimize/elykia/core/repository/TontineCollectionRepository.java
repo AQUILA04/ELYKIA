@@ -31,7 +31,10 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
            "tc.collectionDate, " +
            "tc.commercialUsername, " +
            "tc.isDeliveryCollection, " +
-           "tc.reference) " +
+           "tc.reference, " +
+           "tc.operationConsentCode, " +
+           "tc.confirmedAmount, " +
+           "tc.syncConsentCode) " +
            "FROM TontineCollection tc " +
            "JOIN tc.tontineMember tm " +
            "JOIN tm.tontineSession s " +
@@ -46,7 +49,7 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
 
     @Query("SELECT new com.optimize.elykia.core.dto.TontineCollectionWebDto(" +
             "tc.id, tc.reference, CONCAT(cl.firstname, ' ', cl.lastname), tc.commercialUsername, " +
-            "tc.amount, tc.collectionDate) " +
+            "tc.amount, tc.collectionDate, tc.operationConsentCode, tc.confirmedAmount, tc.syncConsentCode) " +
             "FROM TontineCollection tc " +
             "LEFT JOIN tc.tontineMember tm " +
             "LEFT JOIN tm.client cl " +
@@ -59,7 +62,7 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
 
     @Query("SELECT new com.optimize.elykia.core.dto.TontineCollectionWebDto(" +
             "tc.id, tc.reference, CONCAT(cl.firstname, ' ', cl.lastname), tc.commercialUsername, " +
-            "tc.amount, tc.collectionDate) " +
+            "tc.amount, tc.collectionDate, tc.operationConsentCode, tc.confirmedAmount, tc.syncConsentCode) " +
             "FROM TontineCollection tc " +
             "LEFT JOIN tc.tontineMember tm " +
             "LEFT JOIN tm.client cl " +

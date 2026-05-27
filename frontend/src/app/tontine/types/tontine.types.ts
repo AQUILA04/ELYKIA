@@ -35,6 +35,8 @@ export interface TontineMember {
   readonly currentMonthDays?: number;
   readonly totalDeliveryCollections?: number;
   readonly clientId?: number; // Added for compatibility
+  readonly operationConsentCode?: string;
+  readonly syncConsentCode?: string;
 }
 
 export interface TontineCollection {
@@ -46,6 +48,9 @@ export interface TontineCollection {
   readonly createdBy?: string;
   readonly createdDate?: string;
   readonly isDeliveryCollection?: boolean;
+  readonly operationConsentCode?: string;
+  readonly syncConsentCode?: string;
+  readonly confirmedAmount?: number;
 }
 
 export interface TontineClient {
@@ -189,12 +194,16 @@ export interface ApiResponse<T> {
 
 export interface PaginatedResponse<T> {
   readonly content: readonly T[];
-  readonly page: {
+  readonly totalElements?: number;
+  readonly totalPages?: number;
+  readonly size?: number;
+  readonly number?: number;
+  readonly page?: {
     readonly size: number;
     readonly number: number;
     readonly totalElements: number;
     readonly totalPages: number;
-  }
+  };
 }
 
 // Interface for query parameters to send to the backend

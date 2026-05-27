@@ -16,6 +16,9 @@ import { DistributionRepository } from '../repositories/distribution.repository'
 import { LoggerService } from "./logger.service";
 import { HealthCheckService } from "./health-check.service";
 import { ReliquatService } from './reliquat.service';
+import { DailyConsentGuardService } from '../../features/daily-consent/daily-consent-guard.service';
+import { DailyConsentStateService } from '../daily-consent/daily-consent-state.service';
+import { AmountConfirmationService } from '../../features/amount-confirmation/amount-confirmation.service';
 
 @Injectable({
   providedIn: 'root'
@@ -32,7 +35,10 @@ export class RecoveryService {
     private readonly distributionRepository: DistributionRepository,
     private readonly log: LoggerService,
     private readonly healthCheckService: HealthCheckService,
-    private readonly reliquatService: ReliquatService
+    private readonly reliquatService: ReliquatService,
+    private readonly dailyConsentGuard: DailyConsentGuardService,
+    private readonly dailyConsentState: DailyConsentStateService,
+    private readonly amountConfirmation: AmountConfirmationService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -122,6 +128,9 @@ export class RecoveryService {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
+
+    // Consentement journalier
+    await this.dailyConsentGuard.requireDailyConsent();
     // Génération d'un suffixe aléatoire pour éviter les collisions (sur 6 caractères hexadécimaux)
     const year = new Date().getFullYear();
     const uniqueSuffix = Math.floor(Math.random() * 0x1000000).toString(16).toUpperCase().padStart(6, '0');
@@ -147,6 +156,11 @@ export class RecoveryService {
       reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
       reliquatUsedAmount: recovery.reliquatUsedAmount || 0
     };
+
+    // Confirmation du montant
+    const confirmedAmount = await this.amountConfirmation.confirmAmount(newRecovery.amount);
+    newRecovery.confirmedAmount = confirmedAmount;
+    newRecovery.operationConsentCode = this.dailyConsentState.getActiveConsentCode() ?? undefined;
 
     // Sauvegarder localement
     await this.recoveryRepository.save(newRecovery);

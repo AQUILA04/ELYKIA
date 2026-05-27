@@ -113,26 +113,8 @@ export class SyncAutomaticPage implements OnInit, OnDestroy {
   /**
    * Démarrer la synchronisation automatique
    */
-  async startSync() {
-    // Confirmer avant de démarrer
-    const alert = await this.alertController.create({
-      header: 'Confirmer la synchronisation',
-      message: 'Voulez-vous démarrer la synchronisation de toutes vos données ?',
-      buttons: [
-        {
-          text: 'Annuler',
-          role: 'cancel'
-        },
-        {
-          text: 'Synchroniser',
-          handler: () => {
-            this.store.dispatch(SyncActions.startAutomaticSync());
-          }
-        }
-      ]
-    });
-
-    await alert.present();
+  startSync(): void {
+    this.store.dispatch(SyncActions.startAutomaticSync());
   }
 
   /**

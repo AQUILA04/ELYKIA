@@ -31,6 +31,9 @@ public class DistributeArticleDto {
     private Double totalAmountRemaining;
     private Boolean mobile;
     private String reference;
+    private String operationConsentCode;
+    private Double confirmedAmount;
+    private String syncConsentCode;
 
     public void validateEntryArticles() {
         if (Objects.isNull(articles) || articles.getArticleEntries().isEmpty()) {

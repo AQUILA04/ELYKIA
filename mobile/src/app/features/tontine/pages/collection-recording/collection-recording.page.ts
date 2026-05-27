@@ -17,6 +17,9 @@ import * as KpiActions from 'src/app/store/kpi/kpi.actions';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { PrintableTontineCollection } from 'src/app/core/services/printing.service';
 import { TontineReceiptModalComponent } from 'src/app/shared/components/tontine-receipt-modal/tontine-receipt-modal.component';
+import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-consent-guard.service';
+import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-consent-state.service';
+import { AmountConfirmationService } from 'src/app/features/amount-confirmation/amount-confirmation.service';
 
 interface MemberWithClient extends TontineMember {
     client?: Client | null;
@@ -54,7 +57,10 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         private store: Store,
         private memberRepo: TontineMemberRepository,
         private collectionRepo: TontineCollectionRepository,
-        private clientRepo: ClientRepository
+        private clientRepo: ClientRepository,
+        private dailyConsentGuard: DailyConsentGuardService,
+        private dailyConsentState: DailyConsentStateService,
+        private amountConfirmation: AmountConfirmationService
     ) {
         this.initializeForm();
     }
@@ -202,18 +208,26 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         try {
             const formValue = this.collectionForm.value;
 
+            // Consentement journalier
+            await this.dailyConsentGuard.requireDailyConsent();
+
             const returnToDelivery = this.route.snapshot.queryParamMap.get('returnToDelivery') === 'true';
+
+            // Confirmation du montant
+            const confirmedAmount = await this.amountConfirmation.confirmAmount(formValue.amount);
 
             const newCollection: TontineCollection = {
                 id: this.generateUuid(),
                 tontineMemberId: this.selectedMember.id,
                 amount: formValue.amount,
-                collectionDate: new Date().toISOString(), // Always use current date
+                collectionDate: new Date().toISOString(),
                 commercialUsername: this.commercialUsername,
                 isLocal: true,
                 isSync: false,
                 isDeliveryCollection: returnToDelivery,
-                notes: formValue.notes
+                notes: formValue.notes,
+                operationConsentCode: this.dailyConsentState.getActiveConsentCode() ?? undefined,
+                confirmedAmount
             };
 
             await this.collectionRepo.save(newCollection);

@@ -29,12 +29,18 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
         super(http, repository, authService, syncErrorService, 'recovery');
     }
 
+    private syncConsentCode: string | undefined;
+
     setFailedClientIds(ids: string[]) {
         this.failedClientIds = ids;
     }
 
     setFailedDistributionIds(ids: string[]) {
         this.failedDistributionIds = ids;
+    }
+
+    setSyncConsentCode(code: string) {
+        this.syncConsentCode = code;
     }
 
     /**
@@ -176,7 +182,9 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                     creditId: Number.parseInt(distributionServerId),
                     recoveryId: recovery.id,
                     reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
-                    reliquatUsedAmount: recovery.reliquatUsedAmount || 0
+                    reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
+                    operationConsentCode: recovery.operationConsentCode ?? null,
+                    confirmedAmount: recovery.confirmedAmount ?? null
                 });
             }
         }
@@ -185,6 +193,7 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
 
         const syncRequest: DefaultDailyStakeRequest = {
             collector: currentUser?.username || '',
+            syncConsentCode: this.syncConsentCode ?? null,
             stakeUnits
         };
 
@@ -251,7 +260,9 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                             clientId: parsedClientId,
                             recoveryId: recovery.id,
                             reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
-                            reliquatUsedAmount: recovery.reliquatUsedAmount || 0
+                            reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
+                            operationConsentCode: recovery.operationConsentCode ?? null,
+                            confirmedAmount: recovery.confirmedAmount ?? null
                         });
                     }
                 }
@@ -262,6 +273,7 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
 
         const syncRequest: SpecialDailyStakeRequest = {
             collector: currentUser?.username || '',
+            syncConsentCode: this.syncConsentCode ?? null,
             stakeUnits
         };
 

@@ -28,8 +28,14 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
         super(http, repository, authService, syncErrorService, 'distribution');
     }
 
+    private syncConsentCode: string | undefined;
+
     setFailedClientIds(ids: string[]) {
         this.failedClientIds = ids;
+    }
+
+    setSyncConsentCode(code: string) {
+        this.syncConsentCode = code;
     }
 
     /**
@@ -137,7 +143,10 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
             totalAmountPaid: distribution.paidAmount || 0,
             totalAmountRemaining: distribution.remainingAmount || 0,
             mobile: true,
-            reference: distribution.reference || distribution.id
+            reference: distribution.reference || distribution.id,
+            confirmedAmount: distribution.confirmedAmount ?? null,
+            operationConsentCode: distribution.operationConsentCode ?? null,
+            syncConsentCode: this.syncConsentCode ?? null
         };
     }
 }

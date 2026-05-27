@@ -28,8 +28,14 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
         super(http, repository, authService, syncErrorService, 'tontine-collection');
     }
 
+    private syncConsentCode: string | undefined;
+
     setFailedMemberIds(ids: string[]) {
         this.failedMemberIds = ids;
+    }
+
+    setSyncConsentCode(code: string) {
+        this.syncConsentCode = code;
     }
 
     /**
@@ -117,7 +123,10 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
             amount: collection.amount,
             isDeliveryCollection: collection.isDeliveryCollection,
             reference: collection.id,
-            notes: collection.notes
+            notes: collection.notes,
+            operationConsentCode: collection.operationConsentCode ?? null,
+            confirmedAmount: collection.confirmedAmount ?? null,
+            syncConsentCode: this.syncConsentCode ?? null
         };
 
         const headers = this.getAuthHeaders();

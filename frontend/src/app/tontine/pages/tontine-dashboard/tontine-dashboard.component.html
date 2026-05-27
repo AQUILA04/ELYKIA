@@ -56,7 +56,7 @@
     [loading]="loadingMembers"
     [pageSize]="memberQueryParams.size || 20"
     [currentPage]="memberQueryParams.page || 0"
-    [totalElements]="paginatedMembers?.page?.totalElements || 0"
+    [totalElements]="paginatedMembers?.page?.totalElements || paginatedMembers?.totalElements || 0"
     (memberClick)="onMemberClick($event)"
     (pageChange)="onPageChange($event)"
     (sortChange)="onSortChange($event)">

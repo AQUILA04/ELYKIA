@@ -22,6 +22,7 @@ import { TontineCollectionSyncService } from './sync/tontine-collection-sync.ser
 import { TontineDeliverySyncService } from './sync/tontine-delivery-sync.service';
 import { ReliquatSyncService } from './sync/reliquat-sync.service';
 import { CashDeskService } from './cash-desk.service';
+import { SyncConsentPresenterService } from '../../features/sync-consent/sync-consent-presenter.service';
 
 import {
   SyncResult,
@@ -60,7 +61,8 @@ export class SyncMasterService {
     private readonly tontineMemberSyncService: TontineMemberSyncService,
     private readonly tontineCollectionSyncService: TontineCollectionSyncService,
     private readonly tontineDeliverySyncService: TontineDeliverySyncService,
-    private readonly reliquatSyncService: ReliquatSyncService
+    private readonly reliquatSyncService: ReliquatSyncService,
+    private readonly syncConsentPresenter: SyncConsentPresenterService
   ) { }
 
   /**
@@ -68,8 +70,20 @@ export class SyncMasterService {
    * Replaces SynchronizationService.synchronizeAllData
    */
   async synchronizeAllData(dateFilter?: DateFilter): Promise<SyncResult> {
+    const syncConsentCode = await this.syncConsentPresenter.requireConsentBeforeSync();
+
     const startTime = Date.now();
     this.resetState();
+
+    // Propager le syncConsentCode à tous les sync services financiers
+    if (syncConsentCode) {
+      this.distributionSyncService.setSyncConsentCode(syncConsentCode);
+      this.recoverySyncService.setSyncConsentCode(syncConsentCode);
+      this.orderSyncService.setSyncConsentCode(syncConsentCode);
+      this.tontineMemberSyncService.setSyncConsentCode(syncConsentCode);
+      this.tontineCollectionSyncService.setSyncConsentCode(syncConsentCode);
+      this.tontineDeliverySyncService.setSyncConsentCode(syncConsentCode);
+    }
 
     // Initialize Result Object
     const batchResult: SyncBatchResult = {

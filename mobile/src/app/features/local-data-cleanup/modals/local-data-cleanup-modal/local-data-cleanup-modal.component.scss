@@ -1,0 +1,41 @@
+.intro {
+  color: var(--ion-color-medium-shade);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+}
+
+.selection-summary {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1rem 0 0.5rem;
+
+  h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .section-count {
+    background: var(--ion-color-light);
+    border-radius: 12px;
+    font-size: 0.85rem;
+    padding: 0.15rem 0.5rem;
+  }
+}
+
+ion-footer ion-toolbar {
+  --padding-start: 0.25rem;
+  --padding-end: 0.25rem;
+}
+
+ion-footer ion-buttons {
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
