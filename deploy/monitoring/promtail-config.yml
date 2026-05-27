@@ -1,0 +1,31 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        # On ne veut pas que Promtail collecte ses propres logs ni ceux de Loki
+        filters:
+          - name: name
+            values: [elykia-promtail, elykia-loki]
+            operator: not_equal
+    relabel_configs:
+      # Extrait le nom du service depuis les labels de Docker Compose
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: 'service'
+      # Extrait le nom du projet (stack) depuis les labels de Docker Compose
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_project']
+        target_label: 'project'
+      # Garde le nom du conteneur pour référence
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'

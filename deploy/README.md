@@ -127,13 +127,15 @@ Un script `db_backup.sh` est fourni pour effectuer des sauvegardes de la base Po
 
 ## Monitoring et Alerting
 
-Un stack de monitoring complet (Prometheus + Grafana + Node Exporter) est disponible dans `monitoring/`.
+Un stack de monitoring complet (Prometheus + Grafana + Loki + Node Exporter) est disponible dans `monitoring/`.
 
 ### Composition
 | Service | Description | Accès |
 |---|---|---|
 | **Prometheus** | Collecte des métriques Spring Boot via `/actuator/prometheus` + métriques système | `prometheus.amenouveve-yaveh.com` (auth basique) |
-| **Grafana** | Dashboards métier + alerting Grafana-managed | `grafana.amenouveve-yaveh.com` |
+| **Loki** | Base de données de logs centralisés (requêtable via Grafana) | Réseau interne uniquement |
+| **Promtail** | Agent de collecte des logs Docker envoyant vers Loki | Réseau interne uniquement |
+| **Grafana** | Dashboards métier, exploration des logs Loki + alerting | `grafana.amenouveve-yaveh.com` |
 | **Node Exporter** | Métriques système (CPU, RAM, disque) | Réseau interne uniquement |
 
 ### Démarrage

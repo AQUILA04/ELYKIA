@@ -26,5 +26,6 @@ export interface Distribution {
   articleCount?: number;
   items?: DistributionItem[];
   clientName?: string;
-
+  operationConsentCode?: string;
+  confirmedAmount?: number;
 }

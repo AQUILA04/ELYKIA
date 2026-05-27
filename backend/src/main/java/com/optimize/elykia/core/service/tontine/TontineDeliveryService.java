@@ -125,6 +125,8 @@ public class TontineDeliveryService {
         delivery.setRemainingBalance(remainingBalance);
         delivery.setCommercialUsername(member.getClient().getCollector());
         delivery.setRequestDate(dto.getRequestDate());
+        delivery.setOperationConsentCode(dto.getOperationConsentCode());
+        delivery.setSyncConsentCode(dto.getSyncConsentCode());
 
         items.forEach(delivery::addItem);
 

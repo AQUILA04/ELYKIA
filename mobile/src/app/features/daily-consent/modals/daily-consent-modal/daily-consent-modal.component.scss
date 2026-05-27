@@ -1,0 +1,50 @@
+.intro {
+  margin-bottom: 1rem;
+  line-height: 1.45;
+  color: var(--ion-color-medium-shade);
+}
+
+.challenge-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 1rem 0 1.25rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: var(--ion-color-light);
+  border: 1px dashed var(--ion-color-primary);
+}
+
+.challenge-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ion-color-medium);
+}
+
+.challenge-code {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--ion-color-primary);
+  font-family: monospace;
+}
+
+.consent-block {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: var(--ion-color-light-tint, #f4f5f8);
+}
+
+.consent-text {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.consent-checkbox-item {
+  --background: transparent;
+  --padding-start: 0;
+}

@@ -15,6 +15,8 @@ import { MemoryManagementService } from '../../core/services/memory-management.s
 import { DatabaseService } from '../../core/services/database.service';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { AuthService } from '../../core/services/auth.service';
+import { DistributionService } from '../../core/services/distribution.service';
+import { LocalDataCleanupService } from '../../core/local-data-cleanup/local-data-cleanup.service';
 import * as KpiActions from '../../store/kpi/kpi.actions';
 
 @Component({
@@ -43,6 +45,8 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     { text: 'Chargement des distributions...', method: () => this.dataInitService.initializeDistributions() },
     { text: 'Chargement des comptes...', method: () => this.dataInitService.initializeAccounts() },
     { text: 'Chargement des recouvrements...', method: () => this.dataInitService.initializeRecoveries() },
+    { text: 'Nettoyage des doublons de distributions...', method: () => from(this.cleanupDuplicateDistributions()) },
+    { text: 'Purge des données locales anciennes...', method: () => from(this.purgeExpiredLocalData()) },
     { text: 'Chargement de la tontine...', method: () => this.dataInitService.initializeTontine() },
     { text: 'Calcul des stocks...', method: () => this.dataInitService.calculateArticleStocks() },
     { text: 'Détection des correspondances...', method: () => from(this.detectOrphanedDependencies()) }
@@ -59,7 +63,9 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     private memoryManagementService: MemoryManagementService,
     private dbService: DatabaseService,
     private initValidationService: InitializationValidationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private distributionService: DistributionService,
+    private localDataCleanupService: LocalDataCleanupService
   ) { }
 
   ngOnInit() {
@@ -269,6 +275,58 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
         console.warn('Background backup failed:', error);
       }
     });
+  }
+
+  /**
+   * Supprime les distributions locales en doublon d'une distribution synchronisée
+   * (même client, montant et statut INPROGRESS).
+   */
+  private async cleanupDuplicateDistributions(): Promise<boolean> {
+    try {
+      let user = await this.store.select(selectAuthUser).pipe(take(1)).toPromise();
+      if (!user?.username) {
+        user = this.authService.currentUser;
+      }
+      if (!user?.username) {
+        this.log.log('[InitialLoadingPage] Skip duplicate distribution cleanup: no user');
+        return true;
+      }
+
+      const deletedCount = await this.distributionService.removeSyncedLocalDuplicateDistributions(user.username);
+      if (deletedCount > 0) {
+        this.log.log(`[InitialLoadingPage] Removed ${deletedCount} duplicate local distribution(s)`);
+      }
+      return true;
+    } catch (error) {
+      this.log.log(`[InitialLoadingPage] Error cleaning duplicate distributions: ${error}`);
+      console.warn('Failed to clean duplicate distributions:', error);
+      return true;
+    }
+  }
+
+  /**
+   * Supprime automatiquement les données locales de plus de 7 jours.
+   */
+  private async purgeExpiredLocalData(): Promise<boolean> {
+    try {
+      let user = await this.store.select(selectAuthUser).pipe(take(1)).toPromise();
+      if (!user?.username) {
+        user = this.authService.currentUser;
+      }
+      if (!user?.username) {
+        return true;
+      }
+
+      const purgedCount = await this.localDataCleanupService.purgeExpiredLocalData(user.username);
+      if (purgedCount > 0) {
+        this.log.log(`[InitialLoadingPage] Auto-purged ${purgedCount} local item(s) older than 7 days`);
+      }
+      return true;
+    } catch (error) {
+      this.log.log(`[InitialLoadingPage] Error purging expired local data: ${error}`);
+      console.warn('Failed to purge expired local data:', error);
+      return true;
+    }
   }
 
   /**

@@ -29,6 +29,7 @@ import { LoggerService } from '../../core/services/logger.service';
 import { CashDepositService } from '../../core/services/cash-deposit.service';
 import { HealthCheckService } from '../../core/services/health-check.service';
 import { FeatureFlagService, FeatureFlags } from '../../core/services/feature-flag.service';
+import { LocalDataCleanupPresenterService } from '../../features/local-data-cleanup/local-data-cleanup-presenter.service';
 
 Chart.register(...registerables);
 
@@ -83,6 +84,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private trendsChart: Chart | null = null;
   private autoRefreshInterval: any;
+  private localCleanupPromptChecked = false;
 
   constructor(
     private router: Router,
@@ -91,7 +93,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private cashDepositService: CashDepositService,
     private healthCheckService: HealthCheckService,
-    public featureFlagService: FeatureFlagService
+    public featureFlagService: FeatureFlagService,
+    private localDataCleanupPresenter: LocalDataCleanupPresenterService
   ) { }
 
   ngOnInit() {
@@ -112,6 +115,20 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   ionViewWillEnter() {
     console.log('[DashboardPage] ionViewWillEnter triggered');
     this.loadDashboardData(this.activePeriod);
+    void this.maybeShowLocalDataCleanupModal();
+  }
+
+  private async maybeShowLocalDataCleanupModal(): Promise<void> {
+    if (this.localCleanupPromptChecked) {
+      return;
+    }
+    this.localCleanupPromptChecked = true;
+
+    this.store.select(selectAuthUser).pipe(take(1)).subscribe(user => {
+      if (user?.username) {
+        void this.localDataCleanupPresenter.tryPresentCleanupModal(user.username);
+      }
+    });
   }
 
   private loadDashboardData(period: string) {

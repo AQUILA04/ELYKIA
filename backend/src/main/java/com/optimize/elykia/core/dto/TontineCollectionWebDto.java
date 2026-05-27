@@ -18,4 +18,7 @@ public class TontineCollectionWebDto {
     private String commercialUsername;
     private Double amount;
     private LocalDateTime collectionDate;
+    private String operationConsentCode;
+    private Double confirmedAmount;
+    private String syncConsentCode;
 }

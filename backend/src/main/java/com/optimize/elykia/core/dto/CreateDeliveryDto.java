@@ -18,4 +18,7 @@ public class CreateDeliveryDto {
     @Valid
     @NotEmpty(message = "La liste des articles ne peut pas être vide")
     private List<DeliveryItemDto> items;
+    
+    private String operationConsentCode;
+    private String syncConsentCode;
 }

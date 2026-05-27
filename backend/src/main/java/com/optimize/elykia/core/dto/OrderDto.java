@@ -16,4 +16,8 @@ public class OrderDto {
     @Valid
     @NotEmpty(message = "La liste des articles ne peut pas être vide.")
     private Set<OrderItemDto> items;
+    
+    private String operationConsentCode;
+    private Double confirmedAmount;
+    private String syncConsentCode;
 }

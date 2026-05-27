@@ -42,8 +42,8 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
 
         const query = `
       INSERT OR REPLACE INTO tontine_collections(
-        id, tontineMemberId, amount, collectionDate, commercialUsername, isLocal, isSync, syncDate, syncHash, isDeliveryCollection
-      ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, tontineMemberId, amount, collectionDate, commercialUsername, isLocal, isSync, syncDate, syncHash, isDeliveryCollection, operationConsentCode, confirmedAmount
+      ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
         const set: capSQLiteSet[] = entities.map(c => {
@@ -53,7 +53,9 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
                 values: [
                     col.id, col.tontineMemberId, col.amount, col.collectionDate, col.commercialUsername,
                     col.isLocal ? 1 : 0, col.isSync ? 1 : 0, col.syncDate || new Date().toISOString(), col.syncHash,
-                    col.isDeliveryCollection ? 1 : 0
+                    col.isDeliveryCollection ? 1 : 0,
+                    col.operationConsentCode || null,
+                    col.confirmedAmount ?? null
                 ]
             };
         });

@@ -8,19 +8,24 @@ import java.util.List;
 
 public record TontineCollectionRespDto(Long id, TontineMemberRespDto tontineMember, Double amount,
                                        LocalDateTime collectionDate, String commercialUsername,
-                                       Boolean isDeliveryCollection, String reference) {
+                                       Boolean isDeliveryCollection, String reference,
+                                       String operationConsentCode, Double confirmedAmount, String syncConsentCode) {
+
 
     public TontineCollectionRespDto(Long id, Long tontineMemberId, Double amount,
                                     LocalDateTime collectionDate, String commercialUsername,
-                                    Boolean isDeliveryCollection, String reference) {
-        this(id, TontineMemberRespDto.fromId(tontineMemberId), amount, collectionDate, commercialUsername, isDeliveryCollection, reference);
+                                    Boolean isDeliveryCollection, String reference,
+                                    String operationConsentCode, Double confirmedAmount, String syncConsentCode) {
+        this(id, TontineMemberRespDto.fromId(tontineMemberId), amount, collectionDate, commercialUsername, isDeliveryCollection,
+                reference, operationConsentCode, confirmedAmount, syncConsentCode);
     }
 
     public static TontineCollectionRespDto fromId(Long id) {
         if (id == null) {
             return null;
         }
-        return new TontineCollectionRespDto(id, 0L, null, null, null, null, null);
+        return new TontineCollectionRespDto(id, TontineMemberRespDto.fromId(0L), null, null, null,
+                null, null, null, null, null);
     }
 
     public static TontineCollectionRespDto fromTontineCollection(TontineCollection tontineCollection) {
@@ -33,7 +38,10 @@ public record TontineCollectionRespDto(Long id, TontineMemberRespDto tontineMemb
                 tontineCollection.getCollectionDate(),
                 tontineCollection.getCommercialUsername(),
                 tontineCollection.getIsDeliveryCollection(),
-                tontineCollection.getReference());
+                tontineCollection.getReference(),
+                tontineCollection.getOperationConsentCode(),
+                tontineCollection.getConfirmedAmount(),
+                tontineCollection.getSyncConsentCode());
     }
 
     public static List<TontineCollectionRespDto> fromList(List<TontineCollection> tontineCollections) {

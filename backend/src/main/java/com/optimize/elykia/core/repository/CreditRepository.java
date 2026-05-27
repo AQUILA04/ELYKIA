@@ -192,7 +192,8 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             SELECT new com.optimize.elykia.core.dto.CreditRespDto(c.id, c.client.id, c.beginDate, c.expectedEndDate,
             c.effectiveEndDate, c.solvencyNote, c.lateDaysCount, c.totalAmount, c.totalPurchase, c.totalAmountPaid,
             c.totalAmountRemaining, c.dailyStake, c.status, c.remainingDaysCount, c.collector, c.type, c.dailyPaid, c.clientType,
-            c.parent.id, c.updatable, c.reference, c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference, NULL, NULL)
+            c.parent.id, c.updatable, c.reference, c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference, NULL, NULL,
+            c.operationConsentCode, c.confirmedAmount, c.syncConsentCode)
             FROM Credit c
             WHERE c.status = :creditStatus AND c.collector = :collector AND c.clientType = :clientType
     """)
@@ -523,7 +524,8 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                c.type, c.dailyPaid, c.clientType, c.parent.id, c.updatable, c.reference,
                c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference,
                null,
-               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate))
+               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate),
+               c.operationConsentCode, c.confirmedAmount, c.syncConsentCode)
            FROM Credit c
            LEFT JOIN c.client cl
            WHERE c.state = :state
@@ -546,7 +548,8 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                c.type, c.dailyPaid, c.clientType, c.parent.id, c.updatable, c.reference,
                c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference,
                null,
-               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate))
+               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate),
+               c.operationConsentCode, c.confirmedAmount, c.syncConsentCode)
            FROM Credit c
            LEFT JOIN c.client cl
            WHERE c.state = :state

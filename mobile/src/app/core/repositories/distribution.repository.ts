@@ -360,6 +360,97 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
     }
 
     /**
+     * Distributions locales filtrées par plage de dates sur createdAt.
+     * @param beforeDate Borne haute exclusive (YYYY-MM-DD)
+     * @param fromDateInclusive Borne basse inclusive ; si absent, pas de borne basse
+     */
+    async findLocalDistributionsForCleanup(
+        commercialUsername: string,
+        beforeDate: string,
+        fromDateInclusive?: string
+    ): Promise<Distribution[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+
+        const sql = `
+            SELECT d.*, c.fullName as clientName
+            FROM distributions d
+            LEFT JOIN clients c ON d.clientId = c.id
+            WHERE d.isLocal = 1
+              AND d.commercialId = ?
+              AND date(d.createdAt) < date(?)
+              AND (? IS NULL OR date(d.createdAt) >= date(?))
+            ORDER BY d.createdAt DESC
+        `;
+        const fromParam = fromDateInclusive ?? null;
+        const result = await this.databaseService.query(sql, [
+            commercialUsername,
+            beforeDate,
+            fromParam,
+            fromParam
+        ]);
+        return (result.values || []).map((row: any) => ({
+            ...this.mapRowToDistribution(row),
+            clientName: row.clientName
+        }));
+    }
+
+    /**
+     * Trouve les distributions locales en doublon d'une distribution synchronisée
+     * (même client, même montant, statut INPROGRESS).
+     */
+    async findSyncedLocalDuplicateLocalIds(commercialUsername: string): Promise<string[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+
+        const sql = `
+            SELECT DISTINCT d_local.id AS localId
+            FROM distributions d_local
+            INNER JOIN distributions d_sync
+              ON d_local.clientId = d_sync.clientId
+              AND d_local.totalAmount = d_sync.totalAmount
+              AND d_local.status = 'INPROGRESS'
+              AND d_sync.status = 'INPROGRESS'
+            WHERE d_local.isLocal = 1
+              AND d_sync.isSync = 1
+              AND d_local.id != d_sync.id
+              AND d_local.commercialId = ?
+              AND d_sync.commercialId = ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, commercialUsername]);
+        return (result.values || []).map((row: { localId: string }) => String(row.localId));
+    }
+
+    /**
+     * Supprime une distribution, ses lignes et les recouvrements associés.
+     */
+    async deleteDistributionCascade(distributionId: string): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+
+        const deleteSet: capSQLiteSet[] = [
+            {
+                statement: `DELETE FROM recoveries WHERE distributionId = ?`,
+                values: [distributionId]
+            },
+            {
+                statement: `DELETE FROM distribution_items WHERE distributionId = ?`,
+                values: [distributionId]
+            },
+            {
+                statement: `DELETE FROM distributions WHERE id = ?`,
+                values: [distributionId]
+            }
+        ];
+
+        await this.databaseService.executeSet(deleteSet);
+        console.log(`Successfully deleted distribution ${distributionId} with recoveries and items.`);
+    }
+
+    /**
      * Delete a distribution and its items
      * @param distributionId ID of the distribution to delete
      */

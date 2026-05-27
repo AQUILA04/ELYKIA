@@ -15,4 +15,7 @@ public class TontineCollectionDto {
     private Boolean isDeliveryCollection = Boolean.FALSE;
     private String reference;
     private String notes;
+    private String operationConsentCode;
+    private Double confirmedAmount;
+    private String syncConsentCode;
 }

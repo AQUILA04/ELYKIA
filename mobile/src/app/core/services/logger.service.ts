@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import {FirebaseCrashlytics} from "@capacitor-firebase/crashlytics";
+import {Capacitor} from "@capacitor/core";
 
 @Injectable({
   providedIn: 'root'
@@ -78,7 +79,10 @@ export class LoggerService {
 
     // Essayer de sauvegarder dans le fichier (non-bloquant)
     this.saveToFileAsync(logMessage);
-    await FirebaseCrashlytics.log({ message: logMessage });
+    if (Capacitor.getPlatform() !== 'web') {
+      await FirebaseCrashlytics.log({ message: logMessage });
+    }
+
   }
 
   async error(message: string, error?: any) {
@@ -212,7 +216,10 @@ export class LoggerService {
 
   async recordException(message: string): Promise<void> {
     try {
-      await FirebaseCrashlytics.recordException({ message });
+      if (Capacitor.getPlatform() !== 'web') {
+        await FirebaseCrashlytics.recordException({ message });
+      }
+
     } catch (error) {
       console.error('Failed to record exception to Crashlytics:', error);
     }

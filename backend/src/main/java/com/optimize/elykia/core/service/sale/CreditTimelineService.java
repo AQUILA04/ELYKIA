@@ -166,7 +166,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         List<SpecialDailyStakeResponseDto.FailedRecoveryDto> failedRecoveries = new ArrayList<>();
         dto.getStakeUnits().forEach(stakeUnit -> {
             try {
-                processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), null, true, successRecoveryIds, false, stakeUnit.getReliquatGeneratedAmount(), stakeUnit.getReliquatUsedAmount());
+                processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), null, true, successRecoveryIds, false, stakeUnit.getReliquatGeneratedAmount(), stakeUnit.getReliquatUsedAmount(), stakeUnit.getOperationConsentCode(), stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode());
             } catch (Exception e) {
                 failedRecoveries.add(new SpecialDailyStakeResponseDto.FailedRecoveryDto(stakeUnit.getRecoveryId(), e.getMessage()));
             }
@@ -184,7 +184,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
         dto.getStakeUnits().forEach(stakeUnit -> {
             try {
-                processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), stakeUnit.getAmount(), false, successRecoveryIds, true, stakeUnit.getReliquatGeneratedAmount(), stakeUnit.getReliquatUsedAmount());
+                processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), stakeUnit.getAmount(), false, successRecoveryIds, true, stakeUnit.getReliquatGeneratedAmount(), stakeUnit.getReliquatUsedAmount(), stakeUnit.getOperationConsentCode(), stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode());
             } catch (Exception e) {
                 failedRecoveries.add(new SpecialDailyStakeResponseDto.FailedRecoveryDto(stakeUnit.getRecoveryId(), e.getMessage()));
             }
@@ -192,7 +192,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         return new SpecialDailyStakeResponseDto(successRecoveryIds, failedRecoveries);
     }
 
-    private void processDailyStake(Long creditId, String recoveryId, Double amount, boolean isNormalStake, List<String> successRecoveryIds, boolean throwOnNotFound, Double reliquatGenerated, Double reliquatUsed) {
+    private void processDailyStake(Long creditId, String recoveryId, Double amount, boolean isNormalStake, List<String> successRecoveryIds, boolean throwOnNotFound, Double reliquatGenerated, Double reliquatUsed, String operationConsentCode, Double confirmedAmount, String syncConsentCode) {
         // Check for duplicate reference
         if (getRepository().existsByReference(recoveryId)) {
             successRecoveryIds.add(recoveryId);
@@ -230,6 +230,9 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         creditTimeline.setReference(recoveryId);
         creditTimeline.setReliquatGeneratedAmount(reliquatGenerated != null ? reliquatGenerated : 0.0);
         creditTimeline.setReliquatUsedAmount(reliquatUsed != null ? reliquatUsed : 0.0);
+        creditTimeline.setOperationConsentCode(operationConsentCode);
+        creditTimeline.setConfirmedAmount(confirmedAmount);
+        creditTimeline.setSyncConsentCode(syncConsentCode);
         
         dailyStakeFactor(credit, creditTimeline);
 

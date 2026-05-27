@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, from, Subject } from 'rxjs';
+import { Observable, from, Subject, firstValueFrom } from 'rxjs';
 import { takeUntil, take, filter } from 'rxjs/operators';
 import { Commercial } from 'src/app/models/commercial.model';
 import { selectCommercial } from 'src/app/store/commercial/commercial.selectors';
@@ -21,6 +21,14 @@ import { PhotoSyncService } from '../../core/services/photo-sync.service';
 import { SynchronizationService } from 'src/app/core/services/synchronization.service';
 import { environment } from 'src/environments/environment';
 import { SyncDateFilterOption, SYNC_DATE_FILTER_LABELS } from 'src/app/models/sync-date-filter.model';
+import { PdfReportService } from 'src/app/core/services/pdf-report.service';
+import { DailyConsentHistoryRepository } from 'src/app/core/daily-consent/repositories/daily-consent-history.repository';
+import { SyncConsentHistoryRepository } from 'src/app/core/sync-consent/repositories/sync-consent-history.repository';
+import { DailyConsentHistoryRecord } from 'src/app/core/daily-consent/models/daily-consent-history.model';
+import { SyncConsentHistoryRecord } from 'src/app/core/sync-consent/models/sync-consent-history.model';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
+import { ExportLocationService } from '../../core/services/export-location.service';
 
 @Component({
   selector: 'app-more',
@@ -65,7 +73,11 @@ export class MorePage implements OnInit, OnDestroy {
     private readonly photoSyncService: PhotoSyncService,
     private readonly cdr: ChangeDetectorRef,
     private readonly synchronizationService: SynchronizationService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly pdfReportService: PdfReportService,
+    private readonly dailyConsentHistoryRepository: DailyConsentHistoryRepository,
+    private readonly syncConsentHistoryRepository: SyncConsentHistoryRepository,
+    private readonly exportLocationService: ExportLocationService
   ) {
     this.user$ = this.store.select(selectCommercial);
     this.totalClients$ = this.store.select(selectClientKpiTotalByCommercial);
@@ -223,6 +235,76 @@ export class MorePage implements OnInit, OnDestroy {
     });
   }
 
+  async downloadConsentHistoriesPdf(): Promise<void> {
+    const loading = await this.loadingController.create({
+      message: 'Génération du PDF des consentements...',
+      spinner: 'crescent'
+    });
+    await loading.present();
+
+    try {
+      const currentUser = await firstValueFrom(this.store.select(selectAuthUser).pipe(take(1)));
+      const username = currentUser?.username ?? null;
+
+      if (!username) {
+        throw new Error('Utilisateur non connecté.');
+      }
+
+      const [dailyHistories, syncHistories] = await Promise.all([
+        this.dailyConsentHistoryRepository.findByCommercialUsername(username),
+        this.syncConsentHistoryRepository.findByCommercialUsername(username)
+      ]);
+
+      if (dailyHistories.length === 0 && syncHistories.length === 0) {
+        await loading.dismiss();
+        await this.presentToast('Aucun historique de consentement à exporter.', 'warning', 'top');
+        return;
+      }
+
+      const filename = this.buildConsentPdfFilename();
+      const html = this.buildConsentHistoriesHtml(username, dailyHistories, syncHistories);
+      const pdfBase64 = await this.pdfReportService.generatePDF(html, filename);
+
+      const isWeb = Capacitor.getPlatform() === 'web';
+      const directory = isWeb ? Directory.Data : Directory.Documents;
+      const folder = 'elykia/consent';
+      const filePath = `${folder}/${filename}`;
+
+      await Filesystem.mkdir({
+        path: folder,
+        directory,
+        recursive: true
+      });
+
+      await Filesystem.writeFile({
+        path: filePath,
+        data: pdfBase64,
+        directory,
+        recursive: true
+      });
+
+      await loading.dismiss();
+
+      try {
+        await this.exportLocationService.openExportLocation({
+          folderPath: folder,
+          filePath,
+          directory,
+          fileName: filename
+        });
+        await this.presentToast('PDF enregistré. Dossier ouvert.', 'success', 'top');
+      } catch (openError) {
+        console.warn('Ouverture du dossier d\'export impossible:', openError);
+        const folderLabel = this.exportLocationService.getHumanReadableFolderPath(folder);
+        await this.presentToast(`PDF enregistré dans ${folderLabel}`, 'success', 'top');
+      }
+    } catch (error) {
+      await loading.dismiss();
+      console.error('Erreur export consentements:', error);
+      await this.presentToast('Erreur lors de la génération du PDF des consentements.', 'danger', 'top');
+    }
+  }
+
   /**
    * Vide le cache et libère la mémoire RAM
    */
@@ -335,6 +417,88 @@ export class MorePage implements OnInit, OnDestroy {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
     return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  private buildConsentPdfFilename(): string {
+    const now = new Date();
+    const date = now.toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    return `consent-histories-${date}.pdf`;
+  }
+
+  private buildConsentHistoriesHtml(
+    username: string,
+    dailyHistories: DailyConsentHistoryRecord[],
+    syncHistories: SyncConsentHistoryRecord[]
+  ): string {
+    const dailyRows = dailyHistories.length > 0
+      ? dailyHistories.map(item => `
+        <tr>
+          <td>${this.escapeHtml(item.actionDate)}</td>
+          <td>${this.escapeHtml(this.formatDateTime(item.consentedAt))}</td>
+          <td>${this.escapeHtml(item.challengeCode)}</td>
+          <td>${this.escapeHtml(item.challengeEntered)}</td>
+        </tr>
+      `).join('')
+      : `<tr><td colspan="4">Aucun consentement journalier trouvé.</td></tr>`;
+
+    const syncRows = syncHistories.length > 0
+      ? syncHistories.map(item => `
+        <tr>
+          <td>${this.escapeHtml(item.actionDate)}</td>
+          <td>${this.escapeHtml(this.formatDateTime(item.consentedAt))}</td>
+          <td>${this.escapeHtml(item.challengeCode)}</td>
+          <td>${this.escapeHtml(item.challengeEntered)}</td>
+        </tr>
+      `).join('')
+      : `<tr><td colspan="4">Aucun consentement de synchronisation trouvé.</td></tr>`;
+
+    return `
+      <div style="font-family: Arial, sans-serif; font-size: 12px; color: #111;">
+        <h1 style="font-size: 20px; margin-bottom: 4px;">Historique des consentements</h1>
+        <p style="margin-top: 0;">Utilisateur: <strong>${this.escapeHtml(username)}</strong></p>
+        <p>Exporté le: ${this.escapeHtml(this.formatDateTime(new Date().toISOString()))}</p>
+
+        <h2 style="margin-top: 24px; font-size: 16px;">Consentements journaliers</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th style="border: 1px solid #ccc; padding: 6px;">Date action</th>
+              <th style="border: 1px solid #ccc; padding: 6px;">Consenti le</th>
+              <th style="border: 1px solid #ccc; padding: 6px;">Code affiché</th>
+              <th style="border: 1px solid #ccc; padding: 6px;">Code saisi</th>
+            </tr>
+          </thead>
+          <tbody>${dailyRows}</tbody>
+        </table>
+
+        <h2 style="margin-top: 24px; font-size: 16px;">Consentements de synchronisation</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th style="border: 1px solid #ccc; padding: 6px;">Date action</th>
+              <th style="border: 1px solid #ccc; padding: 6px;">Consenti le</th>
+              <th style="border: 1px solid #ccc; padding: 6px;">Code affiché</th>
+              <th style="border: 1px solid #ccc; padding: 6px;">Code saisi</th>
+            </tr>
+          </thead>
+          <tbody>${syncRows}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  private formatDateTime(isoDate: string): string {
+    const date = new Date(isoDate);
+    return date.toLocaleString('fr-FR');
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   async presentToast(message: string, color: string, position?: 'top' | 'bottom' | 'middle') {

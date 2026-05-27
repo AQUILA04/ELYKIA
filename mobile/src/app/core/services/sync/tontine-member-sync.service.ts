@@ -27,8 +27,14 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
         super(http, repository, authService, syncErrorService, 'tontine-member');
     }
 
+    private syncConsentCode: string | undefined;
+
     setFailedClientIds(ids: string[]) {
         this.failedClientIds = ids;
+    }
+
+    setSyncConsentCode(code: string) {
+        this.syncConsentCode = code;
     }
 
     override async syncBatch(limit: number = 50, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
@@ -181,7 +187,9 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
             frequency: member.frequency,
             amount: member.amount,
             notes: member.notes,
-            updateScope: isUpdate ? member.updateScope : null
+            updateScope: isUpdate ? member.updateScope : null,
+            operationConsentCode: member.operationConsentCode ?? null,
+            syncConsentCode: this.syncConsentCode ?? null
         };
     }
 }

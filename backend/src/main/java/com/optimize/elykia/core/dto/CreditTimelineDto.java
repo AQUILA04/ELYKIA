@@ -19,4 +19,8 @@ public class CreditTimelineDto {
     //private Integer remainingDaysCount;
     //private Double totalAmountRemaining;
     private String collector;
+    
+    private String operationConsentCode;
+    private Double confirmedAmount;
+    private String syncConsentCode;
 }

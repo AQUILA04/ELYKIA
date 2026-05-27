@@ -20,4 +20,7 @@ public class RecouvrementWebDto {
     private Double amount;
     private Double totalAmountRemaining;
     private LocalDateTime creationDate;
+    private String operationConsentCode;
+    private Double confirmedAmount;
+    private String syncConsentCode;
 }

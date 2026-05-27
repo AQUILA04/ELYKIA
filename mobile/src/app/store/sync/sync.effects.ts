@@ -61,6 +61,7 @@ import { TontineCollectionSyncService } from '../../core/services/sync/tontine-c
 import { TontineDeliverySyncService } from '../../core/services/sync/tontine-delivery-sync.service';
 import { Page } from '../../core/repositories/repository.interface';
 import { DateFilter } from '../../core/models/date-filter.model';
+import { SyncConsentCancelledError } from '../../core/sync-consent/sync-consent.errors';
 
 @Injectable()
 export class SyncEffects {
@@ -623,6 +624,11 @@ export class SyncEffects {
       return SyncActions.automaticSyncSuccess({ result });
 
     } catch (error) {
+      if (error instanceof SyncConsentCancelledError) {
+        return SyncActions.automaticSyncFailure({
+          error: { message: error.message, cancelledByUser: true }
+        });
+      }
       return SyncActions.automaticSyncFailure({ error });
     }
   }

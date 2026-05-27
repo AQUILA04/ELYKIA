@@ -21,4 +21,6 @@ export interface Recovery {
   client?: Client;
   reliquatGeneratedAmount?: number;
   reliquatUsedAmount?: number;
+  operationConsentCode?: string;
+  confirmedAmount?: number;
 }

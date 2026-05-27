@@ -28,6 +28,7 @@ export interface TontineMember {
     notes?: string;
     clientName?: string;
     updateScope?: 'GLOBAL' | 'CURRENT_AND_FUTURE' | 'FUTURE_ONLY';
+    operationConsentCode?: string;
 }
 
 export interface TontineMemberView extends TontineMember {
@@ -49,8 +50,10 @@ export interface TontineCollection {
     isDeliveryCollection?: boolean;
     clientName?: string;
     clientQuarter?: string;
-    memberUniqueId?: string; // e.g. code or other identifier
+    memberUniqueId?: string;
     notes?: string;
+    operationConsentCode?: string;
+    confirmedAmount?: number;
 }
 
 export interface TontineCollectionView extends TontineCollection {
@@ -82,6 +85,7 @@ export interface TontineDelivery {
     syncDate?: string;
     syncHash?: string;
     clientName?: string;
+    operationConsentCode?: string;
 }
 
 export interface TontineDeliveryView extends TontineDelivery {

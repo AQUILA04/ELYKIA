@@ -53,6 +53,9 @@
 *   [Asset Inventory - Mobile](./asset-inventory-mobile.md)
 *   [Development Guide - Mobile](./development-guide-mobile.md)
 *   [Comprehensive Analysis - Mobile](./comprehensive-analysis-mobile.md)
+*   [Nettoyage des données locales (mobile)](./NETTOYAGE_DONNEES_LOCALES_MOBILE.md) — doublons à l'init, modal dashboard, historique, extensions prévues
+*   [Consentement avant synchronisation (mobile)](./CONSENTEMENT_SYNCHRONISATION_MOBILE.md) — mot de passe, code de confirmation, historique SQLite
+*   [Plan — Consentement opérationnel journalier & confirmation montant](./PLAN_CONSENTEMENT_OPERATIONNEL_MOBILE.md) — architecture, intercepteur, DB, payloads sync
 
 ### Existing Documentation
 
@@ -70,6 +73,8 @@
 *   [PRD](../mobile/docs/prd.md) - Product Requirements Document
 *   [Workflow](../mobile/docs/WORKFLOW.md) - Mobile Workflow
 *   [User Guide](../mobile/docs/GUIDE_UTILISATEUR.txt) - User Manual
+*   [Nettoyage des données locales](./NETTOYAGE_DONNEES_LOCALES_MOBILE.md) - Fonctionnel & technique (implémenté / à faire)
+*   [Consentement avant synchronisation](./CONSENTEMENT_SYNCHRONISATION_MOBILE.md) - Confirmation obligatoire avant sync complète
 
 ### Getting Started
 

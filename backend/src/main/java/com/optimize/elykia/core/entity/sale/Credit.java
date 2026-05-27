@@ -88,6 +88,15 @@ public class Credit extends BaseEntity<String> {
     private String oldReference;
     private String agencyCommercial;
 
+    @Column(name = "operation_consent_code")
+    private String operationConsentCode;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double confirmedAmount;
+
+    @Column(name = "sync_consent_code")
+    private String syncConsentCode;
+
 
     // AJOUTÉ : Le champ 'advance' avec une valeur par défaut de 0
     @Column(name = "advance", columnDefinition = "double precision default 0")
@@ -537,6 +546,9 @@ public class Credit extends BaseEntity<String> {
                     (int) Math.ceil(credit.getTotalAmountRemaining() / credit.getDailyStake()));
             credit.setExpectedEndDate(LocalDate.now().plusDays(credit.getRemainingDaysCount()));
         }
+        credit.setOperationConsentCode(dto.getOperationConsentCode());
+        credit.setConfirmedAmount(dto.getConfirmedAmount());
+        credit.setSyncConsentCode(dto.getSyncConsentCode());
         return credit;
     }
 }

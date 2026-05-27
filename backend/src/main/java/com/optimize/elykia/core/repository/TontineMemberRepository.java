@@ -71,7 +71,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.registrationDate,
             new com.optimize.elykia.core.dto.TontineDeliveryRespDto(
                 d.id, null, d.deliveryDate, d.requestDate, d.totalAmount, 
-                d.remainingBalance, d.commercialUsername, null
+                d.remainingBalance, d.commercialUsername, null,
+                d.operationConsentCode, d.syncConsentCode
             ),
             tm.frequency,
             tm.amount,
@@ -79,7 +80,9 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.societyShare,
             tm.availableContribution,
             tm.validatedMonths,
-            tm.currentMonthDays
+            tm.currentMonthDays,
+            tm.operationConsentCode,
+            tm.syncConsentCode
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s
@@ -113,7 +116,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.registrationDate,
             new com.optimize.elykia.core.dto.TontineDeliveryRespDto(
                 d.id, null, d.deliveryDate, d.requestDate, d.totalAmount, 
-                d.remainingBalance, d.commercialUsername, null
+                d.remainingBalance, d.commercialUsername, null,
+                d.operationConsentCode, d.syncConsentCode
             ),
             tm.frequency,
             tm.amount,
@@ -121,7 +125,9 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.societyShare,
             tm.availableContribution,
             tm.validatedMonths,
-            tm.currentMonthDays
+            tm.currentMonthDays,
+            tm.operationConsentCode,
+            tm.syncConsentCode
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s

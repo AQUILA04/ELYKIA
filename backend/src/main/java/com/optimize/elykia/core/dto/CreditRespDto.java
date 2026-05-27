@@ -41,7 +41,10 @@ public record CreditRespDto(Long id,
                             Boolean releasePrinted,
                             String oldReference,
                             Set<CreditArticles> articles,
-                            ClientRespDto client
+                            ClientRespDto client,
+                            String operationConsentCode,
+                            Double confirmedAmount,
+                            String syncConsentCode
 ) {
 
     public ClientRespDto getClient() {
@@ -63,7 +66,7 @@ public record CreditRespDto(Long id,
         return new CreditRespDto(id, null, null, null,null, null,
                 null, null, null, null, null,
                 null, null, null,null, null, null, null, null,
-        null, null, null, null, null, null, null, null);
+        null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public static CreditRespDto fromCredit(Credit credit) {
@@ -72,7 +75,8 @@ public record CreditRespDto(Long id,
         return new CreditRespDto(credit.getId(), credit.getClientId(), credit.getBeginDate(), credit.getExpectedEndDate(),credit.getEffectiveEndDate(), credit.getSolvencyNote(),
                 credit.getLateDaysCount(), credit.getTotalAmount(), credit.getTotalAmount(), credit.getTotalAmountPaid(), credit.getTotalAmountRemaining(),
                 credit.getDailyStake(), credit.getStatus(), credit.getRemainingDaysCount(),credit.getCollector(), credit.getType(), credit.getDailyPaid(), credit.getClientType(), parentId,
-                credit.getUpdatable(), credit.getReference(), credit.getAccountingDate(), credit.getReleaseDate(), credit.getReleasePrinted(), credit.getOldReference(), null, client);
+                credit.getUpdatable(), credit.getReference(), credit.getAccountingDate(), credit.getReleaseDate(), credit.getReleasePrinted(), credit.getOldReference(), null, client,
+                credit.getOperationConsentCode(), credit.getConfirmedAmount(), credit.getSyncConsentCode());
     }
 
     public static Page<CreditRespDto> fromCreditPage(Page<Credit> creditPage) {
@@ -96,6 +100,7 @@ public record CreditRespDto(Long id,
         return new CreditRespDto(this.id, this.clientId, this.beginDate, this.expectedEndDate,this.effectiveEndDate, this.solvencyNote,
                 this.lateDaysCount, this.totalAmount, this.totalPurchase, this.totalAmountPaid, this.totalAmountRemaining,
                 this.dailyStake, this.status, this.remainingDaysCount,this.collector, this.type, this.dailyPaid, this.clientType, this.parentId,
-                this.updatable, this.reference, this.accountingDate, this.releaseDate, this.releasePrinted, this.oldReference,creditArticles, this.client);
+                this.updatable, this.reference, this.accountingDate, this.releaseDate, this.releasePrinted, this.oldReference,creditArticles, this.client,
+                this.operationConsentCode, this.confirmedAmount, this.syncConsentCode);
     }
 }

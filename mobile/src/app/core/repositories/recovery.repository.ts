@@ -33,8 +33,8 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
             const sql = `INSERT OR REPLACE INTO recoveries (
                 id, amount, paymentDate, paymentMethod, notes, distributionId, clientId,
                 commercialId, isLocal, isSync, syncDate, syncHash, isDefaultStake, createdAt,
-                reliquatGeneratedAmount, reliquatUsedAmount
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                reliquatGeneratedAmount, reliquatUsedAmount, operationConsentCode, confirmedAmount
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
             const params = [
                 recoveryIdStr,
@@ -48,11 +48,13 @@ export class RecoveryRepository extends BaseRepository<Recovery, string> {
                 recovery.isLocal ? 1 : 0,
                 recovery.isSync ? 1 : 0,
                 now,
-                null, // Plus de hash
+                null,
                 recovery.isDefaultStake ? 1 : 0,
                 recovery.createdAt ?? now,
                 recovery.reliquatGeneratedAmount ?? 0,
-                recovery.reliquatUsedAmount ?? 0
+                recovery.reliquatUsedAmount ?? 0,
+                recovery.operationConsentCode ?? null,
+                recovery.confirmedAmount ?? null
             ];
 
             sqlSet.push({ statement: sql, values: params });

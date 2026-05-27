@@ -28,8 +28,14 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
         super(http, repository, authService, syncErrorService, 'order');
     }
 
+    private syncConsentCode: string | undefined;
+
     setFailedClientIds(ids: string[]) {
         this.failedClientIds = ids;
+    }
+
+    setSyncConsentCode(code: string) {
+        this.syncConsentCode = code;
     }
 
     /**
@@ -121,7 +127,10 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
             items: items.map(item => ({
                 articleId: Number.parseInt(item.articleId, 10),
                 quantity: item.quantity
-            }))
+            })),
+            operationConsentCode: order.operationConsentCode ?? null,
+            confirmedAmount: order.confirmedAmount ?? null,
+            syncConsentCode: this.syncConsentCode ?? null
         };
     }
 }

@@ -34,6 +34,10 @@ public class CreditTimeline extends BaseEntity<String> {
     private Double reliquatGeneratedAmount = 0.0;
     private Double reliquatUsedAmount = 0.0;
 
+    private String operationConsentCode;
+    private Double confirmedAmount;
+    private String syncConsentCode;
+
     @ManyToOne
     @JsonIgnore
     private DailyAccountancy dailyAccountancy;

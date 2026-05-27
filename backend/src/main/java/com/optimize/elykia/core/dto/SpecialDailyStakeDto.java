@@ -12,4 +12,5 @@ public class SpecialDailyStakeDto {
     private Set<SpecialDailyStakeUnitDto> stakeUnits;
     @NotBlank(message = "Le nom du collecteur est obligatoire !")
     private String collector;
+    private String syncConsentCode;
 }

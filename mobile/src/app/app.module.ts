@@ -61,6 +61,7 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { NetworkErrorHandlerInterceptor } from './core/interceptors/network-error.interceptor';
 import { SecurityContextInterceptor } from './core/interceptors/security-context.interceptor';
 import { metaReducers } from './store/meta-reducers';
+import { LOCAL_DATA_CLEANUP_PROVIDERS } from './core/local-data-cleanup/local-data-cleanup.providers';
 
 function initializeDatabase(databaseService: DatabaseService) {
   return () => databaseService.initializeDatabase();
@@ -129,6 +130,7 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
       useClass: SecurityContextInterceptor,
       multi: true,
     },
+    ...LOCAL_DATA_CLEANUP_PROVIDERS,
   ],
   bootstrap: [AppComponent],
 })

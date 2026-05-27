@@ -12,5 +12,8 @@ public record RecoveryDto(Long id,
                           String clientId,
                           String commercialId,
                           LocalDate createdAt,
-                          LocalDate syncDate
+                          LocalDate syncDate,
+                          String operationConsentCode,
+                          Double confirmedAmount,
+                          String syncConsentCode
                           ) {}
