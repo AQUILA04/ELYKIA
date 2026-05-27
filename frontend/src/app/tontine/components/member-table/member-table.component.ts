@@ -33,6 +33,10 @@ export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
         this.totalElements = this.paginatedResponse.page.totalElements;
         this.pageSize = this.paginatedResponse.page.size;
         this.currentPage = this.paginatedResponse.page.number;
+      } else {
+        this.totalElements = this.paginatedResponse.totalElements || 0;
+        this.pageSize = this.paginatedResponse.size || 20;
+        this.currentPage = this.paginatedResponse.number || 0;
       }
     }
   }
