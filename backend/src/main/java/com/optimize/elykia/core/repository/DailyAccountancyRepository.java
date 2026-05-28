@@ -15,6 +15,8 @@ public interface DailyAccountancyRepository extends GenericRepository<DailyAccou
 
     Optional<DailyAccountancy> findByDailyAccounting_idAndCollectorAndIsOpened(Long dailyAccountingId, String collector, Boolean isOpened);
 
+    List<DailyAccountancy> findByAccountingDateAndCollectorAndIsOpened(LocalDate accountingDate, String collector, Boolean isOpened);
+
     boolean existsByIsOpenedIsTrue();
 
     List<DailyAccountancy> findAllByIsOpenedIsTrue();

@@ -34,14 +34,16 @@ chmod 600 /opt/elykia/traefik/acme.json
 
 echo "      Directories created."
 
-# --- 2. Create shared Docker network ---
-echo "[2/6] Creating shared Docker network 'traefik-public'..."
-if docker network inspect traefik-public > /dev/null 2>&1; then
-  echo "      Network 'traefik-public' already exists, skipping."
-else
-  docker network create traefik-public
-  echo "      Network 'traefik-public' created."
-fi
+# --- 2. Create shared Docker networks ---
+echo "[2/6] Creating shared Docker networks..."
+for net in traefik-public elykia-test-internal elykia-prod-internal; do
+  if docker network inspect $net > /dev/null 2>&1; then
+    echo "      Network '$net' already exists, skipping."
+  else
+    docker network create $net
+    echo "      Network '$net' created."
+  fi
+done
 
 # --- 3. Generate Traefik dashboard credentials ---
 echo "[3/6] Generating Traefik dashboard credentials..."

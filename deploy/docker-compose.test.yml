@@ -80,6 +80,6 @@ volumes:
 networks:
   internal:
     name: elykia-test-internal
-    # Internal network: only db ↔ backend communicate here
+    external: true
   traefik-public:
     external: true

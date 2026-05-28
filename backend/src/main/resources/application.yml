@@ -23,7 +23,7 @@ security:
       society: "AMENOUVEVE-YAVEH"
   config:
     auto-initialize:
-      enabled: false
+      enabled: true
     profiles: SUPER_ADMIN,ADMIN,USER,PROMOTER,GESTIONNAIRE,STOREKEEPER,SECRETARY
     permissions: ROLE_ADMIN,ROLE_USER,ROLE_SUPER_ADMIN,ROLE_CONSULT_CLIENT,ROLE_CONSULT_LOCALITY,ROLE_CONSULT_CREDIT,ROLE_CONSULT_TONTINE,ROLE_CONSULT_ACCOUNT,
       ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY,
@@ -253,6 +253,66 @@ security:
             phone: 90000014
             gender: FEMALE
             email: com014@email.com
+        "COM015":
+          username: COM015
+          password: ChangeMe015
+          profil: PROMOTER
+          user-details:
+            firstname: COM015
+            lastname: COM015
+            phone: 90000015
+            gender: FEMALE
+            email: com015@email.com
+        "COM016":
+          username: COM016
+          password: ChangeMe016
+          profil: PROMOTER
+          user-details:
+            firstname: COM016
+            lastname: COM016
+            phone: 90000016
+            gender: FEMALE
+            email: com016@email.com
+        "COM017":
+          username: COM017
+          password: ChangeMe017
+          profil: PROMOTER
+          user-details:
+            firstname: COM017
+            lastname: COM017
+            phone: 90000017
+            gender: FEMALE
+            email: com017@email.com
+        "COM018":
+          username: COM018
+          password: ChangeMe018
+          profil: PROMOTER
+          user-details:
+            firstname: COM018
+            lastname: COM018
+            phone: 90000018
+            gender: FEMALE
+            email: com018@email.com
+        "COM019":
+          username: COM019
+          password: ChangeMe019
+          profil: PROMOTER
+          user-details:
+            firstname: COM019
+            lastname: COM019
+            phone: 90000019
+            gender: FEMALE
+            email: com019@email.com
+        "COM020":
+          username: COM020
+          password: ChangeMe020
+          profil: PROMOTER
+          user-details:
+            firstname: COM020
+            lastname: COM020
+            phone: 90000020
+            gender: FEMALE
+            email: com020@email.com
     allow-origin: http://localhost,http://localhost:4200,http://localhost:8100,capacitor://localhost,http://*.amenouveve-yaveh.com
 
 optimize:

@@ -60,7 +60,7 @@ public class Credit extends BaseEntity<String> {
     private Double totalAmountPaid;
     @PositiveOrZero
     private Double totalAmountRemaining;
-    @Positive
+    @PositiveOrZero
     private Double dailyStake;
     @Enumerated(EnumType.STRING)
     private CreditStatus status;
