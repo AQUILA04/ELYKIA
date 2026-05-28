@@ -5,6 +5,7 @@ groups:
   # Groupe 1 : Alertes CRITIQUES - Crédits (P1)
   # ========================================================================
   - name: "CreditCritical"
+    folder: "ELYKIA"
     interval: 30s
     rules:
       - uid: "credit_creation_failure_p1"
@@ -90,6 +91,7 @@ groups:
   # Groupe 2 : Alertes CRITIQUES - Stock (P1)
   # ========================================================================
   - name: "StockCritical"
+    folder: "ELYKIA"
     interval: 30s
     rules:
       - uid: "stock_delivery_failed_p1"
@@ -174,6 +176,7 @@ groups:
   # Groupe 3 : Alertes WARNING - Stock (P2)
   # ========================================================================
   - name: "StockWarning"
+    folder: "ELYKIA"
     interval: 1m
     rules:
       - uid: "stock_partial_delivery_p2"
@@ -232,6 +235,7 @@ groups:
   # Groupe 4 : Alertes WARNING - Crédits (P2)
   # ========================================================================
   - name: "CreditWarning"
+    folder: "ELYKIA"
     interval: 1m
     rules:
       - uid: "credit_collector_changed_p2"
@@ -290,6 +294,7 @@ groups:
   # Groupe 5 : Alertes WARNING - Tontine (P2)
   # ========================================================================
   - name: "TontineWarning"
+    folder: "ELYKIA"
     interval: 1m
     rules:
       - uid: "tontine_delivery_exceeded_p2"
@@ -322,6 +327,7 @@ groups:
   # Groupe 6 : Alertes WARNING - Rattrapage (P2)
   # ========================================================================
   - name: "RattrapageWarning"
+    folder: "ELYKIA"
     interval: 1m
     rules:
       - uid: "rattrapage_insufficient_p2"
@@ -354,6 +360,7 @@ groups:
   # Groupe 7 : Alertes INFO - Opérations (P3)
   # ========================================================================
   - name: "OperationalInfo"
+    folder: "ELYKIA"
     interval: 5m
     rules:
       - uid: "articles_out_of_stock_p3"
@@ -438,6 +445,7 @@ groups:
   # Groupe 8 : Alertes INFRASTRUCTURE (P1)
   # ========================================================================
   - name: "Infrastructure"
+    folder: "ELYKIA"
     interval: 30s
     rules:
       - uid: "backend_down_p1"
