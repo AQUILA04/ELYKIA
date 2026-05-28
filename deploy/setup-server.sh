@@ -153,6 +153,28 @@ else
   echo "      $TOOLS_ENV already exists, skipping."
 fi
 
+# --- 5.5. Create .env template for monitoring (Grafana) ---
+echo "[5.5/6] Creating Monitoring .env template if it doesn't exist..."
+MONITORING_ENV="/opt/elykia/monitoring/.env"
+if [[ ! -f "$MONITORING_ENV" ]]; then
+  mkdir -p /opt/elykia/monitoring
+  cat > "$MONITORING_ENV" << EOF
+# =============================================================================
+# Elykia MONITORING stack — /opt/elykia/monitoring/.env
+# =============================================================================
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD='${GRAFANA_PASSWORD:-change_me_grafana_password}'
+
+ALERT_EMAIL_TO=admin@amenouveve-yaveh.com
+SLACK_WEBHOOK_URL=
+ALERT_WEBHOOK_URL=
+EOF
+  chmod 600 "$MONITORING_ENV"
+  echo "      Created $MONITORING_ENV — EDIT passwords before deploying!"
+else
+  echo "      $MONITORING_ENV already exists, skipping."
+fi
+
 # --- 6. Start Traefik ---
 echo "[6/6] Starting Traefik..."
 cd "$DEPLOY_DIR"
@@ -162,6 +184,11 @@ if docker compose -f docker-compose.traefik.yml --env-file /opt/elykia/traefik/.
 else
   docker compose -f docker-compose.traefik.yml --env-file /opt/elykia/traefik/.env up -d
   echo "      Traefik started."
+fi
+
+# Fix ownership so deploy user can read .env files and write releases
+if id "deploy" &>/dev/null; then
+  chown -R deploy:deploy /opt/elykia
 fi
 
 echo ""
@@ -181,4 +208,6 @@ echo "       ./deploy.sh test  <frontend-image> <backend-image>"
 echo "       ./deploy.sh prod  <frontend-image> <backend-image>"
 echo "  6. Start the Tools stack (PgAdmin 4):"
 echo "       docker compose -f docker-compose.tools.yml --project-name elykia-tools --env-file /opt/elykia/tools/.env up -d"
+echo "  7. Start the Monitoring stack (Prometheus, Grafana, Loki):"
+echo "       docker compose -f monitoring/docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env up -d"
 echo ""

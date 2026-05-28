@@ -141,10 +141,10 @@ Un stack de monitoring complet (Prometheus + Grafana + Loki + Node Exporter) est
 ### Démarrage
 ```bash
 # Démarrer le stack monitoring
-docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d
+docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env up -d
 
 # Arrêter
-docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring down
+docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env down
 ```
 
 ### Alertes configurées (Grafana-managed)
