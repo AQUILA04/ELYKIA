@@ -8,8 +8,21 @@ set -euo pipefail
 # Vous pouvez aussi omettre les images si elles sont définies dans deploy/.env
 
 if [ "$#" -lt 1 ]; then
-  echo "Usage: $0 <env> [frontend_image] [backend_image]" >&2
+  echo "Usage: $0 [--force-update | -fu] <env> [frontend_image] [backend_image]" >&2
   exit 2
+fi
+
+if [[ "$1" == "--force-update" || "$1" == "-fu" ]]; then
+    echo "Force update requested. Updating deploy scripts..."
+    curl -sSL https://raw.githubusercontent.com/AQUILA04/ELYKIA/main/deploy/update-deploy.sh | bash
+    shift
+    if [ "$#" -lt 1 ]; then
+      echo "Error: Missing environment argument after force-update." >&2
+      echo "Usage: $0 [--force-update | -fu] <env> [frontend_image] [backend_image]" >&2
+      exit 2
+    fi
+    echo "Re-executing updated deploy.sh..."
+    exec /opt/elykia/deploy/deploy.sh "$@"
 fi
 
 ENV="$1"

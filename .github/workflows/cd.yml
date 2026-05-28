@@ -132,7 +132,7 @@ jobs:
 
           ssh -o StrictHostKeyChecking=no -i private_key "$TEST_USER@$TEST_HOST" \
             "cd '$TEST_PATH' \
-             && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
+             && docker compose -f monitoring/docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
 
       - name: Check if mobile was built in CI
         id: check_mobile
