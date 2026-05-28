@@ -464,7 +464,7 @@ groups:
               intervalMs: 30000
               maxDataPoints: 100
         executorType: "cue"
-        noDataState: "ALERTING"
+        noDataState: "Alerting"
         for: 2m
         annotations:
           summary: "Le backend ELYKIA (prod) est injoignable"
