@@ -104,8 +104,7 @@ public class DailyAccountancyService extends GenericService<DailyAccountancy, Lo
 
     public boolean isOpenCashDesk() {
         User user = userService.getCurrentUser();
-        DailyAccounting dailyAccounting = dailyAccountingRepository.getCurrentDailyAccounting();
-        return getRepository().findByDailyAccounting_idAndCollectorAndIsOpened(dailyAccounting.getId(), user.getUsername(), Boolean.TRUE).isPresent();
+        return !getRepository().findByAccountingDateAndCollectorAndIsOpened(LocalDate.now(), user.getUsername(), Boolean.TRUE).isEmpty();
     }
 
     @Transactional
@@ -119,14 +118,13 @@ public class DailyAccountancyService extends GenericService<DailyAccountancy, Lo
     }
 
     public DailyAccountancy getByCollector (String username, Boolean isOpened ) {
-        DailyAccounting dailyAccounting = dailyAccountingRepository.getCurrentDailyAccounting();
-        return getRepository().findByDailyAccounting_idAndCollectorAndIsOpened(dailyAccounting.getId(), username, isOpened).orElseThrow(() -> new ResourceNotFoundException("accountancy.not.found"));
+        return getRepository().findByAccountingDateAndCollectorAndIsOpened(LocalDate.now(), username, isOpened).stream().findFirst().orElseThrow(() -> new ResourceNotFoundException("La caisse n'existe pas pour l'utilisateur: " + username));
     }
 
     @Transactional
     public DailyAccountancy getByCollectorOrCreateNew (String username) {
         DailyAccounting dailyAccounting = dailyAccountingRepository.getCurrentDailyAccounting();
-        return getRepository().findByDailyAccounting_idAndCollectorAndIsOpened(dailyAccounting.getId(), username, Boolean.TRUE).orElseGet(() -> {
+        return getRepository().findByAccountingDateAndCollectorAndIsOpened(LocalDate.now(), username, Boolean.TRUE).stream().findFirst().orElseGet(() -> {
             DailyAccountancy dailyAccountancy = new DailyAccountancy();
             dailyAccountancy.setCollector(username);
             dailyAccountancy.setDailyAccounting(dailyAccounting);

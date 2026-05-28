@@ -80,6 +80,6 @@ volumes:
 networks:
   internal:
     name: elykia-prod-internal
-    # Internal network: shared with monitoring stack for Prometheus scraping
+    external: true
   traefik-public:
     external: true
