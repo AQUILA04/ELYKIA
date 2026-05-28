@@ -85,6 +85,9 @@ Une fois le serveur configuré, le déploiement se fait via le script `deploy.sh
 ./deploy.sh prod ghcr.io/OWNER/ELYKIA-frontend:TAG ghcr.io/OWNER/ELYKIA-backend:TAG
 ```
 
+> **Astuce :** Vous pouvez ajouter l'option `-fu` (ou `--force-update`) en tout premier paramètre pour forcer la mise à jour des scripts de déploiement (le dossier `deploy` complet) depuis GitHub avant de lancer le déploiement :
+> `./deploy.sh -fu prod ghcr.io/OWNER/ELYKIA-frontend:TAG ghcr.io/OWNER/ELYKIA-backend:TAG`
+
 ### 3. Rollback (en cas de problème)
 ```bash
 # revenir au dernier déploiement précédent
