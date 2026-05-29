@@ -52,24 +52,9 @@ export class AppComponent implements OnInit {
     });
 
     this.store.select(selectAuthUser).pipe(
-      // 1. On filtre pour ne laisser passer que lorsqu'on a un objet utilisateur non-nul
       filter(user => !!user),
-      // 2. On prend la TOUTE PREMIÈRE émission valide et on se désabonne immédiatement.
       take(1)
     ).subscribe(async user => {
-      // const initializationComplete = await this.storage.get('initialization_complete');
-      // if (this.dataInitialized || initializationComplete) {
-      //   return;
-      // }
-      // if (this.initState.hasStarted()) {
-      //   return;
-      // }
-      // this.initState.start();
-      //
-      // if (this.dataInitialized) {
-      //   return;
-      // }
-      // this.dataInitialized = true;
       this.initState.setUser(user);
     });
     this.activityService.startWatching().subscribe(() => {

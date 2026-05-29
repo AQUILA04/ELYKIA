@@ -38,14 +38,20 @@
   <app-credit-late-filter
     [resultCount]="filteredCredits.length"
     [isDownloading]="isDownloading"
+    [currentType]="currentType"
+    [currentMonth]="currentMonth"
+    [currentLocality]="currentLocality"
     (typeChanged)="onTypeChanged($event)"
     (commercialChanged)="onCommercialChanged($event)"
     (monthChanged)="onMonthChanged($event)"
+    (localityChanged)="onLocalityChanged($event)"
     (downloadClicked)="onDownloadClicked()">
   </app-credit-late-filter>
 
   <app-credit-late-table
     [credits]="filteredCredits"
-    [isLoading]="isLoading">
+    [isLoading]="isLoading"
+    [currentPage]="savedPage"
+    (pageChanged)="onPageChanged($event)">
   </app-credit-late-table>
 </div>

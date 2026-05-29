@@ -29,7 +29,7 @@ public class CreditLateService {
     private final CreditRepository creditRepository;
     private final TemplateEngine templateEngine;
 
-    public List<CreditLateDTO> getLateCredits(String collector, Integer month) {
+    public List<CreditLateDTO> getLateCredits(String collector, Integer month, String locality) {
         List<Credit> credits;
         if (collector != null && !collector.isBlank()) {
             credits = creditRepository.findLateCreditsByCollector(collector);
@@ -49,6 +49,13 @@ public class CreditLateService {
                     return c.getExpectedEndDate().getMonthValue() == month
                             && c.getExpectedEndDate().getYear() == currentYear;
                 })
+                .filter(c -> {
+                    if (locality != null && !locality.isBlank()) {
+                        if (c.getClient() == null || c.getClient().getQuarter() == null) return false;
+                        return c.getClient().getQuarter().equalsIgnoreCase(locality);
+                    }
+                    return true;
+                })
                 .map(c -> buildLateDTO(c, today))
                 .filter(dto -> dto.getLateType() != null)
                 .sorted(Comparator
@@ -57,8 +64,8 @@ public class CreditLateService {
                 .collect(Collectors.toList());
     }
 
-    public CreditLateSummaryDTO getSummary(String collector, Integer month) {
-        List<CreditLateDTO> lates = getLateCredits(collector, month);
+    public CreditLateSummaryDTO getSummary(String collector, Integer month, String locality) {
+        List<CreditLateDTO> lates = getLateCredits(collector, month, locality);
 
         long totalLate = lates.size();
         long totalDelai = lates.stream().filter(d -> d.getLateType() == LateType.DELAI).count();
@@ -77,8 +84,8 @@ public class CreditLateService {
         return creditRepository.findLateCreditsCollectors();
     }
 
-    public byte[] generatePdfExport(String collector, Integer month, String lateType) {
-        List<CreditLateDTO> credits = getLateCredits(collector, month);
+    public byte[] generatePdfExport(String collector, Integer month, String lateType, String locality) {
+        List<CreditLateDTO> credits = getLateCredits(collector, month, locality);
 
         if (lateType != null && !lateType.equals("all")) {
             LateType typeEnum = LateType.valueOf(lateType);

@@ -4,10 +4,29 @@
   <div class="divider"></div>
 
   <span class="toolbar-label">Mois</span>
-  <select class="tab-btn" (change)="onMonthSelected($event)">
+  <select class="tab-btn" style="width: max-content; min-width: 120px;" (change)="onMonthSelected($event)">
     <option value="all">Tous</option>
     <option *ngFor="let m of months" [value]="m.index">{{ m.name }}</option>
   </select>
+
+  <div class="divider"></div>
+
+  <span class="toolbar-label">Localité</span>
+  <div style="width: 200px; margin-right: 15px;">
+    <ng-select
+      [items]="localities"
+      bindLabel="name"
+      placeholder="Toutes"
+      [(ngModel)]="currentLocality"
+      [loading]="localityLoading"
+      [virtualScroll]="true"
+      (scrollToEnd)="onLocalityScrollToEnd()"
+      (search)="onLocalitySearch($event)"
+      (change)="onLocalitySelected($event)"
+      [clearable]="true"
+      [searchable]="true">
+    </ng-select>
+  </div>
 
   <div class="divider"></div>
 
