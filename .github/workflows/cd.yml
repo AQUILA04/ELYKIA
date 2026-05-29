@@ -175,13 +175,7 @@ jobs:
       - name: Inject TEST API URL into environment.prod.ts
         if: ${{ steps.check_mobile.outputs.mobile_built == 'true' }}
         run: |
-          mkdir -p mobile/src/environments
-          cat > mobile/src/environments/environment.prod.ts <<'EOF'
-          export const environment = {
-            production: true,
-            apiUrl: "${API_URL}"
-          };
-          EOF
+          sed -i "s|apiUrl:.*|apiUrl: '${API_URL}',|" mobile/src/environments/environment.prod.ts
         env:
           API_URL: ${{ secrets.TEST_API_URL }}
 
@@ -358,13 +352,7 @@ jobs:
       - name: Inject PROD API URL into environment.prod.ts
         if: ${{ steps.check_mobile_prod.outputs.mobile_built == 'true' }}
         run: |
-          mkdir -p mobile/src/environments
-          cat > mobile/src/environments/environment.prod.ts <<'EOF'
-          export const environment = {
-            production: true,
-            apiUrl: "${API_URL}"
-          };
-          EOF
+          sed -i "s|apiUrl:.*|apiUrl: '${API_URL}',|" mobile/src/environments/environment.prod.ts
         env:
           API_URL: ${{ secrets.PROD_API_URL }}
 
