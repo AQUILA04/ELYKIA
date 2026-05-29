@@ -203,10 +203,17 @@ export class CommercialStockRepository {
         WHERE s.commercialUsername = ? AND s.quantityRemaining > 0
       `;
 
-      if (filters?.searchQuery) {
-        baseQuery += ` AND (LOWER(a.name) LIKE ? OR LOWER(a.reference) LIKE ?)`;
-        const term = `%${filters.searchQuery.toLowerCase()}%`;
-        params.push(term, term);
+      if (filters?.searchQuery?.trim()) {
+        // articles table has no "reference" column — only name, commercialName, marque, model, type
+        baseQuery += ` AND (
+          LOWER(a.name) LIKE ?
+          OR LOWER(COALESCE(a.commercialName, '')) LIKE ?
+          OR LOWER(COALESCE(a.marque, '')) LIKE ?
+          OR LOWER(COALESCE(a.model, '')) LIKE ?
+          OR LOWER(COALESCE(a.type, '')) LIKE ?
+        )`;
+        const term = `%${filters.searchQuery.trim().toLowerCase()}%`;
+        params.push(term, term, term, term, term);
       }
 
       // Count Query
@@ -248,7 +255,8 @@ export class CommercialStockRepository {
       };
 
     } catch (error) {
-      this.log.error('[CommercialStockRepository] Error finding available articles paginated', error);
+      const message = error instanceof Error ? error.message : String(error);
+      this.log.error('[CommercialStockRepository] Error finding available articles paginated', { message });
       return { content: [], totalElements: 0, totalPages: 0 };
     }
   }

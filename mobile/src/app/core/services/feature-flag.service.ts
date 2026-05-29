@@ -1,5 +1,6 @@
 // src/app/core/services/feature-flag.service.ts
 import { Injectable, isDevMode } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
 import { FirebaseRemoteConfig } from '@capacitor-firebase/remote-config';
 import { BehaviorSubject } from 'rxjs';
 
@@ -30,6 +31,12 @@ export class FeatureFlagService {
    * Initialise le service Remote Config.
    */
   public async init(): Promise<void> {
+    if (Capacitor.getPlatform() === 'web') {
+      // Remote Config natif nécessite initializeApp() côté web (non configuré) : valeurs locales.
+      this.flagsState.next(this.defaultFlags);
+      return;
+    }
+
     try {
       // Use setSettings to configure the fetch interval
       await FirebaseRemoteConfig.setSettings({

@@ -71,19 +71,27 @@ export class DatabaseService {
       // 1. Créer les tables pour s'assurer qu'elles existent pour les nouveaux utilisateurs
       await this.createTables();
 
-      // 2. Exécuter les migrations sur le schéma existant (Android + web pour les bases déjà créées)
+      // 2. Migrations incrémentielles (natif uniquement).
+      // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
       const currentVersion = await this.db.getVersion();
       const targetVersion = 25; // daily_consent_history + operationConsentCode
       const dbVersion = currentVersion.version ?? 2;
+      const isWeb = Capacitor.getPlatform() === 'web';
 
       console.log('=== DATABASE VERSION CHECK ===');
       console.log('Current DB version:', dbVersion);
       console.log('Target DB version:', targetVersion);
+      console.log('Platform:', Capacitor.getPlatform());
       console.log('==============================');
 
       if (dbVersion < targetVersion) {
-        await this.migrationService.runMigrations(this.db, dbVersion, targetVersion);
-        await this.db.run(`PRAGMA user_version = ${targetVersion}`);
+        if (isWeb) {
+          console.log('Web: migrations skipped, schema from createTables(); bumping user_version.');
+          await this.db.run(`PRAGMA user_version = ${targetVersion}`);
+        } else {
+          await this.migrationService.runMigrations(this.db, dbVersion, targetVersion);
+          await this.db.run(`PRAGMA user_version = ${targetVersion}`);
+        }
       }
 
 

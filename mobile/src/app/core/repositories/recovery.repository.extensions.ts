@@ -130,12 +130,15 @@ export class RecoveryRepositoryExtensions {
             params.push(filters.quarter);
         }
 
-        if (filters?.searchQuery) {
-            // Search on client name/phone or distribution reference?
-            // recoveries don't have many searchable text fields except maybe 'amount' or linked data.
-            whereConditions.push('(c.fullName LIKE ? OR c.phone LIKE ? OR d.reference LIKE ?)');
-            const searchPattern = `%${filters.searchQuery}%`;
-            params.push(searchPattern, searchPattern, searchPattern);
+        if (filters?.searchQuery?.trim()) {
+            const searchPattern = `%${filters.searchQuery.trim()}%`;
+            whereConditions.push(`(
+                COALESCE(c.fullName, c.firstname || ' ' || c.lastname) LIKE ?
+                OR c.phone LIKE ?
+                OR d.reference LIKE ?
+                OR r.id LIKE ?
+            )`);
+            params.push(searchPattern, searchPattern, searchPattern, searchPattern);
         }
 
         if (filters?.isLocal !== undefined) {

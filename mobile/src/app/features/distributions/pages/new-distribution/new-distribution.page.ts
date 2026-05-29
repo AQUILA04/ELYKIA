@@ -152,14 +152,13 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
   }
 
   refreshList(query: string) {
+    const searchQuery = query.trim();
     this.store.select(selectAuthUser).pipe(take(1)).subscribe(user => {
       if (user && user.username) {
         this.store.dispatch(DistributionActions.loadFirstPageAvailableArticles({
           commercialUsername: user.username,
           pageSize: 20,
-          filters: {
-            searchQuery: query
-          }
+          filters: searchQuery ? { searchQuery } : undefined
         }));
       }
     });
@@ -168,11 +167,10 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
   loadMoreArticles(event: any) {
     this.store.select(selectAuthUser).pipe(take(1)).subscribe(user => {
       if (user && user.username) {
+        const searchQuery = this.searchTerm$.value.trim();
         this.store.dispatch(DistributionActions.loadNextPageAvailableArticles({
           commercialUsername: user.username,
-          filters: {
-            searchQuery: this.searchTerm$.value
-          }
+          filters: searchQuery ? { searchQuery } : undefined
         }));
 
         this.actions$.pipe(
@@ -380,8 +378,8 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     await modal.present();
   }
 
-  onSearchInput(event: any) {
-    const value = event.target.value || '';
+  onSearchInput(event: CustomEvent<{ value?: string | null }>) {
+    const value = (event.detail?.value ?? '').trim();
     this.searchTerm$.next(value);
   }
 

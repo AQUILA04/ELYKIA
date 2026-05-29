@@ -110,11 +110,7 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
       this.store.dispatch(RecoveryActions.loadFirstPageRecoveries({
         commercialId: user.username,
         pageSize: 20,
-        filters: {
-          clientId: search,
-          paymentMethod: type !== 'all' ? type : undefined,
-          dateFilter: this.mapPeriodToDateFilter(period)
-        }
+        filters: this.buildFilters(search, type, period)
       }));
 
       // Load KPIs with same filters (except search which doesn't apply to global KPIs usually, but period does)
@@ -139,11 +135,11 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
     ).subscribe(user => {
       this.store.dispatch(RecoveryActions.loadNextPageRecoveries({
         commercialId: user.username,
-        filters: {
-          clientId: this.searchControl.value || undefined,
-          paymentMethod: this.typeFilterControl.value !== 'all' ? (this.typeFilterControl.value || undefined) : undefined,
-          dateFilter: this.mapPeriodToDateFilter(this.periodFilterControl.value || 'all')
-        }
+        filters: this.buildFilters(
+          this.searchControl.value || '',
+          this.typeFilterControl.value || 'all',
+          this.periodFilterControl.value || 'all'
+        )
       }));
     });
 
@@ -157,6 +153,15 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
     ).subscribe(() => {
       event.target.complete();
     });
+  }
+
+  private buildFilters(search: string, type: string, period: string) {
+    const searchQuery = search.trim();
+    return {
+      ...(searchQuery ? { searchQuery } : {}),
+      paymentMethod: type !== 'all' ? type : undefined,
+      dateFilter: this.mapPeriodToDateFilter(period)
+    };
   }
 
   private mapPeriodToDateFilter(period: string): any {
