@@ -18,11 +18,11 @@ contactPoints:
           title: "🔔 ELYKIA Alert"
         disableResolveMessage: false
 
-  - name: "Webhook Business"
-    receivers:
-      - uid: "webhook-business"
-        type: webhook
-        settings:
-          url: "${ALERT_WEBHOOK_URL}"
-          httpMethod: "POST"
-        disableResolveMessage: false
+#  - name: "Webhook Business"
+#    receivers:
+#      - uid: "webhook-business"
+#        type: webhook
+#        settings:
+#          url: "${ALERT_WEBHOOK_URL}"
+#          httpMethod: "POST"
+#        disableResolveMessage: false

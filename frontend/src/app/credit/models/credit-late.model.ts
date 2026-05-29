@@ -20,6 +20,7 @@ export interface CreditLateDTO {
   lateDaysEcheance: number;
   lateType: LateType;
   status: string;
+  clientQuarter: string;
 }
 
 export interface CreditLateSummaryDTO {
