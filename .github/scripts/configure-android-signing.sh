@@ -33,32 +33,32 @@ text = path.read_text()
 if "signingConfig signingConfigs.release" in text:
     sys.exit(0)
 
+if "android {" not in text:
+    raise SystemExit("android { block not found in app/build.gradle")
+
+# Load key.properties at file scope (before android {}) so signingConfigs can reference it.
 keystore_loader = """
-    def keystorePropertiesFile = rootProject.file("key.properties")
-    def keystoreProperties = new Properties()
-    if (keystorePropertiesFile.exists()) {
-        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-    }
+def keystorePropertiesFile = rootProject.file("key.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 """
 
 signing_configs = """
     signingConfigs {
         release {
-            if (keystorePropertiesFile.exists()) {
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
-                storeFile file(keystoreProperties['storeFile'])
-                storePassword keystoreProperties['storePassword']
-            }
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
         }
     }
 """
 
-if "android {" not in text:
-    raise SystemExit("android { block not found in app/build.gradle")
-
 if "keystorePropertiesFile" not in text:
-    text = text.replace("android {", "android {" + keystore_loader, 1)
+    text = text.replace("android {", keystore_loader + "android {", 1)
 
 if "signingConfigs {" not in text:
     text = text.replace("android {", "android {" + signing_configs, 1)
