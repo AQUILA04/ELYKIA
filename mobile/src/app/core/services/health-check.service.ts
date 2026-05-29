@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, catchError, tap } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
-import { LoggerService } from './logger.service';
+import {Injectable} from '@angular/core';
+import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
+import {Observable, of} from 'rxjs';
+import {catchError, map, tap} from 'rxjs/operators';
+import {environment} from '../../../environments/environment';
+import {LoggerService} from './logger.service';
 
 interface HealthResponse {
   status: string;
@@ -16,32 +16,6 @@ export class HealthCheckService {
 
   constructor(private http: HttpClient, private log: LoggerService) { }
 
-  // Méthode de test pour vérifier la configuration réseau
-  testNetworkConfig(): void {
-    this.log.log('=== NETWORK CONFIG TEST ===');
-
-    // Test avec différentes URLs
-    const testUrls = [
-      `${environment.apiUrl}/actuator/health`,
-      `http://192.168.1.75:8080/actuator/health`,
-      `http://localhost:8080/actuator/health`,
-      `https://httpbin.org/get` // Test externe
-    ];
-
-    testUrls.forEach((url, index) => {
-      setTimeout(() => {
-        this.log.log(`Testing URL ${index + 1}: ${url}`);
-        this.http.get(url, { observe: 'response' }).subscribe({
-          next: (response) => {
-            this.log.log(`✅ URL ${index + 1} SUCCESS: ${response.status}`);
-          },
-          error: (error) => {
-            this.log.log(`❌ URL ${index + 1} FAILED: Status ${error.status} - ${error.message}`);
-          }
-        });
-      }, index * 1000);
-    });
-  }
 
   pingBackend(): Observable<boolean> {
     const url = `${environment.apiUrl}/actuator/health`;
@@ -63,18 +37,15 @@ export class HealthCheckService {
     }).pipe(
       tap(response => {
         const duration = Date.now() - startTime;
-        //this.logSuccessResponse(url, response, duration);
+        this.log.log('=== HEALTH CHECK SUCCESS === DURATION: ' + duration);
       }),
       map(response => {
-        const isHealthy = response.body?.status === 'UP';
-        //this.log.log(`HEALTH CHECK RESULT: ${isHealthy ? 'HEALTHY' : 'UNHEALTHY'}`);
-        return isHealthy;
+        return response.body?.status === 'UP';
       }),
       catchError(error => {
         const duration = Date.now() - startTime;
         this.log.log('=== HEALTH CHECK FAILED ===');
         this.logDetailedHttpError(error, url, duration);
-        //this.logNetworkDiagnostics();
         return of(false);
       })
     );
