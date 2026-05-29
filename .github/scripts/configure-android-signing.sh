@@ -17,28 +17,31 @@ if [[ ! -f "$KEY_PROPS" ]] || [[ ! -f "$KEYSTORE" ]]; then
   exit 0
 fi
 
-if grep -q 'signingConfigs' "$APP_BUILD_GRADLE"; then
+if grep -q 'signingConfig signingConfigs.release' "$APP_BUILD_GRADLE"; then
   echo "Release signing already configured"
   exit 0
 fi
 
 python3 - "$APP_BUILD_GRADLE" <<'PY'
+import re
 import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
 text = path.read_text()
 
-if "signingConfigs" in text:
+if "signingConfig signingConfigs.release" in text:
     sys.exit(0)
 
-insert = """
+keystore_loader = """
     def keystorePropertiesFile = rootProject.file("key.properties")
     def keystoreProperties = new Properties()
     if (keystorePropertiesFile.exists()) {
         keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
     }
+"""
 
+signing_configs = """
     signingConfigs {
         release {
             if (keystorePropertiesFile.exists()) {
@@ -54,15 +57,21 @@ insert = """
 if "android {" not in text:
     raise SystemExit("android { block not found in app/build.gradle")
 
-text = text.replace("android {", "android {" + insert, 1)
+if "keystorePropertiesFile" not in text:
+    text = text.replace("android {", "android {" + keystore_loader, 1)
 
-release_marker = "        release {"
-if release_marker in text and "signingConfig signingConfigs.release" not in text:
-    text = text.replace(
-        release_marker,
-        release_marker + "\n            signingConfig signingConfigs.release",
-        1,
-    )
+if "signingConfigs {" not in text:
+    text = text.replace("android {", "android {" + signing_configs, 1)
+
+text, count = re.subn(
+    r"(buildTypes\s*\{\s*release\s*\{)",
+    r"\1\n            signingConfig signingConfigs.release",
+    text,
+    count=1,
+)
+
+if count == 0:
+    raise SystemExit("buildTypes.release block not found in app/build.gradle")
 
 path.write_text(text)
 print("Configured release signing in", path)

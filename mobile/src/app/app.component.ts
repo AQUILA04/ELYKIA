@@ -74,7 +74,6 @@ export class AppComponent implements OnInit {
           App.exitApp();
         }
       } else {
-        // Comportement par défaut (retour en arrière)
         this.navCtrl.back();
       }
     });
