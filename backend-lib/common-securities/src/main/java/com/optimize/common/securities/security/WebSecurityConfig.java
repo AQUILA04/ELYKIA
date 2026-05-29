@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -77,50 +78,43 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
         List<String> allowedOrigins = Arrays.asList(allowedOrigin.split(","));
-        // Autoriser l'origine de votre application frontend
         configuration.setAllowedOrigins(allowedOrigins.stream().map(String::trim).toList());
-        // Autoriser les méthodes HTTP courantes
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        // Autoriser les en-têtes spécifiques
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
-        // Permettre l'envoi de credentials (comme les cookies ou les tokens d'authentification)
-        //configuration.setAllowCredentials(true);
-        
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Appliquer cette configuration à toutes les routes de l'API
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // Activer CORS en utilisant la configuration définie dans le bean corsConfigurationSource()
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // Désactiver CSRF car nous utilisons un mécanisme stateless (JWT)
-            .csrf(AbstractHttpConfigurer::disable)
-            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth ->
-                auth.requestMatchers("/api/auth/**",
-                                "/i18n/**",
-                                "/content/**",
-                                "/v3/api-docs/swagger-config/**",
-                                "/v3/api-docs/**",
-                                "/v2/api-docs/**",
-                                "/",
-                                "/swagger-ui/**",
-                                "/apidoc/**",
-                                "/swagger-resources/**",
-                                "/actuator/**", // L'accès à l'actuator est maintenant autorisé
-                                "/api/v1/**",
-                                "/api/licences/**",
-                                "/api/parameters/**",
-                                "/swagger-ui.html").permitAll()
-                    .requestMatchers("/api/test/**").permitAll()
-                    .anyRequest().authenticated()
-            );
+                .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth ->
+                        auth
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .requestMatchers("/api/auth/**",
+                                        "/i18n/**",
+                                        "/content/**",
+                                        "/v3/api-docs/swagger-config/**",
+                                        "/v3/api-docs/**",
+                                        "/v2/api-docs/**",
+                                        "/",
+                                        "/swagger-ui/**",
+                                        "/apidoc/**",
+                                        "/swagger-resources/**",
+                                        "/actuator/**",
+                                        "/api/v1/**",
+                                        "/api/licences/**",
+                                        "/api/parameters/**",
+                                        "/swagger-ui.html").permitAll()
+                                .requestMatchers("/api/test/**").permitAll()
+                                .anyRequest().authenticated()
+                );
 
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
