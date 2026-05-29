@@ -49,12 +49,6 @@ export class AppComponent implements OnInit {
 
       // Démarrer la surveillance mémoire automatique
       this.memoryAlertService.startMemoryMonitoring();
-
-      if (this.platform.is('capacitor')) {
-        StatusBar.setOverlaysWebView({ overlay: false });
-        StatusBar.setStyle({ style: Style.Default });
-        StatusBar.show();
-      }
     });
 
     this.store.select(selectAuthUser).pipe(
@@ -151,7 +145,7 @@ export class AppComponent implements OnInit {
 
   async initializeApp() {
     await this.platform.ready();
-
+    await this.configureStatusBar();
     await this.featureFlagService.init();
 
     if (Capacitor.isNativePlatform()) {
@@ -159,7 +153,23 @@ export class AppComponent implements OnInit {
         enabled: true,
       });
     }
-   }
+  }
+
+  private async configureStatusBar(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    await StatusBar.setOverlaysWebView({ overlay: false });
+
+    if (Capacitor.getPlatform() === 'android') {
+      await StatusBar.setStyle({ style: Style.Dark });
+    } else {
+      await StatusBar.setStyle({ style: Style.Default });
+    }
+
+    await StatusBar.show();
+  }
 
   async saveToDownloads(imageData: string, fileName: string) {
     const savedFile = await Filesystem.writeFile({

@@ -1,0 +1,140 @@
+name: Build Elykia mobile release APK
+description: Ionic build, Capacitor sync, signed release APK, artifact upload
+
+inputs:
+  target:
+    description: Deployment target (test or prod)
+    required: true
+  api-url:
+    description: API base URL injected into environment.prod.ts
+    required: true
+  google-services-json:
+    description: Contents of google-services.json
+    required: true
+  android-keystore-base64:
+    description: Base64-encoded release keystore (optional)
+    required: false
+    default: ''
+  android-keystore-password:
+    description: Keystore password
+    required: false
+    default: ''
+  android-key-alias:
+    description: Key alias
+    required: false
+    default: ''
+  android-key-password:
+    description: Key password
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Inject API URL into environment.prod.ts
+      shell: bash
+      run: sed -i "s|apiUrl:.*|apiUrl: '${API_URL}',|" mobile/src/environments/environment.prod.ts
+      env:
+        API_URL: ${{ inputs.api-url }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.19.3'
+        cache: 'npm'
+        cache-dependency-path: 'mobile/package-lock.json'
+
+    - name: Setup Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Install dependencies and build web assets
+      shell: bash
+      env:
+        GOOGLE_SERVICES_JSON: ${{ inputs.google-services-json }}
+      run: |
+        set -euo pipefail
+        cd mobile
+        npm cache clean --force
+        npm install --legacy-peer-deps
+        npx playwright install --with-deps chromium || true
+        npm install -g @ionic/cli @capacitor/cli
+        npm run test:e2e || true
+        ionic build --prod
+        npx cap add android || true
+        echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+        sed -i "/dependencies {/a \\        classpath 'com.google.gms:google-services:4.4.0'\\n        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'" android/build.gradle || true
+        sed -i "/apply plugin: 'com.android.application'/a apply plugin: 'com.google.gms.google-services'\\napply plugin: 'com.google.firebase.crashlytics'" android/app/build.gradle || true
+        sed -i "/dependencies {/a \\    implementation platform('com.google.firebase:firebase-bom:32.7.0')\\n    implementation 'com.google.firebase:firebase-crashlytics'\\n    implementation 'com.google.firebase:firebase-analytics'" android/app/build.gradle || true
+
+    - name: Prepare Android config and sync
+      shell: bash
+      run: |
+        set -euo pipefail
+        cd mobile
+        python -m json.tool android/app/google-services.json || true
+        npx cap sync android
+        mkdir -p android/app/src/main/res/xml
+        cp ../.github/workflows/android-config-prod/AndroidManifest.xml android/app/src/main/AndroidManifest.xml || true
+        cp ../.github/workflows/android-config-prod/styles.xml android/app/src/main/res/values/styles.xml || true
+        cp ../.github/workflows/android-config-prod/config.xml android/app/src/main/res/xml/config.xml || true
+        cp ../.github/workflows/android-config-prod/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml || true
+        cp ../.github/workflows/android-config-prod/file_paths.xml android/app/src/main/res/xml/file_paths.xml || true
+
+    - name: Prepare Android keystore
+      shell: bash
+      env:
+        AND_KS_BASE64: ${{ inputs.android-keystore-base64 }}
+      run: |
+        set -euo pipefail
+        if [ -z "$AND_KS_BASE64" ]; then
+          echo "No keystore provided — unsigned release APK"
+          exit 0
+        fi
+        echo "$AND_KS_BASE64" | base64 --decode > mobile/android/keystore.jks
+        cat > mobile/android/key.properties <<EOF
+        storeFile=../keystore.jks
+        storePassword=${{ inputs.android-keystore-password }}
+        keyAlias=${{ inputs.android-key-alias }}
+        keyPassword=${{ inputs.android-key-password }}
+        EOF
+
+    - name: Configure Android release signing
+      shell: bash
+      run: |
+        chmod +x .github/scripts/configure-android-signing.sh
+        .github/scripts/configure-android-signing.sh mobile/android
+
+    - name: Build Android release APK
+      shell: bash
+      run: |
+        set -euo pipefail
+        chmod +x mobile/android/gradlew || true
+        cd mobile/android
+        ./gradlew clean assembleRelease
+
+    - name: Rename APK and set artifact path
+      shell: bash
+      run: |
+        set -euo pipefail
+        chmod +x .github/scripts/resolve-release-apk.sh
+        TARGET='${{ inputs.target }}'
+        VERSION=$(grep "version:" mobile/src/environments/environment.ts | sed "s/.*version: '\([^']*\)'.*/\1/")
+        echo "Detected version: $VERSION"
+        echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+        bash .github/scripts/resolve-release-apk.sh \
+          "mobile/android/app/build/outputs/apk/release" \
+          "elykia-mobile-${TARGET}-v${VERSION}.apk" | tee /tmp/apk-resolve.log
+        grep '^APK_PATH=' /tmp/apk-resolve.log >> "$GITHUB_ENV"
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: elykia-mobile-${{ inputs.target }}-v${{ env.APP_VERSION }}.apk
+        path: ${{ env.APK_PATH }}
+        retention-days: 90
