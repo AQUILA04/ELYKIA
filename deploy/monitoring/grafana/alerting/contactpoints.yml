@@ -6,7 +6,7 @@ contactPoints:
       - uid: "email-admins"
         type: email
         settings:
-          addresses: "${ALERT_EMAIL_TO:-francis.ahonsou@gmail.com}"
+          addresses: "${ALERT_EMAIL_TO}"
         disableResolveMessage: false
 
   - name: "Slack Alerts"
