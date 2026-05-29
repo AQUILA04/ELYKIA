@@ -20,7 +20,12 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
     // Capturer les erreurs réseau
     captureInput: true
-  }
+  },
+  plugins: {
+    CapacitorHttp: {
+      enabled: true,
+    },
+  },
 };
 
 export default config;

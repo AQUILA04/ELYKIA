@@ -37,7 +37,7 @@ services:
       SERVER_PORT: ${SERVER_PORT:-8080}
       LOKI_API_KEY: ${LOKI_API_KEY:-}
       SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-false}
-      SECURITY_CONFIG_ALLOW-ORIGIN: ${SECURITY_ALLOWED_ORIGINS:-https://elykia.amenouveve-yaveh.com,http://localhost,capacitor://localhost,http://localhost:8100}
+      SECURITY_CONFIG_ALLOW_ORIGIN: ${SECURITY_ALLOWED_ORIGINS:-https://elykia.amenouveve-yaveh.com,http://localhost,capacitor://localhost,http://localhost:8100,https://localhost,ionic://localhost}
     volumes:
       - ${LOG_PATH:-/opt/elykia/prod/logs}:/home/app/.optimize-elykia-core/logs
     networks:
