@@ -184,7 +184,7 @@ jobs:
 
           ssh -o StrictHostKeyChecking=no -i private_key "$PROD_USER@$PROD_HOST" \
             "cd '$PROD_PATH' \
-             && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
+             && docker compose -f /opt/elykia/deploy/monitoring/docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env up -d"
 
       - name: Cleanup SSH key
         if: always()
@@ -271,7 +271,7 @@ jobs:
 
           ssh -o StrictHostKeyChecking=no -i private_key "$PROD_USER@$PROD_HOST" \
             "cd '$PROD_PATH' \
-             && docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d"
+             && docker compose -f /opt/elykia/deploy/monitoring/docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env up -d"
 
       - name: Cleanup
         if: always()
