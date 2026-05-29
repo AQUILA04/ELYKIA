@@ -33,9 +33,10 @@ runs:
   steps:
     - name: Inject API URL into environment.prod.ts
       shell: bash
-      run: sed -i "s|apiUrl:.*|apiUrl: '${API_URL}',|" mobile/src/environments/environment.prod.ts
       env:
         API_URL: ${{ inputs.api-url }}
+      run: |
+        sed -i "s|apiUrl:.*|apiUrl: '${API_URL}',|" mobile/src/environments/environment.prod.ts
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
