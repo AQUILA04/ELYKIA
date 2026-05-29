@@ -329,7 +329,7 @@ public class Credit extends BaseEntity<String> {
     }
 
     public void checkInProgressStatus() {
-        if (!CreditStatus.INPROGRESS.equals(status)) {
+        if (!CreditStatus.INPROGRESS.equals(status) && OperationType.CREDIT.equals(this.type)) {
             throw new ApplicationException("Le statut de la vente doit être encours pour faire une mise journalière !");
         }
     }
