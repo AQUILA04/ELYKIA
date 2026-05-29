@@ -192,6 +192,11 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
+
+    - name: Validate APK pipeline scripts
+      run: |
+        chmod +x .github/scripts/*.sh
+        .github/scripts/validate-mobile-pipeline.sh
       
     - name: Setup Node.js
       uses: actions/setup-node@v4

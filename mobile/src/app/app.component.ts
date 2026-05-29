@@ -65,7 +65,7 @@ export class AppComponent implements OnInit {
   private setupBackButtonHandler() {
     this.platform.backButton.subscribeWithPriority(10, async () => {
       const url = this.router.url;
-      // Vérifier si l'utilisateur est sur une des pages principales de l'application
+      
       if (url === '/tabs/dashboard' || url === '/tabs/clients' || url === '/tabs/distributions' || url === '/tabs/more') {
         const hasUnsyncedData = await this.synchronizationService.hasUnsyncedData();
         if (hasUnsyncedData) {

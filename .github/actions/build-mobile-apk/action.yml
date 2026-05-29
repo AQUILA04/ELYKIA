@@ -31,6 +31,12 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Validate pipeline scripts
+      shell: bash
+      run: |
+        chmod +x .github/scripts/*.sh
+        .github/scripts/validate-mobile-pipeline.sh
+
     - name: Inject API URL into environment.prod.ts
       shell: bash
       env:
@@ -56,8 +62,6 @@ runs:
 
     - name: Install dependencies and build web assets
       shell: bash
-      env:
-        GOOGLE_SERVICES_JSON: ${{ inputs.google-services-json }}
       run: |
         set -euo pipefail
         cd mobile
@@ -68,29 +72,38 @@ runs:
         npm run test:e2e || true
         ionic build --prod
         npx cap add android || true
-        echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
-        sed -i "/dependencies {/a \\        classpath 'com.google.gms:google-services:4.4.0'\\n        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'" android/build.gradle || true
-        sed -i "/apply plugin: 'com.android.application'/a apply plugin: 'com.google.gms.google-services'\\napply plugin: 'com.google.firebase.crashlytics'" android/app/build.gradle || true
-        sed -i "/dependencies {/a \\    implementation platform('com.google.firebase:firebase-bom:32.7.0')\\n    implementation 'com.google.firebase:firebase-crashlytics'\\n    implementation 'com.google.firebase:firebase-analytics'" android/app/build.gradle || true
 
-    - name: Prepare Android config and sync
+    - name: Write google-services.json
+      shell: bash
+      env:
+        GOOGLE_SERVICES_JSON: ${{ inputs.google-services-json }}
+      run: |
+        set -euo pipefail
+        mkdir -p mobile/android/app
+        printf '%s' "$GOOGLE_SERVICES_JSON" > mobile/android/app/google-services.json
+        python3 -m json.tool mobile/android/app/google-services.json > /dev/null
+
+    - name: Sync Capacitor and apply Android config
       shell: bash
       run: |
         set -euo pipefail
         cd mobile
-        python -m json.tool android/app/google-services.json || true
         npx cap sync android
-        mkdir -p android/app/src/main/res/xml
-        cp ../.github/workflows/android-config-prod/AndroidManifest.xml android/app/src/main/AndroidManifest.xml || true
-        cp ../.github/workflows/android-config-prod/styles.xml android/app/src/main/res/values/styles.xml || true
-        cp ../.github/workflows/android-config-prod/config.xml android/app/src/main/res/xml/config.xml || true
-        cp ../.github/workflows/android-config-prod/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml || true
-        cp ../.github/workflows/android-config-prod/file_paths.xml android/app/src/main/res/xml/file_paths.xml || true
+        mkdir -p android/app/src/main/res/xml android/app/src/main/res/values
+        cp ../.github/workflows/android-config-prod/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+        cp ../.github/workflows/android-config-prod/config.xml android/app/src/main/res/xml/config.xml
+        cp ../.github/workflows/android-config-prod/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml
+        cp ../.github/workflows/android-config-prod/file_paths.xml android/app/src/main/res/xml/file_paths.xml
+        ../.github/scripts/patch-android-status-bar-styles.sh android/app/src/main/res/values/styles.xml
+        ../.github/scripts/configure-android-firebase.sh android
 
     - name: Prepare Android keystore
       shell: bash
       env:
         AND_KS_BASE64: ${{ inputs.android-keystore-base64 }}
+        STORE_PASSWORD: ${{ inputs.android-keystore-password }}
+        KEY_ALIAS: ${{ inputs.android-key-alias }}
+        KEY_PASSWORD: ${{ inputs.android-key-password }}
       run: |
         set -euo pipefail
         if [ -z "$AND_KS_BASE64" ]; then
@@ -98,44 +111,48 @@ runs:
           exit 0
         fi
         echo "$AND_KS_BASE64" | base64 --decode > mobile/android/keystore.jks
-        cat > mobile/android/key.properties <<EOF
-        storeFile=../keystore.jks
-        storePassword=${{ inputs.android-keystore-password }}
-        keyAlias=${{ inputs.android-key-alias }}
-        keyPassword=${{ inputs.android-key-password }}
-        EOF
+        printf '%s\n' \
+          'storeFile=../keystore.jks' \
+          "storePassword=${STORE_PASSWORD}" \
+          "keyAlias=${KEY_ALIAS}" \
+          "keyPassword=${KEY_PASSWORD}" \
+          > mobile/android/key.properties
 
     - name: Configure Android release signing
       shell: bash
-      run: |
-        chmod +x .github/scripts/configure-android-signing.sh
-        .github/scripts/configure-android-signing.sh mobile/android
+      run: .github/scripts/configure-android-signing.sh mobile/android
 
     - name: Build Android release APK
       shell: bash
       run: |
         set -euo pipefail
-        chmod +x mobile/android/gradlew || true
+        chmod +x mobile/android/gradlew
         cd mobile/android
         ./gradlew clean assembleRelease
 
     - name: Rename APK and set artifact path
+      id: apk
       shell: bash
+      env:
+        TARGET: ${{ inputs.target }}
       run: |
         set -euo pipefail
-        chmod +x .github/scripts/resolve-release-apk.sh
-        TARGET='${{ inputs.target }}'
-        VERSION=$(grep "version:" mobile/src/environments/environment.ts | sed "s/.*version: '\([^']*\)'.*/\1/")
+        VERSION=$(grep "version:" mobile/src/environments/environment.ts | head -n1 | sed "s/.*version: '\([^']*\)'.*/\1/")
+        if [ -z "$VERSION" ]; then
+          echo "Could not detect app version" >&2
+          exit 1
+        fi
         echo "Detected version: $VERSION"
-        echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+        echo "app_version=$VERSION" >> "$GITHUB_OUTPUT"
         bash .github/scripts/resolve-release-apk.sh \
           "mobile/android/app/build/outputs/apk/release" \
           "elykia-mobile-${TARGET}-v${VERSION}.apk" | tee /tmp/apk-resolve.log
-        grep '^APK_PATH=' /tmp/apk-resolve.log >> "$GITHUB_ENV"
+        APK_PATH=$(grep '^APK_PATH=' /tmp/apk-resolve.log | cut -d= -f2-)
+        echo "apk_path=$APK_PATH" >> "$GITHUB_OUTPUT"
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: elykia-mobile-${{ inputs.target }}-v${{ env.APP_VERSION }}.apk
-        path: ${{ env.APK_PATH }}
+        name: elykia-mobile-${{ inputs.target }}-v${{ steps.apk.outputs.app_version }}.apk
+        path: ${{ steps.apk.outputs.apk_path }}
         retention-days: 90
