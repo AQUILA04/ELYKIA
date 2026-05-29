@@ -593,8 +593,10 @@ mat-paginator {
     height: 100vh !important;
   }
 
+  #main-wrapper.show-sidebar .left-sidebar,
   aside.left-sidebar.show-sidebar,
-  .sidebar.show-sidebar {
+  .sidebar.show-sidebar,
+  body.sidebar-open .left-sidebar {
     left: 0;
   }
 

@@ -130,6 +130,7 @@ export const loadFirstPageRecoveries = createAction(
       dateFilter?: DateFilter;
       paymentMethod?: string;
       clientId?: string;
+      searchQuery?: string;
     }
   }>()
 );
@@ -152,6 +153,7 @@ export const loadNextPageRecoveries = createAction(
       dateFilter?: DateFilter;
       paymentMethod?: string;
       clientId?: string;
+      searchQuery?: string;
     }
   }>()
 );

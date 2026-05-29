@@ -1,5 +1,5 @@
 <!-- Sidebar Start -->
-<aside class="left-sidebar" [class.show-sidebar]="layoutService.isSidebarOpen$ | async">
+<aside class="left-sidebar">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
   <!-- Sidebar scroll-->
@@ -8,7 +8,7 @@
       <a routerLink="/home" class="text-nowrap logo-img">
         <img src="../assets/images/logos/elykiaa.png" width="180" alt="" />
       </a>
-      <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse"
+      <div class="close-btn d-xl-none d-block cursor-pointer" id="sidebarCollapse"
         (click)="closeSidebar()">
         <i class="ti ti-x fs-8"></i>
       </div>

@@ -9,6 +9,31 @@ export class MigrationService {
 
   constructor(private log: LoggerService) { }
 
+  /** Vérifie si une colonne existe déjà (évite les erreurs après createTables). */
+  private async columnExists(
+    db: SQLiteDBConnection,
+    tableName: string,
+    columnName: string
+  ): Promise<boolean> {
+    const result = await db.query(`PRAGMA table_info(${tableName})`);
+    const rows = result.values ?? [];
+    return rows.some((row: Record<string, unknown>) => row['name'] === columnName);
+  }
+
+  /** Ajoute une colonne uniquement si elle n'existe pas encore. */
+  private async addColumnIfNotExists(
+    db: SQLiteDBConnection,
+    tableName: string,
+    columnName: string,
+    columnDefinition: string
+  ): Promise<void> {
+    if (await this.columnExists(db, tableName, columnName)) {
+      this.log.log(`Column ${tableName}.${columnName} already exists, skipping.`);
+      return;
+    }
+    await db.execute(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`);
+  }
+
   async runMigrations(db: SQLiteDBConnection, fromVersion: number, toVersion: number): Promise<void> {
     this.log.log(`Running migrations from version ${fromVersion} to ${toVersion}`);
     try {
@@ -284,11 +309,7 @@ export class MigrationService {
     try {
       this.log.log('Running migration to v7: Adding commercialUsername to tontine_collections...');
 
-      const alterTable = `
-        ALTER TABLE tontine_collections ADD COLUMN commercialUsername TEXT;
-      `;
-
-      await db.execute(alterTable);
+      await this.addColumnIfNotExists(db, 'tontine_collections', 'commercialUsername', 'TEXT');
       this.log.log('Migration to v7 successful: commercialUsername added to tontine_collections.');
 
     } catch (error) {
@@ -676,12 +697,12 @@ export class MigrationService {
       ];
 
       for (const stmt of alterStatements) {
-        try {
+        const match = stmt.match(/^ALTER TABLE (\w+) ADD COLUMN (\w+) (.+)$/i);
+        if (match) {
+          const [, table, column, definition] = match;
+          await this.addColumnIfNotExists(db, table, column, definition);
+        } else {
           await db.execute(stmt);
-        } catch (e: any) {
-          if (!((e.message && e.message.toLowerCase().includes('duplicate column')) || (e.toString && e.toString().toLowerCase().includes('duplicate column')))) {
-            throw e;
-          }
         }
       }
 

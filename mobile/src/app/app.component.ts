@@ -14,6 +14,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { SynchronizationService } from "./core/services/synchronization.service";
 import { Router } from "@angular/router";
 import { App } from "@capacitor/app";
+import { Capacitor } from '@capacitor/core';
 import {FirebaseCrashlytics} from "@capacitor-firebase/crashlytics";
 import { FeatureFlagService } from './core/services/feature-flag.service';
 
@@ -151,13 +152,13 @@ export class AppComponent implements OnInit {
   async initializeApp() {
     await this.platform.ready();
 
-    // Initialiser les feature flags
     await this.featureFlagService.init();
 
-    // Activer la collecte Crashlytics
-    await FirebaseCrashlytics.setEnabled({
-      enabled: true,
-    });
+    if (Capacitor.isNativePlatform()) {
+      await FirebaseCrashlytics.setEnabled({
+        enabled: true,
+      });
+    }
    }
 
   async saveToDownloads(imageData: string, fileName: string) {
