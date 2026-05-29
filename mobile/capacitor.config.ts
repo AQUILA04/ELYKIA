@@ -16,14 +16,19 @@ const config: CapacitorConfig = {
     ]
   },
   android: {
-    // Permettre le trafic HTTP non chiffré
     allowMixedContent: true,
-    // Capturer les erreurs réseau
-    captureInput: true
+    captureInput: true,
+    // Réserve l'espace pour la barre de statut / navigation (edge-to-edge Android 15+)
+    adjustMarginsForEdgeToEdge: 'force',
   },
   plugins: {
     CapacitorHttp: {
       enabled: true,
+    },
+    StatusBar: {
+      overlaysWebView: false,
+      style: 'DARK',
+      backgroundColor: '#ffffffff',
     },
   },
 };
