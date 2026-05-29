@@ -132,7 +132,6 @@ import { RecouvrementTableComponent } from './credit/recouvrement/components/rec
 import {NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule} from "ngx-google-analytics";
 import {environment} from "../environments/environment";
 import { AngularFireModule } from '@angular/fire/compat';
-import { AngularFireRemoteConfigModule, DEFAULTS } from '@angular/fire/compat/remote-config';
 import { FeatureFlagService } from './shared/service/feature-flag.service';
 
 export function initializeApp(featureFlagService: FeatureFlagService) {
@@ -274,7 +273,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     // Track automatique les changements de routes (pages vues)
     NgxGoogleAnalyticsRouterModule,
     AngularFireModule.initializeApp(environment.firebase),
-    AngularFireRemoteConfigModule
   ],
   providers: [
     // --- CORRECTION DES PROVIDERS ---
@@ -287,14 +285,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
       deps: [FeatureFlagService],
       multi: true
     },
-    {
-      provide: DEFAULTS,
-      useValue: {
-        stockReturnHistory: false,
-        nextMonthStockCreation: false,
-        endOfMonthAlerts: false
-      }
-    }
   ],
   bootstrap: [AppComponent]
 })
