@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { CreditLateDTO } from '../../../models/credit-late.model';
 
@@ -11,8 +11,8 @@ import { CreditLateDTO } from '../../../models/credit-late.model';
 export class CreditLateTableComponent implements OnChanges {
   @Input() credits: CreditLateDTO[] = [];
   @Input() isLoading: boolean = false;
-
-  currentPage: number = 1;
+  @Input() currentPage: number = 1;
+  @Output() pageChanged = new EventEmitter<number>();
   pageSize: number = 8;
   paginatedCredits: CreditLateDTO[] = [];
   maxPage: number = 1;
@@ -20,8 +20,7 @@ export class CreditLateTableComponent implements OnChanges {
   constructor(private router: Router) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['credits']) {
-      this.currentPage = 1;
+    if (changes['credits'] || changes['currentPage']) {
       this.updatePagination();
     }
   }
@@ -35,11 +34,13 @@ export class CreditLateTableComponent implements OnChanges {
 
   changePage(delta: number) {
     this.currentPage = Math.max(1, Math.min(this.maxPage, this.currentPage + delta));
+    this.pageChanged.emit(this.currentPage);
     this.updatePagination();
   }
 
   goPage(p: number) {
     this.currentPage = p;
+    this.pageChanged.emit(this.currentPage);
     this.updatePagination();
   }
 

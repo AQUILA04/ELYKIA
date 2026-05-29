@@ -16,13 +16,13 @@ export enum FeatureFlags {
 })
 export class FeatureFlagService {
   // Valeurs par défaut locales
-  private defaultFlags: Record<string, boolean> = {
+  private readonly defaultFlags: Record<string, boolean> = {
     [FeatureFlags.QuickActionStock]: false,
     [FeatureFlags.VersementHistory]: false,
-    [FeatureFlags.ReliquatManagement]: false,
+    [FeatureFlags.ReliquatManagement]: true,
   };
 
-  private flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);
+  private readonly flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);
   public flags$ = this.flagsState.asObservable();
 
   constructor() {}

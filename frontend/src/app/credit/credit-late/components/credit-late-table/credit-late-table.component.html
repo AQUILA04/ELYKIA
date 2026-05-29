@@ -6,6 +6,7 @@
           Gravité <span class="sort-icon">↓</span>
         </th>
         <th>Référence / Client</th>
+        <th>Localité</th>
         <th>Type de retard</th>
         <th class="col-hide">Agent collecteur</th>
         <th class="col-hide">Montant restant</th>
@@ -15,7 +16,7 @@
     </thead>
     <tbody>
       <tr *ngIf="isLoading">
-        <td colspan="7">
+        <td colspan="8">
           <div class="empty-state">
             <div class="empty-icon">⏳</div>
             <div class="empty-title">Chargement…</div>
@@ -23,7 +24,7 @@
         </td>
       </tr>
       <tr *ngIf="!isLoading && credits.length === 0">
-        <td colspan="7">
+        <td colspan="8">
           <div class="empty-state">
             <div class="empty-icon">✅</div>
             <div class="empty-title">Aucun retard trouvé</div>
@@ -50,6 +51,9 @@
           <div class="col-ref">{{ d.reference }}</div>
           <div class="col-client">{{ d.clientName }}</div>
           <div class="col-client-sub">{{ d.clientPhone }}</div>
+        </td>
+        <td>
+          <div class="col-locality">{{ d.clientQuarter || '—' }}</div>
         </td>
         <td>
           <ng-container *ngIf="d.lateType === 'DELAI'">

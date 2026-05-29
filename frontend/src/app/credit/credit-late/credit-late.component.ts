@@ -18,6 +18,8 @@ export class CreditLateComponent implements OnInit {
   currentCollector: string = '';
   currentType: string = 'all';
   currentMonth: number | null = null;
+  currentLocality: string = 'all';
+  savedPage: number = 1;
 
   currentDate: Date = new Date();
   lastUpdate: Date = new Date();
@@ -27,6 +29,7 @@ export class CreditLateComponent implements OnInit {
   constructor(private creditLateService: CreditLateService) {}
 
   ngOnInit() {
+    this.restoreState();
     this.loadData();
     setInterval(() => {
       this.currentDate = new Date();
@@ -37,7 +40,7 @@ export class CreditLateComponent implements OnInit {
     this.isLoading = true;
     
     // Load summary
-    this.creditLateService.getSummary(this.currentCollector, this.currentMonth || undefined).subscribe({
+    this.creditLateService.getSummary(this.currentCollector, this.currentMonth || undefined, this.currentLocality).subscribe({
       next: (res: any) => {
         if (res.statusCode === 200 && res.data) {
           this.summary = res.data;
@@ -48,7 +51,7 @@ export class CreditLateComponent implements OnInit {
     });
 
     // Load credits
-    this.creditLateService.getLateCredits(this.currentCollector, this.currentMonth || undefined).subscribe({
+    this.creditLateService.getLateCredits(this.currentCollector, this.currentMonth || undefined, this.currentLocality).subscribe({
       next: (res: any) => {
         if (res.statusCode === 200 && res.data) {
           this.allCredits = res.data;
@@ -66,12 +69,23 @@ export class CreditLateComponent implements OnInit {
 
   onCommercialChanged(collector: string) {
     this.currentCollector = collector;
+    this.savedPage = 1;
+    this.saveState();
     this.loadData();
   }
 
   onTypeChanged(type: string) {
     this.currentType = type;
+    this.savedPage = 1;
+    this.saveState();
     this.applyFilters();
+  }
+
+  onLocalityChanged(locality: string) {
+    this.currentLocality = locality;
+    this.savedPage = 1;
+    this.saveState();
+    this.loadData();
   }
 
   applyFilters() {
@@ -84,12 +98,46 @@ export class CreditLateComponent implements OnInit {
 
   onMonthChanged(month: number | null) {
     this.currentMonth = month;
+    this.savedPage = 1;
+    this.saveState();
     this.loadData();
+  }
+
+  onPageChanged(page: number) {
+    this.savedPage = page;
+    this.saveState();
+  }
+
+  private saveState() {
+    const state = {
+      collector: this.currentCollector,
+      type: this.currentType,
+      month: this.currentMonth,
+      locality: this.currentLocality,
+      page: this.savedPage
+    };
+    sessionStorage.setItem('creditLateFilters', JSON.stringify(state));
+  }
+
+  private restoreState() {
+    const saved = sessionStorage.getItem('creditLateFilters');
+    if (saved) {
+      try {
+        const state = JSON.parse(saved);
+        this.currentCollector = state.collector || '';
+        this.currentType = state.type || 'all';
+        this.currentMonth = state.month || null;
+        this.currentLocality = state.locality || 'all';
+        this.savedPage = state.page || 1;
+      } catch (e) {
+        console.error('Erreur restauration state', e);
+      }
+    }
   }
 
   onDownloadClicked() {
     this.isDownloading = true;
-    this.creditLateService.exportPdf(this.currentCollector, this.currentMonth || undefined, this.currentType).subscribe({
+    this.creditLateService.exportPdf(this.currentCollector, this.currentMonth || undefined, this.currentType, this.currentLocality).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

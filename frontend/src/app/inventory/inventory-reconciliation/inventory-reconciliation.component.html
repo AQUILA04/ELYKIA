@@ -62,20 +62,20 @@
           <div *ngIf="selectedItems.length === 1 && selectedItems[0]">
             <div class="info-row">
               <span class="lbl">Article:</span>
-              <span class="val">{{ selectedItems[0]?.articleName }}</span>
+              <span class="val">{{ selectedItems[0].articleName }}</span>
             </div>
             <div class="info-row">
               <span class="lbl">Qté. Système:</span>
-              <span class="val">{{ selectedItems[0]?.systemQuantity }}</span>
+              <span class="val">{{ selectedItems[0].systemQuantity }}</span>
             </div>
             <div class="info-row">
               <span class="lbl">Qté. Physique:</span>
-              <span class="val">{{ selectedItems[0]?.physicalQuantity }}</span>
+              <span class="val">{{ selectedItems[0].physicalQuantity }}</span>
             </div>
             <div class="info-row">
               <span class="lbl">Écart:</span>
-              <span class="val" [ngClass]="{'text-danger': selectedItems[0]?.difference! < 0, 'text-success': selectedItems[0]?.difference! > 0}">
-                {{ selectedItems[0]?.difference }}
+              <span class="val" [ngClass]="{'text-danger': selectedItems[0].difference! < 0, 'text-success': selectedItems[0].difference! > 0}">
+                {{ selectedItems[0].difference }}
               </span>
             </div>
           </div>
@@ -209,12 +209,12 @@
 
         <div class="row mb-3">
           <div class="col-md-6">
-            <p><strong>Quantité Système:</strong> {{ selectedItem?.systemQuantity }}</p>
-            <p><strong>Quantité Physique:</strong> {{ selectedItem?.physicalQuantity }}</p>
+            <p><strong>Quantité Système:</strong> {{ selectedItem.systemQuantity }}</p>
+            <p><strong>Quantité Physique:</strong> {{ selectedItem.physicalQuantity }}</p>
             <p><strong>Écart:</strong>
-              <span [ngClass]="{'text-danger': selectedItem?.difference! < 0,
-                               'text-success': selectedItem?.difference! > 0}">
-                {{ selectedItem?.difference || 0 }}
+              <span [ngClass]="{'text-danger': selectedItem.difference! < 0,
+                               'text-success': selectedItem.difference! > 0}">
+                {{ selectedItem.difference || 0 }}
               </span>
             </p>
           </div>

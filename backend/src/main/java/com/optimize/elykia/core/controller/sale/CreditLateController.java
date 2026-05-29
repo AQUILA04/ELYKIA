@@ -22,14 +22,16 @@ public class CreditLateController {
 
     @GetMapping
     public ResponseEntity<Response> getLateCredits(@RequestParam(required = false) String collector,
-                                                   @RequestParam(required = false) Integer month) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getLateCredits(collector, month)), HttpStatus.OK);
+                                                   @RequestParam(required = false) Integer month,
+                                                   @RequestParam(required = false) String locality) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getLateCredits(collector, month, locality)), HttpStatus.OK);
     }
 
     @GetMapping("/summary")
     public ResponseEntity<Response> getSummary(@RequestParam(required = false) String collector,
-                                               @RequestParam(required = false) Integer month) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getSummary(collector, month)), HttpStatus.OK);
+                                               @RequestParam(required = false) Integer month,
+                                               @RequestParam(required = false) String locality) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getSummary(collector, month, locality)), HttpStatus.OK);
     }
 
     @GetMapping("/collectors")
@@ -40,8 +42,9 @@ public class CreditLateController {
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportLateCredits(@RequestParam(required = false) String collector,
                                                     @RequestParam(required = false) Integer month,
-                                                    @RequestParam(required = false) String type) {
-        byte[] pdfBytes = creditLateService.generatePdfExport(collector, month, type);
+                                                    @RequestParam(required = false) String type,
+                                                    @RequestParam(required = false) String locality) {
+        byte[] pdfBytes = creditLateService.generatePdfExport(collector, month, type, locality);
         
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
         headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
