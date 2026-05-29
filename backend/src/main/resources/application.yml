@@ -313,7 +313,7 @@ security:
             phone: 90000020
             gender: FEMALE
             email: com020@email.com
-    allow-origin: http://localhost,http://localhost:4200,http://localhost:8100,capacitor://localhost,http://*.amenouveve-yaveh.com
+    allow-origin: http://localhost,http://localhost:4200,http://localhost:8100,capacitor://localhost,https://elykia-test.amenouveve-yaveh.com,https://elykia.amenouveve-yaveh.com,https://localhost,ionic://localhost
 
 optimize:
   client:
