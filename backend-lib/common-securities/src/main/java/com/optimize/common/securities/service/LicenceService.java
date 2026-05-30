@@ -4,6 +4,8 @@ import com.optimize.common.entities.util.DateUtils;
 import com.optimize.common.securities.models.Licence;
 import com.optimize.common.securities.repository.LicenceRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
@@ -12,13 +14,17 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LicenceService {
 
     private final LicenceRepository licenceRepository;
 
     public boolean isValidLicence(String activationCode) {
         Licence licence = licenceRepository.findByActivationCode(activationCode);
-        if (licence == null) return false;
+        if (licence == null) {
+            log.error("Licence non trouvée pour le code : {}", activationCode);
+            return false;
+        }
         return licence.getExpirationDate().isAfter(LocalDate.now());
     }
 
@@ -27,10 +33,13 @@ public class LicenceService {
         if (licence != null && licence.isRenewable()) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
-            if (licence.getActivationCode().startsWith("1Y")) {
-                calendar.add(Calendar.YEAR, 1);
-            } else if (licence.getActivationCode().startsWith("3Y")) {
-                calendar.add(Calendar.YEAR, 3);
+            String activationDurationType = activationCode.substring(1, 2);
+            String activationDurationPeriod = activationCode.substring(0, 1);
+            switch (activationDurationType) {
+                case "Y" -> calendar.add(Calendar.YEAR, Integer.parseInt(activationDurationPeriod));
+                case "M" -> calendar.add(Calendar.MONTH, Integer.parseInt(activationDurationPeriod));
+                case "D" -> calendar.add(Calendar.DAY_OF_YEAR, Integer.parseInt(activationDurationPeriod));
+                default -> calendar.add(Calendar.YEAR, 1);
             }
             licence.setExpirationDate(DateUtils.convertToLocalDate(calendar.getTime()));
             licenceRepository.saveAndFlush(licence);
@@ -87,7 +96,11 @@ public class LicenceService {
     private String generateActivationCode(String type) {
         // Generate a unique activation code based on the type
         // For simplicity, we use a basic pattern here
-        return type + RandomStringUtils.randomAlphanumeric(3).toUpperCase() + "-" + RandomStringUtils.randomAlphanumeric(5).toUpperCase() + "-" + RandomStringUtils.randomAlphanumeric(5).toUpperCase() + "-" + RandomStringUtils.randomAlphanumeric(5).toUpperCase() + "-" + RandomStringUtils.randomAlphanumeric(5).toUpperCase();
+        return type + RandomStringUtils.randomAlphanumeric(3).toUpperCase() + "-"
+                + RandomStringUtils.randomAlphanumeric(5).toUpperCase() + "-"
+                + RandomStringUtils.randomAlphanumeric(5).toUpperCase() + "-"
+                + RandomStringUtils.randomAlphanumeric(5).toUpperCase() + "-"
+                + RandomStringUtils.randomAlphanumeric(5).toUpperCase();
     }
 
     public boolean isExistsByCode(String code) {

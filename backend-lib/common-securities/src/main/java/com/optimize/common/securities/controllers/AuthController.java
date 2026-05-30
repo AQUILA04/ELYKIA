@@ -15,7 +15,6 @@ import com.optimize.common.securities.payload.request.TokenRefreshRequest;
 import com.optimize.common.securities.payload.response.JwtResponse;
 import com.optimize.common.securities.payload.response.MessageResponse;
 import com.optimize.common.securities.payload.response.TokenRefreshResponse;
-import com.optimize.common.securities.repository.UserRepository;
 import com.optimize.common.securities.security.jwt.JwtUtils;
 import com.optimize.common.securities.security.jwt.exception.TokenRefreshException;
 import com.optimize.common.securities.security.services.RefreshTokenService;
@@ -25,6 +24,7 @@ import com.optimize.common.securities.service.DeploymentLicenceService;
 import com.optimize.common.securities.service.LicenceService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @SecurityRequirement(name = "bearerAuth")
+@Slf4j
 public class AuthController {
   private AuthenticationManager authenticationManager;
 
@@ -54,6 +55,7 @@ public class AuthController {
   private LicenceService licenceService;
 
   @PostMapping("/signin")
+
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
     Authentication authentication = authenticationManager
@@ -61,11 +63,12 @@ public class AuthController {
 
     DeploymentLicence deploymentLicence = deploymentLicenceService.getLicence();
     if (Objects.isNull(deploymentLicence) || !licenceService.isValidLicence(deploymentLicence.getActivationCode())) {
-        throw new LicenceExpiredException("Aucune licence valide trouvée !");
+      log.error("Licence non trouvée pour le code : {}", deploymentLicence.getActivationCode());
+      throw new LicenceExpiredException("Aucune licence valide trouvée !");
     }
 
     if (LocalDate.now().isBefore(deploymentLicence.getIssuedDate())) {
-        throw new InvalidLicenceException("La date du système est invalide");
+      throw new InvalidLicenceException("La date du système est invalide");
     }
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -77,7 +80,7 @@ public class AuthController {
     RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
 
     return ResponseEntity.ok(new JwtResponse(jwt, refreshToken.getToken(), userDetails.getId(),
-            userDetails.getUsername(), userDetails.getEmail(), roles, userDetails.getProfil()));
+        userDetails.getUsername(), userDetails.getEmail(), roles, userDetails.getProfil()));
   }
 
   @PostMapping("/signup")
@@ -91,16 +94,15 @@ public class AuthController {
     String requestRefreshToken = request.getRefreshToken();
 
     return refreshTokenService.findByToken(requestRefreshToken)
-            .map(refreshTokenService::verifyExpiration)
-            .map(RefreshToken::getUser)
-            .map(user -> {
-              String token = jwtUtils.generateTokenFromUsername(user.getUsername());
-              return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
-            })
-            .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
-                    "Refresh token is not in database!"));
+        .map(refreshTokenService::verifyExpiration)
+        .map(RefreshToken::getUser)
+        .map(user -> {
+          String token = jwtUtils.generateTokenFromUsername(user.getUsername());
+          return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
+        })
+        .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
+            "Refresh token is not in database!"));
   }
-
 
   @Autowired
   public void setAuthenticationManager(AuthenticationManager authenticationManager) {
@@ -123,13 +125,12 @@ public class AuthController {
   }
 
   @Autowired
-    public void setDeploymentLicenceService(DeploymentLicenceService deploymentLicenceService) {
-        this.deploymentLicenceService = deploymentLicenceService;
-    }
+  public void setDeploymentLicenceService(DeploymentLicenceService deploymentLicenceService) {
+    this.deploymentLicenceService = deploymentLicenceService;
+  }
 
-    @Autowired
-    public void setLicenceService(LicenceService licenceService) {
-        this.licenceService = licenceService;
-    }
+  @Autowired
+  public void setLicenceService(LicenceService licenceService) {
+    this.licenceService = licenceService;
+  }
 }
-

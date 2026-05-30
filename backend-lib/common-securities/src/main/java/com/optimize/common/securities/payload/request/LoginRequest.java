@@ -24,4 +24,20 @@ public class LoginRequest {
   public void setPassword(String password) {
     this.password = password;
   }
+
+  @Override
+  public String toString() {
+    return "LoginRequest [username=" + username + ", password=" + maskPassword(password) + "]";
+  }
+
+  private String maskPassword(String password) {
+    if (password == null) {
+      return "null";
+    }
+    int length = password.length();
+    if (length < 5) {
+      return "***";
+    }
+    return password.substring(0, 2) + "***" + password.substring(length - 3);
+  }
 }

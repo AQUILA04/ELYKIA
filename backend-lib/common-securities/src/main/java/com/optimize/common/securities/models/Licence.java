@@ -6,12 +6,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
+@ToString
 public class Licence {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
