@@ -32,5 +32,6 @@ public class StockRequestItem extends Auditable<String> {
 
     @Column(columnDefinition = "double precision default 0")
     private Double purchasePrice; // Prix d'achat (purchasePrice)
+    @Column(columnDefinition = "TEXT")
     private String itemName;
 }
