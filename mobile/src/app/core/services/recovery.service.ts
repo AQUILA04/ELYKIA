@@ -20,11 +20,20 @@ import { DailyConsentGuardService } from '../../features/daily-consent/daily-con
 import { DailyConsentStateService } from '../daily-consent/daily-consent-state.service';
 import { AmountConfirmationService } from '../../features/amount-confirmation/amount-confirmation.service';
 
+export class RecoveryCreationInFlightError extends Error {
+  constructor(message = 'Un recouvrement est déjà en cours de création.') {
+    super(message);
+    this.name = 'RecoveryCreationInFlightError';
+  }
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class RecoveryService {
   private commercialUsername: string | undefined;
+  private recoveryCreationInFlight = false;
+  private recoveryCreationStartedAt: number | null = null;
 
   constructor(
     private readonly http: HttpClient,
@@ -129,55 +138,91 @@ export class RecoveryService {
       throw new Error('Commercial user not identified.');
     }
 
-    // Consentement journalier
-    await this.dailyConsentGuard.requireDailyConsent();
-    // Génération d'un suffixe aléatoire pour éviter les collisions (sur 6 caractères hexadécimaux)
-    const year = new Date().getFullYear();
-    const uniqueSuffix = Math.floor(Math.random() * 0x1000000).toString(16).toUpperCase().padStart(6, '0');
-    const usernameSuffix = this.commercialUsername.slice(-3); // Récupère les 3 derniers caractères
-
-    const newId = `REC-${year}${usernameSuffix}-${uniqueSuffix}`;
-
-
-    const newRecovery: Recovery = {
-      id: newId,
-      amount: recovery.amount || 0,
-      paymentDate: recovery.paymentDate || new Date().toISOString(),
-      paymentMethod: recovery.paymentMethod || 'CASH',
-      notes: recovery.notes || '',
-      distributionId: recovery.distributionId || '',
-      clientId: recovery.clientId || '',
-      commercialId: this.commercialUsername, // Set from context
-      isLocal: true,
-      isSync: false,
-      syncDate: '',
-      isDefaultStake: recovery.isDefaultStake,
-      createdAt: new Date().toISOString(),
-      reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
-      reliquatUsedAmount: recovery.reliquatUsedAmount || 0
-    };
-
-    // Confirmation du montant
-    const confirmedAmount = await this.amountConfirmation.confirmAmount(newRecovery.amount);
-    newRecovery.confirmedAmount = confirmedAmount;
-    newRecovery.operationConsentCode = this.dailyConsentState.getActiveConsentCode() ?? undefined;
-
-    // Sauvegarder localement
-    await this.recoveryRepository.save(newRecovery);
-
-    // Gérer les reliquats
-    if (keepReliquat && newRecovery.reliquatGeneratedAmount && newRecovery.reliquatGeneratedAmount > 0) {
-      await this.reliquatService.addReliquat(newRecovery.clientId, this.commercialUsername, newRecovery.reliquatGeneratedAmount, newRecovery.id);
-    }
-    if (newRecovery.reliquatUsedAmount && newRecovery.reliquatUsedAmount > 0) {
-      await this.reliquatService.consumeReliquat(newRecovery.clientId, newRecovery.reliquatUsedAmount);
+    if (this.recoveryCreationInFlight) {
+      const elapsedMs = this.recoveryCreationStartedAt ? Date.now() - this.recoveryCreationStartedAt : 0;
+      void this.log.log(
+        `[RecoveryService][BLOCKED_DUPLICATE] client=${recovery.clientId} distribution=${recovery.distributionId} ` +
+        `amount=${recovery.amount} inFlightSinceMs=${elapsedMs}`
+      );
+      throw new RecoveryCreationInFlightError();
     }
 
-    // Mettre à jour le solde de la distribution
-    await this.updateDistributionBalance(newRecovery.distributionId, newRecovery.amount);
+    this.recoveryCreationInFlight = true;
+    this.recoveryCreationStartedAt = Date.now();
+    const traceId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-    console.log('Recovery created locally:', newRecovery);
-    return newRecovery;
+    void this.log.log(
+      `[RecoveryService][CREATE_START][${traceId}] client=${recovery.clientId} distribution=${recovery.distributionId} ` +
+      `amount=${recovery.amount} isDefaultStake=${recovery.isDefaultStake} paymentDate=${recovery.paymentDate}`
+    );
+
+    try {
+      // Consentement journalier
+      await this.dailyConsentGuard.requireDailyConsent();
+      void this.log.log(`[RecoveryService][CREATE_STEP][${traceId}] dailyConsent=ok`);
+
+      // Génération d'un suffixe aléatoire pour éviter les collisions (sur 6 caractères hexadécimaux)
+      const year = new Date().getFullYear();
+      const uniqueSuffix = Math.floor(Math.random() * 0x1000000).toString(16).toUpperCase().padStart(6, '0');
+      const usernameSuffix = this.commercialUsername.slice(-3);
+
+      const newId = `REC-${year}${usernameSuffix}-${uniqueSuffix}`;
+
+      const newRecovery: Recovery = {
+        id: newId,
+        amount: recovery.amount || 0,
+        paymentDate: recovery.paymentDate || new Date().toISOString(),
+        paymentMethod: recovery.paymentMethod || 'CASH',
+        notes: recovery.notes || '',
+        distributionId: recovery.distributionId || '',
+        clientId: recovery.clientId || '',
+        commercialId: this.commercialUsername,
+        isLocal: true,
+        isSync: false,
+        syncDate: '',
+        isDefaultStake: recovery.isDefaultStake,
+        createdAt: new Date().toISOString(),
+        reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
+        reliquatUsedAmount: recovery.reliquatUsedAmount || 0
+      };
+
+      void this.log.log(`[RecoveryService][CREATE_STEP][${traceId}] recoveryId=${newId} awaitingAmountConfirmation`);
+
+      // Confirmation du montant
+      const confirmedAmount = await this.amountConfirmation.confirmAmount(newRecovery.amount);
+      newRecovery.confirmedAmount = confirmedAmount;
+      newRecovery.operationConsentCode = this.dailyConsentState.getActiveConsentCode() ?? undefined;
+
+      void this.log.log(
+        `[RecoveryService][CREATE_STEP][${traceId}] amountConfirmed=${confirmedAmount} savingToDb`
+      );
+
+      // Sauvegarder localement
+      await this.recoveryRepository.save(newRecovery);
+
+      // Gérer les reliquats
+      if (keepReliquat && newRecovery.reliquatGeneratedAmount && newRecovery.reliquatGeneratedAmount > 0) {
+        await this.reliquatService.addReliquat(newRecovery.clientId, this.commercialUsername, newRecovery.reliquatGeneratedAmount, newRecovery.id);
+      }
+      if (newRecovery.reliquatUsedAmount && newRecovery.reliquatUsedAmount > 0) {
+        await this.reliquatService.consumeReliquat(newRecovery.clientId, newRecovery.reliquatUsedAmount);
+      }
+
+      // Mettre à jour le solde de la distribution
+      await this.updateDistributionBalance(newRecovery.distributionId, newRecovery.amount);
+
+      void this.log.log(
+        `[RecoveryService][CREATE_DONE][${traceId}] recoveryId=${newRecovery.id} amount=${newRecovery.amount} ` +
+        `paymentDate=${newRecovery.paymentDate} client=${newRecovery.clientId}`
+      );
+      return newRecovery;
+    } catch (error) {
+      void this.log.error(`[RecoveryService][CREATE_FAILED][${traceId}]`, error);
+      throw error;
+    } finally {
+      this.recoveryCreationInFlight = false;
+      this.recoveryCreationStartedAt = null;
+    }
   }
 
   /**
@@ -278,6 +323,9 @@ export class RecoveryService {
   async checkExistingRecoveryForToday(clientId: string): Promise<boolean> {
     const today = new Date().toISOString().split('T')[0];
     const count = await this.recoveryRepository.countByClientAndDate(clientId, today);
+    void this.log.log(
+      `[RecoveryService][CHECK_TODAY] client=${clientId} date=${today} existingCount=${count}`
+    );
     return count > 0;
   }
 }

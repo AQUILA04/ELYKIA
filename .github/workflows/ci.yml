@@ -78,8 +78,12 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
 
   build-backend:
-    needs: changes
-    if: ${{ needs.changes.outputs.backend == 'true' }}
+    needs: [changes, build-backend-lib]
+    if: |
+      always() &&
+      needs.changes.result == 'success' &&
+      (needs.changes.outputs.backend == 'true' || needs.changes.outputs.backend_lib == 'true') &&
+      (needs.build-backend-lib.result == 'success' || needs.build-backend-lib.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: read

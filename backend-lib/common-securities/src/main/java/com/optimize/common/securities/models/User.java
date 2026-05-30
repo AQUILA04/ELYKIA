@@ -12,15 +12,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
-@Table( name = "USERS",
-        uniqueConstraints = {
-          @UniqueConstraint(columnNames = "ACCID"),
-          @UniqueConstraint(columnNames = "USEEML")
-        })
+@Table(name = "USERS", uniqueConstraints = {
+    @UniqueConstraint(columnNames = "ACCID"),
+    @UniqueConstraint(columnNames = "USEEML")
+})
 @Getter
 @Setter
+@ToString
 public class User extends BaseEntity<String> {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -61,25 +62,26 @@ public class User extends BaseEntity<String> {
   public User() {
   }
 
-  public User(String firstname, String lastname, String gender, String email, String phone, String username, String password) {
+  public User(String firstname, String lastname, String gender, String email, String phone, String username,
+      String password) {
     this.email = email;
     this.firstname = firstname;
     this.lastname = lastname;
     this.gender = gender;
     this.phone = phone;
-    this.userAccount  = new UserAccount();
+    this.userAccount = new UserAccount();
     this.userAccount.setUsername(username);
     this.userAccount.setPassword(password);
   }
 
-    public User(String firstname, String lastname, String gender, String email, String phone, UserAccount userAccount) {
-        this.email = email;
-        this.firstname = firstname;
-        this.lastname = lastname;
-        this.gender = gender;
-        this.phone = phone;
-        this.userAccount  = userAccount;
-    }
+  public User(String firstname, String lastname, String gender, String email, String phone, UserAccount userAccount) {
+    this.email = email;
+    this.firstname = firstname;
+    this.lastname = lastname;
+    this.gender = gender;
+    this.phone = phone;
+    this.userAccount = userAccount;
+  }
 
   public String getUsername() {
     if (Objects.nonNull(userAccount)) {
@@ -99,8 +101,8 @@ public class User extends BaseEntity<String> {
   public Set<UserPermission> getPermissions() {
     if (Objects.nonNull(userAccount)) {
       return userAccount.getPermissions().stream()
-              .map(AccountPermission::getUserPermission)
-              .collect(Collectors.toSet());
+          .map(AccountPermission::getUserPermission)
+          .collect(Collectors.toSet());
     }
     return new HashSet<>();
   }
@@ -116,28 +118,28 @@ public class User extends BaseEntity<String> {
 
   @JsonProperty(value = "profil")
   public Map<String, Object> getProfil() {
-      Map<String, Object> profil = new HashMap<>();
-      if (Objects.nonNull(userAccount)) {
-          profil.put("id", userAccount.getUserProfil().getId());
-          profil.put("name", userAccount.getUserProfil().getName());
-          return profil;
-      }
+    Map<String, Object> profil = new HashMap<>();
+    if (Objects.nonNull(userAccount)) {
+      profil.put("id", userAccount.getUserProfil().getId());
+      profil.put("name", userAccount.getUserProfil().getName());
       return profil;
+    }
+    return profil;
   }
 
   public String getProfilName() {
-      if (Objects.nonNull(userAccount) && Objects.nonNull(userAccount.getUserProfil())) {
-          return userAccount.getUserProfil().getName();
-      }
-      return null;
+    if (Objects.nonNull(userAccount) && Objects.nonNull(userAccount.getUserProfil())) {
+      return userAccount.getUserProfil().getName();
+    }
+    return null;
   }
 
   @JsonIgnore
   public boolean is(String profileName) {
-      if (Objects.nonNull(userAccount)) {
-          return profileName.equals(userAccount.getProfileName());
-      }
-      return Boolean.FALSE;
+    if (Objects.nonNull(userAccount)) {
+      return profileName.equals(userAccount.getProfileName());
+    }
+    return Boolean.FALSE;
   }
 
 }
