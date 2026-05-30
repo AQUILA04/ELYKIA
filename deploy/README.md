@@ -117,9 +117,25 @@ ssh user@server
 Le script `import-db.sh` :
 - tente d'abord d'identifier le container cible via `docker compose -f docker-compose.<env>.yml` (service `db`)
 - si aucune détection n'est possible, une logique heuristique essaie de choisir un container PostgreSQL approprié
-- avant d'exécuter la restauration, le script crée automatiquement une sauvegarde de la base actuelle (via `db_backup.sh`)
+- avant d'exécuter la restauration, le script crée automatiquement une sauvegarde de la base actuelle (via `db_backup.sh`, **sur le même container** que l'import)
 - par défaut le script vous demandera une confirmation interactive avant de lancer la sauvegarde et la restauration ;
   pour lancer en mode non interactif (p.ex. dans un job automatisé), utilisez `NONINTERACTIVE=1`.
+
+> **Fichiers `.env`** : les secrets Postgres sont dans `/opt/elykia/test/.env` et `/opt/elykia/prod/.env` (pas dans `deploy/.env`).
+
+### Dépannage import / backup
+
+| Symptôme | Cause probable | Action |
+|---|---|---|
+| `deploy/.env: No such file or directory` | Scripts `deploy/` obsolètes sur le serveur | `./update-deploy.sh` ou `git pull` puis recopier `deploy/` |
+| `role "elykia_prod" does not exist` | `db_backup.sh` ciblait un autre container Postgres, ou variables héritées du shell parent | Mettre à jour les scripts ; passer le container explicitement : `./import-db.sh prod /path/dump elykia-prod-db-1` |
+| Backend OK mais backup échoue | L'utilisateur Postgres du **volume** peut différer de celui dans `.env` (init au premier démarrage) | Les scripts relisent `POSTGRES_USER` depuis le container ; vérifier avec `docker exec elykia-prod-db-1 psql -U postgres -c '\du'` |
+
+Sauvegarde manuelle (même container que prod) :
+```bash
+cd /opt/elykia/deploy
+./db_backup.sh prod elykia-prod-db-1
+```
 
 ## Backups automatiques de la base
 Un script `db_backup.sh` est fourni pour effectuer des sauvegardes de la base Postgres. Il est recommandé de planifier son exécution via `cron` sur le serveur hôte :

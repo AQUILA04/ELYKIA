@@ -15,6 +15,9 @@ if id "deploy" &>/dev/null; then
     chown -R deploy:deploy /opt/elykia/deploy.new
 fi
 chmod +x /opt/elykia/deploy.new/*.sh
+if [ -d "/opt/elykia/deploy.new/lib" ]; then
+    chmod +x /opt/elykia/deploy.new/lib/*.sh 2>/dev/null || true
+fi
 
 # Atomic swap: rename old deploy dir, then move new one in place
 BACKUP_DIR="/opt/elykia/deploy.old_$(date +%s)"

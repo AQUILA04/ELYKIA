@@ -12,32 +12,18 @@ ENV="$1"
 DUMP_PATH="$2"
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=lib/stack.sh
+source "$ROOT_DIR/lib/stack.sh"
+
 COMPOSE_FILE="$ROOT_DIR/docker-compose.$ENV.yml"
 COMPOSE_PROJECT="elykia-$ENV"
+STACK_DIR="$(elykia_stack_dir "$ENV")"
+ENV_FILE="$(elykia_stack_env_file "$ENV")"
 
-# Each stack has its own .env under /opt/elykia/<env>/ (see deploy.sh)
-STACK_DIR="/opt/elykia/$ENV"
-ENV_FILE="$STACK_DIR/.env"
-
-if [[ -f "$ENV_FILE" ]]; then
-  # shellcheck disable=SC1090
-  set -a; source "$ENV_FILE"; set +a
-else
-  echo "Error: $ENV_FILE not found. Run setup-server.sh first." >&2
-  exit 1
-fi
-
-if [[ -z "${POSTGRES_USER:-}" || -z "${POSTGRES_DB:-}" ]]; then
-  echo "Error: POSTGRES_USER and POSTGRES_DB must be set in $ENV_FILE" >&2
-  exit 1
-fi
+elykia_load_stack_env "$ENV"
 
 compose() {
-  docker compose \
-    -f "$COMPOSE_FILE" \
-    --project-name "$COMPOSE_PROJECT" \
-    --env-file "$ENV_FILE" \
-    "$@"
+  elykia_compose "$ROOT_DIR" "$ENV" "$@"
 }
 
 # show which DB/user will be used for restore (goes to stderr)
@@ -169,15 +155,13 @@ if ! confirm_import; then
   exit 2
 fi
 
-# Before importing, create a backup of the current DB state
+# Before importing, create a backup of the current DB state (same container as import)
 echo "Creating pre-import backup..."
-"$ROOT_DIR/db_backup.sh" "$ENV"
+"$ROOT_DIR/db_backup.sh" "$ENV" "$DB_CONTAINER"
 
-# show which container (id and name) will be used for the restore
-echo "Using DB container: $DB_CONTAINER" >&2
-if command -v docker >/dev/null 2>&1; then
-  docker inspect --format 'Container name: {{.Name}}' "$DB_CONTAINER" 2>/dev/null | sed 's/^/ /' >&2 || true
-fi
+elykia_sync_pg_creds_from_container "$DB_CONTAINER"
+PG_RESTORE_USER="$(elykia_resolve_pg_dump_user "$DB_CONTAINER" "$POSTGRES_USER")"
+echo "Using POSTGRES_USER=$POSTGRES_USER POSTGRES_DB=$POSTGRES_DB (restore as $PG_RESTORE_USER)" >&2
 
 # Helper: copy file into container and return container path
 copy_into_container() {
@@ -196,17 +180,17 @@ copy_into_container() {
 case "$DUMP_PATH" in
   *.sql)
     echo "Detected plain SQL"
-    docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" "$POSTGRES_DB" < "$DUMP_PATH"
+    docker exec -i "$DB_CONTAINER" psql -U "$PG_RESTORE_USER" "$POSTGRES_DB" < "$DUMP_PATH"
     ;;
   *.sql.gz)
     echo "Detected gzipped SQL"
-    gunzip -c "$DUMP_PATH" | docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" "$POSTGRES_DB"
+    gunzip -c "$DUMP_PATH" | docker exec -i "$DB_CONTAINER" psql -U "$PG_RESTORE_USER" "$POSTGRES_DB"
     ;;
   *.dump|*.pgdump|*.custom)
     echo "Detected pg_dump custom format"
     DEST=$(copy_into_container "$DUMP_PATH")
     echo "Running pg_restore on container $DB_CONTAINER -> $POSTGRES_DB (verbose)" >&2
-    docker exec -i "$DB_CONTAINER" pg_restore --no-owner -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --verbose "$DEST"
+    docker exec -i "$DB_CONTAINER" pg_restore --no-owner -U "$PG_RESTORE_USER" -d "$POSTGRES_DB" --clean --if-exists --verbose "$DEST"
     RC=$?
     if [ $RC -ne 0 ]; then
       echo "pg_restore failed with exit code $RC" >&2
@@ -222,7 +206,7 @@ case "$DUMP_PATH" in
     DEST=${DEST_GZ%.gz}
     echo "Gunzip inside container to $DEST and running pg_restore (verbose)" >&2
     docker exec -i "$DB_CONTAINER" sh -c "gunzip -c '$DEST_GZ' > '$DEST'"
-    docker exec -i "$DB_CONTAINER" pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --verbose "$DEST"
+    docker exec -i "$DB_CONTAINER" pg_restore -U "$PG_RESTORE_USER" -d "$POSTGRES_DB" --clean --if-exists --verbose "$DEST"
     RC=$?
     if [ $RC -ne 0 ]; then
       echo "pg_restore failed with exit code $RC" >&2
