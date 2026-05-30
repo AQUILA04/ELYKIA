@@ -9,6 +9,7 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import localeFrExtra from '@angular/common/locales/extra/fr';
 import { PdfService } from '../../../core/services/pdf.service';
+import { LoggerService } from '../../../core/services/logger.service';
 
 registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
 
@@ -30,7 +31,8 @@ export class RecoverySummaryModalComponent implements OnInit {
   constructor(
     private modalController: ModalController,
     private loadingController: LoadingController,
-    private pdfService: PdfService
+    private pdfService: PdfService,
+    private log: LoggerService
   ) { }
 
   ngOnInit() {
@@ -61,9 +63,13 @@ export class RecoverySummaryModalComponent implements OnInit {
             'recouvrement',
             this.recovery.id
           );
+          void this.log.log(
+            `[RecoverySummaryModal][PDF_SAVED] recoveryId=${this.recovery.id} amount=${this.recovery.amount} ` +
+            `client=${this.client.id} paymentDate=${this.recovery.paymentDate}`
+          );
           await loading.dismiss();
         } catch (e) {
-          console.error('Failed to auto-save PDF receipt', e);
+          void this.log.error(`[RecoverySummaryModal][PDF_FAILED] recoveryId=${this.recovery.id}`, e);
           await loading.dismiss();
         }
       }

@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
-import { Observable, Subject, combineLatest } from 'rxjs';
+import { Observable, Subject, combineLatest, firstValueFrom } from 'rxjs';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { withLatestFrom, take, takeUntil, map } from 'rxjs/operators';
 
@@ -26,6 +26,7 @@ interface RecoveryViewModel {
   credits: Distribution[];
   selectedCredit: Distribution | null;
   isLoading: boolean;
+  isCreatingRecovery: boolean;
   error: string | null;
 }
 
@@ -45,6 +46,7 @@ export class RecoveryPage implements OnInit, OnDestroy {
     credits: [],
     selectedCredit: null,
     isLoading: false,
+    isCreatingRecovery: false,
     error: null
   };
   recoveryAmount: number = 0; // Montant à collecter (sélectionné par pastilles)
@@ -53,6 +55,8 @@ export class RecoveryPage implements OnInit, OnDestroy {
   recoveryPlan: RecoveryPlan | null = null;
   useReliquat: boolean = true;
   keepReliquat: boolean = true;
+  /** Garde anti double-tap pendant toute la chaîne de confirmation. */
+  isSubmitting = false;
 
   // Expose FeatureFlags to the template
   public featureFlags = FeatureFlags;
@@ -80,6 +84,7 @@ export class RecoveryPage implements OnInit, OnDestroy {
       credits: this.store.select(RecoverySelectors.selectClientCredits),
       selectedCredit: this.store.select(RecoverySelectors.selectSelectedCredit),
       isLoading: this.store.select(RecoverySelectors.selectIsLoading),
+      isCreatingRecovery: this.store.select(RecoverySelectors.selectIsCreatingRecovery),
       error: this.store.select(RecoverySelectors.selectError)
     }).pipe(
       takeUntil(this.destroy$)
@@ -138,34 +143,53 @@ export class RecoveryPage implements OnInit, OnDestroy {
       withLatestFrom(this.store.select(selectAuthUser), this.vm$),
       takeUntil(this.destroy$)
     ).subscribe(async ([{ recovery }, user, vm]) => {
+      void this.log.log(
+        `[RecoveryPage][CREATE_SUCCESS] recoveryId=${recovery.id} amount=${recovery.amount} ` +
+        `client=${recovery.clientId} paymentDate=${recovery.paymentDate}`
+      );
+
+      this.isSubmitting = false;
+      this.clearRecoveryFormFields();
+
       const toast = await this.toastController.create({ message: 'Recouvrement enregistré avec succès', duration: 3000, color: 'success', position: 'top' });
       await toast.present();
 
       if (vm.client && vm.selectedCredit && user) {
-        // Recharger toutes les données nécessaires
         this.store.dispatch(RecoveryActions.showRecoverySummary({ recovery, client: vm.client, distribution: vm.selectedCredit }));
         this.store.dispatch(RecoveryActions.loadRecoveries({ commercialUsername: user.username }));
-        // this.store.dispatch(ClientActions.loadClientViewsUpdate()); // Géré par RecoveryEffects
-
-        // Recharger les distributions pour mettre à jour les KPIs du dashboard
         this.store.dispatch(DistributionActions.loadDistributions({ commercialUsername: user.username }));
-
-        // Forcer la mise à jour de la vue
         this.cdr.markForCheck();
       }
 
-      // Attendre un peu avant de réinitialiser le formulaire pour laisser le temps aux données de se mettre à jour
-      setTimeout(async () => {
-        this.store.dispatch(RecoveryActions.resetRecoveryForm());
-        this.recoveryAmount = 0;
-        this.receivedAmount = 0;
-        this.recoveryPlan = null;
-        if (vm.client && this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
-          this.clientReliquat = await this.reliquatService.getReliquatForClient(vm.client.id);
-        }
-        this.cdr.markForCheck();
-      }, 1000);
+      this.store.dispatch(RecoveryActions.resetRecoveryForm());
+      if (vm.client && this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
+        this.clientReliquat = await this.reliquatService.getReliquatForClient(vm.client.id);
+      }
+      this.cdr.markForCheck();
     });
+
+    this.actions$.pipe(
+      ofType(RecoveryActions.createRecoveryFailure),
+      takeUntil(this.destroy$)
+    ).subscribe(async ({ error }) => {
+      void this.log.error('[RecoveryPage][CREATE_FAILURE]', error);
+      this.isSubmitting = false;
+      this.cdr.markForCheck();
+
+      const toast = await this.toastController.create({
+        message: 'Échec de l\'enregistrement du recouvrement. Réessayez.',
+        duration: 3500,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    });
+  }
+
+  private clearRecoveryFormFields(): void {
+    this.recoveryAmount = 0;
+    this.receivedAmount = 0;
+    this.recoveryPlan = null;
   }
 
   async openClientSelector() {
@@ -246,38 +270,75 @@ export class RecoveryPage implements OnInit, OnDestroy {
     this.keepReliquat = keep;
   }
 
-  onConfirmRecovery() {
-    this.store.select(selectAuthUser).pipe(take(1))
-      .pipe(withLatestFrom(this.vm$))
-      .subscribe(async ([user, vm]) => {
-        if (vm.selectedCredit && this.recoveryAmount > 0 && vm.client && user) {
-          const exists = await this.recoveryService.checkExistingRecoveryForToday(vm.client.id);
-          if (exists) {
-            const alert = await this.alertController.create({
-              header: 'Confirmation',
-              message: 'Un recouvrement a déjà été effectué pour ce client aujourd\'hui. Voulez-vous vraiment en ajouter un autre ?',
-              buttons: [
-                { text: 'Annuler', role: 'cancel', cssClass: 'secondary' },
-                { text: 'Confirmer', handler: () => this.dispatchCreateRecovery(user, vm) }
-              ]
-            });
-            await alert.present();
-          } else {
-            this.dispatchCreateRecovery(user, vm);
-          }
+  async onConfirmRecovery() {
+    if (this.isSubmitting || this.vm.isCreatingRecovery) {
+      void this.log.log(
+        `[RecoveryPage][BLOCKED] Double-tap ignored isSubmitting=${this.isSubmitting} ` +
+        `isCreatingRecovery=${this.vm.isCreatingRecovery}`
+      );
+      return;
+    }
+
+    const user = await firstValueFrom(this.store.select(selectAuthUser).pipe(take(1)));
+    const vm = await firstValueFrom(this.vm$.pipe(take(1)));
+
+    if (!vm.selectedCredit || this.recoveryAmount <= 0 || !vm.client || !user) {
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.cdr.markForCheck();
+
+    void this.log.log(
+      `[RecoveryPage][CONFIRM_START] client=${vm.client.id} distribution=${vm.selectedCredit.id} ` +
+      `amount=${this.recoveryAmount} receivedAmount=${this.receivedAmount} creditRef=${vm.selectedCredit.reference}`
+    );
+
+    try {
+      const exists = await this.recoveryService.checkExistingRecoveryForToday(vm.client.id);
+
+      if (exists) {
+        const alert = await this.alertController.create({
+          header: 'Confirmation',
+          message: 'Un recouvrement a déjà été effectué pour ce client aujourd\'hui. Voulez-vous vraiment en ajouter un autre ?',
+          buttons: [
+            { text: 'Annuler', role: 'cancel' },
+            { text: 'Confirmer', role: 'confirm' }
+          ]
+        });
+        await alert.present();
+        const { role } = await alert.onDidDismiss();
+
+        if (role !== 'confirm') {
+          void this.log.log(`[RecoveryPage][CANCELLED] User declined second recovery for client=${vm.client.id}`);
+          this.isSubmitting = false;
+          this.cdr.markForCheck();
+          return;
         }
-      });
+      }
+
+      this.dispatchCreateRecovery(user, vm);
+    } catch (error) {
+      void this.log.error('[RecoveryPage][CONFIRM_ERROR]', error);
+      this.isSubmitting = false;
+      this.cdr.markForCheck();
+    }
   }
 
-  private dispatchCreateRecovery(user: any, vm: RecoveryViewModel) {
-    if (!vm.selectedCredit || !vm.client) return;
+  private dispatchCreateRecovery(user: { username: string }, vm: RecoveryViewModel) {
+    if (!vm.selectedCredit || !vm.client) {
+      this.isSubmitting = false;
+      this.cdr.markForCheck();
+      return;
+    }
 
     const isReliquatEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement);
     const isDefaultStake = this.recoveryAmount === vm.selectedCredit.dailyPayment;
+    const paymentDate = new Date().toISOString();
 
     const recovery: Partial<Recovery> = {
       amount: this.recoveryAmount,
-      paymentDate: new Date().toISOString(),
+      paymentDate,
       paymentMethod: 'CASH',
       distributionId: vm.selectedCredit.id,
       clientId: vm.client.id,
@@ -295,6 +356,15 @@ export class RecoveryPage implements OnInit, OnDestroy {
       recovery.reliquatUsedAmount = 0;
     }
 
+    void this.log.log(
+      `[RecoveryPage][DISPATCH] client=${recovery.clientId} distribution=${recovery.distributionId} ` +
+      `amount=${recovery.amount} isDefaultStake=${recovery.isDefaultStake} paymentDate=${paymentDate}`
+    );
+
+    // Réinitialiser immédiatement le formulaire pour empêcher un second envoi avec le même montant.
+    this.clearRecoveryFormFields();
+    this.cdr.markForCheck();
+
     this.store.dispatch(RecoveryActions.createRecovery({
       recovery,
       distribution: vm.selectedCredit,
@@ -307,6 +377,10 @@ export class RecoveryPage implements OnInit, OnDestroy {
   }
 
   canConfirmRecovery(vm: RecoveryViewModel): boolean {
+    if (this.isSubmitting || vm.isCreatingRecovery) {
+      return false;
+    }
+
     const hasBaseValid = !!(vm.client && vm.selectedCredit && this.recoveryAmount > 0);
     if (!hasBaseValid) return false;
 
@@ -323,6 +397,10 @@ export class RecoveryPage implements OnInit, OnDestroy {
       // Logique simple sans reliquat : il faut juste un montant
       return this.recoveryAmount > 0;
     }
+  }
+
+  shouldShowConfirmFooter(vm: RecoveryViewModel): boolean {
+    return !!(vm.client && vm.selectedCredit && (this.canConfirmRecovery(vm) || this.isSubmitting || vm.isCreatingRecovery));
   }
 
   trackByCreditId(index: number, credit: Distribution): string {

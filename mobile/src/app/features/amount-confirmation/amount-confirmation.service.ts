@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { LoadingController, ModalController } from '@ionic/angular';
+import { LoggerService } from '../../core/services/logger.service';
 import { AmountConfirmationModalComponent } from './modals/amount-confirmation-modal/amount-confirmation-modal.component';
 
 export class AmountConfirmationCancelledError extends Error {
@@ -14,7 +15,8 @@ export class AmountConfirmationService {
 
   constructor(
     private readonly modalController: ModalController,
-    private readonly loadingController: LoadingController
+    private readonly loadingController: LoadingController,
+    private readonly log: LoggerService
   ) {}
 
   /**
@@ -24,6 +26,8 @@ export class AmountConfirmationService {
    */
   async confirmAmount(calculatedAmount: number): Promise<number> {
     await this.dismissActiveLoading();
+
+    void this.log.log(`[AmountConfirmation][OPEN] calculatedAmount=${calculatedAmount}`);
 
     const modal = await this.modalController.create({
       component: AmountConfirmationModalComponent,
@@ -39,9 +43,13 @@ export class AmountConfirmationService {
     }>();
 
     if (!data?.confirmed || data.confirmedAmount === undefined) {
+      void this.log.log(`[AmountConfirmation][CANCELLED] calculatedAmount=${calculatedAmount}`);
       throw new AmountConfirmationCancelledError();
     }
 
+    void this.log.log(
+      `[AmountConfirmation][CONFIRMED] calculatedAmount=${calculatedAmount} confirmedAmount=${data.confirmedAmount}`
+    );
     return data.confirmedAmount;
   }
 

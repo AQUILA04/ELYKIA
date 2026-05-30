@@ -141,16 +141,22 @@
   </div>
 
   <!-- Bouton de confirmation fixe -->
-  @if (canConfirmRecovery(vm)) {
+  @if (shouldShowConfirmFooter(vm)) {
     <ion-footer>
       <ion-toolbar>
         <ion-button
           expand="block"
           color="success"
           (click)="onConfirmRecovery()"
+          [disabled]="isSubmitting || vm.isCreatingRecovery"
           class="confirm-button">
-          <ion-icon name="checkmark-circle" slot="start"></ion-icon>
-          CONFIRMER LE RECOUVREMENT
+          @if (isSubmitting || vm.isCreatingRecovery) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+            <span>ENREGISTREMENT EN COURS...</span>
+          } @else {
+            <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+            CONFIRMER LE RECOUVREMENT
+          }
         </ion-button>
       </ion-toolbar>
     </ion-footer>

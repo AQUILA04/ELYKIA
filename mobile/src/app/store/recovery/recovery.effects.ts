@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { of, from, concatMap } from 'rxjs';
+import { of, from, concatMap, EMPTY } from 'rxjs';
 import { ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { catchError, map, switchMap, withLatestFrom, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, exhaustMap, withLatestFrom, tap } from 'rxjs/operators';
 import * as RecoveryActions from './recovery.actions';
-import { RecoveryService } from '../../core/services/recovery.service';
+import { RecoveryCreationInFlightError, RecoveryService } from '../../core/services/recovery.service';
+import { LoggerService } from '../../core/services/logger.service';
 import { PrintingService, PrintableRecovery } from '../../core/services/printing.service';
 import * as TransactionActions from '../transaction/transaction.actions';
 import * as DistributionActions from '../distribution/distribution.actions';
@@ -28,7 +29,8 @@ export class RecoveryEffects {
     private printingService: PrintingService,
     private store: Store,
     private modalController: ModalController,
-    private recoveryRepositoryExtensions: RecoveryRepositoryExtensions
+    private recoveryRepositoryExtensions: RecoveryRepositoryExtensions,
+    private log: LoggerService
   ) { }
 
   loadAndSelectClient$ = createEffect(() => {
@@ -139,12 +141,20 @@ export class RecoveryEffects {
   processRecovery$ = createEffect(() =>
     this.actions$.pipe(
       ofType(RecoveryActions.createRecovery),
-      tap(({ recovery }) => console.log('[EFFECT] processRecovery$: Triggered', recovery)),
-      switchMap(({ recovery, distribution, keepReliquat }) =>
+      tap(({ recovery, distribution }) => {
+        void this.log.log(
+          `[RecoveryEffects][ACTION_RECEIVED] client=${recovery.clientId} distribution=${recovery.distributionId} ` +
+          `amount=${recovery.amount} creditRef=${distribution.reference} paymentDate=${recovery.paymentDate}`
+        );
+      }),
+      exhaustMap(({ recovery, distribution, keepReliquat }) =>
         from(this.recoveryService.createRecovery(recovery, keepReliquat !== undefined ? keepReliquat : true)).pipe(
           switchMap((createdRecovery) => {
-            // Préparer la nouvelle transaction pour l'historique
-            console.log('Dans le switchMap de processRecovery');
+            void this.log.log(
+              `[RecoveryEffects][CREATE_SUCCESS] recoveryId=${createdRecovery.id} amount=${createdRecovery.amount} ` +
+              `client=${createdRecovery.clientId} paymentDate=${createdRecovery.paymentDate}`
+            );
+
             const newTransaction: Partial<Transaction> = {
               type: 'PAYMENT',
               amount: createdRecovery.amount,
@@ -155,21 +165,18 @@ export class RecoveryEffects {
               isSync: false,
             };
 
-            console.log('new transaction créer', newTransaction);
-            console.log('distribution récupéré', distribution);
-
-            // Calcule les nouveaux montants de la distribution de manière sécurisée
             const oldPaidAmount = distribution.paidAmount || 0;
             const oldRemainingAmount = distribution.remainingAmount || 0;
             const newPaidAmount = oldPaidAmount + createdRecovery.amount;
             const newRemainingAmount = oldRemainingAmount - createdRecovery.amount;
 
-            console.log('[EFFECT] processRecovery$: Dispatching actions', { newTransaction, newPaidAmount, newRemainingAmount });
+            void this.log.log(
+              `[RecoveryEffects][DISTRIBUTION_UPDATE] distributionId=${createdRecovery.distributionId} ` +
+              `paid=${oldPaidAmount}->${newPaidAmount} remaining=${oldRemainingAmount}->${newRemainingAmount}`
+            );
 
-            // Vérifier s'il reste d'autres crédits actifs pour ce client
             return from(this.recoveryService.getClientActiveCredits(createdRecovery.clientId)).pipe(
               switchMap(activeCredits => {
-                // On filtre pour exclure la distribution actuelle si elle est soldée
                 const remainingCredits = activeCredits.filter(c => c.id !== createdRecovery.distributionId || newRemainingAmount > 0);
                 const hasActiveCredits = remainingCredits.length > 0;
 
@@ -194,7 +201,14 @@ export class RecoveryEffects {
             );
           }),
           catchError(error => {
-            console.error('[EFFECT] processRecovery$: Error inside switchMap', error);
+            if (error instanceof RecoveryCreationInFlightError) {
+              void this.log.log(
+                `[RecoveryEffects][ACTION_DROPPED] Duplicate createRecovery blocked while another is in flight. ` +
+                `client=${recovery.clientId} amount=${recovery.amount}`
+              );
+              return EMPTY;
+            }
+            void this.log.error('[RecoveryEffects][CREATE_FAILURE]', error);
             return of(RecoveryActions.createRecoveryFailure({ error: error.message }));
           })
         )

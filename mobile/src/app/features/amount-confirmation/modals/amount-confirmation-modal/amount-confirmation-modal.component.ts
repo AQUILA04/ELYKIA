@@ -27,6 +27,10 @@ export class AmountConfirmationModalComponent {
   }
 
   async confirm(): Promise<void> {
+    if (this.isSubmitting) {
+      return;
+    }
+
     const entered = this.parseEnteredAmount(this.amountInput);
 
     if (isNaN(entered)) {
@@ -42,6 +46,7 @@ export class AmountConfirmationModalComponent {
       return;
     }
 
+    this.isSubmitting = true;
     await this.modalController.dismiss({ confirmed: true, confirmedAmount: entered });
   }
 
