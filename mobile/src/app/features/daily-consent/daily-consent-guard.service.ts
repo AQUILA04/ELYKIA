@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { LoadingController, ModalController } from '@ionic/angular';
 import { AuthService } from '../../core/services/auth.service';
 import { DailyConsentStateService } from '../../core/daily-consent/daily-consent-state.service';
 import { DailyConsentService } from '../../core/daily-consent/daily-consent.service';
@@ -12,6 +12,7 @@ export class DailyConsentGuardService {
 
   constructor(
     private readonly modalController: ModalController,
+    private readonly loadingController: LoadingController,
     private readonly authService: AuthService,
     private readonly stateService: DailyConsentStateService,
     private readonly dailyConsentService: DailyConsentService
@@ -38,6 +39,8 @@ export class DailyConsentGuardService {
 
     this.presenting = true;
     try {
+      await this.dismissActiveLoading();
+
       const actionDate = new Date().toISOString().slice(0, 10);
       const modal = await this.modalController.create({
         component: DailyConsentModalComponent,
@@ -64,6 +67,18 @@ export class DailyConsentGuardService {
       );
     } finally {
       this.presenting = false;
+    }
+  }
+
+  /** Ferme un éventuel loader Ionic qui bloquerait la modale de consentement. */
+  private async dismissActiveLoading(): Promise<void> {
+    try {
+      const loading = await this.loadingController.getTop();
+      if (loading) {
+        await loading.dismiss();
+      }
+    } catch {
+      // Aucun loader actif ou déjà fermé.
     }
   }
 }

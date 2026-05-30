@@ -25,14 +25,15 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/* Safe areas — barre de statut / encoches (Android edge-to-edge, iOS) */
+/* Safe areas — encoches / barre de navigation (Android edge-to-edge, iOS) */
 :root {
   --ion-safe-area-top: env(safe-area-inset-top, 0px);
   --ion-safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 ion-app {
-  padding-top: var(--ion-safe-area-top);
+  /* Pas de padding-top : évite une bande blanche au-dessus du contenu quand la
+     barre de statut native est déjà réservée (overlay: false + adjustMarginsForEdgeToEdge). */
   padding-bottom: var(--ion-safe-area-bottom);
 }
 

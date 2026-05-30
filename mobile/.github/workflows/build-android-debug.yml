@@ -132,6 +132,12 @@ jobs:
         
         echo "Re-copying file_paths.xml after sync..."
         cp ../.github/workflows/android-config/file_paths.xml android/app/src/main/res/xml/file_paths.xml
+
+        echo "Patching styles.xml for status bar (Android 15+ edge-to-edge opt-out)..."
+        STYLES="android/app/src/main/res/values/styles.xml"
+        if [ -f "$STYLES" ] && ! grep -q "windowOptOutEdgeToEdgeEnforcement" "$STYLES"; then
+          sed -i '/<style name="AppTheme.NoActionBar"/a\        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>' "$STYLES"
+        fi
         
         echo "=== Final verification after re-copy ==="
         echo "Checking permissions count:"

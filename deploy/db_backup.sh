@@ -8,26 +8,47 @@ set -euo pipefail
 ENV="$1"
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 COMPOSE_FILE="$ROOT_DIR/docker-compose.$ENV.yml"
+COMPOSE_PROJECT="elykia-$ENV"
+
+# Each stack has its own .env under /opt/elykia/<env>/ (see deploy.sh)
+STACK_DIR="/opt/elykia/$ENV"
+ENV_FILE="$STACK_DIR/.env"
 
 # Location on host where backups will be stored (change if desired)
 BACKUP_ROOT=${BACKUP_ROOT:-/var/backups/elykia}
 
-# read DB credentials from .env or defaults
-source "$ROOT_DIR/.env" || true
-POSTGRES_USER=${POSTGRES_USER:-elykia}
-POSTGRES_DB=${POSTGRES_DB:-elykia_db}
+if [[ -f "$ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  set -a; source "$ENV_FILE"; set +a
+else
+  echo "Error: $ENV_FILE not found. Run setup-server.sh first." >&2
+  exit 1
+fi
+
+if [[ -z "${POSTGRES_USER:-}" || -z "${POSTGRES_DB:-}" ]]; then
+  echo "Error: POSTGRES_USER and POSTGRES_DB must be set in $ENV_FILE" >&2
+  exit 1
+fi
 
 TIMESTAMP=$(date -u +"%Y-%m-%d_%H%M%SZ")
 DATE_DIR=$(date -u +"%Y-%m-%d")
 DEST_DIR="$BACKUP_ROOT/$DATE_DIR"
 mkdir -p "$DEST_DIR"
 
+compose() {
+  docker compose \
+    -f "$COMPOSE_FILE" \
+    --project-name "$COMPOSE_PROJECT" \
+    --env-file "$ENV_FILE" \
+    "$@"
+}
+
 echo "Ensuring DB container is running for env $ENV"
-DB_CONTAINER=$(docker compose -f "$COMPOSE_FILE" ps -q db)
+DB_CONTAINER=$(compose ps -q db)
 if [ -z "$DB_CONTAINER" ]; then
-  docker compose -f "$COMPOSE_FILE" up -d db
+  compose up -d db
   sleep 3
-  DB_CONTAINER=$(docker compose -f "$COMPOSE_FILE" ps -q db)
+  DB_CONTAINER=$(compose ps -q db)
 fi
 
 if [ -z "$DB_CONTAINER" ]; then

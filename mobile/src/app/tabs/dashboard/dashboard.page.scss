@@ -29,7 +29,7 @@
 .dashboard-header {
   background: linear-gradient(135deg, var(--primary-color), var(--primary-variant));
   color: var(--text-on-primary);
-  padding: 20px 16px;
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;

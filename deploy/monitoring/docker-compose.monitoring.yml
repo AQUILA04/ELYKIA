@@ -22,6 +22,13 @@ services:
     networks:
       - elykia-prod-internal
       - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.amenouveve-yaveh.com`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls.certresolver=letsencrypt"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
 
   grafana:
     image: grafana/grafana:11.1.0
@@ -35,6 +42,7 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_SERVER_ROOT_URL=https://grafana.amenouveve-yaveh.com
       - GF_UNIFIED_ALERTING_ENABLED=true
       - GF_ALERTING_ENABLED=true
       - ALERT_EMAIL_TO=${ALERT_EMAIL_TO:-admin@amenouveve-yaveh.com}
@@ -42,6 +50,13 @@ services:
       - ALERT_WEBHOOK_URL=${ALERT_WEBHOOK_URL:-}
     networks:
       - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.amenouveve-yaveh.com`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     depends_on:
       - loki
       - prometheus

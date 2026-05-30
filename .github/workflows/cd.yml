@@ -270,7 +270,7 @@ jobs:
           : "${PROD_PATH:?Missing PROD_DEPLOY_PATH}"
 
           ssh -o StrictHostKeyChecking=no -i private_key "$PROD_USER@$PROD_HOST" \
-            "cd '$PROD_PATH' \
+            "curl -sSL https://raw.githubusercontent.com/AQUILA04/ELYKIA/main/deploy/update-monitoring.sh | bash \
              && docker compose -f /opt/elykia/deploy/monitoring/docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env up -d"
 
       - name: Cleanup

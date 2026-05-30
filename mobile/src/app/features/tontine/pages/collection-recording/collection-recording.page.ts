@@ -203,18 +203,17 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         const loading = await this.loadingCtrl.create({
             message: 'Enregistrement en cours...'
         });
-        await loading.present();
 
         try {
             const formValue = this.collectionForm.value;
 
-            // Consentement journalier
+            // Modales interactives avant le loader bloquant
             await this.dailyConsentGuard.requireDailyConsent();
+            const confirmedAmount = await this.amountConfirmation.confirmAmount(formValue.amount);
+
+            await loading.present();
 
             const returnToDelivery = this.route.snapshot.queryParamMap.get('returnToDelivery') === 'true';
-
-            // Confirmation du montant
-            const confirmedAmount = await this.amountConfirmation.confirmAmount(formValue.amount);
 
             const newCollection: TontineCollection = {
                 id: this.generateUuid(),
@@ -290,7 +289,9 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
             this.navCtrl.back();
 
         } catch (error) {
-            await loading.dismiss();
+            if (await this.loadingCtrl.getTop()) {
+                await loading.dismiss();
+            }
             console.error('Error saving collection:', error);
             this.showAlert('Erreur', 'Une erreur est survenue lors de l\'enregistrement.');
         }
