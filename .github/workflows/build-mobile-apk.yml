@@ -2,23 +2,60 @@ name: ELYKIA Mobile APK Build
 
 # Builds and publishes a release APK after a successful CD deployment (test or prod).
 # Triggered when "ELYKIA CD Pipeline" completes; only runs if CI built the mobile app for the same commit.
+# Also supports a manual 'promote' workflow_dispatch to build the PROD APK from the current test release
+# (same commit as deployed on test), mirroring the promote flow in cd.yml.
 
 on:
   workflow_run:
     workflows: ["ELYKIA CD Pipeline"]
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        type: choice
+        required: true
+        default: promote
+        options:
+          - promote
 
 jobs:
   prepare:
-    if: github.event.workflow_run.conclusion == 'success'
+    if: |
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'promote')
     runs-on: ubuntu-latest
     outputs:
       target: ${{ steps.ctx.outputs.target }}
       mobile_built: ${{ steps.mobile.outputs.mobile_built }}
+      build_sha: ${{ steps.build_sha.outputs.build_sha }}
     steps:
-      - name: Resolve deployment target from branch
+      - name: Resolve deployment target
         id: ctx
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
+
+          if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+            echo "Manual promote: build PROD APK from current test release"
+            echo "target=promote" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          sudo apt-get update -y && sudo apt-get install -y jq
+          CD_RUN_ID='${{ github.event.workflow_run.id }}'
+          jobs_json=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${CD_RUN_ID}/jobs")
+          promote_conclusion=$(echo "$jobs_json" | jq -r \
+            '.jobs[] | select(.name=="Promote test -> prod") | .conclusion' | head -n1 || true)
+
+          if [ "$promote_conclusion" = "success" ]; then
+            echo "CD promote detected: build PROD APK from current test release"
+            echo "target=promote" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           branch='${{ github.event.workflow_run.head_branch }}'
           if [ "$branch" = "main" ]; then
             echo "target=test" >> "$GITHUB_OUTPUT"
@@ -29,6 +66,51 @@ jobs:
             echo "Skipping APK build for branch: $branch"
           fi
 
+      - name: Resolve promote commit from current test release
+        id: promote
+        if: steps.ctx.outputs.target == 'promote'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          echo "$SSH_PRIVATE_KEY" > private_key
+          chmod 600 private_key
+
+          TEST_USER='${{ secrets.TEST_SERVER_USER }}'
+          TEST_HOST='${{ secrets.TEST_SERVER_HOST }}'
+
+          echo "Fetching current test release file"
+          ssh -o StrictHostKeyChecking=no -i private_key "$TEST_USER@$TEST_HOST" \
+            "cat /opt/elykia/test/releases/test_current.txt" > release.txt
+          cat release.txt
+
+          FRONTEND_IMAGE=$(grep '^FRONTEND_IMAGE=' release.txt | cut -d= -f2-)
+          PROMOTE_SHA="${FRONTEND_IMAGE##*:}"
+
+          if [ -z "$FRONTEND_IMAGE" ] || [ -z "$PROMOTE_SHA" ]; then
+            echo "Could not determine commit to promote from test release" >&2
+            exit 2
+          fi
+
+          echo "Resolved promote commit: $PROMOTE_SHA (from $FRONTEND_IMAGE)"
+          echo "build_sha=$PROMOTE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Set build SHA
+        id: build_sha
+        run: |
+          set -euo pipefail
+          target='${{ steps.ctx.outputs.target }}'
+          if [ "$target" = "promote" ]; then
+            sha='${{ steps.promote.outputs.build_sha }}'
+            if [ -z "$sha" ]; then
+              echo "Missing promote commit SHA" >&2
+              exit 2
+            fi
+            echo "build_sha=$sha" >> "$GITHUB_OUTPUT"
+          elif [ -n "$target" ]; then
+            echo "build_sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Check if mobile was built in CI for this commit
         id: mobile
         if: steps.ctx.outputs.target != ''
@@ -37,7 +119,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -y && sudo apt-get install -y jq
-          HEAD_SHA='${{ github.event.workflow_run.head_sha }}'
+          HEAD_SHA='${{ steps.build_sha.outputs.build_sha }}'
           RUNS=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ci.yml/runs?head_sha=${HEAD_SHA}&status=completed&per_page=5")
           CI_RUN_ID=$(echo "$RUNS" | jq -r '[.workflow_runs[] | select(.conclusion=="success")][0].id // empty')
@@ -57,6 +139,10 @@ jobs:
             echo "mobile_built=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Cleanup promote SSH key
+        if: always() && steps.ctx.outputs.target == 'promote'
+        run: rm -f private_key release.txt
+
   build-apk-test:
     needs: prepare
     if: needs.prepare.outputs.target == 'test' && needs.prepare.outputs.mobile_built == 'true'
@@ -65,7 +151,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ needs.prepare.outputs.build_sha }}
 
       - name: Build and upload TEST APK
         uses: ./.github/actions/build-mobile-apk
@@ -80,13 +166,16 @@ jobs:
 
   build-apk-prod:
     needs: prepare
-    if: needs.prepare.outputs.target == 'prod' && needs.prepare.outputs.mobile_built == 'true'
+    if: |
+      needs.prepare.outputs.mobile_built == 'true' &&
+      (needs.prepare.outputs.target == 'prod' || needs.prepare.outputs.target == 'promote')
     runs-on: ubuntu-latest
     environment: prod
+    name: ${{ needs.prepare.outputs.target == 'promote' && 'Promote test -> prod APK' || 'Build PROD APK' }}
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ needs.prepare.outputs.build_sha }}
 
       - name: Build and upload PROD APK
         uses: ./.github/actions/build-mobile-apk

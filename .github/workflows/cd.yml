@@ -25,9 +25,12 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'Action to perform (promote)'
+        description: 'Action to perform'
+        type: choice
         required: true
-        default: 'promote'
+        default: promote
+        options:
+          - promote
   push:
     paths:
       - 'deploy/monitoring/**'
@@ -48,13 +51,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          fetch-depth: 50   # enough history to find the last build commit
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
 
       - name: Resolve last published image for each component
         id: resolve
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
@@ -63,19 +68,30 @@ jobs:
           # Log in to GHCR so we can check tag existence
           echo "$GHCR_TOKEN" | docker login "$REGISTRY" -u "$GHCR_USERNAME" --password-stdin
 
-          # Walk back through the last 50 commits and return the first SHA
-          # for which an image tag exists in GHCR.
+          # Prod branches may have little or no unique history; keep main reachable as fallback.
+          git fetch origin main --depth=200 2>/dev/null || git fetch origin main 2>/dev/null || true
+
+          # Walk back through recent commits and return the first SHA for which an image tag exists in GHCR.
           resolve_sha() {
             local component="$1"   # e.g. "backend" or "frontend"
             local image="$REGISTRY/$REPO_LOWER-$component"
-            # git log on current HEAD (the CI commit is the triggering SHA)
-            for sha in $(git log --format='%H' '${{ github.event.workflow_run.head_sha }}' | head -50); do
-              if docker manifest inspect "$image:$sha" > /dev/null 2>&1; then
-                echo "$image:$sha"
-                return 0
+            local start_sha sha
+
+            for start_sha in "$HEAD_SHA" "origin/main" "main"; do
+              if ! git rev-parse --verify "${start_sha}^{commit}" >/dev/null 2>&1; then
+                continue
               fi
+              echo "Searching $component image in history of $start_sha" >&2
+              while read -r sha; do
+                if docker manifest inspect "$image:$sha" > /dev/null 2>&1; then
+                  echo "Resolved $component from $start_sha history: $image:$sha" >&2
+                  echo "$image:$sha"
+                  return 0
+                fi
+              done < <(git log --format='%H' "$start_sha" | head -100)
             done
-            echo "ERROR: No published image found for $component in the last 50 commits" >&2
+
+            echo "ERROR: No published image found for $component in the last 100 commits (tried $HEAD_SHA, origin/main, main)" >&2
             return 1
           }
 
