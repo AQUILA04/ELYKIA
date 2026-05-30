@@ -27,8 +27,9 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       overlaysWebView: false,
+      // Style.Dark = texte/icônes clairs (fond coloré). Ne pas combiner avec un fond blanc.
       style: 'DARK',
-      backgroundColor: '#ffffffff',
+      backgroundColor: '#1976D2',
     },
   },
 };

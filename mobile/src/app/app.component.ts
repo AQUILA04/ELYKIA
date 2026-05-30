@@ -139,6 +139,9 @@ export class AppComponent implements OnInit {
     }
   }
 
+  /** Aligné sur --ion-color-primary (barre de statut + en-têtes dashboard). */
+  private static readonly STATUS_BAR_COLOR = '#1976D2';
+
   private async configureStatusBar(): Promise<void> {
     if (!Capacitor.isNativePlatform()) {
       return;
@@ -147,6 +150,8 @@ export class AppComponent implements OnInit {
     await StatusBar.setOverlaysWebView({ overlay: false });
 
     if (Capacitor.getPlatform() === 'android') {
+      // Style.Dark = icônes claires pour fond sombre/coloré (cf. @capacitor/status-bar Style enum).
+      await StatusBar.setBackgroundColor({ color: AppComponent.STATUS_BAR_COLOR });
       await StatusBar.setStyle({ style: Style.Dark });
     } else {
       await StatusBar.setStyle({ style: Style.Default });

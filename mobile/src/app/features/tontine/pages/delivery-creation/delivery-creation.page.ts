@@ -347,7 +347,6 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
     async processDelivery() {
         const loading = await this.loadingCtrl.create({ message: 'Enregistrement...' });
-        await loading.present();
 
         try {
             const deliveryId = this.generateUuid();
@@ -359,7 +358,6 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             this.cart.forEach((qty, stockId) => {
                 const details = this.cartDetails.get(stockId);
                 if (details) {
-                    // Use details from cartDetails which now includes articleId (added in increaseQuantity)
                     items.push({
                         id: this.generateUuid(),
                         tontineDeliveryId: deliveryId,
@@ -369,13 +367,13 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                         totalPrice: details.price * qty
                     });
 
-                    // Track stock update
                     stockUpdates.push({ stockId: stockId, quantity: qty });
                 }
             });
 
-            // Consentement journalier
             await this.dailyConsentGuard.requireDailyConsent();
+
+            await loading.present();
 
             const delivery: TontineDelivery = {
                 id: deliveryId,
@@ -456,7 +454,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
         } catch (error) {
             console.error('Error processing delivery:', error);
-            await loading.dismiss();
+            if (await this.loadingCtrl.getTop()) {
+                await loading.dismiss();
+            }
             this.showError('Erreur lors de l\'enregistrement');
         }
     }

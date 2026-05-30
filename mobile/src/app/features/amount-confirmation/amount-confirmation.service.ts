@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { LoadingController, ModalController } from '@ionic/angular';
 import { AmountConfirmationModalComponent } from './modals/amount-confirmation-modal/amount-confirmation-modal.component';
 
 export class AmountConfirmationCancelledError extends Error {
@@ -12,7 +12,10 @@ export class AmountConfirmationCancelledError extends Error {
 @Injectable({ providedIn: 'root' })
 export class AmountConfirmationService {
 
-  constructor(private readonly modalController: ModalController) {}
+  constructor(
+    private readonly modalController: ModalController,
+    private readonly loadingController: LoadingController
+  ) {}
 
   /**
    * Affiche la modale de confirmation du montant.
@@ -20,6 +23,8 @@ export class AmountConfirmationService {
    * Lance AmountConfirmationCancelledError si l'utilisateur annule ou saisit un montant incorrect.
    */
   async confirmAmount(calculatedAmount: number): Promise<number> {
+    await this.dismissActiveLoading();
+
     const modal = await this.modalController.create({
       component: AmountConfirmationModalComponent,
       componentProps: { calculatedAmount },
@@ -38,5 +43,16 @@ export class AmountConfirmationService {
     }
 
     return data.confirmedAmount;
+  }
+
+  private async dismissActiveLoading(): Promise<void> {
+    try {
+      const loading = await this.loadingController.getTop();
+      if (loading) {
+        await loading.dismiss();
+      }
+    } catch {
+      // Aucun loader actif ou déjà fermé.
+    }
   }
 }

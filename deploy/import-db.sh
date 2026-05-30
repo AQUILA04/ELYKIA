@@ -13,11 +13,32 @@ DUMP_PATH="$2"
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 COMPOSE_FILE="$ROOT_DIR/docker-compose.$ENV.yml"
+COMPOSE_PROJECT="elykia-$ENV"
 
-# read DB credentials from .env or defaults
-source "$ROOT_DIR/.env" || true
-POSTGRES_USER=${POSTGRES_USER:-elykia}
-POSTGRES_DB=${POSTGRES_DB:-elykia_db}
+# Each stack has its own .env under /opt/elykia/<env>/ (see deploy.sh)
+STACK_DIR="/opt/elykia/$ENV"
+ENV_FILE="$STACK_DIR/.env"
+
+if [[ -f "$ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  set -a; source "$ENV_FILE"; set +a
+else
+  echo "Error: $ENV_FILE not found. Run setup-server.sh first." >&2
+  exit 1
+fi
+
+if [[ -z "${POSTGRES_USER:-}" || -z "${POSTGRES_DB:-}" ]]; then
+  echo "Error: POSTGRES_USER and POSTGRES_DB must be set in $ENV_FILE" >&2
+  exit 1
+fi
+
+compose() {
+  docker compose \
+    -f "$COMPOSE_FILE" \
+    --project-name "$COMPOSE_PROJECT" \
+    --env-file "$ENV_FILE" \
+    "$@"
+}
 
 # show which DB/user will be used for restore (goes to stderr)
 echo "Using POSTGRES_USER=$POSTGRES_USER POSTGRES_DB=$POSTGRES_DB" >&2
@@ -65,7 +86,7 @@ if [ -n "$TARGET_CONTAINER" ]; then
   DB_CONTAINER="$TARGET_CONTAINER"
 else
   # Try docker compose first (preferred)
-  DB_CONTAINER=$(docker compose -f "$COMPOSE_FILE" ps -q db 2>/dev/null || true)
+  DB_CONTAINER=$(compose ps -q db 2>/dev/null || true)
   if [ -z "$DB_CONTAINER" ]; then
     echo "docker compose did not report a container for service 'db'. Falling back to heuristic selection..." >&2
     # Heuristic: try to find a suitable running container automatically
@@ -185,7 +206,7 @@ case "$DUMP_PATH" in
     echo "Detected pg_dump custom format"
     DEST=$(copy_into_container "$DUMP_PATH")
     echo "Running pg_restore on container $DB_CONTAINER -> $POSTGRES_DB (verbose)" >&2
-    docker exec -i "$DB_CONTAINER" pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --verbose "$DEST"
+    docker exec -i "$DB_CONTAINER" pg_restore --no-owner -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --verbose "$DEST"
     RC=$?
     if [ $RC -ne 0 ]; then
       echo "pg_restore failed with exit code $RC" >&2

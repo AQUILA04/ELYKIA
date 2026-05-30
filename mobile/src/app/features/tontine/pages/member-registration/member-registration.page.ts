@@ -222,7 +222,6 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
         const loading = await this.loadingCtrl.create({
             message: 'Enregistrement en cours...'
         });
-        await loading.present();
 
         try {
             // Check if client is already registered in this session
@@ -234,8 +233,6 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
                 );
 
                 if (clientExists) {
-                    await loading.dismiss();
-
                     const alert = await this.alertCtrl.create({
                         header: 'Client déjà enregistré',
                         message: `${this.getClientDisplayName()} est déjà membre de cette session de tontine. Un client ne peut être enregistré qu'une seule fois par session.`,
@@ -244,7 +241,12 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
                     await alert.present();
                     return;
                 }
+
+                // Consentement journalier avant tout loader bloquant
+                await this.dailyConsentGuard.requireDailyConsent();
             }
+
+            await loading.present();
 
             const formValue = this.registrationForm.value;
 
@@ -287,9 +289,6 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
                 return;
             }
 
-            // Consentement journalier
-            await this.dailyConsentGuard.requireDailyConsent();
-
             const newMember: TontineMember = {
                 id: this.generateUuid(),
                 tontineSessionId: this.sessionId,
@@ -326,7 +325,9 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
             await alert.present();
 
         } catch (error) {
-            await loading.dismiss();
+            if (await this.loadingCtrl.getTop()) {
+                await loading.dismiss();
+            }
             console.error('Error saving tontine member:', error);
 
             const alert = await this.alertCtrl.create({
