@@ -25,9 +25,12 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'Action to perform (promote)'
+        description: 'Action to perform'
+        type: choice
         required: true
-        default: 'promote'
+        default: promote
+        options:
+          - promote
   push:
     paths:
       - 'deploy/monitoring/**'
