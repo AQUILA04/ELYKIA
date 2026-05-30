@@ -2,6 +2,8 @@ name: ELYKIA Mobile APK Build
 
 # Builds and publishes a release APK after a successful CD deployment (test or prod).
 # Triggered when "ELYKIA CD Pipeline" completes; only runs if CI built the mobile app for the same commit.
+# Target (test/prod) is inferred from which CD deploy job succeeded — not head_branch, because
+# workflow_run chains execute on the default branch and would otherwise always look like main/test.
 # Also supports a manual 'promote' workflow_dispatch to build the PROD APK from the current test release
 # (same commit as deployed on test), mirroring the promote flow in cd.yml.
 
@@ -47,24 +49,63 @@ jobs:
           CD_RUN_ID='${{ github.event.workflow_run.id }}'
           jobs_json=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/${CD_RUN_ID}/jobs")
+
           promote_conclusion=$(echo "$jobs_json" | jq -r \
             '.jobs[] | select(.name=="Promote test -> prod") | .conclusion' | head -n1 || true)
+          prod_conclusion=$(echo "$jobs_json" | jq -r \
+            '.jobs[] | select(.name=="Deploy to PROD after CI") | .conclusion' | head -n1 || true)
+          test_conclusion=$(echo "$jobs_json" | jq -r \
+            '.jobs[] | select(.name=="Deploy to TEST after CI") | .conclusion' | head -n1 || true)
 
           if [ "$promote_conclusion" = "success" ]; then
             echo "CD promote detected: build PROD APK from current test release"
             echo "target=promote" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          branch='${{ github.event.workflow_run.head_branch }}'
-          if [ "$branch" = "main" ]; then
-            echo "target=test" >> "$GITHUB_OUTPUT"
-          elif [[ "$branch" == prod/* ]]; then
+          elif [ "$prod_conclusion" = "success" ]; then
+            echo "CD prod deploy detected"
             echo "target=prod" >> "$GITHUB_OUTPUT"
+          elif [ "$test_conclusion" = "success" ]; then
+            echo "CD test deploy detected"
+            echo "target=test" >> "$GITHUB_OUTPUT"
           else
             echo "target=" >> "$GITHUB_OUTPUT"
-            echo "Skipping APK build for branch: $branch"
+            echo "No deploy job succeeded in CD run $CD_RUN_ID" >&2
           fi
+
+      - name: Resolve CI commit for test/prod deployment
+        id: ci_sha
+        if: steps.ctx.outputs.target == 'test' || steps.ctx.outputs.target == 'prod'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+          TARGET='${{ steps.ctx.outputs.target }}'
+          CD_STARTED='${{ github.event.workflow_run.run_started_at }}'
+          CI_RUNS=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ci.yml/runs?status=completed&per_page=30")
+
+          if [ "$TARGET" = "test" ]; then
+            SHA=$(echo "$CI_RUNS" | jq -r --arg cd "$CD_STARTED" '
+              [.workflow_runs[]
+                | select(.head_branch == "main" and .conclusion == "success")
+                | select(.run_started_at <= $cd)
+              ] | sort_by(.run_started_at) | last | .head_sha // empty')
+          else
+            SHA=$(echo "$CI_RUNS" | jq -r --arg cd "$CD_STARTED" '
+              [.workflow_runs[]
+                | select(.head_branch | startswith("prod/"))
+                | select(.conclusion == "success")
+                | select(.run_started_at <= $cd)
+              ] | sort_by(.run_started_at) | last | .head_sha // empty')
+          fi
+
+          if [ -z "$SHA" ]; then
+            echo "Could not resolve CI commit for target=$TARGET" >&2
+            exit 2
+          fi
+
+          echo "Resolved CI commit for $TARGET: $SHA"
+          echo "build_sha=$SHA" >> "$GITHUB_OUTPUT"
 
       - name: Resolve promote commit from current test release
         id: promote
@@ -107,8 +148,13 @@ jobs:
               exit 2
             fi
             echo "build_sha=$sha" >> "$GITHUB_OUTPUT"
-          elif [ -n "$target" ]; then
-            echo "build_sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          elif [ "$target" = "test" ] || [ "$target" = "prod" ]; then
+            sha='${{ steps.ci_sha.outputs.build_sha }}'
+            if [ -z "$sha" ]; then
+              echo "Missing CI commit SHA for target=$target" >&2
+              exit 2
+            fi
+            echo "build_sha=$sha" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check if mobile was built in CI for this commit
@@ -171,7 +217,7 @@ jobs:
       (needs.prepare.outputs.target == 'prod' || needs.prepare.outputs.target == 'promote')
     runs-on: ubuntu-latest
     environment: prod
-    name: ${{ needs.prepare.outputs.target == 'promote' && 'Promote test -> prod APK' || 'Build PROD APK' }}
+    name: Build PROD APK
     steps:
       - uses: actions/checkout@v6
         with:
