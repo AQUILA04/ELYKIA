@@ -54,10 +54,6 @@ export const OPERATION_TYPE_OPTIONS: SearchOption[] = [
 export const STATUS_OPTIONS: SearchOption[] = [
   { value: null, label: 'Tous les statuts' },
   { value: CreditStatus.CREATED, label: 'Créé' },
-  { value: CreditStatus.VALIDATED, label: 'Validé' },
   { value: CreditStatus.INPROGRESS, label: 'En cours' },
-  { value: CreditStatus.DELIVERED, label: 'Livré' },
-  { value: CreditStatus.ENDED, label: 'Terminé' },
-  { value: CreditStatus.SETTLED, label: 'Réglé' },
-  { value: CreditStatus.MERGED, label: 'Fusionné' }
+  { value: CreditStatus.SETTLED, label: 'Réglé' }
 ];
