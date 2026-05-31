@@ -1,0 +1,21 @@
+# WEBSITE TEST stack — project name: website-test
+# Domain: site.amenouveve-yaveh.com
+# Start:  docker compose -f docker-compose.website-test.yml --project-name website-test up -d
+# Stop:   docker compose -f docker-compose.website-test.yml --project-name website-test down
+services:
+  website:
+    image: ${WEBSITE_IMAGE}
+    restart: unless-stopped
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.website-test.rule=Host(`site.amenouveve-yaveh.com`)"
+      - "traefik.http.routers.website-test.entrypoints=websecure"
+      - "traefik.http.routers.website-test.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.website-test.priority=5"
+      - "traefik.http.services.website-test.loadbalancer.server.port=80"
+networks:
+  traefik-public:
+    external: true

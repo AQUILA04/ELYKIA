@@ -1,0 +1,31 @@
+# WEBSITE PROD stack — project name: website-prod
+# Domain: www.amenouveve-yaveh.com
+# Start:  docker compose -f docker-compose.website-prod.yml --project-name website-prod up -d
+# Stop:   docker compose -f docker-compose.website-prod.yml --project-name website-prod down
+services:
+  website:
+    image: ${WEBSITE_IMAGE}
+    restart: unless-stopped
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # Main domain: www.amenouveve-yaveh.com
+      - "traefik.http.routers.website-prod.rule=Host(`www.amenouveve-yaveh.com`) || Host(`amenouveve-yaveh.com`)"
+      - "traefik.http.routers.website-prod.entrypoints=websecure"
+      - "traefik.http.routers.website-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.website-prod.priority=5"
+      - "traefik.http.services.website-prod.loadbalancer.server.port=80"
+      # Redirect bare domain to www
+      - "traefik.http.routers.website-prod-redirect.rule=Host(`amenouveve-yaveh.com`)"
+      - "traefik.http.routers.website-prod-redirect.entrypoints=websecure"
+      - "traefik.http.routers.website-prod-redirect.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.website-prod-redirect.middlewares=website-www-redirect"
+      - "traefik.http.routers.website-prod-redirect.priority=4"
+      - "traefik.http.middlewares.website-www-redirect.redirectregex.regex=^https://amenouveve-yaveh\\.com/(.*)"
+      - "traefik.http.middlewares.website-www-redirect.redirectregex.replacement=https://www.amenouveve-yaveh.com/$${1}"
+      - "traefik.http.middlewares.website-www-redirect.redirectregex.permanent=true"
+networks:
+  traefik-public:
+    external: true
