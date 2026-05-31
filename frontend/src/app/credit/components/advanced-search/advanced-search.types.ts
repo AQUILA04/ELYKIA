@@ -10,7 +10,8 @@ export enum ClientType {
 
 export enum OperationType {
   CREDIT = 'CREDIT',
-  TONTINE = 'TONTINE'
+  TONTINE = 'TONTINE',
+  CASH = 'CASH'
 }
 
 export enum CreditStatus {
@@ -46,7 +47,8 @@ export const CLIENT_TYPE_OPTIONS: SearchOption[] = [
 export const OPERATION_TYPE_OPTIONS: SearchOption[] = [
   { value: null, label: 'Tous les types' },
   { value: OperationType.CREDIT, label: 'Vente à crédit' },
-  { value: OperationType.TONTINE, label: 'Tontine' }
+  { value: OperationType.TONTINE, label: 'Tontine' },
+  { value: OperationType.CASH, label: 'Cash' }
 ];
 
 export const STATUS_OPTIONS: SearchOption[] = [

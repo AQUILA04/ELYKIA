@@ -175,7 +175,7 @@ public class CreditService extends GenericService<Credit, Long> {
         credit.setAdvance(0.0);
         credit.setTotalAmountPaid(credit.getTotalAmount());
         credit.setTotalAmountRemaining(0.0);
-        credit.setDailyStake(0.0);
+        credit.setDailyStake(credit.getTotalAmount());
         credit.setRemainingDaysCount(0);
         credit.setBeginDate(LocalDate.now());
         credit.setExpectedEndDate(LocalDate.now());
