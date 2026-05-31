@@ -1,16 +1,12 @@
 <div class="session-selector">
-  <mat-form-field appearance="outline" class="session-select">
-    <mat-label>Année</mat-label>
-    <mat-icon matPrefix>calendar_today</mat-icon>
-    <mat-select [(value)]="selectedSession" (selectionChange)="onSessionChange($event.value)">
-      <mat-option *ngFor="let session of sessions" [value]="session">
-        {{ session.year }}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
+  <span class="toolbar-label">Année</span>
+  <select class="filter-select session-year-select" [(ngModel)]="selectedSession" (ngModelChange)="onSessionChange($event)">
+    <option *ngFor="let session of sessions" [ngValue]="session">{{ session.year }}</option>
+  </select>
 
   <span class="session-badge" [class.active]="isCurrentSession()" [class.historical]="!isCurrentSession()">
-    <mat-icon>{{ isCurrentSession() ? 'check_circle' : 'history' }}</mat-icon>
+    <svg *ngIf="isCurrentSession()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+    <svg *ngIf="!isCurrentSession()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
     {{ isCurrentSession() ? 'Session en cours' : 'Session ' + selectedSession?.year }}
   </span>
 </div>

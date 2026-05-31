@@ -9,7 +9,15 @@ import { KPICardConfig } from '../../types/tontine.types';
 export class TontineKpiCardComponent {
   @Input() config!: KPICardConfig;
 
-  getColorClass(): string {
-    return `kpi-card-${this.config.color}`;
+  getKpiClass(): string {
+    const map: Record<string, string> = {
+      primary: 'kpi-total',
+      success: 'kpi-green',
+      warning: 'kpi-echeance',
+      info: 'kpi-amount',
+      accent: 'kpi-total',
+      danger: 'kpi-delai'
+    };
+    return map[this.config.color] || 'kpi-total';
   }
 }

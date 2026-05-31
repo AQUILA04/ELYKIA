@@ -61,6 +61,7 @@ export interface TontineClient {
   readonly phone?: string;
   readonly address?: string;
   readonly fullName?: string;
+  readonly tontineCollector?: string;
 }
 
 export interface TontineDelivery {

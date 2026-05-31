@@ -1,57 +1,77 @@
-<div class="tontine-dashboard">
-  <!-- Header -->
-  <div class="dashboard-header">
-    <div class="header-left">
-      <h1 class="dashboard-title">
-        <mat-icon>savings</mat-icon>
-        Gestion des Tontines
-      </h1>
+<div class="main-container tontine-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/dashboard" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Tableau de bord
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">GESTION DES TONTINES</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tontine-icon">
+          <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/>
+          <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>
+        </svg>
+        <h1 class="page-title">Gestion des Tontines</h1>
+      </div>
+      <button class="btn-refresh" (click)="refreshData()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Actualiser
+      </button>
+    </div>
+
+    <p class="page-subtitle">Suivi des membres, collectes et livraisons · Mis à jour en temps réel</p>
+
+    <div class="header-meta-row">
       <app-session-selector (sessionChange)="onSessionChange($event)"></app-session-selector>
-    </div>
-    <div class="header-actions">
-      <button mat-button (click)="navigateToComparison()">
-        <mat-icon>compare_arrows</mat-icon>
-        Comparer les Sessions
-      </button>
-      <button mat-raised-button color="primary" (click)="openAddMemberModal()" [disabled]="isHistoricalView">
-        <mat-icon>person_add</mat-icon>
-        Ajouter un Membre
-      </button>
-      <button mat-raised-button color="accent" (click)="openAddMultipleMembersModal()" [disabled]="isHistoricalView">
-        <mat-icon>group_add</mat-icon>
-        Ajout Multiple
-      </button>
-      <button mat-stroked-button (click)="openSessionSettings()" [disabled]="isHistoricalView">
-        <mat-icon>settings</mat-icon>
-        Paramètres de Session
-      </button>
+      <div class="header-actions">
+        <button class="btn-outline" (click)="navigateToComparison()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+          Comparer
+        </button>
+        <button class="btn-primary" (click)="openAddMemberModal()" [disabled]="isHistoricalView">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+          Ajouter un Membre
+        </button>
+        <button class="btn-accent" (click)="openAddMultipleMembersModal()" [disabled]="isHistoricalView">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11v6"/><path d="M19 14h6"/></svg>
+          Ajout Multiple
+        </button>
+        <button class="btn-outline" (click)="openSessionSettings()" [disabled]="isHistoricalView">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          Paramètres
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Historical View Banner -->
-  <div *ngIf="showHistoricalAlertMessage" class="historical-banner">
-    <mat-icon>info</mat-icon>
+  <div *ngIf="showHistoricalAlertMessage" class="historical-banner a2">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
     <span>Vous consultez une session historique (lecture seule)</span>
-    <button mat-button (click)="returnToCurrentSession()">
-      Retourner à la session en cours
-    </button>
+    <button class="btn-outline btn-sm" (click)="returnToCurrentSession()">Retourner à la session en cours</button>
   </div>
 
-  <!-- KPI Cards -->
-  <div class="kpi-section" *ngIf="kpiCards$ | async as kpiCards">
-    <app-tontine-kpi-card
-      *ngFor="let kpi of kpiCards"
-      [config]="kpi">
-    </app-tontine-kpi-card>
+  <div class="kpi-strip tontine-kpi-strip a3" *ngIf="kpiCards$ | async as kpiCards">
+    <app-tontine-kpi-card *ngFor="let kpi of kpiCards" [config]="kpi"></app-tontine-kpi-card>
   </div>
 
-  <!-- Filters -->
   <app-tontine-filter-bar
+    class="a4"
+    [resultCount]="paginatedMembers?.page?.totalElements ?? paginatedMembers?.totalElements ?? 0"
     (filterChanged)="onFilterChange($event)">
   </app-tontine-filter-bar>
 
-  <!-- Members Table -->
   <app-tontine-member-table
+    class="a5"
     [paginatedResponse]="paginatedMembers"
     [loading]="loadingMembers"
     [pageSize]="memberQueryParams.size || 20"

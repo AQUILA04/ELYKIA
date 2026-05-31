@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, Subject, finalize } from 'rxjs';
 import { takeUntil, map } from 'rxjs/operators';
@@ -25,10 +25,15 @@ import { AddMultipleMembersModalComponent } from '../../components/modals/add-mu
 @Component({
   selector: 'app-tontine-dashboard',
   templateUrl: './tontine-dashboard.component.html',
-  styleUrls: ['./tontine-dashboard.component.scss']
+  styleUrls: ['./tontine-dashboard.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class TontineDashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private dateIntervalId?: ReturnType<typeof setInterval>;
+
+  currentDate = new Date();
+  lastUpdate = new Date();
 
   state$: Observable<TontineState>;
   kpiCards$!: Observable<KPICardConfig[]>;
@@ -55,11 +60,31 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupObservables();
     this.loadCurrentSessionAndMembers();
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
   }
 
   ngOnDestroy(): void {
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  refreshData(): void {
+    this.tontineService.getCurrentSession().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.loadMembers();
+        this.lastUpdate = new Date();
+      },
+      error: () => {
+        this.showError('Erreur lors de l\'actualisation');
+      }
+    });
   }
 
   private setupObservables(): void {
@@ -97,6 +122,7 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
       next: (response) => {
         if (response.data) {
           this.paginatedMembers = response.data as PaginatedResponse<TontineMember>;
+          this.lastUpdate = new Date();
         }
       },
       error: (error) => {

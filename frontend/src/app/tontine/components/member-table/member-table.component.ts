@@ -23,7 +23,7 @@ export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) matSort!: MatSort;
 
-  displayedColumns: string[] = ['client', 'totalContribution', 'deliveryStatus', 'registrationDate', 'actions'];
+  displayedColumns: string[] = ['client', 'totalContribution', 'commercial', 'deliveryStatus', 'registrationDate', 'actions'];
   dataSource = new MatTableDataSource<TontineMember>([]);
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -73,6 +73,29 @@ export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
 
   getStatusColor(status: TontineMemberDeliveryStatus): string {
     return getDeliveryStatusColor(status);
+  }
+
+  getStatusBadgeClass(status: TontineMemberDeliveryStatus): string {
+    const map: Record<string, string> = {
+      SESSION_INPROGRESS: 'status-inprogress',
+      PENDING: 'status-pending',
+      VALIDATED: 'status-validated',
+      DELIVERED: 'status-delivered'
+    };
+    return map[status] || 'status-inprogress';
+  }
+
+  getCommercial(member: TontineMember): string {
+    return member.client?.tontineCollector || '—';
+  }
+
+  getInitials(name: string): string {
+    if (!name || name === '—') return '?';
+    const parts = name.trim().split(/[\s._-]+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
   }
 
   onViewDetails(member: TontineMember): void {
