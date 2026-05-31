@@ -42,7 +42,7 @@
       <div class="summary-grid">
         <div class="summary-item">
           <span class="summary-label">Code Client</span>
-          <span class="summary-value">{{ member.client.code || 'N/A' }}</span>
+          <span class="summary-value">{{ member.client?.code || 'N/A' }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Total Contribué</span>
@@ -60,17 +60,18 @@
         </div>
         <div class="summary-item">
           <span class="summary-label">Statut Session</span>
-          <span class="summary-value">{{ member.tontineSession.status }}</span>
+          <span class="summary-value">{{ member.tontineSession?.status ?? currentSessionStatus ?? 'N/A' }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Statut de Livraison</span>
-          <mat-chip [color]="getStatusColor(member.deliveryStatus)">
+          <mat-chip *ngIf="member.deliveryStatus" [color]="getStatusColor(member.deliveryStatus)">
             {{ getStatusLabel(member.deliveryStatus) }}
           </mat-chip>
+          <span *ngIf="!member.deliveryStatus" class="summary-value">N/A</span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Date d'Inscription</span>
-          <span class="summary-value">{{ formatDateTime(member.registrationDate) }}</span>
+          <span class="summary-value">{{ member.registrationDate ? formatDateTime(member.registrationDate) : 'N/A' }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Collectes à la livraison</span>
@@ -188,12 +189,16 @@
       <mat-card-title>Historique des Collectes</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <div *ngIf="collections.length === 0" class="empty-state">
+      <div *ngIf="loadingCollections" class="loading-container collections-loading">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+
+      <div *ngIf="!loadingCollections && collectionsDataSource.data.length === 0" class="empty-state">
         <mat-icon>receipt_long</mat-icon>
         <p>Aucune collecte enregistrée</p>
       </div>
 
-      <table mat-table [dataSource]="collections" *ngIf="collections.length > 0" class="collections-table">
+      <table mat-table [dataSource]="collectionsDataSource" *ngIf="!loadingCollections && collectionsDataSource.data.length > 0" class="collections-table">
         <ng-container matColumnDef="date">
           <th mat-header-cell *matHeaderCellDef>Date</th>
           <td mat-cell *matCellDef="let collection">{{ formatDateTime(collection.collectionDate) }}</td>
@@ -225,8 +230,8 @@
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="['date', 'amount', 'commercial', 'consent']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['date', 'amount', 'commercial', 'consent'];"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
       </table>
     </mat-card-content>
   </mat-card>

@@ -18,7 +18,7 @@ export interface TontineSession {
 
 export interface TontineMember {
   readonly id: number;
-  readonly tontineSession: TontineSession;
+  readonly tontineSession?: TontineSession;
   readonly client: TontineClient;
   readonly totalContribution: number;
   readonly deliveryStatus: TontineMemberDeliveryStatus;

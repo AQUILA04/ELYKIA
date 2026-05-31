@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TontineService } from '../../services/tontine.service';
@@ -32,7 +33,9 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   member: TontineMember | null = null;
-  collections: readonly TontineCollection[] = [];
+  collectionsDataSource = new MatTableDataSource<TontineCollection>([]);
+  displayedColumns: string[] = ['date', 'amount', 'commercial', 'consent'];
+  loadingCollections = false;
   loading: boolean = false;
   currentSessionStatus: TontineSessionStatus | null = null;
   isSessionActive: boolean = false;
@@ -119,15 +122,18 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   }
 
   private loadCollections(memberId: number): void {
+    this.loadingCollections = true;
     this.tontineService.getCollections(memberId).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
-        if (response.data) {
-          this.collections = response.data.content;
-        }
+        const content = response.data?.content ?? [];
+        this.collectionsDataSource.data = [...content];
+        this.loadingCollections = false;
       },
       error: () => {
+        this.collectionsDataSource.data = [];
+        this.loadingCollections = false;
         this.showError('Erreur lors du chargement de l\'historique');
       }
     });
@@ -147,11 +153,13 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   }
 
   // Helper methods for status display in template
-  getStatusLabel(status: TontineMemberDeliveryStatus): string {
+  getStatusLabel(status?: TontineMemberDeliveryStatus): string {
+    if (!status) return 'N/A';
     return TONTINE_DELIVERY_STATUS_LABELS[status] || status;
   }
 
-  getStatusColor(status: TontineMemberDeliveryStatus): string {
+  getStatusColor(status?: TontineMemberDeliveryStatus): string {
+    if (!status) return 'secondary';
     return TONTINE_DELIVERY_STATUS_COLORS[status] || 'secondary';
   }
 
