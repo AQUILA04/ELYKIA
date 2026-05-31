@@ -45,20 +45,20 @@ runs:
         sed -i "s|apiUrl:.*|apiUrl: '${API_URL}',|" mobile/src/environments/environment.prod.ts
 
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: '20.19.3'
         cache: 'npm'
         cache-dependency-path: 'mobile/package-lock.json'
 
     - name: Setup Java JDK
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '21'
 
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
+      uses: android-actions/setup-android@v4
 
     - name: Install dependencies and build web assets
       shell: bash
@@ -151,7 +151,7 @@ runs:
         echo "apk_path=$APK_PATH" >> "$GITHUB_OUTPUT"
 
     - name: Upload APK artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: elykia-mobile-${{ inputs.target }}-v${{ steps.apk.outputs.app_version }}.apk
         path: ${{ steps.apk.outputs.apk_path }}

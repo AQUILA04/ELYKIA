@@ -98,7 +98,7 @@ jobs:
         echo "IMAGE_NAME_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: '17'
         distribution: 'temurin'
@@ -163,7 +163,7 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: '17'
         distribution: 'temurin'
@@ -204,20 +204,20 @@ jobs:
         .github/scripts/validate-mobile-pipeline.sh
       
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: '20.19.3'
         cache: 'npm'
         cache-dependency-path: 'mobile/package-lock.json'
         
     - name: Setup Java JDK
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '21'
         
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
+      uses: android-actions/setup-android@v4
       
     - name: Clean npm cache
       run: npm cache clean --force
@@ -320,7 +320,7 @@ jobs:
         mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/elykia-mobile-dev-v$VERSION.apk
 
     - name: Upload APK as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: elykia-mobile-dev-v${{ env.APP_VERSION }}.apk
         path: mobile/android/app/build/outputs/apk/debug/elykia-mobile-dev-v${{ env.APP_VERSION }}.apk
