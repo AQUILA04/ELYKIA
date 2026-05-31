@@ -47,6 +47,7 @@ jobs:
     outputs:
       frontend_image: ${{ steps.resolve.outputs.frontend_image }}
       backend_image: ${{ steps.resolve.outputs.backend_image }}
+      website_image: ${{ steps.resolve.outputs.website_image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -97,12 +98,15 @@ jobs:
 
           FRONTEND_IMAGE=$(resolve_sha "frontend")
           BACKEND_IMAGE=$(resolve_sha "backend")
+          WEBSITE_IMAGE=$(resolve_sha "website" || echo "")
 
           echo "Resolved frontend: $FRONTEND_IMAGE"
           echo "Resolved backend:  $BACKEND_IMAGE"
+          echo "Resolved website:  $WEBSITE_IMAGE"
 
           echo "frontend_image=$FRONTEND_IMAGE" >> "$GITHUB_OUTPUT"
           echo "backend_image=$BACKEND_IMAGE"  >> "$GITHUB_OUTPUT"
+          echo "website_image=$WEBSITE_IMAGE"  >> "$GITHUB_OUTPUT"
 
   # ---------------------------------------------------------------------------
   # Deploy to TEST
@@ -135,6 +139,16 @@ jobs:
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
              && cd ${{ secrets.TEST_DEPLOY_PATH }} \
              && ./deploy/deploy.sh test '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+
+      - name: Deploy website to test
+        if: ${{ needs.resolve-images.outputs.website_image != '' }}
+        run: |
+          WEBSITE_IMAGE='${{ needs.resolve-images.outputs.website_image }}'
+          echo "Deploying website $WEBSITE_IMAGE to test (site.amenouveve-yaveh.com)"
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} \
+            "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
+             && cd ${{ secrets.TEST_DEPLOY_PATH }} \
+             && ./deploy/deploy-website.sh test '$WEBSITE_IMAGE'"
 
       - name: Deploy monitoring stack (test)
         env:
@@ -186,6 +200,16 @@ jobs:
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
              && cd ${{ secrets.PROD_DEPLOY_PATH }} \
              && ./deploy/deploy.sh prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+
+      - name: Deploy website to prod
+        if: ${{ needs.resolve-images.outputs.website_image != '' }}
+        run: |
+          WEBSITE_IMAGE='${{ needs.resolve-images.outputs.website_image }}'
+          echo "Deploying website $WEBSITE_IMAGE to prod (www.amenouveve-yaveh.com)"
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
+            "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
+             && cd ${{ secrets.PROD_DEPLOY_PATH }} \
+             && ./deploy/deploy-website.sh prod '$WEBSITE_IMAGE'"
 
       - name: Deploy monitoring stack (Prometheus + Grafana)
         env:
