@@ -38,6 +38,12 @@ public class DailyOperationLog extends BaseEntity<String> {
 
     private String reference; // e.g., Client name, Invoice ID
 
+    @Column(columnDefinition = "double precision default 0")
+    private Double reliquatGeneratedAmount = 0.0;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double reliquatUsedAmount = 0.0;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 

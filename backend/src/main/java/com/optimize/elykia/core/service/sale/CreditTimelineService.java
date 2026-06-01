@@ -144,7 +144,9 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
                     creditTimeline.getAmount(),
                     creditTimeline.getCollector(),
                     ref,
-                    creditTimeline.getReference()
+                    creditTimeline.getReference(),
+                    creditTimeline.getReliquatGeneratedAmount(),
+                    creditTimeline.getReliquatUsedAmount()
             ));
         }
 

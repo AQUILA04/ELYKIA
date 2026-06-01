@@ -9,7 +9,7 @@ L'architecture repose sur un reverse proxy Traefik unique qui gère le routage e
 
 ```mermaid
 graph TD
-    Client((Client Web / Mobile)) -->|HTTPS| CF[Cloudflare Proxy]
+    Client(("Client Web / Mobile")) -->|HTTPS| CF[Cloudflare Proxy]
     CF -->|HTTPS| Traefik[Traefik v3 Reverse Proxy]
     
     subgraph VPS Ubuntu
@@ -18,7 +18,7 @@ graph TD
         subgraph Stack Test
             FE_Test[Frontend Test]
             BE_Test[Backend Test]
-            DB_Test[(Postgres Test)]
+            DB_Test[("Postgres Test")]
             FE_Test -.-> BE_Test
             BE_Test -.-> DB_Test
         end
@@ -26,7 +26,7 @@ graph TD
         subgraph Stack Prod
             FE_Prod[Frontend Prod]
             BE_Prod[Backend Prod]
-            DB_Prod[(Postgres Prod)]
+            DB_Prod[("Postgres Prod")]
             FE_Prod -.-> BE_Prod
             BE_Prod -.-> DB_Prod
         end

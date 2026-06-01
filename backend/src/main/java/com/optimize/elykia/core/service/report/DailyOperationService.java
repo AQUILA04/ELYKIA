@@ -26,6 +26,12 @@ public class DailyOperationService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logOperation(String commercialUsername, OperationType type, Double amount, String reference,
             String description) {
+        logOperation(commercialUsername, type, amount, reference, description, 0.0, 0.0);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logOperation(String commercialUsername, OperationType type, Double amount, String reference,
+            String description, Double reliquatGeneratedAmount, Double reliquatUsedAmount) {
         DailyOperationLog log = new DailyOperationLog(
                 LocalDate.now(),
                 commercialUsername,
@@ -34,6 +40,8 @@ public class DailyOperationService {
                 amount,
                 reference,
                 description);
+        log.setReliquatGeneratedAmount(reliquatGeneratedAmount != null ? reliquatGeneratedAmount : 0.0);
+        log.setReliquatUsedAmount(reliquatUsedAmount != null ? reliquatUsedAmount : 0.0);
         repository.save(log);
     }
 
