@@ -1,0 +1,53 @@
+<h2 mat-dialog-title>Collecte de rattrapage</h2>
+
+<mat-dialog-content>
+  <div class="member-info">
+    <p><strong>Membre :</strong> {{ getClientName() }}</p>
+    <p><strong>Total actuel :</strong> {{ data.member.totalContribution.toLocaleString('fr-FR') }} XOF</p>
+  </div>
+
+  <p class="help-text">
+    La part société sera calculée jusqu'à la date choisie, sans impacter le mois en cours.
+    Enregistrez les collectes manquantes par ordre chronologique lorsque c'est possible.
+  </p>
+
+  <form [formGroup]="form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Date de la collecte *</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="collectionDate"
+             [min]="minDate" [max]="maxDate" placeholder="Choisir une date passée">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+      <mat-error *ngIf="form.get('collectionDate')?.hasError('required')">
+        La date est requise
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Montant de la collecte *</mat-label>
+      <input matInput type="number" formControlName="amount" placeholder="Saisir le montant...">
+      <span matSuffix>XOF</span>
+      <mat-error *ngIf="form.get('amount')?.hasError('required')">
+        Le montant est requis
+      </mat-error>
+      <mat-error *ngIf="form.get('amount')?.hasError('min')">
+        Le montant minimum est de {{ TONTINE_CONSTANTS.MIN_COLLECTION_AMOUNT }} XOF
+      </mat-error>
+      <mat-error *ngIf="form.get('amount')?.hasError('max')">
+        Le montant maximum est de {{ TONTINE_CONSTANTS.MAX_COLLECTION_AMOUNT }} XOF
+      </mat-error>
+    </mat-form-field>
+
+    <mat-error *ngIf="error" class="error-message">
+      {{ error }}
+    </mat-error>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="loading">Annuler</button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="loading || form.invalid">
+    <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+    <span *ngIf="!loading">Enregistrer le rattrapage</span>
+  </button>
+</mat-dialog-actions>

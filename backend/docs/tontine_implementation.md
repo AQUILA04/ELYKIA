@@ -166,6 +166,21 @@ Enregistre un paiement de cotisation pour un membre de la tontine.
 }
 ```
 
+**Collecte de rattrapage (date passée)** — champ optionnel `collectionDate` au format `YYYY-MM-DD` :
+
+```json
+{
+  "memberId": 1,
+  "amount": 31000.0,
+  "collectionDate": "2026-02-15",
+  "notes": "Rattrapage"
+}
+```
+
+- Si `collectionDate` est absent, la collecte est enregistrée à la date et l'heure courantes (comportement standard).
+- Si `collectionDate` est fourni, il doit être **strictement antérieur** à la date du jour. La part société est calculée jusqu'à cette date (sans impacter le mois en cours).
+- En cas de date invalide (aujourd'hui, futur, avant l'adhésion ou après la fin de session), l'API renvoie une erreur de validation.
+
 - **Réponse (Succès 201 CREATED) :** Le champ `data` contiendra l'objet `TontineCollection` complet.
 
 ### 4.4 Consulter l'historique des cotisations d'un membre

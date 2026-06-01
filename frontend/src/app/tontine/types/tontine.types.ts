@@ -124,6 +124,9 @@ export interface CreateTontineMemberDto {
 export interface CreateTontineCollectionDto {
   readonly memberId: number;
   readonly amount: number;
+  /** Date métier (YYYY-MM-DD) pour une collecte de rattrapage */
+  readonly collectionDate?: string;
+  readonly notes?: string;
 }
 
 export interface UpdateSessionDto {

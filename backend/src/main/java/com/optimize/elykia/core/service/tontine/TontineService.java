@@ -215,39 +215,13 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     private void recalculateSocietyShareAfterUpdate(TontineMember member) {
-        Double currentSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
-        
-        // Calculate Target Society Share based on Time and History
-        LocalDate startDate = member.getTontineSession().getStartDate();
-        boolean useRegistrationDate = parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE");
-        if (useRegistrationDate && member.getRegistrationDate() != null) {
-            LocalDate regDate = member.getRegistrationDate().toLocalDate();
-            if (regDate.isAfter(startDate)) {
-                startDate = regDate;
-            }
-        }
-
-        LocalDate now = LocalDate.now();
-        Double targetSocietyShare = 0.0;
-        
-        LocalDate iterDate = startDate;
-        int monthsCounted = 0;
-        int MAX_MONTHS = 10;
-
-        while (!iterDate.isAfter(now) && monthsCounted < MAX_MONTHS) {
-             Double applicableAmount = getApplicableAmountForDate(member, iterDate);
-             targetSocietyShare += applicableAmount;
-             monthsCounted++;
-             iterDate = iterDate.plusMonths(1);
-        }
-
-        // Logic:
         // If we have collected enough total money to cover the new target share, we allocate it.
         // If the new target is lower than current share, we might reduce the share (and increase capital).
         // If the new target is higher, we increase share (and reduce capital) IF there is enough total contribution.
-        
+
+        Double targetSocietyShare = calculateTargetSocietyShare(member, LocalDate.now());
         Double totalContrib = member.getTotalContribution() != null ? member.getTotalContribution() : 0.0;
-        
+
         // The society share should be the target, capped by what the user has actually paid.
         Double newSocietyShare = Math.min(totalContrib, targetSocietyShare);
         
@@ -344,6 +318,15 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
 
         TontineMember member = this.getById(dto.getMemberId());
+
+        LocalDate allocationDate = LocalDate.now();
+        LocalDateTime collectionDateTime = LocalDateTime.now();
+        if (dto.getCollectionDate() != null) {
+            validateCatchupCollectionDate(member, currentSession, dto.getCollectionDate());
+            allocationDate = dto.getCollectionDate();
+            collectionDateTime = dto.getCollectionDate().atStartOfDay();
+        }
+
         String commercialUsername = userService.getCurrentUser().getUsername();
 
         TontineCollection collection = new TontineCollection();
@@ -351,11 +334,17 @@ public class TontineService extends GenericService<TontineMember, Long> {
         collection.setAmount(dto.getAmount());
         collection.setIsDeliveryCollection(
                 Objects.nonNull(dto.getIsDeliveryCollection()) ? dto.getIsDeliveryCollection() : Boolean.FALSE);
-        collection.setCollectionDate(LocalDateTime.now());
+        collection.setCollectionDate(collectionDateTime);
         collection.setCommercialUsername(commercialUsername);
 
         if (StringUtils.hasText(dto.getReference())) {
             collection.setReference(dto.getReference());
+        }
+
+        if (StringUtils.hasText(dto.getNotes())) {
+            collection.setNotes(dto.getNotes());
+        } else if (dto.getCollectionDate() != null) {
+            collection.setNotes("Rattrapage");
         }
 
         collection.setOperationConsentCode(dto.getOperationConsentCode());
@@ -363,7 +352,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
         collection.setSyncConsentCode(dto.getSyncConsentCode());
 
         // Process financial logic (Society Share vs Capital)
-        processCollectionAllocation(member, dto.getAmount());
+        processCollectionAllocation(member, dto.getAmount(), allocationDate);
 
         this.update(member);
 
@@ -389,43 +378,64 @@ public class TontineService extends GenericService<TontineMember, Long> {
         return TontineCollectionRespDto.fromTontineCollection(savedCollection);
     }
 
-    private void processCollectionAllocation(TontineMember member, Double amountCollected) {
-        Double currentSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
-        Double currentTotalContribution = member.getTotalContribution() != null ? member.getTotalContribution() : 0.0;
+    private void validateCatchupCollectionDate(TontineMember member, TontineSession session, LocalDate collectionDate) {
+        LocalDate today = LocalDate.now();
+        if (!collectionDate.isBefore(today)) {
+            throw new CustomValidationException(
+                    "La date de rattrapage doit être strictement antérieure à la date du jour.");
+        }
 
-        // 1. Calculate Target Society Share based on Time (Months started since session
-        // start OR registration date)
+        LocalDate effectiveStart = getEffectiveMemberStartDate(member);
+        if (collectionDate.isBefore(effectiveStart)) {
+            throw new CustomValidationException(
+                    "La date de rattrapage ne peut pas être antérieure au début de participation du membre ("
+                            + effectiveStart + ").");
+        }
+
+        if (session.getEndDate() != null && collectionDate.isAfter(session.getEndDate())) {
+            throw new CustomValidationException(
+                    "La date de rattrapage ne peut pas être postérieure à la fin de la session ("
+                            + session.getEndDate() + ").");
+        }
+    }
+
+    private LocalDate getEffectiveMemberStartDate(TontineMember member) {
         LocalDate startDate = member.getTontineSession().getStartDate();
-
-        // Check parameter to decide whether to use Session Start Date or Member
-        // Registration Date
         boolean useRegistrationDate = parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE");
         if (useRegistrationDate && member.getRegistrationDate() != null) {
             LocalDate regDate = member.getRegistrationDate().toLocalDate();
-            // If registration is after session start, use registration date
             if (regDate.isAfter(startDate)) {
                 startDate = regDate;
             }
         }
+        return startDate;
+    }
 
-        LocalDate now = LocalDate.now();
-        Double targetSocietyShare = 0.0;
-        
-        // Iterate through months to calculate share based on history
+    double calculateTargetSocietyShare(TontineMember member, LocalDate upToDateInclusive) {
+        LocalDate startDate = getEffectiveMemberStartDate(member);
+        double targetSocietyShare = 0.0;
+
         LocalDate iterDate = startDate;
         int monthsCounted = 0;
-        int MAX_MONTHS = 10;
+        int maxMonths = 10;
 
-        while (!iterDate.isAfter(now) && monthsCounted < MAX_MONTHS) {
-             // For this month (represented by iterDate), find the applicable amount
-             Double applicableAmount = getApplicableAmountForDate(member, iterDate);
-             targetSocietyShare += applicableAmount;
-             
-             monthsCounted++;
-             iterDate = iterDate.plusMonths(1);
+        while (!iterDate.isAfter(upToDateInclusive) && monthsCounted < maxMonths) {
+            Double applicableAmount = getApplicableAmountForDate(member, iterDate, upToDateInclusive);
+            targetSocietyShare += applicableAmount;
+            monthsCounted++;
+            iterDate = iterDate.plusMonths(1);
         }
 
-        // 2. Calculate Deficit (What is owed to society up to today)
+        return targetSocietyShare;
+    }
+
+    private void processCollectionAllocation(TontineMember member, Double amountCollected, LocalDate allocationDate) {
+        Double currentSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
+        Double currentTotalContribution = member.getTotalContribution() != null ? member.getTotalContribution() : 0.0;
+
+        Double targetSocietyShare = calculateTargetSocietyShare(member, allocationDate);
+
+        // 2. Calculate Deficit (What is owed to society up to allocation date)
         double societyShareDeficit = targetSocietyShare - currentSocietyShare;
         if (societyShareDeficit < 0)
             societyShareDeficit = 0.0;
@@ -445,30 +455,13 @@ public class TontineService extends GenericService<TontineMember, Long> {
         calculateMemberStatus(member);
     }
     
-    private Double getApplicableAmountForDate(TontineMember member, LocalDate date) {
-        // Find the history entry that covers this date
-        // If multiple (shouldn't happen with clean logic), take the latest created one or specific logic?
-        // Our logic ensures non-overlapping or clear cut-offs.
-        // We look for an entry where startDate <= date AND (endDate == null OR endDate >= date)
-        
-        // However, the requirement says: "s'il y plusieurs changement dans un mois qui concerne le mois présent et futur, on ne prendra que la dernière valeur pour le calcul de la part société pour le mois."
-        // This implies we should look for the entry valid at the END of the month? Or the one valid at the specific date?
-        // "pour le mois" suggests one value per month.
-        // If I change amount on 5th, and then on 20th. The value for that month should be the one on 20th.
-        // So we should look for the amount valid at the end of that month (or today if it's current month).
-        
-        LocalDate targetLookupDate = date.withDayOfMonth(date.lengthOfMonth());
-        if (targetLookupDate.isAfter(LocalDate.now())) {
-            targetLookupDate = LocalDate.now(); // For current month, take today's status? Or end of month projection?
-            // If we are in current month, and we changed amount today, we want today's amount.
+    private Double getApplicableAmountForDate(TontineMember member, LocalDate date, LocalDate referenceDate) {
+        LocalDate lookupDate = date.withDayOfMonth(date.lengthOfMonth());
+        if (lookupDate.isAfter(referenceDate)) {
+            lookupDate = referenceDate;
         }
-        
-        // Actually, simpler: Find the entry active at 'date'. If multiple changes happened in that month, 
-        // the 'startDate' of the latest change would be in that month.
-        // So we want the entry with the latest startDate that is <= end of that month.
-        
-        LocalDate endOfMonth = date.withDayOfMonth(date.lengthOfMonth());
-        
+        final LocalDate endOfMonth = lookupDate;
+
         return member.getAmountHistory().stream()
                 .filter(h -> !h.getStartDate().isAfter(endOfMonth)) // Started before or during this month
                 .sorted(Comparator.comparing(TontineMemberAmountHistory::getStartDate).reversed()) // Latest first

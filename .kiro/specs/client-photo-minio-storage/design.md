@@ -473,11 +473,83 @@ Option B : Téléchargement proactif pour mode offline
 
 ## Gestion des erreurs
 
-### Scénario 1 : MinIO indisponible lors d'un upload
+### Scénario 1 : MinIO indisponible lors d'un upload (Fallback Outbox)
 
-**Condition** : Le service MinIO est inaccessible au moment de l'upload d'une photo.  
-**Réponse** : `ClientService` propage une `ApplicationException("Service de stockage photo indisponible")` → HTTP 503.  
-**Récupération** : L'utilisateur peut réessayer. Les données client (sans photo) sont déjà sauvegardées en base.
+**Condition** : Le service MinIO est inaccessible au moment de l'upload d'une photo lors de `addClient()` ou `updateClientPhoto()`.
+
+**Réponse** :
+1. `ClientService` détecte l'indisponibilité via `MinioStorageService.isAvailable()` (ou catch de l'exception d'upload).
+2. Les bytes de la photo sont sauvegardés dans le filesystem local sous `${photo.fallback.path}/{clientId}_{type}_{timestamp}.jpg`.
+3. Une entrée `PhotoOutboxEntry` est créée en base avec statut `PENDING`.
+4. L'enregistrement du client **réussit** — HTTP 200 est retourné avec `profilPhotoUrl = null`.
+5. Le `PhotoOutboxRetryScheduler` (cron toutes les 5 min) reprend les entrées `PENDING`/`FAILED` dès que MinIO est de nouveau disponible, uploade les photos, met à jour les URLs dans `Client`, et supprime les fichiers locaux.
+
+**Récupération** : Automatique via le scheduler. Après 5 tentatives échouées, alerte ERROR loggée pour intervention manuelle.
+
+**Nouveau composant : PhotoOutboxEntry (entité JPA)**
+
+```java
+@Entity
+public class PhotoOutboxEntry {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long clientId;
+    @Enumerated(EnumType.STRING)
+    private PhotoType photoType;       // PROFIL ou CARD
+    private String localFilePath;      // chemin absolu sur le filesystem
+    @Enumerated(EnumType.STRING)
+    private OutboxStatus status;       // PENDING, IN_PROGRESS, DONE, FAILED
+    private int retryCount;            // défaut 0, max 5
+    private LocalDateTime lastAttemptAt;
+    private LocalDateTime createdAt;
+    private String errorMessage;
+}
+```
+
+**Nouveau composant : PhotoOutboxRetryScheduler**
+
+```java
+@Component
+public class PhotoOutboxRetryScheduler {
+
+    @Scheduled(fixedDelay = 300_000) // toutes les 5 minutes
+    @Transactional
+    public void retryPendingPhotos() {
+        // 1. Vérifier disponibilité MinIO
+        if (!minioStorageService.isAvailable()) return;
+
+        // 2. Charger les entrées PENDING ou FAILED avec retryCount < 5
+        List<PhotoOutboxEntry> entries = outboxRepository
+            .findByStatusInAndRetryCountLessThan(
+                List.of(OutboxStatus.PENDING, OutboxStatus.FAILED), 5);
+
+        for (PhotoOutboxEntry entry : entries) {
+            try {
+                entry.setStatus(OutboxStatus.IN_PROGRESS);
+                byte[] bytes = Files.readAllBytes(Path.of(entry.getLocalFilePath()));
+                // Upload original + thumbnail
+                String url = clientService.uploadSinglePhoto(
+                    entry.getClientId(), bytes, entry.getPhotoType());
+                // Mettre à jour l'URL dans Client
+                clientService.updatePhotoUrl(entry.getClientId(), entry.getPhotoType(), url);
+                // Nettoyage
+                Files.deleteIfExists(Path.of(entry.getLocalFilePath()));
+                entry.setStatus(OutboxStatus.DONE);
+            } catch (Exception e) {
+                entry.setRetryCount(entry.getRetryCount() + 1);
+                entry.setLastAttemptAt(LocalDateTime.now());
+                entry.setErrorMessage(e.getMessage());
+                entry.setStatus(entry.getRetryCount() >= 5
+                    ? OutboxStatus.FAILED : OutboxStatus.PENDING);
+                if (entry.getRetryCount() >= 5) {
+                    log.error("Photo outbox: abandon après 5 tentatives. clientId={}, path={}",
+                        entry.getClientId(), entry.getLocalFilePath());
+                }
+            }
+        }
+    }
+}
+```
 
 ### Scénario 2 : Image corrompue ou format non supporté
 
