@@ -9,13 +9,13 @@ SET
   total_reliquat_generated_amount = COALESCE((
     SELECT SUM(ct.reliquat_generated_amount)
     FROM credit_timeline ct
-    WHERE CAST(ct.created_date AS DATE) = '2026-06-01'
+    WHERE CAST(ct.date_reg AS DATE) = '2026-06-01'
       AND ct.collector = dcr.commercial_username
   ), 0.0),
   total_reliquat_used_amount = COALESCE((
     SELECT SUM(ct.reliquat_used_amount)
     FROM credit_timeline ct
-    WHERE CAST(ct.created_date AS DATE) = '2026-06-01'
+    WHERE CAST(ct.date_reg AS DATE) = '2026-06-01'
       AND ct.collector = dcr.commercial_username
   ), 0.0)
 WHERE dcr.date = '2026-06-01';
@@ -34,7 +34,7 @@ SET
     FROM credit_timeline ct
     WHERE dol.description LIKE '%' || ct.reference || '%'
       AND ct.collector = dol.commercial_username
-      AND CAST(ct.created_date AS DATE) = '2026-06-01'
+      AND CAST(ct.date_reg AS DATE) = '2026-06-01'
       AND dol.type = 'CREDIT_COLLECTION'
     LIMIT 1
   ), 0.0),
@@ -43,7 +43,7 @@ SET
     FROM credit_timeline ct
     WHERE dol.description LIKE '%' || ct.reference || '%'
       AND ct.collector = dol.commercial_username
-      AND CAST(ct.created_date AS DATE) = '2026-06-01'
+      AND CAST(ct.date_reg AS DATE) = '2026-06-01'
       AND dol.type = 'CREDIT_COLLECTION'
     LIMIT 1
   ), 0.0)
