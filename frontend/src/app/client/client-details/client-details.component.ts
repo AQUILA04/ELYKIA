@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClientService, Client } from '../service/client.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
@@ -10,7 +10,8 @@ import { PageEvent } from '@angular/material/paginator';
 @Component({
   selector: 'app-client-details',
   templateUrl: './client-details.component.html',
-  styleUrls: ['./client-details.component.scss']
+  styleUrls: ['./client-details.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class ClientDetailsComponent implements OnInit {
   client: Client | undefined;
@@ -51,7 +52,7 @@ export class ClientDetailsComponent implements OnInit {
   }
 
   loadAllData(): void {
-    this.spinner.show();
+    this.isLoading = true;
     this.loadClient(this.clientId);
     this.loadClientDetails(this.clientId);
     this.loadCredits(this.clientId);
@@ -77,11 +78,16 @@ export class ClientDetailsComponent implements OnInit {
   loadProfilPhoto(clientId: number): void {
     this.clientService.getProfilPhotoStream(clientId).subscribe(
       (image: Blob) => {
-        const objectURL = URL.createObjectURL(image);
-        this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(objectURL);
+        if (image && image.size > 0) {
+          const objectURL = URL.createObjectURL(image);
+          this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(objectURL);
+        } else {
+          this.safeProfilPhotoUrl = null;
+        }
       },
       error => {
         console.error('Erreur chargement photo de profil', error);
+        this.safeProfilPhotoUrl = null;
       }
     );
   }
@@ -113,7 +119,7 @@ export class ClientDetailsComponent implements OnInit {
           this.credits = response.data.content;
           // Sort credits by ID descending (newest first)
           this.credits.sort((a: any, b: any) => b.id - a.id);
-          this.totalCreditElements = response.data.totalElements;
+          this.totalCreditElements = response.data.page.totalElements;
         }
         this.checkLoadingComplete();
       },
@@ -143,9 +149,7 @@ export class ClientDetailsComponent implements OnInit {
   }
 
   checkLoadingComplete(): void {
-    // Simple check, can be improved with forkJoin
     this.isLoading = false;
-    this.spinner.hide();
   }
 
   onCancel(): void {

@@ -1,34 +1,46 @@
-import { Component, OnInit } from '@angular/core';
-import { ClientService, Client } from '../service/client.service';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ClientService, Client, ClientKpis } from '../service/client.service';
 import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
-import { AuthService } from "../../auth/service/auth.service";
+import { AuthService } from '../../auth/service/auth.service';
+
+interface ClientListState {
+  searchTerm: string;
+  currentPage: number;
+  pageSize: number;
+  sortField: string;
+  selectedCommercial: string | null;
+}
 
 @Component({
   selector: 'app-client-list',
   templateUrl: './client-list.component.html',
-  styleUrls: ['./client-list.component.scss']
+  styleUrls: ['./client-list.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
-export class ClientListComponent implements OnInit {
+export class ClientListComponent implements OnInit, OnDestroy {
+  private readonly STATE_KEY = 'clientListState';
+  private dateIntervalId?: ReturnType<typeof setInterval>;
+
   clients: Client[] = [];
   currentPage = 0;
-  pageSize = 5;
+  pageSize = 10;
   totalElement = 0;
+  isLoading = true;
   sortField = 'id,desc';
-
-  // NOUVEAU: Propriété pour le terme de recherche
-  searchTerm: string = '';
+  searchTerm = '';
   selectedCommercial: string | null = null;
-  private readonly STORAGE_KEY = 'client_list_selected_commercial';
+
+  currentDate = new Date();
+  lastUpdate = new Date();
+  clientKpis: ClientKpis | null = null;
 
   constructor(
     private clientService: ClientService,
     private router: Router,
     private tokenStorage: TokenStorageService,
-    private spinner: NgxSpinnerService,
     private alertService: AlertService,
     private authService: AuthService
   ) {
@@ -36,59 +48,96 @@ export class ClientListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.restoreFilter();
+    this.restoreState();
+    this.loadClientKpis();
     this.loadClient();
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
   }
 
-  restoreFilter(): void {
-    const savedCommercial = sessionStorage.getItem(this.STORAGE_KEY);
-    if (savedCommercial) {
-      this.selectedCommercial = savedCommercial;
+  ngOnDestroy(): void {
+    this.saveState();
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
     }
   }
 
-  loadClient(): void {
-    this.spinner.show();
+  private getEffectiveUsername(): string {
     const currentUser = this.authService.getCurrentUser();
-    const usernameToUse = this.selectedCommercial || currentUser.username;
+    return this.selectedCommercial || currentUser?.username || '';
+  }
 
-    // MODIFIÉ: On passe le searchTerm au service
+  loadClientKpis(): void {
+    const username = this.getEffectiveUsername();
+    this.clientService.getClientKpis(username).subscribe({
+      next: (kpis) => {
+        this.clientKpis = kpis;
+      },
+      error: (err) => {
+        console.error('Erreur chargement KPI clients', err);
+      }
+    });
+  }
+
+  loadClient(): void {
+    this.isLoading = true;
+    const usernameToUse = this.getEffectiveUsername();
+
     this.clientService.getClients(this.currentPage, this.pageSize, this.sortField, usernameToUse, this.searchTerm).subscribe({
       next: (data) => {
         if (data.statusCode === 200) {
           this.clients = data.data.content;
-          this.totalElement = data.data.page.totalElements;
+          this.totalElement = data.data.page?.totalElements ?? data.data.totalElements ?? 0;
+          this.lastUpdate = new Date();
         } else {
           this.alertService.showError(data.message || 'Une erreur est survenue');
         }
-        this.spinner.hide();
+        this.isLoading = false;
+        this.saveState();
       },
       error: (err) => {
-        this.spinner.hide();
+        this.isLoading = false;
         this.alertService.showError('Erreur de communication avec le serveur');
         console.error(err);
       }
     });
   }
 
-  // NOUVEAU: Méthode pour déclencher la recherche
   onSearch(): void {
     this.currentPage = 0;
+    this.saveState();
+    this.loadClientKpis();
+    this.loadClient();
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.currentPage = 0;
+    this.saveState();
+    this.loadClientKpis();
+    this.loadClient();
+  }
+
+  refresh(): void {
+    this.loadClientKpis();
+    this.loadClient();
+  }
+
+  resetFilters(): void {
+    this.searchTerm = '';
+    this.selectedCommercial = null;
+    this.currentPage = 0;
+    this.saveState();
+    this.loadClientKpis();
     this.loadClient();
   }
 
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
+    this.saveState();
     this.loadClient();
-  }
-
-  // MODIFIÉ: La méthode refresh réinitialise la recherche
-  refresh(): void {
-    this.searchTerm = '';
-    this.selectedCommercial = null;
-    sessionStorage.removeItem(this.STORAGE_KEY);
-    this.onSearch();
   }
 
   deleteClient(id: number): void {
@@ -99,10 +148,10 @@ export class ClientListComponent implements OnInit {
             next: (resp: any) => {
               if (resp.statusCode === 200) {
                 this.alertService.showSuccess('Le client a été supprimé avec succès.', 'Suppression réussie!');
-                this.loadClient(); //
+                this.loadClientKpis();
+                this.loadClient();
               } else {
                 this.alertService.showError('Erreur lors de la suppression du client : ' + resp.message);
-                console.error('Erreur lors de la suppression du client', resp);
               }
             },
             error: (error) => {
@@ -115,27 +164,51 @@ export class ClientListComponent implements OnInit {
   }
 
   addClient(): void {
+    this.saveState();
     this.router.navigate(['/client-add']);
   }
 
   viewDetails(clientId: number): void {
-    console.log('Client details avec id :', clientId);
+    this.saveState();
     this.router.navigate(['/client-details', clientId]);
   }
 
   editClient(clientId: number): void {
+    this.saveState();
     this.router.navigate(['/client-add', clientId]);
   }
 
   onCommercialSelected(commercial: string | null): void {
     this.selectedCommercial = commercial;
-    if (commercial) {
-      sessionStorage.setItem(this.STORAGE_KEY, commercial);
-    } else {
-      sessionStorage.removeItem(this.STORAGE_KEY);
-    }
     this.currentPage = 0;
+    this.saveState();
+    this.loadClientKpis();
     this.loadClient();
   }
-}
 
+  private saveState(): void {
+    const state: ClientListState = {
+      searchTerm: this.searchTerm,
+      currentPage: this.currentPage,
+      pageSize: this.pageSize,
+      sortField: this.sortField,
+      selectedCommercial: this.selectedCommercial
+    };
+    sessionStorage.setItem(this.STATE_KEY, JSON.stringify(state));
+  }
+
+  private restoreState(): void {
+    const saved = sessionStorage.getItem(this.STATE_KEY);
+    if (!saved) return;
+    try {
+      const state = JSON.parse(saved) as ClientListState;
+      this.searchTerm = state.searchTerm ?? '';
+      this.currentPage = state.currentPage ?? 0;
+      this.pageSize = state.pageSize ?? 10;
+      this.sortField = state.sortField ?? 'id,desc';
+      this.selectedCommercial = state.selectedCommercial ?? null;
+    } catch (e) {
+      console.error('Erreur restauration état liste clients', e);
+    }
+  }
+}

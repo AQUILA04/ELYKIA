@@ -151,4 +151,36 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
        "    (:#{#tontine != true AND #mobile != true} = true AND (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))" +
        "))")
     Page<ClientRespDto> findClientsDto(@Param("username") String username, @Param("tontine") Boolean tontine, @Param("mobile") Boolean mobile, Pageable pageable);
+
+    @Query("""
+            SELECT COUNT(c) FROM Client c
+            WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
+            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))
+            """)
+    long countActiveClients(@Param("username") String username);
+
+    @Query("""
+            SELECT COUNT(c) FROM Client c
+            WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
+            AND c.creditInProgress = true
+            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))
+            """)
+    long countClientsWithCreditInProgress(@Param("username") String username);
+
+    @Query("""
+            SELECT COUNT(c) FROM Client c
+            WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
+            AND c.isTontineMember = true
+            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))
+            """)
+    long countTontineMembers(@Param("username") String username);
+
+    @Query("""
+            SELECT COUNT(c) FROM Client c
+            WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
+            AND (c.creditInProgress IS NULL OR c.creditInProgress = false)
+            AND c.isTontineMember = false
+            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))
+            """)
+    long countClientsWithoutCreditNorTontine(@Param("username") String username);
 }

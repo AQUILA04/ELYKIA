@@ -84,6 +84,8 @@ public interface ArticlesRepository extends GenericRepository<Articles, Long> {
     // Le type de retour n'est plus Object[], mais directement notre DTO
     StockValuesDto getDetailedStockValues();
 
+    long countByStockQuantityGreaterThan(int quantity);
+
     // AJOUTS POUR BI DASHBOARD
     long countByStockQuantityEquals(int quantity);
 

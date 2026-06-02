@@ -219,6 +219,23 @@ public class ClientService extends GenericService<Client, Long> {
         return getRepository().findClientsDto(effectiveUsername, tontine, mobile, pageable);
     }
 
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Long> getClientKpis(String username) {
+        String effectiveUsername = resolveCommercialUsername(username);
+        return java.util.Map.of(
+                "totalRegistered", getRepository().countActiveClients(effectiveUsername),
+                "withActiveCredit", getRepository().countClientsWithCreditInProgress(effectiveUsername),
+                "tontineMembers", getRepository().countTontineMembers(effectiveUsername),
+                "withoutCreditNorTontine", getRepository().countClientsWithoutCreditNorTontine(effectiveUsername));
+    }
+
+    private String resolveCommercialUsername(String username) {
+        if (username != null && username.startsWith("COM")) {
+            return username;
+        }
+        return null;
+    }
+
     public byte[] getProfilPhoto(Long id) {
         PhotoStore photo = photoStoreRepository.getClientProfil(id);
         return photo != null ? photo.getPhoto() : null;

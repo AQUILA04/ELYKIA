@@ -69,6 +69,13 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface ClientKpis {
+  totalRegistered: number;
+  withActiveCredit: number;
+  tontineMembers: number;
+  withoutCreditNorTontine: number;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -173,6 +180,17 @@ export class ClientService {
     const headers = this.getHeader();
     return this.http.get<any[]>(this.apiUrl, { headers }).pipe(
       map(clients => clients.length)
+    );
+  }
+
+  getClientKpis(username?: string | null): Observable<ClientKpis> {
+    const headers = this.getHeader();
+    let params = new HttpParams();
+    if (username) {
+      params = params.set('username', username);
+    }
+    return this.http.get<ApiResponse<ClientKpis>>(`${this.apiUrl}/kpis`, { headers, params }).pipe(
+      map(response => response.data)
     );
   }
 }

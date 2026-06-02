@@ -66,6 +66,11 @@ public class ClientController {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.assignCollector(dto)), HttpStatus.OK);
     }
 
+    @GetMapping("/kpis")
+    public ResponseEntity<Response> getClientKpis(@RequestParam(required = false) String username) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getClientKpis(username)), HttpStatus.OK);
+    }
+
     @GetMapping(value = "{id}")
     public ResponseEntity<Response> getOne(@PathVariable Long id) {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getById(id)), HttpStatus.OK);

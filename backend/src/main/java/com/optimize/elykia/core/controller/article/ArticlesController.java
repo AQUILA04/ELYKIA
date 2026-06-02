@@ -162,6 +162,11 @@ public class ArticlesController {
         return ResponseEntity.ok(totals);
     }
 
+    @GetMapping("/stock-kpis")
+    public ResponseEntity<Map<String, Object>> getStockKpis() {
+        return ResponseEntity.ok(articlesService.getArticleStockKpis());
+    }
+
     @GetMapping("/{id}/history")
     public ResponseEntity<Response> getArticleHistory(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(

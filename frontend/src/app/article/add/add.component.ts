@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ItemService, Article, NewArticleData } from '../service/item.service';
@@ -11,7 +11,8 @@ import { ArticleTypeService, ArticleType } from 'src/app/article-type/service/ar
 @Component({
   selector: 'app-add',
   templateUrl: './add.component.html',
-  styleUrls: ['./add.component.scss']
+  styleUrls: ['./add.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class AddComponent implements OnInit {
   articleForm!: FormGroup;
@@ -129,6 +130,7 @@ export class AddComponent implements OnInit {
 
   onSubmit(): void {
     if (this.articleForm.valid) {
+      this.isLoading = true;
       this.spinner.show();
       const formData: NewArticleData = {
         id: this.articleId!,
@@ -145,33 +147,37 @@ export class AddComponent implements OnInit {
       };
 
       if (this.articleId) {
-        this.itemService.updateArticle(formData).subscribe(
-          response => {
+        this.itemService.updateArticle(formData).subscribe({
+          next: () => {
+            this.isLoading = false;
             this.spinner.hide();
             this.alertService.showSuccess('Article mis à jour avec succès');
             this.router.navigate(['/list']);
           },
-          error => {
+          error: (error) => {
+            this.isLoading = false;
             this.spinner.hide();
             const errorMessage = error?.error?.message || 'Erreur lors de la mise à jour de l\'article';
             this.alertService.showError(errorMessage);
             console.error('Erreur lors de la mise à jour de l\'article', error);
           }
-        );
+        });
       } else {
-        this.itemService.addArticle(formData).subscribe(
-          response => {
+        this.itemService.addArticle(formData).subscribe({
+          next: () => {
+            this.isLoading = false;
             this.spinner.hide();
             this.alertService.showSuccess('Article ajouté avec succès');
             this.router.navigate(['/list']);
           },
-          error => {
+          error: (error) => {
+            this.isLoading = false;
             this.spinner.hide();
             const errorMessage = error?.error?.message || 'Erreur lors de l\'ajout de l\'article';
             this.alertService.showError(errorMessage);
             console.error('Erreur lors de l\'ajout de l\'article', error);
           }
-        );
+        });
       }
     }
   }

@@ -1,90 +1,82 @@
-<mat-card class="profile-card h-100">
-  <div class="profile-header text-center p-4">
-    <div class="profile-image-wrapper mb-3">
-      <img [src]="safeProfilPhotoUrl || 'https://placehold.co/120x120/003366/FFFFFF?text=Profil'"
-           alt="Photo de profil" class="profile-photo">
+<div class="profile-card">
+  <div class="profile-header">
+    <div class="profile-image-wrapper">
+      <img
+        *ngIf="safeProfilPhotoUrl && !photoLoadFailed"
+        [src]="safeProfilPhotoUrl"
+        alt=""
+        class="profile-photo"
+        (error)="onPhotoError()">
+      <div *ngIf="showPhotoPlaceholder" class="profile-photo-placeholder" aria-label="Aucune photo de profil">
+        <mat-icon>person</mat-icon>
+      </div>
     </div>
-    <h2 class="mb-0">{{ client.firstname }} {{ client.lastname }}</h2>
-    <p class="text-muted">{{ client.occupation || 'Occupation non spécifiée' }}</p>
+    <h2 class="profile-name">{{ client.lastname }} {{ client.firstname }}</h2>
+    <p class="profile-role">{{ client.occupation || 'Occupation non spécifiée' }}</p>
   </div>
-  <mat-divider></mat-divider>
-  <mat-card-content class="p-0">
-    <div class="info-list">
 
-      <div class="info-item">
-        <mat-icon class="info-icon">phone</mat-icon>
-        <div class="info-content">
-          <span class="info-label">Téléphone</span>
-          <span class="info-value">{{ client.phone || 'Non spécifié' }}</span>
-        </div>
+  <div class="info-list">
+    <div class="info-item">
+      <mat-icon class="info-icon">phone</mat-icon>
+      <div class="info-content">
+        <span class="info-label">Téléphone</span>
+        <span class="info-value">{{ client.phone || 'Non spécifié' }}</span>
       </div>
-      <mat-divider></mat-divider>
-
-      <div class="info-item">
-        <mat-icon class="info-icon">location_on</mat-icon>
-        <div class="info-content">
-          <span class="info-label">Adresse</span>
-          <span class="info-value">{{ client.address || 'Non spécifiée' }}</span>
-        </div>
-      </div>
-      <mat-divider></mat-divider>
-
-      <div class="info-item">
-        <mat-icon class="info-icon">map</mat-icon>
-        <div class="info-content">
-          <span class="info-label">Localité</span>
-          <span class="info-value">{{ client.quarter || 'Non spécifiée' }}</span>
-        </div>
-      </div>
-      <mat-divider></mat-divider>
-
-      <div class="info-item">
-        <mat-icon class="info-icon">badge</mat-icon>
-        <div class="info-content">
-          <span class="info-label">Agent associé</span>
-          <span class="info-value">{{ client.collector || 'Non assigné' }}</span>
-        </div>
-      </div>
-
-      <ng-container *ngIf="client.tontineCollector">
-        <mat-divider></mat-divider>
-        <div class="info-item">
-          <mat-icon class="info-icon">savings</mat-icon>
-          <div class="info-content">
-            <span class="info-label">Agent Tontine</span>
-            <span class="info-value">{{ client.tontineCollector }}</span>
-          </div>
-        </div>
-      </ng-container>
-
-      <mat-divider></mat-divider>
-
-      <div class="info-item">
-        <mat-icon class="info-icon">fingerprint</mat-icon>
-        <div class="info-content">
-          <span class="info-label">Identité</span>
-          <span class="info-value">
-            <ng-container *ngIf="client.cardType || client.cardID; else noId">
-              <span *ngIf="client.cardType">{{ client.cardType }}</span>
-              <span *ngIf="client.cardType && client.cardID"> - </span>
-              <span *ngIf="client.cardID">{{ client.cardID }}</span>
-            </ng-container>
-            <ng-template #noId>Non renseignée</ng-template>
-          </span>
-        </div>
-      </div>
-
-      <ng-container *ngIf="client.iddoc">
-        <mat-divider></mat-divider>
-        <div class="info-item">
-          <mat-icon class="info-icon">description</mat-icon>
-          <div class="info-content">
-            <span class="info-label">Document</span>
-            <span class="info-value"><a [href]="client.iddoc" target="_blank">Voir le document</a></span>
-          </div>
-        </div>
-      </ng-container>
-
     </div>
-  </mat-card-content>
-</mat-card>
+
+    <div class="info-item">
+      <mat-icon class="info-icon">location_on</mat-icon>
+      <div class="info-content">
+        <span class="info-label">Adresse</span>
+        <span class="info-value">{{ client.address || 'Non spécifiée' }}</span>
+      </div>
+    </div>
+
+    <div class="info-item">
+      <mat-icon class="info-icon">map</mat-icon>
+      <div class="info-content">
+        <span class="info-label">Localité</span>
+        <span class="info-value">{{ client.quarter || 'Non spécifiée' }}</span>
+      </div>
+    </div>
+
+    <div class="info-item">
+      <mat-icon class="info-icon">badge</mat-icon>
+      <div class="info-content">
+        <span class="info-label">Agent associé</span>
+        <span class="info-value">{{ client.collector || 'Non assigné' }}</span>
+      </div>
+    </div>
+
+    <div class="info-item" *ngIf="client.tontineCollector">
+      <mat-icon class="info-icon">savings</mat-icon>
+      <div class="info-content">
+        <span class="info-label">Agent tontine</span>
+        <span class="info-value">{{ client.tontineCollector }}</span>
+      </div>
+    </div>
+
+    <div class="info-item">
+      <mat-icon class="info-icon">fingerprint</mat-icon>
+      <div class="info-content">
+        <span class="info-label">Identité</span>
+        <span class="info-value">
+          <ng-container *ngIf="client.cardType || client.cardID; else noId">
+            <span *ngIf="client.cardType">{{ client.cardType }}</span>
+            <span *ngIf="client.cardType && client.cardID"> — </span>
+            <span *ngIf="client.cardID">{{ client.cardID }}</span>
+          </ng-container>
+          <ng-template #noId>Non renseignée</ng-template>
+        </span>
+      </div>
+    </div>
+
+    <div class="info-item" *ngIf="client.iddoc">
+      <mat-icon class="info-icon">description</mat-icon>
+      <div class="info-content">
+        <span class="info-label">Document</span>
+        <span class="info-value"><a [href]="client.iddoc" target="_blank" rel="noopener">Voir le document</a></span>
+      </div>
+    </div>
+  </div>
+</div>

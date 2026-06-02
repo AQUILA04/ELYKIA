@@ -1,54 +1,62 @@
-<div class="container client-details-page">
-  <div class="loading-container" *ngIf="isLoading">
-    <mat-spinner diameter="50"></mat-spinner>
+<div class="main-container client-details-page page-loading-shell" *ngIf="isLoading">
+  <div class="page-loading">
+    <mat-spinner diameter="44"></mat-spinner>
+    <span>Chargement du client…</span>
   </div>
+</div>
 
-  <div *ngIf="!isLoading && client">
-    <!-- 1. Header & Actions -->
-    <div class="page-header d-flex justify-content-between align-items-center mb-4">
-      <div class="client-title-group">
-        <h1>{{ client.firstname }} {{ client.lastname }}</h1>
-        <div class="client-status-badges">
-          <span *ngIf="client.creditInProgress" class="badge badge-warning">
-            <mat-icon class="badge-icon">account_balance</mat-icon>
-            Crédit en cours
-          </span>
-          <span *ngIf="client.isTontineMember" class="badge badge-info">
-            <mat-icon class="badge-icon">groups</mat-icon>
-            Membre tontine
-          </span>
-          <span *ngIf="client.hasOrderInProgress" class="badge badge-primary">
-            <mat-icon class="badge-icon">shopping_cart</mat-icon>
-            Commande en cours
-          </span>
-        </div>
-      </div>
-      <div class="actions d-flex gap-3">
-        <button mat-stroked-button (click)="onCancel()">
-          <mat-icon>arrow_back</mat-icon> Retour
-        </button>
-        <button mat-raised-button class="btn-brand" (click)="navigateToEdit(client.id)">
-          <mat-icon>edit</mat-icon> Modifier
-        </button>
-      </div>
+<div class="main-container client-details-page" *ngIf="!isLoading && client">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/client-list" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Liste des clients
+      </a>
     </div>
 
-    <!-- 2. Résumé des Opérations (KPIs) -->
+    <div class="details-header-card">
+      <div class="details-header-main">
+        <div class="details-title-block">
+          <span class="header-surtitle">FICHE CLIENT</span>
+          <h1 class="client-fullname">{{ client.lastname }} {{ client.firstname }}</h1>
+          <div class="client-status-badges">
+            <span *ngIf="client.creditInProgress" class="status-chip chip-credit">
+              <mat-icon>account_balance</mat-icon> Crédit en cours
+            </span>
+            <span *ngIf="client.isTontineMember" class="status-chip chip-tontine">
+              <mat-icon>groups</mat-icon> Membre tontine
+            </span>
+            <span *ngIf="client.hasOrderInProgress" class="status-chip chip-order">
+              <mat-icon>shopping_cart</mat-icon> Commande en cours
+            </span>
+          </div>
+        </div>
+        <div class="details-header-actions">
+          <button type="button" class="btn-outline" (click)="onCancel()">
+            <mat-icon>arrow_back</mat-icon> Retour
+          </button>
+          <button type="button" class="btn-primary" (click)="navigateToEdit(client.id)">
+            <mat-icon>edit</mat-icon> Modifier
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-scroll-body">
     <app-client-kpi-cards [clientDetails]="clientDetails"></app-client-kpi-cards>
 
-    <div class="row">
-      <!-- 3. Informations Personnelles (Sidebar ou Colonne Gauche) -->
-      <div class="col-md-4 mb-4">
+    <div class="details-grid">
+      <div class="details-profile-col">
         <app-client-info-card [client]="client" [safeProfilPhotoUrl]="safeProfilPhotoUrl"></app-client-info-card>
       </div>
 
-      <!-- 4. Contenu Principal (Onglets Droite) -->
-      <div class="col-md-8">
-        <mat-card class="tabs-card">
+      <div class="details-tabs-col">
+        <div class="tabs-card">
           <mat-tab-group animationDuration="0ms" mat-stretch-tabs="false" mat-align-tabs="start">
-
-            <!-- Onglet Achats (Expandable) -->
-            <mat-tab label="Historique des Achats">
+            <mat-tab label="Historique des achats">
               <app-client-credit-list
                 [credits]="credits"
                 [totalCreditElements]="totalCreditElements"
@@ -56,9 +64,7 @@
                 (pageChange)="onCreditPageChange($event)">
               </app-client-credit-list>
             </mat-tab>
-
-            <!-- Onglet Dernières Cotisations -->
-            <mat-tab label="Historique des Cotisations">
+            <mat-tab label="Historique des cotisations">
               <app-client-cotisation-history
                 [cotisations]="cotisations"
                 [totalCotisationElements]="totalCotisationElements"
@@ -66,9 +72,8 @@
                 (pageChange)="onCotisationPageChange($event)">
               </app-client-cotisation-history>
             </mat-tab>
-
           </mat-tab-group>
-        </mat-card>
+        </div>
       </div>
     </div>
   </div>
