@@ -153,6 +153,7 @@
 <app-daily-stake-modal
   *ngIf="showDailyStakeModal"
   [credit]="selectedCreditForStake"
+  [isSubmitting]="isSubmittingStake"
   (onSubmit)="onDailyStakeSubmit($event)"
   (onClose)="closeDailyStakeModal()">
 </app-daily-stake-modal>

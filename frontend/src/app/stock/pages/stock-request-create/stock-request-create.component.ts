@@ -29,6 +29,7 @@ export class StockRequestCreateComponent implements OnInit {
   showMonthEndAlert: boolean = false;
   showNextMonthOption: boolean = false;
   forNextMonth: boolean = false;
+  isSubmitting = false;
 
   constructor(
     private fb: FormBuilder,
@@ -106,10 +107,15 @@ export class StockRequestCreateComponent implements OnInit {
   // Removed direct FormArray manipulation methods (addItem, removeItem)
 
   onSubmit() {
+    if (this.isSubmitting) {
+      return;
+    }
+
     if (this.form.invalid) {
       return;
     }
 
+    this.isSubmitting = true;
     const formValue = this.form.getRawValue();
     // ArticleSelector returns [{articleId: 1, quantity: 5}, ...]
     // Mapper needs to find the Article object if the backend expects the full object,
@@ -141,6 +147,7 @@ export class StockRequestCreateComponent implements OnInit {
         if (resp && resp.statusCode && resp.statusCode !== 200) {
           this.toastr.error(resp.message || 'Erreur lors de la création de la demande');
           this.spinner.hide();
+          this.isSubmitting = false;
         } else {
           this.toastr.success('Demande créée avec succès');
           this.spinner.hide();
@@ -151,6 +158,7 @@ export class StockRequestCreateComponent implements OnInit {
       error: (error: any) => {
         this.toastr.error(error.error?.message || error.message || 'Erreur lors de la création de la demande');
         this.spinner.hide();
+        this.isSubmitting = false;
       }
     });
   }

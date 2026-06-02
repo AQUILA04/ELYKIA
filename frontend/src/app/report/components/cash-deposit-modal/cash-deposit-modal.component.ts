@@ -41,6 +41,10 @@ export class CashDepositModalComponent implements OnInit {
     }
 
     submitDeposit() {
+        if (this.isSubmitting) {
+            return;
+        }
+
         if (this.depositAmount <= 0) {
             this.snackBar.open('Le montant doit être supérieur à 0.', 'Fermer', { duration: 3000 });
             return;

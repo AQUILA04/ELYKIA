@@ -16,8 +16,9 @@
 
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Annuler</button>
+    <button mat-button mat-dialog-close [disabled]="isSubmitting">Annuler</button>
     <button mat-raised-button color="primary" [disabled]="depositAmount <= 0 || isSubmitting" (click)="submitDeposit()">
-        Valider le Versement
+        <mat-spinner *ngIf="isSubmitting" diameter="18"></mat-spinner>
+        {{ isSubmitting ? 'Enregistrement...' : 'Valider le Versement' }}
     </button>
 </mat-dialog-actions>

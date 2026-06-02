@@ -35,8 +35,10 @@
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" (click)="close()">Annuler</button>
-          <button type="submit" class="btn btn-primary" [disabled]="stakeForm.invalid">Valider</button>
+          <button type="button" class="btn btn-secondary" (click)="close()" [disabled]="isSubmitting">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="stakeForm.invalid || isSubmitting">
+            {{ isSubmitting ? 'En cours...' : 'Valider' }}
+          </button>
         </div>
       </form>
     </div>

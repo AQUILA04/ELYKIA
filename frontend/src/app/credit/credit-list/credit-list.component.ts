@@ -38,6 +38,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
   // Variables pour le modal de mise
   showDailyStakeModal = false;
   selectedCreditForStake: any = null;
+  isSubmittingStake = false;
 
   // Selection variables
   selectedCredits: Set<number> = new Set();
@@ -477,6 +478,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
 
   openDailyStakeModal(credit: any): void {
     this.selectedCreditForStake = credit;
+    this.isSubmittingStake = false;
     this.showDailyStakeModal = true;
   }
 
@@ -486,20 +488,27 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
   }
 
   onDailyStakeSubmit(dto: CreditTimelineDto): void {
+    if (this.isSubmittingStake) {
+      return;
+    }
+    this.isSubmittingStake = true;
     this.spinner.show();
     this.creditService.makeDailyStake(dto).subscribe({
       next: (response: any) => {
         this.spinner.hide();
         if (response.statusCode === 201 || response.statusCode === 200) {
           this.alertService.showSuccess('Mise effectuée avec succès');
+          this.isSubmittingStake = false;
           this.closeDailyStakeModal();
           this.loadCredits(); // Rafraîchir la liste
         } else {
           this.alertService.showError(response.message || 'Erreur lors de la mise');
+          this.isSubmittingStake = false;
         }
       },
       error: (error) => {
         this.spinner.hide();
+        this.isSubmittingStake = false;
         console.error('Erreur lors de la mise:', error);
         this.alertService.showError(error.error?.message || 'Erreur lors de la mise');
       }
