@@ -123,7 +123,7 @@ public class ClientService extends GenericService<Client, Long> {
             photoStoreRepository.updateProfil(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto())));
         }
         if (StringUtils.hasText(dto.cardPhoto())) {
-            photoStoreRepository.updateProfil(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto())));
+            photoStoreRepository.updateCard(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto())));
         }
         if (StringUtils.hasText(dto.cardType())) {
             client.setCardType(dto.cardType());
@@ -144,7 +144,7 @@ public class ClientService extends GenericService<Client, Long> {
                 photoStoreRepository.updateProfil(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto())));
             }
             if (StringUtils.hasText(dto.cardPhoto())) {
-                photoStoreRepository.updateProfil(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto())));
+                photoStoreRepository.updateCard(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto())));
             }
         }
         return Boolean.TRUE;
@@ -156,8 +156,8 @@ public class ClientService extends GenericService<Client, Long> {
         for (Long id : ids) {
             PhotoStore clientPhoto = photoStoreRepository.getClientProfil(id);
             PhotoStore cardPhoto = photoStoreRepository.getClientCard(id);
-            boolean missingProfil = clientPhoto.getPhoto() == null || clientPhoto.getPhoto().length < 512;
-            boolean missingCard = cardPhoto.getPhoto() == null || cardPhoto.getPhoto().length < 512;
+            boolean missingProfil = clientPhoto == null || clientPhoto.getPhoto() == null || clientPhoto.getPhoto().length < 512;
+            boolean missingCard = cardPhoto == null || cardPhoto.getPhoto() == null || cardPhoto.getPhoto().length < 512;
 
             if (missingProfil || missingCard) {
                 result.add(new ClientPhotoCheckDto(id, missingProfil, missingCard));
@@ -220,7 +220,8 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     public byte[] getProfilPhoto(Long id) {
-        return photoStoreRepository.getClientProfil(id).getPhoto();
+        PhotoStore photo = photoStoreRepository.getClientProfil(id);
+        return photo != null ? photo.getPhoto() : null;
     }
 
     public byte[] getCardPhoto(Long id) {
@@ -332,7 +333,8 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     public byte[] getProfilPhotoStream(Long clientId) {
-        return photoStoreRepository.getClientProfil(clientId).getPhoto();
+        PhotoStore photo = photoStoreRepository.getClientProfil(clientId);
+        return photo != null ? photo.getPhoto() : null;
     }
 
 

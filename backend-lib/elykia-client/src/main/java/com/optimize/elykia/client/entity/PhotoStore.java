@@ -34,6 +34,7 @@ public class PhotoStore extends BaseEntity<String> {
         PhotoStore photoStore = new PhotoStore();
         photoStore.setClientId(clientId);
         photoStore.setPhoto(photo);
+        photoStore.setType(type);
         return photoStore;
     }
 }
