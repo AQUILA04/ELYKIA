@@ -21,6 +21,7 @@ import { CreditDetailsComponent } from './credit/credit-details/credit-details.c
 import { UserAddComponent } from './user/user-add/user-add.component';
 import { UserListComponent } from './user/user-list/user-list.component';
 import { UserDetailsComponent } from './user/user-details/user-details.component';
+import { ChangePasswordComponent } from './user/change-password/change-password.component';
 import { AccountdetailsComponent } from './account/accountdetails/accountdetails.component';
 import { DailyOperationComponent } from './cash-desk/daily-operation/daily-operation.component';
 import { OpenCashDeskComponent } from './cash-desk/open-cash-desk/open-cash-desk.component';
@@ -328,6 +329,12 @@ const routes: Routes = [
     component: UserDetailsComponent,
     canActivate: [AuthGuard],
     data: { breadcrumb: '' }
+  },
+  {
+    path: 'change-password',
+    component: ChangePasswordComponent,
+    canActivate: [AuthGuard],
+    data: { breadcrumb: 'Changer le mot de passe' }
   },
 
   // Commerciaux

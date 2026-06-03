@@ -42,6 +42,7 @@ import { CreditDetailsComponent } from './credit/credit-details/credit-details.c
 import { UserAddComponent } from './user/user-add/user-add.component';
 import { UserListComponent } from './user/user-list/user-list.component';
 import { UserDetailsComponent } from './user/user-details/user-details.component';
+import { ChangePasswordComponent } from './user/change-password/change-password.component';
 import { AuthInterceptor } from './shared/auth.interceptor';
 import { OpenCashDeskComponent } from './cash-desk/open-cash-desk/open-cash-desk.component';
 import { CloseCashDeskComponent } from './cash-desk/close-cash-desk/close-cash-desk.component';
@@ -166,6 +167,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     UserAddComponent,
     UserListComponent,
     UserDetailsComponent,
+    ChangePasswordComponent,
     OpenCashDeskComponent,
     CloseCashDeskComponent,
     DailyOperationComponent,

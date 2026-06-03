@@ -5,6 +5,13 @@ import { environment } from 'src/environments/environment';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 
+export interface ChangePasswordRequest {
+  id: number;
+  username: string;
+  oldPassword: string;
+  newPassword: string;
+}
+
 export interface User {
   id: number;
   username: string;
@@ -71,6 +78,10 @@ export class UserService {
 
   deactivateUser(id: number): Observable<any> {
     return this.http.patch(`${this.baseUrl}/${id}/deactivate`, {});
+  }
+
+  changePassword(dto: ChangePasswordRequest): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/change-password`, dto);
   }
 
   getPromoters(pageIndex: number, pageSize: number): Observable<any> {
