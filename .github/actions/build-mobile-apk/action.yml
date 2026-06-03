@@ -128,7 +128,13 @@ runs:
         set -euo pipefail
         chmod +x mobile/android/gradlew
         cd mobile/android
-        ./gradlew clean assembleRelease
+        if [ -f gradle.properties ]; then
+          sed -i '/org.gradle.jvmargs/d' gradle.properties
+          sed -i '/org.gradle.daemon/d' gradle.properties
+        fi
+        echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> gradle.properties
+        echo "org.gradle.daemon=false" >> gradle.properties
+        ./gradlew clean assembleRelease --stacktrace
 
     - name: Rename APK and set artifact path
       id: apk

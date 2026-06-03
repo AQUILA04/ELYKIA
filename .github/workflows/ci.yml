@@ -309,7 +309,13 @@ jobs:
     - name: Build Android Debug APK
       run: |
         cd android
-        ./gradlew assembleDebug
+        if [ -f gradle.properties ]; then
+          sed -i '/org.gradle.jvmargs/d' gradle.properties
+          sed -i '/org.gradle.daemon/d' gradle.properties
+        fi
+        echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> gradle.properties
+        echo "org.gradle.daemon=false" >> gradle.properties
+        ./gradlew assembleDebug --stacktrace
       
     - name: Extract App Version and Rename APK
       run: |
