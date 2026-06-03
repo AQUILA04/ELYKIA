@@ -123,9 +123,8 @@
             (amountChanged)="onAmountChanged($event)">
           </app-amount-input>
 
-          @if (featureFlagService.isFeatureEnabled(featureFlags.ReliquatManagement)) {
+          @if (recoveryAmount > 0) {
             <app-reliquat-display
-              *ngIf="recoveryAmount > 0"
               [clientReliquat]="clientReliquat"
               [recoveryPlan]="recoveryPlan"
               [invoiceAmount]="recoveryAmount"

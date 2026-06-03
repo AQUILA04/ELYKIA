@@ -3,6 +3,7 @@ package com.optimize.common.securities.repository;
 import java.util.List;
 import java.util.Optional;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.common.securities.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,7 +20,9 @@ public interface UserRepository extends GenericRepository<User, Long> {
 
   Boolean existsByUserAccount_username(String username);
 
-    Boolean existsByUserAccount_usernameIgnoreCase(String username);
+  Boolean existsByUserAccount_usernameIgnoreCase(String username);
+
+  Boolean existsByStateAndUserAccount_usernameIgnoreCaseAndUserAccount_activeIsTrue(State state, String username);
 
   Optional<User> findByEmail(String email);
 

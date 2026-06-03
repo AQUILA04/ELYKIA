@@ -84,9 +84,12 @@ export class KpiEffects {
           // Today Reliquat Generated
           todayReliquatGenerated: this.recoveryRepoExt.getTotalReliquatGeneratedAmountByCommercial(commercialId, { dateFilter: todayFilter }),
           // Today Reliquat Used
-          todayReliquatUsed: this.recoveryRepoExt.getTotalReliquatUsedAmountByCommercial(commercialId, { dateFilter: todayFilter })
+          todayReliquatUsed: this.recoveryRepoExt.getTotalReliquatUsedAmountByCommercial(commercialId, { dateFilter: todayFilter }),
+          // Period Reliquat (respects dashboard date filter)
+          periodReliquatGenerated: this.recoveryRepoExt.getTotalReliquatGeneratedAmountByCommercial(commercialId, { dateFilter }),
+          periodReliquatUsed: this.recoveryRepoExt.getTotalReliquatUsedAmountByCommercial(commercialId, { dateFilter })
         }).pipe(
-          map(({ totalByCommercial, today, totalAmountByCommercial, todayAmount, todayReliquatGenerated, todayReliquatUsed }) =>
+          map(({ totalByCommercial, today, totalAmountByCommercial, todayAmount, todayReliquatGenerated, todayReliquatUsed, periodReliquatGenerated, periodReliquatUsed }) =>
             KpiActions.loadRecoveryKpiSuccess({
               total: totalByCommercial,
               totalByCommercial,
@@ -95,7 +98,9 @@ export class KpiEffects {
               totalAmountByCommercial,
               todayAmount,
               todayReliquatGenerated,
-              todayReliquatUsed
+              todayReliquatUsed,
+              periodReliquatGenerated,
+              periodReliquatUsed
             })
           ),
           catchError((error) =>

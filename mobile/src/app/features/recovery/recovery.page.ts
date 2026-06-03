@@ -19,7 +19,6 @@ import { LoggerService } from '../../core/services/logger.service';
 import { RecoveryService } from '../../core/services/recovery.service';
 import { ReliquatService } from '../../core/services/reliquat.service';
 import { ClientReliquat, RecoveryPlan } from '../../models/reliquat.model';
-import { FeatureFlagService, FeatureFlags } from '../../core/services/feature-flag.service';
 
 interface RecoveryViewModel {
   client: Client | null;
@@ -58,9 +57,6 @@ export class RecoveryPage implements OnInit, OnDestroy {
   /** Garde anti double-tap pendant toute la chaîne de confirmation. */
   isSubmitting = false;
 
-  // Expose FeatureFlags to the template
-  public featureFlags = FeatureFlags;
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -72,8 +68,7 @@ export class RecoveryPage implements OnInit, OnDestroy {
     private log: LoggerService,
     private cdr: ChangeDetectorRef,
     private recoveryService: RecoveryService,
-    private reliquatService: ReliquatService,
-    public featureFlagService: FeatureFlagService
+    private reliquatService: ReliquatService
   ) { }
 
   ngOnInit() {
@@ -107,10 +102,8 @@ export class RecoveryPage implements OnInit, OnDestroy {
       .subscribe(async client => {
         if (client) {
           this.store.dispatch(RecoveryActions.loadClientCredits({ clientId: client.id }));
-          if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
-            this.clientReliquat = await this.reliquatService.getReliquatForClient(client.id);
-            this.updateRecoveryPlan();
-          }
+          this.clientReliquat = await this.reliquatService.getReliquatForClient(client.id);
+          this.updateRecoveryPlan();
           this.cdr.markForCheck();
         } else {
           this.clientReliquat = null;
@@ -121,10 +114,8 @@ export class RecoveryPage implements OnInit, OnDestroy {
 
     this.store.select(RecoverySelectors.selectSelectedCredit)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(credit => {
-        if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
-          this.updateRecoveryPlan();
-        }
+      .subscribe(() => {
+        this.updateRecoveryPlan();
       });
 
     this.setupActionListeners();
@@ -162,7 +153,7 @@ export class RecoveryPage implements OnInit, OnDestroy {
       }
 
       this.store.dispatch(RecoveryActions.resetRecoveryForm());
-      if (vm.client && this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
+      if (vm.client) {
         this.clientReliquat = await this.reliquatService.getReliquatForClient(vm.client.id);
       }
       this.cdr.markForCheck();
@@ -211,16 +202,10 @@ export class RecoveryPage implements OnInit, OnDestroy {
   onAmountChanged(amount: number) {
     this.recoveryAmount = amount;
     this.store.dispatch(RecoveryActions.setRecoveryAmount({ amount }));
-    if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
-      this.updateRecoveryPlan();
-    }
+    this.updateRecoveryPlan();
   }
 
   updateRecoveryPlan() {
-    if (!this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
-      this.recoveryPlan = null;
-      return;
-    }
     this.store.select(RecoverySelectors.selectSelectedCredit).pipe(take(1)).subscribe(credit => {
       if (credit && this.recoveryAmount !== null) {
         let effectiveReceived = this.receivedAmount > 0 ? this.receivedAmount : this.recoveryAmount;
@@ -254,16 +239,12 @@ export class RecoveryPage implements OnInit, OnDestroy {
 
   onReceivedAmountChanged(amount: number) {
     this.receivedAmount = amount;
-    if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
-      this.updateRecoveryPlan();
-    }
+    this.updateRecoveryPlan();
   }
 
   onUseReliquatChanged(use: boolean) {
     this.useReliquat = use;
-    if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
-      this.updateRecoveryPlan();
-    }
+    this.updateRecoveryPlan();
   }
 
   onKeepReliquatChanged(keep: boolean) {
@@ -332,7 +313,6 @@ export class RecoveryPage implements OnInit, OnDestroy {
       return;
     }
 
-    const isReliquatEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement);
     const isDefaultStake = this.recoveryAmount === vm.selectedCredit.dailyPayment;
     const paymentDate = new Date().toISOString();
 
@@ -348,7 +328,7 @@ export class RecoveryPage implements OnInit, OnDestroy {
       isDefaultStake: isDefaultStake,
     };
 
-    if (isReliquatEnabled && this.recoveryPlan) {
+    if (this.recoveryPlan) {
       recovery.reliquatGeneratedAmount = this.keepReliquat ? this.recoveryPlan.reliquatGenerated : 0;
       recovery.reliquatUsedAmount = this.recoveryPlan.reliquatUsed;
     } else {
@@ -368,7 +348,7 @@ export class RecoveryPage implements OnInit, OnDestroy {
     this.store.dispatch(RecoveryActions.createRecovery({
       recovery,
       distribution: vm.selectedCredit,
-      keepReliquat: isReliquatEnabled ? this.keepReliquat : false
+      keepReliquat: this.keepReliquat
     }));
   }
 
@@ -384,19 +364,14 @@ export class RecoveryPage implements OnInit, OnDestroy {
     const hasBaseValid = !!(vm.client && vm.selectedCredit && this.recoveryAmount > 0);
     if (!hasBaseValid) return false;
 
-    if (this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
-      if (this.receivedAmount <= 0) return false;
-      if (this.recoveryPlan) {
-        if (this.receivedAmount < this.recoveryPlan.cashNeeded) {
-          return false;
-        }
-        return true;
+    if (this.receivedAmount <= 0) return false;
+    if (this.recoveryPlan) {
+      if (this.receivedAmount < this.recoveryPlan.cashNeeded) {
+        return false;
       }
-      return false;
-    } else {
-      // Logique simple sans reliquat : il faut juste un montant
-      return this.recoveryAmount > 0;
+      return true;
     }
+    return false;
   }
 
   shouldShowConfirmFooter(vm: RecoveryViewModel): boolean {

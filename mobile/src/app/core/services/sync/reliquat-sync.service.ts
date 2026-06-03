@@ -8,7 +8,6 @@ import { DateFilter } from '../../models/date-filter.model';
 import { ReliquatRepository } from '../reliquat.repository';
 import { DatabaseService } from '../database.service';
 import { ReliquatSyncUnit, ReliquatSyncRequest, ReliquatSyncResponse } from '../../../models/sync.model';
-import { FeatureFlagService, FeatureFlags } from '../feature-flag.service';
 
 @Injectable({
     providedIn: 'root'
@@ -22,8 +21,7 @@ export class ReliquatSyncService {
         private repository: ReliquatRepository,
         private authService: AuthService,
         private syncErrorService: SyncErrorService,
-        private databaseService: DatabaseService,
-        private featureFlagService: FeatureFlagService
+        private databaseService: DatabaseService
     ) { }
 
     setFailedClientIds(ids: string[]) {
@@ -31,10 +29,6 @@ export class ReliquatSyncService {
     }
 
     async getUnsyncedCount(): Promise<number> {
-        if (!this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
-            return 0; // Feature is disabled, report 0 to sync
-        }
-
         const commercialId = this.authService.currentUser?.username || '';
         if (!commercialId) return 0;
         const unsynced = await this.repository.findUnsynced(commercialId);
@@ -51,12 +45,6 @@ export class ReliquatSyncService {
      */
     async syncAll(batchSize: number = 50, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
         const result = { success: 0, errors: 0, failedIds: [] as string[] };
-
-        // Check Feature Flag before proceeding
-        if (!this.featureFlagService.isFeatureEnabled(FeatureFlags.ReliquatManagement)) {
-            console.log('[ReliquatSyncService] Reliquat Management is disabled. Skipping synchronization.');
-            return result;
-        }
 
         const commercialId = this.authService.currentUser?.username || '';
         if (!commercialId) return result;

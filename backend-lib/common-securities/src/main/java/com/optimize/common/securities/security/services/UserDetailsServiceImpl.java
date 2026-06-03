@@ -1,5 +1,6 @@
 package com.optimize.common.securities.security.services;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.models.UserAccount;
@@ -31,13 +32,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
   @Transactional
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     User user = userRepository.findByUserAccount_usernameIgnoreCase(username)
+            .filter(user1 -> Boolean.TRUE.equals(user1.getUserAccount().getActive()) && State.ENABLED.equals(user1.getState()))
         .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
 
     return UserDetailsImpl.build(user);
   }
 
   public User registerUser(SignupRequest signUpRequest) {
-    if (userRepository.existsByUserAccount_usernameIgnoreCase(signUpRequest.getUsername())) {
+    if (userRepository.existsByStateAndUserAccount_usernameIgnoreCaseAndUserAccount_activeIsTrue(State.ENABLED, signUpRequest.getUsername())) {
       throw new CustomValidationException("Error: Username is already taken!");
     }
 

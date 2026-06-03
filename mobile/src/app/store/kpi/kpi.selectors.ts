@@ -81,6 +81,23 @@ export const selectRecoveryKpiTodayReliquatUsed = createSelector(
   (recoveryKpi) => recoveryKpi.todayReliquatUsed
 );
 
+export const selectRecoveryKpiPeriodReliquatGenerated = createSelector(
+  selectRecoveryKpi,
+  (recoveryKpi) => recoveryKpi.periodReliquatGenerated
+);
+
+export const selectRecoveryKpiPeriodReliquatUsed = createSelector(
+  selectRecoveryKpi,
+  (recoveryKpi) => recoveryKpi.periodReliquatUsed
+);
+
+/** Reliquats conservés sur la période filtrée (générés − utilisés). */
+export const selectRecoveryKpiPeriodReliquatNet = createSelector(
+  selectRecoveryKpiPeriodReliquatGenerated,
+  selectRecoveryKpiPeriodReliquatUsed,
+  (generated, used) => Math.max(0, generated - used)
+);
+
 export const selectRecoveryKpiLoading = createSelector(
   selectRecoveryKpi,
   (recoveryKpi) => recoveryKpi.loading

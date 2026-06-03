@@ -27,6 +27,8 @@ export interface KpiState {
     todayAmount: number;
     todayReliquatGenerated: number;
     todayReliquatUsed: number;
+    periodReliquatGenerated: number;
+    periodReliquatUsed: number;
     loading: boolean;
     error: string | null;
   };
@@ -123,6 +125,8 @@ export const initialState: KpiState = {
     todayAmount: 0,
     todayReliquatGenerated: 0,
     todayReliquatUsed: 0,
+    periodReliquatGenerated: 0,
+    periodReliquatUsed: 0,
     loading: false,
     error: null
   },
@@ -227,7 +231,7 @@ export const kpiReducer = createReducer(
       error: null
     }
   })),
-  on(KpiActions.loadRecoveryKpiSuccess, (state, { total, totalByCommercial, today, totalAmount, totalAmountByCommercial, todayAmount, todayReliquatGenerated, todayReliquatUsed }) => ({
+  on(KpiActions.loadRecoveryKpiSuccess, (state, { total, totalByCommercial, today, totalAmount, totalAmountByCommercial, todayAmount, todayReliquatGenerated, todayReliquatUsed, periodReliquatGenerated, periodReliquatUsed }) => ({
     ...state,
     recoveryKpi: {
       total,
@@ -238,6 +242,8 @@ export const kpiReducer = createReducer(
       todayAmount,
       todayReliquatGenerated,
       todayReliquatUsed,
+      periodReliquatGenerated,
+      periodReliquatUsed,
       loading: false,
       error: null
     }

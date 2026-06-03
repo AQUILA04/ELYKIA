@@ -82,6 +82,17 @@ export class ReliquatRepository {
     }
   }
 
+  async deleteSynced(commercialId: string): Promise<void> {
+    try {
+      const sql = `DELETE FROM client_reliquats WHERE commercialId = ? AND isSync = 1`;
+      await this.db.execute(sql, [commercialId]);
+    } catch (error) {
+      this.log.log(`Error in deleteSynced: ${error}`);
+      console.error(error);
+      throw error;
+    }
+  }
+
   async findUnsynced(commercialId: string): Promise<ClientReliquat[]> {
     try {
       const sql = `SELECT * FROM client_reliquats WHERE commercialId = ? AND isSync = 0`;
