@@ -10,7 +10,7 @@ import { CreditLateDTO, CreditLateSummaryDTO } from '../models/credit-late.model
   standalone: false
 })
 export class CreditLateComponent implements OnInit {
-  summary: CreditLateSummaryDTO = { totalLate: 0, totalDelai: 0, totalEcheance: 0, totalAmountRemaining: 0 };
+  summary: CreditLateSummaryDTO = { totalLate: 0, totalDelai: 0, totalEcheance: 0, totalAmountRemaining: 0, totalAmountRemainingDelai: 0 };
   allCredits: CreditLateDTO[] = [];
   filteredCredits: CreditLateDTO[] = [];
   isLoading: boolean = false;

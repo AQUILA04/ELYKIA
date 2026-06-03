@@ -28,4 +28,5 @@ export interface CreditLateSummaryDTO {
   totalDelai: number;
   totalEcheance: number;
   totalAmountRemaining: number;
+  totalAmountRemainingDelai: number;
 }
