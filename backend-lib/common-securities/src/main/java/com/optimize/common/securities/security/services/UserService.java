@@ -17,6 +17,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -123,7 +125,27 @@ public class UserService extends GenericService<User, Long> {
     }
 
     public List<User> getByUserProfil(String name) {
-        return getRepository().findByUserAccount_userProfil_name(name);
+        return getRepository().findByUserAccount_userProfil_nameAndUserAccount_activeIsTrueOrderByUserAccount_username(name);
+    }
+
+    public Page<User> getAll(Pageable pageable, String searchTerm) {
+        String effectiveSearch = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm.trim() : null;
+        if (effectiveSearch == null) {
+            return getRepository().findByStateNot(State.DELETED, pageable);
+        }
+        return getRepository().search(effectiveSearch, pageable);
+    }
+
+    @Transactional
+    public User setActive(Long id, boolean active) {
+        User user = getById(id);
+        UserAccount userAccount = user.getUserAccount();
+        State state = active ? State.ENABLED : State.DISABLED;
+        user.setState(state);
+        userAccount.setState(state);
+        userAccount.setActive(active);
+        userAccountService.update(userAccount);
+        return repository.saveAndFlush(user);
     }
 
     public User getCurrentUser() {

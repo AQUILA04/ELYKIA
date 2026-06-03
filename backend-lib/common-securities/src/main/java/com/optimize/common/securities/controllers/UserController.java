@@ -30,9 +30,22 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllUsers(Pageable pageable) {
+    public ResponseEntity<?> getAllUsers(Pageable pageable,
+                                         @RequestParam(name = "search", required = false, defaultValue = "") String search) {
         return ResponseEntity.ok(new MessageResponse("user get successfully!",
-                userService.getAll(pageable)));
+                userService.getAll(pageable, search)));
+    }
+
+    @PatchMapping("/{id}/activate")
+    public ResponseEntity<?> activateUser(@PathVariable Long id) {
+        return ResponseEntity.ok(new MessageResponse("User activated successfully!",
+                userService.setActive(id, true)));
+    }
+
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<?> deactivateUser(@PathVariable Long id) {
+        return ResponseEntity.ok(new MessageResponse("User deactivated successfully!",
+                userService.setActive(id, false)));
     }
 
     @GetMapping(value = "all")

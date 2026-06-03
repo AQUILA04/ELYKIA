@@ -1,25 +1,28 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { UserService } from '../service/user.service';
+import { User, UserService } from '../service/user.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { NgxSpinnerService } from 'ngx-spinner';
 import { PermissionService } from '../../security/services/permission.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-user-details',
   templateUrl: './user-details.component.html',
-  styleUrls: ['./user-details.component.scss']
+  styleUrls: ['./user-details.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
-export class UserDetailsComponent implements OnInit {
+export class UserDetailsComponent implements OnInit, OnDestroy {
   userId?: number;
-  user: any;
+  user: User | null = null;
   isLoading = true;
-  profiles: any;
-  profileName: string = '';
-  assignedPermissions: any[] = [];
-  allPermissions: any[] = [];
-  originalPermissions: any[] = []; // To track changes
+  assignedPermissions: string[] = [];
+  allPermissions: string[] = [];
+  originalPermissions: string[] = [];
+  savingPermissions = false;
+
+  currentDate = new Date();
+  private dateIntervalId?: ReturnType<typeof setInterval>;
 
   constructor(
     private userService: UserService,
@@ -27,88 +30,118 @@ export class UserDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private alertService: AlertService,
-    private tokenStorage: TokenStorageService,
-    private spinner: NgxSpinnerService
+    private tokenStorage: TokenStorageService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
 
   ngOnInit(): void {
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
+
     this.route.params.subscribe(params => {
       this.userId = +params['id'];
       if (this.userId) {
         this.loadUserDetails(this.userId);
       }
     });
-    this.loadProfiles();
     this.loadAllPermissions();
   }
+
+  ngOnDestroy(): void {
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
+  }
+
   onCancel(): void {
     this.router.navigate(['/user-list']);
   }
+
   navigateToEdit(): void {
     this.router.navigate(['/user-add', this.userId]);
   }
+
+  isUserActive(): boolean {
+    return this.user?.state === 'ENABLED' || this.user?.active === true;
+  }
+
+  getStatusLabel(): string {
+    return this.isUserActive() ? 'Actif' : 'Inactif';
+  }
+
+  toggleActive(): void {
+    if (!this.userId || !this.user) {
+      return;
+    }
+    const active = this.isUserActive();
+    const action = active ? 'désactiver' : 'activer';
+    this.alertService.showConfirmation('Confirmation', `Voulez-vous vraiment ${action} cet utilisateur ?`)
+      .then((result) => {
+        if (!result) {
+          return;
+        }
+        const request = active
+          ? this.userService.deactivateUser(this.userId!)
+          : this.userService.activateUser(this.userId!);
+        request.subscribe({
+          next: () => {
+            this.alertService.showDefaultSucces(`Utilisateur ${active ? 'désactivé' : 'activé'} avec succès.`);
+            this.loadUserDetails(this.userId!);
+          },
+          error: (err) => {
+            this.alertService.showError(err?.error?.message || 'Erreur lors de l\'action.');
+          }
+        });
+      });
+  }
+
   loadUserDetails(userId: number): void {
-    this.spinner.show();
-    this.userService.getUserById(userId).subscribe(
-      res => {
-        this.spinner.hide();
+    this.isLoading = true;
+    this.userService.getUserById(userId).subscribe({
+      next: (res) => {
         this.user = res.data;
-        // Map user permissions to a format suitable for the picklist (using name property)
-        if (this.user.userPermissions) {
-          // Assuming userPermissions is an array of objects with a permission property or name property
-          // We need to verify the structure, but usually it's list of UserPermission objects
-          // Let's assume we extract the permission names.
-          // If structure is simple { name: '...' } use it directly.
-          // If it's complex, we map it.
-          // For safety, let's look for 'name' in the objects.
-          this.assignedPermissions = this.user.userPermissions.map((p: any) => p.name || p.permission?.name || p);
-          this.originalPermissions = [...this.assignedPermissions];
+        if (this.user?.userPermissions) {
+          this.assignedPermissions = this.user.userPermissions.map(
+            (p: { name?: string; permission?: { name?: string } } | string) =>
+              typeof p === 'string' ? p : (p.name || p.permission?.name || '')
+          ).filter(Boolean);
         } else {
           this.assignedPermissions = [];
-          this.originalPermissions = [];
         }
+        this.originalPermissions = [...this.assignedPermissions];
         this.isLoading = false;
       },
-      error => {
-        this.spinner.hide();
+      error: (error) => {
         console.error('Erreur lors du chargement des détails de l\'utilisateur', error);
         const errorMessage = error?.error?.message || 'Erreur lors du chargement des détails de l\'utilisateur';
         this.alertService.showError(errorMessage);
         this.isLoading = false;
       }
-    );
-  }
-  loadProfiles(): void {
-    this.spinner.show();
-    this.userService.getProfiles().subscribe(
-      response => {
-        this.spinner.hide();
-        this.profiles = response.profil;
-      },
-      error => {
-        this.spinner.hide();
-        console.error('Error fetching profiles', error);
-      }
-    );
-  }
-  loadAllPermissions(): void {
-    this.permissionService.getAllList().subscribe(
-      res => {
-        const rawPermissions = res.data ? res.data : (Array.isArray(res) ? res : []);
-        // Map to strings for consistency
-        this.allPermissions = rawPermissions.map((p: any) => p.name || p);
-      }
-    );
+    });
   }
 
-  onPermissionsChange(newPermissions: any[]) {
+  loadAllPermissions(): void {
+    this.permissionService.getAllList().subscribe({
+      next: (res) => {
+        const rawPermissions = res.data ? res.data : (Array.isArray(res) ? res : []);
+        this.allPermissions = rawPermissions.map((p: { name?: string } | string) =>
+          typeof p === 'string' ? p : (p.name || '')
+        ).filter(Boolean);
+      },
+      error: (err) => console.error('Erreur chargement permissions', err)
+    });
+  }
+
+  onPermissionsChange(newPermissions: string[]): void {
     this.assignedPermissions = newPermissions;
   }
 
   savePermissions(): void {
-    if (!this.userId) return;
+    if (!this.userId || this.savingPermissions) {
+      return;
+    }
 
     const added = this.assignedPermissions.filter(p => !this.originalPermissions.includes(p));
     const removed = this.originalPermissions.filter(p => !this.assignedPermissions.includes(p));
@@ -118,31 +151,28 @@ export class UserDetailsComponent implements OnInit {
       return;
     }
 
-    this.spinner.show();
-    const promises: any[] = [];
+    this.savingPermissions = true;
+    const tasks: Promise<unknown>[] = [];
 
     added.forEach(p => {
-      promises.push(this.userService.addPermission(this.userId!, p).toPromise());
+      tasks.push(firstValueFrom(this.userService.addPermission(this.userId!, p)));
     });
-
     removed.forEach(p => {
-      promises.push(this.userService.removePermission(this.userId!, p).toPromise());
+      tasks.push(firstValueFrom(this.userService.removePermission(this.userId!, p)));
     });
 
-    Promise.all(promises).then(() => {
-      this.spinner.hide();
-      this.alertService.showSuccess('Permissions mises à jour avec succès');
-      this.loadUserDetails(this.userId!);
-    }).catch(err => {
-      this.spinner.hide();
-      console.error("Error updating permissions", err);
-      this.alertService.showError('Erreur lors de la mise à jour des permissions');
-      // Reload to reset state
-      this.loadUserDetails(this.userId!);
-    });
-  }
-
-  onBack(): void {
-    this.router.navigate(['/user-list']);
+    Promise.all(tasks)
+      .then(() => {
+        this.alertService.showSuccess('Permissions mises à jour avec succès');
+        this.loadUserDetails(this.userId!);
+      })
+      .catch(err => {
+        console.error('Error updating permissions', err);
+        this.alertService.showError('Erreur lors de la mise à jour des permissions');
+        this.loadUserDetails(this.userId!);
+      })
+      .finally(() => {
+        this.savingPermissions = false;
+      });
   }
 }
