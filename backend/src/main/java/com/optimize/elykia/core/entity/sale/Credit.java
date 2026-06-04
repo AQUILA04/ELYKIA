@@ -105,10 +105,8 @@ public class Credit extends BaseEntity<String> {
 
     // ===== NOUVEAUX CHAMPS POUR BI DASHBOARD =====
     @Column(name = "profit_margin")
-    @PositiveOrZero
     private Double profitMargin; // Marge bénéficiaire = totalAmount - totalPurchase
 
-    @PositiveOrZero
     @Column(name = "profit_margin_percentage")
     private Double profitMarginPercentage; // (profitMargin / totalPurchase) * 100
 

@@ -183,10 +183,14 @@ public class CreditService extends GenericService<Credit, Long> {
         credit.setStatus(CreditStatus.VALIDATED);
 
         credit = super.create(credit);
+        // FORCE DB WRITE
+        repository.saveAndFlush(credit);
+        
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
+        updateStockForCashSale(credit);
         filledRecovery(credit);
-        return CreditRespDto.fromCredit(creditEnrichment(credit));
+        return CreditRespDto.fromCredit(credit);
     }
 
     /**
@@ -329,10 +333,13 @@ public class CreditService extends GenericService<Credit, Long> {
         oldOne.getArticles().forEach(creditArticlesService::delete);
 
         credit = super.update(credit);
+        // FORCE DB WRITE
+        repository.saveAndFlush(credit);
+
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
 
-        return CreditRespDto.fromCredit(creditEnrichment(credit));
+        return CreditRespDto.fromCredit(credit);
     }
 
     private void setClient(Credit credit, Client client) {
@@ -570,30 +577,34 @@ public class CreditService extends GenericService<Credit, Long> {
         return Boolean.TRUE;
     }
 
+    private void updateStockForCashSale(Credit credit) {
+        List<String> articleOutOfStock = new ArrayList<>();
+        credit.getArticles().forEach(article -> {
+            if (!article.hasStockAvailable()) {
+                articleOutOfStock.add(article.getArticles().getCommercialName());
+            }
+        });
+
+        if (!articleOutOfStock.isEmpty()) {
+            if (metricsPublisher != null) {
+                metricsPublisher.creditStartStockOut(credit.getCollector());
+            }
+            throw new CustomValidationException("Stock manquant pour démarrer le crédit: Articles Manquants: "
+                    + String.join("; \n", articleOutOfStock));
+        }
+
+        // Enregistrement des mouvements de stock
+        this.recordMovementForCashSale(credit);
+
+        // Gestion du stock commercial pour les ventes CASH
+        this.handleStockCommercialForCashSale(credit);
+    }
+
     @Transactional
     public Boolean startCredit(Long creditId, Boolean distribution) {
         Credit credit = getById(creditId);
-        List<String> articleOutOfStock = new ArrayList<>();
         if (Boolean.FALSE.equals(distribution) && !OperationType.TONTINE.equals(credit.getType())) {
-            credit.getArticles().forEach(article -> {
-                if (!article.hasStockAvailable()) {
-                    articleOutOfStock.add(article.getArticles().getCommercialName());
-                }
-            });
-
-            if (!articleOutOfStock.isEmpty()) {
-                if (metricsPublisher != null) {
-                    metricsPublisher.creditStartStockOut(credit.getCollector());
-                }
-                throw new CustomValidationException("Stock manquant pour démarrer le crédit: Articles Manquants: "
-                        + String.join("; \n", articleOutOfStock));
-            }
-
-            // Enregistrement des mouvements de stock
-            this.recordMovementForCashSale(credit);
-
-            // Gestion du stock commercial pour les ventes CASH
-            this.handleStockCommercialForCashSale(credit);
+            updateStockForCashSale(credit);
         }
 
         credit.start();
@@ -605,18 +616,8 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     private void recordMovementForCashSale(Credit credit) {
-        if (stockMovementService != null && credit.getArticles() != null) {
-            final Credit finalCredit = credit;
-            credit.getArticles().forEach(creditArticle -> {
-                articlesService.makeStockRelease(creditArticle);
-                stockMovementService.recordMovement(
-                        creditArticle.getArticles(),
-                        com.optimize.elykia.core.enumaration.MovementType.RELEASE,
-                        creditArticle.getQuantity(),
-                        "Vente crédit #" + finalCredit.getId(),
-                        finalCredit.getCollector(),
-                        finalCredit);
-            });
+        if (credit.getArticles() != null) {
+            credit.getArticles().forEach(articlesService::makeStockRelease);
         }
     }
 
@@ -649,10 +650,8 @@ public class CreditService extends GenericService<Credit, Long> {
                             newItem.setArticle(creditArticle.getArticles());
                             newItem.setMonthlyStock(monthlyStock);
                             monthlyStock.addItem(newItem);
-                            return newItem;
+                            return commercialMonthlyStockItemRepository.save(newItem) ;
                         });
-
-                Integer quantityBefore = stockItem.getQuantityRemaining();
 
                 // Pour une vente CASH, on considère que c'est pris du stock ET vendu
                 stockItem.setQuantityTaken(stockItem.getQuantityTaken() + creditArticle.getQuantity());
@@ -671,14 +670,20 @@ public class CreditService extends GenericService<Credit, Long> {
                             cashCredit.getId(),
                             cashCredit.getReference(),
                             com.optimize.elykia.core.enumaration.CommercialStockMovementType.CASH_SALE,
-                            quantityBefore,
                             creditArticle.getQuantity(),
-                            stockItem.getQuantityRemaining(),
+                            creditArticle.getQuantity(),
+                            0,
                             null,
                             monthlyStock.getCollector(),
                             stockItem.getArticle().getId(),
                             stockItem.getArticle().getCommercialName()
                     );
+                }
+                
+                // Set stockItemId in CreditArticles and update it in DB
+                creditArticle.setStockItemId(stockItem.getId());
+                if (creditArticle.getId() != null) {
+                    creditArticlesService.update(creditArticle);
                 }
             });
             commercialMonthlyStockRepository.save(monthlyStock);

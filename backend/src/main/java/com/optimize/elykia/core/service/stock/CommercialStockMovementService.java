@@ -28,7 +28,7 @@ public class CommercialStockMovementService {
         this.stockItemRepository = stockItemRepository;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRED)
     public CommercialStockMovement record(
             Long stockItemId,
             Long creditId,
