@@ -9,8 +9,11 @@ const FINANCIAL_TABLES = new Set([
 ]);
 
 /** Colonnes autorisées dans un UPDATE purement technique (sync / remapping). */
-const SYNC_METADATA_COLUMNS = new Set([
-  'issync', 'syncdate', 'synchash', 'islocal', 'id'
+const TECHNICAL_UPDATE_COLUMNS = new Set([
+  // Sync metadata
+  'issync', 'syncdate', 'synchash', 'islocal', 'id',
+  // Foreign-key remapping after local->server ID reconciliation
+  'clientid', 'distributionid', 'tontinememberid', 'memberid'
 ]);
 
 const INSERT_RE = /^\s*INSERT(?:\s+OR\s+REPLACE)?\s+INTO\s+(\w+)\s*\(([^)]+)\)/i;
@@ -84,7 +87,7 @@ export class FinancialWriteGuardService {
 
     if (assignments.length === 0) return true;
 
-    if (assignments.every(a => SYNC_METADATA_COLUMNS.has(a.column))) {
+    if (assignments.every(a => TECHNICAL_UPDATE_COLUMNS.has(a.column))) {
       return false;
     }
 

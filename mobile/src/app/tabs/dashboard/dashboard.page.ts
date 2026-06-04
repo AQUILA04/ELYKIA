@@ -22,7 +22,8 @@ import {
   selectTontineKpiTotalCollected,
   selectCommercialStockKpiTotalValue,
   selectAnyKpiLoading,
-  selectTontineKpiDailyCollectionsAmount
+  selectTontineKpiDailyCollectionsAmount,
+  selectRecoveryKpiPeriodReliquatNet
 } from '../../store/kpi/kpi.selectors';
 
 import { LoggerService } from '../../core/services/logger.service';
@@ -40,6 +41,7 @@ interface DashboardViewModel {
   syncNotifications: number;
   salesAmount: number;
   recoveryAmount: number;
+  reliquatNetAmount: number;
   stockOutputAmount: number;
   remainingAmount: number;
   undistributedAmount: number;
@@ -65,6 +67,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     syncNotifications: 0,
     salesAmount: 0,
     recoveryAmount: 0,
+    reliquatNetAmount: 0,
     stockOutputAmount: 0,
     remainingAmount: 0,
     undistributedAmount: 0,
@@ -215,6 +218,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     // Stats Observables from KPI Store
     const salesAmount$ = this.store.select(selectDistributionKpiTotalAmount);
     const recoveryAmount$ = this.store.select(selectRecoveryKpiTotalAmount);
+    const reliquatNetAmount$ = this.store.select(selectRecoveryKpiPeriodReliquatNet);
     const undistributedAmount$ = this.store.select(selectCommercialStockKpiTotalValue);
     // Use Tontine Summary KPI for dashboard (daily/period collections) instead of session total
     const tontineAmount$ = this.store.select(selectTontineKpiDailyCollectionsAmount);
@@ -261,6 +265,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       syncNotifications: this.store.select(selectSyncErrorsCount),
       salesAmount: salesAmount$,
       recoveryAmount: recoveryAmount$,
+      reliquatNetAmount: reliquatNetAmount$,
       stockOutputAmount: stockOutputAmount$,
       remainingAmount: remainingAmount$,
       undistributedAmount: undistributedAmount$,

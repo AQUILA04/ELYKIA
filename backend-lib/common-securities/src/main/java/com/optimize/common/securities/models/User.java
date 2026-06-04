@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.optimize.common.entities.entity.BaseEntity;
+import com.optimize.common.entities.enums.State;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -90,6 +91,14 @@ public class User extends BaseEntity<String> {
     return null;
   }
 
+  @JsonProperty("active")
+  public Boolean getActive() {
+    if (Objects.nonNull(userAccount)) {
+      return userAccount.getActive();
+    }
+    return null;
+  }
+
   public String getPassword() {
     if (Objects.nonNull(userAccount)) {
       return userAccount.getPassword();
@@ -140,6 +149,10 @@ public class User extends BaseEntity<String> {
       return profileName.equals(userAccount.getProfileName());
     }
     return Boolean.FALSE;
+  }
+
+  public State getState() {
+    return state;
   }
 
 }

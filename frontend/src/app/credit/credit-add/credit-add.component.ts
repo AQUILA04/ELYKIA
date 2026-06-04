@@ -368,6 +368,10 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
+    if (this.isLoading) {
+      return;
+    }
+
     if (this.creditForm.invalid) {
       this.markFormGroupTouched(this.creditForm);
       this.alertService.showWarning('Veuillez remplir tous les champs requis', 'Formulaire invalide');

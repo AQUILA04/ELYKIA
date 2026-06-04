@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClientService, Client } from '../service/client.service';
@@ -16,7 +16,8 @@ import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 @Component({
   selector: 'app-client-add',
   templateUrl: './client-add.component.html',
-  styleUrls: ['./client-add.component.scss']
+  styleUrls: ['./client-add.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class ClientAddComponent implements OnInit {
   clientForm!: FormGroup;
@@ -317,6 +318,14 @@ export class ClientAddComponent implements OnInit {
         return;
       }
       this.convertFileToBase64(file, 'idDoc');
+    }
+  }
+
+  clearProfilePhoto(): void {
+    this.profilePhotoBase64 = null;
+    const input = document.getElementById('profilePhotoInput') as HTMLInputElement | null;
+    if (input) {
+      input.value = '';
     }
   }
 

@@ -9,6 +9,7 @@ import { CreditTimelineDto } from '../../types/credit.types';
 })
 export class DailyStakeModalComponent implements OnInit {
   @Input() credit: any;
+  @Input() isSubmitting = false;
   @Output() onSubmit = new EventEmitter<CreditTimelineDto>();
   @Output() onClose = new EventEmitter<void>();
 
@@ -44,6 +45,9 @@ export class DailyStakeModalComponent implements OnInit {
   }
 
   submit(): void {
+    if (this.isSubmitting) {
+      return;
+    }
     if (this.stakeForm.valid) {
       const dto: CreditTimelineDto = {
         creditId: this.credit.id,

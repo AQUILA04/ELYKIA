@@ -410,6 +410,15 @@
           <span class="hide-menu">Aide</span>
         </li>
         <li class="sidebar-item">
+          <a class="sidebar-link" routerLink="/change-password" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/change-password') }">
+            <span>
+              <mat-icon>lock_reset</mat-icon>
+            </span>
+            <span class="hide-menu">Changer le mot de passe</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
           <a class="sidebar-link" [href]="getUserGuideLink()" target="_blank">
             <span>
               <mat-icon>help_outline</mat-icon>

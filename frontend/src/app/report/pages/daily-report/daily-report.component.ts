@@ -18,7 +18,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
     selector: 'app-daily-report',
     templateUrl: './daily-report.component.html',
     styleUrls: ['./daily-report.component.scss'],
-    providers: [DatePipe]
+    providers: [DatePipe],
+    standalone: false
 })
 export class DailyReportComponent implements OnInit {
     reports: DailyCommercialReport[] = [];
@@ -260,6 +261,14 @@ export class DailyReportComponent implements OnInit {
 
     get remainingAmount(): number {
         return this.totalAmountToDeposit - this.totalAmountDeposited;
+    }
+
+    get periodStart(): string {
+        return this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd') || '';
+    }
+
+    get periodEnd(): string {
+        return this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '';
     }
 
     get isSingleDay(): boolean {

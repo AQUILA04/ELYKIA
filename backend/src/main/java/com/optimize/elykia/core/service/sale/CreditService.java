@@ -175,7 +175,7 @@ public class CreditService extends GenericService<Credit, Long> {
         credit.setAdvance(0.0);
         credit.setTotalAmountPaid(credit.getTotalAmount());
         credit.setTotalAmountRemaining(0.0);
-        credit.setDailyStake(0.0);
+        credit.setDailyStake(credit.getTotalAmount());
         credit.setRemainingDaysCount(0);
         credit.setBeginDate(LocalDate.now());
         credit.setExpectedEndDate(LocalDate.now());
@@ -840,11 +840,12 @@ public class CreditService extends GenericService<Credit, Long> {
         clientDetails.setTotalCreditClosed(getRepository().countByStatusAndClient_id(CreditStatus.SETTLED, clientId));
         clientDetails.setTotalCreditDelayed(getRepository()
                 .countByStatusAndClient_idAndSolvencyNote(CreditStatus.INPROGRESS, clientId, SolvencyStatus.LATE));
-        clientDetails.setTotalInProgressCreditAmount(
-                getRepository().getTotalInProgressAmountByClientId(clientId, CreditStatus.INPROGRESS));
-        clientDetails.setTotalInProgressAmountCollected(
-                getRepository().getTotalInProgressAmountPaidByClientId(clientId, CreditStatus.INPROGRESS));
-        clientDetails.setTotalInProgressAmountDue(getRepository().getTotalAmountDueTodayByClientId(clientId));
+        Double totalInProgressCreditAmount = getRepository().getTotalInProgressAmountByClientId(clientId, CreditStatus.INPROGRESS);
+        Double totalInProgressAmountCollected = getRepository().getTotalInProgressAmountPaidByClientId(clientId, CreditStatus.INPROGRESS);
+        Double totalInProgressAmountDue = getRepository().getTotalAmountDueTodayByClientId(clientId);
+        clientDetails.setTotalInProgressCreditAmount(Objects.requireNonNullElse(totalInProgressCreditAmount, 0.0));
+        clientDetails.setTotalInProgressAmountCollected(Objects.requireNonNullElse(totalInProgressAmountCollected, 0.0));
+        clientDetails.setTotalInProgressAmountDue(Objects.requireNonNullElse(totalInProgressAmountDue, 0.0));
         clientDetails.setTotalAmountRemaining(
                 clientDetails.getTotalInProgressCreditAmount() - clientDetails.getTotalInProgressAmountCollected());
         return clientDetails;

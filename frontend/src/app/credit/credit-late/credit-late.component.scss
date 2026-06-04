@@ -725,6 +725,80 @@ tbody tr.row-critique { background: rgba(185, 28, 28, 0.015); }
 }
 .page-btn svg { width: 14px; height: 14px; }
 
+/* ── CHECKBOX (bleu primaire au lieu de rose/violet) ──────────── */
+.mat-checkbox-checked .mat-checkbox-background,
+.mat-checkbox-checked .mdc-checkbox__background,
+.mat-checkbox-indeterminate .mat-checkbox-background,
+.mat-checkbox-indeterminate .mdc-checkbox__background {
+  background-color: #003366 !important;
+}
+.mdc-checkbox .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background,
+.mdc-checkbox .mdc-checkbox__native-control:enabled:indeterminate ~ .mdc-checkbox__background {
+  background-color: #003366 !important;
+  border-color: #003366 !important;
+}
+
+/* ── BULK ACTION BAR ──────────────────────────────────────────── */
+.bulk-action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  background: #003366;
+  color: white;
+  z-index: 1000;
+  box-shadow: 0 -4px 16px rgba(0, 51, 102, 0.25);
+  animation: fadeUp .3s ease both;
+}
+
+.bulk-action-bar .selection-info {
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  flex: 1;
+}
+
+.bulk-action-bar .btn-close-bulk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #b91c1c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .18s;
+}
+
+.bulk-action-bar .btn-close-bulk:hover {
+  background: #991b1b;
+}
+
+.bulk-action-bar .btn-clear-bulk {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background .18s;
+}
+
+.bulk-action-bar .btn-clear-bulk:hover {
+  background: rgba(255,255,255,.1);
+}
+
 /* ── RESPONSIVE ──────────────────────────────────────────────── */
 @media (max-width: 1000px) {
   .kpi-strip { grid-template-columns: repeat(2, 1fr); }

@@ -1,0 +1,72 @@
+<h2 mat-dialog-title>Clôture de recouvrement terrain</h2>
+
+<mat-dialog-content>
+  <p class="text-muted mb-3">
+    Crédits à clôturer ({{ totalCount }})
+  </p>
+
+  <div class="table-responsive">
+    <table class="close-table">
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Commercial</th>
+          <th>Restant</th>
+          <th>Partiel</th>
+          <th>Montant</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of items">
+          <td>
+            <div class="cell-main">{{ item.credit.clientName }}</div>
+            <div class="cell-sub">{{ item.credit.reference }}</div>
+          </td>
+          <td>{{ item.credit.collector }}</td>
+          <td class="text-right">{{ item.credit.totalAmountRemaining | number }} FCFA</td>
+          <td>
+            <mat-checkbox [(ngModel)]="item.isPartial" (ngModelChange)="onPartialToggle(item)"></mat-checkbox>
+          </td>
+          <td>
+            <input *ngIf="item.isPartial; else fullAmount"
+                   type="number"
+                   class="amount-input"
+                   [(ngModel)]="item.amount"
+                   (ngModelChange)="validateAmount(item)"
+                   min="1"
+                   [max]="item.credit.totalAmountRemaining" />
+            <ng-template #fullAmount>
+              <span class="full-amount">{{ item.credit.totalAmountRemaining | number }} FCFA</span>
+            </ng-template>
+            <div class="error-msg" *ngIf="item.amountError">{{ item.amountError }}</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="resume-financier">
+    <div class="resume-title">RÉSUMÉ FINANCIER</div>
+    <div class="resume-row">
+      <span>Montant total engagé :</span>
+      <span class="resume-value">{{ totalAmount | number }} FCFA</span>
+    </div>
+    <div class="resume-row">
+      <span>Recouvrements :</span>
+      <span class="resume-value">{{ totalCount }} · Partiels : {{ partialCount }}</span>
+    </div>
+  </div>
+
+  <div class="error-banner" *ngIf="submitError">
+    {{ submitError }}
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="isSubmitting">Annuler</button>
+  <button mat-raised-button class="btn-confirm"
+          (click)="onSubmit()"
+          [disabled]="!isValid || isSubmitting">
+    {{ isSubmitting ? 'Confirmation en cours…' : "Confirmer l'opération" }}
+  </button>
+</mat-dialog-actions>

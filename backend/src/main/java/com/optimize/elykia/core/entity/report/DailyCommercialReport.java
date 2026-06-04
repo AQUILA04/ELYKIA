@@ -98,6 +98,10 @@ public class DailyCommercialReport extends BaseEntity<String> {
     @Column(columnDefinition = "double precision default 0")
     private Double totalAdvancesAmount = 0.0;
 
+    // Recovery Manager Collections
+    @Column(columnDefinition = "double precision default 0")
+    private Double recoveryManagerCollectionsAmount = 0.0;
+
     // Reliquats
     @Column(columnDefinition = "double precision default 0")
     private Double totalReliquatGeneratedAmount = 0.0;
@@ -126,6 +130,7 @@ public class DailyCommercialReport extends BaseEntity<String> {
             Double creditSalesMargin,
             Double stockRequestMargin,
             Double totalAdvancesAmount,
+            Double recoveryManagerCollectionsAmount,
             Double totalReliquatGeneratedAmount,
             Double totalReliquatUsedAmount
     ) {
@@ -149,6 +154,7 @@ public class DailyCommercialReport extends BaseEntity<String> {
         this.creditSalesMargin = creditSalesMargin != null ? creditSalesMargin : 0.0;
         this.stockRequestMargin = stockRequestMargin != null ? stockRequestMargin : 0.0;
         this.totalAdvancesAmount = totalAdvancesAmount != null ? totalAdvancesAmount : 0.0;
+        this.recoveryManagerCollectionsAmount = recoveryManagerCollectionsAmount != null ? recoveryManagerCollectionsAmount : 0.0;
         this.totalReliquatGeneratedAmount = totalReliquatGeneratedAmount != null ? totalReliquatGeneratedAmount : 0.0;
         this.totalReliquatUsedAmount = totalReliquatUsedAmount != null ? totalReliquatUsedAmount : 0.0;
     }

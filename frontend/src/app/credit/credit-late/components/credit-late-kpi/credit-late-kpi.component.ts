@@ -11,4 +11,5 @@ export class CreditLateKpiComponent {
   @Input() totalDelai: number = 0;
   @Input() totalEcheance: number = 0;
   @Input() totalAmountRemaining: number = 0;
+  @Input() totalAmountRemainingDelai: number = 0;
 }

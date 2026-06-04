@@ -14,4 +14,6 @@ public class CreditLateSummaryDTO {
     private long   totalEcheance;
     /** Somme des montants restants à recouvrer */
     private double totalAmountRemaining;
+    /** Somme des montants restants pour les retards de délai */
+    private double totalAmountRemainingDelai;
 }

@@ -266,6 +266,20 @@ public class ArticlesService extends GenericService<Articles, Long> {
         return getRepository().findByStockQuantityLessThanEqualAndStockQuantityGreaterThan(6, 0, pageable);
     }
 
+    @Transactional(readOnly = true)
+    public Map<String, Object> getArticleStockKpis() {
+        Map<String, Double> values = getDetailedStockValues();
+        long inStockCount = getRepository().countByStockQuantityGreaterThan(0);
+        long outOfStockCount = getRepository().countByStockQuantityEquals(0);
+
+        return Map.of(
+                "inStockCount", inStockCount,
+                "purchaseTotal", values.getOrDefault("purchaseTotal", 0.0),
+                "creditSaleTotal", values.getOrDefault("creditSaleTotal", 0.0),
+                "estimatedMargin", values.getOrDefault("combinedTotal", 0.0),
+                "outOfStockCount", outOfStockCount);
+    }
+
     public Map<String, Double> getDetailedStockValues() {
         // 1. On récupère directement l'objet DTO, plus de tableau !
         StockValuesDto valuesDto = getRepository().getDetailedStockValues();

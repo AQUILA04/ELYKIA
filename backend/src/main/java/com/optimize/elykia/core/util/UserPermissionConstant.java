@@ -62,6 +62,8 @@ public class UserPermissionConstant {
     public static final String AGENCY_REPORT_EDIT = "ROLE_EDIT_AGENCY_REPORT";
     public static final String AGENCY_REPORT_DEL = "ROLE_DEL_AGENCY_REPORT";
 
+    public static final String RECOVERY_MANAGER = "ROLE_RECOVERY_MANAGER";
+
     public static final String STOREKEEPER = "ROLE_STOREKEEPER";
 
     public static final String STOREKEEPER_DASHBOARD = "ROLE_STOREKEEPER_DASHBOARD";

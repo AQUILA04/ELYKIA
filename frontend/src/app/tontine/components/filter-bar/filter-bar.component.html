@@ -1,36 +1,46 @@
-<div class="filter-bar">
-  <mat-form-field appearance="outline" class="search-field">
-    <mat-label>Rechercher un membre</mat-label>
-    <input
-      matInput
-      [(ngModel)]="currentSearchTerm"
-      (keydown.enter)="onSearchEnter()"
-      placeholder="Nom, code client...">
-    <button mat-icon-button matSuffix (click)="onSearchEnter()">
-      <mat-icon>search</mat-icon>
-    </button>
-  </mat-form-field>
+<div class="toolbar">
+  <div class="filter-group filter-group-search">
+    <span class="toolbar-label">Recherche</span>
+    <div class="search-input-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input
+        type="text"
+        class="search-input"
+        [(ngModel)]="currentSearchTerm"
+        (keydown.enter)="onSearchEnter()"
+        placeholder="Nom, code client…">
+    </div>
+  </div>
 
-  <mat-form-field appearance="outline" class="commercial-field">
-    <mat-label>Commercial</mat-label>
-    <mat-select [(ngModel)]="currentSelectedCommercial" (selectionChange)="onCommercialChange($event.value)">
-      <mat-option value="ALL">Tous</mat-option>
-      <mat-option *ngFor="let comm of commerciaux" [value]="comm.username">{{ comm.username }}</mat-option>
-    </mat-select>
-  </mat-form-field>
+  <div class="divider"></div>
 
-  <mat-form-field appearance="outline" class="status-field">
-    <mat-label>Statut de livraison</mat-label>
-    <mat-select [(ngModel)]="currentSelectedStatus" (selectionChange)="onStatusChange($event.value)">
-      <mat-option value="ALL">Tous</mat-option>
-      <mat-option [value]="TontineMemberDeliveryStatus.SESSION_INPROGRESS">Session en cours</mat-option>
-      <mat-option [value]="TontineMemberDeliveryStatus.PENDING">En attente</mat-option>
-      <mat-option [value]="TontineMemberDeliveryStatus.VALIDATED">Validée</mat-option>
-      <mat-option [value]="TontineMemberDeliveryStatus.DELIVERED">Livrée</mat-option>
-    </mat-select>
-  </mat-form-field>
+  <div class="filter-group">
+    <span class="toolbar-label">Commercial</span>
+    <select class="filter-select" [(ngModel)]="currentSelectedCommercial" (ngModelChange)="onCommercialChange($event)">
+      <option value="ALL">Tous</option>
+      <option *ngFor="let comm of commerciaux" [value]="comm.username">{{ comm.username }}</option>
+    </select>
+  </div>
 
-  <button mat-flat-button color="basic" (click)="clearFilters()" class="clear-filters-button">
-    <mat-icon>clear</mat-icon> Effacer les filtres
+  <div class="divider"></div>
+
+  <div class="filter-group">
+    <span class="toolbar-label">Statut livraison</span>
+    <select class="filter-select filter-select-status" [(ngModel)]="currentSelectedStatus" (ngModelChange)="onStatusChange($event)">
+      <option value="ALL">Tous</option>
+      <option [value]="TontineMemberDeliveryStatus.SESSION_INPROGRESS">Session en cours</option>
+      <option [value]="TontineMemberDeliveryStatus.PENDING">En attente</option>
+      <option [value]="TontineMemberDeliveryStatus.VALIDATED">Validée</option>
+      <option [value]="TontineMemberDeliveryStatus.DELIVERED">Livrée</option>
+    </select>
+  </div>
+
+  <button class="btn-clear" (click)="clearFilters()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    Effacer
   </button>
+
+  <span class="result-count">
+    <strong>{{ resultCount }}</strong> membre(s)
+  </span>
 </div>

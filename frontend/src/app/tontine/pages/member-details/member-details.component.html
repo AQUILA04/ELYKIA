@@ -1,162 +1,197 @@
-<div class="member-details" *ngIf="member">
-  <!-- Header -->
-  <div class="details-header">
-    <button mat-icon-button (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <h1 class="details-title">{{ getClientName() }}</h1>
+<div class="main-container member-details-page a1" *ngIf="member">
+  <div class="breadcrumb-bar">
+    <a routerLink="/tontine" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Gestion des Tontines
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">FICHE MEMBRE</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="member-icon">
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        <div>
+          <h1 class="page-title">{{ getClientName() }}</h1>
+          <p class="page-subtitle inline-subtitle">
+            Code {{ member.client?.code || 'N/A' }}
+            <span class="dot-sep">·</span>
+            Commercial : {{ getCommercial() }}
+          </p>
+        </div>
+      </div>
+      <button class="btn-refresh" (click)="refreshData()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Actualiser
+      </button>
+    </div>
+
     <div class="header-actions">
-      <button mat-raised-button color="primary" (click)="onRecordCollection()" *ngIf="isSessionActive">
-        <mat-icon>add</mat-icon>
+      <button class="btn-primary" (click)="onRecordCollection()" *ngIf="isSessionActive">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         Enregistrer une Collecte
       </button>
-      <button mat-raised-button color="accent" (click)="onPrepareDelivery()"
+      <button class="btn-accent" (click)="onPrepareDelivery()"
               *ngIf="currentSessionStatus === 'CLOSED' && member?.deliveryStatus === 'PENDING'">
-        <mat-icon>local_shipping</mat-icon>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
         Préparer la Livraison
       </button>
-      <button mat-stroked-button color="primary" (click)="onEditMember()" *ngIf="isSessionActive">
-        <mat-icon>edit</mat-icon>
+      <button class="btn-outline" (click)="onEditMember()" *ngIf="isSessionActive">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
         Modifier
       </button>
       <ng-container *ngxPermissionsOnly="['ROLE_REPORT', 'ROLE_ADMIN']">
-        <button mat-raised-button color="warn" (click)="onValidateDelivery()"
-                *ngIf="member?.deliveryStatus === 'PENDING'">
-          <mat-icon>check_circle</mat-icon>
+        <button class="btn-warn" (click)="onValidateDelivery()" *ngIf="member?.deliveryStatus === 'PENDING'">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
           Valider la Livraison
         </button>
       </ng-container>
       <ng-container *ngxPermissionsOnly="['ROLE_MAGASINIER', 'ROLE_REPORT']">
-        <button mat-raised-button color="primary" (click)="onMarkAsDelivered()"
-                *ngIf="member?.deliveryStatus === 'VALIDATED'">
-          <mat-icon>done_all</mat-icon>
+        <button class="btn-primary" (click)="onMarkAsDelivered()" *ngIf="member?.deliveryStatus === 'VALIDATED'">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
           Marquer comme Livré
         </button>
       </ng-container>
     </div>
   </div>
 
-  <!-- Member Summary -->
-  <mat-card class="summary-card" *ngIf="member">
-    <mat-card-content>
-      <div class="summary-grid">
-        <div class="summary-item">
-          <span class="summary-label">Code Client</span>
-          <span class="summary-value">{{ member.client.code || 'N/A' }}</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">Total Contribué</span>
-          <span class="summary-value highlight">{{ formatCurrency(member.totalContribution) }}</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">Part Société (Payé / Dû)</span>
-          <span class="summary-value" [class.text-warn]="getSocietyShareStatusColor() === 'warn'">
-            {{ formatCurrency(member.societyShare || 0) }} / {{ formatCurrency(member.societyShare || 0) }}
-          </span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">Solde Disponible</span>
-          <span class="summary-value">{{ formatCurrency(member.availableContribution || 0) }}</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">Statut Session</span>
-          <span class="summary-value">{{ member.tontineSession.status }}</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">Statut de Livraison</span>
-          <mat-chip [color]="getStatusColor(member.deliveryStatus)">
-            {{ getStatusLabel(member.deliveryStatus) }}
-          </mat-chip>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">Date d'Inscription</span>
-          <span class="summary-value">{{ formatDateTime(member.registrationDate) }}</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">Collectes à la livraison</span>
-          <span class="summary-value">{{ formatCurrency(member.totalDeliveryCollections || 0) }}</span>
-        </div>
+  <!-- KPI strip -->
+  <div class="kpi-strip member-kpi-strip a3">
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Total Contribué</div>
+      <div class="kpi-value">{{ formatCurrency(member.totalContribution) }}</div>
+      <div class="kpi-sub">Épargne cumulée</div>
+    </div>
+    <div class="kpi-card kpi-amount">
+      <div class="kpi-label">Solde Disponible</div>
+      <div class="kpi-value">{{ formatCurrency(member.availableContribution || 0) }}</div>
+      <div class="kpi-sub">Montant utilisable</div>
+    </div>
+    <div class="kpi-card kpi-total" [class.kpi-echeance]="getSocietyShareStatusColor() === 'warn'">
+      <div class="kpi-label">Part Société (Payé / Dû)</div>
+      <div class="kpi-value">{{ formatCurrency(member.societyShare || 0) }} / {{ formatCurrency(getTheoreticalSocietyShare()) }}</div>
+      <div class="kpi-sub">Cotisation société</div>
+    </div>
+    <div class="kpi-card kpi-total">
+      <div class="kpi-label">Collectes à la livraison</div>
+      <div class="kpi-value">{{ formatCurrency(member.totalDeliveryCollections || 0) }}</div>
+      <div class="kpi-sub">Lors de la livraison</div>
+    </div>
+  </div>
+
+  <!-- Summary details -->
+  <div class="section-card a3">
+    <div class="section-header">
+      <h2 class="section-title">Informations générales</h2>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <span class="summary-label">Statut Session</span>
+        <span class="summary-value">{{ member.tontineSession?.status ?? currentSessionStatus ?? 'N/A' }}</span>
       </div>
+      <div class="summary-item">
+        <span class="summary-label">Statut de Livraison</span>
+        <span *ngIf="member.deliveryStatus" class="status-badge" [ngClass]="getStatusBadgeClass(member.deliveryStatus)">
+          {{ getStatusLabel(member.deliveryStatus) }}
+        </span>
+        <span *ngIf="!member.deliveryStatus" class="summary-value">N/A</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Date d'Inscription</span>
+        <span class="summary-value mono">{{ member.registrationDate ? formatDateTime(member.registrationDate) : 'N/A' }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Commercial</span>
+        <div class="col-collector" *ngIf="getCommercial() !== '—'">
+          <div class="col-collector-dot">{{ getInitials(getCommercial()) }}</div>
+          {{ getCommercial() }}
+        </div>
+        <span *ngIf="getCommercial() === '—'" class="summary-value">N/A</span>
+      </div>
+    </div>
 
-      <!-- Validated Months Progress -->
-      <div class="progress-section" *ngIf="member.validatedMonths !== undefined">
-        <h3>Progression des Mois ({{member.validatedMonths}}/10)</h3>
-        <div class="months-grid">
-          <div *ngFor="let month of monthsList; let i = index"
-               class="month-item"
-               [class.validated]="i < (member.validatedMonths || 0)"
-               [class.current]="i === (member.validatedMonths || 0)"
-               [class.pending]="i > (member.validatedMonths || 0)">
-            <span class="month-name">{{month}}</span>
-            <mat-icon *ngIf="i < (member.validatedMonths || 0)" class="validated-icon">check_circle</mat-icon>
-
-            <!-- Current Month Progress Bar -->
-            <div *ngIf="i === (member.validatedMonths || 0)" class="current-month-progress">
-              <mat-progress-bar mode="determinate" [value]="((member.currentMonthDays || 0) / 31) * 100"></mat-progress-bar>
-              <span class="days-count">{{member.currentMonthDays || 0}}/31j</span>
+    <div class="progress-section" *ngIf="member.validatedMonths !== undefined">
+      <h3 class="section-subtitle">Progression des Mois ({{ member.validatedMonths }}/10)</h3>
+      <div class="months-grid">
+        <div *ngFor="let month of monthsList; let i = index"
+             class="month-item"
+             [class.validated]="i < (member.validatedMonths || 0)"
+             [class.current]="i === (member.validatedMonths || 0)"
+             [class.pending]="i > (member.validatedMonths || 0)">
+          <span class="month-name">{{ month }}</span>
+          <svg *ngIf="i < (member.validatedMonths || 0)" class="validated-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+          <div *ngIf="i === (member.validatedMonths || 0)" class="current-month-progress">
+            <div class="progress-track">
+              <div class="progress-fill" [style.width.%]="((member.currentMonthDays || 0) / 31) * 100"></div>
             </div>
+            <span class="days-count">{{ member.currentMonthDays || 0 }}/31j</span>
           </div>
         </div>
       </div>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 
-  <!-- Consent Section -->
-  <mat-card class="summary-card" *ngIf="member.operationConsentCode || member.syncConsentCode" style="margin-top: 16px;">
-    <mat-card-header>
-      <mat-card-title>
-        <mat-icon>security</mat-icon>
+  <!-- Consent -->
+  <div class="section-card a4" *ngIf="member.operationConsentCode || member.syncConsentCode">
+    <div class="section-header">
+      <h2 class="section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
         Informations de consentement
-      </mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="summary-grid">
-        <div class="summary-item" *ngIf="member.operationConsentCode">
-          <span class="summary-label">Code Opération</span>
-          <span class="summary-value" style="color: var(--primary-color); font-family: monospace; font-weight: 600;">{{ member.operationConsentCode }}</span>
-        </div>
-        <div class="summary-item" *ngIf="member.syncConsentCode">
-          <span class="summary-label">Code Synchronisation</span>
-          <span class="summary-value" style="color: var(--primary-color); font-family: monospace; font-weight: 600;">{{ member.syncConsentCode }}</span>
-        </div>
+      </h2>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-item" *ngIf="member.operationConsentCode">
+        <span class="summary-label">Code Opération</span>
+        <span class="consent-code">{{ member.operationConsentCode }}</span>
       </div>
-    </mat-card-content>
-  </mat-card>
+      <div class="summary-item" *ngIf="member.syncConsentCode">
+        <span class="summary-label">Code Synchronisation</span>
+        <span class="consent-code">{{ member.syncConsentCode }}</span>
+      </div>
+    </div>
+  </div>
 
-  <!-- Delivery Section -->
-  <mat-card class="delivery-card" *ngIf="member.deliveryStatus !== 'SESSION_INPROGRESS'">
-    <mat-card-header>
-      <mat-card-title>
-        <mat-icon>local_shipping</mat-icon>
+  <!-- Delivery -->
+  <div class="section-card a4" *ngIf="member.deliveryStatus !== 'SESSION_INPROGRESS'">
+    <div class="section-header">
+      <h2 class="section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
         Livraison de Fin d'Année
-      </mat-card-title>
-      <mat-chip class="delivered-badge" *ngIf="member.deliveryStatus === 'DELIVERED'">
-        <mat-icon>check_circle</mat-icon>
-        LIVRÉ
-      </mat-chip>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="delivery-info">
-        <div class="info-row">
-          <span class="label">Date de livraison:</span>
-          <span class="value">{{ formatDateTime(member.delivery?.deliveryDate ?? '') }}</span>
-        </div>
-        <div class="info-row">
-          <span class="label">Commercial:</span>
-          <span class="value">{{ member.delivery?.commercialUsername }}</span>
-        </div>
-        <div class="info-row">
-          <span class="label">Montant total:</span>
-          <span class="value highlight">{{ formatCurrency(member.delivery?.totalAmount ?? 0) }}</span>
-        </div>
-        <div class="info-row" *ngIf="(member?.delivery?.remainingBalance ?? 0) > 0">
-          <span class="label">Solde non utilisé:</span>
-          <span class="value">{{ formatCurrency(member.delivery?.remainingBalance ?? 0) }}</span>
-        </div>
-      </div>
+      </h2>
+      <span class="status-badge status-delivered" *ngIf="member.deliveryStatus === 'DELIVERED'">LIVRÉ</span>
+    </div>
 
-      <h4>Articles livrés</h4>
-      <table class="delivery-items-table">
+    <div class="delivery-info">
+      <div class="info-row">
+        <span class="label">Date de livraison</span>
+        <span class="value mono">{{ formatDateTime(member.delivery?.deliveryDate ?? '') || '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Commercial</span>
+        <span class="value">{{ member.delivery?.commercialUsername || '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Montant total</span>
+        <span class="value highlight">{{ formatCurrency(member.delivery?.totalAmount ?? 0) }}</span>
+      </div>
+      <div class="info-row" *ngIf="(member?.delivery?.remainingBalance ?? 0) > 0">
+        <span class="label">Solde non utilisé</span>
+        <span class="value">{{ formatCurrency(member.delivery?.remainingBalance ?? 0) }}</span>
+      </div>
+    </div>
+
+    <h4 class="table-section-title">Articles livrés</h4>
+    <div class="table-card inner-table">
+      <table class="data-table">
         <thead>
           <tr>
             <th>Article</th>
@@ -168,70 +203,91 @@
         <tbody>
           <tr *ngFor="let item of member?.delivery?.items">
             <td>
-              <div class="article-info">
-                <span class="code">{{ item.articleCode }}</span>
-                <span class="name">{{ item.articleName }}</span>
-              </div>
+              <div class="col-ref">{{ item.articleCode }}</div>
+              <div class="col-client">{{ item.articleName }}</div>
             </td>
-            <td>{{ formatCurrency(item.unitPrice) }}</td>
+            <td><span class="col-amount">{{ formatCurrency(item.unitPrice) }}</span></td>
             <td>{{ item.quantity }}</td>
-            <td class="total">{{ formatCurrency(item.totalPrice) }}</td>
+            <td><span class="col-amount">{{ formatCurrency(item.totalPrice) }}</span></td>
           </tr>
         </tbody>
       </table>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 
-  <!-- Collections History -->
-  <mat-card class="collections-card">
-    <mat-card-header>
-      <mat-card-title>Historique des Collectes</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div *ngIf="collections.length === 0" class="empty-state">
-        <mat-icon>receipt_long</mat-icon>
-        <p>Aucune collecte enregistrée</p>
+  <!-- Collections -->
+  <div class="section-card a5">
+    <div class="section-header">
+      <h2 class="section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
+        Historique des Collectes
+      </h2>
+      <span class="result-count" *ngIf="!loadingCollections">
+        <strong>{{ collectionsDataSource.data.length }}</strong> collecte(s)
+      </span>
+    </div>
+
+    <div class="table-card">
+      <div class="table-wrapper">
+        <div *ngIf="loadingCollections" class="table-loading">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
+        </div>
+
+        <div *ngIf="!loadingCollections && collectionsDataSource.data.length === 0" class="table-empty-static">
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">Aucune collecte enregistrée</div>
+            <div class="empty-sub">Les collectes de ce membre apparaîtront ici.</div>
+          </div>
+        </div>
+
+        <table mat-table [dataSource]="collectionsDataSource" *ngIf="!loadingCollections && collectionsDataSource.data.length > 0" class="collections-table">
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let collection"><span class="date-ok">{{ formatDateTime(collection.collectionDate) }}</span></td>
+          </ng-container>
+
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef>Montant</th>
+            <td mat-cell *matCellDef="let collection"><span class="col-amount">{{ formatCurrency(collection.amount) }}</span></td>
+          </ng-container>
+
+          <ng-container matColumnDef="commercial">
+            <th mat-header-cell *matHeaderCellDef>Perçu par</th>
+            <td mat-cell *matCellDef="let collection">
+              <div class="col-collector">
+                <div class="col-collector-dot">{{ getInitials(collection.commercialUsername) }}</div>
+                {{ collection.commercialUsername }}
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="consent">
+            <th mat-header-cell *matHeaderCellDef>Consentement</th>
+            <td mat-cell *matCellDef="let collection">
+              <div *ngIf="collection.operationConsentCode || collection.syncConsentCode || collection.confirmedAmount !== null" class="consent-cell">
+                <div *ngIf="collection.operationConsentCode">Op: <strong class="consent-code-inline">{{ collection.operationConsentCode }}</strong></div>
+                <div *ngIf="collection.syncConsentCode">Sync: <strong class="consent-code-inline">{{ collection.syncConsentCode }}</strong></div>
+                <div *ngIf="collection.confirmedAmount !== null">Conf: <strong>{{ formatCurrency(collection.confirmedAmount) }}</strong></div>
+              </div>
+              <span *ngIf="!collection.operationConsentCode && !collection.syncConsentCode && collection.confirmedAmount === null" class="text-muted">N/A</span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
       </div>
-
-      <table mat-table [dataSource]="collections" *ngIf="collections.length > 0" class="collections-table">
-        <ng-container matColumnDef="date">
-          <th mat-header-cell *matHeaderCellDef>Date</th>
-          <td mat-cell *matCellDef="let collection">{{ formatDateTime(collection.collectionDate) }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="amount">
-          <th mat-header-cell *matHeaderCellDef>Montant</th>
-          <td mat-cell *matCellDef="let collection">
-            <span class="amount">{{ formatCurrency(collection.amount) }}</span>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="commercial">
-          <th mat-header-cell *matHeaderCellDef>Perçu par</th>
-          <td mat-cell *matCellDef="let collection">{{ collection.commercialUsername }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="consent">
-          <th mat-header-cell *matHeaderCellDef>Consentement</th>
-          <td mat-cell *matCellDef="let collection">
-            <div *ngIf="collection.operationConsentCode || collection.syncConsentCode || collection.confirmedAmount !== null" style="font-size: 0.9em; line-height: 1.3;">
-              <div *ngIf="collection.operationConsentCode">Op: <strong style="color: var(--primary-color);">{{ collection.operationConsentCode }}</strong></div>
-              <div *ngIf="collection.syncConsentCode">Sync: <strong style="color: var(--primary-color);">{{ collection.syncConsentCode }}</strong></div>
-              <div *ngIf="collection.confirmedAmount !== null">Conf: <strong>{{ formatCurrency(collection.confirmedAmount) }}</strong></div>
-            </div>
-            <div *ngIf="!collection.operationConsentCode && !collection.syncConsentCode && collection.confirmedAmount === null" style="color: var(--text-muted); font-size: 0.9em;">
-              N/A
-            </div>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="['date', 'amount', 'commercial', 'consent']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['date', 'amount', 'commercial', 'consent'];"></tr>
-      </table>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 </div>
 
-<div *ngIf="loading" class="loading-container">
-  <mat-spinner></mat-spinner>
+<div *ngIf="loading" class="page-loading">
+  <div class="empty-state">
+    <div class="empty-icon">⏳</div>
+    <div class="empty-title">Chargement du membre…</div>
+  </div>
 </div>

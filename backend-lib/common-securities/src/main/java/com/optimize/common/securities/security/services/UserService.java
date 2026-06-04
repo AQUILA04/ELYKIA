@@ -1,6 +1,7 @@
 package com.optimize.common.securities.security.services;
 
 import com.optimize.common.entities.enums.State;
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.entities.util.CustomValidator;
@@ -13,10 +14,13 @@ import com.optimize.common.securities.models.UserPermission;
 import com.optimize.common.securities.models.UserProfil;
 import com.optimize.common.securities.repository.UserRepository;
 import com.optimize.common.securities.util.DefaultResponse;
+import com.optimize.common.securities.util.ProfilConstant;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,10 +107,17 @@ public class UserService extends GenericService<User, Long> {
         return DefaultResponse.successReturn();
     }
 
+    @Transactional
     public Map<String, Object> changePassword(ChangePasswordDto changePasswordDto) {
         User old = getById(changePasswordDto.getId());
-        //todo: Valider l'ancien mot de passe
+        User currentUser = getCurrentUser();
+        if (!currentUser.getUserAccount().getUsername().equals(old.getUserAccount().getUsername()) && (!currentUser.is("MANAGER") || !currentUser.is("ADMIN") || !currentUser.is("SUPER_ADMIN"))) {
+            throw new CustomValidationException("Vous n'êtes pas autorisé à changer le mot de passe de l'utilisateur");
+        }
         UserAccount userAccount = old.getUserAccount();
+        if (!passwordEncoder.matches(changePasswordDto.getOldPassword(), userAccount.getPassword())) {
+            throw new CustomValidationException("L'ancien mot de passe est incorrect.");
+        }
         userAccount.setPassword(passwordEncoder.encode(changePasswordDto.getNewPassword()));
         old.setUserAccount(userAccount);
         repository.saveAndFlush(old);
@@ -123,7 +134,27 @@ public class UserService extends GenericService<User, Long> {
     }
 
     public List<User> getByUserProfil(String name) {
-        return getRepository().findByUserAccount_userProfil_name(name);
+        return getRepository().findByUserAccount_userProfil_nameAndUserAccount_activeIsTrueOrderByUserAccount_username(name);
+    }
+
+    public Page<User> getAll(Pageable pageable, String searchTerm) {
+        String effectiveSearch = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm.trim() : null;
+        if (effectiveSearch == null) {
+            return getRepository().findByStateNot(State.DELETED, pageable);
+        }
+        return getRepository().search(effectiveSearch, pageable);
+    }
+
+    @Transactional
+    public User setActive(Long id, boolean active) {
+        User user = getById(id);
+        UserAccount userAccount = user.getUserAccount();
+        State state = active ? State.ENABLED : State.DISABLED;
+        user.setState(state);
+        userAccount.setState(state);
+        userAccount.setActive(active);
+        userAccountService.update(userAccount);
+        return repository.saveAndFlush(user);
     }
 
     public User getCurrentUser() {

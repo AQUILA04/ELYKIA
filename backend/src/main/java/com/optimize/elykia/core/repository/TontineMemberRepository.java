@@ -82,7 +82,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.validatedMonths,
             tm.currentMonthDays,
             tm.operationConsentCode,
-            tm.syncConsentCode
+            tm.syncConsentCode,
+            null
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s
@@ -127,7 +128,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.validatedMonths,
             tm.currentMonthDays,
             tm.operationConsentCode,
-            tm.syncConsentCode
+            tm.syncConsentCode,
+            null
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s

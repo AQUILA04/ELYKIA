@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { TontineMemberDeliveryStatus, TontineFilterBarParams } from '../../types/tontine.types';
 import { ClientService } from 'src/app/client/service/client.service';
 
@@ -8,6 +8,7 @@ import { ClientService } from 'src/app/client/service/client.service';
   styleUrls: ['./filter-bar.component.scss']
 })
 export class TontineFilterBarComponent implements OnInit {
+  @Input() resultCount = 0;
   currentSearchTerm: string = '';
   currentSelectedStatus: TontineMemberDeliveryStatus | 'ALL' = 'ALL';
   currentSelectedCommercial: string = 'ALL';

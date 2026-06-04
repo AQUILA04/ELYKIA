@@ -23,7 +23,8 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                                    Integer validatedMonths,
                                    Integer currentMonthDays,
                                    String operationConsentCode,
-                                   String syncConsentCode
+                                   String syncConsentCode,
+                                   Double totalDeliveryCollections
                                    ) {
 
     public static TontineMemberRespDto fromId(Long id) {
@@ -31,7 +32,7 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
             return null;
         }
 
-        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public static TontineMemberRespDto fromTontineMember(TontineMember member) {
@@ -41,7 +42,8 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
         return new TontineMemberRespDto(member.getId(), member.getTontineSession(), ClientRespDto.fromClient(member.getClient()),
                 member.getTotalContribution(), member.getDeliveryStatus(), member.getRegistrationDate(), TontineDeliveryRespDto.fromTontineDelivery(member.getDelivery()), member.getFrequency(),
                 member.getAmount(), member.getNotes(), member.getSocietyShare(), member.getAvailableContribution(),
-                member.getValidatedMonths(), member.getCurrentMonthDays(), member.getOperationConsentCode(), member.getSyncConsentCode());
+                member.getValidatedMonths(), member.getCurrentMonthDays(), member.getOperationConsentCode(), member.getSyncConsentCode(),
+                member.getTotalDeliveryCollections());
     }
 
     public static Page<TontineMemberRespDto> fromTontineMembers(Page<TontineMember> members) {

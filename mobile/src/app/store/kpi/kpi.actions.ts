@@ -36,6 +36,8 @@ export const loadRecoveryKpiSuccess = createAction(
     todayAmount: number;
     todayReliquatGenerated: number;
     todayReliquatUsed: number;
+    periodReliquatGenerated: number;
+    periodReliquatUsed: number;
   }>()
 );
 

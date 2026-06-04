@@ -23,4 +23,6 @@ public class CreditTimelineDto {
     private String operationConsentCode;
     private Double confirmedAmount;
     private String syncConsentCode;
+    private String reference;
+
 }

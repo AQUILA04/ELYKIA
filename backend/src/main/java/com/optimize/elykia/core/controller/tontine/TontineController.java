@@ -5,6 +5,7 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.core.dto.TontineCollectionDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
+import com.optimize.elykia.core.dto.TontineMemberRespDto;
 import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
@@ -81,7 +82,8 @@ public class TontineController {
 
     @GetMapping("/members/{id}")
     public ResponseEntity<Response> getMemberById(@PathVariable Long id) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.getById(id)), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseUtil.successResponse(
+                TontineMemberRespDto.fromTontineMember(tontineService.getById(id))), HttpStatus.OK);
     }
 
     @PutMapping("/members/{id}")

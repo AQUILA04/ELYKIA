@@ -42,6 +42,7 @@ import { CreditDetailsComponent } from './credit/credit-details/credit-details.c
 import { UserAddComponent } from './user/user-add/user-add.component';
 import { UserListComponent } from './user/user-list/user-list.component';
 import { UserDetailsComponent } from './user/user-details/user-details.component';
+import { ChangePasswordComponent } from './user/change-password/change-password.component';
 import { AuthInterceptor } from './shared/auth.interceptor';
 import { OpenCashDeskComponent } from './cash-desk/open-cash-desk/open-cash-desk.component';
 import { CloseCashDeskComponent } from './cash-desk/close-cash-desk/close-cash-desk.component';
@@ -120,6 +121,8 @@ import { CreditLateComponent } from './credit/credit-late/credit-late.component'
 import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
 import { CreditLateFilterComponent } from './credit/credit-late/components/credit-late-filter/credit-late-filter.component';
 import { CreditLateTableComponent } from './credit/credit-late/components/credit-late-table/credit-late-table.component';
+import { CreditLateCloseModalComponent } from './credit/credit-late/components/credit-late-close-modal/credit-late-close-modal.component';
+import { RecoveryManagerReportTabComponent } from './report/components/recovery-manager-report-tab/recovery-manager-report-tab.component';
 import { CreditEcheanceComponent } from './credit/credit-echeance/credit-echeance.component';
 import { CreditEcheanceKpiComponent } from './credit/credit-echeance/components/credit-echeance-kpi/credit-echeance-kpi.component';
 import { CreditEcheanceCalendarComponent } from './credit/credit-echeance/components/credit-echeance-calendar/credit-echeance-calendar.component';
@@ -166,6 +169,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     UserAddComponent,
     UserListComponent,
     UserDetailsComponent,
+    ChangePasswordComponent,
     OpenCashDeskComponent,
     CloseCashDeskComponent,
     DailyOperationComponent,
@@ -222,6 +226,8 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     CreditLateKpiComponent,
     CreditLateFilterComponent,
     CreditLateTableComponent,
+    CreditLateCloseModalComponent,
+    RecoveryManagerReportTabComponent,
     CreditEcheanceComponent,
     CreditEcheanceKpiComponent,
     CreditEcheanceCalendarComponent,

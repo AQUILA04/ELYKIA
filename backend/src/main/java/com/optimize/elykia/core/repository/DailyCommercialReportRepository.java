@@ -39,6 +39,7 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
                         "SUM(d.creditSalesMargin), " +
                         "SUM(d.stockRequestMargin), " +
                         "SUM(d.totalAdvancesAmount), " +
+                        "SUM(d.recoveryManagerCollectionsAmount), " +
                         "SUM(d.totalReliquatGeneratedAmount), " +
                         "SUM(d.totalReliquatUsedAmount)) " +
                         "FROM DailyCommercialReport d " +
@@ -68,6 +69,7 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
                         "SUM(d.creditSalesMargin), " +
                         "SUM(d.stockRequestMargin), " +
                         "SUM(d.totalAdvancesAmount), " +
+                        "SUM(d.recoveryManagerCollectionsAmount), " +
                         "SUM(d.totalReliquatGeneratedAmount), " +
                         "SUM(d.totalReliquatUsedAmount)) " +
                         "FROM DailyCommercialReport d " +

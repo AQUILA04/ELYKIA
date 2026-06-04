@@ -1,9 +1,16 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+
+export interface ChangePasswordRequest {
+  id: number;
+  username: string;
+  oldPassword: string;
+  newPassword: string;
+}
 
 export interface User {
   id: number;
@@ -15,6 +22,10 @@ export interface User {
   password?: string;
   phone?: string;
   profilId?: number;
+  state?: 'ENABLED' | 'DISABLED' | 'DELETED';
+  active?: boolean;
+  profil?: { id?: number; name?: string };
+  userPermissions?: Array<{ name?: string; permission?: { name?: string } } | string>;
 }
 
 @Injectable({
@@ -50,9 +61,27 @@ export class UserService {
   getUsers(): Observable<any> {
     return this.http.get(`${this.baseUrl}`);
   }
-  getUser(pageIndex: number, pageSize: number): Observable<any> {
-    const url = `${this.baseUrl}?page=${pageIndex}&size=${pageSize}`;
-    return this.http.get<any>(url);
+  getUser(pageIndex: number, pageSize: number, search: string = ''): Observable<any> {
+    let params = new HttpParams()
+      .set('page', pageIndex.toString())
+      .set('size', pageSize.toString());
+    const trimmed = search?.trim();
+    if (trimmed) {
+      params = params.set('search', trimmed);
+    }
+    return this.http.get<any>(this.baseUrl, { params });
+  }
+
+  activateUser(id: number): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/${id}/activate`, {});
+  }
+
+  deactivateUser(id: number): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/${id}/deactivate`, {});
+  }
+
+  changePassword(dto: ChangePasswordRequest): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/change-password`, dto);
   }
 
   getPromoters(pageIndex: number, pageSize: number): Observable<any> {

@@ -1,0 +1,201 @@
+/* ── Recovery Manager Report Tab Styles ──────────────────── */
+.rm-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  max-width: 400px;
+}
+
+.rm-selector label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #003366;
+  white-space: nowrap;
+}
+
+.rm-input {
+  padding: 6px 12px;
+  border: 1px solid #dde3ec;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+}
+
+.rm-input:focus {
+  border-color: #003366;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: #f8f9fb;
+  border: 1px solid #dde3ec;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.kpi-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #6b7a99;
+  margin-bottom: 4px;
+}
+
+.kpi-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #003366;
+  font-family: 'DM Mono', monospace;
+}
+
+.section-card {
+  background: white;
+  border: 1px solid #dde3ec;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #003366;
+  margin: 0 0 12px 0;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #6b7a99;
+  border-bottom: 1px solid #dde3ec;
+  font-weight: 600;
+}
+
+.data-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.data-table .text-right {
+  text-align: right;
+}
+
+.data-table tbody tr:hover {
+  background-color: #f8f9fb;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.type-badge.total {
+  background: #e6f5eb;
+  color: #1d8a3c;
+}
+
+.type-badge.partial {
+  background: #fff3e6;
+  color: #c75000;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  color: #9aacc4;
+}
+
+.empty-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+}
+
+.empty-text {
+  font-size: 14px;
+}
+
+.export-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #003366;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .18s, transform .18s;
+  box-shadow: 0 1px 3px rgba(0, 51, 102, 0.08);
+}
+.btn-download:hover {
+  background: #002244;
+  transform: translateY(-1px);
+}
+.btn-download svg {
+  width: 14px;
+  height: 14px;
+}
+.btn-download.loading {
+  opacity: 0.8;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.text-muted {
+  color: #6b7a99;
+  font-size: 13px;
+}
+
+.mt-3 {
+  margin-top: 12px;
+}

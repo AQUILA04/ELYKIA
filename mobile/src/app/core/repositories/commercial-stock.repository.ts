@@ -225,28 +225,25 @@ export class CommercialStockRepository {
       const totalElements = countResult?.values?.[0]?.total || 0;
       const totalPages = Math.ceil(totalElements / size);
 
-      // Data Query
+      // Data Query — unitPrice comes from commercial stock, not the article catalog price
       const dataQuery = `
-        SELECT a.*, s.quantityRemaining as stockQuantity
+        SELECT a.*, s.quantityRemaining as stockQuantity, s.unitPrice as stockUnitPrice
         ${baseQuery}
         ORDER BY a.name ASC
         LIMIT ? OFFSET ?
       `;
 
       const dataParams = [...params, size, offset];
-      // Log data query for debugging
-      // console.log('[CommercialStockRepository] Data Query:', dataQuery, dataParams);
-
       const dataResult = await this.db.query(dataQuery, dataParams);
-      const content = dataResult?.values || [];
-
-      // Parse JSON fields if necessary (like existing dbService does for Articles)
-      // Usually dbService handles this if using getArticles, but here we do raw query.
-      // We might need to parse 'image', 'packaging', etc if they are JSON strings.
-      // But typically SQLite plugin returns columns as is. If Article entity has special types, we might need mapping.
-      // For now, assuming direct mapping is fine or handled by consumer.
-      // Actually, 'isSync', 'isLocal' are integers (0/1) in SQLite usually?
-      // Let's ensure basic boolean mapping if needed, but often JS treats 1 as true-ish.
+      const content = (dataResult?.values || []).map((row: Record<string, unknown>) => {
+        const stockUnitPrice = row['stockUnitPrice'] as number | null | undefined;
+        const { stockUnitPrice: _omit, ...article } = row;
+        const catalogPrice = article['creditSalePrice'] as number | undefined;
+        return {
+          ...article,
+          creditSalePrice: stockUnitPrice ?? catalogPrice ?? 0
+        };
+      });
 
       return {
         content,

@@ -71,12 +71,17 @@ public class CreditLateService {
         long totalDelai = lates.stream().filter(d -> d.getLateType() == LateType.DELAI).count();
         long totalEcheance = lates.stream().filter(d -> d.getLateType() == LateType.ECHEANCE).count();
         double totalDu = lates.stream().mapToDouble(CreditLateDTO::getTotalAmountRemaining).sum();
+        double totalDelaiAmount = lates.stream()
+                .filter(d -> d.getLateType() == LateType.DELAI)
+                .mapToDouble(d -> d.getTotalAmountRemaining() != null ? d.getTotalAmountRemaining() : 0.0)
+                .sum();
 
         return CreditLateSummaryDTO.builder()
                 .totalLate(totalLate)
                 .totalDelai(totalDelai)
                 .totalEcheance(totalEcheance)
                 .totalAmountRemaining(totalDu)
+                .totalAmountRemainingDelai(totalDelaiAmount)
                 .build();
     }
 

@@ -2,6 +2,9 @@
   <table>
     <thead>
       <tr>
+        <th style="width:48px" *ngIf="isRecoveryManager">
+          <mat-checkbox (change)="toggleSelectAll($event)" [checked]="allSelected"></mat-checkbox>
+        </th>
         <th style="width:130px">
           Gravité <span class="sort-icon">↓</span>
         </th>
@@ -12,11 +15,12 @@
         <th class="col-hide">Montant restant</th>
         <th class="col-hide">Date fin prévue</th>
         <th style="width:90px">Action</th>
+        <th style="width:60px" *ngIf="isRecoveryManager"></th>
       </tr>
     </thead>
     <tbody>
       <tr *ngIf="isLoading">
-        <td colspan="8">
+        <td [attr.colspan]="isRecoveryManager ? 10 : 8">
           <div class="empty-state">
             <div class="empty-icon">⏳</div>
             <div class="empty-title">Chargement…</div>
@@ -24,7 +28,7 @@
         </td>
       </tr>
       <tr *ngIf="!isLoading && credits.length === 0">
-        <td colspan="8">
+        <td [attr.colspan]="isRecoveryManager ? 10 : 8">
           <div class="empty-state">
             <div class="empty-icon">✅</div>
             <div class="empty-title">Aucun retard trouvé</div>
@@ -34,6 +38,9 @@
       </tr>
 
       <tr *ngFor="let d of paginatedCredits" [class]="getGraviteClass(d)">
+        <td *ngIf="isRecoveryManager">
+          <mat-checkbox [(ngModel)]="d.selected" (change)="onSelectionChange()"></mat-checkbox>
+        </td>
         <td>
           <div class="gravite-cell">
             <div class="gravite-bar-wrap">
@@ -90,6 +97,13 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
             </svg>
             Voir
+          </button>
+        </td>
+        <td *ngIf="isRecoveryManager">
+          <button mat-icon-button color="warn"
+                  matTooltip="Clôturer ce crédit"
+                  (click)="$event.stopPropagation(); closeCredit.emit(d)">
+            <mat-icon>lock</mat-icon>
           </button>
         </td>
       </tr>

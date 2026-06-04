@@ -12,10 +12,15 @@ export class CreditLateTableComponent implements OnChanges {
   @Input() credits: CreditLateDTO[] = [];
   @Input() isLoading: boolean = false;
   @Input() currentPage: number = 1;
+  @Input() isRecoveryManager: boolean = false;
   @Output() pageChanged = new EventEmitter<number>();
+  @Output() closeCredit = new EventEmitter<CreditLateDTO>();
+  @Output() selectionChanged = new EventEmitter<CreditLateDTO[]>();
   pageSize: number = 8;
   paginatedCredits: CreditLateDTO[] = [];
   maxPage: number = 1;
+
+  allSelected: boolean = false;
 
   constructor(private router: Router) {}
 
@@ -23,6 +28,21 @@ export class CreditLateTableComponent implements OnChanges {
     if (changes['credits'] || changes['currentPage']) {
       this.updatePagination();
     }
+  }
+
+  toggleSelectAll(event: any): void {
+    this.allSelected = event.checked;
+    this.paginatedCredits.forEach(c => c.selected = this.allSelected);
+    this.emitSelection();
+  }
+
+  onSelectionChange(): void {
+    this.allSelected = this.paginatedCredits.length > 0 && this.paginatedCredits.every(c => c.selected);
+    this.emitSelection();
+  }
+
+  private emitSelection(): void {
+    this.selectionChanged.emit(this.credits.filter(c => c.selected));
   }
 
   updatePagination() {

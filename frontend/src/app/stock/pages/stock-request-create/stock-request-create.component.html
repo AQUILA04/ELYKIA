@@ -42,11 +42,11 @@
     </div>
 
     <div class="actions">
-      <button type="button" class="btn btn-cancel" routerLink="/stock/request">
+      <button type="button" class="btn btn-cancel" routerLink="/stock/request" [disabled]="isSubmitting">
         Annuler
       </button>
-      <button type="submit" class="btn btn-submit" [disabled]="form.invalid">
-        Envoyer la Demande
+      <button type="submit" class="btn btn-submit" [disabled]="form.invalid || isSubmitting">
+        {{ isSubmitting ? 'En cours...' : 'Envoyer la Demande' }}
       </button>
     </div>
   </form>

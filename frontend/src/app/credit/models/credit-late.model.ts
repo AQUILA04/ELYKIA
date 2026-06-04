@@ -21,6 +21,7 @@ export interface CreditLateDTO {
   lateType: LateType;
   status: string;
   clientQuarter: string;
+  selected?: boolean;
 }
 
 export interface CreditLateSummaryDTO {
@@ -28,4 +29,5 @@ export interface CreditLateSummaryDTO {
   totalDelai: number;
   totalEcheance: number;
   totalAmountRemaining: number;
+  totalAmountRemainingDelai: number;
 }

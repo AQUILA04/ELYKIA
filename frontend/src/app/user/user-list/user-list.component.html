@@ -1,56 +1,152 @@
-<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
-<div class="container">
-  <!-- <app-breadcrumb></app-breadcrumb> -->
-<div class="header-fixed">
-  <div class="d-flex justify-content-center">
-    <app-breadcrumb></app-breadcrumb>
-    <h1>Liste des utilisateurs</h1>
-  </div>
-</div>
- <div class="button-group">
-  <button class="btn refresh-button btn-sm" (click)="refresh()">
-    <mat-icon>refresh</mat-icon>
-    <span>Rafraîchir</span>
-  </button>
-  <button class="btn add btn-sm" (click)="addUser()">
-    <mat-icon>add</mat-icon>
-    <span>Ajouter</span>
-  </button>
-</div>
+<div class="main-container user-page a1">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/dashboard" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Tableau de bord
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
 
-  <div class="table-container">
-    <table class="article-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Nom de l'utilisateur</th>
-          <th>Nom et Prenom</th>
-          <th>Email</th>
-          <th>Téléphone</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of users; let i = index">
-          <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.firstname }} {{ user.lastname }}</td>
-            <td>{{ user.email}}</td>
-            <td>{{ user.phone}}</td>
-
-                <button mat-icon-button matTooltip="Détails" (click)="viewDetails(user.id)">
-                    <mat-icon>visibility</mat-icon>
-                  </button>
-                  <button *ngxPermissionsOnly="['ROLE_EDIT_USER']" mat-icon-button matTooltip="Modifier" (click)="editUser(user.id)">
-                    <mat-icon style="color: #003366;">edit</mat-icon>
-                  </button> 
-                   <button *ngxPermissionsOnly="['ROLE_DEL_USER']" mat-icon-button matTooltip="Supprimer" (click)="deleteUser(user.id)">
-                    <mat-icon style="color: #c90a17;">delete</mat-icon>
-                  </button> 
-        </tr>
-      </tbody>
-    </table>
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">GESTION DES UTILISATEURS</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.87"/>
+          </svg>
+          <h1 class="page-title">Liste des utilisateurs</h1>
+        </div>
+        <button class="btn-refresh" (click)="refresh()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">Répertoire utilisateurs · Recherche et pagination conservées à la navigation</p>
+    </div>
   </div>
-  <mat-paginator [length]="totalElement" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPageChange($event)">
-  </mat-paginator>
+
+  <div class="page-scroll-body">
+    <div class="toolbar a4">
+      <div class="filter-group filter-group-search">
+        <span class="toolbar-label">Recherche</span>
+        <div class="search-row">
+          <input
+            type="text"
+            class="search-input"
+            [(ngModel)]="searchTerm"
+            (keydown.enter)="onSearch()"
+            placeholder="Nom, prénom, identifiant, email, téléphone…">
+          <button type="button" class="btn-search-icon" (click)="onSearch()" title="Rechercher" aria-label="Rechercher">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-clear" (click)="clearSearch()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        Effacer recherche
+      </button>
+      <button class="btn-clear" (click)="resetFilters()">
+        Réinitialiser tout
+      </button>
+
+      <span class="result-count">
+        <strong>{{ totalElement }}</strong> utilisateur(s)
+      </span>
+
+      <div class="toolbar-actions">
+        <button class="btn-primary" (click)="addUser()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Ajouter
+        </button>
+      </div>
+    </div>
+
+    <div class="table-card a5">
+      <div class="table-wrapper">
+        <div *ngIf="isLoading" class="table-loading">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
+        </div>
+
+        <div *ngIf="!isLoading && users.length === 0" class="table-empty-static">
+          <div class="empty-state">
+            <div class="empty-icon">👤</div>
+            <div class="empty-title">Aucun utilisateur trouvé</div>
+            <div class="empty-sub">Modifiez votre recherche ou ajoutez un nouvel utilisateur.</div>
+          </div>
+        </div>
+
+        <table class="data-table" *ngIf="!isLoading && users.length > 0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Identifiant</th>
+              <th>Nom et prénom</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Statut</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users; let i = index" class="table-row">
+              <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
+              <td>
+                <a class="col-user-link" [routerLink]="['/user-details', user.id]">{{ user.username }}</a>
+              </td>
+              <td><span class="col-user">{{ user.firstname }} {{ user.lastname }}</span></td>
+              <td>{{ user.email || '—' }}</td>
+              <td><span class="col-phone">{{ user.phone || '—' }}</span></td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusBadgeClass(user)">{{ getStatusLabel(user) }}</span>
+              </td>
+              <td class="col-actions">
+                <button class="btn-detail" (click)="viewDetails(user.id)" title="Détails">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Voir
+                </button>
+                <button *ngxPermissionsOnly="['ROLE_EDIT_USER']" class="btn-detail" (click)="editUser(user.id)" title="Modifier">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                </button>
+                <button
+                  *ngxPermissionsOnly="['ROLE_EDIT_USER']"
+                  class="btn-detail"
+                  [class.btn-warn]="isUserActive(user)"
+                  [class.btn-success]="!isUserActive(user)"
+                  (click)="toggleActive(user)"
+                  [title]="isUserActive(user) ? 'Désactiver' : 'Activer'">
+                  <svg *ngIf="isUserActive(user)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6 6 18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 6 12 12"/></svg>
+                  <svg *ngIf="!isUserActive(user)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  {{ isUserActive(user) ? 'Désactiver' : 'Activer' }}
+                </button>
+                <button *ngxPermissionsOnly="['ROLE_DEL_USER']" class="btn-detail btn-danger" (click)="deleteUser(user.id)" title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination user-pagination">
+        <mat-paginator
+          [length]="totalElement"
+          [pageSize]="pageSize"
+          [pageIndex]="currentPage"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </div>
+  </div>
 </div>

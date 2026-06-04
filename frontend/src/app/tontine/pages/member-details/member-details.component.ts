@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TontineService } from '../../services/tontine.service';
@@ -26,13 +27,20 @@ import { AddMemberModalComponent } from '../../components/modals/add-member-moda
 @Component({
   selector: 'app-member-details',
   templateUrl: './member-details.component.html',
-  styleUrls: ['./member-details.component.scss']
+  styleUrls: ['./member-details.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class MemberDetailsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private dateIntervalId?: ReturnType<typeof setInterval>;
+
+  currentDate = new Date();
+  lastUpdate = new Date();
 
   member: TontineMember | null = null;
-  collections: readonly TontineCollection[] = [];
+  collectionsDataSource = new MatTableDataSource<TontineCollection>([]);
+  displayedColumns: string[] = ['date', 'amount', 'commercial', 'consent'];
+  loadingCollections = false;
   loading: boolean = false;
   currentSessionStatus: TontineSessionStatus | null = null;
   isSessionActive: boolean = false;
@@ -70,11 +78,25 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
 
     // Ensure current session is loaded in the service if it's not already
     this.tontineService.getCurrentSession().pipe(takeUntil(this.destroy$)).subscribe();
+
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
   }
 
   ngOnDestroy(): void {
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  refreshData(): void {
+    if (!this.member) return;
+    this.loadMemberDetails(this.member.id);
+    this.loadCollections(this.member.id);
+    this.lastUpdate = new Date();
   }
 
   private loadMemberDetails(memberId: number): void {
@@ -85,10 +107,10 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       next: (response) => {
         if (response.data) {
           this.member = response.data;
-          // Charger la livraison si le membre est livré
           if (this.member && this.member.deliveryStatus !== TontineMemberDeliveryStatus.SESSION_INPROGRESS) {
             this.loadDelivery(memberId);
           }
+          this.lastUpdate = new Date();
         }
         this.loading = false;
       },
@@ -119,15 +141,19 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   }
 
   private loadCollections(memberId: number): void {
+    this.loadingCollections = true;
     this.tontineService.getCollections(memberId).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
-        if (response.data) {
-          this.collections = response.data.content;
-        }
+        const content = response.data?.content ?? [];
+        this.collectionsDataSource.data = [...content];
+        this.loadingCollections = false;
+        this.lastUpdate = new Date();
       },
       error: () => {
+        this.collectionsDataSource.data = [];
+        this.loadingCollections = false;
         this.showError('Erreur lors du chargement de l\'historique');
       }
     });
@@ -147,11 +173,13 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   }
 
   // Helper methods for status display in template
-  getStatusLabel(status: TontineMemberDeliveryStatus): string {
+  getStatusLabel(status?: TontineMemberDeliveryStatus): string {
+    if (!status) return 'N/A';
     return TONTINE_DELIVERY_STATUS_LABELS[status] || status;
   }
 
-  getStatusColor(status: TontineMemberDeliveryStatus): string {
+  getStatusColor(status?: TontineMemberDeliveryStatus): string {
+    if (!status) return 'secondary';
     return TONTINE_DELIVERY_STATUS_COLORS[status] || 'secondary';
   }
 
@@ -187,6 +215,30 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     //
 
     return ((this.member?.amount ?? 0) * (this.member?.validatedMonths ?? 0)) + ((this.member?.currentMonthDays ?? 0) > 0 ? (this.member?.amount ?? 0) : 0);
+  }
+
+  getStatusBadgeClass(status?: TontineMemberDeliveryStatus): string {
+    if (!status) return 'status-inprogress';
+    const map: Record<string, string> = {
+      SESSION_INPROGRESS: 'status-inprogress',
+      PENDING: 'status-pending',
+      VALIDATED: 'status-validated',
+      DELIVERED: 'status-delivered'
+    };
+    return map[status] || 'status-inprogress';
+  }
+
+  getCommercial(): string {
+    return this.member?.client?.tontineCollector || '—';
+  }
+
+  getInitials(name: string): string {
+    if (!name || name === '—') return '?';
+    const parts = name.trim().split(/[\s._-]+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
   }
 
   getSocietyShareStatusColor(): string {

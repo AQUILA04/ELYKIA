@@ -180,8 +180,20 @@ public class DailyReportEventListener {
                 report.setCollectionsCount(report.getCollectionsCount() + 1);
                 report.setCollectionsAmount(report.getCollectionsAmount() + event.getAmount());
 
-                // Add to total deposit
-                report.setTotalAmountToDeposit(report.getTotalAmountToDeposit() + event.getAmount());
+                // Update reliquat fields
+                double generated = event.getReliquatGeneratedAmount() != null ? event.getReliquatGeneratedAmount() : 0.0;
+                double used = event.getReliquatUsedAmount() != null ? event.getReliquatUsedAmount() : 0.0;
+
+                double currentGenerated = report.getTotalReliquatGeneratedAmount() != null ? report.getTotalReliquatGeneratedAmount() : 0.0;
+                double currentUsed = report.getTotalReliquatUsedAmount() != null ? report.getTotalReliquatUsedAmount() : 0.0;
+
+                report.setTotalReliquatGeneratedAmount(currentGenerated + generated);
+                report.setTotalReliquatUsedAmount(currentUsed + used);
+
+                // Add cash actually received to total deposit (adjusting for reliquats)
+                double cashReceived = event.getAmount() + generated - used;
+                double currentDeposit = report.getTotalAmountToDeposit() != null ? report.getTotalAmountToDeposit() : 0.0;
+                report.setTotalAmountToDeposit(currentDeposit + cashReceived);
 
                 repository.save(report);
 
@@ -189,12 +201,28 @@ public class DailyReportEventListener {
                                 event.getCreditReference() != null ? event.getCreditReference() : "N/A",
                                 event.getRecoveryReference() != null ? event.getRecoveryReference() : "N/A");
 
+                if (generated > 0 || used > 0) {
+                        description += String.format(" [Reliquat généré: %.0f, utilisé: %.0f]", generated, used);
+                }
+
                 dailyOperationService.logOperation(
                                 event.getCollector(),
                                 com.optimize.elykia.core.enumaration.OperationType.CREDIT_COLLECTION,
                                 event.getAmount(),
                                 "Recouvrement",
-                                description);
+                                description,
+                                generated,
+                                used);
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleRecoveryManagerCollection(RecoveryManagerCollectionEvent event) {
+                log.info("Processing RecoveryManagerCollectionEvent for commercial: {}", event.getCommercialUsername());
+                DailyCommercialReport report = getOrCreateReport(event.getCommercialUsername());
+                double current = report.getRecoveryManagerCollectionsAmount() != null ? report.getRecoveryManagerCollectionsAmount() : 0.0;
+                report.setRecoveryManagerCollectionsAmount(current + event.getAmount());
+                repository.save(report);
         }
 
         @EventListener

@@ -3,17 +3,28 @@ import { ReliquatRepository } from './reliquat.repository';
 import { ClientReliquat, RecoveryPlan } from '../../models/reliquat.model';
 import { LoggerService } from './logger.service';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, concatMap } from 'rxjs';
+import { Observable, of, from } from 'rxjs';
 import { switchMap, catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { HealthCheckService } from './health-check.service';
 import { DatabaseService } from './database.service';
+import { ApiResponse } from '../../models/api-response.model';
 
 export interface ReliquatAccountingEntry {
   clientId: string;
   amount: number;
   lastAccountedDate?: string;
   createdAt: string;
+}
+
+interface ReliquatServerDto {
+  id?: string;
+  clientId: string | number;
+  totalAmount: number;
+  lastRecoveryId?: string;
+  lastAccountedDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 @Injectable({
@@ -34,48 +45,14 @@ export class ReliquatService {
       switchMap(isOnline => {
         if (isOnline) {
           return this.fetchReliquatsFromApi(commercialUsername).pipe(
-            concatMap(async (dtos) => {
-              for (const dto of dtos) {
-                // Find local clientId
-                let localClientId = dto.clientId.toString();
-                try {
-                  const mappingResult = await this.dbService.query('SELECT localId FROM id_mappings WHERE serverId = ? AND entityType = ?', [dto.clientId.toString(), 'client']);
-                  if (mappingResult && mappingResult.values && mappingResult.values.length > 0) {
-                    localClientId = mappingResult.values[0].localId;
-                  }
-                } catch (err) { /* ignore */ }
-
-                let localClient = null;
-                try {
-                   localClient = await this.dbService.getClientById(localClientId);
-                } catch (e) { /* ignore */ }
-
-                if (localClient) {
-                  const reliquat: ClientReliquat = {
-                    id: dto.id || this.generateUuid(),
-                    clientId: localClient.id,
-                    commercialId: commercialUsername,
-                    totalAmount: dto.totalAmount,
-                    lastRecoveryId: dto.lastRecoveryId || '',
-                    createdAt: dto.createdAt || new Date().toISOString(),
-                    updatedAt: dto.updatedAt || new Date().toISOString(),
-                    lastAccountedDate: dto.lastAccountedDate,
-                    isSync: true,
-                    syncDate: new Date().toISOString()
-                  };
-                  await this.reliquatRepository.upsert(reliquat);
-                }
-              }
-              return true;
-            }),
+            switchMap(dtos => from(this.persistReliquatsFromServer(commercialUsername, dtos))),
             catchError((error) => {
               console.error('Failed to fetch reliquats from API', error);
-              return of(true); 
+              return of(true);
             })
           );
-        } else {
-          return of(true);
         }
+        return of(true);
       }),
       catchError(err => {
         console.error('Reliquat initialization failed:', err);
@@ -84,11 +61,69 @@ export class ReliquatService {
     );
   }
 
-  private fetchReliquatsFromApi(commercialUsername: string): Observable<any[]> {
-    const url = `${environment.apiUrl}/api/v1/mobiles/reliquats?commercial=${commercialUsername}`;
-    return this.http.get<{ data: { content: any[] } }>(url).pipe(
+  private fetchReliquatsFromApi(commercialUsername: string): Observable<ReliquatServerDto[]> {
+    const url = `${environment.apiUrl}/api/v1/mobiles/reliquats?commercial=${encodeURIComponent(commercialUsername)}`;
+    return this.http.get<ApiResponse<{ content: ReliquatServerDto[] }>>(url).pipe(
       map(response => response.data?.content || [])
     );
+  }
+
+  private async persistReliquatsFromServer(commercialUsername: string, dtos: ReliquatServerDto[]): Promise<boolean> {
+    await this.reliquatRepository.deleteSynced(commercialUsername);
+
+    let savedCount = 0;
+    for (const dto of dtos) {
+      const localClientId = await this.resolveLocalClientId(dto.clientId);
+      if (!localClientId) {
+        this.log.log(`[ReliquatService] Skipping reliquat: client ${dto.clientId} not found locally`);
+        continue;
+      }
+
+      const reliquat: ClientReliquat = {
+        id: dto.id || this.generateUuid(),
+        clientId: localClientId,
+        commercialId: commercialUsername,
+        totalAmount: dto.totalAmount ?? 0,
+        lastRecoveryId: dto.lastRecoveryId || '',
+        createdAt: dto.createdAt || new Date().toISOString(),
+        updatedAt: dto.updatedAt || new Date().toISOString(),
+        lastAccountedDate: dto.lastAccountedDate,
+        isSync: true,
+        syncDate: new Date().toISOString()
+      };
+      await this.reliquatRepository.upsert(reliquat);
+      savedCount++;
+    }
+
+    this.log.log(`[ReliquatService] Initialized ${savedCount}/${dtos.length} reliquat(s) for ${commercialUsername}`);
+    return true;
+  }
+
+  private async resolveLocalClientId(serverClientId: string | number): Promise<string | null> {
+    const serverId = serverClientId.toString();
+
+    try {
+      const mappingResult = await this.dbService.query(
+        'SELECT localId FROM id_mappings WHERE serverId = ? AND entityType = ?',
+        [serverId, 'client']
+      );
+      if (mappingResult?.values?.length) {
+        const row = mappingResult.values[0] as { localId?: string; LOCALID?: string };
+        const mappedId = row.localId ?? row.LOCALID;
+        if (mappedId) {
+          return mappedId;
+        }
+      }
+    } catch {
+      // ignore mapping lookup errors
+    }
+
+    try {
+      const client = await this.dbService.getClientById(serverId);
+      return client.id;
+    } catch {
+      return null;
+    }
   }
 
   async getReliquatForClient(clientId: string): Promise<ClientReliquat | null> {

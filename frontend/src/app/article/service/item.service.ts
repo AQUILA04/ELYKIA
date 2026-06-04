@@ -12,6 +12,14 @@ export interface StockValues {
   combinedTotal: number;
 }
 
+export interface ArticleStockKpis {
+  inStockCount: number;
+  purchaseTotal: number;
+  creditSaleTotal: number;
+  estimatedMargin: number;
+  outOfStockCount: number;
+}
+
 export interface Article {
   id: number;
   name: string;
@@ -137,6 +145,11 @@ export class ItemService {
     const headers = this.getHeader();
     const url = `${this.apiUrl}/detailed-stock-value`; // l'endpoint Spring Boot
     return this.http.get<StockValues>(url, { headers });
+  }
+
+  getArticleStockKpis(): Observable<ArticleStockKpis> {
+    const headers = this.getHeader();
+    return this.http.get<ArticleStockKpis>(`${this.apiUrl}/stock-kpis`, { headers });
   }
 
   // AJOUTEZ CETTE MÉTHODE

@@ -45,6 +45,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     { text: 'Chargement des distributions...', method: () => this.dataInitService.initializeDistributions() },
     { text: 'Chargement des comptes...', method: () => this.dataInitService.initializeAccounts() },
     { text: 'Chargement des recouvrements...', method: () => this.dataInitService.initializeRecoveries() },
+    { text: 'Chargement des reliquats...', method: () => this.dataInitService.initializeReliquats() },
     { text: 'Nettoyage des doublons de distributions...', method: () => from(this.cleanupDuplicateDistributions()) },
     { text: 'Purge des données locales anciennes...', method: () => from(this.purgeExpiredLocalData()) },
     { text: 'Chargement de la tontine...', method: () => this.dataInitService.initializeTontine() },

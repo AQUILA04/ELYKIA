@@ -1,61 +1,134 @@
-<div class="details-container" *ngIf="!isLoading">
-  <div class="form-header">
-    <h1>Details de l'utilisateur</h1>
+<div class="main-container user-details-page page-loading-shell" *ngIf="isLoading">
+  <div class="page-loading">
+    <mat-spinner diameter="44"></mat-spinner>
+    <span>Chargement de l'utilisateur…</span>
   </div>
-  <div class="details-content" *ngIf="user">
-    <div class="details-row">
-      <span class="details-label">Nom d'utilisateur</span>
-      <div class="details-value">{{ user.username }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Nom et prénom</span>
-      <div class="details-value">{{ user.firstname }} {{ user.lastname }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Numero de telephone</span>
-      <div class="details-value">{{ user.phone }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Genre</span>
-      <div class="details-value">{{ user.gender }}</div>
-    </div>
-    <div class="details-row">
-      <span class="details-label">Profil</span>
-      <div class="details-value">{{ user.profil?.name }}</div>
+</div>
+
+<div class="main-container user-details-page" *ngIf="!isLoading && user">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/user-list" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Liste des utilisateurs
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
     </div>
 
-    <div class="mt-4">
-      <div class="row justification-content-center">
-        <div class="col-12 text-center">
-          <h4 class="mb-3">Permissions Spécifiques</h4>
-          <!-- Wrapper for centering if necessary, though col-12 text-center helps title. Picklist might need its own centering if it has fixed width -->
-          <div class="d-flex justify-content-center">
-            <div style="width: 100%;">
-              <app-permission-picklist [allPermissions]="allPermissions" [assignedPermissions]="assignedPermissions"
-                (assignedPermissionsChange)="onPermissionsChange($event)">
-              </app-permission-picklist>
-            </div>
+    <div class="details-header-card">
+      <div class="details-header-main">
+        <div class="details-title-block">
+          <span class="header-surtitle">FICHE UTILISATEUR</span>
+          <h1 class="user-fullname">{{ user.firstname }} {{ user.lastname }}</h1>
+          <p class="user-subtitle">
+            <span class="mono">{{ user.username }}</span>
+            <span class="dot-sep">·</span>
+            {{ user.profil?.name || 'Profil non défini' }}
+          </p>
+          <div class="user-status-badges">
+            <span class="status-chip" [ngClass]="isUserActive() ? 'chip-active' : 'chip-inactive'">
+              {{ getStatusLabel() }}
+            </span>
           </div>
-
-          <div class="d-flex justify-content-end mt-3">
-            <button mat-raised-button color="primary" (click)="savePermissions()">
-              <mat-icon>save</mat-icon>
-              <span class="ms-2">Enregistrer les permissions</span>
-            </button>
-          </div>
+        </div>
+        <div class="details-header-actions">
+          <button type="button" class="btn-outline" (click)="onCancel()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            Retour
+          </button>
+          <button
+            *ngxPermissionsOnly="['ROLE_EDIT_USER']"
+            type="button"
+            class="btn-outline"
+            [class.btn-warn]="isUserActive()"
+            [class.btn-success]="!isUserActive()"
+            (click)="toggleActive()">
+            <svg *ngIf="isUserActive()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <svg *ngIf="!isUserActive()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+            {{ isUserActive() ? 'Désactiver' : 'Activer' }}
+          </button>
+          <button type="button" class="btn-primary" (click)="navigateToEdit()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+            Modifier
+          </button>
         </div>
       </div>
     </div>
-    <div class="form-actions">
-      <a (click)="onCancel()" class="link-back">
-        <i class="ti ti-arrow-left"></i> Retour à la liste
-      </a>
+  </div>
 
-      <div class="form-actions">
-        <a (click)="navigateToEdit()" class="link-edit">
-          <i class="ti ti-pencil"></i> Modifier
-        </a>
-      </div>
+  <div class="page-scroll-body">
+    <div class="details-layout">
+      <section class="info-card">
+        <div class="info-card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <h2>Informations générales</h2>
+        </div>
+        <dl class="info-grid">
+          <div class="info-item">
+            <dt>Identifiant</dt>
+            <dd class="mono">{{ user.username || '—' }}</dd>
+          </div>
+          <div class="info-item">
+            <dt>Nom</dt>
+            <dd>{{ user.lastname || '—' }}</dd>
+          </div>
+          <div class="info-item">
+            <dt>Prénom</dt>
+            <dd>{{ user.firstname || '—' }}</dd>
+          </div>
+          <div class="info-item">
+            <dt>Email</dt>
+            <dd>{{ user.email || '—' }}</dd>
+          </div>
+          <div class="info-item">
+            <dt>Téléphone</dt>
+            <dd class="mono">{{ user.phone || '—' }}</dd>
+          </div>
+          <div class="info-item">
+            <dt>Genre</dt>
+            <dd>{{ user.gender || '—' }}</dd>
+          </div>
+          <div class="info-item">
+            <dt>Profil</dt>
+            <dd>{{ user.profil?.name || '—' }}</dd>
+          </div>
+          <div class="info-item">
+            <dt>État du compte</dt>
+            <dd>
+              <span class="status-badge" [ngClass]="isUserActive() ? 'status-active' : 'status-inactive'">
+                {{ getStatusLabel() }}
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="permissions-card">
+        <div class="info-card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div>
+            <h2>Permissions spécifiques</h2>
+            <p class="section-hint">Permissions additionnelles au profil « {{ user.profil?.name || '—' }} »</p>
+          </div>
+        </div>
+
+        <div class="permissions-body">
+          <app-permission-picklist
+            [allPermissions]="allPermissions"
+            [assignedPermissions]="assignedPermissions"
+            (assignedPermissionsChange)="onPermissionsChange($event)">
+          </app-permission-picklist>
+        </div>
+
+        <div class="permissions-footer">
+          <button type="button" class="btn-primary" (click)="savePermissions()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Enregistrer les permissions
+          </button>
+        </div>
+      </section>
     </div>
   </div>
-  <div *ngIf="isLoading">Chargement...</div>
+</div>
