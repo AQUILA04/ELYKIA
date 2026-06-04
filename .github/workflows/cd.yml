@@ -209,14 +209,15 @@ jobs:
   # ---------------------------------------------------------------------------
   # Promote TEST → PROD (manual dispatch)
   # ---------------------------------------------------------------------------
-  promote:
+  promote-fetch-test:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'promote'
     runs-on: ubuntu-latest
-    name: Promote test -> prod
+    name: Fetch current test release
+    environment: test
+    outputs:
+      frontend_image: ${{ steps.fetch.outputs.frontend_image }}
+      backend_image: ${{ steps.fetch.outputs.backend_image }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
       - name: Prepare SSH key
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key
@@ -224,27 +225,52 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Promote current test release to prod
+      - name: Fetch current test release images
+        id: fetch
         run: |
           set -euo pipefail
-          TEST_HOST=${{ secrets.TEST_SERVER_HOST }}
-          TEST_USER=${{ secrets.TEST_SERVER_USER }}
-          TEST_PATH=${{ secrets.TEST_DEPLOY_PATH }}
-          PROD_HOST=${{ secrets.PROD_SERVER_HOST }}
-          PROD_USER=${{ secrets.PROD_SERVER_USER }}
-          PROD_PATH=${{ secrets.PROD_DEPLOY_PATH }}
-
-          echo "Fetching current test release file"
+          TEST_HOST="${{ secrets.TEST_SERVER_HOST }}"
+          TEST_USER="${{ secrets.TEST_SERVER_USER }}"
+          
           ssh -o StrictHostKeyChecking=no -i private_key "$TEST_USER@$TEST_HOST" "cat /opt/elykia/test/releases/test_current.txt" > release.txt
           cat release.txt
           FRONTEND_IMAGE=$(grep '^FRONTEND_IMAGE=' release.txt | cut -d= -f2-)
           BACKEND_IMAGE=$(grep '^BACKEND_IMAGE=' release.txt | cut -d= -f2-)
-
+          
           if [ -z "$FRONTEND_IMAGE" ] || [ -z "$BACKEND_IMAGE" ]; then
             echo "Could not determine images to promote" >&2
             exit 2
           fi
+          
+          echo "frontend_image=$FRONTEND_IMAGE" >> "$GITHUB_OUTPUT"
+          echo "backend_image=$BACKEND_IMAGE" >> "$GITHUB_OUTPUT"
 
+      - name: Cleanup
+        if: always()
+        run: rm -f private_key release.txt
+
+  promote-deploy-prod:
+    needs: promote-fetch-test
+    runs-on: ubuntu-latest
+    name: Promote test -> prod
+    environment: prod
+    steps:
+      - name: Prepare SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key
+          chmod 600 private_key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to prod server
+        run: |
+          set -euo pipefail
+          PROD_HOST="${{ secrets.PROD_SERVER_HOST }}"
+          PROD_USER="${{ secrets.PROD_SERVER_USER }}"
+          PROD_PATH="${{ secrets.PROD_DEPLOY_PATH }}"
+          FRONTEND_IMAGE="${{ needs.promote-fetch-test.outputs.frontend_image }}"
+          BACKEND_IMAGE="${{ needs.promote-fetch-test.outputs.backend_image }}"
+          
           echo "Promoting FRONTEND_IMAGE=$FRONTEND_IMAGE BACKEND_IMAGE=$BACKEND_IMAGE to prod ($PROD_HOST)"
           ssh -o StrictHostKeyChecking=no -i private_key "$PROD_USER@$PROD_HOST" \
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
@@ -253,7 +279,7 @@ jobs:
 
       - name: Cleanup
         if: always()
-        run: rm -f private_key release.txt
+        run: rm -f private_key
 
   # ---------------------------------------------------------------------------
   # Deploy monitoring stack on config changes
