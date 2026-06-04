@@ -21,6 +21,9 @@ import {
 import { AddMemberModalComponent } from '../../components/modals/add-member-modal/add-member-modal.component';
 import { SessionSettingsModalComponent } from '../../components/modals/session-settings-modal/session-settings-modal.component';
 import { AddMultipleMembersModalComponent } from '../../components/modals/add-multiple-members-modal/add-multiple-members-modal.component';
+import {UserService} from "../../../user/service/user.service";
+import {UserProfilConstant} from "../../../shared/constants/user-profil.constant";
+import {UserProfile} from "../../../shared/models/user-profile.enum";
 
 @Component({
   selector: 'app-tontine-dashboard',
@@ -45,13 +48,16 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
 
   isHistoricalView = false;
   showHistoricalAlertMessage = false;
+  isRecoveryManager = false;
+  isPromoter = false;
 
   constructor(
-    private tontineService: TontineService,
-    private sessionService: TontineSessionService,
-    private router: Router,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private readonly tontineService: TontineService,
+    private readonly sessionService: TontineSessionService,
+    private readonly router: Router,
+    private readonly dialog: MatDialog,
+    private readonly snackBar: MatSnackBar,
+    private readonly userService: UserService
   ) {
     this.state$ = this.tontineService.state$;
     this.currentSession$ = this.sessionService.currentSession$;
@@ -60,6 +66,8 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupObservables();
     this.loadCurrentSessionAndMembers();
+    this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
+    this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
     }, 1000);

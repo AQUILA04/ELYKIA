@@ -217,6 +217,16 @@ public class DailyReportEventListener {
 
         @EventListener
         @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleRecoveryManagerCollection(RecoveryManagerCollectionEvent event) {
+                log.info("Processing RecoveryManagerCollectionEvent for commercial: {}", event.getCommercialUsername());
+                DailyCommercialReport report = getOrCreateReport(event.getCommercialUsername());
+                double current = report.getRecoveryManagerCollectionsAmount() != null ? report.getRecoveryManagerCollectionsAmount() : 0.0;
+                report.setRecoveryManagerCollectionsAmount(current + event.getAmount());
+                repository.save(report);
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
         public void handleOrderCreated(OrderCreatedEvent event) {
                 log.info("Processing OrderCreatedEvent for collector: {}", event.getCollector());
                 DailyCommercialReport report = getOrCreateReport(event.getCollector());

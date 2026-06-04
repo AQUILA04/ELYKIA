@@ -1,0 +1,112 @@
+<div class="p-4">
+  <!-- Recovery Manager Selector (visible for MANAGER/ADMIN) TODO: load recovery managers list -->
+  <div class="rm-selector" *ngIf="isManager">
+    <label>Chef de recouvrement :</label>
+    <input type="text" class="rm-input" placeholder="Username du chef de recouvrement"
+      [(ngModel)]="recoveryManagerUsername" (ngModelChange)="onRecoveryManagerChange($event)" />
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- No Data -->
+  <div *ngIf="!isLoading && showNoData" class="empty-state">
+    <mat-icon class="empty-icon">search_off</mat-icon>
+    <p class="empty-text">Aucune opération de recouvrement pour cette période.</p>
+  </div>
+
+  <!-- KPIs Row -->
+  <div class="kpi-row" *ngIf="!isLoading && summary">
+    <div class="kpi-card">
+      <div class="kpi-label">Total collecté</div>
+      <div class="kpi-value">{{ summary.totalAmountCollected | number }} FCFA</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Nb opérations</div>
+      <div class="kpi-value">{{ summary.totalOperationsCount }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Commerciaux concernés</div>
+      <div class="kpi-value">{{ summary.commercialsCount }}</div>
+    </div>
+  </div>
+
+  <!-- Tableau "À remettre par commercial" -->
+  <ng-container *ngIf="summary as s">
+    <div class="section-card" *ngIf="s.remittanceByCommercial?.length">
+      <h3 class="section-title">À remettre par commercial</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Commercial</th>
+            <th class="text-right">Nb opérations</th>
+            <th class="text-right">Montant à remettre</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rem of s.remittanceByCommercial">
+            <td>{{ rem.commercialUsername }}</td>
+            <td class="text-right">{{ rem.operationsCount }}</td>
+            <td class="text-right">{{ rem.totalToRemit | number }} FCFA</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <!-- Détail des opérations -->
+  <div class="section-card">
+    <h3 class="section-title">Détail des opérations</h3>
+    <div *ngIf="operations.length > 0; else noOps">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Réf. crédit</th>
+            <th>Client</th>
+            <th>Commercial</th>
+            <th class="text-right">Montant</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let op of operations">
+            <td>{{ op.operationDate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ op.creditReference }}</td>
+            <td>{{ op.clientName }}</td>
+            <td>{{ op.commercialUsername }}</td>
+            <td class="text-right">{{ op.amountCollected | number }} FCFA</td>
+            <td>
+              <span class="type-badge" [class.partial]="op.isPartial" [class.total]="!op.isPartial">
+                {{ op.isPartial ? 'Partiel' : 'Total' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="mt-3">
+        <mat-paginator [length]="totalElements" [pageSize]="pageSize"
+          [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)">
+        </mat-paginator>
+      </div>
+    </div>
+    <ng-template #noOps>
+      <p class="text-muted">Aucune opération à afficher.</p>
+    </ng-template>
+  </div>
+
+  <!-- Export PDF -->
+  <div class="export-row">
+    <button class="btn-download" (click)="onExportPdf()" [disabled]="isDownloading" [class.loading]="isDownloading">
+      <svg *ngIf="!isDownloading" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      <div class="spinner-small" *ngIf="isDownloading"></div>
+      Exporter PDF
+    </button>
+  </div>
+</div>

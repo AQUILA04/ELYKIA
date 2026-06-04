@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: 'DejaVu Sans', sans-serif; font-size: 11px; color: #333; margin: 20px; }
+        h1 { font-size: 18px; color: #003366; margin-bottom: 4px; }
+        .header { border-bottom: 2px solid #003366; padding-bottom: 10px; margin-bottom: 16px; }
+        .header p { margin: 2px 0; font-size: 11px; color: #666; }
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 14px; font-weight: bold; color: #003366; margin-bottom: 8px; }
+        .kpi-row { display: flex; gap: 16px; margin-bottom: 16px; }
+        .kpi-card { border: 1px solid #dde3ec; border-radius: 8px; padding: 10px 16px; flex: 1; }
+        .kpi-card .label { font-size: 10px; color: #6b7a99; text-transform: uppercase; }
+        .kpi-card .value { font-size: 16px; font-weight: bold; color: #003366; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+        th { background-color: #003366; color: white; padding: 8px 10px; text-align: left; font-size: 10px; text-transform: uppercase; }
+        td { padding: 6px 10px; border-bottom: 1px solid #dde3ec; font-size: 11px; }
+        tr:nth-child(even) td { background-color: #f8f9fb; }
+        .text-right { text-align: right; }
+        .footer { margin-top: 20px; font-size: 10px; color: #999; text-align: center; border-top: 1px solid #dde3ec; padding-top: 8px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ELYKIA — Rapport de Recouvrement Terrain</h1>
+        <p>Chef de recouvrement : <strong th:text="${recoveryManagerUsername}">—</strong></p>
+        <p>Période : du <span th:text="${startDate}">—</span> au <span th:text="${endDate}">—</span></p>
+        <p>Généré le <span th:text="${generationDate}">—</span></p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Synthèse</div>
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="label">Total collecté</div>
+                <div class="value" th:text="${#numbers.formatInteger(summary.totalAmountCollected, 0, 'DEFAULT')} + ' XOF'">0 XOF</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Nombre d'opérations</div>
+                <div class="value" th:text="${summary.totalOperationsCount}">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Commerciaux concernés</div>
+                <div class="value" th:text="${summary.commercialsCount}">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" th:if="${not #lists.isEmpty(summary.remittanceByCommercial)}">
+        <div class="section-title">Remises par commercial</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Commercial</th>
+                    <th class="text-right">Opérations</th>
+                    <th class="text-right">Montant à remettre</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="rem : ${summary.remittanceByCommercial}">
+                    <td th:text="${rem.commercialUsername}">—</td>
+                    <td class="text-right" th:text="${rem.operationsCount}">0</td>
+                    <td class="text-right" th:text="${#numbers.formatInteger(rem.totalToRemit, 0, 'DEFAULT')} + ' XOF'">0 XOF</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section" th:if="${not #lists.isEmpty(operations)}">
+        <div class="section-title">Détail des opérations</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Réf. crédit</th>
+                    <th>Client</th>
+                    <th>Commercial</th>
+                    <th class="text-right">Montant</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="op : ${operations}">
+                    <td th:text="${op.date}">—</td>
+                    <td th:text="${op.creditReference}">—</td>
+                    <td th:text="${op.clientName}">—</td>
+                    <td th:text="${op.commercialUsername}">—</td>
+                    <td class="text-right" th:text="${#numbers.formatInteger(op.amount, 0, 'DEFAULT')} + ' XOF'">0 XOF</td>
+                    <td th:text="${op.type}">—</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        Document généré par ELYKIA — <span th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm')}">—</span>
+    </div>
+</body>
+</html>

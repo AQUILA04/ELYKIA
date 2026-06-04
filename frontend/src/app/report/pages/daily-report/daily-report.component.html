@@ -356,6 +356,14 @@
             </div>
         </mat-tab>
 
+        <mat-tab label="RECOUVREMENT TERRAIN" *ngIf="isRecoveryManager || isManager">
+            <app-recovery-manager-report-tab
+                [startDate]="periodStart"
+                [endDate]="periodEnd"
+                [commercialUsername]="selectedAgent">
+            </app-recovery-manager-report-tab>
+        </mat-tab>
+
         <mat-tab label="HISTORIQUE DES VERSEMENTS">
             <div class="p-4">
                 <div *ngIf="deposits.length > 0; else noDeps">

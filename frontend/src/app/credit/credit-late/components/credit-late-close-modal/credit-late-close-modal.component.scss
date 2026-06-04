@@ -1,0 +1,119 @@
+/* ── Modal Styles ──────────────────────────────────────────── */
+:host {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.close-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.close-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #6b7a99;
+  border-bottom: 1px solid #dde3ec;
+}
+
+.close-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f2f5;
+  vertical-align: middle;
+}
+
+.close-table .text-right {
+  text-align: right;
+}
+
+.cell-main {
+  font-weight: 600;
+  color: #003366;
+}
+
+.cell-sub {
+  font-size: 11px;
+  color: #9aacc4;
+}
+
+.amount-input {
+  width: 120px;
+  padding: 6px 10px;
+  border: 1px solid #dde3ec;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  text-align: right;
+  outline: none;
+  transition: border-color 0.18s;
+}
+
+.amount-input:focus {
+  border-color: #003366;
+}
+
+.full-amount {
+  font-family: 'DM Mono', monospace;
+  font-weight: 600;
+  color: #003366;
+}
+
+.error-msg {
+  color: #b91c1c;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.resume-financier {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f8f9fb;
+  border-radius: 8px;
+}
+
+.resume-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6b7a99;
+  margin-bottom: 8px;
+}
+
+.resume-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.resume-value {
+  font-weight: 700;
+  color: #003366;
+  font-family: 'DM Mono', monospace;
+}
+
+.error-banner {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+/* ── BOUTON CONFIRMER (bleu primaire) ──────────────────────────── */
+::ng-deep .btn-confirm.mat-mdc-raised-button {
+  background-color: #003366 !important;
+  color: white !important;
+}
+::ng-deep .btn-confirm.mat-mdc-raised-button:hover {
+  background-color: #002244 !important;
+}
+::ng-deep .btn-confirm.mat-mdc-raised-button[disabled] {
+  background-color: #c5cfe0 !important;
+  color: #9aacc4 !important;
+}

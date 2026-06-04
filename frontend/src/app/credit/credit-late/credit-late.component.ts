@@ -1,6 +1,10 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CreditLateService } from '../service/credit-late.service';
 import { CreditLateDTO, CreditLateSummaryDTO } from '../models/credit-late.model';
+import { UserService } from 'src/app/user/service/user.service';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { MatDialog } from '@angular/material/dialog';
+import { CreditLateCloseModalComponent } from './components/credit-late-close-modal/credit-late-close-modal.component';
 
 @Component({
   selector: 'app-credit-late',
@@ -14,7 +18,7 @@ export class CreditLateComponent implements OnInit {
   allCredits: CreditLateDTO[] = [];
   filteredCredits: CreditLateDTO[] = [];
   isLoading: boolean = false;
-  
+
   currentCollector: string = '';
   currentType: string = 'all';
   currentMonth: number | null = null;
@@ -23,12 +27,20 @@ export class CreditLateComponent implements OnInit {
 
   currentDate: Date = new Date();
   lastUpdate: Date = new Date();
-  
+
   isDownloading: boolean = false;
-  
-  constructor(private creditLateService: CreditLateService) {}
+
+  isRecoveryManager: boolean = false;
+  selectedCredits: CreditLateDTO[] = [];
+
+  constructor(
+    private creditLateService: CreditLateService,
+    private userService: UserService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit() {
+    this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
     this.restoreState();
     this.loadData();
     setInterval(() => {
@@ -36,9 +48,13 @@ export class CreditLateComponent implements OnInit {
     }, 1000);
   }
 
+  get totalSelectedAmount(): number {
+    return this.selectedCredits.reduce((sum, c) => sum + (c.totalAmountRemaining || 0), 0);
+  }
+
   loadData() {
     this.isLoading = true;
-    
+
     // Load summary
     this.creditLateService.getSummary(this.currentCollector, this.currentMonth || undefined, this.currentLocality).subscribe({
       next: (res: any) => {
@@ -65,6 +81,34 @@ export class CreditLateComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  onSelectionChanged(credits: CreditLateDTO[]) {
+    this.selectedCredits = credits;
+  }
+
+  onCloseCredit(credit: CreditLateDTO) {
+    this.openCloseModal([credit]);
+  }
+
+  openCloseModal(credits: CreditLateDTO[]) {
+    const dialogRef = this.dialog.open(CreditLateCloseModalComponent, {
+      width: '800px',
+      data: { credits },
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.clearSelection();
+        this.loadData();
+      }
+    });
+  }
+
+  clearSelection() {
+    this.selectedCredits = [];
+    this.allCredits.forEach(c => c.selected = false);
   }
 
   onCommercialChanged(collector: string) {

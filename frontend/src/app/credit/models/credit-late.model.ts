@@ -21,6 +21,7 @@ export interface CreditLateDTO {
   lateType: LateType;
   status: string;
   clientQuarter: string;
+  selected?: boolean;
 }
 
 export interface CreditLateSummaryDTO {

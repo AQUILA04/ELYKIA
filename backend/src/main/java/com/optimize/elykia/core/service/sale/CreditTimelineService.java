@@ -20,6 +20,7 @@ import com.optimize.elykia.core.service.bi.BiAggregationService;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -100,7 +101,9 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
         creditTimeline = credit.dailyStakeOperation(creditTimeline);
         creditTimeline.setDailyAccountancy(dailyAccountancy);
-        creditTimeline.setCollector(credit.getCollector());
+        if (creditTimeline.getCollector() == null) {
+            creditTimeline.setCollector(credit.getCollector());
+        }
         // Générer une référence uniquement si elle n'est pas déjà renseignée.
         // Si elle vient du mobile (ex: "REC-2026XXX-ABCDEF"), on la conserve pour
         // permettre la réconciliation lors de la réinitialisation mobile.
@@ -112,7 +115,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
             creditTimeline.setReference("REC-"+ now.getYear() + now.getMonthValue()+ "-" + hexString);
         }
         creditService.update(credit);
-        create(creditTimeline);
+        super.create(creditTimeline);
         if (CreditStatus.SETTLED.equals(credit.getStatus()) || credit.getTotalAmountRemaining() == 0) {
             clientService.updateCreditStatus(credit.getClientId(), Boolean.FALSE);
         }

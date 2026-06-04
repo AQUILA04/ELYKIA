@@ -121,6 +121,8 @@ import { CreditLateComponent } from './credit/credit-late/credit-late.component'
 import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
 import { CreditLateFilterComponent } from './credit/credit-late/components/credit-late-filter/credit-late-filter.component';
 import { CreditLateTableComponent } from './credit/credit-late/components/credit-late-table/credit-late-table.component';
+import { CreditLateCloseModalComponent } from './credit/credit-late/components/credit-late-close-modal/credit-late-close-modal.component';
+import { RecoveryManagerReportTabComponent } from './report/components/recovery-manager-report-tab/recovery-manager-report-tab.component';
 import { CreditEcheanceComponent } from './credit/credit-echeance/credit-echeance.component';
 import { CreditEcheanceKpiComponent } from './credit/credit-echeance/components/credit-echeance-kpi/credit-echeance-kpi.component';
 import { CreditEcheanceCalendarComponent } from './credit/credit-echeance/components/credit-echeance-calendar/credit-echeance-calendar.component';
@@ -224,6 +226,8 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     CreditLateKpiComponent,
     CreditLateFilterComponent,
     CreditLateTableComponent,
+    CreditLateCloseModalComponent,
+    RecoveryManagerReportTabComponent,
     CreditEcheanceComponent,
     CreditEcheanceKpiComponent,
     CreditEcheanceCalendarComponent,
