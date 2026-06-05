@@ -73,6 +73,7 @@ export interface TontineDeliveryItem {
 
 export interface TontineDelivery {
     id: string;
+    reference?: string;
     tontineMemberId: string;
     commercialUsername: string;
     requestDate: string;

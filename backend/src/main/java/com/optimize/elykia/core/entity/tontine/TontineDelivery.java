@@ -42,6 +42,9 @@ public class TontineDelivery extends BaseEntity<String> {
     
     @Column(name = "commercial_username", nullable = false)
     private String commercialUsername;
+
+    @Column(unique = true)
+    private String reference;
     
     @Column(name = "operation_consent_code")
     private String operationConsentCode;

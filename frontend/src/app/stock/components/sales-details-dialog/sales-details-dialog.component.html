@@ -1,42 +1,121 @@
-<h2 mat-dialog-title>Détails des ventes - {{ data.articleName }}</h2>
+<h2 mat-dialog-title>Détails des ventes — {{ data.articleName }}</h2>
+
 <mat-dialog-content>
-  <div class="summary-info">
-    <p><strong>Total Vendu:</strong> {{ data.totalSold }}</p>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <span class="summary-label">Quantité vendue</span>
+      <span class="summary-value">{{ data.quantitySold }}</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">PMP actuel</span>
+      <span class="summary-value">{{ data.weightedAverageUnitPrice | number:'1.0-0' }} FCFA</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Total vendu (stock)</span>
+      <span class="summary-value">{{ data.totalSoldValue | number:'1.0-0' }} FCFA</span>
+    </div>
+    <div class="summary-card" *ngIf="historyRows.length > 0">
+      <span class="summary-label">Somme historique</span>
+      <span class="summary-value">{{ historyTotalFromDeltas | number:'1.0-0' }} FCFA</span>
+    </div>
   </div>
 
   <div *ngIf="loading" class="loading-spinner">
     <mat-spinner diameter="40"></mat-spinner>
   </div>
 
-  <div *ngIf="!loading && salesDetails.length > 0" class="table-container">
-    <table mat-table [dataSource]="salesDetails" class="mat-elevation-z8">
-      <!-- Reference Column -->
-      <ng-container matColumnDef="reference">
-        <th mat-header-cell *matHeaderCellDef> Référence Crédit </th>
-        <td mat-cell *matCellDef="let element"> {{element.reference}} </td>
-      </ng-container>
+  <ng-container *ngIf="!loading">
+    <section class="section-block" *ngIf="historyRows.length > 0">
+      <h3 class="section-title">Historique des valorisations</h3>
+      <p class="section-subtitle">
+        Pour chaque vente : PMP appliqué, montant ajouté et total vendu cumulé à cet instant.
+      </p>
 
-      <!-- Client Name Column -->
-      <ng-container matColumnDef="clientName">
-        <th mat-header-cell *matHeaderCellDef> Nom et Prénom du Client </th>
-        <td mat-cell *matCellDef="let element"> {{element.clientName}} </td>
-      </ng-container>
+      <div class="table-container">
+        <table mat-table [dataSource]="historyRows" class="mat-elevation-z2 history-table">
+          <ng-container matColumnDef="createdDate">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let row">{{ row.createdDate | date:'dd/MM/yyyy HH:mm' }}</td>
+          </ng-container>
 
-      <!-- Quantity Column -->
-      <ng-container matColumnDef="quantity">
-        <th mat-header-cell *matHeaderCellDef> Quantité </th>
-        <td mat-cell *matCellDef="let element"> {{element.quantity}} </td>
-      </ng-container>
+          <ng-container matColumnDef="creditReference">
+            <th mat-header-cell *matHeaderCellDef>Référence</th>
+            <td mat-cell *matCellDef="let row">{{ row.creditReference || '—' }}</td>
+          </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="['reference', 'clientName', 'quantity']"></tr>
-      <tr mat-row *matRowDef="let row; columns: ['reference', 'clientName', 'quantity'];"></tr>
-    </table>
-  </div>
+          <ng-container matColumnDef="clientName">
+            <th mat-header-cell *matHeaderCellDef>Client</th>
+            <td mat-cell *matCellDef="let row">{{ row.clientName || '—' }}</td>
+          </ng-container>
 
-  <div *ngIf="!loading && salesDetails.length === 0" class="no-data">
-    <p>Aucune vente trouvée pour cet article.</p>
-  </div>
+          <ng-container matColumnDef="movementType">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let row">{{ getMovementTypeLabel(row.movementType) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Qté</th>
+            <td mat-cell *matCellDef="let row" class="text-right">{{ row.quantity }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="saleUnitPrice">
+            <th mat-header-cell *matHeaderCellDef class="text-right">PMP appliqué</th>
+            <td mat-cell *matCellDef="let row" class="text-right">{{ row.saleUnitPrice | number:'1.0-0' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="deltaValue">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Montant</th>
+            <td mat-cell *matCellDef="let row" class="text-right">{{ row.deltaValue | number:'1.0-0' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="newTotalSoldValue">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Total cumulé</th>
+            <td mat-cell *matCellDef="let row" class="text-right font-weight-bold">
+              {{ row.newTotalSoldValue | number:'1.0-0' }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="historyColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: historyColumns;"></tr>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <h3 class="section-title">Ventes clients</h3>
+      <p class="section-subtitle" *ngIf="historyRows.length === 0">
+        L'historique détaillé des valorisations sera disponible pour les ventes enregistrées après la mise à jour.
+      </p>
+
+      <div *ngIf="salesDetails.length > 0" class="table-container">
+        <table mat-table [dataSource]="salesDetails" class="mat-elevation-z2">
+          <ng-container matColumnDef="reference">
+            <th mat-header-cell *matHeaderCellDef>Référence crédit</th>
+            <td mat-cell *matCellDef="let element">{{ element.reference }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="clientName">
+            <th mat-header-cell *matHeaderCellDef>Client</th>
+            <td mat-cell *matCellDef="let element">{{ element.clientName }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Quantité</th>
+            <td mat-cell *matCellDef="let element" class="text-right">{{ element.quantity }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="['reference', 'clientName', 'quantity']; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['reference', 'clientName', 'quantity'];"></tr>
+        </table>
+      </div>
+
+      <div *ngIf="salesDetails.length === 0" class="no-data">
+        <p>Aucune vente trouvée pour cet article.</p>
+      </div>
+    </section>
+  </ng-container>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
   <button mat-button (click)="close()">Fermer</button>
 </mat-dialog-actions>

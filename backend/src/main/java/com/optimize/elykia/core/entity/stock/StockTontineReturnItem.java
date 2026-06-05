@@ -25,4 +25,6 @@ public class StockTontineReturnItem extends Auditable<String> {
     private Articles article;
 
     private Integer quantity;
+
+    private Long tontineItemId;
 }

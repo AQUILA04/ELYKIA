@@ -17,7 +17,8 @@
 #       --traefik-user "admin" \
 #       --traefik-password "admin_secret" \
 #       --pgadmin-password "pgadmin_secret" \
-#       --sftp-password "sftp_secret"
+#       --sftp-password "sftp_secret" \
+#       --rclone-conf-file /path/to/rclone.conf
 # =============================================================================
 set -euo pipefail
 
@@ -29,6 +30,7 @@ TRAEFIK_USER=""
 TRAEFIK_PASSWORD=""
 PGADMIN_PASSWORD=""
 SFTP_PASSWORD=""
+RCLONE_CONF_FILE=""
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -39,6 +41,7 @@ while [[ "$#" -gt 0 ]]; do
         --traefik-password) TRAEFIK_PASSWORD="$2"; shift ;;
         --pgadmin-password) PGADMIN_PASSWORD="$2"; shift ;;
         --sftp-password) SFTP_PASSWORD="$2"; shift ;;
+        --rclone-conf-file) RCLONE_CONF_FILE="$2"; shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -108,6 +111,9 @@ export TRAEFIK_PASSWORD="$TRAEFIK_PASSWORD"
 export DB_PASSWORD_TEST="$DB_TEST"
 export DB_PASSWORD_PROD="$DB_PROD"
 export PGADMIN_PASSWORD="$PGADMIN_PASSWORD"
+if [[ -n "$RCLONE_CONF_FILE" ]]; then
+    export RCLONE_CONF_FILE="$RCLONE_CONF_FILE"
+fi
 
 # Execute setup
 ./setup-server.sh

@@ -16,6 +16,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -26,6 +28,8 @@ import { StockTontineRequestCreateComponent } from './pages/stock-tontine-reques
 import { StockTontineReturnListComponent } from './pages/stock-tontine-return-list/stock-tontine-return-list.component';
 import { StockTontineReturnCreateComponent } from './pages/stock-tontine-return-create/stock-tontine-return-create.component';
 import { MyTontineStockDashboardComponent } from './pages/my-tontine-stock-dashboard/my-tontine-stock-dashboard.component';
+import { TontineStockMovementDialogComponent } from './components/tontine-stock-movement-dialog/tontine-stock-movement-dialog.component';
+import { TontineDeliveryDetailsDialogComponent } from './components/tontine-delivery-details-dialog/tontine-delivery-details-dialog.component';
 
 @NgModule({
   declarations: [
@@ -34,6 +38,8 @@ import { MyTontineStockDashboardComponent } from './pages/my-tontine-stock-dashb
     StockTontineReturnListComponent,
     StockTontineReturnCreateComponent,
     MyTontineStockDashboardComponent,
+    TontineStockMovementDialogComponent,
+    TontineDeliveryDetailsDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -55,6 +61,8 @@ import { MyTontineStockDashboardComponent } from './pages/my-tontine-stock-dashb
     MatPaginatorModule,
     MatTabsModule,
     MatTableModule,
+    MatDialogModule,
+    MatProgressSpinnerModule,
   ],
 })
 export class StockTontineModule {}

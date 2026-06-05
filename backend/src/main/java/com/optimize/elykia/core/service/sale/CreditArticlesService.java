@@ -36,4 +36,8 @@ public class CreditArticlesService extends GenericService<CreditArticles, Long> 
     public List<CreditArticleDetailDto> getDetailsByStockItemId(Long stockItemId) {
         return getRepository().findDetailsByStockItemId(stockItemId);
     }
+
+    public List<CreditArticleDetailDto> getDetailsByTontineItemId(Long tontineItemId) {
+        return getRepository().findDetailsByTontineItemId(tontineItemId);
+    }
 }

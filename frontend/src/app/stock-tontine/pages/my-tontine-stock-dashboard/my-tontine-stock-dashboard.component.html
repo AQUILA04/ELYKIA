@@ -80,8 +80,8 @@
             <tbody>
               <tr *ngFor="let item of stock.items">
                 <td>{{ item.articleName }}</td>
-                <td class="text-center">{{ item.totalQuantity }}</td>
-                <td class="text-center">{{ item.distributedQuantity }}</td>
+                <td class="text-center clickable-cell" (click)="openStockMovements(item)" style="cursor: pointer;">{{ item.totalQuantity }}</td>
+                <td class="text-center clickable-cell" (click)="openDeliveryDetails(item)" style="cursor: pointer;">{{ item.distributedQuantity }}</td>
                 <td class="text-center">{{ item.quantityReturned }}</td>
                 <td class="text-center font-weight-bold">{{ item.availableQuantity }}</td>
                 <td class="text-right">{{ (item.availableQuantity * item.weightedAverageUnitPrice) | number:'1.0-0' }}

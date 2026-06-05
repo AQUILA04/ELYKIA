@@ -5,6 +5,9 @@ import { TontineStock } from '../../models/tontine-stock.model';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ClientService } from 'src/app/client/service/client.service';
 import { PageEvent } from '@angular/material/paginator';
+import { MatDialog } from '@angular/material/dialog';
+import { TontineStockMovementDialogComponent } from '../../components/tontine-stock-movement-dialog/tontine-stock-movement-dialog.component';
+import { TontineDeliveryDetailsDialogComponent } from '../../components/tontine-delivery-details-dialog/tontine-delivery-details-dialog.component';
 
 @Component({
   selector: 'app-my-tontine-stock-dashboard',
@@ -30,7 +33,8 @@ export class MyTontineStockDashboardComponent implements OnInit {
     private tontineStockService: TontineStockService,
     private authService: AuthService,
     private spinner: NgxSpinnerService,
-    private clientService: ClientService
+    private clientService: ClientService,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -129,6 +133,39 @@ export class MyTontineStockDashboardComponent implements OnInit {
   getTotalDueValue(group: any): number {
     if (!group || !group.items) return 0;
     return group.items.reduce((acc: number, item: TontineStock) => acc + ((item.totalQuantity - item.quantityReturned) * item.weightedAverageUnitPrice), 0);
+  }
+
+  openStockMovements(item: TontineStock): void {
+    if (!item.id) {
+      return;
+    }
+
+    this.dialog.open(TontineStockMovementDialogComponent, {
+      width: '700px',
+      maxWidth: '95vw',
+      data: {
+        tontineStockId: item.id,
+        articleName: item.articleName,
+        quantityTaken: item.totalQuantity
+      }
+    });
+  }
+
+  openDeliveryDetails(item: TontineStock): void {
+    if (!item.id) {
+      return;
+    }
+
+    this.dialog.open(TontineDeliveryDetailsDialogComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      data: {
+        tontineStockId: item.id,
+        articleName: item.articleName,
+        quantityDistributed: item.distributedQuantity,
+        weightedAverageUnitPrice: item.weightedAverageUnitPrice ?? 0
+      }
+    });
   }
 }
 

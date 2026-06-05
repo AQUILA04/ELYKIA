@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
@@ -7,11 +7,10 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 import {
   TontineDelivery,
   CreateDeliveryDto,
-  DeliveryItemDto,
   ApiResponse,
   PaginatedResponse,
-  TontineMemberDeliveryStatus // Added TontineMemberDeliveryStatus // Added PaginatedResponse
 } from '../types/tontine.types';
+import { TontineDeliveryListItem } from '../models/tontine-delivery-list.model';
 
 @Injectable({
   providedIn: 'root'
@@ -60,6 +59,84 @@ export class TontineDeliveryService {
     const headers = this.getHeaders();
     return this.http.patch<ApiResponse<TontineDelivery>>(`${this.apiUrl}/${deliveryId}/deliver`, {}, { headers })
       .pipe(catchError(this.handleError));
+  }
+
+  getDeliveries(
+    dateFrom: string,
+    dateTo: string,
+    commercial?: string | null,
+    search?: string,
+    page: number = 0,
+    size: number = 10,
+    sort: string = 'deliveryDate,desc'
+  ): Observable<ApiResponse<PaginatedResponse<TontineDeliveryListItem>>> {
+    const headers = this.getHeaders();
+    let params = new HttpParams()
+      .set('dateFrom', dateFrom)
+      .set('dateTo', dateTo)
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', sort);
+
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+    if (search) {
+      params = params.set('search', search);
+    }
+
+    return this.http.get<ApiResponse<PaginatedResponse<TontineDeliveryListItem>>>(`${this.apiUrl}/list`, { headers, params })
+      .pipe(catchError(this.handleError));
+  }
+
+  getDeliveryKpis(
+    dateFrom: string,
+    dateTo: string,
+    commercial?: string | null,
+    search?: string
+  ): Observable<ApiResponse<any>> {
+    const headers = this.getHeaders();
+    let params = new HttpParams()
+      .set('dateFrom', dateFrom)
+      .set('dateTo', dateTo);
+
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+    if (search) {
+      params = params.set('search', search);
+    }
+
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/summary`, { headers, params })
+      .pipe(catchError(this.handleError));
+  }
+
+  elasticSearchDeliveries(
+    keyword: string,
+    dateFrom: string,
+    dateTo: string,
+    commercial?: string | null,
+    page: number = 0,
+    size: number = 10,
+    sort: string = 'deliveryDate,desc'
+  ): Observable<ApiResponse<PaginatedResponse<TontineDeliveryListItem>>> {
+    const headers = this.getHeaders();
+    let params = new HttpParams()
+      .set('dateFrom', dateFrom)
+      .set('dateTo', dateTo)
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', sort);
+
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+
+    return this.http.post<ApiResponse<PaginatedResponse<TontineDeliveryListItem>>>(
+      `${this.apiUrl}/elasticsearch`,
+      { keyword },
+      { headers, params }
+    ).pipe(catchError(this.handleError));
   }
 
 

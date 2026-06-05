@@ -128,11 +128,14 @@ export class MyStockDashboardComponent implements OnInit {
 
   openSalesDetails(item: any): void {
     this.dialog.open(SalesDetailsDialogComponent, {
-      width: '800px',
+      width: '1100px',
+      maxWidth: '95vw',
       data: {
         stockItemId: item.id,
         articleName: item.article.commercialName + ' ' + item.article.name,
-        totalSold: item.quantitySold
+        quantitySold: item.quantitySold,
+        totalSoldValue: item.totalSoldValue ?? 0,
+        weightedAverageUnitPrice: item.weightedAverageUnitPrice ?? 0
       }
     });
   }

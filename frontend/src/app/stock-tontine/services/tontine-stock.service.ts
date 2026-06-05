@@ -6,11 +6,13 @@ import { TontineStock } from '../models/tontine-stock.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 import { Page } from '../../shared/models/page.model';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TontineStockService extends BaseHttpService {
+  private readonly movementUrl = `${environment.apiUrl}/api/v1/tontines/stock/movements`;
 
   constructor(
     protected override http: HttpClient,
@@ -39,5 +41,15 @@ export class TontineStockService extends BaseHttpService {
       url += `&historic=true`;
     }
     return this.get<Page<TontineStock>>(url);
+  }
+
+  getStockMovements(tontineStockId: number): Observable<any> {
+    return this.http.get<any>(`${this.movementUrl}/stock/${tontineStockId}`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  getSalesDetails(tontineItemId: number): Observable<any> {
+    return this.get<any>(`${this.baseUrl}/stock/items/${tontineItemId}/sales-details`);
   }
 }

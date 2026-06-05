@@ -7,14 +7,18 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineReturn;
+import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.entity.tontine.TontineStock;
 import com.optimize.elykia.core.enumaration.StockOperation;
+import com.optimize.elykia.core.enumaration.TontineStockMovementType;
 import com.optimize.elykia.core.repository.TontineStockRepository;
+import com.optimize.elykia.core.service.stock.TontineStockMovementService;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,11 +30,83 @@ import java.util.Objects;
 @Transactional
 public class TontineStockService extends GenericService<TontineStock, Long> {
     private final UserService userService;
+    private final TontineStockMovementService tontineStockMovementService;
 
     protected TontineStockService(TontineStockRepository repository,
-                                  UserService userService) {
+                                  UserService userService,
+                                  TontineStockMovementService tontineStockMovementService) {
         super(repository);
         this.userService = userService;
+        this.tontineStockMovementService = tontineStockMovementService;
+    }
+
+    public void validateTontineStockAvailability(Collection<CreditArticles> creditArticles, String commercial) {
+        List<String> unAvailableStock = new ArrayList<>();
+        creditArticles.forEach(creditArticle -> {
+            TontineStock tontineStock = getRepository().getArticleForCommercial(creditArticle.getArticlesId(), commercial);
+            if (Objects.isNull(tontineStock) || tontineStock.getAvailableQuantity() < creditArticle.getQuantity()) {
+                unAvailableStock.add(creditArticle.getArticles().getCommercialName());
+            }
+        });
+
+        if (!unAvailableStock.isEmpty()) {
+            throw new CustomValidationException(String.format(
+                    "L'article(s) %s n'est pas disponible(s) ou quantité insuffisante pour le stock du commercial",
+                    String.join(", ", unAvailableStock)));
+        }
+    }
+
+    @Transactional
+    public void deductTontineStockForDelivery(
+            Collection<CreditArticles> creditArticles,
+            String commercial,
+            Long creditId,
+            String creditReference,
+            TontineDelivery delivery) {
+        Long tontineDeliveryId = delivery != null ? delivery.getId() : null;
+        String tontineDeliveryReference = buildTontineDeliveryReference(delivery);
+
+        creditArticles.forEach(creditArticle -> {
+            TontineStock tontineStock = getRepository().getArticleForCommercial(creditArticle.getArticlesId(), commercial);
+            if (Objects.isNull(tontineStock)) {
+                throw new CustomValidationException("Stock tontine introuvable pour l'article : "
+                        + creditArticle.getArticles().getCommercialName());
+            }
+
+            int quantityBefore = tontineStock.getAvailableQuantity();
+            tontineStock.removeQuantity(creditArticle.getQuantity());
+            int quantityAfter = tontineStock.getAvailableQuantity();
+            TontineStock saved = update(tontineStock);
+            creditArticle.setTontineItemId(saved.getId());
+
+            recordMovement(
+                    saved,
+                    quantityBefore,
+                    creditArticle.getQuantity(),
+                    quantityAfter,
+                    TontineStockMovementType.TONTINE_DELIVERY,
+                    creditId,
+                    creditReference,
+                    null,
+                    null,
+                    null,
+                    tontineDeliveryId,
+                    tontineDeliveryReference);
+        });
+    }
+
+    private String buildTontineDeliveryReference(TontineDelivery delivery) {
+        if (delivery == null) {
+            return null;
+        }
+        if (StringUtils.hasText(delivery.getReference())) {
+            return delivery.getReference();
+        }
+        if (delivery.getTontineMember() != null
+                && delivery.getTontineMember().getClient() != null) {
+            return delivery.getTontineMember().getClient().getFullName() + " (#" + delivery.getId() + ")";
+        }
+        return "LIV-" + delivery.getId();
     }
 
     public TontineStock updateArticleStock(CreditArticles creditArticles, String commercial, StockOperation stockOperation) {
@@ -44,23 +120,6 @@ public class TontineStockService extends GenericService<TontineStock, Long> {
             return update(tontineStock);
         }
         return null;
-    }
-
-    @Transactional
-    public void checkAvailabilityAndUpdateTontineStock(Collection<CreditArticles> creditArticles, String commercial) {
-        List<String> unAvailableStock = new ArrayList<>();
-        creditArticles.forEach(creditArticle -> {
-            TontineStock tontineStock = getRepository().getArticleForCommercial(creditArticle.getArticlesId(), commercial);
-            if (Objects.isNull(tontineStock) || tontineStock.getAvailableQuantity() < creditArticle.getQuantity()) {
-                unAvailableStock.add(creditArticle.getArticles().getCommercialName());
-            } else {
-                updateArticleStock(creditArticle, commercial, StockOperation.REMOVE);
-            }
-        });
-
-        if (!unAvailableStock.isEmpty()) {
-            throw new CustomValidationException(String.format("L'article(s) %s n'est pas disponible(s) ou quantité insuffisante pour le stock du commercial", String.join(", ", unAvailableStock)));
-        }
     }
 
     public void processStockDelivery(StockTontineRequest request) {
@@ -85,6 +144,8 @@ public class TontineStockService extends GenericService<TontineStock, Long> {
                 return newStock;
             });
 
+            int quantityBefore = stock.getAvailableQuantity();
+
             double currentTotalValue = stock.getAvailableQuantity() * stock.getWeightedAverageUnitPrice();
             double newIncomingValue = item.getQuantity() * item.getUnitPrice();
             int newTotalQuantity = stock.getAvailableQuantity() + item.getQuantity();
@@ -96,7 +157,21 @@ public class TontineStockService extends GenericService<TontineStock, Long> {
             stock.addQuantity(item.getQuantity());
             stock.setUnitPrice(item.getUnitPrice());
 
-            create(stock);
+            TontineStock saved = create(stock);
+
+            recordMovement(
+                    saved,
+                    quantityBefore,
+                    item.getQuantity(),
+                    saved.getAvailableQuantity(),
+                    TontineStockMovementType.STOCK_IN,
+                    null,
+                    null,
+                    request.getId(),
+                    request.getReference(),
+                    null,
+                    null,
+                    null);
         });
     }
 
@@ -107,11 +182,62 @@ public class TontineStockService extends GenericService<TontineStock, Long> {
                     item.getArticle().getId(),
                     returnRequest.getCollector(),
                     year
-            ).orElseThrow(() -> new CustomValidationException("Stock introuvable pour le retour de l'article " + item.getArticle().getCommercialName()));
+            ).orElseThrow(() -> new CustomValidationException(
+                    "Stock introuvable pour le retour de l'article " + item.getArticle().getCommercialName()));
 
+            int quantityBefore = stock.getAvailableQuantity();
             stock.returnQuantity(item.getQuantity());
-            create(stock);
+            int quantityAfter = stock.getAvailableQuantity();
+            TontineStock saved = create(stock);
+            item.setTontineItemId(saved.getId());
+
+            recordMovement(
+                    saved,
+                    quantityBefore,
+                    item.getQuantity(),
+                    quantityAfter,
+                    TontineStockMovementType.RETURN,
+                    null,
+                    null,
+                    null,
+                    null,
+                    returnRequest.getId(),
+                    null,
+                    null);
         });
+    }
+
+    private void recordMovement(
+            TontineStock stock,
+            int quantityBefore,
+            int quantityMoved,
+            int quantityAfter,
+            TontineStockMovementType movementType,
+            Long creditId,
+            String creditReference,
+            Long stockTontineRequestId,
+            String stockTontineRequestReference,
+            Long stockTontineReturnId,
+            Long tontineDeliveryId,
+            String tontineDeliveryReference) {
+        if (tontineStockMovementService != null) {
+            tontineStockMovementService.record(
+                    stock.getId(),
+                    creditId,
+                    creditReference,
+                    stockTontineRequestId,
+                    stockTontineRequestReference,
+                    stockTontineReturnId,
+                    tontineDeliveryId,
+                    tontineDeliveryReference,
+                    stock.getCommercial(),
+                    stock.getArticleId(),
+                    stock.getArticleName(),
+                    movementType,
+                    quantityBefore,
+                    quantityMoved,
+                    quantityAfter);
+        }
     }
 
     public List<TontineStock> getStock(String commercial) {

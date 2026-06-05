@@ -191,6 +191,19 @@ if id "deploy" &>/dev/null; then
   chown -R deploy:deploy /opt/elykia
 fi
 
+# --- 7. Optional: rclone for off-site DB backup replication ---
+if [[ -n "${RCLONE_CONF:-}" || -n "${RCLONE_CONF_FILE:-}" ]]; then
+  echo "[7/7] Setting up rclone (off-site backup upload)..."
+  chmod +x "$DEPLOY_DIR/setup-rclone.sh"
+  if [[ -n "${RCLONE_CONF_FILE:-}" ]]; then
+    "$DEPLOY_DIR/setup-rclone.sh" --rclone-conf-file "$RCLONE_CONF_FILE"
+  else
+    "$DEPLOY_DIR/setup-rclone.sh"
+  fi
+else
+  echo "[7/7] Skipping rclone setup (RCLONE_CONF not provided)."
+fi
+
 echo ""
 echo "=== Setup complete! ==="
 echo ""
@@ -210,4 +223,8 @@ echo "  6. Start the Tools stack (PgAdmin 4):"
 echo "       docker compose -f docker-compose.tools.yml --project-name elykia-tools --env-file /opt/elykia/tools/.env up -d"
 echo "  7. Start the Monitoring stack (Prometheus, Grafana, Loki):"
 echo "       docker compose -f monitoring/docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env up -d"
+if [[ -z "${RCLONE_CONF:-}" && -z "${RCLONE_CONF_FILE:-}" ]]; then
+echo "  8. (Optional) Configure off-site DB backup upload to Google Drive:"
+echo "       sudo RCLONE_CONF=\"\$(cat /path/to/rclone.conf)\" $DEPLOY_DIR/setup-rclone.sh"
+fi
 echo ""

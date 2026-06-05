@@ -24,6 +24,7 @@ import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-c
 import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-consent-state.service';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { generateTontineDeliveryReference } from 'src/app/core/utils/tontine-delivery-reference.util';
 
 interface DeliveryViewModel {
     member: TontineMember | null;
@@ -377,6 +378,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
             const delivery: TontineDelivery = {
                 id: deliveryId,
+                reference: generateTontineDeliveryReference(),
                 tontineMemberId: this.memberId!,
                 commercialUsername: this.commercialUsername!,
                 requestDate: new Date().toISOString(),

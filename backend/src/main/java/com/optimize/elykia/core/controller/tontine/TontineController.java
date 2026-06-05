@@ -7,6 +7,7 @@ import com.optimize.elykia.core.dto.TontineCollectionDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
 import com.optimize.elykia.core.dto.TontineMemberRespDto;
 import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
+import com.optimize.elykia.core.service.sale.CreditArticlesService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -30,6 +31,7 @@ public class TontineController {
 
     private final TontineService tontineService;
     private final TontineStockService tontineStockService;
+    private final CreditArticlesService creditArticlesService;
 
     @GetMapping("/sessions/current")
     public ResponseEntity<Response> getCurrentSession() {
@@ -108,6 +110,13 @@ public class TontineController {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(
                         tontineService.getTontineCollectionRepository().findByTontineMember_Id(memberId, pageable)),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/stock/items/{tontineItemId}/sales-details")
+    public ResponseEntity<Response> getTontineStockSalesDetails(@PathVariable Long tontineItemId) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(creditArticlesService.getDetailsByTontineItemId(tontineItemId)),
                 HttpStatus.OK);
     }
 

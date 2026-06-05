@@ -74,7 +74,7 @@ export class DatabaseService {
       // 2. Migrations incrémentielles (natif uniquement).
       // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
       const currentVersion = await this.db.getVersion();
-      const targetVersion = 25; // daily_consent_history + operationConsentCode
+      const targetVersion = 26; // tontine_deliveries.reference
       const dbVersion = currentVersion.version ?? 2;
       const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -541,6 +541,7 @@ export class DatabaseService {
         -- Table des livraisons de tontine (Demandes de remise)
         CREATE TABLE IF NOT EXISTS tontine_deliveries (
             id TEXT PRIMARY KEY,
+            reference TEXT,
             tontineMemberId TEXT,
             commercialUsername TEXT,
             requestDate TEXT,
@@ -2227,8 +2228,8 @@ export class DatabaseService {
 
     const queryDelivery = `
       INSERT OR REPLACE INTO tontine_deliveries(
-          id, tontineMemberId, commercialUsername, requestDate, deliveryDate, totalAmount, status, isLocal, isSync, syncDate, syncHash
-        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          id, reference, tontineMemberId, commercialUsername, requestDate, deliveryDate, totalAmount, status, isLocal, isSync, syncDate, syncHash
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
 
     const queryItems = `
@@ -2243,7 +2244,7 @@ export class DatabaseService {
       set.push({
         statement: queryDelivery,
         values: [
-          d.id, d.tontineMemberId, d.commercialUsername, d.requestDate, d.deliveryDate, d.totalAmount, d.status,
+          d.id, d.reference || null, d.tontineMemberId, d.commercialUsername, d.requestDate, d.deliveryDate, d.totalAmount, d.status,
           d.isLocal ? 1 : 0, d.isSync ? 1 : 0, d.syncDate || new Date().toISOString(), d.syncHash
         ]
       });

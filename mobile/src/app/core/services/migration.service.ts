@@ -124,6 +124,9 @@ export class MigrationService {
       case 25:
         await this.migrateToV25(db);
         break;
+      case 26:
+        await this.migrateToV26(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -710,6 +713,18 @@ export class MigrationService {
     } catch (error: any) {
       this.log.log(`Error in migration v25: ${error}`);
       console.error('Error in migration v25', error);
+      throw error;
+    }
+  }
+
+  private async migrateToV26(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v26: Adding reference to tontine_deliveries...');
+      await this.addColumnIfNotExists(db, 'tontine_deliveries', 'reference', 'TEXT');
+      this.log.log('Migration to v26 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v26: ${error}`);
+      console.error('Error in migration v26', error);
       throw error;
     }
   }

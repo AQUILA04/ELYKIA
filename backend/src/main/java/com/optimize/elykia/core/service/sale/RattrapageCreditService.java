@@ -14,6 +14,7 @@ import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
+import com.optimize.elykia.core.service.stock.CommercialMonthlyStockItemSoldValueHistoryService;
 import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
@@ -38,11 +39,17 @@ public class RattrapageCreditService {
     private final CreditRepository creditRepository;
     private final ClientService clientService;
     private CommercialStockMovementService commercialStockMovementService;
+    private CommercialMonthlyStockItemSoldValueHistoryService soldValueHistoryService;
     private BusinessMetricsPublisher metricsPublisher;
 
     @org.springframework.beans.factory.annotation.Autowired
     public void setCommercialStockMovementService(CommercialStockMovementService commercialStockMovementService) {
         this.commercialStockMovementService = commercialStockMovementService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setSoldValueHistoryService(CommercialMonthlyStockItemSoldValueHistoryService soldValueHistoryService) {
+        this.soldValueHistoryService = soldValueHistoryService;
     }
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -230,9 +237,24 @@ public class RattrapageCreditService {
             stockItem.setQuantitySold(stockItem.getQuantitySold() + itemDto.getQuantity());
             stockItem.updateRemaining();
 
-            // Mettre à jour totalSoldValue
             double currentSoldValue = stockItem.getTotalSoldValue() != null ? stockItem.getTotalSoldValue() : 0.0;
-            stockItem.setTotalSoldValue(currentSoldValue + (itemDto.getQuantity() * itemDto.getUnitPrice()));
+            double currentPmp = stockItem.getWeightedAverageUnitPrice() != null ? stockItem.getWeightedAverageUnitPrice() : 0.0;
+            double saleUnitPrice = itemDto.getUnitPrice();
+            double newSoldValue = currentSoldValue + (itemDto.getQuantity() * saleUnitPrice);
+            stockItem.setTotalSoldValue(newSoldValue);
+
+            if (soldValueHistoryService != null) {
+                soldValueHistoryService.record(
+                        stockItem,
+                        credit.getId(),
+                        credit.getReference(),
+                        CommercialStockMovementType.CREDIT_SALE,
+                        itemDto.getQuantity(),
+                        saleUnitPrice,
+                        currentPmp,
+                        currentSoldValue,
+                        newSoldValue);
+            }
 
             // Enregistrement du mouvement de stock CREDIT_SALE pour le rattrapage
             if (commercialStockMovementService != null) {

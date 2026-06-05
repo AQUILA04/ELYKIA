@@ -3,6 +3,7 @@ import { BaseHttpService } from '../../shared/service/base-http.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CommercialMonthlyStock } from '../models/commercial-stock.model';
+import { SoldValueHistoryEntry } from '../models/sold-value-history.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 
@@ -51,5 +52,9 @@ export class CommercialStockService extends BaseHttpService {
 
   getStockMovements(stockItemId: number): Observable<any> {
     return this.http.get<any>(`${this.movementUrl}/item/${stockItemId}`);
+  }
+
+  getSoldValueHistory(stockItemId: number): Observable<SoldValueHistoryEntry[]> {
+    return this.http.get<SoldValueHistoryEntry[]>(`${this.baseUrl}/items/${stockItemId}/sold-value-history`);
   }
 }

@@ -63,6 +63,8 @@ graph TD
 - `docker-compose.prod.yml` - Compose pour l'environnement de production.
 - `docker-compose.tools.yml` - Compose pour les outils (PgAdmin 4).
 - `setup-server.sh` - Script de configuration initiale du serveur (création des dossiers, réseau Docker, templates `.env`).
+- `setup-rclone.sh` - Installation de rclone et déploiement de `rclone.conf` (une seule fois, depuis `RCLONE_CONF`).
+- `db_backup_upload.sh` - Compression et upload du backup prod vers Google Drive (après le cron du soir).
 - `deploy.sh` - Script pour déployer une paire d'images (frontend/backend) et enregistrer la release.
 - `rollback.sh` - Script pour revenir à une release précédente.
 - `import-db.sh` - Script pour importer un dump SQL dans le container Postgres.
@@ -141,7 +143,40 @@ cd /opt/elykia/deploy
 Un script `db_backup.sh` est fourni pour effectuer des sauvegardes de la base Postgres. Il est recommandé de planifier son exécution via `cron` sur le serveur hôte :
 
 ```cron
-0 8,19 * * 1-6 cd /opt/elykia/deploy && /opt/elykia/deploy/db_backup.sh prod >> /var/log/elykia_db_backup.log 2>&1
+# Matin : sauvegarde locale uniquement
+0 8 * * 1-6 cd /opt/elykia/deploy && /opt/elykia/deploy/db_backup.sh prod >> /var/log/elykia_db_backup.log 2>&1
+
+# Soir : sauvegarde locale puis réplication sur Google Drive
+0 19 * * 1-6 cd /opt/elykia/deploy && /opt/elykia/deploy/db_backup.sh prod >> /var/log/elykia_db_backup.log 2>&1 && /opt/elykia/deploy/db_backup_upload.sh >> /var/log/elykia_db_backup_upload.log 2>&1
+```
+
+### Réplication off-site (Google Drive via rclone)
+
+Les sauvegardes du soir sont compressées (`.gz`) et uploadées vers **Mon Drive → ELYKIA → backup**. Les fichiers de plus de 30 jours sont supprimés automatiquement sur Drive.
+
+**Configuration initiale (une seule fois)** — le secret `RCLONE_CONF` (contenu de `rclone.conf`) est déployé uniquement lors du setup :
+
+```bash
+# Nouveau serveur (avec init-server.sh)
+sudo ./init-server.sh \
+    --ssh-key "..." \
+    --db-test "..." \
+    --db-prod "..." \
+    --traefik-user "admin" \
+    --traefik-password "..." \
+    --pgadmin-password "..." \
+    --sftp-password "..." \
+    --rclone-conf-file /chemin/vers/rclone.conf
+
+# Serveur existant
+cd /opt/elykia/deploy
+sudo RCLONE_CONF="$(cat /chemin/vers/rclone.conf)" ./setup-rclone.sh
+```
+
+Test manuel de l'upload :
+```bash
+cd /opt/elykia/deploy
+./db_backup_upload.sh
 ```
 
 ## Monitoring et Alerting
@@ -243,6 +278,7 @@ Pour l'intégration continue, configurez ces secrets dans GitHub :
 - `SSH_PRIVATE_KEY` : clé privée SSH pour se connecter au serveur.
 - `SSH_KNOWN_HOSTS` : contenu de `ssh-keyscan your.server.com`.
 - `GHCR_USERNAME` et `GHCR_TOKEN` : pour l'accès au registre d'images.
+- `RCLONE_CONF` : contenu du fichier `rclone.conf` (OAuth Google Drive). Copié **une seule fois** sur le serveur via `setup-rclone.sh` lors de l'initialisation — non utilisé par la CI/CD.
 
 **Secrets d'environnement (Environments : `test` et `prod`) :**
 - `SERVER_USER` : utilisateur SSH (ex: root ou deploy).

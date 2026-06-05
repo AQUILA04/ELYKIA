@@ -141,6 +141,7 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
 
         return {
             tontineMemberId: Number.parseInt(serverMemberId, 10),
+            reference: delivery.reference ?? null,
             requestDate: delivery.requestDate,
             items: items.map(item => ({
                 articleId: Number.parseInt(item.articleId, 10),

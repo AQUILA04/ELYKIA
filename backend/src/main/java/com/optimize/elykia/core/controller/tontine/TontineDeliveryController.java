@@ -3,8 +3,10 @@ package com.optimize.elykia.core.controller.tontine;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.CreateDeliveryDto;
+import com.optimize.elykia.core.dto.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
+import com.optimize.elykia.core.service.tontine.TontineDeliveryWebService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,9 +14,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class TontineDeliveryController {
 
     private final TontineDeliveryService deliveryService;
+    private final TontineDeliveryWebService deliveryWebService;
 
     @PostMapping
     //@PreAuthorize("hasAnyRole('ROLE_EDIT_TONTINE', 'ROLE_ADMIN', 'ROLE_GESTIONNAIRE')")
@@ -90,5 +98,55 @@ public class TontineDeliveryController {
             ResponseUtil.successResponse(delivery, "Livraison marquée comme servie"),
             HttpStatus.OK
         );
+    }
+
+    @GetMapping("/list")
+    @Operation(summary = "Lister les livraisons avec filtres commercial, période et recherche")
+    public ResponseEntity<Response> getDeliveries(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) String commercial,
+            @RequestParam(required = false) String search,
+            Pageable pageable) {
+        LocalDateTime startDateTime = dateFrom != null ? dateFrom.atStartOfDay() : null;
+        LocalDateTime endDateTime = dateTo != null ? dateTo.atTime(LocalTime.MAX) : null;
+
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(
+                        deliveryWebService.getDeliveriesForWeb(startDateTime, endDateTime, commercial, search, pageable)),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/summary")
+    @Operation(summary = "KPI des livraisons filtrées par commercial, période et recherche")
+    public ResponseEntity<Response> getDeliveryKpiSummary(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) String commercial,
+            @RequestParam(required = false) String search) {
+        LocalDateTime startDateTime = dateFrom != null ? dateFrom.atStartOfDay() : null;
+        LocalDateTime endDateTime = dateTo != null ? dateTo.atTime(LocalTime.MAX) : null;
+
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(
+                        deliveryWebService.getKpiSummary(startDateTime, endDateTime, commercial, search)),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/elasticsearch")
+    @Operation(summary = "Recherche élastique sur les livraisons et les informations client associées")
+    public ResponseEntity<Response> elasticSearch(
+            @RequestBody ElasticSearchWrapper wrapper,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) String commercial,
+            Pageable pageable) {
+        LocalDateTime startDateTime = dateFrom != null ? dateFrom.atStartOfDay() : null;
+        LocalDateTime endDateTime = dateTo != null ? dateTo.atTime(LocalTime.MAX) : null;
+
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(deliveryWebService.elasticsearch(
+                        wrapper.getKeyword(), startDateTime, endDateTime, commercial, pageable)),
+                HttpStatus.OK);
     }
 }

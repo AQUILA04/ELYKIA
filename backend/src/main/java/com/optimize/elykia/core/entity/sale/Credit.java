@@ -163,18 +163,15 @@ public class Credit extends BaseEntity<String> {
         if (Objects.nonNull(articles) && !articles.isEmpty()) {
             this.totalPurchase = this.calculTotalPurchase();
             if (OperationType.CREDIT.equals(this.type)) {
-                if (Objects.nonNull(this.status) && List.of(CreditStatus.CREATED, CreditStatus.VALIDATED).contains(this.status)) {
-                    return articles.stream()
-                            .mapToDouble(creditArticles ->
-                                    (creditArticles.getArticles().getCreditSalePrice() * creditArticles.getQuantity()))
-                            .sum();
-                } else {
-                    return articles.stream()
-                            .mapToDouble(creditArticles ->
-                                    (creditArticles.
-                                            getUnitPrice() * creditArticles.getQuantity()))
-                            .sum();
-                }
+                return articles.stream()
+                        .mapToDouble(creditArticles -> {
+                            Double unitPrice = creditArticles.getUnitPrice();
+                            if (unitPrice == null || unitPrice <= 0) {
+                                unitPrice = creditArticles.getArticles().getCreditSalePrice();
+                            }
+                            return unitPrice * creditArticles.getQuantity();
+                        })
+                        .sum();
             } else if (OperationType.CASH.equals(this.type)) {
                 return articles.stream()
                         .mapToDouble(creditArticles ->

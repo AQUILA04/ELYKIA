@@ -121,6 +121,7 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
 
     private void processValidationLogic(StockTontineReturn returnRequest) {
         tontineStockService.processStockReturn(returnRequest);
+        update(returnRequest);
 
         double totalAmount = returnRequest.getItems().stream()
                 .mapToDouble(item -> item.getQuantity() * item.getArticle().getSellingPrice())

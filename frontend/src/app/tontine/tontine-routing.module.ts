@@ -6,6 +6,7 @@ import { MemberDetailsComponent } from './pages/member-details/member-details.co
 import { SessionComparisonComponent } from './pages/session-comparison/session-comparison.component';
 import { TontineMagasinierDashboardComponent } from './pages/magasinier-dashboard/tontine-magasinier-dashboard.component'; // New component
 import { TontineCollecteComponent } from './collecte/tontine-collecte.component';
+import { TontineDeliveryListComponent } from './pages/delivery-list/tontine-delivery-list.component';
 
 const routes: Routes = [
   {
@@ -29,6 +30,10 @@ const routes: Routes = [
   {
     path: 'collectes',
     component: TontineCollecteComponent
+  },
+  {
+    path: 'livraisons',
+    component: TontineDeliveryListComponent
   }
 ];
 

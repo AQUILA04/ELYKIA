@@ -1,9 +1,11 @@
 package com.optimize.elykia.core.controller.stock;
 
+import com.optimize.elykia.core.dto.CommercialMonthlyStockItemSoldValueHistoryDto;
 import com.optimize.elykia.core.dto.CommercialStockItemDto;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
+import com.optimize.elykia.core.service.stock.CommercialMonthlyStockItemSoldValueHistoryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +21,14 @@ public class CommercialMonthlyStockController {
 
     private final CommercialMonthlyStockRepository repository;
     private final CommercialMonthlyStockService monthlyStockService;
+    private final CommercialMonthlyStockItemSoldValueHistoryService soldValueHistoryService;
 
     public CommercialMonthlyStockController(CommercialMonthlyStockRepository repository,
-                                            CommercialMonthlyStockService monthlyStockService) {
+                                            CommercialMonthlyStockService monthlyStockService,
+                                            CommercialMonthlyStockItemSoldValueHistoryService soldValueHistoryService) {
         this.repository = repository;
         this.monthlyStockService = monthlyStockService;
+        this.soldValueHistoryService = soldValueHistoryService;
     }
 
     @GetMapping("/current/{collector}")
@@ -44,6 +49,12 @@ public class CommercialMonthlyStockController {
     public ResponseEntity<List<CommercialStockItemDto>> getAvailableItems(@PathVariable String collector) {
         LocalDate now = LocalDate.now();
         return ResponseEntity.ok(repository.findAvailableItemsByCollector(collector, now.getMonthValue(), now.getYear()));
+    }
+
+    @GetMapping("/items/{stockItemId}/sold-value-history")
+    public ResponseEntity<List<CommercialMonthlyStockItemSoldValueHistoryDto>> getSoldValueHistory(
+            @PathVariable Long stockItemId) {
+        return ResponseEntity.ok(soldValueHistoryService.getByStockItemId(stockItemId));
     }
 
     @GetMapping

@@ -71,7 +71,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.registrationDate,
             new com.optimize.elykia.core.dto.TontineDeliveryRespDto(
                 d.id, null, d.deliveryDate, d.requestDate, d.totalAmount, 
-                d.remainingBalance, d.commercialUsername, null,
+                d.remainingBalance, d.commercialUsername, d.reference, null,
                 d.operationConsentCode, d.syncConsentCode
             ),
             tm.frequency,
@@ -117,7 +117,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.registrationDate,
             new com.optimize.elykia.core.dto.TontineDeliveryRespDto(
                 d.id, null, d.deliveryDate, d.requestDate, d.totalAmount, 
-                d.remainingBalance, d.commercialUsername, null,
+                d.remainingBalance, d.commercialUsername, d.reference, null,
                 d.operationConsentCode, d.syncConsentCode
             ),
             tm.frequency,

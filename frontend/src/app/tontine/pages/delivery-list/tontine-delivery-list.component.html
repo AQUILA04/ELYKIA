@@ -1,0 +1,185 @@
+<div class="main-container client-page delivery-page a1">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/tontine" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Tontines
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">GESTION DES TONTINES</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/>
+          </svg>
+          <h1 class="page-title">Livraisons tontine</h1>
+        </div>
+        <button class="btn-refresh" (click)="refresh()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">Liste des livraisons · Filtres commercial, période et recherche conservés à la navigation</p>
+    </div>
+  </div>
+
+  <div class="page-scroll-body">
+    <div class="kpi-strip client-kpi-strip a3" *ngIf="deliveryKpis">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Livraisons</div>
+        <div class="kpi-value">{{ deliveryKpis.totalCount | number }}</div>
+        <div class="kpi-sub">Total sur la période filtrée</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Montant total</div>
+        <div class="kpi-value">{{ deliveryKpis.totalAmount | number:'1.0-0' }}</div>
+        <div class="kpi-sub">FCFA livrés</div>
+      </div>
+      <div class="kpi-card kpi-delai">
+        <div class="kpi-label">En cours</div>
+        <div class="kpi-value">{{ inProgressCount | number }}</div>
+        <div class="kpi-sub">En attente ou validées</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Livrées</div>
+        <div class="kpi-value">{{ deliveryKpis.deliveredCount | number }}</div>
+        <div class="kpi-sub">Solde restant : {{ deliveryKpis.totalRemainingBalance | number:'1.0-0' }} FCFA</div>
+      </div>
+    </div>
+
+    <div class="toolbar a4">
+      <div class="filter-group filter-group-search">
+        <span class="toolbar-label">Recherche</span>
+        <div class="search-row">
+          <input
+            type="text"
+            class="search-input"
+            [(ngModel)]="searchTerm"
+            (keydown.enter)="onSearch()"
+            placeholder="Référence, nom, téléphone, commercial…">
+          <button type="button" class="btn-search-icon" (click)="onSearch()" title="Rechercher" aria-label="Rechercher">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-group filter-group-commercial" *ngIf="!isCommercialLogged">
+        <span class="toolbar-label">Commercial</span>
+        <app-commercial-selector
+          [initialValue]="selectedCommercial"
+          (commercialSelected)="onCommercialSelected($event)">
+        </app-commercial-selector>
+      </div>
+
+      <div class="filter-group filter-group-period">
+        <span class="toolbar-label">Période</span>
+        <div class="period-pills">
+          <button type="button" class="pill-btn" [class.active]="activePeriod === 'today'" (click)="selectPeriod('today')">Aujourd'hui</button>
+          <button type="button" class="pill-btn" [class.active]="activePeriod === 'week'" (click)="selectPeriod('week')">Semaine</button>
+          <button type="button" class="pill-btn" [class.active]="activePeriod === 'month'" (click)="selectPeriod('month')">Mois</button>
+          <button type="button" class="pill-btn" [class.active]="activePeriod === 'year'" (click)="selectPeriod('year')">Année</button>
+          <button type="button" class="pill-btn" [class.active]="activePeriod === 'custom'" (click)="selectPeriod('custom')">Perso.</button>
+        </div>
+      </div>
+
+      <div class="filter-group filter-group-custom-dates" *ngIf="activePeriod === 'custom'">
+        <span class="toolbar-label">Dates</span>
+        <div class="date-inputs">
+          <input type="date" lang="fr-FR" [(ngModel)]="customDateRange.start" [max]="today" class="search-input">
+          <span class="date-sep">à</span>
+          <input type="date" lang="fr-FR" [(ngModel)]="customDateRange.end" [max]="today" class="search-input">
+          <button type="button" class="btn-clear" (click)="applyCustomDateRange()">Appliquer</button>
+        </div>
+      </div>
+
+      <button class="btn-clear" (click)="clearSearch()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        Effacer recherche
+      </button>
+      <button class="btn-clear" (click)="resetFilters()">
+        Réinitialiser tout
+      </button>
+
+      <span class="result-count">
+        <strong>{{ totalElement }}</strong> livraison(s)
+      </span>
+    </div>
+
+    <div class="table-card a5">
+      <div class="table-wrapper">
+        <div *ngIf="isLoading" class="table-loading">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
+        </div>
+
+        <div *ngIf="!isLoading && deliveries.length === 0" class="table-empty-static">
+          <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <div class="empty-title">Aucune livraison trouvée</div>
+            <div class="empty-sub">Modifiez vos filtres ou élargissez la période.</div>
+          </div>
+        </div>
+
+        <table class="data-table" *ngIf="!isLoading && deliveries.length > 0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Référence</th>
+              <th>Client</th>
+              <th>Commercial</th>
+              <th>Date</th>
+              <th>Montant</th>
+              <th>Statut</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let delivery of deliveries; let i = index" class="table-row">
+              <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
+              <td><span class="col-ref">{{ delivery.reference || '—' }}</span></td>
+              <td>
+                <span class="col-client">{{ delivery.clientFirstname }} {{ delivery.clientLastname }}</span>
+                <span class="col-phone" *ngIf="delivery.clientPhone">{{ delivery.clientPhone }}</span>
+              </td>
+              <td>{{ delivery.commercialUsername }}</td>
+              <td>{{ delivery.deliveryDate | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td><span class="col-amount">{{ delivery.totalAmount | number:'1.0-0' }} FCFA</span></td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusClass(delivery.deliveryStatus)">
+                  {{ getStatusLabel(delivery.deliveryStatus) }}
+                </span>
+              </td>
+              <td class="col-actions">
+                <button class="btn-detail" (click)="viewMember(delivery.tontineMemberId)" title="Détails membre">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Voir
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination client-pagination">
+        <mat-paginator
+          [length]="totalElement"
+          [pageSize]="pageSize"
+          [pageIndex]="currentPage"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </div>
+  </div>
+</div>

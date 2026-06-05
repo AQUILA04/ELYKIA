@@ -54,6 +54,7 @@ public class TontineDeliveryService {
     private final AccountService accountService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final ClientService clientService;
+    private final TontineDeliveryReferenceService deliveryReferenceService;
     private BusinessMetricsPublisher metricsPublisher;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -125,6 +126,7 @@ public class TontineDeliveryService {
         delivery.setRemainingBalance(remainingBalance);
         delivery.setCommercialUsername(member.getClient().getCollector());
         delivery.setRequestDate(dto.getRequestDate());
+        delivery.setReference(deliveryReferenceService.resolveReference(dto.getReference(), dto.getRequestDate()));
         delivery.setOperationConsentCode(dto.getOperationConsentCode());
         delivery.setSyncConsentCode(dto.getSyncConsentCode());
 
@@ -285,6 +287,7 @@ public class TontineDeliveryService {
         return TontineDeliveryDto.builder()
                 .id(delivery.getId())
                 .tontineMemberId(delivery.getTontineMember().getId())
+                .reference(delivery.getReference())
                 .clientName(delivery.getTontineMember().getClient().getFullName())
                 .deliveryDate(delivery.getDeliveryDate())
                 .totalAmount(delivery.getTotalAmount())

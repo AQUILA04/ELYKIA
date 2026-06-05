@@ -32,6 +32,8 @@ public class CreditArticles extends Auditable<String> {
     private Double unitPrice;
     private Long stockItemId;
 
+    private Long tontineItemId;
+
     public CreditArticles(Long articleId, Integer quantity) {
         articles = new Articles(articleId);
         this.quantity = quantity;

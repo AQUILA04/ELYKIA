@@ -13,6 +13,7 @@ public class CreateDeliveryDto {
 
     @NotNull(message = "L'identifiant du membre de la tontine est requis")
     private Long tontineMemberId;
+    private String reference;
     private LocalDateTime requestDate;
 
     @Valid

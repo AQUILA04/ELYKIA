@@ -250,6 +250,13 @@
                 <span class="hide-menu">Collectes</span>
               </a>
             </li>
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/tontine/livraisons"
+                 [ngClass]="{ 'active': isSubRouteActive('/tontine/livraisons') }">
+                <span class="material-icons">local_shipping</span>
+                <span class="hide-menu">Livraison</span>
+              </a>
+            </li>
           </ul>
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER']">

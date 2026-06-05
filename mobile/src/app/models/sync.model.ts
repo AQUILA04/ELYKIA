@@ -376,6 +376,7 @@ export interface TontineCollectionSyncRequest {
 
 export interface TontineDeliverySyncRequest {
   tontineMemberId: number;
+  reference?: string | null;
   requestDate: any;
   items: TontineDeliveryItemSyncRequest[];
   operationConsentCode?: string | null;
@@ -407,6 +408,7 @@ export interface TontineCollectionSyncResponse {
 export interface TontineDeliverySyncResponse {
   id: number;
   tontineMemberId: number;
+  reference?: string;
   totalAmount: number;
   status: string;
   requestDate: string;

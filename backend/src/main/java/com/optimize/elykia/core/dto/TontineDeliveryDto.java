@@ -13,6 +13,7 @@ public class TontineDeliveryDto {
     
     private Long id;
     private Long tontineMemberId;
+    private String reference;
     private String clientName;
     private LocalDateTime deliveryDate;
     private LocalDateTime requestDate;
