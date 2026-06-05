@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class TontineCollectionDto {
     @NotNull(message = "L'ID du membre ne peut pas être nul.")
@@ -18,4 +20,9 @@ public class TontineCollectionDto {
     private String operationConsentCode;
     private Double confirmedAmount;
     private String syncConsentCode;
+
+    /**
+     * Date métier de la collecte (rattrapage). Si absent, la collecte est enregistrée à la date du jour.
+     */
+    private LocalDate collectionDate;
 }

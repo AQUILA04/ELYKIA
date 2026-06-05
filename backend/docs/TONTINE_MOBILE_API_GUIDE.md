@@ -231,6 +231,20 @@ Basé sur `TontineCollectionDto.java`.
 }
 ```
 
+**Rattrapage (optionnel, web)** — pour enregistrer une collecte à une date passée :
+
+```json
+{
+  "memberId": 101,
+  "amount": 31000.0,
+  "collectionDate": "2026-02-15",
+  "notes": "Rattrapage"
+}
+```
+
+- `collectionDate` : format ISO `YYYY-MM-DD`, strictement avant la date du jour.
+- Sans `collectionDate`, la date d'enregistrement reste la date/heure courante.
+
 #### Exemple de Réponse JSON (`201 Created`)
 
 Retourne la transaction de collecte, encapsulée dans l'objet `Response`.

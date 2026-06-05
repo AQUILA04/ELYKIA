@@ -21,6 +21,7 @@ import {
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { RecordCollectionModalComponent } from '../../components/modals/record-collection-modal/record-collection-modal.component';
+import { RecordCatchupCollectionModalComponent } from '../../components/modals/record-catchup-collection-modal/record-catchup-collection-modal.component';
 import { DeliveryArticleSelectionModalComponent } from '../../components/modals/delivery-article-selection-modal/delivery-article-selection-modal.component';
 import { AddMemberModalComponent } from '../../components/modals/add-member-modal/add-member-modal.component';
 
@@ -285,6 +286,23 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
         this.loadMemberDetails(this.member.id);
         this.loadCollections(this.member.id);
         this.showSuccess('Collecte enregistrée avec succès');
+      }
+    });
+  }
+
+  onRecordCatchupCollection(): void {
+    if (!this.member) return;
+
+    const dialogRef = this.dialog.open(RecordCatchupCollectionModalComponent, {
+      width: '520px',
+      data: { member: this.member }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && this.member) {
+        this.loadMemberDetails(this.member.id);
+        this.loadCollections(this.member.id);
+        this.showSuccess('Collecte de rattrapage enregistrée avec succès');
       }
     });
   }

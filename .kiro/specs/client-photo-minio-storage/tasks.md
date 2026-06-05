@@ -1,249 +1,206 @@
-# Plan d'implémentation : Client Photo MinIO Storage
+# Implementation Plan
 
-## Vue d'ensemble
+## Overview
 
-Migration du stockage des photos clients depuis la base de données relationnelle (`byte[]` dans `Client` et `PhotoStore`) vers MinIO (stockage objet compatible S3). Le plan couvre : les nouvelles dépendances, les services backend (MinioStorageService, ImageProcessingService, PhotoObjectKeyBuilder), la modification de ClientService et ClientController, le job de migration, la modification du mobile (PhotoSyncService), et la suppression des colonnes binaires via Flyway.
+Ce plan d'implémentation couvre la migration complète du stockage des photos clients depuis la base de données PostgreSQL vers MinIO S3, incluant un mécanisme de résilience (pattern Outbox) pour garantir que l'enregistrement d'un client réussit même si MinIO est temporairement indisponible. Il est organisé en 18 tâches couvrant : les dépendances Maven, les nouveaux services backend (MinioStorageService, ImageProcessingService, PhotoObjectKeyBuilder, PhotoOutboxEntry, PhotoOutboxRetryScheduler), le refactoring de ClientService et ClientController, le job de migration des données existantes, l'intégration dans l'infrastructure Docker Compose / Traefik existante (stacks test et prod), le refactoring mobile, l'affichage frontend, et le nettoyage final des colonnes binaires via Flyway.
 
-## Tâches
+## Task Dependency Graph
 
-- [ ] 1. Backend — Ajout des dépendances Maven
-  - [ ] 1.1 Ajouter `io.minio:minio:8.5.7` et `net.coobird:thumbnailator:0.4.20` dans le `pom.xml` du module `elykia-client`
-    - Ajouter la dépendance MinIO SDK Java dans la section `<dependencies>`
-    - Ajouter la dépendance Thumbnailator dans la section `<dependencies>`
-    - _Requirements: 11.1, 11.2_
+```json
+{
+  "waves": [
+    {
+      "wave": 1,
+      "tasks": [1, 11]
+    },
+    {
+      "wave": 2,
+      "tasks": [2, 12]
+    },
+    {
+      "wave": 3,
+      "tasks": [3]
+    },
+    {
+      "wave": 4,
+      "tasks": [4]
+    },
+    {
+      "wave": 5,
+      "tasks": [5, 6]
+    },
+    {
+      "wave": 6,
+      "tasks": [7, 13]
+    },
+    {
+      "wave": 7,
+      "tasks": [8, 9, 15, 16]
+    },
+    {
+      "wave": 8,
+      "tasks": [10, 14]
+    },
+    {
+      "wave": 9,
+      "tasks": [17]
+    },
+    {
+      "wave": 10,
+      "tasks": [18]
+    }
+  ]
+}
+```
 
-- [ ] 2. Backend — Configuration Spring Boot
-  - [ ] 2.1 Ajouter les propriétés MinIO dans `application.yml` et créer la classe `MinioProperties`
-    - Ajouter le bloc `minio:` dans `application.yml` avec `endpoint`, `access-key`, `secret-key`, `bucket`, `public-url` lus depuis les variables d'environnement
-    - Créer la classe `@ConfigurationProperties(prefix = "minio") MinioProperties` avec les champs correspondants
-    - _Requirements: 10.1, 10.5_
+## Tasks
 
-- [ ] 3. Backend — PhotoObjectKeyBuilder
-  - [ ] 3.1 Créer la classe utilitaire `PhotoObjectKeyBuilder`
-    - Implémenter `profilOriginal(Long clientId): String` → `"clients/{clientId}/profil/original.jpg"`
-    - Implémenter `profilThumb(Long clientId): String` → `"clients/{clientId}/profil/thumb.jpg"`
-    - Implémenter `cardOriginal(Long clientId): String` → `"clients/{clientId}/card/original.jpg"`
-    - Implémenter `cardThumb(Long clientId): String` → `"clients/{clientId}/card/thumb.jpg"`
-    - _Requirements: 3.1, 3.2, 3.3, 3.4_
+- [ ] 1. Ajouter les dépendances Maven (MinIO SDK + Thumbnailator)
+  - Ouvrir `backend-lib/elykia-client/pom.xml` (ou le pom parent si les dépendances sont centralisées)
+  - Ajouter `io.minio:minio:8.5.7` dans la section `<dependencies>`
+  - Ajouter `net.coobird:thumbnailator:0.4.20` dans la section `<dependencies>`
+  - Vérifier qu'il n'y a pas de conflit de version avec les dépendances existantes (OkHttp, Guava utilisés par le SDK MinIO)
+  - Lancer `mvn dependency:tree` pour confirmer la résolution
+  - **Validates:** Requirement 11.1, 11.2
 
-  - [ ]* 3.2 Écrire les tests de propriétés jqwik pour `PhotoObjectKeyBuilder`
-    - **Propriété 3 : Clés d'objets distinctes (original vs thumbnail)**
-    - `@Property` : pour tout `clientId` Long, `profilOriginal(id) != profilThumb(id)` et `cardOriginal(id) != cardThumb(id)`, 200 itérations
-    - **Propriété 4 : Clés d'objets distinctes (profil vs carte)**
-    - `@Property` : pour tout `clientId` Long, `profilOriginal(id) != cardOriginal(id)` et `profilThumb(id) != cardThumb(id)`, 200 itérations
-    - **Propriété 5 : Pattern des clés d'objets MinIO**
-    - `@Property` : pour tout `clientId` Long, les quatre clés respectent le pattern `clients/{clientId}/{type}/{variant}.jpg`, 200 itérations
-    - **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6**
+- [ ] 2. Créer la configuration Spring Boot pour MinIO et le fallback
+  - Créer la classe `MinioProperties` annotée `@ConfigurationProperties(prefix = "minio")` avec les champs `endpoint`, `accessKey`, `secretKey`, `bucket`, `publicUrl`
+  - Ajouter dans `application.yml` les propriétés `minio.*` lisant depuis les variables d'environnement : `${MINIO_ENDPOINT}`, `${MINIO_ACCESS_KEY}`, `${MINIO_SECRET_KEY}`, `${MINIO_BUCKET:elykia-clients}`, `${MINIO_PUBLIC_URL}`
+  - Ajouter la propriété `photo.fallback.path: ${PHOTO_FALLBACK_PATH:/opt/elykia/photos/pending}` dans `application.yml`
+  - Annoter la classe principale ou une `@Configuration` avec `@EnableConfigurationProperties(MinioProperties.class)`
+  - **Validates:** Requirement 10.1, 10.5, 13.9
 
-- [ ] 4. Backend — ImageProcessingService
-  - [ ] 4.1 Créer l'interface `ImageProcessingService` et son implémentation `ImageProcessingServiceImpl`
-    - Déclarer `byte[] generateThumbnail(byte[] original, int width, int height)`
-    - Implémenter avec Thumbnailator : `Thumbnails.of(new ByteArrayInputStream(original)).size(width, height).outputFormat("JPEG").outputQuality(0.8).toOutputStream(baos)`
-    - Conserver le ratio d'aspect (fit dans width×height sans déformation)
-    - Accepter les formats JPEG, PNG, WebP en entrée
-    - Lever `ApplicationException("Format d'image non supporté ou fichier corrompu")` si les bytes sont null, vides ou invalides
-    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
+- [ ] 3. Implémenter `PhotoObjectKeyBuilder`
+  - Créer la classe utilitaire `PhotoObjectKeyBuilder` dans le package `com.optimize.elykia.client.storage`
+  - Implémenter les quatre méthodes statiques : `profilOriginal(Long clientId)`, `profilThumb(Long clientId)`, `cardOriginal(Long clientId)`, `cardThumb(Long clientId)`
+  - Chaque méthode retourne une `String` au format `clients/{clientId}/{type}/{variant}.jpg`
+  - Écrire les tests unitaires `PhotoObjectKeyBuilderTest` vérifiant les patterns et la distinction des clés (Properties 3, 4, 5)
+  - **Validates:** Requirement 3.1, 3.2, 3.3, 3.4, 3.5, 3.6
 
-  - [ ]* 4.2 Écrire les tests de propriétés jqwik pour `ImageProcessingService`
-    - **Propriété 1 : Thumbnail dimensions respectées**
-    - `@Property` : pour tout tableau de bytes d'image valide, `generateThumbnail(bytes, 200, 200)` retourne une image dont largeur ≤ 200 et hauteur ≤ 200, 100 itérations
-    - **Propriété 2 : Thumbnail encodé en JPEG**
-    - `@Property` : pour tout tableau de bytes d'image valide, les deux premiers octets du résultat sont `0xFF 0xD8`, 100 itérations
-    - **Validates: Requirements 2.1, 2.2, 2.3**
+- [ ] 4. Implémenter `ImageProcessingService`
+  - Créer l'interface `ImageProcessingService` dans `com.optimize.elykia.client.storage`
+  - Créer l'implémentation `ThumbnailatorImageProcessingService` annotée `@Service`
+  - Implémenter `generateThumbnail(byte[] original, int width, int height)` en utilisant `Thumbnailator` : `Thumbnails.of(new ByteArrayInputStream(original)).size(width, height).outputFormat("JPEG").outputQuality(0.8).toOutputStream(baos)`
+  - Gérer les cas d'erreur : bytes null/vides → `ApplicationException`, format non supporté → `ApplicationException`
+  - Écrire les tests unitaires `ImageProcessingServiceTest` vérifiant les dimensions, l'encodage JPEG (magic bytes `0xFF 0xD8`), la conservation du ratio, et les cas d'erreur (Properties 1, 2)
+  - **Validates:** Requirement 2.1, 2.2, 2.3, 2.4, 2.5
 
-  - [ ]* 4.3 Écrire les tests unitaires JUnit 5 pour les cas limites de `ImageProcessingService`
-    - Cas : bytes null → `ApplicationException`
-    - Cas : bytes vides → `ApplicationException`
-    - Cas : bytes corrompus (non-image) → `ApplicationException`
-    - Cas : image portrait (100×300) → thumbnail ≤ 200×200 avec ratio conservé
-    - Cas : image paysage (300×100) → thumbnail ≤ 200×200 avec ratio conservé
-    - _Requirements: 2.3, 2.5_
+- [ ] 5. Implémenter `MinioStorageService` avec méthode `isAvailable()`
+  - Créer l'interface `MinioStorageService` dans `com.optimize.elykia.client.storage` avec les méthodes `uploadPhoto`, `deletePhoto`, `exists`, et `isAvailable(): boolean`
+  - Créer l'implémentation `MinioStorageServiceImpl` annotée `@Service`
+  - Injecter `MinioProperties` et instancier `MinioClient` dans le constructeur
+  - Implémenter `@PostConstruct initBucket()` : créer le bucket `elykia-clients` s'il n'existe pas, configurer la politique de lecture publique via `SetBucketPolicyArgs`
+  - Implémenter `uploadPhoto`, `deletePhoto`, `exists` comme défini dans le design
+  - Implémenter `isAvailable()` : tenter `statBucket()` sur le bucket `elykia-clients`, retourner `false` en cas d'exception sans propager l'erreur
+  - Encapsuler toutes les exceptions MinIO dans `ApplicationException` (sauf `isAvailable` qui absorbe silencieusement)
+  - Écrire les tests unitaires `MinioStorageServiceTest` avec mock du `MinioClient` (Properties 6, 7, 8), incluant le test de `isAvailable()` quand MinIO est down
+  - **Validates:** Requirement 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 13.8
 
-- [ ] 5. Backend — MinioStorageService
-  - [ ] 5.1 Créer l'interface `MinioStorageService` et son implémentation `MinioStorageServiceImpl`
-    - Déclarer `String uploadPhoto(String objectKey, byte[] data, String contentType)`
-    - Déclarer `void deletePhoto(String objectKey)`
-    - Déclarer `boolean exists(String objectKey)`
-    - Implémenter avec le SDK MinIO Java (`io.minio.MinioClient`)
-    - Initialiser `MinioClient` depuis `MinioProperties` dans le constructeur
-    - Créer le bucket `elykia-clients` s'il n'existe pas dans `@PostConstruct`
-    - Retourner l'URL publique construite : `{minio.public-url}/{minio.bucket}/{objectKey}`
-    - Encapsuler toutes les exceptions MinIO dans `ApplicationException`
-    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
+- [ ] 6. Implémenter le pattern Outbox (PhotoOutboxEntry + PhotoOutboxRetryScheduler)
+  - Créer l'entité JPA `PhotoOutboxEntry` dans `com.optimize.elykia.client.outbox` avec les champs : `id` (Long, auto), `clientId` (Long), `photoType` (enum PhotoType), `localFilePath` (String), `status` (enum OutboxStatus : PENDING/IN_PROGRESS/DONE/FAILED), `retryCount` (int, défaut 0), `lastAttemptAt` (LocalDateTime), `createdAt` (LocalDateTime), `errorMessage` (String nullable)
+  - Créer l'enum `OutboxStatus` avec les valeurs PENDING, IN_PROGRESS, DONE, FAILED
+  - Créer `PhotoOutboxRepository extends JpaRepository<PhotoOutboxEntry, Long>` avec la méthode `findByStatusInAndRetryCountLessThan(List<OutboxStatus> statuses, int maxRetry)`
+  - Créer `PhotoOutboxService` avec la méthode `saveFallback(Long clientId, PhotoType type, byte[] bytes)` : écrire les bytes dans `${photo.fallback.path}/{clientId}_{type}_{System.currentTimeMillis()}.jpg` via `Files.write()`, puis créer et sauvegarder une `PhotoOutboxEntry` avec statut PENDING
+  - Créer `PhotoOutboxRetryScheduler` annoté `@Component` avec la méthode `retryPendingPhotos()` annotée `@Scheduled(fixedDelay = 300_000)` et `@Transactional` : vérifier `minioStorageService.isAvailable()` → si false, sortir immédiatement ; charger les entrées PENDING ou FAILED avec `retryCount < 5` ; pour chaque entrée : lire le fichier, uploader original + thumbnail via `clientService.uploadSinglePhoto()`, mettre à jour les URLs dans `Client`, supprimer le fichier local, passer le statut à DONE ; en cas d'erreur : incrémenter `retryCount`, mettre à jour `lastAttemptAt` et `errorMessage`, passer à FAILED si `retryCount >= 5` et loguer ERROR
+  - Ajouter `@EnableScheduling` sur la classe de configuration principale
+  - Écrire les tests unitaires `PhotoOutboxRetrySchedulerTest` : vérifier que le scheduler ne fait rien si MinIO est down, vérifier la transition PENDING → DONE, vérifier la transition PENDING → FAILED après 5 tentatives, vérifier l'invariant `retryCount` (Property 12)
+  - **Validates:** Requirement 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8, 13.9
 
-  - [ ]* 5.2 Écrire les tests de propriétés jqwik pour `MinioStorageService` (avec mock MinIO SDK)
-    - **Propriété 6 : Upload retourne une URL non nulle et non vide**
-    - `@Property` : pour tout `objectKey` non vide et bytes non vides, `uploadPhoto` retourne une chaîne non nulle et non vide, 100 itérations
-    - **Propriété 7 : Round-trip upload/exists**
-    - `@Property` : après `uploadPhoto(key, data, ct)`, `exists(key)` retourne `true`, 100 itérations
-    - **Propriété 8 : Round-trip upload/delete/exists**
-    - `@Property` : après `uploadPhoto` puis `deletePhoto`, `exists(key)` retourne `false`, 100 itérations
-    - **Validates: Requirements 4.1, 4.2, 4.3, 4.4**
+- [ ] 7. Refactoriser `ClientService` pour utiliser MinIO avec fallback Outbox
+  - Injecter `MinioStorageService`, `ImageProcessingService`, et `PhotoOutboxService` dans `ClientService`
+  - Implémenter la méthode privée `tryUploadOrFallback(Long clientId, byte[] bytes, PhotoType type)` : tenter l'upload MinIO ; si `isAvailable()` retourne false ou si l'upload échoue, appeler `photoOutboxService.saveFallback(clientId, type, bytes)` et retourner null (URL non disponible immédiatement)
+  - Implémenter `uploadClientPhotos(Long clientId, byte[] profilPhotoBytes, byte[] cardPhotoBytes): PhotoUploadResultDto` : appeler `tryUploadOrFallback` pour chaque photo ; mettre à jour les URLs non-null dans `Client` ; retourner `PhotoUploadResultDto` avec les URLs (potentiellement null si en attente outbox)
+  - Implémenter `uploadSinglePhoto(Long clientId, byte[] bytes, PhotoType type): String` (appelée par le scheduler) : générer thumbnail → uploader original + thumbnail → retourner l'URL
+  - Implémenter `updatePhotoUrl(Long clientId, PhotoType type, String url)` (appelée par le scheduler) : mettre à jour `profilPhotoUrl`/`profilPhotoThumbUrl` ou `cardPhotoUrl`/`cardPhotoThumbUrl` dans `Client`
+  - Modifier `addClient(ClientDto)` : après `create(client)`, appeler `uploadClientPhotos` ; supprimer la création de `PhotoStore`
+  - Modifier `updateClientPhoto(UpdatePhotoDto)` : remplacer `photoStoreRepository` par `uploadClientPhotos`
+  - Modifier `updatePhotosBatch`, `checkMissingPhotos`, `getProfilPhotos`, `getCardPhotos` comme défini dans le design
+  - Créer les DTOs `PhotoUploadResultDto` et modifier `ClientPhotoDto`
+  - **Validates:** Requirement 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 8.4, 13.1, 13.2
 
-  - [ ]* 5.3 Écrire les tests unitaires JUnit 5 pour `MinioStorageService`
-    - Mock du `MinioClient` SDK
-    - Vérifier que `uploadPhoto` appelle `putObject` avec les bons paramètres
-    - Vérifier que `deletePhoto` appelle `removeObject`
-    - Vérifier que les exceptions MinIO sont encapsulées en `ApplicationException`
-    - _Requirements: 4.7_
+- [ ] 8. Modifier `ClientController` — nouveaux endpoints et suppression des anciens
+  - Ajouter l'endpoint `POST /api/v1/clients/{id}/photos` acceptant `@RequestPart MultipartFile profilPhoto`, `@RequestPart MultipartFile cardPhoto`, `@RequestParam String cardType`, `@RequestParam String cardNumber`
+  - Valider le content-type (`image/jpeg`, `image/png`, `image/webp`) et la taille max (10 Mo) avant de passer au service
+  - Appeler `clientService.uploadClientPhotos(id, profilPhoto.getBytes(), cardPhoto.getBytes())` et retourner `PhotoUploadResultDto` avec HTTP 200 (les URLs peuvent être null si en attente outbox — c'est normal)
+  - Vérifier que `GET /api/v1/clients/{id}` inclut `profilPhotoUrl` dans `ClientRespDto`
+  - Vérifier que `GET /api/v1/clients/by-commercial/{username}` retourne `profilPhotoThumbUrl` et `cardPhotoThumbUrl` dans la liste paginée
+  - Supprimer ou marquer `@Deprecated` les endpoints `POST /api/v1/clients/profil-photos`, `POST /api/v1/clients/card-photos`, `POST /api/v1/clients/photos-batch-update`
+  - **Validates:** Requirement 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 10.3
 
-- [ ] 6. Checkpoint — Vérifier que les tests des services de base passent
-  - S'assurer que tous les tests de `PhotoObjectKeyBuilder`, `ImageProcessingService` et `MinioStorageService` passent. Demander à l'utilisateur si des questions se posent.
+- [ ] 9. Implémenter `PhotoMigrationJob`
+  - Créer l'interface `PhotoMigrationJob` et les records `MigrationReport` et `MigrationStatus` dans `com.optimize.elykia.client.migration`
+  - Créer l'implémentation `PhotoMigrationJobImpl` annotée `@Component`
+  - Implémenter `runMigration()` : traiter les `PhotoStore` par pages de 10 ; pour chaque `PhotoStore`, si les URLs sont déjà renseignées → skipped ; sinon : générer thumbnail → uploader original + thumbnail → mettre à jour les URLs dans `Client` → migrated ; en cas d'erreur MinIO : loguer, incrémenter errors, continuer ; retourner `MigrationReport { total, migrated, skipped, errors }` avec invariant `total = migrated + skipped + errors`
+  - Créer `AdminPhotoMigrationController` avec `POST /api/v1/admin/migrate-photos` et `GET /api/v1/admin/migrate-photos/status` protégés par `@PreAuthorize("hasRole('ADMIN')")`
+  - **Validates:** Requirement 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 10.4
 
-- [ ] 7. Backend — Modification de ClientService
-  - [ ] 7.1 Injecter `MinioStorageService` et `ImageProcessingService` dans `ClientService`
-    - Ajouter les deux services comme paramètres du constructeur
-    - _Requirements: 5.1_
+- [ ] 10. Écrire les tests unitaires backend
+  - `PhotoObjectKeyBuilderTest` : vérifier les 4 patterns, la distinction original/thumb, la distinction profil/card pour plusieurs `clientId` (jqwik `@Property`)
+  - `ImageProcessingServiceTest` : vérifier dimensions ≤ 200×200, magic bytes JPEG `0xFF 0xD8`, conservation du ratio, rejet des bytes invalides
+  - `MinioStorageServiceTest` : mock `MinioClient`, vérifier upload/delete/exists, `isAvailable()` retourne false quand MinIO est down, encapsulation des exceptions
+  - `PhotoOutboxRetrySchedulerTest` : vérifier que le scheduler ne fait rien si `isAvailable()` = false, vérifier PENDING → DONE, vérifier PENDING → FAILED après 5 tentatives, vérifier invariant `retryCount`
+  - `ClientServiceTest` : mock `MinioStorageService` + `ImageProcessingService` + `PhotoOutboxService`, vérifier que `uploadClientPhotos` persiste les URLs quand MinIO est up, vérifier que `tryUploadOrFallback` appelle `photoOutboxService.saveFallback` quand MinIO est down
+  - `PhotoMigrationJobTest` : vérifier idempotence, invariant du rapport, gestion des erreurs MinIO
+  - **Validates:** Properties 1–12
 
-  - [ ] 7.2 Implémenter `uploadClientPhotos(Long clientId, byte[] profilPhotoBytes, byte[] cardPhotoBytes): PhotoUploadResultDto`
-    - Annoter `@Transactional`
-    - Si `profilPhotoBytes` non null et non vide : générer thumbnail, uploader original et thumbnail vers MinIO via `PhotoObjectKeyBuilder`, récupérer les URLs
-    - Si `cardPhotoBytes` non null et non vide : idem pour la carte
-    - Mettre à jour les champs `profilPhotoUrl`, `cardPhotoUrl`, `profilPhotoThumbUrl`, `cardPhotoThumbUrl` dans l'entité `Client`
-    - Retourner `PhotoUploadResultDto` avec les quatre URLs
-    - _Requirements: 1.1, 1.2, 1.3, 1.4, 5.6_
+- [ ] 11. Ajouter le service MinIO et le volume fallback dans les docker-compose de déploiement
+  - Dans `deploy/docker-compose.test.yml` : ajouter le service `minio` avec image `minio/minio:latest`, commande `server /data --console-address ":9001"`, variables `MINIO_ROOT_USER` et `MINIO_ROOT_PASSWORD`, volume `minio_data:/data`, réseaux `internal` et `traefik-public`
+  - Configurer les labels Traefik pour le service `minio` : router console sur `minio-test.amenouveve-yaveh.com` (port 9001) et router API sur `minio-test-api.amenouveve-yaveh.com` (port 9000), tous deux avec TLS Let's Encrypt
+  - Ajouter `minio_data:` dans la section `volumes` du docker-compose test
+  - Ajouter dans le service `backend` du docker-compose test les variables : `MINIO_ENDPOINT: http://minio:9000`, `MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}`, `MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}`, `MINIO_BUCKET: ${MINIO_BUCKET:-elykia-clients}`, `MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://minio-test-api.amenouveve-yaveh.com}`, `PHOTO_FALLBACK_PATH: /opt/elykia/photos/pending`
+  - Ajouter dans le service `backend` le volume de fallback : `${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/test/photos/pending}:/opt/elykia/photos/pending` pour garantir la persistance des fichiers en attente entre les redémarrages du container
+  - Répéter les mêmes modifications dans `deploy/docker-compose.prod.yml` avec les domaines prod
+  - **Validates:** Requirement 11.3, 11.4, 11.5, 13.10
 
-  - [ ] 7.3 Modifier `addClient(ClientDto)` pour utiliser MinIO au lieu de `PhotoStore`
-    - Après `create(client)`, si des bytes de photo sont présents dans le DTO, appeler `uploadClientPhotos`
-    - Ne plus créer de `PhotoStore` dans cette méthode
-    - _Requirements: 5.1_
+- [ ] 12. Mettre à jour la configuration CI/CD et les fichiers .env
+  - Mettre à jour `deploy/setup-server.sh` pour créer les répertoires : `/opt/elykia/test/minio`, `/opt/elykia/prod/minio`, `/opt/elykia/test/photos/pending`, `/opt/elykia/prod/photos/pending`
+  - Ajouter dans les templates `.env` test et prod les variables : `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, `MINIO_BUCKET`, `MINIO_PUBLIC_URL`, `PHOTO_FALLBACK_PATH_HOST`
+  - Documenter dans `deploy/README.md` la section MinIO et le mécanisme de fallback outbox
+  - Documenter dans `deploy/EXPLOITATION.md` : commandes MinIO, vérification des entrées outbox en attente (`SELECT * FROM photo_outbox_entry WHERE status IN ('PENDING','FAILED')`), procédure de relance manuelle
+  - **Validates:** Requirement 10.1, 11.3, 11.4, 11.5, 13.9, 13.10
 
-  - [ ] 7.4 Modifier `updateClientPhoto(UpdatePhotoDto)` pour utiliser MinIO
-    - Remplacer les appels `photoStoreRepository.updateProfil/updateCard` par `uploadClientPhotos`
-    - _Requirements: 5.2_
+- [ ] 13. Refactoriser `PhotoSyncService` côté mobile
+  - Ouvrir `mobile/src/app/core/services/photo-sync.service.ts`
+  - Supprimer les appels aux endpoints `POST /api/v1/clients/profil-photos` et `POST /api/v1/clients/card-photos` qui récupéraient des bytes
+  - Modifier `syncPhotosForClients` pour ne plus être appelée depuis `initializeClients` — les URLs sont désormais incluses dans la réponse de `fetchPageAndSave`
+  - Implémenter le téléchargement optionnel des thumbnails pour le mode offline : si `profilPhotoThumbUrl` est renseignée et que le fichier local n'existe pas, télécharger via `HttpClient` et sauvegarder dans `Filesystem.writeFile({ path: 'photos/{clientId}_profil_thumb.jpg', data: blob, directory: Directory.Data })`
+  - Mettre à jour `profilPhotoThumbUrl` dans SQLite avec le chemin local après téléchargement
+  - **Validates:** Requirement 9.1, 9.2, 9.3, 9.4
 
-  - [ ] 7.5 Modifier `checkMissingPhotos(List<Long>)` pour vérifier les URLs dans `Client`
-    - Remplacer la lecture des bytes depuis `PhotoStore` par la vérification de `client.profilPhotoUrl` et `client.cardPhotoUrl`
-    - _Requirements: 5.3_
+- [ ] 14. Écrire les tests d'intégration backend (Testcontainers)
+  - Ajouter la dépendance Testcontainers `org.testcontainers:minio` dans le scope `test`
+  - Créer `PhotoMigrationJobIntegrationTest` : démarrer un container MinIO via Testcontainers, insérer des `PhotoStore` avec des bytes de test, lancer `runMigration()`, vérifier que les objets existent dans MinIO et que les URLs sont renseignées dans `Client`
+  - Créer `ClientControllerIntegrationTest` : upload multipart via `MockMvc`, vérifier HTTP 200, présence des objets dans MinIO, URLs en base
+  - Créer `PhotoOutboxRetrySchedulerIntegrationTest` : simuler MinIO down lors de `addClient()`, vérifier qu'une `PhotoOutboxEntry` PENDING est créée et que le client est bien enregistré ; redémarrer MinIO (container Testcontainers), déclencher manuellement `retryPendingPhotos()`, vérifier que l'entrée passe à DONE et que les URLs sont renseignées dans `Client`
+  - **Validates:** Requirement 1, 4, 7, 13
 
-  - [ ] 7.6 Modifier `getProfilPhotos(List<Long>)` et `getCardPhotos(List<Long>)` pour retourner des URLs
-    - Retourner les URLs thumbnail depuis `Client` au lieu des bytes depuis `PhotoStore`
-    - Adapter `ClientPhotoDto` pour retourner `photoUrl` et `thumbUrl` au lieu de `byte[] photo`
-    - _Requirements: 5.4, 5.5, 8.4_
+- [ ] 15. Mettre à jour le service d'upload photo côté mobile
+  - Ouvrir `mobile/src/app/core/services/client.service.ts`
+  - Modifier `updateClientPhotosAndInfo` pour utiliser le nouvel endpoint `POST /api/v1/clients/{id}/photos` avec `FormData` (multipart) au lieu d'envoyer des bytes base64
+  - Construire le `FormData` : `formData.append('profilPhoto', blob, 'profil.jpg')` pour chaque photo présente
+  - Mettre à jour les URLs reçues dans la réponse dans SQLite via `clientRepository.updatePhotosAndInfo` (les URLs peuvent être null si en attente outbox — stocker null et laisser la prochaine sync mettre à jour)
+  - **Validates:** Requirement 6.1, 9.1
 
-  - [ ]* 7.7 Écrire les tests de propriétés jqwik pour `ClientService.uploadClientPhotos`
-    - **Propriété 9 : uploadClientPhotos retourne des URLs non nulles**
-    - `@Property` : pour tout `clientId` valide et bytes non vides, le `PhotoUploadResultDto` retourné a tous ses champs URL non nuls et non vides, 100 itérations (mock `MinioStorageService` et `ImageProcessingService`)
-    - **Validates: Requirements 1.3, 1.4, 5.6**
+- [ ] 16. Mettre à jour l'affichage des photos dans le frontend Angular
+  - Dans `frontend/src/app/client/client-details/client-details.component.ts` : supprimer `loadProfilPhoto()`, `DomSanitizer`, et `safeProfilPhotoUrl: SafeUrl | null` ; alimenter `profilPhotoUrl: string | null` depuis `this.client.profilPhotoUrl` dans `loadClient()`
+  - Dans `frontend/src/app/client/components/client-info-card/client-info-card.component.ts` : remplacer `@Input() safeProfilPhotoUrl: SafeUrl | null` par `@Input() profilPhotoUrl: string | null = null`
+  - Dans le template `client-info-card.component.html` : `<img [src]="profilPhotoUrl" *ngIf="profilPhotoUrl">` avec fallback avatar initiales si null
+  - Dans `frontend/src/app/credit/credit-details/credit-details.component.html` : remplacer l'avatar initiales par `<img [src]="credit.client?.profilPhotoUrl" *ngIf="credit.client?.profilPhotoUrl">` avec fallback initiales
+  - Dans `frontend/src/app/client/service/client.service.ts` : supprimer `getProfilPhotoStream(id: number): Observable<Blob>`
+  - **Validates:** Requirement 12.1, 12.2, 12.3, 12.4, 12.5, 12.6
 
-  - [ ]* 7.8 Écrire les tests unitaires JUnit 5 pour `ClientService`
-    - Mock de `MinioStorageService` et `ImageProcessingService`
-    - Vérifier que les URLs sont correctement persistées dans `Client` après `uploadClientPhotos`
-    - Vérifier que `ApplicationException` est propagée si MinIO est indisponible (HTTP 503)
-    - _Requirements: 1.5_
-
-- [ ] 8. Backend — Modification de ClientController
-  - [ ] 8.1 Ajouter l'endpoint `POST /api/v1/clients/{id}/photos`
-    - Accepter `multipart/form-data` avec les parts optionnelles `profilPhoto` (`MultipartFile`), `cardPhoto` (`MultipartFile`), `cardType` (`String`), `cardNumber` (`String`)
-    - Valider le content-type (image/jpeg, image/png, image/webp) et la taille maximale (10 Mo) avant traitement
-    - Appeler `clientService.uploadClientPhotos(id, profilBytes, cardBytes)`
-    - Retourner HTTP 200 avec `PhotoUploadResultDto`
-    - _Requirements: 6.1, 6.2, 10.3_
-
-  - [ ] 8.2 Vérifier que `GET /api/v1/clients/{id}` inclut `profilPhotoUrl` dans `ClientRespDto`
-    - S'assurer que `ClientRespDto.fromClient(client)` mappe `profilPhotoUrl` et `cardPhotoUrl`
-    - _Requirements: 6.3_
-
-  - [ ] 8.3 Vérifier que `GET /api/v1/clients/by-commercial/{username}` inclut uniquement les URLs thumbnail dans la liste
-    - S'assurer que la projection/DTO de liste inclut `profilPhotoThumbUrl` et `cardPhotoThumbUrl` mais pas les bytes
-    - _Requirements: 6.4_
-
-  - [ ] 8.4 Supprimer ou déprécier les anciens endpoints de photos en bytes
-    - Supprimer `POST /api/v1/clients/profil-photos`, `POST /api/v1/clients/card-photos`, `POST /api/v1/clients/photos-batch-update`
-    - _Requirements: 6.5, 6.6_
-
-- [ ] 9. Backend — PhotoMigrationJob
-  - [ ] 9.1 Créer l'interface `PhotoMigrationJob` et son implémentation `PhotoMigrationJobImpl`
-    - Déclarer `MigrationReport runMigration()` et `MigrationStatus getStatus()`
-    - Créer le record `MigrationReport(int total, int migrated, int skipped, int errors)`
-    - Implémenter `runMigration()` : traiter les clients par pages de 10 via `ClientRepository.findAll(Pageable)`
-    - Pour chaque client : si `profilPhotoUrl` et `cardPhotoUrl` sont déjà renseignées → incrémenter `skipped` et continuer
-    - Sinon : lire les bytes depuis `PhotoStoreRepository`, générer thumbnails, uploader vers MinIO, mettre à jour les URLs dans `Client` de manière atomique
-    - Si l'upload échoue pour un client : loguer l'erreur, incrémenter `errors`, continuer
-    - Garantir `total = migrated + skipped + errors` dans le rapport final
-    - _Requirements: 7.2, 7.3, 7.4, 7.5, 7.6_
-
-  - [ ] 9.2 Ajouter les endpoints admin dans un `PhotoMigrationController`
-    - `POST /api/v1/admin/migrate-photos` → appelle `runMigration()`, protégé par `@PreAuthorize("hasRole('ADMIN')")`
-    - `GET /api/v1/admin/migrate-photos/status` → appelle `getStatus()`, protégé par `@PreAuthorize("hasRole('ADMIN')")`
-    - _Requirements: 7.1, 7.7, 10.4_
-
-  - [ ]* 9.3 Écrire les tests de propriétés jqwik pour `PhotoMigrationJob`
-    - **Propriété 10 : Idempotence du job de migration**
-    - `@Property` : pour tout ensemble de clients avec URLs déjà renseignées, exécuter `runMigration()` deux fois produit `migrated = 0, skipped = total`, 50 itérations (mock MinIO)
-    - **Propriété 11 : Invariant du MigrationReport**
-    - `@Property` : pour tout ensemble de clients, `report.total() == report.migrated() + report.skipped() + report.errors()`, 100 itérations
-    - **Validates: Requirements 7.3, 7.6**
-
-  - [ ]* 9.4 Écrire les tests d'intégration pour `PhotoMigrationJob` avec Testcontainers
-    - Utiliser `minio/minio` via Testcontainers
-    - Vérifier la migration complète d'un jeu de données de test (clients avec bytes dans `PhotoStore`)
-    - Vérifier que les objets sont présents dans MinIO après migration
-    - Vérifier que les URLs sont renseignées dans `Client` après migration
-    - _Requirements: 7.2, 7.4_
-
-- [ ] 10. Checkpoint — Vérifier que tous les tests backend passent
-  - S'assurer que tous les tests unitaires et de propriétés backend passent. Demander à l'utilisateur si des questions se posent.
-
-- [ ] 11. Backend — Dépréciation des champs binaires dans Client et PhotoStore
-  - [ ] 11.1 Annoter `@Deprecated` les champs `byte[] profilPhoto` et `byte[] IDDoc` dans l'entité `Client`
-    - Ajouter `@Deprecated` sur les deux champs
-    - S'assurer que `@JsonIgnore` est présent sur `IDDoc` (déjà présent)
-    - Ajouter `@JsonIgnore` sur `profilPhoto` pour exclure de la sérialisation JSON
-    - _Requirements: 8.1_
-
-  - [ ] 11.2 Annoter `@Deprecated` le champ `byte[] photo` dans l'entité `PhotoStore`
-    - Ajouter `@Deprecated` sur le champ `photo`
-    - _Requirements: 8.1_
-
-- [ ] 12. Mobile — Modification de PhotoSyncService
-  - [ ] 12.1 Modifier `PhotoSyncService` pour ne plus appeler les endpoints batch de photos en bytes
-    - Supprimer les appels à `POST /api/v1/clients/profil-photos` et `POST /api/v1/clients/card-photos`
-    - Supprimer les appels à `POST /api/v1/clients/photos-batch-update`
-    - _Requirements: 9.1, 9.2_
-
-  - [ ] 12.2 Vérifier que `fetchPageAndSave` dans `ClientService` persiste correctement les URLs MinIO dans SQLite
-    - S'assurer que les champs `profilPhotoThumbUrl` et `cardPhotoThumbUrl` reçus dans la réponse API sont bien persistés dans SQLite
-    - Aucune modification de schéma SQLite nécessaire (colonnes déjà présentes)
-    - _Requirements: 9.1, 9.4_
-
-  - [ ] 12.3 Mettre à jour `updateClientPhotosAndInfo` dans `ClientService` mobile pour uploader via le nouvel endpoint multipart
-    - Remplacer l'envoi de bytes base64 par un appel `POST /api/v1/clients/{id}/photos` en multipart/form-data
-    - _Requirements: 9.1_
-
-- [ ] 13. Checkpoint — Vérifier que les modifications mobile compilent et fonctionnent
-  - S'assurer que le mobile compile sans erreur et que la synchronisation des clients fonctionne. Demander à l'utilisateur si des questions se posent.
-
-- [ ] 14. Backend — Migration Flyway de nettoyage (Phase 2 — après validation)
-  - [ ] 14.1 Créer le script Flyway de suppression des colonnes binaires
-    - Créer `V{next}__remove_binary_photo_columns.sql` dans le répertoire des migrations Flyway
-    - Contenu : `ALTER TABLE client DROP COLUMN IF EXISTS profil_photo; ALTER TABLE client DROP COLUMN IF EXISTS i_d_doc; DROP TABLE IF EXISTS photo_store;`
-    - **⚠️ Ce script ne doit être exécuté qu'après validation complète de la migration MinIO (toutes les URLs renseignées)**
-    - _Requirements: 8.2, 8.3_
-
-- [ ] 15. Tests d'intégration — Flux complet upload et migration
-  - [ ]* 15.1 Écrire le test d'intégration `ClientControllerIntegrationTest` avec Testcontainers
-    - Utiliser `minio/minio` et une base PostgreSQL via Testcontainers
-    - Flux : `POST /api/v1/clients/{id}/photos` avec un fichier JPEG → vérifier présence des 4 objets dans MinIO → vérifier URLs en base
-    - _Requirements: 1.1, 1.2, 1.3, 1.4_
-
-  - [ ]* 15.2 Écrire le test d'intégration `PhotoMigrationJobIntegrationTest` avec Testcontainers
-    - Préparer des clients avec bytes dans `PhotoStore`
-    - Exécuter `runMigration()`
-    - Vérifier que les objets sont présents dans MinIO
-    - Vérifier que les URLs sont renseignées dans `Client`
-    - Vérifier l'idempotence (deuxième exécution → `migrated = 0`)
-    - _Requirements: 7.2, 7.3, 7.4, 7.6_
-
-- [ ] 16. Checkpoint final — Vérifier que tous les tests passent
-  - S'assurer que tous les tests unitaires, de propriétés et d'intégration (backend et mobile) passent. Demander à l'utilisateur si des questions se posent.
+- [ ] 17. Créer le script Flyway de nettoyage des colonnes binaires (Phase 2)
+  - Créer le script `V{next}__remove_binary_photo_columns.sql` dans le répertoire des migrations Flyway du backend avec le contenu : `ALTER TABLE client DROP COLUMN IF EXISTS profil_photo; ALTER TABLE client DROP COLUMN IF EXISTS i_d_doc; DROP TABLE IF EXISTS photo_store;`
+  - Annoter les champs `byte[] profilPhoto` et `byte[] IDDoc` dans `Client.java` avec `@Deprecated`
+  - Annoter le champ `byte[] photo` dans `PhotoStore.java` avec `@Deprecated`
+  - Ce script est activé (`SPRING_FLYWAY_ENABLED=true`) uniquement après validation complète du job de migration et confirmation que `errors = 0` dans le `MigrationReport` ET que la table `photo_outbox_entry` ne contient plus d'entrées PENDING ou FAILED
+  - **Validates:** Requirement 8.1, 8.2, 8.3
 
 ## Notes
 
-- Les tâches marquées `*` sont optionnelles et peuvent être ignorées pour un MVP rapide
-- Chaque tâche référence les requirements spécifiques pour la traçabilité
-- Les tests de propriétés utilisent **jqwik** (JUnit 5) côté backend Java
-- La tâche 14 (migration Flyway Phase 2) doit être exécutée **après** validation complète que toutes les URLs sont renseignées en production
-- L'ordre des tâches respecte les dépendances : dépendances → config → utilitaires → services → controller → job → mobile → nettoyage
-- Le schéma SQLite mobile n'a pas besoin d'être modifié (colonnes URL déjà présentes)
-- Les credentials MinIO ne doivent jamais être committés dans le code source
+- **Ordre de déploiement** : déployer T11/T12 (infrastructure MinIO + volumes fallback) avant le backend modifié. Le `@PostConstruct initBucket()` tente de se connecter à MinIO au démarrage — si MinIO est down, le backend démarre quand même mais les uploads iront en outbox.
+- **Résilience** : grâce au pattern Outbox (T6), un client peut être enregistré même si MinIO est down. Les photos seront synchronisées automatiquement dès que MinIO sera de nouveau disponible, sans intervention manuelle (sauf après 5 échecs).
+- **Surveillance outbox** : monitorer la table `photo_outbox_entry` via la requête `SELECT status, COUNT(*) FROM photo_outbox_entry GROUP BY status` pour détecter des accumulations anormales.
+- **T17 (Flyway)** : activer uniquement après `errors = 0` dans le MigrationReport ET `SELECT COUNT(*) FROM photo_outbox_entry WHERE status IN ('PENDING','FAILED') = 0`.
+- **DNS Cloudflare** : ajouter les enregistrements A pour `minio-test`, `minio-test-api`, `minio`, `minio-api` avant le déploiement de T11.
+- **Backup** : inclure les volumes `minio_data` ET les répertoires `photos/pending` dans la stratégie de backup.
