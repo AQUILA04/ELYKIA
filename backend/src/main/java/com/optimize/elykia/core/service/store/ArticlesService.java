@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service.store;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.dto.ArticlePriceHistoryDto;
 import com.optimize.elykia.core.dto.ArticleStateHistoryDto;
 import com.optimize.elykia.core.dto.ArticlesDto;
 import com.optimize.elykia.core.dto.ExpenseDto;
@@ -10,6 +11,7 @@ import com.optimize.elykia.core.dto.StockEntryDto;
 import com.optimize.elykia.core.dto.StockValuesDto;
 import com.optimize.elykia.core.dto.bi.StockMetricsDto;
 import com.optimize.elykia.core.entity.article.ArticleHistory;
+import com.optimize.elykia.core.entity.article.ArticlePriceHistory;
 import com.optimize.elykia.core.entity.article.ArticleStateHistory;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.expense.ExpenseType;
@@ -17,6 +19,7 @@ import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
+import com.optimize.elykia.core.repository.ArticlePriceHistoryRepository;
 import com.optimize.elykia.core.repository.ArticleStateHistoryRepository;
 import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
@@ -48,6 +51,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
     private final ExpenseTypeRepository expenseTypeRepository;
     private final StockReceptionRepository stockReceptionRepository;
     private final ArticleStateHistoryRepository articleStateHistoryRepository;
+    private final ArticlePriceHistoryRepository articlePriceHistoryRepository;
     private BusinessMetricsPublisher metricsPublisher;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -62,7 +66,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
             ExpenseService expenseService,
             ExpenseTypeRepository expenseTypeRepository,
             StockReceptionRepository stockReceptionRepository,
-            ArticleStateHistoryRepository articleStateHistoryRepository) {
+            ArticleStateHistoryRepository articleStateHistoryRepository,
+            ArticlePriceHistoryRepository articlePriceHistoryRepository) {
         super(repository);
         this.articlesMapper = articlesMapper;
         this.userService = userService;
@@ -71,6 +76,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
         this.expenseTypeRepository = expenseTypeRepository;
         this.stockReceptionRepository = stockReceptionRepository;
         this.articleStateHistoryRepository = articleStateHistoryRepository;
+        this.articlePriceHistoryRepository = articlePriceHistoryRepository;
     }
 
     @Transactional
@@ -116,7 +122,19 @@ public class ArticlesService extends GenericService<Articles, Long> {
         articles.setDaysOfStockAvailable(oldOne.getDaysOfStockAvailable());
         articles.setLastRestockDate(oldOne.getLastRestockDate());
         articles.setStockTurnoverRate(oldOne.getStockTurnoverRate());
-        return create(articles);
+        if (hasPriceChanged(oldOne, articles)) {
+            articlePriceHistoryRepository.save(new ArticlePriceHistory(
+                    oldOne,
+                    oldOne.getPurchasePrice(), oldOne.getSellingPrice(), oldOne.getCreditSalePrice(),
+                    articles.getPurchasePrice(), articles.getSellingPrice(), articles.getCreditSalePrice()));
+        }
+        return super.create(articles);
+    }
+
+    private boolean hasPriceChanged(Articles oldOne, Articles updated) {
+        return Double.compare(oldOne.getPurchasePrice(), updated.getPurchasePrice()) != 0
+                || Double.compare(oldOne.getSellingPrice(), updated.getSellingPrice()) != 0
+                || Double.compare(oldOne.getCreditSalePrice(), updated.getCreditSalePrice()) != 0;
     }
 
     public Page<Articles> elasticSearch(String keyword, Pageable pageable) {
@@ -307,6 +325,23 @@ public class ArticlesService extends GenericService<Articles, Long> {
                         .newState(sh.getNewState())
                         .createdDate(sh.getCreatedDate())
                         .createdBy(sh.getCreatedBy())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public List<ArticlePriceHistoryDto> getPriceHistoryByArticleId(Long articleId) {
+        return articlePriceHistoryRepository.findByArticle_IdOrderByCreatedDateDesc(articleId)
+                .stream()
+                .map(ph -> ArticlePriceHistoryDto.builder()
+                        .id(ph.getId())
+                        .previousPurchasePrice(ph.getPreviousPurchasePrice())
+                        .previousSellingPrice(ph.getPreviousSellingPrice())
+                        .previousCreditSalePrice(ph.getPreviousCreditSalePrice())
+                        .newPurchasePrice(ph.getNewPurchasePrice())
+                        .newSellingPrice(ph.getNewSellingPrice())
+                        .newCreditSalePrice(ph.getNewCreditSalePrice())
+                        .createdDate(ph.getCreatedDate())
+                        .createdBy(ph.getCreatedBy())
                         .build())
                 .collect(java.util.stream.Collectors.toList());
     }

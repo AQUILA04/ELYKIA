@@ -116,6 +116,7 @@ import { StockGaugeComponent } from './article/details/components/stock-gauge/st
 import { PriceCardComponent } from './article/details/components/price-card/price-card.component';
 import { MovementTableComponent } from './article/details/components/movement-table/movement-table.component';
 import { StateTimelineComponent } from './article/details/components/state-timeline/state-timeline.component';
+import { PriceHistoryTimelineComponent } from './article/details/components/price-history-timeline/price-history-timeline.component';
 import { QuickStockEntryComponent } from './article/details/components/quick-stock-entry/quick-stock-entry.component';
 import { CreditLateComponent } from './credit/credit-late/credit-late.component';
 import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
@@ -221,6 +222,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     PriceCardComponent,
     MovementTableComponent,
     StateTimelineComponent,
+    PriceHistoryTimelineComponent,
     QuickStockEntryComponent,
     CreditLateComponent,
     CreditLateKpiComponent,

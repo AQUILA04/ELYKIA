@@ -80,6 +80,18 @@ export interface ArticleStateHistoryItem {
   createdBy: string;
 }
 
+export interface ArticlePriceHistoryItem {
+  id: number;
+  previousPurchasePrice: number;
+  previousSellingPrice: number;
+  previousCreditSalePrice: number;
+  newPurchasePrice: number;
+  newSellingPrice: number;
+  newCreditSalePrice: number;
+  createdDate: string;
+  createdBy: string;
+}
+
 export interface ArticleResponse {
   data: {
     content: Article[];
@@ -256,5 +268,10 @@ export class ItemService {
   getArticleStateHistory(id: number): Observable<any> {
     const headers = this.getHeader();
     return this.http.get<any>(`${this.apiUrl}/${id}/state-history`, { headers });
+  }
+
+  getArticlePriceHistory(id: number): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.get<any>(`${this.apiUrl}/${id}/price-history`, { headers });
   }
 }

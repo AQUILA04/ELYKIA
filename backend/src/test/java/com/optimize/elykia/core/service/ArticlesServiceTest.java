@@ -10,6 +10,7 @@ import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
+import com.optimize.elykia.core.repository.ArticlePriceHistoryRepository;
 import com.optimize.elykia.core.repository.ArticleStateHistoryRepository;
 import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
@@ -42,6 +43,7 @@ class ArticlesServiceTest {
     @Mock private ExpenseTypeRepository expenseTypeRepository;
     @Mock private StockReceptionRepository stockReceptionRepository;
     @Mock private ArticleStateHistoryRepository articleStateHistoryRepository;
+    @Mock private ArticlePriceHistoryRepository articlePriceHistoryRepository;
 
     @InjectMocks
     private ArticlesService articlesService;

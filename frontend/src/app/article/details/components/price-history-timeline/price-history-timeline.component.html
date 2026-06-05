@@ -1,0 +1,38 @@
+<div class="price-history" *ngIf="displayedHistory.length > 0; else noHistory">
+  <div class="price-event" *ngFor="let entry of displayedHistory; let last = last">
+    <div class="event-connector">
+      <div class="price-dot"></div>
+      <div class="connector-line" *ngIf="!last"></div>
+    </div>
+    <div class="event-content">
+      <div class="event-meta">{{ formatDateTime(entry.createdDate) }} · {{ entry.createdBy }}</div>
+      <div class="price-changes">
+        <div class="price-change" *ngFor="let change of getChanges(entry)">
+          <span class="change-label">{{ change.label }}</span>
+          <span class="change-values">
+            <span class="old-value">{{ change.previous | number:'1.0-0' }}</span>
+            <svg class="arrow-icon" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <path d="M1 8h14M9 2l6 6-6 6" />
+            </svg>
+            <strong [class]="deltaClass(change.previous, change.next)">
+              {{ change.next | number:'1.0-0' }} FCFA
+            </strong>
+            <span class="delta-badge" [class]="deltaClass(change.previous, change.next)">
+              {{ deltaPrefix(change.previous, change.next) }}{{ (change.next - change.previous) | number:'1.0-0' }}
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #noHistory>
+  <div class="empty-state">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </svg>
+    <p>Aucun changement de prix enregistré</p>
+  </div>
+</ng-template>

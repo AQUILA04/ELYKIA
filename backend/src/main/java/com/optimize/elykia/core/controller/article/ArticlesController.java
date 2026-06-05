@@ -178,4 +178,10 @@ public class ArticlesController {
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 articlesService.getStateHistoryByArticleId(id)), HttpStatus.OK);
     }
+
+    @GetMapping("/{id}/price-history")
+    public ResponseEntity<Response> getArticlePriceHistory(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(
+                articlesService.getPriceHistoryByArticleId(id)), HttpStatus.OK);
+    }
 }

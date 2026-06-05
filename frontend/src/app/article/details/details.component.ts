@@ -4,7 +4,8 @@ import {
   ItemService,
   Article,
   ArticleHistoryItem,
-  ArticleStateHistoryItem
+  ArticleStateHistoryItem,
+  ArticlePriceHistoryItem
 } from '../service/item.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
@@ -23,6 +24,7 @@ export class DetailComponent implements OnInit {
   isLoading = true;
   articleHistory: ArticleHistoryItem[] = [];
   articleStateHistory: ArticleStateHistoryItem[] = [];
+  articlePriceHistory: ArticlePriceHistoryItem[] = [];
 
   // Permissions
   isGestionnaire: boolean = false;
@@ -47,6 +49,7 @@ export class DetailComponent implements OnInit {
       this.loadArticle(articleId);
       this.loadArticleHistory(articleId);
       this.loadArticleStateHistory(articleId);
+      this.loadArticlePriceHistory(articleId);
     });
   }
 
@@ -102,6 +105,17 @@ export class DetailComponent implements OnInit {
       },
       error: (err) => {
         console.error('Erreur chargement historique états article', err);
+      }
+    });
+  }
+
+  loadArticlePriceHistory(articleId: number): void {
+    this.itemService.getArticlePriceHistory(articleId).subscribe({
+      next: (data) => {
+        this.articlePriceHistory = data?.data ?? [];
+      },
+      error: (err) => {
+        console.error('Erreur chargement historique prix article', err);
       }
     });
   }
