@@ -201,8 +201,12 @@ export class ClientService {
               const clients = response.data.content;
               const pageInfo = response.data.page;
 
+              if (page === 0) {
+                  await this.clientRepository.deleteSyncedForReinit(commercialUsername);
+                  await this.log.log(`[ClientService] Purged synced clients before re-initialization for ${commercialUsername}`);
+              }
+
               if (clients.length > 0) {
-                  // Save this batch of clients
                   await this.clientRepository.saveAll(clients);
 
                   // Also trigger photo sync for this batch if needed, but be careful not to block

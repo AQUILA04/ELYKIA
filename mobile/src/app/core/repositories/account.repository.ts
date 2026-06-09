@@ -52,6 +52,31 @@ export class AccountRepository extends BaseRepository<Account, string> {
         return (result.values || []).map((row: any) => this.mapRowToAccount(row));
     }
 
+    /**
+     * Supprime les comptes déjà synchronisés (isSync = 1) pour un commercial,
+     * en préservant les comptes locaux non synchronisés et ceux avec un solde
+     * modifié localement en attente de sync (updated = 1).
+     * Appelé après le succès de la première page API lors de l'initialisation.
+     */
+    async deleteSyncedForReinit(commercialUsername: string): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        await this.databaseService.execute(
+            `DELETE FROM accounts
+             WHERE id IN (
+               SELECT a.id FROM accounts a
+               INNER JOIN clients c ON a.clientId = c.id
+               WHERE c.commercial = ?
+                 AND a.isSync = 1
+                 AND a.isLocal = 0
+                 AND (a.updated = 0 OR a.updated IS NULL)
+             )`,
+            [commercialUsername]
+        );
+        console.log(`[AccountRepository] Synced accounts purged for ${commercialUsername} before re-initialization.`);
+    }
+
     async markAsSynced(localId: string, serverId: string): Promise<void> {
         if (!this.databaseService['db'] || localId === serverId) return;
         await this.databaseService.execute(

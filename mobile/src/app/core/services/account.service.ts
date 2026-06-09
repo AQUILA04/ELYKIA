@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from, of, concatMap } from 'rxjs';
-import { switchMap, tap, catchError, map } from 'rxjs/operators';
+import { Observable, from, of } from 'rxjs';
+import { switchMap, catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { DatabaseService } from './database.service';
 import { Account } from '../../models/account.model';
@@ -16,6 +16,7 @@ import {LoggerService} from "./logger.service";
   providedIn: 'root'
 })
 export class AccountService {
+  private readonly PAGE_SIZE = 20;
   private commercialUsername: string | undefined;
 
   constructor(
@@ -42,10 +43,7 @@ export class AccountService {
       switchMap(isOnline => {
         if (isOnline) {
           return this.fetchAccountsFromApi().pipe(
-            concatMap(async (accounts) => {
-              await this.dbService.saveAccounts(accounts);
-              return accounts;
-            }),
+            map(() => [] as Account[]),
             catchError((error) => {
               console.error('Failed to fetch accounts from API, falling back to local', error);
               return from(this.dbService.getAccounts(currentCommercialId)).pipe(
@@ -83,9 +81,38 @@ export class AccountService {
     if (!this.commercialUsername) {
       return of([]);
     }
-    const url = `${environment.apiUrl}/api/v1/accounts/by-commercial?page=0&size=2000&sort=id,desc&commercial=${this.commercialUsername}`;
-    return this.http.get<ApiResponse<{ content: Account[] }>>(url).pipe(
-      map(response => response.data.content)
+    return this.fetchPageAndSave(0, this.PAGE_SIZE);
+  }
+
+  private fetchPageAndSave(page: number, size: number): Observable<Account[]> {
+    const commercialUsername = this.commercialUsername!;
+    const url = `${environment.apiUrl}/api/v1/accounts/by-commercial?page=${page}&size=${size}&sort=id,desc&commercial=${commercialUsername}`;
+
+    return this.http.get<ApiResponse<{ content: Account[]; page: { totalPages: number; number: number; totalElements: number } }>>(url).pipe(
+      switchMap(async (response) => {
+        const accounts = response.data.content;
+        const pageInfo = response.data.page;
+
+        if (page === 0) {
+          await this.accountRepository.deleteSyncedForReinit(commercialUsername);
+          await this.log.log(`[AccountService] Purged synced accounts before re-initialization for ${commercialUsername}`);
+        }
+
+        if (accounts.length > 0) {
+          await this.accountRepository.saveAll(accounts);
+        }
+
+        await this.log.log(`[AccountService] Processed page ${page + 1}/${pageInfo.totalPages}, saved ${accounts.length} accounts.`);
+
+        if (page < pageInfo.totalPages - 1) {
+          return await this.fetchPageAndSave(page + 1, size).toPromise() || [];
+        }
+        return [];
+      }),
+      catchError(error => {
+        this.log.log(`[AccountService] Error fetching accounts page ${page}: ${error.message}`);
+        return of([]);
+      })
     );
   }
 

@@ -90,6 +90,29 @@ export class ClientRepository extends BaseRepository<Client, string> {
         }
     }
 
+    /**
+     * Supprime les clients déjà synchronisés (isSync = 1) pour un commercial,
+     * en préservant les clients locaux non synchronisés et ceux avec des
+     * modifications locales en attente (GPS, photos, fiche).
+     * Appelé après le succès de la première page API lors de l'initialisation.
+     */
+    async deleteSyncedForReinit(commercialUsername: string): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        await this.databaseService.execute(
+            `DELETE FROM clients
+             WHERE commercial = ?
+               AND isSync = 1
+               AND isLocal = 0
+               AND (updated = 0 OR updated IS NULL)
+               AND (updatedPhoto = 0 OR updatedPhoto IS NULL)
+               AND (updatedPhotoUrl = 0 OR updatedPhotoUrl IS NULL)`,
+            [commercialUsername]
+        );
+        console.log(`[ClientRepository] Synced clients purged for ${commercialUsername} before re-initialization.`);
+    }
+
     // ==================== SPECIFIC UPDATE METHODS ====================
 
     /**
