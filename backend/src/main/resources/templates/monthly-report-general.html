@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; color: #222; }
+        h1, h2 { margin: 8px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+        .muted { color: #666; font-size: 11px; }
+    </style>
+</head>
+<body>
+<h1>Rapport mensuel global</h1>
+<p>
+    Période: <strong th:text="${snapshot.startDate}"></strong> au
+    <strong th:text="${snapshot.endDate}"></strong>
+</p>
+<h2>Synthèse exécutive</h2>
+<table>
+    <tr><th>CA total (hors commandes)</th><td th:text="${snapshot.salesSummary.totalRevenue}"></td></tr>
+    <tr><th>Coût total</th><td th:text="${snapshot.salesSummary.totalPurchase}"></td></tr>
+    <tr><th>Marge réalisée</th><td th:text="${snapshot.salesSummary.totalMargin}"></td></tr>
+    <tr><th>Taux marge</th><td th:text="${snapshot.salesSummary.totalMarginRate} + '%'"></td></tr>
+</table>
+
+<h2>Entrées stock (marge estimée)</h2>
+<p class="muted">Marge estimée (prix crédit), distincte de la marge réalisée.</p>
+<table>
+    <thead>
+    <tr>
+        <th>Article</th>
+        <th>Qté</th>
+        <th>PA unitaire</th>
+        <th>Prix crédit</th>
+        <th>Marge estimée</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="entry : ${snapshot.stockEntries}">
+        <td th:text="${entry.articleName}"></td>
+        <td th:text="${entry.quantity}"></td>
+        <td th:text="${entry.unitPurchasePrice}"></td>
+        <td th:text="${entry.unitCreditSalePrice}"></td>
+        <td th:text="${entry.estimatedMargin}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Recouvrements</h2>
+<table>
+    <tr><th>Total recouvré (CreditTimeline)</th><td th:text="${snapshot.recoveries.timelineTotals.amount}"></td></tr>
+    <tr><th>Activité chef recouvrement (sous-rapport)</th><td th:text="${snapshot.recoveries.recoveryManagerSubReport.amount}"></td></tr>
+</table>
+
+<p class="muted">
+    Commandes exclues des totaux financiers. Les livraisons tontine utilisent TontineDelivery en priorité
+    avec fallback Credit type TONTINE.
+</p>
+</body>
+</html>

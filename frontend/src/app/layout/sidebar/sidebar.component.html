@@ -328,6 +328,17 @@
             <span class="hide-menu">Rapport Journalier</span>
           </a>
         </li>
+        <ng-container *ngIf="showMonthlyReports">
+          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']">
+            <a class="sidebar-link" routerLink="/monthly-reports" aria-expanded="false"
+               [ngClass]="{ 'active': isRouteActive('/monthly-reports') }">
+              <span>
+                <mat-icon>calendar_month</mat-icon>
+              </span>
+              <span class="hide-menu">Rapports Mensuels</span>
+            </a>
+          </li>
+        </ng-container>
 
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER','ROLE_REPORT']">
           <a class="sidebar-link" routerLink="/inventory" aria-expanded="false"

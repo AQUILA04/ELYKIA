@@ -14,5 +14,6 @@ public class MinioProperties {
     private String accessKey;
     private String secretKey;
     private String bucket = "elykia-clients";
+    private String reportsBucket = "elykia-reports";
     private String publicUrl;
 }

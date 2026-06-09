@@ -41,6 +41,29 @@ public class CommercialStockMovementService {
             String collector,
             Long articleId,
             String articleName) {
+        return record(
+                stockItemId, creditId, creditReference, movementType, quantityBefore, quantityMoved, quantityAfter,
+                stockReturnId, collector, articleId, articleName, null, null, null, null, null);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public CommercialStockMovement record(
+            Long stockItemId,
+            Long creditId,
+            String creditReference,
+            CommercialStockMovementType movementType,
+            Integer quantityBefore,
+            Integer quantityMoved,
+            Integer quantityAfter,
+            Long stockReturnId,
+            String collector,
+            Long articleId,
+            String articleName,
+            Double unitPurchasePrice,
+            Double unitSalePrice,
+            Double marginAmount,
+            String sourceType,
+            Long sourceId) {
 
         CommercialStockMovement movement = new CommercialStockMovement();
         movement.setCreditId(creditId);
@@ -52,6 +75,11 @@ public class CommercialStockMovementService {
         movement.setQuantityMoved(quantityMoved);
         movement.setQuantityAfter(quantityAfter);
         movement.setOperationDate(LocalDateTime.now());
+        movement.setUnitPurchasePrice(unitPurchasePrice);
+        movement.setUnitSalePrice(unitSalePrice);
+        movement.setMarginAmount(marginAmount);
+        movement.setSourceType(sourceType);
+        movement.setSourceId(sourceId);
 
         try {
             Optional<CommercialMonthlyStockItem> stockItemOpt = stockItemRepository.findById(stockItemId);

@@ -2,6 +2,7 @@ package com.optimize.elykia.core;
 
 import com.optimize.common.securities.config.DefaultSecurityAuditorAware;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -22,6 +23,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableJpaAuditing(auditorAwareRef = "auditorProvider")
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 @EnableScheduling
+@EnableSchedulerLock(defaultLockAtMostFor = "PT30M")
 public class OptimizeElykiaCoreApplication {
 
     public static void main(String[] args) {

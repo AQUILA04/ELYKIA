@@ -51,4 +51,14 @@ public class CommercialStockMovement extends Auditable<String> {
 
     @Column(nullable = false)
     private LocalDateTime operationDate;
+
+    private Double unitPurchasePrice;
+
+    private Double unitSalePrice;
+
+    private Double marginAmount;
+
+    private String sourceType;
+
+    private Long sourceId;
 }

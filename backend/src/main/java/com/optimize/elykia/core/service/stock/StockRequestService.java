@@ -480,7 +480,12 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                         request.getId(),
                         monthlyStock.getCollector(),
                         reqItem.getArticle().getId(),
-                        reqItem.getArticle().getCommercialName()
+                        reqItem.getArticle().getCommercialName(),
+                        reqItem.getPurchasePrice(),
+                        reqItem.getUnitPrice(),
+                        (reqItem.getUnitPrice() - reqItem.getPurchasePrice()) * reqItem.getQuantity(),
+                        "STOCK_REQUEST",
+                        request.getId()
                 );
             }
         }

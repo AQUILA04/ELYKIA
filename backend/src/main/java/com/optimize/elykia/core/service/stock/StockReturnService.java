@@ -242,7 +242,12 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                             stockReturn.getId(),
                             monthlyStock.getCollector(),
                             item.getArticle().getId(),
-                            item.getArticle().getCommercialName()
+                            item.getArticle().getCommercialName(),
+                            item.getWeightedAveragePurchasePrice(),
+                            item.getWeightedAverageUnitPrice(),
+                            (item.getWeightedAverageUnitPrice() - item.getWeightedAveragePurchasePrice()) * returnItem.getQuantity(),
+                            "STOCK_RETURN",
+                            stockReturn.getId()
                     );
                 }
                 
@@ -321,7 +326,12 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                             stockReturn.getId(),
                             targetStock.getCollector(),
                             stockItem.getArticle().getId(),
-                            stockItem.getArticle().getCommercialName()
+                            stockItem.getArticle().getCommercialName(),
+                            stockItem.getWeightedAveragePurchasePrice(),
+                            stockItem.getWeightedAverageUnitPrice(),
+                            (stockItem.getWeightedAverageUnitPrice() - stockItem.getWeightedAveragePurchasePrice()) * itemDto.getQuantity(),
+                            "STOCK_RETURN",
+                            stockReturn.getId()
                     );
                 }
 

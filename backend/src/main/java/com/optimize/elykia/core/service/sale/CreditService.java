@@ -618,7 +618,12 @@ public class CreditService extends GenericService<Credit, Long> {
                         null,
                         monthlyStock.getCollector(),
                         stockItem.getArticle().getId(),
-                        stockItem.getArticle().getCommercialName()
+                        stockItem.getArticle().getCommercialName(),
+                        stockItem.getWeightedAveragePurchasePrice(),
+                        saleUnitPrice,
+                        (saleUnitPrice - stockItem.getWeightedAveragePurchasePrice()) * creditArticles.getQuantity(),
+                        "CREDIT",
+                        clientCredit.getId()
                 );
             }
 
@@ -774,7 +779,12 @@ public class CreditService extends GenericService<Credit, Long> {
                             null,
                             monthlyStock.getCollector(),
                             stockItem.getArticle().getId(),
-                            stockItem.getArticle().getCommercialName()
+                            stockItem.getArticle().getCommercialName(),
+                            stockItem.getWeightedAveragePurchasePrice(),
+                            saleUnitPrice,
+                            (saleUnitPrice - stockItem.getWeightedAveragePurchasePrice()) * creditArticle.getQuantity(),
+                            "CREDIT",
+                            cashCredit.getId()
                     );
                 }
                 

@@ -10,6 +10,7 @@ import { LayoutService } from 'src/app/shared/service/layout.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
 import {UserProfile} from "../../shared/models/user-profile.enum";
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -25,6 +26,7 @@ export class SidebarComponent implements OnInit {
   isTontineOpen: boolean = false;
   isConfigurationOpen: boolean = false;
   activeRoute: string = '';
+  showMonthlyReports = false;
 
   isRouteActive(route: string): boolean {
     // Gestion spécifique pour le menu Caisse et ses sous-menus
@@ -177,7 +179,8 @@ export class SidebarComponent implements OnInit {
     private tokenStorage: TokenStorageService,
     private authService: AuthService,
     public layoutService: LayoutService,
-    private userService: UserService) {
+    private userService: UserService,
+    private featureFlagService: FeatureFlagService) {
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
@@ -251,6 +254,10 @@ export class SidebarComponent implements OnInit {
 
     // Initialiser activeRoute avec la route actuelle au démarrage
     this.activeRoute = this.router.url;
+
+    this.featureFlagService.flags$.subscribe(flags => {
+      this.showMonthlyReports = flags[FeatureFlags.MonthlyReports] ?? false;
+    });
   }
 
   hasAccessToParameters(): boolean {

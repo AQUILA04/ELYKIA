@@ -1,0 +1,33 @@
+<div class="monthly-reports-page">
+  <div class="header">
+    <h2>Rapports Mensuels</h2>
+    <button mat-raised-button color="primary" (click)="generatePreviousMonth()" [disabled]="generating">
+      Générer mois précédent
+    </button>
+  </div>
+
+  <div *ngIf="loading">Chargement...</div>
+
+  <mat-accordion *ngIf="!loading">
+    <mat-expansion-panel *ngFor="let year of tree">
+      <mat-expansion-panel-header>
+        <mat-panel-title>{{ year.year }}</mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <mat-accordion>
+        <mat-expansion-panel *ngFor="let month of monthEntries(year.months)">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Mois {{ month.key }}</mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="files">
+            <div class="file-row" *ngFor="let file of month.value">
+              <span>{{ file.fileName }} <small *ngIf="file.commercialUsername">({{ file.commercialUsername }})</small></span>
+              <button mat-stroked-button color="primary" (click)="download(file)">Télécharger</button>
+            </div>
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>

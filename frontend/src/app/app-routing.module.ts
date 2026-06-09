@@ -61,6 +61,9 @@ import { ParameterListComponent } from './parameters/parameter-list/parameter-li
 import { CreditLateComponent } from './credit/credit-late/credit-late.component';
 import { CreditEcheanceComponent } from './credit/credit-echeance/credit-echeance.component';
 import { RecouvrementComponent } from './credit/recouvrement/recouvrement.component';
+import { MonthlyReportsComponent } from './report/pages/monthly-reports/monthly-reports.component';
+import { FeatureFlagGuard } from './shared/guards/feature-flag.guard';
+import { FeatureFlags } from './shared/service/feature-flag.service';
 
 const routes: Routes = [
   // Route publique - Login
@@ -546,6 +549,19 @@ const routes: Routes = [
     component: DailyReportComponent,
     canActivate: [AuthGuard],
     data: { breadcrumb: 'Rapport Journalier' }
+  },
+  {
+    path: 'monthly-reports',
+    component: MonthlyReportsComponent,
+    canActivate: [AuthGuard, NgxPermissionsGuard, FeatureFlagGuard],
+    data: {
+      featureFlag: FeatureFlags.MonthlyReports,
+      permissions: {
+        only: ['ROLE_REPORT'],
+        redirectTo: '/home'
+      },
+      breadcrumb: 'Rapports Mensuels'
+    }
   },
   { path: 'article-type', loadChildren: () => import('./article-type/article-type.module').then(m => m.ArticleTypeModule) },
   {

@@ -4,6 +4,12 @@ public interface MinioStorageService {
 
     String uploadPhoto(String objectKey, byte[] data, String contentType);
 
+    String uploadObject(String bucket, String objectKey, byte[] data, String contentType);
+
+    byte[] downloadObject(String bucket, String objectKey);
+
+    void deleteObject(String bucket, String objectKey);
+
     void deletePhoto(String objectKey);
 
     boolean exists(String objectKey);
