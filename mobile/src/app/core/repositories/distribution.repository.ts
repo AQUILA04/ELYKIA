@@ -184,6 +184,17 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
      * @param limit Max number of items
      * @param offset Offset
      */
+    async hasUnsyncedForClient(clientId: string): Promise<boolean> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const result = await this.databaseService.query(
+            `SELECT COUNT(*) as total FROM distributions WHERE clientId = ? AND isSync = 0 AND isLocal = 1`,
+            [clientId]
+        );
+        return (result.values?.[0]?.total || 0) > 0;
+    }
+
     override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<Distribution[]> {
         if (!this.databaseService['db']) {
             throw new Error('Database not initialized.');

@@ -107,7 +107,8 @@ export class ClientRepository extends BaseRepository<Client, string> {
                AND isLocal = 0
                AND (updated = 0 OR updated IS NULL)
                AND (updatedPhoto = 0 OR updatedPhoto IS NULL)
-               AND (updatedPhotoUrl = 0 OR updatedPhotoUrl IS NULL)`,
+               AND (updatedPhotoUrl = 0 OR updatedPhotoUrl IS NULL)
+               AND (updatedInfo = 0 OR updatedInfo IS NULL)`,
             [commercialUsername]
         );
         console.log(`[ClientRepository] Synced clients purged for ${commercialUsername} before re-initialization.`);
@@ -259,9 +260,8 @@ export class ClientRepository extends BaseRepository<Client, string> {
     }
 
     /**
-     * Update full client details
-     * @param client Client object to update
-     * @returns Updated client
+     * Update full client details (texte + GPS, sans photos).
+     * Client synchronisé : updatedInfo = 1. Client local : isSync = 0.
      */
     async updateClient(client: Client): Promise<Client> {
         if (!this.databaseService['db']) {
@@ -270,24 +270,29 @@ export class ClientRepository extends BaseRepository<Client, string> {
 
         const keysToInclude = ['id', 'firstname', 'lastname', 'phone', 'address', 'dateOfBirth', 'occupation', 'clientType', 'cardType', 'cardID', 'quarter', 'commercial', 'latitude', 'longitude', 'mll', 'contactPersonName', 'contactPersonPhone', 'contactPersonAddress', 'code', 'creditInProgress', 'tontineCollector'];
         const newSyncHash = this.generateHash(client, keysToInclude);
+        const fullName = `${client.firstname} ${client.lastname}`;
+
+        const isSyncedServerClient = client.isSync && !client.isLocal;
+        const updatedInfo = isSyncedServerClient ? 1 : 0;
+        const isSync = isSyncedServerClient ? 1 : 0;
+        const isLocal = client.isLocal ? 1 : 0;
 
         const sql = `UPDATE clients SET
           firstname = ?, lastname = ?, fullName = ?, phone = ?, address = ?, dateOfBirth = ?, occupation = ?,
           clientType = ?, cardType = ?, cardID = ?, quarter = ?, latitude = ?, longitude = ?, mll = ?,
-          profilPhoto = ?, contactPersonName = ?, contactPersonPhone = ?, contactPersonAddress = ?,
+          contactPersonName = ?, contactPersonPhone = ?, contactPersonAddress = ?,
           commercial = ?, creditInProgress = ?, isLocal = ?, isSync = ?, syncDate = ?, createdAt = ?,
-          syncHash = ?, code = ?, cardPhoto = ?, tontineCollector = ?
+          syncHash = ?, code = ?, tontineCollector = ?, updatedInfo = ?
           WHERE id = ?`;
-
-        const fullName = `${client.firstname} ${client.lastname}`;
 
         await this.databaseService.execute(sql, [
             client.firstname, client.lastname, fullName, client.phone, client.address, client.dateOfBirth,
             client.occupation, client.clientType, client.cardType, client.cardID, client.quarter,
-            client.latitude, client.longitude, client.mll, client.profilPhoto, client.contactPersonName,
+            client.latitude, client.longitude, client.mll, client.contactPersonName,
             client.contactPersonPhone, client.contactPersonAddress, client.commercial,
-            client.creditInProgress ? 1 : 0, client.isLocal ? 1 : 0, client.isSync ? 1 : 0,
-            client.syncDate, client.createdAt, newSyncHash, client.code, client.cardPhoto, client.tontineCollector, client.id
+            client.creditInProgress ? 1 : 0, isLocal, isSync,
+            client.syncDate, client.createdAt, newSyncHash, client.code, client.tontineCollector,
+            updatedInfo, client.id
         ]);
 
         const updatedClient = await this.databaseService.query('SELECT * FROM clients WHERE id = ?', [client.id]);
@@ -296,6 +301,29 @@ export class ClientRepository extends BaseRepository<Client, string> {
         } else {
             throw new Error(`Client with id ${client.id} not found after update.`);
         }
+    }
+
+    async getUpdatedInfoClients(): Promise<Client[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const result = await this.databaseService.query('SELECT * FROM clients WHERE updatedInfo = 1');
+        return (result.values || []).map((row: any) => this.mapRowToClient(row));
+    }
+
+    async countUpdatedInfo(): Promise<number> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const result = await this.databaseService.query('SELECT COUNT(*) as total FROM clients WHERE updatedInfo = 1');
+        return result.values?.[0]?.total || 0;
+    }
+
+    async markAsInfoSynced(clientId: string): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        await this.databaseService.execute('UPDATE clients SET updatedInfo = 0 WHERE id = ?', [clientId]);
     }
 
     /**

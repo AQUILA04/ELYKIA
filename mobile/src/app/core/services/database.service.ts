@@ -74,7 +74,7 @@ export class DatabaseService {
       // 2. Migrations incrémentielles (natif uniquement).
       // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
       const currentVersion = await this.db.getVersion();
-      const targetVersion = 26; // tontine_deliveries.reference
+      const targetVersion = 27; // clients.updatedInfo
       const dbVersion = currentVersion.version ?? 2;
       const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -236,6 +236,7 @@ export class DatabaseService {
             profilPhotoThumbUrl TEXT,
             cardPhotoThumbUrl TEXT,
             updatedPhotoUrl BOOLEAN DEFAULT 0,
+            updatedInfo BOOLEAN DEFAULT 0,
             tontineCollector TEXT
         );
 

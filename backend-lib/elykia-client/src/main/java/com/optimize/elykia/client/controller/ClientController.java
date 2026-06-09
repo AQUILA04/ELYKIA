@@ -46,6 +46,11 @@ public class ClientController {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.updateClient(dto, id)), HttpStatus.OK);
     }
 
+    @PatchMapping(value = "info-update")
+    public ResponseEntity<Response> updateInfo(@RequestBody @Valid ClientInfoUpdateDto dto) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.updateClientInfo(dto)), HttpStatus.OK);
+    }
+
     @PatchMapping(value = "location-update")
     public ResponseEntity<Response> updateLocation(@RequestBody @Valid LocationUpdate dto) {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.updateClientLocation(dto)), HttpStatus.OK);

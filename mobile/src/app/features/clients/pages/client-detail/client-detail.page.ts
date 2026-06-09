@@ -240,7 +240,7 @@ export class ClientDetailPage implements OnInit, OnDestroy {
         component: ClientMenuComponent,
         componentProps: {
           clientId: clientId,
-          editDisabled: client ? !client.isLocal : true,
+          editDisabled: false,
           deleteDisabled: client ? !client.isLocal : true,
           updateLocationDisabled: client ? (client.isLocal || !client.isSync) : true,
           updatePhotoDisabled: client ? client.isLocal : true,

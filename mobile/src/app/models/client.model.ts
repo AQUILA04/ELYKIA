@@ -31,6 +31,7 @@ export interface Client {
   code?: string;
   cardPhoto?: string;
   updated?: boolean;
+  updatedInfo?: boolean;
   profilPhotoUrl?: string;
   cardPhotoUrl?: string;
   profilPhotoThumbUrl?: string;

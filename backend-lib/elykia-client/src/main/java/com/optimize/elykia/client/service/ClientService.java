@@ -84,11 +84,75 @@ public class ClientService extends GenericService<Client, Long> {
         dto.setId(clientId);
         var old = getById(clientId);
         Client client = clientMapper.toEntity(dto);
-        if (Objects.isNull(client.getIDDoc())) {
-            client.setIDDoc(old.getIDDoc());
-        }
+        preservePhotoFields(old, client);
         validateClientUniqueness(client); // validation
         return ClientRespDto.fromClient(update(client));
+    }
+
+    @Transactional
+    public ClientRespDto updateClientInfo(ClientInfoUpdateDto dto) {
+        Client client = getById(dto.id());
+
+        if (Boolean.TRUE.equals(client.getCreditInProgress())) {
+            boolean firstnameChange = dto.firstname() != null
+                    && !Objects.equals(client.getFirstname(), dto.firstname());
+            boolean lastnameChange = dto.lastname() != null
+                    && !Objects.equals(client.getLastname(), dto.lastname());
+            if ((firstnameChange || lastnameChange) && !Boolean.TRUE.equals(dto.allowNameUpdate())) {
+                throw new CustomValidationException(
+                        "Impossible de modifier le nom d'un client avec un crédit en cours.");
+            }
+        }
+
+        if (dto.firstname() != null) {
+            client.setFirstname(dto.firstname());
+        }
+        if (dto.lastname() != null) {
+            client.setLastname(dto.lastname());
+        }
+        client.setAddress(dto.address());
+        client.setPhone(dto.phone());
+        client.setCardID(dto.cardID());
+        client.setCardType(dto.cardType());
+        client.setDateOfBirth(dto.dateOfBirth());
+        client.setContactPersonName(dto.contactPersonName());
+        client.setContactPersonPhone(dto.contactPersonPhone());
+        client.setContactPersonAddress(dto.contactPersonAddress());
+        client.setQuarter(dto.quarter());
+        client.setOccupation(dto.occupation());
+        client.setLatitude(dto.latitude());
+        client.setLongitude(dto.longitude());
+        if (StringUtils.hasText(dto.mll())) {
+            client.setMll(dto.mll());
+        }
+
+        validateClientUniqueness(client);
+        return ClientRespDto.fromClient(update(client));
+    }
+
+    private void preservePhotoFields(Client old, Client client) {
+        if (isEmptyBytes(client.getIDDoc())) {
+            client.setIDDoc(old.getIDDoc());
+        }
+        if (isEmptyBytes(client.getProfilPhoto())) {
+            client.setProfilPhoto(old.getProfilPhoto());
+        }
+        if (!StringUtils.hasText(client.getProfilPhotoUrl())) {
+            client.setProfilPhotoUrl(old.getProfilPhotoUrl());
+        }
+        if (!StringUtils.hasText(client.getCardPhotoUrl())) {
+            client.setCardPhotoUrl(old.getCardPhotoUrl());
+        }
+        if (!StringUtils.hasText(client.getProfilPhotoThumbUrl())) {
+            client.setProfilPhotoThumbUrl(old.getProfilPhotoThumbUrl());
+        }
+        if (!StringUtils.hasText(client.getCardPhotoThumbUrl())) {
+            client.setCardPhotoThumbUrl(old.getCardPhotoThumbUrl());
+        }
+    }
+
+    private boolean isEmptyBytes(byte[] bytes) {
+        return bytes == null || bytes.length == 0;
     }
 
     @Transactional

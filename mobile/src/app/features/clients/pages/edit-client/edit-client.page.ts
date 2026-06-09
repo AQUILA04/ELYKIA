@@ -17,6 +17,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Client } from 'src/app/models/client.model';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 import { LoggerService } from '../../../../core/services/logger.service';
+import { ClientService } from '../../../../core/services/client.service';
 import * as AccountActions from 'src/app/store/account/account.actions';
 import { selectAccountByClientId } from 'src/app/store/account/account.selectors';
 
@@ -62,6 +63,8 @@ export class EditClientPage implements OnInit, OnDestroy {
   private clientId!: string;
   private initialBalance: number = 0;
   private originalClient: Client | null = null;
+  canEditName = true;
+  isSyncedClient = false;
 
   constructor(
     private fb: FormBuilder,
@@ -71,7 +74,8 @@ export class EditClientPage implements OnInit, OnDestroy {
     private actions$: Actions,
     private log: LoggerService,
     private route: ActivatedRoute,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private clientService: ClientService
   ) {
     this.clientForm = this.fb.group({
       id: [''],
@@ -126,9 +130,19 @@ export class EditClientPage implements OnInit, OnDestroy {
       this.store.select(ClientSelectors.selectClientById(this.clientId)).pipe(
         filter(client => !!client),
         take(1)
-      ).subscribe((client: any) => {
+      ).subscribe(async (client: any) => {
         this.originalClient = client;
+        this.isSyncedClient = !!(client.isSync && !client.isLocal);
+        this.canEditName = await this.clientService.canEditClientName(this.clientId);
         this.clientForm.patchValue(client);
+
+        if (!this.canEditName) {
+          this.clientForm.get('firstname')?.disable();
+          this.clientForm.get('lastname')?.disable();
+        }
+        if (this.isSyncedClient) {
+          this.clientForm.get('balance')?.disable();
+        }
       });
 
       this.store.select(selectAccountByClientId(this.clientId)).pipe(
@@ -137,7 +151,10 @@ export class EditClientPage implements OnInit, OnDestroy {
       ).subscribe(account => {
         this.clientForm.patchValue({ balance: account.accountBalance });
         this.initialBalance = account.accountBalance;
-        this.clientForm.get('balance')?.enable();
+        const synced = this.originalClient?.isSync && !this.originalClient?.isLocal;
+        if (!synced) {
+          this.clientForm.get('balance')?.enable();
+        }
       });
     }
 
@@ -182,19 +199,23 @@ export class EditClientPage implements OnInit, OnDestroy {
     }
 
     const formValue = this.clientForm.getRawValue();
+    const firstname = this.canEditName ? formValue.firstname : this.originalClient.firstname;
+    const lastname = this.canEditName ? formValue.lastname : this.originalClient.lastname;
 
-    // Merge form values into the original client object to preserve all fields
     const updatedClient: Client = {
       ...this.originalClient,
       ...formValue,
       id: this.clientId,
-      fullName: `${formValue.firstname} ${formValue.lastname}`,
+      firstname,
+      lastname,
+      fullName: `${firstname} ${lastname}`,
       mll: (formValue.latitude && formValue.longitude) ? `https://www.google.com/maps/search/?api=1&query=${formValue.latitude},${formValue.longitude}` : this.originalClient.mll,
-      isLocal: true // Ensure isLocal is true for local edits
+      isLocal: this.originalClient.isLocal,
+      isSync: this.originalClient.isSync
     };
 
-    // Update balance only if it changed
-    if (formValue.balance !== this.initialBalance) {
+    // Update balance only if it changed (clients locaux uniquement)
+    if (!this.isSyncedClient && formValue.balance !== this.initialBalance) {
       this.store.dispatch(ClientActions.updateClientBalance({
         clientId: this.clientId,
         balance: formValue.balance

@@ -256,7 +256,8 @@ export class SyncMasterService {
     const counts = await Promise.all([
       this.localitySyncService.getUnsyncedCount(),
       this.clientSyncService.getUnsyncedCount(),
-      this.clientSyncService.getUpdatedCount(), // Includes updated clients
+      this.clientSyncService.getUpdatedCount(),
+      this.clientSyncService.getUpdatedInfoCount(),
       // Note: Photos/Urls/Locations counts might need specific methods if not covered by getUpdatedCount
       this.accountSyncService.getUnsyncedCount(),
       this.accountSyncService.getUpdatedCount(),

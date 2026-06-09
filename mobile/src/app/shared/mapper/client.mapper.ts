@@ -34,7 +34,9 @@ export class ClientMapper {
       cardPhoto: clientBackend.cardPhoto || clientBackend.iddoc || '',
       profilPhotoUrl: clientBackend.profilPhotoUrl || '',
       cardPhotoUrl: clientBackend.cardPhotoUrl || '',
-      tontineCollector: clientBackend.tontineCollector
+      tontineCollector: clientBackend.tontineCollector,
+      updated: clientBackend.updated === 1 || clientBackend.updated === true,
+      updatedInfo: clientBackend.updatedInfo === 1 || clientBackend.updatedInfo === true
     };
   }
   static toBackend(clientLocal: Client, base64Photo: string | null): any {

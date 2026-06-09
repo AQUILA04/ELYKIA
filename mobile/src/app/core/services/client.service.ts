@@ -16,6 +16,7 @@ import { ClientRepositoryFilters, ClientRepositoryExtensions } from '../reposito
 import { buildDateFilterClause } from '../models/date-filter.model';
 import { ClientRepository } from '../repositories/client.repository';
 import { AccountRepository } from '../repositories/account.repository';
+import { DistributionRepository } from '../repositories/distribution.repository';
 import { capSQLiteSet } from '@capacitor-community/sqlite';
 
 export interface ClientInitializationProgress {
@@ -55,7 +56,8 @@ export class ClientService {
     private store: Store, // Inject Store
     private clientRepository: ClientRepository,
     private clientRepositoryExtensions: ClientRepositoryExtensions,
-    private accountRepository: AccountRepository
+    private accountRepository: AccountRepository,
+    private distributionRepository: DistributionRepository
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -584,6 +586,21 @@ export class ClientService {
       console.error('Error in ClientService.updateClient calling repository.updateClient:', error);
       throw error; // Re-throw the error to be caught by the NgRx effect
     }
+  }
+
+  /**
+   * Le nom est modifiable sauf si un crédit est en cours,
+   * sauf lorsqu'une distribution locale non synchronisée existe pour ce client.
+   */
+  async canEditClientName(clientId: string): Promise<boolean> {
+    const client = await this.clientRepository.findById(clientId);
+    if (!client) {
+      return false;
+    }
+    if (!client.creditInProgress) {
+      return true;
+    }
+    return this.distributionRepository.hasUnsyncedForClient(clientId);
   }
 
   async updateClientLocation(id: string, latitude: number, longitude: number): Promise<Client> {

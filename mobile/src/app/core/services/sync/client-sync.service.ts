@@ -6,13 +6,14 @@ import { ClientRepositoryExtensions } from '../../repositories/client.repository
 import { AuthService } from '../auth.service';
 import { SyncErrorService } from '../sync-error.service';
 import { Client } from '../../../models/client.model';
-import { ClientSyncRequest } from '../../../models/sync.model';
+import { ClientInfoUpdateRequest, ClientSyncRequest } from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
 import { ClientSyncResponse } from 'src/app/models/api-sync-response.model';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { ClientPhotoUrlUpdateDto } from '../../../models/client-photo-url-update.dto';
 import { DateFilter } from '../../models/date-filter.model';
+import { DistributionRepository } from '../../repositories/distribution.repository';
 
 @Injectable({
     providedIn: 'root'
@@ -24,7 +25,8 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
         protected override repository: ClientRepository,
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
-        private readonly clientRepositoryExtensions: ClientRepositoryExtensions
+        private readonly clientRepositoryExtensions: ClientRepositoryExtensions,
+        private readonly distributionRepository: DistributionRepository
     ) {
         super(http, repository, authService, syncErrorService, 'client');
     }
@@ -50,10 +52,13 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
         // 4. Synchronisation de la localisation modifiée
         const locationResult = await this.syncUpdatedLocations();
 
+        // 5. Synchronisation des fiches client modifiées (sans photos)
+        const infoResult = await this.syncUpdatedInfo();
+
         // Fusionner les résultats
         return {
-            success: baseResult.success + photoResult.success + photoUrlResult.success + locationResult.success,
-            errors: baseResult.errors + photoResult.errors + photoUrlResult.errors + locationResult.errors,
+            success: baseResult.success + photoResult.success + photoUrlResult.success + locationResult.success + infoResult.success,
+            errors: baseResult.errors + photoResult.errors + photoUrlResult.errors + locationResult.errors + infoResult.errors,
             failedIds: baseResult.failedIds || [] // On retourne principalement les IDs des clients dont la création/update a échoué
         };
     }
@@ -100,6 +105,29 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
             }
         }
         return result;
+    }
+
+    /**
+     * Synchronise les fiches client modifiées (informations texte + GPS, sans photos).
+     */
+    async syncUpdatedInfo(): Promise<{ success: number; errors: number }> {
+        const result = { success: 0, errors: 0 };
+        const updatedInfoClients = await this.repository.getUpdatedInfoClients();
+
+        for (const client of updatedInfoClients) {
+            try {
+                await this.syncUpdatedInfoClient(client);
+                result.success++;
+            } catch (error) {
+                result.errors++;
+                await this.syncErrorService.logSyncError('client', client.id, 'UPDATE_INFO', error, client, `Client ${client.firstname} ${client.lastname}`, client);
+            }
+        }
+        return result;
+    }
+
+    async getUpdatedInfoCount(): Promise<number> {
+        return this.repository.countUpdatedInfo();
     }
 
     /**
@@ -218,6 +246,57 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
         } else {
             throw new Error(response.message || 'Failed to sync updated client photo URLs.');
         }
+    }
+
+    private async syncUpdatedInfoClient(client: Client): Promise<void> {
+        const serverId = await this.repository.getServerId(client.id, 'client');
+        if (!serverId) {
+            throw new Error(`Server ID not found for client ${client.id}`);
+        }
+
+        const allowNameUpdate = client.creditInProgress
+            ? await this.distributionRepository.hasUnsyncedForClient(client.id)
+            : true;
+
+        const requestBody = this.prepareClientInfoUpdateRequest(client, parseInt(serverId, 10), allowNameUpdate);
+        const headers = this.getAuthHeaders();
+
+        const response = await firstValueFrom(
+            this.http.patch<ApiResponse<ClientSyncResponse>>(`${this.baseUrl}/api/v1/clients/info-update`, requestBody, { headers })
+        );
+
+        if (!response?.data) {
+            throw new Error(response?.message || 'Invalid response from server for client info update');
+        }
+
+        await this.repository.markAsInfoSynced(client.id);
+    }
+
+    private prepareClientInfoUpdateRequest(client: Client, serverId: number, allowNameUpdate: boolean): ClientInfoUpdateRequest {
+        const request: ClientInfoUpdateRequest = {
+            id: serverId,
+            address: client.address || '',
+            phone: client.phone || '',
+            cardID: client.cardID || '',
+            cardType: client.cardType || '',
+            dateOfBirth: client.dateOfBirth ? new Date(client.dateOfBirth).toISOString().split('T')[0] : '',
+            contactPersonName: client.contactPersonName || '',
+            contactPersonPhone: client.contactPersonPhone || '',
+            contactPersonAddress: client.contactPersonAddress || '',
+            quarter: client.quarter || '',
+            occupation: client.occupation || '',
+            latitude: client.latitude,
+            longitude: client.longitude,
+            mll: client.mll || '',
+            allowNameUpdate
+        };
+
+        if (allowNameUpdate || !client.creditInProgress) {
+            request.firstname = client.firstname || '';
+            request.lastname = client.lastname || '';
+        }
+
+        return request;
     }
 
     private async syncUpdatedLocationClient(client: Client): Promise<void> {

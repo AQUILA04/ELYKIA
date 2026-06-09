@@ -90,6 +90,26 @@ export interface CashDeskStatus {
   ticketingJson?: string;
 }
 
+export interface ClientInfoUpdateRequest {
+  id: number;
+  firstname?: string;
+  lastname?: string;
+  address: string;
+  phone: string;
+  cardID: string;
+  cardType: string;
+  dateOfBirth: string;
+  contactPersonName?: string;
+  contactPersonPhone?: string;
+  contactPersonAddress?: string;
+  quarter: string;
+  occupation: string;
+  latitude?: number;
+  longitude?: number;
+  mll?: string;
+  allowNameUpdate?: boolean;
+}
+
 export interface ClientSyncRequest {
   address: string;
   cardID: string;
