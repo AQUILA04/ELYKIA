@@ -15,11 +15,24 @@ spring:
           lob:
             non_contextual_creation: true
 
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket: ${MINIO_BUCKET:elykia-clients}
+  public-url: ${MINIO_PUBLIC_URL:http://localhost:9000}
+
+photo:
+  fallback:
+    path: ${PHOTO_FALLBACK_PATH:/opt/elykia/photos/pending}
+
 optimize:
   client:
     auto-init:
       enabled: true
     migrate-photo:
+      enabled: false
+    s3-photo-migration:
       enabled: false
     info:
       "COM001":
