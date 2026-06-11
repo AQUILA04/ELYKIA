@@ -1,5 +1,5 @@
 <div class="modal-header">
-  <h2 mat-dialog-title>Préparer la Livraison - {{ member.client.firstname }} {{ member.client.lastname }}</h2>
+  <h2 mat-dialog-title data-testid="e2e-tontine-delivery-modal">Préparer la Livraison - {{ member.client.firstname }} {{ member.client.lastname }}</h2>
   <button mat-icon-button (click)="onCancel()" class="close-button">
     <mat-icon>close</mat-icon>
   </button>
@@ -26,7 +26,8 @@
         matInput 
         [formControl]="searchControl" 
         [matAutocomplete]="articleAuto"
-        placeholder="Code ou nom de l'article">
+        placeholder="Code ou nom de l'article"
+        data-testid="e2e-tontine-delivery-article-search">
       <mat-icon matPrefix>search</mat-icon>
       
       <mat-autocomplete 
@@ -35,7 +36,8 @@
         (optionSelected)="onArticleSelected($event.option.value)">
         <mat-option 
           *ngFor="let article of filteredArticles$ | async" 
-          [value]="article">
+          [value]="article"
+          [attr.data-article-id]="article.id">
           <div class="article-option">
             <div class="article-info">
               <span class="article-code">{{ article.code }}</span>
@@ -113,7 +115,7 @@
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()">Annuler</button>
-  <button mat-raised-button color="primary" (click)="onValidate()" [disabled]="!isValid">
+  <button mat-raised-button color="primary" (click)="onValidate()" [disabled]="!isValid" data-testid="e2e-tontine-delivery-submit">
     Valider la Livraison
   </button>
 </mat-dialog-actions>

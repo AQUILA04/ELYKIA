@@ -1,4 +1,4 @@
-<div class="main-container client-page a1">
+<div class="main-container client-page a1" data-testid="e2e-client-list">
   <div class="page-fixed-head">
   <div class="breadcrumb-bar">
     <a routerLink="/dashboard" class="breadcrumb-link">
@@ -64,7 +64,8 @@
           class="search-input"
           [(ngModel)]="searchTerm"
           (keydown.enter)="onSearch()"
-          placeholder="Nom, prénom, téléphone, localité…">
+          placeholder="Nom, prénom, téléphone, localité…"
+          data-testid="e2e-client-search">
         <button type="button" class="btn-search-icon" (click)="onSearch()" title="Rechercher" aria-label="Rechercher">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         </button>
@@ -92,7 +93,7 @@
     </span>
 
     <div class="toolbar-actions" *ngxPermissionsOnly="['ROLE_EDIT_CLIENT', 'ROLE_PROMOTER']">
-      <button class="btn-primary" (click)="addClient()">
+      <button class="btn-primary" (click)="addClient()" data-testid="e2e-client-add-btn">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         Ajouter
       </button>

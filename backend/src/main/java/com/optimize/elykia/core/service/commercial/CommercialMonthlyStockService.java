@@ -1,10 +1,14 @@
 package com.optimize.elykia.core.service.commercial;
 
 import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
+import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
+import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.service.stock.CommercialMonthlyStockRecoveryService;
 import com.optimize.elykia.core.util.UserProfilConstant;
@@ -25,14 +29,17 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
 
     private final UserService userService;
     private final CommercialMonthlyStockRecoveryService recoveryService;
+    private final ArticlesRepository articlesRepository;
 
     protected CommercialMonthlyStockService(
             CommercialMonthlyStockRepository repository,
             UserService userService,
-            CommercialMonthlyStockRecoveryService recoveryService) {
+            CommercialMonthlyStockRecoveryService recoveryService,
+            ArticlesRepository articlesRepository) {
         super(repository);
         this.userService = userService;
         this.recoveryService = recoveryService;
+        this.articlesRepository = articlesRepository;
     }
 
     public long getDaysUntilMonthEnd() {
@@ -107,5 +114,63 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
     private Page<CommercialMonthlyStock> enrichPage(Page<CommercialMonthlyStock> page) {
         page.getContent().forEach(this::enrichWithRecovery);
         return page;
+    }
+
+    /**
+     * Prépare un stock résiduel du mois précédent pour les tests E2E (rattrapage crédit).
+     * Idempotent : complète la quantité restante si l'article existe déjà sur ce mois.
+     */
+    @Transactional
+    public CommercialMonthlyStock seedResidualStockForE2e(
+            String collector, Long articleId, int quantity, Double unitPrice) {
+        LocalDate previousMonth = LocalDate.now().minusMonths(1);
+        int month = previousMonth.getMonthValue();
+        int year = previousMonth.getYear();
+
+        Articles article = articlesRepository.findById(articleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Article introuvable : " + articleId));
+
+        double price = unitPrice != null && unitPrice > 0
+                ? unitPrice
+                : Math.ceil(article.getSellingPrice());
+
+        CommercialMonthlyStockRepository stockRepository = (CommercialMonthlyStockRepository) repository;
+        CommercialMonthlyStock stock = stockRepository
+                .findByCollectorAndMonthAndYear(collector, month, year)
+                .orElseGet(() -> {
+                    CommercialMonthlyStock newStock = new CommercialMonthlyStock();
+                    newStock.setCollector(collector);
+                    newStock.setMonth(month);
+                    newStock.setYear(year);
+                    newStock.setStatus(StockStatus.CLOSED);
+                    return stockRepository.save(newStock);
+                });
+
+        Optional<CommercialMonthlyStockItem> existingItem = stock.getItems().stream()
+                .filter(item -> item.getArticle().getId().equals(articleId))
+                .findFirst();
+
+        if (existingItem.isPresent()) {
+            CommercialMonthlyStockItem item = existingItem.get();
+            if (item.getQuantityRemaining() < quantity) {
+                int delta = quantity - item.getQuantityRemaining();
+                item.setQuantityTaken(item.getQuantityTaken() + delta);
+                item.updateRemaining();
+            }
+        } else {
+            CommercialMonthlyStockItem item = new CommercialMonthlyStockItem();
+            item.setArticle(article);
+            item.setQuantityTaken(quantity);
+            item.setQuantitySold(0);
+            item.setQuantityReturned(0);
+            item.setWeightedAverageUnitPrice(price);
+            item.setWeightedAveragePurchasePrice(price);
+            item.setLastUnitPrice(price);
+            item.setLastPurchasePrice(price);
+            item.updateRemaining();
+            stock.addItem(item);
+        }
+
+        return stockRepository.save(stock);
     }
 }

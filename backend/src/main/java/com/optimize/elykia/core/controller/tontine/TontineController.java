@@ -44,6 +44,18 @@ public class TontineController {
                 HttpStatus.OK);
     }
 
+    @PostMapping("/sessions/current/close")
+    public ResponseEntity<Response> closeCurrentSession() {
+        return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.closeCurrentSession()),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/sessions/current/reopen")
+    public ResponseEntity<Response> reopenCurrentSession() {
+        return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.reopenCurrentSessionForE2e()),
+                HttpStatus.OK);
+    }
+
     @PostMapping("/members")
     public ResponseEntity<Response> registerMember(@RequestBody @Valid TontineMemberDto dto) {
         return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.registerMember(dto)),

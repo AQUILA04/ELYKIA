@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Nouveau Versement</h2>
+<h2 mat-dialog-title data-testid="e2e-cash-deposit-modal">Nouveau Versement</h2>
 <mat-dialog-content>
     <div class="info-block mb-3">
         <p><strong>Commercial:</strong> {{ commercialUsername }}</p>
@@ -17,7 +17,7 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
     <button mat-button mat-dialog-close [disabled]="isSubmitting">Annuler</button>
-    <button mat-raised-button color="primary" [disabled]="depositAmount <= 0 || isSubmitting" (click)="submitDeposit()">
+    <button mat-raised-button color="primary" [disabled]="depositAmount <= 0 || isSubmitting" (click)="submitDeposit()" data-testid="e2e-cash-deposit-submit">
         <mat-spinner *ngIf="isSubmitting" diameter="18"></mat-spinner>
         {{ isSubmitting ? 'Enregistrement...' : 'Valider le Versement' }}
     </button>

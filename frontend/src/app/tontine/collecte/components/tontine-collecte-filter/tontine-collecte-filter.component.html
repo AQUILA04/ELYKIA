@@ -5,7 +5,7 @@
     <div class="filter-group">
       <label class="filter-label">Période Rapide</label>
       <div class="period-pills">
-        <button class="pill-btn" [class.active]="activePeriod === 'today'" (click)="selectPeriod('today')">Aujourd'hui</button>
+        <button class="pill-btn" [class.active]="activePeriod === 'today'" (click)="selectPeriod('today')" data-testid="e2e-tontine-collecte-filter-today">Aujourd'hui</button>
         <button class="pill-btn" [class.active]="activePeriod === 'week'" (click)="selectPeriod('week')">Cette semaine</button>
         <button class="pill-btn" [class.active]="activePeriod === 'month'" (click)="selectPeriod('month')">Ce mois</button>
         <button class="pill-btn" [class.active]="activePeriod === 'custom'" (click)="selectPeriod('custom')">Personnalisé</button>

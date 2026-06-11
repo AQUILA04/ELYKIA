@@ -1,6 +1,6 @@
 <ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
 
-<div class="container">
+<div class="container" data-testid="e2e-my-stock-dashboard">
   <div class="header-fixed">
     <h1>Stock Mensuel</h1>
   </div>
@@ -16,7 +16,7 @@
     </div>
     <div class="agent-select" *ngIf="this.isManager || this.isSecretary">
       <ng-select [items]="agents" bindLabel="username" bindValue="username" placeholder="Sélectionner un commercial"
-        [searchFn]="searchAgent" (change)="onAgentChange($event)">
+        [searchFn]="searchAgent" (change)="onAgentChange($event)" data-testid="e2e-my-stock-agent-select">
         <ng-template ng-option-tmp let-item="item">
           {{item.username}} <small class="text-muted">({{item.firstname}} {{item.lastname}})</small>
         </ng-template>
@@ -31,7 +31,7 @@
 
   <div *ngIf="stocks && stocks.length > 0">
     <mat-accordion>
-      <mat-expansion-panel *ngFor="let stock of stocks">
+      <mat-expansion-panel *ngFor="let stock of stocks" data-testid="e2e-my-stock-panel">
         <mat-expansion-panel-header>
           <mat-panel-title>
             {{ stock.collector }} - {{ getMonthName(stock.month) | titlecase }} {{ stock.year }}
@@ -121,7 +121,9 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let item of stock.items">
+              <tr *ngFor="let item of stock.items"
+                  data-testid="e2e-my-stock-item-row"
+                  [attr.data-article-id]="item.article?.id">
                 <td>{{ item.article.commercialName + ' ' + item.article.name }}</td>
                 <td class="text-center clickable-cell" (click)="openStockMovements(item)" style="cursor: pointer;">{{ item.quantityTaken }}</td>
                 <td class="text-center clickable-cell" (click)="openSalesDetails(item)" style="cursor: pointer;">{{ item.quantitySold }}</td>

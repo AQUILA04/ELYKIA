@@ -9,6 +9,7 @@
           <input 
             type="number" 
             [attr.data-value]="getBilletValue(billet)" 
+            [attr.data-testid]="'e2e-billetage-' + billet"
             [(ngModel)]="ticketingData[billet + 'B']" 
             (ngModelChange)="updateTotal(billet + 'B', $event)" 
             placeholder="Quantité">
@@ -22,6 +23,7 @@
           <input 
             type="number" 
             [attr.data-value]="getPieceValue(piece)" 
+            [attr.data-testid]="'e2e-billetage-piece-' + piece"
             [(ngModel)]="ticketingData[piece + 'P']" 
             (ngModelChange)="updateTotal(piece + 'P', $event)" 
             placeholder="Quantité">
@@ -31,7 +33,7 @@
     
     <p>Total: {{ totalAmount }}</p>
     <div class="button-container">
-        <button mat-raised-button color="primary" (click)="submitBilletage()">Suivant</button>
+        <button mat-raised-button color="primary" (click)="submitBilletage()" data-testid="e2e-billetage-submit">Suivant</button>
     </div>
 
   </div>

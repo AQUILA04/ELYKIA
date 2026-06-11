@@ -1,0 +1,234 @@
+name: ELYKIA QA — E2E Web
+
+# Tests E2E Playwright (web admin) après un déploiement CD réussi.
+# S'exécute en parallèle du pipeline APK mobile (build-mobile-apk.yml).
+#
+# Déclenchement :
+#   - workflow_run : CD Pipeline terminé avec succès (déploiement TEST sur main)
+#   - workflow_dispatch : exécution manuelle
+
+on:
+  workflow_run:
+    workflows: ["ELYKIA CD Pipeline"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  prepare:
+    if: |
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      target: ${{ steps.ctx.outputs.target }}
+      build_sha: ${{ steps.build_sha.outputs.build_sha }}
+      web_changed: ${{ steps.web.outputs.web_changed }}
+    steps:
+      - name: Resolve deployment target
+        id: ctx
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+            echo "Manual dispatch → run E2E on test target"
+            echo "target=test" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          sudo apt-get update -y && sudo apt-get install -y jq
+          CD_RUN_ID='${{ github.event.workflow_run.id }}'
+          jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${CD_RUN_ID}/jobs")
+
+          test_conclusion=$(echo "$jobs_json" | jq -r \
+            '.jobs[] | select(.name=="Deploy to TEST after CI") | .conclusion' | head -n1 || true)
+
+          if [ "$test_conclusion" = "success" ]; then
+            echo "CD test deploy detected → run E2E"
+            echo "target=test" >> "$GITHUB_OUTPUT"
+          else
+            echo "target=" >> "$GITHUB_OUTPUT"
+            echo "No TEST deploy job succeeded in CD run $CD_RUN_ID" >&2
+          fi
+
+      - name: Resolve CI commit
+        id: build_sha
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+
+          REPO='${{ github.repository }}'
+
+          if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+            SHA='${{ github.sha }}'
+            echo "Manual run on commit: $SHA"
+            echo "build_sha=$SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CD_STARTED='${{ github.event.workflow_run.run_started_at }}'
+          runs=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${REPO}/actions/workflows/ci.yml/runs?status=completed&per_page=30")
+          SHA=$(echo "$runs" | jq -r --arg cd "$CD_STARTED" '
+            [.workflow_runs[]
+              | select(.head_branch == "main" and .conclusion == "success")
+              | select(.run_started_at <= $cd)
+            ] | sort_by(.run_started_at) | last | .head_sha // empty')
+
+          if [ -z "$SHA" ]; then
+            echo "Could not resolve CI commit for E2E" >&2
+            exit 2
+          fi
+
+          echo "Resolved CI commit: $SHA"
+          echo "build_sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Check if web stack changed in CI
+        id: web
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+
+          if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+            echo "web_changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          HEAD_SHA='${{ steps.build_sha.outputs.build_sha }}'
+          RUNS=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ci.yml/runs?head_sha=${HEAD_SHA}&status=completed&per_page=5")
+          CI_RUN_ID=$(echo "$RUNS" | jq -r '[.workflow_runs[] | select(.conclusion=="success")][0].id // empty')
+
+          if [ -z "$CI_RUN_ID" ]; then
+            echo "web_changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${CI_RUN_ID}/jobs")
+          frontend=$(echo "$jobs_json" | jq -r '.jobs[] | select(.name=="build-frontend") | .conclusion' | head -n1 || true)
+          backend=$(echo "$jobs_json" | jq -r '.jobs[] | select(.name=="build-backend") | .conclusion' | head -n1 || true)
+
+          if [ "$frontend" = "success" ] || [ "$backend" = "success" ]; then
+            echo "web_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "web_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  e2e-web:
+    needs: prepare
+    if: |
+      needs.prepare.outputs.web_changed == 'true' &&
+      (needs.prepare.outputs.target == 'test' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: frontend
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: oec
+          POSTGRES_USER: oec
+          POSTGRES_PASSWORD: APP2024
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.build_sha }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build backend libraries and package
+        working-directory: .
+        run: |
+          mvn -B clean install -DskipTests --file backend-lib/common-entities/pom.xml
+          mvn -B clean install -DskipTests --file backend-lib/common-securities/pom.xml
+          mvn -B clean install -DskipTests --file backend-lib/elykia-client/pom.xml
+          mvn -B package -DskipTests --file backend/pom.xml
+
+      - name: Start backend (Spring Boot)
+        working-directory: .
+        run: |
+          JAR=$(ls backend/target/*.jar | grep -v 'original' | head -n1)
+          nohup java -jar "$JAR" --spring.profiles.active=prod > backend-e2e.log 2>&1 &
+          echo $! > backend-e2e.pid
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8081/actuator/health > /dev/null; then
+              echo "Backend ready after ${i} attempt(s)"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Backend failed to start" >&2
+          tail -n 80 backend-e2e.log || true
+          exit 1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run smoke E2E tests
+        env:
+          CI: true
+          E2E_API_URL: http://localhost:8081
+        run: npm run test:e2e:smoke
+
+      - name: Run golden path E2E tests
+        env:
+          CI: true
+          E2E_API_URL: http://localhost:8081
+        run: npm run test:e2e:golden
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report-${{ needs.prepare.outputs.build_sha }}
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+            backend-e2e.log
+          retention-days: 14
+
+      - name: Stop backend
+        if: always()
+        working-directory: .
+        run: |
+          if [ -f backend-e2e.pid ]; then
+            kill "$(cat backend-e2e.pid)" 2>/dev/null || true
+          fi

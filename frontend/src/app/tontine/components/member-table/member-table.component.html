@@ -57,7 +57,10 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
+          data-testid="e2e-tontine-member-row"
+          [attr.data-member-id]="row.id"
+          [attr.data-client-lastname]="row.client?.lastname"></tr>
     </table>
 
     <div *ngIf="loading" class="table-loading">

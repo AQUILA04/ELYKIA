@@ -29,7 +29,7 @@
         <span>Rafraîchir</span>
       </button>
 
-      <button class="btn add btn-sm" (click)="addCredit()" *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']">
+      <button class="btn add btn-sm" (click)="addCredit()" *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" data-testid="e2e-credit-add-btn">
         <mat-icon>add</mat-icon>
         <span>Nouvelle Vente</span>
       </button>
@@ -68,7 +68,12 @@
       </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let credit of filteredCredits; let i = index">
+      <tr *ngFor="let credit of filteredCredits; let i = index"
+          data-testid="e2e-credit-row"
+          [attr.data-credit-id]="credit.id"
+          [attr.data-credit-reference]="credit.reference"
+          [attr.data-client-lastname]="credit.client?.lastname"
+          [attr.data-status]="credit.status">
         <td data-label="Sélectionner" *ngIf="!isRecoveryManager && !isPromoter && 'SETTLED' !== credit.status">
           <mat-checkbox (change)="toggleSelection(credit.id)" [checked]="isSelected(credit.id)"></mat-checkbox>
         </td>
@@ -115,6 +120,7 @@
             *ngIf="credit.status === 'INPROGRESS' && credit.type === 'CREDIT' && credit.clientType === 'CLIENT' && !isRecoveryManager"
             mat-icon-button
             matTooltip="Faire une mise"
+            data-testid="e2e-credit-daily-stake-btn"
             (click)="openDailyStakeModal(credit)">
             <mat-icon style="color: #28a745;">attach_money</mat-icon>
           </button>

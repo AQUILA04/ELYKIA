@@ -1,6 +1,6 @@
 <ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
 
-<div class="container">
+<div class="container" data-testid="e2e-rattrapage-page">
 
   <!-- En-tête page -->
   <div class="page-header">
@@ -94,7 +94,7 @@
             <label class="form-label">Client <span class="req">*</span></label>
             <ng-select formControlName="clientId" [items]="clients" bindLabel="firstname" bindValue="id"
               [searchFn]="searchClient" appendTo="body" placeholder="Rechercher un client"
-              notFoundText="Aucun client trouvé">
+              notFoundText="Aucun client trouvé" data-testid="e2e-rattrapage-client">
               <ng-template ng-label-tmp let-item="item">
                 {{ item.firstname }} {{ item.lastname }}
               </ng-template>
@@ -141,7 +141,8 @@
         <!-- Month cards -->
         <div class="month-cards" *ngIf="!loadingMonths && residualStocks.length > 0">
           <div class="month-card" *ngFor="let stock of residualStocks" [class.selected]="selectedStockId === stock.id"
-            (click)="onStockMonthSelect(stock)">
+            (click)="onStockMonthSelect(stock)"
+            data-testid="e2e-rattrapage-month-card" [attr.data-stock-id]="stock.id">
             <div class="month-card-top">
               <div class="month-name">{{ getMonthName(stock.month) | titlecase }} {{ stock.year }}</div>
               <mat-icon class="month-check" *ngIf="selectedStockId === stock.id">check_circle</mat-icon>
@@ -190,10 +191,11 @@
             </thead>
             <tbody>
               <tr *ngFor="let item of selectedStockMonth.items; let i = index"
-                [class.row-selected]="isItemSelected(item)">
+                [class.row-selected]="isItemSelected(item)"
+                data-testid="e2e-rattrapage-article-row" [attr.data-article-id]="item.article?.id">
                 <td>
                   <input type="checkbox" [checked]="isItemSelected(item)" (change)="toggleArticle(item, $event)"
-                    [disabled]="item.quantityRemaining <= 0" />
+                    [disabled]="item.quantityRemaining <= 0" data-testid="e2e-rattrapage-article-checkbox" />
                 </td>
                 <td>
                   <div class="article-name">{{ item.article.commercialName }} {{ item.article.name }}</div>
@@ -248,7 +250,7 @@
             <label class="form-label">Mise journalière <span class="req">*</span></label>
             <div class="input-suffix-wrap">
               <input type="number" formControlName="dailyStake" class="form-control" placeholder="500"
-                (input)="recalculateEndDate()" />
+                (input)="recalculateEndDate()" data-testid="e2e-rattrapage-daily-stake" />
               <span class="input-suffix">FCFA / jour</span>
             </div>
             <mat-error *ngIf="rattrapageForm.get('dailyStake')?.invalid && rattrapageForm.get('dailyStake')?.touched">
@@ -369,7 +371,8 @@
         Annuler
       </button>
       <button type="submit" class="btn btn-submit"
-        [disabled]="rattrapageForm.invalid || isLoading || selectedItems.length === 0">
+        [disabled]="rattrapageForm.invalid || isLoading || selectedItems.length === 0"
+        data-testid="e2e-rattrapage-submit">
         <mat-icon *ngIf="!isLoading">check_circle</mat-icon>
         <mat-spinner *ngIf="isLoading" diameter="18" style="margin-right:8px;"></mat-spinner>
         {{ isLoading ? 'Enregistrement...' : 'Valider le rattrapage' }}

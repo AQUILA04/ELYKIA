@@ -5,11 +5,12 @@
     <h1>Nouvelle Demande de Stock Tontine</h1>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" data-testid="e2e-stock-tontine-request-form">
     <div class="form-group">
       <label>Commercial <span class="text-danger">*</span></label>
       <ng-select [items]="agents" bindLabel="username" bindValue="username" [searchFn]="searchAgent"
-        formControlName="collector" placeholder="Sélectionner un commercial" [clearable]="false">
+        formControlName="collector" placeholder="Sélectionner un commercial" [clearable]="false"
+        data-testid="e2e-stock-tontine-request-collector">
         <ng-template ng-option-tmp let-item="item">
           {{item.username}} <small *ngIf="item.firstname || item.lastname">({{item.firstname}}
             {{item.lastname}})</small>
@@ -34,7 +35,7 @@
       <button type="button" class="btn btn-cancel" routerLink="/stock-tontine/request">
         Annuler
       </button>
-      <button type="submit" class="btn btn-submit" [disabled]="form.invalid">
+      <button type="submit" class="btn btn-submit" [disabled]="form.invalid" data-testid="e2e-stock-tontine-request-submit">
         Envoyer la Demande
       </button>
     </div>

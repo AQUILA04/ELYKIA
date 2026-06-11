@@ -27,7 +27,7 @@
 
   <div class="page-scroll-body">
   <div class="form-card a3">
-    <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="client-form">
+    <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="client-form" data-testid="e2e-client-form">
 
       <div class="form-section">
         <h3 class="form-section-title">Identité</h3>
@@ -63,22 +63,22 @@
         <div class="form-grid">
           <div class="form-field">
             <label for="lastname">Nom <span class="required">*</span></label>
-            <input id="lastname" formControlName="lastname" class="field-input" />
+            <input id="lastname" formControlName="lastname" class="field-input" data-testid="e2e-client-lastname" />
             <span class="field-error" *ngIf="clientForm.get('lastname')?.invalid && clientForm.get('lastname')?.touched">Nom est requis.</span>
           </div>
           <div class="form-field">
             <label for="firstname">Prénom <span class="required">*</span></label>
-            <input id="firstname" formControlName="firstname" class="field-input" />
+            <input id="firstname" formControlName="firstname" class="field-input" data-testid="e2e-client-firstname" />
             <span class="field-error" *ngIf="clientForm.get('firstname')?.invalid && clientForm.get('firstname')?.touched">Prénom est requis.</span>
           </div>
           <div class="form-field">
             <label for="address">Adresse <span class="required">*</span></label>
-            <input id="address" formControlName="address" class="field-input" />
+            <input id="address" formControlName="address" class="field-input" data-testid="e2e-client-address" />
             <span class="field-error" *ngIf="clientForm.get('address')?.invalid && clientForm.get('address')?.touched">L'adresse est requise.</span>
           </div>
           <div class="form-field">
             <label for="phone">Numéro de téléphone <span class="required">*</span></label>
-            <input id="phone" formControlName="phone" class="field-input field-mono" pattern="[0-9]{8}$" />
+            <input id="phone" formControlName="phone" class="field-input field-mono" pattern="[0-9]{8}$" data-testid="e2e-client-phone" />
             <span class="field-error" *ngIf="clientForm.get('phone')?.hasError('pattern') && clientForm.get('phone')?.touched">8 chiffres requis.</span>
             <span class="field-error" *ngIf="clientForm.get('phone')?.invalid && clientForm.get('phone')?.touched && !clientForm.get('phone')?.hasError('pattern')">Numéro requis.</span>
           </div>
@@ -90,7 +90,7 @@
         <div class="form-grid">
           <div class="form-field">
             <label for="cardType">Type de pièce <span class="required">*</span></label>
-            <select id="cardType" formControlName="cardType" class="field-input">
+            <select id="cardType" formControlName="cardType" class="field-input" data-testid="e2e-client-card-type">
               <option value="" disabled>Sélectionnez le type</option>
               <option value="CENI">Carte d'électeur</option>
               <option value="Passport">Passport</option>
@@ -102,7 +102,7 @@
           </div>
           <div class="form-field">
             <label for="cardID">Numéro de pièce <span class="required">*</span></label>
-            <input id="cardID" formControlName="cardID" class="field-input" />
+            <input id="cardID" formControlName="cardID" class="field-input" data-testid="e2e-client-card-id" />
             <span class="field-error" *ngIf="clientForm.get('cardID')?.invalid && clientForm.get('cardID')?.touched">Numéro requis.</span>
           </div>
         </div>
@@ -117,19 +117,20 @@
         <div class="form-grid">
           <div class="form-field">
             <label for="dateOfBirth">Date de naissance <span class="required">*</span></label>
-            <input type="date" id="dateOfBirth" formControlName="dateOfBirth" class="field-input" [max]="today | date: 'yyyy-MM-dd'" />
+            <input type="date" id="dateOfBirth" formControlName="dateOfBirth" class="field-input" data-testid="e2e-client-birthdate" [max]="today | date: 'yyyy-MM-dd'" />
             <span class="field-error" *ngIf="clientForm.get('dateOfBirth')?.invalid && clientForm.get('dateOfBirth')?.touched && !clientForm.get('dateOfBirth')?.hasError('minAge')">Date requise.</span>
             <span class="field-error" *ngIf="clientForm.get('dateOfBirth')?.hasError('minAge') && clientForm.get('dateOfBirth')?.touched">Âge minimum 16 ans.</span>
           </div>
           <div class="form-field">
             <label for="occupation">Occupation <span class="required">*</span></label>
-            <input id="occupation" formControlName="occupation" class="field-input" />
+            <input id="occupation" formControlName="occupation" class="field-input" data-testid="e2e-client-occupation" />
             <span class="field-error" *ngIf="clientForm.get('occupation')?.invalid && clientForm.get('occupation')?.touched">Occupation requise.</span>
           </div>
           <div class="form-field form-field-full">
             <label for="quarter">Localité <span class="required">*</span></label>
             <ng-select
               id="quarter"
+              data-testid="e2e-client-quarter"
               formControlName="quarter"
               [items]="localities"
               bindLabel="name"
@@ -195,21 +196,21 @@
         <div class="form-grid">
           <div class="form-field form-field-full">
             <label for="collector">Commercial crédit <span class="required">*</span></label>
-            <ng-select id="collector" formControlName="collector" [items]="agents" bindLabel="username" bindValue="username"
+            <ng-select id="collector" data-testid="e2e-client-collector" formControlName="collector" [items]="agents" bindLabel="username" bindValue="username"
               [searchFn]="searchAgent" placeholder="Sélectionner un commercial" notFoundText="Aucun commercial trouvé" [clearable]="false">
             </ng-select>
             <span class="field-error" *ngIf="clientForm.get('collector')?.invalid && clientForm.get('collector')?.touched">Requis.</span>
           </div>
           <div class="form-field form-field-full">
             <label for="tontineCollector">Commercial tontine <span class="required">*</span></label>
-            <ng-select id="tontineCollector" formControlName="tontineCollector" [items]="agents" bindLabel="username" bindValue="username"
+            <ng-select id="tontineCollector" data-testid="e2e-client-tontine-collector" formControlName="tontineCollector" [items]="agents" bindLabel="username" bindValue="username"
               [searchFn]="searchAgent" placeholder="Sélectionner un commercial" notFoundText="Aucun commercial trouvé" [clearable]="false">
             </ng-select>
             <span class="field-error" *ngIf="clientForm.get('tontineCollector')?.invalid && clientForm.get('tontineCollector')?.touched">Requis.</span>
           </div>
           <div class="form-field form-field-full">
             <label for="agencyCollector">Commercial agence <span class="required">*</span></label>
-            <ng-select id="agencyCollector" formControlName="agencyCollector" [items]="agents" bindLabel="username" bindValue="username"
+            <ng-select id="agencyCollector" data-testid="e2e-client-agency-collector" formControlName="agencyCollector" [items]="agents" bindLabel="username" bindValue="username"
               [searchFn]="searchAgent" placeholder="Sélectionner un commercial" notFoundText="Aucun commercial trouvé">
             </ng-select>
           </div>
@@ -221,7 +222,7 @@
         <div class="form-grid">
           <div class="form-field">
             <label for="clientType">Type de client <span class="required">*</span></label>
-            <select id="clientType" formControlName="clientType" class="field-input">
+            <select id="clientType" formControlName="clientType" class="field-input" data-testid="e2e-client-type">
               <option value="" disabled>Sélectionnez le type</option>
               <option value="CLIENT">Client</option>
               <option value="PROMOTER">Commercial</option>
@@ -238,7 +239,7 @@
             </div>
             <div class="form-field">
               <label for="accountBalance">Solde initial (FCFA) <span class="required">*</span></label>
-              <input id="accountBalance" type="number" formControlName="accountBalance" class="field-input field-mono" />
+              <input id="accountBalance" type="number" formControlName="accountBalance" class="field-input field-mono" data-testid="e2e-client-account-balance" />
               <span class="field-error" *ngIf="clientForm.get('accountBalance')?.hasError('required') && clientForm.get('accountBalance')?.touched">Solde requis.</span>
               <span class="field-error" *ngIf="clientForm.get('accountBalance')?.hasError('min') && clientForm.get('accountBalance')?.touched">Minimum 500.</span>
               <span class="field-error" *ngIf="clientForm.get('accountBalance')?.hasError('max') && clientForm.get('accountBalance')?.touched">Maximum 2 000 000.</span>
@@ -249,7 +250,7 @@
 
       <div class="form-actions">
         <button type="button" class="btn-outline" (click)="onCancel()">Annuler</button>
-        <button type="submit" class="btn-primary" [disabled]="clientForm.invalid">Enregistrer</button>
+        <button type="submit" class="btn-primary" [disabled]="clientForm.invalid" data-testid="e2e-client-submit">Enregistrer</button>
       </div>
     </form>
   </div>

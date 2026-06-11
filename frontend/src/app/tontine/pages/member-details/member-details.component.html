@@ -1,4 +1,4 @@
-<div class="main-container member-details-page a1" *ngIf="member">
+<div class="main-container member-details-page a1" *ngIf="member" data-testid="e2e-tontine-member-details">
   <div class="breadcrumb-bar">
     <a routerLink="/tontine" class="breadcrumb-link">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -36,7 +36,7 @@
     </div>
 
     <div class="header-actions">
-      <button class="btn-primary" (click)="onRecordCollection()" *ngIf="isSessionActive">
+      <button class="btn-primary" (click)="onRecordCollection()" *ngIf="isSessionActive" data-testid="e2e-tontine-record-collection-btn">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         Enregistrer une Collecte
       </button>
@@ -45,7 +45,8 @@
         Collecte de rattrapage
       </button>
       <button class="btn-accent" (click)="onPrepareDelivery()"
-              *ngIf="currentSessionStatus === 'CLOSED' && member?.deliveryStatus === 'PENDING'">
+              *ngIf="currentSessionStatus === 'CLOSED' && member?.deliveryStatus === 'PENDING'"
+              data-testid="e2e-tontine-prepare-delivery-btn">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
         Préparer la Livraison
       </button>
@@ -59,8 +60,8 @@
           Valider la Livraison
         </button>
       </ng-container>
-      <ng-container *ngxPermissionsOnly="['ROLE_MAGASINIER', 'ROLE_REPORT']">
-        <button class="btn-primary" (click)="onMarkAsDelivered()" *ngIf="member?.deliveryStatus === 'VALIDATED'">
+      <ng-container *ngxPermissionsOnly="['ROLE_REPORT', 'ROLE_EDIT_TONTINE']">
+        <button class="btn-primary" (click)="onMarkAsDelivered()" *ngIf="member?.deliveryStatus === 'VALIDATED'" data-testid="e2e-tontine-mark-delivered-btn">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
           Marquer comme Livré
         </button>

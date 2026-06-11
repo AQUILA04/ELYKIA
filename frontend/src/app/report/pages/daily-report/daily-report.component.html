@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container" data-testid="e2e-daily-report">
     <div class="header-fixed">
         <h1>Rapport Journalier</h1>
     </div>
@@ -6,7 +6,7 @@
     <!-- Filters Toolbar -->
     <div class="filters-container d-flex flex-wrap align-items-center gap-2 mb-4">
         <button mat-stroked-button [color]="selectedFilter === 'today' ? 'primary' : undefined"
-            (click)="setFilter('today')">Aujourd'hui</button>
+            (click)="setFilter('today')" data-testid="e2e-daily-report-filter-today">Aujourd'hui</button>
         <button mat-stroked-button [color]="selectedFilter === 'week' ? 'primary' : undefined"
             (click)="setFilter('week')">Cette Semaine</button>
         <button mat-stroked-button [color]="selectedFilter === 'month' ? 'primary' : undefined"
@@ -30,7 +30,7 @@
         <div class="agent-select" *ngIf="!isPromoter">
             <ng-select [items]="agents" bindLabel="username" bindValue="username"
                 placeholder="Sélectionner un commercial" [searchFn]="searchAgent" [(ngModel)]="selectedAgent"
-                (change)="onAgentChange($event)">
+                (change)="onAgentChange($event)" data-testid="e2e-daily-report-agent-select">
                 <ng-template ng-option-tmp let-item="item">
                     {{item.username}} <small class="text-muted">({{item.firstname}}
                         {{item.lastname}})</small>
@@ -176,7 +176,8 @@
                     <div class="reports-list mb-4">
                         <mat-accordion multi>
                             <mat-expansion-panel *ngFor="let report of reports" expanded="true"
-                                [ngClass]="getDepositStatus(report)">
+                                [ngClass]="getDepositStatus(report)"
+                                [attr.data-testid]="'e2e-daily-report-panel-' + report.commercialUsername">
                                 <mat-expansion-panel-header>
                                     <mat-panel-title>
                                         <strong>{{ report.commercialUsername | uppercase }}</strong>
@@ -226,7 +227,7 @@
                                         <span class="kpi-value">{{ report.newAccountsBalance |
                                             currency:'XOF':'symbol':'1.0-0' }}</span>
                                     </div>
-                                    <div class="kpi-card">
+                                    <div class="kpi-card" data-testid="e2e-daily-report-collections-kpi">
                                         <span class="kpi-label">Recouvrements</span>
                                         <span class="kpi-value">{{ report.collectionsCount }} ({{
                                             report.collectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
@@ -236,16 +237,16 @@
                                         <span class="kpi-value">{{ report.ordersCount }} ({{ report.ordersAmount |
                                             currency:'XOF':'symbol':'1.0-0' }})</span>
                                     </div>
-                                    <div class="kpi-card">
+                                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-members-kpi">
                                         <span class="kpi-label">Tontine Adhésions</span>
                                         <span class="kpi-value">{{ report.tontineMembersCount }}</span>
                                     </div>
-                                    <div class="kpi-card">
+                                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-collections-kpi">
                                         <span class="kpi-label">Tontine Collectes</span>
                                         <span class="kpi-value">{{ report.tontineCollectionsCount }} ({{
                                             report.tontineCollectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
                                     </div>
-                                    <div class="kpi-card">
+                                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-deliveries-kpi">
                                         <span class="kpi-label">Tontine Livraisons</span>
                                         <span class="kpi-value">{{ report.tontineDeliveriesCount }} ({{
                                             report.tontineDeliveriesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
@@ -287,6 +288,7 @@
                                 <div class="mt-3"
                                     *ngIf="(isManager || isSecretary) && isSingleDay && (report.totalAmountToDeposit || 0) > 0 && ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0)) > 0">
                                     <button mat-raised-button color="primary" class="w-100 py-3 text-lg"
+                                        data-testid="e2e-daily-report-deposit-btn"
                                         (click)="openDepositModal(report)">
                                         <mat-icon class="mr-2">payment</mat-icon> FAIRE UN VERSEMENT
                                     </button>

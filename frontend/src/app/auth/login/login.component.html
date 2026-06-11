@@ -27,7 +27,7 @@
         <p>Connectez-vous à votre compte</p>
       </div>
 
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" data-testid="e2e-login-form">
         <div class="form-group">
           <label for="username">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -37,7 +37,7 @@
             <span>Identifiant</span>
           </label>
           <input type="text" id="username" formControlName="username" class="form-control"
-            placeholder="Entrez votre identifiant" />
+            placeholder="Entrez votre identifiant" data-testid="e2e-login-username" />
           <mat-error *ngIf="loginForm.get('username')?.hasError('required') && loginForm.get('username')?.touched">
             L'identifiant est requis
           </mat-error>
@@ -52,7 +52,7 @@
             <span>Mot de passe</span>
           </label>
           <input type="password" id="password" formControlName="password" class="form-control"
-            placeholder="Entrez votre mot de passe" />
+            placeholder="Entrez votre mot de passe" data-testid="e2e-login-password" />
           <mat-error *ngIf="loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched">
             Le mot de passe est requis
           </mat-error>
@@ -66,12 +66,12 @@
           <a href="#" class="forgot-link">Mot de passe oublié ?</a>
         </div>
 
-        <button type="submit" class="btn-login" [disabled]="isLoading" [class.loading]="isLoading">
+        <button type="submit" class="btn-login" [disabled]="isLoading" [class.loading]="isLoading" data-testid="e2e-login-submit">
           <span *ngIf="!isLoading">Se connecter</span>
           <span *ngIf="isLoading" class="spinner"></span>
         </button>
 
-        <mat-error *ngIf="errorMessage" class="error-alert">
+        <mat-error *ngIf="errorMessage" class="error-alert" data-testid="e2e-login-error">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="8" x2="12" y2="12"></line>

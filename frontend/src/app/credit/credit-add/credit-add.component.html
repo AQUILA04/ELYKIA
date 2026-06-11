@@ -5,7 +5,7 @@
     <h1>{{ creditId ? 'Modifier une vente' : 'Ajouter une vente' }}</h1>
   </div>
 
-  <form [formGroup]="creditForm" (ngSubmit)="onSubmit()">
+  <form [formGroup]="creditForm" (ngSubmit)="onSubmit()" data-testid="e2e-credit-add-form">
 
     <!-- Toggle Type de Vente -->
     <div class="sale-type-toggle">
@@ -14,7 +14,7 @@
           <input type="radio" formControlName="saleType" value="CREDIT"> Crédit
         </label>
         <label class="btn btn-outline-primary" [class.active]="saleType === 'CASH'">
-          <input type="radio" formControlName="saleType" value="CASH"> Comptant
+          <input type="radio" formControlName="saleType" value="CASH" data-testid="e2e-credit-sale-type-cash"> Comptant
         </label>
       </div>
     </div>
@@ -23,6 +23,7 @@
     <div class="form-group" *ngIf="saleType === 'CREDIT'">
       <label for="commercial">Commercial <span class="text-danger">*</span></label>
       <ng-select id="commercial" formControlName="commercial" [items]="commercials" bindLabel="username"
+        data-testid="e2e-credit-commercial"
         bindValue="username" [searchFn]="searchCommercial" (change)="onCommercialChange()"
         placeholder="Sélectionner un commercial" [clearable]="false">
         <ng-template ng-option-tmp let-item="item">
@@ -40,6 +41,7 @@
     <div class="form-group">
       <label for="clientId">Client<span class="text-danger">*</span></label>
       <ng-select id="clientId" formControlName="clientId" [items]="clients" bindLabel="firstname" bindValue="id"
+        data-testid="e2e-credit-client"
         [searchFn]="searchClient" placeholder="Rechercher et sélectionner un client" notFoundText="Aucun client trouvé">
         <ng-template ng-label-tmp let-item="item">
           {{ item.firstname }} {{ item.lastname }}
@@ -77,7 +79,7 @@
       <button type="button" class="btn btn-cancel" (click)="onCancel()" [disabled]="isLoading">
         Annuler
       </button>
-      <button type="submit" class="btn btn-submit" [disabled]="creditForm.invalid || isLoading">
+      <button type="submit" class="btn btn-submit" [disabled]="creditForm.invalid || isLoading" data-testid="e2e-credit-submit">
         {{ isLoading ? 'En cours...' : 'Valider' }}
       </button>
     </div>

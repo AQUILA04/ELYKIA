@@ -1,5 +1,5 @@
 <!-- Sidebar Start -->
-<aside class="left-sidebar">
+<aside class="left-sidebar" data-testid="e2e-sidebar">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
   <!-- Sidebar scroll-->
@@ -74,6 +74,7 @@
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT']">
           <a class="sidebar-link" routerLink="/client-list" aria-expanded="false"
+             data-testid="e2e-sidebar-clients"
              [ngClass]="{ 'active': isRouteActive('/client-list') }">
             <span>
               <mat-icon>account_circle</mat-icon>
@@ -103,6 +104,7 @@
         <!-- MENU STOCK COMMERCIAL -->
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOCK_MANAGEMENT', 'ROLE_STOREKEEPER']">
           <a class="sidebar-link has-arrow" (click)="onStockClick()" aria-expanded="false"
+             data-testid="e2e-sidebar-stock-commercial"
              [ngClass]="{ 'active': isRouteActive('/stock') }">
             <span>
               <mat-icon>inventory_2</mat-icon>
@@ -112,6 +114,7 @@
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isStockOpen }">
             <li class="sidebar-item submenu-item">
               <a class="sidebar-link" routerLink="/stock/request"
+                 data-testid="e2e-sidebar-stock-request"
                  [ngClass]="{ 'active': isSubRouteActive('/stock/request') }">
                 <span class="material-icons">add_shopping_cart</span>
                 <span class="hide-menu">Demandes Sortie</span>
@@ -119,6 +122,7 @@
             </li>
             <li class="sidebar-item submenu-item" *ngIf="!isStorekeeper()">
               <a class="sidebar-link" routerLink="/stock/my-stock"
+                 data-testid="e2e-sidebar-stock-my-stock"
                  [ngClass]="{ 'active': isSubRouteActive('/stock/my-stock') }">
                 <span class="material-icons">dashboard</span>
                 <span class="hide-menu">Stock</span>
@@ -126,6 +130,7 @@
             </li>
             <li class="sidebar-item submenu-item">
               <a class="sidebar-link" routerLink="/stock/return"
+                 data-testid="e2e-sidebar-stock-return"
                  [ngClass]="{ 'active': isSubRouteActive('/stock/return') }">
                 <span class="material-icons">undo</span>
                 <span class="hide-menu">Retours</span>
@@ -137,6 +142,7 @@
         <!-- NOUVEAU MENU STOCK TONTINE -->
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOCK_MANAGEMENT', 'ROLE_STOREKEEPER', 'ROLE_REPORT']">
           <a class="sidebar-link has-arrow" (click)="onStockTontineClick()" aria-expanded="false"
+             data-testid="e2e-sidebar-stock-tontine"
              [ngClass]="{ 'active': isRouteActive('/stock-tontine') }">
             <span>
               <mat-icon>savings</mat-icon>
@@ -146,6 +152,7 @@
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isStockTontineOpen }">
             <li class="sidebar-item submenu-item">
             <a class="sidebar-link" routerLink="/stock-tontine/request"
+               data-testid="e2e-sidebar-stock-tontine-request"
                [ngClass]="{ 'active': isSubRouteActive('/stock-tontine/request') }">
                 <span class="material-icons">add_shopping_cart</span>
                 <span class="hide-menu">Demandes Sortie</span>
@@ -153,6 +160,7 @@
             </li>
             <li class="sidebar-item submenu-item" *ngIf="!isStorekeeper()">
               <a class="sidebar-link" routerLink="/stock-tontine/my-stock"
+                 data-testid="e2e-sidebar-stock-tontine-my-stock"
                  [ngClass]="{ 'active': isSubRouteActive('/stock-tontine/my-stock') }">
                 <span class="material-icons">dashboard</span>
                 <span class="hide-menu">Stock</span>
@@ -210,7 +218,8 @@
             </li>
             <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_RATTRAPAGE']">
               <a class="sidebar-link" routerLink="/stock/credit/rattrapage"
-                 [ngClass]="{ 'active': isSubRouteActive('/stock/credit/rattrapage') }">
+                 [ngClass]="{ 'active': isSubRouteActive('/stock/credit/rattrapage') }"
+                 data-testid="e2e-sidebar-rattrapage">
                 <span class="material-icons">settings_backup_restore</span>
                 <span class="hide-menu">Rattrapages</span>
               </a>
@@ -229,6 +238,7 @@
 <!--        </li>-->
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_TONTINE','ROLE_CONSULT_TONTINE','ROLE_EDIT_TONTINE']">
           <a class="sidebar-link has-arrow" (click)="onTontineClick()" aria-expanded="false"
+             data-testid="e2e-sidebar-tontines"
              [ngClass]="{ 'active': isRouteActive('/tontine') }">
             <span>
               <mat-icon>savings</mat-icon>
@@ -238,6 +248,7 @@
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isTontineOpen }">
             <li class="sidebar-item submenu-item">
               <a class="sidebar-link" routerLink="/tontine"
+                 data-testid="e2e-sidebar-tontine-list"
                  [ngClass]="{ 'active': activeRoute === '/tontine' }">
                 <span class="material-icons">list</span>
                 <span class="hide-menu">Liste</span>
@@ -245,6 +256,7 @@
             </li>
             <li class="sidebar-item submenu-item">
               <a class="sidebar-link" routerLink="/tontine/collectes"
+                 data-testid="e2e-sidebar-tontine-collectes"
                  [ngClass]="{ 'active': isSubRouteActive('/tontine/collectes') }">
                 <span class="material-icons">history</span>
                 <span class="hide-menu">Collectes</span>
@@ -252,6 +264,7 @@
             </li>
             <li class="sidebar-item submenu-item">
               <a class="sidebar-link" routerLink="/tontine/livraisons"
+                 data-testid="e2e-sidebar-tontine-livraisons"
                  [ngClass]="{ 'active': isSubRouteActive('/tontine/livraisons') }">
                 <span class="material-icons">local_shipping</span>
                 <span class="hide-menu">Livraison</span>
@@ -281,6 +294,7 @@
         <!-- MENU CONFIGURATION -->
         <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">
           <a class="sidebar-link has-arrow" (click)="onConfigurationClick()" aria-expanded="false"
+             data-testid="e2e-sidebar-configuration"
              [ngClass]="{ 'active': isRouteActive('/configuration') }">
             <span>
               <mat-icon>settings</mat-icon>
@@ -290,6 +304,7 @@
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isConfigurationOpen }">
             <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_LOCALITY','ROLE_EDIT_LOCALITY']">
               <a class="sidebar-link" routerLink="/localitylist"
+                 data-testid="e2e-sidebar-localities"
                  [ngClass]="{ 'active': isSubRouteActive('/localitylist') }">
                 <i class="ti ti-map"></i>
                 <span class="hide-menu">Localités</span>
@@ -321,6 +336,7 @@
 
         <li class="sidebar-item" *ngIf="!isStorekeeper()">
           <a class="sidebar-link" routerLink="/daily-report" aria-expanded="false"
+             data-testid="e2e-sidebar-daily-report"
              [ngClass]="{ 'active': isRouteActive('/daily-report') }">
             <span>
               <mat-icon>today</mat-icon>

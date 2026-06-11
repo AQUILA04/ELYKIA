@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>{{ isEditMode ? 'Modifier le Membre' : 'Ajouter un Membre à la Tontine' }}</h2>
+<h2 mat-dialog-title data-testid="e2e-tontine-add-member-modal">{{ isEditMode ? 'Modifier le Membre' : 'Ajouter un Membre à la Tontine' }}</h2>
 
 <mat-dialog-content>
   <form [formGroup]="form">
@@ -18,7 +18,7 @@
     <!-- Client Select for Add Mode -->
     <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditMode">
       <mat-label>Sélectionner un client *</mat-label>
-      <mat-select formControlName="clientId" required>
+      <mat-select formControlName="clientId" required data-testid="e2e-tontine-member-client">
         <mat-option *ngFor="let client of filteredClients" [value]="client.id">
           {{ getClientDisplay(client) }}
         </mat-option>
@@ -39,7 +39,7 @@
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Montant souhaité</mat-label>
-      <input matInput type="number" formControlName="amount" placeholder="0">
+      <input matInput type="number" formControlName="amount" placeholder="0" data-testid="e2e-tontine-member-amount">
     </mat-form-field>
 
     <!-- Update Scope Section (Only visible when editing amount) -->
@@ -65,7 +65,7 @@
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()" [disabled]="loading">Annuler</button>
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="loading || form.invalid">
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="loading || form.invalid" data-testid="e2e-tontine-member-submit">
     <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
     <span *ngIf="!loading">{{ isEditMode ? 'Modifier' : 'Ajouter' }}</span>
   </button>

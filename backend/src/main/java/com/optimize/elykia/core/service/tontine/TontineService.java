@@ -26,6 +26,7 @@ import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,6 +105,54 @@ public class TontineService extends GenericService<TontineMember, Long> {
         session.setStartDate(dto.getStartDate());
         session.setEndDate(dto.getEndDate());
 
+        return tontineSessionRepository.save(session);
+    }
+
+    /**
+     * Clôture la session de l'année en cours et passe les membres en attente de livraison.
+     * Utilisé par le scheduler et exposé pour les tests E2E / opérations admin.
+     */
+    public TontineSession closeCurrentSession() {
+        TontineSession session = getActiveSession();
+        if (session.getStatus() == TontineSessionStatus.CLOSED) {
+            return session;
+        }
+
+        session.setStatus(TontineSessionStatus.CLOSED);
+        tontineSessionRepository.save(session);
+
+        TontineMemberRepository memberRepository = (TontineMemberRepository) getRepository();
+        Pageable pageable = PageRequest.of(0, 100);
+        Page<TontineMember> memberPage;
+        do {
+            memberPage = memberRepository.findByTontineSessionIdAndState(session.getId(), State.ENABLED, pageable);
+            List<TontineMember> members = memberPage.getContent();
+            if (!members.isEmpty()) {
+                members.forEach(member -> {
+                    if (TontineMemberDeliveryStatus.SESSION_INPROGRESS.equals(member.getDeliveryStatus())) {
+                        member.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+                    }
+                });
+                memberRepository.saveAll(members);
+            }
+            pageable = memberPage.nextPageable();
+        } while (memberPage.hasNext());
+
+        log.info("Session tontine {} clôturée manuellement pour l'année {}.", session.getId(), session.getYear());
+        return session;
+    }
+
+    /**
+     * Réouvre la session de l'année en cours (tests E2E entre deux exécutions du golden path).
+     */
+    @Transactional
+    public TontineSession reopenCurrentSessionForE2e() {
+        TontineSession session = getActiveSession();
+        if (session.getStatus() == TontineSessionStatus.ACTIVE) {
+            return session;
+        }
+        session.setStatus(TontineSessionStatus.ACTIVE);
+        log.info("Session tontine {} réouverte pour E2E (année {}).", session.getId(), session.getYear());
         return tontineSessionRepository.save(session);
     }
 

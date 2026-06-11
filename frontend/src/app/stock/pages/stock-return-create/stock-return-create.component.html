@@ -5,12 +5,13 @@
     <h1>Nouveau Retour Stock</h1>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" data-testid="e2e-stock-return-form">
     <!-- Commercial Selector (Storekeepers only) -->
     <div *ngIf="isStoreKeeper" class="commercial-selector-section">
       <div class="form-group">
         <label>Commercial <span class="required">*</span></label>
         <ng-select [items]="commercials" bindLabel="username" bindValue="username" [(ngModel)]="selectedCommercial"
+          data-testid="e2e-stock-return-collector"
           [ngModelOptions]="{standalone: true}" (change)="onCommercialSelected()" [searchFn]="searchCommercial"
           placeholder="Sélectionner un commercial" [clearable]="false">
           <ng-template ng-option-tmp let-item="item">
@@ -40,7 +41,7 @@
 
     <div class="actions">
       <button type="button" class="btn btn-cancel" routerLink="/stock/return">Annuler</button>
-      <button type="submit" class="btn btn-submit" [disabled]="form.invalid || (isStoreKeeper && !selectedCommercial)">
+      <button type="submit" class="btn btn-submit" [disabled]="form.invalid || (isStoreKeeper && !selectedCommercial)" data-testid="e2e-stock-return-submit">
         <mat-icon>undo</mat-icon> Valider le Retour
       </button>
     </div>

@@ -1,6 +1,6 @@
 <ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
 
-<div class="container">
+<div class="container" data-testid="e2e-stock-request-list">
   <div class="header-fixed">
     <h1>Demandes de Sortie Stock</h1>
   </div>
@@ -10,7 +10,7 @@
   </app-stock-export-filter>
 
   <div class="d-flex justify-content-end mb-3">
-    <button *ngIf="isPromoter || isManager" class="btn add btn-sm" routerLink="/stock/request/create">
+    <button *ngIf="isPromoter || isManager" class="btn add btn-sm" routerLink="/stock/request/create" data-testid="e2e-stock-request-new-btn">
       <mat-icon>add</mat-icon>
       <span>Nouvelle Demande</span>
     </button>
@@ -29,7 +29,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let req of requests">
+        <tr *ngFor="let req of requests" data-testid="e2e-stock-request-row"
+            [attr.data-collector]="req.collector" [attr.data-status]="req.status"
+            [attr.data-reference]="req.reference || req.id">
           <td>{{ req.reference || '-' }}</td>
           <td>{{ req.requestDate | date:'dd/MM/yyyy' }}</td>
           <td>{{ (req.deliveryDate | date:'dd/MM/yyyy') || '-' }}</td>
@@ -43,11 +45,11 @@
               <mat-icon>visibility</mat-icon>
             </button>
             <button *ngIf="isManager && req.status === 'CREATED'" mat-icon-button (click)="validate(req)"
-              matTooltip="Valider">
+              matTooltip="Valider" data-testid="e2e-stock-request-validate">
               <mat-icon style="color: green;">check_circle</mat-icon>
             </button>
             <button *ngIf="isStoreKeeper && req.status === 'VALIDATED'" mat-icon-button (click)="deliver(req)"
-              matTooltip="Livrer">
+              matTooltip="Livrer" data-testid="e2e-stock-request-deliver">
               <mat-icon style="color: #003366;">local_shipping</mat-icon>
             </button>
             <button *ngIf="(isManager || (currentUser?.username === req.collector)) && req.status === 'CREATED'"

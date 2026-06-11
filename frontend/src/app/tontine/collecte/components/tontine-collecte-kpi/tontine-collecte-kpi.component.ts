@@ -5,12 +5,12 @@ import { TontineCollectionKpiDto } from '../../../models/tontine-collecte.model'
   selector: 'app-tontine-collecte-kpi',
   template: `
     <div class="kpi-strip a2">
-      <div class="kpi-card kpi-total">
+      <div class="kpi-card kpi-total" data-testid="e2e-tontine-collecte-kpi-mises">
         <div class="kpi-label">Nombre de Mises</div>
         <div class="kpi-value">{{ summary.totalMises | number }}</div>
         <div class="kpi-sub">Mises collectées</div>
       </div>
-      <div class="kpi-card kpi-amount">
+      <div class="kpi-card kpi-amount" data-testid="e2e-tontine-collecte-kpi-montant">
         <div class="kpi-label">Total Collecté</div>
         <div class="kpi-value">{{ summary.totalMontant | number }}</div>
         <div class="kpi-sub">FCFA collectés</div>

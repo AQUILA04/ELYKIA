@@ -1,4 +1,4 @@
-<div class="modal-overlay">
+<div class="modal-overlay" data-testid="e2e-daily-stake-modal">
   <div class="modal-container">
     <div class="modal-header">
       <h2>Effectuer une mise</h2>
@@ -24,6 +24,7 @@
             id="amount"
             formControlName="amount"
             class="form-control"
+            data-testid="e2e-daily-stake-amount"
             [min]="minAmount"
             [max]="credit.totalAmountRemaining ?? credit.totalAmount">
 
@@ -36,7 +37,7 @@
 
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" (click)="close()" [disabled]="isSubmitting">Annuler</button>
-          <button type="submit" class="btn btn-primary" [disabled]="stakeForm.invalid || isSubmitting">
+          <button type="submit" class="btn btn-primary" [disabled]="stakeForm.invalid || isSubmitting" data-testid="e2e-daily-stake-submit">
             {{ isSubmitting ? 'En cours...' : 'Valider' }}
           </button>
         </div>

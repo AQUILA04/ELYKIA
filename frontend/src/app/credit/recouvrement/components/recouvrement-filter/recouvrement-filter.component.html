@@ -8,6 +8,7 @@
           *ngFor="let opt of periodOptions"
           class="pill-btn"
           [class.active]="selectedPeriod === opt.value"
+          [attr.data-testid]="'e2e-recouvrement-period-' + opt.value"
           (click)="selectPeriod(opt.value)">
           {{ opt.label }}
         </button>
