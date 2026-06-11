@@ -199,3 +199,256 @@
     color: #666;
   }
 }
+
+/* --- RECEIPT MODAL OVERLAY --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.receipt-modal-container {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  width: 90%;
+  max-width: 450px;
+  overflow: hidden;
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  background-color: #003366;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.receipt-modal-body {
+  padding: 20px;
+  max-height: 65vh;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+}
+
+/* --- TICKET STYLING --- */
+.receipt-paper {
+  background-color: #fff;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  font-family: 'Courier New', Courier, monospace;
+  color: #000;
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 12px;
+
+  .company-name {
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #003366;
+    margin: 0 0 5px 0;
+    height: auto;
+    margin-top: 0;
+    letter-spacing: 0.5px;
+  }
+
+  .company-details {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    color: #555;
+    margin: 0;
+    font-weight: 600;
+  }
+}
+
+.receipt-divider {
+  border: none;
+  border-top: 1px dashed #000;
+  margin: 12px 0;
+}
+
+.receipt-meta {
+  font-size: 11px;
+  line-height: 1.4;
+
+  p {
+    margin: 3px 0;
+  }
+}
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 11px;
+
+  th {
+    border-bottom: 1px solid #000;
+    color: #000;
+    font-weight: bold;
+    padding: 4px 0;
+    text-transform: uppercase;
+  }
+
+  td {
+    padding: 6px 0;
+    border-bottom: 1px solid #f1f3f5;
+    vertical-align: top;
+  }
+}
+
+.receipt-totals {
+  font-size: 11px;
+
+  .totals-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+
+    &.highlight {
+      font-weight: bold;
+      border-top: 1px solid #000;
+      margin-top: 4px;
+      padding-top: 4px;
+    }
+
+    &.stake-row {
+      font-weight: bold;
+      background-color: #fff8f2;
+      padding: 4px 6px;
+      border-radius: 4px;
+      color: #c75000;
+    }
+
+    .total-val {
+      font-size: 13px;
+    }
+  }
+}
+
+.receipt-footer {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 11px;
+  line-height: 1.4;
+
+  p {
+    margin: 3px 0;
+  }
+}
+
+/* --- BUTTON ACTIONS --- */
+.receipt-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 20px;
+  background-color: #f1f3f5;
+  border-top: 1px solid #e9ecef;
+  gap: 10px;
+
+  .btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    margin-left: 0;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    &.btn-print {
+      background-color: #003366;
+      color: white;
+
+      &:hover {
+        background-color: #002244;
+        transform: translateY(-1px);
+      }
+    }
+
+    &.btn-save {
+      background-color: #1d8a3c;
+      color: white;
+
+      &:hover {
+        background-color: #15652c;
+        transform: translateY(-1px);
+      }
+    }
+
+    &.btn-close {
+      background-color: #6c757d;
+      color: white;
+
+      &:hover {
+        background-color: #5a6268;
+        transform: translateY(-1px);
+      }
+    }
+    
+    &:active {
+      transform: translateY(1px) !important;
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

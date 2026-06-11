@@ -84,4 +84,111 @@
       </button>
     </div>
   </form>
+
+  <!-- Modal pour Aperçu Reçu -->
+  <div class="modal-overlay" *ngIf="showReceiptModal">
+    <div class="modal-container receipt-modal-container">
+      <div class="modal-header">
+        <h2>Aperçu du reçu</h2>
+        <button class="close-btn" (click)="closeReceiptModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body receipt-modal-body">
+        <div id="print-receipt-content" class="receipt-paper">
+          <div class="receipt-header">
+            <h1 class="company-name">AMENOUVEVE-YAVEH</h1>
+            <p class="company-details">
+              REÇU DE DISTRIBUTION
+            </p>
+          </div>
+
+          <hr class="receipt-divider">
+
+          <div class="receipt-meta">
+            <p><strong>Référence :</strong> {{ receiptData.reference }}</p>
+            <p><strong>Date :</strong> {{ receiptData.date | date:'dd/MM/yyyy' }}</p>
+            <p><strong>Heure :</strong> {{ receiptData.date | date:'HH:mm' }}</p>
+          </div>
+
+          <hr class="receipt-divider">
+
+          <div class="receipt-meta">
+            <p *ngIf="receiptData.clientCode"><strong>Code Client :</strong> {{ receiptData.clientCode }}</p>
+            <p><strong>Client :</strong> {{ receiptData.clientName }}</p>
+            <p *ngIf="receiptData.clientAddress"><strong>Adresse :</strong> {{ receiptData.clientAddress }}</p>
+            <p *ngIf="receiptData.clientPhone"><strong>Téléphone :</strong> {{ receiptData.clientPhone }}</p>
+            <p><strong>Commercial :</strong> {{ receiptData.commercialName }}</p>
+          </div>
+
+          <hr class="receipt-divider">
+
+          <table class="receipt-table">
+            <thead>
+              <tr>
+                <th class="text-left">Article</th>
+                <th class="text-center">Qté</th>
+                <th class="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of receiptData.articles">
+                <td class="text-left">
+                  <strong>{{ item.name }}</strong><br>
+                  <small>{{ item.quantity }} x {{ item.unitPrice | number:'1.0-0' }}</small>
+                </td>
+                <td class="text-center">{{ item.quantity }}</td>
+                <td class="text-right">{{ item.totalPrice | number:'1.0-0' }} FCFA</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <hr class="receipt-divider">
+
+          <div class="receipt-totals">
+            <div class="totals-row highlight">
+              <span>TOTAL :</span>
+              <span class="total-val">{{ receiptData.totalAmount | number:'1.0-0' }} FCFA</span>
+            </div>
+            
+            <ng-container *ngIf="receiptData.saleType === 'CREDIT'">
+              <div class="totals-row stake-row">
+                <span>MISE JOURNALIÈRE :</span>
+                <span>{{ receiptData.dailyStake | number:'1.0-0' }} FCFA</span>
+              </div>
+              <div class="row totals-row">
+                <span>AVANCE :</span>
+                <span>{{ receiptData.advance | number:'1.0-0' }} FCFA</span>
+              </div>
+              <div class="totals-row highlight">
+                <span>NOUVEAU SOLDE :</span>
+                <span>{{ receiptData.remainingAmount | number:'1.0-0' }} FCFA</span>
+              </div>
+            </ng-container>
+          </div>
+
+          <hr class="receipt-divider">
+          
+          <div class="receipt-footer">
+            <p>Merci pour votre confiance!</p>
+            <p>Payez régulièrement vos mises</p>
+            <strong>!!!AMENOUVEVE-YAHVE!!!</strong>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-actions receipt-modal-actions">
+        <button type="button" class="btn btn-print" (click)="printReceipt()">
+          <mat-icon>print</mat-icon> Imprimer
+        </button>
+        <button type="button" class="btn btn-save" (click)="saveReceipt()">
+          <mat-icon>save</mat-icon> Enregistrer
+        </button>
+        <button type="button" class="btn btn-close" (click)="closeReceiptModal()">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

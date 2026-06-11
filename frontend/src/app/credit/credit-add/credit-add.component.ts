@@ -14,6 +14,8 @@ import { UserService } from '../../user/service/user.service';
 import { UserProfile } from '../../shared/models/user-profile.enum';
 import { CommercialStockService } from 'src/app/stock/services/commercial-stock.service';
 import { ToastrService } from 'ngx-toastr';
+import { saveAs } from 'file-saver';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 
 @Component({
   selector: 'app-credit-add',
@@ -30,6 +32,8 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   isPromoter = false;
   currentUser: any;
   saleType: 'CREDIT' | 'CASH' = 'CREDIT';
+  showReceiptModal = false;
+  receiptData: any = {};
 
   private subscriptions: Subscription[] = [];
 
@@ -46,7 +50,8 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userService: UserService,
     private commercialStockService: CommercialStockService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private featureFlagService: FeatureFlagService
   ) {
     this.tokenStorage.checkConnectedUser();
     this.creditForm = this.formBuilder.group({
@@ -428,9 +433,16 @@ export class CreditAddComponent implements OnInit, OnDestroy {
         next: (response) => {
           const body = response.body || response;
           if (body.statusCode === 200 || body.statusCode === 201) {
+            const isPrintEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.PrintReceiptAfterSale);
             const msg = this.creditId ? 'Vente mise à jour avec succès' : 'Vente ajoutée avec succès';
-            this.alertService.showSuccess(msg);
-            this.router.navigate(['/credit-list']);
+            if (isPrintEnabled) {
+              this.alertService.toastSuccess(msg);
+              const savedCredit = body.data;
+              this.openReceiptModal(savedCredit);
+            } else {
+              this.alertService.showSuccess(msg);
+              this.router.navigate(['/credit-list']);
+            }
           } else {
             this.alertService.showError(body.message || 'Une erreur est survenue');
           }
@@ -472,5 +484,413 @@ export class CreditAddComponent implements OnInit, OnDestroy {
         this.markFormGroupTouched(control);
       }
     });
+  }
+
+  openReceiptModal(savedCredit: any): void {
+    const formValue = this.creditForm.getRawValue();
+    const clientId = formValue.clientId;
+    const clientObj = this.clients.find(c => c.id === clientId);
+    const clientName = clientObj ? `${clientObj.firstname} ${clientObj.lastname}` : 'Client inconnu';
+    const clientPhone = clientObj?.phone || '';
+    const clientAddress = clientObj?.address || '';
+    const clientCode = clientObj?.code || '';
+    const commercialName = formValue.commercial || this.currentUser?.username || '';
+
+    const receiptArticles = (formValue.articles || []).map((item: any) => {
+      const art = this.articles.find(a => a.id === item.articleId);
+      const price = formValue.saleType === 'CREDIT' ? (art?.creditSalePrice || 0) : (art?.sellingPrice || 0);
+      return {
+        name: art?.commercialName || art?.name || 'Article inconnu',
+        quantity: item.quantity,
+        unitPrice: price,
+        totalPrice: price * item.quantity
+      };
+    });
+
+    const totalAmount = savedCredit?.totalAmount || formValue.totalAmount || 0;
+    const advance = savedCredit?.advance !== undefined ? savedCredit.advance : (formValue.advance || 0);
+    const remainingAmount = savedCredit?.totalAmountRemaining !== undefined 
+      ? savedCredit.totalAmountRemaining 
+      : (totalAmount - advance);
+    const dailyStake = savedCredit?.dailyStake !== undefined 
+      ? savedCredit.dailyStake 
+      : 0;
+
+    this.receiptData = {
+      reference: savedCredit?.reference || 'CSH-TEMP',
+      date: new Date(),
+      clientName: clientName,
+      clientPhone: clientPhone,
+      clientAddress: clientAddress,
+      clientCode: clientCode,
+      commercialName: commercialName,
+      articles: receiptArticles,
+      saleType: formValue.saleType,
+      totalAmount: totalAmount,
+      advance: advance,
+      remainingAmount: remainingAmount,
+      dailyStake: dailyStake
+    };
+
+    this.showReceiptModal = true;
+  }
+
+  closeReceiptModal(): void {
+    this.showReceiptModal = false;
+    this.router.navigate(['/credit-list']);
+  }
+
+  printReceipt(): void {
+    const printContent = document.getElementById('print-receipt-content');
+    if (!printContent) return;
+
+    const uniqueName = new Date().getTime();
+    const windowName = 'PrintWindow_' + uniqueName;
+    const printWindow = window.open('about:blank', windowName, 'left=100,top=100,width=800,height=900,toolbar=0,scrollbars=1,status=0');
+    
+    if (!printWindow) {
+      alert('Veuillez autoriser les popups pour imprimer le reçu.');
+      return;
+    }
+
+    const uniqueId = '#EL' + new Date().getTime().toString();
+    const formattedDate = new Date().toLocaleDateString('fr-FR');
+    const formattedTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Reçu de Vente - ${this.receiptData.reference}</title>
+          <style>
+            body {
+              font-family: 'Arial', sans-serif;
+              color: #000;
+              margin: 10px;
+              padding: 0;
+              background: #fff;
+              font-size: 12px;
+              line-height: 1.4;
+            }
+            .receipt-paper {
+              max-width: 300px;
+              margin: 0 auto;
+              padding: 10px;
+            }
+            .header, .separator, .footer {
+              text-align: center;
+            }
+            .header {
+              font-size: 14px;
+              font-weight: bold;
+              margin-bottom: 5px;
+            }
+            .separator {
+              border-top: 1px dashed #000;
+              margin: 10px 0;
+            }
+            .row {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 5px;
+            }
+            .row .value {
+              white-space: nowrap;
+              padding-left: 5px;
+              font-weight: bold;
+            }
+            .article-item {
+              margin-bottom: 8px;
+            }
+            .article-name {
+              font-weight: bold;
+              margin-bottom: 2px;
+            }
+            .article-details {
+              display: flex;
+              justify-content: space-between;
+              font-size: 11px;
+            }
+            .total-row {
+              font-weight: bold;
+            }
+            .footer {
+              margin-top: 15px;
+              font-size: 11px;
+            }
+            @media print {
+              body {
+                margin: 0;
+                padding: 0;
+              }
+              .receipt-paper {
+                max-width: 100%;
+                padding: 5px;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="receipt-paper">
+            <div class="header">
+              AMENOUVEVE-YAVEH<br>
+              RECU DE DISTRIBUTION
+            </div>
+            <p style="text-align:center;">----------------------------</p>
+            <div class="separator"></div>
+
+            <div class="row">
+              <span>Référence:</span>
+              <span class="value">${this.receiptData.reference}</span>
+            </div>
+            <div class="row">
+              <span>Date:</span>
+              <span class="value">${formattedDate}</span>
+            </div>
+            <div class="row">
+              <span>Heure:</span>
+              <span class="value">${formattedTime}</span>
+            </div>
+
+            <div class="separator"></div>
+            
+            <div style="margin-bottom: 10px;">
+              <strong>CLIENT:</strong><br>
+              ${this.receiptData.clientCode ? this.receiptData.clientCode + '<br>' : ''}
+              ${this.receiptData.clientName}<br>
+              ${this.receiptData.clientAddress ? this.receiptData.clientAddress + '<br>' : ''}
+              ${this.receiptData.clientPhone || ''}
+            </div>
+
+            <div style="margin-bottom: 10px;">
+              <strong>COMMERCIAL:</strong> ${this.receiptData.commercialName}
+            </div>
+
+            <div class="separator"></div>
+            
+            <div style="margin-bottom: 10px;"><strong>ARTICLES:</strong></div>
+            ${this.receiptData.articles.map((item: any) => `
+              <div class="article-item">
+                <div class="article-name">${item.name}</div>
+                <div class="row article-details">
+                  <span>${item.quantity} x ${item.unitPrice.toLocaleString('fr-FR')}</span>
+                  <span>${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>
+                </div>
+              </div>
+            `).join('')}
+
+            <div class="separator"></div>
+            <p style="text-align:center;">----------------------------</p>
+
+            <div class="row total-row">
+              <span>TOTAL:</span>
+              <span class="value">${this.receiptData.totalAmount.toLocaleString('fr-FR')} FCFA</span>
+            </div>
+            
+            ${this.receiptData.saleType === 'CREDIT' ? `
+              <p style="text-align:center;">----------------------------</p>
+              <div class="row total-row">
+                <span>MISE JOURNALIERE:</span>
+                <span class="value">${this.receiptData.dailyStake.toLocaleString('fr-FR')} FCFA</span>
+              </div>
+              <div class="row">
+                <span>AVANCE:</span>
+                <span class="value">${this.receiptData.advance.toLocaleString('fr-FR')} FCFA</span>
+              </div>
+              <div class="row total-row">
+                <span>NOUVEAU SOLDE:</span>
+                <span class="value">${this.receiptData.remainingAmount.toLocaleString('fr-FR')} FCFA</span>
+              </div>
+            ` : ''}
+
+            <div class="separator"></div>
+            <div class="footer">
+              <p>Merci pour votre confiance!</p>
+              <p>Payez régulièrement vos mises</p>
+              <strong>!!!AMENOUVEVE-YAHVE!!!</strong>
+              <p>${uniqueId}</p>
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.focus();
+              window.print();
+              window.close();
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+
+  saveReceipt(): void {
+    const uniqueId = '#EL' + new Date().getTime().toString();
+    const formattedDate = new Date().toLocaleDateString('fr-FR');
+    const formattedTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Reçu de Vente - ${this.receiptData.reference}</title>
+          <style>
+            body {
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              color: #333;
+              margin: 20px;
+              padding: 0;
+              background: #f4f6f9;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+            }
+            .receipt-paper {
+              width: 100%;
+              max-width: 400px;
+              background: #fff;
+              border: 1px solid #e1e4e8;
+              padding: 25px;
+              box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+              border-radius: 10px;
+            }
+            .header, .separator, .footer {
+              text-align: center;
+            }
+            .header {
+              font-size: 18px;
+              font-weight: 800;
+              color: #003366;
+              margin-bottom: 5px;
+            }
+            .separator {
+              border-top: 1px dashed #ccc;
+              margin: 15px 0;
+            }
+            .row {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 6px;
+              font-size: 13px;
+            }
+            .row .value {
+              font-weight: bold;
+            }
+            .article-item {
+              margin-bottom: 10px;
+              background: #f8f9fa;
+              padding: 8px;
+              border-radius: 6px;
+            }
+            .article-name {
+              font-weight: bold;
+              margin-bottom: 4px;
+              font-size: 13px;
+            }
+            .article-details {
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+              color: #555;
+            }
+            .total-row {
+              font-weight: bold;
+              font-size: 14px;
+              border-top: 1px solid #eee;
+              padding-top: 6px;
+            }
+            .footer {
+              margin-top: 20px;
+              font-size: 12px;
+              color: #666;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="receipt-paper">
+            <div class="header">
+              AMENOUVEVE-YAVEH<br>
+              REÇU DE VENTE
+            </div>
+            <div class="separator"></div>
+
+            <div class="row">
+              <span>Référence:</span>
+              <span class="value">${this.receiptData.reference}</span>
+            </div>
+            <div class="row">
+              <span>Date:</span>
+              <span class="value">${formattedDate}</span>
+            </div>
+            <div class="row">
+              <span>Heure:</span>
+              <span class="value">${formattedTime}</span>
+            </div>
+
+            <div class="separator"></div>
+            
+            <div style="margin-bottom: 12px; font-size: 13px;">
+              <strong>CLIENT:</strong><br>
+              ${this.receiptData.clientCode ? 'Code: ' + this.receiptData.clientCode + '<br>' : ''}
+              ${this.receiptData.clientName}<br>
+              ${this.receiptData.clientAddress ? this.receiptData.clientAddress + '<br>' : ''}
+              ${this.receiptData.clientPhone || ''}
+            </div>
+
+            <div style="margin-bottom: 12px; font-size: 13px;">
+              <strong>COMMERCIAL:</strong> ${this.receiptData.commercialName}
+            </div>
+
+            <div class="separator"></div>
+            
+            <div style="margin-bottom: 10px; font-size: 13px;"><strong>ARTICLES:</strong></div>
+            ${this.receiptData.articles.map((item: any) => `
+              <div class="article-item">
+                <div class="article-name">${item.name}</div>
+                <div class="row article-details">
+                  <span>${item.quantity} x ${item.unitPrice.toLocaleString('fr-FR')}</span>
+                  <span>${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>
+                </div>
+              </div>
+            `).join('')}
+
+            <div class="separator"></div>
+
+            <div class="row total-row">
+              <span>TOTAL:</span>
+              <span class="value">${this.receiptData.totalAmount.toLocaleString('fr-FR')} FCFA</span>
+            </div>
+            
+            ${this.receiptData.saleType === 'CREDIT' ? `
+              <div class="row">
+                <span>MISE JOURNALIÈRE:</span>
+                <span class="value">${this.receiptData.dailyStake.toLocaleString('fr-FR')} FCFA</span>
+              </div>
+              <div class="row">
+                <span>AVANCE:</span>
+                <span class="value">${this.receiptData.advance.toLocaleString('fr-FR')} FCFA</span>
+              </div>
+              <div class="row total-row">
+                <span>NOUVEAU SOLDE:</span>
+                <span class="value">${this.receiptData.remainingAmount.toLocaleString('fr-FR')} FCFA</span>
+              </div>
+            ` : ''}
+
+            <div class="separator"></div>
+            <div class="footer">
+              <p>Merci pour votre confiance!</p>
+              <p>Payez régulièrement vos mises</p>
+              <strong>!!!AMENOUVEVE-YAHVE!!!</strong>
+              <p style="font-size: 10px; color: #999; margin-top: 10px;">${uniqueId}</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    saveAs(blob, `recu_vente_${this.receiptData.reference}.html`);
   }
 }

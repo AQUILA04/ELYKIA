@@ -15,6 +15,7 @@ export enum FeatureFlags {
   EndOfMonthAlerts = 'endOfMonthAlerts',
   InventoryReconciliationMultiSelect = 'inventoryReconciliationMultiSelect',
   MonthlyReports = 'monthlyReports',
+  PrintReceiptAfterSale = 'printReceiptAfterSale',
 }
 
 const REMOTE_CONFIG_FETCH_TIMEOUT_MS = 10_000;
@@ -30,6 +31,7 @@ export class FeatureFlagService {
     [FeatureFlags.EndOfMonthAlerts]: false,
     [FeatureFlags.InventoryReconciliationMultiSelect]: false,
     [FeatureFlags.MonthlyReports]: false,
+    [FeatureFlags.PrintReceiptAfterSale]: false,
   };
 
   private flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);
