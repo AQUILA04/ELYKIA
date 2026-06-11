@@ -72,6 +72,7 @@ graph TD
 - `setup-server.sh` - Script de configuration initiale du serveur (création des dossiers, réseau Docker, templates `.env`, répertoires `photos/pending`).
 - `setup-rclone.sh` - Installation de rclone et déploiement de `rclone.conf` (une seule fois, depuis `RCLONE_CONF`).
 - `db_backup_upload.sh` - Compression et upload du backup prod vers Google Drive (après le cron du soir).
+- `db_restore_from_drive.sh` - Reprise d'activité : télécharge le dernier backup prod depuis Drive et restaure via `import-db.sh`.
 - `deploy.sh` - Script pour déployer une paire d'images (frontend/backend) et enregistrer la release.
 - `rollback.sh` - Script pour revenir à une release précédente.
 - `import-db.sh` - Script pour importer un dump SQL dans le container Postgres.
@@ -225,6 +226,14 @@ Test manuel de l'upload :
 ```bash
 cd /opt/elykia/deploy
 ./db_backup_upload.sh
+```
+
+Restauration manuelle depuis le dernier backup Drive (incident) :
+```bash
+cd /opt/elykia/deploy
+RCLONE_CONFIG=/home/deploy/.config/rclone/rclone.conf ./db_restore_from_drive.sh prod
+# ou avec container explicite :
+RCLONE_CONFIG=/home/deploy/.config/rclone/rclone.conf ./db_restore_from_drive.sh prod elykia-prod-db-1
 ```
 
 ## Monitoring et Alerting
