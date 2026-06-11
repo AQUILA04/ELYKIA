@@ -1,45 +1,87 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; color: #222; }
-        h1, h2 { margin: 8px 0; }
-        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-        th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-    </style>
+    <title>Rapport Mensuel Commercial</title>
+    <style th:replace="~{monthly-report-styles :: styles}"></style>
 </head>
 <body>
-<h1>Rapport mensuel commercial</h1>
-<p>
-    Commercial: <strong th:text="${snapshot.commercialUsername}"></strong> -
-    Mois: <strong th:text="${snapshot.month} + '/' + ${snapshot.year}"></strong>
-</p>
+<div class="header">
+    <h1 th:text="${companyName}">AMENOUVEVE - YAVEH</h1>
+    <h2>Rapport Mensuel Commercial</h2>
+    <div class="info">
+        <p><strong>Commercial :</strong> <span th:text="${snapshot.commercialUsername}"></span></p>
+        <p>
+            <strong>Période :</strong>
+            <span th:text="${snapshot.month} + '/' + ${snapshot.year}"></span>
+        </p>
+        <p><strong>Généré le :</strong> <span th:text="${generationDate}"></span></p>
+    </div>
+</div>
 
-<h2>Timeline mouvements stock et marges</h2>
-<table>
-    <thead>
-    <tr>
-        <th>Date</th>
-        <th>Article</th>
-        <th>Type</th>
-        <th>Qté</th>
-        <th>PA unit.</th>
-        <th>PV unit.</th>
-        <th>Marge</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="line : ${timeline}">
-        <td th:text="${line.operationDate}"></td>
-        <td th:text="${line.articleName}"></td>
-        <td th:text="${line.movementType}"></td>
-        <td th:text="${line.quantityMoved}"></td>
-        <td th:text="${line.unitPurchasePrice}"></td>
-        <td th:text="${line.unitSalePrice}"></td>
-        <td th:text="${line.marginAmount}"></td>
-    </tr>
-    </tbody>
-</table>
+<div class="table-section" th:if="${!#lists.isEmpty(snapshot.dailySummary)}">
+    <h3>Activité mensuelle</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th class="text-right">Ventes crédit</th>
+            <th class="text-right">Marge crédit</th>
+            <th class="text-right">Demandes stock</th>
+            <th class="text-right">Marge stock</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="day : ${snapshot.dailySummary}">
+            <td th:text="${day.date}"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(day.creditSalesAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(day.creditSalesMargin, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(day.totalStockRequestAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(day.stockRequestMargin, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="table-section">
+    <h3>Mouvements de stock et marges</h3>
+    <table th:if="${!#lists.isEmpty(timeline)}">
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>Article</th>
+            <th>Opération</th>
+            <th class="text-center">Qté</th>
+            <th class="text-right">PA unit.</th>
+            <th class="text-right">PV unit.</th>
+            <th class="text-right">Marge</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="line : ${timeline}">
+            <td th:text="${#temporals.format(line.operationDate, 'dd/MM/yyyy HH:mm')}"></td>
+            <td th:text="${line.articleName} ?: '-'"></td>
+            <td th:text="${line.movementTypeLabel}"></td>
+            <td class="text-center" th:text="${line.quantityMoved}"></td>
+            <td class="text-right"
+                th:text="${line.unitPurchasePrice != null ? #numbers.formatDecimal(line.unitPurchasePrice, 1, 'WHITESPACE', 0, 'COMMA') + ' FCFA' : '-'}"></td>
+            <td class="text-right"
+                th:text="${line.unitSalePrice != null ? #numbers.formatDecimal(line.unitSalePrice, 1, 'WHITESPACE', 0, 'COMMA') + ' FCFA' : '-'}"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(line.marginAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+        </tr>
+        </tbody>
+    </table>
+    <p class="no-data" th:if="${#lists.isEmpty(timeline)}">Aucune donnée disponible</p>
+</div>
+
+<div class="footer">
+    <p>Document généré le <span th:text="${generationDate}"></span></p>
+    <p>&copy; ELYKIA - Tous droits réservés</p>
+</div>
 </body>
 </html>

@@ -27,6 +27,8 @@ mkdir -p /opt/elykia/traefik
 mkdir -p /opt/elykia/test/logs
 mkdir -p /opt/elykia/prod/logs
 mkdir -p /opt/elykia/tools
+mkdir -p /opt/elykia/test/photos/pending
+mkdir -p /opt/elykia/prod/photos/pending
 
 # acme.json must exist and be chmod 600 for Traefik to accept it
 touch /opt/elykia/traefik/acme.json
@@ -99,6 +101,14 @@ LOG_PATH=/opt/elykia/test/logs
 API_URL=https://elykia-test.amenouveve-yaveh.com/api
 GA_MEASUREMENT_ID=
 
+# MinIO
+MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+MINIO_ROOT_PASSWORD='${MINIO_ROOT_PASSWORD:-change_me_minio_password}'
+MINIO_BUCKET=${MINIO_BUCKET:-elykia-clients}
+MINIO_REPORTS_BUCKET=${MINIO_REPORTS_BUCKET:-elykia-reports}
+MINIO_PUBLIC_URL=${MINIO_PUBLIC_URL:-https://minio-test-api.amenouveve-yaveh.com}
+PHOTO_FALLBACK_PATH_HOST=${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/test/photos/pending}
+
 # Populated automatically by deploy.sh — do not edit manually
 FRONTEND_IMAGE=
 BACKEND_IMAGE=
@@ -125,6 +135,14 @@ LOG_PATH=/opt/elykia/prod/logs
 
 API_URL=https://elykia.amenouveve-yaveh.com/api
 GA_MEASUREMENT_ID=
+
+# MinIO
+MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+MINIO_ROOT_PASSWORD='${MINIO_ROOT_PASSWORD:-change_me_strong_minio_password}'
+MINIO_BUCKET=${MINIO_BUCKET:-elykia-clients}
+MINIO_REPORTS_BUCKET=${MINIO_REPORTS_BUCKET:-elykia-reports}
+MINIO_PUBLIC_URL=${MINIO_PUBLIC_URL:-https://minio-api.amenouveve-yaveh.com}
+PHOTO_FALLBACK_PATH_HOST=${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/prod/photos/pending}
 
 # Populated automatically by deploy.sh — do not edit manually
 FRONTEND_IMAGE=

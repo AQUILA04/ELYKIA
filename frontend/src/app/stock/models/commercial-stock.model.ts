@@ -1,3 +1,13 @@
+export interface StockRecoverySummary {
+  totalDueAmount: number;
+  totalRecoveredAmount: number;
+  totalRemainingAmount: number;
+  recoveryRatePercent: number;
+  remainingFromPhysicalStock: number;
+  recoveredFromSales: number;
+  remainingFromCredits: number;
+}
+
 export interface CommercialMonthlyStockItem {
   id?: number;
   article: any;
@@ -17,4 +27,5 @@ export interface CommercialMonthlyStock {
   month: number;
   year: number;
   items: CommercialMonthlyStockItem[];
+  recoverySummary?: StockRecoverySummary;
 }

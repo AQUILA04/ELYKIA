@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.service.report.monthly;
 
 import com.optimize.elykia.core.entity.stock.CommercialStockMovement;
+import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.repository.CommercialStockMovementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class CommercialStockTraceabilityService {
             Map<String, Object> line = new LinkedHashMap<>();
             line.put("operationDate", movement.getOperationDate());
             line.put("articleName", movement.getArticle() != null ? movement.getArticle().getCommercialName() : null);
-            line.put("movementType", movement.getMovementType());
+            line.put("movementTypeLabel", movementTypeLabel(movement.getMovementType()));
             line.put("quantityBefore", movement.getQuantityBefore());
             line.put("quantityMoved", movement.getQuantityMoved());
             line.put("quantityAfter", movement.getQuantityAfter());
@@ -42,10 +43,21 @@ public class CommercialStockTraceabilityService {
             double margin = Optional.ofNullable(movement.getMarginAmount())
                     .orElse(marginCalculator.lineMargin(unitSale, unitPurchase, quantity));
             line.put("marginAmount", margin);
-            line.put("sourceType", movement.getSourceType());
-            line.put("sourceId", movement.getSourceId());
             timeline.add(line);
         }
         return timeline;
+    }
+
+    private String movementTypeLabel(CommercialStockMovementType type) {
+        if (type == null) {
+            return "-";
+        }
+        return switch (type) {
+            case CREDIT_SALE -> "Vente à crédit";
+            case CASH_SALE -> "Vente comptant";
+            case STOCK_IN -> "Entrée stock";
+            case RETURN -> "Retour";
+            case ADJUSTMENT -> "Ajustement";
+        };
     }
 }

@@ -4,6 +4,37 @@
 # Stop:   docker compose -f docker-compose.prod.yml --project-name elykia-prod down
 
 services:
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - internal
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # Console UI
+      - "traefik.http.routers.elykia-prod-minio-console.rule=Host(`minio.amenouveve-yaveh.com`)"
+      - "traefik.http.routers.elykia-prod-minio-console.entrypoints=websecure"
+      - "traefik.http.routers.elykia-prod-minio-console.tls.certresolver=letsencrypt"
+      - "traefik.http.services.elykia-prod-minio-console.loadbalancer.server.port=9001"
+      # API
+      - "traefik.http.routers.elykia-prod-minio-api.rule=Host(`minio-api.amenouveve-yaveh.com`)"
+      - "traefik.http.routers.elykia-prod-minio-api.entrypoints=websecure"
+      - "traefik.http.routers.elykia-prod-minio-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.elykia-prod-minio-api.loadbalancer.server.port=9000"
+
   db:
     image: postgres:15
     restart: unless-stopped
@@ -38,8 +69,16 @@ services:
       LOKI_API_KEY: ${LOKI_API_KEY:-}
       SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-false}
       SECURITY_CONFIG_ALLOW_ORIGIN: ${SECURITY_ALLOWED_ORIGINS:-https://elykia.amenouveve-yaveh.com,http://localhost,capacitor://localhost,http://localhost:8100,https://localhost,ionic://localhost}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET:-elykia-clients}
+      MINIO_REPORTS_BUCKET: ${MINIO_REPORTS_BUCKET:-elykia-reports}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://minio-api.amenouveve-yaveh.com}
+      PHOTO_FALLBACK_PATH: /opt/elykia/photos/pending
     volumes:
       - ${LOG_PATH:-/opt/elykia/prod/logs}:/home/app/.optimize-elykia-core/logs
+      - ${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/prod/photos/pending}:/opt/elykia/photos/pending
     networks:
       - internal
       - traefik-public
@@ -76,6 +115,7 @@ services:
 
 volumes:
   db_data:
+  minio_data:
 
 networks:
   internal:

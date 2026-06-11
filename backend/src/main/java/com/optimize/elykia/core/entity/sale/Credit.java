@@ -12,6 +12,7 @@ import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.RiskLevel;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
+import com.optimize.elykia.core.util.CreditArticleUnitPricePolicy;
 import com.optimize.elykia.core.util.MoneyUtil;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -145,8 +146,10 @@ public class Credit extends BaseEntity<String> {
 
     @PrePersist
     public void setUp() {
-        // Le montant total des articles est calculé
+        // Le montant total des articles est calculé (sauf vente déjà démarrée : montant figé)
+        if (!CreditArticleUnitPricePolicy.isUnitPriceFrozen(this.status)) {
             this.totalAmount = getTotalAmountByCalcul();
+        }
         // --- LOGIQUE DE L'AVANCE MODIFIÉE ---
 
 
@@ -162,34 +165,39 @@ public class Credit extends BaseEntity<String> {
     public Double getTotalAmountByCalcul() {
         if (Objects.nonNull(articles) && !articles.isEmpty()) {
             this.totalPurchase = this.calculTotalPurchase();
-            if (OperationType.CREDIT.equals(this.type)) {
-                return articles.stream()
-                        .mapToDouble(creditArticles -> {
-                            Double unitPrice = creditArticles.getUnitPrice();
-                            if (unitPrice == null || unitPrice <= 0) {
-                                unitPrice = creditArticles.getArticles().getCreditSalePrice();
-                            }
-                            return unitPrice * creditArticles.getQuantity();
-                        })
-                        .sum();
-            } else if (OperationType.CASH.equals(this.type)) {
-                return articles.stream()
-                        .mapToDouble(creditArticles ->
-                                (creditArticles.
-                                        getUnitPrice() * creditArticles.getQuantity()))
-                        .sum();
-            } else {
-                return articles.stream()
-                        .mapToDouble(creditArticles ->
-                                (creditArticles.
-                                        getUnitPrice() * creditArticles.getQuantity()))
-                        .sum();
-            }
+            return articles.stream()
+                    .mapToDouble(creditArticles ->
+                            resolveArticleLineUnitPrice(creditArticles) * creditArticles.getQuantity())
+                    .sum();
 
 
         }
         if (Objects.nonNull(this.totalAmount)) {
             return this.totalAmount;
+        }
+        return 0D;
+    }
+
+    @JsonIgnore
+    private double resolveArticleLineUnitPrice(CreditArticles creditArticles) {
+        Double unitPrice = creditArticles.getUnitPrice();
+        if (unitPrice != null && unitPrice > 0) {
+            return unitPrice;
+        }
+        if (CreditArticleUnitPricePolicy.isUnitPriceFrozen(this.status)) {
+            return 0D;
+        }
+        if (creditArticles.getArticles() != null) {
+            double creditSalePrice = creditArticles.getArticles().getCreditSalePrice();
+            if (creditSalePrice > 0) {
+                return creditSalePrice;
+            }
+            if (OperationType.CASH.equals(this.type)) {
+                double sellingPrice = creditArticles.getArticles().getSellingPrice();
+                if (sellingPrice > 0) {
+                    return sellingPrice;
+                }
+            }
         }
         return 0D;
     }

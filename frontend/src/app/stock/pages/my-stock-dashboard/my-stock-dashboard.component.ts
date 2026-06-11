@@ -116,8 +116,23 @@ export class MyStockDashboardComponent implements OnInit {
   }
 
   getTotalDueValue(stock: CommercialMonthlyStock): number {
+    if (stock?.recoverySummary) {
+      return stock.recoverySummary.totalDueAmount;
+    }
     if (!stock || !stock.items) return 0;
     return this.getTotalStockValue(stock) + this.getTotalSoldValue(stock);
+  }
+
+  getTotalRecoveredValue(stock: CommercialMonthlyStock): number {
+    return stock?.recoverySummary?.totalRecoveredAmount ?? 0;
+  }
+
+  getTotalRemainingToRecoverValue(stock: CommercialMonthlyStock): number {
+    return stock?.recoverySummary?.totalRemainingAmount ?? 0;
+  }
+
+  getRecoveryRate(stock: CommercialMonthlyStock): number {
+    return stock?.recoverySummary?.recoveryRatePercent ?? 0;
   }
 
   getMonthName(monthNumber: number): string {

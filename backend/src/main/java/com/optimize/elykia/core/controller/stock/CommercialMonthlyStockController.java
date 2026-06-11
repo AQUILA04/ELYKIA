@@ -34,7 +34,8 @@ public class CommercialMonthlyStockController {
     @GetMapping("/current/{collector}")
     public ResponseEntity<CommercialMonthlyStock> getCurrentMonthStock(@PathVariable String collector) {
         LocalDate now = LocalDate.now();
-        return ResponseEntity.of(repository.findByCollectorAndMonthAndYear(collector, now.getMonthValue(), now.getYear()));
+        return ResponseEntity.of(monthlyStockService.findEnrichedByCollectorAndMonthAndYear(
+                collector, now.getMonthValue(), now.getYear()));
     }
     
     @GetMapping("/{collector}/{year}/{month}")
@@ -42,7 +43,7 @@ public class CommercialMonthlyStockController {
             @PathVariable String collector,
             @PathVariable Integer year,
             @PathVariable Integer month) {
-        return ResponseEntity.of(repository.findByCollectorAndMonthAndYear(collector, month, year));
+        return ResponseEntity.of(monthlyStockService.findEnrichedByCollectorAndMonthAndYear(collector, month, year));
     }
 
     @GetMapping("/available/{collector}")

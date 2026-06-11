@@ -30,11 +30,11 @@ public class MonthlyReportController {
     @GetMapping("/{fileId}/download")
     @PreAuthorize("hasAnyRole('ROLE_REPORT')")
     public ResponseEntity<byte[]> download(@PathVariable Long fileId) {
-        byte[] content = facadeService.download(fileId);
+        var file = facadeService.getFileForDownload(fileId);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=monthly-report.pdf")
-                .body(content);
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.fileName() + "\"")
+                .body(file.content());
     }
 
     @PostMapping("/generate")

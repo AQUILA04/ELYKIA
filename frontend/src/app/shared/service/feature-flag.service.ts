@@ -29,7 +29,7 @@ export class FeatureFlagService {
     [FeatureFlags.NextMonthStockCreation]: false,
     [FeatureFlags.EndOfMonthAlerts]: false,
     [FeatureFlags.InventoryReconciliationMultiSelect]: false,
-    [FeatureFlags.MonthlyReports]: false,
+    [FeatureFlags.MonthlyReports]: true,
   };
 
   private flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);

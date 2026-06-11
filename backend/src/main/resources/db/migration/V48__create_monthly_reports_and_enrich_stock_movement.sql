@@ -1,5 +1,10 @@
 CREATE TABLE IF NOT EXISTS monthly_report_run (
     id BIGSERIAL PRIMARY KEY,
+    reg_user_id VARCHAR(50) NOT NULL,
+    date_reg TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL,
+    mod_user_id VARCHAR(50),
+    date_mod TIMESTAMP(6) WITHOUT TIME ZONE,
+    visibility VARCHAR(255) NOT NULL DEFAULT 'ENABLED',
     year INTEGER NOT NULL,
     month INTEGER NOT NULL,
     status VARCHAR(50) NOT NULL,
@@ -10,42 +15,42 @@ CREATE TABLE IF NOT EXISTS monthly_report_run (
     total_commercial_count INTEGER DEFAULT 0,
     completed_commercial_count INTEGER DEFAULT 0,
     error_message TEXT,
-    created_by VARCHAR(255),
-    created_date TIMESTAMP,
-    modified_by VARCHAR(255),
-    modified_date TIMESTAMP,
-    visibility VARCHAR(255) DEFAULT 'ENABLED',
     CONSTRAINT uk_monthly_report_run_month UNIQUE (year, month)
 );
 
 CREATE TABLE IF NOT EXISTS monthly_report_file (
     id BIGSERIAL PRIMARY KEY,
+    reg_user_id VARCHAR(50) NOT NULL,
+    date_reg TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL,
+    mod_user_id VARCHAR(50),
+    date_mod TIMESTAMP(6) WITHOUT TIME ZONE,
+    visibility VARCHAR(255) NOT NULL DEFAULT 'ENABLED',
     run_id BIGINT NOT NULL REFERENCES monthly_report_run(id) ON DELETE CASCADE,
     report_type VARCHAR(30) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     storage_bucket VARCHAR(255) NOT NULL,
     storage_key VARCHAR(500) NOT NULL,
-    commercial_username VARCHAR(255),
-    created_by VARCHAR(255),
-    created_date TIMESTAMP,
-    modified_by VARCHAR(255),
-    modified_date TIMESTAMP,
-    visibility VARCHAR(255) DEFAULT 'ENABLED'
+    commercial_username VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS monthly_report_snapshot (
     id BIGSERIAL PRIMARY KEY,
+    reg_user_id VARCHAR(50) NOT NULL,
+    date_reg TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL,
+    mod_user_id VARCHAR(50),
+    date_mod TIMESTAMP(6) WITHOUT TIME ZONE,
+    visibility VARCHAR(255) NOT NULL DEFAULT 'ENABLED',
     run_id BIGINT NOT NULL REFERENCES monthly_report_run(id) ON DELETE CASCADE,
-    data JSONB NOT NULL,
-    created_by VARCHAR(255),
-    created_date TIMESTAMP,
-    modified_by VARCHAR(255),
-    modified_date TIMESTAMP,
-    visibility VARCHAR(255) DEFAULT 'ENABLED'
+    data JSONB NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS monthly_report_outbox_entry (
     id BIGSERIAL PRIMARY KEY,
+    reg_user_id VARCHAR(50) NOT NULL,
+    date_reg TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL,
+    mod_user_id VARCHAR(50),
+    date_mod TIMESTAMP(6) WITHOUT TIME ZONE,
+    visibility VARCHAR(255) NOT NULL DEFAULT 'ENABLED',
     run_id BIGINT NOT NULL REFERENCES monthly_report_run(id) ON DELETE CASCADE,
     file_type VARCHAR(30) NOT NULL,
     commercial_username VARCHAR(255),
@@ -55,12 +60,7 @@ CREATE TABLE IF NOT EXISTS monthly_report_outbox_entry (
     status VARCHAR(30) NOT NULL,
     retry_count INTEGER DEFAULT 0,
     last_attempt_at TIMESTAMP,
-    error_message TEXT,
-    created_by VARCHAR(255),
-    created_date TIMESTAMP,
-    modified_by VARCHAR(255),
-    modified_date TIMESTAMP,
-    visibility VARCHAR(255) DEFAULT 'ENABLED'
+    error_message TEXT
 );
 
 ALTER TABLE commercial_stock_movement

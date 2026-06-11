@@ -30,6 +30,8 @@ import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
 import com.optimize.elykia.core.service.bi.BiAggregationService;
 import com.optimize.elykia.core.service.stock.StockMovementService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
+import com.optimize.elykia.core.util.CreditArticleUnitPricePolicy;
+import com.optimize.elykia.core.util.CommercialMonthlyStockCashSalePricing;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.SneakyThrows;
@@ -175,7 +177,7 @@ public class CreditService extends GenericService<Credit, Long> {
         if (Objects.isNull(credit.getId())) {
             credit.getArticles().forEach(article -> {
                 article.setArticles(articlesService.getById(article.getArticlesId()));
-                article.setUnitPrice(article.getArticles().getSellingPrice());
+                article.setUnitPrice(CommercialMonthlyStockCashSalePricing.resolveSaleUnitPrice(article));
             });
         }
 
@@ -328,7 +330,7 @@ public class CreditService extends GenericService<Credit, Long> {
 
         credit.getArticles().forEach(article -> {
             article.setArticles(articlesService.getById(article.getArticlesId()));
-            article.setUnitPrice(article.getArticles().getSellingPrice());
+            article.setUnitPrice(CommercialMonthlyStockCashSalePricing.resolveSaleUnitPrice(article));
         });
 
         credit.setTotalAmount(credit.getTotalAmountByCalcul());
@@ -433,6 +435,9 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     private void setCommercialPricing(CreditArticles article, Articles oneArticle, LocalDate now, String collector) {
+        if (!CreditArticleUnitPricePolicy.isUnitPriceMutable(article)) {
+            return;
+        }
         Double unitPrice = commercialMonthlyStockItemRepository
                 .getUnitPriceByArticleId(oneArticle.getId(), now.getMonthValue(), now.getYear(), collector);
         if (unitPrice == null || unitPrice <= 0) {
@@ -454,6 +459,9 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     private void applyDistributionPricingFromStock(Credit credit, CommercialMonthlyStock monthlyStock) {
+        if (CreditArticleUnitPricePolicy.isUnitPriceFrozen(credit.getStatus())) {
+            return;
+        }
         credit.getArticles().forEach(creditArticle -> {
             CommercialMonthlyStockItem stockItem = monthlyStock.getItems().stream()
                     .filter(item -> item.getArticle().getId().equals(creditArticle.getArticlesId()))
@@ -588,7 +596,9 @@ public class CreditService extends GenericService<Credit, Long> {
                         "Prix moyen de vente à crédit indisponible dans le stock commercial pour l'article : "
                                 + stockItem.getArticle().getCommercialName());
             }
-            creditArticles.setUnitPrice(saleUnitPrice);
+            if (CreditArticleUnitPricePolicy.isUnitPriceMutable(creditArticles)) {
+                creditArticles.setUnitPrice(saleUnitPrice);
+            }
             double newTotalSold = currentTotalSold + (creditArticles.getQuantity() * saleUnitPrice);
             stockItem.setTotalSoldValue(newTotalSold);
             stockItem.setTotalMargeValue(currentTotalMarge + (creditArticles.getQuantity() * stockItem.getWeightedAveragePurchasePrice()));
@@ -746,11 +756,15 @@ public class CreditService extends GenericService<Credit, Long> {
                 // Pour une vente CASH, on considère que c'est pris du stock ET vendu
                 stockItem.setQuantityTaken(stockItem.getQuantityTaken() + creditArticle.getQuantity());
                 stockItem.setQuantitySold(stockItem.getQuantitySold() + creditArticle.getQuantity());
-                double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0
-                        : stockItem.getTotalSoldValue();
-                double saleUnitPrice = creditArticle.getUnitPrice() != null ? creditArticle.getUnitPrice() : 0.0;
-                double newTotalSold = currentTotalSold + (creditArticle.getQuantity() * saleUnitPrice);
-                stockItem.setTotalSoldValue(newTotalSold);
+
+                double saleUnitPrice = CommercialMonthlyStockCashSalePricing.resolveSaleUnitPrice(creditArticle);
+                CommercialMonthlyStockCashSalePricing.ensureCreditArticleUnitPrice(creditArticle, saleUnitPrice);
+                CommercialMonthlyStockCashSalePricing.initializeStockItemPricingIfAbsent(
+                        stockItem, saleUnitPrice, creditArticle.getArticles());
+
+                double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0 : stockItem.getTotalSoldValue();
+                double newTotalSold = CommercialMonthlyStockCashSalePricing.applySoldValueAndMargin(
+                        stockItem, creditArticle.getQuantity(), saleUnitPrice);
                 stockItem.updateRemaining();
 
                 double stockPmp = stockItem.getWeightedAverageUnitPrice() == null ? 0.0

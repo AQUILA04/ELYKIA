@@ -1,7 +1,7 @@
 README déploiement — ELYKIA
 =================================
 
-Ce dossier contient les scripts et les fichiers docker-compose pour déployer l'infrastructure ELYKIA (frontend, backend, base de données) sur un serveur Ubuntu, en utilisant **Traefik** comme reverse proxy.
+Ce dossier contient les scripts et les fichiers docker-compose pour déployer l'infrastructure ELYKIA (frontend, backend, base de données, **MinIO S3**) sur un serveur Ubuntu, en utilisant **Traefik** comme reverse proxy.
 
 ## Architecture de Déploiement
 
@@ -19,16 +19,20 @@ graph TD
             FE_Test[Frontend Test]
             BE_Test[Backend Test]
             DB_Test[("Postgres Test")]
+            MinIO_Test[("MinIO S3 Test")]
             FE_Test -.-> BE_Test
             BE_Test -.-> DB_Test
+            BE_Test -.->|photos / rapports| MinIO_Test
         end
         
         subgraph Stack Prod
             FE_Prod[Frontend Prod]
             BE_Prod[Backend Prod]
             DB_Prod[("Postgres Prod")]
+            MinIO_Prod[("MinIO S3 Prod")]
             FE_Prod -.-> BE_Prod
             BE_Prod -.-> DB_Prod
+            BE_Prod -.->|photos / rapports| MinIO_Prod
         end
 
         subgraph Stack Tools
@@ -38,9 +42,11 @@ graph TD
     
     Traefik -->|elykia-test.domain| FE_Test
     Traefik -->|elykia-test.domain/api| BE_Test
+    Traefik -->|minio-test.domain| MinIO_Test
     
     Traefik -->|elykia.domain| FE_Prod
     Traefik -->|elykia.domain/api| BE_Prod
+    Traefik -->|minio.domain| MinIO_Prod
 
     Traefik -->|db.domain| PgAdmin
     PgAdmin -.-> DB_Test
@@ -52,17 +58,18 @@ graph TD
     classDef tools fill:#efe,stroke:#333,stroke-width:1px;
     
     class Traefik proxy;
-    class FE_Test,BE_Test,DB_Test test;
-    class FE_Prod,BE_Prod,DB_Prod prod;
+    class FE_Test,BE_Test,MinIO_Test,DB_Test test;
+    class FE_Prod,BE_Prod,MinIO_Prod,DB_Prod prod;
     class PgAdmin tools;
 ```
 
 ## Structure du dossier
 - `docker-compose.traefik.yml` - Compose pour le reverse proxy Traefik (à lancer une seule fois).
-- `docker-compose.test.yml` - Compose pour l'environnement de test.
-- `docker-compose.prod.yml` - Compose pour l'environnement de production.
+- `docker-compose.test.yml` - Compose pour l'environnement de test (inclut MinIO S3).
+- `docker-compose.prod.yml` - Compose pour l'environnement de production (inclut MinIO S3).
 - `docker-compose.tools.yml` - Compose pour les outils (PgAdmin 4).
-- `setup-server.sh` - Script de configuration initiale du serveur (création des dossiers, réseau Docker, templates `.env`).
+- `docker-compose.dev.yml` - MinIO local pour le développement (ports 9000/9001, sans Traefik).
+- `setup-server.sh` - Script de configuration initiale du serveur (création des dossiers, réseau Docker, templates `.env`, répertoires `photos/pending`).
 - `setup-rclone.sh` - Installation de rclone et déploiement de `rclone.conf` (une seule fois, depuis `RCLONE_CONF`).
 - `db_backup_upload.sh` - Compression et upload du backup prod vers Google Drive (après le cron du soir).
 - `deploy.sh` - Script pour déployer une paire d'images (frontend/backend) et enregistrer la release.
@@ -70,6 +77,47 @@ graph TD
 - `import-db.sh` - Script pour importer un dump SQL dans le container Postgres.
 - `INSTRUCTION_SETUP.md` - Guide détaillé pour l'installation initiale du serveur.
 - `INSTRUCTION_BOOTSTRAP.md` - Guide pour la création de l'utilisateur de déploiement et configuration CI/CD.
+
+### Services par stack
+
+| Service | Rôle | Dépend de |
+|---------|------|-----------|
+| **Traefik** | Reverse proxy HTTPS, certificats Let's Encrypt | — |
+| **db** | PostgreSQL 15 | — |
+| **minio** | Stockage S3 (photos clients + rapports mensuels PDF) | — |
+| **backend** | API Spring Boot | `db` (healthcheck), `minio` (optionnel — fallback filesystem si indisponible) |
+| **frontend** | Application Angular (Nginx) | `backend` |
+| **pgadmin** | Interface d'admin PostgreSQL | `db` |
+
+## Développement local (MinIO)
+
+Pour tester les photos clients et les rapports mensuels sans Traefik :
+
+```bash
+# Depuis la racine du dépôt
+docker compose -f deploy/docker-compose.dev.yml up -d
+
+# Console web : http://localhost:19001  (minioadmin / minioadmin)
+# API S3      : http://localhost:19000
+```
+
+Les ports **19000/19001** évitent les conflits courants avec d'autres services sur 9000. Pour forcer 9000/9001 si libres :
+```bash
+MINIO_API_PORT=9000 MINIO_CONSOLE_PORT=9001 docker compose -f deploy/docker-compose.dev.yml up -d
+```
+
+Configurer le backend local (Run Configuration ou variables d'environnement) :
+```
+MINIO_ENDPOINT=http://localhost:19000
+MINIO_PUBLIC_URL=http://localhost:19000
+```
+
+Les buckets `elykia-clients` et `elykia-reports` sont créés automatiquement au démarrage du backend.
+
+```bash
+docker compose -f deploy/docker-compose.dev.yml down   # arrêter
+docker compose -f deploy/docker-compose.dev.yml down -v  # arrêter + supprimer les données
+```
 
 ## Processus de déploiement
 
@@ -266,8 +314,10 @@ Une fois connecté à PgAdmin via le navigateur, ajoutez les serveurs avec ces p
 > Les mots de passe sont ceux définis dans `/opt/elykia/test/.env` et `/opt/elykia/prod/.env`.
 
 ### Configuration DNS requise
-Ajoutez un enregistrement **A** dans Cloudflare :
-- `db` → IP du serveur (Proxy activé - nuage orange)
+Ajoutez des enregistrements **A** dans Cloudflare (proxy activé — nuage orange) :
+- `db` → IP du serveur
+- `minio-test`, `minio-test-api` → IP du serveur (console et API S3 test)
+- `minio`, `minio-api` → IP du serveur (console et API S3 prod)
 
 ---
 
@@ -284,3 +334,14 @@ Pour l'intégration continue, configurez ces secrets dans GitHub :
 - `SERVER_USER` : utilisateur SSH (ex: root ou deploy).
 - `SERVER_HOST` : IP ou domaine du serveur.
 - `DEPLOY_PATH` : chemin racine de déploiement (ex: `/opt/elykia`).
+
+**Variables d'environnement MinIO (fichiers `.env` test/prod) :**
+| Variable | Description | Défaut |
+|----------|-------------|--------|
+| `MINIO_ROOT_USER` | Utilisateur admin MinIO | — |
+| `MINIO_ROOT_PASSWORD` | Mot de passe admin MinIO | — |
+| `MINIO_ENDPOINT` | URL interne du service MinIO | `http://minio:9000` |
+| `MINIO_BUCKET` | Bucket photos clients | `elykia-clients` |
+| `MINIO_REPORTS_BUCKET` | Bucket rapports mensuels PDF | `elykia-reports` |
+| `MINIO_PUBLIC_URL` | URL publique des objets (via Traefik) | `https://minio-{env}-api.domaine.com` |
+| `PHOTO_FALLBACK_PATH_HOST` | Chemin hôte du fallback outbox photos | `/opt/elykia/{env}/photos/pending` |

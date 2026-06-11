@@ -9,4 +9,6 @@ import java.util.List;
 public interface MonthlyReportOutboxEntryRepository extends GenericRepository<MonthlyReportOutboxEntry, Long> {
     List<MonthlyReportOutboxEntry> findByStatusInAndRetryCountLessThan(List<MonthlyReportOutboxStatus> statuses, Integer retryCount);
     long countByRun_IdAndStatus(Long runId, MonthlyReportOutboxStatus status);
+    List<MonthlyReportOutboxEntry> findByRun_Id(Long runId);
+    void deleteByRun_Id(Long runId);
 }

@@ -3,9 +3,12 @@ package com.optimize.elykia.core.entity.sale;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.common.entities.entity.Auditable;
 import com.optimize.common.entities.exception.ApplicationException;
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.core.dto.StockEntryDto;
 import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.util.CreditArticleUnitPricePolicy;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,10 +32,37 @@ public class CreditArticles extends Auditable<String> {
     private Articles articles;
     private Integer quantity;
     @Column(columnDefinition = "double precision default 0")
+    @Setter(AccessLevel.NONE)
     private Double unitPrice;
     private Long stockItemId;
 
     private Long tontineItemId;
+
+    @Transient
+    private Double persistedUnitPrice;
+
+    public void setUnitPrice(Double unitPrice) {
+        if (!Objects.equals(this.unitPrice, unitPrice)) {
+            CreditArticleUnitPricePolicy.assertUnitPriceMutable(this);
+        }
+        this.unitPrice = unitPrice;
+    }
+
+    @PostLoad
+    @PostPersist
+    private void rememberUnitPrice() {
+        this.persistedUnitPrice = this.unitPrice;
+    }
+
+    @PreUpdate
+    private void preventFrozenUnitPriceChange() {
+        if (getCredit() != null && CreditArticleUnitPricePolicy.isUnitPriceFrozen(getCredit().getStatus())) {
+            if (!Objects.equals(unitPrice, persistedUnitPrice)) {
+                throw new CustomValidationException(
+                        "Le prix unitaire est figé pour une vente en cours ou clôturée et ne peut plus être modifié.");
+            }
+        }
+    }
 
     public CreditArticles(Long articleId, Integer quantity) {
         articles = new Articles(articleId);

@@ -82,6 +82,18 @@
             background-color: #d69e2e;
         }
 
+        &.bg-recovered {
+            background-color: #2f855a;
+        }
+
+        &.bg-remaining {
+            background-color: #c53030;
+        }
+
+        &.bg-rate {
+            background-color: #003366;
+        }
+
         mat-icon {
             font-size: 24px;
             width: 24px;
@@ -103,6 +115,12 @@
             font-size: 20px;
             font-weight: 700;
             color: #2d3748;
+            margin: 4px 0 0 0;
+        }
+
+        .stats-hint {
+            font-size: 12px;
+            color: #a0aec0;
             margin: 4px 0 0 0;
         }
     }

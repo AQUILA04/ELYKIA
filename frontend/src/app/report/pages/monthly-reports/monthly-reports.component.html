@@ -1,33 +1,150 @@
-<div class="monthly-reports-page">
-  <div class="header">
-    <h2>Rapports Mensuels</h2>
-    <button mat-raised-button color="primary" (click)="generatePreviousMonth()" [disabled]="generating">
-      Générer mois précédent
-    </button>
+<div class="main-container monthly-reports-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/dashboard" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Tableau de bord
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
   </div>
 
-  <div *ngIf="loading">Chargement...</div>
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">RAPPORTS &amp; ANALYSE</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <h1 class="page-title">Rapports mensuels</h1>
+      </div>
+      <button class="btn-refresh" (click)="refresh()" [disabled]="loading">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Actualiser
+      </button>
+    </div>
+    <p class="page-subtitle">Archives PDF consolidées · Rapport général et rapports par commercial · Génération automatique en fin de mois</p>
+  </div>
 
-  <mat-accordion *ngIf="!loading">
-    <mat-expansion-panel *ngFor="let year of tree">
-      <mat-expansion-panel-header>
-        <mat-panel-title>{{ year.year }}</mat-panel-title>
-      </mat-expansion-panel-header>
+  <div class="kpi-strip a3">
+    <div class="kpi-card kpi-total">
+      <div class="kpi-label">Années archivées</div>
+      <div class="kpi-value">{{ kpis.totalYears }}</div>
+      <div class="kpi-sub">Périodes couvertes</div>
+    </div>
+    <div class="kpi-card kpi-amount">
+      <div class="kpi-label">Mois disponibles</div>
+      <div class="kpi-value">{{ kpis.totalMonths }}</div>
+      <div class="kpi-sub">Dossiers mensuels générés</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Fichiers PDF</div>
+      <div class="kpi-value">{{ kpis.totalFiles }}</div>
+      <div class="kpi-sub">Général + commerciaux</div>
+    </div>
+    <div class="kpi-card kpi-delai">
+      <div class="kpi-label">Dernier rapport</div>
+      <div class="kpi-value kpi-value-text">{{ kpis.latestLabel }}</div>
+      <div class="kpi-sub">Période la plus récente</div>
+    </div>
+  </div>
 
-      <mat-accordion>
-        <mat-expansion-panel *ngFor="let month of monthEntries(year.months)">
-          <mat-expansion-panel-header>
-            <mat-panel-title>Mois {{ month.key }}</mat-panel-title>
-          </mat-expansion-panel-header>
+  <div class="toolbar a4">
+    <span class="toolbar-label">Actions</span>
+    <button
+      type="button"
+      class="btn-download"
+      (click)="generatePreviousMonth()"
+      [disabled]="generating"
+      [class.loading]="generating">
+      <svg *ngIf="!generating" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span *ngIf="generating" class="spinner-small"></span>
+      Générer mois précédent
+    </button>
+    <span class="result-count">
+      <strong>{{ kpis.totalFiles }}</strong> fichier(s) PDF
+    </span>
+  </div>
 
-          <div class="files">
-            <div class="file-row" *ngFor="let file of month.value">
-              <span>{{ file.fileName }} <small *ngIf="file.commercialUsername">({{ file.commercialUsername }})</small></span>
-              <button mat-stroked-button color="primary" (click)="download(file)">Télécharger</button>
+  <div class="table-card a5">
+    <div class="table-wrapper">
+      <div *ngIf="loading" class="table-loading">
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-title">Chargement des rapports…</div>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && tree.length === 0" class="table-empty-static">
+        <div class="empty-state">
+          <div class="empty-icon">📁</div>
+          <div class="empty-title">Aucun rapport mensuel disponible</div>
+          <div class="empty-sub">Générez le rapport du mois précédent ou attendez la génération automatique de fin de mois.</div>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && tree.length > 0" class="archive-tree">
+        <div class="year-block" *ngFor="let yearNode of tree">
+          <button type="button" class="year-header" (click)="toggleYear(yearNode.year)">
+            <span class="year-chevron" [class.expanded]="isYearExpanded(yearNode.year)">›</span>
+            <span class="year-title">Année {{ yearNode.year }}</span>
+            <span class="year-count">{{ monthEntries(yearNode.months).length }} mois</span>
+          </button>
+
+          <div class="year-body" *ngIf="isYearExpanded(yearNode.year)">
+            <div class="month-block" *ngFor="let month of monthEntries(yearNode.months)">
+              <button
+                type="button"
+                class="month-header"
+                (click)="toggleMonth(yearNode.year, month.key)">
+                <span class="month-chevron" [class.expanded]="isMonthExpanded(yearNode.year, month.key)">›</span>
+                <span class="month-title">{{ monthLabel(month.key) }} {{ yearNode.year }}</span>
+                <span class="month-count">{{ month.value.length }} fichier(s)</span>
+              </button>
+
+              <div class="month-body" *ngIf="isMonthExpanded(yearNode.year, month.key)">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Fichier</th>
+                      <th>Généré le</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let file of month.value" class="table-row">
+                      <td>
+                        <span class="report-badge" [ngClass]="reportTypeBadgeClass(file)">
+                          {{ reportTypeLabel(file) }}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="col-client">{{ file.fileName }}</span>
+                      </td>
+                      <td>
+                        <span class="col-ref">{{ formatFileDate(file.createdDate) }}</span>
+                      </td>
+                      <td class="col-actions">
+                        <button type="button" class="btn-detail" (click)="download(file)" title="Télécharger">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10l5 5 5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15V3"/></svg>
+                          Télécharger
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </mat-expansion-panel>
-      </mat-accordion>
-    </mat-expansion-panel>
-  </mat-accordion>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

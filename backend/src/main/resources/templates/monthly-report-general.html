@@ -1,61 +1,191 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; color: #222; }
-        h1, h2 { margin: 8px 0; }
-        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-        th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-        .muted { color: #666; font-size: 11px; }
-    </style>
+    <title>Rapport Mensuel Global</title>
+    <style th:replace="~{monthly-report-styles :: styles}"></style>
 </head>
 <body>
-<h1>Rapport mensuel global</h1>
-<p>
-    Période: <strong th:text="${snapshot.startDate}"></strong> au
-    <strong th:text="${snapshot.endDate}"></strong>
+<div class="header">
+    <h1 th:text="${companyName}">AMENOUVEVE - YAVEH</h1>
+    <h2>Rapport Mensuel Global</h2>
+    <div class="info">
+        <p>
+            <strong>Période :</strong>
+            <span th:text="${snapshot.startDate}"></span> au <span th:text="${snapshot.endDate}"></span>
+        </p>
+        <p><strong>Généré le :</strong> <span th:text="${generationDate}"></span></p>
+    </div>
+</div>
+
+<div class="kpi-section">
+    <h3>Synthèse exécutive</h3>
+    <div class="kpi-grid">
+        <div class="kpi-item">
+            <span class="kpi-label">Chiffre d'affaires</span>
+            <span class="kpi-value"
+                  th:text="${#numbers.formatDecimal(snapshot.salesSummary.totalRevenue, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></span>
+        </div>
+        <div class="kpi-item">
+            <span class="kpi-label">Coût d'achat</span>
+            <span class="kpi-value"
+                  th:text="${#numbers.formatDecimal(snapshot.salesSummary.totalPurchase, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></span>
+        </div>
+        <div class="kpi-item">
+            <span class="kpi-label">Marge réalisée</span>
+            <span class="kpi-value"
+                  th:text="${#numbers.formatDecimal(snapshot.salesSummary.totalMargin, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></span>
+        </div>
+        <div class="kpi-item">
+            <span class="kpi-label">Taux de marge</span>
+            <span class="kpi-value" th:text="${snapshot.salesSummary.totalMarginRate} + ' %'"></span>
+        </div>
+    </div>
+</div>
+
+<div class="table-section">
+    <h3>Détail des ventes</h3>
+    <p class="section-note">Hors commandes en attente.</p>
+    <table>
+        <thead>
+        <tr>
+            <th>Type de vente</th>
+            <th class="text-center">Nombre</th>
+            <th class="text-right">Chiffre d'affaires</th>
+            <th class="text-right">Coût</th>
+            <th class="text-right">Marge</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Ventes à crédit</td>
+            <td class="text-center" th:text="${snapshot.salesSummary.credit.count}"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(snapshot.salesSummary.credit.revenue, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(snapshot.salesSummary.credit.purchase, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(snapshot.salesSummary.credit.margin, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+        </tr>
+        <tr>
+            <td>Ventes comptant</td>
+            <td class="text-center" th:text="${snapshot.salesSummary.cash.count}"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(snapshot.salesSummary.cash.revenue, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(snapshot.salesSummary.cash.purchase, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(snapshot.salesSummary.cash.margin, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+        </tr>
+        <tr>
+            <td>Ventes tontine</td>
+            <td class="text-center" th:text="${snapshot.salesSummary.tontine.count}"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(snapshot.salesSummary.tontine.revenue, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(snapshot.salesSummary.tontine.purchase, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(snapshot.salesSummary.tontine.margin, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="table-section">
+    <h3>Entrées en stock</h3>
+    <p class="section-note">Marge estimée sur la base du prix de vente à crédit, distincte de la marge réalisée.</p>
+    <table th:if="${!#lists.isEmpty(snapshot.stockEntries)}">
+        <thead>
+        <tr>
+            <th>Article</th>
+            <th class="text-center">Qté</th>
+            <th class="text-right">Prix achat unit.</th>
+            <th class="text-right">Prix crédit unit.</th>
+            <th class="text-right">Marge estimée</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="entry : ${snapshot.stockEntries}">
+            <td th:text="${entry.articleName}"></td>
+            <td class="text-center" th:text="${entry.quantity}"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(entry.unitPurchasePrice, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(entry.unitCreditSalePrice, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(entry.estimatedMargin, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+        </tr>
+        </tbody>
+    </table>
+    <p class="no-data" th:if="${#lists.isEmpty(snapshot.stockEntries)}">Aucune donnée disponible</p>
+</div>
+
+<div class="table-section">
+    <h3>Recouvrements</h3>
+    <table>
+        <tbody>
+        <tr>
+            <td>Total recouvré sur la période</td>
+            <td class="text-right"
+                th:text="${snapshot.recoveries.timelineTotals.count} + ' opération(s) — ' + ${#numbers.formatDecimal(snapshot.recoveries.timelineTotals.amount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+        </tr>
+        <tr>
+            <td>Activité des chefs de recouvrement</td>
+            <td class="text-right"
+                th:text="${snapshot.recoveries.recoveryManagerSubReport.count} + ' opération(s) — ' + ${#numbers.formatDecimal(snapshot.recoveries.recoveryManagerSubReport.amount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="table-section">
+    <h3>Tontine</h3>
+    <table>
+        <tbody>
+        <tr>
+            <td>Livraisons tontine</td>
+            <td class="text-right"
+                th:text="${snapshot.tontine.deliveries.count} + ' livraison(s) — ' + ${#numbers.formatDecimal(snapshot.tontine.deliveries.amount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="table-section" th:if="${!#lists.isEmpty(snapshot.dailySummary)}">
+    <h3>Synthèse par commercial</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Commercial</th>
+            <th class="text-right">Ventes crédit</th>
+            <th class="text-right">Marge crédit</th>
+            <th class="text-right">Demandes stock</th>
+            <th class="text-right">Marge stock</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${snapshot.dailySummary}">
+            <td th:text="${row.commercialUsername}"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(row.creditSalesAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(row.creditSalesMargin, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(row.stockRequestAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+            <td class="text-right"
+                th:text="${#numbers.formatDecimal(row.stockRequestMargin, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<p class="footer-note">
+    Les commandes ne sont pas incluses dans le chiffre d'affaires consolidé.
 </p>
-<h2>Synthèse exécutive</h2>
-<table>
-    <tr><th>CA total (hors commandes)</th><td th:text="${snapshot.salesSummary.totalRevenue}"></td></tr>
-    <tr><th>Coût total</th><td th:text="${snapshot.salesSummary.totalPurchase}"></td></tr>
-    <tr><th>Marge réalisée</th><td th:text="${snapshot.salesSummary.totalMargin}"></td></tr>
-    <tr><th>Taux marge</th><td th:text="${snapshot.salesSummary.totalMarginRate} + '%'"></td></tr>
-</table>
 
-<h2>Entrées stock (marge estimée)</h2>
-<p class="muted">Marge estimée (prix crédit), distincte de la marge réalisée.</p>
-<table>
-    <thead>
-    <tr>
-        <th>Article</th>
-        <th>Qté</th>
-        <th>PA unitaire</th>
-        <th>Prix crédit</th>
-        <th>Marge estimée</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="entry : ${snapshot.stockEntries}">
-        <td th:text="${entry.articleName}"></td>
-        <td th:text="${entry.quantity}"></td>
-        <td th:text="${entry.unitPurchasePrice}"></td>
-        <td th:text="${entry.unitCreditSalePrice}"></td>
-        <td th:text="${entry.estimatedMargin}"></td>
-    </tr>
-    </tbody>
-</table>
-
-<h2>Recouvrements</h2>
-<table>
-    <tr><th>Total recouvré (CreditTimeline)</th><td th:text="${snapshot.recoveries.timelineTotals.amount}"></td></tr>
-    <tr><th>Activité chef recouvrement (sous-rapport)</th><td th:text="${snapshot.recoveries.recoveryManagerSubReport.amount}"></td></tr>
-</table>
-
-<p class="muted">
-    Commandes exclues des totaux financiers. Les livraisons tontine utilisent TontineDelivery en priorité
-    avec fallback Credit type TONTINE.
-</p>
+<div class="footer">
+    <p>Document généré le <span th:text="${generationDate}"></span></p>
+    <p>&copy; ELYKIA - Tous droits réservés</p>
+</div>
 </body>
 </html>

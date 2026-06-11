@@ -27,8 +27,10 @@ public class MonthlyReportOutboxRetryScheduler {
     @Scheduled(fixedDelay = 300_000)
     @Transactional
     public void retryPendingUploads() {
+        log.info("Début retry outbox rapports mensuels");
+
         if (!storageService.isAvailable()) {
-            log.debug("MinIO indisponible, report des uploads outbox mensuels");
+            log.info("MinIO indisponible, report du retry outbox rapports mensuels");
             return;
         }
 
@@ -36,19 +38,73 @@ public class MonthlyReportOutboxRetryScheduler {
                 List.of(MonthlyReportOutboxStatus.PENDING, MonthlyReportOutboxStatus.FAILED),
                 MAX_RETRIES);
 
+        if (entries.isEmpty()) {
+            log.info("Aucune entrée outbox rapport mensuel en attente");
+            return;
+        }
+
+        log.info("{} entrée(s) outbox rapport mensuel à traiter", entries.size());
+
+        int successCount = 0;
+        int failureCount = 0;
+
         for (MonthlyReportOutboxEntry entry : entries) {
+            Long entryId = entry.getId();
+            Long runId = entry.getRun() != null ? entry.getRun().getId() : null;
             try {
                 entry.setStatus(MonthlyReportOutboxStatus.UPLOADING);
                 outboxRepository.save(entry);
+
+                log.debug(
+                        "Upload outbox rapport mensuel: entryId={}, runId={}, type={}, key={}",
+                        entryId,
+                        runId,
+                        entry.getFileType(),
+                        entry.getStorageKey());
 
                 byte[] content = Files.readAllBytes(Path.of(entry.getLocalFilePath()));
                 storageService.upload(entry.getStorageKey(), content);
                 outboxService.markDone(entry, extractFilename(entry.getStorageKey()));
                 Files.deleteIfExists(Path.of(entry.getLocalFilePath()));
+
+                successCount++;
+                log.info(
+                        "Rapport mensuel outbox traité avec succès: entryId={}, runId={}, type={}, key={}",
+                        entryId,
+                        runId,
+                        entry.getFileType(),
+                        entry.getStorageKey());
             } catch (Exception exception) {
                 outboxService.markFailure(entry, exception, MAX_RETRIES);
+                failureCount++;
+
+                if (entry.getStatus() == MonthlyReportOutboxStatus.FAILED) {
+                    log.error(
+                            "Rapport mensuel outbox: abandon après {} tentatives. entryId={}, runId={}, key={}, path={}",
+                            MAX_RETRIES,
+                            entryId,
+                            runId,
+                            entry.getStorageKey(),
+                            entry.getLocalFilePath(),
+                            exception);
+                } else {
+                    log.warn(
+                            "Rapport mensuel outbox: échec upload (tentative {}/{}). entryId={}, runId={}, key={}: {}",
+                            entry.getRetryCount(),
+                            MAX_RETRIES,
+                            entryId,
+                            runId,
+                            entry.getStorageKey(),
+                            exception.getMessage());
+                }
             }
         }
+
+        log.info(
+                "Fin retry outbox rapports mensuels: {} traitée(s), {} succès, {} échec(s)",
+                entries.size(),
+                successCount,
+                failureCount);
     }
 
     private String extractFilename(String storageKey) {

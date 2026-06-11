@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -35,4 +37,74 @@ public interface CreditArticlesRepository extends GenericRepository<CreditArticl
 
     @Query("SELECT ca FROM CreditArticles ca WHERE ca.credit.id IN :creditIds")
     Set<CreditArticles> findByCreditIds(@Param("creditIds") List<Long> creditIds);
+
+    @Query("""
+            SELECT DISTINCT ca.credit.id
+            FROM CreditArticles ca
+            WHERE ca.stockItemId IN :stockItemIds
+            """)
+    List<Long> findCreditIdsByStockItemIds(@Param("stockItemIds") Collection<Long> stockItemIds);
+
+    @Query("""
+            SELECT COUNT(ca)
+            FROM CreditArticles ca
+            WHERE ca.credit.id = :creditId
+              AND ca.stockItemId IS NOT NULL
+              AND ca.stockItemId NOT IN :stockItemIds
+            """)
+    long countLinkedArticlesOutsideStockItems(
+            @Param("creditId") Long creditId,
+            @Param("stockItemIds") Collection<Long> stockItemIds);
+
+    @Query("""
+            SELECT COUNT(ca)
+            FROM CreditArticles ca
+            WHERE ca.credit.id = :creditId
+              AND ca.stockItemId IN :stockItemIds
+            """)
+    long countLinkedArticlesOnStockItems(
+            @Param("creditId") Long creditId,
+            @Param("stockItemIds") Collection<Long> stockItemIds);
+
+    @Query("""
+            SELECT ca.credit.id AS creditId,
+                   SUM(ca.quantity * COALESCE(NULLIF(ca.unitPrice, 0), ca.articles.sellingPrice, 0)) AS soldValue
+            FROM CreditArticles ca
+            WHERE ca.stockItemId IN :stockItemIds
+            GROUP BY ca.credit.id
+            """)
+    List<com.optimize.elykia.core.dto.stock.CreditSoldAmountOnStockProjection> sumSoldValueByCreditForStockItemIds(
+            @Param("stockItemIds") Collection<Long> stockItemIds);
+
+    @Query("""
+            SELECT ca.credit.id AS creditId,
+                   SUM(ca.quantity * COALESCE(NULLIF(ca.unitPrice, 0), ca.articles.sellingPrice, 0)) AS soldValue
+            FROM CreditArticles ca
+            JOIN ca.credit c
+            WHERE ca.articles.id IN :articleIds
+              AND c.collector = :collector
+              AND c.beginDate >= :monthStart
+              AND c.beginDate < :monthEnd
+            GROUP BY ca.credit.id
+            """)
+    List<com.optimize.elykia.core.dto.stock.CreditSoldAmountOnStockProjection> sumSoldValueByCreditForMonthlyStock(
+            @Param("collector") String collector,
+            @Param("monthStart") LocalDate monthStart,
+            @Param("monthEnd") LocalDate monthEnd,
+            @Param("articleIds") Collection<Long> articleIds);
+
+    @Query("""
+            SELECT DISTINCT ca.credit.id
+            FROM CreditArticles ca
+            JOIN ca.credit c
+            WHERE ca.articles.id IN :articleIds
+              AND c.collector = :collector
+              AND c.beginDate >= :monthStart
+              AND c.beginDate < :monthEnd
+            """)
+    List<Long> findCreditIdsForMonthlyStock(
+            @Param("collector") String collector,
+            @Param("monthStart") LocalDate monthStart,
+            @Param("monthEnd") LocalDate monthEnd,
+            @Param("articleIds") Collection<Long> articleIds);
 }

@@ -6,6 +6,7 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
+import com.optimize.elykia.core.service.stock.CommercialMonthlyStockRecoveryService;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.util.MonthEndCalculator;
 import com.optimize.elykia.core.enumaration.StockStatus;
@@ -16,16 +17,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
 public class CommercialMonthlyStockService extends GenericService<CommercialMonthlyStock, Long> {
 
     private final UserService userService;
+    private final CommercialMonthlyStockRecoveryService recoveryService;
 
-    protected CommercialMonthlyStockService(CommercialMonthlyStockRepository repository, UserService userService) {
+    protected CommercialMonthlyStockService(
+            CommercialMonthlyStockRepository repository,
+            UserService userService,
+            CommercialMonthlyStockRecoveryService recoveryService) {
         super(repository);
         this.userService = userService;
+        this.recoveryService = recoveryService;
     }
 
     public long getDaysUntilMonthEnd() {
@@ -53,28 +60,52 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
     }
 
     public Page<CommercialMonthlyStock> getAll(String collector, Pageable pageable, Boolean historic) {
+        return enrichPage(queryStocks(collector, pageable, historic));
+    }
+
+    private Page<CommercialMonthlyStock> queryStocks(String collector, Pageable pageable, Boolean historic) {
         LocalDate now = LocalDate.now();
         User currentUser = userService.getCurrentUser();
+        CommercialMonthlyStockRepository stockRepository = (CommercialMonthlyStockRepository) repository;
+
         if (Objects.nonNull(historic) && historic) {
             if (collector != null) {
-                return ((CommercialMonthlyStockRepository) repository).findByCollectorAndMonthNotAndYearNotOrderByIdDesc(collector, now.getMonthValue(), now.getYear(), pageable);
+                return stockRepository.findByCollectorAndMonthNotAndYearNotOrderByIdDesc(
+                        collector, now.getMonthValue(), now.getYear(), pageable);
             }
-
             if (currentUser.is(UserProfilConstant.PROMOTER)) {
-                return ((CommercialMonthlyStockRepository) repository).findByCollectorAndMonthNotAndYearNotOrderByIdDesc(currentUser.getUsername(), now.getMonthValue(), now.getYear(), pageable);
+                return stockRepository.findByCollectorAndMonthNotAndYearNotOrderByIdDesc(
+                        currentUser.getUsername(), now.getMonthValue(), now.getYear(), pageable);
             }
-            return ((CommercialMonthlyStockRepository) repository).findByMonthNotAndYearNotOrderByIdDesc(now.getMonthValue(), now.getYear(), pageable);
-        } else {
-            if (collector != null) {
-                return ((CommercialMonthlyStockRepository) repository).findByCollectorAndMonthAndYearOrderByIdDesc(collector, now.getMonthValue(), now.getYear(), pageable);
-            }
-
-            if (currentUser.is(UserProfilConstant.PROMOTER)) {
-                return ((CommercialMonthlyStockRepository) repository).findByCollectorAndMonthAndYearOrderByIdDesc(currentUser.getUsername(), now.getMonthValue(), now.getYear(), pageable);
-            }
-            return ((CommercialMonthlyStockRepository) repository).findByMonthAndYearOrderByIdDesc(now.getMonthValue(), now.getYear(), pageable);
+            return stockRepository.findByMonthNotAndYearNotOrderByIdDesc(
+                    now.getMonthValue(), now.getYear(), pageable);
         }
 
+        if (collector != null) {
+            return stockRepository.findByCollectorAndMonthAndYearOrderByIdDesc(
+                    collector, now.getMonthValue(), now.getYear(), pageable);
+        }
+        if (currentUser.is(UserProfilConstant.PROMOTER)) {
+            return stockRepository.findByCollectorAndMonthAndYearOrderByIdDesc(
+                    currentUser.getUsername(), now.getMonthValue(), now.getYear(), pageable);
+        }
+        return stockRepository.findByMonthAndYearOrderByIdDesc(now.getMonthValue(), now.getYear(), pageable);
+    }
 
+    public Optional<CommercialMonthlyStock> findEnrichedByCollectorAndMonthAndYear(
+            String collector, int month, int year) {
+        return ((CommercialMonthlyStockRepository) repository)
+                .findByCollectorAndMonthAndYear(collector, month, year)
+                .map(this::enrichWithRecovery);
+    }
+
+    public CommercialMonthlyStock enrichWithRecovery(CommercialMonthlyStock stock) {
+        stock.setRecoverySummary(recoveryService.aggregate(stock));
+        return stock;
+    }
+
+    private Page<CommercialMonthlyStock> enrichPage(Page<CommercialMonthlyStock> page) {
+        page.getContent().forEach(this::enrichWithRecovery);
+        return page;
     }
 }

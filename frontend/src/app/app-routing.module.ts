@@ -559,8 +559,7 @@ const routes: Routes = [
       permissions: {
         only: ['ROLE_REPORT'],
         redirectTo: '/home'
-      },
-      breadcrumb: 'Rapports Mensuels'
+      }
     }
   },
   { path: 'article-type', loadChildren: () => import('./article-type/article-type.module').then(m => m.ArticleTypeModule) },

@@ -180,7 +180,7 @@ public class MonthlyReportAggregationService {
         Object[] totals = (Object[]) entityManager.createNativeQuery("""
                 SELECT COALESCE(COUNT(id), 0), COALESCE(SUM(amount), 0)
                 FROM credit_timeline
-                WHERE created_date BETWEEN :startDateTime AND :endDateTime
+                WHERE date_reg BETWEEN :startDateTime AND :endDateTime
                 """)
                 .setParameter("startDateTime", startDate.atStartOfDay())
                 .setParameter("endDateTime", endDate.atTime(23, 59, 59))

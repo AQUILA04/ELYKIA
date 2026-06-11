@@ -73,6 +73,41 @@
           </div>
         </div>
 
+        <div class="stats-row mb-4" *ngIf="stock.recoverySummary">
+          <div class="stats-card">
+            <div class="stats-icon bg-recovered">
+              <mat-icon>payments</mat-icon>
+            </div>
+            <div class="stats-info">
+              <p class="stats-label">Montant Recouvré</p>
+              <p class="stats-value">{{ getTotalRecoveredValue(stock) | number:'1.0-0' }} FCFA</p>
+              <p class="stats-hint">Encaissements clients (ventes)</p>
+            </div>
+          </div>
+
+          <div class="stats-card">
+            <div class="stats-icon bg-remaining">
+              <mat-icon>hourglass_empty</mat-icon>
+            </div>
+            <div class="stats-info">
+              <p class="stats-label">Reste à Recouvrer</p>
+              <p class="stats-value">{{ getTotalRemainingToRecoverValue(stock) | number:'1.0-0' }} FCFA</p>
+              <p class="stats-hint">Stock physique + créances clients</p>
+            </div>
+          </div>
+
+          <div class="stats-card">
+            <div class="stats-icon bg-rate">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="stats-info">
+              <p class="stats-label">Taux de Recouvrement</p>
+              <p class="stats-value">{{ getRecoveryRate(stock) | number:'1.0-0' }} %</p>
+              <p class="stats-hint">Sur la valeur totale due</p>
+            </div>
+          </div>
+        </div>
+
         <div class="table-container">
           <table class="article-table">
             <thead>

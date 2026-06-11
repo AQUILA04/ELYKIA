@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface MonthlyReportSnapshotRepository extends GenericRepository<MonthlyReportSnapshot, Long> {
     Optional<MonthlyReportSnapshot> findTopByRun_IdOrderByCreatedDateDesc(Long runId);
+    void deleteByRun_Id(Long runId);
 }

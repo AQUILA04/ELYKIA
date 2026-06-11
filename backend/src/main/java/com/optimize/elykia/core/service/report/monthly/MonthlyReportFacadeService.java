@@ -38,12 +38,13 @@ public class MonthlyReportFacadeService {
     }
 
     @Transactional(readOnly = true)
-    public byte[] download(Long fileId) {
+    public DownloadableFile getFileForDownload(Long fileId) {
         MonthlyReportFile file = fileRepository.findById(fileId).orElseThrow();
-        return storageService.download(file.getStorageKey());
+        return new DownloadableFile(file.getFileName(), storageService.download(file.getStorageKey()));
     }
 
-    @Transactional
+    public record DownloadableFile(String fileName, byte[] content) {}
+
     public MonthlyReportRun triggerGenerate(Integer year, Integer month) {
         return orchestrator.runMonthlyReport(year, month);
     }

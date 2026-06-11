@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.entity.stock;
 
 import com.optimize.common.entities.entity.Auditable;
+import com.optimize.elykia.core.dto.stock.StockRecoverySummaryDto;
 import com.optimize.elykia.core.enumaration.StockStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -33,7 +34,10 @@ public class CommercialMonthlyStock extends Auditable<String> {
 
     @OneToMany(mappedBy = "monthlyStock", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CommercialMonthlyStockItem> items = new HashSet<>();
-    
+
+    @Transient
+    private StockRecoverySummaryDto recoverySummary;
+
     public void addItem(CommercialMonthlyStockItem item) {
         items.add(item);
         item.setMonthlyStock(this);

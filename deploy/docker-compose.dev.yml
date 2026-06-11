@@ -1,0 +1,39 @@
+# DEV — MinIO local (sans Traefik)
+#
+# Démarrer :
+#   docker compose -f deploy/docker-compose.dev.yml up -d
+#
+# Arrêter :
+#   docker compose -f deploy/docker-compose.dev.yml down
+#
+# Ports hôte par défaut 19000/19001 (évite les conflits avec d'autres services sur 9000).
+# Pour utiliser 9000/9001 si libres :
+#   MINIO_API_PORT=9000 MINIO_CONSOLE_PORT=9001 docker compose -f deploy/docker-compose.dev.yml up -d
+#
+# Accès (ports par défaut) :
+#   API S3  → http://localhost:19000
+#   Console → http://localhost:19001  (minioadmin / minioadmin)
+#
+# Variables backend à définir au run local (Run Configuration IDE ou export) :
+#   MINIO_ENDPOINT=http://localhost:19000
+#   MINIO_PUBLIC_URL=http://localhost:19000
+#   MINIO_ACCESS_KEY=minioadmin
+#   MINIO_SECRET_KEY=minioadmin
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: elykia-dev-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "${MINIO_API_PORT:-19000}:9000"
+      - "${MINIO_CONSOLE_PORT:-19001}:9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+volumes:
+  minio_data:
