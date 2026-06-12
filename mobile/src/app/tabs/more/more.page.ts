@@ -29,6 +29,8 @@ import { SyncConsentHistoryRecord } from 'src/app/core/sync-consent/models/sync-
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { ExportLocationService } from '../../core/services/export-location.service';
+import { AppUpdateService } from '../../core/services/app-update.service';
+import { MobileAppReleaseInfo } from 'src/app/models/mobile-app-release.model';
 
 @Component({
   selector: 'app-more',
@@ -51,6 +53,8 @@ export class MorePage implements OnInit, OnDestroy {
   collectionRate$: Observable<number>;
   pendingErrorsCount$!: Observable<number>;
   appVersion: string = environment.version;
+  updateInProgress = false;
+  updateProgressLabel = '';
 
   syncDateFilter: SyncDateFilterOption = 'today';
   syncDateFilterLabels = SYNC_DATE_FILTER_LABELS;
@@ -77,7 +81,8 @@ export class MorePage implements OnInit, OnDestroy {
     private readonly pdfReportService: PdfReportService,
     private readonly dailyConsentHistoryRepository: DailyConsentHistoryRepository,
     private readonly syncConsentHistoryRepository: SyncConsentHistoryRepository,
-    private readonly exportLocationService: ExportLocationService
+    private readonly exportLocationService: ExportLocationService,
+    private readonly appUpdateService: AppUpdateService
   ) {
     this.user$ = this.store.select(selectCommercial);
     this.totalClients$ = this.store.select(selectClientKpiTotalByCommercial);
@@ -513,6 +518,95 @@ export class MorePage implements OnInit, OnDestroy {
 
   openUserGuide() {
     window.location.href = '/user-guide/commercial/index.html';
+  }
+
+  async checkForAppUpdate(): Promise<void> {
+    if (Capacitor.getPlatform() === 'web') {
+      await this.presentToast('La mise à jour in-app est disponible uniquement sur l\'application Android.', 'warning', 'top');
+      return;
+    }
+
+    this.updateInProgress = true;
+    this.updateProgressLabel = 'Vérification de la version...';
+    this.cdr.markForCheck();
+
+    try {
+      const release = await this.appUpdateService.checkForUpdate();
+
+      if (!release.updateAvailable) {
+        await this.presentToast('Votre application est déjà à jour.', 'success', 'top');
+        return;
+      }
+
+      const confirmed = await this.confirmAppUpdate(release);
+      if (!confirmed) {
+        return;
+      }
+
+      await this.appUpdateService.downloadAndInstall(release, (progress) => {
+        switch (progress.phase) {
+          case 'downloading':
+            this.updateProgressLabel = progress.percent != null
+              ? `Téléchargement... ${progress.percent}%`
+              : 'Téléchargement en cours...';
+            break;
+          case 'verifying':
+            this.updateProgressLabel = 'Vérification du fichier...';
+            break;
+          case 'installing':
+            this.updateProgressLabel = 'Lancement de l\'installation...';
+            break;
+          default:
+            this.updateProgressLabel = 'Mise à jour en cours...';
+        }
+        this.cdr.markForCheck();
+      });
+
+      await this.presentToast(
+        'Installation lancée. Suivez les instructions Android pour terminer la mise à jour.',
+        'success',
+        'top',
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Impossible de mettre à jour l\'application.';
+      await this.presentToast(message, 'danger', 'top');
+      console.error('App update error:', error);
+    } finally {
+      this.updateInProgress = false;
+      this.updateProgressLabel = '';
+      this.cdr.markForCheck();
+    }
+  }
+
+  private async confirmAppUpdate(release: MobileAppReleaseInfo): Promise<boolean> {
+    const sizeMb = release.sizeBytes > 0
+      ? (release.sizeBytes / (1024 * 1024)).toFixed(1)
+      : null;
+    const sizeLine = sizeMb ? `\n\nTaille : ${sizeMb} Mo` : '';
+    const notes = release.releaseNotes?.trim()
+      ? `\n\n${release.releaseNotes.trim()}`
+      : '';
+    const mandatoryLine = release.updateRequired || release.mandatory
+      ? '\n\nCette mise à jour est obligatoire.'
+      : '';
+
+    return new Promise<boolean>((resolve) => {
+      this.alertController.create({
+        header: 'Mise à jour disponible',
+        message: `Version ${release.version} disponible (vous êtes en ${this.appVersion}).${sizeLine}${notes}${mandatoryLine}`,
+        buttons: [
+          {
+            text: release.updateRequired || release.mandatory ? 'Plus tard' : 'Annuler',
+            role: 'cancel',
+            handler: () => resolve(false),
+          },
+          {
+            text: 'Mettre à jour',
+            handler: () => resolve(true),
+          },
+        ],
+      }).then((alert) => alert.present());
+    });
   }
 
   async repairServerPhotos() {

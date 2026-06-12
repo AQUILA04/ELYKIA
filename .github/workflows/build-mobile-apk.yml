@@ -205,6 +205,10 @@ jobs:
           android-keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           android-key-alias: ${{ secrets.ANDROID_KEY_ALIAS }}
           android-key-password: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          minio-endpoint: ${{ secrets.TEST_MINIO_ENDPOINT }}
+          minio-access-key: ${{ secrets.TEST_MINIO_ACCESS_KEY }}
+          minio-secret-key: ${{ secrets.TEST_MINIO_SECRET_KEY }}
+          minio-mobile-releases-bucket: ${{ secrets.MINIO_MOBILE_RELEASES_BUCKET }}
 
   build-apk-prod:
     needs: prepare
@@ -227,3 +231,7 @@ jobs:
           android-keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           android-key-alias: ${{ secrets.ANDROID_KEY_ALIAS }}
           android-key-password: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          minio-endpoint: ${{ secrets.PROD_MINIO_ENDPOINT }}
+          minio-access-key: ${{ secrets.PROD_MINIO_ACCESS_KEY }}
+          minio-secret-key: ${{ secrets.PROD_MINIO_SECRET_KEY }}
+          minio-mobile-releases-bucket: ${{ secrets.MINIO_MOBILE_RELEASES_BUCKET }}

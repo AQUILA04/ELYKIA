@@ -28,11 +28,13 @@ services:
       - "traefik.http.routers.elykia-prod-minio-console.rule=Host(`minio.amenouveve-yaveh.com`)"
       - "traefik.http.routers.elykia-prod-minio-console.entrypoints=websecure"
       - "traefik.http.routers.elykia-prod-minio-console.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.elykia-prod-minio-console.service=elykia-prod-minio-console"
       - "traefik.http.services.elykia-prod-minio-console.loadbalancer.server.port=9001"
       # API
       - "traefik.http.routers.elykia-prod-minio-api.rule=Host(`minio-api.amenouveve-yaveh.com`)"
       - "traefik.http.routers.elykia-prod-minio-api.entrypoints=websecure"
       - "traefik.http.routers.elykia-prod-minio-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.elykia-prod-minio-api.service=elykia-prod-minio-api"
       - "traefik.http.services.elykia-prod-minio-api.loadbalancer.server.port=9000"
 
   db:
@@ -74,6 +76,8 @@ services:
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
       MINIO_BUCKET: ${MINIO_BUCKET:-elykia-clients}
       MINIO_REPORTS_BUCKET: ${MINIO_REPORTS_BUCKET:-elykia-reports}
+      MINIO_MOBILE_RELEASES_BUCKET: ${MINIO_MOBILE_RELEASES_BUCKET:-elykia-mobile-releases}
+      MOBILE_RELEASE_CHANNEL: ${MOBILE_RELEASE_CHANNEL:-prod}
       MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://minio-api.amenouveve-yaveh.com}
       PHOTO_FALLBACK_PATH: /opt/elykia/photos/pending
     volumes:

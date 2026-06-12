@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.List;
 
 @Service
@@ -30,6 +31,7 @@ public class MinioStorageServiceImpl implements MinioStorageService {
     public void initBucket() {
         initBucketIfMissing(minioProperties.getBucket());
         initBucketIfMissing(minioProperties.getReportsBucket());
+        initBucketIfMissing(minioProperties.getMobileReleasesBucket());
     }
 
     @Override
@@ -74,6 +76,48 @@ public class MinioStorageServiceImpl implements MinioStorageService {
         } catch (Exception e) {
             log.error("Erreur lors du téléchargement MinIO: bucket={}, key={}", bucket, objectKey, e);
             throw new ApplicationException("Service de stockage MinIO indisponible");
+        }
+    }
+
+    @Override
+    public InputStream openObjectStream(String bucket, String objectKey) {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(bucket)
+                            .object(objectKey)
+                            .build());
+        } catch (Exception e) {
+            log.error("Erreur lors de l'ouverture du flux MinIO: bucket={}, key={}", bucket, objectKey, e);
+            throw new ApplicationException("Service de stockage MinIO indisponible");
+        }
+    }
+
+    @Override
+    public long getObjectSize(String bucket, String objectKey) {
+        try {
+            return minioClient.statObject(
+                    StatObjectArgs.builder()
+                            .bucket(bucket)
+                            .object(objectKey)
+                            .build()).size();
+        } catch (Exception e) {
+            log.error("Erreur lors de la lecture des métadonnées MinIO: bucket={}, key={}", bucket, objectKey, e);
+            throw new ApplicationException("Service de stockage MinIO indisponible");
+        }
+    }
+
+    @Override
+    public boolean objectExists(String bucket, String objectKey) {
+        try {
+            minioClient.statObject(
+                    StatObjectArgs.builder()
+                            .bucket(bucket)
+                            .object(objectKey)
+                            .build());
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 

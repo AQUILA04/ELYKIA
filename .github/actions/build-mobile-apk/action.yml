@@ -27,6 +27,22 @@ inputs:
     description: Key password
     required: false
     default: ''
+  minio-endpoint:
+    description: MinIO API endpoint for APK publishing (optional)
+    required: false
+    default: ''
+  minio-access-key:
+    description: MinIO access key for APK publishing
+    required: false
+    default: ''
+  minio-secret-key:
+    description: MinIO secret key for APK publishing
+    required: false
+    default: ''
+  minio-mobile-releases-bucket:
+    description: MinIO bucket for mobile releases
+    required: false
+    default: 'elykia-mobile-releases'
 
 runs:
   using: composite
@@ -97,6 +113,7 @@ runs:
         ../.github/scripts/patch-android-status-bar-styles.sh android/app/src/main/res/values/styles.xml
         ../.github/scripts/configure-android-firebase.sh android
         ../.github/scripts/sync-android-version.sh android
+        ../.github/scripts/install-app-update-plugin.sh android
 
     - name: Prepare Android keystore
       shell: bash
@@ -163,3 +180,19 @@ runs:
         name: elykia-mobile-${{ inputs.target }}-v${{ steps.apk.outputs.app_version }}.apk
         path: ${{ steps.apk.outputs.apk_path }}
         retention-days: 90
+
+    - name: Publish APK to MinIO
+      if: inputs.minio-endpoint != '' && inputs.minio-access-key != '' && inputs.minio-secret-key != ''
+      shell: bash
+      env:
+        MINIO_ENDPOINT: ${{ inputs.minio-endpoint }}
+        MINIO_ACCESS_KEY: ${{ inputs.minio-access-key }}
+        MINIO_SECRET_KEY: ${{ inputs.minio-secret-key }}
+        MINIO_MOBILE_RELEASES_BUCKET: ${{ inputs.minio-mobile-releases-bucket }}
+      run: |
+        set -euo pipefail
+        chmod +x .github/scripts/publish-mobile-apk.sh
+        .github/scripts/publish-mobile-apk.sh \
+          "${{ steps.apk.outputs.apk_path }}" \
+          "${{ inputs.target }}" \
+          "${{ steps.apk.outputs.app_version }}"

@@ -22,6 +22,8 @@ minio:
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket: ${MINIO_BUCKET:elykia-clients}
   reports-bucket: ${MINIO_REPORTS_BUCKET:elykia-reports}
+  mobile-releases-bucket: ${MINIO_MOBILE_RELEASES_BUCKET:elykia-mobile-releases}
+  mobile-release-channel: ${MOBILE_RELEASE_CHANNEL:prod}
   public-url: ${MINIO_PUBLIC_URL:http://localhost:9000}
 #debug: true
 security:
