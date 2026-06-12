@@ -107,7 +107,20 @@ cd backend
 mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 
-3. **Frontend** : Playwright peut le démarrer automatiquement (`ng serve` port 4200). Pour réutiliser un serveur déjà lancé :
+3. **Articles de référence** : sur un environnement vierge (base fraîche, Flyway désactivé en prod), l'API `/api/v1/articles/enabled` ne retourne rien tant que le catalogue n'est pas peuplé. Exécuter **après le premier démarrage du backend** (schéma Hibernate créé) :
+
+```bash
+# Linux / macOS / Git Bash
+.github/scripts/seed-e2e-articles.sh
+
+# Ou directement avec psql
+PGPASSWORD=APP2024 psql -h localhost -U oec -d oec \
+  -f backend/src/main/resources/db/migration/V14__insert_articles.sql
+```
+
+Le script est idempotent (`ON CONFLICT DO NOTHING`). En CI, il est lancé automatiquement après le démarrage du backend.
+
+4. **Frontend** : Playwright peut le démarrer automatiquement (`ng serve` port 4200). Pour réutiliser un serveur déjà lancé :
 
 ```bash
 cd frontend
@@ -174,7 +187,8 @@ Workflow : [`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml) — **ELY
 | Parallèle avec | `build-mobile-apk.yml` (APK mobile) |
 | Exécution manuelle | `workflow_dispatch` |
 | Condition | Changements `frontend/` ou `backend/` dans le CI associé |
-| Infrastructure | PostgreSQL service + backend JAR + Playwright Chromium |
+| Infrastructure | PostgreSQL service + backend JAR + seed articles V14 + Playwright Chromium |
+| Seed données | `.github/scripts/seed-e2e-articles.sh` (migration `V14__insert_articles.sql`) |
 | Artefacts | Rapport HTML Playwright + logs backend (14 jours) |
 
 Pipeline global :
@@ -194,8 +208,9 @@ En cas d'échec :
 
 1. Ouvrir le rapport : `npx playwright show-report`
 2. Vérifier que le backend répond : `curl http://localhost:8081/actuator/health`
-3. Vérifier les comptes de test (mots de passe modifiés en base ?)
-4. Pour la tontine : session clôturée → relancer ou appeler `/sessions/current/reopen`
+3. Vérifier les articles : `Aucun article activé disponible` → exécuter `.github/scripts/seed-e2e-articles.sh`
+4. Vérifier les comptes de test (mots de passe modifiés en base ?)
+5. Pour la tontine : session clôturée → relancer ou appeler `/sessions/current/reopen`
 
 ## Bonnes pratiques pour étendre les tests
 

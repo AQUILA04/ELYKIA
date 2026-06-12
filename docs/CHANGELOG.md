@@ -12,6 +12,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Fixed
 
+- **CI/CD —** pipeline E2E : seed automatique des articles de référence (`V14__insert_articles.sql`) après démarrage du backend sur Postgres vierge, corrigeant l'échec `ensureArticleWithStock` quand `/api/v1/articles/enabled` est vide.
 - **Deploy —** labels Traefik MinIO (test/prod) : liaison explicite router → service pour la console (port 9001) et l'API S3 (port 9000), corrigeant le 404 sur `minio*.amenouveve-yaveh.com` avec Traefik v3.
 
 ### Changed
