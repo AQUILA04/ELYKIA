@@ -160,7 +160,9 @@ export const selectClientsForRecovery = (username: string) => createSelector(
         .map(r => r.clientId)
     );
 
-    return clientViews.filter(client => client.creditInProgress && !recoveredTodayClientIds.has(String(client.id)));
+    return clientViews.filter(
+      client => client.hasActiveCredit && !recoveredTodayClientIds.has(String(client.id))
+    );
   }
 );
 

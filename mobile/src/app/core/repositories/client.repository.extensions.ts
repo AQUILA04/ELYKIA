@@ -7,6 +7,7 @@
 
 import { Injectable } from '@angular/core';
 import { ClientRepository } from './client.repository';
+import { ClientMapper } from '../../shared/mapper/client.mapper';
 import { Client } from '../../models/client.model';
 import { Page } from './repository.interface';
 import { buildCommercialFilterCondition } from '../constants/commercial-filter.config';
@@ -17,7 +18,9 @@ import { RepositoryViewFilters } from './repository.interface';
 
 export interface ClientRepositoryFilters extends RepositoryViewFilters {
     clientType?: string;
+    /** @deprecated Préférer hasActiveDistribution (basé sur distributions.remainingAmount > 0) */
     hasCredit?: boolean;
+    hasActiveDistribution?: boolean;
     orderBy?: 'quarter' | 'name';
     tontineCollector?: string;
     excludeRecoveredToday?: boolean;
@@ -65,6 +68,7 @@ export class ClientRepositoryExtensions {
         this.applyFilters(whereConditions, params, filters);
 
         const whereClause = whereConditions.join(' AND ');
+        const orderByClause = this.buildOrderByClause(filters?.orderBy);
 
         // Count total items
         const countSql = `SELECT COUNT(*) as total FROM clients WHERE ${whereClause}`;
@@ -72,10 +76,18 @@ export class ClientRepositoryExtensions {
         const totalElements = countResult.values?.[0]?.total || 0;
         const totalPages = Math.ceil(totalElements / size);
 
+        const activeCreditSelect = this.buildHasActiveCreditSelect('clients.id');
+
         // Get paginated data
-        const dataSql = `SELECT * FROM clients WHERE ${whereClause} ORDER BY fullName ASC LIMIT ${size} OFFSET ${offset}`;
+        const dataSql = `
+            SELECT clients.*, ${activeCreditSelect} AS hasActiveCredit
+            FROM clients
+            WHERE ${whereClause}
+            ${orderByClause}
+            LIMIT ${size} OFFSET ${offset}
+        `;
         const dataResult = await this.clientRepository['getDatabaseService']().query(dataSql, params);
-        const content = (dataResult.values || []) as Client[];
+        const content = (dataResult.values || []).map((row: any) => this.mapClientFromRow(row));
 
         return {
             content,
@@ -147,8 +159,8 @@ export class ClientRepositoryExtensions {
             params.push(filters.isSync ? 1 : 0);
         }
 
-        if (filters?.hasCredit) {
-            whereConditions.push('c.creditInProgress = 1');
+        if (filters?.hasActiveDistribution || filters?.hasCredit) {
+            whereConditions.push(this.activeDistributionExistsClause('c.id'));
         }
 
         if (filters?.excludeRecoveredToday) {
@@ -165,14 +177,12 @@ export class ClientRepositoryExtensions {
         const totalElements = countResult.values?.[0]?.total || 0;
         const totalPages = Math.ceil(totalElements / size);
 
-        let orderByClause = 'ORDER BY c.fullName ASC';
-
-        if (filters?.orderBy === 'quarter') {
-            orderByClause = 'ORDER BY COALESCE(c.quarter, "ZZZ") ASC, c.fullName ASC';
-        }
+        const orderByClause = this.buildOrderByClause(filters?.orderBy, 'c');
+        const activeCreditSelect = this.buildHasActiveCreditSelect('c.id');
 
         const dataSql = `
             SELECT c.*,
+                   ${activeCreditSelect} AS hasActiveCredit,
                    a.id as accountId,
                    a.accountBalance,
                    a.accountNumber,
@@ -189,7 +199,7 @@ export class ClientRepositoryExtensions {
 
         // Map to ClientView
         const content: ClientView[] = rows.map(row => {
-            const client = { ...row };
+            const client = this.mapClientFromRow(row);
 
             const account: Account = {
                 id: row.accountId || '',
@@ -263,7 +273,7 @@ export class ClientRepositoryExtensions {
         }
 
         const commercialCondition = buildCommercialFilterCondition('client');
-        let whereConditions = [commercialCondition, 'creditInProgress = 1'];
+        let whereConditions = [commercialCondition, this.activeDistributionExistsClause('clients.id')];
         const params: any[] = [commercialUsername];
 
         // Add date filter using helper function
@@ -276,7 +286,7 @@ export class ClientRepositoryExtensions {
         }
 
         const whereClause = whereConditions.join(' AND ');
-        const sql = `SELECT COUNT(*) as total FROM clients WHERE ${whereClause} `;
+        const sql = `SELECT COUNT(*) as total FROM clients WHERE ${whereClause}`;
         const result = await this.clientRepository['getDatabaseService']().query(sql, params);
 
         return result.values?.[0]?.total || 0;
@@ -376,8 +386,70 @@ export class ClientRepositoryExtensions {
         };
     }
 
+    /**
+     * Aligne creditInProgress sur l'existence réelle de distributions avec solde restant > 0.
+     */
+    async reconcileCreditInProgress(commercialUsername: string): Promise<void> {
+        if (!commercialUsername) {
+            throw new Error('commercialUsername is required for security');
+        }
+
+        const db = this.clientRepository['getDatabaseService']();
+
+        await db.execute(
+            `UPDATE clients
+             SET creditInProgress = 0
+             WHERE commercial = ?
+               AND creditInProgress = 1
+               AND NOT EXISTS (
+                 SELECT 1 FROM distributions d
+                 WHERE d.clientId = clients.id AND COALESCE(d.remainingAmount, 0) > 0
+               )`,
+            [commercialUsername]
+        );
+
+        await db.execute(
+            `UPDATE clients
+             SET creditInProgress = 1
+             WHERE commercial = ?
+               AND COALESCE(creditInProgress, 0) = 0
+               AND EXISTS (
+                 SELECT 1 FROM distributions d
+                 WHERE d.clientId = clients.id AND COALESCE(d.remainingAmount, 0) > 0
+               )`,
+            [commercialUsername]
+        );
+    }
+
+    private activeDistributionExistsClause(clientIdColumn: string): string {
+        return `EXISTS (
+            SELECT 1 FROM distributions d
+            WHERE d.clientId = ${clientIdColumn} AND COALESCE(d.remainingAmount, 0) > 0
+        )`;
+    }
+
+    private buildHasActiveCreditSelect(clientIdColumn: string): string {
+        return `CASE WHEN ${this.activeDistributionExistsClause(clientIdColumn)} THEN 1 ELSE 0 END`;
+    }
+
+    private buildOrderByClause(orderBy?: 'quarter' | 'name', tableAlias?: string): string {
+        const prefix = tableAlias ? `${tableAlias}.` : '';
+        if (orderBy === 'quarter') {
+            return `ORDER BY COALESCE(${prefix}quarter, "ZZZ") ASC, ${prefix}fullName ASC`;
+        }
+        return `ORDER BY ${prefix}fullName ASC`;
+    }
+
+    private mapClientFromRow(row: any): Client {
+        const client = ClientMapper.fromLocal(row);
+        if (row.hasActiveCredit !== undefined) {
+            client.hasActiveCredit = row.hasActiveCredit === 1 || row.hasActiveCredit === true;
+        }
+        return client;
+    }
+
     // Helper to apply common filters
-    private applyFilters(whereConditions: string[], params: any[], filters?: any) {
+    private applyFilters(whereConditions: string[], params: any[], filters?: ClientRepositoryFilters) {
         if (filters?.searchQuery) {
             whereConditions.push('(fullName LIKE ? OR phone LIKE ? OR quarter LIKE ?)');
             const searchPattern = `%${filters.searchQuery}%`;
@@ -412,9 +484,13 @@ export class ClientRepositoryExtensions {
             params.push(filters.isSync ? 1 : 0);
         }
 
+        if (filters?.hasActiveDistribution || filters?.hasCredit) {
+            whereConditions.push(this.activeDistributionExistsClause('clients.id'));
+        }
+
         if (filters?.excludeRecoveredToday) {
             const today = new Date().toISOString().split('T')[0];
-            whereConditions.push(`id NOT IN (SELECT clientId FROM recoveries WHERE paymentDate LIKE ?)`);
+            whereConditions.push(`clients.id NOT IN (SELECT clientId FROM recoveries WHERE paymentDate LIKE ?)`);
             params.push(`${today}%`);
         }
     }

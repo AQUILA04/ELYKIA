@@ -22,6 +22,8 @@ export interface Client {
   contactPersonAddress?: string;
   commercial: string;
   creditInProgress?: boolean;
+  /** Dérivé des distributions : au moins une distribution avec remainingAmount > 0 */
+  hasActiveCredit?: boolean;
   isLocal?: boolean;
   isSync?: boolean;
   syncDate?: string;

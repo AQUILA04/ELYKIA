@@ -172,7 +172,7 @@
           
           <div class="receipt-footer">
             <p>Merci pour votre confiance!</p>
-            <p>Payez régulièrement vos mises</p>
+            <p *ngIf="receiptData.saleType === 'CREDIT'">Payez régulièrement vos mises</p>
             <strong>!!!AMENOUVEVE-YAHVE!!!</strong>
           </div>
         </div>

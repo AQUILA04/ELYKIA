@@ -672,6 +672,13 @@ export class ClientService {
    * @param filters Optional filters
    * @returns Page of clients
    */
+  async reconcileCreditInProgress(commercialUsername: string): Promise<void> {
+    if (!commercialUsername) {
+      throw new Error('commercialUsername is required for security');
+    }
+    await this.clientRepositoryExtensions.reconcileCreditInProgress(commercialUsername);
+  }
+
   async getClientsPaginated(
     commercialUsername: string,
     page: number,
@@ -682,7 +689,10 @@ export class ClientService {
       throw new Error('commercialUsername is required for security');
     }
 
-    // Use ClientRepositoryExtensions for paginated query
+    if (page === 0) {
+      await this.reconcileCreditInProgress(commercialUsername);
+    }
+
     return this.clientRepositoryExtensions.findByCommercialPaginated(commercialUsername, page, size, filters);
   }
 

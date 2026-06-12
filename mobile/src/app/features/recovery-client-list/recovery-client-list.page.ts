@@ -75,7 +75,7 @@ export class RecoveryClientListPage implements OnInit {
           pageSize: 20,
           filters: {
             searchQuery: query,
-            hasCredit: true,
+            hasActiveDistribution: true,
             excludeRecoveredToday: true,
             orderBy: 'quarter'
           }
@@ -91,7 +91,7 @@ export class RecoveryClientListPage implements OnInit {
           commercialUsername: user.username,
           filters: {
             searchQuery: this.searchControl.value || '',
-            hasCredit: true,
+            hasActiveDistribution: true,
             excludeRecoveredToday: true,
             orderBy: 'quarter'
           }

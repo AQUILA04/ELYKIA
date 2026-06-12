@@ -191,6 +191,7 @@ export class DataInitializationService {
       filter((user): user is User => !!user),
       switchMap(user => {
         return this.distributionService.initializeDistributions().pipe(
+          switchMap(() => from(this.clientService.reconcileCreditInProgress(user.username))),
           map(() => {
             this.store.dispatch(DistributionActions.loadDistributions({ commercialUsername: user.username }));
             return true;

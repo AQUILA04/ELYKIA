@@ -88,7 +88,7 @@ export class MorePage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.autoSync = await this.storage.get('autoSync') || false;
-    this.autoLock = await this.storage.get('autoLock') || false;
+    this.autoLock = await this.storage.get('autoLock') || true;
     this.autoLockDuration = await this.storage.get('autoLockDuration') || 2;
 
     // Charger les préférences de synchronisation des photos

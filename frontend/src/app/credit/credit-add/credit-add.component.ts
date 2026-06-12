@@ -706,7 +706,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
             <div class="separator"></div>
             <div class="footer">
               <p>Merci pour votre confiance!</p>
-              <p>Payez régulièrement vos mises</p>
+              ${this.receiptData.saleType === 'CREDIT' ? '<p>Payez régulièrement vos mises</p>' : ''}
               <strong>!!!AMENOUVEVE-YAHVE!!!</strong>
               <p>${uniqueId}</p>
             </div>
@@ -881,7 +881,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
             <div class="separator"></div>
             <div class="footer">
               <p>Merci pour votre confiance!</p>
-              <p>Payez régulièrement vos mises</p>
+              ${this.receiptData.saleType === 'CREDIT' ? '<p>Payez régulièrement vos mises</p>' : ''}
               <strong>!!!AMENOUVEVE-YAHVE!!!</strong>
               <p style="font-size: 10px; color: #999; margin-top: 10px;">${uniqueId}</p>
             </div>

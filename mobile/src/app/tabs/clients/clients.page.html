@@ -47,7 +47,7 @@
           </ion-label>
           <div slot="end" class="client-details">
             <ion-note color="success">{{ client.account?.accountBalance | currency:'XOF' }}</ion-note>
-            <ion-badge *ngIf="client.creditInProgress" color="warning">Crédit en cours</ion-badge>
+            <ion-badge *ngIf="client.hasActiveCredit" color="warning">Crédit en cours</ion-badge>
             <ion-badge *ngIf="!client.isSync" color="medium">
               <ion-icon name="cloud-offline-outline" style="font-size: 12px; margin-right: 2px;"></ion-icon>
               Local

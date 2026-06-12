@@ -22,6 +22,7 @@ import { TontineCollectionSyncService } from './sync/tontine-collection-sync.ser
 import { TontineDeliverySyncService } from './sync/tontine-delivery-sync.service';
 import { ReliquatSyncService } from './sync/reliquat-sync.service';
 import { CashDeskService } from './cash-desk.service';
+import { ClientService } from './client.service';
 import { SyncConsentPresenterService } from '../../features/sync-consent/sync-consent-presenter.service';
 
 import {
@@ -62,7 +63,8 @@ export class SyncMasterService {
     private readonly tontineCollectionSyncService: TontineCollectionSyncService,
     private readonly tontineDeliverySyncService: TontineDeliverySyncService,
     private readonly reliquatSyncService: ReliquatSyncService,
-    private readonly syncConsentPresenter: SyncConsentPresenterService
+    private readonly syncConsentPresenter: SyncConsentPresenterService,
+    private readonly clientService: ClientService
   ) { }
 
   /**
@@ -211,6 +213,11 @@ export class SyncMasterService {
       batchResult.tontineDeliveriesSync = { success: tdResult.success, errors: tdResult.errors };
       processedItems += (tdResult.success + tdResult.errors);
       this.updateProgress(processedItems, totalItems);
+
+      const commercialUsername = this.authService.currentUser?.username;
+      if (commercialUsername) {
+        await this.clientService.reconcileCreditInProgress(commercialUsername);
+      }
 
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'completed', percentage: 100 } }));
 

@@ -96,6 +96,7 @@ runs:
         cp ../.github/workflows/android-config-prod/file_paths.xml android/app/src/main/res/xml/file_paths.xml
         ../.github/scripts/patch-android-status-bar-styles.sh android/app/src/main/res/values/styles.xml
         ../.github/scripts/configure-android-firebase.sh android
+        ../.github/scripts/sync-android-version.sh android
 
     - name: Prepare Android keystore
       shell: bash

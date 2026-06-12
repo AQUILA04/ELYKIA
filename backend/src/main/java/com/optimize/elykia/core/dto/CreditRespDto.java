@@ -25,7 +25,8 @@ public record CreditRespDto(Long id,
                             Double totalAmount,
                             Double totalPurchase,
                             Double totalAmountPaid,
-                            Double totalAmountRemaining, 
+                            Double totalAmountRemaining,
+                            Double advance,
                             Double dailyStake,
                             CreditStatus status,
                             Integer remainingDaysCount,
@@ -64,7 +65,7 @@ public record CreditRespDto(Long id,
     @JsonIgnore
     public static CreditRespDto fromId(Long id) {
         return new CreditRespDto(id, null, null, null,null, null,
-                null, null, null, null, null,
+                null, null, null, null, null, null,
                 null, null, null,null, null, null, null, null,
         null, null, null, null, null, null, null, null, null, null, null);
     }
@@ -74,7 +75,7 @@ public record CreditRespDto(Long id,
         ClientRespDto client  = ClientRespDto.fromClient(credit.getClient());
         return new CreditRespDto(credit.getId(), credit.getClientId(), credit.getBeginDate(), credit.getExpectedEndDate(),credit.getEffectiveEndDate(), credit.getSolvencyNote(),
                 credit.getLateDaysCount(), credit.getTotalAmount(), credit.getTotalAmount(), credit.getTotalAmountPaid(), credit.getTotalAmountRemaining(),
-                credit.getDailyStake(), credit.getStatus(), credit.getRemainingDaysCount(),credit.getCollector(), credit.getType(), credit.getDailyPaid(), credit.getClientType(), parentId,
+                credit.getAdvance(), credit.getDailyStake(), credit.getStatus(), credit.getRemainingDaysCount(),credit.getCollector(), credit.getType(), credit.getDailyPaid(), credit.getClientType(), parentId,
                 credit.getUpdatable(), credit.getReference(), credit.getAccountingDate(), credit.getReleaseDate(), credit.getReleasePrinted(), credit.getOldReference(), null, client,
                 credit.getOperationConsentCode(), credit.getConfirmedAmount(), credit.getSyncConsentCode());
     }
@@ -99,7 +100,7 @@ public record CreditRespDto(Long id,
 
         return new CreditRespDto(this.id, this.clientId, this.beginDate, this.expectedEndDate,this.effectiveEndDate, this.solvencyNote,
                 this.lateDaysCount, this.totalAmount, this.totalPurchase, this.totalAmountPaid, this.totalAmountRemaining,
-                this.dailyStake, this.status, this.remainingDaysCount,this.collector, this.type, this.dailyPaid, this.clientType, this.parentId,
+                this.advance, this.dailyStake, this.status, this.remainingDaysCount,this.collector, this.type, this.dailyPaid, this.clientType, this.parentId,
                 this.updatable, this.reference, this.accountingDate, this.releaseDate, this.releasePrinted, this.oldReference,creditArticles, this.client,
                 this.operationConsentCode, this.confirmedAmount, this.syncConsentCode);
     }

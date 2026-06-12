@@ -29,6 +29,7 @@ export class SyncManagerService {
 
       // 2. Synchroniser toutes les données locales vers le serveur (incluant les URLs de photos)
       await this.synchronizationService.synchronizeAllData();
+      await this.clientService.reconcileCreditInProgress(commercialUsername);
 
       this.log.log('[SyncManagerService] Full synchronization completed successfully');
     } catch (error) {

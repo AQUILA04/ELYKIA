@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, combineLatest, BehaviorSubject, of } from 'rxjs';
 import { ClientView } from 'src/app/models/client-view.model';
+import { ClientRepositoryFilters } from 'src/app/core/repositories/client.repository.extensions';
 import { selectPaginatedClientViews, selectClientPaginationHasMore, selectClientPaginationLoading } from 'src/app/store/client/client.selectors';
 import * as ClientActions from 'src/app/store/client/client.actions';
 import { FormControl } from '@angular/forms';
@@ -80,10 +81,7 @@ export class ClientsPage implements OnInit, OnDestroy {
         this.store.dispatch(ClientActions.loadFirstPageClients({
           commercialUsername: user.username,
           pageSize: 20,
-          filters: {
-            searchQuery: searchQuery,
-            clientType: this.activeFilter === 'all' ? undefined : this.activeFilter,
-          }
+          filters: this.buildListFilters(searchQuery)
         }));
       }
     });
@@ -94,10 +92,7 @@ export class ClientsPage implements OnInit, OnDestroy {
       if (user && user.username) {
         this.store.dispatch(ClientActions.loadNextPageClients({
           commercialUsername: user.username,
-          filters: {
-            searchQuery: this.searchControl.value || '',
-            clientType: this.activeFilter === 'all' ? undefined : this.activeFilter
-          }
+          filters: this.buildListFilters(this.searchControl.value || '')
         }));
       }
     });
@@ -118,6 +113,28 @@ export class ClientsPage implements OnInit, OnDestroy {
     this.activeFilter = filterName;
     this.content?.scrollToTop(500);
     this.refreshList(this.searchControl.value || '');
+  }
+
+  private buildListFilters(searchQuery: string): ClientRepositoryFilters {
+    const filters: ClientRepositoryFilters = {};
+
+    if (searchQuery) {
+      filters.searchQuery = searchQuery;
+    }
+
+    switch (this.activeFilter) {
+      case 'credit':
+        filters.hasActiveDistribution = true;
+        break;
+      case 'new':
+        filters.isLocal = true;
+        break;
+      case 'quartier':
+        filters.orderBy = 'quarter';
+        break;
+    }
+
+    return filters;
   }
 
   openClientDetail(clientId: string) {

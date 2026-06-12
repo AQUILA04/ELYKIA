@@ -66,6 +66,13 @@ print("firebase patch valid")
 PY
 pass "configure-android-firebase.sh"
 
+mkdir -p "$WORK/mobile"
+printf '%s\n' '{"name":"elykia-mobile","version":"2.8.5"}' > "$WORK/mobile/package.json"
+bash "$ROOT/.github/scripts/sync-android-version.sh" "$WORK/android" "$WORK/mobile/package.json"
+grep -q 'versionName "2.8.5"' "$WORK/android/app/build.gradle" || fail "versionName not synced"
+grep -q 'versionCode 20805' "$WORK/android/app/build.gradle" || fail "versionCode not synced"
+pass "sync-android-version.sh"
+
 STYLE_SRC="$WORK/styles.xml"
 cat > "$STYLE_SRC" <<'XML'
 <?xml version="1.0" encoding="utf-8"?>

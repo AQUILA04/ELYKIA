@@ -35,6 +35,25 @@ def test_signing() -> None:
     print("signing OK")
 
 
+def test_android_version() -> None:
+    work = Path(tempfile.mkdtemp())
+    android = work / "android"
+    app = android / "app"
+    app.mkdir(parents=True)
+    shutil.copy(FIXTURES / "app.build.gradle.template", app / "build.gradle")
+    package_json = work / "package.json"
+    package_json.write_text('{"version":"3.1.4"}\n')
+
+    py = extract_py(Path(__file__).parent / "sync-android-version.sh")
+    sys.argv = ["", str(package_json), str(app / "build.gradle")]
+    exec(py, {"__name__": "__main__"})
+
+    gradle = (app / "build.gradle").read_text()
+    assert 'versionName "3.1.4"' in gradle
+    assert "versionCode 30104" in gradle
+    print("android version OK")
+
+
 def test_firebase() -> None:
     work = Path(tempfile.mkdtemp())
     android = work / "android"
@@ -58,4 +77,5 @@ def test_firebase() -> None:
 if __name__ == "__main__":
     test_signing()
     test_firebase()
+    test_android_version()
     print("ALL OK")
