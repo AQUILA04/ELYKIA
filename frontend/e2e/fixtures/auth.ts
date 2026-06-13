@@ -15,6 +15,11 @@ async function dismissSweetAlert(page: Page): Promise<void> {
 export async function loginAs(page: Page, userKey: E2eUserKey): Promise<void> {
   const { username, password } = await resolveCredentials(userKey);
 
+  // Évite que Firebase Remote Config active printReceiptAfterSale en CI (bloque la redirection).
+  await page.addInitScript(() => {
+    sessionStorage.setItem('elykia.skipRemoteConfig', '1');
+  });
+
   await page.goto('/login');
   await page.getByTestId('e2e-login-form').waitFor({ state: 'visible' });
 

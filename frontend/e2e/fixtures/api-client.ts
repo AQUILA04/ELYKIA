@@ -16,7 +16,21 @@ export interface TestArticle {
   label: string;
   commercialName?: string;
   name?: string;
+  type?: string;
+  marque?: string;
+  model?: string;
   stockQuantity?: number;
+}
+
+function buildArticleSearchLabel(article: TestArticle): string {
+  if (article.commercialName?.trim()) {
+    return article.commercialName.trim();
+  }
+  if (article.type && article.marque) {
+    const modelPart = article.model ? ` ${article.model}` : '';
+    return `${article.type}: ${article.marque}${modelPart}`;
+  }
+  return article.name?.trim() || `article-${article.id}`;
 }
 
 interface ApiEnvelope<T> {
@@ -494,6 +508,40 @@ export class ApiClient {
     return response.data ?? {};
   }
 
+  async getMonthlyStockItem(
+    collector: string,
+    articleId: number,
+  ): Promise<MonthlyStockItem | null> {
+    const stock = await this.getCurrentMonthlyStock(collector);
+    return (
+      stock?.items?.find(
+        (item) => (item.article?.id ?? item.articleId) === articleId,
+      ) ?? null
+    );
+  }
+
+  async ensureCommercialStockRemaining(
+    collector: string,
+    articleId: number,
+    minRemaining: number,
+    timeoutMs = 30_000,
+  ): Promise<MonthlyStockItem> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const item = await this.getMonthlyStockItem(collector, articleId);
+      if (item && (item.quantityRemaining ?? 0) >= minRemaining) {
+        return item;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    const last = await this.getMonthlyStockItem(collector, articleId);
+    throw new Error(
+      `Stock commercial insuffisant pour l'article ${articleId} (${collector}) : ` +
+        `${last?.quantityRemaining ?? 0} restant, ${minRemaining} requis`,
+    );
+  }
+
   async ensureArticleWithStock(minQuantity = 10): Promise<TestArticle> {
     const articles = await this.getEnabledArticles();
     if (articles.length === 0) {
@@ -504,7 +552,7 @@ export class ApiClient {
     if (withStock) {
       return {
         ...withStock,
-        label: withStock.commercialName ?? withStock.name ?? `article-${withStock.id}`,
+        label: buildArticleSearchLabel(withStock),
       };
     }
 
@@ -512,7 +560,7 @@ export class ApiClient {
     await this.makeStockEntries(target.id, minQuantity);
     return {
       ...target,
-      label: target.commercialName ?? target.name ?? `article-${target.id}`,
+      label: buildArticleSearchLabel(target),
       stockQuantity: minQuantity,
     };
   }

@@ -38,7 +38,9 @@ import {
 import {
   expectCreditForClient,
   expectRecouvrementForCredit,
+  fillCreditSaleForm,
   getMonthlyStockItem,
+  submitCreditForm,
 } from '../fixtures/credit-helpers';
 import {
   expectRattrapageCreditForClient,
@@ -252,7 +254,15 @@ test.describe.serial('Golden path — prérequis métier', () => {
   test('étape 7 — vente à crédit pour le client E2E (COM020)', async ({ page }) => {
     test.setTimeout(120_000);
 
-    const stockItemBefore = await getMonthlyStockItem(TEST_COMMERCIAL_USERNAME, testArticle.id);
+    const api = new ApiClient();
+    await api.signInAsGestionnaire();
+    await api.ensureCommercialStockRemaining(
+      TEST_COMMERCIAL_USERNAME,
+      testArticle.id,
+      E2E_CREDIT_SALE_QTY,
+    );
+
+    const stockItemBefore = await api.getMonthlyStockItem(TEST_COMMERCIAL_USERNAME, testArticle.id);
     stockSoldBefore = stockItemBefore?.quantitySold ?? 0;
     stockRemainingBefore = stockItemBefore?.quantityRemaining ?? 0;
 
@@ -260,16 +270,14 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await page.goto('/credit-add');
     await page.locator('ngx-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
 
-    await expect(page.getByTestId('e2e-credit-add-form')).toBeVisible();
-    await selectNgSelectOption(page, 'e2e-credit-commercial', TEST_COMMERCIAL_USERNAME);
-    await page.locator('ngx-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
-
-    await selectNgSelectOption(page, 'e2e-credit-client', clientLastName);
-    await selectArticleInSelector(page, 0, testArticle.label, E2E_CREDIT_SALE_QTY);
-
-    await page.getByTestId('e2e-credit-submit').click();
-    await expect(page).toHaveURL(/\/credit-list/, { timeout: 30_000 });
-    await dismissSwalSuccess(page);
+    await fillCreditSaleForm(
+      page,
+      TEST_COMMERCIAL_USERNAME,
+      clientLastName,
+      testArticle.label,
+      E2E_CREDIT_SALE_QTY,
+    );
+    await submitCreditForm(page);
 
     const credit = await expectCreditForClient(clientLastName, { status: 'INPROGRESS' });
     creditReference = credit.reference;
@@ -441,10 +449,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
 
     await selectNgSelectOption(page, 'e2e-credit-client', clientLastName);
     await selectArticleInSelector(page, 0, testArticle.label, E2E_CASH_SALE_QTY);
-    await page.getByTestId('e2e-credit-submit').click();
-
-    await expect(page).toHaveURL(/\/credit-list/, { timeout: 30_000 });
-    await dismissSwalSuccess(page);
+    await submitCreditForm(page);
 
     await expect.poll(async () => {
       const apiClient = new ApiClient();
