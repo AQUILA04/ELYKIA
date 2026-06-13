@@ -42,6 +42,7 @@ import {
   getMonthlyStockItem,
   submitCreditForm,
 } from '../fixtures/credit-helpers';
+import { activateClientAccount } from '../fixtures/account-helpers';
 import {
   expectRattrapageCreditForClient,
   expectResidualStockRemaining,
@@ -136,7 +137,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     });
   });
 
-  test('étape 2 — créer un client rattaché à la localité et COM020', async ({ page }) => {
+  test('étape 2 — créer un client E2E et activer son compte (COM020)', async ({ page }) => {
     await loginAsGestionnaire(page);
 
     await page.getByTestId('e2e-sidebar-clients').click();
@@ -169,6 +170,8 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await expect(page.getByTestId('e2e-client-list')).toContainText(clientLastName, {
       timeout: 15_000,
     });
+
+    await activateClientAccount(page, clientLastName);
   });
 
   test('étape 3 — créer une demande de sortie stock pour COM020', async ({ page }) => {
@@ -702,6 +705,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await page.getByTestId('e2e-client-submit').click();
     await expect(page).toHaveURL(/\/client-list/, { timeout: 30_000 });
     await dismissSwalSuccess(page);
+    await activateClientAccount(page, rattrapageClientLastName);
 
     await logout(page);
     await loginAsCommercial(page);

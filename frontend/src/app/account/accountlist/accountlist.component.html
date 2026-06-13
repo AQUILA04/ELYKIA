@@ -15,6 +15,7 @@
       (keyup.enter)="onSearch()"
       class="form-control"
       style="width: 50%;"
+      data-testid="e2e-account-search"
     />
 
     <div class="button-group">
@@ -30,7 +31,7 @@
     </div>
   </div>
 
-  <div class="table-container">
+  <div class="table-container" data-testid="e2e-account-list">
     <table class="article-table">
       <thead>
       <tr>
@@ -42,7 +43,10 @@
         <th style="text-align: right;">Action</th> </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let account of accounts; let i = index">
+      <tr *ngFor="let account of accounts; let i = index"
+          data-testid="e2e-account-row"
+          [attr.data-client-lastname]="account.client?.lastname"
+          [attr.data-status]="account.status">
         <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
         <td>{{ account.client?.firstname }} {{ account.client?.lastname }}</td>
         <td>{{ account.accountNumber }}</td>
@@ -56,6 +60,7 @@
               <span *ngxPermissionsOnly="['ROLE_START_CREDIT','ROLE_VALIDATE_CREDIT']">
                 <button *ngIf="account.status === 'CREATED' || account.status === 'ACTIF' || account.status === 'CLOSED'"
                         mat-icon-button
+                        data-testid="e2e-account-toggle-status"
                         matTooltip="{{ account.status === 'CREATED' ? 'Activer' : (account.status === 'ACTIF' ? 'Désactiver' : 'Réactiver') }}"
                         (click)="toggleAccountStatus(account.id, account.status)">
                   <mat-icon [ngStyle]="{'color': account.status === 'CREATED' ? 'green' : (account.status === 'ACTIF' ? '#5a6a85' : '#003366')}">

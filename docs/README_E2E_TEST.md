@@ -72,7 +72,7 @@ Parcours séquentiel (`test.describe.serial`) : chaque étape dépend des préc�
 
 | Phase | Étapes | Description |
 |-------|--------|-------------|
-| 0–2 | 0–2 | Connexion, localité, client E2E |
+| 0–2 | 0–2 | Connexion, localité, client E2E (+ activation compte) |
 | Stock commercial | 3–6 | Demande sortie → validation ges003 → livraison mag001 → stock mensuel |
 | Crédit | 7–11 | Vente crédit, mise, recouvrement, rapport journalier, versement caisse |
 | Retour / comptant | 12–16 | Retour stock, vente comptant (COM001), KPI rapport agence |
@@ -86,6 +86,7 @@ Parcours séquentiel (`test.describe.serial`) : chaque étape dépend des préc�
 - **Livraison tontine** : préparée par le gestionnaire ; **marquée livrée** par le commercial ou le gestionnaire (pas le magasinier).
 - **Rattrapage crédit** : client dédié sans crédit `INPROGRESS` (le client principal a déjà un crédit ouvert) ; mise journalière ≥ montant article (souvent 200 FCFA).
 - **Session tontine** : réouverte en `beforeAll` via `POST /api/v1/tontines/sessions/current/reopen` si une exécution précédente l'a clôturée.
+- **Compte client** : après création avec solde initial, le gestionnaire active le compte depuis **Comptes** (`CREATED` → `ACTIF`) avant toute vente à crédit.
 
 ### Endpoints API E2E dédiés
 

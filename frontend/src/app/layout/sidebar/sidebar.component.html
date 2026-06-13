@@ -84,6 +84,7 @@
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ACCOUNT', 'ROLE_EDIT_ACCOUNT']">
           <a class="sidebar-link" routerLink="/accountlist" aria-expanded="false"
+             data-testid="e2e-sidebar-accounts"
              [ngClass]="{ 'active': isRouteActive('/accountlist') }">
             <span>
               <mat-icon>account_balance</mat-icon>
