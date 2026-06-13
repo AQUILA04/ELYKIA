@@ -200,14 +200,46 @@ export async function selectTontineDeliveryArticle(
   articleId: number,
   searchHint: string,
 ): Promise<void> {
+  await page
+    .waitForResponse(
+      (resp) =>
+        resp.url().includes('/api/v1/articles') &&
+        resp.request().method() === 'GET' &&
+        resp.ok(),
+      { timeout: 30_000 },
+    )
+    .catch(() => {});
+
   const input = page.getByTestId('e2e-tontine-delivery-article-search');
   await input.click();
-  await input.fill('');
-  const term = searchHint.trim().length >= 2 ? searchHint.trim().slice(0, 12) : 'ar';
-  await input.pressSequentially(term, { delay: 50 });
-  const option = page.locator(`.cdk-overlay-container mat-option[data-article-id="${articleId}"]`);
-  await expect(option).toBeVisible({ timeout: 25_000 });
-  await option.click();
+
+  const namePart = searchHint.includes(':')
+    ? searchHint.split(':').slice(1).join(':').trim()
+    : searchHint.trim();
+  const searchTerms = [
+    String(articleId),
+    namePart,
+    namePart.split(/\s+/).filter(Boolean)[0] ?? '',
+    searchHint.trim(),
+  ].filter((term, index, all) => term.length >= 2 && all.indexOf(term) === index);
+
+  for (const term of searchTerms) {
+    await input.fill('');
+    await input.pressSequentially(term, { delay: 40 });
+    await page.waitForTimeout(450);
+
+    const option = page.locator(
+      `.cdk-overlay-container mat-option[data-article-id="${articleId}"]`,
+    );
+    if (await option.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await option.click();
+      return;
+    }
+  }
+
+  throw new Error(
+    `Article tontine ${articleId} introuvable dans l'autocomplete (hint: ${searchHint})`,
+  );
 }
 
 /** Sélectionne le premier résultat d'un `mat-autocomplete` identifié par `data-testid`. */

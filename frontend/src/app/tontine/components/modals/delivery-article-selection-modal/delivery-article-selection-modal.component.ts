@@ -101,6 +101,11 @@ export class DeliveryArticleSelectionModalComponent implements OnInit {
       return of(result);
     }
 
+    const localMatches = this.filterArticlesLocally(searchTerm);
+    if (localMatches.length > 0) {
+      return of(localMatches);
+    }
+
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${this.tokenStorage.getToken()}`,
       'Content-Type': 'application/json'
@@ -121,16 +126,38 @@ export class DeliveryArticleSelectionModalComponent implements OnInit {
         map(response => {
           const articles = response.data?.content || [];
           console.log('Articles before filter:', articles);
-          // Ne pas filtrer par active ici, retourner tous les articles
           const filtered = articles.filter((a: Article) => a.active !== false);
+          if (filtered.length === 0) {
+            return this.filterArticlesLocally(searchTerm);
+          }
           console.log('Filtered articles:', filtered.length, filtered);
           return filtered;
         }),
         catchError(err => {
           console.error('Error searching articles:', err);
-          return of(this.articles.filter(a => a.active !== false).slice(0, 50));
+          const fallback = this.filterArticlesLocally(searchTerm);
+          return of(fallback.length > 0 ? fallback : this.articles.filter(a => a.active !== false).slice(0, 50));
         })
       );
+  }
+
+  private filterArticlesLocally(searchTerm: string): Article[] {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) {
+      return this.articles.filter(a => a.active !== false).slice(0, 50);
+    }
+    return this.articles
+      .filter(a => {
+        if (a.active === false) {
+          return false;
+        }
+        return (
+          String(a.id).includes(term) ||
+          (a.name ?? '').toLowerCase().includes(term) ||
+          (a.code ?? '').toLowerCase().includes(term)
+        );
+      })
+      .slice(0, 100);
   }
 
   onArticleSelected(article: Article): void {

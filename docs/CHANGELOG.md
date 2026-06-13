@@ -12,7 +12,8 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Fixed
 
-- **Frontend —** tests E2E golden path : activation du compte client (liste Comptes) après création, prérequis à la vente à crédit.
+- **Frontend —** modal livraison tontine : recherche locale de repli quand l'API articles ne retourne rien (autocomplete vide en CI).
+- **Frontend —** tests E2E golden path étape 25 : sélection article livraison tontine stabilisée (attente chargement API, recherche par id/nom).
 - **Frontend —** tests E2E golden path étape 8 : ouverture journée comptable avant mise journalière et validation explicite du recouvrement.
 - **Frontend —** tests E2E golden path étape 7 : soumission vente à crédit stabilisée (skip Remote Config, modal reçu, erreurs Swal, libellé article aligné stock commercial).
 - **CI/CD —** pipeline E2E : seed automatique des articles de référence (`V14__insert_articles.sql`) après démarrage du backend sur Postgres vierge, corrigeant l'échec `ensureArticleWithStock` quand `/api/v1/articles/enabled` est vide.

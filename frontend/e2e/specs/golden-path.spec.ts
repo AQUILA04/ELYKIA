@@ -624,7 +624,11 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await page.getByTestId('e2e-tontine-prepare-delivery-btn').click();
     await expect(page.getByTestId('e2e-tontine-delivery-modal')).toBeVisible();
 
-    await selectTontineDeliveryArticle(page, testArticle.id, testArticle.label);
+    await selectTontineDeliveryArticle(
+      page,
+      testArticle.id,
+      testArticle.name ?? testArticle.label,
+    );
     await expect(page.getByTestId('e2e-tontine-delivery-submit')).toBeEnabled({ timeout: 10_000 });
     await page.getByTestId('e2e-tontine-delivery-submit').click();
 
