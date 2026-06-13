@@ -331,6 +331,11 @@ export class ApiClient {
     return response.data?.content ?? [];
   }
 
+  /** Ouvre la journée comptable (idempotent) — prérequis aux mises / recouvrements. */
+  async ensureAccountingDayOpen(): Promise<void> {
+    await this.get('/api/v1/accounting-days/open');
+  }
+
   async getDailyReports(
     startDate: string,
     endDate: string,

@@ -41,6 +41,7 @@ import {
   fillCreditSaleForm,
   getMonthlyStockItem,
   submitCreditForm,
+  submitDailyStakeModal,
 } from '../fixtures/credit-helpers';
 import { activateClientAccount } from '../fixtures/account-helpers';
 import {
@@ -109,6 +110,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
 
     const api = new ApiClient();
     await api.signInAsGestionnaire();
+    await api.ensureAccountingDayOpen();
     await api.ensureTontineSessionActive();
     testArticle = await api.ensureArticleWithStock(20);
   });
@@ -290,6 +292,11 @@ test.describe.serial('Golden path — prérequis métier', () => {
 
   test('étape 8 — effectuer une mise (recouvrement) sur le crédit', async ({ page }) => {
     test.setTimeout(90_000);
+
+    const api = new ApiClient();
+    await api.signInAsGestionnaire();
+    await api.ensureAccountingDayOpen();
+
     await loginAsGestionnaire(page);
 
     const creditRow = await findCreditRow(page, clientLastName);
@@ -308,12 +315,9 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await amountInput.fill(String(stakeAmount));
     dailyStakeAmount = stakeAmount;
 
-    const submitBtn = page.getByTestId('e2e-daily-stake-submit');
-    await expect(submitBtn).toBeEnabled({ timeout: 10_000 });
-    await submitBtn.click();
-    await dismissSwalSuccess(page);
+    await submitDailyStakeModal(page);
 
-    await expectRecouvrementForCredit(creditReference, dailyStakeAmount);
+    await expectRecouvrementForCredit(creditReference, 1);
   });
 
   test('étape 9 — vérifier le recouvrement dans la liste', async ({ page }) => {

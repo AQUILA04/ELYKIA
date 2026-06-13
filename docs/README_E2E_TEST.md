@@ -87,6 +87,7 @@ Parcours séquentiel (`test.describe.serial`) : chaque étape dépend des préc�
 - **Rattrapage crédit** : client dédié sans crédit `INPROGRESS` (le client principal a déjà un crédit ouvert) ; mise journalière ≥ montant article (souvent 200 FCFA).
 - **Session tontine** : réouverte en `beforeAll` via `POST /api/v1/tontines/sessions/current/reopen` si une exécution précédente l'a clôturée.
 - **Compte client** : après création avec solde initial, le gestionnaire active le compte depuis **Comptes** (`CREATED` → `ACTIF`) avant toute vente à crédit.
+- **Journée comptable** : ouverte via API (`GET /api/v1/accounting-days/open`) en `beforeAll` et avant la mise journalière — prérequis backend aux recouvrements.
 
 ### Endpoints API E2E dédiés
 
