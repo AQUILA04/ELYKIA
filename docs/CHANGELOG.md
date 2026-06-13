@@ -19,6 +19,8 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Fixed
 
+- **Mobile —** CI E2E Playwright : démarrage via build statique + `http-server` (évite le timeout `webServer` de `ionic serve` à 120 s).
+- **Mobile —** correctif compilation E2E : accès `creditPurpose` sur `Record<string, unknown>` (TS4111).
 - **Frontend —** fiche membre tontine : section livraison masquée lorsqu'aucune livraison n'existe (404 API), au lieu d'afficher un bloc vide.
 
 ### Added

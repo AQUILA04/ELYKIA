@@ -669,7 +669,7 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     };
 
     if (this.dualCreditEnabled && vm.client?.businessCreditAuthorized) {
-      distributionData.creditPurpose = this.creditPurpose;
+      distributionData['creditPurpose'] = this.creditPurpose;
     }
 
     this.log.log('[NewDistributionPage] Confirming distribution');

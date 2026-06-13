@@ -1,12 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = !!process.env['CI'];
+
 export default defineConfig({
   testDir: './e2e/specs',
   fullyParallel: true,
-  forbidOnly: !!process.env['CI'],
-  retries: process.env['CI'] ? 2 : 0,
-  workers: process.env['CI'] ? 1 : undefined,
-  reporter: 'html',
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  workers: isCI ? 1 : undefined,
+  reporter: isCI ? [['list'], ['html', { open: 'never' }]] : 'html',
+  timeout: 120_000,
   use: {
     baseURL: 'http://localhost:8100',
     trace: 'on-first-retry',
@@ -19,12 +22,16 @@ export default defineConfig({
       use: { ...devices['Pixel 5'] },
     },
   ],
-  // The testDir specifies where tests are located
   testMatch: '**/*.spec.ts',
-  webServer: {
-    command: 'npx ionic serve --port 8100 --no-open',
-    url: 'http://localhost:8100',
-    reuseExistingServer: !process.env['CI'],
-    timeout: 120000,
-  },
+  webServer: process.env['E2E_SKIP_WEB_SERVER']
+    ? undefined
+    : {
+        // CI: build once then serve static www (fast, reliable). Local: dev server.
+        command: isCI ? 'npm run start:e2e:ci' : 'npm run start:e2e',
+        url: 'http://localhost:8100',
+        reuseExistingServer: !isCI,
+        timeout: isCI ? 300_000 : 180_000,
+        stdout: 'pipe',
+        stderr: 'pipe',
+      },
 });

@@ -227,6 +227,11 @@ jobs:
       
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
+
+    - name: Run E2E Tests
+      run: npm run test:e2e
+      env:
+        CI: true
       
     - name: Install Ionic CLI
       run: npm install -g @ionic/cli
@@ -234,9 +239,6 @@ jobs:
     - name: Install Capacitor CLI
       run: npm install -g @capacitor/cli
 
-    - name: Run E2E Tests
-      run: npm run test:e2e
-      
     - name: Build Ionic app
       run: |
         ionic build --prod
