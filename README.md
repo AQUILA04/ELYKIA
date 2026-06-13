@@ -158,10 +158,11 @@ Le workflow **ELYKIA QA — E2E Web** (`.github/workflows/e2e.yml`) s'exécute a
 
 | Workflow | Déclencheur | Rôle |
 |----------|-------------|------|
-| `ci.yml` | Push / PR sur `main`, `develop`, `release/**` | Build images Docker frontend/backend, APK mobile (si changements) |
-| `cd.yml` | Après CI réussi | Déploiement TEST (`main`) ou PROD (`prod/**`) |
+| `ci.yml` | Push / PR sur `main`, `develop`, `release/**` | Build images Docker frontend/backend (gate de déploiement) |
+| `ci-mobile.yml` | Push / PR sur `main`, `develop`, `release/**` | CI mobile (E2E + APK debug, n'empêche pas le CD) |
+| `cd.yml` | Après CI deploy réussi | Déploiement TEST (`main`) ou PROD (`prod/**`) |
 | `e2e.yml` | Après CD TEST réussi | Tests E2E Playwright (smoke + golden path) |
-| `build-mobile-apk.yml` | Après CD réussi | Build APK Android signé |
+| `build-mobile-apk.yml` | Après CD + ci-mobile réussis | Build APK Android signé |
 
 Voir [`README-DEPLOY.md`](README-DEPLOY.md) pour le déploiement serveur.
 

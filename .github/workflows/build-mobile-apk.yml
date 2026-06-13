@@ -1,16 +1,14 @@
 name: ELYKIA Mobile APK Build
 
-# Builds a release APK after a successful CD deployment.
+# Builds a release APK after CD deployed a commit AND ci-mobile validated it.
+# Triggers on CD completion (mobile may still be running) or ci-mobile completion (CD may have run first).
 #   main  → test APK
 #   prod/** → prod APK (direct, same commit as the prod CI)
 #   promote (manual) → prod APK rebuilt from the last successful test deployment (GitHub API only)
-#
-# Target is inferred from which CD deploy job succeeded. workflow_run chains execute on the
-# default branch, so head_branch must not be used for target detection.
 
 on:
   workflow_run:
-    workflows: ["ELYKIA CD Pipeline"]
+    workflows: ["ELYKIA CD Pipeline", "ELYKIA CI Mobile Pipeline"]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -33,59 +31,12 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'promote')
     runs-on: ubuntu-latest
     outputs:
-      target: ${{ steps.ctx.outputs.target }}
+      target: ${{ steps.resolve.outputs.target }}
       mobile_built: ${{ steps.mobile.outputs.mobile_built }}
-      build_sha: ${{ steps.build_sha.outputs.build_sha }}
+      build_sha: ${{ steps.resolve.outputs.build_sha }}
     steps:
-      - name: Resolve deployment target
-        id: ctx
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          sudo apt-get update -y && sudo apt-get install -y jq
-
-          if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
-            echo "Manual promote: build PROD APK from last test deployment"
-            echo "target=prod" >> "$GITHUB_OUTPUT"
-            echo "sha_source=promote" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          CD_RUN_ID='${{ github.event.workflow_run.id }}'
-          jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${CD_RUN_ID}/jobs")
-
-          echo "CD run $CD_RUN_ID jobs:" >&2
-          echo "$jobs_json" | jq -r '.jobs[] | "\(.name): \(.conclusion)"' >&2
-
-          promote_conclusion=$(echo "$jobs_json" | jq -r \
-            '.jobs[] | select(.name=="Promote test -> prod") | .conclusion' | head -n1 || true)
-          prod_conclusion=$(echo "$jobs_json" | jq -r \
-            '.jobs[] | select(.name=="Deploy to PROD after CI") | .conclusion' | head -n1 || true)
-          test_conclusion=$(echo "$jobs_json" | jq -r \
-            '.jobs[] | select(.name=="Deploy to TEST after CI") | .conclusion' | head -n1 || true)
-
-          if [ "$prod_conclusion" = "success" ]; then
-            echo "CD prod deploy detected → build PROD APK"
-            echo "target=prod" >> "$GITHUB_OUTPUT"
-            echo "sha_source=prod" >> "$GITHUB_OUTPUT"
-          elif [ "$promote_conclusion" = "success" ]; then
-            echo "CD promote detected → build PROD APK from last test deployment"
-            echo "target=prod" >> "$GITHUB_OUTPUT"
-            echo "sha_source=promote" >> "$GITHUB_OUTPUT"
-          elif [ "$test_conclusion" = "success" ]; then
-            echo "CD test deploy detected → build TEST APK"
-            echo "target=test" >> "$GITHUB_OUTPUT"
-            echo "sha_source=test" >> "$GITHUB_OUTPUT"
-          else
-            echo "target=" >> "$GITHUB_OUTPUT"
-            echo "No deploy job succeeded in CD run $CD_RUN_ID" >&2
-          fi
-
-      - name: Resolve CI commit
-        id: build_sha
-        if: steps.ctx.outputs.target != ''
+      - name: Resolve deployment context
+        id: resolve
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -93,7 +44,10 @@ jobs:
           sudo apt-get update -y && sudo apt-get install -y jq
 
           REPO='${{ github.repository }}'
-          SHA_SOURCE='${{ steps.ctx.outputs.sha_source }}'
+          EVENT='${{ github.event_name }}'
+          TRIGGER_PATH='${{ github.event.workflow_run.path }}'
+          TRIGGER_SHA='${{ github.event.workflow_run.head_sha }}'
+          TRIGGER_RUN_ID='${{ github.event.workflow_run.id }}'
           CD_STARTED='${{ github.event.workflow_run.run_started_at }}'
 
           find_ci_sha_before() {
@@ -136,49 +90,132 @@ jobs:
             return 1
           }
 
-          SHA=""
-          case "$SHA_SOURCE" in
-            test)
-              SHA=$(find_ci_sha_before "main" "$CD_STARTED")
-              ;;
-            prod)
-              SHA=$(find_ci_sha_before "prod" "$CD_STARTED")
-              ;;
-            promote)
-              SHA=$(find_last_test_deploy_ci_sha) || true
-              ;;
-          esac
+          resolve_target_from_cd_run() {
+            local run_id="$1"
+            local jobs_json prod promote test
+            jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/actions/runs/${run_id}/jobs")
+            prod=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Deploy to PROD after CI") | .conclusion' | head -n1 || true)
+            promote=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Promote test -> prod") | .conclusion' | head -n1 || true)
+            test=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Deploy to TEST after CI") | .conclusion' | head -n1 || true)
+            if [ "$prod" = "success" ] || [ "$promote" = "success" ]; then
+              echo "prod"
+            elif [ "$test" = "success" ]; then
+              echo "test"
+            fi
+          }
 
-          if [ -z "$SHA" ]; then
-            echo "Could not resolve CI commit (sha_source=$SHA_SOURCE)" >&2
-            exit 2
+          resolve_target_from_cd_run_id() {
+            local cd_run_id="$1"
+            local jobs_json promote_conclusion prod_conclusion test_conclusion
+            jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/actions/runs/${cd_run_id}/jobs")
+            echo "CD run $cd_run_id jobs:" >&2
+            echo "$jobs_json" | jq -r '.jobs[] | "\(.name): \(.conclusion)"' >&2
+            promote_conclusion=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Promote test -> prod") | .conclusion' | head -n1 || true)
+            prod_conclusion=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Deploy to PROD after CI") | .conclusion' | head -n1 || true)
+            test_conclusion=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Deploy to TEST after CI") | .conclusion' | head -n1 || true)
+            if [ "$prod_conclusion" = "success" ]; then
+              echo "prod|prod"
+            elif [ "$promote_conclusion" = "success" ]; then
+              echo "prod|promote"
+            elif [ "$test_conclusion" = "success" ]; then
+              echo "test|test"
+            fi
+          }
+
+          TARGET=""
+          BUILD_SHA=""
+          MOBILE_RUN_ID=""
+
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            TARGET="prod"
+            BUILD_SHA=$(find_last_test_deploy_ci_sha) || true
+            if [ -z "$BUILD_SHA" ]; then
+              echo "Could not resolve CI commit for promote" >&2
+              exit 2
+            fi
+            echo "Manual promote → PROD APK from test deployment at $BUILD_SHA" >&2
+          elif [ "$TRIGGER_PATH" = ".github/workflows/ci-mobile.yml" ]; then
+            echo "Triggered by ci-mobile for commit $TRIGGER_SHA" >&2
+            MOBILE_RUN_ID="$TRIGGER_RUN_ID"
+            cd_runs=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/actions/workflows/cd.yml/runs?status=completed&per_page=30")
+            while read -r run_id run_sha; do
+              [ -z "$run_id" ] && continue
+              if [ "$run_sha" = "$TRIGGER_SHA" ]; then
+                TARGET=$(resolve_target_from_cd_run "$run_id" || true)
+                if [ -n "$TARGET" ]; then
+                  BUILD_SHA="$TRIGGER_SHA"
+                  echo "Found CD run $run_id for $TRIGGER_SHA → target=$TARGET" >&2
+                  break
+                fi
+              fi
+            done < <(echo "$cd_runs" | jq -r '.workflow_runs[] | "\(.id) \(.head_sha)"')
+            if [ -z "$TARGET" ]; then
+              echo "No successful CD deploy found yet for commit $TRIGGER_SHA" >&2
+            fi
+          else
+            echo "Triggered by CD run $TRIGGER_RUN_ID" >&2
+            resolved=$(resolve_target_from_cd_run_id "$TRIGGER_RUN_ID" || true)
+            if [ -n "$resolved" ]; then
+              TARGET="${resolved%%|*}"
+              SHA_SOURCE="${resolved#*|}"
+              case "$SHA_SOURCE" in
+                test) BUILD_SHA=$(find_ci_sha_before "main" "$CD_STARTED") ;;
+                prod) BUILD_SHA=$(find_ci_sha_before "prod" "$CD_STARTED") ;;
+                promote) BUILD_SHA=$(find_last_test_deploy_ci_sha) || true ;;
+              esac
+              echo "Resolved CI commit ($SHA_SOURCE): $BUILD_SHA" >&2
+            fi
           fi
 
-          echo "Resolved CI commit ($SHA_SOURCE): $SHA"
-          echo "build_sha=$SHA" >> "$GITHUB_OUTPUT"
+          if [ -z "$TARGET" ] || [ -z "$BUILD_SHA" ]; then
+            echo "target=" >> "$GITHUB_OUTPUT"
+            echo "build_sha=" >> "$GITHUB_OUTPUT"
+            echo "mobile_run_id=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
-      - name: Check if mobile was built in CI for this commit
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "build_sha=$BUILD_SHA" >> "$GITHUB_OUTPUT"
+          echo "mobile_run_id=$MOBILE_RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Check if mobile was validated in ci-mobile
         id: mobile
-        if: steps.ctx.outputs.target != ''
+        if: steps.resolve.outputs.target != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           sudo apt-get update -y && sudo apt-get install -y jq
-          HEAD_SHA='${{ steps.build_sha.outputs.build_sha }}'
-          RUNS=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ci.yml/runs?head_sha=${HEAD_SHA}&status=completed&per_page=5")
-          CI_RUN_ID=$(echo "$RUNS" | jq -r '[.workflow_runs[] | select(.conclusion=="success")][0].id // empty')
-          if [ -z "$CI_RUN_ID" ]; then
-            echo "No successful CI run found for commit $HEAD_SHA"
-            echo "mobile_built=false" >> "$GITHUB_OUTPUT"
-            exit 0
+
+          HEAD_SHA='${{ steps.resolve.outputs.build_sha }}'
+          MOBILE_RUN_ID='${{ steps.resolve.outputs.mobile_run_id }}'
+
+          if [ -z "$MOBILE_RUN_ID" ]; then
+            RUNS=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ci-mobile.yml/runs?head_sha=${HEAD_SHA}&status=completed&per_page=5")
+            MOBILE_RUN_ID=$(echo "$RUNS" | jq -r '[.workflow_runs[] | select(.conclusion=="success")][0].id // empty')
+            if [ -z "$MOBILE_RUN_ID" ]; then
+              echo "No successful ci-mobile run found for commit $HEAD_SHA (may still be running)"
+              echo "mobile_built=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
           fi
-          echo "CI run id: $CI_RUN_ID"
+
+          echo "ci-mobile run id: $MOBILE_RUN_ID"
           jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${CI_RUN_ID}/jobs")
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${MOBILE_RUN_ID}/jobs")
           mobile_conclusion=$(echo "$jobs_json" | jq -r '.jobs[] | select(.name=="build-mobile") | .conclusion' | head -n1 || true)
           echo "build-mobile conclusion: $mobile_conclusion"
+
           if [ "$mobile_conclusion" = "success" ]; then
             echo "mobile_built=true" >> "$GITHUB_OUTPUT"
           else

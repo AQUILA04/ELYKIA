@@ -1,5 +1,7 @@
 name: ELYKIA CI Pipeline
 
+# Deploy gate: frontend + backend only. Mobile runs in ci-mobile.yml and does not block CD.
+
 on:
   push:
     branches: [ main, develop, 'release/**', 'prod/**' ]
@@ -17,7 +19,6 @@ jobs:
       frontend: ${{ steps.filter.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend }}
       backend_lib: ${{ steps.filter.outputs.backend_lib }}
-      mobile: ${{ steps.filter.outputs.mobile }}
     steps:
     - uses: actions/checkout@v6
     - uses: dorny/paths-filter@v4
@@ -30,8 +31,6 @@ jobs:
             - 'backend/**'
           backend_lib:
             - 'backend-lib/**'
-          mobile:
-            - 'mobile/**'
 
   build-frontend:
     needs: changes
@@ -186,150 +185,28 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-mobile:
-    needs: changes
-    if: ${{ needs.changes.outputs.mobile == 'true' }}
+  ci-deploy-gate:
+    name: Deploy gate
+    needs: [changes, build-frontend, build-backend, build-backend-lib]
+    if: always()
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./mobile
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
-
-    - name: Validate APK pipeline scripts
-      working-directory: .
-      run: |
-        chmod +x .github/scripts/*.sh
-        .github/scripts/validate-mobile-pipeline.sh
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v6
-      with:
-        node-version: '20.19.3'
-        cache: 'npm'
-        cache-dependency-path: 'mobile/package-lock.json'
-        
-    - name: Setup Java JDK
-      uses: actions/setup-java@v5
-      with:
-        distribution: 'temurin'
-        java-version: '21'
-        
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v4
-      
-    - name: Clean npm cache
-      run: npm cache clean --force
-      
-    - name: Install dependencies
-      run: npm install --legacy-peer-deps
-      
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps chromium
-
-    - name: Run E2E Tests
-      run: npm run test:e2e
-      env:
-        CI: true
-      
-    - name: Install Ionic CLI
-      run: npm install -g @ionic/cli
-      
-    - name: Install Capacitor CLI
-      run: npm install -g @capacitor/cli
-
-    - name: Build Ionic app
-      run: |
-        ionic build --prod
-      
-    - name: Add Android platform
-      run: |
-        npx cap add android
-        
-    - name: Create google-services.json
-      run: |
-        echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json    
-        
-    - name: Configure Gradle for Crashlytics
-      run: |
-        # 1. Ajouter le classpath dans build.gradle (racine)
-        sed -i "/dependencies {/a \        classpath 'com.google.gms:google-services:4.4.0'\n        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'" android/build.gradle
-        
-        # 2. Appliquer les plugins dans app/build.gradle
-        sed -i "/apply plugin: 'com.android.application'/a apply plugin: 'com.google.gms.google-services'\napply plugin: 'com.google.firebase.crashlytics'" android/app/build.gradle
-        
-        # 3. Ajouter les dépendances Firebase dans app/build.gradle
-        sed -i "/dependencies {/a \    implementation platform('com.google.firebase:firebase-bom:32.7.0')\n    implementation 'com.google.firebase:firebase-crashlytics'\n    implementation 'com.google.firebase:firebase-analytics'" android/app/build.gradle    
-
-    - name: Debug google-services.json
-      run: |
-        cat android/app/google-services.json
-        python -m json.tool android/app/google-services.json
-
-    - name: Sync Capacitor
-      run: |
-        npx cap sync android
-
-    - name: Prepare Android Configuration
-      run: |
-        echo "=== Preparing Android configuration files ==="
-        mkdir -p android/app/src/main/res/xml
-        echo "Configuration files ready for post-sync copy"
-
-    - name: Final Capacitor Sync
-      run: |
-        echo "=== Final sync after configuration ==="
-        npx cap sync android
-        
-        echo "=== Capacitor sync completed, now re-applying our configurations ==="
-        
-        # Re-copier nos fichiers APRÈS le sync qui les a écrasés
-        echo "Re-copying AndroidManifest.xml (simplified version) after sync..."
-        cp .github/workflows/android-config/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
-        
-        echo "Re-copying config.xml after sync..."
-        cp .github/workflows/android-config/config.xml android/app/src/main/res/xml/config.xml
-        
-        echo "Re-copying network_security_config.xml after sync..."
-        cp .github/workflows/android-config/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml
-        
-        echo "Re-copying file_paths.xml after sync..."
-        cp .github/workflows/android-config/file_paths.xml android/app/src/main/res/xml/file_paths.xml
-        
-        echo "=== Final verification after re-copy ==="
-        echo "Checking permissions count:"
-        grep -c "uses-permission" android/app/src/main/AndroidManifest.xml || echo "No permissions found!"
-        
-        echo "Checking application tag:"
-        grep -A 5 "usesCleartextTraffic" android/app/src/main/AndroidManifest.xml || echo "No cleartext traffic config found!"
-
-    - name: Grant execute permission for gradlew
-      run: |
-        chmod +x android/gradlew
-      
-    - name: Build Android Debug APK
-      run: |
-        cd android
-        if [ -f gradle.properties ]; then
-          sed -i '/org.gradle.jvmargs/d' gradle.properties
-          sed -i '/org.gradle.daemon/d' gradle.properties
-        fi
-        echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> gradle.properties
-        echo "org.gradle.daemon=false" >> gradle.properties
-        ./gradlew assembleDebug --stacktrace
-      
-    - name: Extract App Version and Rename APK
-      run: |
-        VERSION=$(grep "version:" src/environments/environment.ts | sed "s/.*version: '\([^']*\)'.*/\1/")
-        echo "Detected version: $VERSION"
-        echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
-        # include 'dev' in the APK name for CI builds
-        mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/elykia-mobile-dev-v$VERSION.apk
-
-    - name: Upload APK as artifact
-      uses: actions/upload-artifact@v6
-      with:
-        name: elykia-mobile-dev-v${{ env.APP_VERSION }}.apk
-        path: mobile/android/app/build/outputs/apk/debug/elykia-mobile-dev-v${{ env.APP_VERSION }}.apk
-        retention-days: ${{ github.ref == 'refs/heads/main' && 90 || 10 }}
+      - name: Verify deploy-critical jobs
+        run: |
+          check() {
+            local changed="$1"
+            local result="$2"
+            local name="$3"
+            if [ "$changed" = "true" ] && [ "$result" != "success" ]; then
+              echo "::error::$name was required for this push but ended with: $result"
+              exit 1
+            fi
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              echo "::error::$name ended with: $result"
+              exit 1
+            fi
+          }
+          check "${{ needs.changes.outputs.frontend }}" "${{ needs.build-frontend.result }}" "build-frontend"
+          check "${{ needs.changes.outputs.backend }}" "${{ needs.build-backend.result }}" "build-backend"
+          check "${{ needs.changes.outputs.backend_lib }}" "${{ needs.build-backend-lib.result }}" "build-backend-lib"
+          echo "Deploy gate passed"
