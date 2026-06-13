@@ -19,6 +19,9 @@ name: ELYKIA CD Pipeline
 #   - A backend-only change deploys the new backend + last known-good frontend.
 #   - Both changed → both new images are deployed.
 #
+# When deploy/ changed in the push, CD runs deploy.sh with -fu so the server
+# scripts under /opt/elykia/deploy are refreshed from main before compose up.
+#
 on:
   workflow_run:
     workflows: ["ELYKIA CI Pipeline"]
@@ -106,10 +109,64 @@ jobs:
           echo "backend_image=$BACKEND_IMAGE"  >> "$GITHUB_OUTPUT"
 
   # ---------------------------------------------------------------------------
+  # Detect deploy/ changes in the push that triggered CI
+  # ---------------------------------------------------------------------------
+  detect-deploy-changes:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.head_branch == 'main' || startsWith(github.event.workflow_run.head_branch, 'prod/'))
+    runs-on: ubuntu-latest
+    outputs:
+      force_update: ${{ steps.detect.outputs.force_update }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Detect deploy folder changes
+        id: detect
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO='${{ github.repository }}'
+
+          find_push_before() {
+            local page=1
+            while [ "$page" -le 5 ]; do
+              local before
+              before=$(gh api "/repos/$REPO/events?per_page=100&page=$page" \
+                --jq ".[] | select(.type==\"PushEvent\" and .payload.after==\"$HEAD_SHA\") | .payload.before" \
+                | head -1 || true)
+              if [ -n "$before" ]; then
+                echo "$before"
+                return 0
+              fi
+              page=$((page + 1))
+            done
+            return 1
+          }
+
+          BEFORE=$(find_push_before || true)
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "Push base not found in events; falling back to head commit only" >&2
+            BEFORE="${HEAD_SHA}^"
+          fi
+
+          if git diff --name-only "$BEFORE" "$HEAD_SHA" -- deploy/ | grep -q .; then
+            echo "Deploy folder changed between $BEFORE and $HEAD_SHA"
+            echo "force_update=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No deploy folder changes detected"
+            echo "force_update=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ---------------------------------------------------------------------------
   # Deploy to TEST
   # ---------------------------------------------------------------------------
   deploy-test:
-    needs: resolve-images
+    needs: [resolve-images, detect-deploy-changes]
     if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     name: Deploy to TEST after CI
@@ -127,15 +184,21 @@ jobs:
 
       - name: Deploy to test server
         run: |
+          set -euo pipefail
           FRONTEND_IMAGE='${{ needs.resolve-images.outputs.frontend_image }}'
           BACKEND_IMAGE='${{ needs.resolve-images.outputs.backend_image }}'
+          DEPLOY_FORCE_UPDATE=""
+          if [ "${{ needs.detect-deploy-changes.outputs.force_update }}" = "true" ]; then
+            DEPLOY_FORCE_UPDATE="-fu"
+            echo "deploy/ changed in this push → forcing deploy scripts update (-fu)"
+          fi
           echo "Deploying $FRONTEND_IMAGE and $BACKEND_IMAGE to test"
           echo "TEST_SERVER_USER:" $(echo '${{ secrets.TEST_SERVER_USER }}' | sed 's/./& /g')
           echo "TEST_SERVER_HOST:" $(echo '${{ secrets.TEST_SERVER_HOST }}' | sed 's/./& /g')
           ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} \
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
              && cd ${{ secrets.TEST_DEPLOY_PATH }} \
-             && ./deploy/deploy.sh test '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+             && ./deploy/deploy.sh $DEPLOY_FORCE_UPDATE test '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
 
       - name: Deploy monitoring stack (test)
         env:
@@ -160,7 +223,7 @@ jobs:
   # Deploy to PROD
   # ---------------------------------------------------------------------------
   deploy-prod:
-    needs: resolve-images
+    needs: [resolve-images, detect-deploy-changes]
     if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'prod/')
     runs-on: ubuntu-latest
     name: Deploy to PROD after CI
@@ -178,15 +241,21 @@ jobs:
 
       - name: Deploy to prod server
         run: |
+          set -euo pipefail
           FRONTEND_IMAGE='${{ needs.resolve-images.outputs.frontend_image }}'
           BACKEND_IMAGE='${{ needs.resolve-images.outputs.backend_image }}'
+          DEPLOY_FORCE_UPDATE=""
+          if [ "${{ needs.detect-deploy-changes.outputs.force_update }}" = "true" ]; then
+            DEPLOY_FORCE_UPDATE="-fu"
+            echo "deploy/ changed in this push → forcing deploy scripts update (-fu)"
+          fi
           echo "Deploying $FRONTEND_IMAGE and $BACKEND_IMAGE to prod"
           echo "PROD_SERVER_USER:" $(echo '${{ secrets.PROD_SERVER_USER }}' | sed 's/./& /g')
           echo "PROD_SERVER_HOST:" $(echo '${{ secrets.PROD_SERVER_HOST }}' | sed 's/./& /g')
           ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
              && cd ${{ secrets.PROD_DEPLOY_PATH }} \
-             && ./deploy/deploy.sh prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+             && ./deploy/deploy.sh $DEPLOY_FORCE_UPDATE prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
 
       - name: Deploy monitoring stack (Prometheus + Grafana)
         env:
@@ -256,12 +325,33 @@ jobs:
     name: Promote test -> prod
     environment: prod
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
       - name: Prepare SSH key
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Detect deploy folder changes since test release
+        id: detect
+        env:
+          FRONTEND_IMAGE: ${{ needs.promote-fetch-test.outputs.frontend_image }}
+        run: |
+          set -euo pipefail
+          BASE_SHA="${FRONTEND_IMAGE##*:}"
+          git fetch origin main
+          if git diff --name-only "$BASE_SHA" origin/main -- deploy/ | grep -q .; then
+            echo "deploy/ changed on main since test release $BASE_SHA"
+            echo "force_update=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No deploy folder changes since test release"
+            echo "force_update=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Deploy to prod server
         run: |
@@ -271,12 +361,17 @@ jobs:
           PROD_PATH="${{ secrets.PROD_DEPLOY_PATH }}"
           FRONTEND_IMAGE="${{ needs.promote-fetch-test.outputs.frontend_image }}"
           BACKEND_IMAGE="${{ needs.promote-fetch-test.outputs.backend_image }}"
+          DEPLOY_FORCE_UPDATE=""
+          if [ "${{ steps.detect.outputs.force_update }}" = "true" ]; then
+            DEPLOY_FORCE_UPDATE="-fu"
+            echo "deploy/ changed since test release → forcing deploy scripts update (-fu)"
+          fi
           
           echo "Promoting FRONTEND_IMAGE=$FRONTEND_IMAGE BACKEND_IMAGE=$BACKEND_IMAGE to prod ($PROD_HOST)"
           ssh -o StrictHostKeyChecking=no -i private_key "$PROD_USER@$PROD_HOST" \
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
              && cd $PROD_PATH \
-             && ./deploy/deploy.sh prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+             && ./deploy/deploy.sh $DEPLOY_FORCE_UPDATE prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
 
       - name: Cleanup
         if: always()
