@@ -8,6 +8,7 @@ import {
   TontineSession,
   TontineMember,
   TontineCollection,
+  TontineMemberAmountHistory,
   TontineClient,
   TontineKPI,
   CreateTontineMemberDto,
@@ -138,6 +139,14 @@ export class TontineService {
         tap(() => this.setLoading(false)),
         catchError(this.handleApiError.bind(this))
       );
+  }
+
+  getMemberAmountHistory(memberId: number): Observable<ApiResponse<TontineMemberAmountHistory[]>> {
+    const headers = this.getHeaders();
+    return this.http.get<ApiResponse<TontineMemberAmountHistory[]>>(
+      `${this.apiUrl}/members/${memberId}/amount-history`,
+      { headers }
+    ).pipe(catchError(this.handleApiError.bind(this)));
   }
 
   createMember(memberData: CreateTontineMemberDto): Observable<ApiResponse<TontineMember>> {

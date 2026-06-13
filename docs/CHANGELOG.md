@@ -12,6 +12,22 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Changed
 
+- **Frontend —** version `2.9.0` (`package.json`).
+- **Mobile —** version `2.9.0` (`package.json`).
+- **Frontend —** fiche membre tontine : synthèse mensuelle affiche des pastilles numérotées (1, 2, 3…) — une pastille par jour collecté.
+- **Frontend —** modal collecte de rattrapage tontine : refonte UI alignée sur le design ELYKIA (header navy, champs et boutons standard).
+
+### Fixed
+
+- **Frontend —** fiche membre tontine : section livraison masquée lorsqu'aucune livraison n'existe (404 API), au lieu d'afficher un bloc vide.
+
+### Added
+
+- **Backend —** endpoint `GET /api/v1/tontines/members/{id}/amount-history` : historique des montants journaliers d'un membre.
+- **Frontend —** synthèse mensuelle des collectes : équivalent en jours calculé collecte par collecte via l'historique des montants (plus le montant courant en repli).
+
+### Changed
+
 - **Docs —** spec dual-crédit : révocation possible même avec crédit BUSINESS en cours (bloque seulement les futures créations) ; historique immuable des habilitations/révocations (`BusinessCreditAuthorizationEvent`).
 
 ### Added

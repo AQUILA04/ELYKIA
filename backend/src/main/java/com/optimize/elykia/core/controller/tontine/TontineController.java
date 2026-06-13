@@ -100,6 +100,12 @@ public class TontineController {
                 TontineMemberRespDto.fromTontineMember(tontineService.getById(id))), HttpStatus.OK);
     }
 
+    @GetMapping("/members/{id}/amount-history")
+    public ResponseEntity<Response> getMemberAmountHistory(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(
+                tontineService.getMemberAmountHistory(id)), HttpStatus.OK);
+    }
+
     @PutMapping("/members/{id}")
     public ResponseEntity<Response> updateMember(@PathVariable Long id, @RequestBody @Valid TontineMemberDto dto) {
         return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.updateMember(id, dto)), HttpStatus.OK);

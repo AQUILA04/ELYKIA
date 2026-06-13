@@ -53,6 +53,14 @@ export interface TontineCollection {
   readonly confirmedAmount?: number;
 }
 
+export interface TontineMemberAmountHistory {
+  readonly id: number;
+  readonly amount: number;
+  readonly startDate: string;
+  readonly endDate?: string | null;
+  readonly creationDate?: string;
+}
+
 export interface TontineClient {
   readonly id: number;
   readonly code?: string;

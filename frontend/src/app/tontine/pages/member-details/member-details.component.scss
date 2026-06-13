@@ -543,6 +543,167 @@
   font-weight: 600;
 }
 
+/* ── COLLECTIONS BY MONTH ─────────────────────────────────────── */
+.member-details-page .collections-by-month-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.member-details-page .collections-by-month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.member-details-page .collections-by-month-header .section-subtitle {
+  margin: 0;
+}
+
+.member-details-page .collections-by-month-loading {
+  padding: 12px 0;
+}
+
+.member-details-page .collections-by-month-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.member-details-page .collections-by-month-row {
+  display: grid;
+  grid-template-columns: 130px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-white);
+  transition: background .18s;
+}
+
+.member-details-page .collections-by-month-row.is-current {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.member-details-page .collections-by-month-row.is-future {
+  opacity: 0.45;
+  background: var(--navy-xpale);
+}
+
+.member-details-page .collections-by-month-row.is-empty:not(.is-future) {
+  opacity: 0.75;
+}
+
+.member-details-page .month-row-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+  white-space: nowrap;
+}
+
+.member-details-page .collections-by-month-row.is-current .month-row-label {
+  color: #1d4ed8;
+}
+
+.member-details-page .month-row-pastilles-wrap {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.member-details-page .month-row-pastilles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+}
+
+.member-details-page .month-pastille {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 50%;
+  background: var(--navy);
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 51, 102, 0.12);
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.member-details-page .collections-by-month-row.is-current .month-pastille {
+  background: #1d4ed8;
+  box-shadow: 0 0 0 1px rgba(29, 78, 216, 0.2);
+}
+
+.member-details-page .month-row-pastilles-empty {
+  min-height: 10px;
+}
+
+.member-details-page .month-row-no-data {
+  font-size: 12px;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+.member-details-page .month-row-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  min-width: 220px;
+}
+
+.member-details-page .month-row-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--navy-xpale);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  white-space: nowrap;
+  line-height: 1.35;
+}
+
+.member-details-page .month-row-days {
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.member-details-page .collections-by-month-row.is-current .month-row-count {
+  background: #dbeafe;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.member-details-page .month-row-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  white-space: nowrap;
+}
+
+.member-details-page .collections-by-month-row.is-current .month-row-amount {
+  color: #1d4ed8;
+}
+
 /* ── DELIVERY INFO ────────────────────────────────────────────── */
 .member-details-page .delivery-info {
   background: var(--navy-xpale);
@@ -726,6 +887,14 @@
   .member-details-page .months-grid { grid-template-columns: repeat(2, 1fr); }
   .member-details-page .header-actions { flex-direction: column; }
   .member-details-page .header-actions button { width: 100%; justify-content: center; }
+  .member-details-page .collections-by-month-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .member-details-page .month-row-stats {
+    min-width: 0;
+    justify-content: space-between;
+  }
 }
 
 @media (max-width: 480px) {

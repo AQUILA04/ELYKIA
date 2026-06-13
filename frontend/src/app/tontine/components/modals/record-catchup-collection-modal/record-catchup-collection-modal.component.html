@@ -1,53 +1,81 @@
-<h2 mat-dialog-title>Collecte de rattrapage</h2>
-
-<mat-dialog-content>
-  <div class="member-info">
-    <p><strong>Membre :</strong> {{ getClientName() }}</p>
-    <p><strong>Total actuel :</strong> {{ data.member.totalContribution.toLocaleString('fr-FR') }} XOF</p>
+<div class="catchup-modal">
+  <div class="modal-header">
+    <div class="modal-header-text">
+      <span class="modal-surtitle">TONTINE · RATTRAPAGE</span>
+      <h2 class="modal-title">Collecte de rattrapage</h2>
+    </div>
+    <button type="button" class="modal-close" (click)="onCancel()" [disabled]="loading" aria-label="Fermer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
   </div>
 
-  <p class="help-text">
-    La part société sera calculée jusqu'à la date choisie, sans impacter le mois en cours.
-    Enregistrez les collectes manquantes par ordre chronologique lorsque c'est possible.
-  </p>
+  <div class="modal-body">
+    <div class="member-summary">
+      <div class="summary-row">
+        <span class="summary-label">Membre</span>
+        <span class="summary-value">{{ getClientName() }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Total contribué</span>
+        <span class="summary-value mono">{{ formatCurrency(data.member.totalContribution) }}</span>
+      </div>
+      <div class="summary-row" *ngIf="data.member.amount">
+        <span class="summary-label">Mise journalière</span>
+        <span class="summary-value mono">{{ formatCurrency(data.member.amount) }}</span>
+      </div>
+    </div>
 
-  <form [formGroup]="form">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Date de la collecte *</mat-label>
-      <input matInput [matDatepicker]="picker" formControlName="collectionDate"
-             [min]="minDate" [max]="maxDate" placeholder="Choisir une date passée">
-      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-datepicker #picker></mat-datepicker>
-      <mat-error *ngIf="form.get('collectionDate')?.hasError('required')">
-        La date est requise
-      </mat-error>
-    </mat-form-field>
+    <div class="info-banner">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+      <p>
+        La part société sera calculée jusqu'à la date choisie, sans impacter le mois en cours.
+        Période autorisée : <strong>{{ formatDateLabel(minDate) }}</strong> → <strong>{{ formatDateLabel(maxDate) }}</strong>.
+      </p>
+    </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Montant de la collecte *</mat-label>
-      <input matInput type="number" formControlName="amount" placeholder="Saisir le montant...">
-      <span matSuffix>XOF</span>
-      <mat-error *ngIf="form.get('amount')?.hasError('required')">
-        Le montant est requis
-      </mat-error>
-      <mat-error *ngIf="form.get('amount')?.hasError('min')">
-        Le montant minimum est de {{ TONTINE_CONSTANTS.MIN_COLLECTION_AMOUNT }} XOF
-      </mat-error>
-      <mat-error *ngIf="form.get('amount')?.hasError('max')">
-        Le montant maximum est de {{ TONTINE_CONSTANTS.MAX_COLLECTION_AMOUNT }} XOF
-      </mat-error>
-    </mat-form-field>
+    <form [formGroup]="form" class="catchup-form" (ngSubmit)="onSubmit()">
+      <div class="form-field">
+        <label class="field-label" for="catchup-date">Date de la collecte *</label>
+        <mat-form-field appearance="outline" class="elykia-field">
+          <input matInput id="catchup-date" [matDatepicker]="picker" formControlName="collectionDate"
+                 [min]="minDate" [max]="maxDate" placeholder="Choisir une date passée">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-error *ngIf="form.get('collectionDate')?.hasError('required')">
+            La date est requise
+          </mat-error>
+        </mat-form-field>
+      </div>
 
-    <mat-error *ngIf="error" class="error-message">
-      {{ error }}
-    </mat-error>
-  </form>
-</mat-dialog-content>
+      <div class="form-field">
+        <label class="field-label" for="catchup-amount">Montant de la collecte *</label>
+        <div class="amount-input-wrap">
+          <input
+            id="catchup-amount"
+            type="number"
+            class="amount-input"
+            formControlName="amount"
+            placeholder="Saisir le montant"
+            [min]="TONTINE_CONSTANTS.MIN_COLLECTION_AMOUNT"
+            [max]="TONTINE_CONSTANTS.MAX_COLLECTION_AMOUNT">
+          <span class="amount-suffix">FCFA</span>
+        </div>
+        <div class="field-error" *ngIf="form.get('amount')?.invalid && form.get('amount')?.touched">
+          <span *ngIf="form.get('amount')?.hasError('required')">Le montant est requis</span>
+          <span *ngIf="form.get('amount')?.hasError('min')">Minimum {{ TONTINE_CONSTANTS.MIN_COLLECTION_AMOUNT }} FCFA</span>
+          <span *ngIf="form.get('amount')?.hasError('max')">Maximum {{ TONTINE_CONSTANTS.MAX_COLLECTION_AMOUNT }} FCFA</span>
+        </div>
+      </div>
 
-<mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()" [disabled]="loading">Annuler</button>
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="loading || form.invalid">
-    <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-    <span *ngIf="!loading">Enregistrer le rattrapage</span>
-  </button>
-</mat-dialog-actions>
+      <div class="error-banner" *ngIf="error">{{ error }}</div>
+    </form>
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="loading">Annuler</button>
+    <button type="button" class="btn-primary" (click)="onSubmit()" [disabled]="loading || form.invalid">
+      <span *ngIf="loading" class="btn-spinner"></span>
+      <span>{{ loading ? 'Enregistrement…' : 'Enregistrer le rattrapage' }}</span>
+    </button>
+  </div>
+</div>

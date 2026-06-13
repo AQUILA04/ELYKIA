@@ -46,4 +46,6 @@ public interface TontineMemberAmountHistoryRepository extends GenericRepository<
             @Param("year") Integer year,
             @Param("commercial") String commercial,
             Pageable pageable);
+
+    List<TontineMemberAmountHistory> findByTontineMember_IdOrderByStartDateAsc(Long tontineMemberId);
 }

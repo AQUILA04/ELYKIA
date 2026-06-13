@@ -2,7 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TontineService } from '../../../services/tontine.service';
-import { TontineMember, TONTINE_CONSTANTS } from '../../../types/tontine.types';
+import { TontineMember, TONTINE_CONSTANTS, formatCurrency } from '../../../types/tontine.types';
 
 @Component({
   selector: 'app-record-catchup-collection-modal',
@@ -43,6 +43,14 @@ export class RecordCatchupCollectionModalComponent implements OnInit {
 
   getClientName(): string {
     return `${this.data.member.client.firstname} ${this.data.member.client.lastname}`;
+  }
+
+  formatCurrency(amount: number): string {
+    return formatCurrency(amount);
+  }
+
+  formatDateLabel(date: Date): string {
+    return date.toLocaleDateString('fr-FR');
   }
 
   onSubmit(): void {

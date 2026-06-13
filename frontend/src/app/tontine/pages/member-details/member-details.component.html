@@ -143,6 +143,58 @@
         </div>
       </div>
     </div>
+
+    <div class="collections-by-month-section" *ngIf="member.validatedMonths !== undefined">
+      <div class="collections-by-month-header">
+        <h3 class="section-subtitle">Synthèse des collectes par mois</h3>
+        <span class="result-count" *ngIf="!loadingMonthlySummary">
+          <strong>{{ monthlyCollectionsTotals.count }}</strong> collecte(s)
+          <ng-container *ngIf="canShowEquivalentDays">
+            · <strong>{{ formatCollectionDaysLabel(monthlyCollectionsTotals.equivalentDays) }}</strong>
+          </ng-container>
+          · <strong>{{ formatCurrency(monthlyCollectionsTotals.amount) }}</strong>
+        </span>
+      </div>
+
+      <div *ngIf="loadingMonthlySummary" class="collections-by-month-loading">
+        <span class="text-muted">Chargement de la synthèse…</span>
+      </div>
+
+      <ul class="collections-by-month-list" *ngIf="!loadingMonthlySummary">
+        <li *ngFor="let summary of monthlyCollectionSummaries"
+            class="collections-by-month-row"
+            [class.is-current]="summary.isCurrent"
+            [class.is-future]="summary.isFuture"
+            [class.is-empty]="summary.count === 0 && !summary.isFuture">
+          <span class="month-row-label">{{ summary.monthName }} {{ summary.year }}</span>
+
+          <div class="month-row-pastilles-wrap" *ngIf="summary.count > 0 && summary.equivalentDays > 0">
+            <div class="month-row-pastilles" [attr.aria-label]="formatCollectionDaysLabel(summary.equivalentDays)">
+              <span *ngFor="let day of getDayPastilles(summary.equivalentDays)" class="month-pastille">{{ day }}</span>
+            </div>
+          </div>
+          <div class="month-row-pastilles-wrap month-row-pastilles-empty" *ngIf="summary.count > 0 && summary.equivalentDays === 0">
+            <span class="month-row-no-data">—</span>
+          </div>
+          <div class="month-row-pastilles-wrap month-row-pastilles-empty" *ngIf="summary.count === 0 && !summary.isFuture">
+            <span class="month-row-no-data">Aucune collecte</span>
+          </div>
+          <div class="month-row-pastilles-wrap month-row-pastilles-empty" *ngIf="summary.isFuture">
+            <span class="month-row-no-data">—</span>
+          </div>
+
+          <div class="month-row-stats">
+            <span class="month-row-count" *ngIf="summary.count > 0">
+              {{ summary.count }} collecte{{ summary.count > 1 ? 's' : '' }}
+              <span class="month-row-days" *ngIf="canShowEquivalentDays">
+                · {{ formatCollectionDaysLabel(summary.equivalentDays) }}
+              </span>
+            </span>
+            <span class="month-row-amount col-amount" *ngIf="summary.count > 0">{{ formatCurrency(summary.totalAmount) }}</span>
+          </div>
+        </li>
+      </ul>
+    </div>
   </div>
 
   <!-- Consent -->
@@ -166,7 +218,7 @@
   </div>
 
   <!-- Delivery -->
-  <div class="section-card a4" *ngIf="member.deliveryStatus !== 'SESSION_INPROGRESS'">
+  <div class="section-card a4" *ngIf="member.delivery">
     <div class="section-header">
       <h2 class="section-title">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>

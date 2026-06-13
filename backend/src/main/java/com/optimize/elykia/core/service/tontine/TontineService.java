@@ -623,6 +623,12 @@ public class TontineService extends GenericService<TontineMember, Long> {
         return tontineMemberAmountHistoryRepository.findHistoryDtoPage(currentYear, commercialFilter, pageable);
     }
 
+    public List<TontineMemberAmountHistoryItemDto> getMemberAmountHistory(Long memberId) {
+        TontineMember member = getById(memberId);
+        return TontineMemberAmountHistoryItemDto.fromList(
+                tontineMemberAmountHistoryRepository.findByTontineMember_IdOrderByStartDateAsc(member.getId()));
+    }
+
     public Page<TontineCollectionRespDto> getCollections(Pageable pageable) {
         User currentUser = userService.getCurrentUser();
         int currentYear = LocalDate.now().getYear();

@@ -10,6 +10,7 @@ import { TontineDeliveryService } from '../../services/tontine-delivery.service'
 import {
   TontineMember,
   TontineCollection,
+  TontineMemberAmountHistory,
   CreateDeliveryDto,
   formatCurrency,
   formatDateTime,
@@ -18,12 +19,27 @@ import {
   TONTINE_DELIVERY_STATUS_LABELS,
   TONTINE_DELIVERY_STATUS_COLORS
 } from '../../types/tontine.types';
+import { collectionEquivalentDays } from '../../utils/tontine-amount-history.util';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { RecordCollectionModalComponent } from '../../components/modals/record-collection-modal/record-collection-modal.component';
 import { RecordCatchupCollectionModalComponent } from '../../components/modals/record-catchup-collection-modal/record-catchup-collection-modal.component';
 import { DeliveryArticleSelectionModalComponent } from '../../components/modals/delivery-article-selection-modal/delivery-article-selection-modal.component';
 import { AddMemberModalComponent } from '../../components/modals/add-member-modal/add-member-modal.component';
+
+/** Mois calendaires de la session tontine (Fév = 1 … Nov = 10, index JS Date.getMonth()). */
+const TONTINE_JS_MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
+
+export interface MonthlyCollectionSummary {
+  monthName: string;
+  year: number;
+  jsMonth: number;
+  count: number;
+  totalAmount: number;
+  equivalentDays: number;
+  isCurrent: boolean;
+  isFuture: boolean;
+}
 
 @Component({
   selector: 'app-member-details',
@@ -39,9 +55,11 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   lastUpdate = new Date();
 
   member: TontineMember | null = null;
+  amountHistory: TontineMemberAmountHistory[] = [];
   collectionsDataSource = new MatTableDataSource<TontineCollection>([]);
   displayedColumns: string[] = ['date', 'amount', 'commercial', 'consent'];
   loadingCollections = false;
+  loadingAmountHistory = false;
   loading: boolean = false;
   currentSessionStatus: TontineSessionStatus | null = null;
   isSessionActive: boolean = false;
@@ -67,6 +85,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     if (memberId) {
       this.loadMemberDetails(memberId);
       this.loadCollections(memberId);
+      this.loadAmountHistory(memberId);
     }
 
     // Subscribe to current session status
@@ -97,6 +116,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     if (!this.member) return;
     this.loadMemberDetails(this.member.id);
     this.loadCollections(this.member.id);
+    this.loadAmountHistory(this.member.id);
     this.lastUpdate = new Date();
   }
 
@@ -110,6 +130,8 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
           this.member = response.data;
           if (this.member && this.member.deliveryStatus !== TontineMemberDeliveryStatus.SESSION_INPROGRESS) {
             this.loadDelivery(memberId);
+          } else if (this.member) {
+            this.member = { ...this.member, delivery: undefined };
           }
           this.lastUpdate = new Date();
         }
@@ -135,15 +157,17 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
           };
         }
       },
-      error: (err) => {
-        console.log('No delivery found or error loading delivery:', err);
+      error: () => {
+        if (this.member) {
+          this.member = { ...this.member, delivery: undefined };
+        }
       }
     });
   }
 
   private loadCollections(memberId: number): void {
     this.loadingCollections = true;
-    this.tontineService.getCollections(memberId).pipe(
+    this.tontineService.getCollections(memberId, 0, 500).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
@@ -156,6 +180,22 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
         this.collectionsDataSource.data = [];
         this.loadingCollections = false;
         this.showError('Erreur lors du chargement de l\'historique');
+      }
+    });
+  }
+
+  private loadAmountHistory(memberId: number): void {
+    this.loadingAmountHistory = true;
+    this.tontineService.getMemberAmountHistory(memberId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.amountHistory = response.data ?? [];
+        this.loadingAmountHistory = false;
+      },
+      error: () => {
+        this.amountHistory = [];
+        this.loadingAmountHistory = false;
       }
     });
   }
@@ -248,6 +288,88 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     return paid < due ? 'warn' : 'primary';
   }
 
+  get monthlyCollectionSummaries(): MonthlyCollectionSummary[] {
+    const sessionYear = this.member?.tontineSession?.year ?? new Date().getFullYear();
+    const now = new Date();
+    const buckets = new Map<number, { count: number; total: number; equivalentDays: number }>();
+
+    for (const jsMonth of TONTINE_JS_MONTHS) {
+      buckets.set(jsMonth, { count: 0, total: 0, equivalentDays: 0 });
+    }
+
+    for (const collection of this.collectionsDataSource.data) {
+      const date = new Date(collection.collectionDate);
+      const jsMonth = date.getMonth();
+      if (date.getFullYear() === sessionYear && buckets.has(jsMonth)) {
+        const bucket = buckets.get(jsMonth)!;
+        bucket.count += 1;
+        bucket.total += collection.amount;
+        bucket.equivalentDays += this.toEquivalentDaysForCollection(collection);
+      }
+    }
+
+    return this.monthsList.map((monthName, index) => {
+      const jsMonth = TONTINE_JS_MONTHS[index];
+      const bucket = buckets.get(jsMonth)!;
+      const isCurrent = sessionYear === now.getFullYear() && jsMonth === now.getMonth();
+      const isFuture =
+        sessionYear > now.getFullYear() ||
+        (sessionYear === now.getFullYear() && jsMonth > now.getMonth());
+
+      return {
+        monthName,
+        year: sessionYear,
+        jsMonth,
+        count: bucket.count,
+        totalAmount: bucket.total,
+        equivalentDays: bucket.equivalentDays,
+        isCurrent,
+        isFuture
+      };
+    });
+  }
+
+  get loadingMonthlySummary(): boolean {
+    return this.loadingCollections || this.loadingAmountHistory;
+  }
+
+  get canShowEquivalentDays(): boolean {
+    return (this.member?.amount ?? 0) > 0 || this.amountHistory.length > 0;
+  }
+
+  get memberDailyAmount(): number {
+    return this.member?.amount ?? 0;
+  }
+
+  toEquivalentDaysForCollection(collection: TontineCollection): number {
+    return collectionEquivalentDays(
+      collection.amount,
+      collection.collectionDate,
+      this.amountHistory,
+      this.memberDailyAmount
+    );
+  }
+
+  formatCollectionDaysLabel(days: number): string {
+    return days <= 1 ? `${days} jour` : `${days} jours`;
+  }
+
+  getDayPastilles(count: number): number[] {
+    const total = Math.max(0, Math.floor(count));
+    return Array.from({ length: total }, (_, index) => index + 1);
+  }
+
+  get monthlyCollectionsTotals(): { count: number; amount: number; equivalentDays: number } {
+    return this.monthlyCollectionSummaries.reduce(
+      (acc, s) => ({
+        count: acc.count + s.count,
+        amount: acc.amount + s.totalAmount,
+        equivalentDays: acc.equivalentDays + s.equivalentDays
+      }),
+      { count: 0, amount: 0, equivalentDays: 0 }
+    );
+  }
+
   async onValidateDelivery(): Promise<void> {
     if (!this.member?.delivery?.id) return;
 
@@ -285,6 +407,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       if (result && this.member) {
         this.loadMemberDetails(this.member.id);
         this.loadCollections(this.member.id);
+        this.loadAmountHistory(this.member.id);
         this.showSuccess('Collecte enregistrée avec succès');
       }
     });
@@ -295,6 +418,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
 
     const dialogRef = this.dialog.open(RecordCatchupCollectionModalComponent, {
       width: '520px',
+      panelClass: 'elykia-tontine-dialog',
       data: { member: this.member }
     });
 
@@ -302,6 +426,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       if (result && this.member) {
         this.loadMemberDetails(this.member.id);
         this.loadCollections(this.member.id);
+        this.loadAmountHistory(this.member.id);
         this.showSuccess('Collecte de rattrapage enregistrée avec succès');
       }
     });
@@ -318,6 +443,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       if (result && this.member) {
         this.loadMemberDetails(this.member.id);
+        this.loadAmountHistory(this.member.id);
         this.showSuccess('Membre modifié avec succès');
       }
     });
