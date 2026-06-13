@@ -2,6 +2,8 @@ import { Article } from "./article.model";
 import { Client } from "./client.model";
 import { DistributionItem } from './distribution-item.model';
 
+import { CreditPurpose } from './credit-purpose.model';
+
 export interface Distribution {
   id: string;
   reference: string;
@@ -28,4 +30,5 @@ export interface Distribution {
   clientName?: string;
   operationConsentCode?: string;
   confirmedAmount?: number;
+  creditPurpose?: CreditPurpose;
 }

@@ -2,16 +2,24 @@
 
 ## Introduction
 
-Cette fonctionnalité — **Dual Credit Authorization** — permet à un client de détenir simultanément deux crédits actifs : un crédit **PERSONNEL** (`PERSONAL`) et un crédit **PROFESSIONNEL** (`BUSINESS`). Sans autorisation explicite d'un manager, la règle d'unicité existante reste en vigueur (un seul crédit en cours par client).
+Cette fonctionnalité — **Dual Credit Authorization** — permet à un client de détenir simultanément deux crédits actifs : un crédit **PERSONNEL** (`PERSONAL`) et un crédit **PROFESSIONNEL** (`BUSINESS`).
 
-Le second crédit (`BUSINESS`) ne peut être créé que si un manager (rôle `ADMIN` ou `SU`) a préalablement généré un token d'autorisation à usage unique (`DualAuthorizationToken`). Ce token est validé et consommé lors de la création du crédit professionnel. La compatibilité ascendante est garantie : tout crédit existant sans champ `creditPurpose` est automatiquement traité comme `PERSONAL`.
+L'autorisation du crédit professionnel est **préalable et persistante** : seul un **GESTIONNAIRE** peut habiliter un client via une action dédiée sur la liste ou la fiche client. Une fois habilité, le client est marqué comme autorisé à contracter un crédit business. Lors de la création d'une vente à crédit, si le client est habilité, l'agent choisit la finalité (personnel ou professionnel). Le backend valide l'habilitation, l'absence de crédit business en cours et les règles d'unicité par finalité.
+
+**Règle Option A** : tout crédit `BUSINESS` exige que le client soit préalablement habilité (`businessCreditAuthorized = true`), qu'un crédit `PERSONAL` soit ou non en cours.
+
+Sans habilitation business, la règle d'unicité existante reste en vigueur (un seul crédit en cours par client, traité comme `PERSONAL`).
+
+La compatibilité ascendante est garantie : tout crédit existant sans champ `creditPurpose` est automatiquement traité comme `PERSONAL`.
 
 Le système couvre :
 - L'ajout d'un champ `creditPurpose` (enum `CreditPurpose : PERSONAL / BUSINESS`) à l'entité `Credit`
+- L'habilitation business persistante sur l'entité `Client` (`businessCreditAuthorized`, traçabilité de l'habilitation courante)
+- Un historique immuable des habilitations et révocations (`BusinessCreditAuthorizationEvent`)
 - Un nouveau flag `businessCreditInProgress` sur l'entité `Client`
-- Un nouveau service et endpoint pour la génération du token d'autorisation manager
+- Des endpoints REST pour habiliter / révoquer l'habilitation business et consulter l'historique
 - Des migrations Flyway pour les changements de schéma
-- Une interface Angular avec sélecteur de finalité et modale d'autorisation manager
+- Une interface Angular avec action gestionnaire sur les clients, historique des habilitations et sélecteur de finalité conditionnel à la création de vente
 
 ---
 
@@ -20,19 +28,18 @@ Le système couvre :
 - **CreditPurpose** : Enum Java définissant la finalité d'un crédit. Valeurs : `PERSONAL` (crédit personnel, comportement par défaut) et `BUSINESS` (crédit professionnel).
 - **Credit** : Entité représentant un crédit ou une vente à terme accordé à un client.
 - **Client** : Entité représentant un client de type `CLIENT` dans le système.
-- **DualAuthorizationToken** : Entité représentant un token d'autorisation à usage unique généré par un manager pour permettre la création d'un crédit BUSINESS simultané.
+- **businessCreditAuthorized** : Flag booléen sur `Client` indiquant que le client est actuellement habilité à contracter un crédit professionnel.
+- **businessCreditInProgress** : Flag booléen sur `Client` indiquant qu'un crédit `BUSINESS` est en cours.
+- **BusinessCreditAuthorizationEvent** : Entité d'historique immuable enregistrant chaque habilitation (`AUTHORIZED`) ou révocation (`REVOKED`) business, avec auteur et horodatage.
+- **BusinessCreditAuthorizationAction** : Enum des actions d'historique. Valeurs : `AUTHORIZED`, `REVOKED`.
 - **CreditService** : Service Spring gérant la logique de création et de contrôle des crédits.
-- **DualCreditAuthorizationService** : Service Spring gérant la génération et la validation des tokens d'autorisation dual-crédit.
-- **ClientService** : Service Spring gérant les entités clients, incluant la mise à jour des flags de crédit en cours.
+- **ClientService** : Service Spring gérant les entités clients, incluant l'habilitation business et la mise à jour des flags de crédit en cours.
 - **CreditRepository** : Repository Spring Data JPA pour les opérations de persistance sur Credit.
-- **TokenRepository** : Repository Spring Data JPA pour les opérations de persistance sur DualAuthorizationToken.
 - **CreditController** : Contrôleur REST exposant `/api/v1/credits`.
-- **AuthorizationController** : Contrôleur REST exposant `/api/v1/credits/dual-authorization`.
-- **Manager** : Utilisateur avec rôle `ADMIN` ou `SU` (définis dans `UserProfilConstant`).
-- **TTL** : Time-To-Live, durée de validité d'un token (défaut : 30 minutes, configurable).
+- **ClientController** : Contrôleur REST exposant `/api/v1/clients`.
+- **Gestionnaire** : Utilisateur avec le profil `GESTIONNAIRE` (constante `UserProfilConstant.GESTIONNAIRE`, rôle Spring `ROLE_VALIDATE_CREDIT`).
 - **Flyway** : Outil de migration de base de données utilisé dans le projet.
 - **creditInProgress** : Flag booléen existant sur `Client` indiquant qu'un crédit `PERSONAL` est en cours.
-- **businessCreditInProgress** : Nouveau flag booléen sur `Client` indiquant qu'un crédit `BUSINESS` est en cours.
 
 ---
 
@@ -48,9 +55,8 @@ Le système couvre :
 2. THE `Credit` Entity SHALL use `PERSONAL` as the default value when `creditPurpose` is not provided.
 3. WHEN a `Credit` entity is processed with a null `creditPurpose`, THE `CreditService` SHALL treat it as `PERSONAL` for all in-memory business rule evaluations without writing back the resolved value to the database.
 4. WHEN the Flyway migration runs, THE Database SHALL set `credit_purpose = 'PERSONAL'` for all existing `Credit` records where `credit_purpose` is null.
-5. WHEN the Flyway migration runs, THE Database SHALL add a `manager_authorization_token` column of type `VARCHAR(255)` (nullable) to the `credit` table.
-6. THE Flyway migration SHALL only add new columns or update null values; it SHALL NOT delete, overwrite non-null data, or alter the type of any existing column in the `credit` table.
-7. IF the Flyway migration fails, THE Database SHALL rollback all changes from that migration script, leaving the schema unchanged.
+5. THE Flyway migration SHALL only add new columns or update null values; it SHALL NOT delete, overwrite non-null data, or alter the type of any existing column in the `credit` table.
+6. IF the Flyway migration fails, THE Database SHALL rollback all changes from that migration script, leaving the schema unchanged.
 
 ---
 
@@ -69,120 +75,138 @@ Le système couvre :
 
 ---
 
-### Requirement 3: Autorisation manager — génération du token
+### Requirement 3: Habilitation business — autorisation par le GESTIONNAIRE
 
-**User Story:** En tant que manager, je veux pouvoir générer un token d'autorisation à usage unique pour un client spécifique, afin de permettre la création d'un crédit professionnel simultané pour ce client.
-
-#### Acceptance Criteria
-
-1. WHEN a `POST /api/v1/credits/dual-authorization` request is received with manager credentials and a `clientId`, THE `AuthorizationController` SHALL invoke `DualCreditAuthorizationService.generateManagerAuthorizationToken`.
-2. IF the provided `clientId` does not correspond to an existing client record, THEN THE `DualCreditAuthorizationService` SHALL throw an exception and the response SHALL indicate that the client was not found.
-3. IF the provided `managerUsername` does not correspond to an existing user, THEN THE `DualCreditAuthorizationService` SHALL throw an exception and the response SHALL indicate that the credentials are invalid without disclosing which field was incorrect.
-4. IF the provided `managerPassword` does not match the stored password hash for the given `managerUsername`, THEN THE `DualCreditAuthorizationService` SHALL throw an exception and the response SHALL indicate that the credentials are invalid without disclosing which field was incorrect.
-5. WHEN the manager credentials are valid, THE `DualCreditAuthorizationService` SHALL verify that the authenticated user has role `ADMIN` or `SU`.
-6. IF the authenticated user does not have role `ADMIN` or `SU`, THEN THE `DualCreditAuthorizationService` SHALL throw an exception indicating that manager-level authorization is required, and SHALL prevent token generation.
-7. WHEN all validations pass, THE `DualCreditAuthorizationService` SHALL generate a UUID v4 token that is unique across all existing `DualAuthorizationToken` records, persist a `DualAuthorizationToken` record with `clientId`, `authorizedBy` set to the authenticated manager's username, `expiresAt = now() + TTL`, and `consumed = false`.
-8. THE `DualCreditAuthorizationService` SHALL return a `DualAuthorizationTokenDto` containing the generated `token`, the `clientId`, and the `expiresAt` timestamp.
-9. THE `AuthorizationController` SHALL return HTTP 201 with the `DualAuthorizationTokenDto` upon successful token generation.
-10. THE system SHALL allow the TTL duration to be modified via configuration without requiring a code change; the default value SHALL be 30 minutes.
-
----
-
-### Requirement 4: Autorisation manager — validation et consommation du token
-
-**User Story:** En tant que système, je veux valider et consommer le token d'autorisation lors de la création d'un crédit BUSINESS simultané, afin de garantir que chaque autorisation manager n'est utilisée qu'une seule fois.
+**User Story:** En tant que GESTIONNAIRE, je veux habiliter un client à contracter un crédit professionnel depuis la liste ou la fiche client, afin que les agents puissent ensuite créer des ventes business pour ce client sans interruption de flux.
 
 #### Acceptance Criteria
 
-1. WHEN a `Credit` creation request contains `creditPurpose = BUSINESS` and a `PERSONAL` credit with `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED` is already active for the client, THE `CreditService` SHALL require a non-empty `managerAuthorizationToken` in the request.
-2. IF `creditPurpose = BUSINESS`, a `PERSONAL` credit is in progress, and `managerAuthorizationToken` is absent or empty, THEN THE `CreditService` SHALL throw a `CustomValidationException` with message `"Une autorisation manager est requise pour créer un crédit professionnel simultané."`.
-3. WHEN validating a token, THE `TokenRepository` SHALL look up the `DualAuthorizationToken` by both `clientId` and `token` value.
-4. IF no `DualAuthorizationToken` matching both `clientId` and `token` is found, THEN THE `DualCreditAuthorizationService` SHALL throw a `CustomValidationException` with message `"Token invalide ou inexistant."`.
-5. IF `now() >= token.expiresAt`, THEN THE `DualCreditAuthorizationService` SHALL throw a `CustomValidationException` with message `"Le token d'autorisation a expiré."`, regardless of the `consumed` state; this check SHALL be performed before the consumed check.
-6. IF the matching token has `consumed = true` and `now() < token.expiresAt`, THEN THE `DualCreditAuthorizationService` SHALL throw a `CustomValidationException` with message `"Ce token d'autorisation a déjà été utilisé."`.
-7. WHEN the token passes all validations (exists, not expired, not consumed), THE `DualCreditAuthorizationService` SHALL set `consumed = true` and `consumedAt = now()` on the token and persist the update atomically.
-8. WHEN the token is successfully consumed, THE `CreditService` SHALL proceed with the creation of the `BUSINESS` credit.
-9. IF credit creation fails after token consumption, THE token SHALL remain consumed and the caller SHALL receive an error indicating that a new token must be obtained.
+1. WHEN an authenticated user with profile `GESTIONNAIRE` invokes the business credit authorization action for a client, THE `ClientService` SHALL set `client.businessCreditAuthorized = true`, `client.businessCreditAuthorizedBy` to the authenticated user's username, and `client.businessCreditAuthorizedAt` to the current timestamp, and SHALL persist the update.
+2. WHEN authorization succeeds, THE `ClientService` SHALL persist a `BusinessCreditAuthorizationEvent` with `action = AUTHORIZED`, `clientId`, `performedBy` set to the authenticated user's username, and `performedAt = now()`.
+3. IF the authenticated user does not have profile `GESTIONNAIRE`, THEN THE `ClientService` SHALL reject the authorization request with an error indicating that GESTIONNAIRE privileges are required.
+4. IF the provided `clientId` does not correspond to an existing client record, THEN THE `ClientService` SHALL throw an exception and the response SHALL indicate that the client was not found.
+5. IF the client is already authorized (`businessCreditAuthorized = true`), THEN THE `ClientService` SHALL reject the request with an error indicating that the client is already authorized for business credit.
+6. WHEN the authorization succeeds, THE `ClientController` SHALL return HTTP 200 with the updated client representation including `businessCreditAuthorized = true`, `businessCreditAuthorizedBy`, and `businessCreditAuthorizedAt`.
+7. THE authorization action SHALL be available via `POST /api/v1/clients/{clientId}/business-credit-authorization`.
+8. THE system SHALL record the authorization event in the application audit log (username, clientId, timestamp).
 
 ---
 
-### Requirement 5: Crédit BUSINESS sans PERSONAL actif
+### Requirement 4: Habilitation business — révocation par le GESTIONNAIRE
 
-**User Story:** En tant qu'agent de crédit, je veux pouvoir créer un crédit BUSINESS pour un client qui n'a pas de crédit PERSONAL en cours, sans avoir besoin d'une autorisation manager, afin de ne pas imposer de frictions inutiles.
+**User Story:** En tant que GESTIONNAIRE, je veux pouvoir retirer l'habilitation business d'un client à tout moment, afin d'empêcher la création de futurs crédits professionnels tout en laissant le crédit business en cours se poursuivre normalement.
 
 #### Acceptance Criteria
 
-1. WHEN a `Credit` creation request with `creditPurpose = BUSINESS` is received and no `PERSONAL` credit with `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED` exists for the client, THE `CreditService` SHALL NOT require a `managerAuthorizationToken` and SHALL NOT reject the request due to its absence.
-2. WHEN a `Credit` creation request with `creditPurpose = BUSINESS` is received and no `PERSONAL` credit with `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED` exists for the client, THE `CreditService` SHALL accept and ignore any `managerAuthorizationToken` value that may be present in the request without consuming it.
-3. IF a `Credit` creation request with `creditPurpose = BUSINESS` is received and a `BUSINESS` credit with `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED` already exists for the client, THEN THE `CreditService` SHALL throw a `CustomValidationException` identifying the duplicate BUSINESS credit, regardless of whether a `PERSONAL` credit is also in progress.
+1. WHEN an authenticated user with profile `GESTIONNAIRE` invokes the business credit revocation action for a client, THE `ClientService` SHALL set `client.businessCreditAuthorized = false`, clear `businessCreditAuthorizedBy` and `businessCreditAuthorizedAt`, and persist the update.
+2. WHEN revocation succeeds, THE `ClientService` SHALL persist a `BusinessCreditAuthorizationEvent` with `action = REVOKED`, `clientId`, `performedBy` set to the authenticated user's username, and `performedAt = now()`.
+3. IF the client is not authorized (`businessCreditAuthorized = false`), THEN THE `ClientService` SHALL reject the request with an error indicating that the client is not authorized for business credit.
+4. IF the authenticated user does not have profile `GESTIONNAIRE`, THEN THE `ClientService` SHALL reject the revocation request with an error indicating that GESTIONNAIRE privileges are required.
+5. THE revocation action SHALL be available via `DELETE /api/v1/clients/{clientId}/business-credit-authorization`.
+6. WHEN revocation succeeds, THE `ClientController` SHALL return HTTP 200 with the updated client representation including `businessCreditAuthorized = false`.
+7. THE system SHALL record the revocation event in the application audit log (username, clientId, timestamp).
+8. WHEN revocation is performed while a `BUSINESS` credit is in progress, THE `ClientService` SHALL NOT modify, cancel, or affect the in-progress `BUSINESS` credit; only future `BUSINESS` credit creations SHALL be blocked.
+9. WHEN revocation is performed while a `BUSINESS` credit is in progress, THE `ClientService` SHALL NOT modify `client.businessCreditInProgress`.
 
 ---
 
-### Requirement 6: Mise à jour du flag Client
+### Requirement 4b: Historique des habilitations et révocations
 
-**User Story:** En tant que système, je veux maintenir les flags `creditInProgress` et `businessCreditInProgress` sur l'entité `Client` synchronisés avec l'état réel des crédits en cours, afin que les interfaces et requêtes puissent connaître rapidement l'état d'un client.
+**User Story:** En tant que GESTIONNAIRE, je veux consulter l'historique complet des habilitations et révocations business d'un client, afin d'avoir une traçabilité auditables des décisions prises.
+
+#### Acceptance Criteria
+
+1. THE `BusinessCreditAuthorizationEvent` Entity SHALL persist the following fields: `id` (Long, PK), `clientId` (Long, NOT NULL), `action` (enum `BusinessCreditAuthorizationAction`, NOT NULL), `performedBy` (String, NOT NULL), `performedAt` (LocalDateTime, NOT NULL), plus les champs d'audit standard (`createdDate`, `createdBy`, etc.).
+2. THE Flyway migration SHALL create the `business_credit_authorization_event` table with all columns listed in criterion 1.
+3. WHEN a `BusinessCreditAuthorizationEvent` is persisted, THE record SHALL be immutable; THE system SHALL NOT provide any update or delete operation on historical events.
+4. THE `ClientService` SHALL expose a method to retrieve the authorization history for a client, ordered by `performedAt` descending (most recent first).
+5. THE authorization history SHALL be available via `GET /api/v1/clients/{clientId}/business-credit-authorization/history`.
+6. WHEN a user with role `ROLE_VALIDATE_CREDIT` views the client details, THE frontend SHALL display the authorization history timeline.
+7. EACH history entry SHALL display the action (`AUTHORIZED` or `REVOKED`), the username (`performedBy`), and the timestamp (`performedAt`).
+
+---
+
+### Requirement 5: Validation backend à la création d'un crédit BUSINESS
+
+**User Story:** En tant que système, je veux refuser la création d'un crédit BUSINESS si le client n'est pas habilité, afin de garantir qu'aucune vente professionnelle ne contourne l'habilitation préalable du GESTIONNAIRE.
+
+#### Acceptance Criteria
+
+1. WHEN a `Credit` creation request with `creditPurpose = BUSINESS` is received, THE `CreditService` SHALL verify that `client.businessCreditAuthorized = true`.
+2. IF `creditPurpose = BUSINESS` and `client.businessCreditAuthorized = false`, THEN THE `CreditService` SHALL throw a `CustomValidationException` with message `"Ce client n'est pas habilité pour un crédit professionnel."` and SHALL prevent the creation.
+3. WHEN a `Credit` creation request with `creditPurpose = BUSINESS` is received and the client is authorized, THE `CreditService` SHALL apply the unicity rules defined in Requirement 2 for the `BUSINESS` purpose before proceeding.
+4. WHEN a `Credit` creation request with `creditPurpose = PERSONAL` is received, THE `CreditService` SHALL NOT require `businessCreditAuthorized` and SHALL apply the unicity rules for the `PERSONAL` purpose.
+5. THE rule requiring `businessCreditAuthorized = true` SHALL apply to every `BUSINESS` credit creation, regardless of whether a `PERSONAL` credit is simultaneously in progress (Option A).
+
+---
+
+### Requirement 6: Mise à jour des flags Client
+
+**User Story:** En tant que système, je veux maintenir les flags `creditInProgress`, `businessCreditInProgress` et `businessCreditAuthorized` sur l'entité `Client` synchronisés avec l'état réel, afin que les interfaces et requêtes puissent connaître rapidement l'état d'un client.
 
 #### Acceptance Criteria
 
 1. THE `Client` Entity SHALL expose a `businessCreditInProgress` boolean field with default value `false`.
-2. THE Flyway migration SHALL add a `business_credit_in_progress` column of type `BOOLEAN DEFAULT FALSE NOT NULL` to the `client` table.
-3. WHEN a `PERSONAL` credit is persisted to the database for a client, THE `ClientService` SHALL set `client.creditInProgress = true` for that client.
-4. WHEN a `BUSINESS` credit is persisted to the database for a client, THE `ClientService` SHALL set `client.businessCreditInProgress = true` for that client.
-5. WHEN a `PERSONAL` credit reaches status `SETTLED` or is soft-deleted (`state = DISABLED`) and no other `PERSONAL` credit with `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED` remains for that client, THE `ClientService` SHALL set `client.creditInProgress = false`.
-6. WHEN a `BUSINESS` credit reaches status `SETTLED` or is soft-deleted (`state = DISABLED`) and no other `BUSINESS` credit with `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED` remains for that client, THE `ClientService` SHALL set `client.businessCreditInProgress = false`.
-7. WHILE at least one `BUSINESS` credit with `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED` exists for a client, THE `Client` Entity SHALL have `businessCreditInProgress = true`.
-8. IF the `Credit` entity being created or modified has `creditPurpose = PERSONAL` or `creditPurpose = null`, THEN THE `ClientService` SHALL update `creditInProgress` and SHALL NOT modify `businessCreditInProgress`.
+2. THE `Client` Entity SHALL expose a `businessCreditAuthorized` boolean field with default value `false`.
+3. THE `Client` Entity SHALL expose nullable fields `businessCreditAuthorizedBy` (String) and `businessCreditAuthorizedAt` (LocalDateTime) reflecting the **current** authorization (cleared on revocation; full history in `BusinessCreditAuthorizationEvent`).
+4. THE Flyway migration SHALL add columns `business_credit_in_progress BOOLEAN DEFAULT FALSE NOT NULL`, `business_credit_authorized BOOLEAN DEFAULT FALSE NOT NULL`, `business_credit_authorized_by VARCHAR(255)`, and `business_credit_authorized_at TIMESTAMP` to the `client` table.
+5. WHEN a `PERSONAL` credit is persisted to the database for a client, THE `ClientService` SHALL set `client.creditInProgress = true` for that client.
+6. WHEN a `BUSINESS` credit is persisted to the database for a client, THE `ClientService` SHALL set `client.businessCreditInProgress = true` for that client.
+7. WHEN a `PERSONAL` credit reaches status `SETTLED` or is soft-deleted (`state = DISABLED`) and no other `PERSONAL` credit with `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED` remains for that client, THE `ClientService` SHALL set `client.creditInProgress = false`.
+8. WHEN a `BUSINESS` credit reaches status `SETTLED` or is soft-deleted (`state = DISABLED`) and no other `BUSINESS` credit with `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED` remains for that client, THE `ClientService` SHALL set `client.businessCreditInProgress = false`.
+9. WHILE at least one `BUSINESS` credit with `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED` exists for a client, THE `Client` Entity SHALL have `businessCreditInProgress = true`.
+10. IF the `Credit` entity being created or modified has `creditPurpose = PERSONAL` or `creditPurpose = null`, THEN THE `ClientService` SHALL update `creditInProgress` and SHALL NOT modify `businessCreditInProgress`.
+11. THE `businessCreditAuthorized` flag SHALL NOT be modified automatically by credit lifecycle events; it is only changed via explicit GESTIONNAIRE authorization or revocation actions.
 
 ---
 
-### Requirement 7: Entité DualAuthorizationToken et persistance
+### Requirement 7: Interface frontend Angular — habilitation client
 
-**User Story:** En tant que système, je veux persister les tokens d'autorisation manager avec leurs métadonnées, afin de garantir la traçabilité des autorisations et de permettre la validation des tokens lors de la création de crédit.
+**User Story:** En tant que GESTIONNAIRE, je veux habiliter ou retirer l'habilitation business d'un client depuis la liste et la fiche client, afin de gérer les habilitations sans quitter le contexte client.
 
 #### Acceptance Criteria
 
-1. THE `DualAuthorizationToken` Entity SHALL persist the following fields: `id` (Long, PK), `clientId` (Long, NOT NULL), `token` (String, UNIQUE NOT NULL), `authorizedBy` (String, NOT NULL), `expiresAt` (LocalDateTime, NOT NULL), `consumed` (boolean, NOT NULL, default false), `consumedAt` (LocalDateTime, nullable), `createdDate`, `lastModifiedDate`, `createdBy`, `lastModifiedBy`, `state`.
-2. THE Database SHALL enforce a UNIQUE constraint on the `token` column of the `dual_authorization_token` table.
-3. THE Flyway migration SHALL create the `dual_authorization_token` table with all columns listed in criterion 1, with NOT NULL constraints on `client_id`, `token`, `authorized_by`, `expires_at`, and `consumed`.
-4. THE Database SHALL create an index on `(client_id, token)` on the `dual_authorization_token` table to optimize lookup queries.
-5. WHEN a `DualAuthorizationToken` has `consumed = true` and its `consumedAt` timestamp is more than 24 hours in the past, THE System SHALL support scheduled purging of that record.
-6. WHEN a `DualAuthorizationToken` has `consumed = false` and its `expiresAt` timestamp is more than 24 hours in the past, THE System SHALL support scheduled purging of that record.
-7. THE `DualAuthorizationToken` record SHALL be retained until the scheduled purge to enable audit of who authorized the dual credit, for which client, and at what time.
+1. WHEN a user with role `ROLE_VALIDATE_CREDIT` views the client list or client details, THE interface SHALL display an action button to authorize business credit if `businessCreditAuthorized = false`.
+2. WHEN a user with role `ROLE_VALIDATE_CREDIT` views the client list or client details and `businessCreditAuthorized = true`, THE interface SHALL display a visual indicator (badge or label) confirming the business credit authorization, including `businessCreditAuthorizedBy` and `businessCreditAuthorizedAt` when available.
+3. WHEN a user with role `ROLE_VALIDATE_CREDIT` views a client with `businessCreditAuthorized = true`, THE interface SHALL display an action to revoke the business credit authorization, regardless of whether `businessCreditInProgress = true`.
+4. WHEN the revoke action is displayed and `businessCreditInProgress = true`, THE interface SHALL display an informational message indicating that the revocation does not affect the in-progress business credit and only prevents future business credit creations.
+5. WHEN the authorize action is confirmed, THE frontend SHALL call `POST /api/v1/clients/{clientId}/business-credit-authorization` and refresh the client data on success.
+6. WHEN the revoke action is confirmed, THE frontend SHALL call `DELETE /api/v1/clients/{clientId}/business-credit-authorization` and refresh the client data on success.
+7. IF the API returns an error, THE frontend SHALL display the error message without modifying the local client state.
+8. WHEN a user without role `ROLE_VALIDATE_CREDIT` views clients, THE authorization and revocation actions SHALL NOT be visible.
+9. WHEN a user with role `ROLE_VALIDATE_CREDIT` views the client details, THE interface SHALL display the authorization history timeline fetched from `GET /api/v1/clients/{clientId}/business-credit-authorization/history`.
 
 ---
 
-### Requirement 8: Interface frontend Angular
+### Requirement 8: Interface frontend Angular — création de vente à crédit
 
-**User Story:** En tant qu'agent de crédit, je veux une interface claire pour sélectionner la finalité du crédit et obtenir une autorisation manager si nécessaire, afin de guider le processus de création d'un crédit professionnel simultané.
+**User Story:** En tant qu'agent commercial, je veux choisir la finalité du crédit (personnel ou professionnel) lors de la création d'une vente, uniquement si le client est habilité, afin de créer la vente adéquate sans friction inutile.
 
 #### Acceptance Criteria
 
-1. WHEN a user creates a credit of type `CREDIT` (à terme) in the Angular frontend, THE Credit Form SHALL display a `creditPurpose` selector with options `PERSONAL` (Personnel) and `BUSINESS` (Professionnel).
-2. WHEN `creditPurpose = BUSINESS` is selected and the system determines that the client has a `PERSONAL` credit in progress, THE Credit Form SHALL display a manager authorization warning block with a button to trigger the authorization modal.
-3. WHEN the user clicks the authorization button, THE Credit Form SHALL open a manager authorization modal prompting for manager username and password.
-4. WHEN the manager credentials are submitted via the modal and the API call to `POST /api/v1/credits/dual-authorization` succeeds, THE Credit Form SHALL store the returned token in the form state and close the modal.
-5. WHEN the API call to `POST /api/v1/credits/dual-authorization` fails, THE Credit Form SHALL display the error message returned by the API inside the modal without closing it, allowing the user to correct the credentials.
-6. WHEN a valid manager token is stored in the form state, THE Credit Form SHALL display a visual success indicator (e.g., a green badge) confirming the authorization and SHALL hide the authorization warning button.
-7. WHEN the credit creation form is submitted, THE Credit Form SHALL include `creditPurpose` in the `CreditDto` payload; IF a `managerAuthorizationToken` is stored in the form state, it SHALL also be included.
-8. IF `creditPurpose = BUSINESS` is selected, the client has a `PERSONAL` credit in progress, and no valid `managerAuthorizationToken` is stored in the form state, THEN THE Credit Form SHALL prevent form submission and display a message indicating that manager authorization is required.
-9. IF `creditPurpose` is not selected by the user, THE Credit Form SHALL default to `PERSONAL` in the submitted payload.
+1. WHEN a user creates a credit of type `CREDIT` (à terme) and the selected client has `businessCreditAuthorized = true`, THE Credit Form SHALL display a `creditPurpose` selector with options `PERSONAL` (Personnel) and `BUSINESS` (Professionnel).
+2. WHEN a user creates a credit of type `CREDIT` and the selected client has `businessCreditAuthorized = false`, THE Credit Form SHALL NOT display the `creditPurpose` selector and SHALL submit `creditPurpose = PERSONAL` implicitly.
+3. WHEN the selected client changes during form editing, THE Credit Form SHALL re-evaluate whether the `creditPurpose` selector is visible and reset `creditPurpose` to `PERSONAL` if the new client is not authorized.
+4. WHEN the credit creation form is submitted, THE Credit Form SHALL include `creditPurpose` in the `CreditDto` payload.
+5. IF `creditPurpose` is not selected by the user, THE Credit Form SHALL default to `PERSONAL` in the submitted payload.
+6. IF the backend returns an error indicating the client is not authorized for business credit or already has a business credit in progress, THE Credit Form SHALL display the error message to the user.
 
 ---
 
 ### Requirement 9: Endpoints REST et contrats d'API
 
-**User Story:** En tant que développeur frontend, je veux des contrats d'API clairs et stables pour la création de crédits et la génération de tokens d'autorisation, afin d'intégrer facilement les nouveaux flux dans l'interface Angular.
+**User Story:** En tant que développeur frontend, je veux des contrats d'API clairs et stables pour l'habilitation client et la création de crédits, afin d'intégrer facilement les nouveaux flux dans l'interface Angular.
 
 #### Acceptance Criteria
 
-1. THE `CreditController` SHALL expose `POST /api/v1/credits` accepting a `CreditDto` that includes optional fields `creditPurpose` (enum `CreditPurpose`) and `managerAuthorizationToken` (String).
-2. THE `AuthorizationController` SHALL expose `POST /api/v1/credits/dual-authorization` accepting a `ManagerAuthorizationRequest` with fields `clientId` (non-null), `managerUsername` (non-blank), and `managerPassword` (non-blank).
-3. WHEN a credit creation fails because a credit of the same `creditPurpose` is already in progress for the client, THE `CreditController` SHALL return HTTP 400 with an error message that identifies the conflicting `creditPurpose`.
-4. WHEN a credit creation fails because `managerAuthorizationToken` is absent and one is required, THE `CreditController` SHALL return HTTP 400 with an error message indicating that manager authorization is required.
-5. WHEN a credit creation fails because the provided `managerAuthorizationToken` is invalid, expired, or already consumed, THE `CreditController` SHALL return HTTP 400 with an error message that identifies the specific token rejection reason.
-6. WHEN token generation fails because the authenticated user lacks the required role, THE `AuthorizationController` SHALL return HTTP 400 with an error message indicating that manager-level authorization is required.
-7. WHEN token generation fails because the provided credentials are invalid, THE `AuthorizationController` SHALL return HTTP 400 with an error message indicating invalid credentials without revealing which field was incorrect.
-8. WHEN an HTTPS request is not used for `POST /api/v1/credits/dual-authorization`, THE server SHALL reject the connection; the endpoint SHALL NOT be reachable over plain HTTP.
+1. THE `CreditController` SHALL expose `POST /api/v1/credits` accepting a `CreditDto` that includes an optional field `creditPurpose` (enum `CreditPurpose`).
+2. THE `ClientController` SHALL expose `POST /api/v1/clients/{clientId}/business-credit-authorization` requiring GESTIONNAIRE privileges.
+3. THE `ClientController` SHALL expose `DELETE /api/v1/clients/{clientId}/business-credit-authorization` requiring GESTIONNAIRE privileges.
+4. THE `ClientController` SHALL expose `GET /api/v1/clients/{clientId}/business-credit-authorization/history` returning a list of `BusinessCreditAuthorizationEventDto` ordered by `performedAt` descending.
+5. THE `ClientDto` and `ClientRespDto` SHALL expose fields `businessCreditAuthorized`, `businessCreditAuthorizedBy`, `businessCreditAuthorizedAt`, and `businessCreditInProgress`.
+6. WHEN a credit creation fails because a credit of the same `creditPurpose` is already in progress for the client, THE `CreditController` SHALL return HTTP 400 with an error message that identifies the conflicting `creditPurpose`.
+7. WHEN a credit creation fails because `businessCreditAuthorized = false` for a `BUSINESS` credit, THE `CreditController` SHALL return HTTP 400 with an error message indicating that the client is not authorized for business credit.
+8. WHEN authorization or revocation fails because the user lacks GESTIONNAIRE privileges, THE `ClientController` SHALL return HTTP 403 with an appropriate error message.
 
 ---
 
@@ -194,5 +218,6 @@ Le système couvre :
 
 1. THE Flyway migration SHALL create an index `idx_credit_client_purpose_status` on columns `(client_id, credit_purpose, status, state)` of the `credit` table.
 2. IF the system needs to display whether a client has an active BUSINESS credit, THEN THE `ClientService` SHALL read the `businessCreditInProgress` flag from the `Client` entity instead of executing a count query against the `credit` table.
-3. WHEN the `CreditRepository` checks for an active credit by purpose, THE `CreditRepository` SHALL use the query `countByClientIdAndPurposeAndStatusIn` scoped to `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED`, leveraging the composite index `idx_credit_client_purpose_status`.
-4. WHEN a `BUSINESS` credit reaches `SETTLED` status or is soft-deleted, THE `ClientService` SHALL set `client.businessCreditInProgress = false` so that subsequent display operations do not require a count query.
+3. IF the system needs to display whether a client is authorized for business credit, THEN THE `ClientService` SHALL read the `businessCreditAuthorized` flag from the `Client` entity.
+4. WHEN the `CreditRepository` checks for an active credit by purpose, THE `CreditRepository` SHALL use the query `countByClientIdAndPurposeAndStatusIn` scoped to `status IN (INPROGRESS, CREATED, VALIDATED)` and `state = ENABLED`, leveraging the composite index `idx_credit_client_purpose_status`.
+5. WHEN a `BUSINESS` credit reaches `SETTLED` status or is soft-deleted, THE `ClientService` SHALL set `client.businessCreditInProgress = false` so that subsequent display operations do not require a count query.

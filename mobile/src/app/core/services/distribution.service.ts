@@ -23,6 +23,8 @@ import { DailyConsentGuardService } from '../../features/daily-consent/daily-con
 import { DailyConsentStateService } from '../daily-consent/daily-consent-state.service';
 import { AmountConfirmationService } from '../../features/amount-confirmation/amount-confirmation.service';
 
+import { CreditPurpose } from '../../models/credit-purpose.model';
+
 interface CreateDistributionData {
   clientId: string;
   articles: Array<{ articleId: string; quantity: number }>;
@@ -34,6 +36,7 @@ interface CreateDistributionData {
   client?: any;
   creditId?: string; // Made optional
   type?: string; // 'CLIENT' ou 'COMMERCIAL'
+  creditPurpose?: CreditPurpose;
 }
 
 @Injectable({
@@ -299,7 +302,8 @@ export class DistributionService {
       createdAt: now,
       client: distributionData.client,
       articleCount: distributionData.articles.length, // This will be populated by the items
-      syncHash: ''
+      syncHash: '',
+      creditPurpose: distributionData.creditPurpose
     };
 
     // --- STOCK VALIDATION START ---

@@ -49,6 +49,23 @@
         }
       </ion-card-content>
     </ion-card>
+
+    @if (showCreditPurposeSelector) {
+    <div class="credit-purpose-section">
+      <div class="section-header">
+        <ion-icon name="briefcase" class="section-icon"></ion-icon>
+        <span class="section-title">Finalité du crédit</span>
+      </div>
+      <ion-segment [value]="creditPurpose" (ionChange)="onCreditPurposeChange($any($event.detail.value))">
+        <ion-segment-button value="PERSONAL">
+          <ion-label>Personnel</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="BUSINESS">
+          <ion-label>Professionnel</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+    }
   </div>
 
   <!-- Section Articles Disponibles -->

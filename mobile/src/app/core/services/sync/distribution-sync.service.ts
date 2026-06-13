@@ -146,7 +146,8 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
             reference: distribution.reference || distribution.id,
             confirmedAmount: distribution.confirmedAmount ?? null,
             operationConsentCode: distribution.operationConsentCode ?? null,
-            syncConsentCode: this.syncConsentCode ?? null
+            syncConsentCode: this.syncConsentCode ?? null,
+            ...(distribution.creditPurpose ? { creditPurpose: distribution.creditPurpose } : {})
         };
     }
 }

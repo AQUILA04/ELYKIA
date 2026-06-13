@@ -5,6 +5,9 @@ import { Router } from '@angular/router';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from '../../auth/service/auth.service';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
+import { UserService } from 'src/app/user/service/user.service';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 
 interface ClientListState {
   searchTerm: string;
@@ -36,18 +39,24 @@ export class ClientListComponent implements OnInit, OnDestroy {
   currentDate = new Date();
   lastUpdate = new Date();
   clientKpis: ClientKpis | null = null;
+  dualCreditEnabled = false;
+  isGestionnaire = false;
 
   constructor(
     private clientService: ClientService,
     private router: Router,
     private tokenStorage: TokenStorageService,
     private alertService: AlertService,
-    private authService: AuthService
+    private authService: AuthService,
+    private featureFlagService: FeatureFlagService,
+    private userService: UserService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
 
   ngOnInit(): void {
+    this.dualCreditEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
+    this.isGestionnaire = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
     this.restoreState();
     this.loadClientKpis();
     this.loadClient();
@@ -176,6 +185,28 @@ export class ClientListComponent implements OnInit, OnDestroy {
   editClient(clientId: number): void {
     this.saveState();
     this.router.navigate(['/client-add', clientId]);
+  }
+
+  authorizeBusinessCredit(client: Client, event: Event): void {
+    event.stopPropagation();
+    this.clientService.authorizeBusinessCredit(client.id).subscribe({
+      next: (response) => {
+        Object.assign(client, response.data);
+        this.alertService.toastSuccess('Client habilité au crédit business');
+      },
+      error: (err) => this.alertService.showError(err.error?.message || 'Erreur lors de l\'habilitation')
+    });
+  }
+
+  revokeBusinessCredit(client: Client, event: Event): void {
+    event.stopPropagation();
+    this.clientService.revokeBusinessCreditAuthorization(client.id).subscribe({
+      next: (response) => {
+        Object.assign(client, response.data);
+        this.alertService.toastSuccess('Habilitation retirée');
+      },
+      error: (err) => this.alertService.showError(err.error?.message || 'Erreur lors de la révocation')
+    });
   }
 
   onCommercialSelected(commercial: string | null): void {

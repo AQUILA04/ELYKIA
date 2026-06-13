@@ -2,9 +2,15 @@
 
 ## Overview
 
-Cette fonctionnalité permet à un client de détenir simultanément deux crédits actifs : un crédit **PERSONNEL** et un crédit **PROFESSIONNEL**, à condition qu'un manager autorise explicitement le second. Sans autorisation, la règle d'unicité existante reste en vigueur (un seul crédit en cours par client). La distinction se fait via un champ `creditPurpose` (enum `CreditPurpose`) ajouté à l'entité `Credit`.
+Cette fonctionnalité permet à un client de détenir simultanément deux crédits actifs : un crédit **PERSONNEL** et un crédit **PROFESSIONNEL**, à condition qu'un **GESTIONNAIRE** ait préalablement habilité le client. Sans habilitation, la règle d'unicité existante reste en vigueur (un seul crédit en cours par client). La distinction se fait via un champ `creditPurpose` (enum `CreditPurpose`) ajouté à l'entité `Credit`.
 
-Le système d'autorisation manager s'appuie sur un token d'autorisation à usage unique (`DualAuthorizationToken`) généré à la demande et validé lors de la création du second crédit. Ce pattern est cohérent avec les champs `operationConsentCode` et `syncConsentCode` déjà présents sur `Credit`. La compatibilité ascendante est totale : tout crédit existant sans `creditPurpose` est traité comme `PERSONAL`.
+L'habilitation business est **persistante** sur le profil client (`businessCreditAuthorized`), avec traçabilité de l'habilitation courante (`businessCreditAuthorizedBy`, `businessCreditAuthorizedAt`) et un **historique immuable** de toutes les habilitations et révocations (`BusinessCreditAuthorizationEvent`). Elle est accordée ou retirée par le GESTIONNAIRE depuis la liste ou la fiche client.
+
+La **révocation est toujours possible** tant que le client est habilité, y compris si un crédit BUSINESS est en cours. Elle n'affecte pas le crédit en cours : elle empêche uniquement la création de futurs crédits BUSINESS.
+
+**Règle Option A** : tout crédit `BUSINESS` exige `businessCreditAuthorized = true`, indépendamment de la présence d'un crédit `PERSONAL` en cours.
+
+La compatibilité ascendante est totale : tout crédit existant sans `creditPurpose` est traité comme `PERSONAL`.
 
 ---
 
@@ -13,28 +19,29 @@ Le système d'autorisation manager s'appuie sur un token d'autorisation à usage
 ```mermaid
 graph TD
     FE[Frontend Angular] -->|POST /api/v1/credits| CC[CreditController]
-    FE -->|POST /api/v1/credits/dual-authorization| AC[AuthorizationController]
+    FE -->|POST/DELETE /api/v1/clients/{id}/business-credit-authorization| CLC[ClientController]
 
     CC --> CS[CreditService]
-    AC --> DAS[DualCreditAuthorizationService]
+    CLC --> CLS[ClientService]
 
     CS --> CU{creditUnicity\ncheck}
-    CU -->|ClientType=CLIENT\ncreditPurpose présent| UC[UnicityCreditPurposeChecker]
+    CU -->|ClientType=CLIENT| UC[UnicityCreditPurposeChecker]
     CU -->|ancien comportement| CR[CreditRepository]
 
     UC --> CR
-    UC --> DAT[DualAuthorizationToken\nRepository]
+    UC -->|BUSINESS| AUTH{businessCreditAuthorized ?}
 
-    DAS --> DAT
-    DAS --> US[UserService]
+    CLS --> CL[Client Entity]
 
-    CS --> CLT[ClientService\nupdateCreditStatus]
-    CLT --> CL[Client Entity]
+    FE -->|GET /api/v1/clients/{id}/business-credit-authorization/history| CLC
+
+    CLS --> HIST[BusinessCreditAuthorizationEvent\nRepository]
 
     subgraph "Entités modifiées"
         CP[CreditPurpose enum\nPERSONAL / BUSINESS]
-        CR2[Credit Entity\n+ creditPurpose\n+ managerAuthorizationToken]
-        CL2[Client Entity\n+ businessCreditInProgress]
+        CR2[Credit Entity\n+ creditPurpose]
+        CL2[Client Entity\n+ businessCreditAuthorized\n+ businessCreditInProgress\n+ authorizedBy/At]
+        EV[BusinessCreditAuthorizationEvent\nAUTHORIZED / REVOKED]
     end
 
     style CP fill:#e8f5e9
@@ -46,7 +53,52 @@ graph TD
 
 ## Diagrammes de séquence
 
-### Flux 1 : Création d'un premier crédit (PERSONAL, comportement inchangé)
+### Flux 1 : Habilitation business par le GESTIONNAIRE
+
+```mermaid
+sequenceDiagram
+    participant FE as Frontend (Gestionnaire)
+    participant CLC as ClientController
+    participant CLS as ClientService
+    participant CL as Client Repository
+
+    FE->>CLC: POST /clients/{id}/business-credit-authorization
+    CLC->>CLS: authorizeBusinessCredit(clientId)
+    CLS->>CLS: verify GESTIONNAIRE role
+    CLS->>CL: findById(clientId)
+    CLS->>CLS: set businessCreditAuthorized=true, authorizedBy, authorizedAt
+    CLS->>CLS: persist BusinessCreditAuthorizationEvent(AUTHORIZED)
+    CLS->>CL: save(client)
+    CLS-->>CLC: ClientRespDto
+    CLC-->>FE: 200 OK
+```
+
+### Flux 2 : Création d'une vente à crédit avec choix de finalité
+
+```mermaid
+sequenceDiagram
+    participant FE as Frontend (Agent)
+    participant CC as CreditController
+    participant CS as CreditService
+    participant CR as CreditRepository
+    participant CLS as ClientService
+
+    FE->>FE: Client sélectionné, businessCreditAuthorized=true
+    FE->>FE: Agent choisit PERSONAL ou BUSINESS
+    FE->>CC: POST /credits {clientId, articles, creditPurpose: BUSINESS}
+    CC->>CS: createCredit(dto)
+    CS->>CS: creditControlProcess(credit)
+    CS->>CLS: load client, verify businessCreditAuthorized
+    CS->>CS: creditUnicity(credit)
+    CS->>CR: hasCreditInProgressForPurpose(clientId, BUSINESS)
+    CR-->>CS: false
+    CS->>CR: save(credit)
+    CS->>CLS: updateClientCreditStatus(clientId, BUSINESS, true)
+    CS-->>CC: CreditRespDto
+    CC-->>FE: 201 Created
+```
+
+### Flux 3 : Création d'un crédit PERSONAL (comportement inchangé)
 
 ```mermaid
 sequenceDiagram
@@ -54,49 +106,42 @@ sequenceDiagram
     participant CC as CreditController
     participant CS as CreditService
     participant CR as CreditRepository
-    participant CL as ClientService
+    participant CLS as ClientService
 
     FE->>CC: POST /credits {clientId, articles, creditPurpose: PERSONAL}
     CC->>CS: createCredit(dto)
     CS->>CS: creditControlProcess(credit)
+    CS->>CS: creditUnicity(credit)
     CS->>CR: hasCreditInProgressForPurpose(clientId, PERSONAL)
     CR-->>CS: false
     CS->>CR: save(credit)
-    CS->>CL: updateClientCreditStatus(clientId, PERSONAL, true)
+    CS->>CLS: updateClientCreditStatus(clientId, PERSONAL, true)
     CS-->>CC: CreditRespDto
     CC-->>FE: 201 Created
 ```
 
-### Flux 2 : Autorisation manager + création du crédit BUSINESS
+### Flux 4 : Révocation avec crédit BUSINESS en cours
 
 ```mermaid
 sequenceDiagram
-    participant FE as Frontend
-    participant AC as AuthorizationController
-    participant DAS as DualCreditAuthorizationService
-    participant US as UserService
-    participant TR as TokenRepository
+    participant FE as Frontend (Gestionnaire)
+    participant CLC as ClientController
+    participant CLS as ClientService
+    participant CL as Client Repository
+    participant HIST as Event Repository
 
-    participant CC as CreditController
-    participant CS as CreditService
-
-    FE->>AC: POST /credits/dual-authorization {clientId, managerUsername, managerPassword}
-    AC->>DAS: generateManagerAuthorizationToken(request)
-    DAS->>US: authenticate(managerUsername, managerPassword)
-    US-->>DAS: User (role ADMIN ou SU)
-    DAS->>TR: save(DualAuthorizationToken {clientId, token, expiresAt})
-    DAS-->>AC: DualAuthorizationTokenDto {token, expiresAt}
-    AC-->>FE: 201 Created {token}
-
-    FE->>CC: POST /credits {clientId, articles, creditPurpose: BUSINESS, managerAuthorizationToken}
-    CC->>CS: createCredit(dto)
-    CS->>CS: creditUnicity(credit)
-    CS->>TR: validateAndConsume(clientId, token)
-    TR-->>CS: valid
-    CS->>CS: save(credit)
-    CS->>CS: updateClientCreditStatus(clientId, BUSINESS, true)
-    CS-->>CC: CreditRespDto
-    CC-->>FE: 201 Created
+    Note over FE: Client habilité, crédit BUSINESS en cours
+    FE->>CLC: DELETE /clients/{id}/business-credit-authorization
+    CLC->>CLS: revokeBusinessCreditAuthorization(clientId)
+    CLS->>CLS: verify GESTIONNAIRE role
+    CLS->>CL: findById(clientId)
+    CLS->>CLS: set businessCreditAuthorized=false, clear authorizedBy/At
+    CLS->>HIST: save Event(REVOKED)
+    CLS->>CL: save(client)
+    Note over CLS: businessCreditInProgress inchangé
+    CLS-->>CLC: ClientRespDto
+    CLC-->>FE: 200 OK
+    Note over FE: Futurs crédits BUSINESS bloqués,<br/>crédit en cours non affecté
 ```
 
 ---
@@ -110,72 +155,106 @@ sequenceDiagram
 ```java
 public enum CreditPurpose {
     PERSONAL,   // Crédit personnel (comportement actuel, valeur par défaut)
-    BUSINESS    // Crédit professionnel (nécessite autorisation manager si PERSONAL en cours)
+    BUSINESS    // Crédit professionnel (nécessite businessCreditAuthorized sur le client)
 }
 ```
 
 **Règles** :
 - Toute valeur `null` est traitée comme `PERSONAL` (compatibilité ascendante)
-- Seul `BUSINESS` déclenche la vérification d'autorisation manager
+- Seul `BUSINESS` déclenche la vérification de `businessCreditAuthorized`
 
 ---
 
 ### `Credit` (entité modifiée)
 
-**Ajouts** :
+**Ajout** :
 ```java
 @Enumerated(EnumType.STRING)
 @Column(name = "credit_purpose", columnDefinition = "VARCHAR(20) DEFAULT 'PERSONAL'")
 private CreditPurpose creditPurpose = CreditPurpose.PERSONAL;
-
-@Column(name = "manager_authorization_token")
-private String managerAuthorizationToken;
 ```
+
+Pas de champ `managerAuthorizationToken` — l'habilitation est portée par le client.
 
 ---
 
 ### `Client` (entité modifiée)
 
-**Ajout** :
+**Ajouts** :
 ```java
 @Column(name = "business_credit_in_progress", columnDefinition = "boolean default false")
 private boolean businessCreditInProgress = false;
+
+@Column(name = "business_credit_authorized", columnDefinition = "boolean default false")
+private boolean businessCreditAuthorized = false;
+
+@Column(name = "business_credit_authorized_by")
+private String businessCreditAuthorizedBy;
+
+@Column(name = "business_credit_authorized_at")
+private LocalDateTime businessCreditAuthorizedAt;
 ```
 
-`creditInProgress` continue de tracer les crédits `PERSONAL` ; `businessCreditInProgress` trace les crédits `BUSINESS`.
+`creditInProgress` continue de tracer les crédits `PERSONAL` ; `businessCreditInProgress` trace les crédits `BUSINESS` ; `businessCreditAuthorized` reflète l'état courant et n'est modifié que par action GESTIONNAIRE explicite.
 
 ---
 
-### `DualAuthorizationToken` (nouvelle entité)
+### `BusinessCreditAuthorizationAction` (nouveau enum)
+
+```java
+public enum BusinessCreditAuthorizationAction {
+    AUTHORIZED,
+    REVOKED
+}
+```
+
+---
+
+### `BusinessCreditAuthorizationEvent` (nouvelle entité)
 
 ```java
 @Entity
-public class DualAuthorizationToken extends Auditable<String> {
+@Table(name = "business_credit_authorization_event")
+public class BusinessCreditAuthorizationEvent extends Auditable<String> {
     @Id @GeneratedValue
     private Long id;
 
     private Long clientId;
-    private String token;           // UUID généré
-    private String authorizedBy;    // username du manager
-    private LocalDateTime expiresAt;
-    private boolean consumed;
-    private LocalDateTime consumedAt;
+
+    @Enumerated(EnumType.STRING)
+    private BusinessCreditAuthorizationAction action;
+
+    private String performedBy;
+    private LocalDateTime performedAt;
 }
 ```
 
-Token à usage unique, TTL configurable (défaut : 30 minutes).
+Enregistrements **immuable** : insert-only, jamais mis à jour ni supprimés.
 
 ---
 
-### `DualCreditAuthorizationService` (nouveau service)
+### `ClientService` — nouvelles méthodes
 
 ```java
-public interface DualCreditAuthorizationService {
-    DualAuthorizationTokenDto generateManagerAuthorizationToken(ManagerAuthorizationRequest request);
-    void validateAndConsumeToken(Long clientId, String token);
-    boolean clientRequiresAuthorizationForNewCredit(Long clientId, CreditPurpose purpose);
-}
+ClientRespDto authorizeBusinessCredit(Long clientId);
+ClientRespDto revokeBusinessCreditAuthorization(Long clientId);
+List<BusinessCreditAuthorizationEventDto> getBusinessCreditAuthorizationHistory(Long clientId);
 ```
+
+**Règles `authorizeBusinessCredit`** :
+- Vérifier profil `GESTIONNAIRE` via `UserProfilConstant.GESTIONNAIRE`
+- Rejeter si client introuvable ou déjà autorisé
+- Poser `businessCreditAuthorized = true`, `authorizedBy`, `authorizedAt`
+- Persister un `BusinessCreditAuthorizationEvent` avec `action = AUTHORIZED`
+- Logger l'événement d'audit
+
+**Règles `revokeBusinessCreditAuthorization`** :
+- Vérifier profil `GESTIONNAIRE`
+- Rejeter si client non autorisé
+- Poser `businessCreditAuthorized = false`, effacer `authorizedBy` et `authorizedAt`
+- Persister un `BusinessCreditAuthorizationEvent` avec `action = REVOKED`
+- **Ne pas** vérifier ni modifier `businessCreditInProgress` ni le crédit BUSINESS en cours
+- Logger l'événement d'audit
 
 ---
 
@@ -195,7 +274,6 @@ default boolean hasCreditInProgressForPurpose(Long clientId, CreditPurpose purpo
     ) > 0;
 }
 
-// Conservé pour compatibilité (appelé depuis d'anciens endroits)
 default boolean hasCreditInProgress(Long clientId) {
     return hasCreditInProgressForPurpose(clientId, CreditPurpose.PERSONAL)
         || hasCreditInProgressForPurpose(clientId, CreditPurpose.BUSINESS);
@@ -207,13 +285,7 @@ default boolean hasCreditInProgress(Long clientId) {
 ### `CreditService` — méthodes modifiées
 
 ```java
-// Avant :
 void creditUnicity(Credit credit);
-
-// Après : tient compte du creditPurpose et valide le token si nécessaire
-void creditUnicity(Credit credit);
-
-// Méthode ajoutée dans ClientService :
 Client updateClientCreditStatus(Long clientId, CreditPurpose purpose, Boolean status);
 ```
 
@@ -221,11 +293,13 @@ Client updateClientCreditStatus(Long clientId, CreditPurpose purpose, Boolean st
 
 ### Nouveaux endpoints REST
 
-| Méthode | Chemin | Rôle |
-|---------|--------|------|
-| `POST` | `/api/v1/credits/dual-authorization` | Génère un token d'autorisation manager |
+| Méthode | Chemin | Rôle | Description |
+|---------|--------|------|-------------|
+| `POST` | `/api/v1/clients/{clientId}/business-credit-authorization` | GESTIONNAIRE | Habilite le client au crédit business |
+| `DELETE` | `/api/v1/clients/{clientId}/business-credit-authorization` | GESTIONNAIRE | Retire l'habilitation (même si BUSINESS en cours) |
+| `GET` | `/api/v1/clients/{clientId}/business-credit-authorization/history` | GESTIONNAIRE | Historique des habilitations/révocations |
 
-`POST /api/v1/credits` reste inchangé dans son URL — seuls les champs `creditPurpose` et `managerAuthorizationToken` sont ajoutés au payload `CreditDto`.
+`POST /api/v1/credits` reste inchangé dans son URL — seul le champ `creditPurpose` est ajouté au payload `CreditDto`.
 
 ---
 
@@ -250,36 +324,35 @@ public class CreditDto {
     private OperationType type;
 
     // NOUVEAU
-    private CreditPurpose creditPurpose;          // null → interprété comme PERSONAL
-    private String managerAuthorizationToken;     // requis si BUSINESS + PERSONAL déjà en cours
+    private CreditPurpose creditPurpose;   // null → interprété comme PERSONAL
 }
 ```
 
 ---
 
-### `ManagerAuthorizationRequest` (nouveau)
+### `ClientDto` / `ClientRespDto` (modifiés)
 
 ```java
-@Data
-public class ManagerAuthorizationRequest {
-    @NotNull
-    private Long clientId;
-    @NotBlank
-    private String managerUsername;
-    @NotBlank
-    private String managerPassword;
-}
+// Champs ajoutés (exposés en lecture ; non modifiables via PUT client standard)
+private boolean businessCreditAuthorized;
+private String businessCreditAuthorizedBy;
+private LocalDateTime businessCreditAuthorizedAt;
+private boolean businessCreditInProgress;
 ```
+
+L'habilitation business ne se modifie pas via le formulaire client standard — uniquement via les endpoints dédiés.
 
 ---
 
-### `DualAuthorizationTokenDto` (nouveau)
+### `BusinessCreditAuthorizationEventDto` (nouveau)
 
 ```java
-public record DualAuthorizationTokenDto(
-    String token,
+public record BusinessCreditAuthorizationEventDto(
+    Long id,
     Long clientId,
-    LocalDateTime expiresAt
+    BusinessCreditAuthorizationAction action,
+    String performedBy,
+    LocalDateTime performedAt
 ) {}
 ```
 
@@ -291,22 +364,22 @@ public record DualAuthorizationTokenDto(
 -- V{n}__add_dual_credit_authorization.sql
 
 ALTER TABLE credit
-  ADD COLUMN credit_purpose VARCHAR(20) DEFAULT 'PERSONAL' NOT NULL,
-  ADD COLUMN manager_authorization_token VARCHAR(255);
+  ADD COLUMN credit_purpose VARCHAR(20) DEFAULT 'PERSONAL' NOT NULL;
 
 UPDATE credit SET credit_purpose = 'PERSONAL' WHERE credit_purpose IS NULL;
 
 ALTER TABLE client
-  ADD COLUMN business_credit_in_progress BOOLEAN DEFAULT FALSE NOT NULL;
+  ADD COLUMN business_credit_in_progress BOOLEAN DEFAULT FALSE NOT NULL,
+  ADD COLUMN business_credit_authorized BOOLEAN DEFAULT FALSE NOT NULL,
+  ADD COLUMN business_credit_authorized_by VARCHAR(255),
+  ADD COLUMN business_credit_authorized_at TIMESTAMP;
 
-CREATE TABLE dual_authorization_token (
+CREATE TABLE business_credit_authorization_event (
     id BIGSERIAL PRIMARY KEY,
     client_id BIGINT NOT NULL,
-    token VARCHAR(255) NOT NULL UNIQUE,
-    authorized_by VARCHAR(255) NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    consumed BOOLEAN DEFAULT FALSE NOT NULL,
-    consumed_at TIMESTAMP,
+    action VARCHAR(20) NOT NULL,
+    performed_by VARCHAR(255) NOT NULL,
+    performed_at TIMESTAMP NOT NULL,
     created_date TIMESTAMP,
     last_modified_date TIMESTAMP,
     created_by VARCHAR(255),
@@ -314,39 +387,76 @@ CREATE TABLE dual_authorization_token (
     state VARCHAR(50)
 );
 
+CREATE INDEX idx_bca_event_client_performed
+  ON business_credit_authorization_event(client_id, performed_at DESC);
+
 CREATE INDEX idx_credit_client_purpose_status
   ON credit(client_id, credit_purpose, status, state);
-
-CREATE INDEX idx_dual_token_client_token
-  ON dual_authorization_token(client_id, token);
 ```
 
 ---
 
 ## Algorithmes clés (Pseudocode)
 
-### `createCredit` (modifié)
+### `authorizeBusinessCredit`
 
 ```pascal
-ALGORITHM createCredit(creditDto)
-INPUT: creditDto de type CreditDto
-OUTPUT: CreditRespDto
+ALGORITHM authorizeBusinessCredit(clientId)
+INPUT: clientId de type Long
+OUTPUT: ClientRespDto
 
 BEGIN
-  IF creditDto.type = CASH THEN
-    RETURN createCashSale(creditDto)
+  currentUser ← securityContext.getCurrentUser()
+  IF NOT currentUser.is(GESTIONNAIRE) THEN
+    THROW ForbiddenException("Seul un gestionnaire peut habiliter un client au crédit business.")
   END IF
 
-  credit ← creditMapper.toEntity(creditDto)
+  client ← clientRepository.findById(clientId)
+  IF client IS NULL THEN THROW "Client introuvable" END IF
 
-  IF credit.creditPurpose IS NULL THEN
-    credit.creditPurpose ← PERSONAL
+  IF client.businessCreditAuthorized = true THEN
+    THROW CustomValidationException("Ce client est déjà habilité au crédit business.")
   END IF
 
-  creditControlProcess(credit)
-  creditUnicity(credit)
+  client.businessCreditAuthorized ← true
+  client.businessCreditAuthorizedBy ← currentUser.username
+  client.businessCreditAuthorizedAt ← now()
+  eventRepository.save(BusinessCreditAuthorizationEvent {
+    clientId, action: AUTHORIZED, performedBy: currentUser.username, performedAt: now()
+  })
+  auditLog("BUSINESS_CREDIT_AUTHORIZED", clientId, currentUser.username)
 
-  RETURN createAndProcessCredit(credit, creditDto.clientId)
+  RETURN clientMapper.toRespDto(clientRepository.save(client))
+END
+```
+
+---
+
+### `revokeBusinessCreditAuthorization`
+
+```pascal
+ALGORITHM revokeBusinessCreditAuthorization(clientId)
+BEGIN
+  currentUser ← securityContext.getCurrentUser()
+  IF NOT currentUser.is(GESTIONNAIRE) THEN THROW ForbiddenException END IF
+
+  client ← clientRepository.findById(clientId)
+  IF client IS NULL THEN THROW "Client introuvable" END IF
+
+  IF client.businessCreditAuthorized = false THEN
+    THROW CustomValidationException("Ce client n'est pas habilité au crédit business.")
+  END IF
+
+  client.businessCreditAuthorized ← false
+  client.businessCreditAuthorizedBy ← NULL
+  client.businessCreditAuthorizedAt ← NULL
+  eventRepository.save(BusinessCreditAuthorizationEvent {
+    clientId, action: REVOKED, performedBy: currentUser.username, performedAt: now()
+  })
+  auditLog("BUSINESS_CREDIT_REVOKED", clientId, currentUser.username)
+  // businessCreditInProgress et crédit BUSINESS en cours : non modifiés
+
+  RETURN clientMapper.toRespDto(clientRepository.save(client))
 END
 ```
 
@@ -365,20 +475,18 @@ BEGIN
   END IF
 
   purpose ← credit.creditPurpose ?? PERSONAL
+  client ← credit.client
 
   IF repository.hasCreditInProgressForPurpose(credit.clientId, purpose) THEN
     THROW CustomValidationException(
       "Le client possède déjà une vente " + purpose + " en cours !")
   END IF
 
-  IF purpose = BUSINESS
-    AND repository.hasCreditInProgressForPurpose(credit.clientId, PERSONAL) THEN
-    IF credit.managerAuthorizationToken IS EMPTY THEN
+  IF purpose = BUSINESS THEN
+    IF NOT client.businessCreditAuthorized THEN
       THROW CustomValidationException(
-        "Une autorisation manager est requise pour un crédit professionnel simultané.")
+        "Ce client n'est pas habilité pour un crédit professionnel.")
     END IF
-    dualCreditAuthorizationService.validateAndConsumeToken(
-      credit.clientId, credit.managerAuthorizationToken)
   END IF
 END
 ```
@@ -389,61 +497,6 @@ END
 
 **Postconditions** :
 - Pas d'exception → création autorisée
-- Si `BUSINESS` avec token : le token est consommé (usage unique)
-
----
-
-### `generateManagerAuthorizationToken`
-
-```pascal
-ALGORITHM generateManagerAuthorizationToken(request)
-INPUT: request de type ManagerAuthorizationRequest
-OUTPUT: DualAuthorizationTokenDto
-
-BEGIN
-  manager ← userService.findByUsername(request.managerUsername)
-  IF manager IS NULL THEN THROW "Utilisateur introuvable" END IF
-
-  IF NOT passwordEncoder.matches(request.managerPassword, manager.password) THEN
-    THROW "Identifiants manager incorrects"
-  END IF
-
-  IF NOT (manager.role IN {ADMIN, SU}) THEN
-    THROW "Seul un administrateur peut autoriser un double crédit"
-  END IF
-
-  token ← UUID.randomUUID().toString()
-  expiresAt ← now() + TOKEN_TTL_MINUTES
-
-  tokenRepository.save(DualAuthorizationToken {
-    clientId: request.clientId, token, authorizedBy: manager.username,
-    expiresAt, consumed: false
-  })
-
-  RETURN DualAuthorizationTokenDto { token, request.clientId, expiresAt }
-END
-```
-
-**Préconditions** : credentials valides, clientId existant
-**Postconditions** : token UUID persisté, non consommé, avec TTL
-
----
-
-### `validateAndConsumeToken`
-
-```pascal
-ALGORITHM validateAndConsumeToken(clientId, tokenValue)
-BEGIN
-  authToken ← tokenRepository.findByClientIdAndToken(clientId, tokenValue)
-  IF authToken IS NULL THEN THROW "Token invalide ou inexistant" END IF
-  IF authToken.consumed THEN THROW "Token déjà utilisé" END IF
-  IF now() > authToken.expiresAt THEN THROW "Token expiré" END IF
-
-  authToken.consumed ← true
-  authToken.consumedAt ← now()
-  tokenRepository.save(authToken)
-END
-```
 
 ---
 
@@ -469,44 +522,44 @@ END
 ## Correctness Properties
 
 ### Property 1: Unicité par purpose
-Pour tout client `c` de type `CLIENT`, à tout instant, `count(credits INPROGRESS WHERE client=c AND purpose=PERSONAL) ≤ 1` ET `count(credits INPROGRESS WHERE client=c AND purpose=BUSINESS) ≤ 1`. Une deuxième tentative de création du même purpose pour le même client lève toujours une `CustomValidationException`.
+Pour tout client `c` de type `CLIENT`, à tout instant, `count(credits actifs WHERE client=c AND purpose=PERSONAL) ≤ 1` ET `count(credits actifs WHERE client=c AND purpose=BUSINESS) ≤ 1`.
 
 **Validates: Requirements 2.1, 2.2, 2.3, 2.4**
 
 ### Property 2: Maximum 2 crédits simultanés
-`count(credits INPROGRESS WHERE client=c) ≤ 2` en permanence pour tout client `c`. La combinaison (1 PERSONAL + 1 BUSINESS) est le maximum absolu autorisé.
+`count(credits actifs WHERE client=c) ≤ 2` en permanence. La combinaison (1 PERSONAL + 1 BUSINESS) est le maximum absolu autorisé.
 
 **Validates: Requirements 2.5**
 
 ### Property 3: Compatibilité ascendante
-Tout crédit existant avec `creditPurpose = null` est traité comme `PERSONAL` après migration. Pour tout crédit `c` dans la base avant migration, `c.creditPurpose = 'PERSONAL'` après exécution du script Flyway. Aucun crédit existant ne devient invalide.
+Tout crédit existant avec `creditPurpose = null` est traité comme `PERSONAL` après migration.
 
-**Validates: Requirements 1.2, 1.3, 1.4, 1.6**
+**Validates: Requirements 1.2, 1.3, 1.4**
 
-### Property 4: Token usage unique
-Pour tout `DualAuthorizationToken t`, si `t.consumed = true` alors toute tentative ultérieure de validation avec `t.token` lève une `CustomValidationException`. Un token ne peut être consommé qu'une seule fois.
+### Property 4: Habilitation exclusive GESTIONNAIRE
+Seul un utilisateur avec profil `GESTIONNAIRE` peut modifier `businessCreditAuthorized`.
 
-**Validates: Requirements 4.5, 4.7**
+**Validates: Requirements 3.2, 4.5**
 
-### Property 5: Token expiration
-Pour tout `DualAuthorizationToken t`, si `now() > t.expiresAt` alors la validation échoue (`CustomValidationException`), quelle que soit la valeur de `consumed`. Le délai d'expiration s'applique indépendamment de l'état du token.
+### Property 5: BUSINESS exige habilitation (Option A)
+Toute création de crédit `BUSINESS` échoue si `businessCreditAuthorized = false`, qu'un crédit `PERSONAL` soit ou non en cours.
 
-**Validates: Requirements 4.6**
+**Validates: Requirements 5.1, 5.2, 5.5**
 
-### Property 6: Autorisation exclusive manager
-Un `DualAuthorizationToken` ne peut être généré que si l'utilisateur authentifié a le rôle `ADMIN` ou `SU` (définis dans `UserProfilConstant`). Tout utilisateur avec un autre rôle reçoit une erreur.
+### Property 6: Révocation indépendante du crédit en cours
+La révocation met `businessCreditAuthorized = false` sans modifier `businessCreditInProgress` ni le crédit BUSINESS actif. Un crédit BUSINESS en cours peut coexister avec `businessCreditAuthorized = false`.
 
-**Validates: Requirements 3.4, 3.5**
+**Validates: Requirements 4.8, 4.9**
 
-### Property 7: Cohérence Client
-`client.businessCreditInProgress = true` si et seulement si un crédit `BUSINESS` avec `status IN (INPROGRESS, CREATED, VALIDATED)` existe pour ce client. La valeur est mise à `false` dès que ce crédit atteint `SETTLED` ou est supprimé (soft delete).
+### Property 7: Historique immuable
+Chaque habilitation et révocation produit exactement un enregistrement `BusinessCreditAuthorizationEvent` insert-only. L'historique complet est consultable par client.
 
-**Validates: Requirements 6.4, 6.6, 6.7**
+**Validates: Requirements 3.2, 4.2, 4b.3, 4b.4**
 
-### Property 8: Crédit BUSINESS sans PERSONAL actif ne nécessite pas de token
-Un crédit `BUSINESS` peut être créé sans token manager si le client n'a pas de crédit `PERSONAL` en cours. La contrainte d'autorisation ne s'applique que lorsqu'un `PERSONAL` est simultanément actif.
+### Property 8: Cohérence flags Client
+`client.businessCreditInProgress = true` si et seulement si un crédit `BUSINESS` actif existe. `client.businessCreditAuthorized` n'est modifié que par action GESTIONNAIRE explicite.
 
-**Validates: Requirements 5.1, 5.2**
+**Validates: Requirements 6.8, 6.9, 6.11**
 
 ---
 
@@ -514,41 +567,38 @@ Un crédit `BUSINESS` peut être créé sans token manager si le client n'a pas 
 
 ### Scénario 1 : Second crédit du même purpose
 
-**Condition** : `hasCreditInProgressForPurpose(clientId, purpose) = true` pour le même `purpose`
+**Condition** : `hasCreditInProgressForPurpose(clientId, purpose) = true`
 **Réponse** : `HTTP 400` — `"Le client X possède déjà une vente PERSONAL/BUSINESS en cours !"`
-**Récupération** : Clôturer le crédit existant de ce purpose avant d'en créer un nouveau
 
 ---
 
-### Scénario 2 : BUSINESS sans token alors qu'un PERSONAL est en cours
+### Scénario 2 : BUSINESS sans habilitation client
 
-**Condition** : `creditPurpose = BUSINESS` + `hasCreditInProgressForPurpose(clientId, PERSONAL) = true` + `managerAuthorizationToken` absent
-**Réponse** : `HTTP 400` — `"Une autorisation manager est requise pour créer un crédit professionnel simultané."`
-**Récupération** : Appeler `POST /credits/dual-authorization` pour obtenir un token
-
----
-
-### Scénario 3 : Token expiré
-
-**Condition** : `now() > authToken.expiresAt`
-**Réponse** : `HTTP 400` — `"Le token d'autorisation a expiré."`
-**Récupération** : Générer un nouveau token
+**Condition** : `creditPurpose = BUSINESS` + `businessCreditAuthorized = false`
+**Réponse** : `HTTP 400` — `"Ce client n'est pas habilité pour un crédit professionnel."`
+**Récupération** : Un GESTIONNAIRE doit habiliter le client via la fiche client
 
 ---
 
-### Scénario 4 : Token déjà consommé
+### Scénario 3 : Révocation avec BUSINESS en cours
 
-**Condition** : `authToken.consumed = true`
-**Réponse** : `HTTP 400` — `"Ce token d'autorisation a déjà été utilisé."`
-**Récupération** : Générer un nouveau token
+**Condition** : `businessCreditAuthorized = true` + `businessCreditInProgress = true`
+**Réponse** : `HTTP 200` — habilitation retirée, crédit en cours non affecté
+**Effet** : futurs crédits BUSINESS refusés ; le crédit BUSINESS actif se poursuit normalement
 
 ---
 
-### Scénario 5 : Rôle insuffisant pour générer un token
+### Scénario 4 : Action GESTIONNAIRE par un non-gestionnaire
 
-**Condition** : Utilisateur authentifié avec rôle ∉ `{ADMIN, SU}`
-**Réponse** : `HTTP 400` — `"Seul un administrateur peut autoriser un double crédit."`
-**Récupération** : Utiliser les credentials d'un compte ADMIN ou SU (voir `UserProfilConstant`)
+**Condition** : Utilisateur authentifié sans profil `GESTIONNAIRE`
+**Réponse** : `HTTP 403` — `"Seul un gestionnaire peut habiliter un client au crédit business."`
+
+---
+
+### Scénario 5 : Double habilitation
+
+**Condition** : `businessCreditAuthorized = true` lors d'un nouvel appel authorize
+**Réponse** : `HTTP 400` — `"Ce client est déjà habilité au crédit business."`
 
 ---
 
@@ -558,13 +608,18 @@ Un crédit `BUSINESS` peut être créé sans token manager si le client n'a pas 
 
 - `CreditServiceTest.createCredit_withNullPurpose_defaultsToPERSONAL()`
 - `CreditServiceTest.creditUnicity_PERSONAL_alreadyInProgress_throws()`
-- `CreditServiceTest.creditUnicity_BUSINESS_withValidToken_succeeds()`
-- `CreditServiceTest.creditUnicity_BUSINESS_withoutToken_personalInProgress_throws()`
-- `CreditServiceTest.creditUnicity_BUSINESS_noPersonalInProgress_noTokenRequired()`
-- `DualCreditAuthorizationServiceTest.generateToken_nonAdminUser_throws()`
-- `DualCreditAuthorizationServiceTest.validateToken_consumed_throws()`
-- `DualCreditAuthorizationServiceTest.validateToken_expired_throws()`
-- `DualCreditAuthorizationServiceTest.validateToken_valid_consumesToken()`
+- `CreditServiceTest.creditUnicity_BUSINESS_alreadyInProgress_throws()`
+- `CreditServiceTest.creditUnicity_BUSINESS_notAuthorized_throws()`
+- `CreditServiceTest.creditUnicity_BUSINESS_authorized_succeeds()`
+- `CreditServiceTest.creditUnicity_BUSINESS_authorized_noPersonalRequired()`
+- `CreditServiceTest.creditUnicity_nonClientType_skipsCheck()`
+- `ClientServiceTest.authorizeBusinessCredit_gestionnaire_succeeds()`
+- `ClientServiceTest.authorizeBusinessCredit_nonGestionnaire_throws()`
+- `ClientServiceTest.authorizeBusinessCredit_alreadyAuthorized_throws()`
+- `ClientServiceTest.revokeBusinessCredit_businessInProgress_succeeds_andPreservesInProgressFlag()`
+- `ClientServiceTest.revokeBusinessCredit_success_clearsFields_andPersistsEvent()`
+- `ClientServiceTest.authorizeBusinessCredit_persistsHistoryEvent()`
+- `ClientServiceTest.getAuthorizationHistory_returnsOrderedEvents()`
 - `ClientServiceTest.updateCreditStatus_PERSONAL_updatesCorrectField()`
 - `ClientServiceTest.updateCreditStatus_BUSINESS_updatesCorrectField()`
 
@@ -573,33 +628,31 @@ Un crédit `BUSINESS` peut être créé sans token manager si le client n'a pas 
 **Librairie** : JUnit 5 + jqwik
 
 ```java
-// Propriété 1 : un crédit du même purpose est toujours refusé si un existe déjà
 @Property
 void uniciteParPurpose(@ForAll CreditPurpose purpose, @ForAll @Positive Long clientId) {
-    // Créer un crédit pour purpose
-    // Tenter d'en créer un second → doit toujours lever CustomValidationException
+    // Créer un crédit pour purpose → seconde tentative lève CustomValidationException
 }
 
-// Propriété 2 : un token est toujours rejeté après son TTL
 @Property
-void tokenExpireApresDelai(@ForAll @IntRange(min = 1, max = 60) int minutesApresTTL) {
-    DualAuthorizationToken token = createTokenWithTTL(TOKEN_TTL_MINUTES);
-    advanceClock(TOKEN_TTL_MINUTES + minutesApresTTL);
-    assertThrows(CustomValidationException.class,
-        () -> service.validateAndConsumeToken(clientId, token.getToken()));
+void businessExigeHabilitation(@ForAll @Positive Long clientId) {
+    // client.businessCreditAuthorized = false → création BUSINESS toujours rejetée
 }
 
-// Propriété 3 : un token consommé est toujours rejeté
 @Property
-void tokenConsommeEstToujoursRejete(@ForAll String validToken) {
-    // Première consommation → succès
-    // Deuxième consommation → toujours exception
+void revocationPreserveBusinessEnCours(@ForAll @Positive Long clientId) {
+    // businessCreditInProgress = true → revoke réussit, flag inProgress inchangé
+}
+
+@Property
+void historiqueAppendOnly(@ForAll List<BusinessCreditAuthorizationAction> actions) {
+    // chaque authorize/revoke ajoute un event, jamais de modification
 }
 ```
 
 ### Tests d'intégration
 
-- `DualCreditAuthorizationIntegrationTest` : scénario complet (token + crédit BUSINESS)
+- `BusinessCreditAuthorizationIntegrationTest` : habilitation → création BUSINESS → révocation avec BUSINESS en cours → nouvelle création BUSINESS refusée → clôture → réhabilitation
+- `DualCreditIntegrationTest` : PERSONAL + BUSINESS simultanés pour client habilité
 - `CreditRepositoryTest.hasCreditInProgressForPurpose` : validation requête JPA par purpose
 - Test Flyway : vérifier que les crédits existants ont `credit_purpose = 'PERSONAL'` après migration
 
@@ -607,30 +660,70 @@ void tokenConsommeEstToujoursRejete(@ForAll String validToken) {
 
 ## Considérations de performance
 
-- Ajouter l'index `(client_id, credit_purpose, status, state)` sur la table `credit` pour les requêtes de comptage par purpose.
-- `businessCreditInProgress` sur `Client` évite une requête de comptage à chaque affichage — cohérent avec le pattern existant `creditInProgress`.
-- Purge planifiée des `DualAuthorizationToken` expirés ou consommés de plus de 24h (table à faible volumétrie).
+- Index `(client_id, credit_purpose, status, state)` sur la table `credit` pour les requêtes de comptage par purpose.
+- `businessCreditInProgress` et `businessCreditAuthorized` sur `Client` évitent des requêtes de comptage à chaque affichage — cohérent avec le pattern existant `creditInProgress`.
 
 ---
 
 ## Considérations de sécurité
 
-- `POST /credits/dual-authorization` doit être exposé exclusivement via HTTPS (TLS) car il reçoit le mot de passe manager.
-- Le token UUID v4 offre 122 bits d'entropie — résistant aux attaques par force brute.
-- Les tokens expirés sont conservés pour audit (traçabilité : qui a autorisé, pour quel client, quand).
-- L'action de génération de token doit être tracée dans les logs d'audit applicatif.
+- Les endpoints d'habilitation/révocation sont protégés par le profil `GESTIONNAIRE` (session JWT existante, pas de re-saisie de mot de passe).
+- La validation backend à la création de crédit empêche tout contournement frontend de l'habilitation.
+- Les événements d'habilitation et de révocation sont tracés dans les logs d'audit applicatif et persistés dans `business_credit_authorization_event`.
 
 ---
 
 ## Modifications frontend (extrait)
 
-### `credit-add.component.html`
+### Fiche / liste client — action GESTIONNAIRE
 
 ```html
-<!-- Finalité du crédit — visible uniquement pour les crédits à terme -->
-<div class="form-group" *ngIf="saleType === 'CREDIT'">
+<!-- Visible si ROLE_VALIDATE_CREDIT -->
+<button *ngIf="!client.businessCreditAuthorized"
+        (click)="authorizeBusinessCredit(client)">
+  Autoriser crédit business
+</button>
+
+<span *ngIf="client.businessCreditAuthorized" class="badge badge-success">
+  Crédit business autorisé
+  <small *ngIf="client.businessCreditAuthorizedBy">
+    par {{ client.businessCreditAuthorizedBy }}
+    le {{ client.businessCreditAuthorizedAt | date:'dd/MM/yyyy' }}
+  </small>
+</span>
+
+<button *ngIf="client.businessCreditAuthorized"
+        (click)="revokeBusinessCredit(client)">
+  Retirer l'autorisation business
+</button>
+
+<p *ngIf="client.businessCreditAuthorized && client.businessCreditInProgress"
+   class="text-muted">
+  Un crédit business est en cours. La révocation n'y mettra pas fin,
+  mais empêchera de nouveaux crédits business.
+</p>
+
+<!-- Historique -->
+<div class="authorization-history" *ngIf="authorizationHistory?.length">
+  <h6>Historique habilitations business</h6>
+  <ul>
+    <li *ngFor="let event of authorizationHistory">
+      <span [class]="event.action === 'AUTHORIZED' ? 'text-success' : 'text-danger'">
+        {{ event.action === 'AUTHORIZED' ? 'Habilité' : 'Révoqué' }}
+      </span>
+      par {{ event.performedBy }} le {{ event.performedAt | date:'dd/MM/yyyy HH:mm' }}
+    </li>
+  </ul>
+</div>
+```
+
+### Formulaire de vente à crédit
+
+```html
+<!-- Finalité — visible uniquement si client habilité ET vente à crédit -->
+<div class="form-group" *ngIf="saleType === 'CREDIT' && selectedClient?.businessCreditAuthorized">
   <label>Finalité du crédit</label>
-  <div class="btn-group btn-group-toggle" data-toggle="buttons">
+  <div class="btn-group btn-group-toggle">
     <label class="btn btn-outline-secondary" [class.active]="creditPurpose === 'PERSONAL'">
       <input type="radio" formControlName="creditPurpose" value="PERSONAL"> Personnel
     </label>
@@ -638,19 +731,6 @@ void tokenConsommeEstToujoursRejete(@ForAll String validToken) {
       <input type="radio" formControlName="creditPurpose" value="BUSINESS"> Professionnel
     </label>
   </div>
-</div>
-
-<!-- Autorisation manager — visible si BUSINESS et client a un PERSONAL actif -->
-<div class="alert alert-warning" *ngIf="requiresManagerAuthorization">
-  <strong>Autorisation manager requise</strong>
-  <p>Ce client possède déjà un crédit personnel en cours.
-     Un responsable doit autoriser ce crédit professionnel.</p>
-  <button type="button" class="btn btn-warning" (click)="openManagerAuthorizationModal()">
-    Obtenir une autorisation
-  </button>
-  <span *ngIf="managerAuthorizationToken" class="badge badge-success ml-2">
-    ✓ Autorisé
-  </span>
 </div>
 ```
 
@@ -662,4 +742,16 @@ void tokenConsommeEstToujoursRejete(@ForAll String validToken) {
 - **Frontend** : Angular Reactive Forms existants — aucun nouveau package
 - **Base de données** : PostgreSQL — migrations Flyway
 - **Tests PBT** : jqwik (à ajouter dans `pom.xml` si absent)
-- **Pattern réutilisé** : `operationConsentCode` / `syncConsentCode` sur `Credit` comme modèle pour `managerAuthorizationToken`
+
+---
+
+## Éléments supprimés par rapport à la spec initiale
+
+| Élément initial | Raison de suppression |
+|-----------------|----------------------|
+| `DualAuthorizationToken` (entité + table) | Remplacé par habilitation persistante sur `Client` |
+| `DualCreditAuthorizationService` | Logique intégrée dans `ClientService` + validation dans `CreditService` |
+| `AuthorizationController` + endpoint `/dual-authorization` | Remplacé par endpoints sur `ClientController` |
+| Modale mot de passe manager à la vente | Friction inutile ; session GESTIONNAIRE suffit pour l'habilitation |
+| `managerAuthorizationToken` sur `Credit` | Plus de token jetable |
+| Job de purge des tokens | Plus de tokens à purger |

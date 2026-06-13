@@ -64,7 +64,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
-                c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
+                c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude,
                 c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate)
                 FROM Client c
                 WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.recoveryCollector = :collector) AND c.clientType = :clientType AND c.state = :state
@@ -76,7 +76,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.tontineCollector,
-                c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
+                c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude,
                 c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate)
                 FROM Client c
                 WHERE c.tontineCollector = :collector AND c.clientType = :clientType AND c.state = :state
@@ -88,7 +88,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
-                c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
+                c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude,
                 c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate)
                 FROM Client c
                 WHERE (c.tontineCollector = :collector OR c.collector = :collector OR c.recoveryCollector = :collector) AND c.clientType = :clientType AND c.state = :state
@@ -100,7 +100,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
-                c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude,
+                c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude,
                 c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate)
                 FROM Client c
                 WHERE c.state <> :state
@@ -142,7 +142,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
 
     Optional<Client> findByCardIDAndIdNot(String cardID, Long id);
 
-    @Query("SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id, c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth, c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector, c.quarter, c.creditInProgress, c.occupation, c.clientType, c.latitude, c.longitude, c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate) " +
+    @Query("SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id, c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth, c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector, c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude, c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate) " +
        "FROM Client c " +
        "WHERE c.state <> com.optimize.common.entities.enums.State.DELETED " +
        "AND (:#{#username == null} = true OR ( " +

@@ -15,6 +15,7 @@ export class DistributionMapper {
       startDate: backendData.beginDate || backendData.startDate || '',
       endDate: backendData.expectedEndDate || backendData.endDate || '',
       status: backendData.status || 'pending',
+      creditPurpose: backendData.creditPurpose || 'PERSONAL',
       clientId: backendData.client?.id?.toString() || backendData.clientId || '',
       commercialId: backendData.collector || backendData.commercialId || '',
       isLocal: backendData.isLocal ?? false,

@@ -34,10 +34,11 @@ export class ClientRepository extends BaseRepository<Client, string> {
                 id, firstname, lastname, fullName, phone, address, dateOfBirth, occupation,
                 clientType, cardType, cardID, quarter, commercial, isLocal, isSync, syncDate,
                 syncHash, latitude, longitude, mll, contactPersonName, contactPersonPhone,
-                contactPersonAddress, code, profilPhoto, creditInProgress, cardPhoto,
-                profilPhotoUrl, cardPhotoUrl, profilPhotoThumbUrl, cardPhotoThumbUrl,
+                contactPersonAddress, code, profilPhoto, creditInProgress, businessCreditInProgress,
+                businessCreditAuthorized, businessCreditAuthorizedBy, businessCreditAuthorizedAt,
+                cardPhoto, profilPhotoUrl, cardPhotoUrl, profilPhotoThumbUrl, cardPhotoThumbUrl,
                 updatedPhotoUrl, tontineCollector, createdAt
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
             const params = [
                 clientIdStr,
@@ -66,6 +67,10 @@ export class ClientRepository extends BaseRepository<Client, string> {
                 localClient.code ?? null,
                 localClient.profilPhoto ?? null,
                 localClient.creditInProgress ? 1 : 0,
+                localClient.businessCreditInProgress ? 1 : 0,
+                localClient.businessCreditAuthorized ? 1 : 0,
+                localClient.businessCreditAuthorizedBy ?? null,
+                localClient.businessCreditAuthorizedAt ?? null,
                 localClient.cardPhoto ?? null,
                 localClient.profilPhotoUrl ?? null,
                 localClient.cardPhotoUrl ?? null,

@@ -130,6 +130,9 @@ export class MigrationService {
       case 27:
         await this.migrateToV27(db);
         break;
+      case 28:
+        await this.migrateToV28(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -740,6 +743,22 @@ export class MigrationService {
     } catch (error: any) {
       this.log.log(`Error in migration v27: ${error}`);
       console.error('Error in migration v27', error);
+      throw error;
+    }
+  }
+
+  private async migrateToV28(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v28: dual credit authorization fields...');
+      await this.addColumnIfNotExists(db, 'clients', 'businessCreditInProgress', 'BOOLEAN DEFAULT 0');
+      await this.addColumnIfNotExists(db, 'clients', 'businessCreditAuthorized', 'BOOLEAN DEFAULT 0');
+      await this.addColumnIfNotExists(db, 'clients', 'businessCreditAuthorizedBy', 'TEXT');
+      await this.addColumnIfNotExists(db, 'clients', 'businessCreditAuthorizedAt', 'TEXT');
+      await this.addColumnIfNotExists(db, 'distributions', 'creditPurpose', "TEXT DEFAULT 'PERSONAL'");
+      this.log.log('Migration to v28 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v28: ${error}`);
+      console.error('Error in migration v28', error);
       throw error;
     }
   }

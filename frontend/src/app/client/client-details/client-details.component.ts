@@ -1,11 +1,15 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ClientService, Client } from '../service/client.service';
+import { ClientService, Client, BusinessCreditAuthorizationEvent } from '../service/client.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { CreditService } from 'src/app/credit/service/credit.service';
 import { PageEvent } from '@angular/material/paginator';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
+import { UserService } from 'src/app/user/service/user.service';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
   selector: 'app-client-details',
@@ -32,6 +36,11 @@ export class ClientDetailsComponent implements OnInit {
   cotisationPageSize = 10;
   totalCotisationElements = 0;
 
+  dualCreditEnabled = false;
+  isGestionnaire = false;
+  authorizationHistory: BusinessCreditAuthorizationEvent[] = [];
+  authorizationLoading = false;
+
   constructor(
     private route: ActivatedRoute,
     private clientService: ClientService,
@@ -39,12 +48,17 @@ export class ClientDetailsComponent implements OnInit {
     private router: Router,
     private tokenStorage: TokenStorageService,
     private spinner: NgxSpinnerService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private featureFlagService: FeatureFlagService,
+    private userService: UserService,
+    private alertService: AlertService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
 
   ngOnInit(): void {
+    this.dualCreditEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
+    this.isGestionnaire = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
     this.route.params.subscribe(params => {
       this.clientId = +params['id'];
       this.loadAllData();
@@ -65,6 +79,9 @@ export class ClientDetailsComponent implements OnInit {
       (response: any) => {
         if (response && response.data) {
           this.client = response.data;
+          if (this.dualCreditEnabled && this.isGestionnaire) {
+            this.loadAuthorizationHistory(this.clientId);
+          }
         }
         this.checkLoadingComplete();
       },
@@ -179,6 +196,53 @@ export class ClientDetailsComponent implements OnInit {
       case 'CANCELLED': return 'badge-danger';
       default: return 'badge-secondary';
     }
+  }
+
+  loadAuthorizationHistory(clientId: number): void {
+    this.clientService.getBusinessCreditAuthorizationHistory(clientId).subscribe({
+      next: (history) => {
+        this.authorizationHistory = history;
+      },
+      error: (err) => console.error('Erreur chargement historique habilitation business', err)
+    });
+  }
+
+  authorizeBusinessCredit(): void {
+    if (!this.client) {
+      return;
+    }
+    this.authorizationLoading = true;
+    this.clientService.authorizeBusinessCredit(this.client.id).subscribe({
+      next: (response) => {
+        this.client = response.data;
+        this.loadAuthorizationHistory(this.client.id);
+        this.alertService.toastSuccess('Client habilité au crédit business');
+        this.authorizationLoading = false;
+      },
+      error: (err) => {
+        this.alertService.showError(err.error?.message || 'Impossible d\'habiliter le client');
+        this.authorizationLoading = false;
+      }
+    });
+  }
+
+  revokeBusinessCredit(): void {
+    if (!this.client) {
+      return;
+    }
+    this.authorizationLoading = true;
+    this.clientService.revokeBusinessCreditAuthorization(this.client.id).subscribe({
+      next: (response) => {
+        this.client = response.data;
+        this.loadAuthorizationHistory(this.client.id);
+        this.alertService.toastSuccess('Habilitation crédit business retirée');
+        this.authorizationLoading = false;
+      },
+      error: (err) => {
+        this.alertService.showError(err.error?.message || 'Impossible de retirer l\'habilitation');
+        this.authorizationLoading = false;
+      }
+    });
   }
 }
 

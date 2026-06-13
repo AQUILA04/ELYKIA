@@ -9,6 +9,7 @@ export enum FeatureFlags {
   QuickActionStock = 'quickActionStock',
   VersementHistory = 'versementHistory',
   ReliquatManagement = 'reliquatManagement',
+  DualCreditAuthorization = 'dualCreditAuthorization',
 }
 
 @Injectable({
@@ -20,6 +21,7 @@ export class FeatureFlagService {
     [FeatureFlags.QuickActionStock]: false,
     [FeatureFlags.VersementHistory]: false,
     [FeatureFlags.ReliquatManagement]: true,
+    [FeatureFlags.DualCreditAuthorization]: false,
   };
 
   private readonly flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);

@@ -5,6 +5,7 @@ import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.*;
 import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.enumaration.CreditPurpose;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
@@ -140,8 +141,26 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     // ###########################################################
     @Query(value = "SELECT count(*) From Credit c where c.client.id = :clientId AND c.status in :status AND c.state= :state")
     Integer countByClient_idAndStatusAndVisibility(Long clientId, List<CreditStatus> status, State state);
+
+    @Query("SELECT count(c) FROM Credit c WHERE c.client.id = :clientId "
+            + "AND c.creditPurpose = :purpose AND c.status IN :statuses AND c.state = :state")
+    Integer countByClientIdAndPurposeAndStatusIn(
+            @Param("clientId") Long clientId,
+            @Param("purpose") CreditPurpose purpose,
+            @Param("statuses") List<CreditStatus> statuses,
+            @Param("state") State state);
+
+    default boolean hasCreditInProgressForPurpose(Long clientId, CreditPurpose purpose) {
+        return countByClientIdAndPurposeAndStatusIn(
+                clientId,
+                purpose,
+                List.of(CreditStatus.INPROGRESS, CreditStatus.CREATED, CreditStatus.VALIDATED),
+                State.ENABLED) > 0;
+    }
+
     default boolean hasCreditInProgress(Long clientId){
-        return countByClient_idAndStatusAndVisibility(clientId, List.of(CreditStatus.INPROGRESS, CreditStatus.CREATED, CreditStatus.VALIDATED), State.ENABLED)>0;
+        return hasCreditInProgressForPurpose(clientId, CreditPurpose.PERSONAL)
+                || hasCreditInProgressForPurpose(clientId, CreditPurpose.BUSINESS);
     }
 
 
@@ -524,7 +543,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                c.type, c.dailyPaid, c.clientType, c.parent.id, c.updatable, c.reference,
                c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference,
                null,
-               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate),
+               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.businessCreditInProgress, cl.businessCreditAuthorized, cl.businessCreditAuthorizedBy, cl.businessCreditAuthorizedAt, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate),
                c.operationConsentCode, c.confirmedAmount, c.syncConsentCode)
            FROM Credit c
            LEFT JOIN c.client cl
@@ -548,7 +567,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                c.type, c.dailyPaid, c.clientType, c.parent.id, c.updatable, c.reference,
                c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference,
                null,
-               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate),
+               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.businessCreditInProgress, cl.businessCreditAuthorized, cl.businessCreditAuthorizedBy, cl.businessCreditAuthorizedAt, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate),
                c.operationConsentCode, c.confirmedAmount, c.syncConsentCode)
            FROM Credit c
            LEFT JOIN c.client cl

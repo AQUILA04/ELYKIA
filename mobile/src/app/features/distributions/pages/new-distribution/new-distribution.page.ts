@@ -26,6 +26,9 @@ import { DatabaseService } from '../../../../core/services/database.service';
 import { ArticleRepository } from '../../../../core/repositories/article.repository';
 import { selectAvailableStockItems } from '../../../../store/commercial-stock/commercial-stock.selectors';
 import { CommercialStockItem } from '../../../../models/commercial-stock-item.model';
+import { FeatureFlagService, FeatureFlags } from '../../../../core/services/feature-flag.service';
+import { CreditPurpose } from '../../../../models/credit-purpose.model';
+import { Distribution } from '../../../../models/distribution.model';
 
 interface DistributionViewModel {
   client: Client | null;
@@ -65,6 +68,9 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
   };
   Object = Object; // Expose Object to the template
 
+  dualCreditEnabled = false;
+  creditPurpose: CreditPurpose = 'PERSONAL';
+
   private searchTerm$ = new BehaviorSubject<string>('');
   private dailyPayment$ = new BehaviorSubject<number>(0);
   private adjustedAdvance$ = new BehaviorSubject<number>(0);
@@ -86,13 +92,15 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     private distributionService: DistributionService,
     private accountService: AccountService,
     private databaseService: DatabaseService,
-    private articleRepository: ArticleRepository
+    private articleRepository: ArticleRepository,
+    private featureFlagService: FeatureFlagService
   ) {
     this.distributionForm = this.fb.group({ advance: [0] });
   }
 
   ngOnInit() {
     this.log.log('[NewDistributionPage] Initializing...');
+    this.dualCreditEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
 
     // Load initial page of articles
     this.loadFirstPage();
@@ -118,6 +126,9 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
 
     // Subscribe to update the synchronous property for virtual scrolling
     this.vm$.subscribe(vm => {
+      if (vm.client?.id !== this.vm.client?.id) {
+        this.creditPurpose = 'PERSONAL';
+      }
       this.vm = vm;
       this.cdr.detectChanges();
     });
@@ -450,6 +461,57 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     return Math.max(0, this.vm.adjustedAdvance);
   }
 
+  get showCreditPurposeSelector(): boolean {
+    return this.dualCreditEnabled && !!this.vm.client?.businessCreditAuthorized;
+  }
+
+  onCreditPurposeChange(purpose: CreditPurpose): void {
+    this.creditPurpose = purpose;
+  }
+
+  private isDistributionInProgress(distribution: Distribution): boolean {
+    const status = (distribution.status || '').toUpperCase();
+    return status === 'INPROGRESS' || status === 'IN_PROGRESS' || status === 'ACTIVE';
+  }
+
+  private distributionBlocksPurpose(
+    distribution: Distribution,
+    purpose: CreditPurpose
+  ): boolean {
+    if (!this.isDistributionInProgress(distribution)) {
+      return false;
+    }
+    const distPurpose = (distribution.creditPurpose || 'PERSONAL') as CreditPurpose;
+    return distPurpose === purpose;
+  }
+
+  private async validateCreditAvailability(client: Client): Promise<string | null> {
+    const existingDistributions = await firstValueFrom(
+      this.distributionService.getDistributionsByClient(client.id)
+    );
+
+    if (!this.dualCreditEnabled) {
+      if (existingDistributions.some(d => this.isDistributionInProgress(d))) {
+        return 'Ce client a déjà un crédit en cours. Veuillez le solder avant d\'en créer un nouveau.';
+      }
+      return null;
+    }
+
+    const purpose = this.showCreditPurposeSelector ? this.creditPurpose : 'PERSONAL';
+
+    if (purpose === 'PERSONAL') {
+      if (client.creditInProgress || existingDistributions.some(d => this.distributionBlocksPurpose(d, 'PERSONAL'))) {
+        return 'Ce client a déjà un crédit personnel en cours. Veuillez le solder avant d\'en créer un nouveau.';
+      }
+    } else if (purpose === 'BUSINESS') {
+      if (client.businessCreditInProgress || existingDistributions.some(d => this.distributionBlocksPurpose(d, 'BUSINESS'))) {
+        return 'Ce client a déjà un crédit professionnel en cours. Veuillez le solder avant d\'en créer un nouveau.';
+      }
+    }
+
+    return null;
+  }
+
   async validateDistribution() {
     if (this.canValidate()) {
       await this.showConfirmationModal();
@@ -538,15 +600,9 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
 
     const vm = this.vm;
 
-    // Règle 1: Vérifier s'il y a déjà un crédit en cours pour ce client
-    const existingDistributions = await firstValueFrom(
-      this.distributionService.getDistributionsByClient(vm.client!.id)
-    );
-    if (existingDistributions.some(d => d.status === 'INPROGRESS')) {
-      await this.presentErrorAlert(
-        'Crédit Existant',
-        'Ce client a déjà un crédit en cours. Veuillez le solder avant d\'en créer un nouveau.'
-      );
+    const creditBlockMessage = await this.validateCreditAvailability(vm.client!);
+    if (creditBlockMessage) {
+      await this.presentErrorAlert('Crédit Existant', creditBlockMessage);
       return;
     }
 
@@ -597,7 +653,7 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + paymentPeriod);
 
-    const distributionData = {
+    const distributionData: Record<string, unknown> = {
       creditId: undefined,
       clientId: vm.client!.id,
       client: vm.client,
@@ -611,6 +667,10 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
       endDate: endDate.toISOString(),
       type: 'CLIENT'
     };
+
+    if (this.dualCreditEnabled && vm.client?.businessCreditAuthorized) {
+      distributionData.creditPurpose = this.creditPurpose;
+    }
 
     this.log.log('[NewDistributionPage] Confirming distribution');
     console.log('[NewDistributionPage] Confirming distribution', distributionData);

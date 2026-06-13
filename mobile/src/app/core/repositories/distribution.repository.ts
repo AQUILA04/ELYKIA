@@ -57,7 +57,7 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
             }
 
             if (needsUpdate) {
-                const sql = `UPDATE distributions SET reference=?, creditId=?, totalAmount=?, dailyPayment=?, startDate=?, endDate=?, status=?, clientId=?, commercialId=?, isLocal=?, isSync=?, syncDate=?, createdAt=?, syncHash=?, articleCount=?, remainingAmount=?, paidAmount=?, advance=? WHERE id=?`;
+                const sql = `UPDATE distributions SET reference=?, creditId=?, totalAmount=?, dailyPayment=?, startDate=?, endDate=?, status=?, clientId=?, commercialId=?, isLocal=?, isSync=?, syncDate=?, createdAt=?, syncHash=?, articleCount=?, remainingAmount=?, paidAmount=?, advance=?, creditPurpose=? WHERE id=?`;
                 distributionsToUpdate.push({
                     statement: sql,
                     values: [
@@ -67,11 +67,12 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
                         localDist.isLocal ? 1 : 0, localDist.isSync ? 1 : 0, now,
                         localDist.createdAt ?? now, newHash, localDist.articleCount ?? 0,
                         localDist.remainingAmount ?? localDist.totalAmount ?? 0,
-                        localDist.paidAmount ?? 0, localDist.advance ?? 0, distIdStr
+                        localDist.paidAmount ?? 0, localDist.advance ?? 0,
+                        localDist.creditPurpose ?? null, distIdStr
                     ]
                 });
             } else if (!isExisting) {
-                const sql = `INSERT INTO distributions (id, reference, creditId, totalAmount, dailyPayment, startDate, endDate, status, clientId, commercialId, isLocal, isSync, syncDate, createdAt, syncHash, articleCount, remainingAmount, paidAmount, advance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+                const sql = `INSERT INTO distributions (id, reference, creditId, totalAmount, dailyPayment, startDate, endDate, status, clientId, commercialId, isLocal, isSync, syncDate, createdAt, syncHash, articleCount, remainingAmount, paidAmount, advance, creditPurpose) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
                 distributionsToInsert.push({
                     statement: sql,
                     values: [
@@ -81,7 +82,8 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
                         localDist.isLocal ? 1 : 0, localDist.isSync ? 1 : 0, now,
                         localDist.createdAt ?? now, newHash, localDist.articleCount ?? 0,
                         localDist.remainingAmount ?? localDist.totalAmount ?? 0,
-                        localDist.paidAmount ?? 0, localDist.advance ?? 0
+                        localDist.paidAmount ?? 0, localDist.advance ?? 0,
+                        localDist.creditPurpose ?? null
                     ]
                 });
             }

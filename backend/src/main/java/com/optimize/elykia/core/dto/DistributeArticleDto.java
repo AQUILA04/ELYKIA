@@ -3,6 +3,7 @@ package com.optimize.elykia.core.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.core.entity.sale.Order;
+import com.optimize.elykia.core.enumaration.CreditPurpose;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -34,6 +35,7 @@ public class DistributeArticleDto {
     private String operationConsentCode;
     private Double confirmedAmount;
     private String syncConsentCode;
+    private CreditPurpose creditPurpose;
 
     public void validateEntryArticles() {
         if (Objects.isNull(articles) || articles.getArticleEntries().isEmpty()) {

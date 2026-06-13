@@ -62,6 +62,14 @@
 // Client Section
 .client-section {
   margin-bottom: 24px;
+
+  .credit-purpose-section {
+    margin-top: 12px;
+
+    ion-segment {
+      margin-top: 4px;
+    }
+  }
   
   .client-card {
     margin: 0;

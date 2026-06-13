@@ -23,6 +23,10 @@ export interface Client {
   occupation: string;
   quarter: string;
   creditInProgress?: boolean;
+  businessCreditInProgress?: boolean;
+  businessCreditAuthorized?: boolean;
+  businessCreditAuthorizedBy?: string;
+  businessCreditAuthorizedAt?: string;
   isTontineMember?: boolean;
   hasOrderInProgress?: boolean;
   iddoc?: string;
@@ -74,6 +78,14 @@ export interface ClientKpis {
   withActiveCredit: number;
   tontineMembers: number;
   withoutCreditNorTontine: number;
+}
+
+export interface BusinessCreditAuthorizationEvent {
+  id: number;
+  clientId: number;
+  action: 'AUTHORIZED' | 'REVOKED';
+  performedBy: string;
+  performedAt: string;
 }
 
 
@@ -192,5 +204,24 @@ export class ClientService {
     return this.http.get<ApiResponse<ClientKpis>>(`${this.apiUrl}/kpis`, { headers, params }).pipe(
       map(response => response.data)
     );
+  }
+
+  authorizeBusinessCredit(clientId: number): Observable<ApiResponse<Client>> {
+    const headers = this.getHeader();
+    return this.http.post<ApiResponse<Client>>(
+      `${this.apiUrl}/${clientId}/business-credit-authorization`, {}, { headers });
+  }
+
+  revokeBusinessCreditAuthorization(clientId: number): Observable<ApiResponse<Client>> {
+    const headers = this.getHeader();
+    return this.http.delete<ApiResponse<Client>>(
+      `${this.apiUrl}/${clientId}/business-credit-authorization`, { headers });
+  }
+
+  getBusinessCreditAuthorizationHistory(clientId: number): Observable<BusinessCreditAuthorizationEvent[]> {
+    const headers = this.getHeader();
+    return this.http.get<ApiResponse<BusinessCreditAuthorizationEvent[]>>(
+      `${this.apiUrl}/${clientId}/business-credit-authorization/history`, { headers }
+    ).pipe(map(response => response.data ?? []));
   }
 }

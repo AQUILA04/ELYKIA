@@ -22,6 +22,10 @@ export interface Client {
   contactPersonAddress?: string;
   commercial: string;
   creditInProgress?: boolean;
+  businessCreditInProgress?: boolean;
+  businessCreditAuthorized?: boolean;
+  businessCreditAuthorizedBy?: string;
+  businessCreditAuthorizedAt?: string;
   /** Dérivé des distributions : au moins une distribution avec remainingAmount > 0 */
   hasActiveCredit?: boolean;
   isLocal?: boolean;

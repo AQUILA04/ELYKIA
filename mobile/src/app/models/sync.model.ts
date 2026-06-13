@@ -183,6 +183,7 @@ export interface DistributionSyncRequest {
   confirmedAmount?: number | null;
   operationConsentCode?: string | null;
   syncConsentCode?: string | null;
+  creditPurpose?: 'PERSONAL' | 'BUSINESS';
 }
 
 export interface OrderSyncRequest {

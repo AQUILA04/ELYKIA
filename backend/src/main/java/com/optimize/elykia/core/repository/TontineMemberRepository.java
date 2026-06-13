@@ -62,7 +62,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             new com.optimize.elykia.client.dto.ClientRespDto(
                 c.id, c.firstname, c.lastname, c.address, c.phone, c.cardID, 
                 c.cardType, c.dateOfBirth, null, null, null, c.collector, 
-                c.quarter, c.creditInProgress, c.occupation, c.clientType, 
+                c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized,
+                c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, 
                 null, null, null, null, c.code, c.profilPhotoUrl, 
                 c.cardPhotoUrl, c.tontineCollector, c.createdDate
             ),
@@ -108,7 +109,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             new com.optimize.elykia.client.dto.ClientRespDto(
                 c.id, c.firstname, c.lastname, c.address, c.phone, c.cardID, 
                 c.cardType, c.dateOfBirth, null, null, null, c.collector, 
-                c.quarter, c.creditInProgress, c.occupation, c.clientType, 
+                c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized,
+                c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, 
                 null, null, null, null, c.code, c.profilPhotoUrl, 
                 c.cardPhotoUrl, c.tontineCollector, c.createdDate
             ),

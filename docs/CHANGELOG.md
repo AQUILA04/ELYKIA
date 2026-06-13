@@ -10,8 +10,21 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ## [Unreleased]
 
+### Changed
+
+- **Docs —** spec dual-crédit : révocation possible même avec crédit BUSINESS en cours (bloque seulement les futures créations) ; historique immuable des habilitations/révocations (`BusinessCreditAuthorizationEvent`).
+
+### Added
+
+- **Backend —** dual-crédit : `creditPurpose` (PERSONAL/BUSINESS), habilitation business client (GESTIONNAIRE), historique, unicité par finalité ; rétrocompatibilité si `creditPurpose` absent (comportement actuel).
+- **Backend —** migration Flyway V52, endpoints `POST/DELETE/GET .../business-credit-authorization`.
+- **Frontend —** feature flag `dualCreditAuthorization` (Remote Config, défaut `false`) : habilitation client, sélecteur finalité à la vente, historique sur fiche client.
+- **Mobile —** feature flag `dualCreditAuthorization` : persistance des champs habilitation client à l'initialisation, sélecteur PERSONAL/BUSINESS à la distribution, envoi `creditPurpose` à la synchronisation.
+
 ### Fixed
 
+- **Backend —** entité `Credit` : suppression du `DEFAULT` dans `columnDefinition` de `credit_purpose` (DDL Hibernate incompatible PostgreSQL ; défaut géré par Flyway V52 et valeur Java).
+- **Backend —** requêtes JPQL `CreditRepository` et `TontineMemberRepository` : constructeur `ClientRespDto` aligné sur les champs dual-crédit (démarrage application).
 - **Frontend —** modal livraison tontine : recherche locale de repli quand l'API articles ne retourne rien (autocomplete vide en CI).
 - **Frontend —** tests E2E golden path étape 25 : sélection article livraison tontine stabilisée (attente chargement API, recherche par id/nom).
 - **Frontend —** tests E2E golden path étape 8 : ouverture journée comptable avant mise journalière et validation explicite du recouvrement.

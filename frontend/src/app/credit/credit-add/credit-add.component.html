@@ -55,6 +55,18 @@
       </mat-error>
     </div>
 
+    <div class="form-group" *ngIf="showCreditPurposeSelector">
+      <label>Finalité du crédit</label>
+      <div class="btn-group btn-group-toggle" data-toggle="buttons">
+        <label class="btn btn-outline-secondary" [class.active]="creditForm.get('creditPurpose')?.value === 'PERSONAL'">
+          <input type="radio" formControlName="creditPurpose" value="PERSONAL"> Personnel
+        </label>
+        <label class="btn btn-outline-secondary" [class.active]="creditForm.get('creditPurpose')?.value === 'BUSINESS'">
+          <input type="radio" formControlName="creditPurpose" value="BUSINESS"> Professionnel
+        </label>
+      </div>
+    </div>
+
     <!-- Utilisation du nouveau composant réutilisable -->
     <div class="form-group">
       <label>Articles<span class="text-danger">*</span></label>

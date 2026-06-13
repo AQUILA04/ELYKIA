@@ -25,6 +25,12 @@
             <span *ngIf="client.creditInProgress" class="status-chip chip-credit">
               <mat-icon>account_balance</mat-icon> Crédit en cours
             </span>
+            <span *ngIf="dualCreditEnabled && client.businessCreditInProgress" class="status-chip chip-credit">
+              <mat-icon>business_center</mat-icon> Crédit business en cours
+            </span>
+            <span *ngIf="dualCreditEnabled && client.businessCreditAuthorized" class="status-chip chip-tontine">
+              <mat-icon>verified</mat-icon> Crédit business autorisé
+            </span>
             <span *ngIf="client.isTontineMember" class="status-chip chip-tontine">
               <mat-icon>groups</mat-icon> Membre tontine
             </span>
@@ -51,6 +57,39 @@
     <div class="details-grid">
       <div class="details-profile-col">
         <app-client-info-card [client]="client" [safeProfilPhotoUrl]="safeProfilPhotoUrl"></app-client-info-card>
+
+        <div class="business-auth-card" *ngIf="dualCreditEnabled && isGestionnaire">
+          <h3 class="business-auth-title">Crédit business</h3>
+          <p class="business-auth-meta" *ngIf="client.businessCreditAuthorized && client.businessCreditAuthorizedBy">
+            Habilité par {{ client.businessCreditAuthorizedBy }}
+            <span *ngIf="client.businessCreditAuthorizedAt"> le {{ client.businessCreditAuthorizedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </p>
+          <p class="business-auth-hint" *ngIf="client.businessCreditAuthorized && client.businessCreditInProgress">
+            Un crédit business est en cours. La révocation n'y mettra pas fin, mais empêchera de nouveaux crédits business.
+          </p>
+          <div class="business-auth-actions">
+            <button type="button" class="btn-primary" *ngIf="!client.businessCreditAuthorized"
+                    (click)="authorizeBusinessCredit()" [disabled]="authorizationLoading">
+              Autoriser crédit business
+            </button>
+            <button type="button" class="btn-outline" *ngIf="client.businessCreditAuthorized"
+                    (click)="revokeBusinessCredit()" [disabled]="authorizationLoading">
+              Retirer l'autorisation
+            </button>
+          </div>
+          <div class="business-auth-history" *ngIf="authorizationHistory.length">
+            <h4>Historique</h4>
+            <ul>
+              <li *ngFor="let event of authorizationHistory">
+                <span [class.text-success]="event.action === 'AUTHORIZED'"
+                      [class.text-danger]="event.action === 'REVOKED'">
+                  {{ event.action === 'AUTHORIZED' ? 'Habilité' : 'Révoqué' }}
+                </span>
+                par {{ event.performedBy }} le {{ event.performedAt | date:'dd/MM/yyyy HH:mm' }}
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       <div class="details-tabs-col">

@@ -69,6 +69,18 @@ public class Client extends Auditable<String> {
     @Column(columnDefinition = "boolean default false")
     private boolean hasOrderInProgress;
 
+    @Column(name = "business_credit_in_progress", columnDefinition = "boolean default false")
+    private boolean businessCreditInProgress = false;
+
+    @Column(name = "business_credit_authorized", columnDefinition = "boolean default false")
+    private boolean businessCreditAuthorized = false;
+
+    @Column(name = "business_credit_authorized_by")
+    private String businessCreditAuthorizedBy;
+
+    @Column(name = "business_credit_authorized_at")
+    private java.time.LocalDateTime businessCreditAuthorizedAt;
+
 
     public Long getAccountId() {
         if (Objects.nonNull(account)) {

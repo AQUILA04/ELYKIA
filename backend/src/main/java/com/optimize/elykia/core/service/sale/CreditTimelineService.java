@@ -117,7 +117,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         creditService.update(credit);
         super.create(creditTimeline);
         if (CreditStatus.SETTLED.equals(credit.getStatus()) || credit.getTotalAmountRemaining() == 0) {
-            clientService.updateCreditStatus(credit.getClientId(), Boolean.FALSE);
+            creditService.syncClientCreditFlagsAfterClose(credit);
         }
 
 

@@ -8,6 +8,7 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.DistributeArticleDto;
 import com.optimize.elykia.core.entity.tontine.TontineDelivery;
+import com.optimize.elykia.core.enumaration.CreditPurpose;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.RiskLevel;
@@ -97,6 +98,10 @@ public class Credit extends BaseEntity<String> {
 
     @Column(name = "sync_consent_code")
     private String syncConsentCode;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "credit_purpose", length = 20)
+    private CreditPurpose creditPurpose = CreditPurpose.PERSONAL;
 
 
     // AJOUTÉ : Le champ 'advance' avec une valeur par défaut de 0
@@ -552,6 +557,9 @@ public class Credit extends BaseEntity<String> {
         credit.setOperationConsentCode(dto.getOperationConsentCode());
         credit.setConfirmedAmount(dto.getConfirmedAmount());
         credit.setSyncConsentCode(dto.getSyncConsentCode());
+        if (dto.getCreditPurpose() != null) {
+            credit.setCreditPurpose(dto.getCreditPurpose());
+        }
         return credit;
     }
 }

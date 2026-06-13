@@ -16,8 +16,11 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.enumeration.PhotoType;
 import com.optimize.elykia.client.event.ClientCreatedEvent;
 import com.optimize.elykia.client.mapper.ClientMapper;
+import com.optimize.elykia.client.repository.BusinessCreditAuthorizationEventRepository;
 import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.client.repository.PhotoStoreRepository;
+import com.optimize.elykia.client.enumeration.BusinessCreditAuthorizationAction;
+import com.optimize.elykia.client.entity.BusinessCreditAuthorizationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -39,12 +43,14 @@ public class ClientService extends GenericService<Client, Long> {
     private final AccountService accountService;
     private final ApplicationEventPublisher eventPublisher;
     private final PhotoStoreRepository photoStoreRepository;
+    private final BusinessCreditAuthorizationEventRepository businessCreditAuthorizationEventRepository;
 
     protected ClientService(ClientRepository repository, ClientMapper clientMapper,
             ClientProperties clientProperties,
             ClientAutoInitProperties clientAutoInitProperties, AccountService accountService,
             ApplicationEventPublisher eventPublisher,
-                            PhotoStoreRepository photoStoreRepository) {
+                            PhotoStoreRepository photoStoreRepository,
+                            BusinessCreditAuthorizationEventRepository businessCreditAuthorizationEventRepository) {
         super(repository);
         this.clientMapper = clientMapper;
         this.clientProperties = clientProperties;
@@ -52,6 +58,7 @@ public class ClientService extends GenericService<Client, Long> {
         this.accountService = accountService;
         this.eventPublisher = eventPublisher;
         this.photoStoreRepository = photoStoreRepository;
+        this.businessCreditAuthorizationEventRepository = businessCreditAuthorizationEventRepository;
     }
 
     @Transactional
@@ -131,12 +138,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     private void preservePhotoFields(Client old, Client client) {
-        if (isEmptyBytes(client.getIDDoc())) {
-            client.setIDDoc(old.getIDDoc());
-        }
-        if (isEmptyBytes(client.getProfilPhoto())) {
-            client.setProfilPhoto(old.getProfilPhoto());
-        }
+        
         if (!StringUtils.hasText(client.getProfilPhotoUrl())) {
             client.setProfilPhotoUrl(old.getProfilPhotoUrl());
         }
@@ -344,6 +346,59 @@ public class ClientService extends GenericService<Client, Long> {
         Client client = getById(clientId);
         client.setCreditInProgress(status);
         return super.update(client);
+    }
+
+    @Transactional
+    public Client updateBusinessCreditInProgress(Long clientId, Boolean status) {
+        Client client = getById(clientId);
+        client.setBusinessCreditInProgress(status);
+        return super.update(client);
+    }
+
+    @Transactional
+    public ClientRespDto authorizeBusinessCredit(Long clientId, String performedBy) {
+        Client client = getById(clientId);
+        if (client.isBusinessCreditAuthorized()) {
+            throw new CustomValidationException("Ce client est déjà habilité au crédit business.");
+        }
+        client.setBusinessCreditAuthorized(true);
+        client.setBusinessCreditAuthorizedBy(performedBy);
+        client.setBusinessCreditAuthorizedAt(LocalDateTime.now());
+        Client saved = super.update(client);
+        persistAuthorizationEvent(clientId, BusinessCreditAuthorizationAction.AUTHORIZED, performedBy);
+        return ClientRespDto.fromClient(saved);
+    }
+
+    @Transactional
+    public ClientRespDto revokeBusinessCreditAuthorization(Long clientId, String performedBy) {
+        Client client = getById(clientId);
+        if (!client.isBusinessCreditAuthorized()) {
+            throw new CustomValidationException("Ce client n'est pas habilité au crédit business.");
+        }
+        client.setBusinessCreditAuthorized(false);
+        client.setBusinessCreditAuthorizedBy(null);
+        client.setBusinessCreditAuthorizedAt(null);
+        Client saved = super.update(client);
+        persistAuthorizationEvent(clientId, BusinessCreditAuthorizationAction.REVOKED, performedBy);
+        return ClientRespDto.fromClient(saved);
+    }
+
+    public List<BusinessCreditAuthorizationEventDto> getBusinessCreditAuthorizationHistory(Long clientId) {
+        getById(clientId);
+        return businessCreditAuthorizationEventRepository.findByClientIdOrderByPerformedAtDesc(clientId)
+                .stream()
+                .map(BusinessCreditAuthorizationEventDto::fromEntity)
+                .toList();
+    }
+
+    private void persistAuthorizationEvent(
+            Long clientId, BusinessCreditAuthorizationAction action, String performedBy) {
+        BusinessCreditAuthorizationEvent event = new BusinessCreditAuthorizationEvent();
+        event.setClientId(clientId);
+        event.setAction(action);
+        event.setPerformedBy(performedBy);
+        event.setPerformedAt(LocalDateTime.now());
+        businessCreditAuthorizationEventRepository.save(event);
     }
 
     @Transactional

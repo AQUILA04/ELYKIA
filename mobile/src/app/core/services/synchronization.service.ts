@@ -1070,7 +1070,7 @@ export class SynchronizationService {
     console.log('distribution3', parseInt(distribution.creditId || '0'));
 
 
-    return {
+    const request: DistributionSyncRequest = {
       articles: {
         articleEntries: items.map(item => ({
           articleId: parseInt(item.articleId),
@@ -1087,8 +1087,14 @@ export class SynchronizationService {
       totalAmountPaid: distribution.paidAmount || 0,
       totalAmountRemaining: distribution.remainingAmount || 0,
       mobile: true,
-      reference: distribution.reference || distribution.id // Ajout de la référence
+      reference: distribution.reference || distribution.id
     };
+
+    if (distribution.creditPurpose) {
+      request.creditPurpose = distribution.creditPurpose;
+    }
+
+    return request;
   }
 
   private async prepareOrderSyncRequest(order: Order): Promise<OrderSyncRequest> {
@@ -1433,7 +1439,8 @@ export class SynchronizationService {
       createdAt: row.createdAt,
       paidAmount: row.paidAmount,
       remainingAmount: row.remainingAmount,
-      advance: row.advance
+      advance: row.advance,
+      creditPurpose: row.creditPurpose ?? undefined
     } as Distribution;
   }
 

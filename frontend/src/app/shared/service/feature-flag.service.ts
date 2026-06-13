@@ -16,6 +16,7 @@ export enum FeatureFlags {
   InventoryReconciliationMultiSelect = 'inventoryReconciliationMultiSelect',
   MonthlyReports = 'monthlyReports',
   PrintReceiptAfterSale = 'printReceiptAfterSale',
+  DualCreditAuthorization = 'dualCreditAuthorization',
 }
 
 const REMOTE_CONFIG_FETCH_TIMEOUT_MS = 10_000;
@@ -32,6 +33,7 @@ export class FeatureFlagService {
     [FeatureFlags.InventoryReconciliationMultiSelect]: false,
     [FeatureFlags.MonthlyReports]: false,
     [FeatureFlags.PrintReceiptAfterSale]: false,
+    [FeatureFlags.DualCreditAuthorization]: false,
   };
 
   private flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);

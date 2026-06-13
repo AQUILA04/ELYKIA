@@ -16,6 +16,7 @@ import com.optimize.elykia.core.entity.sale.*;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.tontine.TontineDelivery;
+import com.optimize.elykia.core.enumaration.CreditPurpose;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
@@ -135,19 +136,13 @@ public class CreditService extends GenericService<Credit, Long> {
         if (Objects.nonNull(creditDto.getType()) && OperationType.CASH.equals(creditDto.getType())) {
             return createCashSale(creditDto);
         }
+        CreditPurpose explicitPurpose = creditDto.getCreditPurpose();
         Credit credit = creditMapper.toEntity(creditDto);
+        credit.setCreditPurpose(explicitPurpose != null ? explicitPurpose : CreditPurpose.PERSONAL);
         creditControlProcess(credit);
+        creditUnicity(credit, explicitPurpose);
 
-        if (ClientType.CLIENT.equals(credit.getClientType())
-                && getRepository().hasCreditInProgress(credit.getClientId())) {
-            if (metricsPublisher != null) {
-                metricsPublisher.creditCreationFailed("DUPLICATE_IN_PROGRESS");
-            }
-            throw new CustomValidationException("Le client " + credit.getClient().getFullName()
-                    + " possède déjà une vente en cours et ne peut donc pas bénéficier d'une autre vente !");
-        }
-
-        CreditRespDto result = createAndProcessCredit(credit, creditDto.getClientId());
+        CreditRespDto result = createAndProcessCredit(credit, creditDto.getClientId(), explicitPurpose);
         if (metricsPublisher != null) {
             metricsPublisher.creditCreated(credit.getCollector(),
                     credit.getType() != null ? credit.getType().name() : "CREDIT");
@@ -246,18 +241,68 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     public void creditUnicity(Credit credit) {
-        if (ClientType.CLIENT.equals(credit.getClientType())
-                && getRepository().hasCreditInProgress(credit.getClientId())) {
+        creditUnicity(credit, null);
+    }
+
+    public void creditUnicity(Credit credit, CreditPurpose explicitPurpose) {
+        if (!ClientType.CLIENT.equals(credit.getClientType())) {
+            return;
+        }
+        Long clientId = credit.getClientId();
+        if (explicitPurpose == null) {
+            if (getRepository().hasCreditInProgress(clientId)) {
+                if (metricsPublisher != null) {
+                    metricsPublisher.creditCreationFailed("DUPLICATE_IN_PROGRESS");
+                }
+                throw new CustomValidationException("Le client " + credit.getClient().getFullName()
+                        + " possède déjà une vente en cours et ne peut donc pas bénéficier d'une autre vente !");
+            }
+            return;
+        }
+        if (getRepository().hasCreditInProgressForPurpose(clientId, explicitPurpose)) {
+            if (metricsPublisher != null) {
+                metricsPublisher.creditCreationFailed("DUPLICATE_IN_PROGRESS");
+            }
             throw new CustomValidationException("Le client " + credit.getClient().getFullName()
-                    + " possède déjà une vente en cours et ne peut donc pas bénéficier d'une autre vente !");
+                    + " possède déjà une vente " + explicitPurpose + " en cours !");
+        }
+        if (CreditPurpose.BUSINESS.equals(explicitPurpose)) {
+            Client client = credit.getClient();
+            if (client == null) {
+                client = clientService.getById(clientId);
+            }
+            if (!client.isBusinessCreditAuthorized()) {
+                throw new CustomValidationException("Ce client n'est pas habilité pour un crédit professionnel.");
+            }
         }
     }
 
-    private CreditRespDto createAndProcessCredit(Credit credit, Long clientId) {
+    public void syncClientCreditFlagsAfterClose(Credit credit) {
+        if (credit.getClientId() == null || !ClientType.CLIENT.equals(credit.getClientType())) {
+            return;
+        }
+        Long clientId = credit.getClientId();
+        CreditPurpose purpose = credit.getCreditPurpose() != null
+                ? credit.getCreditPurpose() : CreditPurpose.PERSONAL;
+        if (CreditPurpose.BUSINESS.equals(purpose)) {
+            if (!getRepository().hasCreditInProgressForPurpose(clientId, CreditPurpose.BUSINESS)) {
+                clientService.updateBusinessCreditInProgress(clientId, Boolean.FALSE);
+            }
+        }
+        if (!getRepository().hasCreditInProgressForPurpose(clientId, CreditPurpose.PERSONAL)) {
+            clientService.updateCreditStatus(clientId, Boolean.FALSE);
+        }
+    }
+
+    private CreditRespDto createAndProcessCredit(Credit credit, Long clientId, CreditPurpose explicitPurpose) {
         credit = super.create(credit);
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
-        clientService.updateCreditStatus(clientId, Boolean.TRUE);
+        if (CreditPurpose.BUSINESS.equals(explicitPurpose)) {
+            clientService.updateBusinessCreditInProgress(clientId, Boolean.TRUE);
+        } else {
+            clientService.updateCreditStatus(clientId, Boolean.TRUE);
+        }
 
         // Enrichissement BI automatique
         if (creditEnrichmentService != null) {
@@ -543,7 +588,8 @@ public class CreditService extends GenericService<Credit, Long> {
         creditControlProcess(clientCredit);
         applyDistributionPricingFromStock(clientCredit, monthlyStock);
         clientCredit.setTotalAmount(clientCredit.getTotalAmountByCalcul());
-        creditUnicity(clientCredit);
+        CreditPurpose explicitPurpose = dto.getCreditPurpose();
+        creditUnicity(clientCredit, explicitPurpose);
 
         // Vérification et mise à jour du stock commercial
         this.checkAndUpdateStockCommercial(clientCredit, monthlyStock);
@@ -563,7 +609,11 @@ public class CreditService extends GenericService<Credit, Long> {
         this.marginAndBIAggregationOperation(clientCredit);
 
         // Mettre à jour le statut du client
-        clientService.updateCreditStatus(client.getId(), Boolean.TRUE);
+        if (CreditPurpose.BUSINESS.equals(explicitPurpose)) {
+            clientService.updateBusinessCreditInProgress(client.getId(), Boolean.TRUE);
+        } else {
+            clientService.updateCreditStatus(client.getId(), Boolean.TRUE);
+        }
 
         return CreditRespDto.fromCredit(clientCredit);
     }
@@ -1017,7 +1067,7 @@ public class CreditService extends GenericService<Credit, Long> {
         Credit credit = getById(id);
         boolean result = super.deleteSoft(id);
         if (result) {
-            clientService.updateCreditStatus(credit.getClientId(), Boolean.FALSE);
+            syncClientCreditFlagsAfterClose(credit);
         }
         return result;
     }

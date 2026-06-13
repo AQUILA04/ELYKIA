@@ -34,6 +34,8 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   saleType: 'CREDIT' | 'CASH' = 'CREDIT';
   showReceiptModal = false;
   receiptData: any = {};
+  dualCreditEnabled = false;
+  creditPurpose: 'PERSONAL' | 'BUSINESS' = 'PERSONAL';
 
   private subscriptions: Subscription[] = [];
 
@@ -62,11 +64,24 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       beginDate: [new Date().toISOString().split('T')[0]],
       expectedEndDate: [null],
       totalAmount: [0],
-      saleType: ['CREDIT']
+      saleType: ['CREDIT'],
+      creditPurpose: ['PERSONAL']
     });
   }
 
+  get selectedClient(): any | undefined {
+    const clientId = this.creditForm.get('clientId')?.value;
+    return this.clients.find(c => c.id === clientId);
+  }
+
+  get showCreditPurposeSelector(): boolean {
+    return this.dualCreditEnabled
+      && this.saleType === 'CREDIT'
+      && !!this.selectedClient?.businessCreditAuthorized;
+  }
+
   ngOnInit(): void {
+    this.dualCreditEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
     this.spinner.show();
     this.creditId = this.route.snapshot.params['id'] ? +this.route.snapshot.params['id'] : undefined;
     this.currentUser = this.authService.getCurrentUser();
@@ -85,6 +100,17 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       if (!this.isLoading) {
         this.onSaleTypeChange(type);
       }
+    });
+
+    this.creditForm.get('clientId')?.valueChanges.subscribe(() => {
+      if (!this.showCreditPurposeSelector) {
+        this.creditForm.patchValue({ creditPurpose: 'PERSONAL' }, { emitEvent: false });
+        this.creditPurpose = 'PERSONAL';
+      }
+    });
+
+    this.creditForm.get('creditPurpose')?.valueChanges.subscribe((purpose: 'PERSONAL' | 'BUSINESS') => {
+      this.creditPurpose = purpose || 'PERSONAL';
     });
 
     // Chaîne de chargement principale
@@ -390,7 +416,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     let submitObservable: Observable<any>;
 
     if (formValue.saleType === 'CREDIT') {
-      const payload = {
+      const payload: any = {
         clientId: formValue.clientId,
         articles: {
           articleEntries: formValue.articles.map((article: any) => ({
@@ -405,6 +431,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
         totalAmount: formValue.totalAmount,
         commercial: formValue.commercial
       };
+      if (this.dualCreditEnabled && this.selectedClient?.businessCreditAuthorized) {
+        payload.creditPurpose = formValue.creditPurpose || 'PERSONAL';
+      }
       submitObservable = this.creditService.distributeArticles(payload);
     } else {
       const payload = {

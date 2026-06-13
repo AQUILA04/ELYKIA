@@ -74,7 +74,7 @@ export class DatabaseService {
       // 2. Migrations incrémentielles (natif uniquement).
       // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
       const currentVersion = await this.db.getVersion();
-      const targetVersion = 27; // clients.updatedInfo
+      const targetVersion = 28; // dual credit authorization (clients + distributions)
       const dbVersion = currentVersion.version ?? 2;
       const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -222,6 +222,10 @@ export class DatabaseService {
             contactPersonAddress TEXT,
             commercial TEXT,
             creditInProgress BOOLEAN,
+            businessCreditInProgress BOOLEAN DEFAULT 0,
+            businessCreditAuthorized BOOLEAN DEFAULT 0,
+            businessCreditAuthorizedBy TEXT,
+            businessCreditAuthorizedAt TEXT,
             isLocal BOOLEAN DEFAULT 1,
             isSync BOOLEAN DEFAULT 0,
             syncDate DATETIME,
@@ -306,7 +310,8 @@ export class DatabaseService {
             syncHash TEXT,
             articleCount INTEGER DEFAULT 0,
             operationConsentCode TEXT,
-            confirmedAmount REAL
+            confirmedAmount REAL,
+            creditPurpose TEXT DEFAULT 'PERSONAL'
             -- FOREIGN KEY(creditId) REFERENCES stock_outputs(id),
             -- FOREIGN KEY(clientId) REFERENCES clients(id)
         );
@@ -1020,8 +1025,8 @@ export class DatabaseService {
       const sql = `INSERT OR REPLACE INTO distributions (
         id, reference, creditId, totalAmount, dailyPayment, startDate, endDate, status,
         clientId, commercialId, isLocal, isSync, syncDate, createdAt, syncHash,
-        articleCount, remainingAmount, paidAmount, advance
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+        articleCount, remainingAmount, paidAmount, advance, creditPurpose
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
       sqlSet.push({
         statement: sql,
@@ -1044,7 +1049,8 @@ export class DatabaseService {
           localDist.articleCount ?? 0,
           localDist.remainingAmount ?? localDist.totalAmount ?? 0,
           localDist.paidAmount ?? 0,
-          localDist.advance ?? 0
+          localDist.advance ?? 0,
+          localDist.creditPurpose ?? null
         ]
       });
 
@@ -1138,7 +1144,7 @@ export class DatabaseService {
       const needsUpdate = isExisting && existingDistributionMap.get(distIdStr) !== newHash;
 
       if (needsUpdate) {
-        const sql = `UPDATE distributions SET reference = ?, creditId = ?, totalAmount = ?, dailyPayment = ?, startDate = ?, endDate = ?, status = ?, clientId = ?, commercialId = ?, isLocal = ?, isSync = ?, syncDate = ?, createdAt = ?, syncHash = ?, articleCount = ?, remainingAmount = ?, paidAmount = ?, advance = ? WHERE id = ?`;
+        const sql = `UPDATE distributions SET reference = ?, creditId = ?, totalAmount = ?, dailyPayment = ?, startDate = ?, endDate = ?, status = ?, clientId = ?, commercialId = ?, isLocal = ?, isSync = ?, syncDate = ?, createdAt = ?, syncHash = ?, articleCount = ?, remainingAmount = ?, paidAmount = ?, advance = ?, creditPurpose = ? WHERE id = ?`;
         // **Amélioration : Paramètres robustes**
         const updateParams = [
           localDist.reference ?? null,
@@ -1159,12 +1165,13 @@ export class DatabaseService {
           localDist.remainingAmount ?? localDist.totalAmount ?? 0,
           localDist.paidAmount ?? 0,
           localDist.advance ?? 0,
+          localDist.creditPurpose ?? null,
           distIdStr
         ];
         distributionsToUpdate.push({ statement: sql, values: updateParams });
 
       } else if (!isExisting) {
-        const sql = `INSERT INTO distributions (id, reference, creditId, totalAmount, dailyPayment, startDate, endDate, status, clientId, commercialId, isLocal, isSync, syncDate, createdAt, syncHash, articleCount, remainingAmount, paidAmount, advance, operationConsentCode, confirmedAmount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const sql = `INSERT INTO distributions (id, reference, creditId, totalAmount, dailyPayment, startDate, endDate, status, clientId, commercialId, isLocal, isSync, syncDate, createdAt, syncHash, articleCount, remainingAmount, paidAmount, advance, operationConsentCode, confirmedAmount, creditPurpose) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const insertParams = [
           distIdStr,
           localDist.reference ?? null,
@@ -1186,7 +1193,8 @@ export class DatabaseService {
           localDist.paidAmount ?? 0,
           localDist.advance ?? 0,
           (dist as any).operationConsentCode ?? null,
-          (dist as any).confirmedAmount ?? null
+          (dist as any).confirmedAmount ?? null,
+          localDist.creditPurpose ?? null
         ];
         distributionsToInsert.push({ statement: sql, values: insertParams });
       }
@@ -2062,6 +2070,10 @@ export class DatabaseService {
       contactPersonAddress: row.contactPersonAddress,
       commercial: row.commercial,
       creditInProgress: row.creditInProgress === 1,
+      businessCreditInProgress: row.businessCreditInProgress === 1,
+      businessCreditAuthorized: row.businessCreditAuthorized === 1,
+      businessCreditAuthorizedBy: row.businessCreditAuthorizedBy ?? undefined,
+      businessCreditAuthorizedAt: row.businessCreditAuthorizedAt ?? undefined,
       isLocal: row.isLocal === 1,
       isSync: row.isSync === 1,
       syncDate: row.syncDate,
