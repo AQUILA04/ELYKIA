@@ -1,94 +1,104 @@
-<div class="dashboard-container">
-  <!-- En-tête du tableau de bord (Titre uniquement) -->
-  <div class="dashboard-header">
-    <div class="header-content"><br><br>
-      <h1 class="dashboard-title">Gestion des Commandes</h1>
-      <p class="dashboard-subtitle">Supervisez et gérez le flux de commandes entrantes</p>
+<div class="main-container order-dashboard-page a1">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/dashboard" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Tableau de bord
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">GESTION DES COMMANDES</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+            <path d="M3 6h18"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <h1 class="page-title">Commandes</h1>
+        </div>
+        <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="(state$ | async)?.loading">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">Supervisez le flux de commandes par statut · Sélection multiple pour actions groupées</p>
     </div>
   </div>
 
-  <!-- Actions principales (maintenant sur leur propre ligne) -->
-  <div class="header-actions">
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="createOrder()"
-      class="create-button">
-      <mat-icon>add</mat-icon>
-      <span>Créer une Commande</span>
-    </button>
-
-    <button
-      mat-stroked-button
-      color="primary"
-      (click)="viewReports()"
-      [matMenuTriggerFor]="reportsMenu"
-      class="reports-button">
-      <mat-icon>assessment</mat-icon>
-      <span>Voir les Rapports</span>
-      <mat-icon>arrow_drop_down</mat-icon>
-    </button>
-
-    <mat-menu #reportsMenu="matMenu">
-      <button mat-menu-item (click)="viewReports()">
-        <mat-icon>bar_chart</mat-icon>
-        <span>Rapport de performance</span>
-      </button>
-      <button mat-menu-item (click)="viewReports()">
-        <mat-icon>inventory</mat-icon>
-        <span>Rapport de réapprovisionnement</span>
-      </button>
-    </mat-menu>
-  </div>
-
-  <!-- Cartes KPI -->
-  <div class="kpi-section">
-    <div class="kpi-grid">
-      <app-order-kpi-card
+  <div class="page-scroll-body">
+    <div class="kpi-strip a3">
+      <div
         *ngFor="let kpi of (kpiCards$ | async) || []; trackBy: trackByKpiTitle"
-        [title]="kpi.title || ''"
-        [value]="kpi.value"
-        [icon]="kpi.icon || 'info'"
-        [color]="kpi.color || 'primary'"
-        [subtitle]="kpi.subtitle"
-        [trend]="kpi.trend"
-        [loading]="(state$ | async)?.loading || false">
-      </app-order-kpi-card>
+        class="kpi-card"
+        [ngClass]="getKpiCardClass(kpi.color)">
+        <div class="kpi-label">{{ kpi.title }}</div>
+        <div class="kpi-value" [class.kpi-value-loading]="(state$ | async)?.loading">
+          {{ (state$ | async)?.loading ? '—' : kpi.value }}
+        </div>
+        <div class="kpi-sub" *ngIf="kpi.subtitle">{{ kpi.subtitle }}</div>
+      </div>
     </div>
-  </div>
 
-  <!-- Navigation par onglets -->
-  <div class="tabs-section">
-    <mat-tab-group
-      [selectedIndex]="0"
-      (selectedIndexChange)="onTabChange(statusTabs[$event])"
-      class="status-tabs"
-      animationDuration="300ms">
+    <div class="toolbar a4">
+      <span class="result-count">
+        <strong>{{ ((filteredOrders$ | async) || []).length }}</strong> commande(s) · onglet actif
+      </span>
+      <div class="toolbar-actions">
+        <button type="button" class="btn-download" [matMenuTriggerFor]="reportsMenu">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+          Rapports
+          <svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <mat-menu #reportsMenu="matMenu">
+          <button mat-menu-item (click)="viewReports()">
+            <mat-icon>bar_chart</mat-icon>
+            <span>Rapport de performance</span>
+          </button>
+          <button mat-menu-item (click)="viewReports()">
+            <mat-icon>inventory</mat-icon>
+            <span>Rapport de réapprovisionnement</span>
+          </button>
+        </mat-menu>
+        <button type="button" class="btn-primary" (click)="createOrder()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Créer une commande
+        </button>
+      </div>
+    </div>
 
-      <!-- CORRECTION : Remplacement de trackByKpiStatus par trackByTabStatus -->
-      <mat-tab
-        *ngFor="let tab of (statusTabs$ | async); trackBy: trackByTabStatus"
-        [label]="getTabLabel(tab)">
+    <div class="tabs-card a5">
+      <mat-tab-group
+        [selectedIndex]="selectedTabIndex"
+        (selectedIndexChange)="onTabChange(statusTabs[$event])"
+        class="status-tabs"
+        animationDuration="300ms">
 
-        <!-- Template de l'onglet avec badge -->
-        <ng-template mat-tab-label>
-          <div class="tab-label">
-            <mat-icon class="tab-icon" [style.color]="getTabColor(tab)">{{ tab.icon }}</mat-icon>
-            <span class="tab-text">{{ tab.label }}</span>
-            <mat-chip
-              *ngIf="tab.count !== undefined && tab.count > 0"
-              class="tab-badge"
-              [style.background-color]="getTabColor(tab)">
-              {{ tab.count }}
-            </mat-chip>
-          </div>
-        </ng-template>
+        <mat-tab *ngFor="let tab of (statusTabs$ | async); trackBy: trackByTabStatus">
+          <ng-template mat-tab-label>
+            <div class="tab-label">
+              <mat-icon class="tab-icon">{{ tab.icon }}</mat-icon>
+              <span class="tab-text">{{ tab.label }}</span>
+              <span
+                *ngIf="tab.count !== undefined && tab.count > 0"
+                class="tab-badge"
+                [style.background-color]="getTabColor(tab)">
+                {{ tab.count }}
+              </span>
+            </div>
+          </ng-template>
 
-        <!-- Contenu de l'onglet -->
-        <div class="tab-content">
-          <div class="table-container">
-            <!-- Tableau des commandes -->
+          <div class="tab-content">
             <app-order-table
+              *ngIf="!(state$ | async)?.loading"
               [orders]="(filteredOrders$ | async) || []"
               [loading]="(state$ | async)?.loading || false"
               [selectable]="true"
@@ -97,13 +107,30 @@
               (actionClick)="onOrderAction($event)"
               (rowClick)="onRowClick($event)">
             </app-order-table>
+
+            <div *ngIf="(state$ | async)?.loading" class="table-loading">
+              <div class="empty-state">
+                <div class="empty-icon">⏳</div>
+                <div class="empty-title">Chargement…</div>
+              </div>
+            </div>
           </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+
+    <div class="global-error" *ngIf="(state$ | async)?.error as error">
+      <div class="error-panel">
+        <div class="error-icon">⚠</div>
+        <div class="error-text">
+          <h3>Une erreur s'est produite</h3>
+          <p>{{ error }}</p>
         </div>
-      </mat-tab>
-    </mat-tab-group>
+        <button type="button" class="btn-primary" (click)="loadInitialData()">Réessayer</button>
+      </div>
+    </div>
   </div>
 
-  <!-- ... (Le reste du fichier est inchangé) ... -->
   <app-order-action-bar
     [selectedOrders]="selectedOrders"
     [visible]="selectedOrders.length > 0"
@@ -111,22 +138,4 @@
     (bulkAction)="onBulkAction($event)"
     (clearSelection)="onClearSelection()">
   </app-order-action-bar>
-  <div class="global-loading" *ngIf="(state$ | async)?.loading">
-    <mat-spinner diameter="40"></mat-spinner>
-  </div>
-  <div class="global-error" *ngIf="(state$ | async)?.error as error">
-    <mat-card class="error-card">
-      <mat-card-content>
-        <div class="error-content">
-          <mat-icon class="error-icon">error</mat-icon>
-          <div class="error-text">
-            <h3>Une erreur s'est produite</h3>
-            <p>{{ error }}</p>
-          </div>
-          <button mat-raised-button color="primary" (click)="loadInitialData()">Réessayer</button>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
 </div>
-

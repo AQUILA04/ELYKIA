@@ -299,30 +299,69 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         update(request);
     }
 
-    public Page<StockTontineRequest> getAll(String collector, Pageable pageable) {
+    public Page<StockTontineRequest> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        StockTontineRequestRepository repo = (StockTontineRequestRepository) getRepository();
+        String effectiveCollector = resolveCollector(collector);
+        return repo.findFiltered(effectiveCollector, startDate, endDate, resolveVisibleStatuses(), pageable);
+    }
+
+    public com.optimize.elykia.core.dto.stock.StockRequestKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
+        StockTontineRequestRepository repo = (StockTontineRequestRepository) getRepository();
+        String effectiveCollector = resolveCollector(collector);
+        List<Object[]> counts = repo.countByStatusFiltered(effectiveCollector, startDate, endDate, resolveVisibleStatuses());
+
+        long pending = 0;
+        long validated = 0;
+        long delivered = 0;
+        long cancelledRefused = 0;
+
+        for (Object[] row : counts) {
+            StockRequestStatus status = (StockRequestStatus) row[0];
+            long count = (Long) row[1];
+            switch (status) {
+                case CREATED -> pending = count;
+                case VALIDATED -> validated = count;
+                case DELIVERED -> delivered = count;
+                case CANCELLED, REFUSED -> cancelledRefused += count;
+                default -> { }
+            }
+        }
+
+        return com.optimize.elykia.core.dto.stock.StockRequestKpiDto.builder()
+                .total(pending + validated + delivered + cancelledRefused)
+                .pending(pending)
+                .validated(validated)
+                .delivered(delivered)
+                .build();
+    }
+
+    private String resolveCollector(String collector) {
         if (Objects.nonNull(collector)) {
-            return ((StockTontineRequestRepository) getRepository()).findByCollectorOrderByIdDesc(collector, pageable);
+            return collector;
         }
-
         User user = userService.getCurrentUser();
-
-        // Si c'est un commercial (Promoter), il ne voit que ses demandes
         if (user.is(UserProfilConstant.PROMOTER)) {
-            return ((StockTontineRequestRepository) getRepository()).findByCollectorOrderByIdDesc(user.getUsername(),
-                    pageable);
+            return user.getUsername();
         }
+        return null;
+    }
 
-        // Si c'est un magasinier, il voit les demandes Validées ou Livrées (pour
-        // préparer la livraison)
+    private List<StockRequestStatus> resolveVisibleStatuses() {
+        User user = userService.getCurrentUser();
         if (user.is(UserProfilConstant.MAGASINIER)) {
-            return ((StockTontineRequestRepository) getRepository()).findByStatusInOrderByIdDesc(
-                    List.of(StockRequestStatus.VALIDATED, StockRequestStatus.DELIVERED), pageable);
+            return List.of(StockRequestStatus.VALIDATED, StockRequestStatus.DELIVERED);
         }
+        return List.of(
+                StockRequestStatus.CREATED,
+                StockRequestStatus.VALIDATED,
+                StockRequestStatus.DELIVERED,
+                StockRequestStatus.CANCELLED,
+                StockRequestStatus.REFUSED);
+    }
 
-        // Gestionnaire/Admin voit CREATED, VALIDATED, DELIVERED, CANCELLED, REFUSED
-        return ((StockTontineRequestRepository) getRepository()).findByStatusInOrderByIdDesc(
-                List.of(StockRequestStatus.CREATED, StockRequestStatus.VALIDATED, StockRequestStatus.DELIVERED, StockRequestStatus.CANCELLED, StockRequestStatus.REFUSED),
-                pageable);
+    /** @deprecated use {@link #getAll(String, LocalDate, LocalDate, Pageable)} */
+    public Page<StockTontineRequest> getAll(String collector, Pageable pageable) {
+        return getAll(collector, null, null, pageable);
     }
 
     public byte[] generatePdfExport(LocalDate startDate, LocalDate endDate, String collector) {

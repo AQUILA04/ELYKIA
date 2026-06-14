@@ -1,20 +1,28 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { LocalityService, Locality } from '../service/locality.service';
+import { LocalityService } from '../service/locality.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { NgxSpinnerService } from 'ngx-spinner';
 
 @Component({
   selector: 'app-localityadd',
   templateUrl: './localityadd.component.html',
-  styleUrls: ['./localityadd.component.scss']
+  styleUrls: ['./localityadd.component.scss'],
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
-export class LocalityAddComponent implements OnInit {
+export class LocalityAddComponent implements OnInit, OnDestroy {
+  private dateIntervalId?: ReturnType<typeof setInterval>;
+
   localityForm!: FormGroup;
   localityId?: number;
   isLoading = false;
+  currentDate = new Date();
+
+  get isEditMode(): boolean {
+    return !!this.localityId;
+  }
 
   constructor(
     private formBuilder: FormBuilder,
@@ -22,22 +30,35 @@ export class LocalityAddComponent implements OnInit {
     private localityService: LocalityService,
     private router: Router,
     private alertService: AlertService,
-    private tokenStorage : TokenStorageService,
-    private spinner: NgxSpinnerService,
-  ) {}
+    private tokenStorage: TokenStorageService
+  ) {
+    this.tokenStorage.checkConnectedUser();
+  }
 
   ngOnInit(): void {
     this.initForm();
     this.route.params.subscribe(params => {
-      this.localityId = +params['id'];
+      this.localityId = params['id'] ? +params['id'] : undefined;
       if (this.localityId) {
         this.loadLocality(this.localityId);
       }
     });
-        // Transform text to uppercase on form value changes
-        this.localityForm.get('name')?.valueChanges.subscribe(value => {
-          this.localityForm.get('name')?.setValue(value.toUpperCase(), { emitEvent: false });
-        });
+
+    this.localityForm.get('name')?.valueChanges.subscribe(value => {
+      if (typeof value === 'string') {
+        this.localityForm.get('name')?.setValue(value.toUpperCase(), { emitEvent: false });
+      }
+    });
+
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
   }
 
   initForm(): void {
@@ -47,55 +68,46 @@ export class LocalityAddComponent implements OnInit {
   }
 
   loadLocality(id: number): void {
-    this.localityService.getLocalityById(id).subscribe(
-      (response: any) => { 
-        const locality = response.data; 
-        this.localityForm.patchValue({
-          name: locality.name
-        });
+    this.isLoading = true;
+    this.localityService.getLocalityById(id).subscribe({
+      next: (response: { data: { name: string } }) => {
+        this.localityForm.patchValue({ name: response.data.name });
+        this.isLoading = false;
       },
-      error => {
+      error: (error) => {
         console.error('Erreur lors du chargement de la localité', error);
+        this.alertService.showError('Erreur lors du chargement de la localité');
+        this.isLoading = false;
       }
-    );
+    });
   }
 
   onSubmit(): void {
-    if (this.localityForm.valid) {
-      this.spinner.show();
-      this.isLoading = true;
-      const formData = this.localityForm.value;
-      formData.id = this.localityId; 
-
-      if (this.localityId) {
-        this.localityService.updateLocality(formData).subscribe(
-          response => {
-            this.spinner.hide();
-            this.alertService.showSuccess('Localité mise à jour avec succès');
-            this.isLoading= false;
-            this.router.navigate(['/localitylist']);
-          },
-          error => {
-            this.spinner.hide();
-            const errorMessage = error?.error?.message || 'Erreur lors de la mise à jour de la localité';
-            this.alertService.showError(errorMessage);
-          }
-        );
-      } else {
-        this.localityService.addLocality(formData).subscribe(
-          response => {
-            this.spinner.hide();
-            this.alertService.showSuccess('Localité ajoutée avec succès');
-            this.router.navigate(['/localitylist']);
-          },
-          error => {
-            this.spinner.hide();
-            const errorMessage = error?.error?.message || 'Erreur lors de l\'ajout de la localité';
-            this.alertService.showError(errorMessage);
-          }
-        );
-      }
+    if (this.localityForm.invalid) {
+      this.localityForm.markAllAsTouched();
+      return;
     }
+
+    this.isLoading = true;
+    const formData = { ...this.localityForm.value, id: this.localityId };
+    const request$ = this.localityId
+      ? this.localityService.updateLocality(formData)
+      : this.localityService.addLocality(formData);
+
+    request$.subscribe({
+      next: () => {
+        this.alertService.showSuccess(
+          this.localityId ? 'Localité mise à jour avec succès' : 'Localité ajoutée avec succès'
+        );
+        this.router.navigate(['/localitylist']);
+      },
+      error: (error) => {
+        const errorMessage = error?.error?.message
+          || (this.localityId ? 'Erreur lors de la mise à jour de la localité' : 'Erreur lors de l\'ajout de la localité');
+        this.alertService.showError(errorMessage);
+        this.isLoading = false;
+      }
+    });
   }
 
   onCancel(): void {

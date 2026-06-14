@@ -1,109 +1,223 @@
-import { Component, OnInit } from '@angular/core';
-import { StockTontineReturnService } from '../../services/stock-tontine-return.service';
-import { StockTontineReturn, StockReturnStatus } from '../../models/stock-tontine-return.model';
-import { NgxSpinnerService } from 'ngx-spinner';
-import { Router } from '@angular/router';
-import { Page } from '../../../shared/models/page.model';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { PageEvent } from '@angular/material/paginator';
+import { ToastrService } from 'ngx-toastr';
+import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from '../../../auth/service/auth.service';
 import { UserService } from '../../../user/service/user.service';
 import { UserProfile } from '../../../shared/models/user-profile.enum';
-import { ToastrService } from 'ngx-toastr';
-import { AlertService } from 'src/app/shared/service/alert.service';
+import { StockTontineReturn } from '../../models/stock-tontine-return.model';
+import { StockTontineReturnService } from '../../services/stock-tontine-return.service';
+import { StockListFilter } from '../../../stock/services/stock-request.service';
+import { StockReturnKpis } from '../../../stock/services/stock-return.service';
+import {
+  buildPreviousMonthOptions,
+  getStockPeriodLabel,
+  MonthOption,
+  resolveStockPeriodRange,
+  StockPeriodKey
+} from '../../../stock/utils/stock-period.util';
+
+interface StockTontineReturnListState {
+  selectedPeriod: StockPeriodKey;
+  selectedCommercial: string | null;
+  page: number;
+  size: number;
+}
 
 @Component({
   selector: 'app-stock-tontine-return-list',
   templateUrl: './stock-tontine-return-list.component.html',
-  styleUrls: ['./stock-tontine-return-list.component.scss']
+  styleUrls: ['./stock-tontine-return-list.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
-export class StockTontineReturnListComponent implements OnInit {
+export class StockTontineReturnListComponent implements OnInit, OnDestroy {
+  private readonly STATE_KEY = 'stockTontineReturnListState';
+  private dateIntervalId?: ReturnType<typeof setInterval>;
 
   returns: StockTontineReturn[] = [];
-  page: number = 0;
-  size: number = 20;
-  totalPages: number = 0;
+  page = 0;
+  size = 10;
+  totalElements = 0;
+  isLoading = true;
 
-  isPromoter: boolean = false;
-  isStoreKeeper: boolean = false;
+  isPromoter = false;
+  isStoreKeeper = false;
+  canSelectCommercial = false;
+
   currentUser: any;
   selectedReturn: StockTontineReturn | null = null;
 
-  displayedColumns: string[] = ['date', 'status', 'items', 'actions'];
+  selectedPeriod: StockPeriodKey = 'WEEK';
+  previousMonths: MonthOption[] = [];
+  selectedCommercial: string | null = null;
+
+  currentDate = new Date();
+  lastUpdate = new Date();
+  kpis: StockReturnKpis | null = null;
 
   constructor(
     private returnService: StockTontineReturnService,
-    private spinner: NgxSpinnerService,
-    private router: Router,
     private authService: AuthService,
     private userService: UserService,
     private toastr: ToastrService,
     private alertService: AlertService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
+    this.previousMonths = buildPreviousMonthOptions();
     this.currentUser = this.authService.getCurrentUser();
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
-    this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER) || this.userService.hasProfile(UserProfile.ADMIN);
+    this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER)
+      || this.userService.hasProfile(UserProfile.ADMIN);
+    this.canSelectCommercial = !this.isPromoter;
+
+    this.restoreState();
+    this.refresh();
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    this.saveState();
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
+  }
+
+  get periodLabel(): string {
+    return getStockPeriodLabel(this.selectedPeriod);
+  }
+
+  get listFilter(): StockListFilter {
+    const range = resolveStockPeriodRange(this.selectedPeriod);
+    return {
+      collector: this.selectedCommercial,
+      startDate: range.startDate,
+      endDate: range.endDate
+    };
+  }
+
+  refresh(): void {
+    this.loadKpis();
     this.loadReturns();
   }
 
+  loadKpis(): void {
+    this.returnService.getKpis(this.listFilter).subscribe({
+      next: (kpis) => { this.kpis = kpis; },
+      error: (err) => console.error('Erreur chargement KPI retours tontine', err)
+    });
+  }
+
   loadReturns(): void {
-    this.spinner.show();
-    this.returnService.getAllReturns(null, this.page, this.size).subscribe({
-      next: (page: Page<StockTontineReturn>) => {
+    this.isLoading = true;
+    this.returnService.getAllReturns(this.listFilter, this.page, this.size).subscribe({
+      next: (page) => {
         this.returns = page.content;
-        this.totalPages = page.totalPages;
-        this.spinner.hide();
+        this.totalElements = page.totalElements ?? 0;
+        this.lastUpdate = new Date();
+        this.isLoading = false;
+        this.saveState();
       },
-      error: (err) => {
-        console.error(err);
+      error: () => {
+        this.isLoading = false;
         this.toastr.error('Erreur lors du chargement des retours');
-        this.spinner.hide();
       }
     });
   }
 
-  createNew(): void {
-    this.router.navigate(['/stock-tontine/return/create']);
+  onPeriodChange(): void {
+    this.page = 0;
+    this.saveState();
+    this.refresh();
   }
 
-  validate(stockReturn: StockTontineReturn) {
+  onCommercialSelected(commercial: string | null): void {
+    this.selectedCommercial = commercial;
+    this.page = 0;
+    this.saveState();
+    this.refresh();
+  }
+
+  resetFilters(): void {
+    this.selectedPeriod = 'WEEK';
+    this.selectedCommercial = null;
+    this.page = 0;
+    this.saveState();
+    this.refresh();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.page = event.pageIndex;
+    this.size = event.pageSize;
+    this.saveState();
+    this.loadReturns();
+  }
+
+  validate(stockReturn: StockTontineReturn): void {
     this.alertService.showConfirmation('Confirmation', 'Confirmer la réception de ce retour ?').then((confirmed) => {
       if (confirmed) {
-        this.spinner.show();
         this.returnService.validate(stockReturn.id!).subscribe({
           next: () => {
             this.toastr.success('Retour validé et stock mis à jour');
-            this.loadReturns();
-            this.spinner.hide();
+            this.refresh();
           },
-          error: (err) => {
-            this.toastr.error(err.error?.message || 'Erreur lors de la validation');
-            this.spinner.hide();
-          }
+          error: (err) => this.toastr.error(err.error?.message || 'Erreur lors de la validation')
         });
       }
     });
   }
 
-  showDetails(stockReturn: StockTontineReturn) {
+  showDetails(stockReturn: StockTontineReturn): void {
     this.selectedReturn = stockReturn;
   }
 
-  closeDetails() {
+  closeDetails(): void {
     this.selectedReturn = null;
   }
 
-  getStatusBadge(status: string): string {
-    return status === 'RECEIVED' ? 'badge-success' : 'badge-secondary';
+  getStatusClass(status: string | undefined): string {
+    switch (status) {
+      case 'RECEIVED': return 'status-delivered';
+      case 'CREATED': return 'status-pending';
+      case 'CANCELLED':
+      case 'REFUSED': return 'status-cancelled';
+      default: return 'status-pending';
+    }
   }
 
   getStatusLabel(status: string | undefined): string {
-    return status === 'RECEIVED' ? 'Réceptionné' : 'En attente';
+    switch (status) {
+      case 'RECEIVED': return 'Réceptionné';
+      case 'CREATED': return 'En attente';
+      case 'CANCELLED': return 'Annulé';
+      case 'REFUSED': return 'Refusé';
+      default: return 'Inconnu';
+    }
   }
 
-  onPageChange(event: any) {
-    this.page = event.pageIndex;
-    this.size = event.pageSize;
-    this.loadReturns();
+  private saveState(): void {
+    const state: StockTontineReturnListState = {
+      selectedPeriod: this.selectedPeriod,
+      selectedCommercial: this.selectedCommercial,
+      page: this.page,
+      size: this.size
+    };
+    sessionStorage.setItem(this.STATE_KEY, JSON.stringify(state));
+  }
+
+  private restoreState(): void {
+    const saved = sessionStorage.getItem(this.STATE_KEY);
+    if (!saved) return;
+    try {
+      const state = JSON.parse(saved) as StockTontineReturnListState;
+      this.selectedPeriod = state.selectedPeriod ?? 'WEEK';
+      this.selectedCommercial = state.selectedCommercial ?? null;
+      this.page = state.page ?? 0;
+      this.size = state.size ?? 10;
+    } catch (e) {
+      console.error('Erreur restauration état liste retours tontine', e);
+    }
   }
 }

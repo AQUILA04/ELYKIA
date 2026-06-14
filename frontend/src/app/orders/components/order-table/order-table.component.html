@@ -1,152 +1,94 @@
-<div class="order-table-container">
-  <!-- Indicateur de chargement -->
-  <div class="table-loading" *ngIf="loading">
-    <mat-spinner diameter="40"></mat-spinner>
-    <p>Chargement des commandes...</p>
-  </div>
-
-  <!-- Tableau -->
-  <div class="table-wrapper" [class.loading]="loading">
-    <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange()" class="order-table">
-      
-      <!-- Colonne de sélection -->
-      <ng-container matColumnDef="selection" *ngIf="selectable">
-        <th mat-header-cell *matHeaderCellDef class="selection-column">
-          <mat-checkbox 
-            [checked]="isAllSelected()"
-            [indeterminate]="isIndeterminate()"
-            (change)="masterToggle()"
-            [disabled]="loading">
-          </mat-checkbox>
-        </th>
-        <td mat-cell *matCellDef="let order" class="selection-column">
-          <mat-checkbox 
-            [checked]="isSelected(order)"
-            (change)="onRowSelectionChange(order)"
-            (click)="$event.stopPropagation()"
-            [disabled]="loading">
-          </mat-checkbox>
-        </td>
-      </ng-container>
-
-      <!-- Colonne ID -->
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="id-column">
-          N° Commande
-        </th>
-        <td mat-cell *matCellDef="let order" class="id-column">
-          <span class="order-id">#{{ order.id }}</span>
-        </td>
-      </ng-container>
-
-      <!-- Colonne Client -->
-      <ng-container matColumnDef="clientName">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          Client
-        </th>
-        <td mat-cell *matCellDef="let order">
-          <div class="client-info">
-            <span class="client-name">{{ getClientName(order) }}</span>
-            <span class="client-code" *ngIf="getClientCode(order)">{{ getClientCode(order) }}</span>
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- Colonne Commercial -->
-      <ng-container matColumnDef="commercial">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          Commercial
-        </th>
-        <td mat-cell *matCellDef="let order">
-          {{ order.commercial || order.client?.collector || '-' }}
-        </td>
-      </ng-container>
-
-      <!-- Colonne Date -->
-      <ng-container matColumnDef="orderDate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="date-column">
-          Date
-        </th>
-        <td mat-cell *matCellDef="let order" class="date-column">
-          {{ formatCellValue(order, {key: 'orderDate', label: '', sortable: true, type: 'date'}) }}
-        </td>
-      </ng-container>
-
-      <!-- Colonne Montant -->
-      <ng-container matColumnDef="totalAmount">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="amount-column">
-          Montant
-        </th>
-        <td mat-cell *matCellDef="let order" class="amount-column">
-          <span class="amount">
-            {{ formatCellValue(order, {key: 'totalAmount', label: '', sortable: true, type: 'currency'}) }}
-          </span>
-        </td>
-      </ng-container>
-
-      <!-- Colonne Statut -->
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="status-column">
-          Statut
-        </th>
-        <td mat-cell *matCellDef="let order" class="status-column">
-          <app-order-status-badge [status]="order.status"></app-order-status-badge>
-        </td>
-      </ng-container>
-
-      <!-- Colonne Actions -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef class="actions-column">
-          Actions
-        </th>
-        <td mat-cell *matCellDef="let order" class="actions-column">
-          <button 
-            mat-icon-button 
-            [matMenuTriggerFor]="actionsMenu"
-            [disabled]="loading"
-            (click)="$event.stopPropagation()"
-            matTooltip="Actions">
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          
-          <mat-menu #actionsMenu="matMenu">
-            <button 
-              mat-menu-item 
+<div class="order-table-host">
+  <div class="table-inner" [class.loading]="loading">
+    <table class="data-table" *ngIf="orders.length > 0">
+      <thead>
+        <tr>
+          <th *ngIf="selectable" class="col-check">
+            <input
+              type="checkbox"
+              class="row-checkbox"
+              [checked]="isAllSelected()"
+              [indeterminate]="isIndeterminate()"
+              (change)="masterToggle()"
+              [disabled]="loading"
+              aria-label="Tout sélectionner">
+          </th>
+          <th>N° Commande</th>
+          <th>Client</th>
+          <th>Commercial</th>
+          <th>Date</th>
+          <th>Montant</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let order of paginatedOrders; trackBy: trackByOrderId"
+          class="data-row"
+          [class.selected]="isSelected(order)"
+          [class.clickable]="!loading"
+          (click)="onRowClick(order, $event)">
+          <td *ngIf="selectable" class="col-check">
+            <input
+              type="checkbox"
+              class="row-checkbox"
+              [checked]="isSelected(order)"
+              (change)="onRowSelectionChange(order)"
+              (click)="$event.stopPropagation()"
+              [disabled]="loading"
+              [attr.aria-label]="'Sélectionner commande ' + order.id">
+          </td>
+          <td><span class="col-ref-main">#{{ order.id }}</span></td>
+          <td>
+            <span class="col-name">{{ getClientName(order) }}</span>
+            <span class="col-sub" *ngIf="getClientCode(order)">{{ getClientCode(order) }}</span>
+          </td>
+          <td><span class="col-commercial">{{ getCommercial(order) }}</span></td>
+          <td><span class="col-date">{{ formatCellValue(order, { key: 'orderDate', label: '', sortable: true, type: 'date' }) }}</span></td>
+          <td><span class="col-amount">{{ formatCellValue(order, { key: 'totalAmount', label: '', sortable: true, type: 'currency' }) }}</span></td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusBadgeClass(order.status)">
+              {{ getOrderStatusLabel(order.status) }}
+            </span>
+          </td>
+          <td class="col-actions">
+            <button
               *ngFor="let action of getOrderActions(order); trackBy: trackByAction"
-              (click)="onActionClick(order, action, $event)">
-              <mat-icon>{{ getActionIcon(action) }}</mat-icon>
-              <span>{{ getActionLabel(action) }}</span>
+              type="button"
+              class="btn-detail"
+              [ngClass]="getActionButtonClass(action)"
+              (click)="onActionClick(order, action, $event)"
+              [title]="getActionLabel(action)">
+              <svg *ngIf="action === OrderAction.VIEW" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              <svg *ngIf="action === OrderAction.EDIT" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+              <svg *ngIf="action === OrderAction.DELETE" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <svg *ngIf="action === OrderAction.ACCEPT" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <svg *ngIf="action === OrderAction.DENY" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"/></svg>
+              <svg *ngIf="action === OrderAction.SELL" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+              <svg *ngIf="action === OrderAction.CANCEL" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+              {{ getActionLabel(action) }}
             </button>
-          </mat-menu>
-        </td>
-      </ng-container>
-
-      <!-- En-têtes et lignes -->
-      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-      <tr 
-        mat-row 
-        *matRowDef="let order; columns: displayedColumns"
-        class="order-row"
-        [class.selected]="isSelected(order)"
-        [class.clickable]="!loading"
-        (click)="onRowClick(order, $event)">
-      </tr>
+          </td>
+        </tr>
+      </tbody>
     </table>
 
-    <!-- Message d'état vide -->
     <div class="empty-state" *ngIf="!loading && orders.length === 0">
-      <mat-icon class="empty-icon">inbox</mat-icon>
-      <h3>Aucune commande trouvée</h3>
-      <p>Il n'y a pas de commandes correspondant à vos critères.</p>
+      <div class="empty-icon">📦</div>
+      <div class="empty-title">Aucune commande trouvée</div>
+      <div class="empty-sub">Aucune commande ne correspond à vos critères.</div>
     </div>
   </div>
 
-  <!-- Pagination -->
-  <mat-paginator 
-    *ngIf="showPagination && !loading && orders.length > 0"
-    [pageSizeOptions]="pageSizeOptions"
-    [pageSize]="pageSize"
-    showFirstLastButtons
-    class="order-paginator">
-  </mat-paginator>
+  <div class="order-pagination" *ngIf="showPagination && orders.length > 0">
+    <mat-paginator
+      [length]="orders.length"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      [pageSizeOptions]="pageSizeOptions"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  </div>
 </div>

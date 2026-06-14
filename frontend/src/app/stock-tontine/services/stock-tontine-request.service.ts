@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../../shared/service/base-http.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { StockTontineRequest } from '../models/stock-tontine-request.model';
 import { PartialDeliveryResponseDTO } from '../../stock/models/stock-request.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 import { Page } from '../../shared/models/page.model';
+import { StockListFilter, StockRequestKpis } from '../../stock/services/stock-request.service';
 
 @Injectable({
   providedIn: 'root'
@@ -42,18 +43,40 @@ export class StockTontineRequestService extends BaseHttpService {
     return this.put<StockTontineRequest>(`${this.baseUrl}/${id}/refuse`, {});
   }
 
-  getAll(collector: string | null, page: number = 0, size: number = 20): Observable<Page<StockTontineRequest>> {
-    let url = `${this.baseUrl}?page=${page}&size=${size}`;
-    if (collector) {
-      url += `&collector=${collector}`;
+  getAll(filter: StockListFilter, page: number = 0, size: number = 20): Observable<Page<StockTontineRequest>> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    if (filter.collector) {
+      params = params.set('collector', filter.collector);
     }
-    return this.get<Page<StockTontineRequest>>(url);
+    if (filter.startDate) {
+      params = params.set('startDate', filter.startDate);
+    }
+    if (filter.endDate) {
+      params = params.set('endDate', filter.endDate);
+    }
+
+    return this.get<Page<StockTontineRequest>>(this.baseUrl, { params });
   }
 
-  // getMyRequests n'est plus nécessaire car getAll gère le contexte utilisateur côté backend
-  // Mais si le composant l'utilise, je peux le rediriger vers getAll
+  getKpis(filter: StockListFilter): Observable<StockRequestKpis> {
+    let params = new HttpParams();
+    if (filter.collector) {
+      params = params.set('collector', filter.collector);
+    }
+    if (filter.startDate) {
+      params = params.set('startDate', filter.startDate);
+    }
+    if (filter.endDate) {
+      params = params.set('endDate', filter.endDate);
+    }
+    return this.get<StockRequestKpis>(`${this.baseUrl}/kpis`, { params });
+  }
+
   getMyRequests(page: number = 0, size: number = 20): Observable<Page<StockTontineRequest>> {
-    return this.getAll(null, page, size);
+    return this.getAll({}, page, size);
   }
 
   exportPdf(startDate: string, endDate: string, collector: string | null): Observable<Blob> {

@@ -102,4 +102,16 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             @Param("commercial") String commercial,
             @Param("dateFrom") java.time.LocalDateTime dateFrom,
             @Param("dateTo") java.time.LocalDateTime dateTo);
+
+    @Query("SELECT tc FROM TontineCollection tc " +
+            "JOIN FETCH tc.tontineMember tm " +
+            "JOIN FETCH tm.client c " +
+            "JOIN tm.tontineSession s " +
+            "WHERE s.id = :sessionId AND tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "ORDER BY c.tontineCollector, c.quarter, tc.collectionDate")
+    java.util.List<TontineCollection> findAllBySessionId(@Param("sessionId") Long sessionId);
+
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
+    @Query("DELETE FROM TontineCollection tc WHERE tc.tontineMember.tontineSession.id = :sessionId")
+    void deleteAllBySessionId(@Param("sessionId") Long sessionId);
 }

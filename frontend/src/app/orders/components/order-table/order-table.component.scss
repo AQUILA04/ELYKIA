@@ -1,291 +1,174 @@
-.order-table-container {
-  width: 100%;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  border: 1px solid #e0e0e0;
+/* order-table — ViewEncapsulation.None */
+
+.order-table-host {
+  --navy: #003366;
+  --navy-pale: #e8eef6;
+  --navy-xpale: #f0f4f9;
+  --border: #dde3ec;
+  --text-muted: #6b7a99;
+  --green: #1d8a3c;
+  --green-pale: #e6f5eb;
+  --orange: #c75000;
+  --red: #b91c1c;
+  --red-pale: #fef2f2;
+  --kpi-cyan: #0095c8;
+  --radius-sm: 8px;
 }
 
-.table-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 24px;
-  gap: 16px;
-
-  p {
-    margin: 0;
-    color: rgba(0, 0, 0, 0.6);
-    font-size: 14px;
-  }
-}
-
-.table-wrapper {
-  position: relative;
+.order-table-host .table-inner {
   overflow-x: auto;
 
   &.loading {
-    opacity: 0.6;
+    opacity: .6;
     pointer-events: none;
   }
 }
 
-.order-table {
+.order-table-host .data-table {
   width: 100%;
-  min-width: 800px;
-
-  // En-têtes
-  .mat-mdc-header-cell {
-    background-color: #fafafa;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.87);
-    border-bottom: 1px solid #e0e0e0;
-    padding: 16px 12px;
-    font-size: 14px;
-  }
-
-  // Cellules
-  .mat-mdc-cell {
-    padding: 16px 12px;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.87);
-  }
-
-  // Lignes
-  .mat-mdc-row {
-    transition: background-color 0.2s ease;
-
-    &.clickable {
-      cursor: pointer;
-
-      &:hover {
-        background-color: #f5f5f5;
-      }
-    }
-
-    &.selected {
-      background-color: rgba(25, 118, 210, 0.08);
-    }
-  }
+  border-collapse: collapse;
+  min-width: 920px;
 }
 
-// Colonnes spécifiques
-.selection-column {
-  width: 48px;
-  padding: 8px 12px !important;
+.order-table-host .data-table thead th {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--navy);
+  background: var(--navy-xpale);
+  border-bottom: 2px solid var(--navy-pale);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.order-table-host .data-table tbody td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.order-table-host .data-row.clickable { cursor: pointer; }
+.order-table-host .data-row:hover td { background: var(--navy-xpale); }
+.order-table-host .data-row.selected td { background: #dce8f4; }
+
+.order-table-host .col-check {
+  width: 44px;
   text-align: center;
 }
 
-.id-column {
-  width: 120px;
-  font-family: 'Roboto Mono', monospace;
+.order-table-host .row-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--navy);
+  cursor: pointer;
 }
 
-.date-column {
-  width: 120px;
+.order-table-host .col-ref-main {
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  color: var(--navy);
 }
 
-.amount-column {
-  width: 140px;
-  text-align: right;
-}
-
-.status-column {
-  width: 120px;
-}
-
-.actions-column {
-  width: 120px;
-  text-align: center;
-}
-
-// Contenu des cellules
-.order-id {
-  font-weight: 500;
-  color: #1976d2;
-}
-
-.client-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.client-name {
-  font-weight: 500;
-}
-
-.client-code {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.6);
-}
-
-.amount {
+.order-table-host .col-name {
+  display: block;
   font-weight: 600;
-  color: #2e7d32;
+  color: var(--navy);
 }
 
-// État vide
-.empty-state {
+.order-table-host .col-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.order-table-host .col-commercial,
+.order-table-host .col-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+}
+
+.order-table-host .col-amount {
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  color: var(--kpi-cyan);
+}
+
+.order-table-host .status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.order-table-host .status-pending { background: #fff4e5; color: var(--orange); }
+.order-table-host .status-accepted { background: var(--navy-pale); color: var(--navy); }
+.order-table-host .status-sold { background: var(--green-pale); color: var(--green); }
+.order-table-host .status-denied { background: var(--red-pale); color: var(--red); }
+.order-table-host .status-cancelled { background: #e2e8f0; color: #475569; }
+.order-table-host .status-default { background: var(--navy-xpale); color: var(--text-muted); }
+
+.order-table-host .col-actions {
   display: flex;
-  flex-direction: column;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.order-table-host .btn-detail {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 64px 24px;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--navy-xpale);
+  color: var(--navy);
+  border: 1px solid var(--navy-pale);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.order-table-host .btn-detail:hover {
+  background: var(--navy);
+  color: #fff;
+}
+.order-table-host .btn-detail svg { width: 12px; height: 12px; }
+.order-table-host .btn-detail.btn-success {
+  color: var(--green);
+  border-color: #86efac;
+  background: var(--green-pale);
+}
+.order-table-host .btn-detail.btn-success:hover { background: var(--green); color: #fff; }
+.order-table-host .btn-detail.btn-danger {
+  color: var(--red);
+  border-color: #fca5a5;
+  background: var(--red-pale);
+}
+.order-table-host .btn-detail.btn-danger:hover { background: var(--red); color: #fff; }
+
+.order-table-host .empty-state {
   text-align: center;
-  color: rgba(0, 0, 0, 0.6);
-
-  .empty-icon {
-    font-size: 64px;
-    width: 64px;
-    height: 64px;
-    margin-bottom: 16px;
-    color: rgba(0, 0, 0, 0.3);
-  }
-
-  h3 {
-    margin: 0 0 8px 0;
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.7);
-  }
-
-  p {
-    margin: 0;
-    font-size: 14px;
-  }
+  padding: 32px 16px;
 }
+.order-table-host .empty-icon { font-size: 36px; opacity: .4; margin-bottom: 8px; }
+.order-table-host .empty-title { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+.order-table-host .empty-sub { font-size: 13px; color: var(--text-muted); }
 
-// Pagination
-.order-paginator {
-  border-top: 1px solid #e0e0e0;
-  background-color: #fafafa;
+.order-table-host .order-pagination {
+  border-top: 1px solid var(--border);
 }
-
-// Responsive design
-@media (max-width: 1024px) {
-  .order-table {
-    min-width: 700px;
-  }
-
-  .mat-mdc-header-cell,
-  .mat-mdc-cell {
-    padding: 12px 8px;
-    font-size: 13px;
-  }
-
-  .client-info {
-    .client-name {
-      font-size: 13px;
-    }
-    
-    .client-code {
-      font-size: 11px;
-    }
-  }
+.order-table-host .order-pagination mat-paginator {
+  background: transparent;
 }
 
 @media (max-width: 768px) {
-  .order-table {
-    min-width: 600px;
-  }
-
-  .mat-mdc-header-cell,
-  .mat-mdc-cell {
-    padding: 8px 6px;
-    font-size: 12px;
-  }
-
-  .id-column {
-    width: 100px;
-  }
-
-  .date-column {
-    width: 100px;
-  }
-
-  .amount-column {
-    width: 120px;
-  }
-
-  .status-column {
-    width: 100px;
-  }
-
-  .actions-column {
-    width: 80px;
-  }
-
-  .empty-state {
-    padding: 48px 16px;
-
-    .empty-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
-    }
-
-    h3 {
-      font-size: 16px;
-    }
-
-    p {
-      font-size: 13px;
-    }
-  }
-}
-
-// Accessibilité
-@media (prefers-reduced-motion: reduce) {
-  .mat-mdc-row,
-  .table-wrapper {
-    transition: none;
-  }
-}
-
-// Mode sombre (si supporté)
-@media (prefers-color-scheme: dark) {
-  .order-table-container {
-    background: #303030;
-    color: white;
-  }
-
-  .order-table {
-    .mat-mdc-header-cell {
-      background-color: #424242;
-      color: white;
-      border-bottom-color: #616161;
-    }
-
-    .mat-mdc-cell {
-      border-bottom-color: #424242;
-      color: rgba(255, 255, 255, 0.87);
-    }
-
-    .mat-mdc-row {
-      &:hover {
-        background-color: #424242;
-      }
-
-      &.selected {
-        background-color: rgba(144, 202, 249, 0.16);
-      }
-    }
-  }
-
-  .order-paginator {
-    background-color: #424242;
-    border-top-color: #616161;
-  }
-
-  .empty-state {
-    color: rgba(255, 255, 255, 0.6);
-
-    h3 {
-      color: rgba(255, 255, 255, 0.87);
-    }
+  .order-table-host .col-actions {
+    min-width: 180px;
   }
 }

@@ -1,66 +1,150 @@
-<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
-<div class="container" data-testid="e2e-locality-list">
-  <div class="header-fixed">
-    <div class="d-flex justify-content-center">
-      <h1>Liste des localités</h1>
+<div class="main-container locality-page a1" data-testid="e2e-locality-list">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/dashboard" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Tableau de bord
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">RÉFÉRENTIEL GÉOGRAPHIQUE</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <h1 class="page-title">Liste des localités</h1>
+        </div>
+        <button type="button" class="btn-refresh" (click)="refresh()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">Zones et quartiers · Recherche et pagination conservées à la navigation</p>
     </div>
   </div>
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="page-scroll-body">
+    <div class="kpi-strip a3">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Localités enregistrées</div>
+        <div class="kpi-value">{{ totalElement }}</div>
+        <div class="kpi-sub">Total référencé</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Page courante</div>
+        <div class="kpi-value">{{ totalPages > 0 ? currentPage + 1 : 0 }}</div>
+        <div class="kpi-sub">sur {{ totalPages || 1 }} page(s)</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Affichées</div>
+        <div class="kpi-value">{{ localities.length }}</div>
+        <div class="kpi-sub">sur cette page</div>
+      </div>
+      <div class="kpi-card kpi-delai">
+        <div class="kpi-label">Taille page</div>
+        <div class="kpi-value">{{ pageSize }}</div>
+        <div class="kpi-sub">éléments par page</div>
+      </div>
+    </div>
 
-    <input
-      type="text"
-      placeholder="Rechercher..."
-      [(ngModel)]="searchTerm"
-      (input)="onSearch()"
-      class="form-control w-50"
-      data-testid="e2e-locality-search"
-    />
+    <div class="toolbar a4">
+      <div class="filter-group filter-group-search">
+        <span class="toolbar-label">Recherche</span>
+        <div class="search-row">
+          <input
+            type="text"
+            class="search-input"
+            [(ngModel)]="searchTerm"
+            (keydown.enter)="onSearch()"
+            (input)="onSearch()"
+            placeholder="Nom de la localité…"
+            data-testid="e2e-locality-search">
+          <button type="button" class="btn-search-icon" (click)="onSearch()" title="Rechercher" aria-label="Rechercher">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button type="button" class="btn-clear" (click)="clearSearch()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        Effacer recherche
+      </button>
+      <span class="result-count">
+        <strong>{{ totalElement }}</strong> localité(s)
+      </span>
+      <div class="toolbar-actions" *ngxPermissionsOnly="['ROLE_EDIT_LOCALITY']">
+        <button type="button" class="btn-primary" (click)="addLocality()" data-testid="e2e-locality-add-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Ajouter
+        </button>
+      </div>
+    </div>
 
-    <div class="button-group">
-      <button class="btn refresh-button btn-sm" (click)="refresh()">
-        <mat-icon>refresh</mat-icon>
-        <span>Rafraîchir</span>
-      </button>
-      &nbsp;
-      <button *ngxPermissionsOnly="['ROLE_EDIT_LOCALITY']" class="btn add btn-sm" (click)="addLocality()" data-testid="e2e-locality-add-btn">
-        <mat-icon>add</mat-icon>
-        <span>Ajouter</span>
-      </button>
+    <div class="table-card a5">
+      <div class="table-wrapper">
+        <div *ngIf="isLoading" class="table-loading">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
+        </div>
+
+        <div *ngIf="!isLoading && localities.length === 0" class="table-empty-static">
+          <div class="empty-state">
+            <div class="empty-icon">📍</div>
+            <div class="empty-title">Aucune localité trouvée</div>
+            <div class="empty-sub">Modifiez votre recherche ou ajoutez une nouvelle localité.</div>
+          </div>
+        </div>
+
+        <table class="data-table" *ngIf="!isLoading && localities.length > 0" data-testid="e2e-locality-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let locality of localities; let i = index">
+              <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
+              <td><span class="col-name">{{ locality.name }}</span></td>
+              <td class="col-actions">
+                <button type="button" class="btn-detail" (click)="viewDetails(locality.id)" title="Détails">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Voir
+                </button>
+                <button *ngxPermissionsOnly="['ROLE_EDIT_LOCALITY']" type="button" class="btn-detail" (click)="editLocality(locality.id)" title="Modifier">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                </button>
+                <button *ngxPermissionsOnly="['ROLE_DEL_LOCALITY']" type="button" class="btn-detail btn-danger" (click)="deleteLocality(locality.id)" title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination locality-pagination">
+        <mat-paginator
+          [length]="totalElement"
+          [pageSize]="pageSize"
+          [pageIndex]="currentPage"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
     </div>
   </div>
-
-  <div class="table-container">
-    <table class="article-table" data-testid="e2e-locality-table">
-      <thead>
-      <tr>
-        <th>#</th>
-        <th>Nom</th>
-        <th>Action</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr *ngFor="let locality of localities; let i = index">
-        <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-        <td>{{ locality.name }}</td>
-        <td>
-          <button mat-icon-button matTooltip="Détails" (click)="viewDetails(locality.id)">
-            <mat-icon>visibility</mat-icon>
-          </button>
-          <button *ngxPermissionsOnly="['ROLE_EDIT_LOCALITY']" mat-icon-button matTooltip="Modifier" (click)="editLocality(locality.id)">
-            <mat-icon style="color: #003366;">edit</mat-icon>
-          </button>
-          <button *ngxPermissionsOnly="['ROLE_DEL_LOCALITY']"  mat-icon-button matTooltip="Supprimer" (click)="deleteLocality(locality.id)">
-            <mat-icon style="color: #c90a17;">delete</mat-icon>
-          </button>
-        </td>
-      </tr>
-      <tr *ngIf="localities.length === 0">
-        <td colspan="3" class="no-data-cell">Aucune localité trouvée.</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-  <mat-paginator [length]="totalElement" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPageChange($event)">
-  </mat-paginator>
 </div>

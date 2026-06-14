@@ -60,17 +60,13 @@ export class ApiValidationUtils {
 
     return (
       typeof order.id === 'number' &&
-      typeof order.clientId === 'number' &&
-      typeof order.clientName === 'string' &&
-      typeof order.commercial === 'string' &&
-      typeof order.commercialId === 'number' &&
+      order.client &&
+      typeof order.client.id === 'number' &&
       typeof order.orderDate === 'string' &&
       typeof order.totalAmount === 'number' &&
       Object.values(OrderStatus).includes(order.status) &&
       Array.isArray(order.items) &&
-      order.items.every((item: any) => this.validateOrderItem(item)) &&
-      typeof order.createdAt === 'string' &&
-      typeof order.isActive === 'boolean'
+      order.items.every((item: any) => this.validateOrderItem(item))
     );
   }
 
@@ -84,15 +80,13 @@ export class ApiValidationUtils {
 
     return (
       typeof item.id === 'number' &&
-      typeof item.orderId === 'number' &&
-      typeof item.articleId === 'number' &&
-      typeof item.articleName === 'string' &&
+      item.article &&
+      typeof item.article.id === 'number' &&
+      typeof item.article.name === 'string' &&
       typeof item.quantity === 'number' &&
       typeof item.unitPrice === 'number' &&
-      typeof item.totalPrice === 'number' &&
       item.quantity > 0 &&
-      item.unitPrice >= 0 &&
-      item.totalPrice >= 0
+      item.unitPrice >= 0
     );
   }
 
@@ -206,16 +200,19 @@ export class ApiValidationUtils {
    */
   static validateItemTotalCalculation(item: OrderItem): boolean {
     const expectedTotal = item.quantity * item.unitPrice;
-    // Tolérance pour les erreurs d'arrondi
     const tolerance = 0.01;
-    return Math.abs(item.totalPrice - expectedTotal) <= tolerance;
+    const actualTotal = item.quantity * item.unitPrice;
+    return Math.abs(actualTotal - expectedTotal) <= tolerance;
   }
 
   /**
    * Valide la cohérence d'un calcul de total de commande
    */
   static validateOrderTotalCalculation(order: Order): boolean {
-    const calculatedTotal = order.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const calculatedTotal = order.items?.reduce(
+      (sum, item) => sum + item.quantity * item.unitPrice,
+      0
+    ) ?? 0;
     // Tolérance pour les erreurs d'arrondi
     const tolerance = 0.01;
     return Math.abs(order.totalAmount - calculatedTotal) <= tolerance;
@@ -247,7 +244,7 @@ export class ApiValidationUtils {
         if (!this.validateOrder(data)) {
           errors.push('Structure de commande invalide');
           if (typeof data?.id !== 'number') errors.push('ID de commande manquant ou invalide');
-          if (typeof data?.clientName !== 'string') errors.push('Nom de client manquant ou invalide');
+          if (typeof data?.client?.id !== 'number') errors.push('Client manquant ou invalide');
           if (!this.validateOrderStatus(data?.status)) errors.push('Statut de commande invalide');
           if (!Array.isArray(data?.items)) errors.push('Liste d\'articles manquante ou invalide');
         } else {
@@ -255,7 +252,7 @@ export class ApiValidationUtils {
           if (!this.validateOrderTotalCalculation(data)) {
             warnings.push('Le total de la commande ne correspond pas à la somme des articles');
           }
-          data.items.forEach((item: OrderItem, index: number) => {
+          data.items?.forEach((item: OrderItem, index: number) => {
             if (!this.validateItemTotalCalculation(item)) {
               warnings.push(`Le total de l'article ${index + 1} est incorrect`);
             }

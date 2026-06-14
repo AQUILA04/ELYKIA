@@ -1,58 +1,150 @@
-<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
-<div class="container">
-    <div class="header-fixed">
-        <div class="d-flex justify-content-center">
-            <h1>Liste des types d'article</h1>
-        </div>
+<div class="main-container article-type-page a1">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/dashboard" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Tableau de bord
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <input type="text" placeholder="Rechercher un type..." [(ngModel)]="search" (input)="onSearch()"
-            class="form-control w-50" />
-
-        <div class="button-group">
-            <button class="btn refresh-button btn-sm" (click)="getList()">
-                <mat-icon>refresh</mat-icon>
-                <span>Rafraîchir</span>
-            </button>
-            <button class="btn add btn-sm" routerLink="add">
-                <mat-icon>add</mat-icon>
-                <span>Ajouter</span>
-            </button>
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">RÉFÉRENTIEL ARTICLES</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          <h1 class="page-title">Types d'article</h1>
         </div>
+        <button type="button" class="btn-refresh" (click)="refresh()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">Catégories d'articles · Recherche et pagination conservées à la navigation</p>
+    </div>
+  </div>
+
+  <div class="page-scroll-body">
+    <div class="kpi-strip a3">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Types enregistrés</div>
+        <div class="kpi-value">{{ totalElements }}</div>
+        <div class="kpi-sub">Catégories disponibles</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Page courante</div>
+        <div class="kpi-value">{{ totalPages > 0 ? page + 1 : 0 }}</div>
+        <div class="kpi-sub">sur {{ totalPages || 1 }} page(s)</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Affichés</div>
+        <div class="kpi-value">{{ types.length }}</div>
+        <div class="kpi-sub">sur cette page</div>
+      </div>
+      <div class="kpi-card kpi-delai">
+        <div class="kpi-label">Taille page</div>
+        <div class="kpi-value">{{ size }}</div>
+        <div class="kpi-sub">éléments par page</div>
+      </div>
     </div>
 
-    <div class="table-container">
-        <table class="article-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nom</th>
-                    <th>Code</th>
-                    <th>Description</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let type of types">
-                    <td>{{ type.id }}</td>
-                    <td>{{ type.name }}</td>
-                    <td>{{ type.code }}</td>
-                    <td>{{ type.description }}</td>
-                    <td>
-                        <button mat-icon-button matTooltip="Modifier" [routerLink]="['edit', type.id]">
-                            <mat-icon style="color: #003366;">edit</mat-icon>
-                        </button>
-                        <button mat-icon-button matTooltip="Supprimer" (click)="onDelete(type.id!)">
-                            <mat-icon style="color: #c90a17;">delete</mat-icon>
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
+    <div class="toolbar a4">
+      <div class="filter-group filter-group-search">
+        <span class="toolbar-label">Recherche</span>
+        <div class="search-row">
+          <input
+            type="text"
+            class="search-input"
+            [(ngModel)]="search"
+            (keydown.enter)="onSearch()"
+            (input)="onSearch()"
+            placeholder="Nom, code ou description…">
+          <button type="button" class="btn-search-icon" (click)="onSearch()" title="Rechercher" aria-label="Rechercher">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button type="button" class="btn-clear" (click)="clearSearch()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        Effacer recherche
+      </button>
+      <span class="result-count">
+        <strong>{{ totalElements }}</strong> type(s)
+      </span>
+      <div class="toolbar-actions">
+        <button type="button" class="btn-primary" (click)="navigateToAdd()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Ajouter
+        </button>
+      </div>
+    </div>
+
+    <div class="table-card a5">
+      <div class="table-wrapper">
+        <div *ngIf="isLoading" class="table-loading">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
+        </div>
+
+        <div *ngIf="!isLoading && types.length === 0" class="table-empty-static">
+          <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <div class="empty-title">Aucun type d'article</div>
+            <div class="empty-sub">Modifiez votre recherche ou créez un premier type.</div>
+          </div>
+        </div>
+
+        <table class="data-table" *ngIf="!isLoading && types.length > 0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom</th>
+              <th>Code</th>
+              <th>Description</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let type of types; let i = index">
+              <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
+              <td><span class="col-name">{{ type.name }}</span></td>
+              <td><span class="col-code">{{ type.code }}</span></td>
+              <td>{{ type.description || '—' }}</td>
+              <td class="col-actions">
+                <button type="button" class="btn-detail" (click)="editType(type.id!)" title="Modifier">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                </button>
+                <button type="button" class="btn-detail btn-danger" (click)="onDelete(type.id!)" title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
         </table>
-    </div>
+      </div>
 
-    <mat-paginator [length]="totalElements" [pageSize]="size" [pageSizeOptions]="[5, 10, 25, 100]"
-        (page)="onPageChange($event)">
-    </mat-paginator>
+      <div class="pagination article-type-pagination">
+        <mat-paginator
+          [length]="totalElements"
+          [pageSize]="size"
+          [pageIndex]="page"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </div>
+  </div>
 </div>

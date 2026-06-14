@@ -27,6 +27,16 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
 
         Page<TontineMember> findByTontineSessionIdAndState(Long sessionId, State state, Pageable pageable);
 
+        @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
+        @Query("UPDATE TontineMember tm SET tm.totalContribution = 0, tm.societyShare = 0, " +
+                "tm.availableContribution = 0, tm.validatedMonths = 0, tm.currentMonthDays = 0 " +
+                "WHERE tm.tontineSession.id = :sessionId AND tm.state = com.optimize.common.entities.enums.State.ENABLED")
+        int resetContributionsBySessionId(@Param("sessionId") Long sessionId);
+
+        @Query("SELECT COUNT(tm) FROM TontineMember tm " +
+                "WHERE tm.tontineSession.id = :sessionId AND tm.state = com.optimize.common.entities.enums.State.ENABLED")
+        long countEnabledBySessionId(@Param("sessionId") Long sessionId);
+
         Page<TontineMember> findByDeliveryStatus(TontineMemberDeliveryStatus status, Pageable pageable);
 
         @Query("SELECT SUM(tm.societyShare) FROM TontineMember tm WHERE tm.tontineSession.id = :sessionId AND tm.state = :state")

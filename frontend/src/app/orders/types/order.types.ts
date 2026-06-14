@@ -1,37 +1,38 @@
 // Types TypeScript pour le module Order Management
 // Basé sur la spécification UX et les besoins fonctionnels
 
+export interface OrderClientDetail extends OrderClient {
+  readonly fullName?: string;
+  readonly collector?: string;
+  readonly tontineCollector?: string;
+  readonly agencyCollector?: string;
+  readonly recoveryCollector?: string | null;
+  readonly clientType?: string;
+  readonly accountId?: number;
+}
+
 export interface Order {
   readonly id: number;
-  readonly client: {
-    readonly id: number;
-    readonly firstname: string;
-    readonly lastname: string;
-    readonly fullName: string;
-    readonly code?: string;
-    readonly phone?: string;
-    readonly address?: string;
-  };
+  readonly client: OrderClientDetail;
   readonly orderDate: string; // Format ISO: "2025-10-09T01:48:14.127181"
   readonly totalAmount: number;
   readonly totalPurchasePrice?: number;
   readonly status: OrderStatus;
   readonly items?: readonly OrderItem[];
+  readonly operationConsentCode?: string | null;
+  readonly confirmedAmount?: number;
+  readonly syncConsentCode?: string | null;
   readonly createdAt?: string;
   readonly updatedAt?: string;
   readonly createdBy?: string;
-  readonly commercial?: string; // Peut être ajouté plus tard par l'API
+  readonly commercial?: string;
 }
 
 export interface OrderItem {
   readonly id: number;
-  readonly orderId: number;
-  readonly articleId: number;
-  readonly articleName: string;
-  readonly articleCode?: string;
+  readonly article: OrderArticle;
   readonly quantity: number;
   readonly unitPrice: number;
-  readonly totalPrice: number;
 }
 
 export interface OrderStatusHistory {
@@ -78,10 +79,12 @@ export interface OrderArticle {
   readonly model?: string;
   readonly type?: string;
   readonly description?: string;
-  readonly unitPrice: number;
+  readonly unitPrice?: number;
   readonly purchasePrice?: number;
   readonly sellingPrice?: number;
   readonly creditSalePrice?: number;
+  readonly stockQuantity?: number;
+  readonly status?: string;
   readonly isActive?: boolean;
   readonly category?: string;
 }
@@ -302,10 +305,11 @@ export const isOrder = (obj: any): obj is Order => {
 export const isOrderItem = (obj: any): obj is OrderItem => {
   return obj &&
     typeof obj.id === 'number' &&
-    typeof obj.orderId === 'number' &&
-    typeof obj.articleId === 'number' &&
     typeof obj.quantity === 'number' &&
-    typeof obj.unitPrice === 'number';
+    typeof obj.unitPrice === 'number' &&
+    obj.article &&
+    typeof obj.article.id === 'number' &&
+    typeof obj.article.name === 'string';
 };
 
 // Utilitaires de validation
@@ -395,10 +399,44 @@ export const getOrderStatusColor = (status: OrderStatus): string => {
   return ORDER_STATUS_COLORS[status] || 'secondary';
 };
 
-export const calculateOrderTotal = (items: OrderItem[]): number => {
-  return items.reduce((total, item) => total + item.totalPrice, 0);
-};
-
 export const calculateItemTotal = (quantity: number, unitPrice: number): number => {
   return quantity * unitPrice;
+};
+
+export const getOrderItemTotal = (item: OrderItem): number => {
+  return calculateItemTotal(item.quantity, item.unitPrice);
+};
+
+export const getOrderItemArticleName = (item: OrderItem): string => {
+  return item.article?.commercialName || item.article?.name || '—';
+};
+
+export const getOrderItemArticleSubtitle = (item: OrderItem): string | null => {
+  const article = item.article;
+  if (!article) {
+    return null;
+  }
+  if (article.name && article.commercialName && article.name !== article.commercialName) {
+    return article.name;
+  }
+  const parts = [article.marque, article.model, article.type].filter(Boolean);
+  return parts.length > 0 ? parts.join(' · ') : null;
+};
+
+export const getOrderClientName = (order: Order): string => {
+  const client = order.client;
+  if (!client) {
+    return 'Client inconnu';
+  }
+  return client.fullName?.trim()
+    || `${client.firstname || ''} ${client.lastname || ''}`.trim()
+    || 'Client inconnu';
+};
+
+export const getOrderCommercial = (order: Order): string => {
+  return order.commercial || order.client?.collector || '—';
+};
+
+export const calculateOrderTotal = (items: OrderItem[]): number => {
+  return items.reduce((total, item) => total + getOrderItemTotal(item), 0);
 };

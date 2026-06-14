@@ -53,9 +53,20 @@ public class StockTontineRequestController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<StockTontineRequest>> getAll(@RequestParam(required = false) String collector,
+    public ResponseEntity<Page<StockTontineRequest>> getAll(
+            @RequestParam(required = false) String collector,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Pageable pageable) {
-        return ResponseEntity.ok(service.getAll(collector, pageable));
+        return ResponseEntity.ok(service.getAll(collector, startDate, endDate, pageable));
+    }
+
+    @GetMapping("/kpis")
+    public ResponseEntity<com.optimize.elykia.core.dto.stock.StockRequestKpiDto> getKpis(
+            @RequestParam(required = false) String collector,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(service.getKpis(collector, startDate, endDate));
     }
 
     @GetMapping("/export/pdf")

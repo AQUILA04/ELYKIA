@@ -2,13 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExpenseTypeListComponent } from './type-list.component';
 import { ExpenseService } from '../../services/expense.service';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatTableModule } from '@angular/material/table';
-import { MatIconModule } from '@angular/material/icon';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 import { PaginatedResponse, ExpenseType } from '../../models/expense.model';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 describe('ExpenseTypeListComponent', () => {
     let component: ExpenseTypeListComponent;
@@ -17,19 +14,17 @@ describe('ExpenseTypeListComponent', () => {
 
     beforeEach(async () => {
         const spy = jasmine.createSpyObj('ExpenseService', ['getPaginatedExpenseTypes', 'deleteExpenseType']);
+        const alertSpy = jasmine.createSpyObj('AlertService', ['showConfirmation']);
 
         await TestBed.configureTestingModule({
             declarations: [ExpenseTypeListComponent],
             imports: [
                 MatSnackBarModule,
-                MatPaginatorModule,
-                MatTableModule,
-                MatIconModule,
-                BrowserAnimationsModule,
                 RouterTestingModule
             ],
             providers: [
-                { provide: ExpenseService, useValue: spy }
+                { provide: ExpenseService, useValue: spy },
+                { provide: AlertService, useValue: alertSpy }
             ]
         })
             .compileComponents();
@@ -43,10 +38,12 @@ describe('ExpenseTypeListComponent', () => {
 
         const dummyResponse: PaginatedResponse<ExpenseType> = {
             content: [],
-            totalElements: 0,
-            totalPages: 0,
-            size: 10,
-            number: 0
+            page: {
+                number: 0,
+                size: 10,
+                totalElements: 0,
+                totalPages: 0
+            }
         };
         expenseServiceSpy.getPaginatedExpenseTypes.and.returnValue(of(dummyResponse));
 

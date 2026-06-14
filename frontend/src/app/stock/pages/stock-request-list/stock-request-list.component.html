@@ -1,142 +1,237 @@
-<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+<div class="main-container stock-request-page a1" data-testid="e2e-stock-request-list">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/stock/my-stock" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Mon stock
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
 
-<div class="container" data-testid="e2e-stock-request-list">
-  <div class="header-fixed">
-    <h1>Demandes de Sortie Stock</h1>
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">GESTION DES STOCKS</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          <h1 class="page-title">Demandes de sortie stock</h1>
+        </div>
+        <button class="btn-refresh" (click)="refresh()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">Demandes de sortie · Filtres période et commercial conservés à la navigation</p>
+    </div>
   </div>
 
-  <app-stock-export-filter [canSelectPromoter]="canSelectPromoter" [promoters]="promoters"
-    (export)="onExportPdf($event)">
-  </app-stock-export-filter>
+  <div class="page-scroll-body">
+    <div class="kpi-strip a3" *ngIf="kpis">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Total demandes</div>
+        <div class="kpi-value">{{ kpis.total }}</div>
+        <div class="kpi-sub">{{ periodLabel }}</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">En attente</div>
+        <div class="kpi-value">{{ kpis.pending }}</div>
+        <div class="kpi-sub">Statut créé</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Validées</div>
+        <div class="kpi-value">{{ kpis.validated }}</div>
+        <div class="kpi-sub">Prêtes à livrer</div>
+      </div>
+      <div class="kpi-card kpi-delai">
+        <div class="kpi-label">Livrées</div>
+        <div class="kpi-value">{{ kpis.delivered }}</div>
+        <div class="kpi-sub">Sorties effectuées</div>
+      </div>
+    </div>
 
-  <div class="d-flex justify-content-end mb-3">
-    <button *ngIf="isPromoter || isManager" class="btn add btn-sm" routerLink="/stock/request/create" data-testid="e2e-stock-request-new-btn">
-      <mat-icon>add</mat-icon>
-      <span>Nouvelle Demande</span>
-    </button>
-  </div>
+    <div class="toolbar a4">
+      <div class="filter-group">
+        <span class="toolbar-label">Période</span>
+        <select class="filter-select" [(ngModel)]="selectedPeriod" (ngModelChange)="onPeriodChange()">
+          <option value="TODAY">Aujourd'hui</option>
+          <option value="WEEK">Cette semaine</option>
+          <option value="MONTH">Ce mois</option>
+          <optgroup label="Mois précédents">
+            <option *ngFor="let month of previousMonths" [value]="month.value">{{ month.label }}</option>
+          </optgroup>
+        </select>
+      </div>
 
-  <div class="table-container">
-    <table class="article-table">
-      <thead>
-        <tr>
-          <th>Référence</th>
-          <th>Date Demande</th>
-          <th>Date de livraison</th>
-          <th>Commercial</th>
-          <th>Statut</th>
-          <th class="text-right">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let req of requests" data-testid="e2e-stock-request-row"
-            [attr.data-collector]="req.collector" [attr.data-status]="req.status"
-            [attr.data-reference]="req.reference || req.id">
-          <td>{{ req.reference || '-' }}</td>
-          <td>{{ req.requestDate | date:'dd/MM/yyyy' }}</td>
-          <td>{{ (req.deliveryDate | date:'dd/MM/yyyy') || '-' }}</td>
-          <td>{{ req.collector }}</td>
-          <td>
-            <span class="badge" [ngClass]="getStatusBadge(req.status!)">{{ getStatusLabel(req.status) }}</span>
-          </td>
+      <div class="filter-group filter-group-commercial" *ngIf="canSelectCommercial">
+        <span class="toolbar-label">Commercial</span>
+        <app-commercial-selector
+          [initialValue]="selectedCommercial"
+          (commercialSelected)="onCommercialSelected($event)">
+        </app-commercial-selector>
+      </div>
 
-          <td class="action-buttons text-right">
-            <button mat-icon-button (click)="showDetails(req)" matTooltip="Détails">
-              <mat-icon>visibility</mat-icon>
-            </button>
-            <button *ngIf="isManager && req.status === 'CREATED'" mat-icon-button (click)="validate(req)"
-              matTooltip="Valider" data-testid="e2e-stock-request-validate">
-              <mat-icon style="color: green;">check_circle</mat-icon>
-            </button>
-            <button *ngIf="isStoreKeeper && req.status === 'VALIDATED'" mat-icon-button (click)="deliver(req)"
-              matTooltip="Livrer" data-testid="e2e-stock-request-deliver">
-              <mat-icon style="color: #003366;">local_shipping</mat-icon>
-            </button>
-            <button *ngIf="(isManager || (currentUser?.username === req.collector)) && req.status === 'CREATED'"
-                    mat-icon-button (click)="cancel(req)" matTooltip="Annuler">
-              <mat-icon style="color: red;">cancel</mat-icon>
-            </button>
-             <button *ngIf="(isManager || isSecretary) && req.status === 'CREATED'"
-                    mat-icon-button (click)="refuse(req)" matTooltip="Refuser">
-              <mat-icon style="color: darkred;">block</mat-icon>
-            </button>
-          </td>
-        </tr>
-        <tr *ngIf="requests.length === 0">
-          <td colspan="6" class="text-center">Aucune demande trouvée</td>
-        </tr>
-      </tbody>
-    </table>
-    <mat-paginator
-      [length]="totalElement"
-      [pageSize]="size"
-      [pageSizeOptions]="[5, 10, 25, 100]"
-      (page)="pageChanged($event)"
-      showFirstLastButtons>
-    </mat-paginator>
+      <button type="button" class="btn-clear" (click)="resetFilters()">Réinitialiser</button>
+
+      <button type="button" class="btn-download" (click)="onExportPdf()" [disabled]="exportLoading">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        {{ exportLoading ? 'Export…' : 'Télécharger PDF' }}
+      </button>
+
+      <span class="result-count">
+        <strong>{{ totalElement }}</strong> demande(s)
+      </span>
+
+      <div class="toolbar-actions" *ngIf="isPromoter || isManager">
+        <button class="btn-primary" routerLink="/stock/request/create" data-testid="e2e-stock-request-new-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Nouvelle demande
+        </button>
+      </div>
+    </div>
+
+    <div class="table-card a5">
+      <div class="table-wrapper">
+        <div *ngIf="isLoading" class="table-loading">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
+        </div>
+
+        <div *ngIf="!isLoading && requests.length === 0" class="table-empty-static">
+          <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <div class="empty-title">Aucune demande trouvée</div>
+            <div class="empty-sub">Modifiez la période ou le commercial sélectionné.</div>
+          </div>
+        </div>
+
+        <table class="data-table" *ngIf="!isLoading && requests.length > 0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Référence</th>
+              <th>Date demande</th>
+              <th>Date livraison</th>
+              <th>Commercial</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let req of requests; let i = index"
+                data-testid="e2e-stock-request-row"
+                [attr.data-collector]="req.collector"
+                [attr.data-status]="req.status"
+                [attr.data-reference]="req.reference || req.id">
+              <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
+              <td><span class="col-ref-main">{{ req.reference || '—' }}</span></td>
+              <td><span class="col-date">{{ req.requestDate | date:'dd/MM/yyyy' }}</span></td>
+              <td><span class="col-date">{{ (req.deliveryDate | date:'dd/MM/yyyy') || '—' }}</span></td>
+              <td>{{ req.collector }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusClass(req.status!)">{{ getStatusLabel(req.status) }}</span>
+              </td>
+              <td class="col-actions">
+                <button class="btn-detail" (click)="showDetails(req)" title="Détails">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Voir
+                </button>
+                <button *ngIf="isManager && req.status === 'CREATED'" class="btn-detail btn-success"
+                        (click)="validate(req)" title="Valider" data-testid="e2e-stock-request-validate">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </button>
+                <button *ngIf="isStoreKeeper && req.status === 'VALIDATED'" class="btn-detail"
+                        (click)="deliver(req)" title="Livrer" data-testid="e2e-stock-request-deliver">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                </button>
+                <button *ngIf="(isManager || (currentUser?.username === req.collector)) && req.status === 'CREATED'"
+                        class="btn-detail btn-danger" (click)="cancel(req)" title="Annuler">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <button *ngIf="(isManager || isSecretary) && req.status === 'CREATED'"
+                        class="btn-detail btn-danger" (click)="refuse(req)" title="Refuser">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination stock-pagination">
+        <mat-paginator
+          [length]="totalElement"
+          [pageSize]="size"
+          [pageIndex]="page"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="pageChanged($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- Modal Détails -->
-<div class="modal" tabindex="-1" role="dialog" [ngStyle]="{'display': selectedRequest ? 'block' : 'none'}"
-  style="background: rgba(0,0,0,0.5)">
-  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
-        <h3 class="modal-title w-100 text-center" style="color: #343a40; font-weight: 600;">
-          Détails de la Demande : {{ selectedRequest?.reference }}
-        </h3>
-        <button type="button" class="close" (click)="closeDetails()" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body" *ngIf="selectedRequest">
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <p><strong>Commercial:</strong> {{ selectedRequest.collector }}</p>
-            <p><strong>Date demande:</strong> {{ selectedRequest.requestDate | date:'dd/MM/yyyy' }}</p>
-            <p><strong>Date validation:</strong> {{ (selectedRequest.validationDate | date:'dd/MM/yyyy') || '-' }}</p>
-            <p><strong>Date livraison:</strong> {{ (selectedRequest.deliveryDate | date:'dd/MM/yyyy') || '-' }}</p>
-          </div>
-          <div class="col-md-6 text-right">
-            <p><strong>Statut:</strong> <span class="badge" [ngClass]="getStatusBadge(selectedRequest.status!)">{{
-                selectedRequest.status }}</span></p>
-          </div>
+<div class="stock-modal-overlay" *ngIf="selectedRequest" (click)="closeDetails()">
+  <div class="stock-modal" role="dialog" (click)="$event.stopPropagation()">
+    <div class="stock-modal-header">
+      <h3>Détails de la demande : {{ selectedRequest.reference }}</h3>
+      <button type="button" class="modal-close" (click)="closeDetails()" aria-label="Fermer">&times;</button>
+    </div>
+    <div class="stock-modal-body">
+      <div class="detail-grid">
+        <div>
+          <p><strong>Commercial :</strong> {{ selectedRequest.collector }}</p>
+          <p><strong>Date demande :</strong> {{ selectedRequest.requestDate | date:'dd/MM/yyyy' }}</p>
+          <p><strong>Date validation :</strong> {{ (selectedRequest.validationDate | date:'dd/MM/yyyy') || '—' }}</p>
+          <p><strong>Date livraison :</strong> {{ (selectedRequest.deliveryDate | date:'dd/MM/yyyy') || '—' }}</p>
         </div>
+        <div class="detail-status">
+          <p><strong>Statut :</strong>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedRequest.status!)">{{ getStatusLabel(selectedRequest.status!) }}</span>
+          </p>
+        </div>
+      </div>
 
-        <h6 class="mt-4">Articles de la demande</h6>
-        <div class="table-responsive">
-          <table class="table table-sm table-bordered">
-            <thead>
-              <tr>
-                <th>Article</th>
-                <th>Quantité</th>
-                <th>Prix Vente Unitaire</th>
-                <th *ngIf="isManager">Prix Achat Unitaire</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of selectedRequest.items">
-                <td>{{ item.itemName }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>{{ item.unitPrice | number:'1.0-0' }} FCFA</td>
-                <td *ngIf="isManager">{{ item.purchasePrice | number:'1.0-0' }} FCFA</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr class="font-weight-bold">
-                <td colspan="2" class="text-right">Total :</td>
-                <td>{{ selectedRequest.totalCreditSalePrice | number:'1.0-0' }} FCFA</td>
-                <td *ngIf="isManager">{{ selectedRequest.totalPurchasePrice | number:'1.0-0' }} FCFA</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn add btn-sm" (click)="closeDetails()">Fermer</button>
-      </div>
+      <h4>Articles de la demande</h4>
+      <table class="modal-table">
+        <thead>
+          <tr>
+            <th>Article</th>
+            <th>Quantité</th>
+            <th>Prix vente unitaire</th>
+            <th *ngIf="isManager">Prix achat unitaire</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of selectedRequest.items">
+            <td>{{ item.itemName }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unitPrice | number:'1.0-0' }} FCFA</td>
+            <td *ngIf="isManager">{{ item.purchasePrice | number:'1.0-0' }} FCFA</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" class="text-right"><strong>Total :</strong></td>
+            <td><strong>{{ selectedRequest.totalCreditSalePrice | number:'1.0-0' }} FCFA</strong></td>
+            <td *ngIf="isManager"><strong>{{ selectedRequest.totalPurchasePrice | number:'1.0-0' }} FCFA</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="stock-modal-footer">
+      <button type="button" class="btn-primary" (click)="closeDetails()">Fermer</button>
     </div>
   </div>
-
 </div>

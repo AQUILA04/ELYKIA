@@ -1,38 +1,133 @@
-<div class="container p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Gestion des Types de Dépense</h1>
-        <button mat-raised-button color="primary" (click)="addType()">
-            <mat-icon>add</mat-icon> Nouveau Type
+<div class="main-container a1">
+
+  <div class="breadcrumb-bar">
+    <a routerLink="/expense/dashboard" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Dépenses
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">GESTION DES DÉPENSES</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="expense-icon" style="display:block;flex-shrink:0">
+          <path d="M4 6h16M4 12h16M4 18h7"/>
+        </svg>
+        <h1 class="page-title" style="margin:0;padding:0;line-height:1">Types de dépense</h1>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn-action btn-primary" (click)="addType()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Nouveau type
         </button>
+        <button type="button" class="btn-refresh" (click)="refresh()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
     </div>
+    <p class="page-subtitle">Référentiel des catégories · Pagination conservée à la navigation</p>
+  </div>
 
-    <div class="mat-elevation-z8">
-        <table mat-table [dataSource]="dataSource" class="w-100">
-            <!-- Name Column -->
-            <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef> Nom </th>
-                <td mat-cell *matCellDef="let element"> {{element.name}} </td>
-            </ng-container>
-
-            <!-- Actions Column -->
-            <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef> Actions </th>
-                <td mat-cell *matCellDef="let element">
-                    <button mat-icon-button color="primary" (click)="editType(element)">
-                        <mat-icon>edit</mat-icon>
-                    </button>
-                    <button mat-icon-button color="warn" (click)="deleteType(element)">
-                        <mat-icon>delete</mat-icon>
-                    </button>
-                </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-
-        <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 20]"
-            (page)="onPageChange($event)" showFirstLastButtons>
-        </mat-paginator>
+  <div class="kpi-strip a3">
+    <div class="kpi-card kpi-p0">
+      <div class="kpi-label">Types enregistrés</div>
+      <div class="kpi-value">{{ totalElements }}</div>
+      <div class="kpi-sub">Catégories disponibles</div>
     </div>
+    <div class="kpi-card kpi-p1">
+      <div class="kpi-label">Page courante</div>
+      <div class="kpi-value">{{ totalPages > 0 ? pageIndex + 1 : 0 }}</div>
+      <div class="kpi-sub">sur {{ totalPages || 1 }} page(s)</div>
+    </div>
+    <div class="kpi-card kpi-p2">
+      <div class="kpi-label">Affichés</div>
+      <div class="kpi-value">{{ types.length }}</div>
+      <div class="kpi-sub">sur cette page</div>
+    </div>
+    <div class="kpi-card kpi-p3">
+      <div class="kpi-label">Taille page</div>
+      <div class="kpi-value">{{ pageSize }}</div>
+      <div class="kpi-sub">éléments par page</div>
+    </div>
+  </div>
+
+  <div class="toolbar a4">
+    <span class="result-count">
+      <strong>{{ totalElements }}</strong> type(s)
+    </span>
+  </div>
+
+  <div class="table-card a5">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nom</th>
+          <th style="width:140px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="isLoading">
+          <td colspan="3">
+            <div class="empty-state">
+              <div class="empty-icon">⏳</div>
+              <div class="empty-title">Chargement…</div>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!isLoading && types.length === 0">
+          <td colspan="3">
+            <div class="empty-state">
+              <div class="empty-icon">🏷️</div>
+              <div class="empty-title">Aucun type de dépense</div>
+              <div class="empty-sub">Créez un premier type pour catégoriser vos dépenses.</div>
+            </div>
+          </td>
+        </tr>
+        <tr *ngFor="let type of types; let i = index">
+          <td><span class="col-ref">{{ (pageIndex * pageSize) + (i + 1) }}</span></td>
+          <td><span class="type-badge">{{ type.name }}</span></td>
+          <td>
+            <div class="action-cell">
+              <button type="button" class="btn-detail" (click)="editType(type)" title="Modifier">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Éditer
+              </button>
+              <button type="button" class="btn-delete" (click)="deleteType(type)" title="Supprimer">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <span class="page-info">{{ getPaginationInfo() }}</span>
+      <div class="page-btns">
+        <button type="button" class="page-btn" (click)="changePage(-1)" [disabled]="pageIndex === 0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button type="button" *ngFor="let p of pageNumbers" class="page-btn" [class.active]="pageIndex === p - 1" (click)="goPage(p - 1)">{{ p }}</button>
+        <button type="button" class="page-btn" (click)="changePage(1)" [disabled]="pageIndex >= totalPages - 1">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>

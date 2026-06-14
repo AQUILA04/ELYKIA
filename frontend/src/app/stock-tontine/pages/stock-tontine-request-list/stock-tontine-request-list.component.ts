@@ -1,243 +1,314 @@
-import { Component, OnInit } from '@angular/core';
-import { ExportFilter } from 'src/app/shared/components/stock-export-filter/stock-export-filter.component';
-import { User } from 'src/app/user/service/user.service';
-import { StockTontineRequestService } from '../../services/stock-tontine-request.service';
-import { StockTontineRequest, StockRequestStatus } from '../../models/stock-tontine-request.model';
-import { NgxSpinnerService } from 'ngx-spinner';
-import { Router } from '@angular/router';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { PageEvent } from '@angular/material/paginator';
+import { ToastrService } from 'ngx-toastr';
+import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from '../../../auth/service/auth.service';
 import { UserService } from '../../../user/service/user.service';
 import { UserProfile } from '../../../shared/models/user-profile.enum';
-import { ToastrService } from 'ngx-toastr';
-import { AlertService } from 'src/app/shared/service/alert.service';
-import { Page } from '../../../shared/models/page.model';
+import { StockTontineRequest } from '../../models/stock-tontine-request.model';
+import { StockTontineRequestService } from '../../services/stock-tontine-request.service';
+import { StockListFilter, StockRequestKpis } from '../../../stock/services/stock-request.service';
+import {
+  buildPreviousMonthOptions,
+  getStockPeriodLabel,
+  MonthOption,
+  resolveStockPeriodRange,
+  StockPeriodKey
+} from '../../../stock/utils/stock-period.util';
+
+interface StockTontineRequestListState {
+  selectedPeriod: StockPeriodKey;
+  selectedCommercial: string | null;
+  page: number;
+  size: number;
+}
 
 @Component({
   selector: 'app-stock-tontine-request-list',
   templateUrl: './stock-tontine-request-list.component.html',
-  styleUrls: ['./stock-tontine-request-list.component.scss']
+  styleUrls: ['./stock-tontine-request-list.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
-export class StockTontineRequestListComponent implements OnInit {
+export class StockTontineRequestListComponent implements OnInit, OnDestroy {
+  private readonly STATE_KEY = 'stockTontineRequestListState';
+  private dateIntervalId?: ReturnType<typeof setInterval>;
 
   requests: StockTontineRequest[] = [];
-  page: number = 0;
-  size: number = 20;
-  totalPages: number = 0;
+  page = 0;
+  size = 10;
+  totalElement = 0;
+  isLoading = true;
+  exportLoading = false;
 
   isManager = false;
   isStoreKeeper = false;
   isPromoter = false;
   isSecretary = false;
-  promoters: User[] = [];
+  canSelectCommercial = false;
+
   currentUser: any;
   selectedRequest: StockTontineRequest | null = null;
 
+  selectedPeriod: StockPeriodKey = 'WEEK';
+  previousMonths: MonthOption[] = [];
+  selectedCommercial: string | null = null;
+
+  currentDate = new Date();
+  lastUpdate = new Date();
+  kpis: StockRequestKpis | null = null;
+
   constructor(
     private requestService: StockTontineRequestService,
-    private spinner: NgxSpinnerService,
-    private router: Router,
     private authService: AuthService,
     private userService: UserService,
     private toastr: ToastrService,
     private alertService: AlertService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
+    this.previousMonths = buildPreviousMonthOptions();
     this.currentUser = this.authService.getCurrentUser();
-    this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE) || this.userService.hasProfile(UserProfile.ADMIN) || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
+    this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE)
+      || this.userService.hasProfile(UserProfile.ADMIN)
+      || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
     this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER);
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
+    this.canSelectCommercial = !this.isPromoter && (this.isManager || this.isSecretary);
 
-    if (this.canSelectPromoter) {
-      this.loadPromoters();
+    this.restoreState();
+    this.refresh();
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    this.saveState();
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
     }
+  }
 
+  get periodLabel(): string {
+    return getStockPeriodLabel(this.selectedPeriod);
+  }
+
+  get listFilter(): StockListFilter {
+    const range = resolveStockPeriodRange(this.selectedPeriod);
+    return {
+      collector: this.selectedCommercial,
+      startDate: range.startDate,
+      endDate: range.endDate
+    };
+  }
+
+  refresh(): void {
+    this.loadKpis();
     this.loadRequests();
   }
 
-  get canSelectPromoter(): boolean {
-    return this.isManager || this.isSecretary;
-  }
-
-  loadPromoters() {
-    this.userService.getPromoters(0, 1000).subscribe({
-      next: (page) => {
-        this.promoters = page.data.content;
-      },
-      error: (err) => console.error('Error loading promoters', err)
+  loadKpis(): void {
+    this.requestService.getKpis(this.listFilter).subscribe({
+      next: (kpis) => { this.kpis = kpis; },
+      error: (err) => console.error('Erreur chargement KPI demandes tontine', err)
     });
-  }
-
-  onExportPdf(filter: ExportFilter) {
-    this.spinner.show();
-    this.requestService.exportPdf(filter.startDate, filter.endDate, filter.collector)
-      .subscribe({
-        next: (data) => {
-          const blob = new Blob([data], { type: 'application/pdf' });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `rapport_stock_tontine_${filter.startDate}_${filter.endDate}.pdf`;
-          link.click();
-          window.URL.revokeObjectURL(url);
-          this.spinner.hide();
-          this.toastr.success('Export PDF téléchargé avec succès');
-        },
-        error: (err) => {
-          console.error('Export error', err);
-          this.toastr.error('Erreur lors du téléchargement du PDF');
-          this.spinner.hide();
-        }
-      });
   }
 
   loadRequests(): void {
-    this.spinner.show();
-    this.requestService.getAll(null, this.page, this.size).subscribe({
-      next: (page: Page<StockTontineRequest>) => {
+    this.isLoading = true;
+    this.requestService.getAll(this.listFilter, this.page, this.size).subscribe({
+      next: (page) => {
         this.requests = page.content;
-        this.totalPages = page.totalPages;
-        this.spinner.hide();
+        this.totalElement = page.totalElements ?? 0;
+        this.lastUpdate = new Date();
+        this.isLoading = false;
+        this.saveState();
       },
-      error: (err) => {
-        console.error(err);
+      error: () => {
         this.toastr.error('Erreur lors du chargement des demandes');
-        this.spinner.hide();
+        this.isLoading = false;
       }
     });
   }
 
-  createNew(): void {
-    this.router.navigate(['/stock-tontine/request/create']);
+  onPeriodChange(): void {
+    this.page = 0;
+    this.saveState();
+    this.refresh();
   }
 
-  validate(request: StockTontineRequest) {
+  onCommercialSelected(commercial: string | null): void {
+    this.selectedCommercial = commercial;
+    this.page = 0;
+    this.saveState();
+    this.refresh();
+  }
+
+  resetFilters(): void {
+    this.selectedPeriod = 'WEEK';
+    this.selectedCommercial = null;
+    this.page = 0;
+    this.saveState();
+    this.refresh();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.page = event.pageIndex;
+    this.size = event.pageSize;
+    this.saveState();
+    this.loadRequests();
+  }
+
+  onExportPdf(): void {
+    const range = resolveStockPeriodRange(this.selectedPeriod);
+    this.exportLoading = true;
+    this.requestService.exportPdf(range.startDate, range.endDate, this.selectedCommercial).subscribe({
+      next: (data) => {
+        const blob = new Blob([data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `rapport_stock_tontine_${range.startDate}_${range.endDate}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.exportLoading = false;
+        this.toastr.success('Export PDF téléchargé avec succès');
+      },
+      error: () => {
+        this.toastr.error('Erreur lors du téléchargement du PDF');
+        this.exportLoading = false;
+      }
+    });
+  }
+
+  validate(request: StockTontineRequest): void {
     this.alertService.showConfirmation('Confirmation', 'Valider cette demande ?').then((confirmed) => {
       if (confirmed) {
-        this.spinner.show();
         this.requestService.validate(request.id!).subscribe({
           next: () => {
             this.toastr.success('Demande validée');
-            this.loadRequests();
-            this.spinner.hide();
+            this.refresh();
           },
           error: (err) => {
-            console.error('Error', err);
-            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors de validation de la demande', 'Erreur de validation');
-            this.spinner.hide();
+            this.alertService.showError(err.error?.message ?? 'Erreur de validation', 'Erreur de validation');
           }
         });
       }
     });
   }
 
-  deliver(request: StockTontineRequest) {
+  deliver(request: StockTontineRequest): void {
     this.alertService.showConfirmation('Confirmation', 'Confirmer la livraison de cette demande ?').then((confirmed) => {
       if (confirmed) {
-        this.spinner.show();
         this.requestService.deliver(request.id!).subscribe({
           next: (resp: any) => {
-            if (resp && resp.statusCode && resp.statusCode >= 400) {
-              console.error('Error', resp);
-              this.spinner.hide();
+            if (resp?.statusCode >= 400) {
               this.alertService.showError(resp.message ?? 'Erreur de livraison', 'Erreur de livraison');
               return;
             }
-            
             const payload = resp.data || resp;
-            if (payload && payload.deliveryType === 'PARTIAL') {
-               const msg = `Livraison partielle effectuée.\nArticles livrés : ${payload.deliveredItems?.length || 0}.\nUne nouvelle demande ${payload.pendingRequestReference} a été créée pour les articles manquants.`;
-               this.alertService.showInfo(msg, 'Livraison Partielle');
+            if (payload?.deliveryType === 'PARTIAL') {
+              const msg = `Livraison partielle effectuée.\nArticles livrés : ${payload.deliveredItems?.length || 0}.\nUne nouvelle demande ${payload.pendingRequestReference} a été créée pour les articles manquants.`;
+              this.alertService.showInfo(msg, 'Livraison partielle');
             } else {
-               this.toastr.success('Demande livrée entièrement');
+              this.toastr.success('Demande livrée entièrement');
             }
-            this.loadRequests();
-            this.spinner.hide();
+            this.refresh();
           },
           error: (err) => {
-            console.error('Error', err);
             this.alertService.showError(err.error?.message ?? 'Erreur de livraison', 'Erreur de livraison');
-            this.spinner.hide();
           }
         });
       }
     });
   }
 
-  cancel(request: StockTontineRequest) {
+  cancel(request: StockTontineRequest): void {
     this.alertService.showConfirmation('Confirmation', 'Annuler cette demande ?').then((confirmed) => {
       if (confirmed) {
-        this.spinner.show();
         this.requestService.cancel(request.id!).subscribe({
           next: () => {
             this.toastr.success('Demande annulée');
-            this.loadRequests();
-            this.spinner.hide();
+            this.refresh();
           },
           error: (err) => {
-            console.error('Error', err);
-            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors de l\'annulation de la demande', 'Erreur d\'annulation');
-            this.spinner.hide();
+            this.alertService.showError(err.error?.message ?? 'Erreur d\'annulation', 'Erreur d\'annulation');
           }
         });
       }
     });
   }
 
-  refuse(request: StockTontineRequest) {
+  refuse(request: StockTontineRequest): void {
     this.alertService.showConfirmation('Confirmation', 'Refuser cette demande ?').then((confirmed) => {
       if (confirmed) {
-        this.spinner.show();
         this.requestService.refuse(request.id!).subscribe({
           next: () => {
             this.toastr.success('Demande refusée');
-            this.loadRequests();
-            this.spinner.hide();
+            this.refresh();
           },
           error: (err) => {
-            console.error('Error', err);
-            this.alertService.showError(err.error?.message ?? 'Une Erreur s\'est produite lors du refus de la demande', 'Erreur de refus');
-            this.spinner.hide();
+            this.alertService.showError(err.error?.message ?? 'Erreur de refus', 'Erreur de refus');
           }
         });
       }
     });
   }
 
-  showDetails(request: StockTontineRequest) {
+  showDetails(request: StockTontineRequest): void {
     this.selectedRequest = request;
   }
 
-  closeDetails() {
+  closeDetails(): void {
     this.selectedRequest = null;
   }
 
-  getStatusBadge(status: string): string {
+  getStatusClass(status: string | undefined): string {
+    if (!status) return 'status-pending';
     switch (status) {
-      case 'CREATED': return 'badge-secondary';
-      case 'VALIDATED': return 'badge-success';
-      case 'DELIVERED': return 'badge-success';
-      case 'CANCELLED': return 'badge-danger';
-      case 'REFUSED': return 'badge-danger';
-      default: return 'badge-danger';
+      case 'CREATED': return 'status-pending';
+      case 'VALIDATED': return 'status-validated';
+      case 'DELIVERED': return 'status-delivered';
+      case 'CANCELLED':
+      case 'REFUSED': return 'status-cancelled';
+      default: return 'status-cancelled';
     }
   }
 
-  getStatusLabel(status: string): string {
+  getStatusLabel(status: string | undefined): string {
+    if (!status) return '—';
     switch (status) {
       case 'CREATED': return 'Créé';
       case 'VALIDATED': return 'Validé';
       case 'DELIVERED': return 'Livré';
       case 'CANCELLED': return 'Annulé';
       case 'REFUSED': return 'Refusé';
-      default: return 'badge-danger';
+      default: return status;
     }
   }
 
-  onPageChange(event: any) {
-    this.page = event.pageIndex;
-    this.size = event.pageSize;
-    this.loadRequests();
+  private saveState(): void {
+    const state: StockTontineRequestListState = {
+      selectedPeriod: this.selectedPeriod,
+      selectedCommercial: this.selectedCommercial,
+      page: this.page,
+      size: this.size
+    };
+    sessionStorage.setItem(this.STATE_KEY, JSON.stringify(state));
+  }
+
+  private restoreState(): void {
+    const saved = sessionStorage.getItem(this.STATE_KEY);
+    if (!saved) return;
+    try {
+      const state = JSON.parse(saved) as StockTontineRequestListState;
+      this.selectedPeriod = state.selectedPeriod ?? 'WEEK';
+      this.selectedCommercial = state.selectedCommercial ?? null;
+      this.page = state.page ?? 0;
+      this.size = state.size ?? 10;
+    } catch (e) {
+      console.error('Erreur restauration état liste demandes tontine', e);
+    }
   }
 }

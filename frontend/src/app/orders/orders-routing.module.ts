@@ -7,8 +7,7 @@ import { OrderFormComponent } from './pages/order-form/order-form.component';
 const routes: Routes = [
   {
     path: '',
-    component: OrderDashboardComponent,
-    data: { breadcrumb: 'Tableau de bord' }
+    component: OrderDashboardComponent
   },
   {
     path: 'dashboard',
@@ -17,18 +16,15 @@ const routes: Routes = [
   },
   {
     path: 'create',
-    component: OrderFormComponent,
-    data: { breadcrumb: 'Créer une commande' }
+    component: OrderFormComponent
   },
   {
     path: 'edit/:id',
-    component: OrderFormComponent,
-    data: { breadcrumb: 'Modifier la commande' }
+    component: OrderFormComponent
   },
   {
     path: 'details/:id',
-    component: OrderDetailsComponent,
-    data: { breadcrumb: 'Détails de la commande' }
+    component: OrderDetailsComponent
   }
 ];
 

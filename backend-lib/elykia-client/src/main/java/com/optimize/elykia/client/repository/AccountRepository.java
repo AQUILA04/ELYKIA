@@ -64,4 +64,22 @@ public interface AccountRepository extends GenericRepository<Account, Long> {
                LOWER(c.lastname) LIKE LOWER(CONCAT('%', :searchTerm, '%'))))
            """)
     Page<AccountRespDto> findAccountsDtoWithSearch(@Param("searchTerm") String searchTerm, @Param("state") State state, Pageable pageable);
+
+    @Query("""
+            SELECT COUNT(a) FROM Account a
+            WHERE a.state <> :deletedState AND a.status = :activeStatus
+            """)
+    long countActiveAccounts(@Param("deletedState") State deletedState, @Param("activeStatus") AccountStatus activeStatus);
+
+    @Query("""
+            SELECT COUNT(a) FROM Account a
+            WHERE a.state <> :deletedState AND a.status <> :activeStatus
+            """)
+    long countInactiveAccounts(@Param("deletedState") State deletedState, @Param("activeStatus") AccountStatus activeStatus);
+
+    @Query("""
+            SELECT COALESCE(SUM(a.accountBalance), 0) FROM Account a
+            WHERE a.state <> :deletedState AND a.status = :activeStatus
+            """)
+    double sumActiveAccountsBalance(@Param("deletedState") State deletedState, @Param("activeStatus") AccountStatus activeStatus);
 }

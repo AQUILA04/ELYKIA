@@ -271,6 +271,13 @@
                 <span class="hide-menu">Livraison</span>
               </a>
             </li>
+            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_RESET_TONTINE_COLLECTIONS','ROLE_ADMIN']">
+              <a class="sidebar-link" routerLink="/tontine/reset-collectes"
+                 [ngClass]="{ 'active': isSubRouteActive('/tontine/reset-collectes') }">
+                <span class="material-icons">restart_alt</span>
+                <span class="hide-menu">Réinit. collectes</span>
+              </a>
+            </li>
           </ul>
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER']">

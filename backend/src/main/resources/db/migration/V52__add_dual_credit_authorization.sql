@@ -26,4 +26,4 @@ CREATE INDEX IF NOT EXISTS idx_bca_event_client_performed
     ON business_credit_authorization_event (client_id, performed_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_credit_client_purpose_status
-    ON credit (client_id, credit_purpose, status, state);
+    ON credit (client_id, credit_purpose, status, visibility);

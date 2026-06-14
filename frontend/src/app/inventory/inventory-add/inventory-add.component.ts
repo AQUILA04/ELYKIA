@@ -1,29 +1,33 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { InventoryService, ApiResponse } from '../service/inventory.service';
 import { Router } from '@angular/router';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-inventory-add',
   templateUrl: './inventory-add.component.html',
-  styleUrls: ['./inventory-add.component.scss']
+  styleUrls: ['./inventory-add.component.scss'],
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class AddInventoryComponent implements OnInit, OnDestroy {
-  inventoryForm: FormGroup;
-  articles: any[] = [];
-
+  private dateIntervalId?: ReturnType<typeof setInterval>;
   private subscriptions: Subscription[] = [];
+
+  inventoryForm: FormGroup;
+  articles: unknown[] = [];
+  isLoadingArticles = false;
+  isSubmitting = false;
+  currentDate = new Date();
 
   constructor(
     private formBuilder: FormBuilder,
     private inventoryService: InventoryService,
     private router: Router,
     private tokenStorage: TokenStorageService,
-    private spinner: NgxSpinnerService,
     private alertService: AlertService
   ) {
     this.tokenStorage.checkConnectedUser();
@@ -34,9 +38,15 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadArticles();
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
   }
 
   ngOnDestroy(): void {
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
     this.subscriptions.forEach(sub => {
       if (sub && !sub.closed) {
         sub.unsubscribe();
@@ -45,20 +55,20 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
   }
 
   loadArticles(): void {
-    this.spinner.show();
+    this.isLoadingArticles = true;
     const loadSub = this.inventoryService.getEnabledArticles(0, 10000).subscribe({
       next: (response: ApiResponse) => {
-        this.spinner.hide();
         if (response.statusCode === 200) {
           this.articles = response.data.content;
         } else {
           this.alertService.toastError(response?.message ?? 'Réponse inattendue du serveur.');
         }
+        this.isLoadingArticles = false;
       },
       error: (error) => {
-        this.spinner.hide();
         console.error('Erreur lors du chargement des articles:', error);
         this.alertService.showError('Erreur lors du chargement des articles.');
+        this.isLoadingArticles = false;
       }
     });
 
@@ -72,7 +82,7 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.spinner.show();
+    this.isSubmitting = true;
     const formValue = this.inventoryForm.value;
 
     const payload = {
@@ -84,18 +94,18 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
 
     const submitSub = this.inventoryService.addInventories(payload).subscribe({
       next: (response) => {
-        this.spinner.hide();
         if (response.statusCode === 200) {
           this.alertService.showSuccess('Entrée de stock effectuée avec succès');
           this.router.navigate(['/inventory']);
         } else {
           this.alertService.showError(response.message || 'Erreur lors de l\'ajout de l\'article');
+          this.isSubmitting = false;
         }
       },
       error: (err) => {
-        this.spinner.hide();
         console.error('Erreur lors de la soumission:', err);
         this.alertService.showError('Erreur lors de la soumission de l\'entrée de stock');
+        this.isSubmitting = false;
       }
     });
 

@@ -21,6 +21,7 @@ description: >
 | Référence | Fichier |
 |-----------|---------|
 | Liste avec KPI + toolbar + tableau | [client-list.component.html](frontend/src/app/client/client-list/client-list.component.html) |
+| Persistance recherche + pagination | [client-list.component.ts](frontend/src/app/client/client-list/client-list.component.ts) |
 | Page avec header + KPI enfants | [credit-late.component.html](frontend/src/app/credit/credit-late/credit-late.component.html) |
 | Styles complets (variables, animations) | [credit-late.component.scss](frontend/src/app/credit/credit-late/credit-late.component.scss) |
 | Rapports mensuels (exemple récent) | [monthly-reports.component.html](frontend/src/app/report/pages/monthly-reports/monthly-reports.component.html) |
@@ -124,6 +125,50 @@ Tous les sélecteurs SCSS **doivent être préfixés** par la classe page (`.mon
 - Bouton **Actualiser** appelle la même méthode que le chargement initial
 - États `loading` / `empty` gérés explicitement dans le template
 
+## Persistance de l'état liste (obligatoire)
+
+Toute page liste avec **recherche**, **filtres** ou **pagination** doit conserver son état quand l'utilisateur quitte la page (formulaire, détail, autre route) puis revient.
+
+**Référence** : `client-list.component.ts` (`saveState` / `restoreState` via `sessionStorage`).
+
+### À persister au minimum
+
+- Terme de recherche (`searchTerm` / `search`)
+- Index de page (`currentPage` / `pageIndex` / `page`)
+- Taille de page (`pageSize` / `size`)
+- Filtres actifs (commercial, période, statut, etc. si présents)
+
+### Implémentation standard
+
+```typescript
+private readonly STATE_KEY = 'maListeState';
+
+interface MaListeState {
+  searchTerm: string;
+  currentPage: number;
+  pageSize: number;
+}
+
+ngOnInit(): void {
+  this.restoreState();
+  this.loadData();
+}
+
+ngOnDestroy(): void {
+  this.saveState();
+}
+
+// Appeler saveState() :
+// - après chargement réussi
+// - sur changement de page / recherche / filtre
+// - avant router.navigate() vers formulaire ou détail
+```
+
+- Clé `STATE_KEY` unique par liste (ex. `localityListState`, `inventoryListState`)
+- `restoreState()` dans `ngOnInit()` **avant** le premier chargement
+- `saveState()` dans `ngOnDestroy()` et avant toute navigation sortante
+- Mentionner la persistance dans le `page-subtitle` si pertinent (ex. « Recherche et pagination conservées à la navigation »)
+
 ## Checklist avant livraison
 
 ```
@@ -136,6 +181,7 @@ Tous les sélecteurs SCSS **doivent être préfixés** par la classe page (`.mon
 - [ ] Responsive : kpi 2 colonnes < 900px, header empilé < 600px
 - [ ] SCSS préfixé si ViewEncapsulation.None
 - [ ] Référence visuelle comparée à client-list ou credit-late
+- [ ] Recherche, filtres et pagination persistés (`sessionStorage`, `saveState` / `restoreState`)
 ```
 
 ## Anti-patterns
@@ -146,3 +192,4 @@ Tous les sélecteurs SCSS **doivent être préfixés** par la classe page (`.mon
 - Couleur violette / Material primary par défaut
 - Dupliquer 800 lignes SCSS sans préfixe page quand `ViewEncapsulation.None`
 - Oublier le fil d'Ariane et l'horloge
+- Oublier la persistance de l'état liste (recherche / page perdues au retour depuis un formulaire)

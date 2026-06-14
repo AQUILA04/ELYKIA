@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../../shared/service/base-http.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { StockTontineReturn } from '../models/stock-tontine-return.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 import { Page } from '../../shared/models/page.model';
+import { StockListFilter } from '../../stock/services/stock-request.service';
+import { StockReturnKpis } from '../../stock/services/stock-return.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,16 +31,39 @@ export class StockTontineReturnService extends BaseHttpService {
     return this.put<StockTontineReturn>(`${this.baseUrl}/${id}/validate`, {});
   }
 
-  getAllReturns(collector: string | null, page: number = 0, size: number = 20): Observable<Page<StockTontineReturn>> {
-    let url = `${this.baseUrl}?page=${page}&size=${size}`;
-    if (collector) {
-      url += `&collector=${collector}`;
+  getAllReturns(filter: StockListFilter, page: number = 0, size: number = 20): Observable<Page<StockTontineReturn>> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    if (filter.collector) {
+      params = params.set('collector', filter.collector);
     }
-    return this.get<Page<StockTontineReturn>>(url);
+    if (filter.startDate) {
+      params = params.set('startDate', filter.startDate);
+    }
+    if (filter.endDate) {
+      params = params.set('endDate', filter.endDate);
+    }
+
+    return this.get<Page<StockTontineReturn>>(this.baseUrl, { params });
   }
 
-  // Méthode de compatibilité/raccourci
+  getKpis(filter: StockListFilter): Observable<StockReturnKpis> {
+    let params = new HttpParams();
+    if (filter.collector) {
+      params = params.set('collector', filter.collector);
+    }
+    if (filter.startDate) {
+      params = params.set('startDate', filter.startDate);
+    }
+    if (filter.endDate) {
+      params = params.set('endDate', filter.endDate);
+    }
+    return this.get<StockReturnKpis>(`${this.baseUrl}/kpis`, { params });
+  }
+
   getMyReturns(page: number = 0, size: number = 20): Observable<Page<StockTontineReturn>> {
-    return this.getAllReturns(null, page, size);
+    return this.getAllReturns({}, page, size);
   }
 }

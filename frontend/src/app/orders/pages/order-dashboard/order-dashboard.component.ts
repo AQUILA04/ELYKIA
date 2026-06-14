@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { takeUntil, map, startWith } from 'rxjs/operators';
@@ -27,10 +27,16 @@ import {ToastrService} from "ngx-toastr";
   selector: 'app-order-dashboard',
   templateUrl: './order-dashboard.component.html',
   styleUrls: ['./order-dashboard.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class OrderDashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private dateIntervalId?: ReturnType<typeof setInterval>;
+
+  currentDate = new Date();
+  lastUpdate = new Date();
 
   // Observables
   state$: Observable<OrderState>;
@@ -56,11 +62,26 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadInitialData();
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
+  }
+
+  refresh(): void {
+    this.loadInitialData();
+  }
+
+  get selectedTabIndex(): number {
+    const index = this.statusTabs.findIndex(tab => tab.status === this.currentTab);
+    return index >= 0 ? index : 0;
   }
 
   private setupObservables(): void {
@@ -87,6 +108,9 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
     this.orderService.getKPIs().pipe(
       takeUntil(this.destroy$)
     ).subscribe({
+      next: () => {
+        this.lastUpdate = new Date();
+      },
       error: (error) => {
         console.error('Erreur lors du chargement des KPIs:', error);
       }
@@ -99,6 +123,9 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
     this.orderService.getOrders(0, 50, filters).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
+      next: () => {
+        this.lastUpdate = new Date();
+      },
       error: (error) => {
         console.error('Erreur lors du chargement des commandes:', error);
         this.showError('Erreur lors du chargement des commandes');
@@ -364,12 +391,22 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
 
   getTabColor(tab: StatusTabConfig): string {
     const colors = {
-      'warning': '#f57c00',
-      'primary': '#1976d2',
-      'success': '#388e3c',
-      'secondary': '#616161'
+      'warning': '#c75000',
+      'primary': '#003366',
+      'success': '#1d8a3c',
+      'secondary': '#6b7a99'
     };
-    return colors[tab.color as keyof typeof colors] || '#616161';
+    return colors[tab.color as keyof typeof colors] || '#6b7a99';
+  }
+
+  getKpiCardClass(color?: string): string {
+    switch (color) {
+      case 'warning': return 'kpi-delai';
+      case 'info': return 'kpi-amount';
+      case 'success': return 'kpi-green';
+      case 'primary': return 'kpi-total';
+      default: return 'kpi-muted';
+    }
   }
 
   get selectedOrderIds(): number[] {

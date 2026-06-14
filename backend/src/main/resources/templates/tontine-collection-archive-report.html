@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Archive collectes tontine</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; font-size: 11px; color: #333; }
+        .header { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #003366; padding-bottom: 10px; }
+        .header h1 { margin: 0; font-size: 20px; color: #003366; }
+        .header h2 { margin: 6px 0 0; font-size: 14px; color: #666; font-weight: normal; }
+        .meta { margin-bottom: 20px; background: #f0f4f9; padding: 12px; border-radius: 4px; }
+        .meta-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .meta-table td { width: 50%; vertical-align: top; padding: 5px 24px 5px 0; font-size: 11px; line-height: 1.5; }
+        .meta-table td.meta-col-right { padding: 5px 0 5px 24px; border-left: 1px solid #dde3ec; }
+        .meta-label { font-weight: bold; color: #003366; margin-right: 6px; }
+        .meta-value { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th { background: #003366; color: white; padding: 8px 6px; text-align: left; font-size: 10px; }
+        td { padding: 6px; border-bottom: 1px solid #dde3ec; font-size: 10px; }
+        tr:nth-child(even) { background: #f9fbfd; }
+        .total-row td { font-weight: bold; background: #e8eef6; border-top: 2px solid #003366; }
+        .footer { margin-top: 24px; text-align: center; font-size: 9px; color: #888; border-top: 1px solid #ddd; padding-top: 8px; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>ARCHIVE DES COLLECTES TONTINE</h1>
+    <h2 th:text="'Session ' + ${sessionYear}">Session 2026</h2>
+</div>
+
+<div class="meta">
+    <table class="meta-table">
+        <tr>
+            <td>
+                <span class="meta-label">Commercial tontine :</span>
+                <span class="meta-value" th:text="${commercial}">COM001</span>
+            </td>
+            <td class="meta-col-right">
+                <span class="meta-label">Quartier :</span>
+                <span class="meta-value" th:text="${quarter}">Tokoin</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="meta-label">Nombre de collectes :</span>
+                <span class="meta-value" th:text="${collectionCount}">0</span>
+            </td>
+            <td class="meta-col-right">
+                <span class="meta-label">Montant total :</span>
+                <span class="meta-value" th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' FCFA'">0 FCFA</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="meta-label">Société :</span>
+                <span class="meta-value" th:text="${companyName}">AMENOUVEVE - YAVEH</span>
+            </td>
+            <td class="meta-col-right">
+                <span class="meta-label">Généré le :</span>
+                <span class="meta-value" th:text="${generationDate}">01/01/2026</span>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Client</th>
+        <th>Code</th>
+        <th>Date collecte</th>
+        <th>Enregistré par</th>
+        <th>Livraison</th>
+        <th>Référence</th>
+        <th style="text-align:right">Montant (FCFA)</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="row : ${rows}">
+        <td th:text="${row.clientName()}">Client</td>
+        <td th:text="${row.clientCode()}">CODE</td>
+        <td th:text="${#temporals.format(row.collectionDate(), 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+        <td th:text="${row.recordedBy()}">COM001</td>
+        <td th:text="${row.isDeliveryCollection() ? 'Oui' : 'Non'}">Non</td>
+        <td th:text="${row.reference() != null ? row.reference() : '—'}">—</td>
+        <td style="text-align:right" th:text="${#numbers.formatDecimal(row.amount(), 0, 'COMMA', 0, 'POINT')}">0</td>
+    </tr>
+    <tr class="total-row">
+        <td colspan="6">TOTAL</td>
+        <td style="text-align:right" th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')}">0</td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="footer">
+    Document généré automatiquement avant réinitialisation des collectes tontine — ELYKIA
+</div>
+</body>
+</html>

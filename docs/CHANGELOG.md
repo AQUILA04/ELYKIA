@@ -10,8 +10,38 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ## [Unreleased]
 
+### Fixed
+
+- **Backend —** PDF archive collectes tontine : bloc métadonnées en tableau 2 colonnes (espacement fiable à l'export PDF, le flexbox n'étant pas supporté par iText).
+- **Frontend —** page réinitialisation collectes tontine : colonne action élargie (libellé « Télécharger » vertical), spinner de téléchargement isolé, états de chargement et anti double-clic sur archivage/réinitialisation.
+
+### Added
+
+- **Backend —** réinitialisation des collectes tontine de la session en cours : archivage PDF par commercial tontine et quartier (MinIO), remise à zéro des contributions membres, ajustement des rapports journaliers commerciaux (`totalAmountToDeposit`, collectes tontine), permission `ROLE_RESET_TONTINE_COLLECTIONS` (profils ADMIN et GESTIONNAIRE).
+- **Frontend —** page « Réinit. collectes » sous Tontines : archivage PDF seul ou archivage + réinitialisation, consultation et téléchargement des archives.
+
+- **Frontend —** fiche détail commande : refonte UI alignée sur le style ELYKIA (sections client, commande, articles, historique conservées).
+
 ### Changed
 
+- **Frontend —** fiche détail commande : DTO et affichage alignés sur la réponse API (`item.article`, collecteurs client, totaux calculés, `commercialName`, en-têtes tableau alignés).
+- **Frontend —** formulaire commande : refonte UI alignée sur le style formulaire ELYKIA (sections client/articles/résumé, autocomplétion conservée).
+- **Frontend —** tableau de bord commandes : refonte UI (KPI, toolbar, onglets) et liste `order-table` alignée sur le style tableau ELYKIA (data-table, pastilles, btn-detail, pagination corrigée).
+- **Frontend —** liste comptes : KPI métier (actifs, inactifs, solde total actifs) en complément du total enregistré, via l'endpoint dédié.
+
+### Changed
+
+- **Frontend —** formulaire compte : numéro de compte en lecture seule (`readonly`) en création et édition.
+- **Frontend —** listes localités, types d'article et inventaire : persistance session de la recherche et de la pagination au retour depuis formulaire ou détail.
+- **Docs —** skill `frontend-ui-style` : règle obligatoire de persistance d'état liste (`sessionStorage`).
+- **Frontend —** formulaire entrées stock (`inventory-add`) : refonte UI alignée sur le style formulaire ELYKIA.
+- **Frontend —** liste inventaire : refonte UI alignée sur `client-list` avec section dédiée aux actions inventaire (workflow + opérations stock).
+- **Frontend —** listes et formulaires localités / types d'article : refonte UI alignée sur `client-list` (palette navy, KPI, toolbar, `mat-paginator`, formulaires standard).
+- **Frontend —** pages types de dépense (liste et formulaire) : refonte UI alignée sur le module dépenses (KPI, tableau natif, pagination, persistance session, formulaire standard).
+- **Frontend —** listes demandes et retours stock tontine : refonte UI (KPI, filtres période/commercial, pagination, persistance session) alignée sur le stock classique.
+- **Backend —** endpoints stock-tontine-request et stock-tontine-return : filtres date/commercial et KPIs dédiés.
+- **Frontend —** listes demandes de sortie et retours stock : refonte UI (KPI, filtres période/commercial, pagination, persistance session) alignée sur le style liste ELYKIA.
+- **Backend —** endpoints stock-requests et stock-returns : filtres `startDate`/`endDate`/`collector` sur la liste et KPIs dédiés (`/kpis`).
 - **Docs —** CI/CD : le mobile est découplé du gate de déploiement (`ci-mobile.yml` indépendant de `ci.yml`) ; le CD ne bloque plus sur un échec mobile, l'APK release attend les deux workflows.
 - **Frontend —** version `2.9.0` (`package.json`).
 - **Mobile —** version `2.9.0` (`package.json`).
@@ -20,6 +50,8 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Fixed
 
+- **Frontend —** listes retours et demandes stock : correction du chevauchement du bouton « Réinitialiser » sous le sélecteur commercial.
+- **Backend —** listes stock (demandes/retours) : requêtes filtrées compatibles PostgreSQL (paramètres date nullable via SpEL).
 - **Mobile —** CI E2E Playwright : démarrage via build statique + `http-server` (évite le timeout `webServer` de `ionic serve` à 120 s).
 - **Mobile —** correctif compilation E2E : accès `creditPurpose` sur `Record<string, unknown>` (TS4111).
 - **Frontend —** fiche membre tontine : section livraison masquée lorsqu'aucune livraison n'existe (404 API), au lieu d'afficher un bloc vide.

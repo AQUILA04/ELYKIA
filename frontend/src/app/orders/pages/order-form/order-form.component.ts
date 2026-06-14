@@ -3,7 +3,8 @@ import {
   OnInit,
   OnDestroy,
   ChangeDetectionStrategy,
-  ChangeDetectorRef
+  ChangeDetectorRef,
+  ViewEncapsulation
 } from '@angular/core';
 import {
   FormBuilder,
@@ -42,13 +43,17 @@ import { OrderConfirmationModalComponent } from '../../components/modals/order-c
   selector: 'app-order-form',
   templateUrl: './order-form.component.html',
   styleUrls: ['./order-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class OrderFormComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private dateIntervalId?: ReturnType<typeof setInterval>;
 
   orderForm: FormGroup;
   isEditMode = false;
+  currentDate = new Date();
   isLoading = false;
   isSaving = false;
   orderId: number | null = null;
@@ -75,11 +80,17 @@ export class OrderFormComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.determineMode();
     this.loadInitialData();
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
   }
 
   private determineMode(): void {
@@ -248,7 +259,11 @@ export class OrderFormComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (!this.isFormValid || this.isSaving) return;
+    if (!this.isFormValid || this.isSaving) {
+      this.orderForm.markAllAsTouched();
+      this.itemsFormArray.markAsTouched();
+      return;
+    }
     const formValue = this.orderForm.value;
     if (this.isEditMode) this.updateOrder(formValue); else this.createOrder(formValue);
   }

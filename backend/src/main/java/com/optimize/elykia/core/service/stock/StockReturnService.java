@@ -353,17 +353,66 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         return ref;
     }
 
-    public Page<StockReturn> getAll(String collector, Pageable pageable) {
+    public Page<StockReturn> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        StockReturnRepository repo = (StockReturnRepository) repository;
+        String effectiveCollector = resolveCollector(collector);
+        List<StockReturnStatus> statuses = resolveVisibleStatuses();
         Sort sort = Sort.by(Sort.Direction.DESC, "id");
-        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        return repo.findFiltered(effectiveCollector, startDate, endDate, statuses, sortedPageable);
+    }
+
+    public com.optimize.elykia.core.dto.stock.StockReturnKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
+        StockReturnRepository repo = (StockReturnRepository) repository;
+        String effectiveCollector = resolveCollector(collector);
+        List<StockReturnStatus> statuses = resolveVisibleStatuses();
+
+        List<Object[]> counts = repo.countByStatusFiltered(effectiveCollector, startDate, endDate, statuses);
+
+        long pending = 0;
+        long received = 0;
+        long cancelledRefused = 0;
+
+        for (Object[] row : counts) {
+            StockReturnStatus status = (StockReturnStatus) row[0];
+            long count = (Long) row[1];
+            switch (status) {
+                case CREATED -> pending = count;
+                case RECEIVED -> received = count;
+                case CANCELLED, REFUSED -> cancelledRefused += count;
+                default -> { }
+            }
+        }
+
+        return com.optimize.elykia.core.dto.stock.StockReturnKpiDto.builder()
+                .total(pending + received + cancelledRefused)
+                .pending(pending)
+                .received(received)
+                .cancelledRefused(cancelledRefused)
+                .build();
+    }
+
+    private String resolveCollector(String collector) {
         if (collector != null && !collector.isEmpty()) {
-            return ((StockReturnRepository) repository).findByCollector(collector, pageable);
+            return collector;
         }
         User currentUser = userService.getCurrentUser();
         if (currentUser.is(UserProfilConstant.PROMOTER)) {
-            return ((StockReturnRepository) repository).findByCollector(currentUser.getUsername(), pageable);
+            return currentUser.getUsername();
         }
-        return ((StockReturnRepository) repository)
-                .findByStatusIn(List.of(StockReturnStatus.CREATED, StockReturnStatus.RECEIVED, StockReturnStatus.CANCELLED, StockReturnStatus.REFUSED), pageable);
+        return null;
+    }
+
+    private List<StockReturnStatus> resolveVisibleStatuses() {
+        return List.of(
+                StockReturnStatus.CREATED,
+                StockReturnStatus.RECEIVED,
+                StockReturnStatus.CANCELLED,
+                StockReturnStatus.REFUSED);
+    }
+
+    /** @deprecated use {@link #getAll(String, LocalDate, LocalDate, Pageable)} */
+    public Page<StockReturn> getAll(String collector, Pageable pageable) {
+        return getAll(collector, null, null, pageable);
     }
 }

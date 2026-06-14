@@ -1,59 +1,110 @@
-<div class="container">
-  <div class="form-header">
-    <h1>Editer un Compte</h1>
+<div class="main-container account-form-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/accountlist" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Liste des comptes
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
   </div>
-  <form [formGroup]="accountForm" (ngSubmit)="onSubmit()">
-    <div class="form-group">
-      <label for="clientId">Client<span class="text-danger">*</span></label>
-      <ng-select
-        formControlName="clientId"
-        [items]="clients"
-        bindValue="id"
-        [searchFn]="searchClient"
-        placeholder="Rechercher et sélectionner un client"
-        notFoundText="Aucun client trouvé">
-        <ng-template ng-label-tmp let-item="item">
-          {{ item.firstname }} {{ item.lastname }}
-        </ng-template>
-        <ng-template ng-option-tmp let-item="item" let-search="searchTerm">
-          <div>{{ item.firstname }} {{ item.lastname }}</div>
-        </ng-template>
-      </ng-select>
-      <mat-error *ngIf="accountForm.get('clientId')?.invalid && accountForm.get('clientId')?.touched">
-        Le client est requis.
-      </mat-error>
-    </div>
-    <div class="form-group">
-      <label for="accountNumber">Numéro de Compte <span class="text-danger">*</span></label>
-      <input id="accountNumber" formControlName="accountNumber" class="form-control" />
-      <div *ngIf="accountForm.get('accountNumber')?.invalid && accountForm.get('accountNumber')?.touched">
-        <mat-error *ngIf="accountForm.get('accountNumber')?.errors?.['required']">
-          Le numéro de compte est requis.
-        </mat-error>
-        <mat-error *ngIf="accountForm.get('accountNumber')?.errors?.['minlength']">
-          Le numéro de compte doit contenir au moins 4 chiffres.
-        </mat-error>
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="accountBalance">Solde du Compte<span class="text-danger">*</span></label>
-      <input id="accountBalance" formControlName="accountBalance" class="form-control" />
-      <div *ngIf="accountForm.get('accountBalance')?.invalid && accountForm.get('accountBalance')?.touched" class="error-message">
-        <mat-error *ngIf="accountForm.get('accountBalance')?.errors?.['required']">
-          Le solde du compte est requis.
-        </mat-error>
-        <mat-error *ngIf="accountForm.get('accountBalance')?.errors?.['min']">
-          Le solde du compte doit être au minimum de 500.
-        </mat-error>
-        <mat-error *ngIf="accountForm.get('accountBalance')?.errors?.['max']">
-          Le solde du compte ne doit pas dépasser 100000.
-        </mat-error>
-      </div>
-    </div>
 
-    <div class="actions">
-      <button type="button" class="btn btn-cancel" (click)="onCancel()">Annuler</button>
-      <button type="submit" class="btn btn-submit" [disabled]="accountForm.invalid">Enregistrer</button>
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">GESTION DES COMPTES</span>
     </div>
-  </form>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          <rect width="20" height="12" x="2" y="6" rx="2"/>
+          <circle cx="12" cy="12" r="2"/>
+          <path d="M6 12h.01M18 12h.01"/>
+        </svg>
+        <h1 class="page-title">{{ isEditMode ? 'Modifier le compte' : 'Nouveau compte' }}</h1>
+      </div>
+    </div>
+    <p class="page-subtitle">
+      {{ isEditMode ? 'Mettez à jour le client associé ou le solde du compte' : 'Associez un client et définissez le solde initial du compte' }}
+    </p>
+  </div>
+
+  <div class="form-card a3">
+    <form [formGroup]="accountForm" (ngSubmit)="onSubmit()">
+      <div class="field-group">
+        <label class="field-label" for="clientId">Client <span class="req">*</span></label>
+        <ng-select
+          id="clientId"
+          formControlName="clientId"
+          [items]="clients"
+          bindValue="id"
+          [searchFn]="searchClient"
+          placeholder="Rechercher et sélectionner un client"
+          notFoundText="Aucun client trouvé">
+          <ng-template ng-label-tmp let-item="item">
+            {{ item.firstname }} {{ item.lastname }}
+          </ng-template>
+          <ng-template ng-option-tmp let-item="item">
+            <div>{{ item.firstname }} {{ item.lastname }}</div>
+          </ng-template>
+        </ng-select>
+        <span class="field-error" *ngIf="accountForm.get('clientId')?.invalid && accountForm.get('clientId')?.touched">
+          Le client est requis.
+        </span>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="accountNumber">Numéro de compte <span class="req">*</span></label>
+        <input
+          id="accountNumber"
+          type="text"
+          class="field-input"
+          formControlName="accountNumber"
+          readonly
+          placeholder="Généré automatiquement à la création">
+        <span class="field-hint">Le numéro de compte n'est pas modifiable.</span>
+        <span class="field-error" *ngIf="accountForm.get('accountNumber')?.errors?.['required'] && accountForm.get('accountNumber')?.touched">
+          Le numéro de compte est requis.
+        </span>
+        <span class="field-error" *ngIf="accountForm.get('accountNumber')?.errors?.['minlength'] && accountForm.get('accountNumber')?.touched">
+          Le numéro de compte doit contenir 10 caractères.
+        </span>
+        <span class="field-error" *ngIf="accountForm.get('accountNumber')?.errors?.['maxlength'] && accountForm.get('accountNumber')?.touched">
+          Le numéro de compte doit contenir 10 caractères.
+        </span>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="accountBalance">Solde du compte <span class="req">*</span></label>
+        <input
+          id="accountBalance"
+          type="number"
+          class="field-input"
+          formControlName="accountBalance"
+          min="500"
+          max="2000000"
+          placeholder="Ex : 5000">
+        <span class="field-hint">Montant entre 500 et 2 000 000 XOF.</span>
+        <span class="field-error" *ngIf="accountForm.get('accountBalance')?.errors?.['required'] && accountForm.get('accountBalance')?.touched">
+          Le solde du compte est requis.
+        </span>
+        <span class="field-error" *ngIf="accountForm.get('accountBalance')?.errors?.['min'] && accountForm.get('accountBalance')?.touched">
+          Le solde du compte doit être au minimum de 500.
+        </span>
+        <span class="field-error" *ngIf="accountForm.get('accountBalance')?.errors?.['max'] && accountForm.get('accountBalance')?.touched">
+          Le solde du compte ne doit pas dépasser 2 000 000.
+        </span>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isLoading">Annuler</button>
+        <button type="submit" class="btn-submit" [disabled]="accountForm.invalid || isLoading || accountNumberExists">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {{ isLoading ? 'Enregistrement…' : (isEditMode ? 'Enregistrer les modifications' : 'Créer le compte') }}
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

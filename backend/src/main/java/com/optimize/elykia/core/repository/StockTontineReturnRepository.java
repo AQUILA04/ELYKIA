@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface StockTontineReturnRepository extends GenericRepository<StockTontineReturn, Long> {
@@ -26,4 +27,29 @@ public interface StockTontineReturnRepository extends GenericRepository<StockTon
 
     @Query("SELECT s FROM StockTontineReturn s WHERE s.collector = :collector AND s.status = :status")
     List<StockTontineReturn> findByCollectorAndStatus(@Param("collector") String collector, @Param("status") StockReturnStatus status);
+
+    @Query("SELECT s FROM StockTontineReturn s WHERE " +
+            "(:#{#collector == null} = true OR s.collector = :collector) " +
+            "AND s.status IN :statuses " +
+            "AND (:#{#startDate == null} = true OR s.returnDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.returnDate <= :endDate) " +
+            "ORDER BY s.id DESC")
+    Page<StockTontineReturn> findFiltered(
+            @Param("collector") String collector,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("statuses") List<StockReturnStatus> statuses,
+            Pageable pageable);
+
+    @Query("SELECT s.status, COUNT(s) FROM StockTontineReturn s WHERE " +
+            "(:#{#collector == null} = true OR s.collector = :collector) " +
+            "AND s.status IN :statuses " +
+            "AND (:#{#startDate == null} = true OR s.returnDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.returnDate <= :endDate) " +
+            "GROUP BY s.status")
+    List<Object[]> countByStatusFiltered(
+            @Param("collector") String collector,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("statuses") List<StockReturnStatus> statuses);
 }

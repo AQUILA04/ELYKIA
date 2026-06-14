@@ -1,24 +1,62 @@
-<div class="p-4 flex justify-center">
-    <mat-card class="w-full max-w-lg">
-        <mat-card-header>
-            <mat-card-title>{{ isEditMode ? 'Modifier' : 'Ajouter' }} Type de Dépense</mat-card-title>
-        </mat-card-header>
-        <mat-card-content class="pt-4">
-            <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+<div class="main-container a1">
 
-                <mat-form-field appearance="outline">
-                    <mat-label>Nom</mat-label>
-                    <input matInput formControlName="name" placeholder="Ex: Transport">
-                    <mat-error *ngIf="form.get('name')?.hasError('required')">Le nom est obligatoire</mat-error>
-                </mat-form-field>
+  <div class="breadcrumb-bar">
+    <a class="breadcrumb-link" (click)="onCancel()" style="cursor:pointer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Types de dépense
+    </a>
+  </div>
 
-                <div class="flex justify-end gap-2 mt-4">
-                    <button mat-button type="button" (click)="onCancel()" [disabled]="loading">Annuler</button>
-                    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || loading">
-                        {{ isEditMode ? 'Modifier' : 'Ajouter' }}
-                    </button>
-                </div>
-            </form>
-        </mat-card-content>
-    </mat-card>
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">GESTION DES DÉPENSES</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="expense-icon" style="display:block;flex-shrink:0">
+          <path d="M4 6h16M4 12h16M4 18h7"/>
+        </svg>
+        <h1 class="page-title" style="margin:0;padding:0;line-height:1">
+          {{ isEditMode ? 'Modifier le type' : 'Nouveau type de dépense' }}
+        </h1>
+      </div>
+    </div>
+    <p class="page-subtitle">
+      {{ isEditMode ? 'Modifiez le libellé du type de dépense' : 'Ajoutez une catégorie pour classer les dépenses' }}
+    </p>
+  </div>
+
+  <div class="form-card a3">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <div class="field-group">
+        <label class="field-label" for="type-name">Nom <span class="req">*</span></label>
+        <input
+          id="type-name"
+          class="field-input"
+          type="text"
+          formControlName="name"
+          placeholder="Ex : Transport, Loyer, Fournitures…">
+        <span class="field-error" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">
+          Le nom est obligatoire
+        </span>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="loading">Annuler</button>
+        <button type="submit" class="btn-submit" [disabled]="form.invalid || loading">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {{ loading ? 'Enregistrement…' : (isEditMode ? 'Enregistrer les modifications' : 'Créer le type') }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
 </div>

@@ -1,11 +1,24 @@
 import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../../shared/service/base-http.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { StockRequest, StockRequestStatus, PartialDeliveryResponseDTO, StockRequestCreateDto } from '../models/stock-request.model';
 import { Page } from '../../shared/models/page.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
+
+export interface StockRequestKpis {
+  total: number;
+  pending: number;
+  validated: number;
+  delivered: number;
+}
+
+export interface StockListFilter {
+  collector?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -45,14 +58,36 @@ export class StockRequestService extends BaseHttpService {
     return this.http.get<Page<StockRequest>>(`${this.baseUrl}/collector/${collector}?page=${page}&size=${size}`);
   }
 
-  getAll(collector: string | null, page: number = 0, size: number = 20): Observable<any> {
-    console.log('Get All call ...')
-    if (collector) {
-      console.log('If collector ...')
-      return this.http.get<Page<StockRequest>>(`${this.baseUrl}?collector=${collector}&page=${page}&size=${size}`);
+  getAll(filter: StockListFilter, page: number = 0, size: number = 20): Observable<any> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    if (filter.collector) {
+      params = params.set('collector', filter.collector);
     }
-    console.log('else collector ...')
-    return this.http.get<any>(`${this.baseUrl}?page=${page}&size=${size}`);
+    if (filter.startDate) {
+      params = params.set('startDate', filter.startDate);
+    }
+    if (filter.endDate) {
+      params = params.set('endDate', filter.endDate);
+    }
+
+    return this.http.get<any>(`${this.baseUrl}`, { params });
+  }
+
+  getKpis(filter: StockListFilter): Observable<StockRequestKpis> {
+    let params = new HttpParams();
+    if (filter.collector) {
+      params = params.set('collector', filter.collector);
+    }
+    if (filter.startDate) {
+      params = params.set('startDate', filter.startDate);
+    }
+    if (filter.endDate) {
+      params = params.set('endDate', filter.endDate);
+    }
+    return this.http.get<StockRequestKpis>(`${this.baseUrl}/kpis`, { params });
   }
 
   getByStatus(status: StockRequestStatus, page: number = 0, size: number = 20): Observable<Page<StockRequest>> {

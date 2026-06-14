@@ -7,6 +7,7 @@ import { SessionComparisonComponent } from './pages/session-comparison/session-c
 import { TontineMagasinierDashboardComponent } from './pages/magasinier-dashboard/tontine-magasinier-dashboard.component'; // New component
 import { TontineCollecteComponent } from './collecte/tontine-collecte.component';
 import { TontineDeliveryListComponent } from './pages/delivery-list/tontine-delivery-list.component';
+import { TontineCollectionResetComponent } from './pages/tontine-collection-reset/tontine-collection-reset.component';
 
 const routes: Routes = [
   {
@@ -34,6 +35,12 @@ const routes: Routes = [
   {
     path: 'livraisons',
     component: TontineDeliveryListComponent
+  },
+  {
+    path: 'reset-collectes',
+    component: TontineCollectionResetComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ['ROLE_RESET_TONTINE_COLLECTIONS', 'ROLE_ADMIN'] }
   }
 ];
 

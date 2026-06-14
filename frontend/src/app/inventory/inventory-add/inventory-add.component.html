@@ -1,39 +1,67 @@
-<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
-
-<div class="container">
-  <div class="form-header">
-    <mat-icon class="header-icon">inventory</mat-icon>
-    <h1>Entrée de stock</h1>
-    <p class="subtitle">Ajouter des articles à l'inventaire</p>
+<div class="main-container inventory-add-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/inventory" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Inventaires
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
   </div>
 
-  <form [formGroup]="inventoryForm" (ngSubmit)="onSubmit()">
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">GESTION DU STOCK</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <path d="M3.27 6.96 12 12.01 20.73 6.96"/>
+          <path d="M12 22.08V12"/>
+        </svg>
+        <h1 class="page-title">Entrée de stock</h1>
+      </div>
+    </div>
+    <p class="page-subtitle">Sélectionnez les articles et les quantités à approvisionner</p>
+  </div>
 
-    <!-- Utilisation du composant article-selector en mode inventory -->
-    <div class="form-group">
-      <label>Articles à approvisionner<span class="text-danger">*</span></label>
-      <app-article-selector
-        formControlName="articles"
-        [articles]="articles"
-        [priceType]="'inventory'"
-        [showStock]="false"
-        [validateStock]="false"
-      >
-      </app-article-selector>
-      <mat-error *ngIf="inventoryForm.get('articles')?.invalid && inventoryForm.get('articles')?.touched">
-        Au moins un article doit être sélectionné.
-      </mat-error>
+  <div class="form-card a3">
+    <div *ngIf="isLoadingArticles" class="form-loading">
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Chargement des articles…</div>
+      </div>
     </div>
 
-    <div class="actions">
-      <button type="button" class="btn btn-cancel" (click)="onCancel()">
-        <mat-icon>cancel</mat-icon>
-        <span>Annuler</span>
-      </button>
-      <button type="submit" class="btn btn-submit" [disabled]="inventoryForm.invalid">
-        <mat-icon>check_circle</mat-icon>
-        <span>Valider l'entrée</span>
-      </button>
-    </div>
-  </form>
+    <form *ngIf="!isLoadingArticles" [formGroup]="inventoryForm" (ngSubmit)="onSubmit()">
+      <div class="field-group selector-group">
+        <label class="field-label">Articles à approvisionner <span class="req">*</span></label>
+        <div class="selector-block">
+          <app-article-selector
+            formControlName="articles"
+            [articles]="articles"
+            [priceType]="'inventory'"
+            [showStock]="false"
+            [validateStock]="false">
+          </app-article-selector>
+        </div>
+        <span class="field-error" *ngIf="inventoryForm.get('articles')?.invalid && inventoryForm.get('articles')?.touched">
+          Au moins un article doit être sélectionné
+        </span>
+        <p class="field-hint">Ajoutez une ou plusieurs lignes avec l'article et la quantité reçue.</p>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isSubmitting">Annuler</button>
+        <button type="submit" class="btn-submit" [disabled]="inventoryForm.invalid || isSubmitting">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {{ isSubmitting ? 'Enregistrement…' : 'Valider l\'entrée' }}
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

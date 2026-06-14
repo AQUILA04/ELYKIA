@@ -1,104 +1,197 @@
-<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+<div class="main-container stock-tontine-return-page a1">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/stock-tontine/my-stock" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Mon stock tontine
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
 
-<div class="container">
-  <div class="header-fixed">
-    <h1>Retours Stock Tontine</h1>
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">STOCK TONTINE</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+          </svg>
+          <h1 class="page-title">Retours stock tontine</h1>
+        </div>
+        <button class="btn-refresh" (click)="refresh()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">Retours de stock tontine · Filtres période et commercial conservés à la navigation</p>
+    </div>
   </div>
 
-  <div class="action-bar">
-    <button *ngIf="isStoreKeeper || isPromoter" class="btn-add" routerLink="/stock-tontine/return/create">
-      <mat-icon>undo</mat-icon> Nouveau Retour
-    </button>
-  </div>
+  <div class="page-scroll-body">
+    <div class="kpi-strip a3" *ngIf="kpis">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Total retours</div>
+        <div class="kpi-value">{{ kpis.total }}</div>
+        <div class="kpi-sub">{{ periodLabel }}</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">En attente</div>
+        <div class="kpi-value">{{ kpis.pending }}</div>
+        <div class="kpi-sub">À réceptionner</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Réceptionnés</div>
+        <div class="kpi-value">{{ kpis.received }}</div>
+        <div class="kpi-sub">Stock mis à jour</div>
+      </div>
+      <div class="kpi-card kpi-delai">
+        <div class="kpi-label">Annulés / Refusés</div>
+        <div class="kpi-value">{{ kpis.cancelledRefused }}</div>
+        <div class="kpi-sub">Non traités</div>
+      </div>
+    </div>
 
-  <div class="table-container">
-    <table class="article-table">
-      <thead>
-        <tr>
-          <th>Date Retour</th>
-          <th>Commercial</th>
-          <th>Statut</th>
-          <th class="actions-column">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let ret of returns">
-          <td>{{ ret.returnDate | date:'dd/MM/yyyy' }}</td>
-          <td>{{ ret.collector }}</td>
-          <td>
-            <span class="badge" [ngClass]="getStatusBadge(ret.status!)">{{ getStatusLabel(ret.status) }}</span>
-          </td>
-          <td class="actions-column">
-            <div class="action-buttons-wrapper">
-              <button mat-icon-button (click)="showDetails(ret)" matTooltip="Détails" class="btn-action details">
-                <mat-icon>visibility</mat-icon>
-              </button>
-              <button *ngIf="isStoreKeeper && ret.status === 'CREATED'" class="btn-action validate"
-                (click)="validate(ret)" matTooltip="Réceptionner le retour">
-                <mat-icon>check_circle</mat-icon>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="returns.length === 0">
-          <td colspan="4" class="text-center empty-message">Aucun retour trouvé</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="toolbar a4">
+      <div class="filter-group">
+        <span class="toolbar-label">Période</span>
+        <select class="filter-select" [(ngModel)]="selectedPeriod" (ngModelChange)="onPeriodChange()">
+          <option value="TODAY">Aujourd'hui</option>
+          <option value="WEEK">Cette semaine</option>
+          <option value="MONTH">Ce mois</option>
+          <optgroup label="Mois précédents">
+            <option *ngFor="let month of previousMonths" [value]="month.value">{{ month.label }}</option>
+          </optgroup>
+        </select>
+      </div>
 
-    <mat-paginator [length]="totalPages * size"
-              [pageSize]="size"
-              [pageSizeOptions]="[5, 10, 20, 50]"
-              (page)="onPageChange($event)"
-              aria-label="Select page">
-    </mat-paginator>
+      <div class="filter-group filter-group-commercial" *ngIf="canSelectCommercial">
+        <span class="toolbar-label">Commercial</span>
+        <app-commercial-selector
+          [initialValue]="selectedCommercial"
+          (commercialSelected)="onCommercialSelected($event)">
+        </app-commercial-selector>
+      </div>
+
+      <button type="button" class="btn-clear" (click)="resetFilters()">Réinitialiser</button>
+
+      <span class="result-count">
+        <strong>{{ totalElements }}</strong> retour(s)
+      </span>
+
+      <div class="toolbar-actions" *ngIf="isStoreKeeper || isPromoter">
+        <button class="btn-primary" routerLink="/stock-tontine/return/create">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Nouveau retour
+        </button>
+      </div>
+    </div>
+
+    <div class="table-card a5">
+      <div class="table-wrapper">
+        <div *ngIf="isLoading" class="table-loading">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
+        </div>
+
+        <div *ngIf="!isLoading && returns.length === 0" class="table-empty-static">
+          <div class="empty-state">
+            <div class="empty-icon">↩️</div>
+            <div class="empty-title">Aucun retour trouvé</div>
+            <div class="empty-sub">Modifiez la période ou le commercial sélectionné.</div>
+          </div>
+        </div>
+
+        <table class="data-table" *ngIf="!isLoading && returns.length > 0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date retour</th>
+              <th>Commercial</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ret of returns; let i = index">
+              <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
+              <td><span class="col-date">{{ ret.returnDate | date:'dd/MM/yyyy' }}</span></td>
+              <td>{{ ret.collector }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusClass(ret.status)">{{ getStatusLabel(ret.status) }}</span>
+              </td>
+              <td class="col-actions">
+                <button class="btn-detail" (click)="showDetails(ret)" title="Détails">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Voir
+                </button>
+                <button *ngIf="isStoreKeeper && ret.status === 'CREATED'" class="btn-detail btn-success"
+                        (click)="validate(ret)" title="Réceptionner">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination stock-pagination">
+        <mat-paginator
+          [length]="totalElements"
+          [pageSize]="size"
+          [pageIndex]="page"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Modal Détails -->
-<div class="modal" tabindex="-1" role="dialog" [ngStyle]="{'display': selectedReturn ? 'block' : 'none'}" style="background: rgba(0,0,0,0.5)">
-  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
-        <h3 class="modal-title w-100 text-center" style="color: #343a40; font-weight: 600;">
-          Détails du Retour Tontine
-        </h3>
-        <button type="button" class="close" (click)="closeDetails()" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body" *ngIf="selectedReturn">
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <p><strong>Commercial:</strong> {{ selectedReturn.collector }}</p>
-            <p><strong>Date:</strong> {{ selectedReturn.returnDate | date:'dd/MM/yyyy' }}</p>
-          </div>
-          <div class="col-md-6 text-right">
-            <p><strong>Statut:</strong> <span class="badge" [ngClass]="getStatusBadge(selectedReturn.status!)">{{ getStatusLabel(selectedReturn.status) }}</span></p>
-          </div>
+<div class="stock-modal-overlay" *ngIf="selectedReturn" (click)="closeDetails()">
+  <div class="stock-modal" role="dialog" (click)="$event.stopPropagation()">
+    <div class="stock-modal-header">
+      <h3>Détails du retour tontine</h3>
+      <button type="button" class="modal-close" (click)="closeDetails()" aria-label="Fermer">&times;</button>
+    </div>
+    <div class="stock-modal-body">
+      <div class="detail-grid">
+        <div>
+          <p><strong>Commercial :</strong> {{ selectedReturn.collector }}</p>
+          <p><strong>Date :</strong> {{ selectedReturn.returnDate | date:'dd/MM/yyyy' }}</p>
         </div>
+        <div class="detail-status">
+          <p><strong>Statut :</strong>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedReturn.status)">{{ getStatusLabel(selectedReturn.status) }}</span>
+          </p>
+        </div>
+      </div>
 
-        <h6 class="mt-4">Articles retournés</h6>
-        <div class="table-responsive">
-          <table class="table table-sm table-bordered">
-            <thead>
-              <tr>
-                <th>Article</th>
-                <th>Quantité</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of selectedReturn.items">
-                <td>{{ item.article.commercialName }} {{ ' ' + item.article.name }}</td>
-                <td>{{ item.quantity }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-close-modal" (click)="closeDetails()">Fermer</button>
-      </div>
+      <h4>Articles retournés</h4>
+      <table class="modal-table">
+        <thead>
+          <tr>
+            <th>Article</th>
+            <th>Quantité</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of selectedReturn.items">
+            <td>{{ item.article.commercialName }} {{ item.article.name }}</td>
+            <td>{{ item.quantity }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stock-modal-footer">
+      <button type="button" class="btn-primary" (click)="closeDetails()">Fermer</button>
     </div>
   </div>
 </div>

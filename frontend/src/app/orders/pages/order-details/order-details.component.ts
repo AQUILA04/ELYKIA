@@ -3,7 +3,8 @@ import {
   OnInit,
   OnDestroy,
   ChangeDetectionStrategy,
-  ChangeDetectorRef, // CORRECTION : Import du ChangeDetectorRef
+  ChangeDetectorRef,
+  ViewEncapsulation
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -25,6 +26,11 @@ import {
   canDeleteOrder,
   canSellOrder,
   OrderItem,
+  getOrderClientName,
+  getOrderCommercial,
+  getOrderItemArticleName,
+  getOrderItemArticleSubtitle,
+  getOrderItemTotal,
 } from '../../types/order.types';
 import { OrderConfirmationModalComponent } from '../../components/modals/order-confirmation-modal/order-confirmation-modal.component';
 
@@ -32,15 +38,19 @@ import { OrderConfirmationModalComponent } from '../../components/modals/order-c
   selector: 'app-order-details',
   templateUrl: './order-details.component.html',
   styleUrls: ['./order-details.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class OrderDetailsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private dateIntervalId?: ReturnType<typeof setInterval>;
 
   order: Order | null = null;
-  isLoading = true; // Initialiser à true
+  isLoading = true;
   isProcessing = false;
   orderId: number | null = null;
+  currentDate = new Date();
 
   OrderStatus = OrderStatus;
   OrderAction = OrderAction;
@@ -62,14 +72,21 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
         this.orderId = +params['id'];
         this.loadOrder();
       } else {
-        this.isLoading = false; // Pas d'ID, on arrête de charger
+        this.isLoading = false;
       }
     });
+
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
   }
 
   private loadOrder(): void {
@@ -108,7 +125,11 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   get statusColor(): string { return this.order ? getOrderStatusColor(this.order.status) : 'secondary'; }
   get totalItems(): number { return this.order ? (this.order.items || []).reduce((total, item) => total + item.quantity, 0) : 0; }
   get uniqueItemsCount(): number { return this.order ? (this.order.items || []).length : 0; }
-  getClientName(order: Order): string { return `${order.client?.firstname || ''} ${order.client?.lastname || ''}`.trim() || 'Client inconnu'; }
+  getClientName = getOrderClientName;
+  getCommercial = getOrderCommercial;
+  getItemArticleName = getOrderItemArticleName;
+  getItemArticleSubtitle = getOrderItemArticleSubtitle;
+  getItemTotal = getOrderItemTotal;
 
   // === ACTIONS ===
   goBack(): void { this.router.navigate(['/orders']); }
@@ -238,6 +259,31 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
       [OrderAction.CANCEL]: 'Annuler'
     };
     return labels[action] || action;
+  }
+
+  getStatusBadgeClass(status: OrderStatus): string {
+    const classes: Record<string, string> = {
+      [OrderStatus.PENDING]: 'status-pending',
+      [OrderStatus.ACCEPTED]: 'status-accepted',
+      [OrderStatus.SOLD]: 'status-sold',
+      [OrderStatus.DENIED]: 'status-denied',
+      [OrderStatus.CANCEL]: 'status-cancelled'
+    };
+    return classes[status] || 'status-default';
+  }
+
+  getActionButtonClass(action: OrderAction): string {
+    switch (action) {
+      case OrderAction.ACCEPT:
+      case OrderAction.SELL:
+        return 'btn-success';
+      case OrderAction.DELETE:
+      case OrderAction.DENY:
+      case OrderAction.CANCEL:
+        return 'btn-danger';
+      default:
+        return '';
+    }
   }
 
   executeAction(action: OrderAction): void {

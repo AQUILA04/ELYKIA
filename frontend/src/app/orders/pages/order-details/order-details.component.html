@@ -1,255 +1,228 @@
-<div class="order-details-container">
-  <!-- Indicateur de chargement -->
-  <div class="loading-container" *ngIf="isLoading">
-    <mat-spinner diameter="40"></mat-spinner>
-    <p>Chargement des détails de la commande...</p>
+<div class="main-container order-details-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/orders" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Commandes
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
   </div>
 
-  <!-- Contenu principal -->
-  <div class="details-content" *ngIf="!isLoading && order">
-    
-    <!-- En-tête -->
-    <div class="details-header">
-      <div class="header-content">
-        <button 
-          mat-icon-button 
-          (click)="goBack()"
-          class="back-button"
-          matTooltip="Retour à la liste">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-        
-        <div class="header-text">
-          <h1 class="details-title">Commande #{{ order.id }}</h1>
-          <p class="details-subtitle">
-            Créée le {{ formatDateTime(order.createdAt || '') }}
-            <span *ngIf="order.createdBy"> par {{ order.createdBy }}</span>
-          </p>
-        </div>
+  <div *ngIf="isLoading" class="detail-card a2 form-loading">
+    <div class="empty-state">
+      <div class="empty-icon">⏳</div>
+      <div class="empty-title">Chargement…</div>
+      <div class="empty-sub">Récupération des détails de la commande</div>
+    </div>
+  </div>
 
-        <!-- Statut -->
-        <div class="status-container">
-          <app-order-status-badge 
-            [status]="order.status" 
-            size="large">
-          </app-order-status-badge>
+  <ng-container *ngIf="!isLoading && order">
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">GESTION DES COMMANDES</span>
+        <span class="status-badge header-status" [ngClass]="getStatusBadgeClass(order.status)">
+          {{ statusLabel }}
+        </span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+            <path d="M3 6h18"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <h1 class="page-title">Commande #{{ order.id }}</h1>
         </div>
       </div>
+      <p class="page-subtitle">
+        Commande du {{ formatDateTime(order.orderDate) }}
+        <span *ngIf="order.createdBy"> — créée par {{ order.createdBy }}</span>
+      </p>
+    </div>
 
-      <!-- Actions -->
-      <div class="header-actions">
-        <button 
-          mat-stroked-button
-          color="primary"
+    <div class="actions-toolbar a3" *ngIf="availableActions.length > 0">
+      <span class="toolbar-label">Actions</span>
+      <div class="actions-group">
+        <button
           *ngFor="let action of availableActions"
+          type="button"
+          class="btn-detail"
+          [ngClass]="getActionButtonClass(action)"
           [disabled]="isProcessing"
-          (click)="executeAction(action)"
-          class="action-button">
-          <mat-icon>{{ getActionIcon(action) }}</mat-icon>
-          <span>{{ getActionLabel(action) }}</span>
+          (click)="executeAction(action)">
+          {{ getActionLabel(action) }}
         </button>
       </div>
     </div>
 
-    <!-- Informations principales -->
-    <div class="details-grid">
-      
-      <!-- Informations client -->
-      <mat-card class="info-card">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>person</mat-icon>
-            Informations Client
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
+    <div class="details-grid a4">
+      <section class="detail-card">
+        <div class="section-head">
+          <h2 class="section-title">Informations client</h2>
+        </div>
+        <div class="info-rows">
           <div class="info-row">
-            <span class="info-label">Nom:</span>
+            <span class="info-label">Nom</span>
             <span class="info-value">{{ getClientName(order) }}</span>
           </div>
-          <div class="info-row" *ngIf="order.client?.code">
-            <span class="info-label">Code:</span>
-            <span class="info-value client-code">{{ order.client.code }}</span>
+          <div class="info-row" *ngIf="order.client.phone">
+            <span class="info-label">Téléphone</span>
+            <span class="info-value mono">{{ order.client.phone }}</span>
+          </div>
+          <div class="info-row" *ngIf="order.client.quarter">
+            <span class="info-label">Quartier</span>
+            <span class="info-value">{{ order.client.quarter }}</span>
+          </div>
+          <div class="info-row" *ngIf="order.client.code">
+            <span class="info-label">Code</span>
+            <span class="info-value"><span class="code-pill">{{ order.client.code }}</span></span>
           </div>
           <div class="info-row">
-            <span class="info-label">Commercial:</span>
-            <span class="info-value">{{ order.commercial }}</span>
+            <span class="info-label">Commercial crédit</span>
+            <span class="info-value mono">{{ getCommercial(order) }}</span>
           </div>
-        </mat-card-content>
-      </mat-card>
+          <div class="info-row" *ngIf="order.client.tontineCollector">
+            <span class="info-label">Commercial tontine</span>
+            <span class="info-value mono">{{ order.client.tontineCollector }}</span>
+          </div>
+          <div class="info-row" *ngIf="order.client.agencyCollector">
+            <span class="info-label">Commercial agence</span>
+            <span class="info-value mono">{{ order.client.agencyCollector }}</span>
+          </div>
+        </div>
+      </section>
 
-      <!-- Informations commande -->
-      <mat-card class="info-card">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>receipt</mat-icon>
-            Détails de la Commande
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
+      <section class="detail-card">
+        <div class="section-head">
+          <h2 class="section-title">Détails de la commande</h2>
+        </div>
+        <div class="info-rows">
           <div class="info-row">
-            <span class="info-label">Date de commande:</span>
-            <span class="info-value">{{ formatDateTime(order.orderDate) }}</span>
+            <span class="info-label">Date de commande</span>
+            <span class="info-value mono">{{ formatDateTime(order.orderDate) }}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Nombre d'articles:</span>
+            <span class="info-label">Nombre d'articles</span>
             <span class="info-value">{{ uniqueItemsCount }} type(s)</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Quantité totale:</span>
+            <span class="info-label">Quantité totale</span>
             <span class="info-value">{{ totalItems }} article(s)</span>
           </div>
-          <div class="info-row total-row">
-            <span class="info-label">Montant total:</span>
-            <span class="info-value total-amount">{{ formatCurrency(order.totalAmount) }}</span>
+          <div class="info-row info-total">
+            <span class="info-label">Montant total</span>
+            <span class="info-value amount">{{ formatCurrency(order.totalAmount) }}</span>
           </div>
-        </mat-card-content>
-      </mat-card>
-
+          <div class="info-row" *ngIf="order.totalPurchasePrice != null">
+            <span class="info-label">Coût d'achat</span>
+            <span class="info-value mono">{{ formatCurrency(order.totalPurchasePrice) }}</span>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <!-- Articles commandés -->
-    <mat-card class="items-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>inventory_2</mat-icon>
-          Articles Commandés
-        </mat-card-title>
-        <mat-card-subtitle>
-          {{ (order.items || []).length }} article(s) dans cette commande
-        </mat-card-subtitle>
-      </mat-card-header>
-      
-      <mat-card-content>
-        <div class="items-table-container">
-          <table mat-table [dataSource]="order.items || []" class="items-table">
-            
-            <!-- Colonne Article -->
-            <ng-container matColumnDef="article">
-              <th mat-header-cell *matHeaderCellDef>Article</th>
-              <td mat-cell *matCellDef="let item">
-                <div class="article-info">
-                  <span class="article-name">{{ item.articleName }}</span>
-                  <span class="article-code" *ngIf="item.articleCode">{{ item.articleCode }}</span>
-                </div>
-              </td>
-            </ng-container>
+    <section class="detail-card table-card a5">
+      <div class="section-head">
+        <h2 class="section-title">Articles commandés</h2>
+        <p class="section-sub">{{ (order.items || []).length }} article(s) dans cette commande</p>
+      </div>
 
-            <!-- Colonne Quantité -->
-            <ng-container matColumnDef="quantity">
-              <th mat-header-cell *matHeaderCellDef class="quantity-column">Quantité</th>
-              <td mat-cell *matCellDef="let item" class="quantity-column">
-                <span class="quantity-value">{{ item.quantity }}</span>
+      <div class="table-wrapper">
+        <table class="data-table" *ngIf="(order.items || []).length > 0">
+          <thead>
+            <tr>
+              <th>Article</th>
+              <th class="col-num">Quantité</th>
+              <th class="col-num">Prix unitaire</th>
+              <th class="col-num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of order.items; trackBy: trackByItemId">
+              <td>
+                <span class="col-name">{{ getItemArticleName(item) }}</span>
+                <span class="col-sub" *ngIf="getItemArticleSubtitle(item) as subtitle">{{ subtitle }}</span>
               </td>
-            </ng-container>
+              <td class="col-num"><span class="col-qty">{{ item.quantity }}</span></td>
+              <td class="col-num"><span class="col-amount">{{ formatCurrency(item.unitPrice) }}</span></td>
+              <td class="col-num"><span class="col-amount">{{ formatCurrency(getItemTotal(item)) }}</span></td>
+            </tr>
+          </tbody>
+        </table>
 
-            <!-- Colonne Prix unitaire -->
-            <ng-container matColumnDef="unitPrice">
-              <th mat-header-cell *matHeaderCellDef class="price-column">Prix unitaire</th>
-              <td mat-cell *matCellDef="let item" class="price-column">
-                <span class="price-value">{{ formatCurrency(item.unitPrice) }}</span>
-              </td>
-            </ng-container>
+        <div class="empty-state" *ngIf="(order.items || []).length === 0">
+          <div class="empty-icon">📦</div>
+          <div class="empty-title">Aucun article</div>
+          <div class="empty-sub">Cette commande ne contient pas d'articles.</div>
+        </div>
+      </div>
 
-            <!-- Colonne Total -->
-            <ng-container matColumnDef="totalPrice">
-              <th mat-header-cell *matHeaderCellDef class="total-column">Total</th>
-              <td mat-cell *matCellDef="let item" class="total-column">
-                <span class="total-value">{{ formatCurrency(item.totalPrice) }}</span>
-              </td>
-            </ng-container>
+      <div class="items-summary">
+        <span class="summary-label">Total de la commande</span>
+        <span class="summary-value">{{ formatCurrency(order.totalAmount) }}</span>
+      </div>
+    </section>
 
-            <tr mat-header-row *matHeaderRowDef="['article', 'quantity', 'unitPrice', 'totalPrice']"></tr>
-            <tr mat-row *matRowDef="let item; columns: ['article', 'quantity', 'unitPrice', 'totalPrice']; trackBy: trackByItemId"></tr>
-          </table>
+    <section class="detail-card history-card a5" *ngIf="order.updatedAt && order.updatedAt !== order.createdAt">
+      <div class="section-head">
+        <h2 class="section-title">Historique</h2>
+      </div>
+
+      <div class="history-timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot created"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">Commande créée</div>
+            <div class="timeline-date">{{ formatDateTime(order.createdAt || '') }}</div>
+            <div class="timeline-user" *ngIf="order.createdBy">par {{ order.createdBy }}</div>
+          </div>
         </div>
 
-        <!-- Résumé -->
-        <div class="items-summary">
-          <div class="summary-row">
-            <span class="summary-label">Total de la commande:</span>
-            <span class="summary-value">{{ formatCurrency(order.totalAmount) }}</span>
+        <div class="timeline-item">
+          <div class="timeline-dot updated"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">Dernière modification</div>
+            <div class="timeline-date">{{ formatDateTime(order.updatedAt || '') }}</div>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
 
-    <!-- Historique (si disponible) -->
-    <mat-card class="history-card" *ngIf="order.updatedAt && order.updatedAt !== order.createdAt">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>history</mat-icon>
-          Historique
-        </mat-card-title>
-      </mat-card-header>
-      
-      <mat-card-content>
-        <div class="history-timeline">
-          <div class="timeline-item">
-            <div class="timeline-icon created">
-              <mat-icon>add</mat-icon>
-            </div>
-            <div class="timeline-content">
-              <div class="timeline-title">Commande créée</div>
-              <div class="timeline-date">{{ formatDateTime(order.createdAt || '') }}</div>
-              <div class="timeline-user" *ngIf="order.createdBy">par {{ order.createdBy }}</div>
-            </div>
-          </div>
-
-          <div class="timeline-item" *ngIf="order.updatedAt && order.updatedAt !== order.createdAt">
-            <div class="timeline-icon updated">
-              <mat-icon>edit</mat-icon>
-            </div>
-            <div class="timeline-content">
-              <div class="timeline-title">Dernière modification</div>
-              <div class="timeline-date">{{ formatDateTime(order.updatedAt || '') }}</div>
-            </div>
-          </div>
-
-          <div class="timeline-item current">
-            <div class="timeline-icon" [ngClass]="'status-' + statusColor">
-              <mat-icon>{{ order.status === OrderStatus.SOLD ? 'monetization_on' : 'info' }}</mat-icon>
-            </div>
-            <div class="timeline-content">
-              <div class="timeline-title">Statut actuel: {{ statusLabel }}</div>
-              <div class="timeline-date">{{ formatDateTime(order.updatedAt || order.createdAt || '') }}</div>
-            </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" [ngClass]="'status-' + statusColor"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">Statut actuel : {{ statusLabel }}</div>
+            <div class="timeline-date">{{ formatDateTime(order.updatedAt || order.createdAt || '') }}</div>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </section>
 
-  </div>
-
-  <!-- Actions flottantes (mobile) -->
-  <div class="floating-actions" *ngIf="!isLoading && order && availableActions.length > 0">
-    <button 
-      mat-fab
-      color="primary"
-      [matMenuTriggerFor]="actionsMenu"
-      class="fab-actions"
-      [disabled]="isProcessing">
-      <mat-icon>more_vert</mat-icon>
-    </button>
-
-    <mat-menu #actionsMenu="matMenu">
-      <button 
-        mat-menu-item
-        *ngFor="let action of availableActions"
+    <div class="floating-actions" *ngIf="availableActions.length > 0">
+      <button
+        type="button"
+        class="fab-trigger"
+        [matMenuTriggerFor]="actionsMenu"
         [disabled]="isProcessing"
-        (click)="executeAction(action)">
-        <mat-icon>{{ getActionIcon(action) }}</mat-icon>
-        <span>{{ getActionLabel(action) }}</span>
+        aria-label="Actions commande">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
       </button>
-    </mat-menu>
-  </div>
+      <mat-menu #actionsMenu="matMenu">
+        <button
+          mat-menu-item
+          *ngFor="let action of availableActions"
+          [disabled]="isProcessing"
+          (click)="executeAction(action)">
+          <span>{{ getActionLabel(action) }}</span>
+        </button>
+      </mat-menu>
+    </div>
+  </ng-container>
 
-  <!-- Indicateur de traitement -->
   <div class="processing-overlay" *ngIf="isProcessing">
-    <div class="processing-content">
-      <mat-spinner diameter="32"></mat-spinner>
-      <span>Traitement en cours...</span>
+    <div class="processing-panel">
+      <div class="processing-spinner">⏳</div>
+      <span>Traitement en cours…</span>
     </div>
   </div>
-
 </div>

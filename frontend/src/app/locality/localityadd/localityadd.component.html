@@ -1,22 +1,58 @@
-<div class="container">
-    <div class="form-header">
-      <h1>Editer une Localité</h1>
+<div class="main-container locality-form-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/localitylist" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Liste des localités
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">RÉFÉRENTIEL GÉOGRAPHIQUE</span>
     </div>
-  
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        <h1 class="page-title">{{ isEditMode ? 'Modifier la localité' : 'Nouvelle localité' }}</h1>
+      </div>
+    </div>
+    <p class="page-subtitle">
+      {{ isEditMode ? 'Mettez à jour le nom de la zone ou du quartier' : 'Ajoutez une zone ou un quartier au référentiel' }}
+    </p>
+  </div>
+
+  <div class="form-card a3">
     <form [formGroup]="localityForm" (ngSubmit)="onSubmit()" data-testid="e2e-locality-form">
-  
-      <div class="form-group">
-        <label for="name">Nom de la localité<span class="text-danger">*</span></label>
-        <input type="text" id="name" formControlName="name" class="form-control" data-testid="e2e-locality-name">
-        <mat-error *ngIf="localityForm.get('name')?.invalid && localityForm.get('name')?.touched">
+      <div class="field-group">
+        <label class="field-label" for="locality-name">Nom de la localité <span class="req">*</span></label>
+        <input
+          id="locality-name"
+          type="text"
+          class="field-input"
+          formControlName="name"
+          placeholder="Ex : AGOE, BE, TOKOIN…"
+          data-testid="e2e-locality-name">
+        <span class="field-error" *ngIf="localityForm.get('name')?.invalid && localityForm.get('name')?.touched">
           Le nom de la localité est requis
-        </mat-error>
+        </span>
       </div>
-      <div class="actions">
-        <button type="button" class="btn btn-cancel" (click)="onCancel()">Annuler</button>
-        <button type="submit" class="btn btn-submit" [disabled]="!localityForm.valid" data-testid="e2e-locality-submit">Valider</button>
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isLoading">Annuler</button>
+        <button type="submit" class="btn-submit" [disabled]="localityForm.invalid || isLoading" data-testid="e2e-locality-submit">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {{ isLoading ? 'Enregistrement…' : (isEditMode ? 'Enregistrer les modifications' : 'Créer la localité') }}
+        </button>
       </div>
-  
     </form>
   </div>
-  
+</div>

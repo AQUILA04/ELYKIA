@@ -8,9 +8,12 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.stock.StockReturnDto;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/stock-returns")
@@ -57,7 +60,19 @@ public class StockReturnController  {
     }
 
     @GetMapping
-    public ResponseEntity<Page<StockReturn>> getAll(String collector, Pageable pageable) {
-        return ResponseEntity.ok(service.getAll(collector, pageable));
+    public ResponseEntity<Page<StockReturn>> getAll(
+            @RequestParam(required = false) String collector,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Pageable pageable) {
+        return ResponseEntity.ok(service.getAll(collector, startDate, endDate, pageable));
+    }
+
+    @GetMapping("/kpis")
+    public ResponseEntity<com.optimize.elykia.core.dto.stock.StockReturnKpiDto> getKpis(
+            @RequestParam(required = false) String collector,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(service.getKpis(collector, startDate, endDate));
     }
 }

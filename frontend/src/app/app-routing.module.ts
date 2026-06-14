@@ -80,14 +80,12 @@ const routes: Routes = [
   {
     path: 'home',
     component: DashboardComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'chart',
     component: DashboardChartComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
 
   // === ROUTES COMMANDES (Order Management) ===
@@ -99,8 +97,7 @@ const routes: Routes = [
       permissions: {
         only: ['ROLE_CONSULT_CREDIT', 'ROLE_EDIT_CREDIT'],
         redirectTo: '/home'
-      },
-      breadcrumb: 'Gestion des Commandes'
+      }
     }
   },
 
@@ -113,8 +110,7 @@ const routes: Routes = [
       permissions: {
         only: ['ROLE_REPORT'],
         redirectTo: '/home'
-      },
-      breadcrumb: 'Dashboard BI'
+      }
     }
   },
 
@@ -127,8 +123,7 @@ const routes: Routes = [
       permissions: {
         only: ['ROLE_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_CONSULT_TONTINE'],
         redirectTo: '/home'
-      },
-      breadcrumb: 'Gestion des Tontines'
+      }
     }
   },
 
@@ -136,20 +131,14 @@ const routes: Routes = [
   {
     path: 'stock',
     loadChildren: () => import('./stock/stock.module').then(m => m.StockModule),
-    canActivate: [AuthGuard],
-    data: {
-      breadcrumb: 'Gestion Stock Commercial'
-    }
+    canActivate: [AuthGuard]
   },
 
   // === ROUTES STOCK TONTINE (Nouveau Module) ===
   {
     path: 'stock-tontine',
     loadChildren: () => import('./stock-tontine/stock-tontine.module').then(m => m.StockTontineModule),
-    canActivate: [AuthGuard],
-    data: {
-      breadcrumb: 'Gestion Stock Tontine'
-    }
+    canActivate: [AuthGuard]
   },
 
   // Articles/Items
@@ -171,8 +160,7 @@ const routes: Routes = [
   {
     path: 'details/:id',
     component: DetailComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
 
   // Localités
@@ -194,8 +182,7 @@ const routes: Routes = [
   {
     path: 'localitydetails/:id',
     component: LocalityDetailsComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
 
   // Crédits
@@ -278,8 +265,7 @@ const routes: Routes = [
   {
     path: 'accountdetails/:id',
     component: AccountdetailsComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
 
   // Clients
@@ -301,8 +287,7 @@ const routes: Routes = [
   {
     path: 'client-details/:id',
     component: ClientDetailsComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'client-view/:id',
@@ -324,40 +309,34 @@ const routes: Routes = [
   {
     path: 'user-list',
     component: UserListComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'user-details/:id',
     component: UserDetailsComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'change-password',
     component: ChangePasswordComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: 'Changer le mot de passe' }
+    canActivate: [AuthGuard]
   },
 
   // Commerciaux
   {
     path: 'commercial-list',
     component: CommercialListComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'commercial-view/:id',
     component: CommercialViewComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'commercial-view/:id/:username',
     component: CommercialViewComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
 
   // Caisse
@@ -379,8 +358,7 @@ const routes: Routes = [
   {
     path: 'billetage',
     component: BilletageComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'tfj',
@@ -392,14 +370,12 @@ const routes: Routes = [
   {
     path: 'inventory',
     component: InventoryComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'inventory-add',
     component: AddInventoryComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'inventory-reconciliation/:id',
@@ -409,8 +385,7 @@ const routes: Routes = [
       permissions: {
         only: ['ROLE_RECONCILE_INVENTORY', 'ROLE_REPORT'],
         redirectTo: '/home'
-      },
-      breadcrumb: 'Réconciliation d\'inventaire'
+      }
     }
   },
 
@@ -418,118 +393,100 @@ const routes: Routes = [
   {
     path: 'gestion-add',
     component: GestionAddComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'gestion-add/:id',
     component: GestionAddComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'gestion-list',
     component: GestionListComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'gestion-details/:id',
     component: GestionDetailsComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
 
   // Opérations
   {
     path: 'operation-add',
     component: OperationAddComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'operation-add/:id',
     component: OperationAddComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'operation-list',
     component: OperationListComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'operation-details',
     component: OperationDetailsComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
 
   // Dépôts
   {
     path: 'deposit-add',
     component: DepositAddComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'deposit-add/:id',
     component: DepositAddComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'deposit-list',
     component: DepositListComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'deposit-details',
     component: DepositDetailsComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
 
   // Sorties
   {
     path: 'out-list',
     component: OutListComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'out-details/:id',
     component: OutDetailsComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'out-pdf-list',
     component: OutPdfListComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'old-release-list',
     component: OldReleaseListComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
 
   // Historique
   {
     path: 'history',
     component: HistoryComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'history-details/:id',
     component: OutDetailsComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'back-store/:id',
@@ -541,14 +498,12 @@ const routes: Routes = [
   {
     path: 'report',
     component: ReportComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'daily-report',
     component: DailyReportComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: 'Rapport Journalier' }
+    canActivate: [AuthGuard]
   },
   {
     path: 'monthly-reports',
@@ -576,8 +531,7 @@ const routes: Routes = [
   {
     path: 'parameters',
     component: ParameterListComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: 'Paramètres' }
+    canActivate: [AuthGuard]
   }
 ];
 

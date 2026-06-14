@@ -5,8 +5,11 @@ import com.optimize.elykia.core.service.stock.StockTontineReturnService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/v1/stock-tontine-return")
@@ -39,7 +42,19 @@ public class StockTontineReturnController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<StockTontineReturn>> getAll(@RequestParam(required = false) String collector, Pageable pageable) {
-        return ResponseEntity.ok(service.getAll(collector, pageable));
+    public ResponseEntity<Page<StockTontineReturn>> getAll(
+            @RequestParam(required = false) String collector,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Pageable pageable) {
+        return ResponseEntity.ok(service.getAll(collector, startDate, endDate, pageable));
+    }
+
+    @GetMapping("/kpis")
+    public ResponseEntity<com.optimize.elykia.core.dto.stock.StockReturnKpiDto> getKpis(
+            @RequestParam(required = false) String collector,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(service.getKpis(collector, startDate, endDate));
     }
 }

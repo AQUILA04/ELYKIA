@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -138,17 +139,63 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         return ((StockTontineReturnRepository) getRepository()).findByCollector(collector, pageable);
     }
 
-    public Page<StockTontineReturn> getAll(String collector, Pageable pageable) {
+    public Page<StockTontineReturn> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        StockTontineReturnRepository repo = (StockTontineReturnRepository) getRepository();
+        String effectiveCollector = resolveCollector(collector);
         Sort sort = Sort.by(Sort.Direction.DESC, "id");
-        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-        if (Objects.nonNull(collector)) {
-            return getByCollector(collector, pageable);
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        return repo.findFiltered(effectiveCollector, startDate, endDate, resolveVisibleStatuses(), sortedPageable);
+    }
+
+    public com.optimize.elykia.core.dto.stock.StockReturnKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
+        StockTontineReturnRepository repo = (StockTontineReturnRepository) getRepository();
+        String effectiveCollector = resolveCollector(collector);
+        List<Object[]> counts = repo.countByStatusFiltered(effectiveCollector, startDate, endDate, resolveVisibleStatuses());
+
+        long pending = 0;
+        long received = 0;
+        long cancelledRefused = 0;
+
+        for (Object[] row : counts) {
+            StockReturnStatus status = (StockReturnStatus) row[0];
+            long count = (Long) row[1];
+            switch (status) {
+                case CREATED -> pending = count;
+                case RECEIVED -> received = count;
+                case CANCELLED, REFUSED -> cancelledRefused += count;
+                default -> { }
+            }
+        }
+
+        return com.optimize.elykia.core.dto.stock.StockReturnKpiDto.builder()
+                .total(pending + received + cancelledRefused)
+                .pending(pending)
+                .received(received)
+                .cancelledRefused(cancelledRefused)
+                .build();
+    }
+
+    private String resolveCollector(String collector) {
+        if (collector != null && !collector.isEmpty()) {
+            return collector;
         }
         User user = userService.getCurrentUser();
-
         if (user.is(UserProfilConstant.PROMOTER)) {
-            return getByCollector(user.getUsername(), pageable);
+            return user.getUsername();
         }
-        return getAll(pageable);
+        return null;
+    }
+
+    private List<StockReturnStatus> resolveVisibleStatuses() {
+        return List.of(
+                StockReturnStatus.CREATED,
+                StockReturnStatus.RECEIVED,
+                StockReturnStatus.CANCELLED,
+                StockReturnStatus.REFUSED);
+    }
+
+    /** @deprecated use {@link #getAll(String, LocalDate, LocalDate, Pageable)} */
+    public Page<StockTontineReturn> getAll(String collector, Pageable pageable) {
+        return getAll(collector, null, null, pageable);
     }
 }

@@ -15,6 +15,19 @@ export interface Account {
   status: string;
 }
 
+export interface AccountKpis {
+  activeCount: number;
+  inactiveCount: number;
+  activeTotalBalance: number;
+}
+
+interface ApiResponse<T> {
+  statusCode: number;
+  message: string;
+  service: string;
+  data: T;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -113,6 +126,13 @@ export class AccountService {
   deactivateAccount(id: number): Observable<any> {
     const headers = this.getHeader();
     return this.http.post(`${this.apiUrl}/closed/${id}`, {}, { headers });
+  }
+
+  getAccountKpis(): Observable<AccountKpis> {
+    const headers = this.getHeader();
+    return this.http.get<ApiResponse<AccountKpis>>(`${this.apiUrl}/kpis`, { headers }).pipe(
+      map(response => response.data)
+    );
   }
 
 }

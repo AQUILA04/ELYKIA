@@ -4,6 +4,7 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.client.dto.AccountDto;
+import com.optimize.elykia.client.dto.AccountKpiDto;
 import com.optimize.elykia.client.dto.AccountRespDto;
 import com.optimize.elykia.client.entity.Account;
 import com.optimize.elykia.client.entity.Client;
@@ -86,6 +87,14 @@ public class AccountService extends GenericService<Account, Long> {
     public Page<AccountRespDto> getAllForCommercial(String commercial, Pageable pageable) {
         return getRepository().getAccountForCommercial(commercial, State.ENABLED, ClientType.CLIENT,
                 AccountStatus.ACTIF, pageable);
+    }
+
+    public AccountKpiDto getAccountKpis() {
+        return AccountKpiDto.builder()
+                .activeCount(getRepository().countActiveAccounts(State.DELETED, AccountStatus.ACTIF))
+                .inactiveCount(getRepository().countInactiveAccounts(State.DELETED, AccountStatus.ACTIF))
+                .activeTotalBalance(getRepository().sumActiveAccountsBalance(State.DELETED, AccountStatus.ACTIF))
+                .build();
     }
 
     // RESTAURÉ : Méthode privée pour construire la logique de recherche

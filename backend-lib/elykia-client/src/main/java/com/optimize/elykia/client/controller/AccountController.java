@@ -39,6 +39,11 @@ public class AccountController {
         return new ResponseEntity<>(ResponseUtil.successResponse(accountService.updateAccount(accountDto, id)), HttpStatus.OK);
     }
 
+    @GetMapping("/kpis")
+    public ResponseEntity<Response> getAccountKpis() {
+        return new ResponseEntity<>(ResponseUtil.successResponse(accountService.getAccountKpis()), HttpStatus.OK);
+    }
+
     @GetMapping(value = "{id}")
     public ResponseEntity<Response> getOne(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(accountService.getById(id)), HttpStatus.OK);

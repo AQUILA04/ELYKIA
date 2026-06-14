@@ -1,0 +1,160 @@
+<div class="main-container tontine-reset-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/dashboard" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Tableau de bord
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">TONTINE · ADMINISTRATION</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="page-icon">
+          <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        <h1 class="page-title">Réinitialisation des collectes</h1>
+      </div>
+      <button class="btn-refresh" (click)="refresh()" [disabled]="loading">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Actualiser
+      </button>
+    </div>
+    <p class="page-subtitle">
+      Archive PDF par commercial tontine et quartier · Réinitialisation des contributions à zéro (membres conservés) · Ajustement des rapports journaliers commerciaux
+    </p>
+  </div>
+
+  <div class="kpi-strip a3">
+    <div class="kpi-card kpi-total">
+      <div class="kpi-label">Sessions archivées</div>
+      <div class="kpi-value">{{ kpis.totalYears }}</div>
+      <div class="kpi-sub">Années couvertes</div>
+    </div>
+    <div class="kpi-card kpi-amount">
+      <div class="kpi-label">Opérations</div>
+      <div class="kpi-value">{{ kpis.totalRuns }}</div>
+      <div class="kpi-sub">Archivages / réinitialisations</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Fichiers PDF</div>
+      <div class="kpi-value">{{ kpis.totalFiles }}</div>
+      <div class="kpi-sub">Par commercial et quartier</div>
+    </div>
+    <div class="kpi-card kpi-delai">
+      <div class="kpi-label">Dernière opération</div>
+      <div class="kpi-value kpi-value-text">{{ kpis.latestLabel }}</div>
+      <div class="kpi-sub">Statut le plus récent</div>
+    </div>
+  </div>
+
+  <div class="toolbar a4">
+    <span class="toolbar-label">Actions</span>
+    <button
+      type="button"
+      class="btn-download"
+      [class.loading]="exporting"
+      (click)="exportOnly()"
+      [disabled]="isProcessing">
+      <span *ngIf="exporting" class="spinner-small" aria-hidden="true"></span>
+      {{ exporting ? 'Archivage en cours…' : 'Archiver PDF uniquement' }}
+    </button>
+    <button
+      type="button"
+      class="btn-primary btn-danger"
+      [class.loading]="resetPending || resetting"
+      (click)="triggerReset()"
+      [disabled]="isProcessing">
+      <span *ngIf="resetting" class="spinner-small" aria-hidden="true"></span>
+      {{ resetPending ? 'Confirmation…' : (resetting ? 'Traitement en cours…' : 'Archiver et réinitialiser') }}
+    </button>
+    <span class="result-count"><strong>{{ kpis.totalFiles }}</strong> fichier(s) PDF</span>
+  </div>
+
+  <div class="table-card a5">
+    <div class="table-wrapper">
+      <div *ngIf="loading" class="table-loading">
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-title">Chargement des archives…</div>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && tree.length === 0" class="table-empty-static">
+        <div class="empty-state">
+          <div class="empty-icon">📁</div>
+          <div class="empty-title">Aucune archive disponible</div>
+          <div class="empty-sub">Utilisez « Archiver PDF uniquement » ou « Archiver et réinitialiser » pour générer les rapports.</div>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && tree.length > 0" class="archive-tree">
+        <div class="year-block" *ngFor="let yearNode of tree">
+          <button type="button" class="year-header" (click)="toggleYear(yearNode.year)">
+            <span class="year-chevron" [class.expanded]="isYearExpanded(yearNode.year)">›</span>
+            <span class="year-title">Session {{ yearNode.year }}</span>
+            <span class="year-count">{{ yearNode.runs.length }} opération(s)</span>
+          </button>
+
+          <div class="year-body" *ngIf="isYearExpanded(yearNode.year)">
+            <div class="run-block" *ngFor="let run of yearNode.runs">
+              <button type="button" class="run-header" (click)="toggleRun(run.runId)">
+                <span class="year-chevron" [class.expanded]="isRunExpanded(run.runId)">›</span>
+                <span class="run-title">{{ run.createdDate | date:'dd/MM/yyyy HH:mm' }} · {{ statusLabel(run.status) }}</span>
+                <span class="run-meta">{{ run.collectionsCount }} collecte(s) · {{ formatAmount(run.collectionsAmount) }}</span>
+              </button>
+
+              <div class="run-body" *ngIf="isRunExpanded(run.runId)">
+                <div class="run-info">
+                  <span>Déclenché par <strong>{{ run.triggeredBy }}</strong></span>
+                  <span *ngIf="run.membersResetCount"> · {{ run.membersResetCount }} membre(s) réinitialisé(s)</span>
+                </div>
+                <table class="data-table" *ngIf="run.files.length > 0">
+                  <thead>
+                    <tr>
+                      <th>Commercial</th>
+                      <th>Quartier</th>
+                      <th>Fichier</th>
+                      <th class="col-actions">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let file of run.files">
+                      <td>{{ file.commercialUsername || '—' }}</td>
+                      <td>{{ file.quarter || '—' }}</td>
+                      <td>{{ file.fileName }}</td>
+                      <td class="col-actions">
+                        <button
+                          type="button"
+                          class="btn-file-download"
+                          (click)="download(file)"
+                          [disabled]="downloadingFileId !== null"
+                          title="Télécharger">
+                          <span *ngIf="isDownloading(file.id)" class="file-download-spinner" aria-hidden="true"></span>
+                          <svg *ngIf="!isDownloading(file.id)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10l5 5 5-5"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15V3"/>
+                          </svg>
+                          {{ isDownloading(file.id) ? 'Téléchargement…' : 'Télécharger' }}
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div *ngIf="run.files.length === 0" class="empty-sub run-empty">Aucun PDF généré pour cette opération.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
