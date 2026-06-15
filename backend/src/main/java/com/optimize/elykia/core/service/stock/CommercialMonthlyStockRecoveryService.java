@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,24 +47,21 @@ public class CommercialMonthlyStockRecoveryService {
 
         List<Long> stockItemIds = extractStockItemIds(stock);
         if (stockItemIds.isEmpty()) {
-            return buildSummary(totalDueAmount, remainingFromPhysicalStock, 0D, remainingFromPhysicalStock);
+            return buildSummary(totalDueAmount, remainingFromPhysicalStock, 0D, remainingFromPhysicalStock, 0D);
         }
 
         Map<Long, Double> soldOnStockByCredit = loadSoldValueByCredit(stock, stockItemIds);
         Set<Long> creditIds = new HashSet<>(soldOnStockByCredit.keySet());
         creditIds.addAll(creditArticlesRepository.findCreditIdsByStockItemIds(stockItemIds));
-        creditIds.addAll(findCreditIdsForMonthlyStock(stock));
 
         if (creditIds.isEmpty()) {
-            return buildSummary(totalDueAmount, remainingFromPhysicalStock, 0D, remainingFromPhysicalStock);
+            return buildSummary(totalDueAmount, remainingFromPhysicalStock, 0D, remainingFromPhysicalStock, 0D);
         }
 
         Map<Long, Credit> creditsById = creditRepository.findAllById(creditIds).stream()
                 .collect(Collectors.toMap(Credit::getId, Function.identity()));
 
-        double recoveredFromSales = 0D;
-        double remainingFromCredits = 0D;
-
+        List<CreditAttribution> attributions = new ArrayList<>();
         for (Long creditId : creditIds) {
             Credit credit = creditsById.get(creditId);
             if (credit == null) {
@@ -81,36 +79,39 @@ public class CommercialMonthlyStockRecoveryService {
                 continue;
             }
 
+            attributions.add(new CreditAttribution(credit, soldOnThisStock));
+        }
+
+        double soldAttributionCap = totalSoldValue;
+        double totalAttributedSold = attributions.stream().mapToDouble(CreditAttribution::soldOnStock).sum();
+        double attributionScale = totalAttributedSold > soldAttributionCap && soldAttributionCap > 0D
+                ? soldAttributionCap / totalAttributedSold
+                : 1D;
+
+        double recoveredFromSales = 0D;
+        for (CreditAttribution attribution : attributions) {
+            double scaledSold = attribution.soldOnStock * attributionScale;
+            Credit credit = attribution.credit;
+
             if (OperationType.CASH.equals(credit.getType())) {
-                recoveredFromSales += soldOnThisStock;
+                recoveredFromSales += scaledSold;
                 continue;
             }
 
-            double share = Math.min(1D, soldOnThisStock / creditTotalAmount);
+            double share = Math.min(1D, scaledSold / safeAmount(credit.getTotalAmount()));
             recoveredFromSales += safeAmount(credit.getTotalAmountPaid()) * share;
-            remainingFromCredits += safeAmount(credit.getTotalAmountRemaining()) * share;
         }
 
-        double totalRemainingAmount = remainingFromPhysicalStock + remainingFromCredits;
-        double coherenceRemaining = Math.max(0D, totalDueAmount - recoveredFromSales);
-        totalRemainingAmount = Math.max(totalRemainingAmount, coherenceRemaining);
+        recoveredFromSales = Math.min(recoveredFromSales, totalDueAmount);
+        double totalRemainingAmount = Math.max(0D, totalDueAmount - recoveredFromSales);
+        double remainingFromCredits = Math.max(0D, totalRemainingAmount - remainingFromPhysicalStock);
 
         return buildSummary(
                 totalDueAmount,
                 remainingFromPhysicalStock,
                 recoveredFromSales,
-                totalRemainingAmount);
-    }
-
-    private List<Long> findCreditIdsForMonthlyStock(CommercialMonthlyStock stock) {
-        List<Long> articleIds = extractArticleIds(stock);
-        if (articleIds.isEmpty() || stock.getMonth() == null || stock.getYear() == null) {
-            return List.of();
-        }
-        LocalDate monthStart = LocalDate.of(stock.getYear(), stock.getMonth(), 1);
-        LocalDate monthEnd = monthStart.plusMonths(1);
-        return creditArticlesRepository.findCreditIdsForMonthlyStock(
-                stock.getCollector(), monthStart, monthEnd, articleIds);
+                totalRemainingAmount,
+                remainingFromCredits);
     }
 
     private double resolveSoldAmountOnStock(
@@ -139,20 +140,14 @@ public class CommercialMonthlyStockRecoveryService {
         return outsideStock == 0L;
     }
 
+    /**
+     * Attribution vendue par crédit : historique figé et lignes liées par stock_item_id uniquement.
+     * Le rapprochement article/mois est volontairement exclu (sur-attribution en prod).
+     */
     private Map<Long, Double> loadSoldValueByCredit(CommercialMonthlyStock stock, List<Long> stockItemIds) {
         Map<Long, Double> soldOnStockByCredit = new HashMap<>();
         mergeSoldValues(soldOnStockByCredit, soldValueHistoryRepository.sumSoldValueByCreditForStockItems(stockItemIds));
         mergeSoldValues(soldOnStockByCredit, creditArticlesRepository.sumSoldValueByCreditForStockItemIds(stockItemIds));
-
-        List<Long> articleIds = extractArticleIds(stock);
-        if (!articleIds.isEmpty() && stock.getMonth() != null && stock.getYear() != null) {
-            LocalDate monthStart = LocalDate.of(stock.getYear(), stock.getMonth(), 1);
-            LocalDate monthEnd = monthStart.plusMonths(1);
-            mergeSoldValues(
-                    soldOnStockByCredit,
-                    creditArticlesRepository.sumSoldValueByCreditForMonthlyStock(
-                            stock.getCollector(), monthStart, monthEnd, articleIds));
-        }
         return soldOnStockByCredit;
     }
 
@@ -174,19 +169,6 @@ public class CommercialMonthlyStockRecoveryService {
         return stock.getItems().stream()
                 .map(CommercialMonthlyStockItem::getId)
                 .filter(Objects::nonNull)
-                .toList();
-    }
-
-    private static List<Long> extractArticleIds(CommercialMonthlyStock stock) {
-        if (stock.getItems() == null) {
-            return List.of();
-        }
-        return stock.getItems().stream()
-                .map(CommercialMonthlyStockItem::getArticle)
-                .filter(Objects::nonNull)
-                .map(article -> article.getId())
-                .filter(Objects::nonNull)
-                .distinct()
                 .toList();
     }
 
@@ -216,9 +198,9 @@ public class CommercialMonthlyStockRecoveryService {
             double totalDueAmount,
             double remainingFromPhysicalStock,
             double recoveredFromSales,
-            double totalRemainingAmount) {
+            double totalRemainingAmount,
+            double remainingFromCredits) {
         double totalRecoveredAmount = recoveredFromSales;
-        double remainingFromCredits = Math.max(0D, totalRemainingAmount - remainingFromPhysicalStock);
         double recoveryRatePercent = totalDueAmount > 0D
                 ? Math.min(100D, (totalRecoveredAmount / totalDueAmount) * 100D)
                 : 0D;
@@ -240,5 +222,8 @@ public class CommercialMonthlyStockRecoveryService {
 
     private static double round(double value) {
         return Math.ceil(value);
+    }
+
+    private record CreditAttribution(Credit credit, double soldOnStock) {
     }
 }

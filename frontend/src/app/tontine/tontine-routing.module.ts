@@ -40,7 +40,13 @@ const routes: Routes = [
     path: 'reset-collectes',
     component: TontineCollectionResetComponent,
     canActivate: [AuthGuard],
-    data: { roles: ['ROLE_RESET_TONTINE_COLLECTIONS', 'ROLE_ADMIN'] }
+    data: {
+      roles: [
+        'ROLE_CONSULT_TONTINE_COLLECTION_RESET',
+        'ROLE_RESET_TONTINE_COLLECTIONS',
+        'ROLE_ADMIN'
+      ]
+    }
   }
 ];
 

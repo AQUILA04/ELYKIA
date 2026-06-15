@@ -17,14 +17,17 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Added
 
-- **Backend —** réinitialisation des collectes tontine de la session en cours : archivage PDF par commercial tontine et quartier (MinIO), remise à zéro des contributions membres, ajustement des rapports journaliers commerciaux (`totalAmountToDeposit`, collectes tontine), permission `ROLE_RESET_TONTINE_COLLECTIONS` (profils ADMIN et GESTIONNAIRE).
-- **Frontend —** page « Réinit. collectes » sous Tontines : archivage PDF seul ou archivage + réinitialisation, consultation et téléchargement des archives.
+- **Backend —** réinitialisation des collectes tontine de la session en cours : archivage PDF par commercial tontine et quartier (MinIO), remise à zéro des contributions membres, ajustement des rapports journaliers commerciaux (`totalAmountToDeposit`, collectes tontine), permissions dédiées consultation et exécution.
+- **Frontend —** page « Archives collectes » sous Tontines : archivage PDF seul ou archivage + réinitialisation (ADMIN), consultation et téléchargement des archives.
 
 - **Frontend —** fiche détail commande : refonte UI alignée sur le style ELYKIA (sections client, commande, articles, historique conservées).
 
 ### Changed
 
-- **Frontend —** fiche détail commande : DTO et affichage alignés sur la réponse API (`item.article`, collecteurs client, totaux calculés, `commercialName`, en-têtes tableau alignés).
+- **Backend —** permissions archives collectes tontine : `ROLE_CONSULT_TONTINE_COLLECTION_RESET` (consultation/téléchargement, GESTIONNAIRE) séparée de `ROLE_RESET_TONTINE_COLLECTIONS` (archivage et réinitialisation, ADMIN uniquement).
+- **Frontend —** page archives collectes : barre d'actions masquée pour le GESTIONNAIRE (consultation et téléchargement conservés).
+- **Docs —** script `diagnostic_stock_recovery.sql` : libellé article via `CONCAT(type, marque, model)` (requêtes 6–7), ajout requête 7 pré-déploiement (attribution history + `stock_item_id`).
+
 - **Frontend —** formulaire commande : refonte UI alignée sur le style formulaire ELYKIA (sections client/articles/résumé, autocomplétion conservée).
 - **Frontend —** tableau de bord commandes : refonte UI (KPI, toolbar, onglets) et liste `order-table` alignée sur le style tableau ELYKIA (data-table, pastilles, btn-detail, pagination corrigée).
 - **Frontend —** liste comptes : KPI métier (actifs, inactifs, solde total actifs) en complément du total enregistré, via l'endpoint dédié.
@@ -148,7 +151,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Fixed
 
-- **Backend —** KPI recouvrement stock mensuel : prise en compte des ventes comptant sans `stock_item_id` (rapprochement article/commercial/mois), recouvrement intégral au montant vendu pour le type `CASH`, et cohérence du reste à recouvrer ; migration `V51` de rattrapage des `stock_item_id` (syntaxe PostgreSQL corrigée).
+- **Backend —** KPI recouvrement stock mensuel : correction sur-attribution (retrait du rapprochement article/mois trop large, plafond sur `totalSoldValue`, invariant recouvré + reste = total dû) ; script SQL `docs/sql/diagnostic_stock_recovery.sql`.
 - **Backend —** ventes comptant : valorisation du stock commercial corrigée (`totalSoldValue`, PMP, prix d'achat) avec repli sur `sellingPrice` si `unitPrice` absent, et migration `V50` de rattrapage des données historiques.
 - **Backend —** ventes crédit/comptant : le `unitPrice` des lignes `CreditArticles` est figé dès le passage en `INPROGRESS` (setter, garde JPA `@PreUpdate`, blocage du recalcul catalogue dans `totalAmount`) pour éviter l'écrasement des prix historiques lors d'évolutions tarifaires.
 - **Deploy —** réintégration de la configuration MinIO S3 depuis `feature/s3` : service MinIO dans les docker-compose test/prod, labels Traefik (console + API), variables d'environnement backend et templates `.env` dans `setup-server.sh` (conservation des ajouts rclone).

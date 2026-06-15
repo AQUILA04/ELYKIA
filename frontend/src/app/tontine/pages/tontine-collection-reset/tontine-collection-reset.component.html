@@ -28,7 +28,10 @@
       </button>
     </div>
     <p class="page-subtitle">
-      Archive PDF par commercial tontine et quartier · Réinitialisation des contributions à zéro (membres conservés) · Ajustement des rapports journaliers commerciaux
+      Consultation et téléchargement des archives PDF par commercial tontine et quartier
+      <ng-container *ngxPermissionsOnly="['ROLE_RESET_TONTINE_COLLECTIONS', 'ROLE_ADMIN']">
+        · Archivage et réinitialisation des contributions (membres conservés)
+      </ng-container>
     </p>
   </div>
 
@@ -55,7 +58,7 @@
     </div>
   </div>
 
-  <div class="toolbar a4">
+  <div class="toolbar a4" *ngxPermissionsOnly="['ROLE_RESET_TONTINE_COLLECTIONS', 'ROLE_ADMIN']">
     <span class="toolbar-label">Actions</span>
     <button
       type="button"
@@ -76,6 +79,11 @@
       {{ resetPending ? 'Confirmation…' : (resetting ? 'Traitement en cours…' : 'Archiver et réinitialiser') }}
     </button>
     <span class="result-count"><strong>{{ kpis.totalFiles }}</strong> fichier(s) PDF</span>
+  </div>
+
+  <div class="toolbar a4 toolbar-readonly" *ngxPermissionsExcept="['ROLE_RESET_TONTINE_COLLECTIONS', 'ROLE_ADMIN']">
+    <span class="toolbar-label">Consultation</span>
+    <span class="result-count"><strong>{{ kpis.totalFiles }}</strong> fichier(s) PDF disponibles au téléchargement</span>
   </div>
 
   <div class="table-card a5">

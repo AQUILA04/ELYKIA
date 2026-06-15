@@ -27,15 +27,24 @@ public class TontineCollectionResetController {
 
     private final TontineCollectionResetFacadeService facadeService;
 
+    private static final String CONSULT_ROLES = "hasAnyRole('"
+            + UserPermissionConstant.CONSULT_TONTINE_COLLECTION_RESET + "', '"
+            + UserPermissionConstant.RESET_TONTINE_COLLECTIONS + "', '"
+            + UserPermissionConstant.ADMIN + "')";
+
+    private static final String EXECUTE_ROLES = "hasAnyRole('"
+            + UserPermissionConstant.RESET_TONTINE_COLLECTIONS + "', '"
+            + UserPermissionConstant.ADMIN + "')";
+
     @GetMapping
-    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.RESET_TONTINE_COLLECTIONS + "', '" + UserPermissionConstant.ADMIN + "')")
+    @PreAuthorize(CONSULT_ROLES)
     @Operation(summary = "Arborescence des archives PDF de collectes tontine")
     public ResponseEntity<List<Map<String, Object>>> getArchiveTree() {
         return ResponseEntity.ok(facadeService.getArchiveTree());
     }
 
     @GetMapping("/{fileId}/download")
-    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.RESET_TONTINE_COLLECTIONS + "', '" + UserPermissionConstant.ADMIN + "')")
+    @PreAuthorize(CONSULT_ROLES)
     @Operation(summary = "Télécharger un PDF d'archive de collectes")
     public ResponseEntity<byte[]> download(@PathVariable Long fileId) {
         var file = facadeService.getFileForDownload(fileId);
@@ -46,21 +55,21 @@ public class TontineCollectionResetController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.RESET_TONTINE_COLLECTIONS + "', '" + UserPermissionConstant.ADMIN + "')")
+    @PreAuthorize(EXECUTE_ROLES)
     @Operation(summary = "Archiver les collectes en PDF puis réinitialiser à zéro")
     public ResponseEntity<TontineCollectionResetRunDto> triggerReset() {
         return ResponseEntity.ok(facadeService.triggerReset());
     }
 
     @PostMapping("/export")
-    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.RESET_TONTINE_COLLECTIONS + "', '" + UserPermissionConstant.ADMIN + "')")
+    @PreAuthorize(EXECUTE_ROLES)
     @Operation(summary = "Archiver les collectes en PDF sans réinitialiser")
     public ResponseEntity<TontineCollectionResetRunDto> triggerExportOnly() {
         return ResponseEntity.ok(facadeService.triggerExportOnly());
     }
 
     @GetMapping("/runs")
-    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.RESET_TONTINE_COLLECTIONS + "', '" + UserPermissionConstant.ADMIN + "')")
+    @PreAuthorize(CONSULT_ROLES)
     @Operation(summary = "Historique des opérations de réinitialisation")
     public ResponseEntity<Page<TontineCollectionResetRunDto>> getRuns(
             @RequestParam(defaultValue = "0") int page,

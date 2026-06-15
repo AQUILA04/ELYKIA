@@ -70,6 +70,9 @@ public class UserPermissionConstant {
 
     public static final String REPORT = "ROLE_REPORT";
 
+    public static final String CONSULT_TONTINE_COLLECTION_RESET = "ROLE_CONSULT_TONTINE_COLLECTION_RESET";
+
+    /** Archivage PDF et réinitialisation des collectes tontine (ADMIN uniquement). */
     public static final String RESET_TONTINE_COLLECTIONS = "ROLE_RESET_TONTINE_COLLECTIONS";
 
     public static final String CREATE_INVENTORY = "ROLE_CREATE_INVENTORY";

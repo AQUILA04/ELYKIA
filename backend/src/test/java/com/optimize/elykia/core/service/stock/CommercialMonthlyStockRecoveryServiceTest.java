@@ -16,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -92,19 +91,13 @@ class CommercialMonthlyStockRecoveryServiceTest {
     }
 
     @Test
-    void aggregatesFullRecoveryForCashSalesMatchedByMonthlyStock() {
+    void aggregatesFullRecoveryForCashSalesLinkedByStockItemId() {
         CommercialMonthlyStock stock = buildCashRecoveryStock();
 
         when(soldValueHistoryRepository.sumSoldValueByCreditForStockItems(any()))
-                .thenReturn(List.of());
-        when(creditArticlesRepository.sumSoldValueByCreditForStockItemIds(any())).thenReturn(List.of());
-        when(creditArticlesRepository.sumSoldValueByCreditForMonthlyStock(
-                eq("COM001"), eq(LocalDate.of(2026, 6, 1)), eq(LocalDate.of(2026, 7, 1)), any()))
                 .thenReturn(List.of(projection(401L, 500D), projection(402L, 2_500D)));
+        when(creditArticlesRepository.sumSoldValueByCreditForStockItemIds(any())).thenReturn(List.of());
         when(creditArticlesRepository.findCreditIdsByStockItemIds(any()))
-                .thenReturn(List.of(401L));
-        when(creditArticlesRepository.findCreditIdsForMonthlyStock(
-                eq("COM001"), eq(LocalDate.of(2026, 6, 1)), eq(LocalDate.of(2026, 7, 1)), any()))
                 .thenReturn(List.of(401L, 402L));
 
         Credit cash500 = cashCredit(401L, 500D);
@@ -116,6 +109,25 @@ class CommercialMonthlyStockRecoveryServiceTest {
         assertEquals(3_000D, summary.getTotalRecoveredAmount());
         assertEquals(0D, summary.getTotalRemainingAmount());
         assertEquals(100D, summary.getRecoveryRatePercent());
+    }
+
+    @Test
+    void enforcesRecoveredPlusRemainingEqualsTotalDueWhenAttributionExceedsStockSoldValue() {
+        CommercialMonthlyStock stock = buildCashRecoveryStock();
+
+        when(soldValueHistoryRepository.sumSoldValueByCreditForStockItems(any()))
+                .thenReturn(List.of(projection(401L, 2_000D), projection(402L, 2_000D)));
+        when(creditArticlesRepository.sumSoldValueByCreditForStockItemIds(any())).thenReturn(List.of());
+        when(creditArticlesRepository.findCreditIdsByStockItemIds(any()))
+                .thenReturn(List.of(401L, 402L));
+
+        when(creditRepository.findAllById(Set.of(401L, 402L)))
+                .thenReturn(List.of(cashCredit(401L, 2_000D), cashCredit(402L, 2_000D)));
+
+        StockRecoverySummaryDto summary = service.aggregate(stock);
+
+        assertEquals(3_000D, summary.getTotalDueAmount());
+        assertEquals(3_000D, summary.getTotalRecoveredAmount() + summary.getTotalRemainingAmount());
     }
 
     private static CommercialMonthlyStock buildCreditRecoveryStock() {

@@ -1,0 +1,257 @@
+-- Diagnostic recouvrement stock mensuel commercial
+-- Remplacer les paramètres ci-dessous avant exécution.
+
+-- \set collector 'COM001'
+-- \set stock_year 2026
+-- \set stock_month 5
+
+-- =============================================================================
+-- 1. Synthèse stock mensuel (référence KPI « total dû »)
+-- =============================================================================
+SELECT cms.id AS stock_id,
+       cms.collector,
+       cms.month,
+       cms.year,
+       cms.status,
+       COUNT(cmsi.id) AS item_count,
+       COALESCE(SUM(cmsi.quantity_remaining * cmsi.weighted_average_unit_price), 0) AS stock_restant_valeur,
+       COALESCE(SUM(cmsi.total_sold_value), 0) AS stock_vendu_valeur,
+       COALESCE(SUM(cmsi.quantity_remaining * cmsi.weighted_average_unit_price), 0)
+           + COALESCE(SUM(cmsi.total_sold_value), 0) AS total_du
+FROM commercial_monthly_stock cms
+JOIN commercial_monthly_stock_item cmsi ON cmsi.monthly_stock_id = cms.id
+WHERE cms.collector = 'COM001'   -- :collector
+  AND cms.year = 2026            -- :stock_year
+  AND cms.month = 5              -- :stock_month
+GROUP BY cms.id, cms.collector, cms.month, cms.year, cms.status;
+
+-- =============================================================================
+-- 2. Écart recouvré + reste vs total dû (détecte le bug affiché)
+--    Remplacez recovered et remaining par les valeurs API si besoin.
+-- =============================================================================
+WITH stock AS (
+    SELECT cms.id,
+           COALESCE(SUM(cmsi.total_sold_value), 0)
+               + COALESCE(SUM(cmsi.quantity_remaining * cmsi.weighted_average_unit_price), 0) AS total_du
+    FROM commercial_monthly_stock cms
+    JOIN commercial_monthly_stock_item cmsi ON cmsi.monthly_stock_id = cms.id
+    WHERE cms.collector = 'COM001' AND cms.year = 2026 AND cms.month = 5
+    GROUP BY cms.id
+)
+SELECT total_du,
+       714949 AS recovered_api,      -- valeur affichée
+       1113049 AS remaining_api,     -- valeur affichée
+       714949 + 1113049 AS sum_recovered_remaining,
+       (714949 + 1113049) - total_du AS ecart_sur_total_du
+FROM stock;
+
+-- =============================================================================
+-- 3. Crédits liés au stock (3 sources comme le backend)
+-- =============================================================================
+WITH stock_items AS (
+    SELECT cmsi.id AS stock_item_id, cmsi.article_id, cmsi.total_sold_value
+    FROM commercial_monthly_stock cms
+    JOIN commercial_monthly_stock_item cmsi ON cmsi.monthly_stock_id = cms.id
+    WHERE cms.collector = 'COM001' AND cms.year = 2026 AND cms.month = 5
+),
+from_history AS (
+    SELECT h.credit_id, SUM(h.delta_value) AS sold_value, 'history' AS source
+    FROM commercial_monthly_stock_item_sold_value_history h
+    WHERE h.stock_item_id IN (SELECT stock_item_id FROM stock_items)
+      AND h.credit_id IS NOT NULL
+    GROUP BY h.credit_id
+),
+from_stock_item_id AS (
+    SELECT ca.credit_id,
+           SUM(ca.quantity * COALESCE(NULLIF(ca.unit_price, 0), a.selling_price, 0)) AS sold_value,
+           'stock_item_id' AS source
+    FROM credit_articles ca
+    JOIN articles a ON a.id = ca.articles_id
+    WHERE ca.stock_item_id IN (SELECT stock_item_id FROM stock_items)
+    GROUP BY ca.credit_id
+),
+from_month_match AS (
+    SELECT ca.credit_id,
+           SUM(ca.quantity * COALESCE(NULLIF(ca.unit_price, 0), a.selling_price, 0)) AS sold_value,
+           'month_article_match' AS source
+    FROM credit_articles ca
+    JOIN credit c ON c.id = ca.credit_id
+    JOIN articles a ON a.id = ca.articles_id
+    WHERE c.collector = 'COM001'
+      AND c.begin_date >= DATE '2026-05-01'
+      AND c.begin_date < DATE '2026-06-01'
+      AND ca.articles_id IN (SELECT DISTINCT article_id FROM stock_items)
+    GROUP BY ca.credit_id
+),
+merged AS (
+    SELECT credit_id, MAX(sold_value) AS sold_on_stock
+    FROM (
+        SELECT credit_id, sold_value FROM from_history
+        UNION ALL
+        SELECT credit_id, sold_value FROM from_stock_item_id
+        UNION ALL
+        SELECT credit_id, sold_value FROM from_month_match
+    ) s
+    GROUP BY credit_id
+)
+SELECT c.id,
+       c.reference,
+       c.type,
+       c.status,
+       c.total_amount,
+       c.total_amount_paid,
+       c.total_amount_remaining,
+       m.sold_on_stock,
+       CASE WHEN c.type = 'CASH' THEN m.sold_on_stock
+            ELSE c.total_amount_paid * LEAST(1, m.sold_on_stock / NULLIF(c.total_amount, 0))
+       END AS recovered_part,
+       CASE WHEN c.type = 'CASH' THEN 0
+            ELSE c.total_amount_remaining * LEAST(1, m.sold_on_stock / NULLIF(c.total_amount, 0))
+       END AS remaining_part
+FROM merged m
+JOIN credit c ON c.id = m.credit_id
+ORDER BY m.sold_on_stock DESC;
+
+-- =============================================================================
+-- 4. SUR-ATTRIBUTION : somme des ventes attribuées aux crédits vs total_sold_value stock
+-- =============================================================================
+WITH stock_items AS (
+    SELECT cmsi.id AS stock_item_id, cmsi.total_sold_value
+    FROM commercial_monthly_stock cms
+    JOIN commercial_monthly_stock_item cmsi ON cmsi.monthly_stock_id = cms.id
+    WHERE cms.collector = 'COM001' AND cms.year = 2026 AND cms.month = 5
+),
+merged AS (
+    SELECT credit_id, MAX(sold_value) AS sold_on_stock
+    FROM (
+        SELECT h.credit_id, SUM(h.delta_value) AS sold_value
+        FROM commercial_monthly_stock_item_sold_value_history h
+        WHERE h.stock_item_id IN (SELECT stock_item_id FROM stock_items) AND h.credit_id IS NOT NULL
+        GROUP BY h.credit_id
+        UNION ALL
+        SELECT ca.credit_id,
+               SUM(ca.quantity * COALESCE(NULLIF(ca.unit_price, 0), a.selling_price, 0))
+        FROM credit_articles ca
+        JOIN articles a ON a.id = ca.articles_id
+        WHERE ca.stock_item_id IN (SELECT stock_item_id FROM stock_items)
+        GROUP BY ca.credit_id
+        UNION ALL
+        SELECT ca.credit_id,
+               SUM(ca.quantity * COALESCE(NULLIF(ca.unit_price, 0), a.selling_price, 0))
+        FROM credit_articles ca
+        JOIN credit c ON c.id = ca.credit_id
+        JOIN articles a ON a.id = ca.articles_id
+        WHERE c.collector = 'COM001'
+          AND c.begin_date >= DATE '2026-05-01' AND c.begin_date < DATE '2026-06-01'
+          AND ca.articles_id IN (
+              SELECT DISTINCT cmsi.article_id
+              FROM commercial_monthly_stock cms
+              JOIN commercial_monthly_stock_item cmsi ON cmsi.monthly_stock_id = cms.id
+              WHERE cms.collector = 'COM001' AND cms.year = 2026 AND cms.month = 5
+          )
+        GROUP BY ca.credit_id
+    ) s
+    GROUP BY credit_id
+)
+SELECT (SELECT COALESCE(SUM(total_sold_value), 0) FROM stock_items) AS stock_total_sold_value,
+       (SELECT COALESCE(SUM(sold_on_stock), 0) FROM merged) AS sum_sold_attributed_to_credits,
+       (SELECT COALESCE(SUM(sold_on_stock), 0) FROM merged)
+           - (SELECT COALESCE(SUM(total_sold_value), 0) FROM stock_items) AS sur_attribution;
+
+-- =============================================================================
+-- 5. Crédits du mois SANS stock_item_id (souvent source de double comptage)
+-- =============================================================================
+SELECT c.id, c.reference, c.type, c.begin_date,
+       ca.id AS credit_article_id, ca.articles_id, ca.stock_item_id,
+       ca.quantity,
+       ca.quantity * COALESCE(NULLIF(ca.unit_price, 0), a.selling_price, 0) AS line_value
+FROM credit c
+JOIN credit_articles ca ON ca.credit_id = c.id
+JOIN articles a ON a.id = ca.articles_id
+WHERE c.collector = 'COM001'
+  AND c.begin_date >= DATE '2026-05-01' AND c.begin_date < DATE '2026-06-01'
+  AND ca.articles_id IN (
+      SELECT DISTINCT cmsi.article_id
+      FROM commercial_monthly_stock cms
+      JOIN commercial_monthly_stock_item cmsi ON cmsi.monthly_stock_id = cms.id
+      WHERE cms.collector = 'COM001' AND cms.year = 2026 AND cms.month = 5
+  )
+  AND ca.stock_item_id IS NULL
+ORDER BY line_value DESC;
+
+-- =============================================================================
+-- 6. Articles dont la somme crédits du mois dépasse total_sold_value du stock item
+-- =============================================================================
+WITH stock_items AS (
+    SELECT cmsi.id, cmsi.article_id, cmsi.total_sold_value,
+           a.name,
+           CONCAT(a.type, ': ', a.marque, ' ', a.model) AS article_label
+    FROM commercial_monthly_stock cms
+    JOIN commercial_monthly_stock_item cmsi ON cmsi.monthly_stock_id = cms.id
+    JOIN articles a ON a.id = cmsi.article_id
+    WHERE cms.collector = 'COM001' AND cms.year = 2026 AND cms.month = 5
+),
+credit_lines AS (
+    SELECT ca.articles_id,
+           SUM(ca.quantity * COALESCE(NULLIF(ca.unit_price, 0), a.selling_price, 0)) AS credits_month_value
+    FROM credit_articles ca
+    JOIN credit c ON c.id = ca.credit_id
+    JOIN articles a ON a.id = ca.articles_id
+    WHERE c.collector = 'COM001'
+      AND c.begin_date >= DATE '2026-05-01' AND c.begin_date < DATE '2026-06-01'
+      AND ca.articles_id IN (SELECT article_id FROM stock_items)
+    GROUP BY ca.articles_id
+)
+SELECT si.id AS stock_item_id,
+       si.article_label AS article,
+       si.name AS article_name,
+       si.total_sold_value,
+       cl.credits_month_value,
+       cl.credits_month_value - si.total_sold_value AS ecart
+FROM stock_items si
+JOIN credit_lines cl ON cl.articles_id = si.article_id
+WHERE cl.credits_month_value > si.total_sold_value + 1
+ORDER BY ecart DESC;
+
+-- =============================================================================
+-- 7. Pré-déploiement : attribution nouveau backend (history + stock_item_id) par item
+--    ecart_sous_attribution > 0 => crédits non liés (risque sous-recouvrement)
+-- =============================================================================
+WITH stock_items AS (
+    SELECT cmsi.id AS stock_item_id,
+           cmsi.total_sold_value,
+           a.name AS article_name,
+           CONCAT(a.type, ': ', a.marque, ' ', a.model) AS article_label
+    FROM commercial_monthly_stock cms
+    JOIN commercial_monthly_stock_item cmsi ON cmsi.monthly_stock_id = cms.id
+    JOIN articles a ON a.id = cmsi.article_id
+    WHERE cms.collector = 'COM001' AND cms.year = 2026 AND cms.month = 5
+),
+from_history AS (
+    SELECT h.stock_item_id, SUM(h.delta_value) AS valeur
+    FROM commercial_monthly_stock_item_sold_value_history h
+    WHERE h.stock_item_id IN (SELECT stock_item_id FROM stock_items)
+    GROUP BY h.stock_item_id
+),
+from_stock_item AS (
+    SELECT ca.stock_item_id,
+           SUM(ca.quantity * COALESCE(NULLIF(ca.unit_price, 0), a.selling_price, 0)) AS valeur
+    FROM credit_articles ca
+    JOIN articles a ON a.id = ca.articles_id
+    WHERE ca.stock_item_id IN (SELECT stock_item_id FROM stock_items)
+    GROUP BY ca.stock_item_id
+)
+SELECT si.stock_item_id,
+       si.article_label AS article,
+       si.article_name,
+       si.total_sold_value,
+       COALESCE(fh.valeur, 0) AS via_history,
+       COALESCE(fsi.valeur, 0) AS via_stock_item_id,
+       GREATEST(COALESCE(fh.valeur, 0), COALESCE(fsi.valeur, 0)) AS attribution_max_source,
+       si.total_sold_value - GREATEST(COALESCE(fh.valeur, 0), COALESCE(fsi.valeur, 0)) AS ecart_sous_attribution
+FROM stock_items si
+LEFT JOIN from_history fh ON fh.stock_item_id = si.stock_item_id
+LEFT JOIN from_stock_item fsi ON fsi.stock_item_id = si.stock_item_id
+WHERE GREATEST(COALESCE(fh.valeur, 0), COALESCE(fsi.valeur, 0)) < si.total_sold_value - 1
+   OR GREATEST(COALESCE(fh.valeur, 0), COALESCE(fsi.valeur, 0)) > si.total_sold_value + 1
+ORDER BY ABS(si.total_sold_value - GREATEST(COALESCE(fh.valeur, 0), COALESCE(fsi.valeur, 0))) DESC;
