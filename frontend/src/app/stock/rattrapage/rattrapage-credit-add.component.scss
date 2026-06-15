@@ -276,6 +276,27 @@ $white:       #ffffff;
   color: $muted;
 }
 
+.rattrapage-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(0, 51, 102, 0.06);
+  color: $navy;
+  font-size: 13px;
+  line-height: 1.45;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
 .input-suffix-wrap {
   position: relative;
 

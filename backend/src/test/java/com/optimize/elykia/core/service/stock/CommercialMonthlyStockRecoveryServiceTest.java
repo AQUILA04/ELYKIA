@@ -112,6 +112,25 @@ class CommercialMonthlyStockRecoveryServiceTest {
     }
 
     @Test
+    void excludesRattrapageCreditLinkedToPreviousMonthStock() {
+        CommercialMonthlyStock stock = buildCreditRecoveryStock();
+
+        when(soldValueHistoryRepository.sumSoldValueByCreditForStockItems(any())).thenReturn(List.of());
+        when(creditArticlesRepository.sumSoldValueByCreditForStockItemIds(any())).thenReturn(List.of());
+        when(creditArticlesRepository.findCreditIdsByStockItemIds(any())).thenReturn(List.of(900L));
+
+        Credit rattrapage = credit(900L, 47_000D, 10_000D, 37_000D);
+        rattrapage.setReference("RAT-TEST1234");
+        when(creditRepository.findAllById(Set.of(900L))).thenReturn(List.of(rattrapage));
+        when(creditArticlesRepository.countLinkedArticlesOnStockItems(eq(900L), any())).thenReturn(0L);
+
+        StockRecoverySummaryDto summary = service.aggregate(stock);
+
+        assertEquals(0D, summary.getTotalRecoveredAmount());
+        assertEquals(150_000D, summary.getTotalRemainingAmount());
+    }
+
+    @Test
     void enforcesRecoveredPlusRemainingEqualsTotalDueWhenAttributionExceedsStockSoldValue() {
         CommercialMonthlyStock stock = buildCashRecoveryStock();
 

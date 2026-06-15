@@ -235,12 +235,23 @@
       </div>
       <div class="section-body">
 
+        <div class="rattrapage-info" *ngIf="selectedStockMonth">
+          <mat-icon>info</mat-icon>
+          <span>
+            Ce crédit est rattaché au stock de
+            <strong>{{ getMonthName(selectedStockMonth.month!) }} {{ selectedStockMonth.year }}</strong>
+            (via les articles sélectionnés). Il n'entre pas dans le recouvrement du mois en cours si le stock source est antérieur.
+          </span>
+        </div>
+
         <!-- Row 1 : Date début + Mise journalière + Date fin (calculée) -->
         <div class="form-row triple">
           <div class="form-group">
             <label class="form-label">Date de début <span class="req">*</span></label>
             <input type="date" formControlName="beginDate" class="form-control" (change)="recalculateEndDate()" />
-            <div class="form-hint">Peut être une date passée</div>
+            <div class="form-hint">
+              Par défaut : fin du mois stock source. Modifiable pour le début effectif du remboursement.
+            </div>
             <mat-error *ngIf="rattrapageForm.get('beginDate')?.invalid && rattrapageForm.get('beginDate')?.touched">
               La date de début est requise.
             </mat-error>

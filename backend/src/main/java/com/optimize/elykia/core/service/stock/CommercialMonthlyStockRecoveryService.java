@@ -2,6 +2,7 @@ package com.optimize.elykia.core.service.stock;
 
 import com.optimize.elykia.core.dto.stock.CreditSoldAmountOnStockProjection;
 import com.optimize.elykia.core.dto.stock.StockRecoverySummaryDto;
+import com.optimize.elykia.core.service.sale.RattrapageCreditSupport;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
@@ -70,6 +71,12 @@ public class CommercialMonthlyStockRecoveryService {
 
             double creditTotalAmount = safeAmount(credit.getTotalAmount());
             if (creditTotalAmount <= 0D) {
+                continue;
+            }
+
+            if (RattrapageCreditSupport.isRattrapageReference(credit.getReference())
+                    && soldOnStockByCredit.getOrDefault(creditId, 0D) <= 0D
+                    && !isCreditExclusiveToStockItems(creditId, stockItemIds)) {
                 continue;
             }
 

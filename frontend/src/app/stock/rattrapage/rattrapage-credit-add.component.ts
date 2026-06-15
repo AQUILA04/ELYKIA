@@ -179,9 +179,21 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
     this.selectedStockId = stock.id ?? null;
     this.selectedStockMonth = stock;
     this.selectedItems = [];
-    this.rattrapageForm.patchValue({ selectedItems: [] });
+    this.rattrapageForm.patchValue({
+      selectedItems: [],
+      beginDate: this.formatStockMonthEnd(stock.year!, stock.month!)
+    });
     this.recalculateTotals();
     this.currentStep = 3;
+  }
+
+  /** Dernier jour du mois stock source (ancrage temporel du rattrapage). */
+  private formatStockMonthEnd(year: number, month: number): string {
+    const lastDay = new Date(year, month, 0);
+    const y = lastDay.getFullYear();
+    const m = String(lastDay.getMonth() + 1).padStart(2, '0');
+    const d = String(lastDay.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
   // ─── Sélection articles ──────────────────────────────────────────────────

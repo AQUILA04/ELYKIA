@@ -159,7 +159,8 @@ SELECT (SELECT COALESCE(SUM(total_sold_value), 0) FROM stock_items) AS stock_tot
            - (SELECT COALESCE(SUM(total_sold_value), 0) FROM stock_items) AS sur_attribution;
 
 -- =============================================================================
--- 5. Crédits du mois SANS stock_item_id (souvent source de double comptage)
+-- 5. Crédits du mois SANS stock_item_id (hors rattrapage RAT-*)
+--    Les crédits RAT sont rattachés au stock source via stock_item_id d'un mois antérieur.
 -- =============================================================================
 SELECT c.id, c.reference, c.type, c.begin_date,
        ca.id AS credit_article_id, ca.articles_id, ca.stock_item_id,
@@ -170,6 +171,7 @@ JOIN credit_articles ca ON ca.credit_id = c.id
 JOIN articles a ON a.id = ca.articles_id
 WHERE c.collector = 'COM001'
   AND c.begin_date >= DATE '2026-05-01' AND c.begin_date < DATE '2026-06-01'
+  AND c.reference NOT LIKE 'RAT-%'
   AND ca.articles_id IN (
       SELECT DISTINCT cmsi.article_id
       FROM commercial_monthly_stock cms
@@ -181,6 +183,7 @@ ORDER BY line_value DESC;
 
 -- =============================================================================
 -- 6. Articles dont la somme crédits du mois dépasse total_sold_value du stock item
+--    Exclut les crédits RAT-* (rattachés au stock d'un mois antérieur, pas au mois courant).
 -- =============================================================================
 WITH stock_items AS (
     SELECT cmsi.id, cmsi.article_id, cmsi.total_sold_value,
@@ -199,6 +202,7 @@ credit_lines AS (
     JOIN articles a ON a.id = ca.articles_id
     WHERE c.collector = 'COM001'
       AND c.begin_date >= DATE '2026-05-01' AND c.begin_date < DATE '2026-06-01'
+      AND c.reference NOT LIKE 'RAT-%'
       AND ca.articles_id IN (SELECT article_id FROM stock_items)
     GROUP BY ca.articles_id
 )
@@ -214,12 +218,17 @@ WHERE cl.credits_month_value > si.total_sold_value + 1
 ORDER BY ecart DESC;
 
 -- =============================================================================
--- 7. Pré-déploiement : attribution nouveau backend (history + stock_item_id) par item
---    ecart_sous_attribution > 0 => crédits non liés (risque sous-recouvrement)
+-- 7. Attribution backend (history + stock_item_id) par item du stock cible
+--    Colonnes pmp, quantity_sold, pmp_fois_qty_vendue : comparer à total_sold_value
+--    (total_sold_value figé à la vente ; pmp × qty = ancienne logique, souvent ≠ après ventes cash)
 -- =============================================================================
 WITH stock_items AS (
     SELECT cmsi.id AS stock_item_id,
            cmsi.total_sold_value,
+           cmsi.quantity_sold,
+           cmsi.weighted_average_unit_price AS pmp,
+           COALESCE(cmsi.quantity_sold, 0)
+               * COALESCE(cmsi.weighted_average_unit_price, 0) AS pmp_fois_qty_vendue,
            a.name AS article_name,
            CONCAT(a.type, ': ', a.marque, ' ', a.model) AS article_label
     FROM commercial_monthly_stock cms
@@ -244,7 +253,11 @@ from_stock_item AS (
 SELECT si.stock_item_id,
        si.article_label AS article,
        si.article_name,
+       si.pmp,
+       si.quantity_sold,
+       si.pmp_fois_qty_vendue,
        si.total_sold_value,
+       si.total_sold_value - si.pmp_fois_qty_vendue AS ecart_total_vs_pmp_qty,
        COALESCE(fh.valeur, 0) AS via_history,
        COALESCE(fsi.valeur, 0) AS via_stock_item_id,
        GREATEST(COALESCE(fh.valeur, 0), COALESCE(fsi.valeur, 0)) AS attribution_max_source,
@@ -255,3 +268,30 @@ LEFT JOIN from_stock_item fsi ON fsi.stock_item_id = si.stock_item_id
 WHERE GREATEST(COALESCE(fh.valeur, 0), COALESCE(fsi.valeur, 0)) < si.total_sold_value - 1
    OR GREATEST(COALESCE(fh.valeur, 0), COALESCE(fsi.valeur, 0)) > si.total_sold_value + 1
 ORDER BY ABS(si.total_sold_value - GREATEST(COALESCE(fh.valeur, 0), COALESCE(fsi.valeur, 0))) DESC;
+
+-- =============================================================================
+-- 8. Crédits RAT-* saisis ce mois mais rattachés au stock d'un mois antérieur (normal)
+-- =============================================================================
+SELECT c.id,
+       c.reference,
+       c.begin_date,
+       ca.stock_item_id,
+       linked_stock.month AS stock_month,
+       linked_stock.year AS stock_year,
+       a.name AS article_name,
+       CONCAT(a.type, ': ', a.marque, ' ', a.model) AS article,
+       ca.quantity * COALESCE(NULLIF(ca.unit_price, 0), a.selling_price, 0) AS line_value,
+       c.total_amount_paid
+FROM credit c
+JOIN credit_articles ca ON ca.credit_id = c.id
+JOIN articles a ON a.id = ca.articles_id
+JOIN commercial_monthly_stock_item linked ON linked.id = ca.stock_item_id
+JOIN commercial_monthly_stock linked_stock ON linked_stock.id = linked.monthly_stock_id
+WHERE c.collector = 'COM001'   -- :collector
+  AND c.reference LIKE 'RAT-%'
+  AND c.begin_date >= DATE '2026-05-01' AND c.begin_date < DATE '2026-06-01'
+  AND (
+      linked_stock.month IS DISTINCT FROM EXTRACT(MONTH FROM c.begin_date)::integer
+      OR linked_stock.year IS DISTINCT FROM EXTRACT(YEAR FROM c.begin_date)::integer
+  )
+ORDER BY line_value DESC;

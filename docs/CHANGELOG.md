@@ -12,7 +12,11 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Fixed
 
-- **Backend —** PDF archive collectes tontine : bloc métadonnées en tableau 2 colonnes (espacement fiable à l'export PDF, le flexbox n'étant pas supporté par iText).
+- **Backend —** recouvrement stock mensuel : exclusion explicite des crédits `RAT-*` non rattachés aux items du stock courant ; suppression migration V54 erronée (rattrapage avril ≠ stock mai).
+- **Backend —** création crédit rattrapage : marqueur `RATTRAPAGE_STOCK` sur `oldReference`, validation de la date de début vs mois stock source.
+- **Frontend —** formulaire rattrapage : date de début par défaut = fin du mois stock source, message d'information recouvrement.
+- **Docs —** diagnostic recouvrement requête 7 : colonnes PMP, `quantity_sold`, `pmp × qty` et écart vs `total_sold_value`.
+
 - **Frontend —** page réinitialisation collectes tontine : colonne action élargie (libellé « Télécharger » vertical), spinner de téléchargement isolé, états de chargement et anti double-clic sur archivage/réinitialisation.
 
 ### Added
