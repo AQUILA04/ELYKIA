@@ -132,6 +132,8 @@ export interface CreateTontineMemberDto {
 export interface CreateTontineCollectionDto {
   readonly memberId: number;
   readonly amount: number;
+  readonly reference?: string;
+  readonly catchupDailyStake?: number;
   /** Date métier (YYYY-MM-DD) pour une collecte de rattrapage */
   readonly collectionDate?: string;
   readonly notes?: string;
@@ -175,6 +177,15 @@ export interface SessionStats {
   readonly totalRevenue: number; // Added totalRevenue
   readonly totalDeliveryCollections: number;
   readonly topCommercials?: readonly TopCommercial[];
+}
+
+export interface TontineCatchupPreview {
+  readonly collectionDate: string;
+  readonly monthStart: string;
+  readonly monthEnd: string;
+  readonly applicableDailyStake: number;
+  readonly monthLocked: boolean;
+  readonly existingCollectionsCount: number;
 }
 
 export interface TopCommercial {

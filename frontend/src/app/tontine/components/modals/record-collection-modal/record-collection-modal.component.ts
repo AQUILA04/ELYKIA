@@ -17,6 +17,7 @@ export class RecordCollectionModalComponent implements OnInit {
   loading: boolean = false;
   error: string | null = null;
   TONTINE_CONSTANTS = TONTINE_CONSTANTS;
+  private requestReference = '';
 
   constructor(
     private fb: FormBuilder,
@@ -36,7 +37,9 @@ export class RecordCollectionModalComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.requestReference = this.generateRequestReference();
+  }
 
   getClientName(): string {
     return `${this.data.member.client.firstname} ${this.data.member.client.lastname}`;
@@ -52,7 +55,8 @@ export class RecordCollectionModalComponent implements OnInit {
 
     const collectionData = {
       memberId: this.data.member.id,
-      amount: this.form.value.amount
+      amount: this.form.value.amount,
+      reference: this.requestReference
     };
 
     this.tontineService.createCollection(collectionData).subscribe({
@@ -68,6 +72,13 @@ export class RecordCollectionModalComponent implements OnInit {
 
   onCancel(): void {
     this.dialogRef.close(false);
+  }
+
+  private generateRequestReference(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return `TONT-COL-${crypto.randomUUID()}`;
+    }
+    return `TONT-COL-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   }
 }
 

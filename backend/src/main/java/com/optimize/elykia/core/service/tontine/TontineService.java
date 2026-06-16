@@ -17,6 +17,7 @@ import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineMemberUpdateScope;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
+import com.optimize.elykia.core.event.TontineCollectionCancelledEvent;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberAmountHistoryRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
@@ -230,54 +231,30 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
 
         if (dto.getAmount() != null && !dto.getAmount().equals(member.getAmount())) {
-            // Capture old society share before recalculation
-            Double oldSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
+            TontineMemberUpdateScope scope = dto.getUpdateScope() != null
+                    ? dto.getUpdateScope()
+                    : TontineMemberUpdateScope.CURRENT_AND_FUTURE;
 
             // Amount has changed, handle history based on scope
-            handleAmountChange(member, dto.getAmount(), dto.getUpdateScope());
-            member.setAmount(dto.getAmount());
+            handleAmountChange(member, dto.getAmount(), scope);
 
-            // Recalculate society share based on new amount history
-            // We need to re-run the allocation logic as if we are validating the current state
-            // But processCollectionAllocation is designed for adding new money.
-            // Here we just want to update the target/theoretical share and adjust the actual share if needed?
-            // Actually, changing the daily amount changes the target society share.
-            // If the target increases, the deficit increases.
-            // If the target decreases, the member might have overpaid society share.
-            
-            // Let's recalculate the target society share and update the member's society share
-            // We can reuse part of the logic from processCollectionAllocation but without adding new money.
-            recalculateSocietyShareAfterUpdate(member);
+            // "amount" must always represent the stake applicable today.
+            member.setAmount(getApplicableAmountForDate(member, LocalDate.now(), LocalDate.now()));
 
-            Double newSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
-
-            // Update session revenue: subtract old share, add new share
-            TontineSession session = member.getTontineSession();
-            Double currentSessionRevenue = session.getTotalRevenue() != null ? session.getTotalRevenue() : 0.0;
-            session.setTotalRevenue(currentSessionRevenue - oldSocietyShare + newSocietyShare);
-            tontineSessionRepository.save(session);
+            // Only GLOBAL should reallocate past collections.
+            // FUTURE_ONLY and CURRENT_AND_FUTURE must keep historical allocations unchanged.
+            if (scope == TontineMemberUpdateScope.GLOBAL) {
+                recalculateMemberFromCollections(member);
+                updateSessionRevenue(member.getTontineSession());
+            } else {
+                // Keep derived status coherent with unchanged allocations.
+                calculateMemberStatus(member);
+            }
         }
 
         // Notes handling if needed (skipped as per previous logic)
 
         return TontineMemberRespDto.fromTontineMember(this.update(member));
-    }
-
-    private void recalculateSocietyShareAfterUpdate(TontineMember member) {
-        // If we have collected enough total money to cover the new target share, we allocate it.
-        // If the new target is lower than current share, we might reduce the share (and increase capital).
-        // If the new target is higher, we increase share (and reduce capital) IF there is enough total contribution.
-
-        Double targetSocietyShare = calculateTargetSocietyShare(member, LocalDate.now());
-        Double totalContrib = member.getTotalContribution() != null ? member.getTotalContribution() : 0.0;
-
-        // The society share should be the target, capped by what the user has actually paid.
-        Double newSocietyShare = Math.min(totalContrib, targetSocietyShare);
-        
-        member.setSocietyShare(newSocietyShare);
-        
-        // Recalculate derived status (validated months) based on remaining capital
-        calculateMemberStatus(member);
     }
 
     private void handleAmountChange(TontineMember member, Double newAmount, TontineMemberUpdateScope scope) {
@@ -374,6 +351,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
             validateCatchupCollectionDate(member, currentSession, dto.getCollectionDate());
             allocationDate = dto.getCollectionDate();
             collectionDateTime = dto.getCollectionDate().atStartOfDay();
+
+            if (dto.getCatchupDailyStake() != null) {
+                applyCatchupDailyStakeIfNeeded(member, allocationDate, dto.getCatchupDailyStake());
+            }
         }
 
         String commercialUsername = userService.getCurrentUser().getUsername();
@@ -425,6 +406,157 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
 
         return TontineCollectionRespDto.fromTontineCollection(savedCollection);
+    }
+
+    public TontineCatchupPreviewDto getCatchupPreview(Long memberId, LocalDate collectionDate) {
+        TontineMember member = getById(memberId);
+        TontineSession currentSession = getActiveSession();
+        validateCatchupCollectionDate(member, currentSession, collectionDate);
+
+        LocalDate monthStart = collectionDate.withDayOfMonth(1);
+        LocalDate monthEnd = collectionDate.withDayOfMonth(collectionDate.lengthOfMonth());
+
+        long existingCollectionsCount = tontineCollectionRepository.countByTontineMember_IdAndCollectionDateBetweenAndState(
+                memberId,
+                monthStart.atStartOfDay(),
+                monthEnd.atTime(23, 59, 59),
+                State.ENABLED);
+
+        Double applicable = getApplicableAmountForDate(member, collectionDate, collectionDate);
+        return new TontineCatchupPreviewDto(
+                collectionDate,
+                monthStart,
+                monthEnd,
+                applicable != null ? applicable : member.getAmount(),
+                existingCollectionsCount > 0,
+                existingCollectionsCount);
+    }
+
+    private void applyCatchupDailyStakeIfNeeded(TontineMember member, LocalDate allocationDate, Double catchupDailyStake) {
+        if (catchupDailyStake == null || catchupDailyStake <= 0) {
+            return;
+        }
+
+        LocalDate monthStart = allocationDate.withDayOfMonth(1);
+        LocalDate monthEnd = allocationDate.withDayOfMonth(allocationDate.lengthOfMonth());
+        LocalDateTime monthStartDateTime = monthStart.atStartOfDay();
+        LocalDateTime monthEndDateTime = monthEnd.atTime(23, 59, 59);
+
+        Double currentApplicable = getApplicableAmountForDate(member, allocationDate, allocationDate);
+        if (sameAmount(currentApplicable, catchupDailyStake)) {
+            return;
+        }
+
+        long existingCollectionsInMonth = tontineCollectionRepository.countByTontineMember_IdAndCollectionDateBetweenAndState(
+                member.getId(), monthStartDateTime, monthEndDateTime, State.ENABLED);
+        if (existingCollectionsInMonth > 0) {
+            throw new CustomValidationException(
+                    "Impossible de modifier la mise pour ce mois : des collectes existent déjà sur la période.");
+        }
+
+        List<TontineMemberAmountHistory> history = member.getAmountHistory();
+        if (history == null) {
+            history = new ArrayList<>();
+            member.setAmountHistory(history);
+        }
+        history.sort(Comparator.comparing(TontineMemberAmountHistory::getStartDate));
+
+        // Close or remove entries overlapping the target month.
+        for (TontineMemberAmountHistory entry : history) {
+            boolean startsBeforeOrInMonth = !entry.getStartDate().isAfter(monthEnd);
+            boolean endsAfterOrInMonth = entry.getEndDate() == null || !entry.getEndDate().isBefore(monthStart);
+            if (!(startsBeforeOrInMonth && endsAfterOrInMonth)) {
+                continue;
+            }
+
+            if (entry.getStartDate().isBefore(monthStart)) {
+                entry.setEndDate(monthStart.minusDays(1));
+            } else {
+                entry.setEndDate(monthStart.minusDays(1));
+            }
+        }
+        history.removeIf(entry -> entry.getEndDate() != null && entry.getStartDate().isAfter(entry.getEndDate()));
+
+        // Add month-specific stake.
+        TontineMemberAmountHistory monthEntry = new TontineMemberAmountHistory();
+        monthEntry.setTontineMember(member);
+        monthEntry.setAmount(catchupDailyStake);
+        monthEntry.setStartDate(monthStart);
+        monthEntry.setEndDate(monthEnd);
+        history.add(monthEntry);
+
+        // Re-open historical rate from next month if needed.
+        LocalDate nextMonthStart = monthEnd.plusDays(1);
+        Double nextAmount = getApplicableAmountForDate(member, nextMonthStart, nextMonthStart);
+        if (!sameAmount(nextAmount, catchupDailyStake)) {
+            TontineMemberAmountHistory nextEntry = new TontineMemberAmountHistory();
+            nextEntry.setTontineMember(member);
+            nextEntry.setAmount(nextAmount);
+            nextEntry.setStartDate(nextMonthStart);
+            nextEntry.setEndDate(null);
+            history.add(nextEntry);
+        }
+
+        history.sort(Comparator.comparing(TontineMemberAmountHistory::getStartDate));
+    }
+
+    private boolean sameAmount(Double left, Double right) {
+        if (left == null && right == null) {
+            return true;
+        }
+        if (left == null || right == null) {
+            return false;
+        }
+        return Math.abs(left - right) < 0.0001;
+    }
+
+    public TontineCollectionRespDto cancelCollection(Long collectionId) {
+        TontineCollection collection = tontineCollectionRepository.findById(collectionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Collecte introuvable."));
+
+        if (State.DELETED.equals(collection.getState())) {
+            throw new CustomValidationException("Cette collecte est déjà annulée.");
+        }
+
+        TontineMember member = collection.getTontineMember();
+        if (member == null) {
+            throw new CustomValidationException("Membre associé à la collecte introuvable.");
+        }
+
+        collection.setState(State.DELETED);
+        tontineCollectionRepository.save(collection);
+
+        recalculateMemberFromCollections(member);
+        this.update(member);
+        updateSessionRevenue(member.getTontineSession());
+
+        if (eventPublisher != null) {
+            String clientName = member.getClient() != null ? member.getClient().getFullName() : "N/A";
+            eventPublisher.publishEvent(new TontineCollectionCancelledEvent(
+                    this,
+                    collection.getAmount(),
+                    collection.getCommercialUsername(),
+                    clientName,
+                    collection.getReference()));
+        }
+
+        return TontineCollectionRespDto.fromId(collection.getId());
+    }
+
+    private void recalculateMemberFromCollections(TontineMember member) {
+        member.setSocietyShare(0.0);
+        member.setTotalContribution(0.0);
+        member.setValidatedMonths(0);
+        member.setCurrentMonthDays(0);
+        member.setAvailableContribution(0.0);
+
+        List<TontineCollection> enabledCollections = tontineCollectionRepository
+                .findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(member.getId(), State.ENABLED);
+
+        for (TontineCollection enabledCollection : enabledCollections) {
+            LocalDate allocationDate = enabledCollection.getCollectionDate().toLocalDate();
+            processCollectionAllocation(member, enabledCollection.getAmount(), allocationDate);
+        }
     }
 
     private void validateCatchupCollectionDate(TontineMember member, TontineSession session, LocalDate collectionDate) {
@@ -512,7 +644,8 @@ public class TontineService extends GenericService<TontineMember, Long> {
         final LocalDate endOfMonth = lookupDate;
 
         return member.getAmountHistory().stream()
-                .filter(h -> !h.getStartDate().isAfter(endOfMonth)) // Started before or during this month
+                .filter(h -> !h.getStartDate().isAfter(endOfMonth)) // started before/on lookup date
+                .filter(h -> h.getEndDate() == null || !h.getEndDate().isBefore(endOfMonth)) // not ended before lookup date
                 .sorted(Comparator.comparing(TontineMemberAmountHistory::getStartDate).reversed()) // Latest first
                 .map(TontineMemberAmountHistory::getAmount)
                 .findFirst()

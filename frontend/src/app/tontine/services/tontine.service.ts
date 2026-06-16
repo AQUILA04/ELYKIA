@@ -22,6 +22,7 @@ import {
   TontineMemberDeliveryStatus,
   TontineMemberQueryParams,
   SessionStats
+  , TontineCatchupPreview
 } from '../types/tontine.types';
 import {AuthService} from "../../auth/service/auth.service";
 
@@ -149,6 +150,15 @@ export class TontineService {
     ).pipe(catchError(this.handleApiError.bind(this)));
   }
 
+  getCatchupPreview(memberId: number, collectionDate: string): Observable<ApiResponse<TontineCatchupPreview>> {
+    const headers = this.getHeaders();
+    const params = new HttpParams().set('collectionDate', collectionDate);
+    return this.http.get<ApiResponse<TontineCatchupPreview>>(
+      `${this.apiUrl}/members/${memberId}/catchup-preview`,
+      { headers, params }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
   createMember(memberData: CreateTontineMemberDto): Observable<ApiResponse<TontineMember>> {
     this.setLoading(true);
     const headers = this.getHeaders();
@@ -242,6 +252,12 @@ export class TontineService {
         }),
         catchError(this.handleApiError.bind(this))
       );
+  }
+
+  cancelCollection(collectionId: number): Observable<ApiResponse<any>> {
+    const headers = this.getHeaders();
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/collections/${collectionId}`, { headers })
+      .pipe(catchError(this.handleApiError.bind(this)));
   }
 
   getCurrentSession(): Observable<ApiResponse<TontineSession>> {

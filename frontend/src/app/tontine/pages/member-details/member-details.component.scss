@@ -432,6 +432,22 @@
   border: 1px solid rgba(29, 138, 60, .3);
 }
 
+.member-details-page .status-active {
+  background: var(--green-pale);
+  color: var(--green);
+  border: 1px solid rgba(29, 138, 60, .3);
+}
+
+.member-details-page .status-closed {
+  background: var(--navy-xpale);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.member-details-page .amount-history-table tbody tr.is-current-row td {
+  background: #f7fbff;
+}
+
 /* ── COLLECTOR ──────────────────────────────────────────────── */
 .member-details-page .col-collector {
   display: flex;

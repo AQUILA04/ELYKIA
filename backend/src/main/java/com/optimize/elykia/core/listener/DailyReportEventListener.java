@@ -286,6 +286,33 @@ public class DailyReportEventListener {
 
         @EventListener
         @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleTontineCollectionCancelled(TontineCollectionCancelledEvent event) {
+                log.info("Processing TontineCollectionCancelledEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                int currentCount = report.getTontineCollectionsCount() != null ? report.getTontineCollectionsCount() : 0;
+                double currentAmount = report.getTontineCollectionsAmount() != null ? report.getTontineCollectionsAmount() : 0.0;
+                double currentDeposit = report.getTotalAmountToDeposit() != null ? report.getTotalAmountToDeposit() : 0.0;
+                double amountToCancel = event.getAmount() != null ? event.getAmount() : 0.0;
+
+                report.setTontineCollectionsCount(Math.max(0, currentCount - 1));
+                report.setTontineCollectionsAmount(Math.max(0.0, currentAmount - amountToCancel));
+                report.setTotalAmountToDeposit(Math.max(0.0, currentDeposit - amountToCancel));
+                repository.save(report);
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.core.enumaration.OperationType.TONTINE_COLLECTION_CANCEL,
+                                -amountToCancel,
+                                "Annulation Collecte Tontine",
+                                "Annulation collecte tontine (Client: "
+                                                + (event.getClientName() != null ? event.getClientName() : "N/A")
+                                                + ", Ref: "
+                                                + (event.getReference() != null ? event.getReference() : "N/A")
+                                                + ")");
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
         public void handleTontineDelivery(TontineDeliveryEvent event) {
                 log.info("Processing TontineDeliveryEvent for collector: {}", event.getCollector());
                 DailyCommercialReport report = getOrCreateReport(event.getCollector());

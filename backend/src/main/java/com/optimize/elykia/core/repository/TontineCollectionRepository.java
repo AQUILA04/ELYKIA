@@ -14,6 +14,9 @@ import java.util.Optional;
 public interface TontineCollectionRepository extends GenericRepository<TontineCollection, Long> {
 
     Page<TontineCollection> findByTontineMember_Id(Long memberId, Pageable pageable);
+    Page<TontineCollection> findByTontineMember_IdAndState(Long memberId, State state, Pageable pageable);
+    java.util.List<TontineCollection> findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(Long memberId, State state);
+    long countByTontineMember_IdAndCollectionDateBetweenAndState(Long memberId, java.time.LocalDateTime start, java.time.LocalDateTime end, State state);
 
     @Query("SELECT SUM(tc.amount) FROM TontineCollection tc WHERE tc.tontineMember.id = :memberId AND tc.isDeliveryCollection = true AND tc.state = :state")
     Double sumDeliveryCollectionsByMember(@Param("memberId") Long memberId, @Param("state") State state);

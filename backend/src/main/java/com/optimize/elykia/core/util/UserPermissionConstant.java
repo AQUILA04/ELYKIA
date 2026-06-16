@@ -74,6 +74,7 @@ public class UserPermissionConstant {
 
     /** Archivage PDF et réinitialisation des collectes tontine (ADMIN uniquement). */
     public static final String RESET_TONTINE_COLLECTIONS = "ROLE_RESET_TONTINE_COLLECTIONS";
+    public static final String CANCEL_TONTINE_COLLECTION = "ROLE_CANCEL_TONTINE_COLLECTION";
 
     public static final String CREATE_INVENTORY = "ROLE_CREATE_INVENTORY";
     public static final String RECONCILE_INVENTORY = "ROLE_RECONCILE_INVENTORY";

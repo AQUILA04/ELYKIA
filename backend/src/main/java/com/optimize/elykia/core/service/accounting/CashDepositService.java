@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -42,8 +43,13 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         User currentUser = userService.getCurrentUser();
         deposit.setReceivedBy(currentUser.getUsername());
         deposit.setDate(deposit.getDate() != null ? deposit.getDate() : LocalDate.now());
-        
-        if (deposit.getReference() == null || deposit.getReference().isEmpty()) {
+
+        CashDepositRepository cashDepositRepository = (CashDepositRepository) repository;
+        if (StringUtils.hasText(deposit.getReference()) && cashDepositRepository.existsByReference(deposit.getReference())) {
+            return cashDepositRepository.findByReference(deposit.getReference()).orElseThrow();
+        }
+
+        if (!StringUtils.hasText(deposit.getReference())) {
             deposit.setReference("DEP-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         }
 
@@ -61,7 +67,7 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         dailyReportRepository.save(report);
 
         deposit.setDailyReport(report);
-        CashDeposit saved = ((CashDepositRepository) repository).save(deposit);
+        CashDeposit saved = cashDepositRepository.save(deposit);
 
         // Log Operation
         dailyOperationService.logOperation(
@@ -118,8 +124,10 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         String origRef = original.getReference() != null && !original.getReference().isEmpty() ? original.getReference() : String.valueOf(original.getId());
 
         // Check if already cancelled
-        if (((CashDepositRepository) repository).existsByReference("CANCEL-" + origRef)) {
-            throw new RuntimeException("Ce versement a déjà été annulé.");
+        CashDepositRepository cashDepositRepository = (CashDepositRepository) repository;
+        String cancelReference = "CANCEL-" + origRef;
+        if (cashDepositRepository.existsByReference(cancelReference)) {
+            return cashDepositRepository.findByReference(cancelReference).orElseThrow();
         }
 
         CashDeposit cancelDeposit = new CashDeposit();
@@ -127,7 +135,7 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         cancelDeposit.setCommercialUsername(original.getCommercialUsername());
         cancelDeposit.setDate(original.getDate());
         cancelDeposit.setBilletage(null);
-        cancelDeposit.setReference("CANCEL-" + origRef);
+        cancelDeposit.setReference(cancelReference);
         cancelDeposit.setReceivedBy(currentUser.getUsername());
 
         // Update Daily Report
@@ -139,7 +147,7 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         dailyReportRepository.save(report);
 
         cancelDeposit.setDailyReport(report);
-        CashDeposit saved = ((CashDepositRepository) repository).save(cancelDeposit);
+        CashDeposit saved = cashDepositRepository.save(cancelDeposit);
 
         // Log Operation
         dailyOperationService.logOperation(

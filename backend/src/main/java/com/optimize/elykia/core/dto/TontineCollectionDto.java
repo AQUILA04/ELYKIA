@@ -20,6 +20,8 @@ public class TontineCollectionDto {
     private String operationConsentCode;
     private Double confirmedAmount;
     private String syncConsentCode;
+    @Positive(message = "La mise de rattrapage doit être positive.")
+    private Double catchupDailyStake;
 
     /**
      * Date métier de la collecte (rattrapage). Si absent, la collecte est enregistrée à la date du jour.

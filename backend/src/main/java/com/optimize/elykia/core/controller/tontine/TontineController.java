@@ -4,9 +4,11 @@ import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.core.dto.TontineCollectionDto;
+import com.optimize.elykia.core.dto.TontineCatchupPreviewDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
 import com.optimize.elykia.core.dto.TontineMemberRespDto;
 import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
@@ -17,8 +19,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Set;
 
 @RestController
@@ -117,6 +121,14 @@ public class TontineController {
                 HttpStatus.CREATED);
     }
 
+    @GetMapping("/members/{memberId}/catchup-preview")
+    public ResponseEntity<Response> getCatchupPreview(
+            @PathVariable Long memberId,
+            @RequestParam LocalDate collectionDate) {
+        TontineCatchupPreviewDto preview = tontineService.getCatchupPreview(memberId, collectionDate);
+        return new ResponseEntity<>(ResponseUtil.successResponse(preview), HttpStatus.OK);
+    }
+
     @GetMapping("/collections")
     public ResponseEntity<Response> getCollection(Pageable pageable) {
         return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.getCollections(pageable)),
@@ -127,8 +139,14 @@ public class TontineController {
     public ResponseEntity<Response> getCollectionHistory(@PathVariable Long memberId, Pageable pageable) {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(
-                        tontineService.getTontineCollectionRepository().findByTontineMember_Id(memberId, pageable)),
+                        tontineService.getTontineCollectionRepository().findByTontineMember_IdAndState(memberId, com.optimize.common.entities.enums.State.ENABLED, pageable)),
                 HttpStatus.OK);
+    }
+
+    @DeleteMapping("/collections/{id}")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.CANCEL_TONTINE_COLLECTION + "', '" + UserPermissionConstant.ADMIN + "')")
+    public ResponseEntity<Response> cancelCollection(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.cancelCollection(id)), HttpStatus.OK);
     }
 
     @GetMapping("/stock/items/{tontineItemId}/sales-details")

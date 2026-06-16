@@ -1,72 +1,104 @@
-<h2 mat-dialog-title data-testid="e2e-tontine-add-member-modal">{{ isEditMode ? 'Modifier le Membre' : 'Ajouter un Membre à la Tontine' }}</h2>
+<div class="member-modal">
+  <div class="modal-header">
+    <div class="modal-header-text">
+      <span class="modal-surtitle">TONTINE · MEMBRE</span>
+      <h2 class="modal-title" data-testid="e2e-tontine-add-member-modal">
+        {{ isEditMode ? 'Modifier la mise du membre' : 'Ajouter un membre à la tontine' }}
+      </h2>
+    </div>
+    <button type="button" class="modal-close" (click)="onCancel()" [disabled]="loading" aria-label="Fermer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+  </div>
 
-<mat-dialog-content>
-  <form [formGroup]="form">
-    <!-- Client Selection (Search only visible in Add Mode) -->
-    <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditMode">
-      <mat-label>Rechercher un client</mat-label>
-      <input matInput formControlName="clientSearch" placeholder="Nom ou code client...">
-      <mat-icon matPrefix>search</mat-icon>
-    </mat-form-field>
-
-    <!-- Read-only Client Display for Edit Mode -->
-    <mat-form-field appearance="outline" class="full-width" *ngIf="isEditMode">
-      <mat-label>Client</mat-label>
-      <input matInput [value]="getClientDisplay(data.member!.client)" disabled>
-    </mat-form-field>
-
-    <!-- Client Select for Add Mode -->
-    <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditMode">
-      <mat-label>Sélectionner un client *</mat-label>
-      <mat-select formControlName="clientId" required data-testid="e2e-tontine-member-client">
-        <mat-option *ngFor="let client of filteredClients" [value]="client.id">
-          {{ getClientDisplay(client) }}
-        </mat-option>
-      </mat-select>
-      <mat-error *ngIf="form.get('clientId')?.hasError('required')">
-        Veuillez sélectionner un client
-      </mat-error>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Fréquence de cotisation</mat-label>
-      <mat-select formControlName="frequency">
-        <mat-option value="DAILY">Journalier</mat-option>
-        <mat-option value="WEEKLY">Hebdomadaire</mat-option>
-        <mat-option value="MONTHLY">Mensuel</mat-option>
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Montant souhaité</mat-label>
-      <input matInput type="number" formControlName="amount" placeholder="0" data-testid="e2e-tontine-member-amount">
-    </mat-form-field>
-
-    <!-- Update Scope Section (Only visible when editing amount) -->
-    <div class="scope-section" *ngIf="showUpdateScope">
-        <p class="scope-label">Portée de la modification du montant :</p>
-        <mat-radio-group formControlName="updateScope" class="scope-radio-group">
-            <mat-radio-button value="CURRENT_AND_FUTURE">Mois en cours et futurs</mat-radio-button>
-            <mat-radio-button value="FUTURE_ONLY">Mois futurs uniquement</mat-radio-button>
-            <mat-radio-button value="GLOBAL">Rétroactif (Tout recalculer)</mat-radio-button>
-        </mat-radio-group>
+  <div class="modal-body">
+    <div class="member-summary" *ngIf="isEditMode && data.member">
+      <div class="summary-row">
+        <span class="summary-label">Membre</span>
+        <span class="summary-value">{{ getClientDisplay(data.member.client) }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Mise actuelle</span>
+        <span class="summary-value mono">{{ data.member.amount ? (data.member.amount | number:'1.0-0') + ' FCFA' : 'N/A' }}</span>
+      </div>
     </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Notes</mat-label>
-      <textarea matInput formControlName="notes" placeholder="Observations..."></textarea>
-    </mat-form-field>
+    <form [formGroup]="form" class="member-form" (ngSubmit)="onSubmit()">
+      <div class="form-field" *ngIf="!isEditMode">
+        <label class="field-label" for="client-search">Rechercher un client</label>
+        <div class="search-input-wrap">
+          <input id="client-search" type="text" class="search-input" formControlName="clientSearch" placeholder="Nom ou code client...">
+        </div>
+      </div>
 
-    <mat-error *ngIf="error" class="error-message">
-      {{ error }}
-    </mat-error>
-  </form>
-</mat-dialog-content>
+      <div class="form-field" *ngIf="!isEditMode">
+        <label class="field-label">Sélectionner un client *</label>
+        <mat-form-field appearance="outline" class="elykia-field">
+          <mat-select formControlName="clientId" required data-testid="e2e-tontine-member-client">
+            <mat-option *ngFor="let client of filteredClients" [value]="client.id">
+              {{ getClientDisplay(client) }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.get('clientId')?.hasError('required')">
+            Veuillez sélectionner un client
+          </mat-error>
+        </mat-form-field>
+      </div>
 
-<mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()" [disabled]="loading">Annuler</button>
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="loading || form.invalid" data-testid="e2e-tontine-member-submit">
-    <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-    <span *ngIf="!loading">{{ isEditMode ? 'Modifier' : 'Ajouter' }}</span>
-  </button>
-</mat-dialog-actions>
+      <div class="form-field" *ngIf="isEditMode && data.member">
+        <label class="field-label">Client</label>
+        <div class="readonly-value">{{ getClientDisplay(data.member.client) }}</div>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Fréquence de cotisation</label>
+        <mat-form-field appearance="outline" class="elykia-field">
+          <mat-select formControlName="frequency">
+            <mat-option value="DAILY">Journalier</mat-option>
+            <mat-option value="WEEKLY">Hebdomadaire</mat-option>
+            <mat-option value="MONTHLY">Mensuel</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label" for="member-amount">Montant de la mise</label>
+        <div class="amount-input-wrap">
+          <input id="member-amount" type="number" class="amount-input" formControlName="amount" placeholder="Saisir le montant" data-testid="e2e-tontine-member-amount">
+          <span class="amount-suffix">FCFA</span>
+        </div>
+      </div>
+
+      <div class="scope-section" *ngIf="showUpdateScope">
+        <div class="scope-title">Portée de la modification</div>
+        <mat-radio-group formControlName="updateScope" class="scope-radio-group">
+          <mat-radio-button value="CURRENT_AND_FUTURE">Mois en cours et futurs</mat-radio-button>
+          <mat-radio-button value="FUTURE_ONLY">Mois futurs uniquement</mat-radio-button>
+          <mat-radio-button value="GLOBAL">Rétroactif (tout recalculer)</mat-radio-button>
+        </mat-radio-group>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Notes</label>
+        <mat-form-field appearance="outline" class="elykia-field">
+          <textarea matInput formControlName="notes" placeholder="Observations..."></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="error-banner" *ngIf="error">{{ error }}</div>
+    </form>
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="loading">Annuler</button>
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="onSubmit()"
+      [disabled]="loading || form.invalid"
+      data-testid="e2e-tontine-member-submit">
+      <span *ngIf="loading" class="btn-spinner"></span>
+      <span>{{ loading ? 'Enregistrement…' : (isEditMode ? 'Mettre à jour' : 'Ajouter le membre') }}</span>
+    </button>
+  </div>
+</div>

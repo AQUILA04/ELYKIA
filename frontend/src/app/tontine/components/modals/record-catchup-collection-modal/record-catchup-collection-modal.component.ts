@@ -2,7 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TontineService } from '../../../services/tontine.service';
-import { TontineMember, TONTINE_CONSTANTS, formatCurrency } from '../../../types/tontine.types';
+import { TontineCatchupPreview, TontineMember, TONTINE_CONSTANTS, formatCurrency } from '../../../types/tontine.types';
 
 @Component({
   selector: 'app-record-catchup-collection-modal',
@@ -16,6 +16,9 @@ export class RecordCatchupCollectionModalComponent implements OnInit {
   TONTINE_CONSTANTS = TONTINE_CONSTANTS;
   minDate: Date;
   maxDate: Date;
+  private requestReference = '';
+  previewLoading = false;
+  catchupPreview: TontineCatchupPreview | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -28,6 +31,10 @@ export class RecordCatchupCollectionModalComponent implements OnInit {
 
     this.form = this.fb.group({
       collectionDate: [null, Validators.required],
+      catchupDailyStake: [
+        data?.member?.amount || null,
+        [Validators.required, Validators.min(1)]
+      ],
       amount: [
         null,
         [
@@ -39,7 +46,16 @@ export class RecordCatchupCollectionModalComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.requestReference = this.generateRequestReference();
+    this.form.get('collectionDate')?.valueChanges.subscribe((date: Date | null) => {
+      if (!date) {
+        this.catchupPreview = null;
+        return;
+      }
+      this.loadCatchupPreview(date);
+    });
+  }
 
   getClientName(): string {
     return `${this.data.member.client.firstname} ${this.data.member.client.lastname}`;
@@ -64,8 +80,10 @@ export class RecordCatchupCollectionModalComponent implements OnInit {
     const collectionData = {
       memberId: this.data.member.id,
       amount: this.form.value.amount,
+      catchupDailyStake: this.form.value.catchupDailyStake,
       collectionDate: this.formatDate(this.form.value.collectionDate),
-      notes: 'Rattrapage'
+      notes: 'Rattrapage',
+      reference: this.requestReference
     };
 
     this.tontineService.createCollection(collectionData).subscribe({
@@ -75,6 +93,37 @@ export class RecordCatchupCollectionModalComponent implements OnInit {
       error: (error) => {
         this.error = error.message || 'Erreur lors de l\'enregistrement de la collecte de rattrapage';
         this.loading = false;
+      }
+    });
+  }
+
+  private loadCatchupPreview(date: Date): void {
+    const dateAsString = this.formatDate(date);
+    this.previewLoading = true;
+    this.tontineService.getCatchupPreview(this.data.member.id, dateAsString).subscribe({
+      next: (response) => {
+        this.catchupPreview = response.data ?? null;
+        const stakeControl = this.form.get('catchupDailyStake');
+        if (!stakeControl || !this.catchupPreview) {
+          this.previewLoading = false;
+          return;
+        }
+
+        if (stakeControl.pristine || this.catchupPreview.monthLocked) {
+          stakeControl.setValue(this.catchupPreview.applicableDailyStake);
+        }
+
+        if (this.catchupPreview.monthLocked) {
+          stakeControl.disable({ emitEvent: false });
+        } else {
+          stakeControl.enable({ emitEvent: false });
+        }
+        this.previewLoading = false;
+      },
+      error: (err) => {
+        this.catchupPreview = null;
+        this.previewLoading = false;
+        this.error = err?.message || 'Impossible de prévisualiser le rattrapage pour cette date.';
       }
     });
   }
@@ -114,5 +163,12 @@ export class RecordCatchupCollectionModalComponent implements OnInit {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private generateRequestReference(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return `TONT-CATCH-${crypto.randomUUID()}`;
+    }
+    return `TONT-CATCH-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   }
 }

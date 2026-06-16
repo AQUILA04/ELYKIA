@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Repository
 public interface CashDepositRepository extends GenericRepository<CashDeposit, Long> {
@@ -18,4 +19,6 @@ public interface CashDepositRepository extends GenericRepository<CashDeposit, Lo
     Page<CashDeposit> findByDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     boolean existsByReference(String reference);
+
+    Optional<CashDeposit> findByReference(String reference);
 }

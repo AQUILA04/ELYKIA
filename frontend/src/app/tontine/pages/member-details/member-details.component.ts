@@ -4,7 +4,6 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { TontineService } from '../../services/tontine.service';
 import { TontineDeliveryService } from '../../services/tontine-delivery.service';
 import {
@@ -13,6 +12,7 @@ import {
   TontineMemberAmountHistory,
   CreateDeliveryDto,
   formatCurrency,
+  formatDate,
   formatDateTime,
   TontineMemberDeliveryStatus,
   TontineSessionStatus,
@@ -26,6 +26,7 @@ import { RecordCollectionModalComponent } from '../../components/modals/record-c
 import { RecordCatchupCollectionModalComponent } from '../../components/modals/record-catchup-collection-modal/record-catchup-collection-modal.component';
 import { DeliveryArticleSelectionModalComponent } from '../../components/modals/delivery-article-selection-modal/delivery-article-selection-modal.component';
 import { AddMemberModalComponent } from '../../components/modals/add-member-modal/add-member-modal.component';
+import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
 
 /** Mois calendaires de la session tontine (Fév = 1 … Nov = 10, index JS Date.getMonth()). */
 const TONTINE_JS_MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
@@ -57,12 +58,13 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   member: TontineMember | null = null;
   amountHistory: TontineMemberAmountHistory[] = [];
   collectionsDataSource = new MatTableDataSource<TontineCollection>([]);
-  displayedColumns: string[] = ['date', 'amount', 'commercial', 'consent'];
+  displayedColumns: string[] = ['date', 'amount', 'commercial', 'consent', 'actions'];
   loadingCollections = false;
   loadingAmountHistory = false;
   loading: boolean = false;
   currentSessionStatus: TontineSessionStatus | null = null;
   isSessionActive: boolean = false;
+  isAdmin = false;
 
   monthsList = [
     'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -75,7 +77,6 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     private tontineService: TontineService,
     private deliveryService: TontineDeliveryService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar,
     private authService: AuthService,
     private alertService: AlertService
   ) {}
@@ -98,6 +99,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
 
     // Ensure current session is loaded in the service if it's not already
     this.tontineService.getCurrentSession().pipe(takeUntil(this.destroy$)).subscribe();
+    this.isAdmin = this.authService.hasRole(UserProfilConstant.ADMIN);
 
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
@@ -211,6 +213,34 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
 
   formatDateTime(date: string): string {
     return formatDateTime(date);
+  }
+
+  formatDateOnly(date: string): string {
+    return formatDate(date);
+  }
+
+  get sortedAmountHistory(): TontineMemberAmountHistory[] {
+    return [...this.amountHistory].sort(
+      (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    );
+  }
+
+  isActiveAmountHistory(entry: TontineMemberAmountHistory): boolean {
+    if (!entry.endDate) {
+      return true;
+    }
+    const end = new Date(entry.endDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return end >= today;
+  }
+
+  getAmountHistoryStatusLabel(entry: TontineMemberAmountHistory): string {
+    return this.isActiveAmountHistory(entry) ? 'En cours' : 'Clôturé';
+  }
+
+  getAmountHistoryStatusClass(entry: TontineMemberAmountHistory): string {
+    return this.isActiveAmountHistory(entry) ? 'status-active' : 'status-closed';
   }
 
   // Helper methods for status display in template
@@ -432,6 +462,32 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
+  async onCancelCollection(collection: TontineCollection): Promise<void> {
+    if (!this.member || !collection?.id) return;
+
+    const confirmed = await this.alertService.showConfirmation(
+      'Annulation de collecte',
+      'Êtes-vous sûr de vouloir annuler cette collecte ? Cette action corrige les agrégations financières.',
+      'Oui, annuler',
+      'Non'
+    );
+    if (!confirmed) return;
+
+    this.tontineService.cancelCollection(collection.id).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.loadMemberDetails(this.member!.id);
+        this.loadCollections(this.member!.id);
+        this.loadAmountHistory(this.member!.id);
+        this.showSuccess('Collecte annulée avec succès');
+      },
+      error: (err) => {
+        this.showError(err?.message || 'Erreur lors de l’annulation de la collecte');
+      }
+    });
+  }
+
   onEditMember(): void {
     if (!this.member) return;
 
@@ -496,17 +552,11 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   }
 
   private showSuccess(message: string): void {
-    this.snackBar.open(message, 'Fermer', {
-      duration: 3000,
-      panelClass: ['success-snackbar']
-    });
+    this.alertService.toastSuccess(message, 'Succès');
   }
 
   private showError(message: string): void {
-    this.snackBar.open(message, 'Fermer', {
-      duration: 5000,
-      panelClass: ['error-snackbar']
-    });
+    this.alertService.toastError(message, 'Erreur');
   }
 }
 

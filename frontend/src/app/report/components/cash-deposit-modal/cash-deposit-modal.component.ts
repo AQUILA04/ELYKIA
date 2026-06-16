@@ -19,6 +19,7 @@ export class CashDepositModalComponent implements OnInit {
     billetageData: any = {};
 
     isSubmitting = false;
+    private requestReference = '';
 
     constructor(
         public dialogRef: MatDialogRef<CashDepositModalComponent>,
@@ -33,6 +34,7 @@ export class CashDepositModalComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.requestReference = this.generateRequestReference();
     }
 
     onBilletageChange(event: { totalAmount: number, ticketingData: any }) {
@@ -59,7 +61,8 @@ export class CashDepositModalComponent implements OnInit {
             commercialUsername: this.commercialUsername,
             amount: this.depositAmount,
             billetage: JSON.stringify(this.billetageData),
-            date: this.date
+            date: this.date,
+            reference: this.requestReference
         };
 
         this.cashDepositService.createDeposit(deposit).subscribe({
@@ -73,6 +76,13 @@ export class CashDepositModalComponent implements OnInit {
                 this.isSubmitting = false;
             }
         });
+    }
+
+    private generateRequestReference(): string {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return `DEP-WEB-${crypto.randomUUID()}`;
+        }
+        return `DEP-WEB-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     }
 }
 

@@ -47,6 +47,63 @@
         </mat-form-field>
       </div>
 
+      <div class="info-banner info-banner-loading" *ngIf="previewLoading">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        <p>Prévisualisation en cours…</p>
+      </div>
+
+      <div class="info-banner preview-banner preview-editable"
+           *ngIf="!previewLoading && catchupPreview && !catchupPreview.monthLocked">
+        <div class="preview-banner-head">
+          <span class="preview-status-pill preview-status-editable">Modifiable</span>
+        </div>
+        <div class="preview-banner-body">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+          <p>
+            Mois ciblé : <strong>{{ catchupPreview.monthStart | date:'MM/yyyy' }}</strong>.
+            Aucune collecte existante sur ce mois — vous pouvez ajuster la mise journalière avant soumission.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-banner preview-banner preview-locked"
+           *ngIf="!previewLoading && catchupPreview && catchupPreview.monthLocked">
+        <div class="preview-banner-head">
+          <span class="preview-status-pill preview-status-locked">Verrouillé</span>
+        </div>
+        <div class="preview-banner-body">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <p>
+            Mois ciblé : <strong>{{ catchupPreview.monthStart | date:'MM/yyyy' }}</strong>.
+            Ce mois contient déjà <strong>{{ catchupPreview.existingCollectionsCount }}</strong> collecte(s).
+            La mise journalière est verrouillée à <strong>{{ formatCurrency(catchupPreview.applicableDailyStake) }}</strong>.
+          </p>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label" for="catchup-daily-stake">
+          Mise journalière du mois ciblé *
+          <span class="field-status field-status-editable" *ngIf="catchupPreview && !catchupPreview.monthLocked">modifiable</span>
+          <span class="field-status field-status-locked" *ngIf="catchupPreview?.monthLocked">verrouillée</span>
+        </label>
+        <div class="amount-input-wrap" [class.amount-input-locked]="catchupPreview?.monthLocked">
+          <input
+            id="catchup-daily-stake"
+            type="number"
+            class="amount-input"
+            formControlName="catchupDailyStake"
+            placeholder="Saisir la mise journalière"
+            [readonly]="catchupPreview?.monthLocked"
+            min="1">
+          <span class="amount-suffix">FCFA</span>
+        </div>
+        <div class="field-error" *ngIf="form.get('catchupDailyStake')?.invalid && form.get('catchupDailyStake')?.touched">
+          <span *ngIf="form.get('catchupDailyStake')?.hasError('required')">La mise journalière est requise</span>
+          <span *ngIf="form.get('catchupDailyStake')?.hasError('min')">La mise journalière doit être supérieure à 0</span>
+        </div>
+      </div>
+
       <div class="form-field">
         <label class="field-label" for="catchup-amount">Montant de la collecte *</label>
         <div class="amount-input-wrap">

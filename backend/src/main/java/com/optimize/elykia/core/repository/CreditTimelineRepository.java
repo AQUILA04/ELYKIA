@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface CreditTimelineRepository extends GenericRepository<CreditTimeline, Long> {
@@ -49,6 +50,8 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
     Page<CreditTimeline> findByCredit_id(Long creditId, Pageable pageable);
 
     boolean existsByReference(String reference);
+
+    Optional<CreditTimeline> findByReference(String reference);
 
     Page<CreditTimeline> findByCredit_Client_Id(Long clientId, Pageable pageable);
 

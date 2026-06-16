@@ -85,6 +85,9 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
     @Transactional
     public CreditTimeline makeDailyStake(CreditTimelineDto dto) {
+        if (StringUtils.hasText(dto.getReference()) && getRepository().existsByReference(dto.getReference())) {
+            return getRepository().findByReference(dto.getReference()).orElseThrow();
+        }
         CreditTimeline creditTimeline = creditMapper.toCreditTimeline(dto);
         Credit credit = creditService.getById(dto.getCreditId());
         dailyStakeFactor(credit, creditTimeline);

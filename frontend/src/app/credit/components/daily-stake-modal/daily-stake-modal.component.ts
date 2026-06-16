@@ -15,10 +15,12 @@ export class DailyStakeModalComponent implements OnInit {
 
   stakeForm!: FormGroup;
   minAmount = 200;
+  private requestReference = '';
 
   constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
+    this.requestReference = this.generateRequestReference();
     this.initForm();
   }
 
@@ -51,7 +53,8 @@ export class DailyStakeModalComponent implements OnInit {
     if (this.stakeForm.valid) {
       const dto: CreditTimelineDto = {
         creditId: this.credit.id,
-        amount: this.stakeForm.get('amount')?.value
+        amount: this.stakeForm.get('amount')?.value,
+        reference: this.requestReference
       };
       this.onSubmit.emit(dto);
     }
@@ -63,5 +66,12 @@ export class DailyStakeModalComponent implements OnInit {
 
   get amountControl() {
     return this.stakeForm.get('amount');
+  }
+
+  private generateRequestReference(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return `REC-WEB-${crypto.randomUUID()}`;
+    }
+    return `REC-WEB-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   }
 }

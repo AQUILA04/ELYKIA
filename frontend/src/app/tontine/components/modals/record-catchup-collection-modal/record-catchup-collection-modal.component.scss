@@ -17,6 +17,10 @@
   --border: #dde3ec;
   --text-muted: #6b7a99;
   --text-light: #9aacc4;
+  --green: #1d8a3c;
+  --green-pale: #e6f5eb;
+  --orange: #c75000;
+  --orange-pale: #fff3e6;
   --red: #b91c1c;
   --red-pale: #fef2f2;
 }
@@ -154,6 +158,118 @@
   strong {
     font-family: 'DM Mono', monospace;
     font-weight: 700;
+  }
+}
+
+.info-banner-loading {
+  background: var(--navy-xpale);
+  border-color: var(--border);
+  color: var(--text-muted);
+
+  svg {
+    color: var(--text-muted);
+  }
+}
+
+.preview-banner {
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+}
+
+.preview-editable {
+  background: var(--green-pale);
+  border-color: rgba(29, 138, 60, 0.28);
+  color: #14532d;
+}
+
+.preview-locked {
+  background: var(--orange-pale);
+  border-color: rgba(199, 80, 0, 0.28);
+  color: #7c2d12;
+}
+
+.preview-banner-head {
+  display: flex;
+  align-items: center;
+}
+
+.preview-banner-body {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+
+  svg {
+    margin-top: 1px;
+  }
+}
+
+.preview-editable .preview-banner-body svg {
+  color: var(--green);
+}
+
+.preview-locked .preview-banner-body svg {
+  color: var(--orange);
+}
+
+.preview-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.preview-status-editable {
+  background: #fff;
+  color: var(--green);
+  border: 1px solid rgba(29, 138, 60, 0.35);
+}
+
+.preview-status-locked {
+  background: #fff;
+  color: var(--orange);
+  border: 1px solid rgba(199, 80, 0, 0.35);
+}
+
+.field-status {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.field-status-editable {
+  background: var(--green-pale);
+  color: var(--green);
+  border: 1px solid rgba(29, 138, 60, 0.25);
+}
+
+.field-status-locked {
+  background: var(--orange-pale);
+  color: var(--orange);
+  border: 1px solid rgba(199, 80, 0, 0.25);
+}
+
+.amount-input-locked {
+  background: var(--orange-pale);
+  border-color: rgba(199, 80, 0, 0.35);
+
+  .amount-input {
+    color: var(--orange);
+    cursor: not-allowed;
+  }
+
+  .amount-suffix {
+    background: #ffe8d6;
+    color: var(--orange);
   }
 }
 
