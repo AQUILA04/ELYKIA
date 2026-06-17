@@ -1,0 +1,7 @@
+{
+  "name": "customer-space",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

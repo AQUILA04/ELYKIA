@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELYKIA — Wireflow Espace Client v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0D1B2A;
+    --navy-mid: #1A2E42;
+    --gold: #C9922A;
+    --gold-light: #F0C66A;
+    --cream: #FAF6EE;
+    --white: #FFFFFF;
+    --gray-bg: #F1F4F8;
+    --gray-text: #64748B;
+    --green: #22C55E;
+    --orange: #F97316;
+    --red: #EF4444;
+    --border: #E2E8F0;
+    --shadow: 0 4px 24px rgba(13,27,42,0.10);
+    --radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #0D1B2A;
+    color: var(--navy);
+    min-height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    background: rgba(13,27,42,0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(201,146,42,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 64px;
+  }
+
+  .topbar-logo {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold-light);
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+  }
+
+  .topbar-logo span {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.65rem;
+    color: #94A3B8;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    display: block;
+    font-weight: 400;
+  }
+
+  .topbar-nav {
+    display: flex;
+    gap: 8px;
+  }
+
+  .topbar-nav a {
+    color: #94A3B8;
+    text-decoration: none;
+    font-size: 0.82rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+
+  .topbar-nav a:hover,
+  .topbar-nav a.active {
+    color: var(--gold-light);
+    border-color: rgba(201,146,42,0.3);
+    background: rgba(201,146,42,0.08);
+  }
+
+  .topbar-badge {
+    background: var(--gold);
+    color: var(--navy);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── MAIN CANVAS ── */
+  .canvas {
+    padding-top: 64px;
+    min-height: 100vh;
+  }
+
+  /* ── FLOW SECTION ── */
+  .flow-section {
+    padding: 48px 40px 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .flow-section:last-child { border-bottom: none; }
+
+  .flow-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .flow-number {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .flow-title {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold-light);
+    font-size: 1.3rem;
+  }
+
+  .flow-subtitle {
+    color: #94A3B8;
+    font-size: 0.82rem;
+    margin-top: 2px;
+  }
+
+  /* ── SCREENS ROW ── */
+  .screens-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 16px;
+  }
+
+  .screens-row::-webkit-scrollbar { height: 4px; }
+  .screens-row::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 2px; }
+  .screens-row::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+
+  /* ── SCREEN ITEM ── */
+  .screen-item {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+  }
+
+  .screen-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .screen-label {
+    color: #CBD5E1;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    max-width: 160px;
+    line-height: 1.4;
+  }
+
+  .screen-label .screen-num {
+    display: inline-block;
+    background: rgba(201,146,42,0.15);
+    color: var(--gold-light);
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+    letter-spacing: 0.06em;
+  }
+
+  .screen-frame {
+    width: 160px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+
+  .screen-frame:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 0 2px rgba(201,146,42,0.4);
+  }
+
+  .screen-frame img {
+    width: 100%;
+    display: block;
+  }
+
+  /* ── ARROW CONNECTOR ── */
+  .arrow-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    padding-top: 40px;
+    flex-shrink: 0;
+    min-width: 60px;
+  }
+
+  .arrow-line {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(201,146,42,0.3), var(--gold));
+    position: relative;
+  }
+
+  .arrow-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid var(--gold);
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+
+  .arrow-label {
+    color: var(--gold);
+    font-size: 0.62rem;
+    font-weight: 500;
+    margin-top: 6px;
+    text-align: center;
+    max-width: 60px;
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── STATUS BADGES ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .badge-initie { background: rgba(249,115,22,0.15); color: #F97316; border: 1px solid rgba(249,115,22,0.3); }
+  .badge-valide { background: rgba(34,197,94,0.15); color: #22C55E; border: 1px solid rgba(34,197,94,0.3); }
+  .badge-livre  { background: rgba(59,130,246,0.15); color: #60A5FA; border: 1px solid rgba(59,130,246,0.3); }
+  .badge-termine { background: rgba(148,163,184,0.15); color: #94A3B8; border: 1px solid rgba(148,163,184,0.3); }
+
+  /* ── LEGEND ── */
+  .legend-section {
+    padding: 32px 40px 48px;
+  }
+
+  .legend-title {
+    color: var(--gold-light);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+  }
+
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .legend-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+
+  .legend-card-title {
+    color: #E2E8F0;
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+  }
+
+  .legend-card p {
+    color: #94A3B8;
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  .legend-card .badge {
+    margin-bottom: 8px;
+  }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: rgba(13,27,42,0.92);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+  }
+
+  .modal-inner {
+    position: relative;
+    max-width: 390px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 24px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  }
+
+  .modal-inner img {
+    width: 100%;
+    display: block;
+    border-radius: 24px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(13,27,42,0.8);
+    border: 1px solid rgba(201,146,42,0.4);
+    color: var(--gold-light);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    z-index: 10;
+  }
+
+  .modal-close:hover {
+    background: rgba(201,146,42,0.2);
+  }
+
+  .modal-caption {
+    text-align: center;
+    color: #94A3B8;
+    font-size: 0.78rem;
+    margin-top: 12px;
+    padding: 0 8px;
+  }
+
+  /* ── FLOW DIVIDER ── */
+  .flow-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,146,42,0.2), transparent);
+    margin: 0 40px;
+  }
+
+  /* ── INTRO HERO ── */
+  .intro-hero {
+    padding: 56px 40px 40px;
+    display: flex;
+    align-items: flex-start;
+    gap: 48px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .intro-text { flex: 1; }
+
+  .intro-tag {
+    display: inline-block;
+    background: rgba(201,146,42,0.12);
+    color: var(--gold);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    border: 1px solid rgba(201,146,42,0.25);
+  }
+
+  .intro-title {
+    font-family: 'Playfair Display', serif;
+    color: var(--cream);
+    font-size: 2rem;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .intro-subtitle {
+    color: #94A3B8;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    max-width: 520px;
+  }
+
+  .intro-stats {
+    display: flex;
+    gap: 24px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold-light);
+    font-size: 1.6rem;
+    font-weight: 700;
+    display: block;
+  }
+
+  .stat-label {
+    color: #64748B;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .intro-flows {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 220px;
+  }
+
+  .flow-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 14px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .flow-pill:hover {
+    background: rgba(201,146,42,0.08);
+    border-color: rgba(201,146,42,0.25);
+  }
+
+  .flow-pill-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .flow-pill-text {
+    color: #CBD5E1;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .flow-pill-count {
+    margin-left: auto;
+    color: #64748B;
+    font-size: 0.72rem;
+  }
+
+  /* ── DESIGN TOKENS ── */
+  .tokens-section {
+    padding: 32px 40px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .tokens-title {
+    color: #94A3B8;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+
+  .tokens-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .token-swatch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .swatch-circle {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+  }
+
+  .swatch-info { }
+
+  .swatch-name {
+    color: #E2E8F0;
+    font-size: 0.72rem;
+    font-weight: 500;
+    display: block;
+  }
+
+  .swatch-hex {
+    color: #64748B;
+    font-size: 0.65rem;
+    font-family: monospace;
+  }
+
+  .token-sep {
+    width: 1px;
+    height: 28px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  /* ── ANNOTATION TOOLTIP ── */
+  .screen-annotation {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(13,27,42,0.9);
+    color: var(--gold-light);
+    font-size: 0.6rem;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    border: 1px solid rgba(201,146,42,0.3);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .screen-frame:hover .screen-annotation {
+    opacity: 1;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .topbar { padding: 0 16px; }
+    .topbar-nav { display: none; }
+    .intro-hero { flex-direction: column; padding: 40px 20px 32px; gap: 24px; }
+    .flow-section { padding: 32px 20px 24px; }
+    .legend-section { padding: 24px 20px 40px; }
+    .tokens-section { padding: 24px 20px; }
+    .intro-title { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-logo">
+    ELYKIA
+    <span>Wireflow Espace Client v1.0</span>
+  </div>
+  <nav class="topbar-nav">
+    <a href="#flow-auth" class="active">Connexion</a>
+    <a href="#flow-dashboard">Tableau de bord</a>
+    <a href="#flow-achats">Achats</a>
+    <a href="#flow-paiement">Paiement</a>
+    <a href="#flow-commande">Commande</a>
+    <a href="#legend">Légende</a>
+  </nav>
+  <span class="topbar-badge">11 écrans</span>
+</header>
+
+<div class="canvas">
+
+  <!-- INTRO HERO -->
+  <section class="intro-hero">
+    <div class="intro-text">
+      <div class="intro-tag">Prototype UX · Version 1.0</div>
+      <h1 class="intro-title">Espace Client ELYKIA<br>— Wireflow Mobile</h1>
+      <p class="intro-subtitle">
+        Parcours utilisateurs complets pour l'application mobile de vente à crédit. Cliquez sur chaque écran pour l'agrandir. Les flèches indiquent les transitions entre écrans.
+      </p>
+      <div class="intro-stats">
+        <div class="stat-item">
+          <span class="stat-num">4</span>
+          <span class="stat-label">Parcours</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">11</span>
+          <span class="stat-label">Écrans</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">3</span>
+          <span class="stat-label">Statuts métier</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">1</span>
+          <span class="stat-label">Code base</span>
+        </div>
+      </div>
+    </div>
+    <div class="intro-flows">
+      <a href="#flow-auth" class="flow-pill">
+        <div class="flow-pill-dot" style="background:#C9922A"></div>
+        <span class="flow-pill-text">Authentification</span>
+        <span class="flow-pill-count">2 écrans</span>
+      </a>
+      <a href="#flow-dashboard" class="flow-pill">
+        <div class="flow-pill-dot" style="background:#3B82F6"></div>
+        <span class="flow-pill-text">Tableau de bord</span>
+        <span class="flow-pill-count">1 écran</span>
+      </a>
+      <a href="#flow-achats" class="flow-pill">
+        <div class="flow-pill-dot" style="background:#22C55E"></div>
+        <span class="flow-pill-text">Achats & Recouvrement</span>
+        <span class="flow-pill-count">3 écrans</span>
+      </a>
+      <a href="#flow-paiement" class="flow-pill">
+        <div class="flow-pill-dot" style="background:#F97316"></div>
+        <span class="flow-pill-text">Paiement Mobile Money</span>
+        <span class="flow-pill-count">2 écrans</span>
+      </a>
+      <a href="#flow-commande" class="flow-pill">
+        <div class="flow-pill-dot" style="background:#A855F7"></div>
+        <span class="flow-pill-text">Nouvelle Commande</span>
+        <span class="flow-pill-count">3 écrans</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- DESIGN TOKENS -->
+  <section class="tokens-section">
+    <div class="tokens-title">Système de design — Tokens couleurs</div>
+    <div class="tokens-row">
+      <div class="token-swatch">
+        <div class="swatch-circle" style="background:#0D1B2A"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Navy</span>
+          <span class="swatch-hex">#0D1B2A</span>
+        </div>
+      </div>
+      <div class="token-sep"></div>
+      <div class="token-swatch">
+        <div class="swatch-circle" style="background:#C9922A"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Gold</span>
+          <span class="swatch-hex">#C9922A</span>
+        </div>
+      </div>
+      <div class="token-sep"></div>
+      <div class="token-swatch">
+        <div class="swatch-circle" style="background:#F0C66A"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Gold Light</span>
+          <span class="swatch-hex">#F0C66A</span>
+        </div>
+      </div>
+      <div class="token-sep"></div>
+      <div class="token-swatch">
+        <div class="swatch-circle" style="background:#F8F9FC; border-color:#ccc"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Background</span>
+          <span class="swatch-hex">#F8F9FC</span>
+        </div>
+      </div>
+      <div class="token-sep"></div>
+      <div class="token-swatch">
+        <div class="swatch-circle" style="background:#22C55E"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Validé</span>
+          <span class="swatch-hex">#22C55E</span>
+        </div>
+      </div>
+      <div class="token-sep"></div>
+      <div class="token-swatch">
+        <div class="swatch-circle" style="background:#F97316"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Initié</span>
+          <span class="swatch-hex">#F97316</span>
+        </div>
+      </div>
+      <div class="token-sep"></div>
+      <div class="token-swatch">
+        <div class="swatch-circle" style="background:#94A3B8"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">À venir</span>
+          <span class="swatch-hex">#94A3B8</span>
+        </div>
+      </div>
+      <div class="token-sep"></div>
+      <div style="color:#94A3B8; font-size:0.78rem;">
+        Typo: <strong style="color:#CBD5E1">Playfair Display</strong> (titres) · <strong style="color:#CBD5E1">DM Sans</strong> (corps) · Radius: <strong style="color:#CBD5E1">16px</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- FLOW 1 — AUTHENTIFICATION -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section class="flow-section" id="flow-auth">
+    <div class="flow-header">
+      <div class="flow-number">1</div>
+      <div>
+        <div class="flow-title">Authentification</div>
+        <div class="flow-subtitle">Splash screen → Connexion avec numéro de téléphone + code PIN</div>
+      </div>
+    </div>
+    <div class="screens-row">
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-01</div>
+            Splash Screen<br>Chargement de l'app
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/01-splash.png', 'S-01 — Splash Screen')">
+            <img src="screens/01-splash.png" alt="Splash Screen">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-connector">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Auto</div>
+      </div>
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-02</div>
+            Connexion<br>Tél. + Code PIN
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/02-login.png', 'S-02 — Écran de connexion')">
+            <img src="screens/02-login.png" alt="Login">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-connector">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Connexion réussie</div>
+      </div>
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-03</div>
+            Tableau de bord<br>Vue principale
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/03-dashboard.png', 'S-03 — Tableau de bord')">
+            <img src="screens/03-dashboard.png" alt="Dashboard">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="flow-divider"></div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- FLOW 2 — TABLEAU DE BORD -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section class="flow-section" id="flow-dashboard">
+    <div class="flow-header">
+      <div class="flow-number" style="background:#3B82F6">2</div>
+      <div>
+        <div class="flow-title">Tableau de bord</div>
+        <div class="flow-subtitle">Vue synthétique du crédit en cours, actions rapides et dernières activités</div>
+      </div>
+    </div>
+
+    <!-- Annotations du dashboard -->
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px;">
+      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px 16px; max-width:220px;">
+        <div style="color:#E2E8F0; font-size:0.78rem; font-weight:600; margin-bottom:4px;">Carte crédit en cours</div>
+        <div style="color:#94A3B8; font-size:0.72rem; line-height:1.5;">Montant total, restant, prochaine mise, barre de progression du remboursement</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px 16px; max-width:220px;">
+        <div style="color:#E2E8F0; font-size:0.78rem; font-weight:600; margin-bottom:4px;">Actions rapides</div>
+        <div style="color:#94A3B8; font-size:0.72rem; line-height:1.5;">Payer · Commander · Historique · Mon crédit — accès 1 tap</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px 16px; max-width:220px;">
+        <div style="color:#E2E8F0; font-size:0.78rem; font-weight:600; margin-bottom:4px;">Navigation bottom</div>
+        <div style="color:#94A3B8; font-size:0.72rem; line-height:1.5;">5 onglets: Home · Achats · Commandes · Paiements · Profil</div>
+      </div>
+    </div>
+
+    <div class="screens-row">
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-03</div>
+            Tableau de bord<br>Home
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/03-dashboard.png', 'S-03 — Tableau de bord')">
+            <img src="screens/03-dashboard.png" alt="Dashboard">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="flow-divider"></div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- FLOW 3 — ACHATS & RECOUVREMENT -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section class="flow-section" id="flow-achats">
+    <div class="flow-header">
+      <div class="flow-number" style="background:#22C55E">3</div>
+      <div>
+        <div class="flow-title">Achats & Recouvrement</div>
+        <div class="flow-subtitle">Historique des achats → Détail d'un achat → Timeline des recouvrements</div>
+      </div>
+    </div>
+    <div class="screens-row">
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-04</div>
+            Historique des achats<br>Liste filtrée
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/04-historique-achats.png', 'S-04 — Historique des achats')">
+            <img src="screens/04-historique-achats.png" alt="Historique">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-connector">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Tap sur une commande</div>
+      </div>
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-05</div>
+            Détail de l'achat<br>Articles + Résumé financier
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/05-detail-achat.png', 'S-05 — Détail de l\'achat')">
+            <img src="screens/05-detail-achat.png" alt="Détail achat">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-connector">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Voir recouvrements</div>
+      </div>
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-06</div>
+            Timeline des recouvrements<br>Historique des mises
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/06-timeline-recouvrement.png', 'S-06 — Timeline des recouvrements')">
+            <img src="screens/06-timeline-recouvrement.png" alt="Timeline">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-connector">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Payer la prochaine mise</div>
+      </div>
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-07</div>
+            Paiement Mobile Money<br>(voir Parcours 4)
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/07-paiement-form.png', 'S-07 — Formulaire paiement Mobile Money')">
+            <img src="screens/07-paiement-form.png" alt="Paiement">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Statuts timeline -->
+    <div style="margin-top:24px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+      <div style="color:#94A3B8; font-size:0.75rem; font-weight:500; margin-right:4px;">Statuts des mises :</div>
+      <span class="badge badge-valide">VALIDÉ</span>
+      <span style="color:#94A3B8; font-size:0.72rem;">Paiement confirmé par l'agence</span>
+      <span style="color:#475569; margin:0 4px;">·</span>
+      <span class="badge badge-initie">INITIÉ</span>
+      <span style="color:#94A3B8; font-size:0.72rem;">En attente de validation agence</span>
+      <span style="color:#475569; margin:0 4px;">·</span>
+      <span class="badge badge-termine">À VENIR</span>
+      <span style="color:#94A3B8; font-size:0.72rem;">Échéances futures</span>
+    </div>
+  </section>
+
+  <div class="flow-divider"></div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- FLOW 4 — PAIEMENT MOBILE MONEY -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section class="flow-section" id="flow-paiement">
+    <div class="flow-header">
+      <div class="flow-number" style="background:#F97316">4</div>
+      <div>
+        <div class="flow-title">Paiement Mobile Money</div>
+        <div class="flow-subtitle">Saisie manuelle (numéro d'envoi, montant, référence) → Soumission → État INITIÉ → Validation agence</div>
+      </div>
+    </div>
+
+    <!-- Workflow métier -->
+    <div style="background:rgba(249,115,22,0.06); border:1px solid rgba(249,115,22,0.15); border-radius:12px; padding:16px 20px; margin-bottom:24px; max-width:640px;">
+      <div style="color:#F97316; font-size:0.78rem; font-weight:600; margin-bottom:8px;">Workflow métier — Paiement v1 (Manuel)</div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <div style="background:rgba(249,115,22,0.15); color:#F97316; padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:500;">1. Client envoie via Mobile Money</div>
+        <div style="color:#64748B; font-size:0.8rem;">→</div>
+        <div style="background:rgba(249,115,22,0.15); color:#F97316; padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:500;">2. Client saisit les 3 champs</div>
+        <div style="color:#64748B; font-size:0.8rem;">→</div>
+        <div style="background:rgba(249,115,22,0.15); color:#F97316; padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:500;">3. Statut INITIÉ</div>
+        <div style="color:#64748B; font-size:0.8rem;">→</div>
+        <div style="background:rgba(34,197,94,0.12); color:#22C55E; padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:500;">4. Agence valide → VALIDÉ</div>
+      </div>
+    </div>
+
+    <div class="screens-row">
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-07</div>
+            Formulaire paiement<br>3 champs + numéro agence
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/07-paiement-form.png', 'S-07 — Formulaire paiement Mobile Money')">
+            <img src="screens/07-paiement-form.png" alt="Formulaire paiement">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-connector">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Soumettre</div>
+      </div>
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-08</div>
+            Confirmation soumission<br>Statut INITIÉ
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/08-paiement-confirme.png', 'S-08 — Confirmation paiement soumis')">
+            <img src="screens/08-paiement-confirme.png" alt="Confirmation paiement">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-connector">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Voir recouvrements</div>
+      </div>
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-06</div>
+            Timeline mise à jour<br>Mise INITIÉ visible
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/06-timeline-recouvrement.png', 'S-06 — Timeline mise à jour')">
+            <img src="screens/06-timeline-recouvrement.png" alt="Timeline">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="flow-divider"></div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- FLOW 5 — NOUVELLE COMMANDE -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section class="flow-section" id="flow-commande">
+    <div class="flow-header">
+      <div class="flow-number" style="background:#A855F7">5</div>
+      <div>
+        <div class="flow-title">Nouvelle Commande</div>
+        <div class="flow-subtitle">Catalogue produits → Panier → Soumission → État INITIÉ → Validation agence → Livraison → Crédit démarre</div>
+      </div>
+    </div>
+
+    <!-- Workflow métier commande -->
+    <div style="background:rgba(168,85,247,0.06); border:1px solid rgba(168,85,247,0.15); border-radius:12px; padding:16px 20px; margin-bottom:24px; max-width:760px;">
+      <div style="color:#A855F7; font-size:0.78rem; font-weight:600; margin-bottom:8px;">Workflow métier — Commande à crédit</div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <div style="background:rgba(168,85,247,0.12); color:#A855F7; padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:500;">1. Client compose panier</div>
+        <div style="color:#64748B; font-size:0.8rem;">→</div>
+        <div style="background:rgba(168,85,247,0.12); color:#A855F7; padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:500;">2. Commande INITIÉE</div>
+        <div style="color:#64748B; font-size:0.8rem;">→</div>
+        <div style="background:rgba(249,115,22,0.12); color:#F97316; padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:500;">3. Agence valide</div>
+        <div style="color:#64748B; font-size:0.8rem;">→</div>
+        <div style="background:rgba(59,130,246,0.12); color:#60A5FA; padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:500;">4. Livraison</div>
+        <div style="color:#64748B; font-size:0.8rem;">→</div>
+        <div style="background:rgba(34,197,94,0.12); color:#22C55E; padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:500;">5. Crédit démarre</div>
+      </div>
+    </div>
+
+    <div class="screens-row">
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-09</div>
+            Catalogue produits<br>Recherche + Catégories
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/09-nouvelle-commande.png', 'S-09 — Catalogue produits')">
+            <img src="screens/09-nouvelle-commande.png" alt="Catalogue">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-connector">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Voir le panier</div>
+      </div>
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-10</div>
+            Panier<br>Quantités + Résumé
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/10-panier.png', 'S-10 — Mon Panier')">
+            <img src="screens/10-panier.png" alt="Panier">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-connector">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Passer la commande</div>
+      </div>
+
+      <div class="screen-item">
+        <div class="screen-wrap">
+          <div class="screen-label">
+            <div class="screen-num">S-11</div>
+            Commande soumise<br>Statut INITIÉ + Stepper
+          </div>
+          <div class="screen-frame" onclick="openModal('screens/11-commande-confirmee.png', 'S-11 — Commande soumise')">
+            <img src="screens/11-commande-confirmee.png" alt="Commande confirmée">
+            <div class="screen-annotation">Cliquer pour agrandir</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Statuts commande -->
+    <div style="margin-top:24px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+      <div style="color:#94A3B8; font-size:0.75rem; font-weight:500; margin-right:4px;">Statuts de commande :</div>
+      <span class="badge badge-initie">INITIÉ</span>
+      <span style="color:#94A3B8; font-size:0.72rem;">Soumis par le client, en attente agence</span>
+      <span style="color:#475569; margin:0 4px;">·</span>
+      <span class="badge badge-valide">VALIDÉ</span>
+      <span style="color:#94A3B8; font-size:0.72rem;">Approuvé par l'agence</span>
+      <span style="color:#475569; margin:0 4px;">·</span>
+      <span class="badge badge-livre">LIVRÉ</span>
+      <span style="color:#94A3B8; font-size:0.72rem;">Livré → crédit démarre</span>
+    </div>
+  </section>
+
+  <div class="flow-divider"></div>
+
+  <!-- LÉGENDE -->
+  <section class="legend-section" id="legend">
+    <div class="legend-title">Légende & Notes de conception</div>
+    <div class="legend-grid">
+
+      <div class="legend-card">
+        <div class="legend-card-title">Statuts métier</div>
+        <p>
+          <span class="badge badge-initie" style="margin-bottom:6px; display:inline-flex;">INITIÉ</span> Créé par le client, en attente de validation agence.<br><br>
+          <span class="badge badge-valide" style="margin-bottom:6px; display:inline-flex;">VALIDÉ</span> Confirmé par un agent depuis le frontend back-office.<br><br>
+          <span class="badge badge-livre" style="margin-bottom:6px; display:inline-flex;">LIVRÉ</span> Commande livrée — le crédit commence à cette date.
+        </p>
+      </div>
+
+      <div class="legend-card">
+        <div class="legend-card-title">Navigation principale</div>
+        <p>Bottom navigation à 5 onglets : <strong style="color:#E2E8F0">Home</strong> (tableau de bord), <strong style="color:#E2E8F0">Achats</strong> (historique), <strong style="color:#E2E8F0">Commandes</strong> (catalogue + suivi), <strong style="color:#E2E8F0">Paiements</strong> (timeline recouvrements), <strong style="color:#E2E8F0">Profil</strong>. Onglet actif en or.</p>
+      </div>
+
+      <div class="legend-card">
+        <div class="legend-card-title">Paiement Mobile Money v1</div>
+        <p>Flux manuel en 3 champs : numéro d'envoi, montant envoyé, référence du transfert. Le paiement est créé à l'état <strong style="color:#F97316">INITIÉ</strong>. La validation est faite par un agent depuis le frontend agence. Le client reçoit une notification push à la validation.</p>
+      </div>
+
+      <div class="legend-card">
+        <div class="legend-card-title">Cycle de vie d'une commande</div>
+        <p>Le client compose son panier depuis le catalogue, soumet la commande (état <strong style="color:#F97316">INITIÉ</strong>). L'agence valide puis livre. Le crédit ne démarre qu'à la <strong style="color:#60A5FA">livraison</strong>. Le stepper 3 étapes est visible sur l'écran de confirmation.</p>
+      </div>
+
+      <div class="legend-card">
+        <div class="legend-card-title">Timeline des recouvrements</div>
+        <p>Chaque mise est représentée sur une timeline verticale. Les mises passées sont <strong style="color:#22C55E">vertes (VALIDÉ)</strong>, la mise en attente est <strong style="color:#F97316">orange (INITIÉ)</strong>, les futures sont grises. Le CTA sticky permet de payer la prochaine mise directement.</p>
+      </div>
+
+      <div class="legend-card">
+        <div class="legend-card-title">Code base unique</div>
+        <p>L'application cible un code base unique pour <strong style="color:#E2E8F0">Android</strong> et <strong style="color:#E2E8F0">Web</strong>. Les écrans mobiles (390px) sont prioritaires. Le design system utilise des variables CSS pour faciliter le thème et la maintenance.</p>
+      </div>
+
+    </div>
+  </section>
+
+</div><!-- /canvas -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div style="display:flex; flex-direction:column; align-items:center; max-width:420px; width:100%;">
+    <div class="modal-inner">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <img id="modal-img" src="" alt="">
+    </div>
+    <div class="modal-caption" id="modal-caption"></div>
+  </div>
+</div>
+
+<script>
+  function openModal(src, caption) {
+    document.getElementById('modal-img').src = src;
+    document.getElementById('modal-caption').textContent = caption;
+    document.getElementById('modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(e) {
+    if (!e || e.target === document.getElementById('modal')) {
+      document.getElementById('modal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Active nav on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.topbar-nav a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 120) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.remove('active');
+      if (a.getAttribute('href') === '#' + current) a.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar><ion-buttons slot="start"><ion-back-button defaultHref="/dashboard"></ion-back-button></ion-buttons><ion-title>Mes Achats</ion-title></ion-toolbar>
+</ion-header>
+<ion-content class="page-content">
+  <div class="page-inner" *ngIf="!isLoading">
+    <div class="purchase-card" *ngFor="let p of purchases" [routerLink]="['/purchases', p.id]">
+      <div class="pc-header"><span class="pc-ref">{{ p.reference }}</span><span class="pc-status" [style.color]="statusColor(p.status)">{{ p.status }}</span></div>
+      <div class="pc-amounts"><span class="pc-total">{{ p.totalAmount | number:'1.0-0' }} FCFA</span><span class="pc-remaining">Restant : {{ p.remainingAmount | number:'1.0-0' }} FCFA</span></div>
+      <div class="pc-bar"><div class="pc-bar-fill" [style.width.%]="(p.paidAmount / p.totalAmount) * 100"></div></div>
+      <div class="pc-meta"><span>{{ p.articleCount }} article(s)</span><span>{{ p.paidInstallmentCount }}/{{ p.installmentCount }} mises</span></div>
+    </div>
+    <div class="empty" *ngIf="purchases.length === 0"><ion-icon name="receipt-outline"></ion-icon><p>Aucun achat trouvé</p></div>
+  </div>
+  <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
+</ion-content>
