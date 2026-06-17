@@ -1,0 +1,96 @@
+<!-- S-07 / S-08 — Paiement Mobile Money (v1 Manuelle) -->
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/customer/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Paiement Mobile Money</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" *ngIf="!isSubmitted">
+
+  <!-- Instruction -->
+  <div class="info-box">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <p>
+      Effectuez d'abord votre transfert Mobile Money vers le numéro de l'agence,
+      puis renseignez les informations ci-dessous pour valider votre paiement.
+    </p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    <div class="form-group">
+      <label class="form-label">Numéro d'envoi (expéditeur)</label>
+      <ion-input
+        formControlName="mobileMoneyPhone"
+        type="tel"
+        placeholder="+229 XX XX XX XX"
+        class="form-input"
+      ></ion-input>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Montant envoyé (FCFA)</label>
+      <ion-input
+        formControlName="mobileMoneyAmount"
+        type="number"
+        placeholder="Ex: 35 000"
+        class="form-input"
+      ></ion-input>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Référence du transfert</label>
+      <ion-input
+        formControlName="mobileMoneyReference"
+        type="text"
+        placeholder="Ex: TXN-20260617-XXXX"
+        class="form-input"
+      ></ion-input>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notes (optionnel)</label>
+      <ion-textarea
+        formControlName="notes"
+        placeholder="Informations complémentaires..."
+        rows="3"
+        class="form-input"
+      ></ion-textarea>
+    </div>
+
+    <div class="form-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <ion-button
+      type="submit"
+      expand="block"
+      class="submit-btn"
+      [disabled]="form.invalid || isLoading"
+    >
+      <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+      <span *ngIf="!isLoading">Soumettre le paiement</span>
+    </ion-button>
+  </form>
+
+</ion-content>
+
+<!-- S-08 — Confirmation INITIÉ -->
+<ion-content class="ion-padding ion-text-center" *ngIf="isSubmitted">
+  <div class="success-wrapper">
+    <div class="success-icon">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+    </div>
+    <h2>Paiement soumis !</h2>
+    <p>Votre paiement est en attente de validation par l'agence.</p>
+    <div class="status-badge status-badge--initie">INITIÉ</div>
+    <p class="info-text">
+      L'agence va vérifier votre transfert et valider le paiement.
+      Vous serez notifié dès la validation.
+    </p>
+    <ion-button expand="block" routerLink="/customer/dashboard">
+      Retour à l'accueil
+    </ion-button>
+  </div>
+</ion-content>
