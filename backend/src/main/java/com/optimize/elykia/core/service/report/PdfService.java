@@ -26,6 +26,8 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
@@ -108,6 +110,9 @@ public class PdfService {
     public String generateStockReceptionHtmlFromTemplate(StockReceptionDto dto) {
         Context context = new Context();
         context.setVariable("reception", dto);
+        context.setVariable("companyName", "AMENOUVEVE - YAVEH");
+        context.setVariable("generationDate",
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
         return templateEngine.process("stock-reception-sheet", context);
     }
 

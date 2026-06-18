@@ -22,6 +22,15 @@ public interface StockReceptionMapper extends BaseMapper<StockReception, StockRe
     StockReceptionDto toDtoWithItems(StockReception entity);
 
     @Mapping(target = "articleId", source = "article.id")
-    @Mapping(target = "articleName", source = "article.name")
+    @Mapping(target = "articleName", source = ".", qualifiedByName = "articleFullName")
     StockReceptionItemDto toItemDto(StockReceptionItem item);
+
+    @Named("articleFullName")
+    default String articleFullName(StockReceptionItem item) {
+        if (item == null || item.getArticle() == null) {
+            return null;
+        }
+        var article = item.getArticle();
+        return article.getCommercialName() + " " + article.getName();
+    }
 }

@@ -1,69 +1,138 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
 <head>
     <meta charset="UTF-8"/>
-    <title>Fiche de Réception de Stock</title>
+    <title>Fiche de Réception de Stock - AMENOUVEVE - YAVEH</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #333;
         }
-        .container {
-            width: 100%;
-            margin: 0 auto;
-        }
-        .header {
+
+        .company-name {
             text-align: center;
-            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #003366;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
         }
-        .details {
-            margin-bottom: 20px;
+
+        h1 {
+            text-align: center;
+            color: #003366;
+            font-size: 18px;
+            margin: 8px 0 20px;
+            text-transform: uppercase;
         }
-        .details p {
-            margin: 5px 0;
+
+        .header-info {
+            margin-bottom: 24px;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 12px;
         }
+
+        .header-info p {
+            margin: 6px 0;
+            font-size: 13px;
+        }
+
         .items-table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 12px;
         }
-        .items-table th, .items-table td {
+
+        .items-table th,
+        .items-table td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 10px 8px;
             text-align: left;
         }
+
         .items-table th {
-            background-color: #f2f2f2;
+            background-color: #003366;
+            color: white;
+            text-transform: uppercase;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .items-table td.num {
+            text-align: center;
+        }
+
+        .items-table td.amount {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .items-table tbody tr:nth-child(even) {
+            background-color: #f7f9fc;
+        }
+
+        .total-row {
+            margin-top: 20px;
+            text-align: right;
+            font-size: 15px;
+            font-weight: bold;
+            color: #003366;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 11px;
+            color: #888;
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+        }
+
+        .footer p {
+            margin: 4px 0;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>Fiche de Réception de Stock</h1>
-    </div>
-    <div class="details">
-        <p><strong>Référence:</strong> <span th:text="${reception.reference}"></span></p>
-        <p><strong>Date de Réception:</strong> <span th:text="${#temporals.format(reception.receptionDate, 'dd/MM/yyyy')}"></span></p>
-        <p><strong>Reçu par:</strong> <span th:text="${reception.receivedBy}"></span></p>
-        <p><strong>Montant Total:</strong> <span th:text="${#numbers.formatDecimal(reception.totalAmount, 1, 'COMMA', 0, 'POINT') + ' FCFA'}"></span></p>
-    </div>
-    <table class="items-table">
-        <thead>
-        <tr>
-            <th>Article</th>
-            <th>Quantité</th>
-            <th>Prix Unitaire</th>
-            <th>Prix Total</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="item : ${reception.items}">
-            <td th:text="${item.articleName}"></td>
-            <td th:text="${item.quantity}"></td>
-            <td th:text="${#numbers.formatDecimal(item.unitPrice, 1, 'COMMA', 0, 'POINT') + ' FCFA'}"></td>
-            <td th:text="${#numbers.formatDecimal(item.totalPrice, 1, 'COMMA', 0, 'POINT') + ' FCFA'}"></td>
-        </tr>
-        </tbody>
-    </table>
+<div class="company-name" th:text="${companyName}">AMENOUVEVE - YAVEH</div>
+<h1>Fiche de Réception de Stock</h1>
+
+<div class="header-info">
+    <p><strong>Référence :</strong> <span th:text="${reception.reference}"></span></p>
+    <p><strong>Date de réception :</strong>
+        <span th:text="${#temporals.format(reception.receptionDate, 'dd/MM/yyyy')}"></span></p>
+    <p><strong>Reçu par :</strong> <span th:text="${reception.receivedBy}"></span></p>
+</div>
+
+<table class="items-table">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Article</th>
+        <th>Quantité</th>
+        <th>Prix unitaire</th>
+        <th>Prix total</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item, iterStat : ${reception.items}">
+        <td class="num" th:text="${iterStat.count}"></td>
+        <td th:text="${item.articleName}"></td>
+        <td class="num" th:text="${item.quantity}"></td>
+        <td class="amount" th:text="${#numbers.formatDecimal(item.unitPrice, 1, 'COMMA', 0, 'POINT') + ' FCFA'}"></td>
+        <td class="amount" th:text="${#numbers.formatDecimal(item.totalPrice, 1, 'COMMA', 0, 'POINT') + ' FCFA'}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="total-row">
+    Montant total : <span th:text="${#numbers.formatDecimal(reception.totalAmount, 1, 'COMMA', 0, 'POINT') + ' FCFA'}"></span>
+</div>
+
+<div class="footer">
+    <p>Document généré le <span th:text="${generationDate}"></span></p>
+    <p th:text="'© ' + ${#dates.year(#dates.createNow())} + ' Elykia. Tous droits réservés.'">© Elykia. Tous droits réservés.</p>
 </div>
 </body>
 </html>
