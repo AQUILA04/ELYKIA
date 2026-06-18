@@ -59,6 +59,14 @@ Spécifications complètes du design incluant :
 - Animations et micro-interactions
 - Accessibilité et ergonomie
 
+### 4. Spécifications Espace Client (Nouveau)
+**Dossier :** `wireflow/customer-space/`
+
+Spécifications et prototypes pour le portail client :
+- `SPECIFICATIONS.md` : Spécifications techniques et fonctionnelles.
+- `wireflow.html` : Prototype interactif complet.
+- `screens/` : Maquettes UI haute fidélité.
+
 ## 🎯 Fonctionnalités Principales
 
 ### ✅ Fonctionnalités Implémentées dans les Spécifications
@@ -212,7 +220,7 @@ Spécifications complètes du design incluant :
 
 Pour toute question concernant ces spécifications ou le développement de l'application :
 
-**Équipe Projet :** Manus AI  
+**Équipe Projet :** Francis AHONSU  
 **Date de Livraison :** 25 Juillet 2025  
 **Version des Spécifications :** 1.0
 

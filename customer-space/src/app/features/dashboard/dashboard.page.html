@@ -1,0 +1,33 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Bonjour, {{ clientName }}</ion-title>
+    <ion-buttons slot="end"><ion-button routerLink="/profile"><ion-icon name="person-circle-outline" size="large"></ion-icon></ion-button></ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="page-content">
+  <div class="page-inner" *ngIf="!isLoading && dashboard">
+    <app-credit-progress-card
+      [reference]="'Crédit actif'"
+      [totalAmount]="dashboard.totalCreditAmount"
+      [paidAmount]="dashboard.totalPaidAmount"
+      [remainingAmount]="dashboard.totalRemainingAmount"
+      [progressPercent]="dashboard.progressPercent"
+      [nextPaymentAmount]="dashboard.nextPaymentAmount"
+      [nextPaymentDate]="dashboard.nextPaymentDate">
+    </app-credit-progress-card>
+    <div class="quick-actions">
+      <a class="qa-btn" routerLink="/payment/current"><ion-icon name="cash-outline"></ion-icon><span>Payer</span></a>
+      <a class="qa-btn" routerLink="/catalog"><ion-icon name="bag-add-outline"></ion-icon><span>Commander</span></a>
+      <a class="qa-btn" routerLink="/purchases"><ion-icon name="receipt-outline"></ion-icon><span>Achats</span></a>
+    </div>
+    <h3 class="section-title">Activités récentes</h3>
+    <div class="activity-list">
+      <div class="activity-item" *ngFor="let a of dashboard.recentActivities">
+        <div class="activity-icon"><ion-icon [name]="a.type === 'RECOVERY' ? 'cash-outline' : 'bag-outline'"></ion-icon></div>
+        <div class="activity-info"><span class="activity-label">{{ a.label }}</span><span class="activity-date">{{ a.date | date:'dd/MM/yyyy' }}</span></div>
+        <span class="activity-amount">{{ a.amount | number:'1.0-0' }} F</span>
+      </div>
+    </div>
+  </div>
+  <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
+</ion-content>

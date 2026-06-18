@@ -1,0 +1,18 @@
+<ion-content class="auth-content">
+  <div class="auth-wrapper">
+    <div class="auth-logo"><span class="logo-text">ELYKIA</span><span class="logo-sub">Espace Client</span></div>
+    <div class="auth-card">
+      <h1>Connexion</h1>
+      <p class="subtitle">Accédez à votre espace personnel</p>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field"><label>Téléphone</label><ion-input formControlName="phone" type="tel" placeholder="+229 XX XX XX XX"></ion-input></div>
+        <div class="field"><label>Code PIN</label><ion-input formControlName="pin" type="password" placeholder="••••"></ion-input></div>
+        <div class="error" *ngIf="error">{{ error }}</div>
+        <ion-button type="submit" expand="block" [disabled]="form.invalid || isLoading">
+          <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+          <span *ngIf="!isLoading">Se connecter</span>
+        </ion-button>
+      </form>
+    </div>
+  </div>
+</ion-content>
