@@ -2,7 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CustomerLoginRequest, CustomerLoginResponse } from '../models/customer-auth.model';
+import {
+  CustomerCheckPhoneRequest,
+  CustomerCheckPhoneResponse,
+  CustomerLoginRequest,
+  CustomerLoginResponse,
+  CustomerSetupPinRequest,
+} from '../models/customer-auth.model';
 import {
   CustomerDashboard,
   CustomerPurchase,
@@ -16,9 +22,6 @@ import {
 /**
  * Service API centralisé — Espace Client ELYKIA.
  * Tous les endpoints sont préfixés par /api/customer/.
- * Le token JWT client est injecté automatiquement via CustomerAuthInterceptor.
- *
- * @author Francis AHONSU
  */
 @Injectable({ providedIn: 'root' })
 export class CustomerApiService {
@@ -29,8 +32,16 @@ export class CustomerApiService {
 
   // ─── AUTH ────────────────────────────────────────────────────────────────
 
+  checkPhone(payload: CustomerCheckPhoneRequest): Observable<CustomerCheckPhoneResponse> {
+    return this.http.post<CustomerCheckPhoneResponse>(`${this.base}/auth/check-phone`, payload);
+  }
+
   login(payload: CustomerLoginRequest): Observable<CustomerLoginResponse> {
     return this.http.post<CustomerLoginResponse>(`${this.base}/auth/login`, payload);
+  }
+
+  setupPin(payload: CustomerSetupPinRequest): Observable<CustomerLoginResponse> {
+    return this.http.post<CustomerLoginResponse>(`${this.base}/auth/setup-pin`, payload);
   }
 
   // ─── DASHBOARD ───────────────────────────────────────────────────────────
@@ -55,10 +66,6 @@ export class CustomerApiService {
     return this.http.get<CustomerRecovery[]>(`${this.base}/purchases/${distributionId}/recoveries`);
   }
 
-  /**
-   * Soumet un paiement Mobile Money (v1 manuelle).
-   * Le recouvrement est créé à l'état INITIÉ — validation agence requise.
-   */
   submitMobileMoneyPayment(payload: MobileMoneyPaymentRequest): Observable<CustomerRecovery> {
     return this.http.post<CustomerRecovery>(`${this.base}/recoveries/mobile-money`, payload);
   }
@@ -67,15 +74,11 @@ export class CustomerApiService {
 
   getArticles(search?: string, category?: string): Observable<CustomerArticle[]> {
     const params: Record<string, string> = {};
-    if (search)   params['search']   = search;
+    if (search)   params['search'] = search;
     if (category) params['category'] = category;
     return this.http.get<CustomerArticle[]>(`${this.base}/articles`, { params });
   }
 
-  /**
-   * Soumet une nouvelle commande à crédit.
-   * Créée à l'état INITIÉ — le crédit démarre uniquement après livraison.
-   */
   submitOrder(payload: OrderRequest): Observable<OrderResponse> {
     return this.http.post<OrderResponse>(`${this.base}/orders`, payload);
   }

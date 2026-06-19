@@ -17,7 +17,7 @@
         </processorPath>
         <module name="common-security-service" />
       </profile>
-      <profile name="Annotation profile for optimize-elykia-client" enabled="true">
+      <profile name="Annotation profile for optimize-elykia-core" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />

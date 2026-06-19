@@ -1,6 +1,7 @@
 name: ELYKIA CI Pipeline
 
 # Deploy gate: frontend + backend only. Mobile runs in ci-mobile.yml and does not block CD.
+# Customer-space runs in ci-customer-space.yml and does not block CD.
 
 on:
   push:

@@ -7,4 +7,5 @@ public class ProfilConstant {
 
     public static final String ADMIN_PROFIL = "Admin";
     public static final String USER_PROFIL = "User";
+    public static final String CLIENT_PROFIL = "CLIENT";
 }

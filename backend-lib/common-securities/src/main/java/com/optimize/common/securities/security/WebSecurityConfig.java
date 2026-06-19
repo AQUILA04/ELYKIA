@@ -111,6 +111,7 @@ public class WebSecurityConfig {
                                         "/api/v1/**",
                                         "/api/licences/**",
                                         "/api/parameters/**",
+                                        "/api/customer/auth/**",
                                         "/swagger-ui.html").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
                                 .anyRequest().authenticated()

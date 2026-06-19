@@ -2,6 +2,7 @@ name: ELYKIA CD Pipeline
 
 # This workflow runs after the CI deploy workflow ("ELYKIA CI Pipeline") completes successfully.
 # Mobile CI (ci-mobile.yml) is decoupled and does not block deployment.
+# Customer-space CI (ci-customer-space.yml) is decoupled and does not block deployment.
 # It deploys to 'test' when CI ran on branch 'main', and to 'prod' when CI ran on branches matching 'prod/**'.
 # Mobile APK builds run in build-mobile-apk.yml after CD and ci-mobile both succeed for the same commit.
 # Web E2E tests (Playwright) run in parallel in e2e.yml after a successful TEST deploy.

@@ -10,6 +10,20 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ## [Unreleased]
 
+### Added
+
+- **Customer-space —** infrastructure tests : Playwright (E2E mobile), Karma headless, skill `customer-space-testing`, workflow CI découplé `ci-customer-space.yml`.
+- **Customer-space —** splash screen S-01 (logo ELYKIA, redirect auth/dashboard), barre d'onglets basse, routing `app.routes.ts` branché sur `AppRoutingModule` + `HttpClientModule`.
+- **Customer-space —** dashboard S-03 enrichi (états vide/erreur, activités récentes, carte crédit, actions rapides) ; tests unitaires et E2E smoke/auth/dashboard.
+- **Customer-space —** skill Cursor `customer-space-ui-style` aligné sur les maquettes wireflow (design tokens Playfair/DM Sans, patterns Ionic premium).
+- **Customer-space —** thème global (`variables.scss`, `global.scss`, fonts) et wizard auth multi-étapes (téléphone local → PIN ou OTP Firebase + configuration PIN).
+- **Customer-space —** utilitaire `PhoneNormalizer` (+228 côté Firebase uniquement) et intégration Firebase Phone Auth (SDK).
+- **Backend —** espace client `/api/customer/*` : auth (`check-phone`, `login`, `setup-pin`), dashboard, achats, recouvrements, catalogue, commandes, soumission Mobile Money (statut INITIÉ).
+- **Backend —** profil `CLIENT` / permission `ROLE_CLIENT`, flag `pin_configured` sur `UserAccount`, table `customer_user_mapping` (orchestration core).
+- **Backend —** provisioning automatique des comptes clients (`username` = numéro local, email `firstname.lastname@amenouveve-yaveh.com`), sync téléphone via `ClientPhoneUpdatedEvent`.
+- **Backend —** intégration Firebase Admin (`FirebaseTokenVerifier`) pour validation OTP lors du setup PIN.
+- **Backend-lib —** `common-security-service` 1.2.0, migrations Flyway V55/V56.
+
 ### Fixed
 
 - **Backend —** fiche PDF réception de stock : libellé article combinant désormais nom commercial et nom (`commercialName` + `name`) ; en-tête AMENOUVEVE - YAVEH, date de génération et copyright Elykia en pied de page.

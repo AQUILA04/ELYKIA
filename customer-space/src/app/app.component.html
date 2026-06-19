@@ -1,3 +1,10 @@
 <ion-app>
+  <div class="splash-screen" *ngIf="showSplash" data-testid="e2e-splash-screen">
+    <div class="splash-inner">
+      <div class="splash-logo">ELYKIA</div>
+      <div class="splash-tagline">Espace Client</div>
+      <ion-spinner name="crescent" class="splash-spinner"></ion-spinner>
+    </div>
+  </div>
   <ion-router-outlet></ion-router-outlet>
 </ion-app>

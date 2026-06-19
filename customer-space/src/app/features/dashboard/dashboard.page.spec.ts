@@ -1,0 +1,52 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of, throwError } from 'rxjs';
+import { DashboardPage } from './dashboard.page';
+import { CustomerApiService } from '../../shared/services/customer-api.service';
+import { CustomerSessionService } from '../../shared/services/customer-session.service';
+import { IonicModule } from '@ionic/angular';
+import { RouterTestingModule } from '@angular/router/testing';
+
+describe('DashboardPage', () => {
+  let fixture: ComponentFixture<DashboardPage>;
+  let api: jasmine.SpyObj<CustomerApiService>;
+
+  const mockDashboard = {
+    clientId: '1',
+    fullName: 'Jean K.',
+    activeCreditCount: 1,
+    totalCreditAmount: 350_000,
+    totalPaidAmount: 120_000,
+    totalRemainingAmount: 230_000,
+    nextPaymentAmount: 35_000,
+    nextPaymentDate: '2026-06-20',
+    progressPercent: 34,
+    recentActivities: [],
+  };
+
+  beforeEach(async () => {
+    api = jasmine.createSpyObj('CustomerApiService', ['getDashboard']);
+    api.getDashboard.and.returnValue(of(mockDashboard));
+
+    await TestBed.configureTestingModule({
+      imports: [DashboardPage, IonicModule.forRoot(), RouterTestingModule],
+      providers: [
+        { provide: CustomerApiService, useValue: api },
+        CustomerSessionService,
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(DashboardPage);
+  });
+
+  it('loads dashboard data', () => {
+    fixture.detectChanges();
+    expect(fixture.componentInstance.dashboard?.fullName).toBe('Jean K.');
+    expect(fixture.componentInstance.isLoading).toBeFalse();
+  });
+
+  it('sets loadError on API failure', () => {
+    api.getDashboard.and.returnValue(throwError(() => new Error('fail')));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.loadError).toBeTrue();
+  });
+});

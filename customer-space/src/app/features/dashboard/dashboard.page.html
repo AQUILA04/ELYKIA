@@ -1,33 +1,70 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>Bonjour, {{ clientName }}</ion-title>
-    <ion-buttons slot="end"><ion-button routerLink="/profile"><ion-icon name="person-circle-outline" size="large"></ion-icon></ion-button></ion-buttons>
+    <ion-title>Bonjour, {{ displayName }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/profile" data-testid="e2e-dashboard-profile-btn">
+        <ion-icon name="person-circle-outline" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content class="page-content">
-  <div class="page-inner" *ngIf="!isLoading && dashboard">
+<ion-content class="page-content" data-testid="e2e-dashboard-page">
+  <div class="page-inner" *ngIf="!isLoading && dashboard && !loadError">
     <app-credit-progress-card
-      [reference]="'Crédit actif'"
+      data-testid="e2e-dashboard-credit-card"
+      [reference]="creditReference"
       [totalAmount]="dashboard.totalCreditAmount"
       [paidAmount]="dashboard.totalPaidAmount"
       [remainingAmount]="dashboard.totalRemainingAmount"
       [progressPercent]="dashboard.progressPercent"
       [nextPaymentAmount]="dashboard.nextPaymentAmount"
-      [nextPaymentDate]="dashboard.nextPaymentDate">
+      [nextPaymentDate]="formattedNextDate">
     </app-credit-progress-card>
-    <div class="quick-actions">
-      <a class="qa-btn" routerLink="/payment/current"><ion-icon name="cash-outline"></ion-icon><span>Payer</span></a>
-      <a class="qa-btn" routerLink="/catalog"><ion-icon name="bag-add-outline"></ion-icon><span>Commander</span></a>
-      <a class="qa-btn" routerLink="/purchases"><ion-icon name="receipt-outline"></ion-icon><span>Achats</span></a>
+
+    <div class="quick-actions" data-testid="e2e-dashboard-quick-actions">
+      <a class="qa-btn" routerLink="/purchases">
+        <ion-icon name="cash-outline"></ion-icon>
+        <span>Payer</span>
+      </a>
+      <a class="qa-btn" routerLink="/catalog">
+        <ion-icon name="bag-add-outline"></ion-icon>
+        <span>Commander</span>
+      </a>
+      <a class="qa-btn" routerLink="/purchases">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <span>Achats</span>
+      </a>
     </div>
+
     <h3 class="section-title">Activités récentes</h3>
-    <div class="activity-list">
+    <div class="activity-list" data-testid="e2e-dashboard-activities" *ngIf="dashboard.recentActivities.length > 0">
       <div class="activity-item" *ngFor="let a of dashboard.recentActivities">
-        <div class="activity-icon"><ion-icon [name]="a.type === 'RECOVERY' ? 'cash-outline' : 'bag-outline'"></ion-icon></div>
-        <div class="activity-info"><span class="activity-label">{{ a.label }}</span><span class="activity-date">{{ a.date | date:'dd/MM/yyyy' }}</span></div>
+        <div class="activity-icon">
+          <ion-icon [name]="a.type === 'RECOVERY' ? 'cash-outline' : 'bag-outline'"></ion-icon>
+        </div>
+        <div class="activity-info">
+          <span class="activity-label">{{ a.label }}</span>
+          <span class="activity-date">{{ a.date | date:'dd/MM/yyyy' }}</span>
+        </div>
         <span class="activity-amount">{{ a.amount | number:'1.0-0' }} F</span>
       </div>
     </div>
+    <div class="empty-state" *ngIf="dashboard.recentActivities.length === 0">
+      <ion-icon name="time-outline" class="empty-icon"></ion-icon>
+      <p class="empty-title">Aucune activité récente</p>
+      <p class="empty-sub">Vos paiements et commandes apparaîtront ici.</p>
+    </div>
   </div>
+
+  <div class="page-inner" *ngIf="!isLoading && loadError">
+    <div class="empty-state">
+      <ion-icon name="cloud-offline-outline" class="empty-icon"></ion-icon>
+      <p class="empty-title">Impossible de charger le tableau de bord</p>
+      <p class="empty-sub">Vérifiez votre connexion et réessayez.</p>
+      <ion-button expand="block" class="elyk-btn-primary" (click)="loadDashboard()">Réessayer</ion-button>
+    </div>
+  </div>
+
   <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
 </ion-content>
+<app-customer-tab-bar></app-customer-tab-bar>

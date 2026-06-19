@@ -9,6 +9,7 @@ public class AuthorityConstant {
 
     public static final String ADMIN = "ROLE_ADMIN";
     public static final String USER = "ROLE_USER";
+    public static final String CLIENT = "ROLE_CLIENT";
     public static final String READ_GLOBAL = "ROLE_READ_GLOBAL";
     public static final String WRITE_GLOBAL = "ROLE_WRITE_GLOBAL";
     public static final String SOFT_DELETE = "ROLE_SOFT_DELETE";

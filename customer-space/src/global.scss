@@ -34,4 +34,94 @@
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+/* Light-only premium theme — dark.system disabled for wireflow fidelity */
+/* @import "@ionic/angular/css/palettes/dark.system.css"; */
+
+/* ─── ELYKIA Espace Client — global styles ─── */
+
+html, body {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--elyk-navy);
+  background: var(--elyk-cream);
+}
+
+.page-content {
+  --background: var(--elyk-cream);
+}
+
+.page-inner {
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+ion-header ion-toolbar {
+  --background: var(--elyk-white);
+  --color: var(--elyk-navy);
+  box-shadow: 0 2px 8px rgba(13, 27, 42, 0.06);
+  padding-top: env(safe-area-inset-top);
+}
+
+ion-title {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+}
+
+.elyk-card {
+  background: var(--elyk-white);
+  border-radius: var(--elyk-radius);
+  box-shadow: var(--elyk-shadow);
+  padding: 16px;
+}
+
+.elyk-btn-primary {
+  --background: var(--elyk-gold);
+  --border-radius: var(--elyk-radius-btn);
+  --box-shadow: none;
+  font-weight: 600;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--elyk-navy);
+  margin: 0 0 12px;
+}
+
+.center-spinner {
+  display: block;
+  margin: 40px auto;
+  color: var(--elyk-gold);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--elyk-gray-text);
+
+  .empty-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .empty-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--elyk-navy);
+    margin-bottom: 4px;
+  }
+
+  .empty-sub {
+    font-size: 13px;
+  }
+}
+
+@keyframes elykFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.elyk-animate {
+  animation: elykFadeUp 0.35s ease both;
+}
+

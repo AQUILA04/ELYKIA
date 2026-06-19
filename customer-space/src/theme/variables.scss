@@ -1,2 +1,33 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+// ELYKIA Espace Client — Design tokens (wireflow v1.0)
+
+:root {
+  --elyk-navy: #0D1B2A;
+  --elyk-navy-mid: #1A2E42;
+  --elyk-gold: #C9922A;
+  --elyk-gold-light: #F0C66A;
+  --elyk-cream: #FAF6EE;
+  --elyk-white: #FFFFFF;
+  --elyk-gray-bg: #F1F4F8;
+  --elyk-gray-text: #64748B;
+  --elyk-green: #22C55E;
+  --elyk-orange: #F97316;
+  --elyk-red: #EF4444;
+  --elyk-blue: #60A5FA;
+  --elyk-gray-pill: #D1D5DB;
+  --elyk-border: #E2E8F0;
+  --elyk-radius: 16px;
+  --elyk-radius-btn: 12px;
+  --elyk-radius-input: 10px;
+  --elyk-shadow: 0 2px 12px rgba(13, 27, 42, 0.08);
+  --elyk-shadow-lg: 0 4px 24px rgba(13, 27, 42, 0.10);
+
+  --ion-background-color: var(--elyk-cream);
+  --ion-text-color: var(--elyk-navy);
+  --ion-color-primary: var(--elyk-gold);
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade: #b38325;
+  --ion-color-primary-tint: #d09d3f;
+  --ion-font-family: 'DM Sans', sans-serif;
+  --ion-toolbar-background: var(--elyk-white);
+  --ion-toolbar-color: var(--elyk-navy);
+}

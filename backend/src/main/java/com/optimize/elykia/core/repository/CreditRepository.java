@@ -264,6 +264,8 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     
     Page<Credit> findByClient_idAndStatusIn(Long clientId, List<CreditStatus> statuses, Pageable pageable);
 
+    List<Credit> findByClient_IdAndTypeOrderByBeginDateDesc(Long clientId, OperationType type);
+
     Page<Credit> findByCollectorAndClientTypeAndStatusInOrderByIdDesc(
     String collector, 
     ClientType clientType, 

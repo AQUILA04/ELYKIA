@@ -1,14 +1,11 @@
 import { Routes } from '@angular/router';
 import { CustomerAuthGuard } from './shared/guards/customer-auth.guard';
 
-/**
- * Routes principales de l'application Espace Client ELYKIA.
- * @author Francis AHONSU
- */
+/** Routes principales — Espace Client ELYKIA. */
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'dashboard',
+    redirectTo: 'auth',
     pathMatch: 'full',
   },
   {
@@ -28,12 +25,14 @@ export const routes: Routes = [
   {
     path: 'purchases/:id',
     canActivate: [CustomerAuthGuard],
-    loadComponent: () => import('./features/purchase-detail/purchase-detail.page').then(m => m.PurchaseDetailPage),
+    loadComponent: () =>
+      import('./features/purchase-detail/purchase-detail.page').then(m => m.PurchaseDetailPage),
   },
   {
     path: 'purchases/:id/timeline',
     canActivate: [CustomerAuthGuard],
-    loadComponent: () => import('./features/recovery-timeline/recovery-timeline.page').then(m => m.RecoveryTimelinePage),
+    loadComponent: () =>
+      import('./features/recovery-timeline/recovery-timeline.page').then(m => m.RecoveryTimelinePage),
   },
   {
     path: 'payment/:id',
@@ -53,12 +52,14 @@ export const routes: Routes = [
   {
     path: 'order-confirmation',
     canActivate: [CustomerAuthGuard],
-    loadComponent: () => import('./features/order-confirmation/order-confirmation.page').then(m => m.OrderConfirmationPage),
+    loadComponent: () =>
+      import('./features/order-confirmation/order-confirmation.page').then(m => m.OrderConfirmationPage),
   },
   {
     path: 'orders/:id',
     canActivate: [CustomerAuthGuard],
-    loadComponent: () => import('./features/order-tracking/order-tracking.page').then(m => m.OrderTrackingPage),
+    loadComponent: () =>
+      import('./features/order-tracking/order-tracking.page').then(m => m.OrderTrackingPage),
   },
   {
     path: 'profile',
@@ -67,6 +68,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'dashboard',
+    redirectTo: 'auth',
   },
 ];

@@ -9,51 +9,6 @@
 
 Application indépendante permettant aux clients ELYKIA d'accéder à leur espace personnel : suivi des achats à crédit, paiement des mises via Mobile Money, et passage de nouvelles commandes.
 
-## Structure du projet
-
-```
-customer-space/
-├── src/
-│   ├── app/
-│   │   ├── features/               # Pages routables (1 dossier = 1 écran)
-│   │   │   ├── auth/               # S-01, S-02 — Connexion
-│   │   │   ├── dashboard/          # S-03 — Tableau de bord
-│   │   │   ├── purchases/          # S-04 — Historique achats
-│   │   │   ├── purchase-detail/    # S-05 — Détail d'un achat
-│   │   │   ├── recovery-timeline/  # S-06 — Timeline des mises
-│   │   │   ├── payment/            # S-07, S-08 — Paiement Mobile Money
-│   │   │   ├── catalog/            # S-09 — Catalogue produits
-│   │   │   ├── cart/               # S-10 — Panier
-│   │   │   ├── order-confirmation/ # S-11 — Confirmation commande
-│   │   │   ├── order-tracking/     # Suivi commande
-│   │   │   └── profile/            # Profil client
-│   │   ├── shared/
-│   │   │   ├── components/         # Composants réutilisables
-│   │   │   │   ├── recovery-pills/ # Grille pastilles 1-31
-│   │   │   │   └── credit-progress-card/
-│   │   │   ├── models/             # Interfaces TypeScript
-│   │   │   ├── services/           # API + Session
-│   │   │   └── guards/             # CustomerAuthGuard
-│   │   ├── core/
-│   │   │   └── interceptors/       # CustomerAuthInterceptor
-│   │   └── app.routes.ts           # Routing principal
-│   └── environments/
-├── docs/
-│   └── wireflow/                   # Prototypes et spécifications
-│       ├── wireflow.html           # Prototype interactif
-│       └── screens/                # Maquettes UI (S-01 à S-11)
-└── capacitor.config.ts
-```
-
-## Statuts Métier
-
-| Statut | Couleur | Description |
-|---|---|---|
-| `INITIÉ` | Orange `#F97316` | Soumis par le client, en attente de validation agence |
-| `VALIDÉ` | Vert `#22C55E` | Confirmé par un agent de l'agence |
-| `LIVRÉ` | Bleu `#60A5FA` | Livré — le crédit démarre à partir de cette date |
-| `RETARD` | Rouge `#EF4444` | Mise non payée à l'échéance |
-
 ## Démarrage rapide
 
 ```bash
@@ -62,30 +17,51 @@ npm install
 ionic serve
 ```
 
+## Tests automatiques
+
+```bash
+npm run test:unit          # Karma/Jasmine (headless)
+npm run test:e2e           # Playwright (viewport mobile Pixel 5)
+npm run test:e2e:smoke     # Smoke tests uniquement (@smoke)
+```
+
+Le CI découplé est dans [`.github/workflows/ci-customer-space.yml`](../.github/workflows/ci-customer-space.yml) — un échec n'impacte pas le pipeline backend/frontend.
+
+Skills Cursor associés :
+- `.cursor/skills/customer-space-ui-style` — maquettes wireflow
+- `.cursor/skills/customer-space-testing` — tests unitaires + E2E obligatoires par feature
+
+## Structure du projet
+
+```
+customer-space/
+├── e2e/                    # Playwright (specs + fixtures mock API)
+├── src/app/
+│   ├── features/           # Pages S-01 à S-11
+│   ├── shared/
+│   │   ├── layout/customer-tab-bar/   # Navigation basse
+│   │   ├── services/       # API, session, Firebase
+│   │   └── guards/
+│   └── app.routes.ts
+└── docs/wireflow/          # Maquettes et specs
+```
+
+## Écrans livrés (phase 1)
+
+| Écran | Route | Statut |
+|-------|-------|--------|
+| S-01 Splash | overlay `app.component` | OK |
+| S-02 Auth wizard | `/auth` | OK |
+| S-03 Dashboard | `/dashboard` | OK |
+
 ## Build Android
 
 ```bash
 ionic build
-npx cap add android
-npx cap sync
+npx cap sync android
 npx cap open android
 ```
 
-## Endpoints API requis
+## API
 
-Tous les endpoints sont préfixés par `/api/customer/` et requièrent un JWT client.
-
-| Méthode | Endpoint | Description |
-|---|---|---|
-| POST | `/api/customer/auth/login` | Connexion client |
-| GET | `/api/customer/dashboard` | Tableau de bord |
-| GET | `/api/customer/purchases` | Liste des achats |
-| GET | `/api/customer/purchases/:id` | Détail d'un achat |
-| GET | `/api/customer/purchases/:id/recoveries` | Mises d'un achat |
-| POST | `/api/customer/recoveries/mobile-money` | Soumettre un paiement MM |
-| GET | `/api/customer/articles` | Catalogue produits |
-| POST | `/api/customer/orders` | Passer une commande |
-
-## Prototypes
-
-Les wireflows interactifs sont disponibles dans `docs/wireflow/wireflow.html`.
+Endpoints préfixés `/api/customer/` — voir le backend `CustomerApiController`.

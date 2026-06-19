@@ -51,6 +51,9 @@ public class UserAccount extends BaseEntity<String> {
     private LocalDateTime passwordUpdateTime;
     private Integer failedConnexionAttempt;
 
+    @Column(name = "pin_configured", columnDefinition = "boolean default false")
+    private Boolean pinConfigured = Boolean.FALSE;
+
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "PROID", nullable = false)
     private UserProfil userProfil;

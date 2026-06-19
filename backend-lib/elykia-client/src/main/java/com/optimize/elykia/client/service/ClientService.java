@@ -15,6 +15,7 @@ import com.optimize.elykia.client.enumeration.AccountStatus;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.enumeration.PhotoType;
 import com.optimize.elykia.client.event.ClientCreatedEvent;
+import com.optimize.elykia.client.event.ClientPhoneUpdatedEvent;
 import com.optimize.elykia.client.mapper.ClientMapper;
 import com.optimize.elykia.client.repository.BusinessCreditAuthorizationEventRepository;
 import com.optimize.elykia.client.repository.ClientRepository;
@@ -80,7 +81,9 @@ public class ClientService extends GenericService<Client, Long> {
             eventPublisher.publishEvent(new ClientCreatedEvent(
                     this,
                     savedClient.getCollector(),
-                    savedClient.getFirstname() + " " + savedClient.getLastname()));
+                    savedClient.getFirstname() + " " + savedClient.getLastname(),
+                    savedClient.getId(),
+                    savedClient.getPhone()));
         }
 
         return ClientRespDto.fromClient(savedClient);
@@ -90,10 +93,13 @@ public class ClientService extends GenericService<Client, Long> {
     public ClientRespDto updateClient(ClientDto dto, Long clientId) {
         dto.setId(clientId);
         var old = getById(clientId);
+        String oldPhone = old.getPhone();
         Client client = clientMapper.toEntity(dto);
         preservePhotoFields(old, client);
         validateClientUniqueness(client); // validation
-        return ClientRespDto.fromClient(update(client));
+        ClientRespDto result = ClientRespDto.fromClient(update(client));
+        publishPhoneUpdatedIfChanged(clientId, oldPhone, client.getPhone());
+        return result;
     }
 
     @Transactional
@@ -117,6 +123,7 @@ public class ClientService extends GenericService<Client, Long> {
         if (dto.lastname() != null) {
             client.setLastname(dto.lastname());
         }
+        String oldPhone = client.getPhone();
         client.setAddress(dto.address());
         client.setPhone(dto.phone());
         client.setCardID(dto.cardID());
@@ -134,7 +141,16 @@ public class ClientService extends GenericService<Client, Long> {
         }
 
         validateClientUniqueness(client);
-        return ClientRespDto.fromClient(update(client));
+        Client updated = update(client);
+        publishPhoneUpdatedIfChanged(client.getId(), oldPhone, updated.getPhone());
+        return ClientRespDto.fromClient(updated);
+    }
+
+    private void publishPhoneUpdatedIfChanged(Long clientId, String oldPhone, String newPhone) {
+        if (eventPublisher != null && oldPhone != null && newPhone != null
+                && !Objects.equals(oldPhone, newPhone)) {
+            eventPublisher.publishEvent(new ClientPhoneUpdatedEvent(this, clientId, oldPhone, newPhone));
+        }
     }
 
     private void preservePhotoFields(Client old, Client client) {

@@ -1,16 +1,151 @@
-.page-content { --background:#FAF6EE; }
-.page-inner { padding:16px; }
-ion-toolbar { --background:#fff; --color:#0D1B2A; box-shadow:0 2px 8px rgba(13,27,42,.06); }
-.quick-actions { display:flex; gap:12px; margin-bottom:24px; }
-.qa-btn { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; background:#fff; border-radius:14px; padding:16px 8px; box-shadow:0 2px 10px rgba(13,27,42,.07); text-decoration:none; color:#0D1B2A; font-size:12px; font-weight:600; }
-.qa-btn ion-icon { font-size:24px; color:#C9922A; }
-.section-title { font-size:15px; font-weight:700; color:#0D1B2A; margin:0 0 12px; }
-.activity-list { display:flex; flex-direction:column; gap:10px; }
-.activity-item { display:flex; align-items:center; gap:12px; background:#fff; border-radius:12px; padding:12px 14px; box-shadow:0 1px 6px rgba(13,27,42,.05); }
-.activity-icon { width:36px; height:36px; border-radius:10px; background:#FAF6EE; display:flex; align-items:center; justify-content:center; }
-.activity-icon ion-icon { color:#C9922A; font-size:18px; }
-.activity-info { flex:1; display:flex; flex-direction:column; }
-.activity-label { font-size:13px; font-weight:600; color:#0D1B2A; }
-.activity-date  { font-size:11px; color:#94A3B8; }
-.activity-amount { font-size:13px; font-weight:700; color:#0D1B2A; }
-.center-spinner { display:block; margin:40px auto; }
+.page-content {
+  --background: var(--elyk-cream, #faf6ee);
+}
+
+.page-inner {
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+ion-toolbar {
+  --background: #fff;
+  --color: var(--elyk-navy, #0d1b2a);
+  box-shadow: 0 2px 8px rgba(13, 27, 42, 0.06);
+  padding-top: env(safe-area-inset-top);
+}
+
+ion-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0 24px;
+}
+
+.qa-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px 8px;
+  box-shadow: var(--elyk-shadow, 0 2px 12px rgba(13, 27, 42, 0.08));
+  text-decoration: none;
+  color: var(--elyk-navy, #0d1b2a);
+  font-size: 12px;
+  font-weight: 600;
+  transition: transform 0.15s ease;
+}
+
+.qa-btn:active {
+  transform: scale(0.98);
+}
+
+.qa-btn ion-icon {
+  font-size: 24px;
+  color: var(--elyk-gold, #c9922a);
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--elyk-navy, #0d1b2a);
+  margin: 0 0 12px;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 6px rgba(13, 27, 42, 0.05);
+}
+
+.activity-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--elyk-cream, #faf6ee);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.activity-icon ion-icon {
+  color: var(--elyk-gold, #c9922a);
+  font-size: 18px;
+}
+
+.activity-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--elyk-navy, #0d1b2a);
+}
+
+.activity-date {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.activity-amount {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--elyk-navy, #0d1b2a);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: var(--elyk-gold, #c9922a);
+  margin-bottom: 12px;
+}
+
+.empty-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--elyk-navy, #0d1b2a);
+  margin: 0 0 6px;
+}
+
+.empty-sub {
+  font-size: 13px;
+  color: var(--elyk-gray-text, #64748b);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.center-spinner {
+  display: block;
+  margin: 40px auto;
+  --color: var(--elyk-gold, #c9922a);
+}
+
+.elyk-btn-primary {
+  --background: var(--elyk-gold, #c9922a);
+  --border-radius: var(--elyk-radius-btn, 12px);
+  font-weight: 600;
+}
