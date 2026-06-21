@@ -35,7 +35,7 @@ export class DailyOperationComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCredits();
-    this.username = this.userService.getUsername();
+    this.username = this.tokenStorage.getUser()?.username ?? this.userService.getUsername();
     this.checkCashDeskStatus();
   }
 
@@ -107,10 +107,12 @@ export class DailyOperationComponent implements OnInit {
 
   downloadPDF(): void {
     this.spinner.show();
-    this.cashDeskService.downloadDailyOperation(this.username).subscribe(
+    const collector = this.username ?? this.tokenStorage.getUser()?.username ?? 'collecteur';
+    this.cashDeskService.downloadDailyOperation(collector).subscribe(
       (response) => {
         const blob = new Blob([response], { type: 'application/pdf' });
-        saveAs(blob, `Daily_Operation_${this.username}.pdf`);
+        const today = new Date().toISOString().slice(0, 10);
+        saveAs(blob, `Daily_Operation_${collector}_${today}.pdf`);
         this.spinner.hide();
       },
       error => {
