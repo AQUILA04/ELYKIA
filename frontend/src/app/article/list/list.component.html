@@ -45,6 +45,16 @@
       <div class="kpi-value">{{ formatCurrency(stockKpis.estimatedMargin) }}</div>
       <div class="kpi-sub">Crédit − coût d'achat</div>
     </div>
+    <div class="kpi-card kpi-amount" *ngIf="showCreditKpis">
+      <div class="kpi-label">Vente comptant (estimé)</div>
+      <div class="kpi-value">{{ formatCurrency(stockKpis.sellingSaleTotal) }}</div>
+      <div class="kpi-sub">Valeur stock au prix de vente</div>
+    </div>
+    <div class="kpi-card kpi-green" *ngIf="showCreditKpis">
+      <div class="kpi-label">Marge estimée (comptant)</div>
+      <div class="kpi-value">{{ formatCurrency(stockKpis.estimatedSellingMargin) }}</div>
+      <div class="kpi-sub">Vente − coût d'achat</div>
+    </div>
     <div class="kpi-card kpi-delai">
       <div class="kpi-label">Rupture de stock</div>
       <div class="kpi-value">{{ stockKpis.outOfStockCount }}</div>

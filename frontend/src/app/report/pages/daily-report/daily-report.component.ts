@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { DailyReportService } from '../../service/daily-report.service';
-import { DailyCommercialReport } from '../../models/daily-commercial-report.model';
+import { DailyCommercialReport, creditToDeposit, tontineToDeposit, newBalanceToDeposit, remainingCredit, remainingTontine, remainingNewBalance, totalRemainingToDeposit } from '../../models/daily-commercial-report.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ClientService } from 'src/app/client/service/client.service';
 import { DatePipe } from '@angular/common';
@@ -290,24 +290,29 @@ export class DailyReportComponent implements OnInit {
             return;
         }
 
-        const amountToDeposit = report ? (report.totalAmountToDeposit || 0) : this.totalAmountToDeposit;
-        const amountDeposited = report ? (report.totalAmountDeposited || 0) : this.totalAmountDeposited;
-        const remaining = amountToDeposit - amountDeposited;
+        const targetReport = report || this.reports.find(r => r.commercialUsername === commercialToUse);
+        if (!targetReport) {
+            return;
+        }
 
-        // Determine the date to pass
+        const remaining = totalRemainingToDeposit(targetReport);
+
         let depositDate: string | null = null;
         if (this.isSingleDay) {
-            // If single day, use the end date (which is same as start date)
             depositDate = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd');
         }
 
         const dialogRef = this.dialog.open(CashDepositModalComponent, {
-            width: '800px',
+            width: '920px',
+            maxWidth: '96vw',
+            panelClass: 'cash-deposit-dialog-panel',
             data: {
                 commercialUsername: commercialToUse,
-                totalAmountToDeposit: amountToDeposit,
                 remainingAmount: remaining,
-                date: depositDate // Pass the date
+                remainingCredit: remainingCredit(targetReport),
+                remainingTontine: remainingTontine(targetReport),
+                remainingNewBalance: remainingNewBalance(targetReport),
+                date: depositDate
             },
             disableClose: true
         });
@@ -315,14 +320,47 @@ export class DailyReportComponent implements OnInit {
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.loadReports();
+                const start = this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd') || '';
+                const end = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '';
+                const collector = this.selectedAgent || (this.isPromoter ? this.tokenStorage.getUser().username : undefined);
+                this.loadDeposits(start, end, collector);
             }
         });
     }
-    getDepositStatus(report: DailyCommercialReport): 'status-red' | 'status-green' | 'status-orange' {
-        const toDeposit = report.totalAmountToDeposit || 0;
-        const deposited = report.totalAmountDeposited || 0;
 
-        if (toDeposit > deposited) {
+    getCreditToDeposit(report: DailyCommercialReport): number {
+        return creditToDeposit(report);
+    }
+
+    getTontineToDeposit(report: DailyCommercialReport): number {
+        return tontineToDeposit(report);
+    }
+
+    getNewBalanceToDeposit(report: DailyCommercialReport): number {
+        return newBalanceToDeposit(report);
+    }
+
+    getRemainingCredit(report: DailyCommercialReport): number {
+        return remainingCredit(report);
+    }
+
+    getRemainingTontine(report: DailyCommercialReport): number {
+        return remainingTontine(report);
+    }
+
+    getRemainingNewBalance(report: DailyCommercialReport): number {
+        return remainingNewBalance(report);
+    }
+
+    getTotalRemaining(report: DailyCommercialReport): number {
+        return totalRemainingToDeposit(report);
+    }
+    getDepositStatus(report: DailyCommercialReport): 'status-red' | 'status-green' | 'status-orange' {
+        const toDeposit = (report.totalAmountToDeposit || 0);
+        const deposited = (report.totalAmountDeposited || 0);
+        const remaining = this.getTotalRemaining(report);
+
+        if (remaining > 0) {
             return 'status-red';
         } else if (toDeposit === deposited) {
             return 'status-green';

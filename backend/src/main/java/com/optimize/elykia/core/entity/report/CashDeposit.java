@@ -28,6 +28,15 @@ public class CashDeposit extends Auditable<String> {
     @Column(nullable = false)
     private Double amount;
 
+    @Column(columnDefinition = "double precision default 0")
+    private Double creditAmount = 0.0;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double tontineAmount = 0.0;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double newBalanceAmount = 0.0;
+
     @Column(columnDefinition = "TEXT")
     private String billetage; // JSON storing { "10000": 5, "5000": 2 }
 

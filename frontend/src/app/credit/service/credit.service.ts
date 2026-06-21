@@ -179,8 +179,8 @@ export class CreditService extends BaseHttpService {
     return this.patch(`${this.apiUrl}/distribute-articles`, dto);
   }
 
-  getCreditsByCollector(): Observable<any> {
-    return this.get(`${this.apiUrl}/by-collector`);
+  getCreditsByCollector(page: number, size: number): Observable<any> {
+    return this.get(`${this.apiUrl}/by-collector?page=${page}&size=${size}`);
   }
 
   getCreditsByCommercial(username: string, page: number, size: number, sort: string): Observable<any> {

@@ -13,4 +13,5 @@ public class StockRecoverySummaryDto {
     double remainingFromPhysicalStock;
     double recoveredFromSales;
     double remainingFromCredits;
+    double totalCreditDepositedAmount;
 }

@@ -1,24 +1,115 @@
-<h2 mat-dialog-title data-testid="e2e-cash-deposit-modal">Nouveau Versement</h2>
-<mat-dialog-content>
-    <div class="info-block mb-3">
-        <p><strong>Commercial:</strong> {{ commercialUsername }}</p>
-        <p><strong>Reste à verser:</strong> {{ remainingAmount | currency:'XOF':'symbol':'1.0-0' }}</p>
+<div class="cash-deposit-modal" data-testid="e2e-cash-deposit-modal">
+    <div class="modal-header">
+        <div class="header-left">
+            <span class="header-surtitle">Rapport journalier</span>
+            <h2 class="modal-title">Nouveau versement</h2>
+            <p class="modal-subtitle">Répartition crédit · tontine · solde nouveaux comptes</p>
+        </div>
+        <button type="button" class="close-btn" mat-dialog-close [disabled]="isSubmitting" aria-label="Fermer">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
     </div>
 
-    <app-billetage (billetageData)="onBilletageChange($event)"></app-billetage>
+    <mat-dialog-content class="modal-body">
+        <div class="info-banner">
+            <div class="info-item">
+                <span class="info-label">Commercial</span>
+                <span class="info-value">{{ commercialUsername | uppercase }}</span>
+            </div>
+            <div class="info-divider"></div>
+            <div class="info-item info-item--highlight">
+                <span class="info-label">Reste à verser</span>
+                <span class="info-value mono">{{ remainingAmount | currency:'XOF':'symbol':'1.0-0' }}</span>
+            </div>
+        </div>
 
-    <div class="mt-3 text-end" *ngIf="depositAmount > 0">
-        <h3>Total Saisi: {{ depositAmount | currency:'XOF':'symbol':'1.0-0' }}</h3>
-        <p class="text-danger" *ngIf="depositAmount > remainingAmount">
-            Attention: Le montant saisi dépasse le reste à verser.
-        </p>
+        <div class="kpi-strip">
+            <div class="kpi-card kpi-credit">
+                <span class="kpi-label">Reste crédit</span>
+                <span class="kpi-value">{{ remainingCredit | currency:'XOF':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="kpi-card kpi-tontine">
+                <span class="kpi-label">Reste tontine</span>
+                <span class="kpi-value">{{ remainingTontine | currency:'XOF':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="kpi-card kpi-balance">
+                <span class="kpi-label">Reste solde Nx</span>
+                <span class="kpi-value">{{ remainingNewBalance | currency:'XOF':'symbol':'1.0-0' }}</span>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-header">
+                <span class="section-title">Billetage</span>
+                <span class="section-hint">Décompte physique des espèces</span>
+            </div>
+            <app-billetage [showHeader]="false" (billetageData)="onBilletageChange($event)"></app-billetage>
+        </div>
+
+        <div class="section-card allocation-section" *ngIf="depositAmount > 0">
+            <div class="section-header">
+                <span class="section-title">Répartition par catégorie</span>
+                <span class="section-hint">Allocation comptable du montant saisi</span>
+            </div>
+
+            <div class="allocation-grid">
+                <div class="allocation-field">
+                    <label for="creditAmount">Crédit</label>
+                    <div class="input-wrap">
+                        <input id="creditAmount" type="number" min="0" [(ngModel)]="creditAmount"
+                            data-testid="e2e-cash-deposit-credit">
+                        <span class="input-suffix">XOF</span>
+                    </div>
+                </div>
+                <div class="allocation-field">
+                    <label for="tontineAmount">Tontine</label>
+                    <div class="input-wrap">
+                        <input id="tontineAmount" type="number" min="0" [(ngModel)]="tontineAmount"
+                            data-testid="e2e-cash-deposit-tontine">
+                        <span class="input-suffix">XOF</span>
+                    </div>
+                </div>
+                <div class="allocation-field">
+                    <label for="newBalanceAmount">Solde Nx comptes</label>
+                    <div class="input-wrap">
+                        <input id="newBalanceAmount" type="number" min="0" [(ngModel)]="newBalanceAmount"
+                            data-testid="e2e-cash-deposit-new-balance">
+                        <span class="input-suffix">XOF</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="total-row">
+                <span class="total-label">Total saisi</span>
+                <span class="total-value mono">{{ depositAmount | currency:'XOF':'symbol':'1.0-0' }}</span>
+            </div>
+
+            <div class="alert alert-error" *ngIf="allocationMismatch">
+                La somme des catégories doit être égale au total saisi.
+            </div>
+            <div class="alert alert-error" *ngIf="categoryOverflow">
+                Une catégorie dépasse le reste à verser.
+            </div>
+            <div class="alert alert-warning" *ngIf="depositAmount > remainingAmount">
+                Le montant saisi dépasse le reste à verser.
+            </div>
+        </div>
+    </mat-dialog-content>
+
+    <div class="modal-footer">
+        <button type="button" class="btn-secondary" mat-dialog-close [disabled]="isSubmitting">Annuler</button>
+        <button type="button" class="btn-primary"
+            [disabled]="depositAmount <= 0 || isSubmitting || allocationMismatch || categoryOverflow"
+            (click)="submitDeposit()" data-testid="e2e-cash-deposit-submit">
+            <span class="spinner-small" *ngIf="isSubmitting"></span>
+            <svg *ngIf="!isSubmitting" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            {{ isSubmitting ? 'Enregistrement...' : 'Valider le versement' }}
+        </button>
     </div>
-
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close [disabled]="isSubmitting">Annuler</button>
-    <button mat-raised-button color="primary" [disabled]="depositAmount <= 0 || isSubmitting" (click)="submitDeposit()" data-testid="e2e-cash-deposit-submit">
-        <mat-spinner *ngIf="isSubmitting" diameter="18"></mat-spinner>
-        {{ isSubmitting ? 'Enregistrement...' : 'Valider le Versement' }}
-    </button>
-</mat-dialog-actions>
+</div>

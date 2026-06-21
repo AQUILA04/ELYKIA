@@ -36,6 +36,9 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
                         "SUM(d.tontineDeliveriesAmount), " +
                         "SUM(d.totalAmountToDeposit), " +
                         "SUM(d.totalAmountDeposited), " +
+                        "SUM(d.totalCreditAmountDeposited), " +
+                        "SUM(d.totalTontineAmountDeposited), " +
+                        "SUM(d.totalNewBalanceAmountDeposited), " +
                         "SUM(d.creditSalesMargin), " +
                         "SUM(d.stockRequestMargin), " +
                         "SUM(d.totalAdvancesAmount), " +
@@ -66,6 +69,9 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
                         "SUM(d.tontineDeliveriesAmount), " +
                         "SUM(d.totalAmountToDeposit), " +
                         "SUM(d.totalAmountDeposited), " +
+                        "SUM(d.totalCreditAmountDeposited), " +
+                        "SUM(d.totalTontineAmountDeposited), " +
+                        "SUM(d.totalNewBalanceAmountDeposited), " +
                         "SUM(d.creditSalesMargin), " +
                         "SUM(d.stockRequestMargin), " +
                         "SUM(d.totalAdvancesAmount), " +

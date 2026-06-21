@@ -1,0 +1,142 @@
+<div class="remittance-tab a1" data-testid="e2e-cash-period-remittance-tab">
+    <div class="tab-intro a2">
+        <div class="intro-text">
+            <span class="header-surtitle">Trésorerie</span>
+            <h2 class="tab-title">Remise au gestionnaire</h2>
+            <p class="tab-subtitle">Consolidation mensuelle des versements journaliers · Soumission secrétaire ou réception directe gestionnaire</p>
+        </div>
+        <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="isLoading || isSubmitting">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+            </svg>
+            Actualiser
+        </button>
+    </div>
+
+    <div class="toolbar a3">
+        <span class="toolbar-label">Période</span>
+        <div class="period-fields">
+            <div class="field-group">
+                <label for="remittanceYear">Année</label>
+                <input id="remittanceYear" type="number" class="field-input mono"
+                    [(ngModel)]="selectedYear" (ngModelChange)="onPeriodChange()"
+                    data-testid="e2e-remittance-year">
+            </div>
+            <div class="field-group">
+                <label for="remittanceMonth">Mois</label>
+                <select id="remittanceMonth" class="field-input"
+                    [(ngModel)]="selectedMonth" (ngModelChange)="onPeriodChange()"
+                    data-testid="e2e-remittance-month">
+                    <option *ngFor="let month of months" [ngValue]="month.value">{{ month.label }}</option>
+                </select>
+            </div>
+        </div>
+        <span class="result-count" *ngIf="summary">
+            <span class="status-badge" [ngClass]="getStatusClass(summary.status)">{{ getStatusLabel(summary.status) }}</span>
+        </span>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-container a4">
+        <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement de la période…</div>
+        </div>
+    </div>
+
+    <div *ngIf="!isLoading && summary" class="a4">
+        <div class="kpi-strip">
+            <div class="kpi-card kpi-total">
+                <div class="kpi-label">Total versé</div>
+                <div class="kpi-value">{{ summary.totalAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
+                <div class="kpi-sub">Tous commerciaux</div>
+            </div>
+            <div class="kpi-card kpi-amount">
+                <div class="kpi-label">Crédit</div>
+                <div class="kpi-value">{{ summary.creditAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
+                <div class="kpi-sub">Avances & recouvrements</div>
+            </div>
+            <div class="kpi-card kpi-green">
+                <div class="kpi-label">Tontine</div>
+                <div class="kpi-value">{{ summary.tontineAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
+                <div class="kpi-sub">Collectes tontine</div>
+            </div>
+            <div class="kpi-card kpi-delai">
+                <div class="kpi-label">Solde Nx comptes</div>
+                <div class="kpi-value">{{ summary.newBalanceAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
+                <div class="kpi-sub">Dépôts initiaux</div>
+            </div>
+        </div>
+
+        <div class="actions-card" *ngIf="summary.canSubmit || summary.canAcknowledge || summary.canInitiate">
+            <span class="actions-label">Actions disponibles</span>
+            <div class="actions-row">
+                <button type="button" class="btn-primary" *ngIf="isSecretary && summary.canSubmit"
+                    [disabled]="isSubmitting" (click)="submitRemittance()" data-testid="e2e-remittance-submit">
+                    <span class="spinner-small" *ngIf="isSubmitting"></span>
+                    <svg *ngIf="!isSubmitting" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9 22 2z"/>
+                    </svg>
+                    Soumettre la remise
+                </button>
+                <button type="button" class="btn-primary" *ngIf="isManager && summary.canAcknowledge"
+                    [disabled]="isSubmitting" (click)="acknowledge(summary.remittanceId!)"
+                    data-testid="e2e-remittance-acknowledge">
+                    <span class="spinner-small" *ngIf="isSubmitting"></span>
+                    <svg *ngIf="!isSubmitting" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    Accuser réception
+                </button>
+                <button type="button" class="btn-outline" *ngIf="isManager && summary.canInitiate"
+                    [disabled]="isSubmitting" (click)="initiateRemittance()" data-testid="e2e-remittance-initiate">
+                    Initier la réception
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card a5">
+        <div class="table-card-header">
+            <h3 class="section-title">Historique des remises</h3>
+            <span class="section-count">{{ history.length }} enregistrement(s)</span>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table" *ngIf="history.length > 0; else noHistory">
+                <thead>
+                    <tr>
+                        <th>Période</th>
+                        <th class="text-right">Total</th>
+                        <th class="text-right">Crédit</th>
+                        <th class="text-right">Tontine</th>
+                        <th class="text-right">Solde Nx</th>
+                        <th>Statut</th>
+                        <th>Soumis par</th>
+                        <th>Reçu par</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of history">
+                        <td class="period-cell">{{ getMonthLabel(item.month) }} {{ item.year }}</td>
+                        <td class="text-right mono">{{ item.totalAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                        <td class="text-right mono">{{ item.creditAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                        <td class="text-right mono">{{ item.tontineAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                        <td class="text-right mono">{{ item.newBalanceAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                        <td>
+                            <span class="status-badge" [ngClass]="getStatusClass(item.status)">{{ getStatusLabel(item.status) }}</span>
+                        </td>
+                        <td>{{ item.submittedBy || '—' }}</td>
+                        <td>{{ item.receivedBy || '—' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <ng-template #noHistory>
+                <div class="empty-state">
+                    <mat-icon class="empty-icon-mat">account_balance_wallet</mat-icon>
+                    <div class="empty-title">Aucune remise enregistrée</div>
+                    <div class="empty-sub">Les remises mensuelles soumises apparaîtront ici.</div>
+                </div>
+            </ng-template>
+        </div>
+    </div>
+</div>

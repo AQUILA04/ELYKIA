@@ -40,11 +40,16 @@
           </button>
         </td>
       </tr>
-      <tr *ngIf="!credits || credits.length === 0">
+      <tr *ngIf="!isLoading && (!pagedAccounts || pagedAccounts.length === 0)">
         <td colspan="6" class="no-data-cell">Aucune opération à afficher.</td> </tr>
       </tbody>
     </table>
   </div>
-  <mat-paginator [length]="totalElement" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPageChange($event)">
+  <mat-paginator
+    [length]="totalElement"
+    [pageIndex]="currentPage"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[5, 10, 25, 100]"
+    (page)="onPageChange($event)">
   </mat-paginator>
 </div>

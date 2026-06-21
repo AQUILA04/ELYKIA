@@ -6,9 +6,7 @@ import { CreditService } from 'src/app/credit/service/credit.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { saveAs } from 'file-saver';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import Swal from 'sweetalert2';
-import { HttpErrorResponse } from '@angular/common/http';
-import { PageEvent } from '@angular/material/paginator'; // Utiliser le type PageEvent pour plus de clarté
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-daily-operation',
@@ -16,7 +14,6 @@ import { PageEvent } from '@angular/material/paginator'; // Utiliser le type Pag
   styleUrls: ['./daily-operation.component.scss']
 })
 export class DailyOperationComponent implements OnInit {
-  credits: any[] = [];
   pagedAccounts: any[] = [];
   pageSize: number = 5;
   currentPage: number = 0;
@@ -41,7 +38,6 @@ export class DailyOperationComponent implements OnInit {
     this.username = this.userService.getUsername();
     this.checkCashDeskStatus();
   }
-
 
   checkCashDeskStatus(): void {
     this.cashDeskService.checkOpenCashDesk().subscribe(
@@ -68,17 +64,10 @@ export class DailyOperationComponent implements OnInit {
     );
   }
 
-  updatePagedAccounts(): void {
-    const start = this.currentPage * this.pageSize;
-    const end = start + this.pageSize;
-    this.pagedAccounts = this.credits?.slice(start, end);
-  }
-
-  // MODIFIÉ : La méthode met maintenant à jour la vue
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
-    this.updatePagedAccounts(); // Cette ligne rafraîchit la page affichée
+    this.loadCredits();
   }
 
   refresh(): void {
@@ -86,7 +75,6 @@ export class DailyOperationComponent implements OnInit {
   }
 
   viewDetails(id: number): void {
-    // Note : Cette route semble pointer vers 'account-details' et non 'credit-details'
     this.router.navigate(['/credit-details', id]);
   }
 
@@ -98,14 +86,11 @@ export class DailyOperationComponent implements OnInit {
     this.isLoading = true;
     this.spinner.show();
 
-    // Cette méthode charge TOUS les crédits pour la pagination côté client
-    this.creditService.getCreditsByCollector().subscribe(
+    this.creditService.getCreditsByCollector(this.currentPage, this.pageSize).subscribe(
       response => {
         if (response.statusCode === 200) {
-          this.credits = response.data.content;
-          // MODIFIÉ : Le total est la longueur du tableau reçu
-          this.totalElement = this.credits.length;
-          this.updatePagedAccounts();
+          this.pagedAccounts = response.data.content;
+          this.totalElement = response.data.page.totalElements;
         } else {
           alert(response.message);
         }
@@ -135,4 +120,3 @@ export class DailyOperationComponent implements OnInit {
     );
   }
 }
-

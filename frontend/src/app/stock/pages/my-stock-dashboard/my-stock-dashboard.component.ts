@@ -131,8 +131,8 @@ export class MyStockDashboardComponent implements OnInit {
     return stock?.recoverySummary?.totalRemainingAmount ?? 0;
   }
 
-  getRecoveryRate(stock: CommercialMonthlyStock): number {
-    return stock?.recoverySummary?.recoveryRatePercent ?? 0;
+  getCreditDepositedAmount(stock: CommercialMonthlyStock): number {
+    return stock?.recoverySummary?.totalCreditDepositedAmount ?? 0;
   }
 
   getMonthName(monthNumber: number): string {

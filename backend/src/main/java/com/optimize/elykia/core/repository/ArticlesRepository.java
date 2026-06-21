@@ -77,7 +77,8 @@ public interface ArticlesRepository extends GenericRepository<Articles, Long> {
     @Query("""
             SELECT new com.optimize.elykia.core.dto.StockValuesDto(
                    SUM(a.purchasePrice * a.stockQuantity),
-                   SUM(a.creditSalePrice * a.stockQuantity)
+                   SUM(a.creditSalePrice * a.stockQuantity),
+                   SUM(a.sellingPrice * a.stockQuantity)
             )
             FROM Articles a
             """)

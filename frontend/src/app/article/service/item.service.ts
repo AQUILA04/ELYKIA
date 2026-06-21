@@ -10,6 +10,8 @@ export interface StockValues {
   purchaseTotal: number;
   creditSaleTotal: number;
   combinedTotal: number;
+  sellingSaleTotal: number;
+  sellingMargin: number;
 }
 
 export interface ArticleStockKpis {
@@ -17,6 +19,8 @@ export interface ArticleStockKpis {
   purchaseTotal: number;
   creditSaleTotal: number;
   estimatedMargin: number;
+  sellingSaleTotal: number;
+  estimatedSellingMargin: number;
   outOfStockCount: number;
 }
 

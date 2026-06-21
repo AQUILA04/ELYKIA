@@ -87,6 +87,15 @@ public class DailyCommercialReport extends BaseEntity<String> {
     @Column(columnDefinition = "double precision default 0")
     private Double totalAmountDeposited = 0.0; // Somme des versements effectués
 
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalCreditAmountDeposited = 0.0;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalTontineAmountDeposited = 0.0;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalNewBalanceAmountDeposited = 0.0;
+
     // Marges
     @Column(columnDefinition = "double precision default 0")
     private Double creditSalesMargin = 0.0;
@@ -127,6 +136,9 @@ public class DailyCommercialReport extends BaseEntity<String> {
             Double tontineDeliveriesAmount,
             Double totalAmountToDeposit,
             Double totalAmountDeposited,
+            Double totalCreditAmountDeposited,
+            Double totalTontineAmountDeposited,
+            Double totalNewBalanceAmountDeposited,
             Double creditSalesMargin,
             Double stockRequestMargin,
             Double totalAdvancesAmount,
@@ -151,6 +163,9 @@ public class DailyCommercialReport extends BaseEntity<String> {
         this.tontineDeliveriesAmount = tontineDeliveriesAmount != null ? tontineDeliveriesAmount : 0.0;
         this.totalAmountToDeposit = totalAmountToDeposit != null ? totalAmountToDeposit : 0.0;
         this.totalAmountDeposited = totalAmountDeposited != null ? totalAmountDeposited : 0.0;
+        this.totalCreditAmountDeposited = totalCreditAmountDeposited != null ? totalCreditAmountDeposited : 0.0;
+        this.totalTontineAmountDeposited = totalTontineAmountDeposited != null ? totalTontineAmountDeposited : 0.0;
+        this.totalNewBalanceAmountDeposited = totalNewBalanceAmountDeposited != null ? totalNewBalanceAmountDeposited : 0.0;
         this.creditSalesMargin = creditSalesMargin != null ? creditSalesMargin : 0.0;
         this.stockRequestMargin = stockRequestMargin != null ? stockRequestMargin : 0.0;
         this.totalAdvancesAmount = totalAdvancesAmount != null ? totalAdvancesAmount : 0.0;

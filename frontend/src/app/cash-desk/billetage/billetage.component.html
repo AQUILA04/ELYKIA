@@ -1,39 +1,83 @@
-<div class="container">
-    <h2>Gestion des Billets et Pièces</h2>
-  
-    <div class="content">
-      <!-- Billets Section -->
-      <div class="billets">
-        <div class="billet" *ngFor="let billet of billets">
-          <img [src]="'assets/images/money/billets/' + billet + '.jpg'" alt="{{ billet }} bill" class="billet-img">
-          <input 
-            type="number" 
-            [attr.data-value]="getBilletValue(billet)" 
-            [attr.data-testid]="'e2e-billetage-' + billet"
-            [(ngModel)]="ticketingData[billet + 'B']" 
-            (ngModelChange)="updateTotal(billet + 'B', $event)" 
-            placeholder="Quantité">
-        </div>
-      </div>
-  
-      <!-- Pièces Section -->
-      <div class="pieces">
-        <div class="piece" *ngFor="let piece of pieces">
-          <img [src]="'assets/images/money/pieces/' + piece + '.jpeg'" alt="{{ piece }}" class="piece-img">
-          <input 
-            type="number" 
-            [attr.data-value]="getPieceValue(piece)" 
-            [attr.data-testid]="'e2e-billetage-piece-' + piece"
-            [(ngModel)]="ticketingData[piece + 'P']" 
-            (ngModelChange)="updateTotal(piece + 'P', $event)" 
-            placeholder="Quantité">
-        </div>
-      </div>
-    </div>
-    
-    <p>Total: {{ totalAmount }}</p>
-    <div class="button-container">
-        <button mat-raised-button color="primary" (click)="submitBilletage()" data-testid="e2e-billetage-submit">Suivant</button>
+<div class="billetage" [class.billetage--compact]="!showHeader">
+    <div class="billetage-intro" *ngIf="showHeader">
+        <h2 class="billetage-title">Gestion des billets et pièces</h2>
+        <p class="billetage-hint">Saisissez les quantités puis validez pour transmettre le décompte.</p>
     </div>
 
-  </div>
+    <div class="billetage-grid">
+        <div class="billetage-column">
+            <div class="column-header">
+                <span class="column-badge column-badge--bill">B</span>
+                <span class="column-title">Billets</span>
+            </div>
+            <div class="denom-row" *ngFor="let billet of billets">
+                <div class="denom-visual">
+                    <div class="denom-image-wrap denom-image-wrap--bill">
+                        <img [src]="'assets/images/money/billets/' + billet + '.jpg'" [alt]="billet + ' FCFA'" class="denom-img">
+                    </div>
+                    <span class="denom-label">{{ billet | number:'1.0-0' }} FCFA</span>
+                </div>
+                <div class="denom-control">
+                    <div class="input-wrap">
+                        <input
+                            type="number"
+                            min="0"
+                            [attr.data-value]="getBilletValue(billet)"
+                            [attr.data-testid]="'e2e-billetage-' + billet"
+                            [(ngModel)]="ticketingData[billet + 'B']"
+                            (ngModelChange)="updateTotal(billet + 'B', $event)"
+                            placeholder="0">
+                        <span class="input-suffix">qté</span>
+                    </div>
+                    <span class="line-subtotal mono" *ngIf="getSubtotal(billet, 'B') > 0">
+                        {{ getSubtotal(billet, 'B') | number:'1.0-0' }} F
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="billetage-column">
+            <div class="column-header">
+                <span class="column-badge column-badge--coin">P</span>
+                <span class="column-title">Pièces</span>
+            </div>
+            <div class="denom-row" *ngFor="let piece of pieces">
+                <div class="denom-visual">
+                    <div class="denom-image-wrap denom-image-wrap--coin">
+                        <img [src]="'assets/images/money/pieces/' + piece + '.jpeg'" [alt]="piece + ' FCFA'" class="denom-img">
+                    </div>
+                    <span class="denom-label">{{ piece }} FCFA</span>
+                </div>
+                <div class="denom-control">
+                    <div class="input-wrap">
+                        <input
+                            type="number"
+                            min="0"
+                            [attr.data-value]="getPieceValue(piece)"
+                            [attr.data-testid]="'e2e-billetage-piece-' + piece"
+                            [(ngModel)]="ticketingData[piece + 'P']"
+                            (ngModelChange)="updateTotal(piece + 'P', $event)"
+                            placeholder="0">
+                        <span class="input-suffix">qté</span>
+                    </div>
+                    <span class="line-subtotal mono" *ngIf="getSubtotal(piece, 'P') > 0">
+                        {{ getSubtotal(piece, 'P') | number:'1.0-0' }} F
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="billetage-footer">
+        <div class="total-box">
+            <span class="total-label">Total billetage</span>
+            <span class="total-value mono">{{ totalAmount | number:'1.0-0' }} FCFA</span>
+        </div>
+        <button type="button" class="btn-next" (click)="submitBilletage()" data-testid="e2e-billetage-submit">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            Suivant
+        </button>
+    </div>
+</div>

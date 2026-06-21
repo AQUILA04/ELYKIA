@@ -262,6 +262,21 @@
                                             currency:'XOF':'symbol':'1.0-0' }}</span>
                                     </div>
                                     <div class="kpi-card">
+                                        <span class="kpi-label">A Verser (Crédit)</span>
+                                        <span class="kpi-value">{{ getCreditToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-hint">Versé: {{ (report.totalCreditAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingCredit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">A Verser (Tontine)</span>
+                                        <span class="kpi-value">{{ getTontineToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-hint">Versé: {{ (report.totalTontineAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingTontine(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">A Verser (Solde Nx)</span>
+                                        <span class="kpi-value">{{ getNewBalanceToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-hint">Versé: {{ (report.totalNewBalanceAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingNewBalance(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card">
                                         <span class="kpi-label">A Verser</span>
                                         <span class="kpi-value">{{ (report.totalAmountToDeposit || 0) |
                                             currency:'XOF':'symbol':'1.0-0' }}</span>
@@ -274,9 +289,8 @@
                                     <div class="kpi-card">
                                         <span class="kpi-label">Reste</span>
                                         <span class="kpi-value"
-                                            [ngClass]="{'text-danger': ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0)) > 0, 'text-success': ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0)) <= 0}">
-                                            {{ ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0))
-                                            | currency:'XOF':'symbol':'1.0-0' }}
+                                            [ngClass]="{'text-danger': getTotalRemaining(report) > 0, 'text-success': getTotalRemaining(report) <= 0}">
+                                            {{ getTotalRemaining(report) | currency:'XOF':'symbol':'1.0-0' }}
                                         </span>
                                     </div>
                                     <div class="kpi-card">
@@ -286,7 +300,7 @@
                                     </div>
                                 </div>
                                 <div class="mt-3"
-                                    *ngIf="(isManager || isSecretary) && isSingleDay && (report.totalAmountToDeposit || 0) > 0 && ((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0)) > 0">
+                                    *ngIf="(isManager || isSecretary) && isSingleDay && getTotalRemaining(report) > 0">
                                     <button mat-raised-button color="primary" class="w-100 py-3 text-lg"
                                         data-testid="e2e-daily-report-deposit-btn"
                                         (click)="openDepositModal(report)">
@@ -376,7 +390,10 @@
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Référence</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Commercial</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Reçu par</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Montant</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Crédit</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Tontine</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Solde Nx</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Total</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500 text-center" *ngIf="isManager">
                                     Actions</th>
                             </tr>
@@ -389,6 +406,15 @@
                                 <td class="py-2 px-4 text-sm text-gray-700 font-medium">{{ dep.commercialUsername }}
                                 </td>
                                 <td class="py-2 px-4 text-sm font-semibold text-gray-700">{{ dep.receivedBy }}</td>
+                                <td class="py-2 px-4 text-sm font-mono text-right text-green-700">
+                                    {{ (dep.creditAmount ?? dep.amount) | currency:'XOF':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="py-2 px-4 text-sm font-mono text-right text-green-700">
+                                    {{ (dep.tontineAmount || 0) | currency:'XOF':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="py-2 px-4 text-sm font-mono text-right text-green-700">
+                                    {{ (dep.newBalanceAmount || 0) | currency:'XOF':'symbol':'1.0-0' }}
+                                </td>
                                 <td class="py-2 px-4 text-sm font-mono text-right font-medium text-green-600">
                                     {{ dep.amount | currency:'XOF':'symbol':'1.0-0' }}
                                 </td>
@@ -414,6 +440,10 @@
                     </div>
                 </ng-template>
             </div>
+        </mat-tab>
+
+        <mat-tab label="REMISE AU GESTIONNAIRE" *ngIf="isManager || isSecretary">
+            <app-cash-period-remittance-tab></app-cash-period-remittance-tab>
         </mat-tab>
     </mat-tab-group>
 

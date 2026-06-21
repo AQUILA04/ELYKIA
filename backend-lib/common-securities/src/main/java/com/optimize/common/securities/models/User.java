@@ -30,12 +30,12 @@ public class User extends BaseEntity<String> {
   private Long id;
 
   @NotBlank
-  @Size(max = 20)
+  @Size(max = 80)
   @Column(name = "USEFSTNAM")
   private String firstname;
 
   @NotBlank
-  @Size(max = 20)
+  @Size(max = 80)
   @Column(name = "USELSTNAM")
   private String lastname;
 
@@ -50,7 +50,7 @@ public class User extends BaseEntity<String> {
   private String phone;
 
   @NotBlank
-  @Size(max = 50)
+  @Size(max = 100)
   @Email
   @Column(name = "USEEML")
   private String email;

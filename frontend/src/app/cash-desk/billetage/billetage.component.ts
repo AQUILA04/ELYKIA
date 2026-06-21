@@ -6,8 +6,9 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
   styleUrls: ['./billetage.component.scss']
 })
 export class BilletageComponent implements OnInit {
+  @Input() showHeader = true;
   @Output() billetageData = new EventEmitter<{ totalAmount: number, ticketingData: { [key: string]: number } }>();
-  
+
   billets = ['10000', '5000', '2000', '1000', '500'];
   pieces = ['500', '250', '200', '100', '50', '25'];
   totalAmount: number = 0;
@@ -21,6 +22,11 @@ export class BilletageComponent implements OnInit {
 
   getPieceValue(piece: string): number {
     return parseInt(piece, 10);
+  }
+
+  getSubtotal(denom: string, suffix: 'B' | 'P'): number {
+    const quantity = this.ticketingData[denom + suffix] || 0;
+    return quantity * parseInt(denom, 10);
   }
 
   updateTotal(key: string, quantity: number): void {

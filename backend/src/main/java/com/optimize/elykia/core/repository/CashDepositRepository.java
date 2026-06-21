@@ -21,4 +21,31 @@ public interface CashDepositRepository extends GenericRepository<CashDeposit, Lo
     boolean existsByReference(String reference);
 
     Optional<CashDeposit> findByReference(String reference);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT COALESCE(SUM(COALESCE(cd.creditAmount, cd.amount)), 0)
+            FROM CashDeposit cd
+            WHERE cd.commercialUsername = :collector
+              AND cd.date >= :start
+              AND cd.date <= :end
+              AND cd.amount > 0
+            """)
+    double sumCreditDepositsForPeriod(
+            @org.springframework.data.repository.query.Param("collector") String collector,
+            @org.springframework.data.repository.query.Param("start") LocalDate start,
+            @org.springframework.data.repository.query.Param("end") LocalDate end);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT COALESCE(SUM(cd.amount), 0),
+                   COALESCE(SUM(COALESCE(cd.creditAmount, cd.amount)), 0),
+                   COALESCE(SUM(COALESCE(cd.tontineAmount, 0)), 0),
+                   COALESCE(SUM(COALESCE(cd.newBalanceAmount, 0)), 0)
+            FROM CashDeposit cd
+            WHERE cd.date >= :start
+              AND cd.date <= :end
+              AND cd.amount > 0
+            """)
+    java.util.List<Object[]> sumDepositsByPeriod(
+            @org.springframework.data.repository.query.Param("start") LocalDate start,
+            @org.springframework.data.repository.query.Param("end") LocalDate end);
 }

@@ -8,8 +8,10 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.InventoryControlPdfDto;
 import com.optimize.elykia.core.dto.ItemReleaseSheetDto;
 import com.optimize.elykia.core.dto.PrintOperationDto;
+import com.optimize.elykia.core.dto.DailyUnrecoveredCreditDto;
 import com.optimize.elykia.core.dto.StockReceptionDto;
 import com.optimize.elykia.core.entity.inventory.Inventory;
+import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.core.service.store.InventoryService;
 import com.optimize.elykia.core.service.stock.StockReceptionService;
@@ -39,6 +41,7 @@ import com.optimize.elykia.core.dto.RestockNeededDto;
 public class PdfService {
     private final TemplateEngine templateEngine;
     private final CreditService creditService;
+    private final UserService userService;
     private final ReportService reportService;
     private final AccountingDayService accountingDayService;
     private final OrderService orderService;
@@ -117,7 +120,8 @@ public class PdfService {
     }
 
     public InputStream printDailyOperationPdf() throws DocumentException {
-        PrintOperationDto dto = PrintOperationDto.from(creditService.getCreditByCollector());
+        List<DailyUnrecoveredCreditDto> credits = creditService.getCreditByCollector();
+        PrintOperationDto dto = PrintOperationDto.from(credits, userService.getCurrentUser().getUsername());
         String html = generateHtmlFromTemplate(dto);
         return generatePdfFromHtml(html, dto.getCollector());
     }

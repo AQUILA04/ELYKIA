@@ -6,6 +6,7 @@ export interface StockRecoverySummary {
   remainingFromPhysicalStock: number;
   recoveredFromSales: number;
   remainingFromCredits: number;
+  totalCreditDepositedAmount?: number;
 }
 
 export interface CommercialMonthlyStockItem {

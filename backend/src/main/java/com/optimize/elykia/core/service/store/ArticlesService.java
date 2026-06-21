@@ -295,6 +295,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
                 "purchaseTotal", values.getOrDefault("purchaseTotal", 0.0),
                 "creditSaleTotal", values.getOrDefault("creditSaleTotal", 0.0),
                 "estimatedMargin", values.getOrDefault("combinedTotal", 0.0),
+                "sellingSaleTotal", values.getOrDefault("sellingSaleTotal", 0.0),
+                "estimatedSellingMargin", values.getOrDefault("sellingMargin", 0.0),
                 "outOfStockCount", outOfStockCount);
     }
 
@@ -305,15 +307,19 @@ public class ArticlesService extends GenericService<Articles, Long> {
         // 2. On utilise les getters pour récupérer les valeurs de manière sûre
         double purchaseTotal = valuesDto.getPurchaseTotal() != null ? valuesDto.getPurchaseTotal() : 0.0;
         double creditSaleTotal = valuesDto.getCreditSaleTotal() != null ? valuesDto.getCreditSaleTotal() : 0.0;
+        double sellingSaleTotal = valuesDto.getSellingSaleTotal() != null ? valuesDto.getSellingSaleTotal() : 0.0;
 
         // 3. On fait le calcul
         double combinedTotal = creditSaleTotal - purchaseTotal;
+        double sellingMargin = sellingSaleTotal - purchaseTotal;
 
         // 4. On retourne la Map comme avant
         return Map.of(
                 "purchaseTotal", purchaseTotal,
                 "creditSaleTotal", creditSaleTotal,
-                "combinedTotal", combinedTotal);
+                "combinedTotal", combinedTotal,
+                "sellingSaleTotal", sellingSaleTotal,
+                "sellingMargin", sellingMargin);
     }
 
     public List<ArticleStateHistoryDto> getStateHistoryByArticleId(Long articleId) {

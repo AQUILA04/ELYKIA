@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CashDepositService } from '../../service/cash-deposit.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -6,16 +6,23 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 @Component({
     selector: 'app-cash-deposit-modal',
     templateUrl: './cash-deposit-modal.component.html',
-    styleUrls: ['./cash-deposit-modal.component.scss']
+    styleUrls: ['./cash-deposit-modal.component.scss'],
+    encapsulation: ViewEncapsulation.None,
+    standalone: false
 })
 export class CashDepositModalComponent implements OnInit {
 
     commercialUsername: string;
-    totalAmountToDeposit: number;
     remainingAmount: number;
+    remainingCredit: number;
+    remainingTontine: number;
+    remainingNewBalance: number;
     date: string;
 
     depositAmount: number = 0;
+    creditAmount: number = 0;
+    tontineAmount: number = 0;
+    newBalanceAmount: number = 0;
     billetageData: any = {};
 
     isSubmitting = false;
@@ -28,8 +35,10 @@ export class CashDepositModalComponent implements OnInit {
         private snackBar: MatSnackBar
     ) {
         this.commercialUsername = data.commercialUsername;
-        this.totalAmountToDeposit = data.totalAmountToDeposit;
         this.remainingAmount = data.remainingAmount;
+        this.remainingCredit = data.remainingCredit ?? 0;
+        this.remainingTontine = data.remainingTontine ?? 0;
+        this.remainingNewBalance = data.remainingNewBalance ?? 0;
         this.date = data.date;
     }
 
@@ -40,6 +49,26 @@ export class CashDepositModalComponent implements OnInit {
     onBilletageChange(event: { totalAmount: number, ticketingData: any }) {
         this.depositAmount = event.totalAmount;
         this.billetageData = event.ticketingData;
+        this.autoAllocate();
+    }
+
+    autoAllocate(): void {
+        let remaining = this.depositAmount;
+        this.creditAmount = Math.min(remaining, this.remainingCredit);
+        remaining -= this.creditAmount;
+        this.tontineAmount = Math.min(remaining, this.remainingTontine);
+        remaining -= this.tontineAmount;
+        this.newBalanceAmount = Math.min(remaining, this.remainingNewBalance);
+    }
+
+    get allocationMismatch(): boolean {
+        return Math.abs((this.creditAmount + this.tontineAmount + this.newBalanceAmount) - this.depositAmount) > 0.01;
+    }
+
+    get categoryOverflow(): boolean {
+        return this.creditAmount > this.remainingCredit
+            || this.tontineAmount > this.remainingTontine
+            || this.newBalanceAmount > this.remainingNewBalance;
     }
 
     submitDeposit() {
@@ -52,21 +81,25 @@ export class CashDepositModalComponent implements OnInit {
             return;
         }
 
-        if (this.depositAmount > this.remainingAmount) {
-            // Optional warning or block
+        if (this.allocationMismatch) {
+            this.snackBar.open('La répartition doit correspondre au total saisi.', 'Fermer', { duration: 3000 });
+            return;
         }
 
         this.isSubmitting = true;
         const deposit = {
             commercialUsername: this.commercialUsername,
             amount: this.depositAmount,
+            creditAmount: this.creditAmount,
+            tontineAmount: this.tontineAmount,
+            newBalanceAmount: this.newBalanceAmount,
             billetage: JSON.stringify(this.billetageData),
             date: this.date,
             reference: this.requestReference
         };
 
         this.cashDepositService.createDeposit(deposit).subscribe({
-            next: (res) => {
+            next: () => {
                 this.snackBar.open('Versement effectué avec succès !', 'OK', { duration: 3000 });
                 this.dialogRef.close(true);
             },
@@ -85,4 +118,3 @@ export class CashDepositModalComponent implements OnInit {
         return `DEP-WEB-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     }
 }
-

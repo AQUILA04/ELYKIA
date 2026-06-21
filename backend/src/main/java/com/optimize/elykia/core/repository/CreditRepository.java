@@ -70,6 +70,77 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     @Modifying
     void updateDailyPaidForCredit();
 
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.DailyUnrecoveredCreditDto(
+                c.id, c.reference, c.dailyStake, c.totalAmountRemaining,
+                cl.firstname, cl.lastname, cl.quarter, cl.occupation
+            )
+            FROM Credit c
+            JOIN c.client cl
+            WHERE c.status = :status
+            AND c.collector = :collector
+            AND c.clientType = :clientType
+            AND c.state = com.optimize.common.entities.enums.State.ENABLED
+            AND NOT EXISTS (
+                SELECT 1 FROM CreditTimeline ct
+                WHERE ct.credit = c
+                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+                AND ct.createdDate >= :dayStart
+                AND ct.createdDate <= :dayEnd
+            )
+            ORDER BY cl.quarter ASC, cl.lastname ASC, cl.firstname ASC
+            """)
+    List<DailyUnrecoveredCreditDto> findUnrecoveredCreditsForDay(
+            @Param("status") CreditStatus status,
+            @Param("collector") String collector,
+            @Param("clientType") ClientType clientType,
+            @Param("dayStart") java.time.LocalDateTime dayStart,
+            @Param("dayEnd") java.time.LocalDateTime dayEnd);
+
+    @Query(value = """
+            SELECT new com.optimize.elykia.core.dto.DailyUnrecoveredCreditDto(
+                c.id, c.reference, c.dailyStake, c.totalAmountRemaining,
+                cl.firstname, cl.lastname, cl.quarter, cl.occupation
+            )
+            FROM Credit c
+            JOIN c.client cl
+            WHERE c.status = :status
+            AND c.collector = :collector
+            AND c.clientType = :clientType
+            AND c.state = com.optimize.common.entities.enums.State.ENABLED
+            AND NOT EXISTS (
+                SELECT 1 FROM CreditTimeline ct
+                WHERE ct.credit = c
+                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+                AND ct.createdDate >= :dayStart
+                AND ct.createdDate <= :dayEnd
+            )
+            ORDER BY cl.quarter ASC, cl.lastname ASC, cl.firstname ASC
+            """,
+            countQuery = """
+            SELECT COUNT(c)
+            FROM Credit c
+            JOIN c.client cl
+            WHERE c.status = :status
+            AND c.collector = :collector
+            AND c.clientType = :clientType
+            AND c.state = com.optimize.common.entities.enums.State.ENABLED
+            AND NOT EXISTS (
+                SELECT 1 FROM CreditTimeline ct
+                WHERE ct.credit = c
+                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+                AND ct.createdDate >= :dayStart
+                AND ct.createdDate <= :dayEnd
+            )
+            """)
+    Page<DailyUnrecoveredCreditDto> findUnrecoveredCreditsForDay(
+            @Param("status") CreditStatus status,
+            @Param("collector") String collector,
+            @Param("clientType") ClientType clientType,
+            @Param("dayStart") java.time.LocalDateTime dayStart,
+            @Param("dayEnd") java.time.LocalDateTime dayEnd,
+            Pageable pageable);
+
     @Query(value = "UPDATE Credit c SET c.releasePrinted = true WHERE c.releaseDate = :releaseDate")
     @Modifying
     void updateReleasePrinted(LocalDate releaseDate);

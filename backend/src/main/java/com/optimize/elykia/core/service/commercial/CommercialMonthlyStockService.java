@@ -5,10 +5,12 @@ import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.dto.stock.StockRecoverySummaryDto;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.repository.ArticlesRepository;
+import com.optimize.elykia.core.repository.CashDepositRepository;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.service.stock.CommercialMonthlyStockRecoveryService;
 import com.optimize.elykia.core.util.UserProfilConstant;
@@ -30,16 +32,19 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
     private final UserService userService;
     private final CommercialMonthlyStockRecoveryService recoveryService;
     private final ArticlesRepository articlesRepository;
+    private final CashDepositRepository cashDepositRepository;
 
     protected CommercialMonthlyStockService(
             CommercialMonthlyStockRepository repository,
             UserService userService,
             CommercialMonthlyStockRecoveryService recoveryService,
-            ArticlesRepository articlesRepository) {
+            ArticlesRepository articlesRepository,
+            CashDepositRepository cashDepositRepository) {
         super(repository);
         this.userService = userService;
         this.recoveryService = recoveryService;
         this.articlesRepository = articlesRepository;
+        this.cashDepositRepository = cashDepositRepository;
     }
 
     public long getDaysUntilMonthEnd() {
@@ -107,7 +112,21 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
     }
 
     public CommercialMonthlyStock enrichWithRecovery(CommercialMonthlyStock stock) {
-        stock.setRecoverySummary(recoveryService.aggregate(stock));
+        StockRecoverySummaryDto summary = recoveryService.aggregate(stock);
+        LocalDate start = LocalDate.of(stock.getYear(), stock.getMonth(), 1);
+        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+        double creditDeposited = cashDepositRepository.sumCreditDepositsForPeriod(
+                stock.getCollector(), start, end);
+        stock.setRecoverySummary(StockRecoverySummaryDto.builder()
+                .totalDueAmount(summary.getTotalDueAmount())
+                .totalRecoveredAmount(summary.getTotalRecoveredAmount())
+                .totalRemainingAmount(summary.getTotalRemainingAmount())
+                .recoveryRatePercent(summary.getRecoveryRatePercent())
+                .remainingFromPhysicalStock(summary.getRemainingFromPhysicalStock())
+                .recoveredFromSales(summary.getRecoveredFromSales())
+                .remainingFromCredits(summary.getRemainingFromCredits())
+                .totalCreditDepositedAmount(Math.ceil(creditDeposited))
+                .build());
         return stock;
     }
 

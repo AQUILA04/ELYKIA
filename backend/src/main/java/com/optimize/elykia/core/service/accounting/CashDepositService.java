@@ -6,9 +6,13 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.core.enumaration.RemittanceStatus;
 import com.optimize.elykia.core.repository.CashDepositRepository;
+import com.optimize.elykia.core.repository.CashPeriodRemittanceRepository;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.service.report.DailyOperationService;
+import com.optimize.elykia.core.util.CashDepositCategoryCalculator;
+import com.optimize.elykia.core.util.UserProfilConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +22,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import com.optimize.elykia.core.util.UserProfilConstant;
 
 @Service
 @Transactional
@@ -28,15 +31,18 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
     private final DailyCommercialReportRepository dailyReportRepository;
     private final DailyOperationService dailyOperationService;
     private final UserService userService;
+    private final CashPeriodRemittanceRepository remittanceRepository;
 
     public CashDepositService(CashDepositRepository repository,
             DailyCommercialReportRepository dailyReportRepository,
             DailyOperationService dailyOperationService,
-            UserService userService) {
+            UserService userService,
+            CashPeriodRemittanceRepository remittanceRepository) {
         super(repository);
         this.dailyReportRepository = dailyReportRepository;
         this.dailyOperationService = dailyOperationService;
         this.userService = userService;
+        this.remittanceRepository = remittanceRepository;
     }
 
     public CashDeposit createDeposit(CashDeposit deposit) {
@@ -53,29 +59,41 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
             deposit.setReference("DEP-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         }
 
-        // Update Daily Report
+        CashDepositCategoryCalculator.normalizeLegacyAmounts(deposit);
+        CashDepositCategoryCalculator.validateCategorySplit(
+                deposit.getAmount(),
+                deposit.getCreditAmount(),
+                deposit.getTontineAmount(),
+                deposit.getNewBalanceAmount());
+
         DailyCommercialReport report = dailyReportRepository
                 .findByDateAndCommercialUsername(deposit.getDate(), deposit.getCommercialUsername())
                 .orElseGet(() -> {
                     DailyCommercialReport newReport = new DailyCommercialReport();
-                    newReport.setDate(LocalDate.now());
+                    newReport.setDate(deposit.getDate());
                     newReport.setCommercialUsername(deposit.getCommercialUsername());
                     return dailyReportRepository.save(newReport);
                 });
 
-        report.setTotalAmountDeposited(report.getTotalAmountDeposited() + deposit.getAmount());
+        applyDepositToReport(report, deposit.getAmount(), deposit.getCreditAmount(),
+                deposit.getTontineAmount(), deposit.getNewBalanceAmount());
         dailyReportRepository.save(report);
 
         deposit.setDailyReport(report);
         CashDeposit saved = cashDepositRepository.save(deposit);
 
-        // Log Operation
         dailyOperationService.logOperation(
                 deposit.getCommercialUsername(),
                 OperationType.CASH_DEPOSIT,
                 deposit.getAmount(),
                 "Versement " + saved.getId(),
-                "Versement effectué par " + currentUser.getUsername() + " Pour la date du "+ deposit.getDate());
+                String.format(
+                        "Versement effectué par %s pour la date du %s (Crédit: %.0f, Tontine: %.0f, Solde Nx: %.0f)",
+                        currentUser.getUsername(),
+                        deposit.getDate(),
+                        deposit.getCreditAmount(),
+                        deposit.getTontineAmount(),
+                        deposit.getNewBalanceAmount()));
 
         return saved;
     }
@@ -105,58 +123,86 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
 
         User currentUser = userService.getCurrentUser();
 
-        // Rule: Only GESTIONNAIRE can cancel
         if (!currentUser.is(UserProfilConstant.GESTIONNAIRE)) {
             throw new RuntimeException("Seul le gestionnaire est autorisé à annuler un versement.");
         }
 
-        // Rule: 3 days limit
         long daysBetween = ChronoUnit.DAYS.between(original.getDate(), LocalDate.now());
         if (daysBetween > 3) {
             throw new RuntimeException("Le délai d'annulation de 3 jours est dépassé.");
         }
 
-        // Prevent double negative
         if (original.getAmount() <= 0) {
             throw new RuntimeException("Impossible d'annuler ce versement.");
         }
 
-        String origRef = original.getReference() != null && !original.getReference().isEmpty() ? original.getReference() : String.valueOf(original.getId());
+        assertMonthNotRemitted(original.getDate());
 
-        // Check if already cancelled
+        String origRef = original.getReference() != null && !original.getReference().isEmpty()
+                ? original.getReference()
+                : String.valueOf(original.getId());
+
         CashDepositRepository cashDepositRepository = (CashDepositRepository) repository;
         String cancelReference = "CANCEL-" + origRef;
         if (cashDepositRepository.existsByReference(cancelReference)) {
             return cashDepositRepository.findByReference(cancelReference).orElseThrow();
         }
 
+        CashDepositCategoryCalculator.normalizeLegacyAmounts(original);
+        double credit = original.getCreditAmount() != null ? original.getCreditAmount() : original.getAmount();
+        double tontine = original.getTontineAmount() != null ? original.getTontineAmount() : 0.0;
+        double newBalance = original.getNewBalanceAmount() != null ? original.getNewBalanceAmount() : 0.0;
+
         CashDeposit cancelDeposit = new CashDeposit();
         cancelDeposit.setAmount(-original.getAmount());
+        cancelDeposit.setCreditAmount(-credit);
+        cancelDeposit.setTontineAmount(-tontine);
+        cancelDeposit.setNewBalanceAmount(-newBalance);
         cancelDeposit.setCommercialUsername(original.getCommercialUsername());
         cancelDeposit.setDate(original.getDate());
         cancelDeposit.setBilletage(null);
         cancelDeposit.setReference(cancelReference);
         cancelDeposit.setReceivedBy(currentUser.getUsername());
 
-        // Update Daily Report
         DailyCommercialReport report = dailyReportRepository
                 .findByDateAndCommercialUsername(cancelDeposit.getDate(), cancelDeposit.getCommercialUsername())
                 .orElseThrow(() -> new RuntimeException("Rapport journalier introuvable pour ce versement."));
 
-        report.setTotalAmountDeposited(report.getTotalAmountDeposited() + cancelDeposit.getAmount());
+        applyDepositToReport(report, cancelDeposit.getAmount(), cancelDeposit.getCreditAmount(),
+                cancelDeposit.getTontineAmount(), cancelDeposit.getNewBalanceAmount());
         dailyReportRepository.save(report);
 
         cancelDeposit.setDailyReport(report);
         CashDeposit saved = cashDepositRepository.save(cancelDeposit);
 
-        // Log Operation
         dailyOperationService.logOperation(
                 cancelDeposit.getCommercialUsername(),
                 OperationType.CASH_DEPOSIT_CANCEL,
                 cancelDeposit.getAmount(),
                 "Annulation Versement N° " + original.getId(),
-                "Annulation du versement N° " + original.getId() + " par " + currentUser.getUsername() + " pour la date du "+ cancelDeposit.getDate());
+                "Annulation du versement N° " + original.getId() + " par " + currentUser.getUsername()
+                        + " pour la date du " + cancelDeposit.getDate());
 
         return saved;
+    }
+
+    private void applyDepositToReport(DailyCommercialReport report, double amount, double credit, double tontine,
+            double newBalance) {
+        report.setTotalAmountDeposited(safe(report.getTotalAmountDeposited()) + amount);
+        report.setTotalCreditAmountDeposited(safe(report.getTotalCreditAmountDeposited()) + credit);
+        report.setTotalTontineAmountDeposited(safe(report.getTotalTontineAmountDeposited()) + tontine);
+        report.setTotalNewBalanceAmountDeposited(safe(report.getTotalNewBalanceAmountDeposited()) + newBalance);
+    }
+
+    private void assertMonthNotRemitted(LocalDate date) {
+        if (remittanceRepository.existsByYearAndMonthAndStatus(date.getYear(), date.getMonthValue(),
+                RemittanceStatus.RECEIVED)) {
+            throw new RuntimeException(
+                    "Impossible d'annuler un versement d'un mois déjà remis au gestionnaire.");
+        }
+    }
+
+    private static double safe(Double value) {
+        return value != null ? value : 0.0;
     }
 }

@@ -12,6 +12,26 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Added
 
+- **Backend —** versements caisse scindés en 3 catégories (`creditAmount`, `tontineAmount`, `newBalanceAmount`) avec conservation du total `amount` ; sous-totaux déposés sur `DailyCommercialReport` ; calculateur `CashDepositCategoryCalculator` (solde nouveaux comptes distinct du crédit).
+- **Backend —** remise périodique secrétaire → gestionnaire (`CashPeriodRemittance`) : soumission mensuelle, accusé de réception par le gestionnaire ou initiation directe ; migrations Flyway V57/V58.
+- **Backend —** stock mensuel : agrégation `totalCreditDepositedAmount` depuis les versements crédit du mois.
+- **Frontend —** modal de versement avec répartition crédit / tontine / solde Nx comptes ; KPIs et historique par catégorie sur le rapport journalier ; onglet « Remise au gestionnaire ».
+- **Frontend —** stock mensuel : carte « Versements Crédit » remplace le taux de recouvrement %.
+- **Tests —** `CashDepositCategoryCalculatorTest`, `CashPeriodRemittanceServiceTest`, spec modèle `daily-commercial-report.model`.
+
+### Fixed
+
+- **Backend —** opération journalière caisse : la liste et le PDF des crédits non recouvrés s'appuient sur l'absence de ligne `CreditTimeline` pour la journée comptable courante, au lieu du flag `dailyPaid` (source de données incorrecte malgré le cron).
+
+### Changed
+
+- **Backend —** endpoints `/api/v1/credits/by-collector`, `/by-collector/all` et `/by-collector/all-grouped` : retour d'un DTO léger `DailyUnrecoveredCreditDto` (client, mise, reste à payer) plutôt que l'entité `Credit` complète.
+- **Frontend —** opération journalière : pagination connectée à l'API (`page` / `size`) au lieu d'un chargement massif côté client.
+
+- **Backend —** endpoints `/api/v1/articles/detailed-stock-value` et `/stock-kpis` : ajout de `sellingSaleTotal` et `sellingMargin` / `estimatedSellingMargin`.
+
+- **Frontend —** refonte UI du modal de versement caisse, du composant billetage et de l'onglet « Remise au gestionnaire » (palette navy, KPI strip, tableaux et boutons alignés sur le style pro du projet).
+
 - **Customer-space —** infrastructure tests : Playwright (E2E mobile), Karma headless, skill `customer-space-testing`, workflow CI découplé `ci-customer-space.yml`.
 - **Customer-space —** splash screen S-01 (logo ELYKIA, redirect auth/dashboard), barre d'onglets basse, routing `app.routes.ts` branché sur `AppRoutingModule` + `HttpClientModule`.
 - **Customer-space —** dashboard S-03 enrichi (états vide/erreur, activités récentes, carte crédit, actions rapides) ; tests unitaires et E2E smoke/auth/dashboard.
@@ -25,6 +45,8 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 - **Backend-lib —** `common-security-service` 1.2.0, migrations Flyway V55/V56.
 
 ### Fixed
+
+- **Frontend —** page inventaire : correction d'une balise HTML mal fermée dans la bande KPI qui cassait la mise en page (sections actions, recherche et tableau imbriquées dans une carte KPI).
 
 - **Backend —** fiche PDF réception de stock : libellé article combinant désormais nom commercial et nom (`commercialName` + `name`) ; en-tête AMENOUVEVE - YAVEH, date de génération et copyright Elykia en pied de page.
 

@@ -28,6 +28,7 @@ import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
+import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.service.bi.BiAggregationService;
 import com.optimize.elykia.core.service.stock.StockMovementService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
@@ -46,6 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,6 +66,7 @@ public class CreditService extends GenericService<Credit, Long> {
     private final ArticlesService articlesService;
     private final CreditArticlesService creditArticlesService;
     private final DailyAccountancyService dailyAccountancyService;
+    private final AccountingDayService accountingDayService;
     private CreditTimelineRepository creditTimelineRepository;
     private final CommercialMonthlyStockRepository commercialMonthlyStockRepository;
     private final CreditCollectorHistoryRepository creditCollectorHistoryRepository;
@@ -89,6 +93,7 @@ public class CreditService extends GenericService<Credit, Long> {
             CreditArticlesService creditArticlesService,
             UserService userService,
             DailyAccountancyService dailyAccountancyService,
+            AccountingDayService accountingDayService,
             CommercialMonthlyStockRepository commercialMonthlyStockRepository,
             CreditCollectorHistoryRepository creditCollectorHistoryRepository,
             CreditDailyStakeHistoryRepository creditDailyStakeHistoryRepository,
@@ -100,6 +105,7 @@ public class CreditService extends GenericService<Credit, Long> {
         this.creditArticlesService = creditArticlesService;
         this.userService = userService;
         this.dailyAccountancyService = dailyAccountancyService;
+        this.accountingDayService = accountingDayService;
         this.commercialMonthlyStockRepository = commercialMonthlyStockRepository;
         this.creditCollectorHistoryRepository = creditCollectorHistoryRepository;
         this.creditDailyStakeHistoryRepository = creditDailyStakeHistoryRepository;
@@ -895,14 +901,52 @@ public class CreditService extends GenericService<Credit, Long> {
         return CreditRespDto.fromCreditPage(getRepository().elasticsearch(keyword, pageable));
     }
 
-    public Page<CreditRespDto> getCreditByCollector(Pageable pageable) {
+    public Page<DailyUnrecoveredCreditDto> getCreditByCollector(Pageable pageable) {
         User user = userService.getCurrentUser();
         if (user.is(UserProfilConstant.PROMOTER) && !dailyAccountancyService.isOpenCashDesk()) {
             throw new ApplicationException("Aucune caisse ouverte pour l'utilisateur " + user.getUsername());
         }
-        return CreditRespDto.fromCreditPage(
-                getRepository().findByStatusAndCollectorAndDailyPaidIsFalseAndClientTypeOrderByClient_quarterAsc(
-                        CreditStatus.INPROGRESS, user.getUsername(), ClientType.CLIENT, pageable));
+        LocalDateTime[] dayRange = getCurrentAccountingDayRange();
+        return getRepository().findUnrecoveredCreditsForDay(
+                CreditStatus.INPROGRESS,
+                user.getUsername(),
+                ClientType.CLIENT,
+                dayRange[0],
+                dayRange[1],
+                pageable);
+    }
+
+    public List<DailyUnrecoveredCreditDto> getCreditByCollector() {
+        User user = userService.getCurrentUser();
+        if (!dailyAccountancyService.isOpenCashDesk()) {
+            throw new ApplicationException("Aucune caisse ouverte pour l'utilisateur " + user.getUsername());
+        }
+        LocalDateTime[] dayRange = getCurrentAccountingDayRange();
+        return getRepository().findUnrecoveredCreditsForDay(
+                CreditStatus.INPROGRESS,
+                user.getUsername(),
+                ClientType.CLIENT,
+                dayRange[0],
+                dayRange[1]);
+    }
+
+    public Map<String, List<DailyUnrecoveredCreditDto>> getCreditByCollectorV2() {
+        Map<String, List<DailyUnrecoveredCreditDto>> grouped = new LinkedHashMap<>();
+        for (DailyUnrecoveredCreditDto credit : getCreditByCollector()) {
+            if (credit.getClientQuarter() != null) {
+                grouped.computeIfAbsent(credit.getClientQuarter(), k -> new ArrayList<>())
+                        .add(credit);
+            }
+        }
+        return grouped;
+    }
+
+    private LocalDateTime[] getCurrentAccountingDayRange() {
+        LocalDate accountingDate = accountingDayService.getCurrentAccountingDate();
+        return new LocalDateTime[] {
+                accountingDate.atStartOfDay(),
+                accountingDate.atTime(LocalTime.MAX)
+        };
     }
 
     public Page<CreditRespDto> getCreditByCollectors(String collector, Pageable pageable) {
@@ -938,32 +982,6 @@ public class CreditService extends GenericService<Credit, Long> {
     public Page<CreditRespDto> getCreditHistoryByCollectors(String collector, Pageable pageable) {
         return getRepository().findByStatusAndCollectorAndClientTypeOrderByClient_quarterAsc(CreditStatus.SETTLED,
                 collector, ClientType.CLIENT, pageable);
-    }
-
-    public List<Credit> getCreditByCollector() {
-        User user = userService.getCurrentUser();
-        if (!dailyAccountancyService.isOpenCashDesk()) {
-            throw new ApplicationException("Aucune caisse ouverte pour l'utilisateur " + user.getUsername());
-        }
-        // filtre
-        List<Credit> rawCredits = getRepository()
-                .findByStatusAndCollectorAndDailyPaidIsFalseAndClientTypeOrderByClient_quarterAsc(
-                        CreditStatus.INPROGRESS, user.getUsername(), ClientType.CLIENT);
-        return rawCredits.stream()
-                .filter(credit -> credit.getClient() != null)
-                .toList();
-    }
-
-    public Map<String, List<Credit>> getCreditByCollectorV2() {
-        Map<String, List<Credit>> grouped = new HashMap<>();
-        for (Credit credit : getCreditByCollector()) {
-            // On vérifie que le client et sa localité (quarter) ne sont pas nuls
-            if (credit.getClient() != null && credit.getClient().getQuarter() != null) {
-                grouped.computeIfAbsent(credit.getClient().getQuarter(), k -> new ArrayList<>())
-                        .add(credit);
-            }
-        }
-        return grouped;
     }
 
     public Page<CreditRespDto> getAll(Pageable pageable, String searchTerm) {

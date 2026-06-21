@@ -42,16 +42,26 @@
         <div class="kpi-sub">Valeur d'achat du stock</div>
       </div>
       <div class="kpi-card kpi-amount">
-        <div class="kpi-label">Prix total vente</div>
+        <div class="kpi-label">Prix total vente crédit</div>
         <div class="kpi-value kpi-value-sm">{{ stockValues.creditSaleTotal | currency:'XOF':'symbol':'1.0-0' }}</div>
         <div class="kpi-sub">Valeur de vente crédit</div>
       </div>
-      <div class="kpi-card kpi-delai">
-        <div class="kpi-label">Total écart</div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Marge estimée (crédit)</div>
         <div class="kpi-value kpi-value-sm">{{ stockValues.combinedTotal | currency:'XOF':'symbol':'1.0-0' }}</div>
-        <div class="kpi-sub">Écart combiné</div>
+        <div class="kpi-sub">Crédit − coût d'achat</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Prix total vente comptant</div>
+        <div class="kpi-value kpi-value-sm">{{ stockValues.sellingSaleTotal | currency:'XOF':'symbol':'1.0-0' }}</div>
+        <div class="kpi-sub">Valeur au prix de vente</div>
       </div>
       <div class="kpi-card kpi-green">
+        <div class="kpi-label">Marge estimée (comptant)</div>
+        <div class="kpi-value kpi-value-sm">{{ stockValues.sellingMargin | currency:'XOF':'symbol':'1.0-0' }}</div>
+        <div class="kpi-sub">Vente − coût d'achat</div>
+      </div>
+      <div class="kpi-card kpi-delai">
         <div class="kpi-label">Articles référencés</div>
         <div class="kpi-value">{{ totalElements }}</div>
         <div class="kpi-sub">Dans le catalogue</div>

@@ -1,71 +1,310 @@
-.container {
-    padding: 20px;
-    max-width: 900px;  // Increased width to accommodate larger bills
-    margin: auto;
+.billetage {
+  --navy: #003366;
+  --navy-dark: #002244;
+  --navy-pale: #e8eef6;
+  --navy-xpale: #f0f4f9;
+  --border: #dde3ec;
+  --text-muted: #6b7a99;
+  --text-light: #9aacc4;
+  --kpi-cyan: #0095c8;
+  --cyan-pale: #e6f4fa;
+  --radius: 12px;
+  --radius-sm: 8px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.billetage--compact {
+  .billetage-grid {
+    margin-top: 0;
   }
-  
-  h2 {
-    text-align: center;
-    margin-bottom: 20px;
+}
+
+.billetage-intro {
+  margin-bottom: 16px;
+}
+
+.billetage-title {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.billetage-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.billetage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.billetage-column {
+  background: var(--navy-xpale);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.column-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+
+  &--bill {
+    background: var(--navy);
   }
-  
-  .content {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;  
-    margin-left: 20px;
+
+  &--coin {
+    background: var(--kpi-cyan);
   }
-  
-  .billets, .pieces {
-    display: flex;
-    flex-direction: column;  // Align items vertically
-    width: 45%;  // Adjust width as needed
+}
+
+.column-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--navy);
+}
+
+.denom-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 108px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 6px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.65);
   }
-  
-  .billets {
-    margin-right: 200px;  // Space between billets and pieces
+
+  & + .denom-row {
+    margin-top: 4px;
   }
-  
-  .billet, .piece {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
+}
+
+.denom-visual {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.denom-image-wrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+
+  &--bill {
+    width: 88px;
+    height: 44px;
   }
-  
-  img.billet-img {
-    width: 200px;  // Increase size of the bills
-    height: auto;
-    margin-right: 20px;  // Adjust spacing as needed
+
+  &--coin {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
   }
-  
-  img.piece-img {
-    width: 80px;  // Keep size of the coins smaller
-    height: auto;
-    margin-right: 20px;
+}
+
+.denom-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.denom-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--navy);
+  white-space: nowrap;
+}
+
+.denom-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.input-wrap {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  overflow: hidden;
+  transition: border-color 0.18s, box-shadow 0.18s;
+
+  &:focus-within {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
   }
-  
-  input[type="number"] {
-    width: 100px;  // Fixed width for inputs
-    padding: 5px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    padding: 8px 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    text-align: right;
+    outline: none;
+
+    &::placeholder {
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
   }
-  
-  .button-container {
-    display: flex;
-    justify-content: flex-end; /* Place le bouton à droite */
-    margin-top: 20px;
+}
+
+.input-suffix {
+  padding: 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-light);
+  border-left: 1px solid var(--border);
+  background: var(--navy-xpale);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+.line-subtotal {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--kpi-cyan);
+}
+
+.mono {
+  font-family: 'DM Mono', monospace;
+}
+
+.billetage-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.total-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.total-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.total-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.1;
+}
+
+.btn-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 51, 102, 0.15);
+  transition: background 0.18s, transform 0.18s;
+
+  svg {
+    width: 16px;
+    height: 16px;
   }
-  
-  button:hover {
-    background-color: #0056b3;
+
+  &:hover {
+    background: var(--navy-dark);
+    transform: translateY(-1px);
   }
-  
-  p {
-    text-align: end;
-    margin-top: 20px;
-    font-size: 18px;
-    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .billetage-grid {
+    grid-template-columns: 1fr;
   }
-  
+
+  .denom-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .denom-control {
+    align-items: stretch;
+  }
+
+  .billetage-footer {
+    flex-direction: column;
+    align-items: stretch;
+
+    .btn-next {
+      justify-content: center;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .denom-visual {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
