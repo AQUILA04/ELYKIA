@@ -1,67 +1,81 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
-import { NgxPermissionsService } from 'ngx-permissions';
+import { PageEvent } from '@angular/material/paginator';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { Subscription } from 'rxjs';
 import { ClientService } from 'src/app/client/service/client.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { UserService } from 'src/app/user/service/user.service';
+import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
+import { ErrorHandlingMixin } from 'src/app/shared/mixins/error-handling.mixin';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { CreditSearchDto } from '../components/advanced-search/advanced-search.types';
 import { CreditService } from '../service/credit.service';
 import { Collector } from '../types/credit-merge.types';
-import { PageEvent } from '@angular/material/paginator';
-import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
-import { ErrorHandlingMixin } from 'src/app/shared/mixins/error-handling.mixin';
 import { CreditTimelineDto } from '../types/credit.types';
-import { UserProfile } from 'src/app/shared/models/user-profile.enum';
-
-
+import {
+  CreditListPeriodPreset,
+  CreditListState,
+  CreditListSummary
+} from '../types/credit-list-summary.types';
 
 @Component({
   selector: 'app-credit-list',
   templateUrl: './credit-list.component.html',
-  styleUrls: ['./credit-list.component.scss']
+  styleUrls: ['./credit-list.component.scss'],
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class CreditListComponent extends ErrorHandlingMixin implements OnInit, OnDestroy {
+  private readonly STATE_KEY = 'creditListState';
+  private dateIntervalId?: ReturnType<typeof setInterval>;
+  private subscriptions: Subscription[] = [];
+
   credits: any[] = [];
-  // La variable filteredCredits est toujours utilisée pour l'affichage
   filteredCredits: any[] = [];
-  searchTerm: string = '';
-  pageSize: number = 5;
-  currentPage: number = 0;
+  searchTerm = '';
+  pageSize = 5;
+  currentPage = 0;
   isLoading = true;
   totalElement = 0;
-  showMergeModal: boolean = false;
+  showMergeModal = false;
   collectors: Collector[] = [];
 
-  // Variables pour le modal de mise
   showDailyStakeModal = false;
   selectedCreditForStake: any = null;
   isSubmittingStake = false;
 
-  // Selection variables
   selectedCredits: Set<number> = new Set();
-  isAllSelected: boolean = false;
-  showBulkChangeCollectorModal: boolean = false;
-  selectedNewCollector: string = '';
+  isAllSelected = false;
+  showBulkChangeCollectorModal = false;
+  selectedNewCollector = '';
 
-  private subscriptions: Subscription[] = [];
-
-  showAdvancedSearch: boolean = false;
+  showAdvancedSearch = false;
   currentSearchDto: CreditSearchDto | null = null;
+  activeFiltersCount = 0;
 
-  // User-specific properties
   currentUser: any = null;
-  isPromoter: boolean = false;
-  isRecoveryManager: boolean = false;
+  isPromoter = false;
+  isRecoveryManager = false;
+
+  currentDate = new Date();
+  lastUpdate = new Date();
+
+  periodPreset: CreditListPeriodPreset = CreditListPeriodPreset.MONTH;
+  customStartDate = '';
+  customEndDate = '';
+  periodLabel = '';
+  readonly periodPresets = CreditListPeriodPreset;
+
+  summary: CreditListSummary | null = null;
+  summaryLoading = true;
 
   constructor(
     private creditService: CreditService,
     private router: Router,
-    private permissionsService: NgxPermissionsService,
     private spinner: NgxSpinnerService,
-    private tokenStorage : TokenStorageService,
+    private tokenStorage: TokenStorageService,
     private alertService: AlertService,
     private userService: UserService,
     private clientService: ClientService,
@@ -75,12 +89,20 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
   }
 
   ngOnInit(): void {
-    this.loadInitialSearch();
+    this.restoreState();
+    this.updatePeriodLabel();
+    this.loadSummary();
     this.loadCredits();
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
   }
 
   ngOnDestroy(): void {
-    // Clean up all subscriptions
+    this.saveState();
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
     this.subscriptions.forEach(sub => {
       if (sub && !sub.closed) {
         sub.unsubscribe();
@@ -89,85 +111,178 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
     this.subscriptions = [];
   }
 
-  private getSearchStorageKey(): string | null {
-    if (this.currentUser && this.currentUser.id) {
-      return `credit_search_filters_${this.currentUser.id}`;
-    }
-    return null;
+  private saveState(): void {
+    const state: CreditListState = {
+      searchTerm: this.searchTerm,
+      currentPage: this.currentPage,
+      pageSize: this.pageSize,
+      currentSearchDto: this.currentSearchDto,
+      showAdvancedSearch: this.showAdvancedSearch,
+      periodPreset: this.periodPreset,
+      customStartDate: this.customStartDate || null,
+      customEndDate: this.customEndDate || null
+    };
+    sessionStorage.setItem(this.STATE_KEY, JSON.stringify(state));
   }
 
-  private getPaginationStorageKey(): string | null {
-    if (this.currentUser && this.currentUser.id) {
-      return `credit_pagination_${this.currentUser.id || this.currentUser.username}`;
+  private restoreState(): void {
+    const raw = sessionStorage.getItem(this.STATE_KEY);
+    if (!raw) {
+      this.initDefaultPeriod();
+      return;
     }
-    return null;
+    try {
+      const state = JSON.parse(raw) as CreditListState;
+      this.searchTerm = state.searchTerm ?? '';
+      this.currentPage = state.currentPage ?? 0;
+      this.pageSize = state.pageSize ?? 5;
+      this.currentSearchDto = state.currentSearchDto ?? null;
+      this.showAdvancedSearch = state.showAdvancedSearch ?? false;
+      this.periodPreset = state.periodPreset ?? CreditListPeriodPreset.MONTH;
+      this.customStartDate = state.customStartDate ?? '';
+      this.customEndDate = state.customEndDate ?? '';
+      if (this.periodPreset === CreditListPeriodPreset.CUSTOM && (!this.customStartDate || !this.customEndDate)) {
+        this.initDefaultPeriod();
+      }
+      this.activeFiltersCount = this.countActiveFilters(this.currentSearchDto);
+    } catch {
+      this.initDefaultPeriod();
+    }
   }
 
-  private getSearchTermStorageKey(): string | null {
-    if (this.currentUser && this.currentUser.id) {
-      return `credit_search_term_${this.currentUser.id || this.currentUser.username}`;
-    }
-    return null;
+  private initDefaultPeriod(): void {
+    this.periodPreset = CreditListPeriodPreset.MONTH;
+    const range = this.getPeriodRange();
+    this.customStartDate = range.startDate;
+    this.customEndDate = range.endDate;
   }
 
-  private loadInitialSearch(): void {
-    const storageKey = this.getSearchStorageKey();
-    if (storageKey) {
-      const savedSearch = localStorage.getItem(storageKey);
-      if (savedSearch) {
-        this.currentSearchDto = JSON.parse(savedSearch);
+  getPeriodRange(): { startDate: string; endDate: string } {
+    const today = new Date();
+    const endDate = this.formatDate(today);
+    let start: Date;
+
+    switch (this.periodPreset) {
+      case CreditListPeriodPreset.TODAY:
+        start = today;
+        break;
+      case CreditListPeriodPreset.WEEK: {
+        start = new Date(today);
+        const day = start.getDay();
+        const diff = day === 0 ? 6 : day - 1;
+        start.setDate(start.getDate() - diff);
+        break;
       }
+      case CreditListPeriodPreset.CUSTOM:
+        if (this.customStartDate && this.customEndDate) {
+          return { startDate: this.customStartDate, endDate: this.customEndDate };
+        }
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+        break;
+      case CreditListPeriodPreset.MONTH:
+      default:
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+        break;
     }
 
-    const paginationKey = this.getPaginationStorageKey();
-    if (paginationKey) {
-      const savedPagination = localStorage.getItem(paginationKey);
-      if (savedPagination) {
-        const pagination = JSON.parse(savedPagination);
-        this.pageSize = pagination.pageSize || 5;
-        this.currentPage = pagination.currentPage || 0;
-      }
-    }
+    return { startDate: this.formatDate(start), endDate };
+  }
 
-    const searchTermKey = this.getSearchTermStorageKey();
-    if (searchTermKey) {
-      const savedSearchTerm = localStorage.getItem(searchTermKey);
-      if (savedSearchTerm) {
-        this.searchTerm = savedSearchTerm;
-      }
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private updatePeriodLabel(): void {
+    const range = this.getPeriodRange();
+    const start = this.formatDisplayDate(range.startDate);
+    const end = this.formatDisplayDate(range.endDate);
+    if (range.startDate === range.endDate) {
+      this.periodLabel = start;
+      return;
     }
+    this.periodLabel = `${start} → ${end}`;
+  }
+
+  private formatDisplayDate(iso: string): string {
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  onPeriodPresetChange(preset: CreditListPeriodPreset): void {
+    this.periodPreset = preset;
+    if (preset !== CreditListPeriodPreset.CUSTOM) {
+      const range = this.getPeriodRange();
+      this.customStartDate = range.startDate;
+      this.customEndDate = range.endDate;
+    }
+    this.updatePeriodLabel();
+    this.saveState();
+    this.loadSummary();
+  }
+
+  onCustomPeriodChange(): void {
+    if (this.customStartDate && this.customEndDate) {
+      this.periodPreset = CreditListPeriodPreset.CUSTOM;
+      this.updatePeriodLabel();
+      this.saveState();
+      this.loadSummary();
+    }
+  }
+
+  loadSummary(): void {
+    this.summaryLoading = true;
+    const range = this.getPeriodRange();
+    const sub = this.creditService.getListSummary({
+      startDate: range.startDate,
+      endDate: range.endDate,
+      search: this.currentSearchDto
+    }).subscribe({
+      next: (response: any) => {
+        if (response.statusCode === 200) {
+          this.summary = response.data;
+        } else {
+          this.summary = null;
+        }
+        this.summaryLoading = false;
+      },
+      error: (error) => {
+        console.error('Erreur chargement KPI ventes', error);
+        this.summary = null;
+        this.summaryLoading = false;
+      }
+    });
+    this.subscriptions.push(sub);
   }
 
   loadCredits(): void {
-    this.spinner.show();
     this.isLoading = true;
 
-    // Si une recherche avancée est active, l'utiliser
     if (this.currentSearchDto) {
       this.performAdvancedSearch(this.currentSearchDto);
       return;
     }
 
-    // Sinon, recherche simple
     const sanitizedSearchTerm = this.sanitizeSearchTerm(this.searchTerm);
-
     const subscription = this.creditService.getCredit(this.currentPage, this.pageSize, sanitizedSearchTerm).subscribe({
       next: (response: any) => {
         if (response.statusCode === 200) {
           this.credits = response.data.content || [];
           this.filteredCredits = [...this.credits];
           this.totalElement = response.data.page.totalElements || 0;
-          // Reset selection on page load
           this.selectedCredits.clear();
           this.isAllSelected = false;
+          this.lastUpdate = new Date();
         } else {
           this.alertService.showError(response.message || 'Réponse inattendue du serveur.');
           this.credits = [];
           this.filteredCredits = [];
           this.totalElement = 0;
         }
-        this.spinner.hide();
         this.isLoading = false;
+        this.saveState();
       },
       error: (error) => {
         console.error('Erreur lors du chargement des crédits:', error);
@@ -176,7 +291,6 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
         this.credits = [];
         this.filteredCredits = [];
         this.totalElement = 0;
-        this.spinner.hide();
         this.isLoading = false;
       }
     });
@@ -184,11 +298,8 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
     this.subscriptions.push(subscription);
   }
 
-  // NOUVELLE MÉTHODE : Recherche avancée
   performAdvancedSearch(searchDto: CreditSearchDto): void {
-    this.spinner.show();
     this.isLoading = true;
-    this.showAdvancedSearch = !this.showAdvancedSearch ? true : this.showAdvancedSearch;
 
     const subscription = this.creditService.searchCredits(searchDto, this.currentPage, this.pageSize).subscribe({
       next: (response: any) => {
@@ -196,17 +307,17 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
           this.credits = response.data.content || [];
           this.filteredCredits = [...this.credits];
           this.totalElement = response.data.page.totalElements || 0;
-          // Reset selection on page load
           this.selectedCredits.clear();
           this.isAllSelected = false;
+          this.lastUpdate = new Date();
         } else {
           this.alertService.showError(response.message || 'Réponse inattendue du serveur.');
           this.credits = [];
           this.filteredCredits = [];
           this.totalElement = 0;
         }
-        this.spinner.hide();
         this.isLoading = false;
+        this.saveState();
       },
       error: (error) => {
         console.error('Erreur lors de la recherche:', error);
@@ -214,7 +325,6 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
         this.credits = [];
         this.filteredCredits = [];
         this.totalElement = 0;
-        this.spinner.hide();
         this.isLoading = false;
       }
     });
@@ -222,115 +332,82 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
     this.subscriptions.push(subscription);
   }
 
-  // NOUVELLE MÉTHODE : Toggle recherche avancée
   toggleAdvancedSearch(): void {
     this.loadCollectors();
     this.showAdvancedSearch = !this.showAdvancedSearch;
-    if (!this.showAdvancedSearch) {
-      // Si on ferme, réinitialiser la recherche
-      this.onSearchReset();
-    }
+    this.saveState();
   }
 
-  // NOUVELLE MÉTHODE : Handler de recherche avancée
   onAdvancedSearch(searchDto: CreditSearchDto): void {
     this.currentSearchDto = searchDto;
     this.currentPage = 0;
-
-    const storageKey = this.getSearchStorageKey();
-    if (storageKey) {
-      localStorage.setItem(storageKey, JSON.stringify(searchDto));
-    }
-
+    this.saveState();
+    this.loadSummary();
     this.performAdvancedSearch(searchDto);
   }
 
-  // NOUVELLE MÉTHODE : Reset de la recherche
   onSearchReset(): void {
     this.currentSearchDto = null;
     this.currentPage = 0;
     this.searchTerm = '';
-
-    const storageKey = this.getSearchStorageKey();
-    if (storageKey) {
-      localStorage.removeItem(storageKey);
-    }
-
-    const searchTermKey = this.getSearchTermStorageKey();
-    if (searchTermKey) {
-      localStorage.removeItem(searchTermKey);
-    }
-
+    this.activeFiltersCount = 0;
+    this.saveState();
+    this.loadSummary();
     this.loadCredits();
   }
 
-  // NOUVELLE MÉTHODE : Fermeture de la recherche avancée
-  onCloseAdvancedSearch(): void {
-    this.showAdvancedSearch = false;
+  onActiveFiltersCountChange(count: number): void {
+    this.activeFiltersCount = count;
   }
 
-
-  // MODIFIÉ : La pagination recharge les données depuis le serveur
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
-
-    const paginationKey = this.getPaginationStorageKey();
-    if (paginationKey) {
-      localStorage.setItem(paginationKey, JSON.stringify({ pageSize: this.pageSize, currentPage: this.currentPage }));
-    }
-
-    this.loadCredits();
-  }
-
-  // MODIFIÉ : La recherche recharge les données depuis le serveur
-  filterCredits(): void {
-    this.currentPage = 0; // On retourne à la première page
-
-    const searchTermKey = this.getSearchTermStorageKey();
-    if (searchTermKey) {
-      localStorage.setItem(searchTermKey, this.searchTerm);
-    }
-
+    this.saveState();
     this.loadCredits();
   }
 
   refresh(): void {
-    this.searchTerm = ''; // On vide aussi la recherche
-    this.currentPage = 0;
-    this.onSearchReset();
+    this.loadSummary();
+    this.loadCredits();
   }
 
-  // --- Le reste de vos méthodes (add, delete, etc.) reste identique car elles appellent déjà loadCredits() ---
+  reloadAfterMutation(): void {
+    this.loadSummary();
+    this.loadCredits();
+  }
 
   addCredit(): void {
+    this.saveState();
     this.router.navigate(['/credit-add']);
   }
 
   viewDetails(id: number): void {
+    this.saveState();
     this.router.navigate(['/credit-details', id]);
   }
 
   editCredit(id: number): void {
+    this.saveState();
     this.router.navigate(['/credit-add', id]);
   }
 
   validateCredit(id: number): void {
     this.alertService.showConfirmation('Confirmation de validation', 'Voulez-vous vraiment valider cette vente?', 'Valider', 'Annuler')
-    .then(result => {
-      if (result) {
-        this.creditService.validateCredit(id).subscribe(
-          () => {
-            this.alertService.showSuccess('La vente a été validée avec succès.', 'success');
-            this.loadCredits();
-          },
-          error => {
-            const errorMessage = error?.error?.message || 'Erreur lors de la validation du crédit';
-            this.alertService.showError(errorMessage, 'error');
-          }
-        );
-      }
-    });
+      .then(result => {
+        if (result) {
+          this.creditService.validateCredit(id).subscribe({
+            next: () => {
+              this.alertService.showSuccess('La vente a été validée avec succès.', 'success');
+              this.reloadAfterMutation();
+            },
+            error: (error) => {
+              const errorMessage = error?.error?.message || 'Erreur lors de la validation du crédit';
+              this.alertService.showError(errorMessage, 'error');
+            }
+          });
+        }
+      });
   }
 
   startCredit(id: number): void {
@@ -340,141 +417,64 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
           this.alertService.showError(response.message, 'Erreur');
         } else {
           this.alertService.showSuccess('La sortie effectuée avec succès', 'Opération réussie');
-          this.loadCredits();
+          this.reloadAfterMutation();
         }
       },
       error: (error: any) => {
-        // Utiliser le message spécifique du backend
         this.handleError(error);
       }
     });
   }
 
-  distributeCredit(id: number): void {
-    this.router.navigate(['/distribute', id]);
-  }
-
   deleteCredit(id: number): void {
     this.alertService.showConfirmation('Confirmation de suppression', 'Voulez-vous vraiment supprimer cette vente?', 'Supprimer', 'Annuler')
-    .then(result => {
-      if (result) {
-        this.creditService.deleteCredit(id).subscribe({
-          next: () => {
-            this.alertService.showSuccess('La vente a été supprimée avec succès.', 'Opération réussie');
-            this.loadCredits();
-          },
-          error: (error) => {
-            this.alertService.showError('Erreur lors de la suppression du crédit', 'Opération échouée!');
-            console.error(error);
-          }
-        });
-      }
-    });
+      .then(result => {
+        if (result) {
+          this.creditService.deleteCredit(id).subscribe({
+            next: () => {
+              this.alertService.showSuccess('La vente a été supprimée avec succès.', 'Opération réussie');
+              this.reloadAfterMutation();
+            },
+            error: (error) => {
+              this.alertService.showError('Erreur lors de la suppression du crédit', 'Opération échouée!');
+              console.error(error);
+            }
+          });
+        }
+      });
   }
 
   getBadgeClass(remainingDaysCount: number): string {
     if (remainingDaysCount === 0) {
-      return 'badge-danger';
-    } else if (remainingDaysCount <= 5) {
-      return 'badge-warning';
-    } else {
-      return 'badge-success';
+      return 'days-badge days-danger';
     }
-  }
-
-  addTontineDelivery(): void {
-    this.router.navigate(['/create-tontine']);
-  }
-
-  openMergeModal(): void {
-    console.log('Opening merge modal...');
-    this.loadCollectors();
-    this.showMergeModal = true;
-    console.log('Modal should be visible now, showMergeModal:', this.showMergeModal);
+    if (remainingDaysCount <= 5) {
+      return 'days-badge days-warning';
+    }
+    return 'days-badge days-success';
   }
 
   loadCollectors(): void {
-    console.log('Loading collectors...');
-    this.spinner.show();
+    if (this.collectors.length > 0) {
+      return;
+    }
     const subscription = this.clientService.getAgents().subscribe({
       next: (data: any) => {
         this.collectors = data;
-        console.log("listes des commerciaux", this.collectors);
-        console.log("collectors length:", this.collectors?.length);
-        this.spinner.hide();
       },
       error: (error) => {
         console.error('Erreur lors du chargement des commerciaux', error);
         this.alertService.showError('Erreur lors du chargement des commerciaux');
         this.collectors = [];
-        this.spinner.hide();
       }
     });
-
     this.subscriptions.push(subscription);
   }
 
-  closeMergeModal(): void {
-    this.showMergeModal = false;
-  }
-
-  onMergeSuccess(newCreditReference: string): void {
-    // Validate the new credit reference
-    const sanitizedReference = this.sanitizeInput(newCreditReference);
-    if (!sanitizedReference) {
-      this.alertService.showError('Référence de crédit invalide reçue');
-      return;
-    }
-
-    this.alertService.showSuccess(
-      `Fusion réussie ! Nouvelle référence : ${sanitizedReference}`,
-      'Fusion des crédits'
-    );
-    this.loadCredits(); // Refresh the credit list
-    this.closeMergeModal();
-  }
-
-  // Input validation and sanitization methods
-  private sanitizeInput(input: string): string {
-    if (!input) return '';
-
-    return input
-      .trim()
-      .replace(/[<>\"'&]/g, '') // Remove HTML/script injection characters
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .substring(0, 100); // Limit length
-  }
-
-  private sanitizeSearchTerm(searchTerm: string): string {
-    if (!searchTerm) return '';
-
-    return searchTerm
-      .trim()
-      .replace(/[<>\"'&]/g, '') // Remove potentially dangerous characters
-      .substring(0, 50); // Limit search term length
-  }
-
-  private isValidCollector(user: any): boolean {
-    return user &&
-           user.username &&
-           user.firstname &&
-           user.lastname &&
-           typeof user.username === 'string' &&
-           typeof user.firstname === 'string' &&
-           typeof user.lastname === 'string' &&
-           user.username.length > 0 &&
-           user.firstname.length > 0 &&
-           user.lastname.length > 0;
-  }
-
-  // NOUVELLE MÉTHODE AJOUTÉE
-  // Cette méthode est appelée par le nouveau bouton et redirige l'utilisateur
-  // vers la page de modification, en passant l'ID du crédit dans l'URL.
   changeDailyStake(id: number): void {
+    this.saveState();
     this.router.navigate(['/change-daily-stake', id]);
   }
-
-  // --- Gestion du modal de mise ---
 
   openDailyStakeModal(credit: any): void {
     this.selectedCreditForStake = credit;
@@ -500,7 +500,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
           this.alertService.showSuccess('Mise effectuée avec succès');
           this.isSubmittingStake = false;
           this.closeDailyStakeModal();
-          this.loadCredits(); // Rafraîchir la liste
+          this.reloadAfterMutation();
         } else {
           this.alertService.showError(response.message || 'Erreur lors de la mise');
           this.isSubmittingStake = false;
@@ -514,8 +514,6 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
       }
     });
   }
-
-  // --- Bulk Change Collector ---
 
   toggleSelection(id: number): void {
     if (this.selectedCredits.has(id)) {
@@ -575,7 +573,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
         this.closeBulkChangeCollectorModal();
         this.selectedCredits.clear();
         this.isAllSelected = false;
-        this.loadCredits();
+        this.reloadAfterMutation();
       },
       error: (error) => {
         this.spinner.hide();
@@ -585,5 +583,51 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
     });
     this.subscriptions.push(sub);
   }
-}
 
+  closeMergeModal(): void {
+    this.showMergeModal = false;
+  }
+
+  onMergeSuccess(newCreditReference: string): void {
+    const sanitizedReference = this.sanitizeInput(newCreditReference);
+    if (!sanitizedReference) {
+      this.alertService.showError('Référence de crédit invalide reçue');
+      return;
+    }
+
+    this.alertService.showSuccess(
+      `Fusion réussie ! Nouvelle référence : ${sanitizedReference}`,
+      'Fusion des crédits'
+    );
+    this.reloadAfterMutation();
+    this.closeMergeModal();
+  }
+
+  private sanitizeInput(input: string): string {
+    if (!input) return '';
+    return input
+      .trim()
+      .replace(/[<>\"'&]/g, '')
+      .replace(/\s+/g, ' ')
+      .substring(0, 100);
+  }
+
+  private sanitizeSearchTerm(searchTerm: string): string {
+    if (!searchTerm) return '';
+    return searchTerm
+      .trim()
+      .replace(/[<>\"'&]/g, '')
+      .substring(0, 50);
+  }
+
+  private countActiveFilters(dto: CreditSearchDto | null): number {
+    if (!dto) return 0;
+    let count = 0;
+    if (dto.keyword?.trim()) count++;
+    if (dto.clientType) count++;
+    if (dto.type) count++;
+    if (dto.status) count++;
+    if (dto.commercial) count++;
+    return count;
+  }
+}

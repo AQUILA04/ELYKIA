@@ -1,0 +1,53 @@
+<div class="credit-list-kpi" *ngIf="loading" data-testid="e2e-credit-list-kpi-loading">
+  <div class="kpi-section">
+    <div class="kpi-section-title">Chargement des indicateurs…</div>
+  </div>
+</div>
+
+<ng-container *ngIf="!loading && summary">
+  <div class="kpi-section a3" data-testid="e2e-credit-list-kpi-closed">
+    <div class="kpi-section-title">Ventes clôturées · {{ periodLabel }}</div>
+    <div class="kpi-strip kpi-strip-4">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Synthèse</div>
+        <div class="kpi-value">{{ formatFcfa(summary.closedTotal.totalAmount) }} FCFA</div>
+        <div class="kpi-sub">{{ salesSubtitle(summary.closedTotal.count, summary.closedTotal.totalMargin) }}</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Crédit</div>
+        <div class="kpi-value">{{ formatFcfa(summary.closedCredit.totalAmount) }} FCFA</div>
+        <div class="kpi-sub">{{ salesSubtitle(summary.closedCredit.count, summary.closedCredit.totalMargin) }}</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Cash</div>
+        <div class="kpi-value">{{ formatFcfa(summary.closedCash.totalAmount) }} FCFA</div>
+        <div class="kpi-sub">{{ salesSubtitle(summary.closedCash.count, summary.closedCash.totalMargin) }}</div>
+      </div>
+      <div class="kpi-card kpi-delai">
+        <div class="kpi-label">Tontine</div>
+        <div class="kpi-value">{{ formatFcfa(summary.closedTontine.totalAmount) }} FCFA</div>
+        <div class="kpi-sub">{{ salesSubtitle(summary.closedTontine.count, summary.closedTontine.totalMargin) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpi-section a3b">
+    <div class="kpi-section-title">Encours & recouvrement</div>
+    <div class="kpi-strip kpi-strip-2">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Crédit en cours</div>
+        <div class="kpi-value">{{ formatFcfa(summary.inProgressCredit.totalAmount) }} FCFA</div>
+        <div class="kpi-sub">
+          {{ inProgressSubtitle(summary.inProgressCredit.count, summary.inProgressCredit.totalMargin, summary.inProgressCredit.totalAmountRemaining) }}
+        </div>
+      </div>
+      <div class="kpi-card kpi-amount" data-testid="e2e-credit-list-kpi-collected">
+        <div class="kpi-label">Recouvré · {{ periodLabel }}</div>
+        <div class="kpi-value">{{ formatFcfa(summary.collectedAmount) }} FCFA</div>
+        <div class="kpi-sub">
+          {{ summary.collectedCount }} mise(s) · CA clôturé {{ formatFcfa(summary.closedTotal.totalAmount) }} FCFA
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

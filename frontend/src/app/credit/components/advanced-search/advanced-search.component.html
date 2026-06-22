@@ -1,135 +1,110 @@
-<div class="advanced-search-container" *ngIf="isVisible" [@slideDown]>
-  <div class="search-header">
-    <div class="header-content">
-      <mat-icon class="search-icon">search</mat-icon>
-      <h3>Recherche avancée</h3>
-      <span class="filter-badge" *ngIf="hasActiveFilters()">
-        {{ activeFiltersCount }} filtre(s) actif(s)
-      </span>
-    </div>
-    <button class="close-button" (click)="onClose()" type="button">
-      <mat-icon>close</mat-icon>
-    </button>
-  </div>
-
+<div
+  class="advanced-search-panel"
+  *ngIf="isVisible"
+  [@slideDown]
+  data-testid="e2e-credit-advanced-search">
   <form [formGroup]="searchForm" class="search-form">
     <div class="form-grid">
-      <!-- Mot-clé -->
-      <div class="form-field full-width">
-        <label for="keyword">
-          <mat-icon class="field-icon">text_fields</mat-icon>
-          Mot-clé
-        </label>
+      <div class="filter-group filter-group-full">
+        <span class="toolbar-label">Mot-clé</span>
         <input
           id="keyword"
           type="text"
           formControlName="keyword"
-          class="form-control"
-          placeholder="Rechercher par nom, référence, etc."
+          class="search-input"
+          placeholder="Nom, référence, commercial…"
           autocomplete="off">
       </div>
 
-      <!-- Type de client -->
-      <div class="form-field">
-        <label for="clientType">
-          <mat-icon class="field-icon">person</mat-icon>
-          Type de client
-        </label>
-        <ng-select
-          id="clientType"
-          formControlName="clientType"
-          [items]="clientTypeOptions"
-          bindLabel="label"
-          bindValue="value"
-          [clearable]="true"
-          placeholder="Sélectionner un type"
-          notFoundText="Aucun type trouvé">
-        </ng-select>
+      <div class="filter-group" [style.min-width.px]="clientTypeMinWidth">
+        <span class="toolbar-label">Type client</span>
+        <div class="select-wrap">
+          <ng-select
+            id="clientType"
+            formControlName="clientType"
+            [items]="clientTypeOptions"
+            bindLabel="label"
+            bindValue="value"
+            [clearable]="true"
+            placeholder="Tous les types"
+            notFoundText="Aucun type trouvé">
+          </ng-select>
+        </div>
       </div>
 
-      <!-- Type de vente -->
-      <div class="form-field">
-        <label for="type">
-          <mat-icon class="field-icon">shopping_cart</mat-icon>
-          Type de vente
-        </label>
-        <ng-select
-          id="type"
-          formControlName="type"
-          [items]="operationTypeOptions"
-          bindLabel="label"
-          bindValue="value"
-          [clearable]="true"
-          placeholder="Sélectionner un type"
-          notFoundText="Aucun type trouvé">
-        </ng-select>
+      <div class="filter-group" [style.min-width.px]="operationTypeMinWidth">
+        <span class="toolbar-label">Type vente</span>
+        <div class="select-wrap">
+          <ng-select
+            id="type"
+            formControlName="type"
+            [items]="operationTypeOptions"
+            bindLabel="label"
+            bindValue="value"
+            [clearable]="true"
+            placeholder="Tous les types"
+            notFoundText="Aucun type trouvé">
+          </ng-select>
+        </div>
       </div>
 
-      <!-- Statut -->
-      <div class="form-field">
-        <label for="status">
-          <mat-icon class="field-icon">flag</mat-icon>
-          Statut
-        </label>
-        <ng-select
-          id="status"
-          formControlName="status"
-          [items]="statusOptions"
-          bindLabel="label"
-          bindValue="value"
-          [clearable]="true"
-          placeholder="Sélectionner un statut"
-          notFoundText="Aucun statut trouvé">
-        </ng-select>
+      <div class="filter-group" [style.min-width.px]="statusMinWidth">
+        <span class="toolbar-label">Statut</span>
+        <div class="select-wrap">
+          <ng-select
+            id="status"
+            formControlName="status"
+            [items]="statusOptions"
+            bindLabel="label"
+            bindValue="value"
+            [clearable]="true"
+            placeholder="Tous les statuts"
+            notFoundText="Aucun statut trouvé">
+          </ng-select>
+        </div>
       </div>
 
-      <!-- Commercial -->
-      <div class="form-field">
-        <label for="commercial">
-          <mat-icon class="field-icon">badge</mat-icon>
-          Commercial
-        </label>
-        <ng-select
-          id="commercial"
-          formControlName="commercial"
-          [items]="commercials"
-          bindLabel="username"
-          bindValue="username"
-          [searchFn]="searchCommercial"
-          [clearable]="true"
-          placeholder="Sélectionner un commercial"
-          notFoundText="Aucun commercial trouvé">
-          <ng-template ng-label-tmp let-item="item">
-            {{ item.firstname }} {{ item.lastname }}
-          </ng-template>
-          <ng-template ng-option-tmp let-item="item">
-            <div class="commercial-option">
-              <div class="commercial-name">{{ item.firstname }} {{ item.lastname }}</div>
-              <small class="commercial-username">{{ '@' }}{{ item.username }}</small>
-            </div>
-          </ng-template>
-        </ng-select>
+      <div class="filter-group" [style.min-width.px]="commercialMinWidth()">
+        <span class="toolbar-label">Commercial</span>
+        <div class="select-wrap">
+          <ng-select
+            id="commercial"
+            formControlName="commercial"
+            [items]="commercials"
+            bindLabel="username"
+            bindValue="username"
+            [searchFn]="searchCommercial"
+            [clearable]="true"
+            placeholder="Tous"
+            notFoundText="Aucun commercial trouvé">
+            <ng-template ng-label-tmp let-item="item">
+              {{ item.firstname }} {{ item.lastname }}
+            </ng-template>
+            <ng-template ng-option-tmp let-item="item">
+              <div class="commercial-option">
+                <div class="commercial-name">{{ item.firstname }} {{ item.lastname }}</div>
+                <small class="commercial-username">{{ '@' }}{{ item.username }}</small>
+              </div>
+            </ng-template>
+          </ng-select>
+        </div>
       </div>
     </div>
 
-    <!-- Actions -->
     <div class="search-actions">
       <button
         type="button"
-        class="btn btn-reset"
+        class="btn-clear"
         (click)="onReset()"
         [disabled]="!hasActiveFilters()">
-        <mat-icon>clear_all</mat-icon>
-        <span>Réinitialiser</span>
+        Réinitialiser
       </button>
-
       <button
         type="button"
-        class="btn btn-search"
+        class="btn-primary"
         (click)="onSearch()"
         [disabled]="!hasActiveFilters()">
-        <mat-icon>search</mat-icon>
-        <span>Rechercher</span>
+        Rechercher
       </button>
     </div>
   </form>

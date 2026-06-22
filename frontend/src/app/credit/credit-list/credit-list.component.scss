@@ -1,571 +1,649 @@
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #003366;
+.credit-list-page {
+  --navy: #003366;
+  --navy-dark: #002244;
+  --navy-pale: #e8eef6;
+  --navy-xpale: #f0f4f9;
+  --bg-page: #f2f4f8;
+  --bg-white: #ffffff;
+  --border: #dde3ec;
+  --text-muted: #6b7a99;
+  --text-light: #9aacc4;
+  --green: #1d8a3c;
+  --green-pale: #e6f5eb;
+  --orange: #c75000;
+  --orange-pale: #fff3e6;
+  --red: #b91c1c;
+  --kpi-cyan: #0095c8;
+  --shadow-sm: 0 1px 3px rgba(0, 51, 102, 0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
 }
 
-.container {
-  background-color: white;
-  border-radius: 5px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+@keyframes creditListFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.button-group {
+.credit-list-page.main-container {
+  padding: 28px 24px 60px;
+  max-width: 1200px;
+  margin: 80px auto 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-page);
+  min-height: 100vh;
+}
+
+.credit-list-page.a1 { animation: creditListFadeUp .3s ease both; }
+.credit-list-page .a2 { animation: creditListFadeUp .3s .05s ease both; }
+.credit-list-page .a3,
+.credit-list-page .a3b { animation: creditListFadeUp .3s .10s ease both; }
+.credit-list-page .a4 { animation: creditListFadeUp .3s .15s ease both; }
+.credit-list-page .a5 { animation: creditListFadeUp .3s .20s ease both; }
+
+.credit-list-page .breadcrumb-bar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.credit-list-page .breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.credit-list-page .breadcrumb-link:hover { color: var(--navy); }
+.credit-list-page .breadcrumb-link svg { width: 16px; height: 16px; }
+
+.credit-list-page .date-display {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.credit-list-page .page-header-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 26px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 18px;
+}
+
+.credit-list-page .header-card-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.credit-list-page .header-surtitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  font-family: 'DM Mono', monospace;
+}
+
+.credit-list-page .last-update {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.credit-list-page .header-card-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.credit-list-page .title-group {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-.refresh-button, .add {
-  color: white;
-  background-color: #003366;
-  border: none;
-  border-radius: 4px;
+.credit-list-page .page-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--navy);
+  flex-shrink: 0;
+}
+
+.credit-list-page .page-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1;
+}
+
+.credit-list-page .page-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.credit-list-page .btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 8px 16px;
-  font-size: 15px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+}
+.credit-list-page .btn-refresh:hover { background: var(--navy-dark); }
+.credit-list-page .btn-refresh svg { width: 14px; height: 14px; }
+
+/* KPI */
+.credit-list-page .kpi-section { margin-bottom: 14px; }
+.credit-list-page .kpi-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.credit-list-page .kpi-strip {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+.credit-list-page .kpi-strip-4 { grid-template-columns: repeat(4, 1fr); }
+.credit-list-page .kpi-strip-2 { grid-template-columns: repeat(2, 1fr); }
+
+.credit-list-page .kpi-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.credit-list-page .kpi-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+}
+.credit-list-page .kpi-total::before { background: var(--navy); }
+.credit-list-page .kpi-amount::before { background: var(--kpi-cyan); }
+.credit-list-page .kpi-green::before { background: var(--green); }
+.credit-list-page .kpi-delai::before { background: var(--orange); }
+
+.credit-list-page .kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.credit-list-page .kpi-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.credit-list-page .kpi-total .kpi-value { color: var(--navy); }
+.credit-list-page .kpi-amount .kpi-value { color: var(--kpi-cyan); }
+.credit-list-page .kpi-green .kpi-value { color: var(--green); }
+.credit-list-page .kpi-delai .kpi-value { color: var(--orange); }
+
+.credit-list-page .kpi-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Toolbar shell */
+.credit-list-page .toolbar-shell {
+  margin-bottom: 16px;
+}
+
+.credit-list-page .toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.credit-list-page .toolbar-top {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: none;
+  position: relative;
+  z-index: 20;
+}
+
+.credit-list-page .toolbar-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+.credit-list-page .filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.credit-list-page .period-buttons {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.credit-list-page .period-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-white);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.credit-list-page .period-btn.active,
+.credit-list-page .period-btn:hover {
+  background: var(--navy-xpale);
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.credit-list-page .date-input {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--navy);
+}
+
+.credit-list-page .btn-filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-white);
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.credit-list-page .btn-filter-toggle.active {
+  background: var(--navy-xpale);
+  border-color: var(--navy);
+}
+
+.credit-list-page .filter-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--navy);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.credit-list-page .result-count {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.credit-list-page .result-count strong { color: var(--navy); }
+
+.credit-list-page .toolbar-actions {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.credit-list-page .btn-primary,
+.credit-list-page .btn-secondary,
+.credit-list-page .btn-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+.credit-list-page .btn-primary {
+  background: var(--navy);
+  color: white;
+}
+.credit-list-page .btn-primary:hover { background: var(--navy-dark); }
+.credit-list-page .btn-primary svg { width: 14px; height: 14px; }
+.credit-list-page .btn-secondary {
+  background: var(--navy-xpale);
+  color: var(--navy);
+  border: 1px solid var(--border);
+}
+.credit-list-page .btn-clear {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+/* Advanced search panel */
+.credit-list-page .advanced-search-host .advanced-search-panel {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  padding: 16px 20px 18px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  z-index: 10;
+}
+
+.credit-list-page .advanced-search-panel .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 20px;
+  margin-bottom: 14px;
+  align-items: start;
+}
+
+.credit-list-page .advanced-search-panel .filter-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.credit-list-page .advanced-search-panel .select-wrap {
+  width: 100%;
+  min-width: 0;
+}
+
+.credit-list-page .advanced-search-panel .select-wrap .ng-select {
+  width: 100%;
+}
+
+.credit-list-page .advanced-search-panel .filter-group-full {
+  grid-column: 1 / -1;
+}
+
+.credit-list-page .advanced-search-panel .search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--navy-xpale);
+}
+.credit-list-page .advanced-search-panel .search-input:focus {
+  outline: none;
+  border-color: var(--navy);
+  background: white;
+}
+
+.credit-list-page .advanced-search-panel .search-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.credit-list-page .advanced-search-panel .ng-select .ng-select-container {
+  background: var(--navy-xpale);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-height: 38px;
+  width: 100%;
+}
+.credit-list-page .advanced-search-panel .ng-select .ng-value-container {
+  flex-wrap: nowrap;
+  padding-right: 4px;
+}
+.credit-list-page .advanced-search-panel .ng-select .ng-value-label,
+.credit-list-page .advanced-search-panel .ng-select .ng-placeholder {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+.credit-list-page .advanced-search-panel .ng-dropdown-panel {
+  min-width: 100%;
+  width: max-content;
+  max-width: min(420px, 90vw);
+}
+.credit-list-page .advanced-search-panel .ng-select.ng-select-focused .ng-select-container {
+  border-color: var(--navy);
+  background: white;
+}
+.credit-list-page .advanced-search-panel .ng-select .ng-value {
+  background: var(--navy);
+  color: white;
+  border-radius: 4px;
+}
+.credit-list-page .advanced-search-panel .ng-dropdown-panel .ng-option:hover,
+.credit-list-page .advanced-search-panel .ng-dropdown-panel .ng-option.ng-option-marked {
+  background: var(--navy-xpale);
+}
+.credit-list-page .advanced-search-panel .ng-dropdown-panel .ng-option.ng-option-selected {
+  background: var(--navy);
+  color: white;
+}
+
+.credit-list-page .commercial-option .commercial-name { font-weight: 500; }
+.credit-list-page .commercial-option .commercial-username { color: var(--text-muted); font-size: 11px; }
+
+/* Table */
+.credit-list-page .table-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.credit-list-page .table-wrapper { overflow-x: auto; }
+
+.credit-list-page .data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.credit-list-page .data-table thead th {
+  background: var(--navy-xpale);
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 12px 14px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.credit-list-page .data-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.credit-list-page .data-table tbody tr:hover {
+  background: var(--navy-xpale);
+}
+
+.credit-list-page .col-ref {
+  font-family: 'DM Mono', monospace;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.credit-list-page .col-amount {
+  font-family: 'DM Mono', monospace;
+  font-weight: 600;
+}
+
+.credit-list-page .col-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.credit-list-page .btn-detail {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.credit-list-page .btn-detail:hover { background: var(--navy-xpale); }
+.credit-list-page .btn-detail-success { color: var(--green); border-color: var(--green); }
+.credit-list-page .btn-detail-danger { color: var(--red); border-color: var(--red); }
+
+.credit-list-page .status-badge,
+.credit-list-page .days-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.credit-list-page .days-success { background: var(--green-pale); color: var(--green); }
+.credit-list-page .days-warning { background: var(--orange-pale); color: var(--orange); }
+.credit-list-page .days-danger { background: #fef2f2; color: var(--red); }
+
+.credit-list-page .empty-state {
+  text-align: center;
+  padding: 48px 24px;
+}
+.credit-list-page .empty-icon { font-size: 2rem; margin-bottom: 8px; }
+.credit-list-page .empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.credit-list-page .empty-sub { font-size: 13px; color: var(--text-muted); }
+
+.credit-list-page mat-paginator {
+  border-top: 1px solid var(--border);
+}
+
+/* Modal */
+.credit-list-page .modal-overlay,
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: #002244; // Un bleu un peu plus foncé au survol
-  }
-
-  mat-icon {
-    font-size: 20px;
-    margin-right: 8px;
-    color: white;
-  }
+  z-index: 1000;
 }
 
-.table-container {
-  overflow-x: auto; // Pour la responsivité sur petits écrans
-}
-
-.article-table {
+.modal-dialog {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-
-  thead {
-    background-color: #f1f1f1;
-    color: #003366;
-    text-align: center;
-
-    th {
-      padding: 12px;
-      text-align: center;
-      font-weight: 600;
-    }
-  }
-
-  tbody {
-    tr {
-      &:nth-child(even) {
-        background-color: #f8f8f8;
-      }
-
-      &:hover {
-        background-color: #e9ecef;
-      }
-
-      td {
-        padding: 12px;
-        border-bottom: 1px solid #ddd;
-        vertical-align: middle;
-        text-align: center;
-      }
-    }
-  }
+  max-width: 480px;
+  margin: 16px;
 }
 
-.action-buttons {
-  display: flex;
-  justify-content: center; // Centre les boutons dans la cellule
-  align-items: center;
-  gap: 8px;
-}
-
-// Style de base pour le badge
-.badge {
-  padding: 0.5em 0.75em;
-  border-radius: 0.375rem;
-  font-size: 0.875em;
-  font-weight: 600;
-  text-align: center;
-  display: inline-block;
-  color: white;
-}
-
-.badge-success {
-  background-color: #28a745; // Vert
-}
-
-.badge-warning {
-  background-color: #ffc107; // Jaune
-  color: #212529; // Texte plus foncé pour la lisibilité
-}
-
-.badge-danger {
-  background-color: #dc3545; // Rouge
-}
-
-// Style pour l'icône du bouton "Changer la mise"
-button[matTooltip="Changer la mise"] {
-  mat-icon {
-    color: #6c757d; // Couleur grise
-  }
-}
-
-.search-input {
-  max-width: 300px;
-  min-width: 200px;
-  flex-shrink: 1;
-}
-
-// Groupe de boutons
-.button-group {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-// Styles communs pour tous les boutons
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  white-space: nowrap;
-  border: none;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  mat-icon {
-    font-size: 1.25rem;
-    height: 1.25rem;
-    width: 1.25rem;
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-}
-
-// Style spécifique pour le bouton tontine
-.btn.tontine {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-
-  &:hover {
-    background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
-  }
-
-  mat-icon {
-    animation: pulse 2s ease-in-out infinite;
-  }
-}
-
-// Responsive : sur mobile, passer les boutons en colonne
-@media (max-width: 992px) {
-  .search-input {
-    max-width: 100%;
-    margin-bottom: 0.5rem;
-  }
-
-  .button-group {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .btn {
-    font-size: 0.875rem;
-    padding: 0.4rem 0.8rem;
-
-    span {
-      display: none; // Masquer le texte sur mobile, garder uniquement les icônes
-    }
-
-    mat-icon {
-      margin: 0;
-    }
-  }
-}
-
-// Animation pour l'icône du bouton tontine
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-.search-input {
-  max-width: 300px;
-  min-width: 200px;
-  flex-shrink: 1;
-}
-
-// Bouton de recherche avancée
-.search-toggle-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-  position: relative;
+.modal-content {
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
   overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-  }
-
-  &:hover::before {
-    width: 300px;
-    height: 300px;
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-
-  &.active {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-
-    mat-icon {
-      animation: rotateIcon 0.3s ease-out;
-    }
-  }
-
-  mat-icon {
-    position: relative;
-    z-index: 1;
-  }
-
-  span {
-    position: relative;
-    z-index: 1;
-  }
 }
 
-@keyframes rotateIcon {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(180deg);
-  }
-}
-
-// Groupe de boutons
-.button-group {
+.modal-header {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-// Styles communs pour tous les boutons
-.btn {
-  display: inline-flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  white-space: nowrap;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.modal-close {
   border: none;
-  border-radius: 4px;
-  font-weight: 500;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
   cursor: pointer;
-  transition: all 0.2s ease;
-
-  mat-icon {
-    font-size: 1.25rem;
-    height: 1.25rem;
-    width: 1.25rem;
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
+  color: var(--text-muted);
 }
 
-// Style spécifique pour le bouton tontine
-.btn.tontine {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-
-  &:hover {
-    background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
-  }
-
-  mat-icon {
-    animation: pulse 2s ease-in-out infinite;
-  }
-}
-
-// Responsive : sur mobile, passer les boutons en colonne
-@media (max-width: 992px) {
-  .search-input {
-    max-width: 100%;
-    margin-bottom: 0.5rem;
-  }
-
-  .button-group {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .btn {
-    font-size: 0.875rem;
-    padding: 0.4rem 0.8rem;
-
-    span {
-      display: none; // Masquer le texte sur mobile, garder uniquement les icônes
-    }
-
-    mat-icon {
-      margin: 0;
-    }
-  }
-
-  .search-toggle-btn span {
-    display: inline; // Garder le texte pour le bouton de recherche
-  }
-}
-
-// Animation pour l'icône du bouton tontine
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-.search-input {
-  max-width: 300px;
-  min-width: 200px;
-  flex-shrink: 1;
-}
-
-// Bouton de recherche avancée
-.search-toggle-btn {
-  background: #003366;
-  color: white;
-  border: none;
-  box-shadow: 0 2px 4px rgba(0, 51, 102, 0.3);
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-  }
-
-  &:hover::before {
-    width: 300px;
-    height: 300px;
-  }
-
-  &:hover {
-    background: #002244;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 51, 102, 0.4);
-  }
-
-  &.active {
-    background: #e91e63;
-
-    &:hover {
-      background: #c2185b;
-    }
-
-    mat-icon {
-      animation: rotateIcon 0.3s ease-out;
-    }
-  }
-
-  mat-icon {
-    position: relative;
-    z-index: 1;
-  }
-
-  span {
-    position: relative;
-    z-index: 1;
-  }
-}
-
-@keyframes rotateIcon {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(180deg);
-  }
-}
-
-// Groupe de boutons
-.button-group {
+.modal-body { padding: 16px 20px; }
+.modal-footer {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  flex-shrink: 0;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
 }
 
-// Styles communs pour tous les boutons
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  white-space: nowrap;
-  border: none;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  mat-icon {
-    font-size: 1.25rem;
-    height: 1.25rem;
-    width: 1.25rem;
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
+.modal-body .form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 
-// Style spécifique pour le bouton tontine
-.btn.tontine {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-
-  &:hover {
-    background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
-  }
-
-  mat-icon {
-    animation: pulse 2s ease-in-out infinite;
-  }
+@media (max-width: 900px) {
+  .credit-list-page .kpi-strip-4 { grid-template-columns: repeat(2, 1fr); }
 }
 
-// Responsive : sur mobile, passer les boutons en colonne
-@media (max-width: 992px) {
-  .search-input {
-    max-width: 100%;
-    margin-bottom: 0.5rem;
-  }
-
-  .button-group {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .btn {
-    font-size: 0.875rem;
-    padding: 0.4rem 0.8rem;
-
-    span {
-      display: none; // Masquer le texte sur mobile, garder uniquement les icônes
-    }
-
-    mat-icon {
-      margin: 0;
-    }
-  }
-
-  .search-toggle-btn span {
-    display: inline; // Garder le texte pour le bouton de recherche
-  }
+@media (max-width: 768px) {
+  .credit-list-page .kpi-strip-2,
+  .credit-list-page .kpi-strip-4 { grid-template-columns: 1fr; }
+  .credit-list-page .advanced-search-panel .form-grid { grid-template-columns: 1fr; }
+  .credit-list-page .header-card-main { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .credit-list-page .result-count { margin-left: 0; width: 100%; }
 }
 
-// Animation pour l'icône du bouton tontine
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-// Bouton "Changer l'agent" dans la liste
-.button-group .btn-change-collector {
-  background-color: #003366;
-  color: white;
-  border: none;
-
-  &:hover {
-    background-color: #002244;
-  }
-}
-
-// Bouton Annuler du modal (gris)
-.modal-footer .btn-cancel {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-
-  &:hover {
-    background-color: #5a6268;
-  }
-}
-
-// Bouton Valider du modal (bleu comme le refresh)
-.modal-footer .btn-validate {
-  background-color: #003366;
-  color: white;
-  border: none;
-
-  &:hover {
-    background-color: #002244;
-  }
-
-  &[disabled] {
-    opacity: 0.65;
-    cursor: not-allowed;
-  }
+@media (max-width: 600px) {
+  .credit-list-page.main-container { padding: 16px 12px 40px; margin-top: 70px; }
 }

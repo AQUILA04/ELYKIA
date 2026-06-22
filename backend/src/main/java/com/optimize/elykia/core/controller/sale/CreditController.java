@@ -7,6 +7,7 @@ import com.optimize.elykia.core.dto.*;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
 import com.optimize.elykia.core.service.sale.CreditReturnHistoryService;
+import com.optimize.elykia.core.service.sale.CreditListSummaryService;
 import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.core.service.sale.CreditTimelineService;
 import com.optimize.elykia.core.service.report.PdfService;
@@ -39,6 +40,7 @@ public class CreditController {
     private final PdfService pdfService;
     private final CreditReturnHistoryService creditReturnHistoryService;
     private final CreditArticlesService creditArticlesService;
+    private final CreditListSummaryService creditListSummaryService;
 
     @PostMapping
     public ResponseEntity<Response> createCredit(@RequestBody @Valid CreditDto dto) throws Exception {
@@ -48,6 +50,13 @@ public class CreditController {
     @PostMapping("/fetch")
     public ResponseEntity<Response> fetch(@RequestBody CreditSearchDto dto, Pageable pageable) {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.searchCredits(dto, pageable)), HttpStatus.OK);
+    }
+
+    @PostMapping("/list-summary")
+    public ResponseEntity<Response> listSummary(@RequestBody @Valid CreditListSummaryRequestDto request) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(
+                creditListSummaryService.summarize(request.startDate(), request.endDate(), request.search())),
+                HttpStatus.OK);
     }
 
 

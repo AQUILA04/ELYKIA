@@ -120,6 +120,7 @@ import { PriceHistoryTimelineComponent } from './article/details/components/pric
 import { QuickStockEntryComponent } from './article/details/components/quick-stock-entry/quick-stock-entry.component';
 import { CreditLateComponent } from './credit/credit-late/credit-late.component';
 import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
+import { CreditListKpiComponent } from './credit/credit-list/components/credit-list-kpi/credit-list-kpi.component';
 import { CreditLateFilterComponent } from './credit/credit-late/components/credit-late-filter/credit-late-filter.component';
 import { CreditLateTableComponent } from './credit/credit-late/components/credit-late-table/credit-late-table.component';
 import { CreditLateCloseModalComponent } from './credit/credit-late/components/credit-late-close-modal/credit-late-close-modal.component';
@@ -228,6 +229,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     QuickStockEntryComponent,
     CreditLateComponent,
     CreditLateKpiComponent,
+    CreditListKpiComponent,
     CreditLateFilterComponent,
     CreditLateTableComponent,
     CreditLateCloseModalComponent,

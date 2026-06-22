@@ -1,57 +1,54 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Component, OnInit, Output, EventEmitter, Input, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
   CreditSearchDto,
-  ClientType,
-  OperationType,
-  CreditStatus,
   CLIENT_TYPE_OPTIONS,
   OPERATION_TYPE_OPTIONS,
   STATUS_OPTIONS,
-  SearchOption
+  SearchOption,
 } from './advanced-search.types';
 
 @Component({
   selector: 'app-advanced-search',
   templateUrl: './advanced-search.component.html',
   styleUrls: ['./advanced-search.component.scss'],
+  encapsulation: ViewEncapsulation.None,
   animations: [
     trigger('slideDown', [
-      state('void', style({
-        transform: 'translateY(-5%)',
-        opacity: 0
-      })),
-      state('*', style({
-        transform: 'translateY(0)',
-        opacity: 1
-      })),
-      transition('void => *', animate('300ms ease-out')),
-      transition('* => void', animate('300ms ease-in'))
+      state('void', style({ opacity: 0, maxHeight: '0px', overflow: 'hidden' })),
+      state('*', style({ opacity: 1, maxHeight: '600px', overflow: 'hidden' })),
+      transition('void => *', animate('250ms ease-out')),
+      transition('* => void', animate('200ms ease-in'))
     ])
-  ]
+  ],
+  standalone: false
 })
 export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
   @Input() commercials: any[] = [];
-  @Input() isVisible: boolean = false;
+  @Input() isVisible = false;
   @Input() initialSearchDto: CreditSearchDto | null = null;
-  @Input() isPromoter: boolean = false;
+  @Input() isPromoter = false;
   @Input() currentUsername: string | null = null;
 
   @Output() search = new EventEmitter<CreditSearchDto>();
   @Output() close = new EventEmitter<void>();
   @Output() reset = new EventEmitter<void>();
+  @Output() activeFiltersCountChange = new EventEmitter<number>();
 
   searchForm!: FormGroup;
 
-  // Options pour les dropdowns
   clientTypeOptions = CLIENT_TYPE_OPTIONS;
   operationTypeOptions = OPERATION_TYPE_OPTIONS;
   statusOptions = STATUS_OPTIONS;
 
+  readonly clientTypeMinWidth = this.minWidthForOptions(this.clientTypeOptions);
+  readonly operationTypeMinWidth = this.minWidthForOptions(this.operationTypeOptions);
+  readonly statusMinWidth = this.minWidthForOptions(this.statusOptions);
+
   private subscriptions: Subscription[] = [];
-  activeFiltersCount: number = 0;
+  activeFiltersCount = 0;
 
   constructor(private fb: FormBuilder) {
     this.initForm();
@@ -68,7 +65,6 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
         this.searchForm.patchValue(this.initialSearchDto);
       }
     }
-    // Re-apply promoter restrictions if inputs change
     if (changes['isPromoter'] || changes['currentUsername']) {
       this.applyPromoterRestrictions();
     }
@@ -108,7 +104,6 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private setupFilterCounter(): void {
-    // Mettre à jour le compteur de filtres à chaque changement
     const sub = this.searchForm.valueChanges.subscribe(() => {
       this.calculateActiveFilters();
     });
@@ -116,7 +111,6 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   onSearch(): void {
-    // Use getRawValue to include disabled fields (like commercial for promoter)
     const formValue = this.searchForm.getRawValue();
 
     if (!this.hasActiveFilters()) {
@@ -143,17 +137,10 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
       commercial: null
     });
 
-    // Re-apply promoter restriction after reset
     this.applyPromoterRestrictions();
-
     this.activeFiltersCount = 0;
     this.calculateActiveFilters();
-
     this.reset.emit();
-  }
-
-  onClose(): void {
-    this.close.emit();
   }
 
   private calculateActiveFilters(): void {
@@ -167,6 +154,7 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
     if (formValue.commercial) count++;
 
     this.activeFiltersCount = count;
+    this.activeFiltersCountChange.emit(count);
   }
 
   searchCommercial = (term: string, item: any) => {
@@ -175,9 +163,26 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
     const fullName = `${item.firstname} ${item.lastname}`.toLowerCase();
     const username = (item.username || '').toLowerCase();
     return fullName.includes(term) || username.includes(term);
-  }
+  };
 
   hasActiveFilters(): boolean {
     return this.activeFiltersCount > 0;
+  }
+
+  commercialMinWidth(): number {
+    const labels = this.commercials.map(
+      (c) => `${c.firstname ?? ''} ${c.lastname ?? ''}`.trim()
+    );
+    return this.minWidthForLabels(['Tous', ...labels]);
+  }
+
+  minWidthForOptions(options: SearchOption[]): number {
+    return this.minWidthForLabels(options.map((o) => o.label));
+  }
+
+  /** Largeur minimale basée sur le libellé le plus long (+ place pour flèche / clear). */
+  minWidthForLabels(labels: string[]): number {
+    const longest = labels.reduce((max, label) => Math.max(max, (label || '').length), 0);
+    return Math.min(Math.max(Math.round(longest * 8.5) + 72, 180), 420);
   }
 }

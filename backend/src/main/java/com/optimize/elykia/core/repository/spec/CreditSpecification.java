@@ -19,6 +19,10 @@ public class CreditSpecification {
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public static Specification<Credit> build(CreditSearchDto dto) {
+        return build(dto, false);
+    }
+
+    public static Specification<Credit> build(CreditSearchDto dto, boolean ignoreStatus) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -38,7 +42,7 @@ public class CreditSpecification {
             }
 
             // status
-            if (dto.status() != null) {
+            if (!ignoreStatus && dto.status() != null) {
                 predicates.add(cb.equal(root.get("status"), dto.status()));
             }
 

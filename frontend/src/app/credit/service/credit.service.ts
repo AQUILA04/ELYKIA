@@ -8,6 +8,7 @@ import { ErrorHandlerService } from 'src/app/shared/service/error-handler.servic
 
 // Enhanced interfaces with proper typing
 import { CreditDistributionDetail, CreditTimelineDto } from '../types/credit.types';
+import { CreditListSummaryRequest } from '../types/credit-list-summary.types';
 // Interface pour les articles dans les réponses du serveur (avec id)
 interface CreditArticleResponse {
   readonly id: number;
@@ -137,6 +138,11 @@ export class CreditService extends BaseHttpService {
       .set('sort', 'id,desc'); // Ajout du tri par défaut
 
     return this.http.post(`${this.apiUrl}/fetch`, searchDto, { headers, params });
+  }
+
+  getListSummary(request: CreditListSummaryRequest): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.post(`${this.apiUrl}/list-summary`, request, { headers });
   }
 
   createTontine(tontineData: CreditFormData): Observable<any> {

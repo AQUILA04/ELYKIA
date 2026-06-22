@@ -1,153 +1,204 @@
-<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+<div class="main-container credit-list-page a1" data-testid="e2e-credit-list">
+  <div class="breadcrumb-bar">
+    <a routerLink="/dashboard" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Tableau de bord
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
 
-<div class="container">
-  <div class="header-fixed">
-    <div class="d-flex justify-content-center mb-3">
-      <h1>Liste des Ventes</h1>
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">GESTION DES VENTES</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
     </div>
-  </div>
-
-  <!-- Conteneur recherche + boutons -->
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 responsive-controls">
-    <!-- Bouton de recherche avancée -->
-    <button
-      class="btn search-toggle-btn btn-sm"
-      (click)="toggleAdvancedSearch()"
-      [class.active]="showAdvancedSearch">
-      <mat-icon>{{ showAdvancedSearch ? 'search_off' : 'search' }}</mat-icon>
-      <span>{{ showAdvancedSearch ? 'Fermer la recherche' : 'Recherche avancée' }}</span>
-    </button>
-
-    <div class="button-group d-flex gap-2">
-      <button *ngIf="selectedCredits.size > 0 && !isRecoveryManager && !isPromoter" class="btn btn-change-collector btn-sm" (click)="openBulkChangeCollectorModal()">
-        <mat-icon>people</mat-icon>
-        <span>Changer l'agent ({{ selectedCredits.size }})</span>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+          <path d="M3 6h18"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        <h1 class="page-title">Liste des ventes</h1>
+      </div>
+      <button class="btn-refresh" (click)="refresh()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Actualiser
       </button>
-
-      <button class="btn refresh-button btn-sm" (click)="refresh()">
-        <mat-icon>refresh</mat-icon>
-        <span>Rafraîchir</span>
-      </button>
-
-      <button class="btn add btn-sm" (click)="addCredit()" *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" data-testid="e2e-credit-add-btn">
-        <mat-icon>add</mat-icon>
-        <span>Nouvelle Vente</span>
-      </button>
-
     </div>
+    <p class="page-subtitle">Ventes clôturées et recouvré sur la période · Encours crédit en temps réel · Filtres conservés à la navigation</p>
   </div>
 
-  <!-- Composant de recherche avancée -->
-  <app-advanced-search
-    [isVisible]="showAdvancedSearch"
-    [commercials]="collectors"
-    [initialSearchDto]="currentSearchDto"
-    [isPromoter]="isPromoter"
-    [currentUsername]="currentUser?.username"
-    (search)="onAdvancedSearch($event)"
-    (reset)="onSearchReset()"
-    (close)="onCloseAdvancedSearch()">
-  </app-advanced-search>
+  <app-credit-list-kpi
+    [summary]="summary"
+    [periodLabel]="periodLabel"
+    [loading]="summaryLoading"
+    [showMargin]="!isPromoter">
+  </app-credit-list-kpi>
 
-  <div class="table-container">
-    <table class="article-table mobile-responsive">
-      <thead>
-      <tr>
-        <th *ngIf="!isRecoveryManager && !isPromoter">
-          <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected"></mat-checkbox>
-        </th>
-        <th>#</th>
-        <th>Nom du Client</th>
-        <th>Commercial</th>
-        <th>Date de début</th>
-        <th>Montant</th>
-        <th>Mise journalière</th>
-        <th>Statut</th>
-        <th>Nombre de jours restants</th>
-        <th>Action</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr *ngFor="let credit of filteredCredits; let i = index"
-          data-testid="e2e-credit-row"
-          [attr.data-credit-id]="credit.id"
-          [attr.data-credit-reference]="credit.reference"
-          [attr.data-client-lastname]="credit.client?.lastname"
-          [attr.data-status]="credit.status">
-        <td data-label="Sélectionner" *ngIf="!isRecoveryManager && !isPromoter && 'SETTLED' !== credit.status">
-          <mat-checkbox (change)="toggleSelection(credit.id)" [checked]="isSelected(credit.id)"></mat-checkbox>
-        </td>
-        <td data-label="Sélectionner" *ngIf="'SETTLED' === credit.status && !isRecoveryManager && !isPromoter">
-         -
-        </td>
-        <td data-label="#">{{ (currentPage * pageSize) + (i + 1) }}</td>
-        <td data-label="Nom du Client">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</td>
-        <td data-label="Commercial">{{ credit.collector }}</td>
-        <td data-label="Date de début">{{ credit.beginDate | date: 'dd/MM/yyyy' }}</td>
-        <td data-label="Montant">{{ credit.totalAmount | currency }}</td>
-        <td data-label="Mise journalière">{{ credit.dailyStake }}</td>
-        <td data-label="Statut">
-          <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
-            {{ (credit.status | statusBadge).label }}
-          </span>
-        </td>
-        <td data-label="Nombre de jours restants">
-            <span class="badge" [ngClass]="getBadgeClass(credit.remainingDaysCount)">
-              {{ credit.remainingDaysCount ?? 0 }}
-            </span>
-        </td>
-        <td class="action-buttons">
-            <span *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
-              <button *ngIf="credit.status === 'VALIDATED'" mat-icon-button matTooltip="Démarrer" (click)="startCredit(credit.id)">
-                <mat-icon style="color: #003366;">play_arrow</mat-icon>
-              </button>
-            </span>
-          <span *ngxPermissionsOnly="['ROLE_VALIDATE_CREDIT']">
-              <button *ngIf="credit.status === 'CREATED'" mat-icon-button matTooltip="Valider" (click)="validateCredit(credit.id)">
-                <mat-icon style="color: green;">check</mat-icon>
-              </button>
-            </span>
-          <button mat-icon-button matTooltip="Détails" (click)="viewDetails(credit.id)">
-            <mat-icon>visibility</mat-icon>
-          </button>
+  <div class="toolbar-shell a4">
+    <div class="toolbar toolbar-top">
+      <div class="filter-group filter-group-period">
+        <span class="toolbar-label">Période KPI</span>
+        <div class="period-buttons">
+          <button type="button" class="period-btn" [class.active]="periodPreset === periodPresets.TODAY" (click)="onPeriodPresetChange(periodPresets.TODAY)">Jour</button>
+          <button type="button" class="period-btn" [class.active]="periodPreset === periodPresets.WEEK" (click)="onPeriodPresetChange(periodPresets.WEEK)">Semaine</button>
+          <button type="button" class="period-btn" [class.active]="periodPreset === periodPresets.MONTH" (click)="onPeriodPresetChange(periodPresets.MONTH)">Mois</button>
+          <button type="button" class="period-btn" [class.active]="periodPreset === periodPresets.CUSTOM" (click)="onPeriodPresetChange(periodPresets.CUSTOM)">Personnalisé</button>
+        </div>
+      </div>
 
-          <button *ngIf="['CREATED', 'VALIDATED', 'INPROGRESS'].includes(credit.status) && !isRecoveryManager" mat-icon-button matTooltip="Changer la mise" (click)="changeDailyStake(credit.id)">
-            <mat-icon>monetization_on</mat-icon>
-          </button>
+      <div class="filter-group filter-group-dates" *ngIf="periodPreset === periodPresets.CUSTOM">
+        <span class="toolbar-label">Du</span>
+        <input type="date" class="date-input" [(ngModel)]="customStartDate" (change)="onCustomPeriodChange()">
+        <span class="toolbar-label">Au</span>
+        <input type="date" class="date-input" [(ngModel)]="customEndDate" (change)="onCustomPeriodChange()">
+      </div>
 
-          <!-- Bouton de mise journalière -->
-          <button
-            *ngIf="credit.status === 'INPROGRESS' && credit.type === 'CREDIT' && credit.clientType === 'CLIENT' && !isRecoveryManager"
-            mat-icon-button
-            matTooltip="Faire une mise"
-            data-testid="e2e-credit-daily-stake-btn"
-            (click)="openDailyStakeModal(credit)">
-            <mat-icon style="color: #28a745;">attach_money</mat-icon>
-          </button>
+      <button
+        type="button"
+        class="btn-filter-toggle"
+        [class.active]="showAdvancedSearch || activeFiltersCount > 0"
+        (click)="toggleAdvancedSearch()">
+        Recherche avancée
+        <span class="filter-count-badge" *ngIf="activeFiltersCount > 0">{{ activeFiltersCount }}</span>
+      </button>
 
-          <span *ngIf="['CREATED', 'VALIDATED'].includes(credit.status)">
-              <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" mat-icon-button matTooltip="Modifier" (click)="editCredit(credit.id)">
-                <mat-icon style="color: #003366;">edit</mat-icon>
-              </button>
-              <button *ngxPermissionsOnly="['ROLE_DEL_CREDIT']" mat-icon-button matTooltip="Supprimer" (click)="deleteCredit(credit.id)">
-                <mat-icon style="color: #c90a17;">delete</mat-icon>
-              </button>
-          </span>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+      <span class="result-count">
+        <strong>{{ totalElement }}</strong> vente(s)
+      </span>
+
+      <div class="toolbar-actions">
+        <button
+          *ngIf="selectedCredits.size > 0 && !isRecoveryManager && !isPromoter"
+          type="button"
+          class="btn-secondary"
+          (click)="openBulkChangeCollectorModal()">
+          Changer l'agent ({{ selectedCredits.size }})
+        </button>
+        <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" type="button" class="btn-primary" (click)="addCredit()" data-testid="e2e-credit-add-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Nouvelle vente
+        </button>
+      </div>
+    </div>
+
+    <app-advanced-search
+      class="advanced-search-host"
+      [class.is-open]="showAdvancedSearch"
+      [isVisible]="showAdvancedSearch"
+      [commercials]="collectors"
+      [initialSearchDto]="currentSearchDto"
+      [isPromoter]="isPromoter"
+      [currentUsername]="currentUser?.username"
+      (search)="onAdvancedSearch($event)"
+      (reset)="onSearchReset()"
+      (activeFiltersCountChange)="onActiveFiltersCountChange($event)">
+    </app-advanced-search>
   </div>
 
-  <mat-paginator
-    [length]="totalElement"
-    [pageSize]="pageSize"
-    [pageSizeOptions]="[5, 10, 25, 100]"
-    (page)="onPageChange($event)">
-  </mat-paginator>
+  <div class="table-card a5">
+    <div class="table-wrapper">
+      <div *ngIf="isLoading" class="table-loading">
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-title">Chargement…</div>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoading && filteredCredits.length === 0" class="table-empty-static">
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">Aucune vente trouvée</div>
+          <div class="empty-sub">Modifiez vos filtres ou créez une nouvelle vente.</div>
+        </div>
+      </div>
+
+      <table class="data-table" *ngIf="!isLoading && filteredCredits.length > 0">
+        <thead>
+          <tr>
+            <th *ngIf="!isRecoveryManager && !isPromoter" class="col-select">
+              <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected"></mat-checkbox>
+            </th>
+            <th>#</th>
+            <th>Client</th>
+            <th>Commercial</th>
+            <th>Début</th>
+            <th>Montant</th>
+            <th>Mise/j</th>
+            <th>Statut</th>
+            <th>Jours rest.</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let credit of filteredCredits; let i = index"
+              data-testid="e2e-credit-row"
+              [attr.data-credit-id]="credit.id"
+              [attr.data-credit-reference]="credit.reference"
+              [attr.data-client-lastname]="credit.client?.lastname"
+              [attr.data-status]="credit.status">
+            <td *ngIf="!isRecoveryManager && !isPromoter && credit.status !== 'SETTLED'" class="col-select">
+              <mat-checkbox (change)="toggleSelection(credit.id)" [checked]="isSelected(credit.id)"></mat-checkbox>
+            </td>
+            <td *ngIf="!isRecoveryManager && !isPromoter && credit.status === 'SETTLED'" class="col-select">—</td>
+            <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
+            <td>{{ credit.client?.firstname }} {{ credit.client?.lastname }}</td>
+            <td>{{ credit.collector }}</td>
+            <td>{{ credit.beginDate | date:'dd/MM/yyyy' }}</td>
+            <td class="col-amount">{{ credit.totalAmount | number:'1.0-0' }} FCFA</td>
+            <td>{{ credit.dailyStake | number:'1.0-0' }}</td>
+            <td>
+              <span class="status-badge {{ (credit.status | statusBadge).badgeClass }}">
+                {{ (credit.status | statusBadge).label }}
+              </span>
+            </td>
+            <td>
+              <span [ngClass]="getBadgeClass(credit.remainingDaysCount)">
+                {{ credit.remainingDaysCount ?? 0 }}
+              </span>
+            </td>
+            <td class="col-actions">
+              <span *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
+                <button *ngIf="credit.status === 'VALIDATED'" type="button" class="btn-detail" title="Démarrer" (click)="startCredit(credit.id)">Démarrer</button>
+              </span>
+              <span *ngxPermissionsOnly="['ROLE_VALIDATE_CREDIT']">
+                <button *ngIf="credit.status === 'CREATED'" type="button" class="btn-detail btn-detail-success" title="Valider" (click)="validateCredit(credit.id)">Valider</button>
+              </span>
+              <button type="button" class="btn-detail" title="Détails" (click)="viewDetails(credit.id)">Détails</button>
+              <button *ngIf="['CREATED', 'VALIDATED', 'INPROGRESS'].includes(credit.status) && !isRecoveryManager" type="button" class="btn-detail" title="Changer la mise" (click)="changeDailyStake(credit.id)">Mise</button>
+              <button
+                *ngIf="credit.status === 'INPROGRESS' && credit.type === 'CREDIT' && credit.clientType === 'CLIENT' && !isRecoveryManager"
+                type="button"
+                class="btn-detail btn-detail-success"
+                title="Faire une mise"
+                data-testid="e2e-credit-daily-stake-btn"
+                (click)="openDailyStakeModal(credit)">
+                Encaisser
+              </button>
+              <span *ngIf="['CREATED', 'VALIDATED'].includes(credit.status)">
+                <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" type="button" class="btn-detail" title="Modifier" (click)="editCredit(credit.id)">Modifier</button>
+                <button *ngxPermissionsOnly="['ROLE_DEL_CREDIT']" type="button" class="btn-detail btn-detail-danger" title="Supprimer" (click)="deleteCredit(credit.id)">Supprimer</button>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <mat-paginator
+      *ngIf="!isLoading && totalElement > 0"
+      [length]="totalElement"
+      [pageIndex]="currentPage"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25, 100]"
+      (page)="onPageChange($event)">
+    </mat-paginator>
+  </div>
 </div>
 
-<!-- Credit Merge Modal -->
 <app-credit-merge-modal
   *ngIf="showMergeModal"
   [collectors]="collectors"
@@ -155,7 +206,6 @@
   (onClose)="closeMergeModal()">
 </app-credit-merge-modal>
 
-<!-- Daily Stake Modal -->
 <app-daily-stake-modal
   *ngIf="showDailyStakeModal"
   [credit]="selectedCreditForStake"
@@ -164,15 +214,12 @@
   (onClose)="closeDailyStakeModal()">
 </app-daily-stake-modal>
 
-<!-- Bulk Change Collector Modal -->
-<div class="modal" tabindex="-1" role="dialog" [ngClass]="{'d-block': showBulkChangeCollectorModal}" style="background-color: rgba(0,0,0,0.5)">
-  <div class="modal-dialog" role="document">
+<div class="modal-overlay" *ngIf="showBulkChangeCollectorModal" (click)="closeBulkChangeCollectorModal()">
+  <div class="modal-dialog" role="dialog" (click)="$event.stopPropagation()">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Changer l'agent collecteur</h5>
-        <button type="button" class="close" aria-label="Close" (click)="closeBulkChangeCollectorModal()">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="modal-close" aria-label="Fermer" (click)="closeBulkChangeCollectorModal()">&times;</button>
       </div>
       <div class="modal-body">
         <p>Sélectionnez le nouveau commercial pour les {{ selectedCredits.size }} ventes sélectionnées.</p>
@@ -187,8 +234,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-cancel" (click)="closeBulkChangeCollectorModal()">Annuler</button>
-        <button type="button" class="btn btn-validate" (click)="confirmBulkChangeCollector()" [disabled]="!selectedNewCollector">Valider</button>
+        <button type="button" class="btn-clear" (click)="closeBulkChangeCollectorModal()">Annuler</button>
+        <button type="button" class="btn-primary" (click)="confirmBulkChangeCollector()" [disabled]="!selectedNewCollector">Valider</button>
       </div>
     </div>
   </div>

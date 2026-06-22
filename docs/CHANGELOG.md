@@ -12,6 +12,10 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Added
 
+- **Backend —** endpoint `POST /api/v1/credits/list-summary` : KPIs ventes clôturées (SETTLED) par type crédit/cash/tontine (CA + marge FCFA), encours crédit (snapshot INPROGRESS) et total recouvré sur période, filtrable via recherche avancée.
+- **Frontend —** refonte UI liste des ventes (skill frontend-ui-style) : bandeaux KPI décisionnels, sélecteur de période (jour/semaine/mois/personnalisé), persistance `sessionStorage`, recherche avancée intégrée à la toolbar.
+- **Tests —** `CreditListSummaryServiceTest`, specs composants `credit-list-kpi` et `credit-list`.
+
 - **Backend —** versements caisse scindés en 3 catégories (`creditAmount`, `tontineAmount`, `newBalanceAmount`) avec conservation du total `amount` ; sous-totaux déposés sur `DailyCommercialReport` ; calculateur `CashDepositCategoryCalculator` (solde nouveaux comptes distinct du crédit).
 - **Backend —** remise périodique secrétaire → gestionnaire (`CashPeriodRemittance`) : soumission mensuelle, accusé de réception par le gestionnaire ou initiation directe ; migrations Flyway V57/V58.
 - **Backend —** stock mensuel : agrégation `totalCreditDepositedAmount` depuis les versements crédit du mois.
@@ -20,6 +24,10 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 - **Tests —** `CashDepositCategoryCalculatorTest`, `CashPeriodRemittanceServiceTest`, spec modèle `daily-commercial-report.model`.
 
 ### Fixed
+
+- **Frontend —** liste des ventes : KPIs avec CA en valeur principale et marge en sous-ligne ; marge masquée pour le profil PROMOTER ; selects recherche avancée dimensionnés selon l'option la plus longue.
+
+- **Backend —** KPI liste des ventes (`list-summary`) : requêtes SQL corrigées (`c.visibility` au lieu de `c.state`, colonne réelle en base).
 
 - **Backend —** opération journalière caisse : la liste et le PDF des crédits non recouvrés s'appuient sur l'absence de ligne `CreditTimeline` pour la journée comptable courante, au lieu du flag `dailyPaid` (source de données incorrecte malgré le cron).
 - **Frontend —** téléchargement PDF opération journalière : nom de fichier avec date du jour et collecteur (plus de `Daily_Operation_null.pdf` lorsque `username` est absent du localStorage).
