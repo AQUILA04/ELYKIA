@@ -214,9 +214,21 @@
 
 .cash-deposit-modal .allocation-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
   margin-bottom: 16px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cash-deposit-modal .allocation-field--surplus .field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.3;
 }
 
 .cash-deposit-modal .allocation-field label {
@@ -316,6 +328,12 @@
   background: var(--orange-pale);
   color: var(--orange);
   border: 1px solid #f5d4b3;
+}
+
+.cash-deposit-modal .alert-info {
+  background: #e8f4fd;
+  color: #0b5394;
+  border: 1px solid #b6d4f0;
 }
 
 .cash-deposit-modal .modal-footer {

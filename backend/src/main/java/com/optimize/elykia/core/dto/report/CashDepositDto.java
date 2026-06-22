@@ -16,6 +16,7 @@ public class CashDepositDto {
     private Double creditAmount;
     private Double tontineAmount;
     private Double newBalanceAmount;
+    private Double surplusAmount;
     private String billetage;
     private String reference;
     private String receivedBy;

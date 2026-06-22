@@ -64,7 +64,8 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
                 deposit.getAmount(),
                 deposit.getCreditAmount(),
                 deposit.getTontineAmount(),
-                deposit.getNewBalanceAmount());
+                deposit.getNewBalanceAmount(),
+                deposit.getSurplusAmount());
 
         DailyCommercialReport report = dailyReportRepository
                 .findByDateAndCommercialUsername(deposit.getDate(), deposit.getCommercialUsername())
@@ -76,24 +77,29 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
                 });
 
         applyDepositToReport(report, deposit.getAmount(), deposit.getCreditAmount(),
-                deposit.getTontineAmount(), deposit.getNewBalanceAmount());
+                deposit.getTontineAmount(), deposit.getNewBalanceAmount(), deposit.getSurplusAmount());
         dailyReportRepository.save(report);
 
         deposit.setDailyReport(report);
         CashDeposit saved = cashDepositRepository.save(deposit);
+
+        String logDetail = String.format(
+                "Versement effectué par %s pour la date du %s (Crédit: %.0f, Tontine: %.0f, Solde Nx: %.0f%s)",
+                currentUser.getUsername(),
+                deposit.getDate(),
+                deposit.getCreditAmount(),
+                deposit.getTontineAmount(),
+                deposit.getNewBalanceAmount(),
+                safe(deposit.getSurplusAmount()) > 0
+                        ? String.format(", Surplus: %.0f", deposit.getSurplusAmount())
+                        : "");
 
         dailyOperationService.logOperation(
                 deposit.getCommercialUsername(),
                 OperationType.CASH_DEPOSIT,
                 deposit.getAmount(),
                 "Versement " + saved.getId(),
-                String.format(
-                        "Versement effectué par %s pour la date du %s (Crédit: %.0f, Tontine: %.0f, Solde Nx: %.0f)",
-                        currentUser.getUsername(),
-                        deposit.getDate(),
-                        deposit.getCreditAmount(),
-                        deposit.getTontineAmount(),
-                        deposit.getNewBalanceAmount()));
+                logDetail);
 
         return saved;
     }
@@ -152,12 +158,14 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         double credit = original.getCreditAmount() != null ? original.getCreditAmount() : original.getAmount();
         double tontine = original.getTontineAmount() != null ? original.getTontineAmount() : 0.0;
         double newBalance = original.getNewBalanceAmount() != null ? original.getNewBalanceAmount() : 0.0;
+        double surplus = original.getSurplusAmount() != null ? original.getSurplusAmount() : 0.0;
 
         CashDeposit cancelDeposit = new CashDeposit();
         cancelDeposit.setAmount(-original.getAmount());
         cancelDeposit.setCreditAmount(-credit);
         cancelDeposit.setTontineAmount(-tontine);
         cancelDeposit.setNewBalanceAmount(-newBalance);
+        cancelDeposit.setSurplusAmount(-surplus);
         cancelDeposit.setCommercialUsername(original.getCommercialUsername());
         cancelDeposit.setDate(original.getDate());
         cancelDeposit.setBilletage(null);
@@ -169,7 +177,8 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
                 .orElseThrow(() -> new RuntimeException("Rapport journalier introuvable pour ce versement."));
 
         applyDepositToReport(report, cancelDeposit.getAmount(), cancelDeposit.getCreditAmount(),
-                cancelDeposit.getTontineAmount(), cancelDeposit.getNewBalanceAmount());
+                cancelDeposit.getTontineAmount(), cancelDeposit.getNewBalanceAmount(),
+                cancelDeposit.getSurplusAmount());
         dailyReportRepository.save(report);
 
         cancelDeposit.setDailyReport(report);
@@ -187,11 +196,12 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
     }
 
     private void applyDepositToReport(DailyCommercialReport report, double amount, double credit, double tontine,
-            double newBalance) {
+            double newBalance, double surplus) {
         report.setTotalAmountDeposited(safe(report.getTotalAmountDeposited()) + amount);
         report.setTotalCreditAmountDeposited(safe(report.getTotalCreditAmountDeposited()) + credit);
         report.setTotalTontineAmountDeposited(safe(report.getTotalTontineAmountDeposited()) + tontine);
         report.setTotalNewBalanceAmountDeposited(safe(report.getTotalNewBalanceAmountDeposited()) + newBalance);
+        report.setTotalSurplusAmountDeposited(safe(report.getTotalSurplusAmountDeposited()) + surplus);
     }
 
     private void assertMonthNotRemitted(LocalDate date) {

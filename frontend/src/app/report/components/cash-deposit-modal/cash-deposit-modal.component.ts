@@ -23,6 +23,7 @@ export class CashDepositModalComponent implements OnInit {
     creditAmount: number = 0;
     tontineAmount: number = 0;
     newBalanceAmount: number = 0;
+    surplusAmount: number = 0;
     billetageData: any = {};
 
     isSubmitting = false;
@@ -59,16 +60,32 @@ export class CashDepositModalComponent implements OnInit {
         this.tontineAmount = Math.min(remaining, this.remainingTontine);
         remaining -= this.tontineAmount;
         this.newBalanceAmount = Math.min(remaining, this.remainingNewBalance);
+        remaining -= this.newBalanceAmount;
+        this.surplusAmount = Math.max(0, remaining);
+    }
+
+    onCategoryChange(): void {
+        const categoriesTotal = this.creditAmount + this.tontineAmount + this.newBalanceAmount;
+        this.surplusAmount = Math.max(0, this.depositAmount - categoriesTotal);
     }
 
     get allocationMismatch(): boolean {
-        return Math.abs((this.creditAmount + this.tontineAmount + this.newBalanceAmount) - this.depositAmount) > 0.01;
+        return Math.abs(
+            (this.creditAmount + this.tontineAmount + this.newBalanceAmount + this.surplusAmount) - this.depositAmount
+        ) > 0.01;
     }
 
-    get categoryOverflow(): boolean {
-        return this.creditAmount > this.remainingCredit
-            || this.tontineAmount > this.remainingTontine
-            || this.newBalanceAmount > this.remainingNewBalance;
+    /** Écart billetage physique vs solde système (positif = surplus, négatif = manquant). */
+    get physicalGap(): number {
+        return this.depositAmount - this.remainingAmount;
+    }
+
+    get hasPhysicalSurplus(): boolean {
+        return this.depositAmount > 0 && this.physicalGap > 0.01;
+    }
+
+    get hasPhysicalShortage(): boolean {
+        return this.depositAmount > 0 && this.physicalGap < -0.01;
     }
 
     submitDeposit() {
@@ -93,6 +110,7 @@ export class CashDepositModalComponent implements OnInit {
             creditAmount: this.creditAmount,
             tontineAmount: this.tontineAmount,
             newBalanceAmount: this.newBalanceAmount,
+            surplusAmount: this.surplusAmount,
             billetage: JSON.stringify(this.billetageData),
             date: this.date,
             reference: this.requestReference

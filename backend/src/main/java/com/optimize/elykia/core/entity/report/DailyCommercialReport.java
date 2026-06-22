@@ -96,6 +96,9 @@ public class DailyCommercialReport extends BaseEntity<String> {
     @Column(columnDefinition = "double precision default 0")
     private Double totalNewBalanceAmountDeposited = 0.0;
 
+    @Column(columnDefinition = "double precision default 0")
+    private Double totalSurplusAmountDeposited = 0.0;
+
     // Marges
     @Column(columnDefinition = "double precision default 0")
     private Double creditSalesMargin = 0.0;

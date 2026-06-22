@@ -44,21 +44,27 @@ public final class CashDepositCategoryCalculator {
     }
 
     public static void validateCategorySplit(Double amount, Double creditAmount, Double tontineAmount,
-            Double newBalanceAmount) {
+            Double newBalanceAmount, Double surplusAmount) {
         if (amount == null || amount <= 0) {
             throw new IllegalArgumentException("Le montant total du versement doit être supérieur à 0.");
         }
         double credit = safe(creditAmount);
         double tontine = safe(tontineAmount);
         double newBalance = safe(newBalanceAmount);
-        if (credit < 0 || tontine < 0 || newBalance < 0) {
+        double surplus = safe(surplusAmount);
+        if (credit < 0 || tontine < 0 || newBalance < 0 || surplus < 0) {
             throw new IllegalArgumentException("Les montants par catégorie ne peuvent pas être négatifs.");
         }
-        double sum = credit + tontine + newBalance;
+        double sum = credit + tontine + newBalance + surplus;
         if (Math.abs(sum - amount) > 0.01) {
             throw new IllegalArgumentException(
-                    "La somme des catégories doit être égale au montant total du versement.");
+                    "La somme des catégories et du surplus doit être égale au montant total du versement.");
         }
+    }
+
+    public static void validateCategorySplit(Double amount, Double creditAmount, Double tontineAmount,
+            Double newBalanceAmount) {
+        validateCategorySplit(amount, creditAmount, tontineAmount, newBalanceAmount, 0.0);
     }
 
     public static void normalizeLegacyAmounts(com.optimize.elykia.core.entity.report.CashDeposit deposit) {
@@ -67,6 +73,9 @@ public final class CashDepositCategoryCalculator {
             deposit.setCreditAmount(deposit.getAmount());
             deposit.setTontineAmount(0.0);
             deposit.setNewBalanceAmount(0.0);
+        }
+        if (deposit.getSurplusAmount() == null) {
+            deposit.setSurplusAmount(0.0);
         }
     }
 

@@ -10,6 +10,11 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ## [Unreleased]
 
+### Changed
+
+- **Backend —** versements caisse : colonne `surplusAmount` (migration V59) pour tracer l'écart positif entre billetage physique et répartition système ; validation assouplie (manquant autorisé via versements partiels successifs).
+- **Frontend —** modal de versement : colonne surplus, alertes informatives manquant/surplus sans blocage de validation ; historique des versements enrichi.
+
 ### Added
 
 - **Backend —** endpoint `POST /api/v1/credits/list-summary` : KPIs ventes clôturées (SETTLED) par type crédit/cash/tontine (CA + marge FCFA), encours crédit (snapshot INPROGRESS) et total recouvré sur période, filtrable via recherche avancée.

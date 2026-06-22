@@ -26,7 +26,12 @@ class CashDepositCategoryCalculatorTest {
     @Test
     void validateCategorySplit_rejectsMismatch() {
         assertThrows(IllegalArgumentException.class, () -> CashDepositCategoryCalculator.validateCategorySplit(
-                1000.0, 500.0, 200.0, 100.0));
+                1000.0, 500.0, 200.0, 100.0, 0.0));
+    }
+
+    @Test
+    void validateCategorySplit_acceptsSurplus() {
+        CashDepositCategoryCalculator.validateCategorySplit(1000.0, 500.0, 200.0, 100.0, 200.0);
     }
 
     @Test
