@@ -36,6 +36,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 - **Backend —** opération journalière caisse : la liste et le PDF des crédits non recouvrés s'appuient sur l'absence de ligne `CreditTimeline` pour la journée comptable courante, au lieu du flag `dailyPaid` (source de données incorrecte malgré le cron).
 - **Frontend —** téléchargement PDF opération journalière : nom de fichier avec date du jour et collecteur (plus de `Daily_Operation_null.pdf` lorsque `username` est absent du localStorage).
+- **Backend —** opération journalière : requête optimisée (anti-join `LEFT JOIN` au lieu de `NOT EXISTS` corrélé), filtre sur la journée via `LocalDate.now()`, index Flyway V60 sur `credit_timeline` et `credit`.
 
 ### Changed
 

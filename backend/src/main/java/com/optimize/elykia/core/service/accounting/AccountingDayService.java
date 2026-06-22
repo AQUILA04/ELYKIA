@@ -74,6 +74,16 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
         return getRepository().findByStatus(status).orElseThrow(() -> new ResourceNotFoundException("Journée comptable introuvable !"));
     }
 
+    /**
+     * Lecture seule de la date comptable ouverte, sans déclencher de bascule automatique.
+     * À utiliser pour les requêtes fréquentes (listes, exports) afin d'éviter une charge CPU inutile.
+     */
+    public LocalDate getOpenAccountingDate() {
+        return getRepository().findByStatus(AccountingDayStatus.OPENED)
+                .map(AccountingDay::getAccountingDate)
+                .orElse(LocalDate.now());
+    }
+
     @Transactional
     public LocalDate getCurrentAccountingDate() {
         Optional<AccountingDay> optionalAccountingDay = getRepository().findByStatus(AccountingDayStatus.OPENED);

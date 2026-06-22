@@ -41,7 +41,7 @@ public class CustomerUserProvisioningService {
     private final UserProfilService userProfilService;
     private final CustomerEmailGenerator emailGenerator;
 
-    @EventListener(ApplicationReadyEvent.class)
+    //@EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void provisionExistingClients() {
         List<Client> clients = clientRepository.findByClientTypeAndState(ClientType.CLIENT, State.ENABLED);

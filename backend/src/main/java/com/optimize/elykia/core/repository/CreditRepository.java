@@ -77,17 +77,15 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             )
             FROM Credit c
             JOIN c.client cl
+            LEFT JOIN CreditTimeline ct ON ct.credit = c
+                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+                AND ct.createdDate >= :dayStart
+                AND ct.createdDate < :dayEnd
             WHERE c.status = :status
             AND c.collector = :collector
             AND c.clientType = :clientType
             AND c.state = com.optimize.common.entities.enums.State.ENABLED
-            AND NOT EXISTS (
-                SELECT 1 FROM CreditTimeline ct
-                WHERE ct.credit = c
-                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
-                AND ct.createdDate >= :dayStart
-                AND ct.createdDate <= :dayEnd
-            )
+            AND ct IS NULL
             ORDER BY cl.quarter ASC, cl.lastname ASC, cl.firstname ASC
             """)
     List<DailyUnrecoveredCreditDto> findUnrecoveredCreditsForDay(
@@ -104,34 +102,30 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             )
             FROM Credit c
             JOIN c.client cl
+            LEFT JOIN CreditTimeline ct ON ct.credit = c
+                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+                AND ct.createdDate >= :dayStart
+                AND ct.createdDate < :dayEnd
             WHERE c.status = :status
             AND c.collector = :collector
             AND c.clientType = :clientType
             AND c.state = com.optimize.common.entities.enums.State.ENABLED
-            AND NOT EXISTS (
-                SELECT 1 FROM CreditTimeline ct
-                WHERE ct.credit = c
-                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
-                AND ct.createdDate >= :dayStart
-                AND ct.createdDate <= :dayEnd
-            )
+            AND ct IS NULL
             ORDER BY cl.quarter ASC, cl.lastname ASC, cl.firstname ASC
             """,
             countQuery = """
             SELECT COUNT(c)
             FROM Credit c
             JOIN c.client cl
+            LEFT JOIN CreditTimeline ct ON ct.credit = c
+                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+                AND ct.createdDate >= :dayStart
+                AND ct.createdDate < :dayEnd
             WHERE c.status = :status
             AND c.collector = :collector
             AND c.clientType = :clientType
             AND c.state = com.optimize.common.entities.enums.State.ENABLED
-            AND NOT EXISTS (
-                SELECT 1 FROM CreditTimeline ct
-                WHERE ct.credit = c
-                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
-                AND ct.createdDate >= :dayStart
-                AND ct.createdDate <= :dayEnd
-            )
+            AND ct IS NULL
             """)
     Page<DailyUnrecoveredCreditDto> findUnrecoveredCreditsForDay(
             @Param("status") CreditStatus status,

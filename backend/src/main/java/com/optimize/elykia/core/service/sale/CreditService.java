@@ -28,7 +28,6 @@ import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
-import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.service.bi.BiAggregationService;
 import com.optimize.elykia.core.service.stock.StockMovementService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
@@ -48,7 +47,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,7 +64,6 @@ public class CreditService extends GenericService<Credit, Long> {
     private final ArticlesService articlesService;
     private final CreditArticlesService creditArticlesService;
     private final DailyAccountancyService dailyAccountancyService;
-    private final AccountingDayService accountingDayService;
     private CreditTimelineRepository creditTimelineRepository;
     private final CommercialMonthlyStockRepository commercialMonthlyStockRepository;
     private final CreditCollectorHistoryRepository creditCollectorHistoryRepository;
@@ -93,7 +90,6 @@ public class CreditService extends GenericService<Credit, Long> {
             CreditArticlesService creditArticlesService,
             UserService userService,
             DailyAccountancyService dailyAccountancyService,
-            AccountingDayService accountingDayService,
             CommercialMonthlyStockRepository commercialMonthlyStockRepository,
             CreditCollectorHistoryRepository creditCollectorHistoryRepository,
             CreditDailyStakeHistoryRepository creditDailyStakeHistoryRepository,
@@ -105,7 +101,6 @@ public class CreditService extends GenericService<Credit, Long> {
         this.creditArticlesService = creditArticlesService;
         this.userService = userService;
         this.dailyAccountancyService = dailyAccountancyService;
-        this.accountingDayService = accountingDayService;
         this.commercialMonthlyStockRepository = commercialMonthlyStockRepository;
         this.creditCollectorHistoryRepository = creditCollectorHistoryRepository;
         this.creditDailyStakeHistoryRepository = creditDailyStakeHistoryRepository;
@@ -942,10 +937,10 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     private LocalDateTime[] getCurrentAccountingDayRange() {
-        LocalDate accountingDate = accountingDayService.getCurrentAccountingDate();
+        LocalDate accountingDate = LocalDate.now();
         return new LocalDateTime[] {
                 accountingDate.atStartOfDay(),
-                accountingDate.atTime(LocalTime.MAX)
+                accountingDate.plusDays(1).atStartOfDay()
         };
     }
 
