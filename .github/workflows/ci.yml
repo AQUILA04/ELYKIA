@@ -20,6 +20,8 @@ jobs:
       frontend: ${{ steps.filter.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend }}
       backend_lib: ${{ steps.filter.outputs.backend_lib }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+      website: ${{ steps.filter.outputs.website }}
     steps:
     - uses: actions/checkout@v6
     - uses: dorny/paths-filter@v4
@@ -32,6 +34,10 @@ jobs:
             - 'backend/**'
           backend_lib:
             - 'backend-lib/**'
+          mobile:
+            - 'mobile/**'
+          website:
+            - 'website/**'
 
   build-frontend:
     needs: changes
