@@ -22,6 +22,10 @@ const config: CapacitorConfig = {
     adjustMarginsForEdgeToEdge: 'force',
   },
   plugins: {
+    CapacitorSQLite: {
+      androidIsEncryption: false,
+      iosIsEncryption: false,
+    },
     CapacitorHttp: {
       enabled: true,
     },

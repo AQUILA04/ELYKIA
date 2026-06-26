@@ -5,6 +5,7 @@ import { Observable, of, from } from 'rxjs';
 import { map, switchMap, take } from 'rxjs/operators';
 import { selectIsLoggedIn } from '../../store/auth/auth.selectors';
 import { Storage } from '@ionic/storage-angular';
+import { DatabaseService } from '../services/database.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,8 @@ export class AuthGuard implements CanActivate {
   constructor(
     private store: Store,
     private router: Router,
-    private storage: Storage
+    private storage: Storage,
+    private dbService: DatabaseService
   ) { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
@@ -33,9 +35,8 @@ export class AuthGuard implements CanActivate {
 
         return from(this.storage.get('initialization_complete')).pipe(
           map(initializationComplete => {
-            if (!initializationComplete) {
-              console.log('[AuthGuard] Not initialized, redirecting to initial-loading.');
-              // If not initialized and trying to access restricted area, redirect to initial-loading
+            if (!this.dbService.isReady() || !initializationComplete) {
+              console.log('[AuthGuard] DB not ready or not initialized, redirecting to initial-loading.');
               return this.router.createUrlTree(['/initial-loading']);
             }
             return true;
