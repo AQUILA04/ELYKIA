@@ -1,5 +1,6 @@
 /* ============================================================
-   AMENOUVEVE-YAVEH — Main JavaScript
+   AMENOUVEVE-YAVEH — Main JavaScript v2
+   "Alive" — Scroll animations, counters, 3D effects
    ============================================================ */
 
 (function () {
@@ -31,24 +32,24 @@
   if (navOverlay) navOverlay.addEventListener('click', closeMenu);
   navLinks.forEach(link => link.addEventListener('click', closeMenu));
 
-  // ── Header scroll shadow ───────────────────────────────────
+  // ── Header glassmorphism on scroll ─────────────────────────
   const header = document.getElementById('header');
   if (header) {
     window.addEventListener('scroll', () => {
-      if (window.scrollY > 10) {
-        header.style.background = 'rgba(247, 249, 251, 0.97)';
+      if (window.scrollY > 20) {
+        header.classList.add('scrolled');
       } else {
-        header.style.background = 'rgba(247, 249, 251, 0.88)';
+        header.classList.remove('scrolled');
       }
     }, { passive: true });
   }
 
   // ── Active nav link on scroll ──────────────────────────────
-  const sections = document.querySelectorAll('section[id]');
+  const sections    = document.querySelectorAll('section[id]');
   const allNavLinks = document.querySelectorAll('.nav__link[href^="#"]');
 
   function updateActiveLink() {
-    const scrollY = window.scrollY + 100;
+    const scrollY = window.scrollY + 120;
     sections.forEach(section => {
       const top    = section.offsetTop;
       const height = section.offsetHeight;
@@ -63,12 +64,105 @@
       }
     });
   }
-
   window.addEventListener('scroll', updateActiveLink, { passive: true });
 
+  // ── Smooth scroll for anchor links ────────────────────────
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      const target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // ── Scroll-driven Reveal Animations ───────────────────────
+  function initReveal() {
+    const revealEls     = document.querySelectorAll('.reveal');
+    const staggerGroups = document.querySelectorAll('.reveal-stagger');
+
+    if (!('IntersectionObserver' in window)) {
+      revealEls.forEach(el => el.classList.add('is-visible'));
+      staggerGroups.forEach(el => el.classList.add('is-visible'));
+      return;
+    }
+
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          revealObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    revealEls.forEach(el => revealObs.observe(el));
+
+    const staggerObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          staggerObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+
+    staggerGroups.forEach(el => staggerObs.observe(el));
+  }
+
+  initReveal();
+
+  // ── Animated Counters ─────────────────────────────────────
+  function animateCounter(el, target, duration) {
+    const start    = performance.now();
+    const isLarge  = target >= 100;
+
+    function update(now) {
+      const elapsed  = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease-out cubic
+      const eased    = 1 - Math.pow(1 - progress, 3);
+      const current  = Math.round(eased * target);
+      el.textContent = isLarge ? current.toLocaleString('fr-FR') : current;
+      if (progress < 1) requestAnimationFrame(update);
+      else el.textContent = isLarge ? target.toLocaleString('fr-FR') : target;
+    }
+    requestAnimationFrame(update);
+  }
+
+  function initCounters() {
+    const statNumbers = document.querySelectorAll('.stat-number[data-target]');
+    if (!statNumbers.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      statNumbers.forEach(el => {
+        el.textContent = el.dataset.target;
+      });
+      return;
+    }
+
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const target   = parseInt(entry.target.dataset.target, 10);
+          const duration = target >= 1000 ? 2000 : target >= 100 ? 1500 : 1000;
+          animateCounter(entry.target, target, duration);
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    statNumbers.forEach(el => obs.observe(el));
+  }
+
+  initCounters();
+
   // ── Impact Carousel ────────────────────────────────────────
-  const track  = document.getElementById('carousel-track');
-  const dots   = document.querySelectorAll('.impact__dot');
+  const track   = document.getElementById('carousel-track');
+  const dots    = document.querySelectorAll('.impact__dot');
   const prevBtn = document.getElementById('carousel-prev');
   const nextBtn = document.getElementById('carousel-next');
 
@@ -84,7 +178,7 @@
 
     function getSlideWidth() {
       const visible = getVisibleCount();
-      const gap = 24;
+      const gap     = 24;
       return (track.parentElement.offsetWidth - gap * (visible - 1)) / visible + gap;
     }
 
@@ -102,7 +196,7 @@
       autoTimer = setInterval(() => {
         const maxIndex = total - getVisibleCount();
         goTo(current >= maxIndex ? 0 : current + 1);
-      }, 4000);
+      }, 4500);
     }
 
     function stopAuto() {
@@ -158,44 +252,60 @@
       dot.addEventListener('click', () => { goToHeroSlide(i); resetHeroAuto(); });
     });
 
+    // Touch swipe on hero
+    let heroTouchX = 0;
+    heroSlider.addEventListener('touchstart', e => { heroTouchX = e.touches[0].clientX; }, { passive: true });
+    heroSlider.addEventListener('touchend', e => {
+      const diff = heroTouchX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 40) { goToHeroSlide(diff > 0 ? heroIndex + 1 : heroIndex - 1); resetHeroAuto(); }
+    });
+
     startHeroAuto();
   }
 
-  // ── Smooth scroll for anchor links ────────────────────────
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      const href = this.getAttribute('href');
-      if (href === '#') return;
-      const target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  });
-
-  // Fade-in on scroll
-  const animatedEls = document.querySelectorAll(
-    '.service-card, .product-card, .step-item, .testimonial-card, .recruitment__content, .recruitment__image'
-  );
-  if ('IntersectionObserver' in window) {
-    const obs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.style.opacity = '1';
-          e.target.style.transform = 'translateY(0)';
-          obs.unobserve(e.target);
-        }
+  // ── Product cards — 3D tilt on mouse move ─────────────────
+  function initTilt() {
+    const cards = document.querySelectorAll('.product-card');
+    cards.forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect   = card.getBoundingClientRect();
+        const x      = e.clientX - rect.left;
+        const y      = e.clientY - rect.top;
+        const cx     = rect.width  / 2;
+        const cy     = rect.height / 2;
+        const rotateX = ((y - cy) / cy) * -6;
+        const rotateY = ((x - cx) / cx) *  6;
+        card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-6px)`;
       });
-    }, { threshold: 0.05 });
-    animatedEls.forEach((el, i) => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(20px)';
-      el.style.transition = 'opacity 0.45s ease ' + Math.min(i*0.04,0.28) + 's, transform 0.45s ease ' + Math.min(i*0.04,0.28) + 's';
-      obs.observe(el);
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+        card.style.transition = 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease, border-color 0.4s ease';
+      });
+      card.addEventListener('mouseenter', () => {
+        card.style.transition = 'none';
+      });
     });
-  } else {
-    animatedEls.forEach(el => { el.style.opacity = '1'; el.style.transform = 'none'; });
+  }
+  initTilt();
+
+  // ── Notify button ─────────────────────────────────────────
+  const notifyBtn = document.getElementById('notify-btn');
+  if (notifyBtn) {
+    notifyBtn.addEventListener('click', () => {
+      notifyBtn.textContent = '✓ Vous serez notifié !';
+      notifyBtn.style.color = '#A8DADC';
+      notifyBtn.style.borderColor = 'rgba(168,218,220,0.4)';
+      notifyBtn.disabled = true;
+    });
+  }
+
+  // ── Parallax on hero visual ────────────────────────────────
+  const heroVisual = document.querySelector('.hero__image-wrapper');
+  if (heroVisual && window.innerWidth > 768) {
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY;
+      heroVisual.style.transform = `translateY(${scrollY * 0.06}px)`;
+    }, { passive: true });
   }
 
 })();
