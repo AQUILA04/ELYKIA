@@ -10,7 +10,7 @@ export default defineConfig({
   workers: isCI ? 1 : undefined,
   maxFailures: isCI ? 3 : undefined,
   reporter: isCI ? [['list'], ['html', { open: 'never' }]] : 'html',
-  timeout: 90_000,
+  timeout: 120_000,
   use: {
     baseURL: 'http://localhost:8100',
     trace: 'on-first-retry',

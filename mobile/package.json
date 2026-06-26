@@ -8,7 +8,7 @@
     "start": "ng serve",
     "start:e2e": "ng serve --port 8100 --host 0.0.0.0",
     "build:e2e": "ng build --configuration=development",
-    "serve:e2e:static": "http-server www -p 8100 -c-1 --silent",
+    "serve:e2e:static": "http-server www -p 8100 -c-1 --silent -P http://127.0.0.1:8100?",
     "start:e2e:ci": "npm run build:e2e && npm run serve:e2e:static",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
