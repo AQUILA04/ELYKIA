@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844" width="390" height="844" preserveAspectRatio="xMidYMid slice">
+  <defs>
+
+    <!-- ===== FONDS & DÉGRADÉS ===== -->
+
+    <!-- Fond navy principal -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#0D1B2A"/>
+      <stop offset="55%"  stop-color="#0F2035"/>
+      <stop offset="100%" stop-color="#0A1520"/>
+    </linearGradient>
+
+    <!-- Halo doré central (radial) -->
+    <radialGradient id="halo" cx="50%" cy="52%" r="48%">
+      <stop offset="0%"   stop-color="#C9922A" stop-opacity="0.28"/>
+      <stop offset="35%"  stop-color="#C9922A" stop-opacity="0.12"/>
+      <stop offset="65%"  stop-color="#C9922A" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#C9922A" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Halo bas (extension du glow vers le bas) -->
+    <radialGradient id="haloBottom" cx="50%" cy="80%" r="45%">
+      <stop offset="0%"   stop-color="#B8820A" stop-opacity="0.22"/>
+      <stop offset="50%"  stop-color="#B8820A" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#B8820A" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Dégradé doré métallique pour le cercle emblème -->
+    <linearGradient id="emblemRing" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%"   stop-color="#7A5C10"/>
+      <stop offset="20%"  stop-color="#C9922A"/>
+      <stop offset="40%"  stop-color="#F5D07A"/>
+      <stop offset="60%"  stop-color="#E8B84B"/>
+      <stop offset="80%"  stop-color="#C9922A"/>
+      <stop offset="100%" stop-color="#8B6914"/>
+    </linearGradient>
+
+    <!-- Dégradé doré pour le "E" calligraphique -->
+    <linearGradient id="letterE" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%"   stop-color="#F5D07A"/>
+      <stop offset="30%"  stop-color="#C9922A"/>
+      <stop offset="60%"  stop-color="#F0C66A"/>
+      <stop offset="100%" stop-color="#9A7020"/>
+    </linearGradient>
+
+    <!-- Dégradé pour le texte ELYKIA -->
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#FFFFFF"/>
+      <stop offset="40%"  stop-color="#F5EDD8"/>
+      <stop offset="100%" stop-color="#E8D5A8"/>
+    </linearGradient>
+
+    <!-- Dégradé barre de chargement -->
+    <linearGradient id="loadBar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#7A5C10"/>
+      <stop offset="30%"  stop-color="#C9922A"/>
+      <stop offset="60%"  stop-color="#F5D07A"/>
+      <stop offset="100%" stop-color="#C9922A"/>
+    </linearGradient>
+
+    <!-- Dégradé lignes grille -->
+    <linearGradient id="gridLine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#C9922A" stop-opacity="0.08"/>
+      <stop offset="50%"  stop-color="#F0C66A" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#C9922A" stop-opacity="0.06"/>
+    </linearGradient>
+
+    <!-- Halo de l'emblème (glow autour du cercle) -->
+    <radialGradient id="emblemGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="55%"  stop-color="#C9922A" stop-opacity="0"/>
+      <stop offset="75%"  stop-color="#C9922A" stop-opacity="0.20"/>
+      <stop offset="90%"  stop-color="#E8B84B" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#C9922A" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Filtre ombre douce pour le texte -->
+    <filter id="textGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Filtre ombre pour l'emblème -->
+    <filter id="emblemShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="4"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <clipPath id="clip"><rect width="390" height="844"/></clipPath>
+  </defs>
+
+  <!-- ===== FOND ===== -->
+  <rect width="390" height="844" fill="url(#bgGrad)"/>
+
+  <!-- ===== HALO CENTRAL ===== -->
+  <ellipse cx="195" cy="440" rx="280" ry="280" fill="url(#halo)"/>
+  <ellipse cx="195" cy="680" rx="240" ry="200" fill="url(#haloBottom)"/>
+
+  <!-- ===== GRILLE DE LOSANGES (haut) ===== -->
+  <g clip-path="url(#clip)" stroke="url(#gridLine)" stroke-width="0.9" fill="none">
+    <!-- Diagonales ↘ -->
+    <line x1="-100" y1="0"  x2="220" y2="320"/>
+    <line x1="-40"  y1="0"  x2="280" y2="320"/>
+    <line x1="20"   y1="0"  x2="340" y2="320"/>
+    <line x1="80"   y1="0"  x2="400" y2="320"/>
+    <line x1="140"  y1="0"  x2="460" y2="320"/>
+    <line x1="200"  y1="0"  x2="520" y2="320"/>
+    <line x1="260"  y1="0"  x2="580" y2="320"/>
+    <line x1="320"  y1="0"  x2="640" y2="320"/>
+    <line x1="380"  y1="0"  x2="700" y2="320"/>
+    <!-- Diagonales ↙ -->
+    <line x1="490"  y1="0"  x2="170" y2="320"/>
+    <line x1="430"  y1="0"  x2="110" y2="320"/>
+    <line x1="370"  y1="0"  x2="50"  y2="320"/>
+    <line x1="310"  y1="0"  x2="-10" y2="320"/>
+    <line x1="250"  y1="0"  x2="-70" y2="320"/>
+    <line x1="190"  y1="0"  x2="-130" y2="320"/>
+    <line x1="130"  y1="0"  x2="-190" y2="320"/>
+    <line x1="70"   y1="0"  x2="-250" y2="320"/>
+    <line x1="10"   y1="0"  x2="-310" y2="320"/>
+  </g>
+  <!-- Fondu bas de la grille -->
+  <defs>
+    <linearGradient id="gridFade" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#0D1B2A" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0D1B2A" stop-opacity="1"/>
+    </linearGradient>
+  </defs>
+  <rect width="390" height="320" fill="url(#gridFade)"/>
+
+  <!-- ===== EMBLÈME CERCLE ===== -->
+  <!-- Glow externe -->
+  <circle cx="195" cy="320" r="110" fill="url(#emblemGlow)"/>
+
+  <!-- Cercle fond navy foncé -->
+  <circle cx="195" cy="320" r="82" fill="#0A1828" filter="url(#emblemShadow)"/>
+
+  <!-- Anneau doré externe (double trait) -->
+  <circle cx="195" cy="320" r="82" fill="none" stroke="url(#emblemRing)" stroke-width="3.5"/>
+  <circle cx="195" cy="320" r="76" fill="none" stroke="url(#emblemRing)" stroke-width="1" opacity="0.5"/>
+
+  <!-- Lettre "E" calligraphique en SVG path (style script élégant) -->
+  <!--
+    Le "E" est tracé comme une lettre calligraphique cursive.
+    Centré sur (195, 320), hauteur ~90px.
+  -->
+  <g transform="translate(195, 320)" filter="url(#emblemShadow)">
+    <text
+      x="0" y="0"
+      text-anchor="middle"
+      dominant-baseline="central"
+      font-family="'Playfair Display', 'Cormorant Garamond', Georgia, serif"
+      font-size="88"
+      font-weight="700"
+      font-style="italic"
+      fill="url(#letterE)"
+      letter-spacing="-2"
+    >E</text>
+  </g>
+
+  <!-- ===== TEXTE ELYKIA ===== -->
+  <text
+    x="195" y="472"
+    text-anchor="middle"
+    font-family="'Playfair Display', 'Cormorant Garamond', Georgia, serif"
+    font-size="56"
+    font-weight="700"
+    letter-spacing="8"
+    fill="url(#titleGrad)"
+    filter="url(#textGlow)"
+  >ELYKIA</text>
+
+  <!-- ===== SOUS-TITRE "Espace Client" ===== -->
+  <text
+    x="195" y="510"
+    text-anchor="middle"
+    font-family="'DM Sans', 'Inter', Arial, sans-serif"
+    font-size="17"
+    font-weight="400"
+    letter-spacing="1.5"
+    fill="#C9922A"
+    opacity="0.9"
+  >Espace Client</text>
+
+  <!-- ===== SÉPARATEUR ===== -->
+  <line x1="165" y1="530" x2="225" y2="530" stroke="#C9922A" stroke-width="1" opacity="0.7"/>
+
+  <!-- ===== NOM SOCIÉTÉ "AMENOUVEVE-YAVEH" ===== -->
+  <text
+    x="195" y="554"
+    text-anchor="middle"
+    font-family="'DM Sans', 'Inter', Arial, sans-serif"
+    font-size="11"
+    font-weight="400"
+    letter-spacing="3.5"
+    fill="#C9922A"
+    opacity="0.75"
+  >AMENOUVEVE-YAVEH</text>
+
+  <!-- ===== BARRE DE CHARGEMENT ===== -->
+  <!-- Fond de la barre -->
+  <rect x="60" y="790" width="270" height="6" rx="3" fill="#1A2E42" opacity="0.8"/>
+  <!-- Barre de progression (animable via CSS/JS) -->
+  <rect x="60" y="790" width="270" height="6" rx="3" fill="url(#loadBar)" opacity="0.9"/>
+  <!-- Reflet sur la barre -->
+  <rect x="60" y="790" width="270" height="2.5" rx="1.5" fill="#F5D07A" opacity="0.35"/>
+
+</svg>
