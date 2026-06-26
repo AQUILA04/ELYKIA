@@ -1,0 +1,70 @@
+:host {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.elyk-field__box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 18px 14px 8px;
+  border: 1.5px solid var(--elyk-border);
+  border-radius: var(--elyk-radius-input);
+  background: var(--elyk-white);
+  transition: border-color 0.15s ease;
+
+  &:focus-within {
+    border-color: var(--elyk-gold);
+  }
+}
+
+.elyk-field--error .elyk-field__box {
+  border-color: var(--elyk-red);
+}
+
+.elyk-field__label {
+  position: absolute;
+  top: -9px;
+  left: 12px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--elyk-navy-mid);
+  background: var(--elyk-white);
+}
+
+.elyk-field__icon {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: var(--elyk-gold);
+}
+
+.elyk-field__input {
+  flex: 1;
+  min-width: 0;
+
+  ion-input,
+  ion-textarea {
+    --background: transparent;
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 0;
+    --padding-bottom: 0;
+    font-size: 15px;
+    color: var(--elyk-navy);
+  }
+}
+
+.elyk-field__error {
+  margin: 6px 4px 0;
+  font-size: 12px;
+  color: var(--elyk-red);
+}
+
+.elyk-field__hint {
+  margin: 6px 4px 0;
+  font-size: 12px;
+  color: var(--elyk-gray-text);
+}

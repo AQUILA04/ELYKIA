@@ -1,29 +1,51 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar><ion-buttons slot="start"><ion-back-button></ion-back-button></ion-buttons><ion-title>Paiement Mobile Money</ion-title></ion-toolbar>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-back-button></ion-back-button></ion-buttons>
+    <ion-title>Paiement Mobile Money</ion-title>
+  </ion-toolbar>
 </ion-header>
-<ion-content class="page-content" *ngIf="!isSubmitted">
+<ion-content class="page-content" *ngIf="!isSubmitted" data-testid="e2e-payment-page">
   <div class="page-inner">
-    <div class="info-box"><ion-icon name="information-circle-outline"></ion-icon><p>Effectuez d'abord votre transfert Mobile Money, puis renseignez les informations ci-dessous.</p></div>
+    <div class="info-box" *ngIf="expectedAmount > 0">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>Mise #{{ installmentNumber }} — montant attendu : {{ expectedAmount | number:'1.0-0' }} FCFA</p>
+    </div>
+    <div class="info-box">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>Effectuez d'abord votre transfert Mobile Money, puis renseignez les informations ci-dessous.</p>
+    </div>
     <form [formGroup]="form" (ngSubmit)="submit()">
-      <div class="field"><label>Numéro d'envoi</label><ion-input formControlName="mobileMoneyPhone" type="tel" placeholder="+229 XX XX XX XX"></ion-input></div>
-      <div class="field"><label>Montant envoyé (FCFA)</label><ion-input formControlName="mobileMoneyAmount" type="number" placeholder="Ex: 35 000"></ion-input></div>
-      <div class="field"><label>Référence du transfert</label><ion-input formControlName="mobileMoneyReference" type="text" placeholder="Ex: TXN-20260617-XXXX"></ion-input></div>
-      <div class="field"><label>Notes (optionnel)</label><ion-textarea formControlName="notes" rows="3" placeholder="Informations complémentaires..."></ion-textarea></div>
+      <div class="field">
+        <label>Numéro d'envoi</label>
+        <ion-input formControlName="mobileMoneyPhone" type="tel" data-testid="e2e-payment-phone" placeholder="+229 XX XX XX XX"></ion-input>
+      </div>
+      <div class="field">
+        <label>Montant envoyé (FCFA)</label>
+        <ion-input formControlName="mobileMoneyAmount" type="number" data-testid="e2e-payment-amount" placeholder="Ex: 35 000"></ion-input>
+      </div>
+      <div class="field">
+        <label>Référence du transfert</label>
+        <ion-input formControlName="mobileMoneyReference" type="text" data-testid="e2e-payment-reference" placeholder="Ex: TXN-20260617-XXXX"></ion-input>
+      </div>
+      <div class="field">
+        <label>Notes (optionnel)</label>
+        <ion-textarea formControlName="notes" rows="3" placeholder="Informations complémentaires..."></ion-textarea>
+      </div>
       <div class="error" *ngIf="error">{{ error }}</div>
-      <ion-button type="submit" expand="block" [disabled]="form.invalid || isLoading">
+      <ion-button type="submit" expand="block" class="elyk-btn-primary" data-testid="e2e-payment-submit" [disabled]="form.invalid || isLoading">
         <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
         <span *ngIf="!isLoading">Soumettre le paiement</span>
       </ion-button>
     </form>
   </div>
 </ion-content>
-<ion-content class="page-content ion-text-center" *ngIf="isSubmitted">
+<ion-content class="page-content ion-text-center" *ngIf="isSubmitted" data-testid="e2e-payment-success">
   <div class="success-wrapper">
     <div class="success-icon"><ion-icon name="checkmark-circle-outline"></ion-icon></div>
     <h2>Paiement soumis !</h2>
     <p>Votre paiement est en attente de validation par l'agence.</p>
     <div class="status-badge">INITIÉ</div>
-    <p class="info-text">L'agence va vérifier votre transfert et valider le paiement. Vous serez notifié dès la validation.</p>
-    <ion-button expand="block" routerLink="/dashboard">Retour à l'accueil</ion-button>
+    <p class="info-text">L'agence va vérifier votre transfert et valider le paiement.</p>
+    <ion-button expand="block" class="elyk-btn-primary" (click)="goHome()">Retour à l'accueil</ion-button>
   </div>
 </ion-content>

@@ -1,5 +1,15 @@
 import { Page } from '@playwright/test';
-import { jsonResponse, MOCK_DASHBOARD, MOCK_SESSION } from './mock-customer-api';
+import {
+  jsonResponse,
+  MOCK_ARTICLES,
+  MOCK_DASHBOARD,
+  MOCK_ORDER_RESPONSE,
+  MOCK_PURCHASE_DETAIL,
+  MOCK_PURCHASE_ID,
+  MOCK_PURCHASES,
+  MOCK_RECOVERIES,
+  MOCK_SESSION,
+} from './mock-customer-api';
 
 /** Remplit l'input natif d'un ion-input identifié par data-testid. */
 export async function fillIonTestId(page: Page, testId: string, value: string): Promise<void> {
@@ -42,6 +52,42 @@ export async function mockCustomerApi(page: Page): Promise<void> {
       return;
     }
 
+    if (url.match(/\/purchases\/[^/]+\/recoveries$/) && method === 'GET') {
+      await route.fulfill(jsonResponse(MOCK_RECOVERIES));
+      return;
+    }
+
+    if (url.match(/\/purchases\/[^/]+$/) && method === 'GET') {
+      await route.fulfill(jsonResponse(MOCK_PURCHASE_DETAIL));
+      return;
+    }
+
+    if (url.endsWith('/purchases') && method === 'GET') {
+      await route.fulfill(jsonResponse(MOCK_PURCHASES));
+      return;
+    }
+
+    if (url.includes('/articles') && method === 'GET') {
+      await route.fulfill(jsonResponse(MOCK_ARTICLES));
+      return;
+    }
+
+    if (url.endsWith('/orders') && method === 'POST') {
+      await route.fulfill(jsonResponse(MOCK_ORDER_RESPONSE));
+      return;
+    }
+
+    if (url.includes('/recoveries/mobile-money') && method === 'POST') {
+      await route.fulfill(jsonResponse({
+        id: 'mm-1',
+        installmentNumber: 3,
+        amount: 35_000,
+        paymentDate: '2026-06-18',
+        status: 'INITIE',
+      }));
+      return;
+    }
+
     await route.fulfill(jsonResponse({ message: 'Not mocked' }, 404));
   });
 }
@@ -54,3 +100,21 @@ export async function loginAsCustomer(page: Page): Promise<void> {
     localStorage.setItem('elykia_customer_session', JSON.stringify(s));
   }, session);
 }
+
+/** Parcours première connexion : téléphone sans PIN configuré. */
+export async function mockNewCustomerAuth(page: Page): Promise<void> {
+  await mockCustomerApi(page);
+  await page.route('**/api/customer/auth/check-phone', async (route) => {
+    if (route.request().method() === 'POST') {
+      await route.fulfill(jsonResponse({
+        exists: true,
+        pinConfigured: false,
+        maskedName: 'Marie A.',
+      }));
+    } else {
+      await route.continue();
+    }
+  });
+}
+
+export { MOCK_PURCHASE_ID };

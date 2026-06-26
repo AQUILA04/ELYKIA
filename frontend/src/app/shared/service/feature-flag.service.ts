@@ -17,6 +17,7 @@ export enum FeatureFlags {
   MonthlyReports = 'monthlyReports',
   PrintReceiptAfterSale = 'printReceiptAfterSale',
   DualCreditAuthorization = 'dualCreditAuthorization',
+  ElykiaAi = 'elykiaAi',
 }
 
 const REMOTE_CONFIG_FETCH_TIMEOUT_MS = 10_000;
@@ -34,6 +35,7 @@ export class FeatureFlagService {
     [FeatureFlags.MonthlyReports]: false,
     [FeatureFlags.PrintReceiptAfterSale]: false,
     [FeatureFlags.DualCreditAuthorization]: false,
+    [FeatureFlags.ElykiaAi]: false,
   };
 
   private flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);

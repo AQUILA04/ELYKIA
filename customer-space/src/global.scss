@@ -54,6 +54,15 @@ html, body {
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 
+// ─── Toolbar standard (écrans Type B : listes, détails, formulaires) ───
+
+ion-header.ion-no-border ion-toolbar.elyk-toolbar-plain {
+  --background: var(--elyk-white);
+  --color: var(--elyk-navy);
+  box-shadow: 0 2px 8px rgba(13, 27, 42, 0.06);
+  padding-top: env(safe-area-inset-top);
+}
+
 ion-header ion-toolbar {
   --background: var(--elyk-white);
   --color: var(--elyk-navy);
@@ -66,6 +75,8 @@ ion-title {
   font-weight: 600;
 }
 
+// ─── Cartes ───
+
 .elyk-card {
   background: var(--elyk-white);
   border-radius: var(--elyk-radius);
@@ -73,19 +84,111 @@ ion-title {
   padding: 16px;
 }
 
-.elyk-btn-primary {
-  --background: var(--elyk-gold);
-  --border-radius: var(--elyk-radius-btn);
-  --box-shadow: none;
-  font-weight: 600;
+.elyk-overlap-card {
+  background: var(--elyk-white);
+  border-radius: var(--elyk-radius-card);
+  box-shadow: var(--elyk-shadow-lg);
+  padding: 28px 24px;
+  margin-top: var(--elyk-card-overlap);
+  position: relative;
+  z-index: 2;
 }
 
-.section-title {
+// ─── Boutons (2 variants maquette) ───
+
+.elyk-btn-gold,
+.elyk-btn-primary {
+  --background: var(--elyk-gold);
+  --background-activated: #b38325;
+  --background-hover: #d09d3f;
+  --border-radius: var(--elyk-radius-btn);
+  --box-shadow: none;
+  --color: #ffffff;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.elyk-btn-navy {
+  --background: var(--elyk-navy);
+  --background-activated: #0a1520;
+  --background-hover: var(--elyk-navy-mid);
+  --border-radius: var(--elyk-radius-btn);
+  --box-shadow: var(--elyk-shadow-btn);
+  --color: #ffffff;
+  --border-width: 1px;
+  --border-style: solid;
+  --border-color: var(--elyk-gold);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.elyk-btn-outline {
+  --background: transparent;
+  --background-activated: rgba(13, 27, 42, 0.06);
+  --border-radius: var(--elyk-radius-btn);
+  --border-width: 1.5px;
+  --border-style: solid;
+  --border-color: var(--elyk-border);
+  --color: var(--elyk-navy);
+  font-weight: 600;
+  text-transform: none;
+}
+
+// ─── Typographie utilitaire ───
+
+.elyk-title-serif {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  color: var(--elyk-navy);
+  margin: 0;
+}
+
+.elyk-subtitle {
+  font-size: 13px;
+  color: var(--elyk-gray-text);
+  margin: 0;
+}
+
+.elyk-section-title {
   font-size: 15px;
   font-weight: 700;
   color: var(--elyk-navy);
   margin: 0 0 12px;
 }
+
+// Alias historique
+.section-title {
+  @extend .elyk-section-title;
+}
+
+// ─── Layout page avec header décoratif (Type A) ───
+
+.elyk-page-decor {
+  --background: var(--elyk-cream);
+
+  .elyk-page-decor__body {
+    padding: 0 16px 24px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+}
+
+.elyk-page-footer-hint {
+  text-align: center;
+  font-size: 13px;
+  color: var(--elyk-gray-text);
+  margin-top: 20px;
+  padding: 0 16px;
+
+  a {
+    color: var(--elyk-gold);
+    text-decoration: none;
+    font-weight: 600;
+  }
+}
+
+// ─── États ───
 
 .center-spinner {
   display: block;
@@ -124,4 +227,3 @@ ion-title {
 .elyk-animate {
   animation: elykFadeUp 0.35s ease both;
 }
-

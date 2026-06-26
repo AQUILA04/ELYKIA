@@ -1,0 +1,11 @@
+<div class="elyk-field" [class.elyk-field--error]="!!error">
+  <div class="elyk-field__box">
+    <span class="elyk-field__label">{{ label }}</span>
+    <ion-icon *ngIf="icon" class="elyk-field__icon" [name]="icon"></ion-icon>
+    <div class="elyk-field__input">
+      <ng-content></ng-content>
+    </div>
+  </div>
+  <p class="elyk-field__error" *ngIf="error">{{ error }}</p>
+  <p class="elyk-field__hint" *ngIf="hint && !error">{{ hint }}</p>
+</div>

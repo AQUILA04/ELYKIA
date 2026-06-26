@@ -21,7 +21,9 @@ export class AppComponent implements OnInit {
     const duration = isE2eMode() ? 0 : 1800;
     setTimeout(() => {
       this.showSplash = false;
-      if (this.session.isAuthenticated) {
+      if (!this.session.isAuthenticated) return;
+      const path = window.location.pathname.replace(/\/$/, '') || '/';
+      if (path === '/' || path === '/auth') {
         void this.router.navigateByUrl('/dashboard', { replaceUrl: true });
       }
     }, duration);

@@ -1,18 +1,26 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar><ion-buttons slot="start"><ion-back-button defaultHref="/dashboard"></ion-back-button></ion-buttons><ion-title>Nouvelle Commande</ion-title>
-    <ion-buttons slot="end"><ion-button routerLink="/cart"><ion-icon name="cart-outline"></ion-icon><ion-badge *ngIf="cartCount > 0" color="danger">{{ cartCount }}</ion-badge></ion-button></ion-buttons>
+  <ion-toolbar>
+    <ion-title>Nouvelle Commande</ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/cart" data-testid="e2e-catalog-cart-btn">
+        <ion-icon name="cart-outline"></ion-icon>
+        <ion-badge *ngIf="cartCount > 0" color="danger">{{ cartCount }}</ion-badge>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
-  <ion-toolbar><ion-searchbar placeholder="Rechercher un produit..." (ionInput)="onSearch($event)" debounce="400"></ion-searchbar></ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar placeholder="Rechercher un produit..." (ionInput)="onSearch($event)" debounce="400" data-testid="e2e-catalog-search"></ion-searchbar>
+  </ion-toolbar>
 </ion-header>
-<ion-content class="page-content">
+<ion-content class="page-content" data-testid="e2e-catalog-page">
   <div class="page-inner" *ngIf="!isLoading">
     <div class="article-grid">
-      <div class="article-card" *ngFor="let a of articles">
+      <div class="article-card" *ngFor="let a of articles" [attr.data-testid]="'e2e-catalog-article-' + a.id">
         <div class="ac-img"><ion-icon name="cube-outline"></ion-icon></div>
         <div class="ac-name">{{ a.name }}</div>
         <div class="ac-price">{{ a.creditSalePrice | number:'1.0-0' }} FCFA</div>
         <div class="ac-actions">
-          <ion-button size="small" fill="outline" (click)="add(a.id)">+ Ajouter</ion-button>
+          <ion-button size="small" fill="outline" (click)="add(a)" [attr.data-testid]="'e2e-catalog-add-' + a.id">+ Ajouter</ion-button>
           <span class="ac-qty" *ngIf="qty(a.id) > 0">× {{ qty(a.id) }}</span>
         </div>
       </div>
@@ -20,3 +28,4 @@
   </div>
   <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
 </ion-content>
+<app-customer-tab-bar></app-customer-tab-bar>

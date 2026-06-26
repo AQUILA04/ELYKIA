@@ -4,31 +4,31 @@ overview: Plan de développement des écrans S-01 à S-11 de customer-space (Ang
 todos:
   - id: skill-testing
     content: "Créer .cursor/skills/customer-space-testing/SKILL.md (+ e2e-conventions.md) : DoD unit+E2E obligatoire par feature"
-    status: pending
+    status: completed
   - id: infra-playwright
     content: Initialiser Playwright dans customer-space (config, fixtures mock API, scripts npm, environment.e2e)
-    status: pending
+    status: completed
   - id: infra-karma-ci
     content: Configurer Karma headless + workflow découplé .github/workflows/ci-customer-space.yml (n'intègre pas ci.yml ni cd.yml)
-    status: pending
+    status: completed
   - id: phase-shell-auth
     content: "Phase 1-2 : navigation/tabs, splash S-01, finaliser auth S-02 + tests unit/E2E complets"
-    status: pending
+    status: completed
   - id: phase-dashboard
     content: "Phase 3 : dashboard S-03 aligné maquette + credit-progress-card + tests"
-    status: pending
+    status: completed
   - id: phase-purchases
     content: "Phase 4 : achats S-04/05/06 (templates, recovery-pills) + E2E purchases-flow"
-    status: pending
+    status: completed
   - id: phase-payment
     content: "Phase 5 : paiement S-07/08 (préremplissage, validation) + E2E mobile-money"
-    status: pending
+    status: completed
   - id: phase-order
     content: "Phase 6 : CartService + catalog/cart/order S-09/10/11 + E2E order-flow"
-    status: pending
+    status: completed
   - id: phase-profile-capacitor
     content: "Phase 7-8 : profil, logout, capacitor.config Android, README"
-    status: pending
+    status: completed
 isProject: false
 ---
 

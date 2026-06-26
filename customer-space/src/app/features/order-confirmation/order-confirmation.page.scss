@@ -1,0 +1,23 @@
+.page-content { --background: var(--elyk-cream, #faf6ee); }
+ion-toolbar { --background: #fff; --color: var(--elyk-navy, #0d1b2a); }
+.success-wrapper {
+  padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.success-icon { font-size: 80px; color: var(--elyk-gold, #c9922a); }
+h2 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--elyk-navy, #0d1b2a); margin: 0; }
+p { font-size: 13px; color: var(--elyk-gray-text, #64748b); text-align: center; line-height: 1.6; margin: 0; }
+.status-badge {
+  background: #fff7ed;
+  color: var(--elyk-orange, #f97316);
+  border: 1.5px solid var(--elyk-orange, #f97316);
+  border-radius: 20px;
+  padding: 6px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.elyk-btn-primary { --border-radius: 12px; --background: var(--elyk-gold, #c9922a); font-weight: 600; width: 100%; margin-top: 8px; }

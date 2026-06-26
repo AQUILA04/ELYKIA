@@ -1,0 +1,82 @@
+{
+  "domains": [
+    {
+      "id": "credit",
+      "keywords": ["crédit", "credit", "vente", "chiffre", "ca", "dossier"],
+      "examples": [
+        {
+          "question": "Quel est le chiffre du jour en crédit ?",
+          "sql": "SELECT COALESCE(SUM(total_amount), 0) AS chiffre_jour FROM credit WHERE date_reg = CURRENT_DATE AND type = 'CREDIT' LIMIT 500"
+        },
+        {
+          "question": "Combien de crédits sont en cours ?",
+          "sql": "SELECT COUNT(*) AS nb_credits_en_cours FROM credit WHERE status = 'INPROGRESS' LIMIT 500"
+        },
+        {
+          "question": "Top 5 commerciaux par ventes ce mois",
+          "sql": "SELECT collector, SUM(total_amount) AS ca FROM credit WHERE date_reg >= date_trunc('month', CURRENT_DATE) AND type = 'CREDIT' GROUP BY collector ORDER BY ca DESC LIMIT 5"
+        }
+      ]
+    },
+    {
+      "id": "recouvrement",
+      "keywords": ["recouvrement", "mise", "paiement", "versement", "timeline", "encaissement"],
+      "examples": [
+        {
+          "question": "Quel est mon recouvrement du mois ?",
+          "sql": "SELECT COALESCE(SUM(amount), 0) AS recouvrement_mois FROM credit_timeline WHERE date_reg >= date_trunc('month', CURRENT_DATE) LIMIT 500"
+        },
+        {
+          "question": "Recouvrement du jour par commercial",
+          "sql": "SELECT collector, COALESCE(SUM(amount), 0) AS recouvrement FROM credit_timeline WHERE date_reg = CURRENT_DATE GROUP BY collector ORDER BY recouvrement DESC LIMIT 500"
+        },
+        {
+          "question": "Nombre de mises enregistrées cette semaine",
+          "sql": "SELECT COUNT(*) AS nb_mises FROM credit_timeline WHERE date_reg >= date_trunc('week', CURRENT_DATE) LIMIT 500"
+        }
+      ]
+    },
+    {
+      "id": "tontine",
+      "keywords": ["tontine", "cotisation", "session", "membre", "livraison"],
+      "examples": [
+        {
+          "question": "Combien de sessions tontine actives ?",
+          "sql": "SELECT COUNT(*) AS sessions_actives FROM tontine_session WHERE status = 'ACTIVE' LIMIT 500"
+        },
+        {
+          "question": "Total des cotisations tontine du mois",
+          "sql": "SELECT COALESCE(SUM(amount), 0) AS cotisations_mois FROM tontine_collection WHERE date_reg >= date_trunc('month', CURRENT_DATE) LIMIT 500"
+        }
+      ]
+    },
+    {
+      "id": "stock",
+      "keywords": ["stock", "article", "inventaire", "demande", "retour"],
+      "examples": [
+        {
+          "question": "Articles en rupture de stock",
+          "sql": "SELECT name, quantity FROM articles WHERE quantity <= 0 LIMIT 500"
+        },
+        {
+          "question": "Demandes de stock en attente",
+          "sql": "SELECT id, commercial_username, status, created_at FROM stock_request WHERE status = 'PENDING' ORDER BY created_at DESC LIMIT 500"
+        }
+      ]
+    },
+    {
+      "id": "rapports",
+      "keywords": ["rapport", "journalier", "kpi", "snapshot", "analytics"],
+      "examples": [
+        {
+          "question": "Rapports journaliers commerciaux du mois",
+          "sql": "SELECT commercial_username, report_date, total_sales_amount, total_collection_amount FROM daily_commercial_report WHERE report_date >= date_trunc('month', CURRENT_DATE) ORDER BY report_date DESC LIMIT 500"
+        },
+        {
+          "question": "CA total des snapshots business du mois",
+          "sql": "SELECT COALESCE(SUM(total_sales), 0) AS ca_mois FROM daily_business_snapshot WHERE snapshot_date >= date_trunc('month', CURRENT_DATE) LIMIT 500"
+        }
+      ]
+    }
+  ]
+}

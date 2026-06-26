@@ -1,0 +1,40 @@
+<aside class="conversation-sidebar">
+  <div class="sidebar-header">
+    <h2>Discussions</h2>
+    <button type="button" class="btn-new" (click)="onNew()" [disabled]="loading">
+      <mat-icon>add</mat-icon>
+      Nouvelle
+    </button>
+  </div>
+
+  <div class="sidebar-list" *ngIf="!loading && conversations.length > 0">
+    <button
+      type="button"
+      class="session-item"
+      *ngFor="let session of conversations"
+      [class.active]="session.id === activeId"
+      (click)="onSelect(session.id)"
+    >
+      <span class="session-title">{{ session.title || 'Discussion' }}</span>
+      <span class="session-date">{{ formatDate(session.updatedAt) }}</span>
+      <button
+        type="button"
+        class="btn-delete"
+        aria-label="Supprimer"
+        (click)="onDelete($event, session.id)"
+      >
+        <mat-icon>delete_outline</mat-icon>
+      </button>
+    </button>
+  </div>
+
+  <div class="sidebar-empty" *ngIf="!loading && conversations.length === 0">
+    <mat-icon>forum</mat-icon>
+    <p>Aucune discussion pour le moment.</p>
+    <p class="hint">Démarrez une nouvelle conversation pour poser vos questions.</p>
+  </div>
+
+  <div class="sidebar-loading" *ngIf="loading">
+    <mat-spinner diameter="32"></mat-spinner>
+  </div>
+</aside>

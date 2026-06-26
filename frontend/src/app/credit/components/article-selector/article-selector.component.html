@@ -1,6 +1,6 @@
-<div [formGroup]="articleForm" data-testid="e2e-article-selector">
-  <div formArrayName="articles" class="article-selector">
-    <div *ngFor="let articleCtrl of articlesArray.controls; let i = index" [formGroupName]="i" class="article-group"
+<div class="elykia-article-selector" [formGroup]="articleForm" data-testid="e2e-article-selector">
+  <div formArrayName="articles" class="article-rows">
+    <div *ngFor="let articleCtrl of articlesArray.controls; let i = index" [formGroupName]="i" class="article-row"
       [class.simple-layout]="!shouldShowPriceColumns()" [class.stock-exceeded]="validateStock && isStockExceeded(i)"
       [class.with-validation]="validateStock">
 
@@ -14,27 +14,26 @@
             <div class="selected-article">
               {{ item.commercialName }}
               <span *ngIf="showStock" class="stock-badge" [ngClass]="getStockClass(item.id)">
-                Stock: {{ item.stockQuantity || 0 }}
+                Stock : {{ item.stockQuantity || 0 }}
               </span>
             </div>
           </ng-template>
 
           <ng-template ng-option-tmp let-item="item">
             <div class="article-option">
-              <div class="option-title">{{ item.commercialName + ' | ' + item.name }}</div>
+              <div class="option-title">{{ item.commercialName || item.name }}{{ item.name && item.commercialName !== item.name ? ' | ' + item.name : '' }}</div>
               <small class="option-details">
-                Marque: {{ item.marque }} | Modèle: {{ item.model }}
+                Marque : {{ item.marque }} · Modèle : {{ item.model }}
                 <span *ngIf="showStock" class="stock-info" [ngClass]="getStockClass(item.id)">
-                  | Stock: {{ item.stockQuantity || 0 }}
+                  · Stock : {{ item.stockQuantity || 0 }}
                 </span>
               </small>
             </div>
           </ng-template>
         </ng-select>
-
-        <mat-error *ngIf="articleCtrl.get('articleId')?.invalid && articleCtrl.get('articleId')?.touched">
+        <span class="field-error" *ngIf="articleCtrl.get('articleId')?.invalid && articleCtrl.get('articleId')?.touched">
           L'article est requis.
-        </mat-error>
+        </span>
       </div>
 
       <div class="form-field quantity-field">
@@ -42,55 +41,57 @@
         <div class="quantity-input-wrapper">
           <input [id]="'quantity-' + i" type="number" formControlName="quantity" [readonly]="readonly"
             [attr.data-testid]="'e2e-article-quantity-' + i"
-            class="form-control" [class.stock-warning]="validateStock && isStockExceeded(i)">
+            class="field-input field-mono" min="1"
+            [class.stock-warning]="validateStock && isStockExceeded(i)">
 
           <span *ngIf="showStock && articleCtrl.get('articleId')?.value" class="stock-indicator"
             [ngClass]="getStockClass(articleCtrl.get('articleId')?.value)">
             / {{ getArticleStock(articleCtrl.get('articleId')?.value) }}
           </span>
         </div>
-
-        <mat-error *ngIf="articleCtrl.get('quantity')?.hasError('required') && articleCtrl.get('quantity')?.touched">
+        <span class="field-error" *ngIf="articleCtrl.get('quantity')?.hasError('required') && articleCtrl.get('quantity')?.touched">
           La quantité est requise.
-        </mat-error>
-        <mat-error *ngIf="articleCtrl.get('quantity')?.hasError('min') && articleCtrl.get('quantity')?.touched">
+        </span>
+        <span class="field-error" *ngIf="articleCtrl.get('quantity')?.hasError('min') && articleCtrl.get('quantity')?.touched">
           La quantité doit être supérieure à zéro.
-        </mat-error>
-        <mat-error *ngIf="articleCtrl.get('quantity')?.hasError('stockExceeded')">
-          Stock insuffisant ! Disponible: {{ articleCtrl.get('quantity')?.errors?.['stockExceeded'].available }}
-        </mat-error>
+        </span>
+        <span class="field-error" *ngIf="articleCtrl.get('quantity')?.hasError('stockExceeded')">
+          Stock insuffisant — disponible : {{ articleCtrl.get('quantity')?.errors?.['stockExceeded'].available }}
+        </span>
       </div>
 
-      <!-- Colonnes de prix - affichées conditionnellement -->
       <div class="form-field price-field" *ngIf="shouldShowPriceColumns()">
         <label>Prix unitaire</label>
-        <div class="price-display">
-          {{ getArticlePrice(articleCtrl.get('articleId')?.value) | currency }}
+        <div class="price-display field-mono">
+          {{ getArticlePrice(articleCtrl.get('articleId')?.value) | number:'1.0-0' }} FCFA
         </div>
       </div>
 
       <div class="form-field subtotal-field" *ngIf="shouldShowPriceColumns()">
         <label>Sous-total</label>
-        <div class="subtotal-display">
-          {{ getLineTotal(i) | currency }}
+        <div class="subtotal-display field-mono">
+          {{ getLineTotal(i) | number:'1.0-0' }} FCFA
         </div>
       </div>
 
-      <button *ngIf="!readonly" type="button" class="btn btn-remove" (click)="deleteArticle(i)"
-        [disabled]="articlesArray.length === 1">
-        <mat-icon>remove_circle</mat-icon>
+      <button *ngIf="!readonly" type="button" class="btn-row-remove" (click)="deleteArticle(i)"
+        [disabled]="articlesArray.length === 1" [attr.aria-label]="'Retirer la ligne ' + (i + 1)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 0 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 0 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+        </svg>
       </button>
     </div>
 
-    <button *ngIf="!readonly" type="button" class="btn btn-add" (click)="addArticle()" data-testid="e2e-article-add-btn">
-      <mat-icon>add_circle</mat-icon>
-      <span>Ajouter un article</span>
+    <button *ngIf="!readonly" type="button" class="btn-add-row" (click)="addArticle()" data-testid="e2e-article-add-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+      </svg>
+      Ajouter un article
     </button>
 
-    <!-- Affichage du montant total - seulement si on affiche les prix -->
-    <div class="total-section" *ngIf="shouldShowPriceColumns()">
-      <div class="total-label">Montant Total</div>
-      <div class="total-amount">{{ totalAmount | currency }}</div>
+    <div class="total-bar" *ngIf="shouldShowPriceColumns()">
+      <span class="total-label">Montant total</span>
+      <span class="total-value field-mono">{{ totalAmount | number:'1.0-0' }} FCFA</span>
     </div>
   </div>
 </div>

@@ -19,7 +19,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Slf4j
 @SpringBootApplication(scanBasePackages = "com.optimize" )
 @EnableJpaRepositories(basePackages = {"com.optimize.elykia", "com.optimize.common.securities"},repositoryFactoryBeanClass = EnversRevisionRepositoryFactoryBean.class)
-@ConfigurationPropertiesScan({"com.optimize.elykia.core.config"})
+@ConfigurationPropertiesScan({"com.optimize.elykia.core.config", "com.optimize.elykia.core.ai.config"})
 @EnableJpaAuditing(auditorAwareRef = "auditorProvider")
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 @EnableScheduling

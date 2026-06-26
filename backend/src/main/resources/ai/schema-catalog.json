@@ -1,0 +1,361 @@
+{
+  "tables": [
+    {
+      "name": "credit",
+      "description": "Vente à crédit — une ligne par opération crédit",
+      "synonyms": ["vente", "crédit", "dossier"],
+      "rowLevelFilter": "collector",
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "total_amount", "type": "double", "description": "Montant total du crédit", "synonyms": ["chiffre", "CA", "montant"] },
+        { "name": "total_amount_paid", "type": "double", "description": "Montant déjà payé" },
+        { "name": "total_amount_remaining", "type": "double", "description": "Solde restant" },
+        { "name": "collector", "type": "varchar", "description": "Commercial collecteur (username)" },
+        { "name": "date_reg", "type": "date", "description": "Date d'enregistrement" },
+        { "name": "status", "type": "varchar", "description": "INPROGRESS, SETTLED, etc." },
+        { "name": "type", "type": "varchar", "description": "CREDIT, CASH, etc." },
+        { "name": "client_type", "type": "varchar", "description": "CLIENT ou PROMOTER" },
+        { "name": "client_id", "type": "bigint", "description": "FK client" }
+      ],
+      "relations": [
+        { "column": "client_id", "refTable": "client", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "credit_timeline",
+      "description": "Table de recouvrement — chaque ligne = un paiement/mise sur un crédit",
+      "synonyms": ["recouvrement", "mise", "paiement", "versement", "timeline"],
+      "rowLevelFilter": "collector",
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "credit_id", "type": "bigint", "description": "FK vers credit.id" },
+        { "name": "amount", "type": "double", "description": "Montant de la mise", "synonyms": ["mise", "recouvrement"] },
+        { "name": "collector", "type": "varchar", "description": "Commercial ayant encaissé" },
+        { "name": "date_reg", "type": "date", "description": "Date du paiement" },
+        { "name": "total_amount_remaining", "type": "double", "description": "Solde restant après ce paiement" }
+      ],
+      "relations": [
+        { "column": "credit_id", "refTable": "credit", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "credit_articles",
+      "description": "Lignes d'articles d'un crédit",
+      "synonyms": ["articles vendus"],
+      "columns": [
+        { "name": "credit_id", "type": "bigint" },
+        { "name": "articles_id", "type": "bigint" },
+        { "name": "quantity", "type": "integer" },
+        { "name": "unit_price", "type": "double" }
+      ]
+    },
+    {
+      "name": "client",
+      "description": "Clients",
+      "synonyms": ["client"],
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "firstname", "type": "varchar" },
+        { "name": "lastname", "type": "varchar" },
+        { "name": "phone", "type": "varchar" },
+        { "name": "collector", "type": "varchar" }
+      ]
+    },
+    {
+      "name": "articles",
+      "description": "Catalogue articles",
+      "synonyms": ["produit", "article"],
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "name", "type": "varchar" },
+        { "name": "purchase_price", "type": "double" },
+        { "name": "credit_sale_price", "type": "double" },
+        { "name": "stock_quantity", "type": "integer" }
+      ]
+    },
+    {
+      "name": "tontine_session",
+      "description": "Session annuelle tontine",
+      "synonyms": ["session tontine"],
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "year", "type": "integer" },
+        { "name": "status", "type": "varchar" }
+      ]
+    },
+    {
+      "name": "tontine_member",
+      "description": "Membre inscrit à une session tontine",
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "session_id", "type": "bigint" },
+        { "name": "client_id", "type": "bigint" },
+        { "name": "total_contribution", "type": "double" }
+      ]
+    },
+    {
+      "name": "tontine_collection",
+      "description": "Collecte/mise tontine",
+      "synonyms": ["collecte tontine"],
+      "rowLevelFilter": "collector",
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "member_id", "type": "bigint" },
+        { "name": "amount", "type": "double" },
+        { "name": "collector", "type": "varchar" },
+        { "name": "date_reg", "type": "date" }
+      ]
+    },
+    {
+      "name": "daily_commercial_report",
+      "description": "Rapport journalier consolidé par commercial (ventes, recouvrements, stock, tontine, versements)",
+      "synonyms": ["rapport journalier", "rapport commercial", "TFJ"],
+      "rowLevelFilter": "commercial_username",
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "date", "type": "date", "description": "Date du rapport" },
+        { "name": "commercial_username", "type": "varchar", "synonyms": ["commercial", "collecteur"] },
+        { "name": "total_stock_request_amount", "type": "double", "description": "Montant demandes stock crédit", "synonyms": ["stock sorti"] },
+        { "name": "total_tontine_stock_request_amount", "type": "double", "description": "Montant demandes stock tontine" },
+        { "name": "credit_sales_count", "type": "integer" },
+        { "name": "credit_sales_amount", "type": "double", "synonyms": ["CA crédit", "ventes crédit"] },
+        { "name": "credit_sales_margin", "type": "double", "description": "Marge ventes crédit" },
+        { "name": "stock_request_margin", "type": "double", "description": "Marge sur sorties stock" },
+        { "name": "collections_count", "type": "integer" },
+        { "name": "collections_amount", "type": "double", "synonyms": ["recouvrement jour"] },
+        { "name": "orders_count", "type": "integer" },
+        { "name": "orders_amount", "type": "double" },
+        { "name": "tontine_collections_count", "type": "integer" },
+        { "name": "tontine_collections_amount", "type": "double" },
+        { "name": "tontine_deliveries_count", "type": "integer" },
+        { "name": "tontine_deliveries_amount", "type": "double" },
+        { "name": "total_amount_to_deposit", "type": "double", "synonyms": ["recettes", "à verser"] },
+        { "name": "total_amount_deposited", "type": "double", "synonyms": ["versé", "versement caisse"] },
+        { "name": "total_credit_amount_deposited", "type": "double" },
+        { "name": "total_tontine_amount_deposited", "type": "double" },
+        { "name": "total_new_balance_amount_deposited", "type": "double" },
+        { "name": "total_surplus_amount_deposited", "type": "double" },
+        { "name": "total_advances_amount", "type": "double" },
+        { "name": "recovery_manager_collections_amount", "type": "double" }
+      ]
+    },
+    {
+      "name": "cash_deposit",
+      "description": "Versement caisse effectué par un commercial (billetage + répartition crédit/tontine/solde)",
+      "synonyms": ["versement caisse", "dépôt caisse", "billetage"],
+      "rowLevelFilter": "commercial_username",
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "date", "type": "date" },
+        { "name": "commercial_username", "type": "varchar", "synonyms": ["commercial"] },
+        { "name": "amount", "type": "double", "description": "Montant total versé" },
+        { "name": "credit_amount", "type": "double", "description": "Part affectée au crédit" },
+        { "name": "tontine_amount", "type": "double", "description": "Part affectée à la tontine" },
+        { "name": "new_balance_amount", "type": "double", "description": "Part nouveaux soldes comptes" },
+        { "name": "surplus_amount", "type": "double", "description": "Surplus billetage" },
+        { "name": "billetage", "type": "text", "description": "JSON coupures billets" },
+        { "name": "reference", "type": "varchar" },
+        { "name": "received_by", "type": "varchar" },
+        { "name": "daily_report_id", "type": "bigint", "description": "FK daily_commercial_report" }
+      ],
+      "relations": [
+        { "column": "daily_report_id", "refTable": "daily_commercial_report", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "stock_request",
+      "description": "Demande de sortie stock magasin vers un commercial",
+      "synonyms": ["demande stock", "sortie stock", "bon de sortie"],
+      "rowLevelFilter": "collector",
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "reference", "type": "varchar" },
+        { "name": "collector", "type": "varchar", "synonyms": ["commercial"] },
+        { "name": "month", "type": "integer" },
+        { "name": "year", "type": "integer" },
+        { "name": "request_date", "type": "date" },
+        { "name": "validation_date", "type": "date" },
+        { "name": "delivery_date", "type": "date", "synonyms": ["date livraison"] },
+        { "name": "accounting_date", "type": "date" },
+        { "name": "total_credit_sale_price", "type": "double", "description": "Valeur vente crédit totale" },
+        { "name": "total_purchase_price", "type": "double", "description": "Valeur achat totale" },
+        { "name": "status", "type": "varchar", "description": "CREATED, VALIDATED, DELIVERED, CANCELLED, REFUSED" }
+      ]
+    },
+    {
+      "name": "stock_request_item",
+      "description": "Ligne article d'une demande de stock",
+      "synonyms": ["ligne demande stock"],
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "stock_request_id", "type": "bigint" },
+        { "name": "article_id", "type": "bigint" },
+        { "name": "quantity", "type": "integer" },
+        { "name": "unit_price", "type": "double", "description": "Prix vente crédit unitaire" },
+        { "name": "purchase_price", "type": "double" },
+        { "name": "item_name", "type": "varchar" }
+      ],
+      "relations": [
+        { "column": "stock_request_id", "refTable": "stock_request", "refColumn": "id" },
+        { "column": "article_id", "refTable": "articles", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "stock_return",
+      "description": "Retour de stock du commercial vers le magasin",
+      "synonyms": ["retour stock", "retour marchandise"],
+      "rowLevelFilter": "collector",
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "reference", "type": "varchar" },
+        { "name": "collector", "type": "varchar", "synonyms": ["commercial"] },
+        { "name": "target_stock_id", "type": "bigint", "description": "FK commercial_monthly_stock cible" },
+        { "name": "note", "type": "varchar" },
+        { "name": "return_date", "type": "date" },
+        { "name": "received_date", "type": "date" },
+        { "name": "target_stock_date", "type": "date" },
+        { "name": "status", "type": "varchar", "description": "CREATED, RECEIVED, CANCELLED, REFUSED" }
+      ],
+      "relations": [
+        { "column": "target_stock_id", "refTable": "commercial_monthly_stock", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "stock_return_item",
+      "description": "Ligne article d'un retour stock",
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "stock_return_id", "type": "bigint" },
+        { "name": "stock_item_id", "type": "bigint", "description": "FK commercial_monthly_stock_item" },
+        { "name": "article_id", "type": "bigint" },
+        { "name": "quantity", "type": "integer" },
+        { "name": "unit_price", "type": "double" }
+      ],
+      "relations": [
+        { "column": "stock_return_id", "refTable": "stock_return", "refColumn": "id" },
+        { "column": "article_id", "refTable": "articles", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "commercial_monthly_stock",
+      "description": "Stock mensuel d'un commercial (inventaire terrain par mois)",
+      "synonyms": ["stock commercial", "stock mensuel"],
+      "rowLevelFilter": "collector",
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "collector", "type": "varchar", "synonyms": ["commercial"] },
+        { "name": "month", "type": "integer" },
+        { "name": "year", "type": "integer" },
+        { "name": "status", "type": "varchar", "description": "ACTIVE, etc." }
+      ]
+    },
+    {
+      "name": "commercial_monthly_stock_item",
+      "description": "Détail stock mensuel par article chez le commercial",
+      "synonyms": ["ligne stock commercial", "stock article commercial"],
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "monthly_stock_id", "type": "bigint", "description": "FK commercial_monthly_stock" },
+        { "name": "article_id", "type": "bigint" },
+        { "name": "quantity_taken", "type": "integer", "description": "Quantité sortie magasin" },
+        { "name": "quantity_sold", "type": "integer", "description": "Quantité vendue/distribuée" },
+        { "name": "quantity_returned", "type": "integer", "description": "Quantité retournée magasin" },
+        { "name": "quantity_remaining", "type": "integer", "synonyms": ["stock restant", "reliquat stock"] },
+        { "name": "weighted_average_unit_price", "type": "double" },
+        { "name": "weighted_average_purchase_price", "type": "double" },
+        { "name": "total_sold_value", "type": "double", "synonyms": ["valeur vendue"] },
+        { "name": "total_marge_value", "type": "double", "synonyms": ["marge stock"] },
+        { "name": "last_unit_price", "type": "double" },
+        { "name": "last_purchase_price", "type": "double" }
+      ],
+      "relations": [
+        { "column": "monthly_stock_id", "refTable": "commercial_monthly_stock", "refColumn": "id" },
+        { "column": "article_id", "refTable": "articles", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "commercial_stock_movement",
+      "description": "Mouvement de stock commercial (vente crédit, cash, entrée, retour, ajustement)",
+      "synonyms": ["mouvement stock", "sortie stock vente"],
+      "rowLevelFilter": "collector",
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "stock_item_id", "type": "bigint", "description": "FK commercial_monthly_stock_item" },
+        { "name": "article_id", "type": "bigint" },
+        { "name": "collector", "type": "varchar", "synonyms": ["commercial"] },
+        { "name": "movement_type", "type": "varchar", "description": "CREDIT_SALE, CASH_SALE, STOCK_IN, RETURN, ADJUSTMENT" },
+        { "name": "quantity_before", "type": "integer" },
+        { "name": "quantity_moved", "type": "integer" },
+        { "name": "quantity_after", "type": "integer" },
+        { "name": "operation_date", "type": "timestamp" },
+        { "name": "credit_id", "type": "bigint" },
+        { "name": "credit_reference", "type": "varchar" },
+        { "name": "stock_return_id", "type": "bigint" },
+        { "name": "unit_purchase_price", "type": "double" },
+        { "name": "unit_sale_price", "type": "double" },
+        { "name": "margin_amount", "type": "double" },
+        { "name": "source_type", "type": "varchar" },
+        { "name": "source_id", "type": "bigint" }
+      ],
+      "relations": [
+        { "column": "stock_item_id", "refTable": "commercial_monthly_stock_item", "refColumn": "id" },
+        { "column": "article_id", "refTable": "articles", "refColumn": "id" },
+        { "column": "credit_id", "refTable": "credit", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "article_history",
+      "description": "Historique des mouvements stock magasin central (entrées, sorties, retours, reset)",
+      "synonyms": ["historique stock magasin", "mouvement stock central"],
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "articles_id", "type": "bigint", "description": "FK articles" },
+        { "name": "operation_type", "type": "varchar", "description": "ENTREE, SORTIE, RETURN, RESET, INVENTORY_ADJUSTMENT" },
+        { "name": "initial_quantity", "type": "integer" },
+        { "name": "operation_quantity", "type": "integer" },
+        { "name": "final_quantity", "type": "integer" },
+        { "name": "operation_date", "type": "date" },
+        { "name": "operation_user", "type": "varchar" }
+      ],
+      "relations": [
+        { "column": "articles_id", "refTable": "articles", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "sales_analytics_daily",
+      "description": "Agrégation BI ventes journalières",
+      "columns": [
+        { "name": "date", "type": "date" },
+        { "name": "collector", "type": "varchar" },
+        { "name": "total_amount", "type": "double" },
+        { "name": "sales_count", "type": "integer" }
+      ]
+    },
+    {
+      "name": "collection_analytics_daily",
+      "description": "Agrégation BI recouvrement journalier",
+      "columns": [
+        { "name": "date", "type": "date" },
+        { "name": "collector", "type": "varchar" },
+        { "name": "total_collected", "type": "double" }
+      ]
+    }
+  ],
+  "views": [
+    { "name": "credit_distribution_view", "description": "Vue agrégée distributions promoteur" }
+  ],
+  "businessRules": [
+    "Le chiffre du jour (ventes crédit) = SUM(credit.total_amount) WHERE date_reg = CURRENT_DATE AND type = 'CREDIT'",
+    "Le recouvrement d'un crédit = lignes dans credit_timeline (amount, date_reg, collector) — PAS la table recovery",
+    "SUM(credit_timeline.amount) = montant recouvré sur une période",
+    "Stock commercial mensuel : commercial_monthly_stock (collector, month, year) + lignes commercial_monthly_stock_item",
+    "quantity_remaining = quantity_taken - quantity_sold - quantity_returned sur commercial_monthly_stock_item",
+    "Demande sortie magasin = stock_request + stock_request_item ; livraison effective quand status = DELIVERED",
+    "Retour terrain = stock_return + stock_return_item vers commercial_monthly_stock",
+    "Mouvements terrain détaillés = commercial_stock_movement lié à stock_item_id et optionnellement credit_id",
+    "Stock magasin central = articles.stock_quantity ; historique = article_history (ENTREE/SORTIE/RETURN)",
+    "Versements caisse = cash_deposit lié à daily_commercial_report via daily_report_id",
+    "Pour filtrer stock commercial d'un user PROMOTER : utiliser collector ou commercial_username selon la table",
+    "Toujours filtrer visibility = 'ENABLED' si la colonne existe"
+  ]
+}

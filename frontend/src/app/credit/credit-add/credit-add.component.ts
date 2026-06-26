@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AlertService } from 'src/app/shared/service/alert.service';
@@ -20,7 +20,8 @@ import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature
 @Component({
   selector: 'app-credit-add',
   templateUrl: './credit-add.component.html',
-  styleUrls: ['./credit-add.component.scss']
+  styleUrls: ['./credit-add.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CreditAddComponent implements OnInit, OnDestroy {
   creditForm!: FormGroup;
@@ -237,6 +238,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
         this.articles = items.map(item => ({
           id: item.articleId,
           commercialName: item.commercialName,
+          name: item.commercialName || item.name || '',
           sellingPrice: item.sellingPrice,
           creditSalePrice: item.creditSalePrice,
           stockQuantity: item.quantityRemaining,

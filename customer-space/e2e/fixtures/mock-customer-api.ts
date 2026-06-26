@@ -27,15 +27,82 @@ export const MOCK_DASHBOARD = {
       date: '2026-06-17',
       status: 'VALIDE',
     },
+  ],
+};
+
+export const MOCK_PURCHASE_ID = '101';
+
+export const MOCK_PURCHASES = [
+  {
+    id: MOCK_PURCHASE_ID,
+    reference: 'CRD-2026-0101',
+    totalAmount: 350_000,
+    paidAmount: 120_000,
+    remainingAmount: 230_000,
+    dailyPayment: 35_000,
+    startDate: '2026-01-15',
+    endDate: '2026-12-15',
+    status: 'LIVRE',
+    articleCount: 2,
+    items: [],
+    recoveries: [],
+    installmentCount: 12,
+    paidInstallmentCount: 4,
+    lateInstallmentCount: 0,
+    initiatedInstallmentCount: 1,
+  },
+];
+
+export const MOCK_PURCHASE_DETAIL = {
+  ...MOCK_PURCHASES[0],
+  items: [
     {
-      id: '2',
-      type: 'ORDER',
-      label: 'Commande CMD-2026-001',
-      amount: 85_000,
-      date: '2026-06-10',
-      status: 'INITIE',
+      articleId: 'a1',
+      articleName: 'Téléviseur 32"',
+      quantity: 1,
+      unitPrice: 200_000,
+      totalPrice: 200_000,
+    },
+    {
+      articleId: 'a2',
+      articleName: 'Réfrigérateur',
+      quantity: 1,
+      unitPrice: 150_000,
+      totalPrice: 150_000,
     },
   ],
+};
+
+export const MOCK_RECOVERIES = [
+  { id: 'r1', installmentNumber: 1, amount: 35_000, paymentDate: '2026-02-01', status: 'VALIDE' },
+  { id: 'r2', installmentNumber: 2, amount: 35_000, paymentDate: '2026-03-01', status: 'VALIDE' },
+  { id: 'r3', installmentNumber: 3, amount: 35_000, paymentDate: '2026-04-01', status: 'INITIE' },
+  { id: 'r4', installmentNumber: 4, amount: 35_000, paymentDate: '2026-05-01', status: 'RETARD' },
+];
+
+export const MOCK_ARTICLES = [
+  {
+    id: 'art-1',
+    name: 'Mixeur électrique',
+    category: 'Électroménager',
+    creditSalePrice: 45_000,
+    available: true,
+  },
+  {
+    id: 'art-2',
+    name: 'Ventilateur',
+    category: 'Électroménager',
+    creditSalePrice: 28_000,
+    available: true,
+  },
+];
+
+export const MOCK_ORDER_RESPONSE = {
+  orderId: 'ord-99',
+  reference: 'CMD-2026-0099',
+  status: 'INITIE',
+  totalAmount: 73_000,
+  createdAt: '2026-06-18T12:00:00',
 };
 
 export function jsonResponse(body: unknown, status = 200) {

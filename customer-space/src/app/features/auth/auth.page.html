@@ -51,12 +51,12 @@
         <div class="field">
           <label>Code reçu par SMS</label>
           <ion-input formControlName="otp" type="text" inputmode="numeric"
-            maxlength="6" placeholder="123456"></ion-input>
+            maxlength="6" placeholder="123456" data-testid="e2e-auth-otp-input"></ion-input>
         </div>
         <div id="recaptcha-container"></div>
         <div class="error" *ngIf="error">{{ error }}</div>
         <ion-button type="submit" expand="block" class="elyk-btn-primary"
-          [disabled]="otpForm.invalid || isLoading">
+          [disabled]="otpForm.invalid || isLoading" data-testid="e2e-auth-otp-submit">
           <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading">Vérifier</span>
         </ion-button>
@@ -67,16 +67,16 @@
         <div class="field">
           <label>Nouveau code PIN</label>
           <ion-input formControlName="pin" type="password" inputmode="numeric"
-            maxlength="6" placeholder="••••"></ion-input>
+            maxlength="6" placeholder="••••" data-testid="e2e-auth-setup-pin-input"></ion-input>
         </div>
         <div class="field">
           <label>Confirmer le PIN</label>
           <ion-input formControlName="confirmPin" type="password" inputmode="numeric"
-            maxlength="6" placeholder="••••"></ion-input>
+            maxlength="6" placeholder="••••" data-testid="e2e-auth-setup-pin-confirm"></ion-input>
         </div>
         <div class="error" *ngIf="error">{{ error }}</div>
         <ion-button type="submit" expand="block" class="elyk-btn-primary"
-          [disabled]="setupPinForm.invalid || isLoading">
+          [disabled]="setupPinForm.invalid || isLoading" data-testid="e2e-auth-setup-pin-submit">
           <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading">Activer mon compte</span>
         </ion-button>

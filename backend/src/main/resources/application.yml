@@ -3,6 +3,55 @@ spring:
     active: prod
   application:
     name: optimize-elykia-core
+  ai:
+    # Auto-config Spring AI pilotée par elykia.ai.provider (AiProviderEnvironmentPostProcessor).
+    # Par défaut : aucun modèle cloud (stub Elykia) — pas de clé API requise.
+    model:
+      chat: none
+      embedding: none
+      image: none
+      moderation: none
+      audio:
+        speech: none
+        transcription: none
+    ollama:
+      enabled: false
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: qwen2.5-coder:7b
+          temperature: 0.1
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+      chat:
+        options:
+          model: claude-sonnet-4-20250514
+          temperature: 0.1
+          max-tokens: 4096
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: gpt-4o
+          temperature: 0.1
+          max-tokens: 4096
+    vertex:
+      ai:
+        gemini:
+          project-id: ${GOOGLE_CLOUD_PROJECT:}
+          location: ${GOOGLE_CLOUD_LOCATION:us-central1}
+          chat:
+            options:
+              model: gemini-2.0-flash
+              temperature: 0.1
+              max-output-tokens: 4096
+    deepseek:
+      api-key: ${DEEPSEEK_API_KEY:}
+      chat:
+        options:
+          model: deepseek-chat
+          temperature: 0.1
+          max-tokens: 4096
 
   # Configuration Flyway pour la gestion des migrations de base de données
   flyway:
@@ -39,10 +88,10 @@ security:
       ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY,
       ROLE_EDIT_ARTICLE,ROLE_EDIT_ACCOUNT,ROLE_EDIT_CLIENT,ROLE_OPEN_ACCOUNTING_DAY,ROLE_CLOSE_ACCOUNTING_DAY,ROLE_EDIT_LOCALITY,ROLE_SHOW_PURCHASE_PRICE,ROLE_DEL_ACCOUNT,
       ROLE_DEL_CLIENT,ROLE_DEL_LOCALITY,ROLE_CONSULT_DASHBOARD,ROLE_VALIDATE_CREDIT,ROLE_DEL_TONTINE,ROLE_REPORT,ROLE_STOREKEEPER_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY
-      ROLE_PROMOTER,ROLE_RECOVERY_MANAGER,ROLE_RATTRAPAGE,ROLE_CONSULT_ORDER,ROLE_EDIT_ORDER,ROLE_DEL_ORDER,ROLE_ROOT,ROLE_STOCK_MANAGEMENT,ROLE_CONSULT_TONTINE_COLLECTION_RESET,ROLE_RESET_TONTINE_COLLECTIONS,ROLE_CANCEL_TONTINE_COLLECTION,ROLE_CLIENT
+      ROLE_PROMOTER,ROLE_RECOVERY_MANAGER,ROLE_RATTRAPAGE,ROLE_CONSULT_ORDER,ROLE_EDIT_ORDER,ROLE_DEL_ORDER,ROLE_ROOT,ROLE_STOCK_MANAGEMENT,ROLE_CONSULT_TONTINE_COLLECTION_RESET,ROLE_RESET_TONTINE_COLLECTIONS,ROLE_CANCEL_TONTINE_COLLECTION,ROLE_CLIENT,ROLE_AI_CHAT,ROLE_AI_REPORT
     profil-permissions:
       SUPER_ADMIN: ROLE_ADMIN,ROLE_ROOT
-      ADMIN: ROLE_ADMIN,ROLE_CONSULT_TONTINE_COLLECTION_RESET,ROLE_RESET_TONTINE_COLLECTIONS,ROLE_CANCEL_TONTINE_COLLECTION
+      ADMIN: ROLE_ADMIN,ROLE_CONSULT_TONTINE_COLLECTION_RESET,ROLE_RESET_TONTINE_COLLECTIONS,ROLE_CANCEL_TONTINE_COLLECTION,ROLE_AI_CHAT,ROLE_AI_REPORT
       USER: ROLE_USER
       PROMOTER: ROLE_CONSULT_CLIENT,ROLE_CONSULT_LOCALITY,ROLE_CONSULT_CREDIT,ROLE_CONSULT_TONTINE,ROLE_CONSULT_ACCOUNT,ROLE_EDIT_CLIENT,ROLE_EDIT_ACCOUNT,
         ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,
@@ -51,7 +100,7 @@ security:
         ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY,
         ROLE_EDIT_ARTICLE,ROLE_EDIT_ACCOUNT,ROLE_EDIT_CLIENT,ROLE_OPEN_ACCOUNTING_DAY,ROLE_CLOSE_ACCOUNTING_DAY,ROLE_EDIT_LOCALITY,ROLE_SHOW_PURCHASE_PRICE,ROLE_DEL_ACCOUNT,
         ROLE_DEL_CLIENT,ROLE_DEL_LOCALITY,ROLE_CONSULT_DASHBOARD,ROLE_VALIDATE_CREDIT,ROLE_DEL_TONTINE,ROLE_REPORT,ROLE_STOREKEEPER_DASHBOARD,ROLE_STOREKEEPER,
-        ROLE_CREATE_INVENTORY,ROLE_RECONCILE_INVENTORY,ROLE_FINALIZE_INVENTORY,ROLE_RATTRAPAGE,ROLE_CONSULT_ORDER,ROLE_EDIT_ORDER,ROLE_CONSULT_TONTINE_COLLECTION_RESET
+        ROLE_CREATE_INVENTORY,ROLE_RECONCILE_INVENTORY,ROLE_FINALIZE_INVENTORY,ROLE_RATTRAPAGE,ROLE_CONSULT_ORDER,ROLE_EDIT_ORDER,ROLE_CONSULT_TONTINE_COLLECTION_RESET,ROLE_AI_CHAT,ROLE_AI_REPORT
       STOREKEEPER: ROLE_STOREKEEPER,ROLE_STOREKEEPER_DASHBOARD,ROLE_CREATE_INVENTORY,ROLE_STOCK_MANAGEMENT
       SECRETARY: ROLE_CONSULT_CLIENT,ROLE_CONSULT_LOCALITY,ROLE_CONSULT_CREDIT,ROLE_CONSULT_TONTINE,ROLE_CONSULT_ACCOUNT,
         ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY,
@@ -389,3 +438,30 @@ springdoc:
 logging:
   file:
     path: ${user.home}/.${spring.application.name}/logs
+
+# Elykia IA — providers : stub | ollama | anthropic | openai | gemini | deepseek
+# Voir backend/docs/AI_ASSISTANT.md pour la configuration détaillée.
+elykia:
+  ai:
+    enabled: true
+    provider: stub
+    model: qwen2.5-coder:7b
+    max-tokens: 4096
+    rate-limit-per-user-per-minute: 15
+    rate-limit-per-user-per-day: 20
+    rate-limit-per-user-per-week: 120
+    conversation:
+      max-history-messages: 20
+      retention-days: 90
+    sql:
+      max-rows: 500
+      timeout-seconds: 10
+      max-retries: 2
+      expose-sql-to-user: false
+      examples-path: classpath:ai/sql-examples.json
+      max-few-shot-examples: 3
+    help:
+      user-guide-index-path: classpath:ai/user-guide-index.json
+      top-k-chunks: 5
+      embedding-search-enabled: false
+      embedding-model: nomic-embed-text

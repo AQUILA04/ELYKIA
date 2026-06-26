@@ -1,119 +1,150 @@
 <ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
 
-<div class="container">
-  <div class="form-header">
-    <h1>{{ creditId ? 'Modifier une vente' : 'Ajouter une vente' }}</h1>
+<div class="main-container credit-form-page a1">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/credit-list" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Liste des ventes
+      </a>
+    </div>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">GESTION DES VENTES</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <h1 class="page-title">{{ creditId ? 'Modifier une vente' : 'Nouvelle vente' }}</h1>
+        </div>
+      </div>
+      <p class="page-subtitle">Enregistrement crédit ou comptant — client, articles et avance éventuelle</p>
+    </div>
   </div>
 
-  <form [formGroup]="creditForm" (ngSubmit)="onSubmit()" data-testid="e2e-credit-add-form">
+  <div class="page-scroll-body">
+    <div class="form-card a3">
+      <form [formGroup]="creditForm" (ngSubmit)="onSubmit()" class="credit-form" data-testid="e2e-credit-add-form">
 
-    <!-- Toggle Type de Vente -->
-    <div class="sale-type-toggle">
-      <div class="btn-group btn-group-toggle" data-toggle="buttons">
-        <label class="btn btn-outline-primary" [class.active]="saleType === 'CREDIT'">
-          <input type="radio" formControlName="saleType" value="CREDIT"> Crédit
-        </label>
-        <label class="btn btn-outline-primary" [class.active]="saleType === 'CASH'">
-          <input type="radio" formControlName="saleType" value="CASH" data-testid="e2e-credit-sale-type-cash"> Comptant
-        </label>
-      </div>
-    </div>
-
-    <!-- Sélection Commercial (Visible uniquement en mode Crédit) -->
-    <div class="form-group" *ngIf="saleType === 'CREDIT'">
-      <label for="commercial">Commercial <span class="text-danger">*</span></label>
-      <ng-select id="commercial" formControlName="commercial" [items]="commercials" bindLabel="username"
-        data-testid="e2e-credit-commercial"
-        bindValue="username" [searchFn]="searchCommercial" (change)="onCommercialChange()"
-        placeholder="Sélectionner un commercial" [clearable]="false">
-        <ng-template ng-option-tmp let-item="item">
-          <div class="commercial-option">
-            <strong>{{ item.username }}</strong>
-            <span class="commercial-name">{{ item.firstname }} {{ item.lastname }}</span>
+        <div class="form-section">
+          <h3 class="form-section-title">Type de vente</h3>
+          <div class="segment-toggle sale-type-toggle" role="group" aria-label="Type de vente">
+            <label class="segment-btn" [class.active]="saleType === 'CREDIT'">
+              <input type="radio" formControlName="saleType" value="CREDIT"> Crédit
+            </label>
+            <label class="segment-btn" [class.active]="saleType === 'CASH'">
+              <input type="radio" formControlName="saleType" value="CASH" data-testid="e2e-credit-sale-type-cash"> Comptant
+            </label>
           </div>
-        </ng-template>
-      </ng-select>
-      <mat-error *ngIf="creditForm.get('commercial')?.invalid && creditForm.get('commercial')?.touched">
-        Le commercial est requis pour une vente à crédit.
-      </mat-error>
-    </div>
+        </div>
 
-    <div class="form-group">
-      <label for="clientId">Client<span class="text-danger">*</span></label>
-      <ng-select id="clientId" formControlName="clientId" [items]="clients" bindLabel="firstname" bindValue="id"
-        data-testid="e2e-credit-client"
-        [searchFn]="searchClient" placeholder="Rechercher et sélectionner un client" notFoundText="Aucun client trouvé">
-        <ng-template ng-label-tmp let-item="item">
-          {{ item.firstname }} {{ item.lastname }}
-        </ng-template>
-        <ng-template ng-option-tmp let-item="item">
-          <div>{{ item.firstname }} {{ item.lastname }}</div>
-        </ng-template>
-      </ng-select>
-      <mat-error *ngIf="creditForm.get('clientId')?.invalid && creditForm.get('clientId')?.touched">
-        Le client est requis.
-      </mat-error>
-    </div>
+        <div class="form-section">
+          <h3 class="form-section-title">Informations</h3>
+          <div class="form-grid">
+            <div class="form-field form-field-full" *ngIf="saleType === 'CREDIT'">
+              <label for="commercial">Commercial <span class="required">*</span></label>
+              <ng-select id="commercial" formControlName="commercial" [items]="commercials" bindLabel="username"
+                data-testid="e2e-credit-commercial"
+                bindValue="username" [searchFn]="searchCommercial" (change)="onCommercialChange()"
+                placeholder="Sélectionner un commercial" [clearable]="false">
+                <ng-template ng-option-tmp let-item="item">
+                  <div class="commercial-option">
+                    <strong>{{ item.username }}</strong>
+                    <span class="commercial-name">{{ item.firstname }} {{ item.lastname }}</span>
+                  </div>
+                </ng-template>
+              </ng-select>
+              <span class="field-error" *ngIf="creditForm.get('commercial')?.invalid && creditForm.get('commercial')?.touched">
+                Le commercial est requis pour une vente à crédit.
+              </span>
+            </div>
 
-    <div class="form-group" *ngIf="showCreditPurposeSelector">
-      <label>Finalité du crédit</label>
-      <div class="btn-group btn-group-toggle" data-toggle="buttons">
-        <label class="btn btn-outline-secondary" [class.active]="creditForm.get('creditPurpose')?.value === 'PERSONAL'">
-          <input type="radio" formControlName="creditPurpose" value="PERSONAL"> Personnel
-        </label>
-        <label class="btn btn-outline-secondary" [class.active]="creditForm.get('creditPurpose')?.value === 'BUSINESS'">
-          <input type="radio" formControlName="creditPurpose" value="BUSINESS"> Professionnel
-        </label>
-      </div>
-    </div>
+            <div class="form-field form-field-full">
+              <label for="clientId">Client <span class="required">*</span></label>
+              <ng-select id="clientId" formControlName="clientId" [items]="clients" bindLabel="firstname" bindValue="id"
+                data-testid="e2e-credit-client"
+                [searchFn]="searchClient" placeholder="Rechercher et sélectionner un client" notFoundText="Aucun client trouvé">
+                <ng-template ng-label-tmp let-item="item">
+                  {{ item.firstname }} {{ item.lastname }}
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                  <div>{{ item.firstname }} {{ item.lastname }}</div>
+                </ng-template>
+              </ng-select>
+              <span class="field-error" *ngIf="creditForm.get('clientId')?.invalid && creditForm.get('clientId')?.touched">
+                Le client est requis.
+              </span>
+            </div>
 
-    <!-- Utilisation du nouveau composant réutilisable -->
-    <div class="form-group">
-      <label>Articles<span class="text-danger">*</span></label>
-      <app-article-selector formControlName="articles" [articles]="articles"
-        [priceType]="saleType === 'CREDIT' ? 'credit' : 'inventory'" [showPrices]="true" [showStock]="true"
-        (totalAmountChange)="onTotalAmountChange($event)" [validateStock]="true">
-      </app-article-selector>
-      <mat-error *ngIf="creditForm.get('articles')?.invalid && creditForm.get('articles')?.touched">
-        Au moins un article doit être sélectionné.
-      </mat-error>
-    </div>
+            <div class="form-field form-field-full" *ngIf="showCreditPurposeSelector">
+              <label>Finalité du crédit</label>
+              <div class="segment-toggle segment-toggle-secondary" role="group" aria-label="Finalité du crédit">
+                <label class="segment-btn" [class.active]="creditForm.get('creditPurpose')?.value === 'PERSONAL'">
+                  <input type="radio" formControlName="creditPurpose" value="PERSONAL"> Personnel
+                </label>
+                <label class="segment-btn" [class.active]="creditForm.get('creditPurpose')?.value === 'BUSINESS'">
+                  <input type="radio" formControlName="creditPurpose" value="BUSINESS"> Professionnel
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <div class="form-group" *ngIf="saleType === 'CREDIT'">
-      <label for="advance">Avance (Optionnel)</label>
-      <input id="advance" type="number" formControlName="advance" class="form-control" />
-      <mat-error *ngIf="creditForm.get('advance')?.invalid && creditForm.get('advance')?.touched">
-        L'avance doit être un nombre positif.
-      </mat-error>
-    </div>
+        <div class="form-section">
+          <h3 class="form-section-title">Articles <span class="required">*</span></h3>
+          <app-article-selector formControlName="articles" [articles]="articles"
+            [priceType]="saleType === 'CREDIT' ? 'credit' : 'inventory'" [showPrices]="true" [showStock]="true"
+            (totalAmountChange)="onTotalAmountChange($event)" [validateStock]="true">
+          </app-article-selector>
+          <span class="field-error" *ngIf="creditForm.get('articles')?.invalid && creditForm.get('articles')?.touched">
+            Au moins un article doit être sélectionné.
+          </span>
+        </div>
 
-    <div class="actions">
-      <button type="button" class="btn btn-cancel" (click)="onCancel()" [disabled]="isLoading">
-        Annuler
-      </button>
-      <button type="submit" class="btn btn-submit" [disabled]="creditForm.invalid || isLoading" data-testid="e2e-credit-submit">
-        {{ isLoading ? 'En cours...' : 'Valider' }}
-      </button>
-    </div>
-  </form>
+        <div class="form-section" *ngIf="saleType === 'CREDIT'">
+          <h3 class="form-section-title">Paiement initial</h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="advance">Avance (optionnel)</label>
+              <input id="advance" type="number" formControlName="advance" class="field-input field-mono" min="0" />
+              <span class="field-error" *ngIf="creditForm.get('advance')?.invalid && creditForm.get('advance')?.touched">
+                L'avance doit être un nombre positif.
+              </span>
+            </div>
+          </div>
+        </div>
 
-  <!-- Modal pour Aperçu Reçu -->
-  <div class="modal-overlay" *ngIf="showReceiptModal">
-    <div class="modal-container receipt-modal-container">
-      <div class="modal-header">
+        <div class="form-actions">
+          <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="isLoading">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="creditForm.invalid || isLoading" data-testid="e2e-credit-submit">
+            {{ isLoading ? 'En cours…' : 'Valider la vente' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="receipt-modal-overlay" *ngIf="showReceiptModal">
+    <div class="receipt-modal-container">
+      <div class="receipt-modal-header">
         <h2>Aperçu du reçu</h2>
-        <button class="close-btn" (click)="closeReceiptModal()">
+        <button type="button" class="receipt-modal-close" (click)="closeReceiptModal()" aria-label="Fermer">
           <mat-icon>close</mat-icon>
         </button>
       </div>
-      
-      <div class="modal-body receipt-modal-body">
+
+      <div class="receipt-modal-body">
         <div id="print-receipt-content" class="receipt-paper">
           <div class="receipt-header">
             <h1 class="company-name">AMENOUVEVE-YAVEH</h1>
-            <p class="company-details">
-              REÇU DE DISTRIBUTION
-            </p>
+            <p class="company-details">REÇU DE DISTRIBUTION</p>
           </div>
 
           <hr class="receipt-divider">
@@ -163,13 +194,13 @@
               <span>TOTAL :</span>
               <span class="total-val">{{ receiptData.totalAmount | number:'1.0-0' }} FCFA</span>
             </div>
-            
+
             <ng-container *ngIf="receiptData.saleType === 'CREDIT'">
               <div class="totals-row stake-row">
                 <span>MISE JOURNALIÈRE :</span>
                 <span>{{ receiptData.dailyStake | number:'1.0-0' }} FCFA</span>
               </div>
-              <div class="row totals-row">
+              <div class="totals-row">
                 <span>AVANCE :</span>
                 <span>{{ receiptData.advance | number:'1.0-0' }} FCFA</span>
               </div>
@@ -181,7 +212,7 @@
           </div>
 
           <hr class="receipt-divider">
-          
+
           <div class="receipt-footer">
             <p>Merci pour votre confiance!</p>
             <p *ngIf="receiptData.saleType === 'CREDIT'">Payez régulièrement vos mises</p>
@@ -189,15 +220,15 @@
           </div>
         </div>
       </div>
-      
-      <div class="modal-actions receipt-modal-actions">
-        <button type="button" class="btn btn-print" (click)="printReceipt()">
+
+      <div class="receipt-modal-actions">
+        <button type="button" class="btn-primary" (click)="printReceipt()">
           <mat-icon>print</mat-icon> Imprimer
         </button>
-        <button type="button" class="btn btn-save" (click)="saveReceipt()">
+        <button type="button" class="btn-save" (click)="saveReceipt()">
           <mat-icon>save</mat-icon> Enregistrer
         </button>
-        <button type="button" class="btn btn-close" (click)="closeReceiptModal()">
+        <button type="button" class="btn-outline" (click)="closeReceiptModal()">
           Fermer
         </button>
       </div>

@@ -1,190 +1,213 @@
-.container {
-  margin: 10px auto;
-  padding: 10px;
-  background-color: white;
-  border-radius: 5px;
-  max-width: 900px;
+/* Formulaire vente — design aligné client-add / skill frontend-ui-style */
+
+.credit-form-page {
+  --navy: #003366;
+  --navy-dark: #002244;
+  --navy-pale: #e8eef6;
+  --navy-xpale: #f0f4f9;
+  --bg-page: #f2f4f8;
+  --bg-white: #ffffff;
+  --border: #dde3ec;
+  --text-muted: #6b7a99;
+  --text-light: #9aacc4;
+  --green: #1d8a3c;
+  --orange: #c75000;
+  --kpi-cyan: #0095c8;
+  --red: #b91c1c;
+  --shadow-sm: 0 1px 3px rgba(0, 51, 102, 0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+.credit-form-page.main-container {
   display: flex;
   flex-direction: column;
+  max-width: 960px;
+  margin: 80px auto 0;
+  height: calc(100vh - 80px);
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-page);
 }
 
-.form-header {
+.credit-form-page .page-fixed-head {
+  flex-shrink: 0;
+  padding: 16px 24px 12px;
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border);
+  z-index: 20;
+}
+
+.credit-form-page .page-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 48px;
+}
+
+.credit-form-page .breadcrumb-bar { margin-bottom: 12px; }
+
+.credit-form-page .breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.credit-form-page .breadcrumb-link:hover { color: var(--navy); }
+.credit-form-page .breadcrumb-link svg { width: 16px; height: 16px; }
+
+.credit-form-page .page-header-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 26px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 0;
+}
+
+.credit-form-page .header-card-top { margin-bottom: 8px; }
+
+.credit-form-page .header-surtitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  font-family: 'DM Mono', monospace;
+}
+
+.credit-form-page .header-card-main { margin-bottom: 6px; }
+
+.credit-form-page .title-group {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.form-header h1 {
-  text-align: center;
-  margin: 0;
-  color: #003366;
-  height: calc(10vh - 30px);
-  margin-top: 30px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-}
-
-.full-width {
-  width: 100%;
-}
-
-.article-group {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
   gap: 10px;
 }
 
-.form-field {
-  flex: 1;
-  position: relative; /* Ajouté pour le positionnement de l'erreur */
+.credit-form-page .page-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--navy);
+  flex-shrink: 0;
 }
 
-/* Retrait de .mat-form-field pour cibler les éléments de manière plus générique */
-.form-field input,
-.form-field mat-select {
+.credit-form-page .page-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 0 !important;
+  line-height: 1;
+  padding: 0;
+}
+
+.credit-form-page .page-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.credit-form-page .form-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.credit-form-page .form-section {
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.credit-form-page .form-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.credit-form-page .form-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: 0 0 16px;
+}
+
+.credit-form-page .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 20px;
+}
+
+.credit-form-page .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.credit-form-page .form-field-full {
+  grid-column: 1 / -1;
+}
+
+.credit-form-page .form-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.credit-form-page .required { color: var(--red); }
+
+.credit-form-page .field-input {
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-white);
+  transition: border-color .18s;
   width: 100%;
+  box-sizing: border-box;
+  max-width: 280px;
+}
+.credit-form-page .field-input:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.08);
 }
 
-.quantity-field {
-  max-width: 100px;
+.credit-form-page .field-mono {
+  font-family: 'DM Mono', monospace;
 }
 
-.btn-remove {
-  background-color: #000000;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  padding: 8px 15px;
+.credit-form-page .field-error {
+  font-size: 12px;
+  color: var(--red);
 }
 
-.btn-add {
-  background-color: #003366;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  padding: 8px 15px;
-  margin-top: 10px;
+.credit-form-page .ng-select {
+  font-size: 14px;
+}
+.credit-form-page .ng-select .ng-select-container {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.credit-form-page .ng-select.ng-select-focused .ng-select-container {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.08);
+}
+.credit-form-page .ng-select.ng-invalid.ng-touched .ng-select-container {
+  border-color: var(--red);
 }
 
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 30px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-left: 10px;
-}
-
-.btn-cancel {
-  background-color: #c90a17;
-  color: white;
-}
-
-.btn-submit {
-  background-color: #003366;
-  color: white;
-}
-
-.btn-remove:disabled,
-.btn-add:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-  margin-top: auto;
-  color: #000000;
-}
-
-.mat-error {
-  font-size: 0.75em;
-  color: #f44336;
-  /* Ajustement pour se positionner correctement sous ng-select */
-  display: block;
-  margin-top: 5px;
-}
-
-
-/* --- STYLES AJOUTÉS POUR L'INTÉGRATION DE NG-SELECT --- */
-
-.form-field ng-select {
-  // Applique une bordure de base pour imiter l'input
-  .ng-select-container {
-    border: none;
-    border-radius: 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.42);
-    box-shadow: none;
-    background-color: transparent;
-    min-height: 36px; // Hauteur standard
-  }
-
-  // Style au survol
-  .ng-select-container:hover {
-    border-bottom-color: black;
-    border-bottom-width: 2px;
-  }
-
-  // Style au focus
-  &.ng-select-focused .ng-select-container {
-    border-color: #003366; // Utilise la couleur primaire du projet
-    border-width: 2px;
-    box-shadow: none;
-  }
-
-  // Style pour l'état d'erreur, correspondant à l'input de quantité
-  &.ng-invalid.ng-touched .ng-select-container {
-    border-bottom-color: #f44336;
-    border-bottom-width: 2px;
-  }
-}
-
-/* --- SALE TYPE TOGGLE --- */
-.sale-type-toggle {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 25px;
-
-  .btn-group {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    border-radius: 5px;
-    overflow: hidden;
-  }
-
-  .btn-outline-primary {
-    color: #003366;
-    border-color: #003366;
-    background-color: white;
-    padding: 10px 30px;
-    font-weight: 500;
-    transition: all 0.2s;
-
-    &:hover {
-      background-color: #f0f4f8;
-    }
-
-    &.active {
-      background-color: #003366;
-      color: white;
-      box-shadow: inset 0 3px 5px rgba(0,0,0,0.125);
-    }
-
-    input[type="radio"] {
-      display: none;
-    }
-  }
-}
-
-.commercial-option {
+.credit-form-page .commercial-option {
   display: flex;
   flex-direction: column;
   line-height: 1.2;
@@ -196,17 +219,154 @@
 
   .commercial-name {
     font-size: 12px;
-    color: #666;
+    color: var(--text-muted);
   }
 }
 
-/* --- RECEIPT MODAL OVERLAY --- */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
+/* Segment toggle (type vente / finalité crédit) */
+.credit-form-page .segment-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--navy-xpale);
+  box-shadow: var(--shadow-sm);
+}
+
+.credit-form-page .segment-toggle-secondary {
+  background: var(--bg-white);
+}
+
+.credit-form-page .segment-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 28px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+  cursor: pointer;
+  transition: background .18s, color .18s;
+  border-right: 1px solid var(--border);
+  margin: 0;
+  user-select: none;
+
+  &:last-child { border-right: none; }
+
+  input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  &:hover:not(.active) {
+    background: var(--navy-pale);
+  }
+
+  &.active {
+    background: var(--navy);
+    color: white;
+  }
+}
+
+.credit-form-page .sale-type-toggle {
   width: 100%;
-  height: 100%;
+  max-width: 360px;
+}
+.credit-form-page .sale-type-toggle .segment-btn {
+  flex: 1;
+}
+
+.credit-form-page .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.credit-form-page .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--navy);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+.credit-form-page .btn-primary:hover:not(:disabled) {
+  background: var(--navy-dark);
+}
+.credit-form-page .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.credit-form-page .btn-primary mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.credit-form-page .btn-outline {
+  padding: 10px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.credit-form-page .btn-outline:hover:not(:disabled) {
+  background: var(--navy-xpale);
+}
+.credit-form-page .btn-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.credit-form-page .btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--green);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.credit-form-page .btn-save:hover {
+  background: #15652c;
+}
+.credit-form-page .btn-save mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Animations */
+@keyframes creditFormFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.credit-form-page.a1 { animation: creditFormFadeUp .4s ease both; }
+.credit-form-page .a2 { animation: creditFormFadeUp .45s ease .05s both; }
+.credit-form-page .a3 { animation: creditFormFadeUp .5s ease .1s both; }
+
+/* Receipt modal */
+.credit-form-page .receipt-modal-overlay {
+  position: fixed;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
   display: flex;
@@ -215,20 +375,20 @@
   z-index: 2000;
 }
 
-.receipt-modal-container {
-  background-color: white;
-  border-radius: 12px;
+.credit-form-page .receipt-modal-container {
+  background-color: var(--bg-white);
+  border-radius: var(--radius);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   width: 90%;
   max-width: 450px;
   overflow: hidden;
-  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: creditModalSlideIn .3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
 }
 
-.modal-header {
-  background-color: #003366;
+.credit-form-page .receipt-modal-header {
+  background-color: var(--navy);
   color: white;
   padding: 15px 20px;
   display: flex;
@@ -237,85 +397,78 @@
 
   h2 {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: white;
   }
-
-  .close-btn {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    transition: opacity 0.2s;
-
-    &:hover {
-      opacity: 0.8;
-    }
-  }
 }
 
-.receipt-modal-body {
+.credit-form-page .receipt-modal-close {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: opacity .2s;
+
+  &:hover { opacity: 0.8; }
+}
+
+.credit-form-page .receipt-modal-body {
   padding: 20px;
   max-height: 65vh;
   overflow-y: auto;
-  background-color: #f8f9fa;
+  background-color: var(--navy-xpale);
 }
 
-/* --- TICKET STYLING --- */
-.receipt-paper {
+.credit-form-page .receipt-paper {
   background-color: #fff;
-  border: 1px dashed #ccc;
-  border-radius: 4px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
   padding: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-sm);
   font-family: 'Courier New', Courier, monospace;
   color: #000;
 }
 
-.receipt-header {
+.credit-form-page .receipt-header {
   text-align: center;
   margin-bottom: 12px;
 
   .company-name {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', Arial, sans-serif;
     font-size: 18px;
     font-weight: 800;
-    color: #003366;
-    margin: 0 0 5px 0;
-    height: auto;
-    margin-top: 0;
+    color: var(--navy);
+    margin: 0 0 5px;
     letter-spacing: 0.5px;
   }
 
   .company-details {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', Arial, sans-serif;
     font-size: 11px;
-    color: #555;
+    color: var(--text-muted);
     margin: 0;
     font-weight: 600;
   }
 }
 
-.receipt-divider {
+.credit-form-page .receipt-divider {
   border: none;
   border-top: 1px dashed #000;
   margin: 12px 0;
 }
 
-.receipt-meta {
+.credit-form-page .receipt-meta {
   font-size: 11px;
   line-height: 1.4;
 
-  p {
-    margin: 3px 0;
-  }
+  p { margin: 3px 0; }
 }
 
-.receipt-table {
+.credit-form-page .receipt-table {
   width: 100%;
   border-collapse: collapse;
   margin: 12px 0;
@@ -336,7 +489,7 @@
   }
 }
 
-.receipt-totals {
+.credit-form-page .receipt-totals {
   font-size: 11px;
 
   .totals-row {
@@ -356,99 +509,63 @@
       background-color: #fff8f2;
       padding: 4px 6px;
       border-radius: 4px;
-      color: #c75000;
+      color: var(--orange);
     }
 
-    .total-val {
-      font-size: 13px;
-    }
+    .total-val { font-size: 13px; }
   }
 }
 
-.receipt-footer {
+.credit-form-page .receipt-footer {
   text-align: center;
   margin-top: 15px;
   font-size: 11px;
   line-height: 1.4;
 
-  p {
-    margin: 3px 0;
-  }
+  p { margin: 3px 0; }
 }
 
-/* --- BUTTON ACTIONS --- */
-.receipt-modal-actions {
+.credit-form-page .receipt-modal-actions {
   display: flex;
   justify-content: space-between;
   padding: 15px 20px;
-  background-color: #f1f3f5;
-  border-top: 1px solid #e9ecef;
+  background-color: var(--navy-xpale);
+  border-top: 1px solid var(--border);
   gap: 10px;
 
-  .btn {
+  .btn-primary,
+  .btn-save,
+  .btn-outline {
     flex: 1;
-    display: inline-flex;
-    align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 10px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    border-radius: 6px;
-    margin-left: 0;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    mat-icon {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-    }
-
-    &.btn-print {
-      background-color: #003366;
-      color: white;
-
-      &:hover {
-        background-color: #002244;
-        transform: translateY(-1px);
-      }
-    }
-
-    &.btn-save {
-      background-color: #1d8a3c;
-      color: white;
-
-      &:hover {
-        background-color: #15652c;
-        transform: translateY(-1px);
-      }
-    }
-
-    &.btn-close {
-      background-color: #6c757d;
-      color: white;
-
-      &:hover {
-        background-color: #5a6268;
-        transform: translateY(-1px);
-      }
-    }
-    
-    &:active {
-      transform: translateY(1px) !important;
-    }
   }
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
+@keyframes creditModalSlideIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (max-width: 680px) {
+  .credit-form-page.main-container {
+    margin-top: 60px;
+    height: calc(100vh - 60px);
   }
-  to {
-    transform: translateY(0);
-    opacity: 1;
+  .credit-form-page .page-fixed-head,
+  .credit-form-page .page-scroll-body {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .credit-form-page .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .credit-form-page .sale-type-toggle {
+    max-width: 100%;
+  }
+  .credit-form-page .field-input {
+    max-width: 100%;
+  }
+  .credit-form-page .receipt-modal-actions {
+    flex-direction: column;
   }
 }

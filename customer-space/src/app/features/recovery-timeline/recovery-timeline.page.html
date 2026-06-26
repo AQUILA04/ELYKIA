@@ -1,0 +1,48 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/purchases/' + distributionId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Suivi des mises</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="page-content" data-testid="e2e-recovery-timeline-page">
+  <div class="page-inner" *ngIf="!isLoading">
+    <app-recovery-pills
+      data-testid="e2e-recovery-pills"
+      [totalInstallments]="totalInstallments"
+      [recoveries]="recoveries">
+    </app-recovery-pills>
+    <h3 class="section-title">Détail des mises</h3>
+    <div
+      class="timeline-item"
+      *ngFor="let r of recoveries"
+      [attr.data-testid]="'e2e-recovery-row-' + r.installmentNumber">
+      <div
+        class="ti-dot"
+        [class.ti-dot--valide]="r.status === 'VALIDE'"
+        [class.ti-dot--initie]="r.status === 'INITIE'"
+        [class.ti-dot--retard]="r.status === 'RETARD'">
+      </div>
+      <div class="ti-content">
+        <span class="ti-label">Mise #{{ r.installmentNumber }}</span>
+        <span class="ti-date">{{ r.paymentDate | date:'dd/MM/yyyy' }}</span>
+      </div>
+      <span class="ti-amount">{{ r.amount | number:'1.0-0' }} FCFA</span>
+      <span class="ti-status">{{ r.status }}</span>
+    </div>
+  </div>
+  <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
+</ion-content>
+<ion-footer *ngIf="nextRecovery">
+  <ion-toolbar>
+    <ion-button
+      expand="block"
+      class="elyk-btn-primary"
+      [routerLink]="['/payment', distributionId]"
+      [queryParams]="paymentQueryParams()"
+      data-testid="e2e-recovery-pay-btn">
+      Payer la prochaine mise
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

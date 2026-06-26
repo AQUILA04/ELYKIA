@@ -451,6 +451,15 @@
           <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
           <span class="hide-menu">Aide</span>
         </li>
+        <li class="sidebar-item" *ngIf="showElykiaAi">
+          <a class="sidebar-link" routerLink="/ai-chat" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/ai-chat') }">
+            <span>
+              <mat-icon>auto_awesome</mat-icon>
+            </span>
+            <span class="hide-menu">Elykia IA</span>
+          </a>
+        </li>
         <li class="sidebar-item">
           <a class="sidebar-link" routerLink="/change-password" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/change-password') }">

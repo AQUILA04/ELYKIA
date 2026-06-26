@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth';
 import { environment } from '../../../environments/environment';
 import { toE164 } from '../utils/phone-normalizer';
+import { isE2eMode } from '../utils/e2e';
 
 /**
  * Firebase Phone Auth pour la configuration initiale du PIN.
@@ -24,6 +25,7 @@ export class FirebaseAuthService {
   private recaptchaVerifier: RecaptchaVerifier | null = null;
 
   isConfigured(): boolean {
+    if (isE2eMode()) return true;
     return !!environment.firebase?.apiKey;
   }
 
@@ -39,6 +41,7 @@ export class FirebaseAuthService {
   }
 
   async sendOtp(localPhone: string, containerId = 'recaptcha-container'): Promise<void> {
+    if (isE2eMode()) return;
     const auth = this.ensureInit();
     if (this.recaptchaVerifier) {
       this.recaptchaVerifier.clear();
@@ -49,6 +52,7 @@ export class FirebaseAuthService {
   }
 
   async verifyOtp(code: string): Promise<string> {
+    if (isE2eMode()) return 'e2e-mock-firebase-token';
     if (!this.confirmation) {
       throw new Error('Aucun OTP en cours. Demandez un nouveau code.');
     }

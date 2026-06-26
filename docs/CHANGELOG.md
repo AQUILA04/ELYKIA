@@ -10,6 +10,32 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ## [Unreleased]
 
+### Added
+
+- **Mobile —** design system Espace Client : composants shared `elyk-decor-header`, `elyk-overlap-card`, `elyk-outlined-field` ; tokens header/overlap ; variants boutons navy/gold ; skill et `design-system.md` alignés sur les maquettes S-01 à S-11.
+- **Backend — Elykia IA (Phase 2)** : few-shot SQL par domaine (`sql-examples.json`, `SqlExamplesService`), RAG hybride embeddings Ollama + fallback mots-clés (`GuideVectorSearch`), métriques Micrometer (`AiMetricsService`), journal `ai_query_log` (migration V62), API admin `/api/v1/ai/admin/stats`, tests `SqlExamplesServiceTest`.
+- **Frontend — Elykia IA (Phase 2)** : onglet « Statistiques » dans `/ai-chat` (requêtes fréquentes, SQL rejetés, distribution intents) pour `ROLE_AI_REPORT`.
+
+### Changed
+
+- **Backend — Elykia IA :** provider cloud **DeepSeek** (`elykia.ai.provider=deepseek`, starter Spring AI natif).
+
+- **Backend — Elykia IA :** providers cloud **OpenAI** (`elykia.ai.provider=openai`) et **Gemini/Vertex AI** (`elykia.ai.provider=gemini`) ; doc mise à jour dans `AI_ASSISTANT.md`.
+
+- **Backend — Elykia IA :** provider cloud **Anthropic (Claude)** câblé (`elykia.ai.provider=anthropic`) ; doc providers cloud dans `AI_ASSISTANT.md`.
+
+- **Backend — Elykia IA :** rate limit cumulatif — **15/min** (anti-abus) + quotas **20/jour** et **120/semaine** ; rôles dédiés `ROLE_AI_CHAT` et `ROLE_AI_REPORT` (API + auto-init profils GESTIONNAIRE/ADMIN).
+- **Frontend — Elykia IA :** accès chat/statistiques basé sur `ROLE_AI_CHAT` / `ROLE_AI_REPORT` (plus `ROLE_REPORT`).
+
+- **Frontend — Elykia IA (Phase 1)** : module lazy `ai-chat` (`/ai-chat`) avec sidebar sessions, fil de discussion, preview DATA et sources HOW_TO ; bouton header « Ask AI » et entrée sidebar « Elykia IA » ; feature flag `elykiaAi` + `environment.aiChatEnabled`.
+- **Backend — Elykia IA (Phase 1)** : rate limiting par utilisateur (`AiRateLimiter`), audit structuré (`AiAuditService`), tests `AiRateLimiterTest`.
+- **Infra —** service Ollama optionnel dans `deploy/docker-compose.dev.yml`.
+
+- **Backend — Elykia IA :** enrichissement `schema-catalog.json` (stock : `stock_request`, `stock_return`, `commercial_monthly_stock`, `commercial_stock_movement`, `article_history`, `cash_deposit`, rapport journalier étendu) ; filtre row-level par colonne catalogue (`collector` ou `commercial_username`).
+
+- **Backend — Elykia IA (Phase 0)** : module `core/ai` avec Spring AI + provider stub/Ollama, orchestrateur dual pipeline (Text-to-SQL sécurisé + RAG user-guide), catalogue schéma (`schema-catalog.json`), validateur SQL (JSqlParser), filtre row-level commercial, sessions persistées (`ai_conversation` / `ai_message`, migration V61), API REST `/api/v1/ai/*` testable via Swagger, doc `backend/docs/AI_ASSISTANT.md`.
+- **Tests —** `SqlValidatorTest`, `SqlRowLevelFilterTest`, `AiOrchestratorServiceTest`.
+
 ### Changed
 
 - **Backend —** versements caisse : colonne `surplusAmount` (migration V59) pour tracer l'écart positif entre billetage physique et répartition système ; validation assouplie (manquant autorisé via versements partiels successifs).
@@ -19,6 +45,9 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 - **Backend —** endpoint `POST /api/v1/credits/list-summary` : KPIs ventes clôturées (SETTLED) par type crédit/cash/tontine (CA + marge FCFA), encours crédit (snapshot INPROGRESS) et total recouvré sur période, filtrable via recherche avancée.
 - **Frontend —** refonte UI liste des ventes (skill frontend-ui-style) : bandeaux KPI décisionnels, sélecteur de période (jour/semaine/mois/personnalisé), persistance `sessionStorage`, recherche avancée intégrée à la toolbar.
+- **Frontend —** refonte UI formulaire d'ajout de vente (`credit-add`) : structure breadcrumb + header-card + sections formulaire, palette navy, boutons `.btn-primary` / `.btn-outline`.
+- **Frontend —** refonte UI composant `article-selector` : lignes article en cartes navy-xpale, montants en FCFA (DM Mono), barre total cyan, badges stock palette skill, boutons SVG.
+- **Frontend —** correctif `article-selector` : rafraîchissement liste articles au chargement stock commercial (`ngOnChanges`), affichage sous-total/total vente comptant (`showPrices` respecté), recherche articles sans champ `name`.
 - **Tests —** `CreditListSummaryServiceTest`, specs composants `credit-list-kpi` et `credit-list`.
 
 - **Backend —** versements caisse scindés en 3 catégories (`creditAmount`, `tontineAmount`, `newBalanceAmount`) avec conservation du total `amount` ; sous-totaux déposés sur `DailyCommercialReport` ; calculateur `CashDepositCategoryCalculator` (solde nouveaux comptes distinct du crédit).
@@ -30,7 +59,16 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Fixed
 
-- **Frontend —** liste des ventes : KPIs avec CA en valeur principale et marge en sous-ligne ; marge masquée pour le profil PROMOTER ; selects recherche avancée dimensionnés selon l'option la plus longue.
+- **Docs —** guide Ollama dev et dépannage TLS (`deploy/OLLAMA_DEV.md`).
+
+- **Frontend — Elykia IA :** bulle des messages envoyés — conflit avec la classe globale `.content` (layout sidebar) corrigé ; la bulle s'adapte à la largeur du texte.
+- **Frontend — Elykia IA :** bouton header « Ask AI » — contour réduit (override hauteur `nav-link` 70px, padding et icône plus compacts).
+
+- **Backend — Elykia IA :** démarrage sans clé OpenAI — désactivation explicite des modèles audio/image/moderation Spring AI (`spring.ai.model.audio.speech: none`, etc.) et ordre corrigé de `AiProviderEnvironmentPostProcessor`.
+
+- **Backend — Elykia IA :** démarrage avec plusieurs starters Spring AI — conflit `EmbeddingModel` (Ollama + OpenAI) résolu via `AiEmbeddingConfiguration`, `@Qualifier` dans `GuideVectorSearch` et `spring.ai.model.embedding: none` par défaut.
+
+- **Frontend —** liste des ventes : checkboxes sélection navy ; modal changement commercial restylé (tokens CSS autonomes hors page).
 
 - **Backend —** KPI liste des ventes (`list-summary`) : requêtes SQL corrigées (`c.visibility` au lieu de `c.state`, colonne réelle en base).
 
@@ -47,11 +85,15 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 - **Frontend —** refonte UI du modal de versement caisse, du composant billetage et de l'onglet « Remise au gestionnaire » (palette navy, KPI strip, tableaux et boutons alignés sur le style pro du projet).
 
 - **Customer-space —** infrastructure tests : Playwright (E2E mobile), Karma headless, skill `customer-space-testing`, workflow CI découplé `ci-customer-space.yml`.
-- **Customer-space —** splash screen S-01 (logo ELYKIA, redirect auth/dashboard), barre d'onglets basse, routing `app.routes.ts` branché sur `AppRoutingModule` + `HttpClientModule`.
-- **Customer-space —** dashboard S-03 enrichi (états vide/erreur, activités récentes, carte crédit, actions rapides) ; tests unitaires et E2E smoke/auth/dashboard.
+- **Customer-space —** splash S-01, auth S-02, dashboard S-03, navigation par onglets bas (`CustomerTabBarComponent`).
+- **Customer-space —** parcours achats S-04/05/06 (filtres, détail, timeline pastilles, lien paiement) avec tests unitaires et E2E `purchases-flow`.
+- **Customer-space —** paiement Mobile Money S-07/08 (préremplissage montant/mise, confirmation) avec tests et E2E `mobile-money`.
+- **Customer-space —** commande S-09/10/11 : `CartService`, catalogue, panier, confirmation API ; E2E `order-flow`.
+- **Customer-space —** profil client (déconnexion) et Capacitor `com.optimize.elykia.customer` ; E2E `logout`.
 - **Customer-space —** skill Cursor `customer-space-ui-style` aligné sur les maquettes wireflow (design tokens Playfair/DM Sans, patterns Ionic premium).
 - **Customer-space —** thème global (`variables.scss`, `global.scss`, fonts) et wizard auth multi-étapes (téléphone local → PIN ou OTP Firebase + configuration PIN).
 - **Customer-space —** utilitaire `PhoneNormalizer` (+228 côté Firebase uniquement) et intégration Firebase Phone Auth (SDK).
+- **Customer-space —** E2E `auth/setup-pin` (OTP mocké via `window.__E2E__`) ; tests unitaires `catalog`, `cart`, `order-confirmation`.
 - **Backend —** espace client `/api/customer/*` : auth (`check-phone`, `login`, `setup-pin`), dashboard, achats, recouvrements, catalogue, commandes, soumission Mobile Money (statut INITIÉ).
 - **Backend —** profil `CLIENT` / permission `ROLE_CLIENT`, flag `pin_configured` sur `UserAccount`, table `customer_user_mapping` (orchestration core).
 - **Backend —** provisioning automatique des comptes clients (`username` = numéro local, email `firstname.lastname@amenouveve-yaveh.com`), sync téléphone via `ClientPhoneUpdatedEvent`.
@@ -60,7 +102,8 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Fixed
 
-- **Frontend —** page inventaire : correction d'une balise HTML mal fermée dans la bande KPI qui cassait la mise en page (sections actions, recherche et tableau imbriquées dans une carte KPI).
+- **Customer-space —** splash post-auth : redirection vers `/dashboard` uniquement depuis `/` ou `/auth` (ne bloque plus les deep links E2E `/catalog`, `/purchases`, etc.).
+- **Customer-space —** `FirebaseAuthService` : court-circuit OTP en mode E2E pour le parcours setup PIN sans Firebase réel.
 
 - **Backend —** fiche PDF réception de stock : libellé article combinant désormais nom commercial et nom (`commercialName` + `name`) ; en-tête AMENOUVEVE - YAVEH, date de génération et copyright Elykia en pied de page.
 

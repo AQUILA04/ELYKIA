@@ -35,15 +35,31 @@ describe('AppComponent', () => {
     delete (window as Window & { __E2E__?: boolean }).__E2E__;
   }));
 
-  it('navigates to dashboard when authenticated after splash', fakeAsync(() => {
+  it('navigates to dashboard when authenticated on auth route after splash', fakeAsync(() => {
     (window as Window & { __E2E__?: boolean }).__E2E__ = true;
     Object.defineProperty(session, 'isAuthenticated', { get: () => true });
     const router = TestBed.inject(Router);
     spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
+    history.pushState({}, '', '/auth');
 
     fixture.detectChanges();
     tick(1);
     expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard', { replaceUrl: true });
+    history.pushState({}, '', '/');
+    delete (window as Window & { __E2E__?: boolean }).__E2E__;
+  }));
+
+  it('does not redirect to dashboard when authenticated on a deep link', fakeAsync(() => {
+    (window as Window & { __E2E__?: boolean }).__E2E__ = true;
+    Object.defineProperty(session, 'isAuthenticated', { get: () => true });
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
+    history.pushState({}, '', '/catalog');
+
+    fixture.detectChanges();
+    tick(1);
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    history.pushState({}, '', '/');
     delete (window as Window & { __E2E__?: boolean }).__E2E__;
   }));
 });

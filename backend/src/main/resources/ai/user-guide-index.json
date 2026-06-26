@@ -1,0 +1,58 @@
+[
+  {
+    "id": "clients_accounts",
+    "title": "Comptes clients et crédits",
+    "path": "/user-guide/commercial/clients_accounts.html",
+    "roles": ["commercial", "manager"],
+    "content": "Pour créer un crédit : accédez à la liste des clients, sélectionnez un client, puis créez une nouvelle vente à crédit. Pour enregistrer une mise (recouvrement) : ouvrez le détail du crédit et saisissez le montant de la mise du jour."
+  },
+  {
+    "id": "tontine",
+    "title": "Gestion de la tontine",
+    "path": "/user-guide/commercial/tontine.html",
+    "roles": ["commercial", "manager"],
+    "content": "La tontine permet de gérer les cotisations et livraisons annuelles. Accédez au module Tontine pour enregistrer une collecte, consulter les membres d'une session et suivre les livraisons."
+  },
+  {
+    "id": "reporting",
+    "title": "Rapports et reporting",
+    "path": "/user-guide/commercial/reporting.html",
+    "roles": ["commercial", "manager"],
+    "content": "Les rapports journaliers récapitulent ventes, recouvrements et versements caisse par commercial. Consultez Rapport journalier pour voir le détail du jour et effectuer un versement caisse."
+  },
+  {
+    "id": "daily_cycle",
+    "title": "Cycle journalier",
+    "path": "/user-guide/daily-cycle.html",
+    "roles": ["commercial", "manager", "storekeeper"],
+    "content": "Le cycle journalier comprend : ouverture journée comptable, ventes et recouvrements terrain, clôture et versement caisse. Chaque commercial doit enregistrer ses mises sur les crédits avant la clôture."
+  },
+  {
+    "id": "manager_dashboard",
+    "title": "Tableau de bord gestionnaire",
+    "path": "/user-guide/manager/dashboard.html",
+    "roles": ["manager"],
+    "content": "Le tableau de bord gestionnaire affiche les KPIs globaux : ventes, recouvrements, stock et encours crédit. Utilisez les filtres de période pour analyser les performances."
+  },
+  {
+    "id": "manager_operations",
+    "title": "Opérations gestionnaire",
+    "path": "/user-guide/manager/operations.html",
+    "roles": ["manager"],
+    "content": "Le gestionnaire supervise les opérations journalières, valide les crédits, gère les remises caisse et consulte les journaux d'opération."
+  },
+  {
+    "id": "stock_commercial",
+    "title": "Stock commercial",
+    "path": "/user-guide/storekeeper/stock_commercial.html",
+    "roles": ["storekeeper", "manager"],
+    "content": "Gestion des demandes de stock, livraisons aux commerciaux et retours. Le magasinier traite les demandes depuis le module Stock."
+  },
+  {
+    "id": "administration",
+    "title": "Administration",
+    "path": "/user-guide/administration.html",
+    "roles": ["admin"],
+    "content": "Administration des utilisateurs, profils, permissions et paramètres système."
+  }
+]

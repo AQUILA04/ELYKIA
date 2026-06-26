@@ -10,6 +10,12 @@
     </ul>
     <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
       <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
+        <li class="nav-item" *ngIf="showElykiaAi">
+          <a class="nav-link nav-icon-hover btn-ask-ai" routerLink="/ai-chat" title="Elykia IA">
+            <mat-icon>auto_awesome</mat-icon>
+            <span class="ask-ai-label">Ask AI</span>
+          </a>
+        </li>
         <li class="nav-item">
           <span class="nav-link">{{ username }}</span>
         </li>

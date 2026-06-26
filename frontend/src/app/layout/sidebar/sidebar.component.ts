@@ -11,6 +11,8 @@ import { UserService } from 'src/app/user/service/user.service';
 import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
 import {UserProfile} from "../../shared/models/user-profile.enum";
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
+import { environment } from 'src/environments/environment';
+import { AiPermissions } from 'src/app/shared/constants/ai-permission.constant';
 
 @Component({
   selector: 'app-sidebar',
@@ -27,6 +29,7 @@ export class SidebarComponent implements OnInit {
   isConfigurationOpen: boolean = false;
   activeRoute: string = '';
   showMonthlyReports = false;
+  showElykiaAi = false;
 
   isRouteActive(route: string): boolean {
     // Gestion spécifique pour le menu Caisse et ses sous-menus
@@ -257,6 +260,21 @@ export class SidebarComponent implements OnInit {
 
     this.featureFlagService.flags$.subscribe(flags => {
       this.showMonthlyReports = flags[FeatureFlags.MonthlyReports] ?? false;
+      this.refreshElykiaAiVisibility();
+    });
+    this.refreshElykiaAiVisibility();
+  }
+
+  private refreshElykiaAiVisibility(): void {
+    const featureEnabled =
+      environment.aiChatEnabled ||
+      this.featureFlagService.isFeatureEnabled(FeatureFlags.ElykiaAi);
+    if (!featureEnabled) {
+      this.showElykiaAi = false;
+      return;
+    }
+    void this.permissionsService.hasPermission(AiPermissions.Chat).then((hasRole) => {
+      this.showElykiaAi = hasRole;
     });
   }
 

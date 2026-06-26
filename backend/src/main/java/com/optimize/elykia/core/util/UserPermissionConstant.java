@@ -70,6 +70,9 @@ public class UserPermissionConstant {
 
     public static final String REPORT = "ROLE_REPORT";
 
+    public static final String AI_CHAT = "ROLE_AI_CHAT";
+    public static final String AI_REPORT = "ROLE_AI_REPORT";
+
     public static final String CONSULT_TONTINE_COLLECTION_RESET = "ROLE_CONSULT_TONTINE_COLLECTION_RESET";
 
     /** Archivage PDF et réinitialisation des collectes tontine (ADMIN uniquement). */

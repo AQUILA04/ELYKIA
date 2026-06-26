@@ -15,12 +15,23 @@
   --elyk-blue: #60A5FA;
   --elyk-gray-pill: #D1D5DB;
   --elyk-border: #E2E8F0;
+
   --elyk-radius: 16px;
   --elyk-radius-btn: 12px;
   --elyk-radius-input: 10px;
+  --elyk-radius-card: 20px;
+
   --elyk-shadow: 0 2px 12px rgba(13, 27, 42, 0.08);
   --elyk-shadow-lg: 0 4px 24px rgba(13, 27, 42, 0.10);
+  --elyk-shadow-btn: 0 4px 14px rgba(13, 27, 42, 0.18);
 
+  // Header décoratif (maquettes S-02, S-03…)
+  --elyk-header-height: 220px;
+  --elyk-header-height-compact: 180px;
+  --elyk-header-gradient: linear-gradient(180deg, #0D1B2A 0%, #1A2E42 100%);
+  --elyk-card-overlap: -56px;
+
+  // Ionic overrides
   --ion-background-color: var(--elyk-cream);
   --ion-text-color: var(--elyk-navy);
   --ion-color-primary: var(--elyk-gold);

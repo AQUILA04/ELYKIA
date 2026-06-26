@@ -567,69 +567,174 @@
   border-top: 1px solid var(--border);
 }
 
-/* Modal */
-.credit-list-page .modal-overlay,
-.modal-overlay {
+/* Checkboxes — navy projet (pas rose Material) */
+.credit-list-page .mat-mdc-checkbox {
+  --mdc-checkbox-selected-checkmark-color: #fff;
+  --mdc-checkbox-selected-focus-icon-color: var(--navy);
+  --mdc-checkbox-selected-hover-icon-color: var(--navy);
+  --mdc-checkbox-selected-icon-color: var(--navy);
+  --mdc-checkbox-selected-pressed-icon-color: var(--navy);
+  --mdc-checkbox-selected-focus-state-layer-color: var(--navy);
+  --mdc-checkbox-selected-hover-state-layer-color: var(--navy);
+  --mdc-checkbox-selected-pressed-state-layer-color: var(--navy);
+}
+
+.credit-list-page .mat-mdc-checkbox.mat-mdc-checkbox-checked .mdc-checkbox__background,
+.credit-list-page .mat-mdc-checkbox.mat-mdc-checkbox-indeterminate .mdc-checkbox__background {
+  border-color: var(--navy) !important;
+  background-color: var(--navy) !important;
+}
+
+.credit-list-page .mat-checkbox-checked .mat-checkbox-background,
+.credit-list-page .mat-checkbox-indeterminate .mat-checkbox-background,
+.credit-list-page .mat-checkbox-checked .mdc-checkbox__background,
+.credit-list-page .mat-checkbox-indeterminate .mdc-checkbox__background {
+  background-color: var(--navy) !important;
+}
+
+.credit-list-page .mdc-checkbox .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background,
+.credit-list-page .mdc-checkbox .mdc-checkbox__native-control:enabled:indeterminate ~ .mdc-checkbox__background {
+  background-color: var(--navy) !important;
+  border-color: var(--navy) !important;
+}
+
+/* Modal changement commercial (hors .credit-list-page — tokens locaux) */
+.credit-list-bulk-modal {
+  --navy: #003366;
+  --navy-dark: #002244;
+  --border: #dde3ec;
+  --text-muted: #6b7a99;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+.credit-list-bulk-modal.modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1050;
 }
 
-.modal-dialog {
+.credit-list-bulk-modal .bulk-modal-dialog {
   width: 100%;
   max-width: 480px;
   margin: 16px;
 }
 
-.modal-content {
-  background: white;
+.credit-list-bulk-modal .bulk-modal-content {
+  background: #ffffff;
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0, 51, 102, 0.18);
   overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.modal-header {
+.credit-list-bulk-modal .bulk-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border);
+  background: #f0f4f9;
 }
 
-.modal-title {
+.credit-list-bulk-modal .bulk-modal-title {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
   color: var(--navy);
 }
 
-.modal-close {
+.credit-list-bulk-modal .bulk-modal-close {
   border: none;
   background: transparent;
   font-size: 24px;
   line-height: 1;
   cursor: pointer;
   color: var(--text-muted);
+  padding: 0 4px;
+}
+.credit-list-bulk-modal .bulk-modal-close:hover {
+  color: var(--navy);
 }
 
-.modal-body { padding: 16px 20px; }
-.modal-footer {
+.credit-list-bulk-modal .bulk-modal-body {
+  padding: 18px 20px;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.credit-list-bulk-modal .bulk-form-group {
+  margin-top: 14px;
+}
+
+.credit-list-bulk-modal .bulk-form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.credit-list-bulk-modal .bulk-form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--navy);
+  background: #f0f4f9;
+}
+.credit-list-bulk-modal .bulk-form-control:focus {
+  outline: none;
+  border-color: var(--navy);
+  background: #fff;
+}
+
+.credit-list-bulk-modal .bulk-modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   padding: 14px 20px;
   border-top: 1px solid var(--border);
+  background: #fafbfc;
 }
 
-.modal-body .form-control {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
+.credit-list-bulk-modal .btn-cancel,
+.credit-list-bulk-modal .btn-validate {
+  padding: 8px 18px;
   border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.credit-list-bulk-modal .btn-cancel {
+  background-color: #6c757d;
+  color: white;
+}
+.credit-list-bulk-modal .btn-cancel:hover {
+  background-color: #5a6268;
+}
+
+.credit-list-bulk-modal .btn-validate {
+  background-color: var(--navy);
+  color: white;
+}
+.credit-list-bulk-modal .btn-validate:hover:not(:disabled) {
+  background-color: var(--navy-dark);
+}
+.credit-list-bulk-modal .btn-validate:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 @media (max-width: 900px) {

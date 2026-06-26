@@ -57,6 +57,7 @@ import { OldReleaseListComponent } from "./out/old-release-list/old-release-list
 import { ChangeDailyStakeComponent } from './credit/change-daily-stake/change-daily-stake.component';
 import { CreateTontineComponent } from "./credit/components/create-tontine/create-tontine.component";
 import { AuthGuard } from "./auth/guards/auth.guard";
+import { AiChatGuard } from './ai-chat/guards/ai-chat.guard';
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 import { CreditLateComponent } from './credit/credit-late/credit-late.component';
 import { CreditEcheanceComponent } from './credit/credit-echeance/credit-echeance.component';
@@ -112,6 +113,19 @@ const routes: Routes = [
         redirectTo: '/home'
       }
     }
+  },
+
+  // === ELYKIA IA ===
+  {
+    path: 'ai-chat',
+    loadChildren: () => import('./ai-chat/ai-chat.module').then(m => m.AiChatModule),
+    canActivate: [AuthGuard, NgxPermissionsGuard, AiChatGuard],
+    data: {
+      permissions: {
+        only: ['ROLE_AI_CHAT'],
+        redirectTo: '/home',
+      },
+    },
   },
 
   // === ROUTES TONTINE ===

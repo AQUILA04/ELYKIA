@@ -1,0 +1,16 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar><ion-title>Mon Profil</ion-title></ion-toolbar>
+</ion-header>
+<ion-content class="page-content" data-testid="e2e-profile-page">
+  <div class="page-inner">
+    <div class="profile-card">
+      <div class="avatar"><ion-icon name="person-outline"></ion-icon></div>
+      <div class="profile-name" data-testid="e2e-profile-name">{{ session?.fullName }}</div>
+      <div class="profile-phone" data-testid="e2e-profile-phone">{{ session?.phone }}</div>
+    </div>
+    <ion-button expand="block" color="danger" fill="outline" data-testid="e2e-profile-logout" (click)="logout()">
+      Se déconnecter
+    </ion-button>
+  </div>
+</ion-content>
+<app-customer-tab-bar></app-customer-tab-bar>

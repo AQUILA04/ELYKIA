@@ -1,0 +1,14 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar><ion-title>Commande soumise</ion-title></ion-toolbar>
+</ion-header>
+<ion-content class="page-content ion-text-center" data-testid="e2e-order-confirmation-page">
+  <div class="success-wrapper">
+    <ion-icon name="bag-check-outline" class="success-icon"></ion-icon>
+    <h2>Commande soumise !</h2>
+    <p>Référence : <strong data-testid="e2e-order-reference">{{ reference }}</strong></p>
+    <p *ngIf="totalAmount > 0">Montant : {{ totalAmount | number:'1.0-0' }} FCFA</p>
+    <p>Votre commande est en attente de validation par l'agence. Le crédit démarrera à la livraison.</p>
+    <div class="status-badge">INITIÉ</div>
+    <ion-button expand="block" routerLink="/dashboard" class="elyk-btn-primary">Retour à l'accueil</ion-button>
+  </div>
+</ion-content>

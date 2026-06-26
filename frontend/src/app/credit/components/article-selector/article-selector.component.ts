@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, forwardRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, Output, EventEmitter, forwardRef, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, ControlValueAccessor, NG_VALUE_ACCESSOR, NG_VALIDATORS, Validator, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
@@ -13,6 +13,7 @@ export type PriceType = 'credit' | 'tontine' | 'inventory';
   selector: 'app-article-selector',
   templateUrl: './article-selector.component.html',
   styleUrls: ['./article-selector.component.scss'],
+  encapsulation: ViewEncapsulation.None,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -26,7 +27,7 @@ export type PriceType = 'credit' | 'tontine' | 'inventory';
     }
   ]
 })
-export class ArticleSelectorComponent implements OnInit, OnDestroy, ControlValueAccessor, Validator {
+export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, ControlValueAccessor, Validator {
   @Input() articles: any[] = [];
   @Input() readonly: boolean = false;
   @Input() priceType: PriceType = 'credit'; // 'credit', 'tontine' ou 'inventory'
@@ -53,15 +54,25 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, ControlValue
   }
 
   ngOnInit(): void {
-    // Déterminer si on doit afficher les prix selon le type
-    if (this.priceType === 'inventory') {
-      this.showPrices = false;
-    }
-
     if (this.articlesArray.length === 0) {
       this.addArticle();
     }
+    this.updateAvailableArticleLists();
     this.listenForArticleChanges();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['articles']) {
+      this.updateAvailableArticleLists();
+      if (this.showPrices) {
+        this.calculateTotalAmount();
+      }
+    }
+    if (changes['priceType'] || changes['showPrices']) {
+      if (this.showPrices) {
+        this.calculateTotalAmount();
+      }
+    }
   }
 
   ngOnDestroy(): void {
@@ -157,8 +168,13 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, ControlValue
   }
 
   searchArticle = (term: string, item: any) => {
+    if (!term) {
+      return true;
+    }
     term = term.toLowerCase();
-    return item.commercialName?.toLowerCase().includes(term) || item.name?.toLowerCase().includes(term);
+    const label = (item.commercialName || item.name || '').toLowerCase();
+    const name = (item.name || '').toLowerCase();
+    return label.includes(term) || name.includes(term);
   }
 
   // Méthode pour obtenir le prix d'un article selon le type
@@ -191,7 +207,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, ControlValue
 
   // Vérifier si on doit afficher les colonnes de prix
   shouldShowPriceColumns(): boolean {
-    return this.showPrices && this.priceType !== 'inventory';
+    return this.showPrices;
   }
 
   // ControlValueAccessor implementation

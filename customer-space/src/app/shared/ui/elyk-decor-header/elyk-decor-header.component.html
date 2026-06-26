@@ -1,0 +1,24 @@
+<header class="elyk-decor-header" [class.elyk-decor-header--compact]="compact">
+  <div class="elyk-decor-header__bg" [style.background]="'var(--elyk-header-gradient)'">
+    <img class="elyk-decor-header__pattern" [src]="decorSrc" alt="" aria-hidden="true" />
+  </div>
+
+  <div class="elyk-decor-header__bar">
+    <button
+      *ngIf="showBack"
+      type="button"
+      class="elyk-decor-header__back"
+      aria-label="Retour"
+      (click)="onBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <h1 *ngIf="title" class="elyk-decor-header__title">{{ title }}</h1>
+    <div class="elyk-decor-header__end">
+      <ng-content select="[slot=end]"></ng-content>
+    </div>
+  </div>
+
+  <div class="elyk-decor-header__extra">
+    <ng-content></ng-content>
+  </div>
+</header>

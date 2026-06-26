@@ -1,0 +1,26 @@
+<div class="chat-input">
+  <div class="domain-chips" *ngIf="domains.length">
+    <button
+      type="button"
+      class="domain-chip"
+      *ngFor="let domain of domains"
+      (click)="useDomain(domain)"
+      [disabled]="disabled"
+    >
+      {{ domain }}
+    </button>
+  </div>
+
+  <div class="input-row">
+    <textarea
+      [(ngModel)]="message"
+      (keydown)="onKeydown($event)"
+      [disabled]="disabled"
+      rows="2"
+      placeholder="Posez votre question… (Entrée pour envoyer, Maj+Entrée pour nouvelle ligne)"
+    ></textarea>
+    <button type="button" class="btn-send" (click)="onSubmit()" [disabled]="disabled || !message.trim()">
+      <mat-icon>send</mat-icon>
+    </button>
+  </div>
+</div>

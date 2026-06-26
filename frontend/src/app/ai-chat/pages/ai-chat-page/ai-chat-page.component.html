@@ -1,0 +1,77 @@
+<div class="main-container ai-chat-page a1">
+  <div class="breadcrumb-bar">
+    <a class="breadcrumb-link" routerLink="/home">Tableau de bord</a>
+    <span class="breadcrumb-sep">/</span>
+    <span>Elykia IA</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-main">
+      <div class="title-group">
+        <mat-icon class="page-icon">auto_awesome</mat-icon>
+        <div>
+          <p class="header-surtitle">Assistant intelligent</p>
+          <h1 class="page-title">Elykia IA</h1>
+        </div>
+      </div>
+      <span class="provider-badge" *ngIf="providerLabel">{{ providerLabel }}</span>
+    </div>
+    <p class="page-subtitle">
+      Interrogez vos données en langage naturel ou demandez de l'aide sur l'utilisation de l'application.
+    </p>
+    <div class="page-tabs">
+      <button type="button" [class.active]="activeTab === 'chat'" (click)="activeTab = 'chat'">
+        <mat-icon>forum</mat-icon>
+        Discussion
+      </button>
+      <button
+        type="button"
+        *ngxPermissionsOnly="[aiPermissions.Report]"
+        [class.active]="activeTab === 'stats'"
+        (click)="activeTab = 'stats'"
+      >
+        <mat-icon>insights</mat-icon>
+        Statistiques
+      </button>
+    </div>
+  </div>
+
+  <div class="chat-layout a3" *ngIf="activeTab === 'chat'">
+    <app-conversation-sidebar
+      [conversations]="conversations"
+      [activeId]="activeConversationId"
+      [loading]="loadingSessions"
+      (selectConversation)="selectConversation($event)"
+      (newConversation)="onNewConversation()"
+      (deleteConversation)="onDeleteConversation($event)"
+    ></app-conversation-sidebar>
+
+    <section class="chat-main">
+      <div class="messages-area" *ngIf="!loadingMessages; else loadingTpl">
+        <app-chat-message-list
+          [messages]="messages"
+          [sending]="sending"
+          [showSql]="showSql"
+          (suggestionSelected)="onSuggestionSelected($event)"
+        ></app-chat-message-list>
+      </div>
+      <ng-template #loadingTpl>
+        <div class="messages-loading">
+          <mat-spinner diameter="36"></mat-spinner>
+        </div>
+      </ng-template>
+
+      <app-chat-input
+        [disabled]="sending"
+        [domains]="domains"
+        (send)="onSendMessage($event)"
+      ></app-chat-input>
+    </section>
+  </div>
+
+  <div class="admin-layout a3" *ngIf="activeTab === 'stats'">
+    <ng-container *ngxPermissionsOnly="[aiPermissions.Report]">
+      <app-ai-admin-stats></app-ai-admin-stats>
+    </ng-container>
+  </div>
+</div>

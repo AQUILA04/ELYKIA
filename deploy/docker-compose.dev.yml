@@ -19,6 +19,13 @@
 #   MINIO_PUBLIC_URL=http://localhost:19000
 #   MINIO_ACCESS_KEY=minioadmin
 #   MINIO_SECRET_KEY=minioadmin
+#
+# Ollama (Elykia IA en local) :
+#   docker compose -f deploy/docker-compose.dev.yml up -d ollama
+#   docker exec -it elykia-dev-ollama ollama pull qwen2.5-coder:7b
+#   elykia.ai.provider=ollama + spring.ai.ollama.enabled=true
+#
+# Si pull échoue avec x509 (réseau entreprise) : voir deploy/OLLAMA_DEV.md
 
 services:
   minio:
@@ -35,5 +42,15 @@ services:
       - minio_data:/data
     restart: unless-stopped
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: elykia-dev-ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
 volumes:
   minio_data:
+  ollama_data:

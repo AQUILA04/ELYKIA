@@ -1,595 +1,392 @@
-.article-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+/* Sélecteur d'articles — palette frontend-ui-style */
+
+.elykia-article-selector {
+  --navy: #003366;
+  --navy-dark: #002244;
+  --navy-pale: #e8eef6;
+  --navy-xpale: #f0f4f9;
+  --bg-white: #ffffff;
+  --border: #dde3ec;
+  --text-muted: #6b7a99;
+  --text-light: #9aacc4;
+  --green: #1d8a3c;
+  --orange: #c75000;
+  --kpi-cyan: #0095c8;
+  --red: #b91c1c;
+  --shadow-sm: 0 1px 3px rgba(0, 51, 102, 0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.article-group {
+.elykia-article-selector .article-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.elykia-article-selector .article-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr auto;
-  gap: 1rem;
+  grid-template-columns: minmax(200px, 2fr) 110px 130px 130px auto;
+  gap: 14px 16px;
   align-items: start;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  transition: all 0.2s ease;
+  padding: 16px 18px;
+  background: var(--navy-xpale);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  transition: border-color .18s, box-shadow .18s;
 
   &:hover {
-    border-color: #003366;
-    box-shadow: 0 2px 4px rgba(0, 51, 102, 0.1);
+    border-color: var(--navy-pale);
+    box-shadow: var(--shadow-sm);
   }
 
-  // Indication visuelle si le stock est dépassé
-  &.stock-exceeded {
-    border-color: #dc3545;
-    background: #fff5f5;
-  }
-
-  // Layout simple pour inventory (sans colonnes de prix)
   &.simple-layout {
-    grid-template-columns: 2fr 1fr auto;
+    grid-template-columns: minmax(200px, 1fr) 110px auto;
   }
+
+  &.stock-exceeded {
+    border-color: #fca5a5;
+    background: #fef2f2;
+
+    &.with-validation::before {
+      content: 'Stock insuffisant';
+      position: absolute;
+      top: -10px;
+      right: 12px;
+      background: var(--red);
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      z-index: 2;
+    }
+  }
+
+  position: relative;
 }
 
-.form-field {
+.elykia-article-selector .form-field {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-
-  label {
-    font-weight: 500;
-    font-size: 0.875rem;
-    color: #495057;
-    margin-bottom: 0.25rem;
-  }
-
-  .form-control {
-    padding: 0.5rem;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    transition: border-color 0.15s ease-in-out;
-
-    &:focus {
-      outline: none;
-      border-color: #003366;
-      box-shadow: 0 0 0 0.2rem rgba(0, 51, 102, 0.25);
-    }
-
-    &[readonly] {
-      background-color: #e9ecef;
-      cursor: not-allowed;
-    }
-  }
-
-  mat-error {
-    font-size: 0.75rem;
-    color: #dc3545;
-    margin-top: 0.25rem;
-  }
+  gap: 6px;
+  min-width: 0;
 }
 
-.article-field {
-  min-width: 200px;
+.elykia-article-selector .form-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  margin: 0;
 }
 
-.quantity-field {
-  max-width: 120px;
+.elykia-article-selector .field-input {
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-white);
+  transition: border-color .18s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.elykia-article-selector .field-input:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.08);
+}
+.elykia-article-selector .field-input[readonly] {
+  background: var(--navy-xpale);
+  cursor: not-allowed;
 }
 
-.price-field,
-.subtotal-field {
-  max-width: 150px;
+.elykia-article-selector .field-mono {
+  font-family: 'DM Mono', monospace;
 }
 
-.price-display,
-.subtotal-display {
-  padding: 0.5rem;
-  background: #ffffff;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #003366;
+.elykia-article-selector .field-error {
+  font-size: 12px;
+  color: var(--red);
+  line-height: 1.3;
+}
+
+.elykia-article-selector .ng-select {
+  font-size: 14px;
+}
+.elykia-article-selector .ng-select .ng-select-container {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-white);
+}
+.elykia-article-selector .ng-select.ng-select-focused .ng-select-container {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.08);
+}
+.elykia-article-selector .ng-select.ng-invalid.ng-touched .ng-select-container {
+  border-color: var(--red);
+}
+
+.elykia-article-selector .ng-select.article-select-wrap .ng-select-container {
+  height: auto !important;
+  min-height: 42px;
+}
+.elykia-article-selector .ng-select.article-select-wrap .ng-value-container .ng-value {
+  white-space: normal !important;
+}
+
+.elykia-article-selector .price-display,
+.elykia-article-selector .subtotal-display {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
   text-align: right;
-  min-height: 38px;
+  min-height: 42px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  box-sizing: border-box;
 }
 
-.subtotal-display {
-  background: #e3f2fd;
-  border-color: #90caf9;
-  color: #1976d2;
-  font-weight: 600;
+.elykia-article-selector .price-display {
+  background: var(--bg-white);
+  color: var(--text-muted);
 }
 
-.option-title {
-  font-weight: 500;
-  color: #212529;
+.elykia-article-selector .subtotal-display {
+  background: var(--navy-pale);
+  border-color: var(--navy-pale);
+  color: var(--navy);
 }
 
-.option-details {
-  color: #6c757d;
-  font-size: 0.75rem;
-}
-
-.btn {
+.elykia-article-selector .btn-row-remove {
+  align-self: end;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-sm);
+  background: #fef2f2;
+  color: var(--red);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background .18s, border-color .18s, color .18s;
+  flex-shrink: 0;
 
-  mat-icon {
-    font-size: 1.25rem;
-    height: 1.25rem;
-    width: 1.25rem;
+  svg { width: 18px; height: 18px; }
+
+  &:hover:not(:disabled) {
+    background: var(--red);
+    border-color: var(--red);
+    color: white;
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.35;
     cursor: not-allowed;
   }
 }
 
-.btn-remove {
-  background-color: #dc3545;
-  color: white;
-  align-self: center;
-  padding: 6px;
-  min-width: 32px;
-  height: 32px;
-  display: flex;
+.elykia-article-selector .btn-add-row {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-
-  &:hover:not(:disabled) {
-    background-color: #c82333;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
-  }
-
-  mat-icon {
-    margin: 0;
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
-  }
-}
-
-.btn-add {
-  background-color: #003366; /* Changed from #28a745 to #003366 */
-  color: white;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-white);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .18s, border-color .18s;
   align-self: flex-start;
-  margin-top: 0.5rem;
-  border: 1px solid #003366; /* Added border */
 
-  &:hover:not(:disabled) {
-    background-color: #004080; /* Changed hover color */
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 51, 102, 0.3); /* Changed shadow color */
+  svg { width: 18px; height: 18px; }
+
+  &:hover {
+    background: var(--navy-xpale);
+    border-color: var(--navy);
+    border-style: solid;
   }
 }
 
-// Section du total
-.total-section {
+.elykia-article-selector .total-bar {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem 1rem;
-  margin-top: 1rem;
-  background: linear-gradient(135deg, #003366 0%, #004d99 100%);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 51, 102, 0.2);
+  justify-content: space-between;
+  margin-top: 4px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, var(--navy-xpale) 0%, var(--bg-white) 100%);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--kpi-cyan);
+  border-radius: var(--radius-sm);
+}
 
-  .total-label {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #ffffff;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.elykia-article-selector .total-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+}
+
+.elykia-article-selector .total-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--kpi-cyan);
+}
+
+/* Stock badges */
+.elykia-article-selector .stock-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.stock-empty {
+    background: #fef2f2;
+    color: var(--red);
+    border: 1px solid #fca5a5;
   }
-
-  .total-amount {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #ffd700;
-    padding: 0.5rem 1.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    min-width: 200px;
-    text-align: right;
+  &.stock-low {
+    background: #fff7ed;
+    color: var(--orange);
+    border: 1px solid #fdba74;
+  }
+  &.stock-medium {
+    background: #ecfeff;
+    color: var(--kpi-cyan);
+    border: 1px solid #67e8f9;
+  }
+  &.stock-good {
+    background: #f0fdf4;
+    color: var(--green);
+    border: 1px solid #86efac;
   }
 }
 
-@media (max-width: 1200px) {
-  .article-group {
-    grid-template-columns: 1fr 100px 120px 120px auto;
-    gap: 0.75rem;
+.elykia-article-selector .stock-info {
+  font-weight: 600;
+  font-size: 12px;
+
+  &.stock-empty { color: var(--red); }
+  &.stock-low { color: var(--orange); }
+  &.stock-medium { color: var(--kpi-cyan); }
+  &.stock-good { color: var(--green); }
+}
+
+.elykia-article-selector .quantity-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .field-input { flex: 1; min-width: 0; }
+  .stock-indicator { flex-shrink: 0; }
+}
+
+.elykia-article-selector .stock-indicator {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Mono', monospace;
+
+  &.stock-empty {
+    color: var(--red);
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+  }
+  &.stock-low {
+    color: var(--orange);
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+  }
+  &.stock-medium {
+    color: var(--kpi-cyan);
+    background: #ecfeff;
+    border: 1px solid #67e8f9;
+  }
+  &.stock-good {
+    color: var(--green);
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+  }
+}
+
+.elykia-article-selector .stock-warning {
+  border-color: var(--red) !important;
+  background: #fef2f2 !important;
+}
+
+.elykia-article-selector .article-option .option-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+  font-size: 13px;
+}
+
+.elykia-article-selector .article-option .option-details {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.elykia-article-selector .selected-article {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  line-height: 1.4;
+  white-space: normal;
+  padding: 2px 0;
+
+  .stock-badge { margin-left: auto; }
+}
+
+@media (max-width: 1100px) {
+  .elykia-article-selector .article-row {
+    grid-template-columns: 1fr 100px 110px 110px auto;
 
     &.simple-layout {
       grid-template-columns: 1fr 100px auto;
     }
   }
-
-  .total-section {
-    .total-label {
-      font-size: 1.1rem;
-    }
-
-    .total-amount {
-      font-size: 1.5rem;
-      min-width: 150px;
-    }
-  }
 }
 
 @media (max-width: 768px) {
-  .article-group {
+  .elykia-article-selector .article-row {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
+    gap: 12px;
 
     &.simple-layout {
       grid-template-columns: 1fr;
     }
   }
 
-  .quantity-field,
-  .price-field,
-  .subtotal-field {
-    max-width: 100%;
-  }
-
-  .btn-remove {
-    justify-content: center;
+  .elykia-article-selector .btn-row-remove {
     width: 100%;
+    align-self: stretch;
   }
 
-  .total-section {
+  .elykia-article-selector .total-bar {
     flex-direction: column;
-    text-align: center;
-
-    .total-label {
-      font-size: 1rem;
-    }
-
-    .total-amount {
-      font-size: 1.5rem;
-      width: 100%;
-      text-align: center;
-    }
-  }
-}
-
-
-// ============================================
-// BADGES ET INDICATEURS DE STOCK
-// ============================================
-
-// Badge dans l'article sélectionné (ng-select label)
-.stock-badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-
-  &.stock-empty {
-    background: #dc3545;
-    color: white;
-    animation: pulse-red 2s ease-in-out infinite;
-  }
-
-  &.stock-low {
-    background: #ffc107;
-    color: #000;
-    animation: pulse-yellow 2s ease-in-out infinite;
-  }
-
-  &.stock-medium {
-    background: #17a2b8;
-    color: white;
-  }
-
-  &.stock-good {
-    background: #28a745;
-    color: white;
-  }
-}
-
-// Info dans le dropdown (ng-select options)
-.stock-info {
-  display: inline;
-  font-weight: 600;
-  font-size: 0.75rem;
-  padding-left: 0.25rem;
-
-  &.stock-empty {
-    color: #dc3545;
-  }
-
-  &.stock-low {
-    color: #ffc107;
-  }
-
-  &.stock-medium {
-    color: #17a2b8;
-  }
-
-  &.stock-good {
-    color: #28a745;
-  }
-}
-
-// Indicateur X / Y à côté du champ quantité
-.stock-indicator {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.875rem;
-  font-weight: 600;
-  white-space: nowrap;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-
-  &.stock-empty {
-    color: #dc3545;
-    background: rgba(220, 53, 69, 0.1);
-    border: 1px solid rgba(220, 53, 69, 0.3);
-  }
-
-  &.stock-low {
-    color: #856404;
-    background: rgba(255, 193, 7, 0.1);
-    border: 1px solid rgba(255, 193, 7, 0.3);
-  }
-
-  &.stock-medium {
-    color: #0c5460;
-    background: rgba(23, 162, 184, 0.1);
-    border: 1px solid rgba(23, 162, 184, 0.3);
-  }
-
-  &.stock-good {
-    color: #155724;
-    background: rgba(40, 167, 69, 0.1);
-    border: 1px solid rgba(40, 167, 69, 0.3);
-  }
-}
-
-// Input avec bordure rouge quand stock dépassé
-.stock-warning {
-  border-color: #dc3545 !important;
-  background: #fff5f5 !important;
-
-  &:focus {
-    border-color: #dc3545 !important;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
-  }
-}
-
-// Ligne complète avec fond rose quand stock dépassé
-// IMPORTANT: Cette classe ne doit être appliquée QUE si validateStock est true
-// En mode inventory, on AJOUTE au stock, donc pas de warning
-.article-group.stock-exceeded {
-  border-color: #dc3545 !important;
-  background: #fff5f5 !important;
-  position: relative;
-
-  // Badge "Stock insuffisant" seulement si validation activée
-  &.with-validation::before {
-    content: '⚠️ Stock insuffisant';
-    position: absolute;
-    top: -12px;
-    right: 10px;
-    background: #dc3545;
-    color: white;
-    font-size: 0.7rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    font-weight: 600;
-    z-index: 10;
-    animation: shake 0.5s ease-in-out;
-  }
-
-  &:hover {
-    border-color: #dc3545 !important;
-    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
-  }
-}
-
-// Animations
-@keyframes pulse-red {
-
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
-  }
-
-  50% {
-    box-shadow: 0 0 0 4px rgba(220, 53, 69, 0);
-  }
-}
-
-@keyframes pulse-yellow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
-  }
-
-  50% {
-    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0);
-  }
-}
-
-@keyframes shake {
-
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  25% {
-    transform: translateX(-5px);
-  }
-
-  75% {
-    transform: translateX(5px);
-  }
-}
-
-// Classes de couleur individuelles (pour usage direct)
-.stock-empty {
-  color: #dc3545;
-}
-
-.stock-low {
-  color: #ffc107;
-}
-
-.stock-medium {
-  color: #17a2b8;
-}
-
-.stock-good {
-  color: #28a745;
-}
-
-// Versions avec background
-.bg-stock-empty {
-  background: #dc3545;
-  color: white;
-}
-
-.bg-stock-low {
-  background: #ffc107;
-  color: #000;
-}
-
-.bg-stock-medium {
-  background: #17a2b8;
-  color: white;
-}
-
-.bg-stock-good {
-  background: #28a745;
-  color: white;
-}
-
-// Wrapper pour le champ quantité avec indicateur
-.quantity-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  .form-control {
-    flex: 1;
-  }
-
-  .stock-indicator {
-    flex-shrink: 0;
-  }
-}
-
-// Style pour les options dans ng-select
-.article-option {
-  .option-title {
-    font-weight: 500;
-    color: #212529;
-    margin-bottom: 0.25rem;
-  }
-
-  .option-details {
-    color: #6c757d;
-    font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    flex-wrap: wrap;
-  }
-}
-
-// Style pour l'article sélectionné dans ng-select
-.selected-article {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-
-  .stock-badge {
-    margin-left: auto;
-  }
-}
-
-// Messages d'erreur pour le stock
-mat-error {
-  &.stock-error {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-weight: 600;
-
-    &::before {
-      content: '⚠️';
-      font-size: 1rem;
-    }
-  }
-}
-
-// Responsive
-@media (max-width: 768px) {
-  .stock-badge {
-    font-size: 0.65rem;
-    padding: 0.15rem 0.4rem;
-  }
-
-  .stock-indicator {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.4rem;
-  }
-
-  .article-group.stock-exceeded::before {
-    font-size: 0.65rem;
-    padding: 0.15rem 0.4rem;
-    top: -10px;
-  }
-}
-
-// ============================================
-// FIX WRAPPING CSS
-// ============================================
-
-::ng-deep .ng-select.article-select-wrap {
-  .ng-select-container {
-    height: auto !important;
-    min-height: 38px;
-  }
-
-  .ng-value-container {
-    .ng-value {
-      white-space: normal !important;
-    }
-  }
-
-  .selected-article {
-    white-space: normal;
-    line-height: 1.4;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    align-items: flex-start;
+    gap: 6px;
   }
 }
