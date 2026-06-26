@@ -47,6 +47,11 @@
                 "glob": "**/*",
                 "input": "node_modules/leaflet/dist/images",
                 "output": "assets/leaflet/"
+              },
+              {
+                "glob": "sql-wasm.wasm",
+                "input": "node_modules/sql.js/dist",
+                "output": "assets"
               }
             ],
             "styles": [
@@ -136,6 +141,11 @@
                 "glob": "**/*",
                 "input": "node_modules/leaflet/dist/images",
                 "output": "assets/leaflet/"
+              },
+              {
+                "glob": "sql-wasm.wasm",
+                "input": "node_modules/sql.js/dist",
+                "output": "assets"
               }
             ],
             "styles": [

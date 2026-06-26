@@ -12,6 +12,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Added
 
+- **Docs —** skill et règle Cursor `mobile-version-bump` : incrément obligatoire de la version mobile (`package.json`, `environment.ts`, `environment.prod.ts`) à chaque modification sous `mobile/`.
 - **Mobile —** design system Espace Client : composants shared `elyk-decor-header`, `elyk-overlap-card`, `elyk-outlined-field` ; tokens header/overlap ; variants boutons navy/gold ; skill et `design-system.md` alignés sur les maquettes S-01 à S-11.
 - **Backend — Elykia IA (Phase 2)** : few-shot SQL par domaine (`sql-examples.json`, `SqlExamplesService`), RAG hybride embeddings Ollama + fallback mots-clés (`GuideVectorSearch`), métriques Micrometer (`AiMetricsService`), journal `ai_query_log` (migration V62), API admin `/api/v1/ai/admin/stats`, tests `SqlExamplesServiceTest`.
 - **Frontend — Elykia IA (Phase 2)** : onglet « Statistiques » dans `/ai-chat` (requêtes fréquentes, SQL rejetés, distribution intents) pour `ROLE_AI_REPORT`.
@@ -22,6 +23,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Fixed
 
+- **Mobile —** initialisation SQLite : attente `Platform.ready()` et jeep-sqlite (web), détection plugin natif absent (`CapacitorSQLitePlugin: null`), asset `sql-wasm.wasm`, message explicite si rebuild `cap sync` requis.
 - **Mobile —** sync stock commercial à l'initialisation : réessai automatique si SQLite n'est pas prête (`ensureReady`), vérification avant le chargement initial, logs d'erreur détaillés (message SQLite, contexte article/commercial) à la place de `{}`.
 - **Mobile —** E2E smoke : `baseURL` et viewport transmis au contexte worker Playwright ; sélecteurs Ionic 8 (`getByPlaceholder`) pour le login ; navigation via `/` + fallback SPA sur `http-server`.
 

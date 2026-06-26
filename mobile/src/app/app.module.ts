@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
-import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
+import { IonicModule, IonicRouteStrategy, Platform } from '@ionic/angular';
 import { IonicStorageModule } from '@ionic/storage-angular';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -63,8 +63,8 @@ import { SecurityContextInterceptor } from './core/interceptors/security-context
 import { metaReducers } from './store/meta-reducers';
 import { LOCAL_DATA_CLEANUP_PROVIDERS } from './core/local-data-cleanup/local-data-cleanup.providers';
 
-function initializeDatabase(databaseService: DatabaseService) {
-  return () => databaseService.initializeDatabase();
+function initializeDatabase(databaseService: DatabaseService, platform: Platform) {
+  return () => platform.ready().then(() => databaseService.initializeDatabase());
 }
 // Register French locale data
 registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
@@ -101,7 +101,7 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
     {
       provide: APP_INITIALIZER,
       useFactory: initializeDatabase,
-      deps: [DatabaseService],
+      deps: [DatabaseService, Platform],
       multi: true,
     },
     {

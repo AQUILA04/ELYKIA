@@ -1,0 +1,22 @@
+---
+description: Incrémenter la version mobile (package.json + environment.ts) après toute modification sous mobile/
+globs: mobile/**
+alwaysApply: false
+---
+
+# Mobile — version obligatoire
+
+Toute modification livrée sous `mobile/` doit incrémenter **la même version** dans :
+
+1. `mobile/package.json` → `"version"`
+2. `mobile/src/environments/environment.ts` → `environment.version`
+3. `mobile/src/environments/environment.prod.ts` → `environment.version`
+
+## Règle d'incrément
+
+- **PATCH** (défaut) : correctifs, refactors, tests, petits ajouts → `2.9.1` → `2.9.2`
+- **MINEUR** : fonctionnalité large / écran majeur → `2.9.x` → `2.10.0`
+
+En fin de tâche, vérifier que les trois fichiers portent la même valeur avant de conclure.
+
+Voir le skill `.cursor/skills/mobile-version-bump/SKILL.md` pour le workflow complet.

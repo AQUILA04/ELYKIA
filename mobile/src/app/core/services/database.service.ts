@@ -28,8 +28,10 @@ interface DbRowWithHash {
   providedIn: 'root'
 })
 export class DatabaseService {
+  private static readonly DB_NAME = 'elykia_mobile_app.db';
   private sqlite: SQLiteConnection = new SQLiteConnection(CapacitorSQLite);
   private db: SQLiteDBConnection | null = null;
+  private initPromise: Promise<void> | null = null;
 
   constructor(
     private log: LoggerService,
@@ -40,65 +42,97 @@ export class DatabaseService {
 
   async initializeDatabase(): Promise<void> {
     try {
-      if (Capacitor.getPlatform() === 'web') {
-        try {
-          const jeepEl = document.querySelector('jeep-sqlite');
-          if (jeepEl) {
-            await this.sqlite.initWebStore();
-          } else {
-            throw new Error('The jeep-sqlite element is not present in the DOM!');
-          }
-        } catch (err) {
-          console.error('Database initialization error (web):', err);
-        }
-      }
-
-      // NOTE: Le callback onUpgrade n'est pas utilisé dans votre logique actuelle,
-      // ce qui est acceptable car vous gérez la migration manuellement.
-      // const onUpgrade = async (db: SQLiteDBConnection, fromVersion: number, toVersion: number) => {
-      //   await this.migrationService.runMigrations(db, fromVersion, toVersion);
-      // };
-
-      this.db = await this.sqlite.createConnection(
-        'elykia_mobile_app.db',
-        false,
-        'no-encryption',
-        2,
-        false
-      );
-      await this.db.open();
-
-      // 1. Créer les tables pour s'assurer qu'elles existent pour les nouveaux utilisateurs
-      await this.createTables();
-
-      // 2. Migrations incrémentielles (natif uniquement).
-      // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
-      const currentVersion = await this.db.getVersion();
-      const targetVersion = 28; // dual credit authorization (clients + distributions)
-      const dbVersion = currentVersion.version ?? 2;
-      const isWeb = Capacitor.getPlatform() === 'web';
-
-      console.log('=== DATABASE VERSION CHECK ===');
-      console.log('Current DB version:', dbVersion);
-      console.log('Target DB version:', targetVersion);
-      console.log('Platform:', Capacitor.getPlatform());
-      console.log('==============================');
-
-      if (dbVersion < targetVersion) {
-        if (isWeb) {
-          console.log('Web: migrations skipped, schema from createTables(); bumping user_version.');
-          await this.db.run(`PRAGMA user_version = ${targetVersion}`);
-        } else {
-          await this.migrationService.runMigrations(this.db, dbVersion, targetVersion);
-          await this.db.run(`PRAGMA user_version = ${targetVersion}`);
-        }
-      }
-
-
+      await this.initializeDatabaseOnce();
     } catch (error) {
+      this.db = null;
       this.log.error('[DatabaseService] Database initialization failed', error);
       console.error('Database initialization error:', error);
     }
+  }
+
+  /**
+   * Prépare SQLite selon la plateforme (jeep-sqlite web ou plugin natif Capacitor).
+   */
+  private async preparePlatformForSqlite(platform: string): Promise<void> {
+    if (platform === 'web') {
+      await customElements.whenDefined('jeep-sqlite');
+      const jeepEl = document.querySelector('jeep-sqlite');
+      if (!jeepEl) {
+        throw new Error('Élément jeep-sqlite absent du DOM. Vérifiez index.html.');
+      }
+      await this.sqlite.initWebStore();
+      this.log.log('[DatabaseService] Web SQLite store initialized (jeep-sqlite).');
+      return;
+    }
+
+    if (Capacitor.isNativePlatform() && !Capacitor.isPluginAvailable('CapacitorSQLite')) {
+      throw new Error(
+        'Plugin CapacitorSQLite indisponible. Reconstruisez l\'application native : ' +
+        'npm install && npx cap sync android && rebuild APK/IPA.'
+      );
+    }
+  }
+
+  private async openOrCreateConnection(): Promise<SQLiteDBConnection> {
+    const dbName = DatabaseService.DB_NAME;
+    const existing = await this.sqlite.isConnection(dbName, false);
+    if (existing.result) {
+      this.log.log('[DatabaseService] Reusing existing SQLite connection.');
+      return await this.sqlite.retrieveConnection(dbName, false);
+    }
+    return await this.sqlite.createConnection(dbName, false, 'no-encryption', 2, false);
+  }
+
+  private async doInitializeDatabase(): Promise<void> {
+    if (this.db) {
+      return;
+    }
+
+    const platform = Capacitor.getPlatform();
+    this.log.log(`[DatabaseService] Initializing database (platform=${platform})...`);
+
+    await this.preparePlatformForSqlite(platform);
+    this.db = await this.openOrCreateConnection();
+    await this.db.open();
+
+    // 1. Créer les tables pour s'assurer qu'elles existent pour les nouveaux utilisateurs
+    await this.createTables();
+
+    // 2. Migrations incrémentielles (natif uniquement).
+    // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
+    const currentVersion = await this.db.getVersion();
+    const targetVersion = 28; // dual credit authorization (clients + distributions)
+    const dbVersion = currentVersion.version ?? 2;
+    const isWeb = Capacitor.getPlatform() === 'web';
+
+    console.log('=== DATABASE VERSION CHECK ===');
+    console.log('Current DB version:', dbVersion);
+    console.log('Target DB version:', targetVersion);
+    console.log('Platform:', Capacitor.getPlatform());
+    console.log('==============================');
+
+    if (dbVersion < targetVersion) {
+      if (isWeb) {
+        console.log('Web: migrations skipped, schema from createTables(); bumping user_version.');
+        await this.db.run(`PRAGMA user_version = ${targetVersion}`);
+      } else {
+        await this.migrationService.runMigrations(this.db, dbVersion, targetVersion);
+        await this.db.run(`PRAGMA user_version = ${targetVersion}`);
+      }
+    }
+
+    this.log.log('[DatabaseService] Database initialized successfully.');
+  }
+
+  async initializeDatabaseOnce(): Promise<void> {
+    if (!this.initPromise) {
+      this.initPromise = this.doInitializeDatabase().catch(error => {
+        this.initPromise = null;
+        this.db = null;
+        throw error;
+      });
+    }
+    return this.initPromise;
   }
 
   isReady(): boolean {
@@ -114,7 +148,7 @@ export class DatabaseService {
       return;
     }
     this.log.log('[DatabaseService] Database not ready — retrying initialization...');
-    await this.initializeDatabase();
+    await this.initializeDatabaseOnce();
     if (!this.db) {
       throw new Error('Database not initialized.');
     }

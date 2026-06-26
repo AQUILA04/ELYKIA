@@ -104,7 +104,13 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
       await this.dbService.ensureReady();
     } catch (error) {
       this.log.error('[InitialLoadingPage] Database not available before initialization', error);
-      this.presentErrorAlert('La base de données locale n\'est pas disponible. Redémarrez l\'application puis réessayez.');
+      const detail = error instanceof Error ? error.message : String(error);
+      const isNativePluginMissing =
+        detail.includes('CapacitorSQLitePlugin') || detail.includes('CapacitorSQLite indisponible');
+      const message = isNativePluginMissing
+        ? 'Le plugin SQLite natif est absent de cette build. Reinstallez l\'application après un rebuild (npx cap sync android).'
+        : `La base de données locale n'est pas disponible. ${detail}`;
+      this.presentErrorAlert(message);
       return;
     }
 
