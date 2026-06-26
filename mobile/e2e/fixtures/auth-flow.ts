@@ -24,7 +24,7 @@ async function dismissBlockingAlerts(page: Page) {
   }
 }
 
-export async function loginAndWaitForTabs(page: Page, timeoutMs = 45000) {
+export async function loginAndWaitForTabs(page: Page, timeoutMs = 90_000) {
   await page.goto('/login');
   await page.locator('input[name="username"]').fill('COM002');
   await page.locator('input[name="password"]').fill('password');

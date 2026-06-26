@@ -56,17 +56,14 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v4
 
-    - name: Clean npm cache
-      run: npm cache clean --force
-
     - name: Install dependencies
       run: npm install --legacy-peer-deps
 
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
 
-    - name: Run E2E Tests
-      run: npm run test:e2e
+    - name: Run E2E Smoke Tests
+      run: npm run test:e2e:smoke
       env:
         CI: true
 

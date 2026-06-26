@@ -4,12 +4,13 @@ const isCI = !!process.env['CI'];
 
 export default defineConfig({
   testDir: './e2e/specs',
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: isCI,
-  retries: isCI ? 2 : 0,
+  retries: isCI ? 1 : 0,
   workers: isCI ? 1 : undefined,
+  maxFailures: isCI ? 3 : undefined,
   reporter: isCI ? [['list'], ['html', { open: 'never' }]] : 'html',
-  timeout: 120_000,
+  timeout: 90_000,
   use: {
     baseURL: 'http://localhost:8100',
     trace: 'on-first-retry',

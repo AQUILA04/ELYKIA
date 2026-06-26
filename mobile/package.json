@@ -16,6 +16,7 @@
     "lint": "ng lint",
     "version:bump": "node scripts/version-bump.js",
     "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test --grep @smoke",
     "test:e2e:ui": "playwright test --ui"
   },
   "private": true,

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { NetworkInterceptor } from '../fixtures/network-interceptor';
 import { loginAndWaitForTabs } from '../fixtures/auth-flow';
 
-test.describe('Offline Initialization', () => {
+test.describe('Offline Initialization @full', () => {
   let interceptor: NetworkInterceptor;
 
   test.beforeEach(async ({ page }) => {

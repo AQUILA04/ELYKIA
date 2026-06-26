@@ -18,7 +18,8 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Changed
 
-- **Backend — Elykia IA :** provider cloud **DeepSeek** (`elykia.ai.provider=deepseek`, starter Spring AI natif).
+- **Mobile —** CI E2E : suite smoke consolidée (1 login partagé par worker), retries réduits, fail-fast et suppression du `npm cache clean` pour accélérer le pipeline `build-mobile`.
+
 
 - **Backend — Elykia IA :** providers cloud **OpenAI** (`elykia.ai.provider=openai`) et **Gemini/Vertex AI** (`elykia.ai.provider=gemini`) ; doc mise à jour dans `AI_ASSISTANT.md`.
 
