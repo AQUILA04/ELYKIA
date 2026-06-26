@@ -85,8 +85,48 @@ export class LoggerService {
 
   }
 
-  async error(message: string, error?: any) {
-      const errorMessage = error ? `${message}: ${JSON.stringify(error)}` : message;
+  /**
+   * Sérialise une erreur pour les logs (Error natif, erreurs SQLite Capacitor, objets quelconques).
+   * JSON.stringify(Error) produit "{}" — cette méthode évite ce piège.
+   */
+  formatError(error: unknown): string {
+    if (error == null) {
+      return 'unknown error (null/undefined)';
+    }
+
+    if (error instanceof Error) {
+      const extra: Record<string, unknown> = {};
+      const errObj = error as Error & Record<string, unknown>;
+      for (const key of ['code', 'result', 'changes', 'lastId', 'status', 'statusText']) {
+        if (errObj[key] !== undefined) {
+          extra[key] = errObj[key];
+        }
+      }
+      return JSON.stringify({
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        ...extra
+      });
+    }
+
+    if (typeof error === 'object') {
+      try {
+        const obj = error as Record<string, unknown>;
+        if ('message' in obj || 'code' in obj || 'result' in obj) {
+          return JSON.stringify(obj);
+        }
+        return JSON.stringify(error);
+      } catch {
+        return String(error);
+      }
+    }
+
+    return String(error);
+  }
+
+  async error(message: string, error?: unknown) {
+      const errorMessage = error !== undefined ? `${message}: ${this.formatError(error)}` : message;
       console.error(errorMessage);
       const timestamp = new Date().toISOString();
       const logMessage = `[${timestamp}] ERROR: ${errorMessage}\n`;

@@ -100,6 +100,14 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
       }
     }
 
+    try {
+      await this.dbService.ensureReady();
+    } catch (error) {
+      this.log.error('[InitialLoadingPage] Database not available before initialization', error);
+      this.presentErrorAlert('La base de données locale n\'est pas disponible. Redémarrez l\'application puis réessayez.');
+      return;
+    }
+
     const isOnline = await this.healthCheckService.pingBackend().pipe(take(1)).toPromise();
 
     if (!isOnline) {
@@ -124,9 +132,10 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
             this.presentErrorAlert(`Échec de l'initialisation: ${step.text.replace('...', '')}`);
           }
         },
-        error: (err: any) => {
-          this.log.log(`[InitialLoadingPage] Step failed with error: ${step.text} - ${JSON.stringify(err)}`);
-          this.presentErrorAlert(`Erreur lors de l'initialisation: ${step.text.replace('...', '')}. Détails: ${err.message || err}`);
+        error: (err: unknown) => {
+          this.log.error(`[InitialLoadingPage] Step failed with error: ${step.text}`, err);
+          const detail = err instanceof Error ? err.message : this.log.formatError(err);
+          this.presentErrorAlert(`Erreur lors de l'initialisation: ${step.text.replace('...', '')}. Détails: ${detail}`);
         }
       });
     } else {

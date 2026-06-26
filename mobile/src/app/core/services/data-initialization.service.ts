@@ -177,7 +177,7 @@ export class DataInitializationService {
             return true;
           }),
           catchError(error => {
-            console.error('Error initializing commercial stock:', error);
+            this.log.error(`[DataInit] Error initializing commercial stock for ${commercialUsername}`, error);
             return of(false);
           })
         );

@@ -16,7 +16,8 @@ export class CommercialStockRepository {
 
   async saveWithCommercialUsername(items: CommercialStockItemDto[], username: string): Promise<void> {
     try {
-      this.log.log(`[CommercialStockRepository] Starting saveWithCommercialUsername for ${username} with ${items.length} items.`);
+      await this.db.ensureReady();
+      this.log.log(`[CommercialStockRepository] Starting saveWithCommercialUsername for ${username} with ${items.length} items (dbReady=${this.db.isReady()}).`);
 
       const batch: capSQLiteSet[] = [];
 
@@ -63,7 +64,12 @@ export class CommercialStockRepository {
       this.log.log(`[CommercialStockRepository] Immediate verification: ${count} items found.`);
 
     } catch (error) {
-      this.log.error('[CommercialStockRepository] Error saving stock items', error);
+      const sampleArticleIds = items.slice(0, 5).map(i => i.articleId).join(', ');
+      this.log.error(
+        `[CommercialStockRepository] Error saving stock items for ${username}: ` +
+        `${items.length} items, dbReady=${this.db.isReady()}, sampleArticleIds=[${sampleArticleIds}]`,
+        error
+      );
       throw error;
     }
   }

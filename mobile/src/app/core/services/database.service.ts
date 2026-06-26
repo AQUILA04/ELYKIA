@@ -96,8 +96,29 @@ export class DatabaseService {
 
 
     } catch (error) {
+      this.log.error('[DatabaseService] Database initialization failed', error);
       console.error('Database initialization error:', error);
     }
+  }
+
+  isReady(): boolean {
+    return this.db !== null;
+  }
+
+  /**
+   * Garantit une connexion SQLite active avant une opération locale.
+   * Réessaie l'initialisation si le démarrage de l'app a échoué silencieusement.
+   */
+  async ensureReady(): Promise<void> {
+    if (this.db) {
+      return;
+    }
+    this.log.log('[DatabaseService] Database not ready — retrying initialization...');
+    await this.initializeDatabase();
+    if (!this.db) {
+      throw new Error('Database not initialized.');
+    }
+    this.log.log('[DatabaseService] Database ready after ensureReady().');
   }
 
   async executeSql(sql: string, params: any[] = []): Promise<any> {
