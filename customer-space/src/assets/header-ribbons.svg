@@ -1,0 +1,186 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 200" preserveAspectRatio="xMidYMid slice" width="390" height="200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D1B2A"/>
+      <stop offset="100%" stop-color="#112236"/>
+    </linearGradient>
+
+    <!-- Dégradé doré métallique horizontal -->
+    <linearGradient id="gA" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#7A5C10"/>
+      <stop offset="18%"  stop-color="#C9922A"/>
+      <stop offset="35%"  stop-color="#F5D07A"/>
+      <stop offset="52%"  stop-color="#E8B84B"/>
+      <stop offset="68%"  stop-color="#F0C66A"/>
+      <stop offset="85%"  stop-color="#C9922A"/>
+      <stop offset="100%" stop-color="#8B6914"/>
+    </linearGradient>
+    <linearGradient id="gB" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#9A7020"/>
+      <stop offset="22%"  stop-color="#F0C66A"/>
+      <stop offset="45%"  stop-color="#C9922A"/>
+      <stop offset="65%"  stop-color="#F5D07A"/>
+      <stop offset="82%"  stop-color="#E8B84B"/>
+      <stop offset="100%" stop-color="#7A5C10"/>
+    </linearGradient>
+
+    <!-- Navy ruban -->
+    <linearGradient id="nv" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#0A1520"/>
+      <stop offset="35%"  stop-color="#1A2E42"/>
+      <stop offset="65%"  stop-color="#152535"/>
+      <stop offset="100%" stop-color="#0A1520"/>
+    </linearGradient>
+
+    <!-- Ombre douce -->
+    <filter id="sh" x="-5%" y="-30%" width="110%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+      <feOffset dx="0" dy="5"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Fondu bas -->
+    <linearGradient id="fade" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="55%" stop-color="#0D1B2A" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0D1B2A" stop-opacity="1"/>
+    </linearGradient>
+
+    <clipPath id="clip"><rect width="390" height="200"/></clipPath>
+
+    <!--
+      TRESSE 3 RUBANS : Gold-A (haut), Navy (milieu), Gold-B (bas)
+      Chaque ruban est une sinusoïde décalée verticalement.
+      L'entrelacement : à chaque demi-période, l'ordre change.
+
+      Sinusoïdes (top edge de chaque ruban, épaisseur ~42px) :
+        Gold-A : y = 35 + 45*sin(2π*x/260)
+        Navy   : y = 80 + 45*sin(2π*x/260 + π)   (déphasé de π = inversé)
+        Gold-B : y = 125 + 45*sin(2π*x/260)
+
+      Croisements (x où Gold-A et Navy se croisent) : x ≈ 65, 195, 325
+      Croisements (x où Navy et Gold-B se croisent) : x ≈ 0, 130, 260, 390
+
+      Ordre de rendu par zone :
+        x 0→65   : Navy devant Gold-A
+        x 65→195 : Gold-A devant Navy
+        x 195→325: Navy devant Gold-A
+        x 325→390: Gold-A devant Navy
+
+      On simule ça en découpant chaque ruban en segments et en les empilant.
+    -->
+
+    <!-- Clip segments pour Gold-A (zones où il est DEVANT navy) -->
+    <clipPath id="cGA_front">
+      <!-- Zone 65→195 et 325→390 -->
+      <rect x="65" y="0" width="130" height="200"/>
+      <rect x="325" y="0" width="65" height="200"/>
+    </clipPath>
+    <!-- Clip segments pour Gold-A (zones où il est DERRIÈRE navy) -->
+    <clipPath id="cGA_back">
+      <rect x="0" y="0" width="65" height="200"/>
+      <rect x="195" y="0" width="130" height="200"/>
+    </clipPath>
+
+    <!-- Clip segments pour Navy (zones où il est DEVANT Gold-A) -->
+    <clipPath id="cNV_front">
+      <rect x="0" y="0" width="65" height="200"/>
+      <rect x="195" y="0" width="130" height="200"/>
+    </clipPath>
+    <!-- Clip segments pour Navy (zones où il est DERRIÈRE Gold-A) -->
+    <clipPath id="cNV_back">
+      <rect x="65" y="0" width="130" height="200"/>
+      <rect x="325" y="0" width="65" height="200"/>
+    </clipPath>
+
+    <!-- Gold-B toujours devant Navy dans sa zone, alternance avec Gold-A -->
+    <clipPath id="cGB_front">
+      <rect x="0" y="0" width="390" height="200"/>
+    </clipPath>
+  </defs>
+
+  <!-- Fond navy -->
+  <rect width="390" height="200" fill="url(#bg)"/>
+
+  <g clip-path="url(#clip)">
+
+    <!-- ===== COUCHE BASSE : Gold-A derrière navy ===== -->
+    <g clip-path="url(#cGA_back)">
+      <path d="
+        M -10 18
+        C 25 -8, 55 -8, 90 18 C 125 44, 155 88, 195 62
+        C 235 36, 265 -8, 300 18 C 335 44, 365 88, 400 62
+        L 400 104
+        C 365 130, 335 86, 300 60 C 265 34, 235 78, 195 104
+        C 155 130, 125 86, 90 60 C 55 34, 25 78, -10 60
+        Z
+      " fill="url(#gA)" filter="url(#sh)"/>
+    </g>
+
+    <!-- ===== COUCHE BASSE : Navy derrière Gold-A ===== -->
+    <g clip-path="url(#cNV_back)">
+      <path d="
+        M -10 62
+        C 25 88, 55 44, 90 18 C 125 -8, 155 -8, 195 18
+        C 235 44, 265 88, 300 62 C 335 36, 365 -8, 400 18
+        L 400 60
+        C 365 34, 335 78, 300 104 C 265 130, 235 86, 195 60
+        C 155 34, 125 78, 90 104 C 55 130, 25 86, -10 104
+        Z
+      " fill="url(#nv)" filter="url(#sh)"/>
+    </g>
+
+    <!-- ===== COUCHE HAUTE : Navy devant Gold-A ===== -->
+    <g clip-path="url(#cNV_front)">
+      <path d="
+        M -10 62
+        C 25 88, 55 44, 90 18 C 125 -8, 155 -8, 195 18
+        C 235 44, 265 88, 300 62 C 335 36, 365 -8, 400 18
+        L 400 60
+        C 365 34, 335 78, 300 104 C 265 130, 235 86, 195 60
+        C 155 34, 125 78, 90 104 C 55 130, 25 86, -10 104
+        Z
+      " fill="url(#nv)" filter="url(#sh)"/>
+    </g>
+
+    <!-- ===== COUCHE HAUTE : Gold-A devant navy ===== -->
+    <g clip-path="url(#cGA_front)">
+      <path d="
+        M -10 18
+        C 25 -8, 55 -8, 90 18 C 125 44, 155 88, 195 62
+        C 235 36, 265 -8, 300 18 C 335 44, 365 88, 400 62
+        L 400 104
+        C 365 130, 335 86, 300 60 C 265 34, 235 78, 195 104
+        C 155 130, 125 86, 90 60 C 55 34, 25 78, -10 60
+        Z
+      " fill="url(#gA)" filter="url(#sh)"/>
+    </g>
+
+    <!-- Reflet fin sur Gold-A -->
+    <path d="
+      M -10 18 C 25 -8, 55 -8, 90 18 C 125 44, 155 88, 195 62
+      C 235 36, 265 -8, 300 18 C 335 44, 365 88, 400 62
+    " fill="none" stroke="#FBE89A" stroke-width="1" opacity="0.5"/>
+
+    <!-- ===== Gold-B : toujours en avant-plan bas ===== -->
+    <path d="
+      M -10 108
+      C 25 84, 55 84, 90 108 C 125 132, 155 176, 195 150
+      C 235 124, 265 84, 300 108 C 335 132, 365 176, 400 150
+      L 400 188
+      C 365 212, 335 168, 300 144 C 265 120, 235 160, 195 186
+      C 155 212, 125 168, 90 144 C 55 120, 25 160, -10 144
+      Z
+    " fill="url(#gB)" filter="url(#sh)"/>
+
+    <!-- Reflet fin sur Gold-B -->
+    <path d="
+      M -10 108 C 25 84, 55 84, 90 108 C 125 132, 155 176, 195 150
+      C 235 124, 265 84, 300 108 C 335 132, 365 176, 400 150
+    " fill="none" stroke="#FBE89A" stroke-width="1" opacity="0.45"/>
+
+  </g>
+
+  <!-- Fondu bas -->
+  <rect width="390" height="200" fill="url(#fade)"/>
+</svg>
