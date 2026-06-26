@@ -83,11 +83,16 @@
         </div>
 
         <div class="hero__visual">
-          <div class="hero__image-wrapper">
-            <!-- Image produits : huile, riz, pâtes sur fond teal -->
-            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:32px;">
-              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1"><path d="M9 3h6l2 4H7l2-4zM7 7v13a2 2 0 002 2h6a2 2 0 002-2V7"/></svg>
-              <span style="color:rgba(255,255,255,0.5);font-size:13px;text-align:center;">Photo produits alimentaires</span>
+          <div class="hero__image-wrapper hero__image-slider" id="hero-slider">
+            <div class="hero__slide active" style="background-image:url('assets/images/hero/hero-v1.png')"></div>
+            <div class="hero__slide" style="background-image:url('assets/images/hero/hero-v2.png')"></div>
+            <div class="hero__slide" style="background-image:url('assets/images/hero/hero-v3.png')"></div>
+            <div class="hero__slide" style="background-image:url('assets/images/hero/hero-v4.png')"></div>
+            <div class="hero__slider-dots" id="hero-dots">
+              <button class="hero__dot active" aria-label="Slide 1"></button>
+              <button class="hero__dot" aria-label="Slide 2"></button>
+              <button class="hero__dot" aria-label="Slide 3"></button>
+              <button class="hero__dot" aria-label="Slide 4"></button>
             </div>
           </div>
         </div>
@@ -207,93 +212,95 @@
         </div>
 
         <div class="products__grid">
+
           <article class="product-card">
             <div class="product-card__image">
-              <div class="product-card__image-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M9 3h6l2 4H7l2-4zM7 7v13a2 2 0 002 2h6a2 2 0 002-2V7"/></svg>
-              </div>
+              <img src="assets/images/products/sardine-silver.png" alt="Sardines Silver en huile végétale" loading="lazy">
             </div>
             <div class="product-card__body">
-              <h3 class="product-card__name">Huile Végétale</h3>
+              <span class="product-card__category">Conserves</span>
+              <h3 class="product-card__name">Silver</h3>
+              <p class="product-card__desc">Sardines en huile végétale</p>
             </div>
           </article>
 
           <article class="product-card">
             <div class="product-card__image">
-              <div class="product-card__image-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>
-              </div>
+              <img src="assets/images/products/spaghetti-dalia.png" alt="Spaghetti Dalia gros grain" loading="lazy">
             </div>
             <div class="product-card__body">
-              <h3 class="product-card__name">Riz Premium</h3>
+              <span class="product-card__category">Pâtes</span>
+              <h3 class="product-card__name">Dalia</h3>
+              <p class="product-card__desc">Spaghetti gros grain</p>
             </div>
           </article>
 
           <article class="product-card">
             <div class="product-card__image">
-              <div class="product-card__image-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-              </div>
+              <img src="assets/images/products/spaghetti-diari.png" alt="Spaghetti Diari petit grain" loading="lazy">
             </div>
             <div class="product-card__body">
-              <h3 class="product-card__name">Pâtes</h3>
+              <span class="product-card__category">Pâtes</span>
+              <h3 class="product-card__name">Diari</h3>
+              <p class="product-card__desc">Spaghetti petit grain</p>
             </div>
           </article>
 
           <article class="product-card">
             <div class="product-card__image">
-              <div class="product-card__image-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg>
-              </div>
+              <img src="assets/images/products/lait-peak.png" alt="Lait Peak" loading="lazy">
             </div>
             <div class="product-card__body">
-              <h3 class="product-card__name">Conserves</h3>
+              <span class="product-card__category">Laitiers</span>
+              <h3 class="product-card__name">Peak</h3>
+              <p class="product-card__desc">Lait en poudre</p>
             </div>
           </article>
 
           <article class="product-card">
             <div class="product-card__image">
-              <div class="product-card__image-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z"/></svg>
-              </div>
+              <img src="assets/images/products/riz-papa-africa.png" alt="Riz Papa Africa parfumé 5×5" loading="lazy">
             </div>
             <div class="product-card__body">
-              <h3 class="product-card__name">Miel Pur</h3>
+              <span class="product-card__category">Riz</span>
+              <h3 class="product-card__name">Papa Africa</h3>
+              <p class="product-card__desc">Riz parfumé 5×5</p>
             </div>
           </article>
 
           <article class="product-card">
             <div class="product-card__image">
-              <div class="product-card__image-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-              </div>
+              <img src="assets/images/products/huile-ginny.png" alt="Huile Ginny tournesol 1L" loading="lazy">
             </div>
             <div class="product-card__body">
-              <h3 class="product-card__name">Céréales</h3>
+              <span class="product-card__category">Huile</span>
+              <h3 class="product-card__name">Ginny</h3>
+              <p class="product-card__desc">Huile de tournesol 1L</p>
             </div>
           </article>
 
           <article class="product-card">
             <div class="product-card__image">
-              <div class="product-card__image-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M8 2v4"/><path d="M12 2v4"/><path d="M16 2v4"/><rect x="4" y="6" width="16" height="16" rx="2"/></svg>
-              </div>
+              <img src="assets/images/products/spaghetti-tasliva.png" alt="Spaghetti Tasliva gros grain" loading="lazy">
             </div>
             <div class="product-card__body">
-              <h3 class="product-card__name">Sel</h3>
+              <span class="product-card__category">Pâtes</span>
+              <h3 class="product-card__name">Tasliva</h3>
+              <p class="product-card__desc">Spaghetti gros grain</p>
             </div>
           </article>
 
           <article class="product-card">
             <div class="product-card__image">
-              <div class="product-card__image-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M6 2h12v6a6 6 0 01-6 6 6 6 0 01-6-6V2z"/><path d="M6 18h12"/><path d="M12 14v8"/></svg>
-              </div>
+              <img src="assets/images/products/riz-riziere.png" alt="Riz La Rizière 5 kg" loading="lazy">
             </div>
             <div class="product-card__body">
-              <h3 class="product-card__name">Laitiers</h3>
+              <span class="product-card__category">Riz</span>
+              <h3 class="product-card__name">La Rizière</h3>
+              <p class="product-card__desc">Riz long grain 5 kg</p>
             </div>
           </article>
+
         </div>
       </div>
     </section>
@@ -376,9 +383,7 @@
           </div>
 
           <div class="recruitment__image">
-            <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a4559,#3D5A80);display:flex;align-items:center;justify-content:center;">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-            </div>
+            <img src="assets/images/recruitment-team.png" alt="Équipe Aménouvévé-Yaveh Logistics — Rejoignez notre équipe" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-xl);">
           </div>
         </div>
       </div>
@@ -488,10 +493,7 @@
 
           <div class="app-cta__visual">
             <div class="app-cta__phone">
-              <div class="app-cta__phone-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                <span>Application mobile<br>bientôt disponible</span>
-              </div>
+              <img src="assets/images/app-mockup.png" alt="Mockup de l'application mobile Aménouvévé-Yaveh — Connexion, dashboard crédit et suivi des paiements" class="app-cta__mockup-img" loading="lazy">
             </div>
           </div>
         </div>
