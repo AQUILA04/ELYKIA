@@ -20,6 +20,29 @@ npm run test:e2e:smoke
 
 CI découplé : `.github/workflows/ci-customer-space.yml`
 
+## Firebase
+
+L'app utilise le SDK Web (`environment.firebase`). Le fichier `google-services.json` **ne se commit pas** — voir [`docs/FIREBASE_SETUP.md`](docs/FIREBASE_SETUP.md).
+
+**Local :**
+
+```bash
+# Copier google-services.json à la racine customer-space/, puis :
+npm run firebase:configure:dev   # environment.ts
+npm run firebase:configure       # environment.prod.ts
+```
+
+**GitHub Actions (build prod)** — secret dédié (≠ `GOOGLE_SERVICES_JSON` du mobile) :
+
+| Secret | Obligatoire |
+|--------|-------------|
+| `CUSTOMER_SPACE_GOOGLE_SERVICES_JSON` | Oui (contenu du fichier google-services.json) |
+| `CUSTOMER_SPACE_FIREBASE_WEB_CONFIG` | Non (config Web SDK, recommandé pour Phone Auth navigateur) |
+
+Les tests CI (unit + E2E) **n'utilisent pas** ces secrets (Firebase mocké).
+
+**Backend** : `FIREBASE_CREDENTIALS` = compte de service Admin SDK sur le serveur (pas le google-services.json client).
+
 ## Écrans (S-01 à S-11)
 
 | Écran | Route | Statut |

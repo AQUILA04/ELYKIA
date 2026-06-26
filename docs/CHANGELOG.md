@@ -94,6 +94,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 - **Customer-space —** thème global (`variables.scss`, `global.scss`, fonts) et wizard auth multi-étapes (téléphone local → PIN ou OTP Firebase + configuration PIN).
 - **Customer-space —** utilitaire `PhoneNormalizer` (+228 côté Firebase uniquement) et intégration Firebase Phone Auth (SDK).
 - **Customer-space —** E2E `auth/setup-pin` (OTP mocké via `window.__E2E__`) ; tests unitaires `catalog`, `cart`, `order-confirmation`.
+- **Customer-space —** script `firebase:configure`, doc `docs/FIREBASE_SETUP.md`, job CI `build-customer-space-prod` avec secrets `CUSTOMER_SPACE_GOOGLE_SERVICES_JSON` / `CUSTOMER_SPACE_FIREBASE_WEB_CONFIG`.
 - **Backend —** espace client `/api/customer/*` : auth (`check-phone`, `login`, `setup-pin`), dashboard, achats, recouvrements, catalogue, commandes, soumission Mobile Money (statut INITIÉ).
 - **Backend —** profil `CLIENT` / permission `ROLE_CLIENT`, flag `pin_configured` sur `UserAccount`, table `customer_user_mapping` (orchestration core).
 - **Backend —** provisioning automatique des comptes clients (`username` = numéro local, email `firstname.lastname@amenouveve-yaveh.com`), sync téléphone via `ClientPhoneUpdatedEvent`.

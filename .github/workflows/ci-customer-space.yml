@@ -63,3 +63,33 @@ jobs:
         name: playwright-report-customer-space
         path: customer-space/playwright-report/
         retention-days: 14
+
+  build-customer-space-prod:
+    needs: [changes, test-customer-space]
+    if: ${{ needs.changes.outputs.customer_space == 'true' && github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./customer-space
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '20.19.3'
+        cache: 'npm'
+        cache-dependency-path: 'customer-space/package-lock.json'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Apply Firebase configuration
+      env:
+        CUSTOMER_SPACE_GOOGLE_SERVICES_JSON: ${{ secrets.CUSTOMER_SPACE_GOOGLE_SERVICES_JSON }}
+        CUSTOMER_SPACE_FIREBASE_WEB_CONFIG: ${{ secrets.CUSTOMER_SPACE_FIREBASE_WEB_CONFIG }}
+      run: node scripts/apply-firebase-config.mjs --profile prod
+
+    - name: Production build
+      run: npm run build -- --configuration=production
