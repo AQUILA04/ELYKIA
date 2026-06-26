@@ -129,6 +129,38 @@
     startAuto();
   }
 
+  // ── Hero Image Slider ────────────────────────────────────
+  const heroSlider = document.getElementById('hero-slider');
+  if (heroSlider) {
+    const heroSlides = heroSlider.querySelectorAll('.hero__slide');
+    const heroDots   = heroSlider.querySelectorAll('.hero__dot');
+    let heroIndex    = 0;
+    let heroTimer    = null;
+
+    function goToHeroSlide(idx) {
+      heroSlides[heroIndex].classList.remove('active');
+      heroDots[heroIndex].classList.remove('active');
+      heroIndex = (idx + heroSlides.length) % heroSlides.length;
+      heroSlides[heroIndex].classList.add('active');
+      heroDots[heroIndex].classList.add('active');
+    }
+
+    function startHeroAuto() {
+      heroTimer = setInterval(() => goToHeroSlide(heroIndex + 1), 4000);
+    }
+
+    function resetHeroAuto() {
+      clearInterval(heroTimer);
+      startHeroAuto();
+    }
+
+    heroDots.forEach((dot, i) => {
+      dot.addEventListener('click', () => { goToHeroSlide(i); resetHeroAuto(); });
+    });
+
+    startHeroAuto();
+  }
+
   // ── Smooth scroll for anchor links ────────────────────────
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
