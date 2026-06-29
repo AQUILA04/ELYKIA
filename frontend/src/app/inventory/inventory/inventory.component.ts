@@ -9,6 +9,7 @@ import { AuthService } from '../../auth/service/auth.service';
 import { saveAs } from 'file-saver';
 import { MatDialog } from '@angular/material/dialog';
 import { PhysicalQuantityModalComponent } from '../physical-quantity-modal/physical-quantity-modal.component';
+import { StockFifoFeatureService } from 'src/app/stock/services/stock-fifo-feature.service';
 
 interface InventoryListState {
   searchTerm: string;
@@ -38,6 +39,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   stockValues: StockValues | null = null;
   isGestionnaire = false;
+  fifoEnabled = false;
   currentInventory: InventoryDto | null = null;
 
   currentDate = new Date();
@@ -50,7 +52,8 @@ export class InventoryComponent implements OnInit, OnDestroy {
     private readonly itemService: ItemService,
     private readonly alertService: AlertService,
     private readonly authService: AuthService,
-    private readonly dialog: MatDialog
+    private readonly dialog: MatDialog,
+    private readonly stockFifoFeatureService: StockFifoFeatureService
   ) {
     this.tokenStorage.checkConnectedUser();
     try {
@@ -69,6 +72,9 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.loadCurrentInventory();
     if (this.isGestionnaire) {
       this.loadStockValues();
+      this.stockFifoFeatureService.isFifoEnabled().subscribe(enabled => {
+        this.fifoEnabled = enabled;
+      });
     }
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();

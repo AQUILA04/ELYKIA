@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -67,11 +68,8 @@ public class DailyBusinessSnapshotService extends GenericService<DailyBusinessSn
         
         // Stock
         List<Articles> allArticles = articlesService.getAll();
-        snapshot.setTotalStockValue(
-            allArticles.stream()
-                .mapToDouble(a -> a.getStockQuantity() * a.getPurchasePrice())
-                .sum()
-        );
+        Map<String, Double> stockValues = articlesService.getDetailedStockValues();
+        snapshot.setTotalStockValue(stockValues.getOrDefault("purchaseTotal", 0.0));
         snapshot.setOutOfStockItemsCount(
             (int) allArticles.stream().filter(a -> a.getStockQuantity() == 0).count()
         );

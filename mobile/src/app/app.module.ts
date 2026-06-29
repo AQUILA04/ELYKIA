@@ -60,6 +60,7 @@ import { TimeoutInterceptor } from './core/interceptors/timeout.interceptor';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { NetworkErrorHandlerInterceptor } from './core/interceptors/network-error.interceptor';
 import { DeviceAuthInterceptor } from './core/interceptors/device-auth.interceptor';
+import { SecurityContextInterceptor } from './core/interceptors/security-context.interceptor';
 import { metaReducers } from './store/meta-reducers';
 import { LOCAL_DATA_CLEANUP_PROVIDERS } from './core/local-data-cleanup/local-data-cleanup.providers';
 

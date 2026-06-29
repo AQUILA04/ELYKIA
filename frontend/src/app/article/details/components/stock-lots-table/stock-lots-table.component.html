@@ -1,0 +1,34 @@
+<div *ngIf="isLoading" class="lots-loading">Chargement des lots…</div>
+
+<div *ngIf="!isLoading && lots.length > 0">
+  <div class="lots-summary">
+    <span class="lots-summary__label">Valeur FIFO</span>
+    <span class="lots-summary__value">{{ totalFifoValue | number:'1.0-0' }} FCFA</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date entrée</th>
+          <th>Source</th>
+          <th>PU achat</th>
+          <th>Qté restante</th>
+          <th>Valeur</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let lot of lots">
+          <td>{{ formatDate(lot.entryDate) }}</td>
+          <td><span class="source-badge">{{ sourceLabel(lot.sourceType) }}</span></td>
+          <td class="col-price">{{ lot.unitPurchasePrice | number:'1.0-0' }}</td>
+          <td class="col-qty">{{ lot.quantityRemaining }}</td>
+          <td class="col-value">{{ lot.remainingValue | number:'1.0-0' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div *ngIf="!isLoading && lots.length === 0" class="empty-state">
+  <p>Aucun lot ouvert pour cet article</p>
+</div>

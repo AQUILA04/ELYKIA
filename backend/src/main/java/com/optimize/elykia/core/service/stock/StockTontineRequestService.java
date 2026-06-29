@@ -7,7 +7,9 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
+import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
 import com.optimize.elykia.core.enumaration.MovementType;
+import com.optimize.elykia.core.dto.stock.FifoConsumptionResult;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.event.StockTontineRequestDeliveredEvent;
 import com.optimize.elykia.core.repository.StockTontineRequestRepository;
@@ -44,6 +46,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     private final ApplicationEventPublisher eventPublisher;
     private final ArticlesService articlesService;
     private final StockMovementService stockMovementService;
+    private final StockValuationFacade stockValuationFacade;
     private final AccountingDayService accountingDayService;
     private final TemplateEngine templateEngine;
 
@@ -53,6 +56,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             ApplicationEventPublisher eventPublisher,
             ArticlesService articlesService,
             StockMovementService stockMovementService,
+            StockValuationFacade stockValuationFacade,
             AccountingDayService accountingDayService,
             TemplateEngine templateEngine) {
         super(repository);
@@ -61,6 +65,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         this.eventPublisher = eventPublisher;
         this.articlesService = articlesService;
         this.stockMovementService = stockMovementService;
+        this.stockValuationFacade = stockValuationFacade;
         this.accountingDayService = accountingDayService;
         this.templateEngine = templateEngine;
     }
@@ -179,16 +184,28 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         for (StockTontineRequestItem item : deliverableItems) {
             Articles article = articlesService.getById(item.getArticle().getId());
 
+            FifoConsumptionResult consumption = stockValuationFacade.consume(
+                    article,
+                    item.getQuantity(),
+                    ArticleStockLotMovementType.WAREHOUSE_RELEASE,
+                    "STOCK_TONTINE_REQUEST",
+                    request.getId());
+
             stockMovementService.recordMovement(
                     article,
                     MovementType.RELEASE,
                     item.getQuantity(),
                     "Livraison Tontine " + request.getReference(),
                     currentUser.getUsername(),
-                    null);
+                    null,
+                    consumption.getAverageUnitCost());
 
             article.makeRelease(item.getQuantity());
             articlesService.update(article);
+
+            if (stockValuationFacade.isFifoEnabled()) {
+                item.setPurchasePrice(consumption.getAverageUnitCost());
+            }
         }
 
         // update totals

@@ -9,6 +9,7 @@ import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.stock.StockReturn;
 import com.optimize.elykia.core.entity.stock.StockReturnItem;
+import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
@@ -42,6 +43,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     private final CommercialMonthlyStockItemRepository monthlyStockItemRepository;
     private final UserService userService;
     private final StockMovementService stockMovementService;
+    private final StockValuationFacade stockValuationFacade;
     private CommercialStockMovementService commercialStockMovementService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private BusinessMetricsPublisher metricsPublisher;
@@ -52,6 +54,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
             CommercialMonthlyStockItemRepository monthlyStockItemRepository,
             UserService userService,
             StockMovementService stockMovementService,
+            StockValuationFacade stockValuationFacade,
             org.springframework.context.ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.articlesService = articlesService;
@@ -59,6 +62,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         this.monthlyStockItemRepository = monthlyStockItemRepository;
         this.userService = userService;
         this.stockMovementService = stockMovementService;
+        this.stockValuationFacade = stockValuationFacade;
         this.eventPublisher = eventPublisher;
     }
 
@@ -124,17 +128,32 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         for (StockReturnItem item : stockReturn.getItems()) {
             Articles article = articlesService.getById(item.getArticle().getId());
 
+            double returnUnitCost = article.getPurchasePrice();
+            if (item.getStockItem() != null
+                    && item.getStockItem().getWeightedAveragePurchasePrice() != null
+                    && item.getStockItem().getWeightedAveragePurchasePrice() > 0) {
+                returnUnitCost = item.getStockItem().getWeightedAveragePurchasePrice();
+            }
+
+            stockValuationFacade.registerEntry(
+                    article,
+                    item.getQuantity(),
+                    returnUnitCost,
+                    ArticleStockLotSourceType.STOCK_RETURN,
+                    null,
+                    LocalDate.now());
+
             stockMovementService.recordMovement(
                     article,
                     MovementType.RETURN,
                     item.getQuantity(),
                     "Validation retour stock " + stockReturn.getId(),
                     currentUser.getUsername(),
-                    null);
+                    null,
+                    returnUnitCost);
 
             article.makeEntry(item.getQuantity());
             articlesService.update(article);
-
         }
 
         stockReturn.setStatus(StockReturnStatus.RECEIVED);

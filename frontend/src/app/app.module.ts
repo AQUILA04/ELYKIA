@@ -118,6 +118,7 @@ import { MovementTableComponent } from './article/details/components/movement-ta
 import { StateTimelineComponent } from './article/details/components/state-timeline/state-timeline.component';
 import { PriceHistoryTimelineComponent } from './article/details/components/price-history-timeline/price-history-timeline.component';
 import { QuickStockEntryComponent } from './article/details/components/quick-stock-entry/quick-stock-entry.component';
+import { StockLotsTableComponent } from './article/details/components/stock-lots-table/stock-lots-table.component';
 import { CreditLateComponent } from './credit/credit-late/credit-late.component';
 import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
 import { CreditListKpiComponent } from './credit/credit-list/components/credit-list-kpi/credit-list-kpi.component';
@@ -227,6 +228,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     StateTimelineComponent,
     PriceHistoryTimelineComponent,
     QuickStockEntryComponent,
+    StockLotsTableComponent,
     CreditLateComponent,
     CreditLateKpiComponent,
     CreditListKpiComponent,

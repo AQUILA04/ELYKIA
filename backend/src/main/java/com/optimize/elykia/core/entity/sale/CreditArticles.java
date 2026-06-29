@@ -34,6 +34,8 @@ public class CreditArticles extends Auditable<String> {
     @Column(columnDefinition = "double precision default 0")
     @Setter(AccessLevel.NONE)
     private Double unitPrice;
+    @Column(columnDefinition = "double precision default 0")
+    private Double unitPurchaseCost;
     private Long stockItemId;
 
     private Long tontineItemId;

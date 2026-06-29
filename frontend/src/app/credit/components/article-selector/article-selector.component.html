@@ -60,6 +60,17 @@
         </span>
       </div>
 
+      <div class="form-field purchase-price-field" *ngIf="shouldShowPurchasePriceColumn()">
+        <label [attr.for]="'unitPrice-' + i">PU achat</label>
+        <input [id]="'unitPrice-' + i" type="number" formControlName="unitPrice" class="field-input field-mono" min="0.01" step="1">
+        <small class="field-hint" *ngIf="articleCtrl.get('articleId')?.value">
+          Catalogue : {{ getCatalogPurchasePrice(articleCtrl.get('articleId')?.value) | number:'1.0-0' }} FCFA
+        </small>
+        <span class="field-error" *ngIf="articleCtrl.get('unitPrice')?.invalid && articleCtrl.get('unitPrice')?.touched">
+          Le prix d'achat est requis.
+        </span>
+      </div>
+
       <div class="form-field price-field" *ngIf="shouldShowPriceColumns()">
         <label>Prix unitaire</label>
         <div class="price-display field-mono">

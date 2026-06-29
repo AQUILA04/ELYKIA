@@ -424,6 +424,10 @@ app:
         key: ENABLED_MOBILE_DEVICE_RESTRICTION
         value: false
         description: Activer le contrôle des appareils autorisés pour l'application mobile
+      init-data[4]:
+        key: ENABLED_FIFO_STOCK_VALUATION
+        value: false
+        description: Activer la valorisation FIFO du stock magasin (lots et coût réel des sorties)
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}

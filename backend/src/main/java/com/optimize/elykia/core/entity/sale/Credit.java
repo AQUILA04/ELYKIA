@@ -211,10 +211,13 @@ public class Credit extends BaseEntity<String> {
     public Double calculTotalPurchase() {
         if (Objects.nonNull(articles) && !articles.isEmpty()) {
             return this.totalPurchase = articles.stream()
-                    .mapToDouble(creditArticles ->
-                            (creditArticles
-                                    .getArticles()
-                                    .getPurchasePrice() * creditArticles.getQuantity()))
+                    .mapToDouble(creditArticles -> {
+                        if (creditArticles.getUnitPurchaseCost() != null
+                                && creditArticles.getUnitPurchaseCost() > 0) {
+                            return creditArticles.getUnitPurchaseCost() * creditArticles.getQuantity();
+                        }
+                        return creditArticles.getArticles().getPurchasePrice() * creditArticles.getQuantity();
+                    })
                     .sum();
         }
         return 0D;
