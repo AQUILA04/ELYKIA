@@ -1,11 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
-import { ParameterService } from '../parameter.service';
+import { ParameterService, MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY } from '../parameter.service';
 import { Parameter } from '../parameter.model';
 import { ParameterEditComponent } from '../parameter-edit/parameter-edit.component';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ToastrService } from 'ngx-toastr';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -19,6 +20,9 @@ export class ParameterListComponent implements OnInit {
   pageSize = 10;
   currentPage = 0;
   searchTerm = '';
+  mobileDeviceManagementEnabled = false;
+  mobileDeviceRestrictionParameter: Parameter | null = null;
+  updatingMobileDeviceRestriction = false;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -26,11 +30,18 @@ export class ParameterListComponent implements OnInit {
     private parameterService: ParameterService,
     private dialog: MatDialog,
     private spinner: NgxSpinnerService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private featureFlagService: FeatureFlagService
   ) { }
 
   ngOnInit(): void {
+    this.mobileDeviceManagementEnabled = this.featureFlagService.isFeatureEnabled(
+      FeatureFlags.MobileDeviceManagement
+    );
     this.loadParameters();
+    if (this.mobileDeviceManagementEnabled) {
+      this.loadMobileDeviceRestrictionParameter();
+    }
   }
 
   loadParameters(): void {
@@ -120,6 +131,44 @@ export class ParameterListComponent implements OnInit {
     if (value === 'true') return 'OUI';
     if (value === 'false') return 'NON';
     return value;
+  }
+
+  loadMobileDeviceRestrictionParameter(): void {
+    this.parameterService.getByKey(MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY).subscribe({
+      next: (parameter) => {
+        this.mobileDeviceRestrictionParameter = parameter;
+      },
+      error: () => {
+        this.mobileDeviceRestrictionParameter = null;
+      },
+    });
+  }
+
+  toggleMobileDeviceRestriction(enabled: boolean): void {
+    if (!this.mobileDeviceRestrictionParameter?.id) {
+      return;
+    }
+    this.updatingMobileDeviceRestriction = true;
+    const updated: Parameter = {
+      ...this.mobileDeviceRestrictionParameter,
+      value: enabled ? 'true' : 'false',
+    };
+    this.parameterService.update(this.mobileDeviceRestrictionParameter.id, updated).subscribe({
+      next: (parameter) => {
+        this.mobileDeviceRestrictionParameter = parameter;
+        this.updatingMobileDeviceRestriction = false;
+        this.toastr.success('Contrôle des appareils mobiles mis à jour', 'Succès');
+        this.loadParameters();
+      },
+      error: () => {
+        this.updatingMobileDeviceRestriction = false;
+        this.toastr.error('Erreur lors de la mise à jour du paramètre', 'Erreur');
+      },
+    });
+  }
+
+  isMobileDeviceRestrictionEnabled(): boolean {
+    return this.mobileDeviceRestrictionParameter?.value === 'true';
   }
 }
 

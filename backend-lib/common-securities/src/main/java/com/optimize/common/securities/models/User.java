@@ -55,6 +55,10 @@ public class User extends BaseEntity<String> {
   @Column(name = "USEEML")
   private String email;
 
+  @JsonProperty("mobileDeviceRestrictionEnabled")
+  @Column(name = "mobile_device_restriction_enabled", nullable = false)
+  private boolean mobileDeviceRestrictionEnabled = false;
+
   @JsonIgnore
   @OneToOne(cascade = CascadeType.MERGE)
   @JoinColumn(name = "ACCID")

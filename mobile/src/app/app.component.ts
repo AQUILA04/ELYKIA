@@ -16,7 +16,8 @@ import { Router } from "@angular/router";
 import { App } from "@capacitor/app";
 import { Capacitor } from '@capacitor/core';
 import {FirebaseCrashlytics} from "@capacitor-firebase/crashlytics";
-import { FeatureFlagService } from './core/services/feature-flag.service';
+import { FeatureFlagService, FeatureFlags } from './core/services/feature-flag.service';
+import { DeviceIdentityService } from './core/services/device-identity.service';
 
 @Component({
   selector: 'app-root',
@@ -39,7 +40,8 @@ export class AppComponent implements OnInit {
     private readonly synchronizationService: SynchronizationService,
     private readonly alertController: AlertController,
     private readonly router: Router,
-    private readonly featureFlagService: FeatureFlagService
+    private readonly featureFlagService: FeatureFlagService,
+    private readonly deviceIdentityService: DeviceIdentityService
   ) { this.initializeApp().then(r => console.log(r) ); }
 
   async ngOnInit() {
@@ -131,6 +133,10 @@ export class AppComponent implements OnInit {
     await this.platform.ready();
     await this.configureStatusBar();
     await this.featureFlagService.init();
+
+    if (this.featureFlagService.isFeatureEnabled(FeatureFlags.MobileDeviceRestriction)) {
+      await this.deviceIdentityService.getDeviceIdentity();
+    }
 
     if (Capacitor.isNativePlatform()) {
       await FirebaseCrashlytics.setEnabled({

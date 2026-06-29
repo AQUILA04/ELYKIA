@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { Parameter } from './parameter.model';
 import { environment } from 'src/environments/environment';
 
+export const MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY = 'ENABLED_MOBILE_DEVICE_RESTRICTION';
+
 @Injectable({
   providedIn: 'root'
 })

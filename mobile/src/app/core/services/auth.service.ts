@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 import { Preferences } from '@capacitor/preferences';
-import { Observable, from, of } from 'rxjs';
+import { Observable, from, throwError } from 'rxjs';
 import { switchMap, tap, catchError } from 'rxjs/operators';
 import { AuthResponse, User, LoginRequest } from '../../models/auth.model';
 import { environment } from '../../../environments/environment';
@@ -16,6 +16,9 @@ import { Storage } from '@ionic/storage-angular';
 import { MemoryManagementService } from './memory-management.service';
 import { InitializationValidationService } from './initialization-validation.service';
 import { DailyConsentStateService } from '../daily-consent/daily-consent-state.service';
+import { DeviceIdentityService } from './device-identity.service';
+import { FeatureFlagService, FeatureFlags } from './feature-flag.service';
+import { DEVICE_NOT_AUTHORIZED_CODE } from '../interceptors/device-auth.interceptor';
 
 @Injectable({
   providedIn: 'root'
@@ -33,7 +36,9 @@ export class AuthService {
     private storage: Storage,
     private memoryManagementService: MemoryManagementService,
     private initValidationService: InitializationValidationService,
-    private dailyConsentState: DailyConsentStateService
+    private dailyConsentState: DailyConsentStateService,
+    private deviceIdentityService: DeviceIdentityService,
+    private featureFlagService: FeatureFlagService
   ) {
     this.loadUserFromPreferences();
   }
@@ -62,17 +67,15 @@ export class AuthService {
     this.log.log('Login attempt for: ' + request.username);
     this.log.log('Environment API URL: ' + environment.apiUrl);
 
-    // Lancer le test réseau détaillé
-    //this.healthCheckService.testNetworkConfig();
-
-    return this.healthCheckService.pingBackend().pipe(
+    return from(this.buildLoginRequest(request)).pipe(
+      switchMap(enrichedRequest => this.healthCheckService.pingBackend().pipe(
       switchMap(isOnline => {
         this.log.log(`Health check result: ${isOnline ? 'ONLINE' : 'OFFLINE'}`);
 
         if (isOnline) {
           this.log.log('Backend is online, attempting API login.');
-          return this.http.post<AuthResponse>(`${environment.apiUrl}/api/auth/signin`, request).pipe(
-            switchMap(response => from(this.processAuthResponse(response, request.password))),
+          return this.http.post<AuthResponse>(`${environment.apiUrl}/api/auth/signin`, enrichedRequest).pipe(
+            switchMap(response => from(this.processAuthResponse(response, enrichedRequest.password))),
             tap(() => {
               this._isAuthenticated = true;
               this.log.log('Online login successful.');
@@ -80,13 +83,16 @@ export class AuthService {
             catchError(error => {
               this.log.log('=== API LOGIN FAILED ===');
               this.log.log('API login error: ' + JSON.stringify(error, null, 2));
+              if (this.isDeviceNotAuthorizedError(error)) {
+                return throwError(() => new Error(this.getDeviceNotAuthorizedMessage(error)));
+              }
               this.log.log('Falling back to offline authentication...');
-              return from(this.authenticateOffline(request.username, request.password));
+              return from(this.authenticateOffline(enrichedRequest.username, enrichedRequest.password));
             })
           );
         } else {
           this.log.log('Backend is offline, attempting offline login.');
-          return from(this.authenticateOffline(request.username, request.password));
+          return from(this.authenticateOffline(enrichedRequest.username, enrichedRequest.password));
         }
       }),
       catchError(err => {
@@ -94,7 +100,53 @@ export class AuthService {
         this.log.log('Complete login failure: ' + JSON.stringify(err, null, 2));
         throw new Error(err.message || 'Une erreur est survenue lors de la connexion.');
       })
-    );
+    )));
+  }
+
+  async handleDeviceNotAuthorized(): Promise<void> {
+    await this.logout();
+  }
+
+  private async buildLoginRequest(request: LoginRequest): Promise<LoginRequest> {
+    if (!this.featureFlagService.isFeatureEnabled(FeatureFlags.MobileDeviceRestriction)) {
+      return request;
+    }
+
+    const device = await this.deviceIdentityService.getDeviceIdentity();
+    return {
+      ...request,
+      deviceId: device.deviceId,
+      deviceLabel: device.deviceLabel,
+      platform: device.platform,
+      model: device.model,
+      appVersion: device.appVersion,
+    };
+  }
+
+  private isDeviceNotAuthorizedError(error: unknown): boolean {
+    if (!(error instanceof HttpErrorResponse) || error.status !== 403) {
+      return false;
+    }
+    const body = error.error;
+    if (!body) {
+      return false;
+    }
+    if (typeof body === 'string') {
+      return body.includes(DEVICE_NOT_AUTHORIZED_CODE);
+    }
+    return body.code === DEVICE_NOT_AUTHORIZED_CODE;
+  }
+
+  private getDeviceNotAuthorizedMessage(error: HttpErrorResponse): string {
+    const body = error.error;
+    if (body && typeof body === 'object' && body.message) {
+      return body.message;
+    }
+    return 'Cet appareil n\'est pas autorisé pour ce compte. Contactez votre administrateur.';
+  }
+
+  private deviceRestrictionPreferenceKey(username: string): string {
+    return `deviceRestrictionActive_${username}`;
   }
 
   async logout(): Promise<void> {
@@ -106,6 +158,7 @@ export class AuthService {
     await this.memoryManagementService.clearMemoryCache();
     if (username) {
       await this.dailyConsentState.clearConsent(username);
+      await Preferences.remove({ key: this.deviceRestrictionPreferenceKey(username) });
     }
     this.log.log('User logged out and local state reset.');
   }
@@ -122,12 +175,26 @@ export class AuthService {
     };
     this._user = user;
     await this.saveUserLocally(user);
+    await Preferences.set({
+      key: this.deviceRestrictionPreferenceKey(user.username),
+      value: String(response.deviceRestrictionActive === true),
+    });
     this.store.dispatch(AuthActions.loginSuccess({ user }));
     await this.dailyConsentState.restoreFromPreferences(user.username);
     return true;
   }
 
   private async authenticateOffline(username: string, passwordPlain: string): Promise<boolean> {
+    if (this.featureFlagService.isFeatureEnabled(FeatureFlags.MobileDeviceRestriction)) {
+      const { value } = await Preferences.get({ key: this.deviceRestrictionPreferenceKey(username) });
+      if (value === 'true') {
+        throw new Error(
+          'Connexion internet requise pour vérifier l\'appareil autorisé.\n\n' +
+          'Veuillez vous connecter au réseau de l\'entreprise pour vous authentifier.'
+        );
+      }
+    }
+
     // Vérifier si l'initialisation est complète pour aujourd'hui
     const isInitComplete = await this.initValidationService.isInitializationCompleteForToday();
 

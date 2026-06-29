@@ -6,6 +6,7 @@ import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
+import com.optimize.common.securities.exception.DeviceNotAuthorizedException;
 import com.optimize.common.securities.exception.InvalidLicenceException;
 import com.optimize.common.securities.exception.LicenceExpiredException;
 import jakarta.annotation.Priority;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 
 @ControllerAdvice
@@ -54,6 +56,15 @@ public class AdviceController extends CommonAdviceController {
         }else {
             return new ResponseEntity<>(ResponseUtil.errorResponse(HttpStatus.NOT_FOUND, bodyOfResponse, ex.getService()), HttpStatus.NOT_FOUND);
         }
+    }
+
+    @ExceptionHandler(DeviceNotAuthorizedException.class)
+    protected ResponseEntity<Object> handleDeviceNotAuthorizedException(DeviceNotAuthorizedException ex) {
+        logger(ex);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of(
+                        "code", DeviceNotAuthorizedException.ERROR_CODE,
+                        "message", ex.getMessage()));
     }
 
     @ExceptionHandler(value

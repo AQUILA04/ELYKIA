@@ -6,6 +6,20 @@ The Backend API is built with Spring Boot and exposes RESTful endpoints. All API
 ## Authentication
 *   **Mechanism:** JWT (JSON Web Token)
 *   **Header:** `Authorization: Bearer <token>`
+*   **Device header (mobile, optional):** `X-Device-Id` — required when `ENABLED_MOBILE_DEVICE_RESTRICTION` is enabled and the user has `mobileDeviceRestrictionEnabled=true`
+*   `POST /api/auth/signin` — body may include optional `deviceId`, `deviceLabel`, `platform`, `model`, `appVersion`
+*   `POST /api/auth/refreshtoken` — same optional device fields
+*   **403** `{ "code": "DEVICE_NOT_AUTHORIZED", "message": "..." }` when device is not allowed
+
+### Mobile device authorization (`/api/v1/users/{userId}/devices`)
+*   `GET /` — list authorized devices for a user (`ROLE_EDIT_USER`)
+*   `PATCH /restriction` — `{ "enabled": true|false }` toggle per-user device restriction
+*   `PATCH /{deviceRecordId}/revoke` — revoke a device
+*   `PATCH /{deviceRecordId}/restore` — restore a revoked device
+*   `DELETE /{deviceRecordId}` — delete device record
+
+### Parameters
+*   `ENABLED_MOBILE_DEVICE_RESTRICTION` — global server-side enforcement toggle (default `false`)
 
 ## Controller Catalog
 

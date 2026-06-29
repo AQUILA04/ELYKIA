@@ -7,4 +7,10 @@ import lombok.Data;
 public class TokenRefreshRequest {
     @NotBlank
     private String refreshToken;
+
+    private String deviceId;
+    private String deviceLabel;
+    private String platform;
+    private String model;
+    private String appVersion;
 }
