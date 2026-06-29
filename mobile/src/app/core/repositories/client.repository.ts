@@ -349,29 +349,138 @@ export class ClientRepository extends BaseRepository<Client, string> {
     }
 
     /**
+     * Avant import serveur : fusionne un client local (UUID) doublon avec le client entrant
+     * (même téléphone, carte ou code), pour éviter les violations UNIQUE à l'INSERT.
+     */
+    async reconcileLocalDuplicateIfAny(serverClient: Client, commercialUsername: string): Promise<boolean> {
+        const localId = await this.findStaleLocalDuplicateId(serverClient, commercialUsername);
+        if (!localId) {
+            return false;
+        }
+        const serverId = String(serverClient.id);
+        await this.mergeLocalClientIntoServerId(localId, serverId, { deleteLocalOnly: true });
+        console.log(`[ClientRepository] Reconciled local duplicate ${localId} → server ${serverId} before import.`);
+        return true;
+    }
+
+    /**
+     * Fusionne en lot les doublons locaux détectés pour une page de clients serveur.
+     */
+    async reconcileIncomingServerClients(clients: Client[], commercialUsername: string): Promise<number> {
+        let merged = 0;
+        for (const client of clients) {
+            if (await this.reconcileLocalDuplicateIfAny(client, commercialUsername)) {
+                merged++;
+            }
+        }
+        return merged;
+    }
+
+    /**
      * Mark client as synced and update ID refs
      */
     async markAsSynced(localId: string, serverId: string, profilPhotoUrl?: string, cardPhotoUrl?: string): Promise<void> {
-        if (!this.databaseService['db'] || localId === serverId) return;
+        if (!this.databaseService['db'] || localId === serverId) {
+            return;
+        }
+        await this.mergeLocalClientIntoServerId(localId, serverId, { profilPhotoUrl, cardPhotoUrl });
+        console.log(`[ClientRepository] Client ${localId} marked as synced with server ID ${serverId}.`);
+    }
 
-        const updateSet: any[] = [
-            { statement: `UPDATE accounts SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
-            { statement: `UPDATE distributions SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
-            { statement: `UPDATE recoveries SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
-            // transactions table might not exist in repository but was in SyncService? I'll check if table exists or if I should skip.
-            // SyncService line 1184: UPDATE transactions ...
-            // I'll include it if I'm sure. I'll rely on SyncService being correct.
-            // But if specific tables belong to other modules, it's a bit messy.
-            // I'll stick to what SyncService had:
-            { statement: `UPDATE transactions SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
-            { statement: `UPDATE orders SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
-            { statement: `UPDATE tontine_members SET clientId = ? WHERE clientId = ?`, values: [serverId, localId] },
-            {
-                statement: `UPDATE clients SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime'), profilPhotoUrl = ?, cardPhotoUrl = ? WHERE id = ?`,
-                values: [serverId, profilPhotoUrl || null, cardPhotoUrl || null, localId]
-            }
+    /**
+     * Repointe les entités enfants vers le nouvel identifiant client.
+     */
+    private buildReassignClientChildrenStatements(fromId: string, toId: string): capSQLiteSet[] {
+        return [
+            { statement: `UPDATE accounts SET clientId = ? WHERE clientId = ?`, values: [toId, fromId] },
+            { statement: `UPDATE distributions SET clientId = ? WHERE clientId = ?`, values: [toId, fromId] },
+            { statement: `UPDATE recoveries SET clientId = ? WHERE clientId = ?`, values: [toId, fromId] },
+            { statement: `UPDATE transactions SET clientId = ? WHERE clientId = ?`, values: [toId, fromId] },
+            { statement: `UPDATE orders SET clientId = ? WHERE clientId = ?`, values: [toId, fromId] },
+            { statement: `UPDATE tontine_members SET clientId = ? WHERE clientId = ?`, values: [toId, fromId] },
         ];
+    }
+
+    /**
+     * Trouve un client local obsolète (UUID) qui correspond au même client serveur.
+     */
+    private async findStaleLocalDuplicateId(serverClient: Client, commercialUsername: string): Promise<string | null> {
+        const serverId = String(serverClient.id);
+        const phone = serverClient.phone?.trim();
+        const cardID = serverClient.cardID?.trim();
+        const code = serverClient.code?.trim();
+
+        if (!phone && !cardID && !code) {
+            return null;
+        }
+
+        const matchClauses: string[] = [];
+        const params: (string | number)[] = [commercialUsername, serverId];
+
+        if (phone) {
+            matchClauses.push(`(phone IS NOT NULL AND phone != '' AND phone = ?)`);
+            params.push(phone);
+        }
+        if (cardID) {
+            matchClauses.push(`(cardID IS NOT NULL AND cardID != '' AND cardID = ?)`);
+            params.push(cardID);
+        }
+        if (code) {
+            matchClauses.push(`(code IS NOT NULL AND code != '' AND code = ?)`);
+            params.push(code);
+        }
+
+        const sql = `
+            SELECT id FROM clients
+            WHERE commercial = ?
+              AND id != ?
+              AND (${matchClauses.join(' OR ')})
+              AND isLocal = 1
+              AND isSync = 0
+            ORDER BY createdAt ASC
+            LIMIT 1
+        `;
+
+        const result = await this.databaseService.query(sql, params);
+        const row = result.values?.[0];
+        return row?.id ? String(row.id) : null;
+    }
+
+    /**
+     * Fusionne un client local vers l'ID serveur :
+     * - réaffecte les enfants ;
+     * - supprime le doublon local si la ligne serveur existe déjà ou en pré-import ;
+     * - sinon réécrit l'ID local vers l'ID serveur.
+     */
+    private async mergeLocalClientIntoServerId(
+        localId: string,
+        serverId: string,
+        options?: { profilPhotoUrl?: string | null; cardPhotoUrl?: string | null; deleteLocalOnly?: boolean }
+    ): Promise<void> {
+        if (localId === serverId) {
+            return;
+        }
+
+        const existingServerRow = await this.findById(serverId);
+        const updateSet: capSQLiteSet[] = this.buildReassignClientChildrenStatements(localId, serverId);
+
+        if (existingServerRow || options?.deleteLocalOnly) {
+            updateSet.push({ statement: `DELETE FROM clients WHERE id = ?`, values: [localId] });
+            if (existingServerRow && !options?.deleteLocalOnly) {
+                updateSet.push({
+                    statement: `UPDATE clients SET isSync = 1, isLocal = 0, syncDate = datetime('now', 'localtime'), profilPhotoUrl = ?, cardPhotoUrl = ? WHERE id = ?`,
+                    values: [options?.profilPhotoUrl ?? null, options?.cardPhotoUrl ?? null, serverId]
+                });
+            }
+        } else {
+            updateSet.push({
+                statement: `UPDATE clients SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime'), profilPhotoUrl = ?, cardPhotoUrl = ? WHERE id = ?`,
+                values: [serverId, options?.profilPhotoUrl ?? null, options?.cardPhotoUrl ?? null, localId]
+            });
+        }
+
         await this.databaseService.executeSet(updateSet);
+        await this.saveIdMapping(localId, serverId, 'client');
     }
 
     /**

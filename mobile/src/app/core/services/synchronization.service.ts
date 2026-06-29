@@ -56,6 +56,7 @@ import { ClientPhotoUrlUpdateDto } from '../../models/client-photo-url-update.dt
 import { TontineMember, TontineCollection, TontineDelivery } from '../../models/tontine.model';
 import { ReliquatRepository } from './reliquat.repository';
 import { ReliquatSyncUnit, ReliquatSyncRequest, ReliquatSyncResponse } from '../../models/sync.model';
+import { ClientRepository } from '../repositories/client.repository';
 
 /**
  * @deprecated Ce service (synchronization.service) est appelé à disparaître sous peu.
@@ -81,7 +82,8 @@ export class SynchronizationService {
     private localitySyncService: LocalitySyncService,
     private photoSyncService: PhotoSyncService,
     private store: Store,
-    private reliquatRepository: ReliquatRepository
+    private reliquatRepository: ReliquatRepository,
+    private clientRepository: ClientRepository
   ) { }
 
   // ==================== MÉTHODES PRINCIPALES ====================
@@ -1172,13 +1174,11 @@ export class SynchronizationService {
 
   // Méthodes de marquage comme synchronisé
   private async markClientAsSynced(localId: string, serverId: string, syncedClientData: ClientSyncResponse): Promise<void> {
-    // On ne fait rien si les IDs sont identiques
     if (!this.databaseService || localId === serverId) {
       return;
     }
 
     try {
-      const valuesToSave = [serverId, syncedClientData.profilPhoto, syncedClientData.iddoc, localId];
       console.log('[SyncDebug] Preparing to mark client as synced. Values to save in local DB:', {
         newId: serverId,
         profilPhotoUrl: syncedClientData.profilPhoto,
@@ -1186,51 +1186,16 @@ export class SynchronizationService {
         localId: localId
       });
 
-      // On prépare un "set" de toutes les requêtes de mise à jour nécessaires.
-      // 'executeSet' les exécutera toutes dans une seule transaction atomique.
-      const updateSet: capSQLiteSet[] = [
-        // Étape 1 : Mettre à jour toutes les tables "enfant" qui référencent l'ancien ID
-        {
-          statement: `UPDATE accounts SET clientId = ? WHERE clientId = ?`,
-          values: [serverId, localId]
-        },
-        {
-          statement: `UPDATE distributions SET clientId = ? WHERE clientId = ?`,
-          values: [serverId, localId]
-        },
-        {
-          statement: `UPDATE recoveries SET clientId = ? WHERE clientId = ?`,
-          values: [serverId, localId]
-        },
-        {
-          statement: `UPDATE transactions SET clientId = ? WHERE clientId = ?`,
-          values: [serverId, localId]
-        },
-        {
-          statement: `UPDATE orders SET clientId = ? WHERE clientId = ?`,
-          values: [serverId, localId]
-        },
-        {
-          statement: `UPDATE tontine_members SET clientId = ? WHERE clientId = ?`,
-          values: [serverId, localId]
-        },
-        // ... Ajoutez ici toute autre table qui a une FOREIGN KEY vers clients.id
-
-        // Étape 2 : Une fois que tous les enfants ont le nouvel ID, on peut mettre à jour le parent.
-        {
-          statement: `UPDATE clients SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime'), profilPhotoUrl = ?, cardPhotoUrl = ? WHERE id = ?`,
-          values: valuesToSave
-        }
-      ];
-
-      // On exécute l'ensemble des opérations. Si l'une échoue, tout est annulé.
-      await this.databaseService.executeSet(updateSet);
+      await this.clientRepository.markAsSynced(
+        localId,
+        serverId,
+        syncedClientData.profilPhoto ?? undefined,
+        syncedClientData.iddoc ?? undefined
+      );
 
       console.log(`Client ${localId} successfully synced and updated to new ID ${serverId}.`);
-
     } catch (error) {
       console.error(`Erreur lors du marquage du client ${localId} comme synchronisé:`, error);
-      // On relance l'erreur pour que le service de synchronisation sache que l'opération a échoué
       throw error;
     }
   }

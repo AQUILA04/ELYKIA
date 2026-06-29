@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from, of, concatMap, BehaviorSubject } from 'rxjs';
+import { Observable, from, of, concatMap, BehaviorSubject, throwError } from 'rxjs';
 import {switchMap, catchError, map} from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { DatabaseService } from './database.service';
@@ -209,10 +209,11 @@ export class ClientService {
               }
 
               if (clients.length > 0) {
+                  const merged = await this.clientRepository.reconcileIncomingServerClients(clients, commercialUsername);
+                  if (merged > 0) {
+                      await this.log.log(`[ClientService] Reconciled ${merged} local client duplicate(s) before page ${page + 1} import.`);
+                  }
                   await this.clientRepository.saveAll(clients);
-
-                  // Also trigger photo sync for this batch if needed, but be careful not to block
-                  // this.photoSyncService.syncPhotosForClients(clients).catch(e => console.error(e));
               }
 
               this.updateProgress({
@@ -236,9 +237,9 @@ export class ClientService {
               }
           }),
           catchError(error => {
-              this.log.log(`[ClientService] Error fetching page ${page}: ${error.message}`);
-              // Stop pagination on error
-              return of([]);
+              const detail = error instanceof Error ? error.message : String(error);
+              this.log.log(`[ClientService] Error fetching page ${page}: ${detail}`);
+              return throwError(() => error instanceof Error ? error : new Error(detail));
           })
       );
   }
