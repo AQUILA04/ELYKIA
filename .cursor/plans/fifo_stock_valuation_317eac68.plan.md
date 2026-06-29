@@ -3,32 +3,32 @@ name: FIFO stock valuation
 overview: Introduire une gestion de stock magasin par lots FIFO derrière le feature flag ENABLED_FIFO_STOCK_VALUATION (désactivé par défaut), avec coexistence du code legacy tant que le flag est off.
 todos:
   - id: fifo-feature-flag
-    content: "Paramètre ENABLED_FIFO_STOCK_VALUATION (default false) + StockValuationFacade legacy/FIFO + activation/backfill à l'activation"
-    status: pending
+    content: Paramètre ENABLED_FIFO_STOCK_VALUATION (default false) + StockValuationFacade legacy/FIFO + activation/backfill à l'activation
+    status: completed
   - id: fifo-model
     content: Créer ArticleStockLot, ArticleStockLotConsumption, migration V63 (schéma seul, pas de backfill auto)
-    status: pending
+    status: completed
   - id: fifo-service
     content: Implémenter FifoStockValuationService + LegacyStockValuationAdapter (extrait code actuel inchangé)
-    status: pending
+    status: completed
   - id: stock-entry
     content: Brancher makeStockEntries via facade ; FIFO exige unitPrice si flag ON
-    status: pending
+    status: completed
   - id: frontend-entry
     content: "Saisie PU achat (flag ON) : prérempli article.purchasePrice, modifiable ; inventory-add + quick-stock-entry + article-selector"
-    status: pending
+    status: completed
   - id: warehouse-exit
     content: Sorties/retours via facade ; FIFO sur deliver si flag ON, legacy sinon
-    status: pending
+    status: completed
   - id: fix-total-marge-value
     content: "Quick fix L655 CreditService : totalMargeValue = marge cumulée (aligné ventes cash) + migration rattrapage données crédit"
-    status: pending
+    status: completed
   - id: margin-reports
     content: unitPurchaseCost + KPIs FIFO conditionnels (flag ON) ; legacy KPIs inchangés si flag OFF
-    status: pending
+    status: completed
   - id: tests
     content: Tests flag OFF (régression legacy) + flag ON (scénario 10@200 + 5@250 FIFO)
-    status: pending
+    status: completed
 isProject: false
 ---
 
