@@ -1,0 +1,68 @@
+<div class="main-container dashboard-v2-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/home" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Tableau de bord / Elykia / Dashboard
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">PILOTAGE</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="page-icon">
+          <path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 5-6"/>
+        </svg>
+        <div>
+          <h1 class="page-title">Vue d'ensemble</h1>
+          <p class="page-subtitle">Bienvenue, {{ username }} — voici votre résumé pour {{ period.label }}</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <mat-form-field appearance="outline" class="month-picker">
+          <mat-label>Mois</mat-label>
+          <input matInput [matDatepicker]="monthPicker" [formControl]="monthControl">
+          <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+          <mat-datepicker #monthPicker startView="year" (monthSelected)="monthControl.setValue($event); monthPicker.close()"></mat-datepicker>
+        </mat-form-field>
+        <button class="btn-refresh" type="button" (click)="refresh()">Actualiser</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-banner" *ngIf="error">{{ error }}</div>
+
+  <div class="kpi-grid a3">
+    <app-dashboard-kpi-card
+      *ngFor="let card of kpiCards"
+      [data]="card"
+      [loading]="loading">
+    </app-dashboard-kpi-card>
+  </div>
+
+  <div class="charts-grid a4">
+    <app-sales-evolution-chart
+      [points]="chartPoints"
+      [loading]="chartLoading"
+      [granularity]="chartGranularity"
+      (granularityChange)="onChartGranularityChange($event)">
+    </app-sales-evolution-chart>
+    <app-stock-status-chart
+      [stock]="data?.stock ?? null"
+      [loading]="loading">
+    </app-stock-status-chart>
+  </div>
+
+  <div class="panels-grid a5">
+    <app-recent-sales-panel [sales]="data?.recentSales ?? []" [loading]="loading"></app-recent-sales-panel>
+    <app-recent-activity-panel [operations]="data?.recentOperations ?? []" [loading]="loading"></app-recent-activity-panel>
+  </div>
+
+  <app-dashboard-stockkeeper-alerts></app-dashboard-stockkeeper-alerts>
+</div>

@@ -1,0 +1,18 @@
+<div class="chart-card">
+  <div class="chart-header">
+    <div>
+      <h3>Évolution des ventes</h3>
+      <p>Crédits vs recouvrements</p>
+    </div>
+    <div class="chart-tabs">
+      <button type="button" [class.active]="granularity === 'month'" (click)="setGranularity('month')">Mois</button>
+      <button type="button" [class.active]="granularity === 'quarter'" (click)="setGranularity('quarter')">Trim.</button>
+      <button type="button" [class.active]="granularity === 'year'" (click)="setGranularity('year')">An</button>
+    </div>
+  </div>
+  <div class="chart-body" *ngIf="!loading && points.length > 0">
+    <canvas baseChart [data]="chartData" [options]="chartOptions" [type]="'line'"></canvas>
+  </div>
+  <div class="chart-empty" *ngIf="!loading && points.length === 0">Aucune donnée pour cette période.</div>
+  <div class="chart-empty" *ngIf="loading">Chargement du graphique…</div>
+</div>

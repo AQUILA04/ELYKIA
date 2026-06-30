@@ -317,15 +317,18 @@ public class ArticlesService extends GenericService<Articles, Long> {
         Map<String, Double> values = getDetailedStockValues();
         long inStockCount = getRepository().countByStockQuantityGreaterThan(0);
         long outOfStockCount = getRepository().countByStockQuantityEquals(0);
+        long lowStockCount = getRepository().countByStockQuantityLessThanEqualAndStockQuantityGreaterThan(6, 0);
 
-        return Map.of(
-                "inStockCount", inStockCount,
-                "purchaseTotal", values.getOrDefault("purchaseTotal", 0.0),
-                "creditSaleTotal", values.getOrDefault("creditSaleTotal", 0.0),
-                "estimatedMargin", values.getOrDefault("combinedTotal", 0.0),
-                "sellingSaleTotal", values.getOrDefault("sellingSaleTotal", 0.0),
-                "estimatedSellingMargin", values.getOrDefault("sellingMargin", 0.0),
-                "outOfStockCount", outOfStockCount);
+        Map<String, Object> kpis = new java.util.LinkedHashMap<>();
+        kpis.put("inStockCount", inStockCount);
+        kpis.put("lowStockCount", lowStockCount);
+        kpis.put("purchaseTotal", values.getOrDefault("purchaseTotal", 0.0));
+        kpis.put("creditSaleTotal", values.getOrDefault("creditSaleTotal", 0.0));
+        kpis.put("estimatedMargin", values.getOrDefault("combinedTotal", 0.0));
+        kpis.put("sellingSaleTotal", values.getOrDefault("sellingSaleTotal", 0.0));
+        kpis.put("estimatedSellingMargin", values.getOrDefault("sellingMargin", 0.0));
+        kpis.put("outOfStockCount", outOfStockCount);
+        return kpis;
     }
 
     public Map<String, Double> getDetailedStockValues() {

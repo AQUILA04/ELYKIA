@@ -1,0 +1,59 @@
+.chart-card {
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 51, 102, 0.08);
+  height: 100%;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #003366;
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #6b7a99;
+  }
+}
+
+.chart-tabs button {
+  border: 1px solid #dde3ec;
+  background: #fff;
+  color: #6b7a99;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:first-child { border-radius: 8px 0 0 8px; }
+  &:last-child { border-radius: 0 8px 8px 0; }
+
+  &.active {
+    background: #003366;
+    color: #fff;
+    border-color: #003366;
+  }
+}
+
+.chart-body {
+  height: 280px;
+}
+
+.chart-empty {
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7a99;
+  font-size: 13px;
+}

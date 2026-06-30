@@ -12,6 +12,8 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Added
 
+- **Frontend —** Dashboard V2 sur `/home` (feature flag Firebase `dashboardV2`) : KPIs pilotage (crédits en cours, recouvrement encours, tontine, clients, stock commercial ou magasin), graphiques ventes/recouvrements et stock, dernières ventes et activité récente (`DailyOperationLog`) ; alertes magasinier refondues en panneaux `panel-card`.
+- **Backend —** colonne `society_share_amount` sur `tontine_collection` et KPI `totalSocietyShare` sur `/api/v1/tontine-collections/web/summary` ; `lowStockCount` sur `/api/v1/articles/stock-kpis`.
 - **Backend —** valorisation FIFO du stock magasin derrière le paramètre `ENABLED_FIFO_STOCK_VALUATION` (désactivé par défaut) : lots `article_stock_lot`, façade `StockValuationFacade`, service FIFO, activation/backfill admin (`POST /api/v1/stock/fifo/activate`), endpoints consultation lots et KPIs FIFO.
 - **Frontend —** saisie PU achat prérempli (entrées stock, inventaire, fiche article) lorsque le flag FIFO est actif ; onglet lots FIFO sur la fiche article ; libellés KPI inventaire adaptés en mode FIFO.
 - **Backend —** colonne `unit_purchase_cost` sur les lignes crédit pour figer le coût d'achat à la distribution.

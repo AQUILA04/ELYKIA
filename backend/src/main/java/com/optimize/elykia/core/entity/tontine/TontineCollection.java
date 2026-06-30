@@ -45,4 +45,7 @@ public class TontineCollection extends BaseEntity<String> {
 
     @Column(name = "sync_consent_code")
     private String syncConsentCode;
+
+    @Column(name = "society_share_amount", columnDefinition = "double precision default 0")
+    private Double societyShareAmount = 0.0;
 }

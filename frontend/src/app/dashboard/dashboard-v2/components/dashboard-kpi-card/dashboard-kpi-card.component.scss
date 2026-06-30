@@ -1,0 +1,62 @@
+.dashboard-kpi-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: var(--bg-white, #fff);
+  border: 1px solid var(--border, #dde3ec);
+  border-radius: var(--radius, 12px);
+  padding: 20px;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 51, 102, 0.08));
+  min-height: 120px;
+}
+
+.kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon {
+    color: #fff;
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.icon-navy { background: #003366; }
+.icon-cyan { background: #0095c8; }
+.icon-green { background: #1d8a3c; }
+.icon-orange { background: #c75000; }
+.icon-purple { background: #6b4c9a; }
+
+.kpi-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #6b7a99);
+  margin-bottom: 6px;
+}
+
+.kpi-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--navy, #003366);
+  line-height: 1.2;
+}
+
+.kpi-subtitle {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted, #6b7a99);
+  line-height: 1.4;
+}
+
+.is-loading .kpi-value {
+  opacity: 0.5;
+}
