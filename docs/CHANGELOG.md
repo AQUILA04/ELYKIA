@@ -23,6 +23,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Changed
 
+- **Mobile —** page de connexion : demande automatique de l'autorisation d'accès aux fichiers (stockage) à l'arrivée sur l'écran de login si elle n'est pas encore accordée (sauvegardes, logs, photos).
 - **Mobile —** CI E2E : suite smoke consolidée (1 login partagé par worker), retries réduits, fail-fast et suppression du `npm cache clean` pour accélérer le pipeline `build-mobile`.
 
 ### Fixed
