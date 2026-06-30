@@ -3,6 +3,7 @@ package com.optimize.common.securities.controllers;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.optimize.common.securities.dto.DeviceInfoDto;
@@ -110,7 +111,7 @@ public class AuthController {
 
     return refreshTokenService.findByToken(requestRefreshToken)
         .map(refreshTokenService::verifyExpiration)
-        .map(RefreshToken::getUser)
+        .flatMap(refreshToken -> Optional.ofNullable(refreshToken.getUser()))
         .map(user -> {
           DeviceInfoDto deviceInfo = userAuthorizedDeviceService.fromLoginRequest(
               request.getDeviceId(),
@@ -118,7 +119,7 @@ public class AuthController {
               request.getPlatform(),
               request.getModel(),
               request.getAppVersion());
-          userAuthorizedDeviceService.validateAndRegisterOnLogin(user, deviceInfo);
+          userAuthorizedDeviceService.validateAndRegisterOnLogin(user.getId(), deviceInfo);
           String token = jwtUtils.generateTokenFromUsername(user.getUsername());
           return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
         })

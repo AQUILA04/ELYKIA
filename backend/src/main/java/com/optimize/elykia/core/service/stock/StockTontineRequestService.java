@@ -203,8 +203,13 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             article.makeRelease(item.getQuantity());
             articlesService.update(article);
 
+            if (item.getUnitPrice() == null || item.getUnitPrice() == 0) {
+                item.setUnitPrice(article.getCreditSalePrice());
+            }
             if (stockValuationFacade.isFifoEnabled()) {
                 item.setPurchasePrice(consumption.getAverageUnitCost());
+            } else if (item.getPurchasePrice() == null || item.getPurchasePrice() == 0) {
+                item.setPurchasePrice(article.getPurchasePrice());
             }
         }
 
