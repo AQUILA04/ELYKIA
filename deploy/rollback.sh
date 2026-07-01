@@ -50,8 +50,8 @@ fi
 
 echo "Rolling back $ENV to release file $TARGET"
 
-FRONTEND_IMAGE=$(grep '^FRONTEND_IMAGE=' "$TARGET" | cut -d= -f2-)
-BACKEND_IMAGE=$(grep '^BACKEND_IMAGE=' "$TARGET" | cut -d= -f2-)
+FRONTEND_IMAGE=$(grep '^FRONTEND_IMAGE=' "$TARGET" | cut -d= -f2- || true)
+BACKEND_IMAGE=$(grep '^BACKEND_IMAGE=' "$TARGET" | cut -d= -f2- || true)
 
 if [[ -z "$FRONTEND_IMAGE" || -z "$BACKEND_IMAGE" ]]; then
   echo "Error: release file must contain FRONTEND_IMAGE and BACKEND_IMAGE" >&2
