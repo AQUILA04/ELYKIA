@@ -6,6 +6,7 @@
   bindValue="id"
   [ngModel]="selectedClientId"
   (ngModelChange)="onSelectionChange($event)"
+  [ngModelOptions]="{ standalone: true }"
   [searchFn]="alwaysPassSearch"
   [disabled]="disabled"
   [loading]="clientsLoading"

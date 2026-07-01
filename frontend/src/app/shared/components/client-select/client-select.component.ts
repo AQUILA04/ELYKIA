@@ -36,6 +36,8 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
   private clientsSearch$ = new Subject<string>();
   private clientIndex = new Map<number, Client>();
   private searchSub?: Subscription;
+  private loadClientsSub?: Subscription;
+  private ensureClientSub?: Subscription;
 
   private onChange: (value: number | null) => void = () => {};
   private onTouched: () => void = () => {};
@@ -47,6 +49,8 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
       debounceTime(300),
       distinctUntilChanged()
     ).subscribe(term => {
+      this.loadClientsSub?.unsubscribe();
+      this.clientsLoading = false;
       this.clientsSearchTerm = term;
       this.resetClients();
       this.loadClientsPage();
@@ -68,6 +72,8 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
 
   ngOnDestroy(): void {
     this.searchSub?.unsubscribe();
+    this.loadClientsSub?.unsubscribe();
+    this.ensureClientSub?.unsubscribe();
   }
 
   getClient(id: number): Client | undefined {
@@ -120,6 +126,8 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
   }
 
   private resetClients(): void {
+    this.loadClientsSub?.unsubscribe();
+    this.clientsLoading = false;
     this.clientsPage = 0;
     this.clients = [];
   }
@@ -147,7 +155,8 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
         this.tontine
       );
 
-    request$.subscribe({
+    this.loadClientsSub?.unsubscribe();
+    this.loadClientsSub = request$.subscribe({
       next: (response: any) => {
         let newItems: Client[] = response.data?.content || [];
         if (this.clientTypeFilter) {
@@ -169,7 +178,8 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
   }
 
   private ensureClientLoaded(clientId: number): void {
-    this.clientService.getClientById(clientId).subscribe({
+    this.ensureClientSub?.unsubscribe();
+    this.ensureClientSub = this.clientService.getClientById(clientId).subscribe({
       next: (response: any) => {
         const client = response.data ?? response;
         if (client?.id != null) {
