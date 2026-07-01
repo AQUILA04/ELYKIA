@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service.store;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.config.CacheNames;
 import com.optimize.elykia.core.dto.ArticlePriceHistoryDto;
 import com.optimize.elykia.core.dto.ArticleStateHistoryDto;
 import com.optimize.elykia.core.dto.ArticlesDto;
@@ -29,6 +30,8 @@ import com.optimize.elykia.core.service.expense.ExpenseService;
 import com.optimize.elykia.core.service.stock.StockValuationFacade;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.Getter;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -94,6 +97,12 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
     public Articles createArticles(ArticlesDto dto) {
         Articles articles = articlesMapper.toEntity(dto);
         return create(articles);
@@ -102,6 +111,12 @@ public class ArticlesService extends GenericService<Articles, Long> {
 
     // AJOUTEZ CETTE MÉTHODE
     @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
     public void resetAllStockQuantities() {
         int page = 0;
         Page<Articles> articlesPage;
@@ -115,6 +130,12 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
     public Articles resetStockForArticle(Long id) {
         Articles article = getById(id); // Trouve l'article ou lève une exception s'il n'existe pas
         article.setStockQuantity(0); // Met la quantité à zéro
@@ -124,6 +145,12 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
     public Articles updateArticles(ArticlesDto dto, Long id) {
         dto.setId(id);
         Articles articles = articlesMapper.toEntity(dto);
@@ -160,19 +187,34 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }
 
     @Override
+    @Cacheable(cacheNames = CacheNames.ARTICLES_PAGE, key = "'all-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     public Page<Articles> getAll(Pageable pageable) {
         return findByStateNot(State.DELETED, pageable); // Retourne tous les articles (sauf DELETED) pour la vue de gestion
     }
 
+    @Cacheable(cacheNames = CacheNames.ARTICLES_ENABLED_PAGE, key = "'enabled-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     public Page<Articles> getAllEnabled(Pageable pageable) {
         return getRepository().findByState(State.ENABLED, pageable);
     }
 
+    @Cacheable(cacheNames = CacheNames.ARTICLES_ENABLED_LIST)
     public List<Articles> getAllEnabledList() {
         return getRepository().findByState(State.ENABLED);
     }
 
+    @Override
+    @Cacheable(cacheNames = CacheNames.ARTICLES_ALL_LIST)
+    public List<Articles> getAll() {
+        return super.getAll();
+    }
+
     @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
     public void disableArticle(Long id) {
         Articles article = getById(id);
         if (article.getStockQuantity() > 0) {
@@ -188,6 +230,12 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
     public void enableArticle(Long id) {
         Articles article = getById(id);
         if (article.getState() != State.ENABLED) {
@@ -199,11 +247,23 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
     public void disableArticles(List<Long> ids) {
         ids.forEach(this::disableArticle);
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
     public void enableArticles(List<Long> ids) {
         ids.forEach(this::enableArticle);
     }
@@ -212,7 +272,25 @@ public class ArticlesService extends GenericService<Articles, Long> {
         return (ArticlesRepository) super.getRepository();
     }
 
+    @Override
     @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
+    public boolean deleteSoft(Long id) {
+        return super.deleteSoft(id);
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
     public String makeStockEntries(StockEntryDto stockEntryDto) {
         final String connectedUser = userService.getCurrentUser().getUsername();
 

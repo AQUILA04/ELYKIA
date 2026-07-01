@@ -34,7 +34,7 @@
 
     <div class="form-group">
       <label>Articles <span class="text-danger">*</span></label>
-      <app-article-selector formControlName="items" [articles]="articles" [priceType]="'credit'" [showPrices]="true"
+      <app-article-selector formControlName="items" [lazyLoad]="true" [priceType]="'credit'" [showPrices]="true"
         [showStock]="true" [validateStock]="false">
       </app-article-selector>
       <mat-error *ngIf="form.get('items')?.invalid && form.get('items')?.touched">

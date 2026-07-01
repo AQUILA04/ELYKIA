@@ -1,17 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StockRequestService } from '../../services/stock-request.service';
-import { ItemService } from 'src/app/article/service/item.service';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
-import { Article } from 'src/app/article/model/article.model';
 import { ClientService } from 'src/app/client/service/client.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { MonthEndCalculator } from '../../../shared/utils/month-end-calculator';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
+import { ArticleSelectorComponent } from 'src/app/credit/components/article-selector/article-selector.component';
 
 @Component({
   selector: 'app-stock-request-create',
@@ -20,8 +19,9 @@ import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature
 })
 export class StockRequestCreateComponent implements OnInit {
 
+  @ViewChild(ArticleSelectorComponent) articleSelector?: ArticleSelectorComponent;
+
   form: FormGroup;
-  articles: Article[] = []; // Typed as Article[]
   agents: any[] = [];
   currentUser: any;
 
@@ -34,7 +34,6 @@ export class StockRequestCreateComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private stockRequestService: StockRequestService,
-    private itemService: ItemService,
     private authService: AuthService,
     private clientService: ClientService,
     private router: Router,
@@ -52,7 +51,6 @@ export class StockRequestCreateComponent implements OnInit {
   ngOnInit(): void {
     this.calculateDaysUntilMonthEnd();
     this.currentUser = this.authService.getCurrentUser();
-    this.loadArticles();
     this.loadAgents();
 
     if (this.userService.hasProfile(UserProfile.PROMOTER)) {
@@ -70,22 +68,6 @@ export class StockRequestCreateComponent implements OnInit {
 
   onSelectNextMonth(forNext: boolean) {
     this.forNextMonth = forNext;
-  }
-
-  loadArticles() {
-    this.spinner.show();
-    this.itemService.getAllEnabledArticles().subscribe({
-      next: (response: any) => {
-        // According to reference: response.data.content
-        this.articles = response.data?.content || response.data || [];
-        this.spinner.hide();
-      },
-      error: (err) => {
-        console.error('Erreur articles:', err);
-        this.toastr.error('Erreur lors du chargement des articles');
-        this.spinner.hide();
-      }
-    });
   }
 
   loadAgents(): void {
@@ -124,7 +106,7 @@ export class StockRequestCreateComponent implements OnInit {
     // We need to map back from ID to object.
 
     const items = formValue.items.map((item: any) => {
-      const articleObj = this.articles.find(a => a.id === item.articleId);
+      const articleObj = this.articleSelector?.getArticle(item.articleId);
       return {
         article: articleObj,
         quantity: item.quantity

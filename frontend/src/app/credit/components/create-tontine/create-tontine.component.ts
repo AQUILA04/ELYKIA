@@ -5,7 +5,6 @@ import { forkJoin, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { CreditService, CreditFormData  } from '../../service/credit.service';
-import { ItemService } from 'src/app/article/service/item.service';
 import { ClientService } from 'src/app/client/service/client.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
@@ -34,7 +33,6 @@ export class CreateTontineComponent implements OnInit, OnDestroy {
 
   deliveryForm!: FormGroup;
   promoterClients: any[] = [];
-  articles: any[] = [];
   isLoading = false;
 
   private subscriptions: Subscription[] = [];
@@ -43,7 +41,6 @@ export class CreateTontineComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private creditService: CreditService,
     private clientService: ClientService,
-    private itemService: ItemService,
     private router: Router,
     private alertService: AlertService,
     private tokenStorage: TokenStorageService,
@@ -83,16 +80,12 @@ export class CreateTontineComponent implements OnInit, OnDestroy {
 
     const loadSub = forkJoin({
       clients: this.clientService.getClients(0, 10000, 'id,desc', currentUser)
-        .pipe(map(response => response.data.content)),
-      articles: this.itemService.getAllArticles()
         .pipe(map(response => response.data.content))
     }).subscribe({
-      next: ({ clients, articles }) => {
-        // Filter only PROMOTER clients
+      next: ({ clients }) => {
         this.promoterClients = clients.filter((client: any) =>
           client.clientType === 'PROMOTER'
         );
-        this.articles = articles;
         this.spinner.hide();
 
         if (this.promoterClients.length === 0) {

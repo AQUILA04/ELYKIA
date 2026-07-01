@@ -97,7 +97,9 @@
 
         <div class="form-section">
           <h3 class="form-section-title">Articles <span class="required">*</span></h3>
-          <app-article-selector formControlName="articles" [articles]="articles"
+          <app-article-selector formControlName="articles"
+            [lazyLoad]="useLazyArticleLoading"
+            [articles]="useLazyArticleLoading ? [] : articles"
             [priceType]="saleType === 'CREDIT' ? 'credit' : 'inventory'" [showPrices]="true" [showStock]="true"
             (totalAmountChange)="onTotalAmountChange($event)" [validateStock]="true">
           </app-article-selector>

@@ -28,20 +28,13 @@
   </div>
 
   <div class="form-card a3">
-    <div *ngIf="isLoadingArticles" class="form-loading">
-      <div class="empty-state">
-        <div class="empty-icon">⏳</div>
-        <div class="empty-title">Chargement des articles…</div>
-      </div>
-    </div>
-
-    <form *ngIf="!isLoadingArticles" [formGroup]="inventoryForm" (ngSubmit)="onSubmit()">
+    <form [formGroup]="inventoryForm" (ngSubmit)="onSubmit()">
       <div class="field-group selector-group">
         <label class="field-label">Articles à approvisionner <span class="req">*</span></label>
         <div class="selector-block">
           <app-article-selector
             formControlName="articles"
-            [articles]="articles"
+            [lazyLoad]="true"
             [priceType]="'inventory'"
             [showPrices]="false"
             [capturePurchasePrice]="fifoEnabled"

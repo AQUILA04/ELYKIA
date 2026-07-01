@@ -7,7 +7,9 @@
       <div class="form-field article-field">
         <label [attr.for]="'articleId-' + i">Article</label>
         <ng-select class="article-select-wrap" [id]="'articleId-' + i" [attr.data-testid]="'e2e-article-select-' + i" formControlName="articleId"
-          [items]="availableArticlesPerRow[i]" bindValue="id" [searchFn]="searchArticle" [disabled]="readonly"
+          [items]="availableArticlesPerRow[i]" bindValue="id" [searchFn]="lazyLoad ? alwaysPassSearch : searchArticle" [disabled]="readonly"
+          [loading]="lazyLoad && articlesLoading" [virtualScroll]="lazyLoad"
+          (scrollToEnd)="onArticlesScrollToEnd()" (search)="onArticlesSearch($event)"
           placeholder="Rechercher et sélectionner un article" notFoundText="Aucun article trouvé">
 
           <ng-template ng-label-tmp let-item="item">

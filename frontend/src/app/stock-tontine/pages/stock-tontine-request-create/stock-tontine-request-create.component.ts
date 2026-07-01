@@ -1,14 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StockTontineRequestService } from '../../services/stock-tontine-request.service';
-import { ItemService, Article } from '../../../article/service/item.service';
 import { AuthService } from '../../../auth/service/auth.service';
 import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ClientService } from '../../../client/service/client.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { ArticleSelectorComponent } from 'src/app/credit/components/article-selector/article-selector.component';
 
 @Component({
   selector: 'app-stock-tontine-request-create',
@@ -17,15 +17,15 @@ import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 })
 export class StockTontineRequestCreateComponent implements OnInit {
 
+  @ViewChild(ArticleSelectorComponent) articleSelector?: ArticleSelectorComponent;
+
   form: FormGroup;
-  articles: Article[] = [];
   agents: any[] = [];
   currentUser: any;
 
   constructor(
     private fb: FormBuilder,
     private requestService: StockTontineRequestService,
-    private itemService: ItemService,
     private authService: AuthService,
     private clientService: ClientService,
     private router: Router,
@@ -41,28 +41,12 @@ export class StockTontineRequestCreateComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
-    this.loadArticles();
     this.loadAgents();
 
     if (this.userService.hasProfile(UserProfile.PROMOTER)) {
       this.form.patchValue({ collector: this.currentUser.username });
       this.form.get('collector')?.disable();
     }
-  }
-
-  loadArticles() {
-    this.spinner.show();
-    this.itemService.getAllEnabledArticles().subscribe({
-      next: (response: any) => {
-        this.articles = response.data?.content || response.data || [];
-        this.spinner.hide();
-      },
-      error: (err) => {
-        console.error('Erreur articles:', err);
-        this.toastr.error('Erreur lors du chargement des articles');
-        this.spinner.hide();
-      }
-    });
   }
 
   loadAgents(): void {
@@ -89,7 +73,7 @@ export class StockTontineRequestCreateComponent implements OnInit {
     const formValue = this.form.getRawValue();
 
     const items = formValue.items.map((item: any) => {
-      const articleObj = this.articles.find(a => a.id === item.articleId);
+      const articleObj = this.articleSelector?.getArticle(item.articleId);
       return {
         article: articleObj,
         quantity: item.quantity

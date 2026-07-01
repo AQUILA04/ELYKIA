@@ -122,16 +122,30 @@ export class ItemService {
     return headers;
   }
 
-  getAllArticles(): Observable<ArticleResponse> {
-    const headers = this.getHeader();
-    const params = new HttpParams().set('size', '10000');
-    return this.http.get<ArticleResponse>(this.apiUrl, { params, headers });
+  getAllArticles(page = 0, size = 20, sort = 'name,asc', search = ''): Observable<ArticleResponse> {
+    return this.getArticles(page, size, sort, search);
   }
 
-  getAllEnabledArticles(): Observable<ArticleResponse> {
+  getAllEnabledArticles(page = 0, size = 20, sort = 'name,asc', search = ''): Observable<ArticleResponse> {
+    return this.getEnabledArticlesPage(page, size, sort, search);
+  }
+
+  getEnabledArticlesPage(page: number, size: number, sort = 'name,asc', search = ''): Observable<ArticleResponse> {
     const headers = this.getHeader();
-    const params = new HttpParams().set('size', '10000');
-    return this.http.get<ArticleResponse>(`${this.apiUrl}/enabled`, { params, headers });
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', sort);
+
+    if (search?.trim()) {
+      return this.http.post<ArticleResponse>(
+        `${this.apiUrl}/elasticsearch/enabled`,
+        { keyword: search.trim() },
+        { headers, params }
+      );
+    }
+
+    return this.http.get<ArticleResponse>(`${this.apiUrl}/enabled`, { headers, params });
   }
 
   // #### MÉTHODE ADAPTÉE POUR L'OPTION B ####

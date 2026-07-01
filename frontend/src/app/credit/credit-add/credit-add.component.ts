@@ -1,9 +1,8 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { CreditService } from '../service/credit.service';
-import { ItemService } from 'src/app/article/service/item.service';
 import { ClientService } from 'src/app/client/service/client.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
@@ -16,6 +15,7 @@ import { CommercialStockService } from 'src/app/stock/services/commercial-stock.
 import { ToastrService } from 'ngx-toastr';
 import { saveAs } from 'file-saver';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
+import { ArticleSelectorComponent } from '../components/article-selector/article-selector.component';
 
 @Component({
   selector: 'app-credit-add',
@@ -24,6 +24,8 @@ import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature
   encapsulation: ViewEncapsulation.None
 })
 export class CreditAddComponent implements OnInit, OnDestroy {
+  @ViewChild(ArticleSelectorComponent) articleSelector?: ArticleSelectorComponent;
+
   creditForm!: FormGroup;
   clients: any[] = [];
   articles: any[] = [];
@@ -40,11 +42,14 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
+  get useLazyArticleLoading(): boolean {
+    return this.saleType === 'CASH';
+  }
+
   constructor(
     private formBuilder: FormBuilder,
     private creditService: CreditService,
     private clientService: ClientService,
-    private itemService: ItemService,
     private router: Router,
     private route: ActivatedRoute,
     private alertService: AlertService,
@@ -179,7 +184,6 @@ export class CreditAddComponent implements OnInit, OnDestroy {
           this.creditForm.get('commercial')?.disable(); // Optionnel, selon UX désiré
 
           dependencies$ = forkJoin({
-            stock: this.getGeneralStockObservable(),
             clients: this.isPromoter
               ? this.getClientsForCommercialObservable(this.currentUser.username)
               : this.getAllClientsObservable()
@@ -231,6 +235,13 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
   // --- Méthodes Observables pour forkJoin ---
 
+  private resolveArticle(articleId: number): any | undefined {
+    if (this.useLazyArticleLoading) {
+      return this.articleSelector?.getArticle(articleId);
+    }
+    return this.articles.find(article => article.id === articleId);
+  }
+
   private getCommercialStockObservable(username: string): Observable<any[]> {
     if (!username) return of([]);
     return this.commercialStockService.getAvailableItems(username).pipe(
@@ -249,20 +260,6 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       catchError((err) => {
         console.error('[getCommercialStockObservable] Erreur:', err);
         this.toastr.error('Erreur chargement stock commercial');
-        return of([]);
-      })
-    );
-  }
-
-  private getGeneralStockObservable(): Observable<any[]> {
-    return this.itemService.getAllEnabledArticles().pipe(
-      map(response => response.data.content),
-      tap(articles => {
-        this.articles = articles;
-      }),
-      catchError((err) => {
-        console.error('[getGeneralStockObservable] Erreur:', err);
-        this.toastr.error('Erreur chargement stock général');
         return of([]);
       })
     );
@@ -319,10 +316,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
         clientsObservable$ = this.getAllClientsObservable();
       }
 
-      forkJoin({
-        stock: this.getGeneralStockObservable(),
-        clients: clientsObservable$
-      }).pipe(finalize(() => this.spinner.hide())).subscribe();
+      clientsObservable$.pipe(finalize(() => this.spinner.hide())).subscribe();
 
     } else { // CREDIT
       this.creditForm.get('commercial')?.setValidators(Validators.required);
@@ -372,10 +366,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   }
 
   loadGeneralStock() {
-    this.spinner.show();
-    this.getGeneralStockObservable()
-      .pipe(finalize(() => this.spinner.hide()))
-      .subscribe();
+    // Les articles comptant sont chargés à la demande par le sélecteur (lazy load).
   }
 
   loadClientsForCommercial(username: string) {
@@ -528,7 +519,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     const commercialName = formValue.commercial || this.currentUser?.username || '';
 
     const receiptArticles = (formValue.articles || []).map((item: any) => {
-      const art = this.articles.find(a => a.id === item.articleId);
+      const art = this.resolveArticle(item.articleId);
       const price = formValue.saleType === 'CREDIT' ? (art?.creditSalePrice || 0) : (art?.sellingPrice || 0);
       return {
         name: art?.commercialName || art?.name || 'Article inconnu',

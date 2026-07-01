@@ -19,8 +19,6 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
 
   inventoryForm: FormGroup;
-  articles: unknown[] = [];
-  isLoadingArticles = false;
   isSubmitting = false;
   currentDate = new Date();
   fifoEnabled = false;
@@ -40,7 +38,6 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadArticles();
     this.subscriptions.push(
       this.stockFifoFeatureService.isFifoEnabled().subscribe(enabled => {
         this.fifoEnabled = enabled;
@@ -60,27 +57,6 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
         sub.unsubscribe();
       }
     });
-  }
-
-  loadArticles(): void {
-    this.isLoadingArticles = true;
-    const loadSub = this.inventoryService.getEnabledArticles(0, 10000).subscribe({
-      next: (response: ApiResponse) => {
-        if (response.statusCode === 200) {
-          this.articles = response.data.content;
-        } else {
-          this.alertService.toastError(response?.message ?? 'Réponse inattendue du serveur.');
-        }
-        this.isLoadingArticles = false;
-      },
-      error: (error) => {
-        console.error('Erreur lors du chargement des articles:', error);
-        this.alertService.showError('Erreur lors du chargement des articles.');
-        this.isLoadingArticles = false;
-      }
-    });
-
-    this.subscriptions.push(loadSub);
   }
 
   onSubmit(): void {

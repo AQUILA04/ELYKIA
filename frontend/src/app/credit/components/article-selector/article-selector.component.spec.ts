@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
+import { of } from 'rxjs';
 import { ArticleSelectorComponent } from './article-selector.component';
+import { ItemService } from 'src/app/article/service/item.service';
 
 describe('ArticleSelectorComponent', () => {
   let component: ArticleSelectorComponent;
@@ -14,7 +16,15 @@ describe('ArticleSelectorComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ArticleSelectorComponent],
-      imports: [ReactiveFormsModule]
+      imports: [ReactiveFormsModule],
+      providers: [
+        {
+          provide: ItemService,
+          useValue: {
+            getEnabledArticlesPage: jasmine.createSpy('getEnabledArticlesPage').and.returnValue(of({ data: { content: [] } }))
+          }
+        }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ArticleSelectorComponent);

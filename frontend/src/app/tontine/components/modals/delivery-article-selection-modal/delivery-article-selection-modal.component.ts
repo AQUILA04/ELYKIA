@@ -3,15 +3,13 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, switchMap, catchError, map, tap, startWith } from 'rxjs/operators';
 import { of, Observable } from 'rxjs';
-import { TontineDeliveryService } from '../../../services/tontine-delivery.service'; // Added
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'; // Keep for article loading
-import { TokenStorageService } from 'src/app/shared/service/token-storage.service'; // Keep for article loading
-import { environment } from 'src/environments/environment';
+import { TontineDeliveryService } from '../../../services/tontine-delivery.service';
+import { ItemService } from 'src/app/article/service/item.service';
 import {
   TontineMember,
   Article,
   DeliveryItemDto,
-  CreateDeliveryDto, // Added
+  CreateDeliveryDto,
   formatCurrency
 } from '../../../types/tontine.types';
 
@@ -29,7 +27,6 @@ interface SelectedArticle {
 export class DeliveryArticleSelectionModalComponent implements OnInit {
   member: TontineMember;
   searchControl = new FormControl('');
-  articles: Article[] = [];
   filteredArticles$: Observable<Article[]> = of([]);
   selectedArticles: SelectedArticle[] = [];
   loading = false;
@@ -38,41 +35,15 @@ export class DeliveryArticleSelectionModalComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<DeliveryArticleSelectionModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { member: TontineMember },
-    private http: HttpClient,
-    private tokenStorage: TokenStorageService,
     private cdr: ChangeDetectorRef,
-    private tontineDeliveryService: TontineDeliveryService // Injected TontineDeliveryService
+    private tontineDeliveryService: TontineDeliveryService,
+    private itemService: ItemService
   ) {
     this.member = data.member;
   }
 
   ngOnInit(): void {
-    this.loadArticles();
     this.setupSearch();
-  }
-
-  private loadArticles(): void {
-    this.loading = true;
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.tokenStorage.getToken()}`,
-      'Content-Type': 'application/json'
-    });
-
-    const params = new HttpParams().set('size', '10000');
-
-    this.http.get<any>(`${environment.apiUrl}/api/v1/articles`, { headers, params })
-      .pipe(
-        catchError(err => {
-          console.error('Error loading articles:', err);
-          this.error = 'Erreur lors du chargement des articles';
-          return of({ data: { content: [] } });
-        })
-      )
-      .subscribe(response => {
-        this.articles = response.data?.content || [];
-        console.log('Articles loaded:', this.articles.length);
-        this.loading = false;
-      });
   }
 
   private setupSearch(): void {
@@ -80,88 +51,28 @@ export class DeliveryArticleSelectionModalComponent implements OnInit {
       startWith(''),
       debounceTime(300),
       distinctUntilChanged(),
-      tap(searchTerm => console.log('Search term:', searchTerm)),
-      switchMap(searchTerm => {
-        if (typeof searchTerm === 'string') {
-          return this.searchArticles(searchTerm);
-        }
-        return of([]);
-      }),
-      tap(articles => console.log('Articles to display:', articles))
+      switchMap(searchTerm => this.searchArticles(typeof searchTerm === 'string' ? searchTerm : '')),
+      tap(() => this.cdr.markForCheck())
     );
   }
 
   private searchArticles(searchTerm: string): Observable<Article[]> {
-    console.log('searchArticles called with:', searchTerm);
-    
-    if (!searchTerm || searchTerm.trim().length < 2) {
-      console.log('Search term too short, returning first 50 articles');
-      const result = this.articles.filter(a => a.active !== false).slice(0, 50);
-      console.log('Returning articles:', result.length);
-      return of(result);
-    }
-
-    const localMatches = this.filterArticlesLocally(searchTerm);
-    if (localMatches.length > 0) {
-      return of(localMatches);
-    }
-
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.tokenStorage.getToken()}`,
-      'Content-Type': 'application/json'
-    });
-
-    const searchUrl = `${environment.apiUrl}/api/v1/articles/elasticsearch`;
-    const body = { keyword: searchTerm.trim() };
-    const params = new HttpParams()
-      .set('page', '0')
-      .set('size', '100')
-      .set('sort', 'id,desc');
-
-    console.log('Calling Elasticsearch API with:', body);
-
-    return this.http.post<any>(searchUrl, body, { headers, params })
-      .pipe(
-        tap(response => console.log('Elasticsearch response:', response)),
-        map(response => {
-          const articles = response.data?.content || [];
-          console.log('Articles before filter:', articles);
-          const filtered = articles.filter((a: Article) => a.active !== false);
-          if (filtered.length === 0) {
-            return this.filterArticlesLocally(searchTerm);
-          }
-          console.log('Filtered articles:', filtered.length, filtered);
-          return filtered;
-        }),
-        catchError(err => {
-          console.error('Error searching articles:', err);
-          const fallback = this.filterArticlesLocally(searchTerm);
-          return of(fallback.length > 0 ? fallback : this.articles.filter(a => a.active !== false).slice(0, 50));
-        })
-      );
-  }
-
-  private filterArticlesLocally(searchTerm: string): Article[] {
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) {
-      return this.articles.filter(a => a.active !== false).slice(0, 50);
-    }
-    return this.articles
-      .filter(a => {
-        if (a.active === false) {
-          return false;
-        }
-        return (
-          String(a.id).includes(term) ||
-          (a.name ?? '').toLowerCase().includes(term) ||
-          (a.code ?? '').toLowerCase().includes(term)
-        );
+    this.loading = true;
+    return this.itemService.getEnabledArticlesPage(0, 20, 'name,asc', searchTerm).pipe(
+      map(response => (response.data?.content || []) as Article[]),
+      tap(() => {
+        this.loading = false;
+      }),
+      catchError(err => {
+        console.error('Error searching articles:', err);
+        this.loading = false;
+        this.error = 'Erreur lors du chargement des articles';
+        return of([]);
       })
-      .slice(0, 100);
+    );
   }
 
   onArticleSelected(article: Article): void {
-    console.log('Article selected:', article);
     const existing = this.selectedArticles.find(sa => sa.article.id === article.id);
     if (existing) {
       existing.quantity++;
@@ -221,28 +132,25 @@ export class DeliveryArticleSelectionModalComponent implements OnInit {
     const items: DeliveryItemDto[] = this.selectedArticles.map(sa => ({
       articleId: sa.article.id,
       quantity: sa.quantity,
-      unitPrice: sa.article.sellingPrice // Add unitPrice here as per new DTO
+      unitPrice: sa.article.sellingPrice
     }));
 
     const createDeliveryDto: CreateDeliveryDto = {
-      tontineMemberId: this.member.id, // Use tontineMemberId as per new DTO
-      items: items
+      tontineMemberId: this.member.id,
+      items
     };
 
-    this.loading = true; // Show loading indicator
+    this.loading = true;
     this.tontineDeliveryService.createDelivery(createDeliveryDto).subscribe({
-      next: (response) => {
-        console.log('Delivery created successfully', response);
+      next: () => {
         this.loading = false;
-        this.dialogRef.close(true); // Close with 'true' to indicate success
+        this.dialogRef.close(true);
       },
       error: (error) => {
         console.error('Error creating delivery', error);
         this.loading = false;
         this.error = error.message || 'Erreur lors de la création de la livraison.';
-        // Optionally, show a more user-friendly error message or keep the dialog open
       }
     });
   }
 }
-

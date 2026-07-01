@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, Output, EventEmitter, forwardRef, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, ControlValueAccessor, NG_VALUE_ACCESSOR, NG_VALIDATORS, Validator, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { ItemService } from 'src/app/article/service/item.service';
 
 export interface ArticleSelection {
   articleId: number;
@@ -30,9 +32,11 @@ export type PriceType = 'credit' | 'tontine' | 'inventory';
 })
 export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, ControlValueAccessor, Validator {
   @Input() articles: any[] = [];
+  @Input() lazyLoad = false;
+  @Input() enabledOnly = true;
   @Input() readonly: boolean = false;
-  @Input() priceType: PriceType = 'credit'; // 'credit', 'tontine' ou 'inventory'
-  @Input() showPrices: boolean = true; // Nouvelle option pour afficher/masquer les prix
+  @Input() priceType: PriceType = 'credit';
+  @Input() showPrices: boolean = true;
   @Input() showStock: boolean = true;
   @Input() validateStock: boolean = false;
   @Input() capturePurchasePrice: boolean = false;
@@ -42,14 +46,26 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   articleForm!: FormGroup;
   availableArticlesPerRow: any[][] = [];
   totalAmount: number = 0;
+  articlesLoading = false;
+
+  private readonly pageSize = 20;
+  private articlesPage = 0;
+  private articlesTotalPages = 0;
+  private articlesSearchTerm = '';
+  private articlesSearch$ = new Subject<string>();
+  private articleIndex = new Map<number, any>();
   private articlesSub?: Subscription;
+  private lazySearchSub?: Subscription;
 
   // ControlValueAccessor
   private onChange: (value: ArticleSelection[]) => void = () => {};
   private onTouched: () => void = () => {};
   private onValidatorChange: () => void = () => {};
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private itemService: ItemService
+  ) {
     this.articleForm = this.fb.group({
       articles: this.fb.array([])
     });
@@ -59,12 +75,21 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     if (this.articlesArray.length === 0) {
       this.addArticle();
     }
-    this.updateAvailableArticleLists();
+
+    if (this.lazyLoad) {
+      this.setupLazyArticlesLoading();
+      this.loadArticlesPage();
+    } else {
+      this.indexArticles(this.articles);
+      this.updateAvailableArticleLists();
+    }
+
     this.listenForArticleChanges();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['articles']) {
+    if (changes['articles'] && !this.lazyLoad) {
+      this.indexArticles(this.articles);
       this.updateAvailableArticleLists();
       if (this.showPrices) {
         this.calculateTotalAmount();
@@ -78,9 +103,29 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   }
 
   ngOnDestroy(): void {
-    if (this.articlesSub) {
-      this.articlesSub.unsubscribe();
+    this.articlesSub?.unsubscribe();
+    this.lazySearchSub?.unsubscribe();
+  }
+
+  getArticle(id: number): any | undefined {
+    return this.articleIndex.get(id) ?? this.articles.find(a => a.id === id);
+  }
+
+  onArticlesScrollToEnd(): void {
+    if (!this.lazyLoad || this.articlesLoading) {
+      return;
     }
+    if (this.articlesPage < this.articlesTotalPages - 1) {
+      this.articlesPage++;
+      this.loadArticlesPage();
+    }
+  }
+
+  onArticlesSearch(event: { term: string }): void {
+    if (!this.lazyLoad) {
+      return;
+    }
+    this.articlesSearch$.next(event.term ?? '');
   }
 
   get articlesArray(): FormArray {
@@ -95,7 +140,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
         unitPrice: [null, [Validators.required, Validators.min(0.01)]]
       });
       group.get('articleId')?.valueChanges.subscribe(articleId => {
-        const article = this.articles.find(a => a.id === articleId);
+        const article = this.getArticle(articleId);
         if (article) {
           group.patchValue({ unitPrice: article.purchasePrice ?? 0 }, { emitEvent: false });
         }
@@ -127,10 +172,53 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     this.emitChanges();
   }
 
-  private listenForArticleChanges(): void {
-    if (this.articlesSub) {
-      this.articlesSub.unsubscribe();
+  private setupLazyArticlesLoading(): void {
+    this.lazySearchSub = this.articlesSearch$.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      this.articlesSearchTerm = term;
+      this.articlesPage = 0;
+      this.articles = [];
+      this.loadArticlesPage();
+    });
+  }
+
+  private loadArticlesPage(): void {
+    if (this.articlesLoading) {
+      return;
     }
+
+    this.articlesLoading = true;
+    const request$ = this.enabledOnly
+      ? this.itemService.getEnabledArticlesPage(this.articlesPage, this.pageSize, 'name,asc', this.articlesSearchTerm)
+      : this.itemService.getArticles(this.articlesPage, this.pageSize, 'name,asc', this.articlesSearchTerm);
+
+    request$.subscribe({
+      next: (response: any) => {
+        const newItems = response.data?.content || [];
+        this.indexArticles(newItems);
+        const existingIds = new Set(this.articles.map(article => article.id));
+        this.articles = [
+          ...this.articles,
+          ...newItems.filter((article: any) => !existingIds.has(article.id))
+        ];
+        this.articlesTotalPages = response.data?.totalPages ?? 0;
+        this.articlesLoading = false;
+        this.updateAvailableArticleLists();
+      },
+      error: () => {
+        this.articlesLoading = false;
+      }
+    });
+  }
+
+  private indexArticles(items: any[]): void {
+    items.forEach(item => this.articleIndex.set(item.id, item));
+  }
+
+  private listenForArticleChanges(): void {
+    this.articlesSub?.unsubscribe();
 
     this.articlesSub = this.articlesArray.valueChanges.subscribe(() => {
       this.updateAvailableArticleLists();
@@ -163,9 +251,8 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
       const quantity = control.get('quantity')?.value;
 
       if (articleId && quantity > 0) {
-        const article = this.articles.find(a => a.id === articleId);
+        const article = this.getArticle(articleId);
         if (article) {
-          // Utiliser le bon prix selon le type
           const price = this.getArticlePrice(articleId);
           total += price * quantity;
         }
@@ -192,11 +279,12 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     const label = (item.commercialName || item.name || '').toLowerCase();
     const name = (item.name || '').toLowerCase();
     return label.includes(term) || name.includes(term);
-  }
+  };
 
-  // Méthode pour obtenir le prix d'un article selon le type
+  alwaysPassSearch = () => true;
+
   getArticlePrice(articleId: number): number {
-    const article = this.articles.find(a => a.id === articleId);
+    const article = this.getArticle(articleId);
     if (!article) return 0;
 
     switch (this.priceType) {
@@ -205,13 +293,12 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
       case 'credit':
         return article.creditSalePrice || 0;
       case 'inventory':
-        return article.sellingPrice || 0; // Prix par défaut pour inventory
+        return article.sellingPrice || 0;
       default:
         return article.sellingPrice || 0;
     }
   }
 
-  // Méthode pour calculer le sous-total d'une ligne
   getLineTotal(index: number): number {
     const control = this.articlesArray.at(index);
     const articleId = control.get('articleId')?.value;
@@ -222,7 +309,6 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     return this.getArticlePrice(articleId) * quantity;
   }
 
-  // Vérifier si on doit afficher les colonnes de prix
   shouldShowPriceColumns(): boolean {
     return this.showPrices && !this.capturePurchasePrice;
   }
@@ -232,11 +318,10 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   }
 
   getCatalogPurchasePrice(articleId: number): number {
-    const article = this.articles.find(a => a.id === articleId);
+    const article = this.getArticle(articleId);
     return article?.purchasePrice ?? 0;
   }
 
-  // ControlValueAccessor implementation
   writeValue(value: ArticleSelection[]): void {
     if (value && Array.isArray(value)) {
       this.articlesArray.clear();
@@ -254,7 +339,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
         const group = this.fb.group(groupConfig);
         if (this.capturePurchasePrice) {
           group.get('articleId')?.valueChanges.subscribe(articleId => {
-            const selected = this.articles.find(a => a.id === articleId);
+            const selected = this.getArticle(articleId);
             if (selected) {
               group.patchValue({ unitPrice: selected.purchasePrice ?? 0 }, { emitEvent: false });
             }
@@ -286,7 +371,6 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     }
   }
 
-  // Validator implementation
   validate(control: AbstractControl): ValidationErrors | null {
     if (this.articlesArray.length === 0) {
       return { required: true };
@@ -302,29 +386,6 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   registerOnValidatorChange(fn: () => void): void {
     this.onValidatorChange = fn;
   }
-  private stockValidator(control: AbstractControl): ValidationErrors | null {
-    const quantity = control.value;
-    const articleId = control.parent?.get('articleId')?.value;
-
-    if (!articleId || !quantity) return null;
-
-    const article = this.articles.find(a => a.id === articleId);
-    if (!article) return null;
-
-    const stock = article.stockQuantity || 0;
-
-    if (quantity > stock) {
-      return {
-        stockExceeded: {
-          available: stock,
-          requested: quantity
-        }
-      };
-    }
-
-    return null;
-  }
-
 
   isStockExceeded(index: number): boolean {
     const control = this.articlesArray.at(index);
@@ -338,7 +399,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   }
 
   getArticleStock(articleId: number): number {
-    const article = this.articles.find(a => a.id === articleId);
+    const article = this.getArticle(articleId);
     return article?.stockQuantity || 0;
   }
 

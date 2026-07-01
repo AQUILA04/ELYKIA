@@ -12,7 +12,8 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Added
 
-- **Frontend —** Dashboard V2 sur `/home` (feature flag Firebase `dashboardV2`) : KPIs pilotage (crédits en cours, recouvrement encours, tontine, clients, stock commercial ou magasin), graphiques ventes/recouvrements et stock, dernières ventes et activité récente (`DailyOperationLog`) ; alertes magasinier refondues en panneaux `panel-card`.
+- **Backend —** cache Caffeine (5 min) sur la liste des commerciaux (`GET /api/v1/promoters/all`) et sur les listes/p pages articles (`/api/v1/articles`, `/enabled`, `/all`).
+- **Frontend —** chargement paginé des articles (20 par page, infinite scroll + recherche serveur) dans `ArticleSelectorComponent` pour les formulaires de demande de stock, inventaire, ventes comptant et livraisons tontine.
 - **Backend —** colonne `society_share_amount` sur `tontine_collection` et KPI `totalSocietyShare` sur `/api/v1/tontine-collections/web/summary` ; `lowStockCount` sur `/api/v1/articles/stock-kpis`.
 - **Backend —** valorisation FIFO du stock magasin derrière le paramètre `ENABLED_FIFO_STOCK_VALUATION` (désactivé par défaut) : lots `article_stock_lot`, façade `StockValuationFacade`, service FIFO, activation/backfill admin (`POST /api/v1/stock/fifo/activate`), endpoints consultation lots et KPIs FIFO.
 - **Frontend —** saisie PU achat prérempli (entrées stock, inventaire, fiche article) lorsque le flag FIFO est actif ; onglet lots FIFO sur la fiche article ; libellés KPI inventaire adaptés en mode FIFO.
@@ -26,6 +27,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Changed
 
+- **Frontend —** sélection d'articles : fin du chargement massif (`size=10000`) ; pagination 20 + infinite scroll via `ItemService.getEnabledArticlesPage` ; `order.service` et modal livraison tontine alignés.
 - **Mobile —** page de connexion : demande automatique de l'autorisation d'accès aux fichiers (stockage) à l'arrivée sur l'écran de login si elle n'est pas encore accordée (sauvegardes, logs, photos).
 - **Backend —** export PDF sorties/retours de stock : filtrage des sorties sur la date de livraison et des retours sur la date de réception (au lieu de la date de demande / création du retour).
 - **Backend —** livraison des demandes de stock : le stock mensuel du commercial est rattaché au mois de la date de livraison (et non plus à la date de création de la demande).

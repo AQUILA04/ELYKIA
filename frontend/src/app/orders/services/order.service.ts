@@ -490,9 +490,11 @@ export class OrderService {
           catchError(this.handleApiError.bind(this))
         );
     } else {
-      // Récupérer tous les articles comme dans credit-add
+      // Récupérer la première page d'articles activés
       let params = new HttpParams()
-        .set('size', '10000');
+        .set('page', '0')
+        .set('size', '20')
+        .set('sort', 'name,asc');
 
       return this.http.get<ApiResponse<PaginatedResponse<OrderArticle>>>(`${environment.apiUrl}/api/v1/articles/enabled`, { headers, params })
         .pipe(
