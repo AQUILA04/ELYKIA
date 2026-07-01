@@ -22,8 +22,8 @@ public interface StockReturnRepository extends GenericRepository<StockReturn, Lo
             "FROM StockReturn s JOIN s.items i JOIN i.article a " +
             "WHERE s.status = :status " +
             "AND (:#{#collector == null} = true OR s.collector = :collector) " +
-            "AND (:#{#startDate == null} = true OR s.returnDate >= :startDate) " +
-            "AND (:#{#endDate == null} = true OR s.returnDate <= :endDate) " +
+            "AND (:#{#startDate == null} = true OR s.receivedDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.receivedDate <= :endDate) " +
             "GROUP BY a.type, a.marque, a.model, a.name, i.unitPrice " +
             "ORDER BY a.name")
     List<com.optimize.elykia.core.dto.StockRequestExportDTO> findAggregatedStockReturns(
