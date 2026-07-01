@@ -24,8 +24,36 @@ if [ ! -d "$RELEASES_DIR" ]; then
   exit 1
 fi
 
-list_release_files() {
-  ls -1t "$RELEASES_DIR"/${ENV}_*.txt 2>/dev/null | grep -v '_current\.txt$' || true
+list_release_files_chronological() {
+  # deploy.sh names files ${ENV}_YYYYMMDDTHHMMSSZ.txt — lexicographic sort = deploy order.
+  ls -1 "$RELEASES_DIR"/${ENV}_2*.txt 2>/dev/null | sort || true
+}
+
+resolve_previous_release() {
+  local current_link="$1"
+  local current_file
+  current_file=$(readlink -f "$current_link" 2>/dev/null || true)
+  if [[ -z "$current_file" || ! -f "$current_file" ]]; then
+    echo "Current release pointer is invalid: $current_link" >&2
+    return 1
+  fi
+
+  local prev=""
+  local release
+  while IFS= read -r release; do
+    [[ -z "$release" ]] && continue
+    if [[ "$release" == "$current_file" ]]; then
+      if [[ -n "$prev" ]]; then
+        echo "$prev"
+        return 0
+      fi
+      return 1
+    fi
+    prev="$release"
+  done < <(list_release_files_chronological)
+
+  echo "Current release not found in release history: $current_file" >&2
+  return 1
 }
 
 if [ "$TARGET" = "--last" ]; then
@@ -35,8 +63,7 @@ if [ "$TARGET" = "--last" ]; then
     echo "List available releases: ls -lt $RELEASES_DIR" >&2
     exit 1
   fi
-  PREV_FILE=$(list_release_files | sed -n '2p' || true)
-  if [ -z "$PREV_FILE" ]; then
+  if ! PREV_FILE=$(resolve_previous_release "$CURRENT_LINK"); then
     echo "No previous release to rollback to in $RELEASES_DIR" >&2
     exit 1
   fi
