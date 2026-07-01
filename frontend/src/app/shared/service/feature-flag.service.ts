@@ -30,7 +30,7 @@ const SKIP_REMOTE_CONFIG_SESSION_KEY = 'elykia.skipRemoteConfig';
 })
 export class FeatureFlagService {
   private defaultFlags: Record<string, boolean> = {
-    [FeatureFlags.StockReturnHistory]: false,
+    [FeatureFlags.StockReturnHistory]: true,
     [FeatureFlags.NextMonthStockCreation]: false,
     [FeatureFlags.EndOfMonthAlerts]: false,
     [FeatureFlags.InventoryReconciliationMultiSelect]: false,
