@@ -56,6 +56,8 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   private articleIndex = new Map<number, any>();
   private articlesSub?: Subscription;
   private lazySearchSub?: Subscription;
+  private loadArticlesSub?: Subscription;
+  private rowSubs: Subscription[] = [];
 
   // ControlValueAccessor
   private onChange: (value: ArticleSelection[]) => void = () => {};
@@ -105,6 +107,8 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   ngOnDestroy(): void {
     this.articlesSub?.unsubscribe();
     this.lazySearchSub?.unsubscribe();
+    this.loadArticlesSub?.unsubscribe();
+    this.clearRowSubs();
   }
 
   getArticle(id: number): any | undefined {
@@ -139,12 +143,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
         quantity: ['', [Validators.required, Validators.min(1)]],
         unitPrice: [null, [Validators.required, Validators.min(0.01)]]
       });
-      group.get('articleId')?.valueChanges.subscribe(articleId => {
-        const article = this.getArticle(articleId);
-        if (article) {
-          group.patchValue({ unitPrice: article.purchasePrice ?? 0 }, { emitEvent: false });
-        }
-      });
+      this.attachPurchasePriceSync(group);
       return group;
     }
 
@@ -166,6 +165,8 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   deleteArticle(index: number): void {
     if (this.readonly) return;
 
+    this.rowSubs[index]?.unsubscribe();
+    this.rowSubs.splice(index, 1);
     this.articlesArray.removeAt(index);
     this.updateAvailableArticleLists();
     this.listenForArticleChanges();
@@ -177,11 +178,30 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
       debounceTime(300),
       distinctUntilChanged()
     ).subscribe(term => {
+      this.loadArticlesSub?.unsubscribe();
+      this.articlesLoading = false;
       this.articlesSearchTerm = term;
       this.articlesPage = 0;
       this.articles = [];
       this.loadArticlesPage();
     });
+  }
+
+  private attachPurchasePriceSync(group: FormGroup): void {
+    const sub = group.get('articleId')?.valueChanges.subscribe(articleId => {
+      const article = this.getArticle(articleId);
+      if (article) {
+        group.patchValue({ unitPrice: article.purchasePrice ?? 0 }, { emitEvent: false });
+      }
+    });
+    if (sub) {
+      this.rowSubs.push(sub);
+    }
+  }
+
+  private clearRowSubs(): void {
+    this.rowSubs.forEach(sub => sub.unsubscribe());
+    this.rowSubs = [];
   }
 
   private loadArticlesPage(): void {
@@ -194,7 +214,8 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
       ? this.itemService.getEnabledArticlesPage(this.articlesPage, this.pageSize, 'name,asc', this.articlesSearchTerm)
       : this.itemService.getArticles(this.articlesPage, this.pageSize, 'name,asc', this.articlesSearchTerm);
 
-    request$.subscribe({
+    this.loadArticlesSub?.unsubscribe();
+    this.loadArticlesSub = request$.subscribe({
       next: (response: any) => {
         const newItems = response.data?.content || [];
         this.indexArticles(newItems);
@@ -324,6 +345,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
 
   writeValue(value: ArticleSelection[]): void {
     if (value && Array.isArray(value)) {
+      this.clearRowSubs();
       this.articlesArray.clear();
       value.forEach(article => {
         const groupConfig: Record<string, unknown> = {
@@ -338,12 +360,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
         }
         const group = this.fb.group(groupConfig);
         if (this.capturePurchasePrice) {
-          group.get('articleId')?.valueChanges.subscribe(articleId => {
-            const selected = this.getArticle(articleId);
-            if (selected) {
-              group.patchValue({ unitPrice: selected.purchasePrice ?? 0 }, { emitEvent: false });
-            }
-          });
+          this.attachPurchasePriceSync(group);
         }
         this.articlesArray.push(group);
       });

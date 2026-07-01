@@ -51,6 +51,7 @@ import { OrderDeleteModalComponent } from './components/modals/order-delete-moda
 // Composants utilitaires
 import { EmptyStateComponent } from './components/empty-state/empty-state.component';
 import { ApiTestComponent } from './components/api-test/api-test.component';
+import { SharedComponentsModule } from '../shared/components/shared-components.module';
 
 // Services
 import { OrderService } from './services/order.service';
@@ -111,7 +112,8 @@ import { OrderService } from './services/order.service';
     MatBadgeModule,
     MatSlideToggleModule,
     MatExpansionModule,
-    MatStepperModule
+    MatStepperModule,
+    SharedComponentsModule
   ],
   providers: [
     // Services Order

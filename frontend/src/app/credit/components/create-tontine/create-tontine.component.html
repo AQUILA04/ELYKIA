@@ -17,33 +17,13 @@
 
       <div class="form-group">
         <label for="clientId">Commercial<span class="text-danger">*</span></label>
-        <ng-select
+        <app-client-select
           id="clientId"
           formControlName="clientId"
-          [items]="promoterClients"
-          bindLabel="firstname"
-          bindValue="id"
-          [searchFn]="searchClient"
-          placeholder="Rechercher un client promoteur"
-          notFoundText="Aucun client promoteur trouvé">
-
-          <ng-template ng-label-tmp let-item="item">
-            <div class="client-label">
-              <mat-icon class="client-icon">account_circle</mat-icon>
-              {{ item.firstname }} {{ item.lastname }}
-            </div>
-          </ng-template>
-
-          <ng-template ng-option-tmp let-item="item">
-            <div class="client-option">
-              <div class="client-name">{{ item.firstname }} {{ item.lastname }}</div>
-              <small class="client-type">
-                <mat-icon class="small-icon">verified_user</mat-icon>
-                Promoteur
-              </small>
-            </div>
-          </ng-template>
-        </ng-select>
+          [username]="currentUser?.username"
+          clientTypeFilter="PROMOTER"
+          placeholder="Rechercher un client promoteur">
+        </app-client-select>
 
         <mat-error *ngIf="deliveryForm.get('clientId')?.invalid && deliveryForm.get('clientId')?.touched">
           Le commercial est requis.

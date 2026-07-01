@@ -16,6 +16,7 @@ import { ToastrService } from 'ngx-toastr';
 import { saveAs } from 'file-saver';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { ArticleSelectorComponent } from '../components/article-selector/article-selector.component';
+import { ClientSelectComponent } from 'src/app/shared/components/client-select/client-select.component';
 
 @Component({
   selector: 'app-credit-add',
@@ -25,6 +26,7 @@ import { ArticleSelectorComponent } from '../components/article-selector/article
 })
 export class CreditAddComponent implements OnInit, OnDestroy {
   @ViewChild(ArticleSelectorComponent) articleSelector?: ArticleSelectorComponent;
+  @ViewChild(ClientSelectComponent) clientSelect?: ClientSelectComponent;
 
   creditForm!: FormGroup;
   clients: any[] = [];
@@ -44,6 +46,27 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
   get useLazyArticleLoading(): boolean {
     return this.saleType === 'CASH';
+  }
+
+  get clientSelectCommercial(): string | null {
+    if (this.saleType === 'CREDIT') {
+      return this.creditForm.get('commercial')?.value || null;
+    }
+    if (this.isPromoter) {
+      return this.currentUser?.username || null;
+    }
+    return null;
+  }
+
+  get clientSelectUsername(): string | null {
+    if (this.clientSelectCommercial) {
+      return null;
+    }
+    return this.currentUser?.username || null;
+  }
+
+  get isClientSelectDisabled(): boolean {
+    return this.saleType === 'CREDIT' && !this.creditForm.get('commercial')?.value;
   }
 
   constructor(
@@ -77,7 +100,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
   get selectedClient(): any | undefined {
     const clientId = this.creditForm.get('clientId')?.value;
-    return this.clients.find(c => c.id === clientId);
+    return clientId != null ? this.resolveClient(clientId) : undefined;
   }
 
   get showCreditPurposeSelector(): boolean {
@@ -176,18 +199,13 @@ export class CreditAddComponent implements OnInit, OnDestroy {
           }
 
           dependencies$ = forkJoin({
-            stock: this.getCommercialStockObservable(commercialUsername),
-            clients: this.getClientsForCommercialObservable(commercialUsername)
+            stock: this.getCommercialStockObservable(commercialUsername)
           });
         } else {
           this.creditForm.get('commercial')?.clearValidators();
-          this.creditForm.get('commercial')?.disable(); // Optionnel, selon UX désiré
+          this.creditForm.get('commercial')?.disable();
 
-          dependencies$ = forkJoin({
-            clients: this.isPromoter
-              ? this.getClientsForCommercialObservable(this.currentUser.username)
-              : this.getAllClientsObservable()
-          });
+          dependencies$ = of(null);
         }
 
         this.creditForm.get('commercial')?.updateValueAndValidity();
@@ -223,8 +241,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     // Initialisation par défaut pour une nouvelle vente
     if (this.isPromoter) {
       return forkJoin({
-        stock: this.getCommercialStockObservable(this.currentUser.username),
-        clients: this.getClientsForCommercialObservable(this.currentUser.username)
+        stock: this.getCommercialStockObservable(this.currentUser.username)
       });
     } else {
       // Par défaut CREDIT, mais pas de commercial sélectionné
@@ -240,6 +257,10 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       return this.articleSelector?.getArticle(articleId);
     }
     return this.articles.find(article => article.id === articleId);
+  }
+
+  private resolveClient(clientId: number): any | undefined {
+    return this.clientSelect?.getClient(clientId) ?? this.clients.find(client => client.id === clientId);
   }
 
   private getCommercialStockObservable(username: string): Observable<any[]> {
@@ -265,35 +286,6 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     );
   }
 
-  private getClientsForCommercialObservable(username: string): Observable<any[]> {
-    if (!username) return of([]);
-    return this.clientService.getClientByCommercial(username, 0, 10000, 'id,desc').pipe(
-      map(response => response.data.content),
-      tap(clients => {
-        this.clients = clients.filter((client: any) => client.clientType === 'CLIENT');
-      }),
-      catchError((err) => {
-        console.error('[getClientsForCommercialObservable] Erreur:', err);
-        this.toastr.error('Erreur chargement clients');
-        return of([]);
-      })
-    );
-  }
-
-  private getAllClientsObservable(): Observable<any[]> {
-    return this.clientService.getClients(0, 10000, 'id,desc', this.currentUser).pipe(
-      map(response => response.data.content),
-      tap(clients => {
-        this.clients = clients.filter((client: any) => client.clientType === 'CLIENT');
-      }),
-      catchError((err) => {
-        console.error('[getAllClientsObservable] Erreur:', err);
-        this.toastr.error('Erreur chargement clients');
-        return of([]);
-      })
-    );
-  }
-
   // --- Gestionnaires d'événements ---
 
   onSaleTypeChange(type: 'CREDIT' | 'CASH') {
@@ -306,19 +298,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       this.creditForm.get('commercial')?.clearValidators();
       this.creditForm.get('commercial')?.updateValueAndValidity();
       this.creditForm.get('commercial')?.disable();
-
-      this.spinner.show();
-
-      let clientsObservable$;
-      if (this.isPromoter) {
-        clientsObservable$ = this.getClientsForCommercialObservable(this.currentUser.username);
-      } else {
-        clientsObservable$ = this.getAllClientsObservable();
-      }
-
-      clientsObservable$.pipe(finalize(() => this.spinner.hide())).subscribe();
-
-    } else { // CREDIT
+    } else {
       this.creditForm.get('commercial')?.setValidators(Validators.required);
       this.creditForm.get('commercial')?.updateValueAndValidity();
 
@@ -331,10 +311,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       const commercial = this.creditForm.get('commercial')?.value;
       if (commercial) {
         this.spinner.show();
-        forkJoin({
-          stock: this.getCommercialStockObservable(commercial),
-          clients: this.getClientsForCommercialObservable(commercial)
-        }).pipe(finalize(() => this.spinner.hide())).subscribe();
+        this.getCommercialStockObservable(commercial)
+          .pipe(finalize(() => this.spinner.hide()))
+          .subscribe();
       }
     }
   }
@@ -346,10 +325,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
     if (commercial) {
       this.spinner.show();
-      forkJoin({
-        stock: this.getCommercialStockObservable(commercial),
-        clients: this.getClientsForCommercialObservable(commercial)
-      }).pipe(finalize(() => this.spinner.hide())).subscribe();
+      this.getCommercialStockObservable(commercial)
+        .pipe(finalize(() => this.spinner.hide()))
+        .subscribe();
     } else {
       this.articles = [];
       this.clients = [];
@@ -367,20 +345,6 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
   loadGeneralStock() {
     // Les articles comptant sont chargés à la demande par le sélecteur (lazy load).
-  }
-
-  loadClientsForCommercial(username: string) {
-    this.spinner.show();
-    this.getClientsForCommercialObservable(username)
-      .pipe(finalize(() => this.spinner.hide()))
-      .subscribe();
-  }
-
-  loadAllClients() {
-    this.spinner.show();
-    this.getAllClientsObservable()
-      .pipe(finalize(() => this.spinner.hide()))
-      .subscribe();
   }
 
   ngOnDestroy(): void {
@@ -483,12 +447,6 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     }, { emitEvent: false });
   }
 
-  searchClient = (term: string, item: any) => {
-    term = term.toLowerCase();
-    const fullName = `${item.firstname} ${item.lastname}`.toLowerCase();
-    return fullName.includes(term);
-  }
-
   searchCommercial = (term: string, item: any) => {
     return item.username.toLowerCase().includes(term.toLowerCase());
   }
@@ -511,7 +469,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   openReceiptModal(savedCredit: any): void {
     const formValue = this.creditForm.getRawValue();
     const clientId = formValue.clientId;
-    const clientObj = this.clients.find(c => c.id === clientId);
+    const clientObj = this.resolveClient(clientId);
     const clientName = clientObj ? `${clientObj.firstname} ${clientObj.lastname}` : 'Client inconnu';
     const clientPhone = clientObj?.phone || '';
     const clientAddress = clientObj?.address || '';

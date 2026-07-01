@@ -33,21 +33,12 @@
     <form [formGroup]="accountForm" (ngSubmit)="onSubmit()">
       <div class="field-group">
         <label class="field-label" for="clientId">Client <span class="req">*</span></label>
-        <ng-select
+        <app-client-select
           id="clientId"
           formControlName="clientId"
-          [items]="clients"
-          bindValue="id"
-          [searchFn]="searchClient"
-          placeholder="Rechercher et sélectionner un client"
-          notFoundText="Aucun client trouvé">
-          <ng-template ng-label-tmp let-item="item">
-            {{ item.firstname }} {{ item.lastname }}
-          </ng-template>
-          <ng-template ng-option-tmp let-item="item">
-            <div>{{ item.firstname }} {{ item.lastname }}</div>
-          </ng-template>
-        </ng-select>
+          [username]="currentUser?.username"
+          placeholder="Rechercher et sélectionner un client">
+        </app-client-select>
         <span class="field-error" *ngIf="accountForm.get('clientId')?.invalid && accountForm.get('clientId')?.touched">
           Le client est requis.
         </span>

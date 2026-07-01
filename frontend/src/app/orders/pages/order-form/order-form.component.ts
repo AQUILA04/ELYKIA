@@ -14,13 +14,9 @@ import {
   AbstractControl
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subject, combineLatest, of } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
 import {
   takeUntil,
-  debounceTime,
-  distinctUntilChanged,
-  switchMap,
-  startWith,
   map
 } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -29,7 +25,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { OrderService } from '../../services/order.service';
 import {
   Order,
-  OrderClient,
   OrderArticle,
   CreateOrderDto,
   UpdateOrderDto,
@@ -38,6 +33,7 @@ import {
   calculateItemTotal
 } from '../../types/order.types';
 import { OrderConfirmationModalComponent } from '../../components/modals/order-confirmation-modal/order-confirmation-modal.component';
+import { AuthService } from 'src/app/auth/service/auth.service';
 
 @Component({
   selector: 'app-order-form',
@@ -58,9 +54,8 @@ export class OrderFormComponent implements OnInit, OnDestroy {
   isSaving = false;
   orderId: number | null = null;
   currentOrder: Order | null = null;
-  clients$: Observable<OrderClient[]> = of([]);
+  currentUser: any;
   articles$: Observable<OrderArticle[]> = of([]);
-  filteredClients$: Observable<OrderClient[]> = of([]);
   filteredArticles$: Observable<OrderArticle[]> = of([]);
   validationMessages = ORDER_VALIDATION_MESSAGES;
 
@@ -69,6 +64,7 @@ export class OrderFormComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private orderService: OrderService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef
@@ -78,6 +74,7 @@ export class OrderFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
     this.determineMode();
     this.loadInitialData();
     this.dateIntervalId = setInterval(() => {
@@ -104,19 +101,8 @@ export class OrderFormComponent implements OnInit, OnDestroy {
   }
 
   private loadInitialData(): void {
-    this.clients$ = this.orderService.searchClients().pipe(map(response => response.data || []), takeUntil(this.destroy$));
     this.articles$ = this.orderService.searchArticles().pipe(map(response => response.data || []), takeUntil(this.destroy$));
-    this.filteredClients$ = this.orderForm.get('clientSearch')!.valueChanges.pipe(
-      startWith(''),
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap(value => {
-        if (typeof value === 'string' && value.length >= 2) {
-          return this.orderService.searchClients(value).pipe(map(response => response.data || []));
-        }
-        return this.clients$;
-      })
-    );
+    this.filteredArticles$ = this.articles$;
   }
 
   private loadOrderForEdit(): void {
@@ -143,8 +129,6 @@ export class OrderFormComponent implements OnInit, OnDestroy {
   private createForm(): FormGroup {
     return this.fb.group({
       clientId: [null, [Validators.required]],
-      clientSearch: [''],
-      selectedClient: [null],
       items: this.fb.array([], [Validators.required, this.minItemsValidator])
     });
   }
@@ -159,11 +143,8 @@ export class OrderFormComponent implements OnInit, OnDestroy {
       this.router.navigate(['/orders']);
       return;
     }
-    const clientName = `${order.client?.firstname || ''} ${order.client?.lastname || ''}`.trim();
     this.orderForm.patchValue({
-      clientId: order.client?.id,
-      clientSearch: clientName,
-      selectedClient: order.client
+      clientId: order.client?.id
     });
     this.clearItems();
     (order.items || []).forEach(item => this.addItemFromOrder(item));
@@ -190,18 +171,6 @@ export class OrderFormComponent implements OnInit, OnDestroy {
     if (this.isSaving) return this.isEditMode ? 'Modification...' : 'Création...';
     return this.isEditMode ? 'Modifier la Commande' : 'Créer la Commande';
   }
-
-  displayClient(client: OrderClient): string {
-    if (!client) return '';
-    const code = client.code || `ID: ${client.id}`;
-    return `${client.firstname} ${client.lastname} (${code})`;
-  }
-
-  onClientSelected(client: OrderClient): void { this.orderForm.patchValue({ clientId: client.id, selectedClient: client }); }
-  onClientInputFocus(): void {
-    if (!this.orderForm.get('clientSearch')?.value) this.filteredClients$ = this.clients$;
-  }
-  clearClientSelection(): void { this.orderForm.patchValue({ clientId: null, clientSearch: '', selectedClient: null }); }
 
   addItem(): void {
     const itemForm = this.fb.group({

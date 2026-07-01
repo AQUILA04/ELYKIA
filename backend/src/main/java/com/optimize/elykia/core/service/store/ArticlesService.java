@@ -187,12 +187,12 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }
 
     @Override
-    @Cacheable(cacheNames = CacheNames.ARTICLES_PAGE, key = "'all-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
+    @Cacheable(cacheNames = CacheNames.ARTICLES_PAGE, key = "'all-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
     public Page<Articles> getAll(Pageable pageable) {
         return findByStateNot(State.DELETED, pageable); // Retourne tous les articles (sauf DELETED) pour la vue de gestion
     }
 
-    @Cacheable(cacheNames = CacheNames.ARTICLES_ENABLED_PAGE, key = "'enabled-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
+    @Cacheable(cacheNames = CacheNames.ARTICLES_ENABLED_PAGE, key = "'enabled-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
     public Page<Articles> getAllEnabled(Pageable pageable) {
         return getRepository().findByState(State.ENABLED, pageable);
     }

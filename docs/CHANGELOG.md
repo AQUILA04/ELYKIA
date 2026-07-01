@@ -12,6 +12,8 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Added
 
+- **Backend —** cache Caffeine sur les clients paginés par commercial (`GET /api/v1/clients/by-commercial/{commercial}`) et sur la liste paginée (`GET /api/v1/clients`).
+- **Frontend —** composant réutilisable `ClientSelectComponent` : pagination 20, infinite scroll et recherche serveur pour remplacer les chargements massifs de clients.
 - **Backend —** cache Caffeine (5 min) sur la liste des commerciaux (`GET /api/v1/promoters/all`) et sur les listes/p pages articles (`/api/v1/articles`, `/enabled`, `/all`).
 - **Frontend —** chargement paginé des articles (20 par page, infinite scroll + recherche serveur) dans `ArticleSelectorComponent` pour les formulaires de demande de stock, inventaire, ventes comptant et livraisons tontine.
 - **Backend —** colonne `society_share_amount` sur `tontine_collection` et KPI `totalSocietyShare` sur `/api/v1/tontine-collections/web/summary` ; `lowStockCount` sur `/api/v1/articles/stock-kpis`.
@@ -27,6 +29,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Changed
 
+- **Frontend —** sélection de clients : fin du chargement massif (`size=10000` / `100000`) sur ventes, comptes, distributions, rattrapage, **commandes** et **modal membre tontine** ; pagination 20 + infinite scroll + recherche serveur via `ClientSelectComponent`.
 - **Frontend —** sélection d'articles : fin du chargement massif (`size=10000`) ; pagination 20 + infinite scroll via `ItemService.getEnabledArticlesPage` ; `order.service` et modal livraison tontine alignés.
 - **Mobile —** page de connexion : demande automatique de l'autorisation d'accès aux fichiers (stockage) à l'arrivée sur l'écran de login si elle n'est pas encore accordée (sauvegardes, logs, photos).
 - **Backend —** export PDF sorties/retours de stock : filtrage des sorties sur la date de livraison et des retours sur la date de réception (au lieu de la date de demande / création du retour).
@@ -35,6 +38,8 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Fixed
 
+- **Frontend —** `ArticleSelectorComponent` : nettoyage des abonnements `valueChanges` par ligne (PU achat) et des requêtes HTTP lazy-load à la destruction, suppression ou nouvelle recherche — évite les fuites mémoire.
+- **Backend —** clés de cache paginées articles/clients : `#pageable.sort.toString()` pour un tri déterministe dans les clés Caffeine.
 - **Deploy —** `rollback.sh` : lecture/écriture des releases et du pointeur `*_current.txt` sous `/opt/elykia/<env>/releases/` (aligné sur `deploy.sh`), mise à jour de `/opt/elykia/<env>/.env` et `docker compose` avec `--project-name` / `--env-file` ; extraction des images tolérante (`grep || true`) ; `--last` basé sur le pointeur courant et l'ordre chronologique des fichiers (plus le tri `mtime`) pour enchaîner plusieurs rollbacks — corrige l'échec « No current release pointer found » en prod.
 - **Backend —** `AccountingDayService.getCurrentAccountingDate` : lecture seule (plus de fermeture/ouverture automatique à chaque appel) ; bascule journalière via `ensureCurrentAccountingDay()` (endpoint `/current`, cron 00:05) ; correction `openAccountingDay` (journée ouverte périmée, boucle bornée) pour éviter la saturation CPU ; verrou unique + méthodes internes sans `synchronized` imbriqué.
 - **Backend —** `distributeArticlesV2` : conservation explicite du `totalAmount` mobile via `mobileFinancialTermsLocked` (après application du PMP stock).

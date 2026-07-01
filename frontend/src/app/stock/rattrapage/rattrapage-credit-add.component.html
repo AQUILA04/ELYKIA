@@ -92,16 +92,14 @@
           <!-- Client -->
           <div class="form-group">
             <label class="form-label">Client <span class="req">*</span></label>
-            <ng-select formControlName="clientId" [items]="clients" bindLabel="firstname" bindValue="id"
-              [searchFn]="searchClient" appendTo="body" placeholder="Rechercher un client"
-              notFoundText="Aucun client trouvé" data-testid="e2e-rattrapage-client">
-              <ng-template ng-label-tmp let-item="item">
-                {{ item.firstname }} {{ item.lastname }}
-              </ng-template>
-              <ng-template ng-option-tmp let-item="item">
-                <div>{{ item.firstname }} {{ item.lastname }}</div>
-              </ng-template>
-            </ng-select>
+            <app-client-select
+              formControlName="clientId"
+              [commercial]="selectedCommercial"
+              clientTypeFilter="CLIENT"
+              testId="e2e-rattrapage-client"
+              [disabled]="!selectedCommercial"
+              placeholder="Rechercher un client">
+            </app-client-select>
             <mat-error *ngIf="rattrapageForm.get('clientId')?.invalid && rattrapageForm.get('clientId')?.touched">
               Le client est requis.
             </mat-error>

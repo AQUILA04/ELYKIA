@@ -5,6 +5,7 @@ import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.entities.util.Converter;
+import com.optimize.elykia.client.config.ClientCacheNames;
 import com.optimize.elykia.client.config.ClientAutoInitProperties;
 import com.optimize.elykia.client.config.ClientProperties;
 import com.optimize.elykia.client.dto.*;
@@ -22,6 +23,8 @@ import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.client.repository.PhotoStoreRepository;
 import com.optimize.elykia.client.enumeration.BusinessCreditAuthorizationAction;
 import com.optimize.elykia.client.entity.BusinessCreditAuthorizationEvent;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,6 +66,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, ClientCacheNames.CLIENTS_PAGE}, allEntries = true)
     public ClientRespDto addClient(ClientDto dto) {
         Client client = clientMapper.toEntity(dto);
         Client existingClient = validateClientUniqueness(client); // validation
@@ -90,6 +94,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, ClientCacheNames.CLIENTS_PAGE}, allEntries = true)
     public ClientRespDto updateClient(ClientDto dto, Long clientId) {
         dto.setId(clientId);
         var old = getById(clientId);
@@ -103,6 +108,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, ClientCacheNames.CLIENTS_PAGE}, allEntries = true)
     public ClientRespDto updateClientInfo(ClientInfoUpdateDto dto) {
         Client client = getById(dto.id());
 
@@ -293,6 +299,7 @@ public class ClientService extends GenericService<Client, Long> {
         return existingClient;
     }
 
+    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(java.util.Objects).toString(#username, '') + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
     public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, Pageable pageable) {
         String effectiveUsername = null;
         if (username != null && username.startsWith("COM")) {
@@ -345,12 +352,14 @@ public class ClientService extends GenericService<Client, Long> {
                 State.ENABLED);
     }
 
+    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, key = "'commercial-' + #username + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
     public Page<ClientRespDto> getAllClientByCollector(String username, Pageable pageable) {
         return getRepository().findByCollectorAndClientTypeAndState(username, ClientType.CLIENT, State.ENABLED,
                 pageable);
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, ClientCacheNames.CLIENTS_PAGE}, allEntries = true)
     public Client assignCollector(AssignCollectorDto dto) {
         Client client = getById(dto.getClientId());
         client.setCollector(dto.getCollector());
@@ -468,6 +477,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, ClientCacheNames.CLIENTS_PAGE}, allEntries = true)
     @Override
     public boolean deleteSoft(Long id) throws ApplicationException {
         Client client = getById(id);

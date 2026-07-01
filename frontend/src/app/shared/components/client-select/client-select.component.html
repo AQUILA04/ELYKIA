@@ -1,0 +1,23 @@
+<ng-select
+  [id]="inputId"
+  [attr.data-testid]="testId"
+  [items]="clients"
+  bindLabel="firstname"
+  bindValue="id"
+  [ngModel]="selectedClientId"
+  (ngModelChange)="onSelectionChange($event)"
+  [searchFn]="alwaysPassSearch"
+  [disabled]="disabled"
+  [loading]="clientsLoading"
+  [virtualScroll]="true"
+  (scrollToEnd)="onClientsScrollToEnd()"
+  (search)="onClientsSearch($event)"
+  [placeholder]="placeholder"
+  notFoundText="Aucun client trouvé">
+  <ng-template ng-label-tmp let-item="item">
+    {{ item.firstname }} {{ item.lastname }}
+  </ng-template>
+  <ng-template ng-option-tmp let-item="item">
+    <div>{{ item.firstname }} {{ item.lastname }}</div>
+  </ng-template>
+</ng-select>

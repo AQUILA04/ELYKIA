@@ -48,36 +48,16 @@
       </div>
 
       <div class="field-group">
-        <label class="field-label" for="clientSearch">Client <span class="req">*</span></label>
-        <input
-          id="clientSearch"
-          type="text"
-          matInput
-          class="field-input"
-          formControlName="clientSearch"
-          [matAutocomplete]="clientAuto"
-          placeholder="Nom ou code client…"
-          (focus)="onClientInputFocus()"
-          autocomplete="off">
-        <mat-autocomplete
-          #clientAuto="matAutocomplete"
-          [displayWith]="displayClient"
-          (optionSelected)="onClientSelected($event.option.value)">
-          <mat-option *ngFor="let client of filteredClients$ | async" [value]="client">
-            <div class="option-row">
-              <span class="option-main">{{ client.firstname }} {{ client.lastname }}</span>
-              <span class="option-meta">{{ client.code }}</span>
-            </div>
-          </mat-option>
-        </mat-autocomplete>
+        <label class="field-label" for="clientId">Client <span class="req">*</span></label>
+        <app-client-select
+          id="clientId"
+          formControlName="clientId"
+          [username]="currentUser?.username"
+          placeholder="Rechercher et sélectionner un client">
+        </app-client-select>
         <span class="field-error" *ngIf="hasError('clientId', 'required')">
           {{ getErrorMessage('clientId') }}
         </span>
-      </div>
-
-      <div class="selected-pill" *ngIf="orderForm.get('selectedClient')?.value as client">
-        <span>{{ client.firstname }} {{ client.lastname }} ({{ client.code }})</span>
-        <button type="button" class="pill-remove" (click)="clearClientSelection()" aria-label="Retirer le client">×</button>
       </div>
     </section>
 

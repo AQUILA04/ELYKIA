@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CreditService } from '../service/credit.service';
-import { ClientService } from '../../client/service/client.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { Subscription } from 'rxjs';
@@ -16,7 +15,7 @@ import {AuthService} from "../../auth/service/auth.service"; // Assurez-vous d'i
 })
 export class DistributionComponent implements OnInit, OnDestroy {
   distributionForm!: FormGroup;
-  clients: any[] = [];
+  currentUser: any;
   articles: any[] = [];
   isLoading = false;
   creditId?: number;
@@ -27,7 +26,6 @@ export class DistributionComponent implements OnInit, OnDestroy {
   constructor(
     private formBuilder: FormBuilder,
     private creditService: CreditService,
-    private clientService: ClientService,
     private router: Router,
     private route: ActivatedRoute,
     private spinner: NgxSpinnerService,
@@ -44,6 +42,7 @@ export class DistributionComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
     this.loadInitialData();
   }
 
@@ -60,12 +59,7 @@ export class DistributionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const currentUser = this.authService.getCurrentUser();
     this.spinner.show();
-    this.clientService.getClients(0, 100000, 'id,desc', currentUser).subscribe(clientData => {
-      this.clients = clientData.data.content.filter((c: any) => c.clientType === 'CLIENT');
-    });
-
     this.creditService.getCreditById(this.creditId).subscribe(
       (creditData: any) => {
         this.articles = creditData.data.articles;
@@ -84,12 +78,6 @@ export class DistributionComponent implements OnInit, OnDestroy {
 
   get articlesArray(): FormArray {
     return this.distributionForm.get('articles') as FormArray;
-  }
-
-  searchClient = (term: string, item: any) => {
-    term = term.toLowerCase();
-    const fullName = `${item.firstname} ${item.lastname}`.toLowerCase();
-    return fullName.includes(term);
   }
 
   searchArticle = (term: string, item: any) => {

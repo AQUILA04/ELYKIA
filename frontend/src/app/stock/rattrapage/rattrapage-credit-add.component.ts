@@ -38,7 +38,6 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
 
   // Données
   commercials: any[] = [];
-  clients: any[] = [];
   residualStocks: CommercialMonthlyStock[] = [];
 
   // Sélections
@@ -109,18 +108,11 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
     this.spinner.show();
     const obs: any = { commercials: this.clientService.getAgents() };
 
-    if (this.isPromoter) {
-      obs['clients'] = this.clientService.getClientByCommercial(this.currentUser.username, 0, 1000, 'firstname,asc').pipe(map((res: any) => res.data?.content || res.content || res || []));
-    }
-
     forkJoin(obs)
       .pipe(finalize(() => this.spinner.hide()))
       .subscribe({
         next: (data: any) => {
           this.commercials = data.commercials;
-          if (data.clients) {
-            this.clients = data.clients;
-          }
           if (this.isPromoter) {
             this.loadResidualStocks(this.currentUser.username);
           }
@@ -141,21 +133,11 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
     this.selectedStockMonth = null;
     this.selectedStockId = null;
     this.selectedItems = [];
-    this.clients = [];
     this.recalculateTotals();
 
     if (commercial) {
       this.currentStep = 2;
-      this.spinner.show();
-      forkJoin({
-        clients: this.clientService.getClientByCommercial(commercial, 0, 1000, 'firstname,asc').pipe(map((res: any) => res.data?.content || res.content || res || [])),
-      }).pipe(finalize(() => this.spinner.hide())).subscribe({
-        next: (data: any) => {
-          this.clients = data.clients;
-          this.loadResidualStocks(commercial);
-        },
-        error: () => this.toastr.error('Erreur lors du chargement des données du commercial')
-      });
+      this.loadResidualStocks(commercial);
     }
   }
 

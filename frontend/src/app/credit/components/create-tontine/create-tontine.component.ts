@@ -1,28 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { CreditService, CreditFormData  } from '../../service/credit.service';
-import { ClientService } from 'src/app/client/service/client.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
-import {AuthService} from "../../../auth/service/auth.service";
-
-
-interface TontineDeliveryPayload {
-  clientId: number;
-  articles: Array<{
-    articleId: number;
-    quantity: number;
-  }>;
-  advance: number;
-  beginDate: string;
-  expectedEndDate: string | null;
-  totalAmount: number;
-}
-
+import { AuthService } from '../../../auth/service/auth.service';
 
 @Component({
   selector: 'app-create-tontine',
@@ -32,7 +16,7 @@ interface TontineDeliveryPayload {
 export class CreateTontineComponent implements OnInit, OnDestroy {
 
   deliveryForm!: FormGroup;
-  promoterClients: any[] = [];
+  currentUser: any;
   isLoading = false;
 
   private subscriptions: Subscription[] = [];
@@ -40,7 +24,6 @@ export class CreateTontineComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private creditService: CreditService,
-    private clientService: ClientService,
     private router: Router,
     private alertService: AlertService,
     private tokenStorage: TokenStorageService,
@@ -52,7 +35,7 @@ export class CreateTontineComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadInitialData();
+    this.currentUser = this.authService.getCurrentUser();
   }
 
   ngOnDestroy(): void {
@@ -67,42 +50,11 @@ export class CreateTontineComponent implements OnInit, OnDestroy {
     this.deliveryForm = this.fb.group({
       clientId: ['', Validators.required],
       articles: [[], Validators.required],
-      advance: [0], //[Validators.required, Validators.min(0)]
+      advance: [0],
       beginDate: [new Date().toISOString().split('T')[0]],
       expectedEndDate: [null],
       totalAmount: [0]
     });
-  }
-
-  private loadInitialData(): void {
-    this.spinner.show();
-    const currentUser = this.authService.getCurrentUser();
-
-    const loadSub = forkJoin({
-      clients: this.clientService.getClients(0, 10000, 'id,desc', currentUser)
-        .pipe(map(response => response.data.content))
-    }).subscribe({
-      next: ({ clients }) => {
-        this.promoterClients = clients.filter((client: any) =>
-          client.clientType === 'PROMOTER'
-        );
-        this.spinner.hide();
-
-        if (this.promoterClients.length === 0) {
-          this.alertService.showWarning(
-            'Aucun client promoteur trouvé. Veuillez d\'abord créer des clients promoteurs.',
-            'Attention'
-          );
-        }
-      },
-      error: (error) => {
-        console.error('Erreur lors du chargement des données:', error);
-        this.alertService.showError('Erreur lors du chargement des données');
-        this.spinner.hide();
-      }
-    });
-
-    this.subscriptions.push(loadSub);
   }
 
   onSubmit(): void {
@@ -117,7 +69,6 @@ export class CreateTontineComponent implements OnInit, OnDestroy {
 
     const formValue = this.deliveryForm.value;
 
-    // Préparer le payload en utilisant l'interface CreditFormData
     const payload: CreditFormData = {
       clientId: formValue.clientId,
       articles: formValue.articles.map((article: any) => ({
@@ -166,12 +117,6 @@ export class CreateTontineComponent implements OnInit, OnDestroy {
     this.router.navigate(['/credit-list']);
   }
 
-  searchClient = (term: string, item: any) => {
-    term = term.toLowerCase();
-    const fullName = `${item.firstname} ${item.lastname}`.toLowerCase();
-    return fullName.includes(term);
-  }
-
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);
@@ -182,5 +127,4 @@ export class CreateTontineComponent implements OnInit, OnDestroy {
       }
     });
   }
-
 }

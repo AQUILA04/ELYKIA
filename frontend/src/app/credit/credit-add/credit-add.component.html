@@ -66,16 +66,15 @@
 
             <div class="form-field form-field-full">
               <label for="clientId">Client <span class="required">*</span></label>
-              <ng-select id="clientId" formControlName="clientId" [items]="clients" bindLabel="firstname" bindValue="id"
-                data-testid="e2e-credit-client"
-                [searchFn]="searchClient" placeholder="Rechercher et sélectionner un client" notFoundText="Aucun client trouvé">
-                <ng-template ng-label-tmp let-item="item">
-                  {{ item.firstname }} {{ item.lastname }}
-                </ng-template>
-                <ng-template ng-option-tmp let-item="item">
-                  <div>{{ item.firstname }} {{ item.lastname }}</div>
-                </ng-template>
-              </ng-select>
+              <app-client-select
+                id="clientId"
+                formControlName="clientId"
+                testId="e2e-credit-client"
+                [commercial]="clientSelectCommercial"
+                [username]="clientSelectUsername"
+                clientTypeFilter="CLIENT"
+                [disabled]="isClientSelectDisabled">
+              </app-client-select>
               <span class="field-error" *ngIf="creditForm.get('clientId')?.invalid && creditForm.get('clientId')?.touched">
                 Le client est requis.
               </span>

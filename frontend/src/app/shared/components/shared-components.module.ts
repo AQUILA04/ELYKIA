@@ -19,6 +19,7 @@ import { NgxSpinnerModule } from 'ngx-spinner';
 import { MatInputModule } from '@angular/material/input';
 import { StockExportFilterComponent } from './stock-export-filter/stock-export-filter.component';
 import { CommercialSelectorComponent } from './commercial-selector/commercial-selector.component';
+import { ClientSelectComponent } from './client-select/client-select.component';
 
 @NgModule({
     declarations: [
@@ -28,7 +29,8 @@ import { CommercialSelectorComponent } from './commercial-selector/commercial-se
         CreateTontineComponent,
         AdvancedSearchComponent,
         StockExportFilterComponent,
-        CommercialSelectorComponent
+        CommercialSelectorComponent,
+        ClientSelectComponent
     ],
     imports: [
         CommonModule,
@@ -53,6 +55,7 @@ import { CommercialSelectorComponent } from './commercial-selector/commercial-se
         AdvancedSearchComponent,
         StockExportFilterComponent,
         CommercialSelectorComponent,
+        ClientSelectComponent,
         NgxSpinnerModule
     ]
 })

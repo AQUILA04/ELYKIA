@@ -25,24 +25,17 @@
 
     <form [formGroup]="form" class="member-form" (ngSubmit)="onSubmit()">
       <div class="form-field" *ngIf="!isEditMode">
-        <label class="field-label" for="client-search">Rechercher un client</label>
-        <div class="search-input-wrap">
-          <input id="client-search" type="text" class="search-input" formControlName="clientSearch" placeholder="Nom ou code client...">
-        </div>
-      </div>
-
-      <div class="form-field" *ngIf="!isEditMode">
         <label class="field-label">Sélectionner un client *</label>
-        <mat-form-field appearance="outline" class="elykia-field">
-          <mat-select formControlName="clientId" required data-testid="e2e-tontine-member-client">
-            <mat-option *ngFor="let client of filteredClients" [value]="client.id">
-              {{ getClientDisplay(client) }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="form.get('clientId')?.hasError('required')">
-            Veuillez sélectionner un client
-          </mat-error>
-        </mat-form-field>
+        <app-client-select
+          formControlName="clientId"
+          [username]="currentUser?.username"
+          [tontine]="true"
+          testId="e2e-tontine-member-client"
+          placeholder="Rechercher un client tontine">
+        </app-client-select>
+        <span class="field-error" *ngIf="form.get('clientId')?.hasError('required') && form.get('clientId')?.touched">
+          Veuillez sélectionner un client
+        </span>
       </div>
 
       <div class="form-field" *ngIf="isEditMode && data.member">

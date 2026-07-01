@@ -109,14 +109,14 @@ export class ClientService {
   }
 
   // #### MÉTHODE MODIFIÉE POUR LA RECHERCHE ####
-  getClients(page: number, size: number, sort: string, username: any, search: string = ''): Observable<any> {
+  getClients(page: number, size: number, sort: string, username: any, search: string = '', tontine = false): Observable<any> {
     const headers = this.getHeader();
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sort', sort)
-      .set('username', username)
-      .set('tontine', false);
+      .set('username', username ?? '')
+      .set('tontine', String(tontine));
 
     // Si une recherche est en cours, on utilise l'endpoint POST /elasticsearch
     if (search && search.trim() !== '') {

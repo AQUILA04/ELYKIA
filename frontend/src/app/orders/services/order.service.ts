@@ -450,7 +450,7 @@ export class OrderService {
       // Récupérer tous les clients comme dans credit-add
       let params = new HttpParams()
         .set('page', '0')
-        .set('size', '10000')
+        .set('size', '20')
         .set('sort', 'id,desc')
         .set('username', currentUser.username);
 
