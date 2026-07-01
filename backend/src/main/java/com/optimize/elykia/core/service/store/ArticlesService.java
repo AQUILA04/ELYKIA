@@ -216,6 +216,43 @@ public class ArticlesService extends GenericService<Articles, Long> {
             CacheNames.ARTICLES_ENABLED_PAGE
     }, allEntries = true)
     public void disableArticle(Long id) {
+        doDisableArticle(id);
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
+    public void enableArticle(Long id) {
+        doEnableArticle(id);
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
+    public void disableArticles(List<Long> ids) {
+        ids.forEach(this::doDisableArticle);
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = {
+            CacheNames.ARTICLES_ENABLED_LIST,
+            CacheNames.ARTICLES_ALL_LIST,
+            CacheNames.ARTICLES_PAGE,
+            CacheNames.ARTICLES_ENABLED_PAGE
+    }, allEntries = true)
+    public void enableArticles(List<Long> ids) {
+        ids.forEach(this::doEnableArticle);
+    }
+
+    private void doDisableArticle(Long id) {
         Articles article = getById(id);
         if (article.getStockQuantity() > 0) {
             throw new RuntimeException("Impossible de désactiver un article dont le stock est positif ("
@@ -229,14 +266,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
         }
     }
 
-    @Transactional
-    @CacheEvict(cacheNames = {
-            CacheNames.ARTICLES_ENABLED_LIST,
-            CacheNames.ARTICLES_ALL_LIST,
-            CacheNames.ARTICLES_PAGE,
-            CacheNames.ARTICLES_ENABLED_PAGE
-    }, allEntries = true)
-    public void enableArticle(Long id) {
+    private void doEnableArticle(Long id) {
         Articles article = getById(id);
         if (article.getState() != State.ENABLED) {
             State oldState = article.getState();
@@ -244,28 +274,6 @@ public class ArticlesService extends GenericService<Articles, Long> {
             update(article);
             articleStateHistoryRepository.save(new ArticleStateHistory(article, oldState, State.ENABLED));
         }
-    }
-
-    @Transactional
-    @CacheEvict(cacheNames = {
-            CacheNames.ARTICLES_ENABLED_LIST,
-            CacheNames.ARTICLES_ALL_LIST,
-            CacheNames.ARTICLES_PAGE,
-            CacheNames.ARTICLES_ENABLED_PAGE
-    }, allEntries = true)
-    public void disableArticles(List<Long> ids) {
-        ids.forEach(this::disableArticle);
-    }
-
-    @Transactional
-    @CacheEvict(cacheNames = {
-            CacheNames.ARTICLES_ENABLED_LIST,
-            CacheNames.ARTICLES_ALL_LIST,
-            CacheNames.ARTICLES_PAGE,
-            CacheNames.ARTICLES_ENABLED_PAGE
-    }, allEntries = true)
-    public void enableArticles(List<Long> ids) {
-        ids.forEach(this::enableArticle);
     }
 
     public ArticlesRepository getRepository() {
