@@ -135,7 +135,13 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
     this.loadClientsSub?.unsubscribe();
     this.clientsLoading = false;
     this.clientsPage = 0;
-    this.clients = [];
+    const selectedId = this.clientControl.value;
+    const selectedClient = selectedId != null ? this.getClient(selectedId) : undefined;
+    this.clientIndex.clear();
+    this.clients = selectedClient ? [selectedClient] : [];
+    if (selectedClient) {
+      this.indexClients([selectedClient]);
+    }
   }
 
   private loadClientsPage(): void {

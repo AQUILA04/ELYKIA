@@ -123,12 +123,9 @@ export class ClientService {
       const searchUrl = `${this.apiUrl}/elasticsearch`;
       const body = { keyword: search.trim() };
       return this.http.post<any>(searchUrl, body, { headers, params });
-    } else {
-      // Comportement normal si pas de recherche
-      // On ajoute le paramètre 'username' seulement pour la requête GET standard
-      const getParams = params.set('username', username);
-      return this.http.get<any>(this.apiUrl, { params: getParams, headers });
     }
+
+    return this.http.get<any>(this.apiUrl, { params, headers });
   }
 
 

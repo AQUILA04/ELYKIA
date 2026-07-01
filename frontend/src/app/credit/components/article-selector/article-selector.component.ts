@@ -181,10 +181,27 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
       this.loadArticlesSub?.unsubscribe();
       this.articlesLoading = false;
       this.articlesSearchTerm = term;
-      this.articlesPage = 0;
-      this.articles = [];
+      this.resetLazyArticles();
       this.loadArticlesPage();
     });
+  }
+
+  private resetLazyArticles(): void {
+    this.articlesPage = 0;
+    const selectedArticles = this.collectSelectedArticles();
+    this.articleIndex.clear();
+    this.articles = selectedArticles;
+    this.indexArticles(selectedArticles);
+  }
+
+  private collectSelectedArticles(): any[] {
+    const selectedIds = this.articlesArray.controls
+      .map(control => control.get('articleId')?.value)
+      .filter((id): id is number => id != null);
+
+    return selectedIds
+      .map(id => this.getArticle(id))
+      .filter((article): article is NonNullable<typeof article> => article != null);
   }
 
   private attachPurchasePriceSync(group: FormGroup): void {
