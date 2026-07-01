@@ -6,6 +6,8 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.entities.util.Converter;
 import com.optimize.elykia.client.config.ClientCacheNames;
+import com.optimize.elykia.client.config.ClientCacheKeyHelper;
+import com.optimize.elykia.client.config.EvictClientListCaches;
 import com.optimize.elykia.client.config.ClientAutoInitProperties;
 import com.optimize.elykia.client.config.ClientProperties;
 import com.optimize.elykia.client.dto.*;
@@ -23,7 +25,6 @@ import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.client.repository.PhotoStoreRepository;
 import com.optimize.elykia.client.enumeration.BusinessCreditAuthorizationAction;
 import com.optimize.elykia.client.entity.BusinessCreditAuthorizationEvent;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -66,7 +67,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = {ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, ClientCacheNames.CLIENTS_PAGE}, allEntries = true)
+    @EvictClientListCaches
     public ClientRespDto addClient(ClientDto dto) {
         Client client = clientMapper.toEntity(dto);
         Client existingClient = validateClientUniqueness(client); // validation
@@ -94,7 +95,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = {ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, ClientCacheNames.CLIENTS_PAGE}, allEntries = true)
+    @EvictClientListCaches
     public ClientRespDto updateClient(ClientDto dto, Long clientId) {
         dto.setId(clientId);
         var old = getById(clientId);
@@ -108,7 +109,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = {ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, ClientCacheNames.CLIENTS_PAGE}, allEntries = true)
+    @EvictClientListCaches
     public ClientRespDto updateClientInfo(ClientInfoUpdateDto dto) {
         Client client = getById(dto.id());
 
@@ -180,6 +181,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
+    @EvictClientListCaches
     public Boolean updateClientLocation(LocationUpdate dto) {
         Client client = getById(dto.id());
         client.setLatitude(dto.latitude());
@@ -189,6 +191,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
+    @EvictClientListCaches
     public Boolean updateClientPhotoUrl(UpdatePhotoUrlDto dto) {
         Client client = getById(dto.id());
         if (StringUtils.hasText(dto.profilPhotoUrl())) {
@@ -202,6 +205,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
+    @EvictClientListCaches
     public Boolean updateClientPhoto(UpdatePhotoDto dto) {
         if (!StringUtils.hasText(dto.cardPhoto()) && !StringUtils.hasText(dto.profilPhoto())) {
             throw new CustomValidationException("vous devez fournir au moins une photo pour la modification !!!");
@@ -226,6 +230,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
+    @EvictClientListCaches
     public Boolean updatePhotosBatch(List<ClientPhotoBatchUpdateDto> dtos) {
         for (ClientPhotoBatchUpdateDto dto : dtos) {
             if (StringUtils.hasText(dto.profilPhoto())) {
@@ -299,13 +304,13 @@ public class ClientService extends GenericService<Client, Long> {
         return existingClient;
     }
 
-    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(java.util.Objects).toString(#username, '') + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
+    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(com.optimize.elykia.client.config.ClientCacheKeyHelper).commercialFilterKey(#username) + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
     public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, Pageable pageable) {
-        String effectiveUsername = null;
-        if (username != null && username.startsWith("COM")) {
-            effectiveUsername = username;
-        }
-        return getRepository().findClientsDto(effectiveUsername, tontine, mobile, pageable);
+        return getRepository().findClientsDto(
+                ClientCacheKeyHelper.resolveCommercialUsername(username),
+                tontine,
+                mobile,
+                pageable);
     }
 
     @Transactional(readOnly = true)
@@ -319,10 +324,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     private String resolveCommercialUsername(String username) {
-        if (username != null && username.startsWith("COM")) {
-            return username;
-        }
-        return null;
+        return ClientCacheKeyHelper.resolveCommercialUsername(username);
     }
 
     public byte[] getProfilPhoto(Long id) {
@@ -359,7 +361,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = {ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, ClientCacheNames.CLIENTS_PAGE}, allEntries = true)
+    @EvictClientListCaches
     public Client assignCollector(AssignCollectorDto dto) {
         Client client = getById(dto.getClientId());
         client.setCollector(dto.getCollector());
@@ -477,7 +479,7 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = {ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, ClientCacheNames.CLIENTS_PAGE}, allEntries = true)
+    @EvictClientListCaches
     @Override
     public boolean deleteSoft(Long id) throws ApplicationException {
         Client client = getById(id);

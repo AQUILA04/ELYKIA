@@ -33,9 +33,11 @@
       <mat-autocomplete 
         #articleAuto="matAutocomplete"
         [displayWith]="displayArticle"
+        (opened)="onAutocompleteOpened()"
+        (closed)="onAutocompleteClosed()"
         (optionSelected)="onArticleSelected($event.option.value)">
         <mat-option 
-          *ngFor="let article of filteredArticles$ | async" 
+          *ngFor="let article of filteredArticles" 
           [value]="article"
           [attr.data-article-id]="article.id">
           <div class="article-option">

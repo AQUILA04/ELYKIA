@@ -40,14 +40,17 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 - **Frontend —** `ArticleSelectorComponent` : nettoyage des abonnements `valueChanges` par ligne (PU achat) et des requêtes HTTP lazy-load à la destruction, suppression ou nouvelle recherche — évite les fuites mémoire.
 - **Frontend —** `ClientSelectComponent` : binding via `FormControl` interne (CVA pur, sans `ngModel`) ; annulation des requêtes HTTP paginées et de préchargement client à la destruction ou nouvelle recherche.
-- **Backend —** clés de cache paginées articles/clients : `PageableCacheKeyHelper.sortKey()` normalise le tri (`property:DIRECTION`) au lieu de `Sort.toString()`.
+- **Backend —** `ClientService` : invalidation cache clients paginés (`@EvictClientListCaches`, `beforeInvocation = true`) pour éviter des listes obsolètes après échec de `delete` ou mutation partielle.
+- **Backend —** `ClientService` : invalidation cache clients paginés sur mise à jour localisation, photos (URL, binaire, batch).
+- **Backend —** clé cache `ClientService.getAll()` : filtre commercial normalisé via `ClientCacheKeyHelper` (alignée sur `effectiveUsername` réellement utilisé en requête).
+- **Frontend —** modal livraison tontine : pagination articles (20/page) avec scroll infini dans l'autocomplete.
 - **Frontend —** `ArticleSelectorComponent` : snapshot des articles sélectionnés avant vidage de l'index ; garde sur `articleId` null dans `attachPurchasePriceSync`.
 - **Frontend —** `ClientSelectComponent` : chargement déclenché via `ngOnChanges` uniquement ; re-fetch du client sélectionné si absent de l'index après reset.
 - **Frontend —** `ClientService.getClients()` : suppression du double paramètre `username` sur la requête GET.
 - **Frontend —** vente comptant (`credit-add`) : clients crédit filtrés par commercial uniquement ; lazy-load articles au passage comptant ; reçu basé sur la réponse API si l'article n'est pas en cache local.
 - **Frontend —** `AddMemberModalComponent` : désabonnement de `amount.valueChanges` à la fermeture de la modale.
 - **Frontend —** `AccountAddComponent` : `combineLatest(params, queryParams)` pour éviter la course entre abonnements route.
-- **Backend —** `disableArticle` / `enableArticle` : délégation via proxy Spring vers les méthodes batch (`disableArticles` / `enableArticles`) pour une seule invalidation cache par opération.
+- **Backend —** `ArticlesService.disableArticle` / `enableArticle` : `@CacheEvict` direct sur les méthodes single-ID (appel à `doDisableArticle` / `doEnableArticle`) — suppression du proxy `@Lazy` auto-injecté.
 - **Deploy —** `rollback.sh` : lecture/écriture des releases et du pointeur `*_current.txt` sous `/opt/elykia/<env>/releases/` (aligné sur `deploy.sh`), mise à jour de `/opt/elykia/<env>/.env` et `docker compose` avec `--project-name` / `--env-file` ; extraction des images tolérante (`grep || true`) ; `--last` basé sur le pointeur courant et l'ordre chronologique des fichiers (plus le tri `mtime`) pour enchaîner plusieurs rollbacks — corrige l'échec « No current release pointer found » en prod.
 - **Backend —** `AccountingDayService.getCurrentAccountingDate` : lecture seule (plus de fermeture/ouverture automatique à chaque appel) ; bascule journalière via `ensureCurrentAccountingDay()` (endpoint `/current`, cron 00:05) ; correction `openAccountingDay` (journée ouverte périmée, boucle bornée) pour éviter la saturation CPU ; verrou unique + méthodes internes sans `synchronized` imbriqué.
 - **Backend —** `distributeArticlesV2` : conservation explicite du `totalAmount` mobile via `mobileFinancialTermsLocked` (après application du PMP stock).

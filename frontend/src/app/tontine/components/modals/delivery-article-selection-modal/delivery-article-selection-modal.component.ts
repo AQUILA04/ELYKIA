@@ -1,8 +1,9 @@
-import { Component, Inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { FormControl } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, switchMap, catchError, map, tap, startWith } from 'rxjs/operators';
-import { of, Observable } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, catchError, map, startWith, takeUntil, finalize } from 'rxjs/operators';
+import { of, Subject, Subscription } from 'rxjs';
 import { TontineDeliveryService } from '../../../services/tontine-delivery.service';
 import { ItemService } from 'src/app/article/service/item.service';
 import {
@@ -24,13 +25,29 @@ interface SelectedArticle {
   templateUrl: './delivery-article-selection-modal.component.html',
   styleUrls: ['./delivery-article-selection-modal.component.scss']
 })
-export class DeliveryArticleSelectionModalComponent implements OnInit {
+export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy {
+  @ViewChild(MatAutocompleteTrigger) autocompleteTrigger?: MatAutocompleteTrigger;
+
   member: TontineMember;
   searchControl = new FormControl('');
-  filteredArticles$: Observable<Article[]> = of([]);
+  filteredArticles: Article[] = [];
   selectedArticles: SelectedArticle[] = [];
   loading = false;
   error: string | null = null;
+
+  private readonly pageSize = 20;
+  private readonly destroy$ = new Subject<void>();
+  private articlesPage = 0;
+  private articlesTotalPages = 0;
+  private articlesSearchTerm = '';
+  private loadArticlesSub?: Subscription;
+  private autocompletePanel?: HTMLElement;
+  private readonly onPanelScroll = (event: Event): void => {
+    const target = event.target as HTMLElement;
+    if (target.scrollTop + target.clientHeight >= target.scrollHeight - 40) {
+      this.loadMoreArticles();
+    }
+  };
 
   constructor(
     public dialogRef: MatDialogRef<DeliveryArticleSelectionModalComponent>,
@@ -46,30 +63,82 @@ export class DeliveryArticleSelectionModalComponent implements OnInit {
     this.setupSearch();
   }
 
+  ngOnDestroy(): void {
+    this.detachPanelScrollListener();
+    this.loadArticlesSub?.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   private setupSearch(): void {
-    this.filteredArticles$ = this.searchControl.valueChanges.pipe(
+    this.searchControl.valueChanges.pipe(
       startWith(''),
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap(searchTerm => this.searchArticles(typeof searchTerm === 'string' ? searchTerm : '')),
-      tap(() => this.cdr.markForCheck())
-    );
+      switchMap(searchTerm => {
+        this.articlesSearchTerm = typeof searchTerm === 'string' ? searchTerm : '';
+        this.articlesPage = 0;
+        return this.fetchArticlesPage(false);
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe(articles => {
+      this.filteredArticles = articles;
+      this.cdr.markForCheck();
+    });
   }
 
-  private searchArticles(searchTerm: string): Observable<Article[]> {
+  private fetchArticlesPage(append: boolean) {
+    this.loadArticlesSub?.unsubscribe();
     this.loading = true;
-    return this.itemService.getEnabledArticlesPage(0, 20, 'name,asc', searchTerm).pipe(
-      map(response => (response.data?.content || []) as Article[]),
-      tap(() => {
+
+    return this.itemService.getEnabledArticlesPage(
+      this.articlesPage,
+      this.pageSize,
+      'name,asc',
+      this.articlesSearchTerm
+    ).pipe(
+      map(response => {
+        const content = (response.data?.content || []) as Article[];
+        this.articlesTotalPages = response.data?.totalPages ?? 0;
+        return append ? [...this.filteredArticles, ...content] : content;
+      }),
+      finalize(() => {
         this.loading = false;
       }),
       catchError(err => {
         console.error('Error searching articles:', err);
-        this.loading = false;
         this.error = 'Erreur lors du chargement des articles';
-        return of([]);
+        return of(append ? this.filteredArticles : []);
       })
     );
+  }
+
+  private loadMoreArticles(): void {
+    if (this.loading || this.articlesPage >= this.articlesTotalPages - 1) {
+      return;
+    }
+
+    this.articlesPage++;
+    this.loadArticlesSub = this.fetchArticlesPage(true).subscribe(articles => {
+      this.filteredArticles = articles;
+      this.cdr.markForCheck();
+    });
+  }
+
+  onAutocompleteOpened(): void {
+    setTimeout(() => {
+      this.autocompletePanel = this.autocompleteTrigger?.autocomplete?.panel?.nativeElement;
+      this.autocompletePanel?.addEventListener('scroll', this.onPanelScroll, { passive: true });
+    });
+  }
+
+  onAutocompleteClosed(): void {
+    this.detachPanelScrollListener();
+  }
+
+  private detachPanelScrollListener(): void {
+    this.autocompletePanel?.removeEventListener('scroll', this.onPanelScroll);
+    this.autocompletePanel = undefined;
   }
 
   onArticleSelected(article: Article): void {
