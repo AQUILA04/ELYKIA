@@ -91,6 +91,21 @@ class CreditMobileDistributionTest {
     }
 
     @Test
+    void start_initializesRemainingDaysCountWhenUnsetForNonMobileCredit() {
+        Credit credit = new Credit();
+        credit.setType(com.optimize.elykia.core.enumaration.OperationType.CREDIT);
+        credit.setStatus(CreditStatus.VALIDATED);
+        credit.setTotalAmount(10_000.0);
+        credit.setDailyStake(400.0);
+
+        credit.start();
+
+        assertEquals(CreditStatus.INPROGRESS, credit.getStatus());
+        assertEquals(30, credit.getRemainingDaysCount());
+        assertEquals(LocalDate.now().plusDays(30), credit.getExpectedEndDate());
+    }
+
+    @Test
     void start_preservesMobileBeginAndExpectedEndDates() {
         Credit credit = Credit.buildDistribution(new Client(), mobileDistributionDto(
                 10_700.0,
