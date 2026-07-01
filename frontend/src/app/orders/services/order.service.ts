@@ -452,7 +452,7 @@ export class OrderService {
         .set('page', '0')
         .set('size', '20')
         .set('sort', 'id,desc')
-        .set('username', currentUser.username);
+        .set('username', currentUser?.username ?? '');
 
       return this.http.get<ApiResponse<PaginatedResponse<OrderClient>>>(`${environment.apiUrl}/api/v1/clients`, { headers, params })
         .pipe(

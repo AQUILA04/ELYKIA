@@ -44,6 +44,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 - **Frontend —** `ArticleSelectorComponent` : snapshot des articles sélectionnés avant vidage de l'index ; garde sur `articleId` null dans `attachPurchasePriceSync`.
 - **Frontend —** `ClientSelectComponent` : chargement déclenché via `ngOnChanges` uniquement ; re-fetch du client sélectionné si absent de l'index après reset.
 - **Frontend —** `ClientService.getClients()` : suppression du double paramètre `username` sur la requête GET.
+- **Frontend —** `order.service.searchClients()` : paramètre `username` sécurisé (`currentUser?.username ?? ''`).
 - **Frontend —** `AddMemberModalComponent` : désabonnement de `amount.valueChanges` à la fermeture de la modale.
 - **Frontend —** `AccountAddComponent` : `combineLatest(params, queryParams)` pour éviter la course entre abonnements route.
 - **Backend —** `disableArticle` / `enableArticle` : délégation via proxy Spring vers les méthodes batch (`disableArticles` / `enableArticles`) pour une seule invalidation cache par opération.
