@@ -109,6 +109,10 @@ public class Credit extends BaseEntity<String> {
     @PositiveOrZero
     private Double advance = 0.0;
 
+    /** Termes financiers figés depuis une sync mobile (reçu déjà imprimé côté commercial). */
+    @Transient
+    private boolean mobileFinancialTermsLocked = false;
+
     // ===== NOUVEAUX CHAMPS POUR BI DASHBOARD =====
     @Column(name = "profit_margin")
     private Double profitMargin; // Marge bénéficiaire = totalAmount - totalPurchase
@@ -151,16 +155,16 @@ public class Credit extends BaseEntity<String> {
 
     @PrePersist
     public void setUp() {
-        // Le montant total des articles est calculé (sauf vente déjà démarrée : montant figé)
-        if (!CreditArticleUnitPricePolicy.isUnitPriceFrozen(this.status)) {
+        // Le montant total des articles est calculé (sauf vente déjà démarrée ou sync mobile : montant figé)
+        if (!mobileFinancialTermsLocked && !CreditArticleUnitPricePolicy.isUnitPriceFrozen(this.status)) {
             this.totalAmount = getTotalAmountByCalcul();
         }
-        // --- LOGIQUE DE L'AVANCE MODIFIÉE ---
-
 
         setCreditToCreditArticles();
         this.status = Objects.isNull(this.status) ? CreditStatus.CREATED : this.status;
-        this.remainingDaysCount = this.remainingDaysCount == null ? 30: remainingDaysCount;
+        if (!mobileFinancialTermsLocked) {
+            this.remainingDaysCount = this.remainingDaysCount == null ? 30 : remainingDaysCount;
+        }
         this.totalAmountPaid = this.totalAmountPaid == null ? 0D : totalAmountPaid;
 
     }
@@ -260,6 +264,12 @@ public class Credit extends BaseEntity<String> {
         return creditTimeline;
     }
     public void checkAdvance() {
+        if (mobileFinancialTermsLocked) {
+            if (this.beginDate == null) {
+                this.beginDate = LocalDate.now();
+            }
+            return;
+        }
         // 1. On récupère l'avance (0 si elle est nulle)
         if (List.of(CreditStatus.CREATED, CreditStatus.VALIDATED).contains(status)) {
             if(this.beginDate == null){
@@ -323,15 +333,30 @@ public class Credit extends BaseEntity<String> {
 
     public void start() {
         LocalDate now = LocalDate.now();
-        this.setAccountingDate(now);
-        this.setReleaseDate(now);
+        if (mobileFinancialTermsLocked) {
+            LocalDate effectiveBeginDate = this.beginDate != null ? this.beginDate : now;
+            this.setAccountingDate(effectiveBeginDate);
+            this.setReleaseDate(effectiveBeginDate);
+        } else {
+            this.setAccountingDate(now);
+            this.setReleaseDate(now);
+        }
         if (OperationType.CREDIT.equals(this.type)) {
             if (!CreditStatus.VALIDATED.equals(status)) {
                 throw new ApplicationException("Le statut du credit est invalide pour le démarré");
             }
             this.status= CreditStatus.INPROGRESS;
-            this.expectedEndDate = Objects.nonNull(this.expectedEndDate) ? this.expectedEndDate : LocalDate.now().plusDays(this.remainingDaysCount);
-            this.beginDate = LocalDate.now();
+            if (mobileFinancialTermsLocked) {
+                if (this.beginDate == null) {
+                    this.beginDate = now;
+                }
+                if (this.expectedEndDate == null && this.remainingDaysCount != null) {
+                    this.expectedEndDate = this.beginDate.plusDays(this.remainingDaysCount);
+                }
+            } else {
+                this.expectedEndDate = Objects.nonNull(this.expectedEndDate) ? this.expectedEndDate : LocalDate.now().plusDays(this.remainingDaysCount);
+                this.beginDate = LocalDate.now();
+            }
         } else if (ClientType.PROMOTER.equals(this.clientType)) {
             this.status = CreditStatus.INPROGRESS;
         } else {
@@ -548,14 +573,8 @@ public class Credit extends BaseEntity<String> {
         credit.setCreditToCreditArticles();
         credit.setAdvance(dto.getAdvance());
         if (Objects.nonNull(dto.getMobile()) && Boolean.TRUE.equals(dto.getMobile())) {
-            credit.setTotalAmount(dto.getTotalAmount());
-            credit.setDailyStake(dto.getDailyStake());
-            credit.setTotalAmountRemaining(dto.getTotalAmount() - dto.getAdvance());
-            credit.setTotalAmountPaid(dto.getAdvance());
-            credit.setBeginDate(dto.getStartDate());
-            credit.setRemainingDaysCount(
-                    (int) Math.ceil(credit.getTotalAmountRemaining() / credit.getDailyStake()));
-            credit.setExpectedEndDate(LocalDate.now().plusDays(credit.getRemainingDaysCount()));
+            credit.setMobileFinancialTermsLocked(true);
+            credit.applyMobileFinancialTerms(dto);
         }
         credit.setOperationConsentCode(dto.getOperationConsentCode());
         credit.setConfirmedAmount(dto.getConfirmedAmount());
@@ -564,5 +583,28 @@ public class Credit extends BaseEntity<String> {
             credit.setCreditPurpose(dto.getCreditPurpose());
         }
         return credit;
+    }
+
+    /**
+     * Applique les termes financiers calculés et imprimés sur le mobile (mise, avance, échéance).
+     * Ne recalcule pas la mise sur la base du montant restant / 30 jours.
+     */
+    public void applyMobileFinancialTerms(DistributeArticleDto dto) {
+        this.totalAmount = dto.getTotalAmount();
+        this.dailyStake = dto.getDailyStake();
+        double advance = dto.getAdvance() != null ? dto.getAdvance() : 0.0;
+        this.advance = advance;
+        this.totalAmountPaid = dto.getTotalAmountPaid() != null ? dto.getTotalAmountPaid() : advance;
+        this.totalAmountRemaining = dto.getTotalAmountRemaining() != null
+                ? dto.getTotalAmountRemaining()
+                : dto.getTotalAmount() - advance;
+        this.beginDate = dto.getStartDate() != null ? dto.getStartDate() : LocalDate.now();
+        if (dto.getEndDate() != null) {
+            this.expectedEndDate = dto.getEndDate();
+            this.remainingDaysCount = Math.max(0, (int) ChronoUnit.DAYS.between(this.beginDate, dto.getEndDate()));
+        } else if (this.dailyStake != null && this.dailyStake > 0) {
+            this.remainingDaysCount = (int) Math.ceil(this.totalAmountRemaining / this.dailyStake);
+            this.expectedEndDate = this.beginDate.plusDays(this.remainingDaysCount);
+        }
     }
 }

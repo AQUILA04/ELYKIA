@@ -588,7 +588,11 @@ public class CreditService extends GenericService<Credit, Long> {
         Credit clientCredit = Credit.buildDistribution(client, dto);
         creditControlProcess(clientCredit);
         applyDistributionPricingFromStock(clientCredit, monthlyStock);
-        clientCredit.setTotalAmount(clientCredit.getTotalAmountByCalcul());
+        if (Boolean.TRUE.equals(dto.getMobile())) {
+            clientCredit.applyMobileFinancialTerms(dto);
+        } else {
+            clientCredit.setTotalAmount(clientCredit.getTotalAmountByCalcul());
+        }
         CreditPurpose explicitPurpose = dto.getCreditPurpose();
         creditUnicity(clientCredit, explicitPurpose);
 
