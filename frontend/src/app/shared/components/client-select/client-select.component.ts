@@ -61,18 +61,12 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
       this.resetClients();
       this.loadClientsPage();
     });
-
-    if (this.canLoadClients()) {
-      this.loadClientsPage();
-    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['commercial'] || changes['username'] || changes['tontine']) {
       this.resetClients();
-      if (this.canLoadClients()) {
-        this.loadClientsPage();
-      }
+      this.tryLoadClients();
     }
   }
 
@@ -83,7 +77,10 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
     this.ensureClientSub?.unsubscribe();
   }
 
-  getClient(id: number): Client | undefined {
+  getClient(id: number | null | undefined): Client | undefined {
+    if (id == null) {
+      return undefined;
+    }
     return this.clientIndex.get(id) ?? this.clients.find(client => client.id === id);
   }
 
@@ -136,11 +133,19 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
     this.clientsLoading = false;
     this.clientsPage = 0;
     const selectedId = this.clientControl.value;
-    const selectedClient = selectedId != null ? this.getClient(selectedId) : undefined;
+    const selectedClient = this.getClient(selectedId);
     this.clientIndex.clear();
     this.clients = selectedClient ? [selectedClient] : [];
     if (selectedClient) {
       this.indexClients([selectedClient]);
+    } else if (selectedId != null) {
+      this.ensureClientLoaded(selectedId);
+    }
+  }
+
+  private tryLoadClients(): void {
+    if (this.canLoadClients()) {
+      this.loadClientsPage();
     }
   }
 

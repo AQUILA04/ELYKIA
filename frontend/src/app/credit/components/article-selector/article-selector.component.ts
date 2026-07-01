@@ -188,24 +188,41 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
 
   private resetLazyArticles(): void {
     this.articlesPage = 0;
-    const selectedArticles = this.collectSelectedArticles();
+    const selectedArticles = this.snapshotSelectedArticles();
     this.articleIndex.clear();
     this.articles = selectedArticles;
     this.indexArticles(selectedArticles);
   }
 
-  private collectSelectedArticles(): any[] {
+  private snapshotSelectedArticles(): any[] {
     const selectedIds = this.articlesArray.controls
       .map(control => control.get('articleId')?.value)
       .filter((id): id is number => id != null);
 
-    return selectedIds
-      .map(id => this.getArticle(id))
-      .filter((article): article is NonNullable<typeof article> => article != null);
+    const seen = new Set<number>();
+    const selectedArticles: any[] = [];
+    for (const id of selectedIds) {
+      if (seen.has(id)) {
+        continue;
+      }
+      seen.add(id);
+      const article = this.articleIndex.get(id) ?? this.articles.find(item => item.id === id);
+      if (article) {
+        selectedArticles.push(article);
+      }
+    }
+    return selectedArticles;
+  }
+
+  private collectSelectedArticles(): any[] {
+    return this.snapshotSelectedArticles();
   }
 
   private attachPurchasePriceSync(group: FormGroup): void {
     const sub = group.get('articleId')?.valueChanges.subscribe(articleId => {
+      if (articleId == null) {
+        return;
+      }
       const article = this.getArticle(articleId);
       if (article) {
         group.patchValue({ unitPrice: article.purchasePrice ?? 0 }, { emitEvent: false });

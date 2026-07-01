@@ -30,8 +30,10 @@ import com.optimize.elykia.core.service.expense.ExpenseService;
 import com.optimize.elykia.core.service.stock.StockValuationFacade;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -68,6 +70,10 @@ public class ArticlesService extends GenericService<Articles, Long> {
     private final ArticlePriceHistoryRepository articlePriceHistoryRepository;
     private final StockValuationFacade stockValuationFacade;
     private BusinessMetricsPublisher metricsPublisher;
+
+    @Autowired
+    @Lazy
+    private ArticlesService self;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
@@ -209,45 +215,23 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = {
-            CacheNames.ARTICLES_ENABLED_LIST,
-            CacheNames.ARTICLES_ALL_LIST,
-            CacheNames.ARTICLES_PAGE,
-            CacheNames.ARTICLES_ENABLED_PAGE
-    }, allEntries = true)
     public void disableArticle(Long id) {
-        doDisableArticle(id);
+        self.disableArticles(List.of(id));
     }
 
     @Transactional
-    @CacheEvict(cacheNames = {
-            CacheNames.ARTICLES_ENABLED_LIST,
-            CacheNames.ARTICLES_ALL_LIST,
-            CacheNames.ARTICLES_PAGE,
-            CacheNames.ARTICLES_ENABLED_PAGE
-    }, allEntries = true)
     public void enableArticle(Long id) {
-        doEnableArticle(id);
+        self.enableArticles(List.of(id));
     }
 
     @Transactional
-    @CacheEvict(cacheNames = {
-            CacheNames.ARTICLES_ENABLED_LIST,
-            CacheNames.ARTICLES_ALL_LIST,
-            CacheNames.ARTICLES_PAGE,
-            CacheNames.ARTICLES_ENABLED_PAGE
-    }, allEntries = true)
+    @CacheEvict(cacheNames = CacheNames.ARTICLE_LIST_CACHES, allEntries = true)
     public void disableArticles(List<Long> ids) {
         ids.forEach(this::doDisableArticle);
     }
 
     @Transactional
-    @CacheEvict(cacheNames = {
-            CacheNames.ARTICLES_ENABLED_LIST,
-            CacheNames.ARTICLES_ALL_LIST,
-            CacheNames.ARTICLES_PAGE,
-            CacheNames.ARTICLES_ENABLED_PAGE
-    }, allEntries = true)
+    @CacheEvict(cacheNames = CacheNames.ARTICLE_LIST_CACHES, allEntries = true)
     public void enableArticles(List<Long> ids) {
         ids.forEach(this::doEnableArticle);
     }
