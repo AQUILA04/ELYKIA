@@ -63,6 +63,15 @@ public final class CommercialMonthlyStockCashSalePricing {
         }
     }
 
+    public static void addMarginToStockItem(
+            CommercialMonthlyStockItem stockItem,
+            int quantity,
+            double saleUnitPrice,
+            double purchaseUnitPrice) {
+        double currentMarge = stockItem.getTotalMargeValue() == null ? 0.0 : stockItem.getTotalMargeValue();
+        stockItem.setTotalMargeValue(currentMarge + (quantity * (saleUnitPrice - purchaseUnitPrice)));
+    }
+
     public static double applySoldValueAndMargin(
             CommercialMonthlyStockItem stockItem,
             int quantity,
@@ -75,8 +84,7 @@ public final class CommercialMonthlyStockCashSalePricing {
         double purchasePmp = stockItem.getWeightedAveragePurchasePrice() == null
                 ? 0.0
                 : stockItem.getWeightedAveragePurchasePrice();
-        double currentMarge = stockItem.getTotalMargeValue() == null ? 0.0 : stockItem.getTotalMargeValue();
-        stockItem.setTotalMargeValue(currentMarge + (quantity * (saleUnitPrice - purchasePmp)));
+        addMarginToStockItem(stockItem, quantity, saleUnitPrice, purchasePmp);
 
         return newTotalSold;
     }

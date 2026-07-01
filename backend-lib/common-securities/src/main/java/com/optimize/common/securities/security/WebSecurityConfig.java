@@ -24,6 +24,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.optimize.common.securities.security.jwt.AuthEntryPointJwt;
 import com.optimize.common.securities.security.jwt.AuthTokenFilter;
+import com.optimize.common.securities.security.jwt.DeviceAuthorizationFilter;
 import com.optimize.common.securities.security.services.UserDetailsServiceImpl;
 
 import java.util.Arrays;
@@ -41,6 +42,9 @@ public class WebSecurityConfig {
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
+
+    @Autowired
+    private DeviceAuthorizationFilter deviceAuthorizationFilter;
 
     // Inject ObjectProvider for PasswordEncoder
     @Autowired
@@ -119,6 +123,7 @@ public class WebSecurityConfig {
 
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(deviceAuthorizationFilter, AuthTokenFilter.class);
 
         return http.build();
     }

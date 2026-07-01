@@ -1,0 +1,62 @@
+.chart-card {
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 51, 102, 0.08);
+  height: 100%;
+}
+
+.chart-header {
+  margin-bottom: 16px;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #003366;
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #6b7a99;
+  }
+}
+
+.donut-wrap {
+  position: relative;
+  height: 280px;
+}
+
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+
+  strong {
+    font-size: 24px;
+    color: #003366;
+    font-family: 'DM Mono', monospace;
+  }
+
+  span {
+    font-size: 12px;
+    color: #6b7a99;
+  }
+}
+
+.chart-empty {
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7a99;
+  font-size: 13px;
+  text-align: center;
+  padding: 0 20px;
+}

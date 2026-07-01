@@ -1,16 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ItemService } from '../article/service/item.service';
 import { TokenStorageService } from '../shared/service/token-storage.service';
+import { FeatureFlagService, FeatureFlags } from '../shared/service/feature-flag.service';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
+  dashboardV2Enabled = false;
+
   totalClients: number = 0;
   totalAccounts: number = 0;
   totalLocalities: number = 0;
@@ -25,23 +29,38 @@ export class DashboardComponent implements OnInit {
   totalImminentElement: number = 0;
   isLoading: boolean = true;
 
+  private flagSub?: Subscription;
+
   constructor(
     private itemsService: ItemService,
     private spinner: NgxSpinnerService,
     private tokenStorage: TokenStorageService,
-    private router: Router
+    private router: Router,
+    private featureFlagService: FeatureFlagService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
 
   ngOnInit(): void {
+    this.dashboardV2Enabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DashboardV2);
+    this.flagSub = this.featureFlagService.flags$.subscribe(flags => {
+      this.dashboardV2Enabled = flags[FeatureFlags.DashboardV2] ?? false;
+    });
+
     const token = this.tokenStorage.getToken();
     if (token == null) {
       this.router.navigate(['/login']);
-    } else {
+      return;
+    }
+
+    if (!this.dashboardV2Enabled) {
       this.loadArticlesOutStock(this.currentPageOutOfStock, this.pageSizeOutOfStock);
       this.loadArticlesImminent(this.currentPageImminent, this.pageSizeImminent);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.flagSub?.unsubscribe();
   }
 
   loadArticlesOutStock(page: number, pageSize: number): void {

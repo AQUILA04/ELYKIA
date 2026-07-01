@@ -193,7 +193,7 @@ public class PdfService {
     }
     @Transactional
     public String generateItemReleasePDfForCurrentDate() {
-        LocalDate now = accountingDayService.getCurrentAccountingDate();
+        LocalDate now = accountingDayService.getOpenAccountingDate();
         this.reportService.getCreditRepository()
                 .getCollectorWhoReleaseItemCurrentDate(now, ClientType.PROMOTER)
                 .forEach(collector -> {

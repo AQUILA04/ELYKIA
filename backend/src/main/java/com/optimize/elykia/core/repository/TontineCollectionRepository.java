@@ -106,6 +106,20 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             @Param("dateFrom") java.time.LocalDateTime dateFrom,
             @Param("dateTo") java.time.LocalDateTime dateTo);
 
+    @Query("SELECT COALESCE(SUM(tc.societyShareAmount), 0) FROM TontineCollection tc " +
+            "WHERE tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Double sumSocietyShareByDateRange(
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
+
+    @Query("SELECT COALESCE(SUM(tc.societyShareAmount), 0) FROM TontineCollection tc " +
+            "WHERE tc.commercialUsername = :commercial " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Double sumSocietyShareByCommercialAndDateRange(
+            @Param("commercial") String commercial,
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
+
     @Query("SELECT tc FROM TontineCollection tc " +
             "JOIN FETCH tc.tontineMember tm " +
             "JOIN FETCH tm.client c " +

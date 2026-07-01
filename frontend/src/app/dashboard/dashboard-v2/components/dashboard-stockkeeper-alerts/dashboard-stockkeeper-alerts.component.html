@@ -1,0 +1,107 @@
+<div class="stockkeeper-section a6" *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
+  <div class="section-heading">
+    <div>
+      <h2>Alertes stock magasin</h2>
+      <p>Suivi des ruptures et des seuils critiques</p>
+    </div>
+    <a routerLink="/list" class="section-link">Voir le catalogue</a>
+  </div>
+
+  <div class="stockkeeper-grid">
+    <div class="panel-card">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <span class="panel-icon panel-icon-danger">
+            <mat-icon>inventory_2</mat-icon>
+          </span>
+          <div>
+            <h3>Rupture de stock</h3>
+            <p>{{ totalOutOfStockElement }} article(s) indisponible(s)</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-loading" *ngIf="loadingOutOfStock">Chargement…</div>
+      <div class="panel-empty" *ngIf="!loadingOutOfStock && outOfStockArticles.length === 0">
+        Aucun article en rupture pour le moment.
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loadingOutOfStock && outOfStockArticles.length > 0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let article of outOfStockArticles; let i = index">
+              <td class="col-index">{{ (currentPageOutOfStock * pageSizeOutOfStock) + (i + 1) }}</td>
+              <td class="col-name">{{ article.name }}</td>
+              <td>{{ article.type }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <mat-paginator
+          class="panel-paginator"
+          [length]="totalOutOfStockElement"
+          [pageSize]="pageSizeOutOfStock"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="onOutOfStockPageChange($event)">
+        </mat-paginator>
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <span class="panel-icon panel-icon-warning">
+            <mat-icon>warning_amber</mat-icon>
+          </span>
+          <div>
+            <h3>Rupture imminente</h3>
+            <p>{{ totalImminentElement }} article(s) sous le seuil d'alerte</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-loading" *ngIf="loadingImminent">Chargement…</div>
+      <div class="panel-empty" *ngIf="!loadingImminent && imminentOutOfStockArticles.length === 0">
+        Aucun article en rupture imminente.
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loadingImminent && imminentOutOfStockArticles.length > 0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom</th>
+              <th>Type</th>
+              <th>Quantité</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let article of imminentOutOfStockArticles; let i = index">
+              <td class="col-index">{{ (currentPageImminent * pageSizeImminent) + (i + 1) }}</td>
+              <td class="col-name">{{ article.name }}</td>
+              <td>{{ article.type }}</td>
+              <td>
+                <span class="qty-badge" [ngClass]="getBadgeClass(article.stockQuantity)">
+                  {{ article.stockQuantity !== null ? article.stockQuantity : 0 }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <mat-paginator
+          class="panel-paginator"
+          [length]="totalImminentElement"
+          [pageSize]="pageSizeImminent"
+          [pageSizeOptions]="[2, 5, 10, 25, 100]"
+          (page)="onImminentPageChange($event)">
+        </mat-paginator>
+      </div>
+    </div>
+  </div>
+</div>

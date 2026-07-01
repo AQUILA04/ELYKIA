@@ -105,6 +105,83 @@
         </dl>
       </section>
 
+      <section class="info-card mobile-devices-card" *ngIf="mobileDeviceManagementEnabled">
+        <div class="info-card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+          <div>
+            <h2>Appareils mobiles</h2>
+            <p class="section-hint">Contrôle des appareils autorisés pour l'application mobile</p>
+          </div>
+        </div>
+
+        <div class="mobile-device-banner" *ngIf="!mobileDeviceRestrictionParameterEnabled">
+          Fonctionnalité visible mais non active côté serveur — activez le contrôle dans Paramètres.
+        </div>
+
+        <div class="mobile-device-toggle" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+          <label class="toggle-label">
+            <input
+              type="checkbox"
+              [checked]="user.mobileDeviceRestrictionEnabled === true"
+              [disabled]="!mobileDeviceRestrictionParameterEnabled || updatingDeviceRestriction"
+              (change)="onDeviceRestrictionToggle($any($event.target).checked)">
+            <span>Restreindre les connexions à des appareils autorisés</span>
+          </label>
+        </div>
+
+        <div class="devices-loading" *ngIf="loadingDevices">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+
+        <div class="devices-empty" *ngIf="!loadingDevices && authorizedDevices.length === 0">
+          Aucun appareil enregistré — le premier login enregistrera automatiquement l'appareil.
+        </div>
+
+        <table class="devices-table" *ngIf="!loadingDevices && authorizedDevices.length > 0">
+          <thead>
+            <tr>
+              <th>Appareil</th>
+              <th>Plateforme</th>
+              <th>Modèle</th>
+              <th>Version</th>
+              <th>Dernière activité</th>
+              <th>Statut</th>
+              <th *ngxPermissionsOnly="['ROLE_EDIT_USER']">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let device of authorizedDevices">
+              <td>{{ device.deviceLabel || '—' }}</td>
+              <td>{{ device.platform || '—' }}</td>
+              <td>{{ device.model || '—' }}</td>
+              <td>{{ device.appVersion || '—' }}</td>
+              <td>{{ device.lastSeenAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="device.active ? 'status-active' : 'status-inactive'">
+                  {{ device.active ? 'Autorisé' : 'Révoqué' }}
+                </span>
+              </td>
+              <td *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+                <button
+                  type="button"
+                  class="btn-outline btn-sm"
+                  *ngIf="device.active"
+                  (click)="revokeDevice(device)">
+                  Révoquer
+                </button>
+                <button
+                  type="button"
+                  class="btn-outline btn-sm"
+                  *ngIf="!device.active"
+                  (click)="restoreDevice(device)">
+                  Réactiver
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
       <section class="permissions-card">
         <div class="info-card-header">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>

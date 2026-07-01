@@ -382,7 +382,8 @@ public class TontineService extends GenericService<TontineMember, Long> {
         collection.setSyncConsentCode(dto.getSyncConsentCode());
 
         // Process financial logic (Society Share vs Capital)
-        processCollectionAllocation(member, dto.getAmount(), allocationDate);
+        double societyShareAmount = processCollectionAllocation(member, dto.getAmount(), allocationDate);
+        collection.setSocietyShareAmount(societyShareAmount);
 
         this.update(member);
 
@@ -610,7 +611,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
         return targetSocietyShare;
     }
 
-    private void processCollectionAllocation(TontineMember member, Double amountCollected, LocalDate allocationDate) {
+    private double processCollectionAllocation(TontineMember member, Double amountCollected, LocalDate allocationDate) {
         Double currentSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
         Double currentTotalContribution = member.getTotalContribution() != null ? member.getTotalContribution() : 0.0;
 
@@ -634,6 +635,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         // 5. Recalculate derived status (validated months) based on remaining capital
         calculateMemberStatus(member);
+        return amountForSociety;
     }
     
     private Double getApplicableAmountForDate(TontineMember member, LocalDate date, LocalDate referenceDate) {

@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 export interface ArticleSelection {
   articleId: number;
   quantity: number;
+  unitPrice?: number;
 }
 
 export type PriceType = 'credit' | 'tontine' | 'inventory';
@@ -34,6 +35,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   @Input() showPrices: boolean = true; // Nouvelle option pour afficher/masquer les prix
   @Input() showStock: boolean = true;
   @Input() validateStock: boolean = false;
+  @Input() capturePurchasePrice: boolean = false;
   @Output() articlesChange = new EventEmitter<ArticleSelection[]>();
   @Output() totalAmountChange = new EventEmitter<number>();
 
@@ -86,6 +88,21 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   }
 
   createArticle(): FormGroup {
+    if (this.capturePurchasePrice) {
+      const group = this.fb.group({
+        articleId: [null, Validators.required],
+        quantity: ['', [Validators.required, Validators.min(1)]],
+        unitPrice: [null, [Validators.required, Validators.min(0.01)]]
+      });
+      group.get('articleId')?.valueChanges.subscribe(articleId => {
+        const article = this.articles.find(a => a.id === articleId);
+        if (article) {
+          group.patchValue({ unitPrice: article.purchasePrice ?? 0 }, { emitEvent: false });
+        }
+      });
+      return group;
+    }
+
     return this.fb.group({
       articleId: [null, Validators.required],
       quantity: ['', [Validators.required, Validators.min(1)]]
@@ -207,7 +224,16 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
 
   // Vérifier si on doit afficher les colonnes de prix
   shouldShowPriceColumns(): boolean {
-    return this.showPrices;
+    return this.showPrices && !this.capturePurchasePrice;
+  }
+
+  shouldShowPurchasePriceColumn(): boolean {
+    return this.capturePurchasePrice;
+  }
+
+  getCatalogPurchasePrice(articleId: number): number {
+    const article = this.articles.find(a => a.id === articleId);
+    return article?.purchasePrice ?? 0;
   }
 
   // ControlValueAccessor implementation
@@ -215,10 +241,26 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     if (value && Array.isArray(value)) {
       this.articlesArray.clear();
       value.forEach(article => {
-        this.articlesArray.push(this.fb.group({
+        const groupConfig: Record<string, unknown> = {
           articleId: [article.articleId, Validators.required],
           quantity: [article.quantity, [Validators.required, Validators.min(1)]]
-        }));
+        };
+        if (this.capturePurchasePrice) {
+          groupConfig['unitPrice'] = [
+            article.unitPrice ?? this.getCatalogPurchasePrice(article.articleId),
+            [Validators.required, Validators.min(0.01)]
+          ];
+        }
+        const group = this.fb.group(groupConfig);
+        if (this.capturePurchasePrice) {
+          group.get('articleId')?.valueChanges.subscribe(articleId => {
+            const selected = this.articles.find(a => a.id === articleId);
+            if (selected) {
+              group.patchValue({ unitPrice: selected.purchasePrice ?? 0 }, { emitEvent: false });
+            }
+          });
+        }
+        this.articlesArray.push(group);
       });
       this.updateAvailableArticleLists();
       if (this.showPrices) {

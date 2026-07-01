@@ -1,10 +1,11 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { InventoryService } from 'src/app/inventory/service/inventory.service';
 import { Article } from 'src/app/article/service/item.service';
+import { StockFifoFeatureService } from 'src/app/stock/services/stock-fifo-feature.service';
 
 export interface QuickStockEntryData {
     article: Article;
@@ -16,9 +17,10 @@ export interface QuickStockEntryData {
     styleUrls: ['./quick-stock-entry.component.scss'],
     standalone: false
 })
-export class QuickStockEntryComponent {
+export class QuickStockEntryComponent implements OnInit {
     form: FormGroup;
     isSubmitting = false;
+    fifoEnabled = false;
 
     constructor(
         public dialogRef: MatDialogRef<QuickStockEntryComponent>,
@@ -26,10 +28,26 @@ export class QuickStockEntryComponent {
         private fb: FormBuilder,
         private inventoryService: InventoryService,
         private spinner: NgxSpinnerService,
-        private alertService: AlertService
+        private alertService: AlertService,
+        private stockFifoFeatureService: StockFifoFeatureService
     ) {
         this.form = this.fb.group({
-            quantity: [null, [Validators.required, Validators.min(1), Validators.pattern('^[0-9]+$')]]
+            quantity: [null, [Validators.required, Validators.min(1), Validators.pattern('^[0-9]+$')]],
+            unitPrice: [data.article.purchasePrice ?? null]
+        });
+    }
+
+    ngOnInit(): void {
+        this.stockFifoFeatureService.isFifoEnabled().subscribe(enabled => {
+            this.fifoEnabled = enabled;
+            const unitPriceControl = this.form.get('unitPrice');
+            if (enabled) {
+                unitPriceControl?.setValidators([Validators.required, Validators.min(0.01)]);
+                unitPriceControl?.setValue(this.article.purchasePrice ?? null);
+            } else {
+                unitPriceControl?.clearValidators();
+            }
+            unitPriceControl?.updateValueAndValidity();
         });
     }
 
@@ -39,6 +57,10 @@ export class QuickStockEntryComponent {
 
     get quantityControl() {
         return this.form.get('quantity');
+    }
+
+    get unitPriceControl() {
+        return this.form.get('unitPrice');
     }
 
     get newTotal(): number {
@@ -55,13 +77,16 @@ export class QuickStockEntryComponent {
         this.isSubmitting = true;
         this.spinner.show();
 
+        const entry: { articleId: number; quantity: number; unitPrice?: number } = {
+            articleId: this.article.id,
+            quantity: Number(this.quantityControl?.value)
+        };
+        if (this.fifoEnabled) {
+            entry.unitPrice = Number(this.unitPriceControl?.value);
+        }
+
         const payload = {
-            articleEntries: [
-                {
-                    articleId: this.article.id,
-                    quantity: Number(this.quantityControl?.value)
-                }
-            ]
+            articleEntries: [entry]
         };
 
         this.inventoryService.addInventories(payload).subscribe({

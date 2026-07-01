@@ -588,7 +588,9 @@ public class CreditService extends GenericService<Credit, Long> {
         Credit clientCredit = Credit.buildDistribution(client, dto);
         creditControlProcess(clientCredit);
         applyDistributionPricingFromStock(clientCredit, monthlyStock);
-        clientCredit.setTotalAmount(clientCredit.getTotalAmountByCalcul());
+        if (!clientCredit.isMobileFinancialTermsLocked()) {
+            clientCredit.setTotalAmount(clientCredit.getTotalAmountByCalcul());
+        }
         CreditPurpose explicitPurpose = dto.getCreditPurpose();
         creditUnicity(clientCredit, explicitPurpose);
 
@@ -639,7 +641,6 @@ public class CreditService extends GenericService<Credit, Long> {
 
             stockItem.setQuantitySold(stockItem.getQuantitySold() + creditArticles.getQuantity());
             double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0 : stockItem.getTotalSoldValue();
-            double currentTotalMarge = Objects.isNull(stockItem.getTotalMargeValue()) ? 0.0 : stockItem.getTotalMargeValue();
             double saleUnitPrice = stockItem.getWeightedAverageUnitPrice() == null ? 0.0
                     : stockItem.getWeightedAverageUnitPrice();
             if (saleUnitPrice <= 0) {
@@ -652,7 +653,15 @@ public class CreditService extends GenericService<Credit, Long> {
             }
             double newTotalSold = currentTotalSold + (creditArticles.getQuantity() * saleUnitPrice);
             stockItem.setTotalSoldValue(newTotalSold);
-            stockItem.setTotalMargeValue(currentTotalMarge + (creditArticles.getQuantity() * stockItem.getWeightedAveragePurchasePrice()));
+            double purchasePmp = stockItem.getWeightedAveragePurchasePrice() == null
+                    ? 0.0
+                    : stockItem.getWeightedAveragePurchasePrice();
+            CommercialMonthlyStockCashSalePricing.addMarginToStockItem(
+                    stockItem,
+                    creditArticles.getQuantity(),
+                    saleUnitPrice,
+                    purchasePmp);
+            creditArticles.setUnitPurchaseCost(purchasePmp);
             stockItem.updateRemaining();
 
             recordSoldValueHistory(

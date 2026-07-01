@@ -18,6 +18,7 @@ import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
+import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
 import com.optimize.elykia.core.repository.ArticlePriceHistoryRepository;
 import com.optimize.elykia.core.repository.ArticleStateHistoryRepository;
@@ -25,6 +26,7 @@ import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import com.optimize.elykia.core.repository.StockReceptionRepository;
 import com.optimize.elykia.core.service.expense.ExpenseService;
+import com.optimize.elykia.core.service.stock.StockValuationFacade;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
@@ -33,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -42,6 +45,14 @@ import java.util.concurrent.atomic.AtomicReference;
 @Service
 @Transactional(readOnly = true)
 public class ArticlesService extends GenericService<Articles, Long> {
+
+    private record PendingStockEntry(
+            Articles article,
+            com.optimize.elykia.core.dto.StockEntry stockEntry,
+            double unitPrice,
+            StockReceptionItem receptionItem) {
+    }
+
     private final ArticlesMapper articlesMapper;
     private final UserService userService;
     @Getter
@@ -52,6 +63,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
     private final StockReceptionRepository stockReceptionRepository;
     private final ArticleStateHistoryRepository articleStateHistoryRepository;
     private final ArticlePriceHistoryRepository articlePriceHistoryRepository;
+    private final StockValuationFacade stockValuationFacade;
     private BusinessMetricsPublisher metricsPublisher;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -67,7 +79,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
             ExpenseTypeRepository expenseTypeRepository,
             StockReceptionRepository stockReceptionRepository,
             ArticleStateHistoryRepository articleStateHistoryRepository,
-            ArticlePriceHistoryRepository articlePriceHistoryRepository) {
+            ArticlePriceHistoryRepository articlePriceHistoryRepository,
+            StockValuationFacade stockValuationFacade) {
         super(repository);
         this.articlesMapper = articlesMapper;
         this.userService = userService;
@@ -77,6 +90,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
         this.stockReceptionRepository = stockReceptionRepository;
         this.articleStateHistoryRepository = articleStateHistoryRepository;
         this.articlePriceHistoryRepository = articlePriceHistoryRepository;
+        this.stockValuationFacade = stockValuationFacade;
     }
 
     @Transactional
@@ -211,17 +225,24 @@ public class ArticlesService extends GenericService<Articles, Long> {
         stockReception.setReceivedBy(connectedUser);
         stockReception.setReference("RCP-" + System.currentTimeMillis());
 
+        List<PendingStockEntry> pendingEntries = new ArrayList<>();
+
         stockEntryDto.getArticleEntries().forEach(stockEntry -> {
             Articles articles = getById(stockEntry.getArticleId());
+            double unitPrice = stockValuationFacade.resolveEntryUnitPrice(articles, stockEntry.getUnitPrice());
+
             ArticleHistory articleHistory = ArticleHistory.buildEntryHistory(articles, stockEntry, connectedUser);
             articleHistoryService.create(articleHistory);
-            articles.makeEntry(stockEntry.getQuantity());
-            articles.setLastRestockDate(LocalDate.now());
-            update(articles);
 
-            // Expense Calculation
-            double unitPrice = stockEntry.getUnitPrice() != null ? stockEntry.getUnitPrice()
-                    : articles.getPurchasePrice();
+            StockReceptionItem receptionItem = new StockReceptionItem();
+            receptionItem.setArticle(articles);
+            receptionItem.setQuantity(stockEntry.getQuantity());
+            receptionItem.setUnitPrice(unitPrice);
+            receptionItem.setTotalPrice(unitPrice * stockEntry.getQuantity());
+            stockReception.addItem(receptionItem);
+
+            pendingEntries.add(new PendingStockEntry(articles, stockEntry, unitPrice, receptionItem));
+
             double totalLinePrice = unitPrice * stockEntry.getQuantity();
             totalCheck.updateAndGet(v -> v + totalLinePrice);
 
@@ -233,18 +254,25 @@ public class ArticlesService extends GenericService<Articles, Long> {
                     .append(" Qte:").append(stockEntry.getQuantity())
                     .append(" PU:").append(unitPrice)
                     .append(" Total:").append(totalLinePrice);
-
-            // Add item to StockReception
-            StockReceptionItem item = new StockReceptionItem();
-            item.setArticle(articles);
-            item.setQuantity(stockEntry.getQuantity());
-            item.setUnitPrice(unitPrice);
-            item.setTotalPrice(totalLinePrice);
-            stockReception.addItem(item);
         });
 
         stockReception.setTotalAmount(totalCheck.get());
         stockReceptionRepository.save(stockReception);
+
+        pendingEntries.forEach(pending -> {
+            stockValuationFacade.registerEntry(
+                    pending.article(),
+                    pending.stockEntry().getQuantity(),
+                    pending.unitPrice(),
+                    ArticleStockLotSourceType.STOCK_RECEPTION,
+                    pending.receptionItem(),
+                    stockReception.getReceptionDate());
+
+            pending.article().makeEntry(pending.stockEntry().getQuantity());
+            pending.article().setPurchasePrice(pending.unitPrice());
+            pending.article().setLastRestockDate(LocalDate.now());
+            update(pending.article());
+        });
 
         // Create Expense if amount > 0
         if (totalCheck.get() > 0) {
@@ -289,19 +317,35 @@ public class ArticlesService extends GenericService<Articles, Long> {
         Map<String, Double> values = getDetailedStockValues();
         long inStockCount = getRepository().countByStockQuantityGreaterThan(0);
         long outOfStockCount = getRepository().countByStockQuantityEquals(0);
+        long lowStockCount = getRepository().countByStockQuantityLessThanEqualAndStockQuantityGreaterThan(6, 0);
 
-        return Map.of(
-                "inStockCount", inStockCount,
-                "purchaseTotal", values.getOrDefault("purchaseTotal", 0.0),
-                "creditSaleTotal", values.getOrDefault("creditSaleTotal", 0.0),
-                "estimatedMargin", values.getOrDefault("combinedTotal", 0.0),
-                "sellingSaleTotal", values.getOrDefault("sellingSaleTotal", 0.0),
-                "estimatedSellingMargin", values.getOrDefault("sellingMargin", 0.0),
-                "outOfStockCount", outOfStockCount);
+        Map<String, Object> kpis = new java.util.LinkedHashMap<>();
+        kpis.put("inStockCount", inStockCount);
+        kpis.put("lowStockCount", lowStockCount);
+        kpis.put("purchaseTotal", values.getOrDefault("purchaseTotal", 0.0));
+        kpis.put("creditSaleTotal", values.getOrDefault("creditSaleTotal", 0.0));
+        kpis.put("estimatedMargin", values.getOrDefault("combinedTotal", 0.0));
+        kpis.put("sellingSaleTotal", values.getOrDefault("sellingSaleTotal", 0.0));
+        kpis.put("estimatedSellingMargin", values.getOrDefault("sellingMargin", 0.0));
+        kpis.put("outOfStockCount", outOfStockCount);
+        return kpis;
     }
 
     public Map<String, Double> getDetailedStockValues() {
-        // 1. On récupère directement l'objet DTO, plus de tableau !
+        if (stockValuationFacade.isFifoEnabled()) {
+            double purchaseTotal = stockValuationFacade.getTotalStockValuation();
+            double creditSaleTotal = stockValuationFacade.getCreditSaleValuationFromLots();
+            double sellingSaleTotal = stockValuationFacade.getSellingSaleValuationFromLots();
+            double combinedTotal = creditSaleTotal - purchaseTotal;
+            double sellingMargin = sellingSaleTotal - purchaseTotal;
+            return Map.of(
+                    "purchaseTotal", purchaseTotal,
+                    "creditSaleTotal", creditSaleTotal,
+                    "combinedTotal", combinedTotal,
+                    "sellingSaleTotal", sellingSaleTotal,
+                    "sellingMargin", sellingMargin);
+        }
+
         StockValuesDto valuesDto = getRepository().getDetailedStockValues();
 
         // 2. On utilise les getters pour récupérer les valeurs de manière sûre

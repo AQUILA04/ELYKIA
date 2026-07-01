@@ -5,7 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 import { AuthState } from 'src/app/store/auth/auth.reducer';
 import * as AuthActions from 'src/app/store/auth/auth.actions';
 import * as AuthSelectors from 'src/app/store/auth/auth.selectors';
-import { AlertController, LoadingController, ModalController, ToastController, AlertInput } from '@ionic/angular';
+import { AlertController, LoadingController, ModalController, ToastController, AlertInput, ViewWillEnter } from '@ionic/angular';
 import { selectIsOnline } from 'src/app/store/health-check/health-check.selectors';
 import { LoggerService } from '../../../core/services/logger.service';
 import { LogModalComponent } from 'src/app/shared/components/log-modal/log-modal.component';
@@ -14,6 +14,7 @@ import { DataInitializationService } from 'src/app/core/services/data-initializa
 import { DatabaseService } from 'src/app/core/services/database.service'; // Import DatabaseService
 import { environment } from 'src/environments/environment'; // Import environment
 import { RestoreResult } from 'src/app/core/models/restore.models';
+import { FilesystemPermissionService } from 'src/app/core/services/filesystem-permission.service';
 
 @Component({
   selector: 'app-login',
@@ -21,7 +22,7 @@ import { RestoreResult } from 'src/app/core/models/restore.models';
   styleUrls: ['./login.page.scss'],
   standalone: false
 })
-export class LoginPage implements OnInit, OnDestroy {
+export class LoginPage implements OnInit, OnDestroy, ViewWillEnter {
 
   username!: string;
   password!: string;
@@ -42,7 +43,8 @@ export class LoginPage implements OnInit, OnDestroy {
     private log: LoggerService,
     private dataInitializationService: DataInitializationService,
     private loadingController: LoadingController,
-    private dbService: DatabaseService // Inject DatabaseService
+    private dbService: DatabaseService, // Inject DatabaseService
+    private filesystemPermissionService: FilesystemPermissionService
   ) {
     this.error$ = this.store.select(AuthSelectors.selectAuthError);
     this.isOnline$ = this.store.select(selectIsOnline);
@@ -56,6 +58,23 @@ export class LoginPage implements OnInit, OnDestroy {
     ).subscribe(({ error }) => {
       this.presentAlert('Erreur de connexion', error || 'Les identifiants fournis sont incorrects ou un problème est survenu.');
     });
+  }
+
+  ionViewWillEnter() {
+    void this.requestFilesystemPermissionIfNeeded();
+  }
+
+  private async requestFilesystemPermissionIfNeeded(): Promise<void> {
+    const result = await this.filesystemPermissionService.ensurePublicStorageAccess();
+
+    if (result.deniedAfterRequest) {
+      await this.presentAlert(
+        'Accès aux fichiers requis',
+        "L'accès au stockage est indispensable pour les sauvegardes, les journaux et les photos clients. " +
+        "Sans cette autorisation, l'application ne pourra pas fonctionner correctement. " +
+        "Vous pouvez l'activer dans les paramètres de l'application (Autorisations > Fichiers et médias)."
+      );
+    }
   }
 
   ngOnDestroy() {

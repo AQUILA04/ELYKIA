@@ -1,0 +1,21 @@
+<div class="chart-card">
+  <div class="chart-header">
+    <div>
+      <h3>{{ stock?.label || 'Stock par statut' }}</h3>
+      <p>{{ stock?.mode === 'commercial' ? 'Stock commercial du mois' : 'Stock magasin global' }}</p>
+    </div>
+  </div>
+
+  <div class="chart-body donut-wrap" *ngIf="!loading && stock?.hasData">
+    <canvas baseChart [data]="chartData" [options]="chartOptions" [type]="'doughnut'"></canvas>
+    <div class="donut-center">
+      <strong>{{ stock?.availablePercent ?? 0 }}%</strong>
+      <span>Disponible</span>
+    </div>
+  </div>
+
+  <div class="chart-empty" *ngIf="!loading && !stock?.hasData">
+    {{ stock?.emptyMessage || 'Aucune donnée stock.' }}
+  </div>
+  <div class="chart-empty" *ngIf="loading">Chargement…</div>
+</div>

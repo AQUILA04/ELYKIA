@@ -32,6 +32,11 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
 
     public StockMovement recordMovement(Articles article, MovementType type, Integer quantity,
             String reason, String performedBy, Credit relatedCredit) {
+        return recordMovement(article, type, quantity, reason, performedBy, relatedCredit, null);
+    }
+
+    public StockMovement recordMovement(Articles article, MovementType type, Integer quantity,
+            String reason, String performedBy, Credit relatedCredit, Double unitCost) {
         StockMovement movement = new StockMovement();
         movement.setArticle(article);
         movement.setType(type);
@@ -51,7 +56,7 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
         movement.setReason(reason);
         movement.setPerformedBy(performedBy);
         movement.setRelatedCredit(relatedCredit);
-        movement.setUnitCost(article.getPurchasePrice());
+        movement.setUnitCost(unitCost != null ? unitCost : article.getPurchasePrice());
 
         StockMovement saved = stockMovementRepository.save(movement);
 

@@ -83,6 +83,18 @@
     </div><!-- /hero-side -->
   </div><!-- /hero -->
 
+  <!-- =================== LOTS FIFO (flag ON) =================== -->
+  <div class="card section-panel" *ngIf="fifoEnabled && isGestionnaire && article">
+    <div class="panel-title">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="3" width="12" height="10" rx="1" />
+        <path d="M2 7h12M5 3V2M11 3V2" />
+      </svg>
+      Lots de stock (FIFO)
+    </div>
+    <app-stock-lots-table [articleId]="article.id" [fifoEnabled]="fifoEnabled"></app-stock-lots-table>
+  </div>
+
   <!-- =================== HISTORIQUE DES PRIX =================== -->
   <div class="card section-panel price-history-panel" *ngIf="isGestionnaire || canViewCreditPrice">
     <div class="panel-title">
@@ -136,8 +148,12 @@
           </div>
         </div>
         <div class="kpi-item" *ngIf="isGestionnaire">
-          <span class="k-label">Valeur du stock</span>
+          <span class="k-label">{{ stockValueLabel }}</span>
           <span class="k-value">{{ stockValue | number:'1.0-0' }} <span class="k-currency">FCFA</span></span>
+        </div>
+        <div class="kpi-item" *ngIf="isGestionnaire && fifoEnabled">
+          <span class="k-label">Dernier prix d'achat</span>
+          <span class="k-value">{{ article.purchasePrice | number:'1.0-0' }} <span class="k-currency">FCFA</span></span>
         </div>
         <div class="kpi-item" *ngIf="isGestionnaire">
           <span class="k-label">Revenu potentiel</span>

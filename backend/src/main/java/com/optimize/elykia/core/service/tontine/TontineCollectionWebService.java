@@ -34,17 +34,22 @@ public class TontineCollectionWebService {
         Double totalAmount;
         Long totalMises;
 
+        Double totalSocietyShare;
+
         if (commercial != null && !commercial.trim().isEmpty() && !commercial.equals("all")) {
             totalAmount = tontineCollectionRepository.sumAmountByCommercialAndDateRange(commercial, dateFrom, dateTo);
             totalMises = tontineCollectionRepository.countCollectionsByCommercialAndDateRange(commercial, dateFrom, dateTo);
+            totalSocietyShare = tontineCollectionRepository.sumSocietyShareByCommercialAndDateRange(commercial, dateFrom, dateTo);
         } else {
             totalAmount = tontineCollectionRepository.sumAmountByDateRange(dateFrom, dateTo);
             totalMises = tontineCollectionRepository.countCollectionsByDateRange(dateFrom, dateTo);
+            totalSocietyShare = tontineCollectionRepository.sumSocietyShareByDateRange(dateFrom, dateTo);
         }
 
         return TontineCollectionKpiDto.builder()
                 .totalMises(totalMises != null ? totalMises : 0L)
                 .totalMontant(totalAmount != null ? totalAmount : 0.0)
+                .totalSocietyShare(totalSocietyShare != null ? totalSocietyShare : 0.0)
                 .build();
     }
 }

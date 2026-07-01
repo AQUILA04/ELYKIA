@@ -1,0 +1,2 @@
+ALTER TABLE credit
+    ADD COLUMN IF NOT EXISTS mobile_financial_terms_locked BOOLEAN NOT NULL DEFAULT FALSE;

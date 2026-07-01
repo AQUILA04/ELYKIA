@@ -12,6 +12,7 @@ import { NgxSpinnerService } from 'ngx-spinner';
 import { AuthService } from '../../auth/service/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { QuickStockEntryComponent } from './components/quick-stock-entry/quick-stock-entry.component';
+import { StockFifoFeatureService } from 'src/app/stock/services/stock-fifo-feature.service';
 
 @Component({
   selector: 'app-details',
@@ -25,6 +26,8 @@ export class DetailComponent implements OnInit {
   articleHistory: ArticleHistoryItem[] = [];
   articleStateHistory: ArticleStateHistoryItem[] = [];
   articlePriceHistory: ArticlePriceHistoryItem[] = [];
+  fifoEnabled = false;
+  fifoStockValue: number | null = null;
 
   // Permissions
   isGestionnaire: boolean = false;
@@ -37,13 +40,21 @@ export class DetailComponent implements OnInit {
     private tokenStorage: TokenStorageService,
     private spinner: NgxSpinnerService,
     private authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private stockFifoFeatureService: StockFifoFeatureService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
 
   ngOnInit(): void {
     this.checkUserRoles();
+    this.stockFifoFeatureService.isFifoEnabled().subscribe(enabled => {
+      this.fifoEnabled = enabled;
+      const articleId = +this.route.snapshot.params['id'];
+      if (articleId) {
+        this.loadFifoStockValue(articleId);
+      }
+    });
     this.route.params.subscribe(params => {
       const articleId = +params['id'];
       this.loadArticle(articleId);
@@ -78,6 +89,7 @@ export class DetailComponent implements OnInit {
         this.spinner.hide();
         this.article = data?.data;
         this.isLoading = false;
+        this.loadFifoStockValue(articleId);
       },
       error: (error) => {
         this.spinner.hide();
@@ -116,6 +128,21 @@ export class DetailComponent implements OnInit {
       },
       error: (err) => {
         console.error('Erreur chargement historique prix article', err);
+      }
+    });
+  }
+
+  loadFifoStockValue(articleId: number): void {
+    if (!this.fifoEnabled) {
+      this.fifoStockValue = null;
+      return;
+    }
+    this.stockFifoFeatureService.getArticleLots(articleId).subscribe({
+      next: (lots) => {
+        this.fifoStockValue = lots.reduce((sum, lot) => sum + (lot.remainingValue ?? 0), 0);
+      },
+      error: () => {
+        this.fifoStockValue = null;
       }
     });
   }
@@ -181,7 +208,14 @@ export class DetailComponent implements OnInit {
 
   get stockValue(): number {
     if (!this.article) return 0;
+    if (this.fifoEnabled && this.fifoStockValue !== null) {
+      return this.fifoStockValue;
+    }
     return (this.article.stockQuantity || 0) * (this.article.purchasePrice || 0);
+  }
+
+  get stockValueLabel(): string {
+    return this.fifoEnabled ? 'Valeur FIFO' : 'Valeur du stock';
   }
 
   get potentialRevenue(): number {
@@ -271,6 +305,7 @@ export class DetailComponent implements OnInit {
         };
         // Rechargement de l'historique des mouvements
         this.loadArticleHistory(this.article.id);
+        this.loadFifoStockValue(this.article.id);
       }
     });
   }
