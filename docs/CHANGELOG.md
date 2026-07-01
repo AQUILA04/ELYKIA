@@ -31,7 +31,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Fixed
 
-- **Backend —** sync distribution mobile (`distributeArticlesV2`) : conservation de la mise, de l'avance et de la date de fin (`endDate`) calculées et imprimées sur le mobile — le backend ne recalcule plus la mise via `checkAdvance()` (montant restant / 30 jours), ce qui aligne le `default-daily-stake` sur le montant du reçu client.
+- **Backend —** sync distribution mobile (`distributeArticlesV2`) : conservation de la mise, de l'avance et de la date de fin (`endDate`) calculées et imprimées sur le mobile — le backend ne recalcule plus la mise via `checkAdvance()` (montant restant / 30 jours), ce qui aligne le `default-daily-stake` sur le montant du reçu client ; application unique des termes financiers dans `buildDistribution` (suppression du double appel).
 - **Backend —** refresh token : la chaîne `Optional` filtre désormais un `User` null (token orphelin / état DB corrompu) au lieu de provoquer une `NullPointerException` dans la validation device.
 - **Backend —** livraison stock tontine : en mode legacy (FIFO désactivé), `purchasePrice` des lignes est désormais renseigné depuis le prix catalogue article à la livraison, aligné sur `StockRequestService` — corrige un `totalPurchasePrice` à 0 si le prix n'était pas figé à la création.
 - **Backend —** ventes crédit : `totalMargeValue` sur le stock commercial cumule désormais la marge (`qty × (prix vente − PMP achat)`) et non le coût d'achat ; migration de rattrapage des données historiques.
