@@ -1,6 +1,7 @@
-import { Component, OnInit, Inject, Optional } from '@angular/core';
+import { Component, OnDestroy, OnInit, Inject, Optional } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Subscription } from 'rxjs';
 import { TontineService } from '../../../services/tontine.service';
 import { TontineClient, TontineMember } from '../../../types/tontine.types';
 import { AuthService } from 'src/app/auth/service/auth.service';
@@ -10,7 +11,7 @@ import { AuthService } from 'src/app/auth/service/auth.service';
   templateUrl: './add-member-modal.component.html',
   styleUrls: ['./add-member-modal.component.scss']
 })
-export class AddMemberModalComponent implements OnInit {
+export class AddMemberModalComponent implements OnInit, OnDestroy {
   form: FormGroup;
   loading: boolean = false;
   error: string | null = null;
@@ -18,6 +19,7 @@ export class AddMemberModalComponent implements OnInit {
   initialAmount: number | null = null;
   showUpdateScope: boolean = false;
   currentUser: any;
+  private amountChangesSub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
@@ -43,8 +45,12 @@ export class AddMemberModalComponent implements OnInit {
     this.setupAmountChangeDetection();
   }
 
+  ngOnDestroy(): void {
+    this.amountChangesSub?.unsubscribe();
+  }
+
   private setupAmountChangeDetection(): void {
-    this.form.get('amount')?.valueChanges.subscribe(newAmount => {
+    this.amountChangesSub = this.form.get('amount')?.valueChanges.subscribe(newAmount => {
       if (this.isEditMode && this.initialAmount !== null && newAmount !== this.initialAmount) {
         this.showUpdateScope = true;
         this.form.get('updateScope')?.setValidators(Validators.required);

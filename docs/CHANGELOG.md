@@ -43,6 +43,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 - **Backend —** clés de cache paginées articles/clients : `PageableCacheKeyHelper.sortKey()` normalise le tri (`property:DIRECTION`) au lieu de `Sort.toString()`.
 - **Frontend —** `ClientSelectComponent` / `ArticleSelectorComponent` : vidage de l'index (`clientIndex` / `articleIndex`) lors d'une nouvelle recherche, en conservant les éléments déjà sélectionnés.
 - **Frontend —** `ClientService.getClients()` : suppression du double paramètre `username` sur la requête GET.
+- **Frontend —** `AddMemberModalComponent` : désabonnement de `amount.valueChanges` à la fermeture de la modale.
 - **Frontend —** `AccountAddComponent` : `combineLatest(params, queryParams)` pour éviter la course entre abonnements route.
 - **Backend —** `disableArticles` / `enableArticles` : logique extraite en méthodes privées pour éviter l'auto-appel Spring (proxy AOP) et garantir une invalidation cache unique à la fin du batch.
 - **Deploy —** `rollback.sh` : lecture/écriture des releases et du pointeur `*_current.txt` sous `/opt/elykia/<env>/releases/` (aligné sur `deploy.sh`), mise à jour de `/opt/elykia/<env>/.env` et `docker compose` avec `--project-name` / `--env-file` ; extraction des images tolérante (`grep || true`) ; `--last` basé sur le pointeur courant et l'ordre chronologique des fichiers (plus le tri `mtime`) pour enchaîner plusieurs rollbacks — corrige l'échec « No current release pointer found » en prod.
