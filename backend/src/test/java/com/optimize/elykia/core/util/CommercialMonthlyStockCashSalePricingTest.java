@@ -49,6 +49,16 @@ class CommercialMonthlyStockCashSalePricingTest {
         assertEquals(500.0, stockItem.getTotalMargeValue());
     }
 
+    @Test
+    void addMarginToStockItemAccumulatesMarginNotCost() {
+        CommercialMonthlyStockItem stockItem = new CommercialMonthlyStockItem();
+        stockItem.setTotalMargeValue(100.0);
+
+        CommercialMonthlyStockCashSalePricing.addMarginToStockItem(stockItem, 5, 350.0, 200.0);
+
+        assertEquals(850.0, stockItem.getTotalMargeValue());
+    }
+
     private static CreditArticles lineWithArticle(double sellingPrice, double creditSalePrice) {
         Articles article = new Articles();
         article.setName("Bonita 250g");

@@ -33,6 +33,15 @@ import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { NgxPermissionsModule } from 'ngx-permissions';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { DashboardV2Component } from './dashboard/dashboard-v2/dashboard-v2.component';
+import { DashboardKpiCardComponent } from './dashboard/dashboard-v2/components/dashboard-kpi-card/dashboard-kpi-card.component';
+import { RecentSalesPanelComponent } from './dashboard/dashboard-v2/components/recent-sales-panel/recent-sales-panel.component';
+import { RecentActivityPanelComponent } from './dashboard/dashboard-v2/components/recent-activity-panel/recent-activity-panel.component';
+import { SalesEvolutionChartComponent } from './dashboard/dashboard-v2/components/sales-evolution-chart/sales-evolution-chart.component';
+import { StockStatusChartComponent } from './dashboard/dashboard-v2/components/stock-status-chart/stock-status-chart.component';
+import { DashboardStockkeeperAlertsComponent } from './dashboard/dashboard-v2/components/dashboard-stockkeeper-alerts/dashboard-stockkeeper-alerts.component';
+import { TimeAgoPipe } from './dashboard/dashboard-v2/pipes/time-ago.pipe';
+import { NgChartsModule } from 'ng2-charts';
 import { AccountingDayComponent } from './accounting-day/accounting-day.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgxSpinnerModule } from 'ngx-spinner';
@@ -118,6 +127,7 @@ import { MovementTableComponent } from './article/details/components/movement-ta
 import { StateTimelineComponent } from './article/details/components/state-timeline/state-timeline.component';
 import { PriceHistoryTimelineComponent } from './article/details/components/price-history-timeline/price-history-timeline.component';
 import { QuickStockEntryComponent } from './article/details/components/quick-stock-entry/quick-stock-entry.component';
+import { StockLotsTableComponent } from './article/details/components/stock-lots-table/stock-lots-table.component';
 import { CreditLateComponent } from './credit/credit-late/credit-late.component';
 import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
 import { CreditListKpiComponent } from './credit/credit-list/components/credit-list-kpi/credit-list-kpi.component';
@@ -166,6 +176,14 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     LoginComponent,
     RegisterComponent,
     DashboardComponent,
+    DashboardV2Component,
+    DashboardKpiCardComponent,
+    RecentSalesPanelComponent,
+    RecentActivityPanelComponent,
+    SalesEvolutionChartComponent,
+    StockStatusChartComponent,
+    DashboardStockkeeperAlertsComponent,
+    TimeAgoPipe,
     AccountingDayComponent,
     CreditAddComponent,
     CreditListComponent,
@@ -227,6 +245,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     StateTimelineComponent,
     PriceHistoryTimelineComponent,
     QuickStockEntryComponent,
+    StockLotsTableComponent,
     CreditLateComponent,
     CreditLateKpiComponent,
     CreditListKpiComponent,
@@ -282,6 +301,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     SharedComponentsModule,
     ToastrModule.forRoot(),
     MatExpansionModule,
+    NgChartsModule,
     // Initialise GA avec votre ID
     NgxGoogleAnalyticsModule.forRoot(environment.gaMeasurementId),
     // Track automatique les changements de routes (pages vues)

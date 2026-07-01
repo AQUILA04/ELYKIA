@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class TontineCollectionKpiDto {
     private Long totalMises;
     private Double totalMontant;
+    private Double totalSocietyShare;
 }

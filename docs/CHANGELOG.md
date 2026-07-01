@@ -12,17 +12,30 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Added
 
+- **Frontend —** Dashboard V2 sur `/home` (feature flag Firebase `dashboardV2`) : KPIs pilotage (crédits en cours, recouvrement encours, tontine, clients, stock commercial ou magasin), graphiques ventes/recouvrements et stock, dernières ventes et activité récente (`DailyOperationLog`) ; alertes magasinier refondues en panneaux `panel-card`.
+- **Backend —** colonne `society_share_amount` sur `tontine_collection` et KPI `totalSocietyShare` sur `/api/v1/tontine-collections/web/summary` ; `lowStockCount` sur `/api/v1/articles/stock-kpis`.
+- **Backend —** valorisation FIFO du stock magasin derrière le paramètre `ENABLED_FIFO_STOCK_VALUATION` (désactivé par défaut) : lots `article_stock_lot`, façade `StockValuationFacade`, service FIFO, activation/backfill admin (`POST /api/v1/stock/fifo/activate`), endpoints consultation lots et KPIs FIFO.
+- **Frontend —** saisie PU achat prérempli (entrées stock, inventaire, fiche article) lorsque le flag FIFO est actif ; onglet lots FIFO sur la fiche article ; libellés KPI inventaire adaptés en mode FIFO.
+- **Backend —** colonne `unit_purchase_cost` sur les lignes crédit pour figer le coût d'achat à la distribution.
+- **Backend / Mobile / Frontend —** contrôle des appareils autorisés pour l'app mobile : registre `user_authorized_device`, enforcement au login et sur les requêtes API (`X-Device-Id`), API admin `/api/v1/users/{id}/devices`, paramètre `ENABLED_MOBILE_DEVICE_RESTRICTION`, toggle par utilisateur `mobileDeviceRestrictionEnabled` ; flags Firebase `mobileDeviceManagement` (admin) et `mobileDeviceRestriction` (mobile) ; mobile **2.10.0** avec `@capacitor/device`.
 - **Docs —** skill et règle Cursor `mobile-version-bump` : incrément obligatoire de la version mobile (`package.json`, `environment.ts`, `environment.prod.ts`) à chaque modification sous `mobile/`.
+- **Docs —** skill Cursor `frontend-lazy-loading-migration` + règle `frontend/**` : activation automatique sur toute tâche frontend ; migration progressive lazy-loading (un domaine eager par tâche, URLs `/{domaine}/...`).
 - **Mobile —** design system Espace Client : composants shared `elyk-decor-header`, `elyk-overlap-card`, `elyk-outlined-field` ; tokens header/overlap ; variants boutons navy/gold ; skill et `design-system.md` alignés sur les maquettes S-01 à S-11.
 - **Backend — Elykia IA (Phase 2)** : few-shot SQL par domaine (`sql-examples.json`, `SqlExamplesService`), RAG hybride embeddings Ollama + fallback mots-clés (`GuideVectorSearch`), métriques Micrometer (`AiMetricsService`), journal `ai_query_log` (migration V62), API admin `/api/v1/ai/admin/stats`, tests `SqlExamplesServiceTest`.
 - **Frontend — Elykia IA (Phase 2)** : onglet « Statistiques » dans `/ai-chat` (requêtes fréquentes, SQL rejetés, distribution intents) pour `ROLE_AI_REPORT`.
 
 ### Changed
 
+- **Mobile —** page de connexion : demande automatique de l'autorisation d'accès aux fichiers (stockage) à l'arrivée sur l'écran de login si elle n'est pas encore accordée (sauvegardes, logs, photos).
 - **Mobile —** CI E2E : suite smoke consolidée (1 login partagé par worker), retries réduits, fail-fast et suppression du `npm cache clean` pour accélérer le pipeline `build-mobile`.
 
 ### Fixed
 
+- **Backend —** sync distribution mobile (`distributeArticlesV2`) : conservation de la mise, de l'avance et de la date de fin (`endDate`) calculées et imprimées sur le mobile — le backend ne recalcule plus la mise via `checkAdvance()` ; flag persisté `mobile_financial_terms_locked` ; validation des montants mobile ; application unique dans `buildDistribution`.
+- **Backend —** mode legacy stock (`ENABLED_FIFO_STOCK_VALUATION` OFF) : contrat `registerEntry()` documenté — retourne volontairement `null` (aucun lot créé), sans NPE côté appelants.
+- **Backend —** refresh token : la chaîne `Optional` filtre désormais un `User` null (token orphelin / état DB corrompu) au lieu de provoquer une `NullPointerException` dans la validation device.
+- **Backend —** livraison stock tontine : en mode legacy (FIFO désactivé), `purchasePrice` des lignes est désormais renseigné depuis le prix catalogue article à la livraison, aligné sur `StockRequestService` — corrige un `totalPurchasePrice` à 0 si le prix n'était pas figé à la création.
+- **Backend —** ventes crédit : `totalMargeValue` sur le stock commercial cumule désormais la marge (`qty × (prix vente − PMP achat)`) et non le coût d'achat ; migration de rattrapage des données historiques.
 - **Mobile —** synchronisation et initialisation clients : fusion des doublons locaux (UUID) avec l'ID serveur avant import paginé ; `markAsSynced` gère le cas où la ligne serveur existe déjà (contraintes UNIQUE/PK) ; les erreurs d'import client ne sont plus masquées lors de l'initialisation.
 - **Mobile —** SQLite après mise à jour in-app (2.8.5 → 2.9.x) : `allowBackup=false`, `androidIsEncryption=false`, enregistrement explicite du plugin dans `MainActivity` ; guards redirigent vers `/initial-loading` si la DB n'est pas prête (évite le dashboard + déconnexion).
 - **Mobile —** initialisation SQLite : attente `Platform.ready()` et jeep-sqlite (web), détection plugin natif absent (`CapacitorSQLitePlugin: null`), asset `sql-wasm.wasm`, message explicite si rebuild `cap sync` requis.

@@ -99,3 +99,30 @@
     }
   }
 }
+
+.mobile-device-parameter-card {
+  border: 1px solid #dde3ec;
+  border-radius: 12px;
+  padding: 16px 20px;
+  background: #f0f4f9;
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    color: #003366;
+  }
+
+  p {
+    margin: 0 0 12px;
+    color: #6b7a99;
+    font-size: 14px;
+  }
+}
+
+.mobile-device-parameter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  color: #003366;
+}

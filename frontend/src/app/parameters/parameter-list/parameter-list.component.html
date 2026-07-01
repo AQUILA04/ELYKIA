@@ -7,6 +7,19 @@
     </div>
   </div>
 
+  <div class="mobile-device-parameter-card mb-3" *ngIf="mobileDeviceManagementEnabled">
+    <h2>Contrôle des appareils mobiles (sécurité serveur)</h2>
+    <p>Active l'enforcement côté backend pour les utilisateurs dont la restriction est activée sur leur fiche.</p>
+    <label class="mobile-device-parameter-toggle">
+      <input
+        type="checkbox"
+        [checked]="isMobileDeviceRestrictionEnabled()"
+        [disabled]="!mobileDeviceRestrictionParameter || updatingMobileDeviceRestriction"
+        (change)="toggleMobileDeviceRestriction($any($event.target).checked)">
+      <span>Activer le contrôle des appareils mobiles</span>
+    </label>
+  </div>
+
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div class="button-group ml-auto">
       <button class="btn refresh-button btn-sm" (click)="refresh()">

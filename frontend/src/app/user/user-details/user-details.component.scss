@@ -352,3 +352,59 @@
     padding-right: 12px;
   }
 }
+
+.user-details-page .mobile-devices-card {
+  margin-bottom: 16px;
+}
+
+.user-details-page .mobile-device-banner {
+  margin: 0 20px 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--orange-pale);
+  color: var(--orange);
+  font-size: 13px;
+}
+
+.user-details-page .mobile-device-toggle {
+  padding: 0 20px 12px;
+}
+
+.user-details-page .toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.user-details-page .devices-loading,
+.user-details-page .devices-empty {
+  padding: 12px 20px 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.user-details-page .devices-table {
+  width: calc(100% - 40px);
+  margin: 0 20px 20px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.user-details-page .devices-table th,
+.user-details-page .devices-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.user-details-page .devices-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.user-details-page .btn-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}

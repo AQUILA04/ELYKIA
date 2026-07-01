@@ -1,0 +1,17 @@
+---
+description: Migration progressive lazy-loading Angular — lire et appliquer le skill quand le travail touche frontend/
+globs: frontend/**
+alwaysApply: false
+---
+
+# Frontend — lazy-loading progressif
+
+Toute tâche touchant `frontend/` doit **lire et appliquer** le skill `.cursor/skills/frontend-lazy-loading-migration/SKILL.md`.
+
+## Règle
+
+- Si le fichier modifié appartient à un **domaine encore eager** (`credit`, `client`, `article`, etc.) : migrer **ce domaine seul** vers `loadChildren` et aligner les URLs sur `/{domaine}/...`.
+- Si le domaine est **déjà lazy-loaded** ou le travail est transverse (`shared/`, `layout/`) : ne migrer aucun domaine.
+- **Un seul domaine par tâche** — ne pas toucher aux autres dossiers.
+
+Voir le skill pour le workflow complet, les modules de référence (`expense`, `orders`) et la checklist de vérification.

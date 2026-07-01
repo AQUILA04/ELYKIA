@@ -18,6 +18,7 @@ import com.optimize.elykia.core.repository.StockReceptionRepository;
 import com.optimize.elykia.core.service.expense.ExpenseService;
 import com.optimize.elykia.core.service.store.ArticleHistoryService;
 import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.core.service.stock.StockValuationFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +45,7 @@ class ArticlesServiceTest {
     @Mock private StockReceptionRepository stockReceptionRepository;
     @Mock private ArticleStateHistoryRepository articleStateHistoryRepository;
     @Mock private ArticlePriceHistoryRepository articlePriceHistoryRepository;
+    @Mock private StockValuationFacade stockValuationFacade;
 
     @InjectMocks
     private ArticlesService articlesService;
@@ -65,6 +67,12 @@ class ArticlesServiceTest {
         article.setModel("Model");
         article.setPurchasePrice(100.0);
         article.setStockQuantity(10);
+
+        lenient().when(stockValuationFacade.resolveEntryUnitPrice(any(), any())).thenAnswer(invocation -> {
+            Articles target = invocation.getArgument(0);
+            Double requested = invocation.getArgument(1);
+            return requested != null && requested > 0 ? requested : target.getPurchasePrice();
+        });
     }
 
     @Test

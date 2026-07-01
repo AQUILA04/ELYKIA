@@ -9,6 +9,12 @@ public class LoginRequest {
   @NotBlank
   private String password;
 
+  private String deviceId;
+  private String deviceLabel;
+  private String platform;
+  private String model;
+  private String appVersion;
+
   public String getUsername() {
     return username;
   }
@@ -23,6 +29,46 @@ public class LoginRequest {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  public String getDeviceId() {
+    return deviceId;
+  }
+
+  public void setDeviceId(String deviceId) {
+    this.deviceId = deviceId;
+  }
+
+  public String getDeviceLabel() {
+    return deviceLabel;
+  }
+
+  public void setDeviceLabel(String deviceLabel) {
+    this.deviceLabel = deviceLabel;
+  }
+
+  public String getPlatform() {
+    return platform;
+  }
+
+  public void setPlatform(String platform) {
+    this.platform = platform;
+  }
+
+  public String getModel() {
+    return model;
+  }
+
+  public void setModel(String model) {
+    this.model = model;
+  }
+
+  public String getAppVersion() {
+    return appVersion;
+  }
+
+  public void setAppVersion(String appVersion) {
+    this.appVersion = appVersion;
   }
 
   @Override

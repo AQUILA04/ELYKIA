@@ -10,6 +10,7 @@ import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.stock.StockRequest;
 import com.optimize.elykia.core.entity.stock.StockRequestItem;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
+import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
 import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 import java.util.Map;
 
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
+import com.optimize.elykia.core.dto.stock.FifoConsumptionResult;
 import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
 import com.itextpdf.html2pdf.HtmlConverter;
 import java.io.ByteArrayOutputStream;
@@ -57,6 +59,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private final UserService userService;
     private final AccountingDayService accountingDayService;
     private final StockMovementService stockMovementService;
+    private final StockValuationFacade stockValuationFacade;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final TemplateEngine templateEngine;
     private CommercialMonthlyStockItemRepository monthlyStockItemRepository;
@@ -71,6 +74,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             UserService userService,
             AccountingDayService accountingDayService,
             StockMovementService stockMovementService,
+            StockValuationFacade stockValuationFacade,
             org.springframework.context.ApplicationEventPublisher eventPublisher,
             TemplateEngine templateEngine) {
         super(repository);
@@ -79,6 +83,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         this.userService = userService;
         this.accountingDayService = accountingDayService;
         this.stockMovementService = stockMovementService;
+        this.stockValuationFacade = stockValuationFacade;
         this.eventPublisher = eventPublisher;
         this.templateEngine = templateEngine;
     }
@@ -253,13 +258,21 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         for (StockRequestItem item : deliverableItems) {
             Articles article = articlesService.getById(item.getArticle().getId());
 
+            FifoConsumptionResult consumption = stockValuationFacade.consume(
+                    article,
+                    item.getQuantity(),
+                    ArticleStockLotMovementType.WAREHOUSE_RELEASE,
+                    "STOCK_REQUEST",
+                    request.getId());
+
             stockMovementService.recordMovement(
                     article,
                     MovementType.RELEASE,
                     item.getQuantity(),
                     "Livraison demande " + request.getReference(),
                     currentUser.getUsername(),
-                    null);
+                    null,
+                    consumption.getAverageUnitCost());
 
             article.makeRelease(item.getQuantity());
             articlesService.update(article);
@@ -267,7 +280,9 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             if (item.getUnitPrice() == null || item.getUnitPrice() == 0) {
                 item.setUnitPrice(article.getCreditSalePrice());
             }
-            if (item.getPurchasePrice() == null || item.getPurchasePrice() == 0) {
+            if (stockValuationFacade.isFifoEnabled()) {
+                item.setPurchasePrice(consumption.getAverageUnitCost());
+            } else if (item.getPurchasePrice() == null || item.getPurchasePrice() == 0) {
                 item.setPurchasePrice(article.getPurchasePrice());
             }
         }

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { Subscription } from 'rxjs';
+import { StockFifoFeatureService } from 'src/app/stock/services/stock-fifo-feature.service';
 
 @Component({
   selector: 'app-inventory-add',
@@ -22,13 +23,15 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
   isLoadingArticles = false;
   isSubmitting = false;
   currentDate = new Date();
+  fifoEnabled = false;
 
   constructor(
     private formBuilder: FormBuilder,
     private inventoryService: InventoryService,
     private router: Router,
     private tokenStorage: TokenStorageService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private stockFifoFeatureService: StockFifoFeatureService
   ) {
     this.tokenStorage.checkConnectedUser();
     this.inventoryForm = this.formBuilder.group({
@@ -38,6 +41,11 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadArticles();
+    this.subscriptions.push(
+      this.stockFifoFeatureService.isFifoEnabled().subscribe(enabled => {
+        this.fifoEnabled = enabled;
+      })
+    );
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
     }, 1000);
@@ -86,9 +94,10 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
     const formValue = this.inventoryForm.value;
 
     const payload = {
-      articleEntries: formValue.articles.map((entry: { articleId: number; quantity: number }) => ({
+      articleEntries: formValue.articles.map((entry: { articleId: number; quantity: number; unitPrice?: number }) => ({
         articleId: entry.articleId,
-        quantity: entry.quantity
+        quantity: entry.quantity,
+        ...(entry.unitPrice != null ? { unitPrice: entry.unitPrice } : {})
       }))
     };
 

@@ -16,6 +16,7 @@ export interface StockValues {
 
 export interface ArticleStockKpis {
   inStockCount: number;
+  lowStockCount: number;
   purchaseTotal: number;
   creditSaleTotal: number;
   estimatedMargin: number;

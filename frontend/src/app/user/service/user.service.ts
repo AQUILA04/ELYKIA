@@ -26,6 +26,7 @@ export interface User {
   active?: boolean;
   profil?: { id?: number; name?: string };
   userPermissions?: Array<{ name?: string; permission?: { name?: string } } | string>;
+  mobileDeviceRestrictionEnabled?: boolean;
 }
 
 @Injectable({

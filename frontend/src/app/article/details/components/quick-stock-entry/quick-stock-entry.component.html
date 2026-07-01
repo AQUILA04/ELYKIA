@@ -53,6 +53,17 @@
         </span>
     </div>
 
+    <div class="field-wrap" *ngIf="fifoEnabled">
+        <label class="field-label" for="unitPrice">PU achat</label>
+        <input id="unitPrice" type="number" class="field-input"
+            [class.field-input--error]="unitPriceControl?.invalid && unitPriceControl?.touched"
+            formControlName="unitPrice" min="0.01" step="1" />
+        <small class="field-hint">Prix catalogue : {{ article.purchasePrice | number:'1.0-0' }} FCFA — modifiable si différent</small>
+        <span class="field-error" *ngIf="unitPriceControl?.touched && unitPriceControl?.invalid">
+            Le prix d'achat est requis.
+        </span>
+    </div>
+
     <div class="qse-actions">
         <button type="button" class="btn btn-ghost" (click)="onCancel()" [disabled]="isSubmitting">
             Annuler

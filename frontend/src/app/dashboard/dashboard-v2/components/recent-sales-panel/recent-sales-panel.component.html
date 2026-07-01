@@ -1,0 +1,46 @@
+<div class="panel-card">
+  <div class="panel-header">
+    <div>
+      <h3>Dernières ventes</h3>
+      <p>5 transactions récentes</p>
+    </div>
+    <a routerLink="/credit-list" class="panel-link">Voir tout</a>
+  </div>
+
+  <div class="panel-loading" *ngIf="loading">Chargement…</div>
+
+  <div class="panel-empty" *ngIf="!loading && sales.length === 0">
+    Aucune vente récente sur la période.
+  </div>
+
+  <table class="sales-table" *ngIf="!loading && sales.length > 0">
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Montant</th>
+        <th>Statut</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let sale of sales">
+        <td>
+          <div class="client-cell">
+            <span class="client-avatar">{{ getInitials(sale) }}</span>
+            <div>
+              <div class="client-name">{{ sale.client?.firstname }} {{ sale.client?.lastname }}</div>
+              <div class="client-ref">#{{ sale.reference }}</div>
+            </div>
+          </div>
+        </td>
+        <td class="amount">{{ sale.totalAmount | number:'1.0-0' }} FCFA</td>
+        <td>
+          <span class="status-badge {{ (sale.status | statusBadge).badgeClass }}">
+            {{ (sale.status | statusBadge).label }}
+          </span>
+        </td>
+        <td>{{ sale.beginDate | date:'dd/MM/yyyy' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

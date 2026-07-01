@@ -1,9 +1,12 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { User, UserService } from '../service/user.service';
+import { UserAuthorizedDevice, UserDeviceService } from '../service/user-device.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { PermissionService } from '../../security/services/permission.service';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
+import { MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY, ParameterService } from 'src/app/parameters/parameter.service';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -20,6 +23,11 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
   allPermissions: string[] = [];
   originalPermissions: string[] = [];
   savingPermissions = false;
+  mobileDeviceManagementEnabled = false;
+  mobileDeviceRestrictionParameterEnabled = false;
+  authorizedDevices: UserAuthorizedDevice[] = [];
+  loadingDevices = false;
+  updatingDeviceRestriction = false;
 
   currentDate = new Date();
   private dateIntervalId?: ReturnType<typeof setInterval>;
@@ -30,7 +38,10 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private alertService: AlertService,
-    private tokenStorage: TokenStorageService
+    private tokenStorage: TokenStorageService,
+    private featureFlagService: FeatureFlagService,
+    private userDeviceService: UserDeviceService,
+    private parameterService: ParameterService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
@@ -47,6 +58,12 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
       }
     });
     this.loadAllPermissions();
+    this.mobileDeviceManagementEnabled = this.featureFlagService.isFeatureEnabled(
+      FeatureFlags.MobileDeviceManagement
+    );
+    if (this.mobileDeviceManagementEnabled) {
+      this.loadMobileDeviceRestrictionParameter();
+    }
   }
 
   ngOnDestroy(): void {
@@ -112,6 +129,9 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
         }
         this.originalPermissions = [...this.assignedPermissions];
         this.isLoading = false;
+        if (this.mobileDeviceManagementEnabled) {
+          this.loadAuthorizedDevices(userId);
+        }
       },
       error: (error) => {
         console.error('Erreur lors du chargement des détails de l\'utilisateur', error);
@@ -174,5 +194,92 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
       .finally(() => {
         this.savingPermissions = false;
       });
+  }
+
+  loadMobileDeviceRestrictionParameter(): void {
+    this.parameterService.getByKey(MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY).subscribe({
+      next: (parameter) => {
+        this.mobileDeviceRestrictionParameterEnabled = parameter?.value === 'true';
+      },
+      error: () => {
+        this.mobileDeviceRestrictionParameterEnabled = false;
+      },
+    });
+  }
+
+  loadAuthorizedDevices(userId: number): void {
+    this.loadingDevices = true;
+    this.userDeviceService.listDevices(userId).subscribe({
+      next: (res) => {
+        this.authorizedDevices = res.data || [];
+        this.loadingDevices = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement appareils', err);
+        this.authorizedDevices = [];
+        this.loadingDevices = false;
+      },
+    });
+  }
+
+  onDeviceRestrictionToggle(enabled: boolean): void {
+    if (!this.userId || !this.mobileDeviceRestrictionParameterEnabled) {
+      return;
+    }
+    this.updatingDeviceRestriction = true;
+    this.userDeviceService.updateRestriction(this.userId, enabled).subscribe({
+      next: () => {
+        this.alertService.showDefaultSucces(
+          enabled
+            ? 'Restriction par appareil activée pour cet utilisateur.'
+            : 'Restriction par appareil désactivée pour cet utilisateur.'
+        );
+        this.loadUserDetails(this.userId!);
+        this.updatingDeviceRestriction = false;
+      },
+      error: (err) => {
+        this.alertService.showError(err?.error?.message || 'Erreur lors de la mise à jour de la restriction.');
+        this.updatingDeviceRestriction = false;
+        this.loadUserDetails(this.userId!);
+      },
+    });
+  }
+
+  revokeDevice(device: UserAuthorizedDevice): void {
+    if (!this.userId) {
+      return;
+    }
+    this.alertService.showConfirmation(
+      'Révoquer l\'appareil',
+      `Voulez-vous révoquer l'appareil « ${device.deviceLabel || device.model || 'inconnu'} » ?`
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.userDeviceService.revokeDevice(this.userId!, device.id).subscribe({
+        next: () => {
+          this.alertService.showDefaultSucces('Appareil révoqué avec succès.');
+          this.loadAuthorizedDevices(this.userId!);
+        },
+        error: (err) => {
+          this.alertService.showError(err?.error?.message || 'Erreur lors de la révocation.');
+        },
+      });
+    });
+  }
+
+  restoreDevice(device: UserAuthorizedDevice): void {
+    if (!this.userId) {
+      return;
+    }
+    this.userDeviceService.restoreDevice(this.userId!, device.id).subscribe({
+      next: () => {
+        this.alertService.showDefaultSucces('Appareil réactivé avec succès.');
+        this.loadAuthorizedDevices(this.userId!);
+      },
+      error: (err) => {
+        this.alertService.showError(err?.error?.message || 'Erreur lors de la réactivation.');
+      },
+    });
   }
 }
