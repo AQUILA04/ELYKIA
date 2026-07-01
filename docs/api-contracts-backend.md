@@ -8,7 +8,7 @@ The Backend API is built with Spring Boot and exposes RESTful endpoints. All API
 *   **Header:** `Authorization: Bearer <token>`
 *   **Device header (mobile, optional):** `X-Device-Id` — required when `ENABLED_MOBILE_DEVICE_RESTRICTION` is enabled and the user has `mobileDeviceRestrictionEnabled=true`
 *   `POST /api/auth/signin` — body may include optional `deviceId`, `deviceLabel`, `platform`, `model`, `appVersion`
-*   `POST /api/auth/refreshtoken` — same optional device fields
+*   `POST /api/auth/refreshtoken` — same optional device fields ; response includes `deviceRestrictionActive` (aligned with signin)
 *   **403** `{ "code": "DEVICE_NOT_AUTHORIZED", "message": "..." }` when device is not allowed
 
 ### Mobile device authorization (`/api/v1/users/{userId}/devices`)
