@@ -185,8 +185,11 @@ export async function fillBilletageAmount(page: Page, amount: number): Promise<v
 }
 
 export async function selectCashSaleType(page: Page): Promise<void> {
-  await page.locator('label.btn', { hasText: 'Comptant' }).click();
-  await page.locator('input[data-testid="e2e-credit-sale-type-cash"]').waitFor({ state: 'attached' });
+  await page.getByTestId('e2e-credit-add-form').waitFor({ state: 'visible', timeout: 30_000 });
+  await page
+    .locator('label.segment-btn')
+    .filter({ has: page.getByTestId('e2e-credit-sale-type-cash') })
+    .click();
 }
 
 export async function selectMatSelectByText(page: Page, testId: string, optionText: string): Promise<void> {

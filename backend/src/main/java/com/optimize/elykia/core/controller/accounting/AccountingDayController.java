@@ -46,7 +46,7 @@ public class AccountingDayController {
 
     @GetMapping(value = "current")
     public ResponseEntity<Response> getCurrentAccountingDay() {
-        return new ResponseEntity<>(ResponseUtil.successResponse(accountingDayService.getCurrentAccountingDate()), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseUtil.successResponse(accountingDayService.ensureCurrentAccountingDay()), HttpStatus.OK);
     }
 
     @GetMapping(value = "close")

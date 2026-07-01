@@ -32,7 +32,7 @@ public class PdfController {
 
     @GetMapping("/list-today-files")
     public List<String> listTodayFiles() {
-        String todayFolder = DateUtils.simpleDateFormat(accountingDayService.getCurrentAccountingDate());
+        String todayFolder = DateUtils.simpleDateFormat(accountingDayService.getOpenAccountingDate());
         File dir = new File(baseDir + todayFolder.replaceAll(" ", "-"));
         if (!dir.exists() || !dir.isDirectory()) return List.of();
         return List.of(dir.list((d, name) -> name.endsWith(".pdf")));
@@ -40,7 +40,7 @@ public class PdfController {
 
     @GetMapping("/download/{filename}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String filename) throws IOException {
-        String todayFolder = DateUtils.simpleDateFormat(accountingDayService.getCurrentAccountingDate());
+        String todayFolder = DateUtils.simpleDateFormat(accountingDayService.getOpenAccountingDate());
         Path file = Paths.get(baseDir + todayFolder.replaceAll(" ", "-"), filename);
         if (!Files.exists(file)) return ResponseEntity.notFound().build();
         InputStreamResource resource = new InputStreamResource(new FileInputStream(file.toFile()));
@@ -53,7 +53,7 @@ public class PdfController {
     @GetMapping("/list-old-files")
     public List<String> listOldFolders() {
         try {
-            String todayFolder = DateUtils.simpleDateFormat(accountingDayService.getCurrentAccountingDate());
+            String todayFolder = DateUtils.simpleDateFormat(accountingDayService.getOpenAccountingDate());
             String todayFolderName = todayFolder.replaceAll(" ", "-");
 
             File baseDirectory = new File(baseDir);
@@ -81,7 +81,7 @@ public class PdfController {
 
     @GetMapping("/download-all-today")
     public ResponseEntity<Resource> downloadAllToday() throws IOException {
-        String todayFolder = DateUtils.simpleDateFormat(accountingDayService.getCurrentAccountingDate());
+        String todayFolder = DateUtils.simpleDateFormat(accountingDayService.getOpenAccountingDate());
         File dir = new File(baseDir + todayFolder.replaceAll(" ", "-") + File.separator);
         File[] files = dir.listFiles((d, name) -> name.endsWith(".pdf"));
         if (files == null || files.length == 0) return ResponseEntity.notFound().build();
@@ -102,7 +102,7 @@ public class PdfController {
 
     @PostMapping("/download-selected")
     public ResponseEntity<Resource> downloadSelected(@RequestBody List<String> filenames) throws IOException {
-        String todayFolder = DateUtils.simpleDateFormat(accountingDayService.getCurrentAccountingDate());
+        String todayFolder = DateUtils.simpleDateFormat(accountingDayService.getOpenAccountingDate());
         File dir = new File(baseDir + todayFolder.replaceAll(" ", "-"));
         
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

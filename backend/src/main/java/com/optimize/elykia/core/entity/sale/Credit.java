@@ -163,7 +163,7 @@ public class Credit extends BaseEntity<String> {
         setCreditToCreditArticles();
         this.status = Objects.isNull(this.status) ? CreditStatus.CREATED : this.status;
         if (!mobileFinancialTermsLocked) {
-            this.remainingDaysCount = this.remainingDaysCount == null ? 30 : remainingDaysCount;
+            this.remainingDaysCount = resolveRemainingDaysCountOrDefault();
         }
         this.totalAmountPaid = this.totalAmountPaid == null ? 0D : totalAmountPaid;
 
@@ -354,14 +354,23 @@ public class Credit extends BaseEntity<String> {
                     this.expectedEndDate = this.beginDate.plusDays(this.remainingDaysCount);
                 }
             } else {
-                this.expectedEndDate = Objects.nonNull(this.expectedEndDate) ? this.expectedEndDate : LocalDate.now().plusDays(this.remainingDaysCount);
-                this.beginDate = LocalDate.now();
+                this.beginDate = now;
+                int daysRemaining = resolveRemainingDaysCountOrDefault();
+                this.remainingDaysCount = daysRemaining;
+                if (this.expectedEndDate == null) {
+                    this.expectedEndDate = this.beginDate.plusDays(daysRemaining);
+                }
             }
         } else if (ClientType.PROMOTER.equals(this.clientType)) {
             this.status = CreditStatus.INPROGRESS;
         } else {
             this.status = CreditStatus.SETTLED;
         }
+    }
+
+    @JsonIgnore
+    private int resolveRemainingDaysCountOrDefault() {
+        return this.remainingDaysCount != null ? this.remainingDaysCount : 30;
     }
 
     public void checkInProgressStatus() {

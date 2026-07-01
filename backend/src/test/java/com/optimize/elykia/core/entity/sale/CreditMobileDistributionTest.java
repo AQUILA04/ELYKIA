@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -88,6 +89,38 @@ class CreditMobileDistributionTest {
         reloaded.checkAdvance();
 
         assertEquals(400.0, reloaded.getDailyStake());
+    }
+
+    @Test
+    void start_initializesRemainingDaysCountWhenUnsetForNonMobileCredit() {
+        Credit credit = new Credit();
+        credit.setType(com.optimize.elykia.core.enumaration.OperationType.CREDIT);
+        credit.setStatus(CreditStatus.VALIDATED);
+        credit.setTotalAmount(10_000.0);
+        credit.setDailyStake(400.0);
+
+        credit.start();
+
+        assertEquals(CreditStatus.INPROGRESS, credit.getStatus());
+        assertEquals(30, credit.getRemainingDaysCount());
+        assertEquals(LocalDate.now().plusDays(30), credit.getExpectedEndDate());
+    }
+
+    @Test
+    void buildDistribution_preservesMobileTotalAmountWhenFinancialTermsLocked() {
+        Credit credit = Credit.buildDistribution(new Client(), mobileDistributionDto(
+                10_700.0,
+                400.0,
+                300.0,
+                LocalDate.of(2026, 7, 1),
+                LocalDate.of(2026, 7, 27)));
+
+        assertTrue(credit.isMobileFinancialTermsLocked());
+        double mobileTotal = credit.getTotalAmount();
+        credit.getArticles().forEach(article -> article.setUnitPrice(9_999.0));
+
+        assertNotEquals(mobileTotal, credit.getTotalAmountByCalcul());
+        assertEquals(mobileTotal, credit.getTotalAmount());
     }
 
     @Test

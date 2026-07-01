@@ -121,7 +121,10 @@ public class AuthController {
               request.getAppVersion());
           userAuthorizedDeviceService.validateAndRegisterOnLogin(user.getId(), deviceInfo);
           String token = jwtUtils.generateTokenFromUsername(user.getUsername());
-          return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
+          TokenRefreshResponse response = new TokenRefreshResponse(token, requestRefreshToken);
+          response.setDeviceRestrictionActive(
+              userAuthorizedDeviceService.isRestrictionActiveForUserId(user.getId()));
+          return ResponseEntity.ok(response);
         })
         .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
             "Refresh token is not in database!"));

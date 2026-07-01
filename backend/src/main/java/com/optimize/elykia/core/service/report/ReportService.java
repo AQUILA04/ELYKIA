@@ -66,7 +66,7 @@ public class ReportService {
             if (Objects.nonNull(releaseDate)) {
                 now = releaseDate;
             } else {
-                now = accountingDayService.getCurrentAccountingDate();
+                now = accountingDayService.getOpenAccountingDate();
             }
         }catch (ResourceNotFoundException ex){
             now= LocalDate.now();
