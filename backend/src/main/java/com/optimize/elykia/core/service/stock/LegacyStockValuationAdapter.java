@@ -6,6 +6,7 @@ import com.optimize.elykia.core.entity.stock.ArticleStockLot;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
+import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -16,6 +17,13 @@ import java.time.LocalDate;
 @Component
 public class LegacyStockValuationAdapter {
 
+    /**
+     * Mode legacy : aucun lot n'est créé. Les entrées magasin restent gérées via {@code Articles.stockQuantity}
+     * et {@code Articles.purchasePrice} (voir {@link com.optimize.elykia.core.service.store.ArticlesService}).
+     *
+     * @return {@code null} — absence volontaire de lot ; les appelants ne doivent pas déréférencer le retour.
+     */
+    @Nullable
     public ArticleStockLot registerEntry(
             Articles article,
             int quantity,

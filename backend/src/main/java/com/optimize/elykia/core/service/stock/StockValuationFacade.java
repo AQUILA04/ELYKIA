@@ -9,6 +9,7 @@ import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.repository.ArticleStockLotRepository;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,12 @@ public class StockValuationFacade {
         return legacyStockValuationAdapter.resolveEntryUnitPrice(article, requestedUnitPrice);
     }
 
+    /**
+     * Enregistre une entrée de stock en lot FIFO si le flag est actif.
+     *
+     * @return le lot créé en mode FIFO ; {@code null} en mode legacy (pas de gestion par lots).
+     */
+    @Nullable
     public ArticleStockLot registerEntry(
             Articles article,
             int quantity,

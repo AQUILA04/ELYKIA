@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.entity.sale;
 
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.dto.DistributeArticleDto;
 import com.optimize.elykia.core.dto.StockEntry;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CreditMobileDistributionTest {
@@ -52,6 +54,40 @@ class CreditMobileDistributionTest {
         credit.checkAdvance();
 
         assertEquals(400.0, credit.getDailyStake(), "La mise mobile ne doit pas être recalculée à 350");
+    }
+
+    @Test
+    void applyMobileFinancialTerms_rejectsInvalidDailyStake() {
+        DistributeArticleDto dto = mobileDistributionDto(
+                10_700.0,
+                400.0,
+                300.0,
+                LocalDate.of(2026, 7, 1),
+                LocalDate.of(2026, 7, 27));
+        dto.setDailyStake(0.0);
+
+        Credit credit = new Credit();
+        assertThrows(CustomValidationException.class, () -> credit.applyMobileFinancialTerms(dto));
+    }
+
+    @Test
+    void applyMobileFinancialTerms_persistsLockFlagForReloadedEntity() {
+        Credit credit = Credit.buildDistribution(new Client(), mobileDistributionDto(
+                10_700.0,
+                400.0,
+                300.0,
+                LocalDate.of(2026, 7, 1),
+                LocalDate.of(2026, 7, 27)));
+
+        assertTrue(credit.isMobileFinancialTermsLocked());
+
+        Credit reloaded = new Credit();
+        reloaded.setMobileFinancialTermsLocked(true);
+        reloaded.setStatus(CreditStatus.CREATED);
+        reloaded.setDailyStake(400.0);
+        reloaded.checkAdvance();
+
+        assertEquals(400.0, reloaded.getDailyStake());
     }
 
     @Test

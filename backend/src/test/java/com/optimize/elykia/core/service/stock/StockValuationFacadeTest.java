@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service.stock;
 import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.core.dto.stock.FifoConsumptionResult;
 import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.stock.ArticleStockLot;
 import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.repository.ArticleStockLotRepository;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -94,5 +96,23 @@ class StockValuationFacadeTest {
 
         verify(fifoStockValuationService).registerEntry(
                 article, 5, 200, ArticleStockLotSourceType.STOCK_RECEPTION, null, null);
+    }
+
+    @Test
+    void registerEntryReturnsNullInLegacyModeWithoutCallingFifo() {
+        Articles article = new Articles(1L);
+        when(parameterService.isEnabled(StockValuationFacade.FIFO_FLAG_KEY)).thenReturn(false);
+        when(legacyStockValuationAdapter.registerEntry(
+                article, 5, 200, ArticleStockLotSourceType.STOCK_RECEPTION, null, null))
+                .thenReturn(null);
+
+        ArticleStockLot lot = stockValuationFacade.registerEntry(
+                article, 5, 200, ArticleStockLotSourceType.STOCK_RECEPTION, null, null);
+
+        org.junit.jupiter.api.Assertions.assertNull(lot);
+        verify(legacyStockValuationAdapter).registerEntry(
+                article, 5, 200, ArticleStockLotSourceType.STOCK_RECEPTION, null, null);
+        verify(fifoStockValuationService, never()).registerEntry(
+                any(), anyInt(), anyDouble(), any(), any(), any());
     }
 }

@@ -110,7 +110,7 @@ public class Credit extends BaseEntity<String> {
     private Double advance = 0.0;
 
     /** Termes financiers figés depuis une sync mobile (reçu déjà imprimé côté commercial). */
-    @Transient
+    @Column(name = "mobile_financial_terms_locked", columnDefinition = "boolean default false")
     private boolean mobileFinancialTermsLocked = false;
 
     // ===== NOUVEAUX CHAMPS POUR BI DASHBOARD =====
@@ -573,7 +573,6 @@ public class Credit extends BaseEntity<String> {
         credit.setCreditToCreditArticles();
         credit.setAdvance(dto.getAdvance());
         if (Objects.nonNull(dto.getMobile()) && Boolean.TRUE.equals(dto.getMobile())) {
-            credit.setMobileFinancialTermsLocked(true);
             credit.applyMobileFinancialTerms(dto);
         }
         credit.setOperationConsentCode(dto.getOperationConsentCode());
@@ -590,21 +589,38 @@ public class Credit extends BaseEntity<String> {
      * Ne recalcule pas la mise sur la base du montant restant / 30 jours.
      */
     public void applyMobileFinancialTerms(DistributeArticleDto dto) {
+        if (dto.getTotalAmount() == null || dto.getTotalAmount() <= 0) {
+            throw new CustomValidationException("Le montant total de la distribution mobile est invalide.");
+        }
+        if (dto.getDailyStake() == null || dto.getDailyStake() <= 0) {
+            throw new CustomValidationException("La mise journalière de la distribution mobile est invalide.");
+        }
+
+        this.mobileFinancialTermsLocked = true;
         this.totalAmount = dto.getTotalAmount();
         this.dailyStake = dto.getDailyStake();
         double advance = dto.getAdvance() != null ? dto.getAdvance() : 0.0;
+        if (advance < 0 || advance > dto.getTotalAmount()) {
+            throw new CustomValidationException("L'avance de la distribution mobile est invalide.");
+        }
         this.advance = advance;
         this.totalAmountPaid = dto.getTotalAmountPaid() != null ? dto.getTotalAmountPaid() : advance;
         this.totalAmountRemaining = dto.getTotalAmountRemaining() != null
                 ? dto.getTotalAmountRemaining()
                 : dto.getTotalAmount() - advance;
+        if (this.totalAmountRemaining < 0) {
+            throw new CustomValidationException("Le montant restant de la distribution mobile est invalide.");
+        }
         this.beginDate = dto.getStartDate() != null ? dto.getStartDate() : LocalDate.now();
         if (dto.getEndDate() != null) {
             this.expectedEndDate = dto.getEndDate();
             this.remainingDaysCount = Math.max(0, (int) ChronoUnit.DAYS.between(this.beginDate, dto.getEndDate()));
-        } else if (this.dailyStake != null && this.dailyStake > 0) {
+        } else if (this.totalAmountRemaining > 0) {
             this.remainingDaysCount = (int) Math.ceil(this.totalAmountRemaining / this.dailyStake);
             this.expectedEndDate = this.beginDate.plusDays(this.remainingDaysCount);
+        } else {
+            this.remainingDaysCount = 0;
+            this.expectedEndDate = this.beginDate;
         }
     }
 }
