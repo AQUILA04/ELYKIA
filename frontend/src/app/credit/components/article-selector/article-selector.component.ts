@@ -79,7 +79,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     }
 
     if (this.lazyLoad) {
-      this.setupLazyArticlesLoading();
+      this.ensureLazyArticlesLoading();
       this.loadArticlesPage();
     } else {
       this.indexArticles(this.articles);
@@ -90,6 +90,21 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['lazyLoad']) {
+      if (this.lazyLoad) {
+        this.ensureLazyArticlesLoading();
+        this.resetLazyArticles();
+        this.loadArticlesPage();
+      } else {
+        this.teardownLazyArticlesLoading();
+        this.indexArticles(this.articles);
+        this.updateAvailableArticleLists();
+        if (this.showPrices) {
+          this.calculateTotalAmount();
+        }
+      }
+    }
+
     if (changes['articles'] && !this.lazyLoad) {
       this.indexArticles(this.articles);
       this.updateAvailableArticleLists();
@@ -105,9 +120,8 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   }
 
   ngOnDestroy(): void {
+    this.teardownLazyArticlesLoading();
     this.articlesSub?.unsubscribe();
-    this.lazySearchSub?.unsubscribe();
-    this.loadArticlesSub?.unsubscribe();
     this.clearRowSubs();
   }
 
@@ -184,6 +198,19 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
       this.resetLazyArticles();
       this.loadArticlesPage();
     });
+  }
+
+  private ensureLazyArticlesLoading(): void {
+    if (!this.lazySearchSub) {
+      this.setupLazyArticlesLoading();
+    }
+  }
+
+  private teardownLazyArticlesLoading(): void {
+    this.loadArticlesSub?.unsubscribe();
+    this.lazySearchSub?.unsubscribe();
+    this.lazySearchSub = undefined;
+    this.articlesLoading = false;
   }
 
   private resetLazyArticles(): void {

@@ -59,6 +59,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   }
 
   get clientSelectUsername(): string | null {
+    if (this.saleType === 'CREDIT') {
+      return null;
+    }
     if (this.clientSelectCommercial) {
       return null;
     }
@@ -257,6 +260,27 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       return this.articleSelector?.getArticle(articleId);
     }
     return this.articles.find(article => article.id === articleId);
+  }
+
+  private resolveReceiptArticleLine(
+    item: { articleId: number; quantity: number },
+    savedCredit: any,
+    saleType: 'CREDIT' | 'CASH'
+  ): { name: string; quantity: number; unitPrice: number; totalPrice: number } {
+    const savedLine = (savedCredit?.articles || []).find(
+      (line: any) => (line.articles?.id ?? line.articleId) === item.articleId
+    );
+    const art = savedLine?.articles ?? this.resolveArticle(item.articleId);
+    const unitPrice = saleType === 'CREDIT'
+      ? (savedLine?.unitPrice ?? savedLine?.articles?.creditSalePrice ?? art?.creditSalePrice ?? 0)
+      : (savedLine?.unitPrice ?? savedLine?.articles?.sellingPrice ?? art?.sellingPrice ?? 0);
+
+    return {
+      name: art?.commercialName || art?.name || 'Article inconnu',
+      quantity: item.quantity,
+      unitPrice,
+      totalPrice: unitPrice * item.quantity
+    };
   }
 
   private resolveClient(clientId: number): any | undefined {
@@ -476,16 +500,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     const clientCode = clientObj?.code || '';
     const commercialName = formValue.commercial || this.currentUser?.username || '';
 
-    const receiptArticles = (formValue.articles || []).map((item: any) => {
-      const art = this.resolveArticle(item.articleId);
-      const price = formValue.saleType === 'CREDIT' ? (art?.creditSalePrice || 0) : (art?.sellingPrice || 0);
-      return {
-        name: art?.commercialName || art?.name || 'Article inconnu',
-        quantity: item.quantity,
-        unitPrice: price,
-        totalPrice: price * item.quantity
-      };
-    });
+    const receiptArticles = (formValue.articles || []).map((item: any) =>
+      this.resolveReceiptArticleLine(item, savedCredit, formValue.saleType)
+    );
 
     const totalAmount = savedCredit?.totalAmount || formValue.totalAmount || 0;
     const advance = savedCredit?.advance !== undefined ? savedCredit.advance : (formValue.advance || 0);
