@@ -19,6 +19,7 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 
 ### Changed
 
+- **Backend —** livraison des demandes de stock : le stock mensuel du commercial est rattaché au mois de la date de livraison (et non plus à la date de création de la demande).
 - **Mobile —** CI E2E : suite smoke consolidée (1 login partagé par worker), retries réduits, fail-fast et suppression du `npm cache clean` pour accélérer le pipeline `build-mobile`.
 
 ### Fixed

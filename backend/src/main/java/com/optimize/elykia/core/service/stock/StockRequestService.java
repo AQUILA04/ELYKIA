@@ -278,12 +278,16 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         request.setTotalCreditSalePrice(totalCreditSalePrice);
         request.setTotalPurchasePrice(totalPurchasePrice);
 
-        // 2. Mettre à jour le stock mensuel du commercial
+        LocalDate deliveryDate = LocalDate.now();
+        request.setDeliveryDate(deliveryDate);
+        request.setMonth(deliveryDate.getMonthValue());
+        request.setYear(deliveryDate.getYear());
+        request.setAccountingDate(deliveryDate);
+
+        // 2. Mettre à jour le stock mensuel du commercial (mois basé sur la date de livraison)
         updateCommercialMonthlyStock(request);
 
         request.setStatus(StockRequestStatus.DELIVERED);
-        request.setDeliveryDate(LocalDate.now());
-        request.setAccountingDate(LocalDate.now());
         StockRequest savedRequest = repository.save(request);
 
         if (metricsPublisher != null) {
@@ -404,8 +408,9 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     }
 
     private void updateCommercialMonthlyStock(StockRequest request) {
-        int month = request.getMonth() != null ? request.getMonth() : LocalDate.now().getMonthValue();
-        int year = request.getYear() != null ? request.getYear() : LocalDate.now().getYear();
+        LocalDate stockDate = Objects.nonNull(request.getDeliveryDate()) ? request.getDeliveryDate() : LocalDate.now();
+        int month = stockDate.getMonthValue();
+        int year = stockDate.getYear();
 
         CommercialMonthlyStock monthlyStock = monthlyStockRepository
                 .findByCollectorAndMonthAndYear(request.getCollector(), month, year)
