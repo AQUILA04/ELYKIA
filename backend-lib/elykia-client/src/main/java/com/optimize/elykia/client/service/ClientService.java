@@ -299,7 +299,7 @@ public class ClientService extends GenericService<Client, Long> {
         return existingClient;
     }
 
-    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(java.util.Objects).toString(#username, '') + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
+    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(java.util.Objects).toString(#username, '') + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
     public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, Pageable pageable) {
         String effectiveUsername = null;
         if (username != null && username.startsWith("COM")) {
@@ -352,7 +352,7 @@ public class ClientService extends GenericService<Client, Long> {
                 State.ENABLED);
     }
 
-    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, key = "'commercial-' + #username + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
+    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, key = "'commercial-' + #username + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
     public Page<ClientRespDto> getAllClientByCollector(String username, Pageable pageable) {
         return getRepository().findByCollectorAndClientTypeAndState(username, ClientType.CLIENT, State.ENABLED,
                 pageable);

@@ -1,6 +1,8 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AccountService } from '../service/account.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
@@ -15,6 +17,7 @@ import { AuthService } from '../../auth/service/auth.service';
 })
 export class AccountAddComponent implements OnInit, OnDestroy {
   private dateIntervalId?: ReturnType<typeof setInterval>;
+  private readonly destroy$ = new Subject<void>();
 
   accountForm!: FormGroup;
   currentUser: any;
@@ -48,19 +51,22 @@ export class AccountAddComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
 
-    this.route.params.subscribe(params => {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.accountId = params['id'] ? +params['id'] : undefined;
       if (this.accountId) {
         this.loadAccount(this.accountId);
-      } else {
-        this.route.queryParams.subscribe(queryParams => {
-          const totalAccounts = queryParams['totalAccounts'] ? +queryParams['totalAccounts'] : 0;
-          const nextAccountNumber = (totalAccounts + 1).toString().padStart(4, '0');
-          const generatedAccountNumber = `002102${nextAccountNumber}`;
-          this.accountNumber = generatedAccountNumber;
-          this.accountForm.patchValue({ accountNumber: generatedAccountNumber });
-        });
       }
+    });
+
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(queryParams => {
+      if (this.accountId) {
+        return;
+      }
+      const totalAccounts = queryParams['totalAccounts'] ? +queryParams['totalAccounts'] : 0;
+      const nextAccountNumber = (totalAccounts + 1).toString().padStart(4, '0');
+      const generatedAccountNumber = `002102${nextAccountNumber}`;
+      this.accountNumber = generatedAccountNumber;
+      this.accountForm.patchValue({ accountNumber: generatedAccountNumber });
     });
 
     this.dateIntervalId = setInterval(() => {
@@ -69,6 +75,8 @@ export class AccountAddComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     if (this.dateIntervalId) {
       clearInterval(this.dateIntervalId);
     }

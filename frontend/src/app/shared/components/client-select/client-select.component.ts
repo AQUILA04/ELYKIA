@@ -1,5 +1,5 @@
 import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Client, ClientService } from 'src/app/client/service/client.service';
@@ -27,7 +27,7 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
 
   clients: Client[] = [];
   clientsLoading = false;
-  selectedClientId: number | null = null;
+  clientControl = new FormControl<number | null>(null);
 
   private readonly pageSize = 20;
   private clientsPage = 0;
@@ -38,6 +38,7 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
   private searchSub?: Subscription;
   private loadClientsSub?: Subscription;
   private ensureClientSub?: Subscription;
+  private clientControlSub?: Subscription;
 
   private onChange: (value: number | null) => void = () => {};
   private onTouched: () => void = () => {};
@@ -45,6 +46,11 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
   constructor(private clientService: ClientService) {}
 
   ngOnInit(): void {
+    this.clientControlSub = this.clientControl.valueChanges.subscribe(clientId => {
+      this.onChange(clientId);
+      this.onTouched();
+    });
+
     this.searchSub = this.clientsSearch$.pipe(
       debounceTime(300),
       distinctUntilChanged()
@@ -71,6 +77,7 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
   }
 
   ngOnDestroy(): void {
+    this.clientControlSub?.unsubscribe();
     this.searchSub?.unsubscribe();
     this.loadClientsSub?.unsubscribe();
     this.ensureClientSub?.unsubscribe();
@@ -94,14 +101,8 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
     this.clientsSearch$.next(event.term ?? '');
   }
 
-  onSelectionChange(clientId: number | null): void {
-    this.selectedClientId = clientId;
-    this.onChange(clientId);
-    this.onTouched();
-  }
-
   writeValue(value: number | null): void {
-    this.selectedClientId = value;
+    this.clientControl.setValue(value, { emitEvent: false });
     if (value != null && !this.getClient(value)) {
       this.ensureClientLoaded(value);
     }
@@ -117,6 +118,11 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
+    if (isDisabled) {
+      this.clientControl.disable({ emitEvent: false });
+    } else {
+      this.clientControl.enable({ emitEvent: false });
+    }
   }
 
   alwaysPassSearch = () => true;

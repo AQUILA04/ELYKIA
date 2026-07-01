@@ -39,8 +39,9 @@ Sections are ordered **descending by date**: most recent at the top, oldest at t
 ### Fixed
 
 - **Frontend —** `ArticleSelectorComponent` : nettoyage des abonnements `valueChanges` par ligne (PU achat) et des requêtes HTTP lazy-load à la destruction, suppression ou nouvelle recherche — évite les fuites mémoire.
-- **Frontend —** `ClientSelectComponent` : `ngModel` standalone (CVA + reactive forms) ; annulation des requêtes HTTP paginées et de préchargement client à la destruction ou nouvelle recherche.
-- **Backend —** clés de cache paginées articles/clients : `#pageable.sort.toString()` pour un tri déterministe dans les clés Caffeine.
+- **Frontend —** `ClientSelectComponent` : binding via `FormControl` interne (CVA pur, sans `ngModel`) ; annulation des requêtes HTTP paginées et de préchargement client à la destruction ou nouvelle recherche.
+- **Backend —** clés de cache paginées articles/clients : `PageableCacheKeyHelper.sortKey()` normalise le tri (`property:DIRECTION`) au lieu de `Sort.toString()`.
+- **Frontend —** `AccountAddComponent` : abonnements `route.params` / `queryParams` séparés avec `takeUntil` — corrige la fuite mémoire des souscriptions imbriquées.
 - **Backend —** `disableArticles` / `enableArticles` : logique extraite en méthodes privées pour éviter l'auto-appel Spring (proxy AOP) et garantir une invalidation cache unique à la fin du batch.
 - **Deploy —** `rollback.sh` : lecture/écriture des releases et du pointeur `*_current.txt` sous `/opt/elykia/<env>/releases/` (aligné sur `deploy.sh`), mise à jour de `/opt/elykia/<env>/.env` et `docker compose` avec `--project-name` / `--env-file` ; extraction des images tolérante (`grep || true`) ; `--last` basé sur le pointeur courant et l'ordre chronologique des fichiers (plus le tri `mtime`) pour enchaîner plusieurs rollbacks — corrige l'échec « No current release pointer found » en prod.
 - **Backend —** `AccountingDayService.getCurrentAccountingDate` : lecture seule (plus de fermeture/ouverture automatique à chaque appel) ; bascule journalière via `ensureCurrentAccountingDay()` (endpoint `/current`, cron 00:05) ; correction `openAccountingDay` (journée ouverte périmée, boucle bornée) pour éviter la saturation CPU ; verrou unique + méthodes internes sans `synchronized` imbriqué.
