@@ -2,6 +2,7 @@ package com.optimize.elykia.core.service;
 
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.dto.ArticlesDto;
 import com.optimize.elykia.core.dto.StockEntry;
 import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.dto.StockEntryDto;
@@ -73,6 +74,35 @@ class ArticlesServiceTest {
             Double requested = invocation.getArgument(1);
             return requested != null && requested > 0 ? requested : target.getPurchasePrice();
         });
+    }
+
+    @Test
+    void createArticles_ShouldGenerateCodeBeforePersist() {
+        ArticlesDto dto = new ArticlesDto();
+        dto.setType("TOMATE");
+        dto.setMarque("SUPER8");
+        dto.setModel("70G PETIT");
+        dto.setName("SUPER 8");
+        dto.setPurchasePrice(96.0);
+        dto.setSellingPrice(125.0);
+        dto.setCreditSalePrice(150.0);
+
+        Articles mapped = new Articles();
+        mapped.setType(dto.getType());
+        mapped.setMarque(dto.getMarque());
+        mapped.setModel(dto.getModel());
+        mapped.setName(dto.getName());
+        mapped.setPurchasePrice(dto.getPurchasePrice());
+        mapped.setSellingPrice(dto.getSellingPrice());
+        mapped.setCreditSalePrice(dto.getCreditSalePrice());
+
+        when(articlesMapper.toEntity(dto)).thenReturn(mapped);
+        when(articlesRepository.save(any(Articles.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Articles result = articlesService.createArticles(dto);
+
+        assertThat(result.getCode()).isEqualTo("TOMSU70S8150");
+        verify(articlesRepository).save(result);
     }
 
     @Test

@@ -29,6 +29,7 @@ import com.optimize.elykia.core.repository.StockReceptionRepository;
 import com.optimize.elykia.core.service.expense.ExpenseService;
 import com.optimize.elykia.core.service.stock.StockValuationFacade;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
+import com.optimize.elykia.core.util.ArticleCodeGenerator;
 import lombok.Getter;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -105,6 +106,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }, allEntries = true)
     public Articles createArticles(ArticlesDto dto) {
         Articles articles = articlesMapper.toEntity(dto);
+        articles.setCode(ArticleCodeGenerator.generate(articles));
         return create(articles);
 
     }
@@ -163,6 +165,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
         articles.setDaysOfStockAvailable(oldOne.getDaysOfStockAvailable());
         articles.setLastRestockDate(oldOne.getLastRestockDate());
         articles.setStockTurnoverRate(oldOne.getStockTurnoverRate());
+        articles.setCode(oldOne.getCode());
         if (hasPriceChanged(oldOne, articles)) {
             articlePriceHistoryRepository.save(new ArticlePriceHistory(
                     oldOne,

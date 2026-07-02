@@ -45,6 +45,7 @@ public interface ArticlesRepository extends GenericRepository<Articles, Long> {
                     cb.like(cb.lower(root.get("marque")), searchKeyword),
                     cb.like(cb.lower(root.get("name")), searchKeyword),
                     cb.like(cb.lower(root.get("model")), searchKeyword),
+                    cb.like(cb.lower(root.get("code")), searchKeyword),
                     cb.like(cb.lower(root.get("type").as(String.class)), searchKeyword));
             if (StringUtils.isNumeric(searchKeyword)) {
                 cb.or(p, cb.equal(root.get("purchasePrice"), Double.valueOf(searchKeyword)));
@@ -63,6 +64,7 @@ public interface ArticlesRepository extends GenericRepository<Articles, Long> {
                     cb.like(cb.lower(root.get("marque")), searchKeyword),
                     cb.like(cb.lower(root.get("name")), searchKeyword),
                     cb.like(cb.lower(root.get("model")), searchKeyword),
+                    cb.like(cb.lower(root.get("code")), searchKeyword),
                     cb.like(cb.lower(root.get("type").as(String.class)), searchKeyword));
             if (StringUtils.isNumeric(searchKeyword)) {
                 cb.or(p, cb.equal(root.get("purchasePrice"), Double.valueOf(searchKeyword)));

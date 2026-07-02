@@ -22,7 +22,7 @@
           </ng-template>
 
           <ng-template ng-option-tmp let-item="item">
-            <div class="article-option">
+            <div class="article-option" [attr.data-article-id]="item.id">
               <div class="option-title">{{ item.commercialName || item.name }}{{ item.name && item.commercialName !== item.name ? ' | ' + item.name : '' }}</div>
               <small class="option-details">
                 Marque : {{ item.marque }} · Modèle : {{ item.model }}

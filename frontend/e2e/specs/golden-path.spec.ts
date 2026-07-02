@@ -189,7 +189,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await chooseCurrentMonthIfPrompted(page);
 
     await selectNgSelectOption(page, 'e2e-stock-request-collector', TEST_COMMERCIAL_USERNAME);
-    await selectArticleInSelector(page, 0, testArticle.label, E2E_STOCK_REQUEST_QTY);
+    await selectArticleInSelector(page, 0, testArticle.label, E2E_STOCK_REQUEST_QTY, testArticle.id);
 
     await page.getByTestId('e2e-stock-request-submit').click();
     await expect(page).toHaveURL(/\/stock\/request/, { timeout: 30_000 });
@@ -281,6 +281,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
       clientLastName,
       testArticle.label,
       E2E_CREDIT_SALE_QTY,
+      testArticle.id,
     );
     await submitCreditForm(page);
 
@@ -405,7 +406,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await page.getByTestId('e2e-stock-return-new-btn').click();
 
     await expect(page.getByTestId('e2e-stock-return-form')).toBeVisible();
-    await selectArticleInSelector(page, 0, testArticle.label, E2E_STOCK_RETURN_QTY);
+    await selectArticleInSelector(page, 0, testArticle.label, E2E_STOCK_RETURN_QTY, testArticle.id);
     await page.getByTestId('e2e-stock-return-submit').click();
 
     await expect(page).toHaveURL(/\/stock\/return/, { timeout: 30_000 });
@@ -455,7 +456,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await page.locator('ngx-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
 
     await selectNgSelectOption(page, 'e2e-credit-client', clientLastName);
-    await selectArticleInSelector(page, 0, testArticle.label, E2E_CASH_SALE_QTY);
+    await selectArticleInSelector(page, 0, testArticle.label, E2E_CASH_SALE_QTY, testArticle.id);
     await submitCreditForm(page);
 
     await expect.poll(async () => {
@@ -556,7 +557,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
 
     await expect(page.getByTestId('e2e-stock-tontine-request-form')).toBeVisible();
     await selectNgSelectOption(page, 'e2e-stock-tontine-request-collector', TEST_COMMERCIAL_USERNAME);
-    await selectArticleInSelector(page, 0, testArticle.label, E2E_STOCK_TONTINE_REQUEST_QTY);
+    await selectArticleInSelector(page, 0, testArticle.label, E2E_STOCK_TONTINE_REQUEST_QTY, testArticle.id);
     await page.getByTestId('e2e-stock-tontine-request-submit').click();
 
     await expect(page).toHaveURL(/\/stock-tontine\/request/, { timeout: 30_000 });

@@ -90,13 +90,14 @@ export async function fillCreditSaleForm(
   clientLastName: string,
   articleLabel: string,
   quantity: number,
+  articleId?: number,
 ): Promise<void> {
   await expect(page.getByTestId('e2e-credit-add-form')).toBeVisible();
   await selectNgSelectOption(page, 'e2e-credit-commercial', commercialUsername);
   await page.locator('ngx-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
 
   await selectNgSelectOption(page, 'e2e-credit-client', clientLastName);
-  await selectArticleInSelector(page, 0, articleLabel, quantity);
+  await selectArticleInSelector(page, 0, articleLabel, quantity, articleId);
 
   await expect(page.getByTestId('e2e-credit-submit')).toBeEnabled({ timeout: 30_000 });
 }

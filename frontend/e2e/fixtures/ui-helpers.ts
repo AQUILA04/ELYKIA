@@ -82,15 +82,81 @@ export async function selectArticleInSelector(
   rowIndex: number,
   searchText: string,
   quantity: number,
+  articleId?: number,
 ): Promise<void> {
   await ensureArticleSelectorRow(page, rowIndex);
   const select = page.getByTestId(`e2e-article-select-${rowIndex}`);
   await select.locator('.ng-select-container').click();
-  await select.locator('input').fill(searchText);
-  const option = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: searchText }).first();
-  await expect(option).toBeVisible({ timeout: 15_000 });
-  await option.click();
-  await page.getByTestId(`e2e-article-quantity-${rowIndex}`).fill(String(quantity));
+
+  await page
+    .waitForResponse(
+      (resp) => resp.url().includes('/api/v1/articles') && resp.ok(),
+      { timeout: 30_000 },
+    )
+    .catch(() => {});
+
+  const trySelectVisibleOption = async (): Promise<boolean> => {
+    if (articleId != null) {
+      const byId = page.locator(`.ng-dropdown-panel [data-article-id="${articleId}"]`);
+      if (await byId.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await byId.click();
+        return true;
+      }
+    }
+
+    const namePart = searchText.includes(':')
+      ? searchText.split(':').slice(1).join(':').trim()
+      : searchText.trim();
+    let option = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: searchText });
+    if ((await option.count()) === 0 && namePart) {
+      option = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: namePart });
+    }
+    if (await option.first().isVisible({ timeout: 2000 }).catch(() => false)) {
+      await option.first().click();
+      return true;
+    }
+    return false;
+  };
+
+  if (await trySelectVisibleOption()) {
+    await page.getByTestId(`e2e-article-quantity-${rowIndex}`).fill(String(quantity));
+    return;
+  }
+
+  const namePart = searchText.includes(':')
+    ? searchText.split(':').slice(1).join(':').trim()
+    : searchText.trim();
+  const typePart = searchText.includes(':') ? (searchText.split(':')[0]?.trim() ?? '') : '';
+  const searchTerms = [
+    namePart.split(/\s+/).filter(Boolean)[0] ?? '',
+    namePart,
+    typePart,
+    searchText.trim(),
+  ].filter((term, index, all) => term.length >= 2 && all.indexOf(term) === index);
+
+  for (const term of searchTerms) {
+    const responsePromise = page.waitForResponse(
+      (resp) =>
+        resp.url().includes('/api/v1/articles') &&
+        ['GET', 'POST'].includes(resp.request().method()) &&
+        resp.ok(),
+      { timeout: 30_000 },
+    );
+
+    await select.locator('input').fill('');
+    await select.locator('input').pressSequentially(term, { delay: 40 });
+    await responsePromise.catch(() => {});
+    await page.waitForTimeout(450);
+
+    if (await trySelectVisibleOption()) {
+      await page.getByTestId(`e2e-article-quantity-${rowIndex}`).fill(String(quantity));
+      return;
+    }
+  }
+
+  throw new Error(
+    `Article introuvable dans article-selector (hint: ${searchText}${articleId != null ? `, id=${articleId}` : ''})`,
+  );
 }
 
 /** Confirme une boîte SweetAlert2 (Oui / OK / Confirmer). */

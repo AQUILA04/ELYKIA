@@ -37,6 +37,7 @@ public class Articles extends Auditable<String> {
     private String model;
     @NotBlank
     private String type;
+    private String code;
     @PositiveOrZero
     private Integer stockQuantity = 0;
 

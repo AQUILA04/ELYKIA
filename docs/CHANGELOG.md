@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.3] — 2026-07-02
+
+### Fixed
+
+- `ArticleSelectorComponent` : pagination lazy-load (`totalPages` depuis la réponse API), recherche client sur marque/modèle/type, `data-article-id` sur les options pour les E2E.
+- E2E golden path : `selectArticleInSelector` compatible chargement paginé serveur (debounce, termes partiels, sélection par id).
+
 ## Frontend — [2.9.2] — 2026-07-02
 
 ### Fixed
@@ -142,6 +149,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - badge « Crédit en cours » (liste clients) : affiché uniquement si une distribution active existe ; réconciliation automatique de `creditInProgress` en base lors de l'init (après distributions), de la sync et du chargement paginé (page 0).
 - correction de l'écrasement de l'état `isLocal`/`isSync` lors de la modification d'un client synchronisé.
 - suppression des entités synchronisées « fantômes » ou périmées lors de la ré-initialisation quotidienne, afin de refléter la dernière version serveur sans charger l'intégralité des clients en mémoire.
+
+## Backend — [1.0.1] — 2026-07-02
+
+### Added
+
+- champ `code` sur les articles avec génération automatique à la création (`type`×3 + `marque`×2 + `model`×2 + initiales du `name` + `creditSalePrice`) ; migration Flyway `V69` pour ajouter la colonne et backfiller les articles existants sans code ; recherche elasticsearch étendue au code.
 
 ## Backend — [1.0.0] — 2026-07-02
 

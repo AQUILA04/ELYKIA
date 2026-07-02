@@ -278,14 +278,18 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     this.loadArticlesSub?.unsubscribe();
     this.loadArticlesSub = request$.subscribe({
       next: (response: any) => {
-        const newItems = response.data?.content || [];
+        const data = response.data;
+        const newItems = data?.content || [];
         this.indexArticles(newItems);
         const existingIds = new Set(this.articles.map(article => article.id));
         this.articles = [
           ...this.articles,
           ...newItems.filter((article: any) => !existingIds.has(article.id))
         ];
-        this.articlesTotalPages = response.data?.totalPages ?? 0;
+        const totalElements = data?.page?.totalElements ?? data?.totalElements ?? 0;
+        this.articlesTotalPages = data?.page?.totalPages
+          ?? data?.totalPages
+          ?? (totalElements > 0 ? Math.ceil(totalElements / this.pageSize) : 0);
         this.articlesLoading = false;
         this.updateAvailableArticleLists();
       },
@@ -358,9 +362,10 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
       return true;
     }
     term = term.toLowerCase();
-    const label = (item.commercialName || item.name || '').toLowerCase();
-    const name = (item.name || '').toLowerCase();
-    return label.includes(term) || name.includes(term);
+    const fields = [item.commercialName, item.name, item.marque, item.model, item.type]
+      .filter(Boolean)
+      .map((value: string) => String(value).toLowerCase());
+    return fields.some(field => field.includes(term));
   };
 
   alwaysPassSearch = () => true;
