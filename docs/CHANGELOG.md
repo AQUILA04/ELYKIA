@@ -192,6 +192,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Fixed
 
+- `ArticlesService` : `@CacheEvict` sur enable/disable utilise les noms de cache en littéral (tableau inline) — corrige l'échec de compilation CI (`String[]` non utilisable comme constante d'annotation Java), qui masquait des centaines d'erreurs Lombok fantômes.
 - `ClientService` : invalidation cache clients paginés (`@EvictClientListCaches`, `beforeInvocation = true`) pour éviter des listes obsolètes après échec de `delete` ou mutation partielle.
 - `ClientService` : invalidation cache clients paginés sur mise à jour localisation, photos (URL, binaire, batch).
 - clé cache `ClientService.getAll()` : filtre commercial normalisé via `ClientCacheKeyHelper` (alignée sur `effectiveUsername` réellement utilisé en requête).
