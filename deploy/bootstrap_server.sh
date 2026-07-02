@@ -158,9 +158,9 @@ After=docker.service
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=$DEPLOY_PATH/deploy
-ExecStart=/usr/bin/docker compose -f $DEPLOY_PATH/deploy/docker-compose.prod.yml pull || true
-ExecStart=/usr/bin/docker compose -f $DEPLOY_PATH/deploy/docker-compose.prod.yml up -d
-ExecStop=/usr/bin/docker compose -f $DEPLOY_PATH/deploy/docker-compose.prod.yml down
+ExecStart=/usr/bin/docker compose -f $DEPLOY_PATH/deploy/docker-compose.prod.yml --project-name elykia-prod --env-file $DEPLOY_PATH/prod/.env pull || true
+ExecStart=/usr/bin/docker compose -f $DEPLOY_PATH/deploy/docker-compose.prod.yml --project-name elykia-prod --env-file $DEPLOY_PATH/prod/.env up -d
+ExecStop=/usr/bin/docker compose -f $DEPLOY_PATH/deploy/docker-compose.prod.yml --project-name elykia-prod --env-file $DEPLOY_PATH/prod/.env down
 
 [Install]
 WantedBy=multi-user.target

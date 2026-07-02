@@ -296,6 +296,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra
 
+### Fixed
+
+- `bootstrap_server.sh` : service systemd `elykia.service` aligné sur `deploy.sh` (`--project-name elykia-prod`, `--env-file /opt/elykia/prod/.env`) pour ne plus recréer la stack fantôme `deploy-db-1` au boot.
+- `import-db.sh` : heuristique de sélection du conteneur Postgres exclut le projet Compose legacy `deploy`.
+- `README.md` / `EXPLOITATION.md` : exemples et dépannage mis à jour (`elykia-test-db-1` / `elykia-prod-db-1` au lieu de `deploy-db-1`).
+
+### Changed
+
+- CI `build-frontend` / `build-backend` : actions Docker mises à jour vers les majors Node.js 24 (`setup-buildx-action@v4`, `login-action@v4`, `metadata-action@v6`, `build-push-action@v7`).
+
 ### Added
 
 - skill et règle Cursor `mobile-version-bump` : incrément obligatoire de la version mobile (`package.json`, `environment.ts`, `environment.prod.ts`) à chaque modification sous `mobile/`.

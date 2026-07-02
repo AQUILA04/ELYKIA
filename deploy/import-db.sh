@@ -98,21 +98,23 @@ else
       done < <(docker ps --format '{{.ID}} {{.Image}} {{.Names}}')
     fi
 
-    # 3) prefer any container with compose service=db
+    # 3) prefer any container with compose service=db (exclude legacy project "deploy")
     if [ -z "$pick" ]; then
       while read -r id image name; do
         svc=$(docker inspect -f '{{index .Config.Labels "com.docker.compose.service"}}' "$id" 2>/dev/null || true)
-        if [ "$svc" = "db" ]; then
+        proj=$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$id" 2>/dev/null || true)
+        if [ "$svc" = "db" ] && [ "$proj" != "deploy" ]; then
           pick="$id"
           break
         fi
       done < <(docker ps --format '{{.ID}} {{.Image}} {{.Names}}')
     fi
 
-    # 4) prefer postgres image containers
+    # 4) prefer postgres image containers (exclude legacy project "deploy")
     if [ -z "$pick" ]; then
       while read -r id image name; do
-        if echo "$image" | grep -qi "postgres"; then
+        proj=$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$id" 2>/dev/null || true)
+        if echo "$image" | grep -qi "postgres" && [ "$proj" != "deploy" ]; then
           pick="$id"
           break
         fi

@@ -162,7 +162,7 @@ ssh user@server
 # - restore using compose detection (preferred):
 ./deploy/import-db.sh test /tmp/dump.sql.gz
 # - force a specific container (useful when multiple stacks exist):
-./deploy/import-db.sh test /tmp/dump.sql.gz deploy-db-1
+./deploy/import-db.sh test /tmp/dump.sql.gz elykia-test-db-1
 ```
 
 Le script `import-db.sh` :
@@ -181,6 +181,7 @@ Le script `import-db.sh` :
 | `deploy/.env: No such file or directory` | Scripts `deploy/` obsolètes sur le serveur | `./update-deploy.sh` ou `git pull` puis recopier `deploy/` |
 | `role "elykia_prod" does not exist` | `db_backup.sh` ciblait un autre container Postgres, ou variables héritées du shell parent | Mettre à jour les scripts ; passer le container explicitement : `./import-db.sh prod /path/dump elykia-prod-db-1` |
 | Backend OK mais backup échoue | L'utilisateur Postgres du **volume** peut différer de celui dans `.env` (init au premier démarrage) | Les scripts relisent `POSTGRES_USER` depuis le container ; vérifier avec `docker exec elykia-prod-db-1 psql -U postgres -c '\du'` |
+| Connexion / login échoue, conteneur `deploy-db-1` actif | Ancienne stack Compose projet `deploy` (avant split test/prod), souvent relancée par `elykia.service` | Arrêter la stack fantôme : `docker compose -f docker-compose.prod.yml down` (sans `--project-name`) ; désactiver ou corriger `/etc/systemd/system/elykia.service` pour utiliser `--project-name elykia-prod` |
 
 Sauvegarde manuelle (même container que prod) :
 ```bash
