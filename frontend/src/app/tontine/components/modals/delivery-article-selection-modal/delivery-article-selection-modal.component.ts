@@ -5,17 +5,16 @@ import { FormControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, switchMap, catchError, map, startWith, takeUntil, finalize } from 'rxjs/operators';
 import { of, Subject, Subscription } from 'rxjs';
 import { TontineDeliveryService } from '../../../services/tontine-delivery.service';
-import { ItemService } from 'src/app/article/service/item.service';
+import { Article as CatalogArticle, ItemService } from 'src/app/article/service/item.service';
 import {
   TontineMember,
-  Article,
   DeliveryItemDto,
   CreateDeliveryDto,
   formatCurrency
 } from '../../../types/tontine.types';
 
 interface SelectedArticle {
-  article: Article;
+  article: CatalogArticle;
   quantity: number;
   totalPrice: number;
 }
@@ -30,7 +29,7 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
 
   member: TontineMember;
   searchControl = new FormControl('');
-  filteredArticles: Article[] = [];
+  filteredArticles: CatalogArticle[] = [];
   selectedArticles: SelectedArticle[] = [];
   loading = false;
   error: string | null = null;
@@ -98,8 +97,12 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
       this.articlesSearchTerm
     ).pipe(
       map(response => {
-        const content = (response.data?.content || []) as Article[];
-        this.articlesTotalPages = response.data?.totalPages ?? 0;
+        const data = response.data;
+        const content = data?.content ?? [];
+        const totalElements = data?.page?.totalElements ?? data?.totalElements ?? 0;
+        this.articlesTotalPages = data?.page?.totalPages
+          ?? data?.totalPages
+          ?? (totalElements > 0 ? Math.ceil(totalElements / this.pageSize) : 0);
         return append ? [...this.filteredArticles, ...content] : content;
       }),
       finalize(() => {
@@ -141,7 +144,11 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
     this.autocompletePanel = undefined;
   }
 
-  onArticleSelected(article: Article): void {
+  getArticleCode(article: CatalogArticle): string {
+    return String(article.id);
+  }
+
+  onArticleSelected(article: CatalogArticle): void {
     const existing = this.selectedArticles.find(sa => sa.article.id === article.id);
     if (existing) {
       existing.quantity++;
@@ -156,7 +163,7 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
     this.searchControl.setValue('');
   }
 
-  displayArticle(article: Article | null): string {
+  displayArticle(article: CatalogArticle | null): string {
     return article ? '' : '';
   }
 

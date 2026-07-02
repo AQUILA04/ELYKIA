@@ -42,7 +42,7 @@
           [attr.data-article-id]="article.id">
           <div class="article-option">
             <div class="article-info">
-              <span class="article-code">{{ article.code }}</span>
+              <span class="article-code">#{{ getArticleCode(article) }}</span>
               <span class="article-name">{{ article.name }}</span>
             </div>
             <span class="article-price">{{ formatCurrency(article.sellingPrice) }}</span>
@@ -75,7 +75,7 @@
         <tr *ngFor="let selected of selectedArticles">
           <td>
             <div class="article-cell">
-              <span class="code">{{ selected.article.code }}</span>
+              <span class="code">#{{ getArticleCode(selected.article) }}</span>
               <span class="name">{{ selected.article.name }}</span>
             </div>
           </td>

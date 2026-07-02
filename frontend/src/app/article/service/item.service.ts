@@ -100,7 +100,12 @@ export interface ArticlePriceHistoryItem {
 export interface ArticleResponse {
   data: {
     content: Article[];
-    totalElements: number;
+    totalElements?: number;
+    totalPages?: number;
+    page?: {
+      totalElements: number;
+      totalPages: number;
+    };
   };
 }
 

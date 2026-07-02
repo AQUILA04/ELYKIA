@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.2] — 2026-07-02
+
+### Fixed
+
+- modal livraison tontine : alignement des types articles sur `ItemService` (plus de cast vers `tontine.types.Article`) et pagination `totalPages` depuis la réponse paginée API.
+
 ## Frontend — [2.9.1] — 2026-07-02
 
 ### Added
