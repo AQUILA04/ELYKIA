@@ -26,7 +26,7 @@ public class StockRequestItem extends Auditable<String> {
 
     private Integer quantity;
 
-    // Prix enregistrés au moment de la demande/sortie
+    // Prix indicatifs à la création ; prix définitifs figés à la livraison
     @Column(columnDefinition = "double precision default 0")
     private Double unitPrice; // Prix de vente unitaire (creditSalePrice)
 

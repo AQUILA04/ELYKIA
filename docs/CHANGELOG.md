@@ -166,6 +166,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Changed
 
+- livraison des demandes de sortie (crédit et tontine) : prix de vente catalogue et prix d'achat courants appliqués à la livraison (FIFO : coût moyen consommé ; legacy : PU achat catalogue), au lieu de conserver les prix figés à la création.
 - export PDF sorties/retours de stock : filtrage des sorties sur la date de livraison et des retours sur la date de réception (au lieu de la date de demande / création du retour).
 - livraison des demandes de stock : le stock mensuel du commercial est rattaché au mois de la date de livraison (et non plus à la date de création de la demande).
 - versements caisse : colonne `surplusAmount` (migration V59) pour tracer l'écart positif entre billetage physique et répartition système ; validation assouplie (manquant autorisé via versements partiels successifs).

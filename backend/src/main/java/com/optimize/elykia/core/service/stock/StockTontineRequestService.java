@@ -17,6 +17,7 @@ import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.core.util.StockRequestDeliveryPricing;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -203,14 +204,17 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             article.makeRelease(item.getQuantity());
             articlesService.update(article);
 
-            if (item.getUnitPrice() == null || item.getUnitPrice() == 0) {
-                item.setUnitPrice(article.getCreditSalePrice());
-            }
-            if (stockValuationFacade.isFifoEnabled()) {
-                item.setPurchasePrice(consumption.getAverageUnitCost());
-            } else if (item.getPurchasePrice() == null || item.getPurchasePrice() == 0) {
-                item.setPurchasePrice(article.getPurchasePrice());
-            }
+            StockRequestDeliveryPricing.applyAtDelivery(
+                    item,
+                    article,
+                    stockValuationFacade.isFifoEnabled(),
+                    consumption.getAverageUnitCost());
+        }
+
+        deliveredItemDTOs.clear();
+        for (StockTontineRequestItem item : deliverableItems) {
+            deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(
+                    item.getItemName(), item.getQuantity(), item.getUnitPrice()));
         }
 
         // update totals

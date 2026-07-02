@@ -48,6 +48,7 @@ import org.thymeleaf.context.Context;
 import com.optimize.elykia.core.dto.StockExportPdfContextDto;
 import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
 import com.optimize.elykia.core.util.MonthEndCalculator;
+import com.optimize.elykia.core.util.StockRequestDeliveryPricing;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 
 @Service
@@ -277,14 +278,17 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             article.makeRelease(item.getQuantity());
             articlesService.update(article);
 
-            if (item.getUnitPrice() == null || item.getUnitPrice() == 0) {
-                item.setUnitPrice(article.getCreditSalePrice());
-            }
-            if (stockValuationFacade.isFifoEnabled()) {
-                item.setPurchasePrice(consumption.getAverageUnitCost());
-            } else if (item.getPurchasePrice() == null || item.getPurchasePrice() == 0) {
-                item.setPurchasePrice(article.getPurchasePrice());
-            }
+            StockRequestDeliveryPricing.applyAtDelivery(
+                    item,
+                    article,
+                    stockValuationFacade.isFifoEnabled(),
+                    consumption.getAverageUnitCost());
+        }
+
+        deliveredItemDTOs.clear();
+        for (StockRequestItem item : deliverableItems) {
+            deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(
+                    item.getItemName(), item.getQuantity(), item.getUnitPrice()));
         }
 
         // update totals
