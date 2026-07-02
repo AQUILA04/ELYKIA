@@ -68,4 +68,4 @@ Format **SemVer** `MAJEUR.MINEUR.PATCH` (ex. `2.9.1`).
 
 ## Complément
 
-Appliquer aussi le skill **keep-changelog** pour documenter le changement dans `docs/CHANGELOG.md`.
+Appliquer aussi le skill **keep-changelog** : documenter le changement sous `## Mobile — [X.Y.Z] — YYYY-MM-DD` dans `docs/CHANGELOG.md` (version alignée sur les 3 fichiers ci-dessus, pas sous `[Unreleased]`).
