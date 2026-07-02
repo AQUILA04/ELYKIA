@@ -9,7 +9,7 @@ import { AuthService } from '../../auth/service/auth.service';
 import { UserService } from '../../user/service/user.service';
 import { ClientService } from '../../client/service/client.service';
 import { StockReturnService } from '../services/stock-return.service';
-import { CommercialMonthlyStock } from '../models/commercial-stock.model';
+import { CommercialMonthlyStock, CommercialMonthlyStockItem } from '../models/commercial-stock.model';
 import { UserProfile } from '../../shared/models/user-profile.enum';
 import { StockReturnDto } from '../models/stock-return.model';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
@@ -148,27 +148,34 @@ export class StockReturnHistoriqueComponent implements OnInit, OnDestroy {
     this.currentStep = 3;
   }
 
-  isItemSelected(item: any): boolean {
+  isItemSelected(item: CommercialMonthlyStockItem): boolean {
     return this.selectedItems.some(s => s.stockItemId === item.id);
   }
 
-  getSelectedQty(item: any): number {
+  get availableStockItems(): CommercialMonthlyStockItem[] {
+    return this.selectedStock?.items?.filter(i => i.quantityRemaining > 0) ?? [];
+  }
+
+  get allItemsSelected(): boolean {
+    const available = this.availableStockItems;
+    return available.length > 0 && available.every(i => this.isItemSelected(i));
+  }
+
+  get someItemsSelected(): boolean {
+    const selectedCount = this.availableStockItems.filter(i => this.isItemSelected(i)).length;
+    return selectedCount > 0 && !this.allItemsSelected;
+  }
+
+  getSelectedQty(item: CommercialMonthlyStockItem): number {
     const found = this.selectedItems.find(s => s.stockItemId === item.id);
     return found ? found.quantity : 0;
   }
 
-  toggleArticle(item: any, event: Event): void {
+  toggleArticle(item: CommercialMonthlyStockItem, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
 
     if (checked) {
-      this.selectedItems.push({
-        stockItemId: item.id,
-        articleId: item.article.id,
-        articleName: `${item.article.commercialName} ${item.article.name}`,
-        quantity: 1,
-        unitPrice: item.weightedAverageUnitPrice || 0,
-        maxQuantity: item.quantityRemaining
-      });
+      this.selectedItems.push(this.buildSelectedItem(item, 1));
     } else {
       this.selectedItems = this.selectedItems.filter(s => s.stockItemId !== item.id);
     }
@@ -177,7 +184,49 @@ export class StockReturnHistoriqueComponent implements OnInit, OnDestroy {
     this.recalculateTotals();
   }
 
-  onQtyChange(item: any, event: Event): void {
+  toggleSelectAll(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
+      this.selectAllArticles();
+    } else {
+      this.deselectAllArticles();
+    }
+  }
+
+  onToggleSelectAllClick(): void {
+    if (this.allItemsSelected) {
+      this.deselectAllArticles();
+    } else {
+      this.selectAllArticles();
+    }
+  }
+
+  private selectAllArticles(): void {
+    this.selectedItems = this.availableStockItems.map(item =>
+      this.buildSelectedItem(item, item.quantityRemaining)
+    );
+    this.updateSelectedItemsControl();
+    this.recalculateTotals();
+  }
+
+  private deselectAllArticles(): void {
+    this.selectedItems = [];
+    this.updateSelectedItemsControl();
+    this.recalculateTotals();
+  }
+
+  private buildSelectedItem(item: CommercialMonthlyStockItem, quantity: number): ReturnSelectedItem {
+    return {
+      stockItemId: item.id!,
+      articleId: item.article.id,
+      articleName: `${item.article.commercialName} ${item.article.name}`,
+      quantity,
+      unitPrice: item.weightedAverageUnitPrice || 0,
+      maxQuantity: item.quantityRemaining
+    };
+  }
+
+  onQtyChange(item: CommercialMonthlyStockItem, event: Event): void {
     const val = (event.target as HTMLInputElement).value;
     const qty = parseInt(val, 10);
     const found = this.selectedItems.find(s => s.stockItemId === item.id);

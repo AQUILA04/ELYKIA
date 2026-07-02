@@ -357,6 +357,29 @@ $white:       #ffffff;
   .computed-sub { font-size: 11px; color: $muted; margin-top: 1px; }
 }
 
+.badge-info {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.btn-select-all {
+  margin-left: auto;
+  padding: 6px 14px;
+  border: 1px solid $navy;
+  border-radius: 8px;
+  background: $white;
+  color: $navy;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s;
+
+  &:hover {
+    background: #e8eef6;
+  }
+}
+
 // ─── Month cards ─────────────────────────────────────────────────────────────
 .month-cards {
   display: flex;

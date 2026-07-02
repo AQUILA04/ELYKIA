@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.5] — 2026-07-02
+
+### Fixed
+
+- modales détail stock (retours, demandes, tontine) : bouton « Fermer » stylisé navy (fond, padding, coins arrondis) via feuille de style partagée `stock-detail-modal.scss`.
+
+## Frontend — [2.9.4] — 2026-07-02
+
+### Added
+
+- retour stock historique : bouton et case d'en-tête « Tout sélectionner » pour cocher en masse les articles disponibles (quantité restante préremplie).
+
 ## Frontend — [2.9.3] — 2026-07-02
 
 ### Fixed
@@ -149,6 +161,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - badge « Crédit en cours » (liste clients) : affiché uniquement si une distribution active existe ; réconciliation automatique de `creditInProgress` en base lors de l'init (après distributions), de la sync et du chargement paginé (page 0).
 - correction de l'écrasement de l'état `isLocal`/`isSync` lors de la modification d'un client synchronisé.
 - suppression des entités synchronisées « fantômes » ou périmées lors de la ré-initialisation quotidienne, afin de refléter la dernière version serveur sans charger l'intégralité des clients en mémoire.
+
+## Backend — [1.0.2] — 2026-07-02
+
+### Fixed
+
+- `StockReturnService.createHistoriqueReturn` : persistance des lignes `StockReturnItem` pour tous les profils sans déduction du stock cible tant que le retour n'est pas validé ; déduction du stock historique et réintégration magasin uniquement à la création pour magasinier/admin, ou à la validation pour les autres profils.
 
 ## Backend — [1.0.1] — 2026-07-02
 

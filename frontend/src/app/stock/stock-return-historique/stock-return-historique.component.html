@@ -133,13 +133,28 @@
           Articles — Stock {{ getMonthName(selectedStock.month) | titlecase }} {{ selectedStock.year }}
         </h2>
         <span class="badge badge-info">Au moins 1 article</span>
+        <button
+          type="button"
+          class="btn-select-all"
+          *ngIf="availableStockItems.length > 0"
+          (click)="onToggleSelectAllClick()">
+          {{ allItemsSelected ? 'Tout désélectionner' : 'Tout sélectionner (' + availableStockItems.length + ')' }}
+        </button>
       </div>
       <div class="section-body">
         <div class="article-table-wrap">
           <table class="article-table">
             <thead>
               <tr>
-                <th style="width:40px;"></th>
+                <th style="width:40px;">
+                  <input
+                    type="checkbox"
+                    [checked]="allItemsSelected"
+                    [attr.aria-checked]="someItemsSelected ? 'mixed' : allItemsSelected"
+                    (change)="toggleSelectAll($event)"
+                    [disabled]="availableStockItems.length === 0"
+                    title="Tout sélectionner" />
+                </th>
                 <th>Article</th>
                 <th class="text-center">Restant en stock</th>
                 <th class="text-center" style="width:120px;">Qté à retourner</th>
