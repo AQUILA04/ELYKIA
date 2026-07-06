@@ -44,4 +44,9 @@ public class StockReceptionController {
     public ResponseEntity<Response> getOne(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(service.getReceptionById(id)), HttpStatus.OK);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Response> cancelReception(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(service.cancelReception(id)), HttpStatus.OK);
+    }
 }

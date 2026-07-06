@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+import lombok.ToString;
 import java.io.Serializable;
 
 @Table(name = "UACC_PERMS", uniqueConstraints = {
@@ -17,6 +17,7 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class AccountPermission implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

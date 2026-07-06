@@ -215,6 +215,9 @@
 /* Toolbar shell */
 .credit-list-page .toolbar-shell {
   margin-bottom: 16px;
+  position: relative;
+  z-index: 30;
+  overflow: visible;
 }
 
 .credit-list-page .toolbar {
@@ -360,6 +363,12 @@
 }
 
 /* Advanced search panel */
+.credit-list-page .advanced-search-host {
+  display: block;
+  position: relative;
+  z-index: 31;
+}
+
 .credit-list-page .advanced-search-host .advanced-search-panel {
   background: var(--bg-white);
   border: 1px solid var(--border);
@@ -444,6 +453,12 @@
   min-width: 100%;
   width: max-content;
   max-width: min(420px, 90vw);
+  z-index: 40;
+}
+
+.credit-list-page .advanced-search-panel .ng-select.ng-select-opened {
+  position: relative;
+  z-index: 41;
 }
 .credit-list-page .advanced-search-panel .ng-select.ng-select-focused .ng-select-container {
   border-color: var(--navy);
@@ -473,6 +488,8 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .credit-list-page .table-wrapper { overflow-x: auto; }

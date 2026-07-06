@@ -78,6 +78,18 @@ public class ArticleHistory extends Auditable<String> {
         return articleHistory;
     }
 
+    public static ArticleHistory buildCancelReceptionHistory(Articles articles, Integer quantity, String username) {
+        ArticleHistory articleHistory = new ArticleHistory();
+        articleHistory.setArticles(articles);
+        articleHistory.setInitialQuantity(articles.getStockQuantity());
+        articleHistory.setOperationQuantity(quantity);
+        articleHistory.setFinalQuantity(articleHistory.calculateFinalReleaseQuantity());
+        articleHistory.setOperationType(StockOperationType.CANCEL_RECEPTION);
+        articleHistory.setOperationDate(LocalDate.now());
+        articleHistory.setOperationUser(username);
+        return articleHistory;
+    }
+
     public Integer calculateFinalEntryQuantity() {
         return initialQuantity + operationQuantity;
     }

@@ -18,12 +18,58 @@
 .profile-image-wrapper {
   width: 112px;
   height: 112px;
-  margin: 0 auto 14px;
+  margin: 0 auto 10px;
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid var(--navy);
   box-shadow: 0 4px 16px rgba(0, 51, 102, 0.2);
   background: var(--navy);
+
+  &.is-previewable {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 6px 20px rgba(0, 51, 102, 0.28);
+      transform: scale(1.02);
+    }
+  }
+}
+
+.profile-photo-trigger {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: zoom-in;
+  display: block;
+}
+
+.btn-view-photo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 auto 14px;
+  padding: 4px 12px;
+  border: 1px solid var(--navy-pale);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: var(--navy-xpale);
+    border-color: var(--navy);
+  }
 }
 
 .profile-photo-placeholder {
@@ -124,4 +170,91 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  pointer-events: none;
+}
+
+.photo-preview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.photo-preview-modal {
+  width: min(560px, 100%);
+  max-height: min(90vh, 720px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.photo-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--navy-pale);
+  background: var(--navy-xpale);
+
+  h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.3;
+  }
+}
+
+.photo-preview-close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-label);
+  cursor: pointer;
+
+  mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+
+  &:hover {
+    background: var(--navy-pale);
+    color: var(--navy);
+  }
+}
+
+.photo-preview-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #1a1a1a;
+  min-height: 200px;
+}
+
+.photo-preview-image {
+  display: block;
+  max-width: 100%;
+  max-height: min(70vh, 560px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
 }

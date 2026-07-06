@@ -4,6 +4,7 @@ export interface StockReception {
   receptionDate: string;
   receivedBy: string;
   totalAmount: number;
+  status: 'VALIDATED' | 'CANCELLED';
   items: StockReceptionItem[];
 }
 

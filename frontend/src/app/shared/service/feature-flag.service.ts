@@ -20,6 +20,7 @@ export enum FeatureFlags {
   ElykiaAi = 'elykiaAi',
   MobileDeviceManagement = 'mobileDeviceManagement',
   DashboardV2 = 'dashboardV2',
+  EditStockRequest = 'editStockRequest',
 }
 
 const REMOTE_CONFIG_FETCH_TIMEOUT_MS = 10_000;
@@ -40,6 +41,7 @@ export class FeatureFlagService {
     [FeatureFlags.ElykiaAi]: false,
     [FeatureFlags.MobileDeviceManagement]: false,
     [FeatureFlags.DashboardV2]: false,
+    [FeatureFlags.EditStockRequest]: false,
   };
 
   private flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);

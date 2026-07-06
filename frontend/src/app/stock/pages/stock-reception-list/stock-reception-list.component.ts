@@ -3,6 +3,8 @@ import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { StockReceptionService } from '../../services/stock-reception.service';
 import { StockReception } from '../../../core/models/stock-reception.model';
+import { AuthService } from '../../../auth/service/auth.service';
+import { UserProfilConstant } from '../../../shared/constants/user-profil.constant';
 
 @Component({
   selector: 'app-stock-reception-list',
@@ -19,16 +21,19 @@ export class StockReceptionListComponent implements OnInit {
   currentPage = 0;
   searchReference = '';
   searchDate: string | null = null;
+  isAdmin = false;
 
   currentDate: Date = new Date();
   lastUpdate: Date = new Date();
 
   constructor(
     private stockReceptionService: StockReceptionService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.hasRole(UserProfilConstant.ADMIN);
     this.loadReceptions();
     setInterval(() => { this.currentDate = new Date(); }, 1000);
   }
@@ -97,5 +102,37 @@ export class StockReceptionListComponent implements OnInit {
 
   viewDetails(id: number): void {
     this.router.navigate(['/stock/receptions', id]);
+  }
+
+  cancelReception(reception: StockReception): void {
+    if (reception.status === 'CANCELLED') {
+      import('sweetalert2').then(Swal => Swal.default.fire('Information', 'Cette réception est déjà annulée.', 'info'));
+      return;
+    }
+
+    import('sweetalert2').then(Swal => {
+      Swal.default.fire({
+        title: 'Êtes-vous sûr ?',
+        text: 'Voulez-vous vraiment annuler cette réception ? Les stocks seront mis à jour.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Oui, annuler',
+        cancelButtonText: 'Non'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.stockReceptionService.cancelReception(reception.id).subscribe({
+            next: () => {
+              Swal.default.fire('Annulée !', 'La réception a été annulée.', 'success');
+              this.loadReceptions();
+            },
+            error: (err) => {
+              Swal.default.fire('Erreur', err.error?.message || 'Une erreur est survenue lors de l\'annulation.', 'error');
+            }
+          });
+        }
+      });
+    });
   }
 }

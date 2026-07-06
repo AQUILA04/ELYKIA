@@ -63,4 +63,6 @@ public interface ArticleStockLotRepository extends GenericRepository<ArticleStoc
     boolean existsByArticleId(Long articleId);
 
     long countByArticleId(Long articleId);
+
+    java.util.Optional<ArticleStockLot> findByStockReceptionItemId(Long stockReceptionItemId);
 }

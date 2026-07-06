@@ -1,16 +1,30 @@
 <div class="profile-card">
   <div class="profile-header">
-    <div class="profile-image-wrapper">
-      <img
-        *ngIf="safeProfilPhotoUrl && !photoLoadFailed"
-        [src]="safeProfilPhotoUrl"
-        alt=""
-        class="profile-photo"
-        (error)="onPhotoError()">
+    <div class="profile-image-wrapper" [class.is-previewable]="canPreviewPhoto">
+      <button
+        *ngIf="canPreviewPhoto"
+        type="button"
+        class="profile-photo-trigger"
+        (click)="openPhotoPreview()"
+        [attr.aria-label]="'Agrandir ' + photoPreviewTitle">
+        <img
+          [src]="safeProfilPhotoUrl"
+          alt=""
+          class="profile-photo"
+          (error)="onPhotoError()">
+      </button>
       <div *ngIf="showPhotoPlaceholder" class="profile-photo-placeholder" aria-label="Aucune photo de profil">
         <mat-icon>person</mat-icon>
       </div>
     </div>
+    <button
+      *ngIf="canPreviewPhoto"
+      type="button"
+      class="btn-view-photo"
+      (click)="openPhotoPreview()">
+      <mat-icon>zoom_in</mat-icon>
+      Voir
+    </button>
     <h2 class="profile-name">{{ client.lastname }} {{ client.firstname }}</h2>
     <p class="profile-role">{{ client.occupation || 'Occupation non spécifiée' }}</p>
   </div>
@@ -77,6 +91,32 @@
         <span class="info-label">Document</span>
         <span class="info-value"><a [href]="client.iddoc" target="_blank" rel="noopener">Voir le document</a></span>
       </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="photo-preview-overlay"
+  *ngIf="showPhotoPreview"
+  (click)="closePhotoPreview()"
+  role="presentation">
+  <div
+    class="photo-preview-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="photo-preview-title"
+    (click)="$event.stopPropagation()">
+    <div class="photo-preview-header">
+      <h3 id="photo-preview-title">{{ photoPreviewTitle }}</h3>
+      <button type="button" class="photo-preview-close" (click)="closePhotoPreview()" aria-label="Fermer">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="photo-preview-body">
+      <img
+        [src]="safeProfilPhotoUrl"
+        [alt]="photoPreviewTitle"
+        class="photo-preview-image">
     </div>
   </div>
 </div>

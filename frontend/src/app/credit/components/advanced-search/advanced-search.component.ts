@@ -18,7 +18,7 @@ import {
   animations: [
     trigger('slideDown', [
       state('void', style({ opacity: 0, maxHeight: '0px', overflow: 'hidden' })),
-      state('*', style({ opacity: 1, maxHeight: '600px', overflow: 'hidden' })),
+      state('*', style({ opacity: 1, maxHeight: '600px', overflow: 'visible' })),
       transition('void => *', animate('250ms ease-out')),
       transition('* => void', animate('200ms ease-in'))
     ])

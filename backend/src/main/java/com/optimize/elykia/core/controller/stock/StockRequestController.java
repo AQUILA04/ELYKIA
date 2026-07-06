@@ -31,6 +31,16 @@ public class StockRequestController {
         return ResponseEntity.ok(service.createRequest(request, forNextMonth));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<StockRequest> updateRequest(@PathVariable Long id, @RequestBody StockRequest updateDto) {
+        return ResponseEntity.ok(service.updateRequest(id, updateDto));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<StockRequest> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
+    }
+
     @PutMapping("/{id}/validate")
     public ResponseEntity<StockRequest> validateRequest(@PathVariable Long id) {
         return ResponseEntity.ok(service.validateRequest(id));

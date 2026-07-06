@@ -65,6 +65,14 @@ public class StockValuationFacade {
                 article, quantity, unitPurchasePrice, sourceType, receptionItem, entryDate);
     }
 
+    public void cancelEntry(StockReceptionItem receptionItem) {
+        if (!isFifoEnabled()) {
+            legacyStockValuationAdapter.cancelEntry(receptionItem);
+            return;
+        }
+        fifoStockValuationService.cancelEntry(receptionItem);
+    }
+
     public FifoConsumptionResult consume(
             Articles article,
             int quantity,

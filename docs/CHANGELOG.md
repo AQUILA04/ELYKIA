@@ -9,6 +9,31 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.8] — 2026-07-06
+
+### Added
+
+- `StockRequestList` & `StockRequestCreate` : Ajout de la possibilité de modifier une demande de sortie de stock (CREATED ou VALIDATED). L'édition est protégée par le Feature Flag `editStockRequest` et le rôle `ROLE_EDIT_STOCK_REQUEST`. Toute demande validée repasse en `CREATED` après modification.
+
+## Backend — [1.0.4] — 2026-07-06
+
+### Added
+
+- `StockRequestService` & `StockRequestController` : Ajout d'une API d'édition `PUT /api/stock-requests/{id}` et `GET /api/stock-requests/{id}` pour les demandes en statut `CREATED` ou `VALIDATED`. Repasse automatiquement la demande en `CREATED`.
+
+
+## Frontend — [2.9.7] — 2026-07-04
+
+### Fixed
+
+- recherche avancée de la liste des ventes : les listes déroulantes restent au-dessus du tableau sans se détacher au scroll grâce à une hiérarchie de `z-index` locale sur la zone filtres, sans attache au `body`.
+
+## Frontend — [2.9.6] — 2026-07-03
+
+### Added
+
+- fiche client : aperçu agrandi de la photo de profil (clic sur l'avatar ou bouton « Voir ») dans une modale avec backdrop, titre « Photo de profil de … » et fermeture par Échap ou clic extérieur.
+
 ## Frontend — [2.9.5] — 2026-07-02
 
 ### Fixed
@@ -161,6 +186,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - badge « Crédit en cours » (liste clients) : affiché uniquement si une distribution active existe ; réconciliation automatique de `creditInProgress` en base lors de l'init (après distributions), de la sync et du chargement paginé (page 0).
 - correction de l'écrasement de l'état `isLocal`/`isSync` lors de la modification d'un client synchronisé.
 - suppression des entités synchronisées « fantômes » ou périmées lors de la ré-initialisation quotidienne, afin de refléter la dernière version serveur sans charger l'intégralité des clients en mémoire.
+
+## Backend — [1.0.3] — 2026-07-03
+
+### Fixed
+
+- `ClientService` : validation d'unicité téléphone / pièce d'identité avant `update` (HTTP 400 explicite) ; création idempotente conservée pour la sync mobile (rejeu POST après timeout : retour du client existant si même prénom, nom, téléphone et `cardID`, afin de récupérer l'id serveur).
 
 ## Backend — [1.0.2] — 2026-07-02
 

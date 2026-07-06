@@ -39,4 +39,8 @@ export class StockReceptionService {
   downloadPdf(id: number): Observable<Blob> {
     return this.http.get(`${this.pdfUrl}/download-reception/${id}`, { responseType: 'blob' });
   }
+
+  cancelReception(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}`);
+  }
 }

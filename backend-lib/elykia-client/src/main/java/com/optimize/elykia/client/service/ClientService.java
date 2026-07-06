@@ -37,7 +37,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -66,11 +65,20 @@ public class ClientService extends GenericService<Client, Long> {
         this.businessCreditAuthorizationEventRepository = businessCreditAuthorizationEventRepository;
     }
 
+    @Override
+    @Transactional
+    public Client update(Client client) {
+        if (client.getId() != null) {
+            validateClientUniquenessForUpdate(client);
+        }
+        return super.update(client);
+    }
+
     @Transactional
     @EvictClientListCaches
     public ClientRespDto addClient(ClientDto dto) {
         Client client = clientMapper.toEntity(dto);
-        Client existingClient = validateClientUniqueness(client); // validation
+        Client existingClient = resolveExistingClientForCreate(client);
         if (existingClient != null) {
             return ClientRespDto.fromClient(existingClient);
         }
@@ -102,7 +110,6 @@ public class ClientService extends GenericService<Client, Long> {
         String oldPhone = old.getPhone();
         Client client = clientMapper.toEntity(dto);
         preservePhotoFields(old, client);
-        validateClientUniqueness(client); // validation
         ClientRespDto result = ClientRespDto.fromClient(update(client));
         publishPhoneUpdatedIfChanged(clientId, oldPhone, client.getPhone());
         return result;
@@ -147,7 +154,6 @@ public class ClientService extends GenericService<Client, Long> {
             client.setMll(dto.mll());
         }
 
-        validateClientUniqueness(client);
         Client updated = update(client);
         publishPhoneUpdatedIfChanged(client.getId(), oldPhone, updated.getPhone());
         return ClientRespDto.fromClient(updated);
@@ -259,49 +265,80 @@ public class ClientService extends GenericService<Client, Long> {
         return result;
     }
 
-    // Nouvelle méthode pour lavalidation
-    private Client validateClientUniqueness(Client client) {
-        // Pour une mise à jour, l'ID existe. Pour une création, on utilise 0L pour que
-        // la recherche fonctionne.
-        Long clientId = (client.getId() != null) ? client.getId() : 0L;
-        String phoneErrorMsg = "Ce numéro de téléphone est déjà utilisé par un autre client.";
-        String cardIdErrorMsg = "Ce numéro de pièce d'identité est déjà utilisé par un autre client.";
-        
-        Client existingClient = null;
-
-        // Vérification du numéro de téléphone
-        if (StringUtils.hasText(client.getPhone())) {
-            Optional<Client> phoneClientOpt = getRepository().findByPhoneAndIdNot(client.getPhone(), clientId);
-            if (phoneClientOpt.isPresent()) {
-                Client phoneClient = phoneClientOpt.get();
-                if (phoneClient.isSameClient(client)) {
-                    existingClient = phoneClient;
-                } else {
-                    throw new CustomValidationException(phoneErrorMsg + " (" + phoneClient.getFirstname() + " " + phoneClient.getLastname() + ") | Commercial associé : " + phoneClient.getCollector());
-                }
+    /**
+     * Création idempotente (sync mobile après timeout) : si un client existe déjà avec le même
+     * prénom, nom, téléphone et numéro de pièce, on le renvoie pour permettre au mobile
+     * de récupérer l'id serveur. Sinon, lève une {@link CustomValidationException}.
+     */
+    private Client resolveExistingClientForCreate(Client client) {
+        Long excludeId = 0L;
+        Client existingByPhone = findConflictingClientByPhone(client.getPhone(), excludeId);
+        if (existingByPhone != null) {
+            if (hasSameCreateIdentity(existingByPhone, client)) {
+                return existingByPhone;
             }
+            throw phoneConflictException(existingByPhone);
         }
 
-        // Vérification du numéro de la pièce d'identité
-        if (StringUtils.hasText(client.getCardID())) {
-            Optional<Client> cardClientOpt = getRepository().findByCardIDAndIdNot(client.getCardID(), clientId);
-            if (cardClientOpt.isPresent()) {
-                Client cardClient = cardClientOpt.get();
-                
-                // Si on a déjà trouvé un client via le téléphone, on doit s'assurer que c'est le même que celui de la carte
-                if (existingClient != null && !existingClient.getId().equals(cardClient.getId())) {
-                     throw new CustomValidationException("Incohérence : Le téléphone appartient à " + existingClient.getFullName() + " mais la carte appartient à " + cardClient.getFullName());
-                }
-
-                if (cardClient.isSameClient(client)) {
-                    existingClient = cardClient;
-                } else {
-                    throw new CustomValidationException(cardIdErrorMsg + " (" + cardClient.getFirstname() + " " + cardClient.getLastname() + ")");
-                }
+        Client existingByCard = findConflictingClientByCardId(client.getCardID(), excludeId);
+        if (existingByCard != null) {
+            if (hasSameCreateIdentity(existingByCard, client)) {
+                return existingByCard;
             }
+            throw cardIdConflictException(existingByCard);
         }
 
-        return existingClient;
+        return null;
+    }
+
+    /**
+     * Mise à jour : le téléphone et la pièce d'identité ne doivent appartenir à aucun autre client.
+     */
+    private void validateClientUniquenessForUpdate(Client client) {
+        Long clientId = client.getId();
+        Client existingByPhone = findConflictingClientByPhone(client.getPhone(), clientId);
+        if (existingByPhone != null) {
+            throw phoneConflictException(existingByPhone);
+        }
+
+        Client existingByCard = findConflictingClientByCardId(client.getCardID(), clientId);
+        if (existingByCard != null) {
+            throw cardIdConflictException(existingByCard);
+        }
+    }
+
+    private Client findConflictingClientByPhone(String phone, Long excludeId) {
+        if (!StringUtils.hasText(phone)) {
+            return null;
+        }
+        return getRepository().findByPhoneAndIdNot(phone, excludeId).orElse(null);
+    }
+
+    private Client findConflictingClientByCardId(String cardId, Long excludeId) {
+        if (!StringUtils.hasText(cardId)) {
+            return null;
+        }
+        return getRepository().findByCardIDAndIdNot(cardId, excludeId).orElse(null);
+    }
+
+    private boolean hasSameCreateIdentity(Client existing, Client incoming) {
+        return Objects.equals(existing.getFirstname(), incoming.getFirstname())
+                && Objects.equals(existing.getLastname(), incoming.getLastname())
+                && Objects.equals(existing.getPhone(), incoming.getPhone())
+                && Objects.equals(existing.getCardID(), incoming.getCardID());
+    }
+
+    private CustomValidationException phoneConflictException(Client conflict) {
+        return new CustomValidationException(
+                "Ce numéro de téléphone est déjà utilisé par un autre client ("
+                        + conflict.getFirstname() + " " + conflict.getLastname()
+                        + ") | Commercial associé : " + conflict.getCollector());
+    }
+
+    private CustomValidationException cardIdConflictException(Client conflict) {
+        return new CustomValidationException(
+                "Ce numéro de pièce d'identité est déjà utilisé par un autre client ("
+                        + conflict.getFirstname() + " " + conflict.getLastname() + ")");
     }
 
     @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(com.optimize.elykia.client.config.ClientCacheKeyHelper).commercialFilterKey(#username) + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")

@@ -23,7 +23,6 @@ public class LegacyStockValuationAdapter {
      *
      * @return {@code null} — absence volontaire de lot ; les appelants ne doivent pas déréférencer le retour.
      */
-    @Nullable
     public ArticleStockLot registerEntry(
             Articles article,
             int quantity,
@@ -32,6 +31,11 @@ public class LegacyStockValuationAdapter {
             StockReceptionItem receptionItem,
             LocalDate entryDate) {
         return null;
+    }
+
+    public void cancelEntry(StockReceptionItem receptionItem) {
+        // En mode legacy, il n'y a pas de lot à annuler côté valorisation.
+        // La quantité de stock est déjà gérée par StockReceptionService.
     }
 
     public FifoConsumptionResult consume(

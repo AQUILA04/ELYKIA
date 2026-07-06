@@ -4,7 +4,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ClientService, Client } from '../service/client.service';
 import { LocalityService, Locality } from 'src/app/locality/service/locality.service';
 import { AccountService } from 'src/app/account/service/account.service';
-import Swal from 'sweetalert2';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
@@ -242,7 +241,7 @@ export class ClientAddComponent implements OnInit {
           (resp) => {
             if (resp.statusCode == 200) {
               this.spinner.hide();
-              this.alertService.showSuccess('Client mis à jour avec succès');
+              this.alertService.toastSuccess('Client mis à jour avec succès');
               this.isLoading = false;
               this.router.navigate(['/client-list']);
             } else {

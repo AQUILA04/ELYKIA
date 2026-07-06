@@ -68,12 +68,13 @@
           <th>Date de réception</th>
           <th class="col-hide">Reçu par</th>
           <th>Montant total</th>
-          <th style="width:90px">Action</th>
+          <th>Statut</th>
+          <th style="width:180px">Action</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngIf="isLoading">
-          <td colspan="6">
+          <td colspan="7">
             <div class="empty-state">
               <div class="empty-icon">⏳</div>
               <div class="empty-title">Chargement…</div>
@@ -81,7 +82,7 @@
           </td>
         </tr>
         <tr *ngIf="!isLoading && receptions.length === 0">
-          <td colspan="6">
+          <td colspan="7">
             <div class="empty-state">
               <div class="empty-icon">📦</div>
               <div class="empty-title">Aucune entrée trouvée</div>
@@ -89,12 +90,12 @@
             </div>
           </td>
         </tr>
-        <tr *ngFor="let r of receptions; let i = index">
+        <tr *ngFor="let r of receptions; let i = index" [class.cancelled-row]="r.status === 'CANCELLED'">
           <td>
             <span class="row-num">{{ currentPage * pageSize + i + 1 }}</span>
           </td>
           <td>
-            <div class="col-ref">{{ r.reference }}</div>
+            <div class="col-ref" [class.text-cancelled]="r.status === 'CANCELLED'">{{ r.reference }}</div>
           </td>
           <td>
             <div class="col-date">{{ r.receptionDate | date:'dd/MM/yyyy' }}</div>
@@ -106,16 +107,29 @@
             </div>
           </td>
           <td>
-            <div class="col-amount">{{ r.totalAmount | number }} FCFA</div>
+            <div class="col-amount" [class.text-cancelled]="r.status === 'CANCELLED'">{{ r.totalAmount | number }} FCFA</div>
           </td>
           <td>
-            <button class="btn-detail" (click)="viewDetails(r.id)">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-              </svg>
-              Voir
-            </button>
+            <span class="badge" [ngClass]="{'badge-success': r.status === 'VALIDATED', 'badge-danger': r.status === 'CANCELLED'}">
+              {{ r.status === 'CANCELLED' ? 'Annulée' : 'Validée' }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-detail" (click)="viewDetails(r.id)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                Voir
+              </button>
+              <button class="btn-cancel" *ngIf="isAdmin && r.status !== 'CANCELLED'" (click)="cancelReception(r)" style="background: none; border: none; color: var(--danger-color, #dc3545); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem; font-weight: 500; padding: 4px 8px; border-radius: 4px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Annuler
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>

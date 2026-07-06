@@ -4,6 +4,8 @@ import { ToastrService } from 'ngx-toastr';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from '../../../auth/service/auth.service';
 import { UserService } from '../../../user/service/user.service';
+import { Router } from '@angular/router';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { UserProfile } from '../../../shared/models/user-profile.enum';
 import { StockRequest } from '../../models/stock-request.model';
 import { StockListFilter, StockRequestKpis, StockRequestService } from '../../services/stock-request.service';
@@ -44,6 +46,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
   isPromoter = false;
   isSecretary = false;
   canSelectCommercial = false;
+  canEditStockRequest = false;
 
   currentUser: any;
   selectedRequest: StockRequest | null = null;
@@ -61,7 +64,9 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userService: UserService,
     private toastr: ToastrService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private router: Router,
+    private featureFlagService: FeatureFlagService
   ) {}
 
   ngOnInit(): void {
@@ -74,6 +79,11 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
     this.canSelectCommercial = !this.isPromoter && (this.isManager || this.isSecretary || this.isStoreKeeper);
+
+    const hasEditRole = this.authService.hasRole('ROLE_EDIT_STOCK_REQUEST');
+    this.featureFlagService.flags$.subscribe(flags => {
+      this.canEditStockRequest = hasEditRole && !!flags[FeatureFlags.EditStockRequest];
+    });
 
     this.restoreState();
     this.refresh();
@@ -266,6 +276,10 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
 
   closeDetails(): void {
     this.selectedRequest = null;
+  }
+
+  edit(request: StockRequest): void {
+    this.router.navigate(['/stock/request/edit', request.id]);
   }
 
   getStatusClass(status: string | undefined): string {

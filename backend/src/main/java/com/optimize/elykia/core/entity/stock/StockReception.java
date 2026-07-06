@@ -10,6 +10,8 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.optimize.elykia.core.enumaration.ReceptionStatus;
+
 @Entity
 @Getter
 @Setter
@@ -18,6 +20,10 @@ public class    StockReception extends Auditable<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReceptionStatus status = ReceptionStatus.VALIDATED;
 
     @Column(unique = true)
     private String reference;

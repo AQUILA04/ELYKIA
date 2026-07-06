@@ -20,6 +20,10 @@ const routes: Routes = [
     component: StockRequestCreateComponent
   },
   {
+    path: 'request/edit/:id',
+    component: StockRequestCreateComponent
+  },
+  {
     path: 'my-stock',
     component: MyStockDashboardComponent
   },

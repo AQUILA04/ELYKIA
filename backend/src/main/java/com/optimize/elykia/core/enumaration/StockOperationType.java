@@ -5,5 +5,6 @@ public enum StockOperationType {
     SORTIE,
     RETURN, // Retour en stock (augmente le stock)
     RESET,
-    INVENTORY_ADJUSTMENT
+    INVENTORY_ADJUSTMENT,
+    CANCEL_RECEPTION // Annulation de réception (diminue le stock)
 }

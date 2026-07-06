@@ -184,6 +184,69 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         return createRequest(request, false);
     }
 
+    public StockRequest updateRequest(Long requestId, StockRequest updateDto) {
+        StockRequest request = getById(requestId);
+        
+        if (request.getStatus() != StockRequestStatus.CREATED && request.getStatus() != StockRequestStatus.VALIDATED) {
+            throw new CustomValidationException("Seules les demandes en statut CREATED ou VALIDATED peuvent être modifiées.");
+        }
+
+        // Toujours repasser en CREATED après modification pour re-validation
+        request.setStatus(StockRequestStatus.CREATED);
+
+        request.setCollector(updateDto.getCollector());
+
+        // Clear existing items using an iterator to avoid ConcurrentModificationException if we were modifying the set, 
+        // or we just clear and re-add. Since it's orphanRemoval=true, clearing should delete old ones.
+        request.getItems().clear();
+
+        double totalCreditSalePrice = 0.0;
+        double totalPurchasePrice = 0.0;
+        LocalDate now = LocalDate.now();
+
+        List<String> unitPriceChange = new ArrayList<>();
+
+        for (StockRequestItem item : updateDto.getItems()) {
+            Articles article = articlesService.getById(item.getArticle().getId());
+            Double currentUnitPrice = monthlyStockItemRepository
+                    .getUnitPriceByArticleId(article.getId(), now.getMonthValue(), now.getYear(), request.getCollector());
+            Double availableQuantity = monthlyStockItemRepository
+                    .getRemainingQuantityByArticleId(article.getId(), now.getMonthValue(), now.getYear(), request.getCollector());
+            currentUnitPrice = Objects.nonNull(currentUnitPrice) ? currentUnitPrice : 0.0;
+            availableQuantity = Objects.nonNull(availableQuantity) ? availableQuantity : 0.0;
+
+            if (availableQuantity > 0 && currentUnitPrice != article.getCreditSalePrice()) {
+                unitPriceChange.add(article.getCommercialName() + " " + article.getName() + " (Ancien prix: " +
+                        currentUnitPrice + ", Nouveau prix: " + article.getCreditSalePrice() + ")");
+            }
+
+            StockRequestItem newItem = new StockRequestItem();
+            newItem.setArticle(article);
+            newItem.setItemName(article.getCommercialName() + " " + article.getName());
+            newItem.setUnitPrice(article.getCreditSalePrice());
+            newItem.setPurchasePrice(article.getPurchasePrice());
+            newItem.setQuantity(item.getQuantity());
+            
+            request.addItem(newItem);
+
+            totalCreditSalePrice += (newItem.getUnitPrice() != null ? newItem.getUnitPrice() : 0.0) * newItem.getQuantity();
+            totalPurchasePrice += (newItem.getPurchasePrice() != null ? newItem.getPurchasePrice() : 0.0) * newItem.getQuantity();
+        }
+
+        if (!unitPriceChange.isEmpty()) {
+            if (metricsPublisher != null) {
+                metricsPublisher.stockRequestPriceConflict(request.getCollector());
+            }
+            throw new CustomValidationException("Le prix de ces articles en stock pour le commercial ont changé: " + String.join("| ", unitPriceChange) +
+                    ". Veuillez faire le retour de stock de ces articles avant de modifier cette demande de sortie");
+        }
+
+        request.setTotalCreditSalePrice(totalCreditSalePrice);
+        request.setTotalPurchasePrice(totalPurchasePrice);
+
+        return repository.save(request);
+    }
+
     public StockRequest validateRequest(Long requestId) {
         StockRequest request = getById(requestId);
         if (request.getStatus() != StockRequestStatus.CREATED) {

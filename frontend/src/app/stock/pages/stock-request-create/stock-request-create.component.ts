@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { StockRequestService } from '../../services/stock-request.service';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { ToastrService } from 'ngx-toastr';
@@ -30,6 +30,8 @@ export class StockRequestCreateComponent implements OnInit {
   showNextMonthOption: boolean = false;
   forNextMonth: boolean = false;
   isSubmitting = false;
+  isEditMode = false;
+  requestId?: number;
 
   constructor(
     private fb: FormBuilder,
@@ -40,7 +42,8 @@ export class StockRequestCreateComponent implements OnInit {
     private toastr: ToastrService,
     private spinner: NgxSpinnerService,
     private userService: UserService,
-    private featureFlagService: FeatureFlagService
+    private featureFlagService: FeatureFlagService,
+    private route: ActivatedRoute
   ) {
     this.form = this.fb.group({
       items: [[], Validators.required], // Changed to single control for ArticleSelector
@@ -57,6 +60,46 @@ export class StockRequestCreateComponent implements OnInit {
       this.form.patchValue({ collector: this.currentUser.username });
       this.form.get('collector')?.disable();
     }
+
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.isEditMode = true;
+        this.requestId = +id;
+        this.loadRequest(this.requestId);
+      }
+    });
+  }
+
+  loadRequest(id: number): void {
+    this.spinner.show();
+    this.stockRequestService.getById(id).subscribe({
+      next: (req) => {
+        this.form.patchValue({ collector: req.collector });
+        if (req.items && req.items.length > 0 && this.articleSelector) {
+            // Need to set items in articleSelector somehow.
+            // Since articleSelector might not be initialized yet if view isn't ready,
+            // we should do this carefully.
+            setTimeout(() => {
+                const initialItems = req.items?.map(item => ({
+                    articleId: item.article?.id,
+                    quantity: item.quantity
+                }));
+                if (this.articleSelector) {
+                    // This assumes ArticleSelectorComponent can be patched. 
+                    // Actually ArticleSelectorComponent takes formControlName="items",
+                    // so we just patch the form and the component should handle it if it implements ControlValueAccessor.
+                    this.form.patchValue({ items: initialItems });
+                }
+            }, 100);
+        }
+        this.spinner.hide();
+      },
+      error: (err) => {
+        this.toastr.error('Erreur lors du chargement de la demande');
+        this.spinner.hide();
+      }
+    });
   }
 
   calculateDaysUntilMonthEnd() {
@@ -118,30 +161,51 @@ export class StockRequestCreateComponent implements OnInit {
       items: items
     };
 
-    const requestDto = {
-      request: request,
-      forNextMonth: this.forNextMonth
-    };
-
     this.spinner.show();
-    this.stockRequestService.create(requestDto).subscribe({
-      next: (resp: any) => {
-        if (resp && resp.statusCode && resp.statusCode !== 200) {
-          this.toastr.error(resp.message || 'Erreur lors de la création de la demande');
+
+    if (this.isEditMode && this.requestId) {
+      this.stockRequestService.update(this.requestId, request as any).subscribe({
+        next: (resp: any) => {
+          if (resp && resp.statusCode && resp.statusCode !== 200) {
+            this.toastr.error(resp.message || 'Erreur lors de la modification de la demande');
+            this.spinner.hide();
+            this.isSubmitting = false;
+          } else {
+            this.toastr.success('Demande modifiée avec succès');
+            this.spinner.hide();
+            this.router.navigate(['/stock/request']);
+          }
+        },
+        error: (error: any) => {
+          this.toastr.error(error.error?.message || error.message || 'Erreur lors de la modification de la demande');
           this.spinner.hide();
           this.isSubmitting = false;
-        } else {
-          this.toastr.success('Demande créée avec succès');
-          this.spinner.hide();
-          this.router.navigate(['/stock/request']);
         }
+      });
+    } else {
+      const requestDto = {
+        request: request,
+        forNextMonth: this.forNextMonth
+      };
 
-      },
-      error: (error: any) => {
-        this.toastr.error(error.error?.message || error.message || 'Erreur lors de la création de la demande');
-        this.spinner.hide();
-        this.isSubmitting = false;
-      }
-    });
+      this.stockRequestService.create(requestDto).subscribe({
+        next: (resp: any) => {
+          if (resp && resp.statusCode && resp.statusCode !== 200) {
+            this.toastr.error(resp.message || 'Erreur lors de la création de la demande');
+            this.spinner.hide();
+            this.isSubmitting = false;
+          } else {
+            this.toastr.success('Demande créée avec succès');
+            this.spinner.hide();
+            this.router.navigate(['/stock/request']);
+          }
+        },
+        error: (error: any) => {
+          this.toastr.error(error.error?.message || error.message || 'Erreur lors de la création de la demande');
+          this.spinner.hide();
+          this.isSubmitting = false;
+        }
+      });
+    }
   }
 }

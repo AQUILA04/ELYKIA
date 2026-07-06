@@ -55,6 +55,19 @@ public class FifoStockValuationService {
         return lotRepository.save(lot);
     }
 
+    public void cancelEntry(StockReceptionItem receptionItem) {
+        ArticleStockLot lot = lotRepository.findByStockReceptionItemId(receptionItem.getId())
+                .orElse(null);
+
+        if (lot != null) {
+            if (lot.getQuantityRemaining() != lot.getQuantityInitial()) {
+                throw new CustomValidationException(
+                        "Impossible d'annuler cette réception car des articles (lot FIFO) ont déjà été consommés ou vendus.");
+            }
+            lotRepository.delete(lot);
+        }
+    }
+
     public FifoConsumptionResult consume(
             Articles article,
             int quantity,

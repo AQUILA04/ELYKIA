@@ -2,7 +2,7 @@
 
 <div class="container">
   <div class="form-header">
-    <h1>Nouvelle Demande de Sortie Stock</h1>
+    <h1>{{ isEditMode ? 'Modifier la Demande' : 'Nouvelle Demande de Sortie Stock' }}</h1>
   </div>
 
   <app-alerte-fin-mois
@@ -47,7 +47,7 @@
         Annuler
       </button>
       <button type="submit" class="btn btn-submit" [disabled]="form.invalid || isSubmitting" data-testid="e2e-stock-request-submit">
-        {{ isSubmitting ? 'En cours...' : 'Envoyer la Demande' }}
+        {{ isSubmitting ? 'En cours...' : (isEditMode ? 'Enregistrer les modifications' : 'Envoyer la Demande') }}
       </button>
     </div>
   </form>
