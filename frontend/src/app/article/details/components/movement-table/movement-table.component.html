@@ -14,7 +14,7 @@
                 <tr *ngFor="let m of displayedMovements">
                     <td>
                         <span [class]="'op-badge ' + badgeClass(m.operationType)">
-                            {{ m.operationType }}
+                            {{ formatOperationType(m.operationType) }}
                         </span>
                     </td>
                     <td>

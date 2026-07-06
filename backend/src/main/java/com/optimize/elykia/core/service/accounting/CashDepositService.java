@@ -8,8 +8,9 @@ import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.RemittanceStatus;
 import com.optimize.elykia.core.repository.CashDepositRepository;
-import com.optimize.elykia.core.repository.CashPeriodRemittanceRepository;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
+import com.optimize.elykia.core.repository.CashPeriodRemittanceRepository;
+import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;
 import com.optimize.elykia.core.service.report.DailyOperationService;
 import com.optimize.elykia.core.util.CashDepositCategoryCalculator;
 import com.optimize.elykia.core.util.UserProfilConstant;
@@ -29,17 +30,20 @@ import java.time.temporal.ChronoUnit;
 public class CashDepositService extends GenericService<CashDeposit, Long> {
 
     private final DailyCommercialReportRepository dailyReportRepository;
+    private final DailyCommercialReportPersistence reportPersistence;
     private final DailyOperationService dailyOperationService;
     private final UserService userService;
     private final CashPeriodRemittanceRepository remittanceRepository;
 
     public CashDepositService(CashDepositRepository repository,
             DailyCommercialReportRepository dailyReportRepository,
+            DailyCommercialReportPersistence reportPersistence,
             DailyOperationService dailyOperationService,
             UserService userService,
             CashPeriodRemittanceRepository remittanceRepository) {
         super(repository);
         this.dailyReportRepository = dailyReportRepository;
+        this.reportPersistence = reportPersistence;
         this.dailyOperationService = dailyOperationService;
         this.userService = userService;
         this.remittanceRepository = remittanceRepository;
@@ -73,12 +77,12 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
                     DailyCommercialReport newReport = new DailyCommercialReport();
                     newReport.setDate(deposit.getDate());
                     newReport.setCommercialUsername(deposit.getCommercialUsername());
-                    return dailyReportRepository.save(newReport);
+                    return newReport;
                 });
 
         applyDepositToReport(report, deposit.getAmount(), deposit.getCreditAmount(),
                 deposit.getTontineAmount(), deposit.getNewBalanceAmount(), deposit.getSurplusAmount());
-        dailyReportRepository.save(report);
+        report = reportPersistence.save(report);
 
         deposit.setDailyReport(report);
         CashDeposit saved = cashDepositRepository.save(deposit);
@@ -179,7 +183,7 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         applyDepositToReport(report, cancelDeposit.getAmount(), cancelDeposit.getCreditAmount(),
                 cancelDeposit.getTontineAmount(), cancelDeposit.getNewBalanceAmount(),
                 cancelDeposit.getSurplusAmount());
-        dailyReportRepository.save(report);
+        report = reportPersistence.save(report);
 
         cancelDeposit.setDailyReport(report);
         CashDeposit saved = cashDepositRepository.save(cancelDeposit);

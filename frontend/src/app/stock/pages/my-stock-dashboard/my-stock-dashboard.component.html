@@ -101,9 +101,9 @@
               <mat-icon>trending_up</mat-icon>
             </div>
             <div class="stats-info">
-              <p class="stats-label">Versements Crédit</p>
-              <p class="stats-value">{{ getCreditDepositedAmount(stock) | number:'1.0-0' }} FCFA</p>
-              <p class="stats-hint">Versements crédit remis au secrétaire</p>
+              <p class="stats-label">Taux de Recouvrement</p>
+              <p class="stats-value">{{ getRecoveryRate(stock) | number:'1.0-0' }} %</p>
+              <p class="stats-hint">Sur la valeur totale due</p>
             </div>
           </div>
         </div>

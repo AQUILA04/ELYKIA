@@ -17,19 +17,25 @@ export class MovementTableComponent {
 
     badgeClass(op: string): string {
         if (op === 'ENTREE') return 'op-entree';
-        if (op === 'SORTIE') return 'op-sortie';
+        if (op === 'SORTIE' || op === 'CANCEL_RECEPTION') return 'op-sortie';
         return 'op-reset';
+    }
+
+    formatOperationType(op: string): string {
+        if (op === 'CANCEL_RECEPTION') return 'ANNUL. RÉCEPTION';
+        if (op === 'INVENTORY_ADJUSTMENT') return 'AJUSTEMENT INVENT.';
+        return op;
     }
 
     qtyClass(op: string): string {
         if (op === 'ENTREE') return 'qty-plus';
-        if (op === 'SORTIE') return 'qty-minus';
+        if (op === 'SORTIE' || op === 'CANCEL_RECEPTION') return 'qty-minus';
         return 'qty-reset';
     }
 
     qtyPrefix(op: string): string {
         if (op === 'ENTREE') return '+';
-        if (op === 'SORTIE') return '−';
+        if (op === 'SORTIE' || op === 'CANCEL_RECEPTION') return '−';
         return '';
     }
 

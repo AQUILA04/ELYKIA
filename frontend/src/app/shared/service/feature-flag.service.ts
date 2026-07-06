@@ -41,7 +41,7 @@ export class FeatureFlagService {
     [FeatureFlags.ElykiaAi]: false,
     [FeatureFlags.MobileDeviceManagement]: false,
     [FeatureFlags.DashboardV2]: false,
-    [FeatureFlags.EditStockRequest]: false,
+    [FeatureFlags.EditStockRequest]: true,
   };
 
   private flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);

@@ -1,0 +1,2 @@
+ALTER TABLE stock_reception ADD COLUMN IF NOT EXISTS status VARCHAR(255) DEFAULT 'VALIDATED';
+UPDATE stock_reception SET status = 'VALIDATED' WHERE status IS NULL;

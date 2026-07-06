@@ -11,6 +11,7 @@ import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineCollectionResetRunStatus;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.*;
+import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;
 import com.optimize.elykia.core.service.report.monthly.MonthlyReportStorageService;
 import com.optimize.common.securities.security.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class TontineCollectionResetService {
     private final TontineMemberRepository memberRepository;
     private final TontineSessionRepository sessionRepository;
     private final DailyCommercialReportRepository dailyReportRepository;
+    private final DailyCommercialReportPersistence reportPersistence;
     private final TontineCollectionResetRunRepository runRepository;
     private final TontineCollectionResetFileRepository fileRepository;
     private final TontineCollectionResetPdfService pdfService;
@@ -196,6 +198,6 @@ public class TontineCollectionResetService {
         report.setTontineCollectionsAmount(newTontineAmount);
         report.setTontineCollectionsCount(newTontineCount);
         report.setTotalAmountToDeposit(Math.max(0.0, currentDeposit - actualRemoved));
-        dailyReportRepository.save(report);
+        reportPersistence.save(report);
     }
 }

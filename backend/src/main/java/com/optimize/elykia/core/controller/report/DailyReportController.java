@@ -1,7 +1,9 @@
 package com.optimize.elykia.core.controller.report;
 
+import com.optimize.elykia.core.dto.report.CommercialYearlySummaryDto;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
+import com.optimize.elykia.core.service.report.CommercialReportMonthlyService;
 import com.optimize.elykia.core.service.report.DailyReportPdfService;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.common.securities.models.User;
@@ -31,6 +33,7 @@ public class DailyReportController {
     private final DailyCommercialReportRepository repository;
     private final UserService userService;
     private final DailyReportPdfService dailyReportPdfService;
+    private final CommercialReportMonthlyService commercialReportMonthlyService;
 
     @GetMapping
     @Operation(summary = "Get daily report for a specific commercial and date")
@@ -63,6 +66,24 @@ public class DailyReportController {
                 return ResponseEntity.ok(repository.findAggregatedByDateBetween(startDate, endDate));
             }
         }
+    }
+
+    @GetMapping("/yearly-summary")
+    @Operation(summary = "Get yearly credit sales and deposit summary for a commercial")
+    public ResponseEntity<CommercialYearlySummaryDto> getYearlySummary(
+            @RequestParam("year") int year,
+            @RequestParam(value = "collector", required = false) String collector) {
+
+        User currentUser = userService.getCurrentUser();
+        String commercialUsername = collector;
+
+        if (currentUser.is(UserProfilConstant.PROMOTER)) {
+            commercialUsername = currentUser.getUsername();
+        } else if (commercialUsername == null || commercialUsername.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(commercialReportMonthlyService.getYearlySummary(commercialUsername, year));
     }
 
     @GetMapping("/export/pdf")

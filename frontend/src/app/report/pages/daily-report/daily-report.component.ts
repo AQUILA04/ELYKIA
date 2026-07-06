@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { DailyReportService } from '../../service/daily-report.service';
 import { DailyCommercialReport, creditToDeposit, tontineToDeposit, newBalanceToDeposit, remainingCredit, remainingTontine, remainingNewBalance, totalRemainingToDeposit } from '../../models/daily-commercial-report.model';
+import { CommercialYearlySummary } from '../../models/commercial-yearly-summary.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ClientService } from 'src/app/client/service/client.service';
 import { DatePipe } from '@angular/common';
@@ -61,6 +62,9 @@ export class DailyReportComponent implements OnInit {
     depositsPageSize = 20;
 
     aggregatedReportData: any = null;
+    yearlySummary: CommercialYearlySummary | null = null;
+    yearlySummaryLoading = false;
+    summaryYear = new Date().getFullYear();
 
     constructor(
         private dailyReportService: DailyReportService,
@@ -87,6 +91,7 @@ export class DailyReportComponent implements OnInit {
 
         // Initial Load (Today)
         this.setFilter('today');
+        this.loadYearlySummary();
     }
 
     loadAgents(): void {
@@ -98,9 +103,16 @@ export class DailyReportComponent implements OnInit {
         });
     }
 
-    onAgentChange(agent: any) {
-        this.selectedAgent = agent ? agent.username : null;
+    onAgentChange(agent: string | { username: string } | null) {
+        if (agent == null) {
+            this.selectedAgent = null;
+        } else if (typeof agent === 'string') {
+            this.selectedAgent = agent;
+        } else {
+            this.selectedAgent = agent.username ?? null;
+        }
         this.loadReports();
+        this.loadYearlySummary();
     }
 
     searchAgent = (term: string, item: any) => {
@@ -153,7 +165,9 @@ export class DailyReportComponent implements OnInit {
 
         this.dailyReportService.getReports(startStr, endStr, collector).subscribe({
             next: (data) => {
-                this.reports = data;
+                this.reports = this.selectedAgent
+                    ? data.filter(r => r.commercialUsername === this.selectedAgent)
+                    : data;
                 this.calculateAggregatedReport();
                 this.isLoading = false;
 
@@ -168,6 +182,53 @@ export class DailyReportComponent implements OnInit {
                 this.isLoading = false;
             }
         });
+    }
+
+    loadYearlySummary(): void {
+        const collector = this.isPromoter
+            ? this.tokenStorage.getUser().username
+            : this.selectedAgent;
+
+        if (!collector) {
+            this.yearlySummary = null;
+            return;
+        }
+
+        this.yearlySummaryLoading = true;
+        this.dailyReportService.getYearlySummary(this.summaryYear, collector).subscribe({
+            next: (data) => {
+                this.yearlySummary = data ?? this.buildEmptyYearlySummary(collector);
+                this.yearlySummaryLoading = false;
+            },
+            error: (err) => {
+                console.error('Error loading yearly summary', err);
+                this.yearlySummary = this.buildEmptyYearlySummary(collector);
+                this.yearlySummaryLoading = false;
+            }
+        });
+    }
+
+    get yearlySummaryView(): CommercialYearlySummary {
+        const collector = this.activeCommercialUsername ?? '';
+        return this.yearlySummary ?? this.buildEmptyYearlySummary(collector);
+    }
+
+    private buildEmptyYearlySummary(collector: string): CommercialYearlySummary {
+        return {
+            year: this.summaryYear,
+            commercialUsername: collector,
+            totalCreditSalesAmount: 0,
+            totalCreditSalesCount: 0,
+            totalCreditDepositedAmount: 0,
+            remainingAtClientsAmount: 0
+        };
+    }
+
+    get activeCommercialUsername(): string | null {
+        if (this.isPromoter) {
+            return this.tokenStorage.getUser()?.username ?? null;
+        }
+        return this.selectedAgent;
     }
 
     calculateAggregatedReport() {
@@ -243,6 +304,7 @@ export class DailyReportComponent implements OnInit {
     resetFilters() {
         this.selectedAgent = null;
         this.setFilter('today');
+        this.loadYearlySummary();
     }
 
     toggleMargins() {
@@ -320,6 +382,7 @@ export class DailyReportComponent implements OnInit {
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 this.loadReports();
+                this.loadYearlySummary();
                 const start = this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd') || '';
                 const end = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '';
                 const collector = this.selectedAgent || (this.isPromoter ? this.tokenStorage.getUser().username : undefined);
@@ -399,7 +462,8 @@ export class DailyReportComponent implements OnInit {
                 this.cashDepositService.cancelDeposit(dep.id).subscribe({
                     next: () => {
                         this.alertService.showSuccess('Versement annulé avec succès.');
-                        this.loadReports(); // Refresh data
+                        this.loadReports();
+                        this.loadYearlySummary();
                     },
                     error: (err) => {
                         console.error('Erreur lors de l\'annulation', err);

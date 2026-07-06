@@ -100,15 +100,17 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
             // 1. Annuler la valorisation (supprime le lot en FIFO, ne fait rien en Legacy)
             stockValuationFacade.cancelEntry(item);
 
-            // 2. Mettre à jour le stock (Legacy / global)
             Articles article = item.getArticle();
-            article.makeRelease(item.getQuantity());
-            articlesService.update(article);
 
-            // 3. Historiser l'opération
+            // 2. Historiser l'opération AVANT de mettre à jour le stock
+            // (pour avoir l'ancien stock comme initialQuantity)
             ArticleHistory history = ArticleHistory.buildCancelReceptionHistory(
                     article, item.getQuantity(), connectedUser);
             articleHistoryService.create(history);
+
+            // 3. Mettre à jour le stock (Legacy / global)
+            article.makeRelease(item.getQuantity());
+            articlesService.update(article);
         }
 
         // 4. Annuler la dépense si applicable (contre-passation)

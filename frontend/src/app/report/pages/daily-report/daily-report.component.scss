@@ -47,6 +47,10 @@
     margin-top: 20px;
 }
 
+.yearly-summary-card {
+    border-left: 4px solid #003366;
+}
+
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

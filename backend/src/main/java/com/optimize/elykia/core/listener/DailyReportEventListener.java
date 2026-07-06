@@ -5,6 +5,7 @@ import com.optimize.elykia.core.event.*;
 import com.optimize.elykia.core.event.CreditCollectionEvent;
 import com.optimize.elykia.client.event.*;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
+import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;
 import com.optimize.elykia.core.service.report.DailyOperationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 public class DailyReportEventListener {
 
         private final DailyCommercialReportRepository repository;
+        private final DailyCommercialReportPersistence reportPersistence;
         private final DailyOperationService dailyOperationService;
 
         @EventListener
@@ -31,7 +33,7 @@ public class DailyReportEventListener {
                 report.setTotalStockRequestAmount(report.getTotalStockRequestAmount() + event.getAmount());
                 report.setStockRequestMargin(
                                 report.getStockRequestMargin() + (event.getMargin() != null ? event.getMargin() : 0.0));
-                repository.save(report);
+                reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -52,7 +54,7 @@ public class DailyReportEventListener {
                 // logic.
                 // Assuming simple reversal or no margin impact on return for now unless
                 // specified.
-                repository.save(report);
+                reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -69,7 +71,7 @@ public class DailyReportEventListener {
                 DailyCommercialReport report = getOrCreateReport(event.getCollector());
                 report.setTotalTontineStockRequestAmount(
                                 report.getTotalTontineStockRequestAmount() + event.getAmount());
-                repository.save(report);
+                reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -87,7 +89,7 @@ public class DailyReportEventListener {
                 DailyCommercialReport report = getOrCreateReport(event.getCollector());
                 report.setTotalTontineStockRequestAmount(
                                 report.getTotalTontineStockRequestAmount() - event.getAmount());
-                repository.save(report);
+                reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -111,7 +113,7 @@ public class DailyReportEventListener {
                 report.setTotalAdvancesAmount(report.getTotalAdvancesAmount() + advance);
                 report.addAmountToDeposit(advance);
 
-                repository.save(report);
+                reportPersistence.save(report);
 
                 String description = "Nouvelle vente à crédit (Client: "
                                 + (event.getClientName() != null ? event.getClientName() : "N/A")
@@ -138,7 +140,7 @@ public class DailyReportEventListener {
                 log.info("Processing ClientCreatedEvent for collector: {}", event.getCollector());
                 DailyCommercialReport report = getOrCreateReport(event.getCollector());
                 report.setNewClientsCount(report.getNewClientsCount() + 1);
-                repository.save(report);
+                reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -160,7 +162,7 @@ public class DailyReportEventListener {
                 // Add to total deposit
                 report.setTotalAmountToDeposit(report.getTotalAmountToDeposit() + event.getInitialBalance());
 
-                repository.save(report);
+                reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -195,7 +197,7 @@ public class DailyReportEventListener {
                 double currentDeposit = report.getTotalAmountToDeposit() != null ? report.getTotalAmountToDeposit() : 0.0;
                 report.setTotalAmountToDeposit(currentDeposit + cashReceived);
 
-                repository.save(report);
+                reportPersistence.save(report);
 
                 String description = String.format("Recouvrement crédit (Ref: %s, Rec: %s)",
                                 event.getCreditReference() != null ? event.getCreditReference() : "N/A",
@@ -222,7 +224,7 @@ public class DailyReportEventListener {
                 DailyCommercialReport report = getOrCreateReport(event.getCommercialUsername());
                 double current = report.getRecoveryManagerCollectionsAmount() != null ? report.getRecoveryManagerCollectionsAmount() : 0.0;
                 report.setRecoveryManagerCollectionsAmount(current + event.getAmount());
-                repository.save(report);
+                reportPersistence.save(report);
         }
 
         @EventListener
@@ -234,7 +236,7 @@ public class DailyReportEventListener {
                 report.setOrdersAmount(report.getOrdersAmount() + event.getAmount());
 
         // Add to total deposit
-        repository.save(report);
+        reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -250,7 +252,7 @@ public class DailyReportEventListener {
                 log.info("Processing TontineMemberEnrolledEvent for collector: {}", event.getCollector());
                 DailyCommercialReport report = getOrCreateReport(event.getCollector());
                 report.setTontineMembersCount(report.getTontineMembersCount() + 1);
-                repository.save(report);
+                reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -272,7 +274,7 @@ public class DailyReportEventListener {
                 // Add to total deposit
                 report.setTotalAmountToDeposit(report.getTotalAmountToDeposit() + event.getAmount());
 
-                repository.save(report);
+                reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -297,7 +299,7 @@ public class DailyReportEventListener {
                 report.setTontineCollectionsCount(Math.max(0, currentCount - 1));
                 report.setTontineCollectionsAmount(Math.max(0.0, currentAmount - amountToCancel));
                 report.setTotalAmountToDeposit(Math.max(0.0, currentDeposit - amountToCancel));
-                repository.save(report);
+                reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -318,7 +320,7 @@ public class DailyReportEventListener {
                 DailyCommercialReport report = getOrCreateReport(event.getCollector());
                 report.setTontineDeliveriesCount(report.getTontineDeliveriesCount() + 1);
                 report.setTontineDeliveriesAmount(report.getTontineDeliveriesAmount() + event.getAmount());
-                repository.save(report);
+                reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -337,7 +339,7 @@ public class DailyReportEventListener {
                                         DailyCommercialReport newReport = new DailyCommercialReport();
                                         newReport.setDate(today);
                                         newReport.setCommercialUsername(commercialUsername);
-                                        return repository.save(newReport);
+                                        return reportPersistence.save(newReport);
                                 });
         }
 }

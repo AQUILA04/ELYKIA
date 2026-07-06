@@ -20,7 +20,7 @@ public class ArticleHistoryService extends GenericService<ArticleHistory, Long> 
 
     public List<ArticleHistoryDto> getByArticleId(Long articleId) {
         return ((ArticleHistoryRepository) getRepository())
-                .findByArticles_IdOrderByOperationDateDesc(articleId)
+                .findByArticles_IdOrderByIdDesc(articleId)
                 .stream()
                 .map(h -> ArticleHistoryDto.builder()
                         .id(h.getId())

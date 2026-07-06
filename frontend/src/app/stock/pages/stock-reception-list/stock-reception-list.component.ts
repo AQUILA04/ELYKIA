@@ -5,6 +5,7 @@ import { StockReceptionService } from '../../services/stock-reception.service';
 import { StockReception } from '../../../core/models/stock-reception.model';
 import { AuthService } from '../../../auth/service/auth.service';
 import { UserProfilConstant } from '../../../shared/constants/user-profil.constant';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
   selector: 'app-stock-reception-list',
@@ -29,7 +30,8 @@ export class StockReceptionListComponent implements OnInit {
   constructor(
     private stockReceptionService: StockReceptionService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private alertService: AlertService
   ) {}
 
   ngOnInit(): void {
@@ -106,33 +108,25 @@ export class StockReceptionListComponent implements OnInit {
 
   cancelReception(reception: StockReception): void {
     if (reception.status === 'CANCELLED') {
-      import('sweetalert2').then(Swal => Swal.default.fire('Information', 'Cette réception est déjà annulée.', 'info'));
+      this.alertService.showInfo('Cette réception est déjà annulée.', 'Information');
       return;
     }
 
-    import('sweetalert2').then(Swal => {
-      Swal.default.fire({
-        title: 'Êtes-vous sûr ?',
-        text: 'Voulez-vous vraiment annuler cette réception ? Les stocks seront mis à jour.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Oui, annuler',
-        cancelButtonText: 'Non'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.stockReceptionService.cancelReception(reception.id).subscribe({
-            next: () => {
-              Swal.default.fire('Annulée !', 'La réception a été annulée.', 'success');
-              this.loadReceptions();
-            },
-            error: (err) => {
-              Swal.default.fire('Erreur', err.error?.message || 'Une erreur est survenue lors de l\'annulation.', 'error');
-            }
-          });
-        }
-      });
+    this.alertService.showConfirmation(
+      'Êtes-vous sûr ?',
+      'Voulez-vous vraiment annuler cette réception ? Les stocks seront mis à jour.'
+    ).then((confirmed) => {
+      if (confirmed) {
+        this.stockReceptionService.cancelReception(reception.id).subscribe({
+          next: () => {
+            this.alertService.showSuccess('La réception a été annulée.', 'Annulée !');
+            this.loadReceptions();
+          },
+          error: (err) => {
+            this.alertService.showError(err.error?.message || 'Une erreur est survenue lors de l\'annulation.', 'Erreur');
+          }
+        });
+      }
     });
   }
 }

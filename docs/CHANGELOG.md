@@ -9,6 +9,23 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.11] — 2026-07-06
+
+### Fixed
+
+- `DailyReport` : filtre commercial corrigé (`ng-select` avec `bindValue` renvoie une chaîne, pas un objet) — un seul panneau rapport affiché pour le commercial sélectionné.
+- `DailyReport` : bilan crédit annuel affiche **0 FCFA** lorsque les valeurs sont absentes ou l'API ne renvoie pas de données.
+
+## Frontend — [2.9.10] — 2026-07-06
+
+### Added
+
+- `DailyReport` : bilan crédit annuel (ventes, versements crédit remis au secrétaire, reste chez les clients) affiché lorsqu'un commercial est sélectionné, alimenté par l'agrégation mensuelle backend.
+
+### Changed
+
+- `MyStockDashboard` : rétablissement du taux de recouvrement (%) à la place des versements crédit sur le stock mensuel.
+
 ## Frontend — [2.9.9] — 2026-07-06
 
 ### Fixed
@@ -20,6 +37,53 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - `StockRequestList` & `StockRequestCreate` : Ajout de la possibilité de modifier une demande de sortie de stock (CREATED ou VALIDATED). L'édition est protégée par le Feature Flag `editStockRequest` et le rôle `ROLE_EDIT_STOCK_REQUEST`. Toute demande validée repasse en `CREATED` après modification.
+
+## Frontend — [1.0.5] — 2026-07-06
+
+### Changed
+
+- `MovementTableComponent` : Traduction de l'opération `CANCEL_RECEPTION` en "ANNUL. RÉCEPTION", formatage correct des montants et ajout du scroll horizontal sur la table d'historique.
+
+## Backend — [1.0.12] — 2026-07-06
+
+### Added
+
+- Table `commercial_report_monthly` et service d'agrégation mensuelle des rapports journaliers (ventes crédit, versements crédit) avec backfill Flyway `V72` et synchronisation automatique à chaque mise à jour du rapport journalier.
+- API `GET /api/daily-commercial-reports/yearly-summary` : totaux annuels ventes crédit, versements crédit et reste chez les clients pour un commercial.
+
+### Fixed
+
+- `V72` : reclassement sur `daily_commercial_report` des montants tontine migrés à tort en versement crédit (pré-split catégories V57), avant le backfill mensuel — sans toucher à `cash_deposit`.
+
+## Backend — [1.0.11] — 2026-07-06
+
+### Changed
+
+- `ArticleHistoryRepository` : Remplacement du tri par `operation_date DESC` par `id DESC` (`findByArticles_IdOrderByIdDesc`) pour garantir que les opérations réalisées le même jour s'affichent correctement dans l'ordre chronologique inverse (la plus récente en premier) dans l'historique des mouvements.
+
+## Backend — [1.0.10] — 2026-07-06
+
+### Fixed
+
+- `StockReceptionService` : Création de l'entrée d'historique `ArticleHistory` *avant* la mise à jour effective du stock lors de l'annulation d'une réception. Cela garantit que la quantité initiale capturée dans l'historique est correcte (stock avant annulation) et non le stock final.
+
+## Backend — [1.0.9] — 2026-07-06
+
+### Changed
+
+- `StockReceptionController` : Ordonnancement par défaut de la liste des réceptions de stock par `id DESC` (des plus récentes aux plus anciennes) via `@PageableDefault`.
+
+## Backend — [1.0.8] — 2026-07-06
+
+### Fixed
+
+- `ArticleHistory` : Ajout d'une migration Flyway `V71__update_article_history_operation_type_constraint.sql` pour autoriser la nouvelle valeur `CANCEL_RECEPTION` dans la contrainte `CHECK` de la colonne `operation_type`, corrigeant l'erreur SQL lors de l'annulation d'une réception.
+
+## Backend — [1.0.7] — 2026-07-06
+
+### Fixed
+
+- `StockReception` : Ajout d'une migration Flyway `V70__add_status_to_stock_reception.sql` pour ajouter la colonne `status` (valeur par défaut 'VALIDATED') qui manquait dans la base de données après la modification de l'entité.
 
 ## Backend — [1.0.6] — 2026-07-06
 

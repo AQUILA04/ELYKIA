@@ -59,6 +59,45 @@
                 </div>
 
                 <div *ngIf="!isLoading">
+                    <!-- Bilan annuel crédit (commercial sélectionné) -->
+                    <div class="yearly-summary mb-4" *ngIf="activeCommercialUsername">
+                        <mat-card class="example-card yearly-summary-card">
+                            <mat-card-header>
+                                <mat-card-title>BILAN CRÉDIT {{ summaryYear }}</mat-card-title>
+                                <mat-card-subtitle>
+                                    {{ activeCommercialUsername | uppercase }} — Ventes et versements sur l'année
+                                </mat-card-subtitle>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <div *ngIf="yearlySummaryLoading" class="loading-container">
+                                    <mat-spinner diameter="36"></mat-spinner>
+                                </div>
+                                <div class="kpi-grid" *ngIf="!yearlySummaryLoading">
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Ventes Crédit (année)</span>
+                                        <span class="kpi-value">{{ yearlySummaryView.totalCreditSalesCount }} ({{
+                                            yearlySummaryView.totalCreditSalesAmount | currency:'XOF':'symbol':'1.0-0'
+                                            }})</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Versements Crédit (année)</span>
+                                        <span class="kpi-value">{{ yearlySummaryView.totalCreditDepositedAmount |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-hint">Remis au secrétaire</span>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <span class="kpi-label">Reste chez les clients</span>
+                                        <span class="kpi-value"
+                                            [ngClass]="{'text-danger': yearlySummaryView.remainingAtClientsAmount > 0, 'text-success': yearlySummaryView.remainingAtClientsAmount <= 0}">
+                                            {{ yearlySummaryView.remainingAtClientsAmount | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
+                                        <span class="kpi-hint">Ventes − versements crédit</span>
+                                    </div>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+
                     <!-- Aggregated Report Panel -->
                     <div class="aggregated-report mb-4" *ngIf="aggregatedReportData && !isPromoter">
                         <mat-card class="example-card">

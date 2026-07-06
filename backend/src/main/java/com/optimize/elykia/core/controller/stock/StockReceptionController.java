@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +30,7 @@ public class StockReceptionController {
     public ResponseEntity<Response> getAll(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            Pageable pageable) {
+            @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return new ResponseEntity<>(ResponseUtil.successResponse(service.getAllReceptions(startDate, endDate, pageable)), HttpStatus.OK);
     }
 
@@ -36,7 +38,7 @@ public class StockReceptionController {
     public ResponseEntity<Response> search(
             @RequestParam(required = false) String reference,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate receptionDate,
-            Pageable pageable) {
+            @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return new ResponseEntity<>(ResponseUtil.successResponse(service.searchReceptions(reference, receptionDate, pageable)), HttpStatus.OK);
     }
 
