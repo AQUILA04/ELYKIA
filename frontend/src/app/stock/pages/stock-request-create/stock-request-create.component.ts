@@ -75,24 +75,15 @@ export class StockRequestCreateComponent implements OnInit {
     this.spinner.show();
     this.stockRequestService.getById(id).subscribe({
       next: (req) => {
-        this.form.patchValue({ collector: req.collector });
-        if (req.items && req.items.length > 0 && this.articleSelector) {
-            // Need to set items in articleSelector somehow.
-            // Since articleSelector might not be initialized yet if view isn't ready,
-            // we should do this carefully.
-            setTimeout(() => {
-                const initialItems = req.items?.map(item => ({
-                    articleId: item.article?.id,
-                    quantity: item.quantity
-                }));
-                if (this.articleSelector) {
-                    // This assumes ArticleSelectorComponent can be patched. 
-                    // Actually ArticleSelectorComponent takes formControlName="items",
-                    // so we just patch the form and the component should handle it if it implements ControlValueAccessor.
-                    this.form.patchValue({ items: initialItems });
-                }
-            }, 100);
-        }
+        const initialItems = req.items?.map(item => ({
+          articleId: item.article?.id,
+          quantity: item.quantity
+        })) ?? [];
+
+        this.form.patchValue({
+          collector: req.collector,
+          items: initialItems
+        });
         this.spinner.hide();
       },
       error: (err) => {

@@ -65,15 +65,6 @@ public class ClientService extends GenericService<Client, Long> {
         this.businessCreditAuthorizationEventRepository = businessCreditAuthorizationEventRepository;
     }
 
-    @Override
-    @Transactional
-    public Client update(Client client) {
-        if (client.getId() != null) {
-            validateClientUniquenessForUpdate(client);
-        }
-        return super.update(client);
-    }
-
     @Transactional
     @EvictClientListCaches
     public ClientRespDto addClient(ClientDto dto) {
@@ -109,7 +100,9 @@ public class ClientService extends GenericService<Client, Long> {
         var old = getById(clientId);
         String oldPhone = old.getPhone();
         Client client = clientMapper.toEntity(dto);
+        client.setId(clientId);
         preservePhotoFields(old, client);
+        validateClientUniquenessForUpdate(client);
         ClientRespDto result = ClientRespDto.fromClient(update(client));
         publishPhoneUpdatedIfChanged(clientId, oldPhone, client.getPhone());
         return result;
@@ -154,6 +147,7 @@ public class ClientService extends GenericService<Client, Long> {
             client.setMll(dto.mll());
         }
 
+        validateClientUniquenessForUpdate(client);
         Client updated = update(client);
         publishPhoneUpdatedIfChanged(client.getId(), oldPhone, updated.getPhone());
         return ClientRespDto.fromClient(updated);
@@ -230,7 +224,8 @@ public class ClientService extends GenericService<Client, Long> {
             client.setCardID(dto.cardNumber());
         }
 
-        repository.saveAndFlush(client);
+        validateClientUniquenessForUpdate(client);
+        update(client);
 
         return Boolean.TRUE;
     }
@@ -273,6 +268,17 @@ public class ClientService extends GenericService<Client, Long> {
     private Client resolveExistingClientForCreate(Client client) {
         Long excludeId = 0L;
         Client existingByPhone = findConflictingClientByPhone(client.getPhone(), excludeId);
+        Client existingByCard = findConflictingClientByCardId(client.getCardID(), excludeId);
+
+        if (existingByPhone != null && existingByCard != null
+                && !Objects.equals(existingByPhone.getId(), existingByCard.getId())) {
+            throw new CustomValidationException(
+                    "Incohérence : le téléphone appartient à "
+                            + existingByPhone.getFirstname() + " " + existingByPhone.getLastname()
+                            + " mais la pièce d'identité appartient à "
+                            + existingByCard.getFirstname() + " " + existingByCard.getLastname());
+        }
+
         if (existingByPhone != null) {
             if (hasSameCreateIdentity(existingByPhone, client)) {
                 return existingByPhone;
@@ -280,7 +286,6 @@ public class ClientService extends GenericService<Client, Long> {
             throw phoneConflictException(existingByPhone);
         }
 
-        Client existingByCard = findConflictingClientByCardId(client.getCardID(), excludeId);
         if (existingByCard != null) {
             if (hasSameCreateIdentity(existingByCard, client)) {
                 return existingByCard;
@@ -295,13 +300,28 @@ public class ClientService extends GenericService<Client, Long> {
      * Mise à jour : le téléphone et la pièce d'identité ne doivent appartenir à aucun autre client.
      */
     private void validateClientUniquenessForUpdate(Client client) {
+        if (client.getId() == null) {
+            throw new IllegalStateException(
+                    "La validation d'unicité client en mise à jour requiert un identifiant.");
+        }
+
         Long clientId = client.getId();
         Client existingByPhone = findConflictingClientByPhone(client.getPhone(), clientId);
+        Client existingByCard = findConflictingClientByCardId(client.getCardID(), clientId);
+
+        if (existingByPhone != null && existingByCard != null
+                && !Objects.equals(existingByPhone.getId(), existingByCard.getId())) {
+            throw new CustomValidationException(
+                    "Incohérence : le téléphone appartient à "
+                            + existingByPhone.getFirstname() + " " + existingByPhone.getLastname()
+                            + " mais la pièce d'identité appartient à "
+                            + existingByCard.getFirstname() + " " + existingByCard.getLastname());
+        }
+
         if (existingByPhone != null) {
             throw phoneConflictException(existingByPhone);
         }
 
-        Client existingByCard = findConflictingClientByCardId(client.getCardID(), clientId);
         if (existingByCard != null) {
             throw cardIdConflictException(existingByCard);
         }

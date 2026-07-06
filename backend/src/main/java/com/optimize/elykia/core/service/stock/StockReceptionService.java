@@ -90,7 +90,7 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
     public String cancelReception(Long id) {
         StockReception reception = getById(id);
 
-        if (reception.getStatus() == ReceptionStatus.CANCELLED) {
+        if (ReceptionStatus.CANCELLED.equals(reception.getStatus())) {
             throw new CustomValidationException("Cette réception est déjà annulée.");
         }
 

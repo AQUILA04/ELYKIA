@@ -9,11 +9,29 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.9] — 2026-07-06
+
+### Fixed
+
+- édition demande de sortie stock : chargement des articles sans `setTimeout` ni dépendance au `ViewChild` ; le spinner reste affiché jusqu'à l'application complète des valeurs du formulaire.
+
 ## Frontend — [2.9.8] — 2026-07-06
 
 ### Added
 
 - `StockRequestList` & `StockRequestCreate` : Ajout de la possibilité de modifier une demande de sortie de stock (CREATED ou VALIDATED). L'édition est protégée par le Feature Flag `editStockRequest` et le rôle `ROLE_EDIT_STOCK_REQUEST`. Toute demande validée repasse en `CREATED` après modification.
+
+## Backend — [1.0.6] — 2026-07-06
+
+### Fixed
+
+- annulation réception stock : comparaison du statut `ReceptionStatus` via `.equals()` au lieu de `==`.
+
+## Backend — [1.0.5] — 2026-07-06
+
+### Fixed
+
+- `ClientService` : validation explicite téléphone / pièce d'identité rétablie sur `updateClient`, `updateClientInfo` et `updateClientPhoto` ; contrôle d'incohérence croisée téléphone vs pièce conservé à la création et en mise à jour.
 
 ## Backend — [1.0.4] — 2026-07-06
 
