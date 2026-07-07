@@ -18,6 +18,10 @@ public interface StockReceptionMapper extends BaseMapper<StockReception, StockRe
     @Mapping(target = "items", ignore = true)
     StockReceptionDto toDto(StockReception entity);
 
+    @Named("toDtoWithItems")
+    @Mapping(target = "items", source = "items")
+    StockReceptionDto toDtoWithItems(StockReception entity);
+
     StockReceptionListDto toListDto(StockReception entity);
 
     @Mapping(target = "articleId", source = "article.id")

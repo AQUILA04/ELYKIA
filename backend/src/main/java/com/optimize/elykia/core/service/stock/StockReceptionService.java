@@ -94,6 +94,11 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         return mapper.toDto(reception);
     }
 
+    public StockReceptionDto getReceptionByIdWithItems(Long id) {
+        StockReception reception = getById(id);
+        return mapper.toDtoWithItems(reception);
+    }
+
     public Page<StockReceptionItemDto> getReceptionItemsById(Long id, Pageable pageable) {
         getById(id);
         return stockReceptionItemRepository

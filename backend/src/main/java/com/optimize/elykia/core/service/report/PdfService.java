@@ -133,7 +133,7 @@ public class PdfService {
     }
     
     public InputStream generateStockReceptionPdf(Long receptionId) throws DocumentException {
-        StockReceptionDto dto = stockReceptionService.getReceptionById(receptionId);
+        StockReceptionDto dto = stockReceptionService.getReceptionByIdWithItems(receptionId);
         String html = generateStockReceptionHtmlFromTemplate(dto);
         return generatePdfFromHtml(html, "RECEPTION_" + dto.getReference());
     }
