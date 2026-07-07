@@ -21,17 +21,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - `PdfService.generateStockReceptionPdf` : utilise `getReceptionByIdWithItems` pour inclure toutes les lignes article dans le PDF, sans réintroduire les items dans l'endpoint API fiche.
 
-## Frontend — [2.9.16] — 2026-07-07
-
-### Changed
-
-- Domaine `article` migré en lazy-loading : module dédié, routes `/article/list`, `/article/add`, `/article/add/:id`, `/article/details/:id` ; sidebar et navigations internes alignées.
-
 ## Frontend — [2.9.15] — 2026-07-07
 
 ### Added
 
 - Fiche article : modal d'historique complet des mouvements de stock accessible via « +x mouvements supplémentaires » lorsque la liste dépasse 6 entrées.
+
+### Changed
+
+- Domaine `article` migré en lazy-loading : module dédié, routes `/article/list`, `/article/add`, `/article/add/:id`, `/article/details/:id` ; sidebar et navigations internes alignées.
 
 ## Frontend — [2.9.14] — 2026-07-07
 
