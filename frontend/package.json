@@ -1,12 +1,13 @@
 {
   "name": "optimize-elykia-ui",
-  "version": "2.9.14",
+  "version": "2.9.16",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "check:lazy-loading": "python ../.github/scripts/check-frontend-lazy-loading.py",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:smoke": "playwright test --project=smoke",

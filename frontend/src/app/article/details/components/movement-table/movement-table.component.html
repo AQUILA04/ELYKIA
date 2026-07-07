@@ -33,7 +33,9 @@
     </div>
 
     <div class="view-all" *ngIf="movements.length > limit">
-        <span class="count-badge">+{{ movements.length - limit }} mouvements supplémentaires</span>
+        <button type="button" class="count-badge" (click)="openAllMovements()">
+            +{{ movements.length - limit }} mouvements supplémentaires
+        </button>
     </div>
 </div>
 

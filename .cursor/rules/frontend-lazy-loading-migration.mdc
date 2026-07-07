@@ -1,17 +1,62 @@
 ---
-description: Migration progressive lazy-loading Angular — lire et appliquer le skill quand le travail touche frontend/
-globs: frontend/**
+description: OBLIGATOIRE — migration lazy-loading si un domaine frontend eager est modifié (article, credit, client…)
+globs:
+  - frontend/src/app/credit/**
+  - frontend/src/app/client/**
+  - frontend/src/app/locality/**
+  - frontend/src/app/account/**
+  - frontend/src/app/dashboard/**
+  - frontend/src/app/dashboard-chart/**
+  - frontend/src/app/accounting-day/**
+  - frontend/src/app/user/**
+  - frontend/src/app/cash-desk/**
+  - frontend/src/app/inventory/**
+  - frontend/src/app/gestion/**
+  - frontend/src/app/operation/**
+  - frontend/src/app/deposit/**
+  - frontend/src/app/report/**
+  - frontend/src/app/history/**
+  - frontend/src/app/out/**
+  - frontend/src/app/commercial/**
+  - frontend/src/app/parameters/**
 alwaysApply: false
 ---
 
-# Frontend — lazy-loading progressif
+# Frontend — lazy-loading progressif (OBLIGATOIRE)
 
-Toute tâche touchant `frontend/` doit **lire et appliquer** le skill `.cursor/skills/frontend-lazy-loading-migration/SKILL.md`.
+## Checklist AVANT de coder (ne pas ignorer)
 
-## Règle
+Si le fichier modifié est sous `frontend/src/app/{domaine}/` :
 
-- Si le fichier modifié appartient à un **domaine encore eager** (`credit`, `client`, `article`, etc.) : migrer **ce domaine seul** vers `loadChildren` et aligner les URLs sur `/{domaine}/...`.
-- Si le domaine est **déjà lazy-loaded** ou le travail est transverse (`shared/`, `layout/`) : ne migrer aucun domaine.
-- **Un seul domaine par tâche** — ne pas toucher aux autres dossiers.
+1. **Identifier le domaine** (ex. `article`, `credit`, `client`).
+2. **Vérifier s'il est encore eager** : absence de `{domaine}.module.ts` OU composants encore dans `app.module.ts`.
+3. **Si eager** → la migration lazy-loading **fait partie du scope** de la tâche. Ne pas livrer la feature sans elle.
+4. **Un seul domaine par tâche** — ne pas toucher aux autres dossiers eager.
+5. **Workflow détaillé** : lire `.cursor/skills/frontend-lazy-loading-migration/SKILL.md`.
 
-Voir le skill pour le workflow complet, les modules de référence (`expense`, `orders`) et la checklist de vérification.
+## Domaines encore eager (à migrer quand touchés)
+
+`locality`, `account`, `client`, `dashboard`, `dashboard-chart`, `accounting-day`, `credit`, `user`, `cash-desk`, `inventory`, `gestion`, `operation`, `deposit`, `report`, `history`, `out`, `commercial`, `parameters`
+
+## Déjà lazy-loaded (ne pas migrer)
+
+`orders`, `bi`, `ai-chat`, `tontine`, `stock`, `stock-tontine`, `article-type`, `article`, `expense`, `security`
+
+## Transverse (ne pas migrer)
+
+`shared/`, `layout/`, `interceptors/`, `core/`, `auth/` (login — laisser eager sauf demande explicite), `bread/`, `license/`
+
+## Actions obligatoires si domaine eager
+
+1. Créer `{domaine}.module.ts` + `{domaine}-routing.module.ts`
+2. Déplacer les `declarations` depuis `app.module.ts`
+3. Remplacer les routes `component:` par `loadChildren` avec préfixe `/{domaine}/...`
+4. Mettre à jour `routerLink`, `router.navigate`, sidebar
+5. `npm run build` dans `frontend/`
+6. CI : `.github/scripts/check-frontend-lazy-loading.py` doit passer
+
+## Anti-patterns
+
+- Livrer une feature dans un domaine eager sans migration
+- Se contenter de « lire le skill » sans exécuter la migration
+- Migrer plusieurs domaines dans une même tâche

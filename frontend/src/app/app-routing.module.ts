@@ -1,8 +1,5 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AddComponent } from './article/add/add.component';
-import { ListComponent } from './article/list/list.component';
-import { DetailComponent } from './article/details/details.component';
 import { LocalityAddComponent } from './locality/localityadd/localityadd.component';
 import { LocalityListComponent } from './locality/localitylist/localitylist.component';
 import { LocalityDetailsComponent } from './locality/localitydetails/localitydetails.component';
@@ -155,25 +152,10 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
 
-  // Articles/Items
+  // Articles/Items (lazy-loaded)
   {
-    path: 'add',
-    component: AddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'add/:id',
-    component: AddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'list',
-    component: ListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'details/:id',
-    component: DetailComponent,
+    path: 'article',
+    loadChildren: () => import('./article/article.module').then(m => m.ArticleModule),
     canActivate: [AuthGuard]
   },
 

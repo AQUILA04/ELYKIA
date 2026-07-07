@@ -52,6 +52,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Check eager frontend domains lazy-loading migration
+      working-directory: .
+      run: python .github/scripts/check-frontend-lazy-loading.py
 
     - name: Set lowercase image name
       run: |

@@ -326,12 +326,12 @@ export class DetailComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/list']);
+    this.router.navigate(['/article/list']);
   }
 
   navigateToEdit(articleId: number | undefined): void {
     if (articleId) {
-      this.router.navigate(['/add', articleId]);
+      this.router.navigate(['/article/add', articleId]);
     }
   }
 }

@@ -152,7 +152,7 @@ export class AddComponent implements OnInit {
             this.isLoading = false;
             this.spinner.hide();
             this.alertService.showSuccess('Article mis à jour avec succès');
-            this.router.navigate(['/list']);
+            this.router.navigate(['/article/list']);
           },
           error: (error) => {
             this.isLoading = false;
@@ -168,7 +168,7 @@ export class AddComponent implements OnInit {
             this.isLoading = false;
             this.spinner.hide();
             this.alertService.showSuccess('Article ajouté avec succès');
-            this.router.navigate(['/list']);
+            this.router.navigate(['/article/list']);
           },
           error: (error) => {
             this.isLoading = false;
@@ -182,6 +182,6 @@ export class AddComponent implements OnInit {
     }
   }
   onCancel(): void {
-    this.router.navigate(['/list']);
+    this.router.navigate(['/article/list']);
   }
 }

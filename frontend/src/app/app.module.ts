@@ -4,9 +4,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HeaderComponent } from './layout/header/header.component';
 import { SidebarComponent } from './layout/sidebar/sidebar.component';
-import { AddComponent } from './article/add/add.component';
-import { ListComponent } from './article/list/list.component';
-import { DetailComponent } from './article/details/details.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -120,14 +117,6 @@ import { ClientKpiCardsComponent } from './client/components/client-kpi-cards/cl
 import { ClientInfoCardComponent } from './client/components/client-info-card/client-info-card.component';
 import { ClientCreditListComponent } from './client/components/client-credit-list/client-credit-list.component';
 import { ClientCotisationHistoryComponent } from './client/components/client-cotisation-history/client-cotisation-history.component';
-// --- Article Detail Sub-Components ---
-import { StockGaugeComponent } from './article/details/components/stock-gauge/stock-gauge.component';
-import { PriceCardComponent } from './article/details/components/price-card/price-card.component';
-import { MovementTableComponent } from './article/details/components/movement-table/movement-table.component';
-import { StateTimelineComponent } from './article/details/components/state-timeline/state-timeline.component';
-import { PriceHistoryTimelineComponent } from './article/details/components/price-history-timeline/price-history-timeline.component';
-import { QuickStockEntryComponent } from './article/details/components/quick-stock-entry/quick-stock-entry.component';
-import { StockLotsTableComponent } from './article/details/components/stock-lots-table/stock-lots-table.component';
 import { CreditLateComponent } from './credit/credit-late/credit-late.component';
 import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
 import { CreditListKpiComponent } from './credit/credit-list/components/credit-list-kpi/credit-list-kpi.component';
@@ -160,9 +149,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     AppComponent,
     HeaderComponent,
     SidebarComponent,
-    AddComponent,
-    ListComponent,
-    DetailComponent,
     BreadcrumbComponent,
     LocalityListComponent,
     LocalityDetailsComponent,
@@ -238,14 +224,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     ClientInfoCardComponent,
     ClientCreditListComponent,
     ClientCotisationHistoryComponent,
-    // --- Article Detail Sub-Components ---
-    StockGaugeComponent,
-    PriceCardComponent,
-    MovementTableComponent,
-    StateTimelineComponent,
-    PriceHistoryTimelineComponent,
-    QuickStockEntryComponent,
-    StockLotsTableComponent,
     CreditLateComponent,
     CreditLateKpiComponent,
     CreditListKpiComponent,

@@ -264,17 +264,17 @@ export class ListComponent implements OnInit, OnDestroy {
 
   addArticle(): void {
     this.saveState();
-    this.router.navigate(['/add']);
+    this.router.navigate(['/article/add']);
   }
 
   viewDetails(articleId: number): void {
     this.saveState();
-    this.router.navigate(['/details', articleId]);
+    this.router.navigate(['/article/details', articleId]);
   }
 
   editArticle(articleId: number): void {
     this.saveState();
-    this.router.navigate(['/add', articleId]);
+    this.router.navigate(['/article/add', articleId]);
   }
 
   private saveState(): void {

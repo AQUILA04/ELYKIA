@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "command": "python .cursor/hooks/lazy-loading-reminder.py",
+        "matcher": "Write|StrReplace|EditNotebook"
+      }
+    ]
+  }
+}

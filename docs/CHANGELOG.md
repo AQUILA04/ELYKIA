@@ -9,11 +9,29 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-07-07
+
+### Added
+
+- Enforcement lazy-loading frontend : règle Cursor renforcée (checklist obligatoire inline, globs domaines eager), hook `postToolUse` (`.cursor/hooks/lazy-loading-reminder.py`), garde CI `.github/scripts/check-frontend-lazy-loading.py`, script local `npm run check:lazy-loading` dans `frontend/`.
+
 ## Backend — [1.0.18] — 2026-07-07
 
 ### Fixed
 
 - `PdfService.generateStockReceptionPdf` : utilise `getReceptionByIdWithItems` pour inclure toutes les lignes article dans le PDF, sans réintroduire les items dans l'endpoint API fiche.
+
+## Frontend — [2.9.16] — 2026-07-07
+
+### Changed
+
+- Domaine `article` migré en lazy-loading : module dédié, routes `/article/list`, `/article/add`, `/article/add/:id`, `/article/details/:id` ; sidebar et navigations internes alignées.
+
+## Frontend — [2.9.15] — 2026-07-07
+
+### Added
+
+- Fiche article : modal d'historique complet des mouvements de stock accessible via « +x mouvements supplémentaires » lorsque la liste dépasse 6 entrées.
 
 ## Frontend — [2.9.14] — 2026-07-07
 

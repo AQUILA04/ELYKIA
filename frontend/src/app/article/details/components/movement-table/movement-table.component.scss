@@ -102,12 +102,27 @@ tbody td {
     text-align: center;
 
     .count-badge {
+        font-family: inherit;
+        line-height: inherit;
         font-size: 11px;
-        color: var(--ad-text-muted);
+        color: var(--ad-navy);
         background: var(--ad-bg-page);
         border: 1px solid var(--ad-border);
         border-radius: 100px;
         padding: 3px 12px;
+        cursor: pointer;
+        transition: background .15s, border-color .15s, color .15s;
+
+        &:hover {
+            background: var(--ad-navy-pale);
+            border-color: var(--ad-navy);
+            color: var(--ad-navy);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--ad-navy);
+            outline-offset: 2px;
+        }
     }
 }
 

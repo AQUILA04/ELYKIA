@@ -1,19 +1,27 @@
 ---
 name: frontend-lazy-loading-migration
 description: >
-  Règle de migration progressive lazy-loading du frontend ELYKIA (Angular).
-  À appliquer systématiquement pour toute tâche touchant le frontend
-  (frontend/, composants, services, routing, modules). Si le travail concerne
-  un domaine encore eager sous frontend/src/app/, migrer ce domaine vers
-  loadChildren et aligner les URLs sur /{domaine}/... ; sinon vérifier et ne
-  rien migrer. Un seul domaine par tâche, sans toucher aux autres dossiers.
+  Règle OBLIGATOIRE de migration progressive lazy-loading du frontend ELYKIA (Angular).
+  À appliquer systématiquement dès qu'un fichier sous un domaine eager est modifié
+  (article, credit, client, locality, account, dashboard, user, inventory, etc.).
+  Si le domaine n'a pas encore {domaine}.module.ts, migrer vers loadChildren et URLs
+  /{domaine}/... dans la même tâche. Un seul domaine par PR. Vérifié par CI et hook Cursor.
 ---
 
 # Migration progressive lazy-loading — Frontend ELYKIA
 
 ## Activation automatique
 
-Ce skill est **proposé automatiquement** dès qu'une tâche touche `frontend/` (règle Cursor `.cursor/rules/frontend-lazy-loading-migration.mdc`, globs `frontend/**`). Il doit être **lu et pris en compte** même si la demande utilisateur ne mentionne pas le lazy-loading.
+Ce skill est **obligatoire** dès qu'une tâche touche un domaine eager sous `frontend/src/app/` :
+
+| Mécanisme | Fichier | Rôle |
+|-----------|---------|------|
+| **Règle Cursor** | `.cursor/rules/frontend-lazy-loading-migration.mdc` | Checklist obligatoire injectée (globs domaines eager) |
+| **Hook Cursor** | `.cursor/hooks/lazy-loading-reminder.py` | Rappel après édition d'un fichier eager |
+| **CI** | `.github/scripts/check-frontend-lazy-loading.py` | Échec si domaine eager modifié sans `{domaine}.module.ts` |
+| **Ce skill** | Workflow détaillé, modules de référence, checklist complète |
+
+La règle contient l'obligation ; ce skill contient le **comment**. Ne pas se contenter de lire le skill sans exécuter la migration quand le domaine est eager.
 
 | Situation | Action |
 |-----------|--------|
@@ -40,11 +48,11 @@ Pour les agents travaillant sur le projet ELYKIA, frontend, il faut qu'il adopte
 
 ### Déjà lazy-loaded (`loadChildren` dans `app-routing.module.ts`)
 
-`orders`, `bi`, `ai-chat`, `tontine`, `stock`, `stock-tontine`, `article-type`, `expense`, `security`
+`orders`, `bi`, `ai-chat`, `tontine`, `stock`, `stock-tontine`, `article-type`, `article`, `expense`, `security`
 
 ### Encore eager (déclarés dans `app.module.ts`)
 
-`article`, `locality`, `account`, `client`, `dashboard`, `accounting-day`, `credit`, `user`, `cash-desk`, `inventory`, `gestion`, `operation`, `deposit`, `report`, `history`, `out`, `commercial`, `parameters`, `auth` (login — laisser eager sauf demande explicite)
+`locality`, `account`, `client`, `dashboard`, `accounting-day`, `credit`, `user`, `cash-desk`, `inventory`, `gestion`, `operation`, `deposit`, `report`, `history`, `out`, `commercial`, `parameters`, `auth` (login — laisser eager sauf demande explicite)
 
 > Vérifier `app-routing.module.ts` et `app.module.ts` avant migration : l'état peut avoir évolué.
 

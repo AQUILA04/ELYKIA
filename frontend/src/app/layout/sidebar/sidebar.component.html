@@ -94,8 +94,8 @@
         </li>
 
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_ARTICLE', 'ROLE_STOREKEEPER']">
-          <a class="sidebar-link" routerLink="/list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/list') }">
+          <a class="sidebar-link" routerLink="/article/list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/article') }">
             <span>
               <mat-icon>shopping_bag</mat-icon>
             </span>

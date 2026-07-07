@@ -179,7 +179,7 @@
         Mouvements récents
       </div>
       <!-- ── Sous-composant Table des Mouvements ── -->
-      <app-movement-table [movements]="articleHistory" [limit]="6"></app-movement-table>
+      <app-movement-table [movements]="articleHistory" [limit]="6" [articleName]="article.name"></app-movement-table>
     </div>
 
     <!-- Colonne 3 : Historique d'états & Audit -->

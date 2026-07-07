@@ -1,5 +1,7 @@
 import { Component, Input } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { ArticleHistoryItem } from '../../../service/item.service';
+import { MovementListDialogComponent } from '../movement-list-dialog/movement-list-dialog.component';
 
 @Component({
     selector: 'app-movement-table',
@@ -10,6 +12,9 @@ import { ArticleHistoryItem } from '../../../service/item.service';
 export class MovementTableComponent {
     @Input() movements: ArticleHistoryItem[] = [];
     @Input() limit = 6;
+    @Input() articleName?: string;
+
+    constructor(private dialog: MatDialog) {}
 
     get displayedMovements(): ArticleHistoryItem[] {
         return this.movements.slice(0, this.limit);
@@ -42,5 +47,18 @@ export class MovementTableComponent {
     formatDate(dateStr: string): string {
         if (!dateStr) return '—';
         return new Date(dateStr).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    openAllMovements(): void {
+        this.dialog.open(MovementListDialogComponent, {
+            width: '720px',
+            maxWidth: '95vw',
+            maxHeight: '90vh',
+            panelClass: 'movement-list-dialog',
+            data: {
+                movements: this.movements,
+                articleName: this.articleName
+            }
+        });
     }
 }
