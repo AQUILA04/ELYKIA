@@ -28,6 +28,10 @@ import com.optimize.common.securities.security.services.UserService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional(readOnly = true)
@@ -105,6 +109,8 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
             throw new CustomValidationException("Cette réception est déjà annulée.");
         }
 
+        validateStockAvailabilityForCancellation(reception);
+
         final String connectedUser = userService.getCurrentUser().getUsername();
 
         for (StockReceptionItem item : reception.getItems()) {
@@ -144,5 +150,41 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         update(reception);
 
         return "success:true";
+    }
+
+    private void validateStockAvailabilityForCancellation(StockReception reception) {
+        Map<Long, Integer> requiredQuantityByArticle = new HashMap<>();
+        Map<Long, Articles> articlesById = new HashMap<>();
+
+        for (StockReceptionItem item : reception.getItems()) {
+            Articles article = item.getArticle();
+            if (article == null || item.getQuantity() == null) {
+                continue;
+            }
+            requiredQuantityByArticle.merge(article.getId(), item.getQuantity(), Integer::sum);
+            articlesById.putIfAbsent(article.getId(), article);
+        }
+
+        List<String> insufficientArticles = new ArrayList<>();
+        for (Map.Entry<Long, Integer> entry : requiredQuantityByArticle.entrySet()) {
+            Articles article = articlesById.get(entry.getKey());
+            int available = article.getStockQuantity() != null ? article.getStockQuantity() : 0;
+            int required = entry.getValue();
+            if (available < required) {
+                insufficientArticles.add(
+                        article.getCommercialName()
+                                + " (disponible: "
+                                + available
+                                + ", requis: "
+                                + required
+                                + ")");
+            }
+        }
+
+        if (!insufficientArticles.isEmpty()) {
+            throw new CustomValidationException(
+                    "Impossible d'annuler la réception : stock insuffisant pour les articles suivants : "
+                            + String.join("; ", insufficientArticles));
+        }
     }
 }

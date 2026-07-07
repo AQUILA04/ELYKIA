@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.14] — 2026-07-07
+
+### Fixed
+
+- `StockReceptionListComponent` : affichage lisible de la liste d'articles en stock insuffisant lors de l'échec d'une annulation (message backend sur plusieurs lignes).
+
+## Backend — [1.0.17] — 2026-07-07
+
+### Fixed
+
+- `StockReceptionService.cancelReception` : validation préalable du stock avant annulation ; si un ou plusieurs articles n'ont pas la quantité suffisante, une `CustomValidationException` liste tous les articles concernés (disponible vs requis) au lieu d'échouer sur la contrainte `@PositiveOrZero` de `stockQuantity`.
+
 ## Frontend — [2.9.13] — 2026-07-07
 
 ### Changed

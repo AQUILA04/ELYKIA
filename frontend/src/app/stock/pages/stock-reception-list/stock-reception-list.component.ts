@@ -122,7 +122,11 @@ export class StockReceptionListComponent implements OnInit {
             this.loadReceptions();
           },
           error: (err) => {
-            this.alertService.showError(err.error?.message || 'Une erreur est survenue lors de l\'annulation.', 'Erreur');
+            const rawMessage = err.error?.message || 'Une erreur est survenue lors de l\'annulation.';
+            const message = rawMessage.includes('; ')
+              ? rawMessage.replace(/; /g, '<br>• ')
+              : rawMessage;
+            this.alertService.showError(message, 'Erreur');
           }
         });
       }
