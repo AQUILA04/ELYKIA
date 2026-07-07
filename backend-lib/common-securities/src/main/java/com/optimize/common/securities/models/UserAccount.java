@@ -1,6 +1,7 @@
 package com.optimize.common.securities.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.optimize.common.entities.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -59,6 +60,8 @@ public class UserAccount extends BaseEntity<String> {
     private UserProfil userProfil;
     @JsonIgnore
     @OneToMany(mappedBy = "userAccount", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @JsonManagedReference
     private Set<AccountPermission> permissions = new HashSet<>();
 
     public UserAccount(Long accountId) {

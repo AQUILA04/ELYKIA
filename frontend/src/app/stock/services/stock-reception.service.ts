@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { StockReception } from '../../core/models/stock-reception.model';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -34,6 +33,13 @@ export class StockReceptionService {
 
   getReception(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
+  }
+
+  getReceptionItems(id: number, page: number, size: number): Observable<any> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    return this.http.get<any>(`${this.apiUrl}/${id}/items`, { params });
   }
 
   downloadPdf(id: number): Observable<Blob> {

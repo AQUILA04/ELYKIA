@@ -9,6 +9,22 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.13] — 2026-07-07
+
+### Changed
+
+- `StockReceptionListComponent` : consommation du DTO liste backend (`StockReceptionListItem`) sans mapping défensif côté client ; les items ne transitent plus par la liste.
+
+## Frontend — [2.9.12] — 2026-07-07
+
+### Changed
+
+- `StockReceptionDetailComponent` : chargement des lignes article découplé de la fiche, avec pagination serveur (30 par page), accumulation progressive et déclenchement automatique au scroll (infinite scroll) pour éviter les saturations mémoire sur les réceptions volumineuses.
+
+### Fixed
+
+- `StockReceptionListComponent` : normalisation défensive de la réponse pour ignorer toute collection `items` résiduelle côté liste et limiter l’empreinte mémoire affichage (remplacé en 2.9.13 par un DTO liste dédié côté backend).
+
 ## Frontend — [2.9.11] — 2026-07-06
 
 ### Fixed
@@ -43,6 +59,38 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - `MovementTableComponent` : Traduction de l'opération `CANCEL_RECEPTION` en "ANNUL. RÉCEPTION", formatage correct des montants et ajout du scroll horizontal sur la table d'historique.
+
+## Backend — [1.0.16] — 2026-07-07
+
+### Added
+
+- `StockReceptionListDto` : DTO liste sans collection `items`, alimenté par des requêtes JPQL en projection (`SELECT new ...`) pour ne charger que les colonnes affichées (référence, date, reçu par, montant, statut).
+
+### Changed
+
+- `StockReceptionService` : les endpoints liste/recherche retournent `Page<StockReceptionListDto>` au lieu de mapper l'entité complète `StockReception`.
+
+## Backend — [1.0.15] — 2026-07-07
+
+### Added
+
+- `StockReceptionController` : nouvel endpoint `GET /api/v1/stock-receptions/{id}/items` paginé pour récupérer les articles d’une réception à la demande.
+
+### Changed
+
+- `StockReceptionService.getReceptionById` : la fiche de réception renvoie désormais un DTO léger sans collection `items`; les lignes sont servies par endpoint dédié paginé.
+
+## Backend — [1.0.14] — 2026-07-07
+
+### Fixed
+
+- `common-securities` : sérialisation JSON sécurisée sur la relation `UserAccount` ↔ `AccountPermission` via `@JsonManagedReference`/`@JsonBackReference`, pour empêcher toute récursion infinie lors de la conversion Jackson.
+
+## Backend — [1.0.13] — 2026-07-07
+
+### Fixed
+
+- `common-securities` : exclusion des relations bidirectionnelles dans `toString()` de `UserAccount` et `AccountPermission` pour éviter la récursion infinie (`StackOverflowError`) lors des logs/sérialisations d'entités JPA.
 
 ## Backend — [1.0.12] — 2026-07-06
 

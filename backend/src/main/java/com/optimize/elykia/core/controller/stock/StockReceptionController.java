@@ -47,6 +47,13 @@ public class StockReceptionController {
         return new ResponseEntity<>(ResponseUtil.successResponse(service.getReceptionById(id)), HttpStatus.OK);
     }
 
+    @GetMapping("/{id}/items")
+    public ResponseEntity<Response> getItems(
+            @PathVariable Long id,
+            @PageableDefault(sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(service.getReceptionItemsById(id, pageable)), HttpStatus.OK);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Response> cancelReception(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(service.cancelReception(id)), HttpStatus.OK);

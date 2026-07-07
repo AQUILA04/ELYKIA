@@ -1,8 +1,7 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { StockReceptionService } from '../../services/stock-reception.service';
-import { StockReception } from '../../../core/models/stock-reception.model';
+import { StockReceptionListItem } from '../../../core/models/stock-reception.model';
 import { AuthService } from '../../../auth/service/auth.service';
 import { UserProfilConstant } from '../../../shared/constants/user-profil.constant';
 import { AlertService } from 'src/app/shared/service/alert.service';
@@ -14,7 +13,7 @@ import { AlertService } from 'src/app/shared/service/alert.service';
   encapsulation: ViewEncapsulation.None
 })
 export class StockReceptionListComponent implements OnInit {
-  receptions: StockReception[] = [];
+  receptions: StockReceptionListItem[] = [];
   isLoading = false;
   totalElement = 0;
   totalPages = 1;
@@ -106,7 +105,7 @@ export class StockReceptionListComponent implements OnInit {
     this.router.navigate(['/stock/receptions', id]);
   }
 
-  cancelReception(reception: StockReception): void {
+  cancelReception(reception: StockReceptionListItem): void {
     if (reception.status === 'CANCELLED') {
       this.alertService.showInfo('Cette réception est déjà annulée.', 'Information');
       return;

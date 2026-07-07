@@ -11,7 +11,7 @@
   </div>
 
   <!-- SKELETON si pas encore chargé -->
-  <div *ngIf="!reception" class="empty-state" style="margin-top:60px">
+  <div *ngIf="isReceptionLoading || !reception" class="empty-state" style="margin-top:60px">
     <div class="empty-icon">⏳</div>
     <div class="empty-title">Chargement…</div>
   </div>
@@ -75,7 +75,7 @@
     <div class="table-card a5">
       <div class="table-header-bar">
         <span class="table-title">Articles réceptionnés</span>
-        <span class="result-count"><strong>{{ reception.items?.length || 0 }}</strong> article(s)</span>
+        <span class="result-count"><strong>{{ itemsTotalElements }}</strong> article(s)</span>
       </div>
       <table>
         <thead>
@@ -88,7 +88,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngIf="!reception.items || reception.items.length === 0">
+          <tr *ngIf="!isItemsLoading && receptionItems.length === 0">
             <td colspan="5">
               <div class="empty-state">
                 <div class="empty-icon">📦</div>
@@ -96,9 +96,9 @@
               </div>
             </td>
           </tr>
-          <tr *ngFor="let item of reception.items; let i = index">
+          <tr *ngFor="let item of receptionItems; let i = index">
             <td><span class="row-num">{{ i + 1 }}</span></td>
-            <td><div class="col-article">{{ item.articleName }}</div></td>
+            <td><div class="col-article">{{ item.articleName || item.article?.name || '—' }}</div></td>
             <td>
               <span class="qty-badge">{{ item.quantity }}</span>
             </td>
@@ -107,6 +107,13 @@
           </tr>
         </tbody>
       </table>
+
+      <div class="items-loader-bar" *ngIf="isItemsLoading || hasMoreItems">
+        <button class="btn-refresh" *ngIf="hasMoreItems && !isItemsLoading" (click)="loadMoreItems()">
+          Charger plus d'articles
+        </button>
+        <span class="result-count" *ngIf="isItemsLoading">Chargement des articles…</span>
+      </div>
     </div>
 
   </ng-container>

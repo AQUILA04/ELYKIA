@@ -1,6 +1,7 @@
 package com.optimize.common.securities.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,10 +27,13 @@ public class AccountPermission implements Serializable {
     @JoinColumn(name = "ACCID")
     @ManyToOne
     @JsonIgnore
+    @ToString.Exclude
+    @JsonBackReference
     private UserAccount userAccount;
     @JoinColumn(name = "PERMID", referencedColumnName = "PERMID")
     @ManyToOne
     @JsonIgnore
+    @ToString.Exclude
     private UserPermission userPermission;
 
 
