@@ -45,6 +45,12 @@ public class CustomerApiController {
         return ResponseEntity.status(HttpStatus.CREATED).body(customerPortalService.submitMobileMoney(request));
     }
 
+    @GetMapping("/articles/top-types")
+    public ResponseEntity<List<CustomerArticleTypeDto>> getTopArticleTypes(
+            @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(customerPortalService.getTopArticleTypes(limit));
+    }
+
     @GetMapping("/articles")
     public ResponseEntity<List<CustomerArticleDto>> getArticles(
             @RequestParam(required = false) String search,

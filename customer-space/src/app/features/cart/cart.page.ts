@@ -5,6 +5,8 @@ import { Router, RouterModule } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { CartService, CartLine } from '../../shared/services/cart.service';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
+import { articleDisplayName } from '../../shared/utils/article-display';
+import { CustomerArticle } from '../../shared/models/customer.model';
 
 /** Page Panier — S-10. */
 @Component({
@@ -45,6 +47,10 @@ export class CartPage implements OnInit, OnDestroy {
 
   lineTotal(line: CartLine): number {
     return line.article.creditSalePrice * line.quantity;
+  }
+
+  label(article: CustomerArticle): string {
+    return articleDisplayName(article);
   }
 
   async submitOrder(): Promise<void> {

@@ -32,7 +32,10 @@ describe('AuthPage', () => {
       providers: [
         { provide: CustomerApiService, useValue: api },
         CustomerSessionService,
-        { provide: FirebaseAuthService, useValue: jasmine.createSpyObj('FirebaseAuthService', ['isConfigured', 'sendOtp', 'verifyOtp']) },
+        {
+          provide: FirebaseAuthService,
+          useValue: jasmine.createSpyObj('FirebaseAuthService', ['isConfigured', 'sendOtp', 'verifyOtp']),
+        },
         { provide: Router, useValue: router },
       ],
     }).compileComponents();
@@ -48,5 +51,60 @@ describe('AuthPage', () => {
     fixture.componentInstance.phoneForm.patchValue({ phone: '90123456' });
     await fixture.componentInstance.submitPhone();
     expect(fixture.componentInstance.step).toBe('pin');
+  });
+
+  it('starts OTP when phone exists without PIN', async () => {
+    const firebase = TestBed.inject(FirebaseAuthService) as jasmine.SpyObj<FirebaseAuthService>;
+    firebase.isConfigured.and.returnValue(true);
+    firebase.sendOtp.and.returnValue(Promise.resolve());
+    api.checkPhone.and.returnValue(of({ exists: true, pinConfigured: false, maskedName: 'Jean' }));
+
+    fixture.detectChanges();
+    fixture.componentInstance.phoneForm.patchValue({ phone: '90123456' });
+    await fixture.componentInstance.submitPhone();
+
+    expect(firebase.sendOtp).toHaveBeenCalledWith('90123456');
+    expect(fixture.componentInstance.step).toBe('otp');
+  });
+
+  it('shows Firebase error when OTP send fails', async () => {
+    const firebase = TestBed.inject(FirebaseAuthService) as jasmine.SpyObj<FirebaseAuthService>;
+    firebase.isConfigured.and.returnValue(true);
+    firebase.sendOtp.and.returnValue(Promise.reject({ code: 'auth/invalid-phone-number' }));
+    api.checkPhone.and.returnValue(of({ exists: true, pinConfigured: false, maskedName: 'Jean' }));
+
+    fixture.detectChanges();
+    fixture.componentInstance.phoneForm.patchValue({ phone: '90123456' });
+    await fixture.componentInstance.submitPhone();
+
+    expect(fixture.componentInstance.error).toBe('Numéro de téléphone invalide.');
+    expect(fixture.componentInstance.step).toBe('phone');
+  });
+
+  it('shows Firebase configuration error when auth is not enabled', async () => {
+    const firebase = TestBed.inject(FirebaseAuthService) as jasmine.SpyObj<FirebaseAuthService>;
+    firebase.isConfigured.and.returnValue(true);
+    firebase.sendOtp.and.returnValue(Promise.reject({ code: 'auth/configuration-not-found' }));
+    api.checkPhone.and.returnValue(of({ exists: true, pinConfigured: false, maskedName: 'Jean' }));
+
+    fixture.detectChanges();
+    fixture.componentInstance.phoneForm.patchValue({ phone: '92181351' });
+    await fixture.componentInstance.submitPhone();
+
+    expect(fixture.componentInstance.error).toContain('Firebase Auth non activé');
+    expect(fixture.componentInstance.step).toBe('phone');
+  });
+
+  it('renders recaptcha container before OTP step', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#recaptcha-container')).not.toBeNull();
+  });
+
+  it('resets wizard on re-entry when session is cleared', () => {
+    fixture.componentInstance.step = 'setup-pin';
+    fixture.componentInstance.error = 'Erreur';
+    fixture.componentInstance.ionViewWillEnter();
+    expect(fixture.componentInstance.step).toBe('phone');
+    expect(fixture.componentInstance.error).toBe('');
   });
 });

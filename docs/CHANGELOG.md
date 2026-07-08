@@ -9,11 +9,54 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.0.5] — 2026-07-07
+
+### Fixed
+
+- Dashboard : le bouton **Payer** ouvre directement le formulaire Mobile Money (`/payment/:id`) au lieu de la liste des achats ; champs `nextPaymentCreditId` et `nextInstallmentNumber` exposés par l'API dashboard.
+
+## Customer-space — [0.0.4] — 2026-07-07
+
+### Added
+
+- Catalogue commande : affichage `commercialName + name` (champs `displayName` / `commercialName` API), filtres rapides par top 10 types d'articles les plus vendus (`GET /api/customer/articles/top-types`).
+
+## Customer-space — [0.0.3] — 2026-07-07
+
+### Fixed
+
+- Déconnexion : retour à l'écran téléphone (wizard auth réinitialisé) au lieu de l'étape « Créer votre PIN » conservée en cache Ionic.
+
+## Customer-space — [0.0.2] — 2026-07-07
+
+### Fixed
+
+- Auth OTP SMS : conteneur reCAPTCHA présent dès l'écran téléphone (avant `sendOtp`), config Firebase Web SDK (`appId` web), messages d'erreur Firebase explicites (`auth/configuration-not-found`, etc.).
+
 ## Docs & Infra — 2026-07-07
 
 ### Added
 
 - Enforcement lazy-loading frontend : règle Cursor renforcée (checklist obligatoire inline, globs domaines eager), hook `postToolUse` (`.cursor/hooks/lazy-loading-reminder.py`), garde CI `.github/scripts/check-frontend-lazy-loading.py`, script local `npm run check:lazy-loading` dans `frontend/`.
+
+## Backend — [1.0.21] — 2026-07-07
+
+### Added
+
+- Espace client dashboard : champs `nextPaymentCreditId` et `nextInstallmentNumber` pour initier un paiement depuis l'accueil sans passer par la liste des achats.
+
+## Backend — [1.0.20] — 2026-07-07
+
+### Added
+
+- Espace client : `GET /api/customer/articles/top-types` (top types d'articles vendus via crédits), champs `commercialName` et `displayName` sur `CustomerArticleDto`.
+
+## Backend — [1.0.19] — 2026-07-07
+
+### Fixed
+
+- Espace client `check-phone` : un numéro n'est reconnu que s'il est lié à un dossier client (`customer_user_mapping` ou fiche `client` active) — évite l'échec `client.not.found` après OTP sur `setup-pin`.
+- Résolution client : recherche téléphone tolérante aux formats (`92181351`, `+228…`, `0…`).
 
 ## Backend — [1.0.18] — 2026-07-07
 

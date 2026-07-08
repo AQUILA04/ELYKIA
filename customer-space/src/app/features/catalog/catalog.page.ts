@@ -5,8 +5,9 @@ import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CartService } from '../../shared/services/cart.service';
-import { CustomerArticle } from '../../shared/models/customer.model';
+import { CustomerArticle, CustomerArticleType } from '../../shared/models/customer.model';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
+import { articleDisplayName } from '../../shared/utils/article-display';
 
 /** Page Catalogue — S-09. */
 @Component({
@@ -18,6 +19,9 @@ import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/cu
 })
 export class CatalogPage implements OnInit, OnDestroy {
   articles: CustomerArticle[] = [];
+  topTypes: CustomerArticleType[] = [];
+  selectedCategory = '';
+  searchTerm = '';
   isLoading = true;
   cartCount = 0;
   private sub?: Subscription;
@@ -25,9 +29,9 @@ export class CatalogPage implements OnInit, OnDestroy {
   constructor(private api: CustomerApiService, private cart: CartService) {}
 
   ngOnInit(): void {
-    this.api.getArticles().subscribe({
-      next: (a) => { this.articles = a; this.isLoading = false; },
-      error: () => { this.isLoading = false; },
+    this.loadArticles();
+    this.api.getTopArticleTypes().subscribe({
+      next: (types) => { this.topTypes = types; },
     });
     this.sub = this.cart.cart$.subscribe(() => { this.cartCount = this.cart.totalItems; });
     this.cartCount = this.cart.totalItems;
@@ -36,11 +40,31 @@ export class CatalogPage implements OnInit, OnDestroy {
   ngOnDestroy(): void { this.sub?.unsubscribe(); }
 
   onSearch(e: Event): void {
-    const value = (e as CustomEvent).detail?.value ?? '';
-    this.api.getArticles(value).subscribe((a) => { this.articles = a; });
+    this.searchTerm = (e as CustomEvent).detail?.value ?? '';
+    this.loadArticles();
+  }
+
+  selectCategory(category: string): void {
+    this.selectedCategory = category;
+    this.loadArticles();
   }
 
   add(article: CustomerArticle): void { this.cart.add(article); }
 
   qty(id: string): number { return this.cart.quantityFor(id); }
+
+  label(article: CustomerArticle): string {
+    return articleDisplayName(article);
+  }
+
+  private loadArticles(): void {
+    this.isLoading = true;
+    this.api.getArticles(this.searchTerm || undefined, this.selectedCategory || undefined).subscribe({
+      next: (a) => {
+        this.articles = a;
+        this.isLoading = false;
+      },
+      error: () => { this.isLoading = false; },
+    });
+  }
 }

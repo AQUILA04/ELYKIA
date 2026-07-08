@@ -5,6 +5,9 @@
       <span class="logo-sub">Espace Client</span>
     </div>
 
+    <!-- reCAPTCHA invisible : doit exister avant sendOtp(), pas seulement à l'étape OTP -->
+    <div id="recaptcha-container" aria-hidden="true"></div>
+
     <div class="auth-card elyk-animate">
       <button type="button" class="back-btn" *ngIf="step !== 'phone'" (click)="goBack()">
         <ion-icon name="arrow-back-outline"></ion-icon>
@@ -53,7 +56,6 @@
           <ion-input formControlName="otp" type="text" inputmode="numeric"
             maxlength="6" placeholder="123456" data-testid="e2e-auth-otp-input"></ion-input>
         </div>
-        <div id="recaptcha-container"></div>
         <div class="error" *ngIf="error">{{ error }}</div>
         <ion-button type="submit" expand="block" class="elyk-btn-primary"
           [disabled]="otpForm.invalid || isLoading" data-testid="e2e-auth-otp-submit">

@@ -9,7 +9,20 @@
     </ion-buttons>
   </ion-toolbar>
   <ion-toolbar>
-    <ion-searchbar placeholder="Rechercher un produit..." (ionInput)="onSearch($event)" debounce="400" data-testid="e2e-catalog-search"></ion-searchbar>
+    <ion-searchbar placeholder="Rechercher un produit..." [value]="searchTerm" (ionInput)="onSearch($event)" debounce="400" data-testid="e2e-catalog-search"></ion-searchbar>
+  </ion-toolbar>
+  <ion-toolbar *ngIf="topTypes.length" class="filter-toolbar">
+    <div class="type-filters" data-testid="e2e-catalog-type-filters">
+      <button type="button" class="type-chip" [class.active]="!selectedCategory" (click)="selectCategory('')" data-testid="e2e-catalog-filter-all">
+        Tous
+      </button>
+      <button type="button" class="type-chip" *ngFor="let t of topTypes"
+        [class.active]="selectedCategory === t.type"
+        (click)="selectCategory(t.type)"
+        [attr.data-testid]="'e2e-catalog-filter-' + t.type">
+        {{ t.label }}
+      </button>
+    </div>
   </ion-toolbar>
 </ion-header>
 <ion-content class="page-content" data-testid="e2e-catalog-page">
@@ -17,7 +30,7 @@
     <div class="article-grid">
       <div class="article-card" *ngFor="let a of articles" [attr.data-testid]="'e2e-catalog-article-' + a.id">
         <div class="ac-img"><ion-icon name="cube-outline"></ion-icon></div>
-        <div class="ac-name">{{ a.name }}</div>
+        <div class="ac-name">{{ label(a) }}</div>
         <div class="ac-price">{{ a.creditSalePrice | number:'1.0-0' }} FCFA</div>
         <div class="ac-actions">
           <ion-button size="small" fill="outline" (click)="add(a)" [attr.data-testid]="'e2e-catalog-add-' + a.id">+ Ajouter</ion-button>

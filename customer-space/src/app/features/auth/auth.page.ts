@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { firstValueFrom, Observable } from 'rxjs';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
@@ -11,6 +11,7 @@ import {
   AuthStep,
   CustomerLoginResponse,
 } from '../../shared/models/customer-auth.model';
+import { environment } from '../../../environments/environment';
 import { toUsername } from '../../shared/utils/phone-normalizer';
 
 /** Page Connexion — wizard téléphone → PIN ou OTP+PIN. */
@@ -21,7 +22,7 @@ import { toUsername } from '../../shared/utils/phone-normalizer';
   templateUrl: './auth.page.html',
   styleUrls: ['./auth.page.scss'],
 })
-export class AuthPage {
+export class AuthPage implements ViewWillEnter {
   step: AuthStep = 'phone';
   phone = '';
   maskedName = '';
@@ -54,6 +55,25 @@ export class AuthPage {
       pin: ['', [Validators.required, Validators.pattern(/^\d{4,6}$/)]],
       confirmPin: ['', [Validators.required]],
     }, { validators: this.pinMatchValidator });
+  }
+
+  ionViewWillEnter(): void {
+    if (!this.session.isAuthenticated) {
+      this.resetWizard();
+    }
+  }
+
+  private resetWizard(): void {
+    this.step = 'phone';
+    this.phone = '';
+    this.maskedName = '';
+    this.firebaseIdToken = '';
+    this.error = '';
+    this.isLoading = false;
+    this.phoneForm.reset();
+    this.pinForm.reset();
+    this.otpForm.reset();
+    this.setupPinForm.reset();
   }
 
   private pinMatchValidator(group: FormGroup) {
@@ -119,9 +139,40 @@ export class AuthPage {
     try {
       await this.firebaseAuth.sendOtp(this.phone);
       this.step = 'otp';
-    } catch {
-      this.error = 'Impossible d\'envoyer le SMS.';
+    } catch (e: unknown) {
+      console.error('[Auth] Échec envoi OTP Firebase', e);
+      this.error = this.formatOtpSendError(e);
     }
+  }
+
+  private formatOtpSendError(e: unknown): string {
+    const code = this.firebaseErrorCode(e);
+    if (code === 'auth/invalid-app-credential' || code === 'auth/app-not-authorized') {
+      return 'Configuration Firebase incorrecte (app Web requise pour le navigateur).';
+    }
+    if (code === 'auth/configuration-not-found') {
+      return 'Firebase Auth non activé : activez « Téléphone » dans la console Firebase (Authentication → Sign-in method) et autorisez la région +228.';
+    }
+    if (code === 'auth/invalid-phone-number') {
+      return 'Numéro de téléphone invalide.';
+    }
+    if (code === 'auth/too-many-requests') {
+      return 'Trop de tentatives. Réessayez plus tard.';
+    }
+    if (code === 'auth/captcha-check-failed' || code === 'auth/missing-recaptcha-token') {
+      return 'Vérification anti-robot échouée. Rechargez la page et réessayez.';
+    }
+    if (!environment.production && e instanceof Error && e.message) {
+      return `Impossible d'envoyer le SMS : ${e.message}`;
+    }
+    return 'Impossible d\'envoyer le SMS.';
+  }
+
+  private firebaseErrorCode(e: unknown): string | undefined {
+    if (e && typeof e === 'object' && 'code' in e && typeof (e as { code: unknown }).code === 'string') {
+      return (e as { code: string }).code;
+    }
+    return undefined;
   }
 
   async submitOtp(): Promise<void> {

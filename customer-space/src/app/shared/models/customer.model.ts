@@ -19,6 +19,9 @@ export interface CustomerDashboard {
   totalRemainingAmount: number;
   nextPaymentAmount: number;
   nextPaymentDate: string;
+  /** ID du crédit pour initier le paiement (absent si aucune mise en attente). */
+  nextPaymentCreditId?: string;
+  nextInstallmentNumber?: number;
   progressPercent: number;
   recentActivities: CustomerActivity[];
 }
@@ -91,11 +94,19 @@ export interface MobileMoneyPaymentRequest {
 export interface CustomerArticle {
   id: string;
   name: string;
+  commercialName?: string;
+  displayName?: string;
   description?: string;
   category: string;
   creditSalePrice: number;
   imageUrl?: string;
   available: boolean;
+}
+
+export interface CustomerArticleType {
+  type: string;
+  label: string;
+  totalQuantitySold: number;
 }
 
 export interface CartItem {

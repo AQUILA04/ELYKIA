@@ -19,6 +19,7 @@ import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
+import com.optimize.elykia.core.repository.CreditArticlesRepository;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class CustomerPortalService {
     private final CustomerMobileMoneySubmissionRepository submissionRepository;
     private final ArticlesService articlesService;
     private final OrderService orderService;
+    private final CreditArticlesRepository creditArticlesRepository;
 
     public CustomerDashboardDto getDashboard() {
         Client client = contextService.requireClient(contextService.currentUsername());
@@ -56,9 +58,7 @@ public class CustomerPortalService {
         double totalRemaining = active.stream().mapToDouble(c -> c.getTotalAmountRemaining() != null ? c.getTotalAmountRemaining() : 0).sum();
         double progress = totalCredit > 0 ? (totalPaid / totalCredit) * 100 : 0;
 
-        Credit primary = active.stream().findFirst().orElse(null);
-        double nextPayment = primary != null && primary.getDailyStake() != null ? primary.getDailyStake() : 0;
-        String nextDate = LocalDate.now().plusDays(1).toString();
+        NextPaymentInfo nextPayment = resolveNextPayment(active);
 
         List<CustomerActivityDto> activities = buildRecentActivities(client.getId(), credits);
 
@@ -69,8 +69,10 @@ public class CustomerPortalService {
                 .totalCreditAmount(totalCredit)
                 .totalPaidAmount(totalPaid)
                 .totalRemainingAmount(totalRemaining)
-                .nextPaymentAmount(nextPayment)
-                .nextPaymentDate(nextDate)
+                .nextPaymentAmount(nextPayment != null ? nextPayment.amount() : 0)
+                .nextPaymentDate(nextPayment != null ? nextPayment.date() : null)
+                .nextPaymentCreditId(nextPayment != null ? nextPayment.creditId() : null)
+                .nextInstallmentNumber(nextPayment != null ? nextPayment.installmentNumber() : 0)
                 .progressPercent(Math.min(100, progress))
                 .recentActivities(activities)
                 .build();
@@ -156,6 +158,18 @@ public class CustomerPortalService {
         return page.getContent().stream()
                 .filter(a -> !StringUtils.hasText(category) || category.equalsIgnoreCase(a.getType()))
                 .map(this::toArticleDto)
+                .toList();
+    }
+
+    public List<CustomerArticleTypeDto> getTopArticleTypes(int limit) {
+        int size = Math.min(Math.max(limit, 1), 20);
+        return creditArticlesRepository.findTopArticleTypesBySoldQuantity(PageRequest.of(0, size))
+                .stream()
+                .map(row -> CustomerArticleTypeDto.builder()
+                        .type((String) row[0])
+                        .label((String) row[0])
+                        .totalQuantitySold(row[1] != null ? ((Number) row[1]).longValue() : 0L)
+                        .build())
                 .toList();
     }
 
@@ -248,6 +262,47 @@ public class CustomerPortalService {
                 .build();
     }
 
+    /**
+     * Détermine la prochaine mise payable pour le premier crédit actif ayant un solde restant.
+     * Priorité : soumission Mobile Money déjà initiée, sinon prochaine échéance non payée.
+     */
+    private NextPaymentInfo resolveNextPayment(List<Credit> activeCredits) {
+        for (Credit credit : activeCredits) {
+            double remaining = nullSafe(credit.getTotalAmountRemaining());
+            if (remaining <= 0) {
+                continue;
+            }
+            List<CustomerMobileMoneySubmission> initiated = submissionRepository
+                    .findByCreditIdAndStatus(credit.getId(), CustomerSubmissionStatus.INITIE);
+            if (!initiated.isEmpty()) {
+                CustomerMobileMoneySubmission sub = initiated.stream()
+                        .min(Comparator.comparingInt(CustomerMobileMoneySubmission::getInstallmentNumber))
+                        .orElse(initiated.get(0));
+                return new NextPaymentInfo(
+                        String.valueOf(credit.getId()),
+                        sub.getInstallmentNumber(),
+                        sub.getExpectedAmount() != null ? sub.getExpectedAmount() : sub.getMobileMoneyAmount(),
+                        sub.getCreatedDate() != null
+                                ? sub.getCreatedDate().toLocalDate().toString()
+                                : LocalDate.now().toString());
+            }
+            int paidCount = creditTimelineRepository.findByCredit_id(credit.getId()).size();
+            int nextInstallment = paidCount + 1;
+            double amount = nullSafe(credit.getDailyStake());
+            if (amount <= 0) {
+                continue;
+            }
+            return new NextPaymentInfo(
+                    String.valueOf(credit.getId()),
+                    nextInstallment,
+                    amount,
+                    LocalDate.now().plusDays(1).toString());
+        }
+        return null;
+    }
+
+    private record NextPaymentInfo(String creditId, int installmentNumber, double amount, String date) {}
+
     private List<CustomerActivityDto> buildRecentActivities(Long clientId, List<Credit> credits) {
         List<CustomerActivityDto> activities = new ArrayList<>();
         creditTimelineRepository.findByCredit_Client_Id(clientId, PageRequest.of(0, 5))
@@ -271,14 +326,27 @@ public class CustomerPortalService {
     }
 
     private CustomerArticleDto toArticleDto(Articles article) {
+        String commercialName = article.getCommercialName();
         return CustomerArticleDto.builder()
                 .id(String.valueOf(article.getId()))
                 .name(article.getName())
+                .commercialName(commercialName)
+                .displayName(buildArticleDisplayName(commercialName, article.getName()))
                 .description(article.getMarque() + " " + article.getModel())
                 .category(article.getType())
                 .creditSalePrice(article.getCreditSalePrice())
                 .available(article.getStockQuantity() != null && article.getStockQuantity() > 0)
                 .build();
+    }
+
+    private static String buildArticleDisplayName(String commercialName, String name) {
+        if (!StringUtils.hasText(commercialName)) {
+            return StringUtils.hasText(name) ? name.trim() : "";
+        }
+        if (!StringUtils.hasText(name) || commercialName.trim().equalsIgnoreCase(name.trim())) {
+            return commercialName.trim();
+        }
+        return (commercialName.trim() + " " + name.trim()).trim();
     }
 
     private static int estimateInstallments(Credit credit) {

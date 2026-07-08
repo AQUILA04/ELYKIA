@@ -47,6 +47,11 @@ ion-title {
   transform: scale(0.98);
 }
 
+.qa-btn--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .qa-btn ion-icon {
   font-size: 24px;
   color: var(--elyk-gold, #c9922a);

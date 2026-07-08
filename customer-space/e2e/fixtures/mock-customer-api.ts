@@ -8,6 +8,8 @@ export const MOCK_SESSION = {
   expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
 };
 
+export const MOCK_PURCHASE_ID = '101';
+
 export const MOCK_DASHBOARD = {
   clientId: '42',
   fullName: 'Jean K. Mensah',
@@ -17,6 +19,8 @@ export const MOCK_DASHBOARD = {
   totalRemainingAmount: 230_000,
   nextPaymentAmount: 35_000,
   nextPaymentDate: '2026-06-20',
+  nextPaymentCreditId: MOCK_PURCHASE_ID,
+  nextInstallmentNumber: 3,
   progressPercent: 34.3,
   recentActivities: [
     {
@@ -29,8 +33,6 @@ export const MOCK_DASHBOARD = {
     },
   ],
 };
-
-export const MOCK_PURCHASE_ID = '101';
 
 export const MOCK_PURCHASES = [
   {
@@ -84,17 +86,26 @@ export const MOCK_ARTICLES = [
   {
     id: 'art-1',
     name: 'Mixeur électrique',
-    category: 'Électroménager',
+    commercialName: 'ELECTRO: Philips Philips 500W',
+    displayName: 'ELECTRO: Philips Philips 500W Mixeur électrique',
+    category: 'ELECTRO',
     creditSalePrice: 45_000,
     available: true,
   },
   {
     id: 'art-2',
     name: 'Ventilateur',
-    category: 'Électroménager',
+    commercialName: 'ELECTRO: Binatone Binatone 16"',
+    displayName: 'ELECTRO: Binatone Binatone 16" Ventilateur',
+    category: 'ELECTRO',
     creditSalePrice: 28_000,
     available: true,
   },
+];
+
+export const MOCK_TOP_ARTICLE_TYPES = [
+  { type: 'ELECTRO', label: 'ELECTRO', totalQuantitySold: 120 },
+  { type: 'HUILE', label: 'HUILE', totalQuantitySold: 95 },
 ];
 
 export const MOCK_ORDER_RESPONSE = {

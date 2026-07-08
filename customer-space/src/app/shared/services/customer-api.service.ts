@@ -15,6 +15,7 @@ import {
   CustomerRecovery,
   MobileMoneyPaymentRequest,
   CustomerArticle,
+  CustomerArticleType,
   OrderRequest,
   OrderResponse,
 } from '../models/customer.model';
@@ -77,6 +78,12 @@ export class CustomerApiService {
     if (search)   params['search'] = search;
     if (category) params['category'] = category;
     return this.http.get<CustomerArticle[]>(`${this.base}/articles`, { params });
+  }
+
+  getTopArticleTypes(limit = 10): Observable<CustomerArticleType[]> {
+    return this.http.get<CustomerArticleType[]>(`${this.base}/articles/top-types`, {
+      params: { limit: String(limit) },
+    });
   }
 
   submitOrder(payload: OrderRequest): Observable<OrderResponse> {

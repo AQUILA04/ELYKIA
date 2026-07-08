@@ -12,4 +12,15 @@ test.describe('Dashboard', () => {
     await expect(page.getByTestId('e2e-dashboard-activities')).toBeVisible();
     await expect(page.getByTestId('e2e-customer-tabs')).toBeVisible();
   });
+
+  test('pay quick action opens payment page', async ({ page }) => {
+    await loginAsCustomer(page);
+    await page.goto('/dashboard');
+
+    await expect(page.getByTestId('e2e-dashboard-pay-btn')).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId('e2e-dashboard-pay-btn').click();
+
+    await expect(page).toHaveURL(/\/payment\/101\?/);
+    await expect(page.getByTestId('e2e-payment-page')).toBeVisible();
+  });
 });

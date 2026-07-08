@@ -10,5 +10,6 @@ test.describe('Profile logout', () => {
     await page.getByTestId('e2e-profile-logout').click();
 
     await expect(page.getByTestId('e2e-auth-page')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('e2e-auth-phone-input')).toBeVisible();
   });
 });

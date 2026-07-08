@@ -94,6 +94,16 @@ public interface CreditArticlesRepository extends GenericRepository<CreditArticl
             @Param("articleIds") Collection<Long> articleIds);
 
     @Query("""
+            SELECT ca.articles.type, SUM(ca.quantity)
+            FROM CreditArticles ca
+            JOIN ca.articles a
+            WHERE a.type IS NOT NULL AND TRIM(a.type) <> ''
+            GROUP BY a.type
+            ORDER BY SUM(ca.quantity) DESC
+            """)
+    List<Object[]> findTopArticleTypesBySoldQuantity(Pageable pageable);
+
+    @Query("""
             SELECT DISTINCT ca.credit.id
             FROM CreditArticles ca
             JOIN ca.credit c

@@ -19,6 +19,8 @@ describe('DashboardPage', () => {
     totalRemainingAmount: 230_000,
     nextPaymentAmount: 35_000,
     nextPaymentDate: '2026-06-20',
+    nextPaymentCreditId: '101',
+    nextInstallmentNumber: 3,
     progressPercent: 34,
     recentActivities: [],
   };
@@ -48,5 +50,24 @@ describe('DashboardPage', () => {
     api.getDashboard.and.returnValue(throwError(() => new Error('fail')));
     fixture.detectChanges();
     expect(fixture.componentInstance.loadError).toBeTrue();
+  });
+
+  it('enables pay action when next payment is available', () => {
+    fixture.detectChanges();
+    expect(fixture.componentInstance.canPayNext).toBeTrue();
+    expect(fixture.componentInstance.paymentQueryParams).toEqual({
+      amount: 35_000,
+      installment: 3,
+    });
+  });
+
+  it('disables pay action when no credit id for next payment', () => {
+    api.getDashboard.and.returnValue(of({
+      ...mockDashboard,
+      nextPaymentCreditId: undefined,
+      nextInstallmentNumber: 0,
+    }));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.canPayNext).toBeFalse();
   });
 });

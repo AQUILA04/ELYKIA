@@ -45,6 +45,21 @@ export class DashboardPage implements OnInit {
       : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
+  get canPayNext(): boolean {
+    return !!(
+      this.dashboard?.nextPaymentCreditId
+      && (this.dashboard.nextPaymentAmount ?? 0) > 0
+      && (this.dashboard.nextInstallmentNumber ?? 0) > 0
+    );
+  }
+
+  get paymentQueryParams(): Record<string, number> {
+    return {
+      amount: this.dashboard?.nextPaymentAmount ?? 0,
+      installment: this.dashboard?.nextInstallmentNumber ?? 0,
+    };
+  }
+
   ngOnInit(): void {
     this.loadDashboard();
   }

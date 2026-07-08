@@ -40,11 +40,12 @@ public class CustomerAuthService {
     public CustomerCheckPhoneResponse checkPhone(CustomerPhoneRequest request) {
         String username = PhoneNormalizer.toUsername(request.getPhone());
         return userRepository.findByUserAccount_usernameIgnoreCase(username)
-                .map(user -> CustomerCheckPhoneResponse.builder()
-                        .exists(true)
-                        .pinConfigured(Boolean.TRUE.equals(user.getUserAccount().getPinConfigured()))
-                        .maskedName(maskName(user))
-                        .build())
+                .flatMap(user -> contextService.findClientIdOptional(username)
+                        .map(ignored -> CustomerCheckPhoneResponse.builder()
+                                .exists(true)
+                                .pinConfigured(Boolean.TRUE.equals(user.getUserAccount().getPinConfigured()))
+                                .maskedName(maskName(user))
+                                .build()))
                 .orElse(CustomerCheckPhoneResponse.builder()
                         .exists(false)
                         .pinConfigured(false)
@@ -83,7 +84,15 @@ public class CustomerAuthService {
 
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, request.getPin()));
-        return buildLoginResponse(user, auth);
+        try {
+            return buildLoginResponse(user, auth);
+        } catch (ResourceNotFoundException e) {
+            if ("client.not.found".equals(e.getMessage())) {
+                throw new ResourceNotFoundException(
+                        "Aucun dossier client associé à ce numéro. Contactez votre agence.");
+            }
+            throw e;
+        }
     }
 
     private CustomerLoginResponse buildLoginResponse(User user, Authentication auth) {

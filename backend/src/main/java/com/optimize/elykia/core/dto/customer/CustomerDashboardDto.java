@@ -16,6 +16,10 @@ public class CustomerDashboardDto {
     private double totalRemainingAmount;
     private double nextPaymentAmount;
     private String nextPaymentDate;
+    /** ID du crédit concerné par la prochaine mise (null si aucun paiement en attente). */
+    private String nextPaymentCreditId;
+    /** Numéro de la prochaine échéance à régler. */
+    private int nextInstallmentNumber;
     private double progressPercent;
     private List<CustomerActivityDto> recentActivities;
 }

@@ -14,6 +14,10 @@ import com.optimize.common.securities.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,14 +29,22 @@ public class CustomerContextService {
     private final ClientService clientService;
     private final UserRepository userRepository;
 
-    public Long resolveClientId(String username) {
+    public Optional<Long> findClientIdOptional(String username) {
         String localPhone = PhoneNormalizer.toUsername(username);
-        return mappingRepository.findByUsername(localPhone)
-                .map(CustomerUserMapping::getClientId)
-                .orElseGet(() -> clientRepository
-                        .findFirstByPhoneAndClientTypeAndState(localPhone, ClientType.CLIENT, State.ENABLED)
-                        .map(Client::getId)
-                        .orElseThrow(() -> new ResourceNotFoundException("client.not.found")));
+        if (!StringUtils.hasText(localPhone)) {
+            return Optional.empty();
+        }
+        Optional<Long> fromMapping = mappingRepository.findByUsername(localPhone)
+                .map(CustomerUserMapping::getClientId);
+        if (fromMapping.isPresent()) {
+            return fromMapping;
+        }
+        return findEnabledClientByPhone(localPhone).map(Client::getId);
+    }
+
+    public Long resolveClientId(String username) {
+        return findClientIdOptional(username)
+                .orElseThrow(() -> new ResourceNotFoundException("client.not.found"));
     }
 
     public Client requireClient(String username) {
@@ -50,5 +62,25 @@ public class CustomerContextService {
                                 .getAuthentication().getName())
                 .map(u -> u.getUsername())
                 .orElseThrow(ResourceNotFoundException::new);
+    }
+
+    private Optional<Client> findEnabledClientByPhone(String localPhone) {
+        for (String candidate : phoneLookupCandidates(localPhone)) {
+            Optional<Client> client = clientRepository.findFirstByPhoneAndClientTypeAndState(
+                    candidate, ClientType.CLIENT, State.ENABLED);
+            if (client.isPresent()) {
+                return client;
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static List<String> phoneLookupCandidates(String localPhone) {
+        return List.of(
+                localPhone,
+                PhoneNormalizer.toE164(localPhone),
+                PhoneNormalizer.COUNTRY_CODE + localPhone,
+                "0" + localPhone
+        );
     }
 }

@@ -9,6 +9,7 @@ import {
   MOCK_PURCHASES,
   MOCK_RECOVERIES,
   MOCK_SESSION,
+  MOCK_TOP_ARTICLE_TYPES,
 } from './mock-customer-api';
 
 /** Remplit l'input natif d'un ion-input identifié par data-testid. */
@@ -64,6 +65,11 @@ export async function mockCustomerApi(page: Page): Promise<void> {
 
     if (url.endsWith('/purchases') && method === 'GET') {
       await route.fulfill(jsonResponse(MOCK_PURCHASES));
+      return;
+    }
+
+    if (url.includes('/articles/top-types') && method === 'GET') {
+      await route.fulfill(jsonResponse(MOCK_TOP_ARTICLE_TYPES));
       return;
     }
 

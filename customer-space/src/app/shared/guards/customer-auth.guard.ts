@@ -16,7 +16,7 @@ export class CustomerAuthGuard implements CanActivate {
 
   canActivate(): boolean {
     if (this.session.isAuthenticated) return true;
-    this.router.navigate(['/auth']);
+    void this.router.navigate(['/auth'], { replaceUrl: true });
     return false;
   }
 }

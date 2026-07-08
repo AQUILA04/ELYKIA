@@ -27,7 +27,7 @@ describe('CustomerAuthGuard', () => {
   it('redirects to auth when not authenticated', () => {
     Object.defineProperty(session, 'isAuthenticated', { get: () => false });
     expect(guard.canActivate()).toBeFalse();
-    expect(router.navigate).toHaveBeenCalledWith(['/auth']);
+    expect(router.navigate).toHaveBeenCalledWith(['/auth'], { replaceUrl: true });
   });
 
   it('allows access when authenticated', () => {

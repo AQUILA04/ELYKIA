@@ -25,6 +25,6 @@ describe('ProfilePage', () => {
   it('logs out and redirects to auth', () => {
     fixture.componentInstance.logout();
     expect(session.clearSession).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/auth']);
+    expect(router.navigate).toHaveBeenCalledWith(['/auth'], { replaceUrl: true });
   });
 });

@@ -23,6 +23,6 @@ export class ProfilePage {
 
   logout(): void {
     this.sessionService.clearSession();
-    void this.router.navigate(['/auth']);
+    void this.router.navigate(['/auth'], { replaceUrl: true });
   }
 }

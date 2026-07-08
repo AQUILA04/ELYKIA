@@ -8,6 +8,8 @@ import lombok.Getter;
 public class CustomerArticleDto {
     private String id;
     private String name;
+    private String commercialName;
+    private String displayName;
     private String description;
     private String category;
     private double creditSalePrice;

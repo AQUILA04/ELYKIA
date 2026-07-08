@@ -113,4 +113,10 @@ ion-button {
   font-weight: 600;
 }
 
-#recaptcha-container { min-height: 1px; }
+#recaptcha-container {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}

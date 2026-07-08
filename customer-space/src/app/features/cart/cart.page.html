@@ -8,7 +8,7 @@
   <div class="page-inner" *ngIf="lines.length > 0">
     <div class="cart-line" *ngFor="let line of lines" [attr.data-testid]="'e2e-cart-line-' + line.article.id">
       <div class="cl-info">
-        <div class="cl-name">{{ line.article.name }}</div>
+        <div class="cl-name">{{ label(line.article) }}</div>
         <div class="cl-price">{{ line.article.creditSalePrice | number:'1.0-0' }} FCFA / unité</div>
       </div>
       <div class="cl-qty">

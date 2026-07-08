@@ -22,7 +22,12 @@
     </app-credit-progress-card>
 
     <div class="quick-actions" data-testid="e2e-dashboard-quick-actions">
-      <a class="qa-btn" routerLink="/purchases">
+      <a
+        class="qa-btn"
+        [class.qa-btn--disabled]="!canPayNext"
+        [routerLink]="canPayNext ? ['/payment', dashboard.nextPaymentCreditId] : null"
+        [queryParams]="canPayNext ? paymentQueryParams : null"
+        data-testid="e2e-dashboard-pay-btn">
         <ion-icon name="cash-outline"></ion-icon>
         <span>Payer</span>
       </a>
