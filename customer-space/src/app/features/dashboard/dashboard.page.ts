@@ -20,6 +20,8 @@ export class DashboardPage implements OnInit {
   dashboard: CustomerDashboard | null = null;
   isLoading = true;
   loadError = false;
+  canPayNext = false;
+  paymentQueryParams: Record<string, number> | null = null;
 
   constructor(
     private api: CustomerApiService,
@@ -45,19 +47,19 @@ export class DashboardPage implements OnInit {
       : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
-  get canPayNext(): boolean {
-    return !!(
-      this.dashboard?.nextPaymentCreditId
-      && (this.dashboard.nextPaymentAmount ?? 0) > 0
-      && (this.dashboard.nextInstallmentNumber ?? 0) > 0
+  private applyPaymentState(dashboard: CustomerDashboard): void {
+    const canPay = !!(
+      dashboard.nextPaymentCreditId
+      && dashboard.nextPaymentAmount > 0
+      && (dashboard.nextInstallmentNumber ?? 0) > 0
     );
-  }
-
-  get paymentQueryParams(): Record<string, number> {
-    return {
-      amount: this.dashboard?.nextPaymentAmount ?? 0,
-      installment: this.dashboard?.nextInstallmentNumber ?? 0,
-    };
+    this.canPayNext = canPay;
+    this.paymentQueryParams = canPay
+      ? {
+          amount: dashboard.nextPaymentAmount,
+          installment: dashboard.nextInstallmentNumber ?? 0,
+        }
+      : null;
   }
 
   ngOnInit(): void {
@@ -67,9 +69,12 @@ export class DashboardPage implements OnInit {
   loadDashboard(): void {
     this.isLoading = true;
     this.loadError = false;
+    this.canPayNext = false;
+    this.paymentQueryParams = null;
     this.api.getDashboard().subscribe({
       next: (d) => {
         this.dashboard = d;
+        this.applyPaymentState(d);
         this.isLoading = false;
       },
       error: () => {

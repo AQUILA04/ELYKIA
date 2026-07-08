@@ -26,7 +26,7 @@
         class="qa-btn"
         [class.qa-btn--disabled]="!canPayNext"
         [routerLink]="canPayNext ? ['/payment', dashboard.nextPaymentCreditId] : null"
-        [queryParams]="canPayNext ? paymentQueryParams : null"
+        [queryParams]="paymentQueryParams"
         data-testid="e2e-dashboard-pay-btn">
         <ion-icon name="cash-outline"></ion-icon>
         <span>Payer</span>

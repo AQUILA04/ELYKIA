@@ -1,6 +1,6 @@
 {
   "name": "customer-space",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
@@ -14,9 +14,13 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:unit": "ng test --configuration=ci --browsers=ChromeHeadless --watch=false",
+    "pretest:unit": "node scripts/ensure-firebase-config.mjs && node scripts/sync-app-version.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:smoke": "playwright test --grep @smoke",
+    "prestart": "node scripts/ensure-firebase-config.mjs && node scripts/sync-app-version.mjs",
+    "prebuild": "node scripts/ensure-firebase-config.mjs && node scripts/sync-app-version.mjs",
+    "sync:version": "node scripts/sync-app-version.mjs",
     "firebase:configure": "node scripts/apply-firebase-config.mjs --profile prod",
     "firebase:configure:dev": "node scripts/apply-firebase-config.mjs --profile dev",
     "lint": "ng lint"

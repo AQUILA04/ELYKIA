@@ -45,6 +45,9 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Prepare environment files
+      run: node scripts/ensure-firebase-config.mjs && node scripts/sync-app-version.mjs
+
     - name: Run unit tests
       run: npm run test:unit
 
@@ -84,6 +87,9 @@ jobs:
 
     - name: Install dependencies
       run: npm ci
+
+    - name: Prepare environment files
+      run: node scripts/ensure-firebase-config.mjs && node scripts/sync-app-version.mjs
 
     - name: Apply Firebase configuration
       env:

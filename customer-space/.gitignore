@@ -71,4 +71,5 @@ Thumbs.db
 
 # Firebase (ne jamais committer — voir docs/FIREBASE_SETUP.md)
 /google-services.json
+/src/environments/firebase.config.local.ts
 /android/

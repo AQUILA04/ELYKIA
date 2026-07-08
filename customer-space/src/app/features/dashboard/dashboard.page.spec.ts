@@ -69,5 +69,12 @@ describe('DashboardPage', () => {
     }));
     fixture.detectChanges();
     expect(fixture.componentInstance.canPayNext).toBeFalse();
+    expect(fixture.componentInstance.paymentQueryParams).toBeNull();
+  });
+
+  it('keeps pay action disabled while dashboard is loading', () => {
+    api.getDashboard.and.returnValue(of(mockDashboard));
+    expect(fixture.componentInstance.canPayNext).toBeFalse();
+    expect(fixture.componentInstance.paymentQueryParams).toBeNull();
   });
 });

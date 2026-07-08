@@ -13,17 +13,18 @@ Ne réutilisez **pas** le secret `GOOGLE_SERVICES_JSON` du mobile : les fichiers
 
 ## Ce que fait le code aujourd'hui
 
-L'authentification OTP/PIN utilise le **SDK Firebase Web** (`firebase` npm) via [`FirebaseAuthService`](../src/app/shared/services/firebase-auth.service.ts). La config est lue depuis :
+L'authentification OTP/PIN utilise le **SDK Firebase Web** (`firebase` npm) via [`FirebaseAuthService`](../src/app/shared/services/firebase-auth.service.ts). La config est lue depuis un fichier **local gitignored** :
 
 ```ts
-environment.firebase: {
-  apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId
-}
+// src/environments/firebase.config.local.ts (généré, ne pas committer)
+firebaseConfigLocal: { apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId }
 ```
+
+Les fichiers `environment.ts` / `environment.prod.ts` importent cette config via `firebase-config.ts` — **aucun secret Firebase n'est versionné**.
 
 Le fichier `google-services.json` sert à :
 
-1. **Générer** `environment.firebase` (script CI / local)
+1. **Générer** `firebase.config.local.ts` (script CI / local)
 2. **Build Android natif** Capacitor (`android/app/google-services.json`) quand le dossier `android/` existe
 
 ## Backend (vérification du token OTP)
@@ -100,8 +101,8 @@ Sans secret, le job de build passe mais affiche un avertissement et compile avec
 
    ```bash
    cd customer-space
-   npm run firebase:configure        # → environment.prod.ts
-   npm run firebase:configure:dev  # → environment.ts (dev local)
+   npm run firebase:configure        # → firebase.config.local.ts (prod)
+   npm run firebase:configure:dev  # → firebase.config.local.ts (dev local)
    ```
 
 3. Vérifiez dans la console Firebase :

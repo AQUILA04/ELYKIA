@@ -9,6 +9,14 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.0.6] — 2026-07-08
+
+### Fixed
+
+- Sécurité : credentials Firebase retirés des fichiers versionnés ; injection via `firebase.config.local.ts` (gitignored) et secrets CI.
+- Version : `app-version.ts` synchronisé depuis `package.json` (`npm run sync:version`) — plus de décalage environment / package.
+- Dashboard : état paiement (`canPayNext`, `paymentQueryParams`) calculé après chargement API, sans getters dépendant d'un `dashboard` null.
+
 ## Customer-space — [0.0.5] — 2026-07-07
 
 ### Fixed

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Injecte la config Firebase dans environment.ts / environment.prod.ts
+ * Injecte la config Firebase dans firebase.config.local.ts (gitignored)
  * et écrit android/app/google-services.json si le dossier Android existe.
  *
  * Sources (priorité) :
@@ -19,9 +19,7 @@ const profile = process.argv.includes('--profile')
   ? process.argv[process.argv.indexOf('--profile') + 1]
   : 'prod';
 
-const envFile = profile === 'dev'
-  ? path.join(root, 'src/environments/environment.ts')
-  : path.join(root, 'src/environments/environment.prod.ts');
+const localConfigPath = path.join(root, 'src/environments/firebase.config.local.ts');
 
 function readGoogleServicesRaw() {
   if (process.env.CUSTOMER_SPACE_GOOGLE_SERVICES_JSON) {
@@ -69,23 +67,27 @@ function resolveFirebaseConfig() {
   return { config: webConfigFromGoogleServices(raw), googleServicesRaw: raw };
 }
 
-function patchEnvironmentFile(filePath, firebase) {
-  const content = fs.readFileSync(filePath, 'utf8');
-  const esc = (v) => String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-  const block = `  firebase: {
-    apiKey: '${esc(firebase.apiKey)}',
-    authDomain: '${esc(firebase.authDomain)}',
-    projectId: '${esc(firebase.projectId)}',
-    storageBucket: '${esc(firebase.storageBucket)}',
-    messagingSenderId: '${esc(firebase.messagingSenderId)}',
-    appId: '${esc(firebase.appId)}',
-  },`;
+function esc(value) {
+  return String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
 
-  const updated = content.replace(/  firebase: \{[\s\S]*?\n  \},/, block);
-  if (updated === content) {
-    throw new Error(`Bloc firebase introuvable dans ${path.relative(root, filePath)}`);
-  }
-  fs.writeFileSync(filePath, updated, 'utf8');
+function writeFirebaseConfigLocal(firebase) {
+  const optionalMeasurement = firebase.measurementId
+    ? `\n  measurementId: '${esc(firebase.measurementId)}',`
+    : '';
+  const content = `/** Généré par scripts/apply-firebase-config.mjs — ne pas committer. */
+import type { FirebaseClientConfig } from './firebase-config.types';
+
+export const firebaseConfigLocal: FirebaseClientConfig = {
+  apiKey: '${esc(firebase.apiKey)}',
+  authDomain: '${esc(firebase.authDomain)}',
+  projectId: '${esc(firebase.projectId)}',
+  storageBucket: '${esc(firebase.storageBucket)}',
+  messagingSenderId: '${esc(firebase.messagingSenderId)}',
+  appId: '${esc(firebase.appId)}',${optionalMeasurement}
+};
+`;
+  fs.writeFileSync(localConfigPath, content, 'utf8');
 }
 
 function writeAndroidGoogleServices(raw) {
@@ -111,6 +113,6 @@ if (!resolved) {
   process.exit(0);
 }
 
-patchEnvironmentFile(envFile, resolved.config);
+writeFirebaseConfigLocal(resolved.config);
 writeAndroidGoogleServices(resolved.googleServicesRaw);
-console.log(`Firebase injecté dans ${path.relative(root, envFile)} (profil ${profile}).`);
+console.log(`Firebase injecté dans ${path.relative(root, localConfigPath)} (profil ${profile}).`);

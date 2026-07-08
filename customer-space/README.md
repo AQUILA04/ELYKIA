@@ -22,7 +22,7 @@ CI découplé : `.github/workflows/ci-customer-space.yml`
 
 ## Firebase
 
-L'app utilise le SDK Web (`environment.firebase`). Le fichier `google-services.json` **ne se commit pas** — voir [`docs/FIREBASE_SETUP.md`](docs/FIREBASE_SETUP.md).
+L'app utilise le SDK Web (`environment.firebase`, alimenté par `firebase.config.local.ts` gitignored). Le fichier `google-services.json` **ne se commit pas** — voir [`docs/FIREBASE_SETUP.md`](docs/FIREBASE_SETUP.md).
 
 **Local :**
 
