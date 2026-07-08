@@ -47,6 +47,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Enforcement lazy-loading frontend : règle Cursor renforcée (checklist obligatoire inline, globs domaines eager), hook `postToolUse` (`.cursor/hooks/lazy-loading-reminder.py`), garde CI `.github/scripts/check-frontend-lazy-loading.py`, script local `npm run check:lazy-loading` dans `frontend/`.
 
+## Backend — [1.0.22] — 2026-07-08
+
+### Fixed
+
+- Rapport journalier : marge « Ventes à Crédit » recalculée via `calculTotalPurchase()` lorsque `totalPurchase` est absent ou nul (cas `mobileFinancialTermsLocked`) — évite une marge égale au montant de vente.
+- Migration `V73__backfill_daily_report_credit_sales_margin.sql` : recalcul historique de `credit_sales_margin` dans `daily_commercial_report` depuis les crédits source (même formule que le correctif Java).
+
 ## Backend — [1.0.21] — 2026-07-07
 
 ### Added

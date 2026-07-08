@@ -873,8 +873,12 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     private void marginAndBIAggregationOperation(Credit credit) {
-        Double margin = (credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0) -
-                (credit.getTotalPurchase() != null ? credit.getTotalPurchase() : 0.0);
+        Double totalAmount = credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0;
+        Double totalPurchase = credit.getTotalPurchase();
+        if (totalPurchase == null || totalPurchase <= 0.0) {
+            totalPurchase = credit.calculTotalPurchase();
+        }
+        Double margin = totalAmount - (totalPurchase != null ? totalPurchase : 0.0);
 
         // Publish Event
         if (eventPublisher != null && !OperationType.TONTINE.equals(credit.getType())) {
