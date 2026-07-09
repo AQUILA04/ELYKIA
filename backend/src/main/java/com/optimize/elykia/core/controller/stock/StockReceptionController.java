@@ -50,7 +50,7 @@ public class StockReceptionController {
     @GetMapping("/{id}/items")
     public ResponseEntity<Response> getItems(
             @PathVariable Long id,
-            @PageableDefault(sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+            @PageableDefault(size = 30) Pageable pageable) {
         return new ResponseEntity<>(ResponseUtil.successResponse(service.getReceptionItemsById(id, pageable)), HttpStatus.OK);
     }
 

@@ -17,7 +17,10 @@ import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.core.util.ArticleSortOrder;
 import com.optimize.elykia.core.util.StockRequestDeliveryPricing;
+import com.optimize.common.entities.exception.ResourceNotFoundException;
+import com.optimize.elykia.core.dto.stock.StockTontineRequestListDto;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -325,10 +328,23 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         update(request);
     }
 
-    public Page<StockTontineRequest> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    @Override
+    public StockTontineRequest getById(Long id) {
+        return ((StockTontineRequestRepository) getRepository()).findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
+    }
+
+    public List<StockTontineRequestItem> getItemsById(Long id) {
+        StockTontineRequest request = getById(id);
+        return request.getItems().stream()
+                .sorted(ArticleSortOrder.forStockTontineRequestItems())
+                .toList();
+    }
+
+    public Page<StockTontineRequestListDto> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         StockTontineRequestRepository repo = (StockTontineRequestRepository) getRepository();
         String effectiveCollector = resolveCollector(collector);
-        return repo.findFiltered(effectiveCollector, startDate, endDate, resolveVisibleStatuses(), pageable);
+        return repo.findFilteredList(effectiveCollector, startDate, endDate, resolveVisibleStatuses(), pageable);
     }
 
     public com.optimize.elykia.core.dto.stock.StockRequestKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
@@ -386,7 +402,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     }
 
     /** @deprecated use {@link #getAll(String, LocalDate, LocalDate, Pageable)} */
-    public Page<StockTontineRequest> getAll(String collector, Pageable pageable) {
+    public Page<StockTontineRequestListDto> getAll(String collector, Pageable pageable) {
         return getAll(collector, null, null, pageable);
     }
 

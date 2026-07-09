@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.optimize.elykia.core.enumaration.ReceptionStatus;
+import com.optimize.elykia.core.util.ArticleSortOrder;
 import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.article.ArticleHistory;
 import com.optimize.elykia.core.entity.expense.ExpenseType;
@@ -30,8 +32,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -95,14 +99,21 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
     }
 
     public StockReceptionDto getReceptionByIdWithItems(Long id) {
-        StockReception reception = getById(id);
-        return mapper.toDtoWithItems(reception);
+        StockReception reception = ((StockReceptionRepository) getRepository()).findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
+        StockReceptionDto dto = mapper.toDto(reception);
+        LinkedHashSet<StockReceptionItemDto> sortedItems = reception.getItems().stream()
+                .sorted(ArticleSortOrder.forStockReceptionItems())
+                .map(mapper::toItemDto)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        dto.setItems(sortedItems);
+        return dto;
     }
 
     public Page<StockReceptionItemDto> getReceptionItemsById(Long id, Pageable pageable) {
         getById(id);
         return stockReceptionItemRepository
-                .findByStockReceptionId(id, pageable)
+                .findByStockReceptionIdSorted(id, pageable)
                 .map(mapper::toItemDto);
     }
 

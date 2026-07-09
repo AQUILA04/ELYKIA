@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../../shared/service/base-http.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { StockTontineReturn } from '../models/stock-tontine-return.model';
+import { StockTontineReturn, StockTontineReturnItem, StockTontineReturnListItem } from '../models/stock-tontine-return.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 import { Page } from '../../shared/models/page.model';
@@ -31,7 +31,15 @@ export class StockTontineReturnService extends BaseHttpService {
     return this.put<StockTontineReturn>(`${this.baseUrl}/${id}/validate`, {});
   }
 
-  getAllReturns(filter: StockListFilter, page: number = 0, size: number = 20): Observable<Page<StockTontineReturn>> {
+  getById(id: number): Observable<StockTontineReturn> {
+    return this.get<StockTontineReturn>(`${this.baseUrl}/${id}`);
+  }
+
+  getItemsById(id: number): Observable<StockTontineReturnItem[]> {
+    return this.get<StockTontineReturnItem[]>(`${this.baseUrl}/${id}/items`);
+  }
+
+  getAllReturns(filter: StockListFilter, page: number = 0, size: number = 20): Observable<Page<StockTontineReturnListItem>> {
     let params = new HttpParams()
       .set('page', page)
       .set('size', size);
@@ -46,7 +54,7 @@ export class StockTontineReturnService extends BaseHttpService {
       params = params.set('endDate', filter.endDate);
     }
 
-    return this.get<Page<StockTontineReturn>>(this.baseUrl, { params });
+    return this.get<Page<StockTontineReturnListItem>>(this.baseUrl, { params });
   }
 
   getKpis(filter: StockListFilter): Observable<StockReturnKpis> {

@@ -42,6 +42,64 @@ export class StockOperationDetailPage implements OnInit {
     this.pageTitle = data['pageTitle'] ?? 'Détail de la demande';
     this.cancelLabel = data['cancelLabel'] ?? 'Annuler la demande';
 
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    if (!id) {
+      this.router.navigate(['/tabs/stock']);
+      return;
+    }
+
+    if (this.isRequest && this.context === 'STANDARD') {
+      this.stockApiService.getStandardRequestById(id).subscribe({
+        next: (operation) => {
+          this.operation = operation;
+          this.items = Array.isArray(operation.items) ? operation.items : [];
+        },
+        error: () => {
+          this.router.navigate(['/tabs/stock']);
+        }
+      });
+      return;
+    }
+
+    if (!this.isRequest && this.context === 'STANDARD') {
+      this.stockApiService.getStandardReturnById(id).subscribe({
+        next: (operation) => {
+          this.operation = operation;
+          this.items = Array.isArray(operation.items) ? operation.items : [];
+        },
+        error: () => {
+          this.router.navigate(['/tabs/stock']);
+        }
+      });
+      return;
+    }
+
+    if (this.isRequest && this.context === 'TONTINE') {
+      this.stockApiService.getTontineRequestById(id).subscribe({
+        next: (operation) => {
+          this.operation = operation;
+          this.items = Array.isArray(operation.items) ? operation.items : [];
+        },
+        error: () => {
+          this.router.navigate(['/tabs/stock']);
+        }
+      });
+      return;
+    }
+
+    if (!this.isRequest && this.context === 'TONTINE') {
+      this.stockApiService.getTontineReturnById(id).subscribe({
+        next: (operation) => {
+          this.operation = operation;
+          this.items = Array.isArray(operation.items) ? operation.items : [];
+        },
+        error: () => {
+          this.router.navigate(['/tabs/stock']);
+        }
+      });
+      return;
+    }
+
     const state = this.router.getCurrentNavigation()?.extras?.state as { operation?: StockOperation } | undefined;
     const operation = state?.operation;
 

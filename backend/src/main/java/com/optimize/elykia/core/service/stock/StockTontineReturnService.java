@@ -5,15 +5,17 @@ import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.entity.stock.StockTontineReturn;
+import com.optimize.elykia.core.entity.stock.StockTontineReturnItem;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.StockTontineReturnRepository;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.core.util.ArticleSortOrder;
+import com.optimize.common.entities.exception.ResourceNotFoundException;
+import com.optimize.elykia.core.dto.stock.StockTontineReturnListDto;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -135,16 +137,27 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
                 returnRequest.getId()));
     }
 
+    @Override
+    public StockTontineReturn getById(Long id) {
+        return ((StockTontineReturnRepository) getRepository()).findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
+    }
+
+    public List<StockTontineReturnItem> getItemsById(Long id) {
+        StockTontineReturn stockReturn = getById(id);
+        return stockReturn.getItems().stream()
+                .sorted(ArticleSortOrder.forStockTontineReturnItems())
+                .toList();
+    }
+
     public Page<StockTontineReturn> getByCollector(String collector, Pageable pageable) {
         return ((StockTontineReturnRepository) getRepository()).findByCollector(collector, pageable);
     }
 
-    public Page<StockTontineReturn> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    public Page<StockTontineReturnListDto> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         StockTontineReturnRepository repo = (StockTontineReturnRepository) getRepository();
         String effectiveCollector = resolveCollector(collector);
-        Sort sort = Sort.by(Sort.Direction.DESC, "id");
-        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-        return repo.findFiltered(effectiveCollector, startDate, endDate, resolveVisibleStatuses(), sortedPageable);
+        return repo.findFilteredList(effectiveCollector, startDate, endDate, resolveVisibleStatuses(), pageable);
     }
 
     public com.optimize.elykia.core.dto.stock.StockReturnKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
@@ -195,7 +208,7 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
     }
 
     /** @deprecated use {@link #getAll(String, LocalDate, LocalDate, Pageable)} */
-    public Page<StockTontineReturn> getAll(String collector, Pageable pageable) {
+    public Page<StockTontineReturnListDto> getAll(String collector, Pageable pageable) {
         return getAll(collector, null, null, pageable);
     }
 }

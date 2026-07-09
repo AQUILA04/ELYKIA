@@ -5,9 +5,11 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from '../../../auth/service/auth.service';
 import { UserService } from '../../../user/service/user.service';
 import { UserProfile } from '../../../shared/models/user-profile.enum';
-import { StockTontineRequest } from '../../models/stock-tontine-request.model';
+import { StockTontineRequest, StockTontineRequestListItem } from '../../models/stock-tontine-request.model';
 import { StockTontineRequestService } from '../../services/stock-tontine-request.service';
 import { StockListFilter, StockRequestKpis } from '../../../stock/services/stock-request.service';
+import { coerceStockItems } from '../../../stock/utils/stock-detail.util';
+import { forkJoin } from 'rxjs';
 import {
   buildPreviousMonthOptions,
   getStockPeriodLabel,
@@ -33,7 +35,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
   private readonly STATE_KEY = 'stockTontineRequestListState';
   private dateIntervalId?: ReturnType<typeof setInterval>;
 
-  requests: StockTontineRequest[] = [];
+  requests: StockTontineRequestListItem[] = [];
   page = 0;
   size = 10;
   totalElement = 0;
@@ -48,6 +50,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
 
   currentUser: any;
   selectedRequest: StockTontineRequest | null = null;
+  detailsLoading = false;
 
   selectedPeriod: StockPeriodKey = 'WEEK';
   previousMonths: MonthOption[] = [];
@@ -182,7 +185,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
     });
   }
 
-  validate(request: StockTontineRequest): void {
+  validate(request: StockTontineRequestListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Valider cette demande ?').then((confirmed) => {
       if (confirmed) {
         this.requestService.validate(request.id!).subscribe({
@@ -198,7 +201,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
     });
   }
 
-  deliver(request: StockTontineRequest): void {
+  deliver(request: StockTontineRequestListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Confirmer la livraison de cette demande ?').then((confirmed) => {
       if (confirmed) {
         this.requestService.deliver(request.id!).subscribe({
@@ -224,7 +227,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
     });
   }
 
-  cancel(request: StockTontineRequest): void {
+  cancel(request: StockTontineRequestListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Annuler cette demande ?').then((confirmed) => {
       if (confirmed) {
         this.requestService.cancel(request.id!).subscribe({
@@ -240,7 +243,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
     });
   }
 
-  refuse(request: StockTontineRequest): void {
+  refuse(request: StockTontineRequestListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Refuser cette demande ?').then((confirmed) => {
       if (confirmed) {
         this.requestService.refuse(request.id!).subscribe({
@@ -256,12 +259,33 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
     });
   }
 
-  showDetails(request: StockTontineRequest): void {
-    this.selectedRequest = request;
+  showDetails(request: StockTontineRequestListItem): void {
+    if (!request.id) {
+      return;
+    }
+    this.selectedRequest = null;
+    this.detailsLoading = true;
+    forkJoin({
+      detail: this.requestService.getById(request.id),
+      items: this.requestService.getItemsById(request.id)
+    }).subscribe({
+      next: ({ detail, items }) => {
+        this.selectedRequest = {
+          ...detail,
+          items: coerceStockItems(items)
+        };
+        this.detailsLoading = false;
+      },
+      error: () => {
+        this.detailsLoading = false;
+        this.toastr.error('Erreur lors du chargement du détail', 'Erreur');
+      }
+    });
   }
 
   closeDetails(): void {
     this.selectedRequest = null;
+    this.detailsLoading = false;
   }
 
   getStatusClass(status: string | undefined): string {

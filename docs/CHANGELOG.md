@@ -47,6 +47,44 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Enforcement lazy-loading frontend : règle Cursor renforcée (checklist obligatoire inline, globs domaines eager), hook `postToolUse` (`.cursor/hooks/lazy-loading-reminder.py`), garde CI `.github/scripts/check-frontend-lazy-loading.py`, script local `npm run check:lazy-loading` dans `frontend/`.
 
+## Backend — [1.0.28] — 2026-07-09
+
+### Fixed
+
+- KPI commandes (`GET /api/v1/orders/kpis`) : le champ `pendingOrders` est aligné sur le contrat frontend (au lieu de `pendingOrdersCount`), corrigeant l'affichage « Commandes en attente » à 0 alors que des commandes PENDING existent.
+
+## Backend — [1.0.27] — 2026-07-09
+
+### Fixed
+
+- Détail stock (`getById` / `getItemsById`) : suppression du remplacement de la collection `items` sur l'entité JPA (erreur Hibernate `all-delete-orphan`) ; tri appliqué uniquement sur la `List` renvoyée par `/{id}/items`.
+
+## Backend — [1.0.26] — 2026-07-09
+
+### Added
+
+- `GET /{id}/items` sur demandes/retours stock (standard et tontine) : lignes article triées en tableau JSON pour les modales de détail.
+
+## Backend — [1.0.25] — 2026-07-09
+
+### Changed
+
+- `GET /api/stock-returns`, `/api/v1/stock-tontine-request` et `/api/v1/stock-tontine-return` : projections liste sans items ; `GET /{id}` pour le détail avec articles triés.
+
+## Backend — [1.0.24] — 2026-07-09
+
+### Changed
+
+- Réception stock : articles triés par type → marque → modèle → nom sur `GET /api/v1/stock-receptions/{id}/items` (détail frontend) et sur le PDF `stock-reception-sheet.html` (via `getReceptionByIdWithItems`).
+
+## Backend — [1.0.23] — 2026-07-09
+
+### Changed
+
+- `GET /api/stock-requests` : projection `StockRequestListDto` sans chargement des lignes article (performance liste).
+- `GET /api/stock-requests/{id}` : articles triés par type, marque, modèle et nom.
+- Export PDF stock : agrégation et tri alignés sur type → marque → modèle → nom (requêtes + fusion Java) ; endpoint `/export/pdf` inchangé côté contrat.
+
 ## Backend — [1.0.22] — 2026-07-08
 
 ### Fixed
@@ -78,6 +116,24 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - `PdfService.generateStockReceptionPdf` : utilise `getReceptionByIdWithItems` pour inclure toutes les lignes article dans le PDF, sans réintroduire les items dans l'endpoint API fiche.
+
+## Frontend — [2.9.18] — 2026-07-09
+
+### Fixed
+
+- Modales détail stock (demandes, retours, tontine) : chargement explicite via `GET /{id}` + `GET /{id}/items` (plus de lignes vides) ; libellé article retour corrigé (`type: marque modèle nom`).
+
+## Frontend — [2.9.17] — 2026-07-09
+
+### Changed
+
+- Listes retours stock, demandes tontine et retours tontine : listes allégées sans items ; détail chargé via `GET /{id}` à l'ouverture du modal.
+
+## Frontend — [2.9.16] — 2026-07-09
+
+### Changed
+
+- Liste demandes de sortie stock : consommation de `StockRequestListDto` (sans items) ; chargement du détail via `GET /api/stock-requests/{id}` à l'ouverture du modal.
 
 ## Frontend — [2.9.15] — 2026-07-07
 
@@ -375,6 +431,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - tests E2E golden path étape 7 : soumission vente à crédit stabilisée (skip Remote Config, modal reçu, erreurs Swal, libellé article aligné stock commercial).
 - correction du reçu de vente en mode Comptant (Cash) : masquage de la mise journalière de relance ("Payez régulièrement vos mises") dans l'aperçu, l'impression Windows et le fichier HTML téléchargé (auparavant affichée en raison d'une mauvaise interpolation des variables interpolées avec backslash dans le template d'impression/sauvegarde).
 - tests E2E golden path : robustesse mise journalière, KPIs journaliers, autocomplete livraison tontine, collecte 50 000 FCFA, réouverture session tontine en `beforeAll` ; ventes comptant via `COM001` ; collecte tontine par `COM020`.
+
+## Mobile — [2.10.3] — 2026-07-09
+
+### Changed
+
+- Détail des opérations stock (demandes/retours standard et tontine) : chargement par ID depuis l'API.
+
+## Mobile — [2.10.2] — 2026-07-09
+
+### Changed
+
+- Détail demande de sortie stock standard : chargement via `GET /api/stock-requests/{id}` (liste allégée sans items côté API).
 
 ## Mobile — [2.10.1] — 2026-07-02
 

@@ -48,8 +48,10 @@ import org.thymeleaf.context.Context;
 import com.optimize.elykia.core.dto.StockExportPdfContextDto;
 import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
 import com.optimize.elykia.core.util.MonthEndCalculator;
+import com.optimize.elykia.core.util.ArticleSortOrder;
 import com.optimize.elykia.core.util.StockRequestDeliveryPricing;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
+import com.optimize.elykia.core.dto.stock.StockRequestListDto;
 
 @Service
 @Transactional
@@ -579,12 +581,25 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         monthlyStockRepository.save(monthlyStock);
     }
 
-    public Page<StockRequest> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    @Override
+    public StockRequest getById(Long id) {
+        return ((StockRequestRepository) repository).findByIdWithItems(id)
+                .orElseThrow(() -> new com.optimize.common.entities.exception.ResourceNotFoundException("resource.not.found"));
+    }
+
+    public List<StockRequestItem> getItemsById(Long id) {
+        StockRequest request = getById(id);
+        return request.getItems().stream()
+                .sorted(ArticleSortOrder.forStockRequestItems())
+                .toList();
+    }
+
+    public Page<StockRequestListDto> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         StockRequestRepository repo = (StockRequestRepository) repository;
         String effectiveCollector = resolveCollector(collector);
         List<StockRequestStatus> statuses = resolveVisibleStatuses();
 
-        return repo.findFiltered(effectiveCollector, startDate, endDate, statuses, pageable);
+        return repo.findFilteredList(effectiveCollector, startDate, endDate, statuses, pageable);
     }
 
     public com.optimize.elykia.core.dto.stock.StockRequestKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
@@ -644,7 +659,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     }
 
     /** @deprecated use {@link #getAll(String, LocalDate, LocalDate, Pageable)} */
-    public Page<StockRequest> getAll(String collector, Pageable pageable) {
+    public Page<StockRequestListDto> getAll(String collector, Pageable pageable) {
         return getAll(collector, null, null, pageable);
     }
 
@@ -684,8 +699,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         }
 
         List<StockRequestExportDTO> finalData = new ArrayList<>(mergedData.values());
-        // Sort by article name
-        finalData.sort((d1, d2) -> d1.getArticleName().compareTo(d2.getArticleName()));
+        finalData.sort(ArticleSortOrder.forExportDto());
 
         long totalQuantity = finalData.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
         double totalAmount = finalData.stream().mapToDouble(StockRequestExportDTO::getTotalAmount).sum();

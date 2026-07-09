@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Repository
 public interface StockReceptionRepository extends BaseRepository<StockReception, Long, Long> {
@@ -54,4 +55,10 @@ public interface StockReceptionRepository extends BaseRepository<StockReception,
             @Param("reference") String reference,
             @Param("receptionDate") LocalDate receptionDate,
             Pageable pageable);
+
+    @Query("SELECT DISTINCT sr FROM StockReception sr " +
+            "LEFT JOIN FETCH sr.items i " +
+            "LEFT JOIN FETCH i.article " +
+            "WHERE sr.id = :id")
+    Optional<StockReception> findByIdWithItems(@Param("id") Long id);
 }

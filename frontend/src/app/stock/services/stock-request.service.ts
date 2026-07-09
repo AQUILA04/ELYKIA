@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../../shared/service/base-http.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { StockRequest, StockRequestStatus, PartialDeliveryResponseDTO, StockRequestCreateDto } from '../models/stock-request.model';
+import { StockRequest, StockRequestItem, StockRequestListItem, StockRequestStatus, PartialDeliveryResponseDTO, StockRequestCreateDto } from '../models/stock-request.model';
 import { Page } from '../../shared/models/page.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
@@ -46,6 +46,10 @@ export class StockRequestService extends BaseHttpService {
     return this.http.get<StockRequest>(`${this.baseUrl}/${id}`);
   }
 
+  getItemsById(id: number): Observable<StockRequestItem[]> {
+    return this.http.get<StockRequestItem[]>(`${this.baseUrl}/${id}/items`);
+  }
+
   validate(id: number): Observable<StockRequest> {
     return this.http.put<StockRequest>(`${this.baseUrl}/${id}/validate`, {});
   }
@@ -66,7 +70,7 @@ export class StockRequestService extends BaseHttpService {
     return this.http.get<Page<StockRequest>>(`${this.baseUrl}/collector/${collector}?page=${page}&size=${size}`);
   }
 
-  getAll(filter: StockListFilter, page: number = 0, size: number = 20): Observable<any> {
+  getAll(filter: StockListFilter, page: number = 0, size: number = 20): Observable<Page<StockRequestListItem>> {
     let params = new HttpParams()
       .set('page', page)
       .set('size', size);
@@ -81,7 +85,7 @@ export class StockRequestService extends BaseHttpService {
       params = params.set('endDate', filter.endDate);
     }
 
-    return this.http.get<any>(`${this.baseUrl}`, { params });
+    return this.http.get<Page<StockRequestListItem>>(`${this.baseUrl}`, { params });
   }
 
   getKpis(filter: StockListFilter): Observable<StockRequestKpis> {

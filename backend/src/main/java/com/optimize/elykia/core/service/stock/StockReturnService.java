@@ -18,11 +18,12 @@ import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.core.util.ArticleSortOrder;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
+import com.optimize.common.entities.exception.ResourceNotFoundException;
+import com.optimize.elykia.core.dto.stock.StockReturnListDto;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.optimize.elykia.core.dto.stock.StockReturnDto;
@@ -447,13 +448,24 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         return ref;
     }
 
-    public Page<StockReturn> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    @Override
+    public StockReturn getById(Long id) {
+        return ((StockReturnRepository) repository).findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
+    }
+
+    public List<StockReturnItem> getItemsById(Long id) {
+        StockReturn stockReturn = getById(id);
+        return stockReturn.getItems().stream()
+                .sorted(ArticleSortOrder.forStockReturnItems())
+                .toList();
+    }
+
+    public Page<StockReturnListDto> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         StockReturnRepository repo = (StockReturnRepository) repository;
         String effectiveCollector = resolveCollector(collector);
         List<StockReturnStatus> statuses = resolveVisibleStatuses();
-        Sort sort = Sort.by(Sort.Direction.DESC, "id");
-        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-        return repo.findFiltered(effectiveCollector, startDate, endDate, statuses, sortedPageable);
+        return repo.findFilteredList(effectiveCollector, startDate, endDate, statuses, pageable);
     }
 
     public com.optimize.elykia.core.dto.stock.StockReturnKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
@@ -506,7 +518,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     }
 
     /** @deprecated use {@link #getAll(String, LocalDate, LocalDate, Pageable)} */
-    public Page<StockReturn> getAll(String collector, Pageable pageable) {
+    public Page<StockReturnListDto> getAll(String collector, Pageable pageable) {
         return getAll(collector, null, null, pageable);
     }
 }

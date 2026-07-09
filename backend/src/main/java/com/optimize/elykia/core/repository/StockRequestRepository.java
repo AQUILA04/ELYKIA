@@ -27,19 +27,43 @@ public interface StockRequestRepository extends GenericRepository<StockRequest, 
     @Query("SELECT MAX(s.id) FROM StockRequest s")
     Long findMaxId();
 
-    @Query("SELECT new com.optimize.elykia.core.dto.StockRequestExportDTO(i.itemName, SUM(i.quantity), i.unitPrice, SUM(i.quantity * COALESCE(i.unitPrice, 0.0))) " +
-            "FROM StockRequest s JOIN s.items i " +
+    @Query("SELECT new com.optimize.elykia.core.dto.StockRequestExportDTO(" +
+            "CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name), " +
+            "SUM(i.quantity), i.unitPrice, SUM(i.quantity * COALESCE(i.unitPrice, 0.0)), " +
+            "a.type, a.marque, a.model, a.name) " +
+            "FROM StockRequest s JOIN s.items i JOIN i.article a " +
             "WHERE s.status IN :statuses " +
             "AND (:#{#collector == null} = true OR s.collector = :collector) " +
             "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
             "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
-            "GROUP BY i.itemName, i.unitPrice " +
-            "ORDER BY i.itemName")
+            "GROUP BY a.type, a.marque, a.model, a.name, i.unitPrice " +
+            "ORDER BY a.type, a.marque, a.model, a.name")
     List<com.optimize.elykia.core.dto.StockRequestExportDTO> findAggregatedStockRequests(
             @Param("startDate") java.time.LocalDate startDate,
             @Param("endDate") java.time.LocalDate endDate,
             @Param("collector") String collector,
             @Param("statuses") List<StockRequestStatus> statuses);
+
+    @Query("SELECT new com.optimize.elykia.core.dto.stock.StockRequestListDto(" +
+            "s.id, s.reference, s.collector, s.requestDate, s.validationDate, s.deliveryDate, s.status) " +
+            "FROM StockRequest s WHERE " +
+            "(:#{#collector == null} = true OR s.collector = :collector) " +
+            "AND s.status IN :statuses " +
+            "AND (:#{#startDate == null} = true OR s.requestDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.requestDate <= :endDate) " +
+            "ORDER BY s.id DESC")
+    Page<com.optimize.elykia.core.dto.stock.StockRequestListDto> findFilteredList(
+            @Param("collector") String collector,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("statuses") List<StockRequestStatus> statuses,
+            Pageable pageable);
+
+    @Query("SELECT DISTINCT s FROM StockRequest s " +
+            "LEFT JOIN FETCH s.items i " +
+            "LEFT JOIN FETCH i.article " +
+            "WHERE s.id = :id")
+    java.util.Optional<StockRequest> findByIdWithItems(@Param("id") Long id);
 
     @Query("SELECT s FROM StockRequest s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +

@@ -14,6 +14,16 @@ export interface StockTontineRequestItem {
   itemName?: string;
 }
 
+export interface StockTontineRequestListItem {
+  id?: number;
+  reference?: string;
+  collector?: string;
+  requestDate?: string;
+  validationDate?: string;
+  deliveryDate?: string;
+  status?: StockRequestStatus;
+}
+
 export interface StockTontineRequest {
   id?: number;
   reference?: string;
@@ -22,7 +32,7 @@ export interface StockTontineRequest {
   validationDate?: string;
   deliveryDate?: string;
   status?: StockRequestStatus;
-  items: StockTontineRequestItem[];
+  items?: StockTontineRequestItem[];
   totalSalePrice?: number;
   totalPurchasePrice?: number;
   accountingDate?: string;

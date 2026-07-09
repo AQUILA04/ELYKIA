@@ -13,29 +13,33 @@ public class StockRequestExportDTO {
     private Double unitPrice;
     private Double totalAmount;
     private Long returnedQuantity;
+    private String type;
+    private String marque;
+    private String model;
+    private String name;
 
     public StockRequestExportDTO(String articleName, Long totalQuantity, Double unitPrice, Double totalAmount) {
-        this.articleName = articleName;
-        this.totalQuantity = totalQuantity;
-        this.unitPrice = unitPrice;
-        this.totalAmount = totalAmount;
-        this.returnedQuantity = 0L;
+        this(articleName, totalQuantity, unitPrice, totalAmount, 0L, null, null, null, null);
+    }
+
+    public StockRequestExportDTO(
+            String articleName,
+            Long totalQuantity,
+            Double unitPrice,
+            Double totalAmount,
+            String type,
+            String marque,
+            String model,
+            String name) {
+        this(articleName, totalQuantity, unitPrice, totalAmount, 0L, type, marque, model, name);
     }
 
     public StockRequestExportDTO(String articleName, Long totalQuantity, Double unitPrice) {
-        this.articleName = articleName;
-        this.totalQuantity = totalQuantity;
-        this.unitPrice = unitPrice;
-        this.totalAmount = 0.0;
-        this.returnedQuantity = 0L;
+        this(articleName, totalQuantity, unitPrice, 0.0, 0L, null, null, null, null);
     }
 
     public StockRequestExportDTO(String articleName, Long totalQuantity) {
-        this.articleName = articleName;
-        this.totalQuantity = totalQuantity;
-        this.unitPrice = 0.0;
-        this.totalAmount = 0.0;
-        this.returnedQuantity = 0L;
+        this(articleName, totalQuantity, 0.0, 0.0, 0L, null, null, null, null);
     }
 
     public Long getNetQuantity() {

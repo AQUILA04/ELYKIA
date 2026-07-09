@@ -1,6 +1,8 @@
 package com.optimize.elykia.core.controller.stock;
 
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
+import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
+import java.util.List;
 import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
 import com.optimize.elykia.core.service.stock.StockTontineRequestService;
 import lombok.RequiredArgsConstructor;
@@ -48,12 +50,22 @@ public class StockTontineRequestController {
     }
 
     @GetMapping("/collector/{collector}")
-    public ResponseEntity<Page<StockTontineRequest>> getByCollector(@PathVariable String collector, Pageable pageable) {
+    public ResponseEntity<Page<com.optimize.elykia.core.dto.stock.StockTontineRequestListDto>> getByCollector(@PathVariable String collector, Pageable pageable) {
         return ResponseEntity.ok(service.getAll(collector, pageable));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<StockTontineRequest> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
+    }
+
+    @GetMapping("/{id}/items")
+    public ResponseEntity<List<StockTontineRequestItem>> getItems(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getItemsById(id));
+    }
+
     @GetMapping
-    public ResponseEntity<Page<StockTontineRequest>> getAll(
+    public ResponseEntity<Page<com.optimize.elykia.core.dto.stock.StockTontineRequestListDto>> getAll(
             @RequestParam(required = false) String collector,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,

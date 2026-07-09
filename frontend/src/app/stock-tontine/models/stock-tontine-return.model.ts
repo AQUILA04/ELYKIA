@@ -10,10 +10,17 @@ export interface StockTontineReturnItem {
   quantity: number;
 }
 
+export interface StockTontineReturnListItem {
+  id?: number;
+  collector?: string;
+  returnDate?: string;
+  status?: StockReturnStatus;
+}
+
 export interface StockTontineReturn {
   id?: number;
   collector?: string;
   returnDate?: string;
   status?: StockReturnStatus;
-  items: StockTontineReturnItem[];
+  items?: StockTontineReturnItem[];
 }

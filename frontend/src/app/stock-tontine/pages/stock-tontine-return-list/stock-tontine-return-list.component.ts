@@ -5,10 +5,12 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from '../../../auth/service/auth.service';
 import { UserService } from '../../../user/service/user.service';
 import { UserProfile } from '../../../shared/models/user-profile.enum';
-import { StockTontineReturn } from '../../models/stock-tontine-return.model';
+import { StockTontineReturn, StockTontineReturnItem, StockTontineReturnListItem } from '../../models/stock-tontine-return.model';
 import { StockTontineReturnService } from '../../services/stock-tontine-return.service';
 import { StockListFilter } from '../../../stock/services/stock-request.service';
 import { StockReturnKpis } from '../../../stock/services/stock-return.service';
+import { coerceStockItems, formatArticleLabel } from '../../../stock/utils/stock-detail.util';
+import { forkJoin } from 'rxjs';
 import {
   buildPreviousMonthOptions,
   getStockPeriodLabel,
@@ -34,7 +36,7 @@ export class StockTontineReturnListComponent implements OnInit, OnDestroy {
   private readonly STATE_KEY = 'stockTontineReturnListState';
   private dateIntervalId?: ReturnType<typeof setInterval>;
 
-  returns: StockTontineReturn[] = [];
+  returns: StockTontineReturnListItem[] = [];
   page = 0;
   size = 10;
   totalElements = 0;
@@ -46,6 +48,7 @@ export class StockTontineReturnListComponent implements OnInit, OnDestroy {
 
   currentUser: any;
   selectedReturn: StockTontineReturn | null = null;
+  detailsLoading = false;
 
   selectedPeriod: StockPeriodKey = 'WEEK';
   previousMonths: MonthOption[] = [];
@@ -155,7 +158,7 @@ export class StockTontineReturnListComponent implements OnInit, OnDestroy {
     this.loadReturns();
   }
 
-  validate(stockReturn: StockTontineReturn): void {
+  validate(stockReturn: StockTontineReturnListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Confirmer la réception de ce retour ?').then((confirmed) => {
       if (confirmed) {
         this.returnService.validate(stockReturn.id!).subscribe({
@@ -169,12 +172,37 @@ export class StockTontineReturnListComponent implements OnInit, OnDestroy {
     });
   }
 
-  showDetails(stockReturn: StockTontineReturn): void {
-    this.selectedReturn = stockReturn;
+  showDetails(stockReturn: StockTontineReturnListItem): void {
+    if (!stockReturn.id) {
+      return;
+    }
+    this.selectedReturn = null;
+    this.detailsLoading = true;
+    forkJoin({
+      detail: this.returnService.getById(stockReturn.id),
+      items: this.returnService.getItemsById(stockReturn.id)
+    }).subscribe({
+      next: ({ detail, items }) => {
+        this.selectedReturn = {
+          ...detail,
+          items: coerceStockItems(items)
+        };
+        this.detailsLoading = false;
+      },
+      error: () => {
+        this.detailsLoading = false;
+        this.toastr.error('Erreur lors du chargement du détail', 'Erreur');
+      }
+    });
+  }
+
+  formatArticleLabel(article: StockTontineReturnItem['article']): string {
+    return formatArticleLabel(article);
   }
 
   closeDetails(): void {
     this.selectedReturn = null;
+    this.detailsLoading = false;
   }
 
   getStatusClass(status: string | undefined): string {

@@ -7,8 +7,10 @@ import { UserService } from '../../../user/service/user.service';
 import { Router } from '@angular/router';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { UserProfile } from '../../../shared/models/user-profile.enum';
-import { StockRequest } from '../../models/stock-request.model';
+import { StockRequest, StockRequestListItem } from '../../models/stock-request.model';
 import { StockListFilter, StockRequestKpis, StockRequestService } from '../../services/stock-request.service';
+import { coerceStockItems } from '../../utils/stock-detail.util';
+import { forkJoin } from 'rxjs';
 import {
   buildPreviousMonthOptions,
   getStockPeriodLabel,
@@ -34,7 +36,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
   private readonly STATE_KEY = 'stockRequestListState';
   private dateIntervalId?: ReturnType<typeof setInterval>;
 
-  requests: StockRequest[] = [];
+  requests: StockRequestListItem[] = [];
   page = 0;
   size = 10;
   totalElement = 0;
@@ -50,6 +52,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
 
   currentUser: any;
   selectedRequest: StockRequest | null = null;
+  detailsLoading = false;
 
   selectedPeriod: StockPeriodKey = 'WEEK';
   previousMonths: MonthOption[] = [];
@@ -196,7 +199,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     });
   }
 
-  validate(request: StockRequest): void {
+  validate(request: StockRequestListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Valider cette demande ?').then((confirmed) => {
       if (confirmed) {
         this.stockRequestService.validate(request.id!).subscribe({
@@ -212,7 +215,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     });
   }
 
-  deliver(request: StockRequest): void {
+  deliver(request: StockRequestListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Confirmer la livraison de cette demande ?').then((confirmed) => {
       if (confirmed) {
         this.stockRequestService.deliver(request.id!).subscribe({
@@ -238,7 +241,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     });
   }
 
-  cancel(request: StockRequest): void {
+  cancel(request: StockRequestListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Annuler cette demande ?').then((confirmed) => {
       if (confirmed) {
         this.stockRequestService.cancel(request.id!).subscribe({
@@ -254,7 +257,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     });
   }
 
-  refuse(request: StockRequest): void {
+  refuse(request: StockRequestListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Refuser cette demande ?').then((confirmed) => {
       if (confirmed) {
         this.stockRequestService.refuse(request.id!).subscribe({
@@ -270,15 +273,36 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     });
   }
 
-  showDetails(request: StockRequest): void {
-    this.selectedRequest = request;
+  showDetails(request: StockRequestListItem): void {
+    if (!request.id) {
+      return;
+    }
+    this.selectedRequest = null;
+    this.detailsLoading = true;
+    forkJoin({
+      detail: this.stockRequestService.getById(request.id),
+      items: this.stockRequestService.getItemsById(request.id)
+    }).subscribe({
+      next: ({ detail, items }) => {
+        this.selectedRequest = {
+          ...detail,
+          items: coerceStockItems(items)
+        };
+        this.detailsLoading = false;
+      },
+      error: () => {
+        this.detailsLoading = false;
+        this.toastr.error('Erreur lors du chargement du détail', 'Erreur');
+      }
+    });
   }
 
   closeDetails(): void {
     this.selectedRequest = null;
+    this.detailsLoading = false;
   }
 
-  edit(request: StockRequest): void {
+  edit(request: StockRequestListItem): void {
     this.router.navigate(['/stock/request/edit', request.id]);
   }
 

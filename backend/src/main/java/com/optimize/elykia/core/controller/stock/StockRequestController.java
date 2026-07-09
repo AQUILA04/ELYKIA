@@ -1,6 +1,8 @@
 package com.optimize.elykia.core.controller.stock;
 
 import com.optimize.elykia.core.entity.stock.StockRequest;
+import com.optimize.elykia.core.entity.stock.StockRequestItem;
+import java.util.List;
 import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.service.stock.StockRequestService;
@@ -41,6 +43,11 @@ public class StockRequestController {
         return ResponseEntity.ok(service.getById(id));
     }
 
+    @GetMapping("/{id}/items")
+    public ResponseEntity<List<StockRequestItem>> getItems(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getItemsById(id));
+    }
+
     @PutMapping("/{id}/validate")
     public ResponseEntity<StockRequest> validateRequest(@PathVariable Long id) {
         return ResponseEntity.ok(service.validateRequest(id));
@@ -70,7 +77,7 @@ public class StockRequestController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<StockRequest>> getAll(
+    public ResponseEntity<Page<com.optimize.elykia.core.dto.stock.StockRequestListDto>> getAll(
             @RequestParam(required = false) String collector,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,

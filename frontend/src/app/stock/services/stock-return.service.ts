@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { StockReturnDto } from '../models/stock-return.model';
+import { StockReturn, StockReturnDto, StockReturnItem, StockReturnListItem } from '../models/stock-return.model';
 import { CommercialMonthlyStock } from '../models/commercial-stock.model';
 import { map } from 'rxjs/operators';
 import { StockListFilter } from './stock-request.service';
+import { Page } from '../../shared/models/page.model';
 
 export interface StockReturnKpis {
   total: number;
@@ -43,7 +44,7 @@ export class StockReturnService {
 
   // Add dummy methods to satisfy the other components
   create(data: any): Observable<any> { return this.http.post<any>(`${this.apiUrl}/api/stock-returns/create`, data); }
-  getAll(filter: StockListFilter, page: number, size: number): Observable<any> {
+  getAll(filter: StockListFilter, page: number, size: number): Observable<Page<StockReturnListItem>> {
     let params = new HttpParams()
       .set('page', page)
       .set('size', size);
@@ -58,7 +59,15 @@ export class StockReturnService {
       params = params.set('endDate', filter.endDate);
     }
 
-    return this.http.get<any>(`${this.apiUrl}/api/stock-returns`, { params });
+    return this.http.get<Page<StockReturnListItem>>(`${this.apiUrl}/api/stock-returns`, { params });
+  }
+
+  getById(id: number): Observable<StockReturn> {
+    return this.http.get<StockReturn>(`${this.apiUrl}/api/stock-returns/${id}`);
+  }
+
+  getItemsById(id: number): Observable<StockReturnItem[]> {
+    return this.http.get<StockReturnItem[]>(`${this.apiUrl}/api/stock-returns/${id}/items`);
   }
 
   getKpis(filter: StockListFilter): Observable<StockReturnKpis> {

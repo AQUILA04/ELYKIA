@@ -5,12 +5,31 @@ export enum StockReturnStatus {
   REFUSED = 'REFUSED'
 }
 
+export interface StockReturnListItem {
+  id?: number;
+  collector?: string;
+  returnDate?: string;
+  status?: StockReturnStatus;
+}
+
 export interface StockReturn {
   id?: number;
   collector?: string;
   returnDate?: string;
   status?: StockReturnStatus;
-  items?: any[];
+  items?: StockReturnItem[];
+}
+
+export interface StockReturnItem {
+  id?: number;
+  article?: {
+    type?: string;
+    marque?: string;
+    model?: string;
+    name?: string;
+  };
+  quantity?: number;
+  unitPrice?: number;
 }
 
 export interface StockReturnDto {

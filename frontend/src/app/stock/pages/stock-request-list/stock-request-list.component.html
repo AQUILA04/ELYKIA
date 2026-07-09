@@ -186,13 +186,21 @@
 </div>
 
 <!-- Modal Détails -->
-<div class="stock-modal-overlay" *ngIf="selectedRequest" (click)="closeDetails()">
+<div class="stock-modal-overlay" *ngIf="selectedRequest || detailsLoading" (click)="closeDetails()">
   <div class="stock-modal" role="dialog" (click)="$event.stopPropagation()">
     <div class="stock-modal-header">
-      <h3>Détails de la demande : {{ selectedRequest.reference }}</h3>
+      <h3>Détails de la demande : {{ selectedRequest?.reference || '…' }}</h3>
       <button type="button" class="modal-close" (click)="closeDetails()" aria-label="Fermer">&times;</button>
     </div>
     <div class="stock-modal-body">
+      <div *ngIf="detailsLoading" class="table-loading">
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-title">Chargement du détail…</div>
+        </div>
+      </div>
+
+      <ng-container *ngIf="!detailsLoading && selectedRequest">
       <div class="detail-grid">
         <div>
           <p><strong>Commercial :</strong> {{ selectedRequest.collector }}</p>
@@ -233,6 +241,7 @@
           </tr>
         </tfoot>
       </table>
+      </ng-container>
     </div>
     <div class="stock-modal-footer">
       <button type="button" class="btn-primary" (click)="closeDetails()">Fermer</button>

@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface StockTontineRequestRepository extends GenericRepository<StockTontineRequest, Long> {
     List<StockTontineRequest> findByCollector(String collector);
@@ -42,6 +43,27 @@ public interface StockTontineRequestRepository extends GenericRepository<StockTo
             @Param("endDate") java.time.LocalDate endDate,
             @Param("collector") String collector,
             @Param("statuses") List<StockRequestStatus> statuses);
+
+    @Query("SELECT new com.optimize.elykia.core.dto.stock.StockTontineRequestListDto(" +
+            "s.id, s.reference, s.collector, s.requestDate, s.validationDate, s.deliveryDate, s.status) " +
+            "FROM StockTontineRequest s WHERE " +
+            "(:#{#collector == null} = true OR s.collector = :collector) " +
+            "AND s.status IN :statuses " +
+            "AND (:#{#startDate == null} = true OR s.requestDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.requestDate <= :endDate) " +
+            "ORDER BY s.id DESC")
+    Page<com.optimize.elykia.core.dto.stock.StockTontineRequestListDto> findFilteredList(
+            @Param("collector") String collector,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("statuses") Collection<StockRequestStatus> statuses,
+            Pageable pageable);
+
+    @Query("SELECT DISTINCT s FROM StockTontineRequest s " +
+            "LEFT JOIN FETCH s.items i " +
+            "LEFT JOIN FETCH i.article " +
+            "WHERE s.id = :id")
+    Optional<StockTontineRequest> findByIdWithItems(@Param("id") Long id);
 
     @Query("SELECT s FROM StockTontineRequest s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +

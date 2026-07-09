@@ -1,6 +1,8 @@
 package com.optimize.elykia.core.controller.stock;
 
 import com.optimize.elykia.core.entity.stock.StockTontineReturn;
+import com.optimize.elykia.core.entity.stock.StockTontineReturnItem;
+import java.util.List;
 import com.optimize.elykia.core.service.stock.StockTontineReturnService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -41,8 +43,18 @@ public class StockTontineReturnController {
         return ResponseEntity.ok(service.getByCollector(collector, pageable));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<StockTontineReturn> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
+    }
+
+    @GetMapping("/{id}/items")
+    public ResponseEntity<List<StockTontineReturnItem>> getItems(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getItemsById(id));
+    }
+
     @GetMapping
-    public ResponseEntity<Page<StockTontineReturn>> getAll(
+    public ResponseEntity<Page<com.optimize.elykia.core.dto.stock.StockTontineReturnListDto>> getAll(
             @RequestParam(required = false) String collector,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,

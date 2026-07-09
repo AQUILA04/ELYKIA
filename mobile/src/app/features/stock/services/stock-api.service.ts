@@ -114,6 +114,22 @@ export class StockApiService {
     return this.http.put<void>(`${this.baseUrl}/api/stock-requests/${id}/cancel`, {});
   }
 
+  getStandardRequestById(id: number): Observable<StockRequest> {
+    return this.http.get<StockRequest>(`${this.baseUrl}/api/stock-requests/${id}`);
+  }
+
+  getStandardReturnById(id: number): Observable<StockReturn> {
+    return this.http.get<StockReturn>(`${this.baseUrl}/api/stock-returns/${id}`);
+  }
+
+  getTontineRequestById(id: number): Observable<StockTontineRequest> {
+    return this.http.get<StockTontineRequest>(`${this.baseUrl}/api/v1/stock-tontine-request/${id}`);
+  }
+
+  getTontineReturnById(id: number): Observable<StockTontineReturn> {
+    return this.http.get<StockTontineReturn>(`${this.baseUrl}/api/v1/stock-tontine-return/${id}`);
+  }
+
   cancelStandardReturn(id: number): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/api/stock-returns/${id}/cancel`, {});
   }

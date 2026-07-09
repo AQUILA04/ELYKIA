@@ -1,6 +1,8 @@
 package com.optimize.elykia.core.controller.stock;
 
 import com.optimize.elykia.core.entity.stock.StockReturn;
+import com.optimize.elykia.core.entity.stock.StockReturnItem;
+import java.util.List;
 import com.optimize.elykia.core.service.stock.StockReturnService;
 import org.springframework.data.domain.Page;
 import com.optimize.common.entities.util.Response;
@@ -59,8 +61,18 @@ public class StockReturnController  {
         return ResponseEntity.ok(((com.optimize.elykia.core.repository.StockReturnRepository)service.getRepository()).findByCollector(collector, pageable));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<StockReturn> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
+    }
+
+    @GetMapping("/{id}/items")
+    public ResponseEntity<List<StockReturnItem>> getItems(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getItemsById(id));
+    }
+
     @GetMapping
-    public ResponseEntity<Page<StockReturn>> getAll(
+    public ResponseEntity<Page<com.optimize.elykia.core.dto.stock.StockReturnListDto>> getAll(
             @RequestParam(required = false) String collector,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,

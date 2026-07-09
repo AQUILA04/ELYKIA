@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class DashboardKpiDto {
-    private long pendingOrdersCount;
+    private long pendingOrders;
     private double potentialValue;
     private double acceptanceRate;
     private double denialRate;

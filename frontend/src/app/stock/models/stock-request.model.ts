@@ -14,6 +14,16 @@ export interface StockRequestItem {
   itemName?: string;
 }
 
+export interface StockRequestListItem {
+  id?: number;
+  reference?: string;
+  collector?: string;
+  requestDate?: string;
+  validationDate?: string;
+  deliveryDate?: string;
+  status?: StockRequestStatus;
+}
+
 export interface StockRequest {
   id?: number;
   reference?: string;
@@ -22,7 +32,7 @@ export interface StockRequest {
   validationDate?: string;
   deliveryDate?: string;
   status?: StockRequestStatus;
-  items: StockRequestItem[];
+  items?: StockRequestItem[];
   totalCreditSalePrice?: number;
   totalPurchasePrice?: number;
   accountingDate?: string;

@@ -82,7 +82,7 @@ public class OrderService extends GenericService<Order, Long> {
         LocalDateTime now = LocalDateTime.now();
 
         long pendingOrdersCount = getRepository().countByStatus(OrderStatus.PENDING);
-        dto.setPendingOrdersCount(pendingOrdersCount);
+        dto.setPendingOrders(pendingOrdersCount);
 
         double potentialValue = getRepository().sumTotalAmountByStatus(OrderStatus.PENDING);
         dto.setPotentialValue(potentialValue);

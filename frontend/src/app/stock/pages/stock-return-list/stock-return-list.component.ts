@@ -5,9 +5,11 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from '../../../auth/service/auth.service';
 import { UserService } from '../../../user/service/user.service';
 import { UserProfile } from '../../../shared/models/user-profile.enum';
-import { StockReturn } from '../../models/stock-return.model';
+import { StockReturn, StockReturnItem, StockReturnListItem } from '../../models/stock-return.model';
 import { StockListFilter } from '../../services/stock-request.service';
 import { StockReturnKpis, StockReturnService } from '../../services/stock-return.service';
+import { coerceStockItems, formatArticleLabel } from '../../utils/stock-detail.util';
+import { forkJoin } from 'rxjs';
 import {
   buildPreviousMonthOptions,
   getStockPeriodLabel,
@@ -33,7 +35,7 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
   private readonly STATE_KEY = 'stockReturnListState';
   private dateIntervalId?: ReturnType<typeof setInterval>;
 
-  returns: StockReturn[] = [];
+  returns: StockReturnListItem[] = [];
   page = 0;
   size = 10;
   totalElements = 0;
@@ -45,6 +47,7 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
 
   currentUser: any;
   selectedReturn: StockReturn | null = null;
+  detailsLoading = false;
 
   selectedPeriod: StockPeriodKey = 'WEEK';
   previousMonths: MonthOption[] = [];
@@ -158,7 +161,7 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
     this.loadReturns();
   }
 
-  validate(stockReturn: StockReturn): void {
+  validate(stockReturn: StockReturnListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Confirmer la réception de ce retour ?').then((confirmed) => {
       if (confirmed) {
         this.stockReturnService.validate(stockReturn.id!).subscribe({
@@ -172,7 +175,7 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
     });
   }
 
-  cancel(ret: StockReturn): void {
+  cancel(ret: StockReturnListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Annuler ce retour ?').then((confirmed) => {
       if (confirmed) {
         this.stockReturnService.cancel(ret.id!).subscribe({
@@ -188,7 +191,7 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
     });
   }
 
-  refuse(ret: StockReturn): void {
+  refuse(ret: StockReturnListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Refuser ce retour ?').then((confirmed) => {
       if (confirmed) {
         this.stockReturnService.refuse(ret.id!).subscribe({
@@ -204,12 +207,37 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
     });
   }
 
-  showDetails(stockReturn: StockReturn): void {
-    this.selectedReturn = stockReturn;
+  showDetails(stockReturn: StockReturnListItem): void {
+    if (!stockReturn.id) {
+      return;
+    }
+    this.selectedReturn = null;
+    this.detailsLoading = true;
+    forkJoin({
+      detail: this.stockReturnService.getById(stockReturn.id),
+      items: this.stockReturnService.getItemsById(stockReturn.id)
+    }).subscribe({
+      next: ({ detail, items }) => {
+        this.selectedReturn = {
+          ...detail,
+          items: coerceStockItems(items)
+        };
+        this.detailsLoading = false;
+      },
+      error: () => {
+        this.detailsLoading = false;
+        this.toastr.error('Erreur lors du chargement du détail', 'Erreur');
+      }
+    });
+  }
+
+  formatArticleLabel(article: StockReturnItem['article']): string {
+    return formatArticleLabel(article);
   }
 
   closeDetails(): void {
     this.selectedReturn = null;
+    this.detailsLoading = false;
   }
 
   getStatusClass(status: string | undefined): string {
