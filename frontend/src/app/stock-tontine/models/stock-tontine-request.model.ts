@@ -2,7 +2,8 @@ export enum StockRequestStatus {
   CREATED = 'CREATED',
   VALIDATED = 'VALIDATED',
   DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
+  REFUSED = 'REFUSED'
 }
 
 export interface StockTontineRequestItem {

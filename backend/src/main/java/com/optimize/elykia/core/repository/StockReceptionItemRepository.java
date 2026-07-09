@@ -19,7 +19,7 @@ public interface StockReceptionItemRepository extends BaseRepository<StockRecept
             SELECT sri FROM StockReceptionItem sri
             JOIN sri.article a
             WHERE sri.stockReception.id = :stockReceptionId
-            ORDER BY a.type ASC, a.marque ASC, a.model ASC, a.name ASC
+            ORDER BY a.type ASC, a.marque ASC, a.model ASC, a.name ASC, sri.id ASC
             """)
     Page<StockReceptionItem> findByStockReceptionIdSorted(
             @Param("stockReceptionId") Long stockReceptionId,

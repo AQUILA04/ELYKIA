@@ -47,6 +47,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Enforcement lazy-loading frontend : règle Cursor renforcée (checklist obligatoire inline, globs domaines eager), hook `postToolUse` (`.cursor/hooks/lazy-loading-reminder.py`), garde CI `.github/scripts/check-frontend-lazy-loading.py`, script local `npm run check:lazy-loading` dans `frontend/`.
 
+## Backend — [1.0.29] — 2026-07-09
+
+### Fixed
+
+- `GET /api/v1/stock-receptions/{id}/items` : restauration du tri par défaut `id ASC` via `@PageableDefault` ; tie-breaker `sri.id` ajouté au tri article (type → marque → modèle → nom) pour une pagination stable.
+
 ## Backend — [1.0.28] — 2026-07-09
 
 ### Fixed
@@ -116,6 +122,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - `PdfService.generateStockReceptionPdf` : utilise `getReceptionByIdWithItems` pour inclure toutes les lignes article dans le PDF, sans réintroduire les items dans l'endpoint API fiche.
+
+## Frontend — [2.9.19] — 2026-07-09
+
+### Fixed
+
+- `StockRequestStatus` (stock et stock-tontine) : ajout du statut `REFUSED` aligné sur l'API backend, corrigeant les incohérences de typage et l'affichage des demandes refusées.
 
 ## Frontend — [2.9.18] — 2026-07-09
 
