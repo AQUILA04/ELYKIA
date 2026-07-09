@@ -40,6 +40,7 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
   size = 10;
   totalElements = 0;
   isLoading = true;
+  exportLoading = false;
 
   isPromoter = false;
   isStoreKeeper = false;
@@ -159,6 +160,29 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
     this.size = event.pageSize;
     this.saveState();
     this.loadReturns();
+  }
+
+  onExportPdf(): void {
+    const range = resolveStockPeriodRange(this.selectedPeriod);
+    this.exportLoading = true;
+    this.stockReturnService.exportPdf(range.startDate, range.endDate, this.selectedCommercial).subscribe({
+      next: (data) => {
+        const blob = new Blob([data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `fiche_retours_stock_${range.startDate}_${range.endDate}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.exportLoading = false;
+        this.toastr.success('Fiche des retours téléchargée avec succès');
+      },
+      error: (err) => {
+        console.error('Export error', err);
+        this.toastr.error('Erreur lors du téléchargement du PDF');
+        this.exportLoading = false;
+      }
+    });
   }
 
   validate(stockReturn: StockReturnListItem): void {

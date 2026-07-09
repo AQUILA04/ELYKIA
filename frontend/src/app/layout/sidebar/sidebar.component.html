@@ -411,8 +411,8 @@
         </li>
         <!-- Pour l'élément Utilisateurs -->
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_USER','ROLE_DEL_USER']">
-          <a class="sidebar-link" routerLink="/user-list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/user-list') }">
+          <a class="sidebar-link" routerLink="/user/list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/user/list') }">
             <span>
               <mat-icon>person</mat-icon>
             </span>
@@ -461,8 +461,8 @@
           </a>
         </li>
         <li class="sidebar-item">
-          <a class="sidebar-link" routerLink="/change-password" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/change-password') }">
+          <a class="sidebar-link" routerLink="/user/change-password" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/user/change-password') }">
             <span>
               <mat-icon>lock_reset</mat-icon>
             </span>

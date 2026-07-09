@@ -141,17 +141,17 @@ export class UserListComponent implements OnInit, OnDestroy {
 
   addUser(): void {
     this.saveState();
-    this.router.navigate(['/user-add']);
+    this.router.navigate(['/user/add']);
   }
 
   viewDetails(id: number): void {
     this.saveState();
-    this.router.navigate(['/user-details', id]);
+    this.router.navigate(['/user/details', id]);
   }
 
   editUser(id: number): void {
     this.saveState();
-    this.router.navigate(['/user-add', id]);
+    this.router.navigate(['/user/add', id]);
   }
 
   deleteUser(id: number): void {

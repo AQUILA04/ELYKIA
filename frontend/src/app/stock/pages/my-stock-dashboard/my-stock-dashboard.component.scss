@@ -41,6 +41,32 @@
             background-color: #c53030; // Red for active/warn state
         }
     }
+
+    .export-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+
+        .export-label {
+            font-size: 13px;
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .export-select {
+            padding: 8px 12px;
+            border: 1px solid #dde3ec;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            min-width: 160px;
+        }
+
+        .export-btn {
+            white-space: nowrap;
+        }
+    }
 }
 
 .stats-row {

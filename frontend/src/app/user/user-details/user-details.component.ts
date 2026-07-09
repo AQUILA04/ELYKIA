@@ -74,11 +74,11 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
-    this.router.navigate(['/user-list']);
+    this.router.navigate(['/user/list']);
   }
 
   navigateToEdit(): void {
-    this.router.navigate(['/user-add', this.userId]);
+    this.router.navigate(['/user/add', this.userId]);
   }
 
   isUserActive(): boolean {

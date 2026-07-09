@@ -39,16 +39,11 @@ import { StockStatusChartComponent } from './dashboard/dashboard-v2/components/s
 import { DashboardStockkeeperAlertsComponent } from './dashboard/dashboard-v2/components/dashboard-stockkeeper-alerts/dashboard-stockkeeper-alerts.component';
 import { TimeAgoPipe } from './dashboard/dashboard-v2/pipes/time-ago.pipe';
 import { NgChartsModule } from 'ng2-charts';
-import { AccountingDayComponent } from './accounting-day/accounting-day.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { CreditAddComponent } from './credit/credit-add/credit-add.component';
 import { CreditListComponent } from './credit/credit-list/credit-list.component';
 import { CreditDetailsComponent } from './credit/credit-details/credit-details.component';
-import { UserAddComponent } from './user/user-add/user-add.component';
-import { UserListComponent } from './user/user-list/user-list.component';
-import { UserDetailsComponent } from './user/user-details/user-details.component';
-import { ChangePasswordComponent } from './user/change-password/change-password.component';
 import { AuthInterceptor } from './shared/auth.interceptor';
 import { OpenCashDeskComponent } from './cash-desk/open-cash-desk/open-cash-desk.component';
 import { CloseCashDeskComponent } from './cash-desk/close-cash-desk/close-cash-desk.component';
@@ -169,14 +164,9 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     StockStatusChartComponent,
     DashboardStockkeeperAlertsComponent,
     TimeAgoPipe,
-    AccountingDayComponent,
     CreditAddComponent,
     CreditListComponent,
     CreditDetailsComponent,
-    UserAddComponent,
-    UserListComponent,
-    UserDetailsComponent,
-    ChangePasswordComponent,
     OpenCashDeskComponent,
     CloseCashDeskComponent,
     DailyOperationComponent,

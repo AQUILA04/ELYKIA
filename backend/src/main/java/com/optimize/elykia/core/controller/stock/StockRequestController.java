@@ -6,6 +6,7 @@ import java.util.List;
 import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.service.stock.StockRequestService;
+import com.optimize.elykia.core.service.stock.StockExportService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +22,11 @@ import org.springframework.http.MediaType;
 public class StockRequestController {
 
     private final StockRequestService service;
+    private final StockExportService stockExportService;
 
-    public StockRequestController(StockRequestService service) {
+    public StockRequestController(StockRequestService service, StockExportService stockExportService) {
         this.service = service;
+        this.stockExportService = stockExportService;
     }
 
     @PostMapping("/create")
@@ -104,11 +107,11 @@ public class StockRequestController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String collector) {
 
-        byte[] pdfContent = service.generatePdfExport(startDate, endDate, collector);
+        byte[] pdfContent = stockExportService.generateStockRequestSortiePdfExport(startDate, endDate, collector);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        String filename = "stock-export-" + LocalDate.now() + ".pdf";
+        String filename = "fiche-sortie-stock-" + LocalDate.now() + ".pdf";
         headers.setContentDispositionFormData("attachment", filename);
         headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 

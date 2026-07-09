@@ -11,6 +11,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { SalesDetailsDialogComponent } from '../../components/sales-details-dialog/sales-details-dialog.component';
 import { StockMovementDialogComponent } from '../../components/stock-movement-dialog/stock-movement-dialog.component';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
+import { ToastrService } from 'ngx-toastr';
+import {
+  buildPreviousMonthOptions,
+  getStockPeriodLabel,
+  MonthOption,
+  resolveStockPeriodRange,
+  StockPeriodKey
+} from '../../utils/stock-period.util';
 
 @Component({
   selector: 'app-my-stock-dashboard',
@@ -36,6 +44,10 @@ export class MyStockDashboardComponent implements OnInit {
   isPromoter = false; // Changed declaration
   isSecretary = false;
 
+  selectedPeriod: StockPeriodKey = 'MONTH';
+  previousMonths: MonthOption[] = [];
+  exportLoading = false;
+
   constructor(
     private commercialStockService: CommercialStockService,
     private authService: AuthService,
@@ -43,10 +55,12 @@ export class MyStockDashboardComponent implements OnInit {
     private clientService: ClientService,
     private userService: UserService,
     private dialog: MatDialog,
-    private featureFlagService: FeatureFlagService
+    private featureFlagService: FeatureFlagService,
+    private toastr: ToastrService
   ) { }
 
   ngOnInit(): void {
+    this.previousMonths = buildPreviousMonthOptions();
     this.currentUser = this.authService.getCurrentUser();
     this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE) || this.userService.hasProfile(UserProfile.ADMIN) || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
     this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER);
@@ -72,9 +86,13 @@ export class MyStockDashboardComponent implements OnInit {
     return item.username.toLowerCase().includes(term.toLowerCase());
   }
 
-  onAgentChange(agent: any) {
-    this.selectedAgent = agent ? agent.username : null;
-    this.pageIndex = 0; // Reset pagination
+  onAgentChange(agent: string | { username: string } | null) {
+    if (typeof agent === 'string') {
+      this.selectedAgent = agent;
+    } else {
+      this.selectedAgent = agent ? agent.username : null;
+    }
+    this.pageIndex = 0;
     this.loadCurrentStock();
   }
 
@@ -162,6 +180,33 @@ export class MyStockDashboardComponent implements OnInit {
         stockItemId: item.id,
         articleName: item.article.commercialName + ' ' + item.article.name,
         quantityTaken: item.quantityTaken
+      }
+    });
+  }
+
+  get periodLabel(): string {
+    return getStockPeriodLabel(this.selectedPeriod);
+  }
+
+  onExportPdf(): void {
+    const range = resolveStockPeriodRange(this.selectedPeriod);
+    this.exportLoading = true;
+    this.commercialStockService.exportPdf(range.startDate, range.endDate, this.selectedAgent).subscribe({
+      next: (data) => {
+        const blob = new Blob([data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `rapport_stock_commercial_${range.startDate}_${range.endDate}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.exportLoading = false;
+        this.toastr.success('Rapport stock téléchargé avec succès');
+      },
+      error: (err) => {
+        console.error('Export error', err);
+        this.toastr.error('Erreur lors du téléchargement du PDF');
+        this.exportLoading = false;
       }
     });
   }

@@ -100,12 +100,12 @@ export class UserAddComponent implements OnInit {
               this.userService.assignProfile(this.userId!, formData.profilId).subscribe(() => {
                 this.alertService.showSuccess('Utilisateur et profil mis à jour avec succès');
                 this.isLoading = false;
-                this.router.navigate(['/user-list']);
+                this.router.navigate(['/user/list']);
               });
             } else {
               this.alertService.showSuccess('Utilisateur mis à jour avec succès');
               this.isLoading = false;
-              this.router.navigate(['/user-list']);
+              this.router.navigate(['/user/list']);
             }
           },
           error => {
@@ -131,7 +131,7 @@ export class UserAddComponent implements OnInit {
             // If `res` has ID, I utilize it.
             this.alertService.showSuccess('Nouvel utilisateur ajouté avec succès');
             this.isLoading = false;
-            this.router.navigate(['/user-list']);
+            this.router.navigate(['/user/list']);
           },
           error => {
             const errorMessage = error?.error?.message || 'Erreur lors de l\'ajout du nouvel utilisateur';
@@ -144,6 +144,6 @@ export class UserAddComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/user-list']);
+    this.router.navigate(['/user/list']);
   }
 }

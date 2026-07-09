@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.util;
 
+import com.optimize.elykia.core.dto.CommercialStockDashboardExportDTO;
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
@@ -49,6 +50,14 @@ public final class ArticleSortOrder {
                 .thenComparing(StockRequestExportDTO::getMarque, nullSafeString())
                 .thenComparing(StockRequestExportDTO::getModel, nullSafeString())
                 .thenComparing(StockRequestExportDTO::getName, nullSafeString());
+    }
+
+    public static Comparator<CommercialStockDashboardExportDTO> forDashboardExportDto() {
+        return Comparator
+                .comparing(CommercialStockDashboardExportDTO::getType, nullSafeString())
+                .thenComparing(CommercialStockDashboardExportDTO::getMarque, nullSafeString())
+                .thenComparing(CommercialStockDashboardExportDTO::getModel, nullSafeString())
+                .thenComparing(CommercialStockDashboardExportDTO::getName, nullSafeString());
     }
 
     private static Comparator<String> nullSafeString() {

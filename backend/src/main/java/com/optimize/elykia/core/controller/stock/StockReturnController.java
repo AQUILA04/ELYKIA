@@ -4,6 +4,7 @@ import com.optimize.elykia.core.entity.stock.StockReturn;
 import com.optimize.elykia.core.entity.stock.StockReturnItem;
 import java.util.List;
 import com.optimize.elykia.core.service.stock.StockReturnService;
+import com.optimize.elykia.core.service.stock.StockExportService;
 import org.springframework.data.domain.Page;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
@@ -11,7 +12,9 @@ import com.optimize.elykia.core.dto.stock.StockReturnDto;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,9 +25,11 @@ import java.time.LocalDate;
 public class StockReturnController  {
 
     private final StockReturnService service;
+    private final StockExportService stockExportService;
 
-    public StockReturnController(StockReturnService service) {
+    public StockReturnController(StockReturnService service, StockExportService stockExportService) {
         this.service = service;
+        this.stockExportService = stockExportService;
     }
 
     @PostMapping("/create")
@@ -86,5 +91,21 @@ public class StockReturnController  {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ResponseEntity.ok(service.getKpis(collector, startDate, endDate));
+    }
+
+    @GetMapping("/export/pdf")
+    public ResponseEntity<byte[]> exportPdf(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String collector) {
+
+        byte[] pdfContent = stockExportService.generateStockReturnPdfExport(startDate, endDate, collector);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "fiche-retours-stock-" + LocalDate.now() + ".pdf");
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+        return ResponseEntity.ok(pdfContent);
     }
 }

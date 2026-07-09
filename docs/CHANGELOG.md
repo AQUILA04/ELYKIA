@@ -9,6 +9,21 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.24] — 2026-07-09
+
+### Changed
+
+- Export PDF du rapport stock commercial (pris, vendu, retourné, restant) déplacé vers **Mon stock** (`my-stock-dashboard`) avec filtre période et commercial.
+- Liste des demandes de sortie : export remplacé par une **fiche sortie** (articles, quantités et valeurs sorties, basée sur la date de livraison).
+- Liste des retours stock : ajout du téléchargement **fiche retours PDF** (basée sur la date de réception).
+
+## Frontend — [2.9.23] — 2026-07-09
+
+### Fixed
+
+- Validation JSR-303 du changement de mot de passe : `@AssertTrue` sur `ChangePasswordDto` pour exiger `oldPassword` lorsque `forced` n'est pas actif.
+- Migration lazy-loading des domaines `user` (`/user/list`, `/user/add`, `/user/details/:id`, `/user/change-password`) et `accounting-day` (`loadChildren`).
+
 ## Frontend — [2.9.22] — 2026-07-09
 
 ### Added
@@ -22,6 +37,21 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
 - Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
+
+## Backend — [1.1.3] — 2026-07-10
+
+### Fixed
+
+- Export PDF retours stock : `findAggregatedStockReturns` calcule désormais `totalAmount` via `SUM(quantity * unitPrice)` (aligné sur les sorties stock) ; template et `StockExportService` utilisent `item.totalAmount` comme source unique.
+
+## Backend — [1.1.2] — 2026-07-09
+
+### Added
+
+- `StockExportService` et endpoints PDF dédiés :
+  - `GET /api/commercial-stocks/export/pdf` — rapport stock commercial (pris / vendu / retourné / restant).
+  - `GET /api/stock-requests/export/pdf` — fiche sortie (livraisons, filtre `deliveryDate`).
+  - `GET /api/stock-returns/export/pdf` — fiche retours (réceptions, filtre `receivedDate`).
 
 ## Backend — [1.1.1] — 2026-07-09
 

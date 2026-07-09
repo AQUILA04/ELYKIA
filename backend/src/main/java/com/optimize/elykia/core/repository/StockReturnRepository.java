@@ -21,7 +21,7 @@ public interface StockReturnRepository extends GenericRepository<StockReturn, Lo
 
     @Query("SELECT new com.optimize.elykia.core.dto.StockRequestExportDTO(" +
             "CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name), " +
-            "SUM(i.quantity), i.unitPrice, 0.0, " +
+            "SUM(i.quantity), i.unitPrice, SUM(i.quantity * COALESCE(i.unitPrice, 0.0)), " +
             "a.type, a.marque, a.model, a.name) " +
             "FROM StockReturn s JOIN s.items i JOIN i.article a " +
             "WHERE s.status = :status " +

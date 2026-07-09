@@ -47,8 +47,8 @@ export class AuthGuard implements CanActivate {
       }
     }
 
-    if (this.authService.mustChangePassword() && !state.url.startsWith('/change-password')) {
-      this.router.navigate(['/change-password'], { queryParams: { forced: 'true' } });
+    if (this.authService.mustChangePassword() && !state.url.startsWith('/user/change-password')) {
+      this.router.navigate(['/user/change-password'], { queryParams: { forced: 'true' } });
       return false;
     }
 

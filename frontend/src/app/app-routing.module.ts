@@ -11,14 +11,9 @@ import { ClientDetailsComponent } from './client/client-details/client-details.c
 import { LoginComponent } from './auth/login/login.component';
 import { NgxPermissionsGuard } from 'ngx-permissions';
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { AccountingDayComponent } from './accounting-day/accounting-day.component';
 import { CreditAddComponent } from './credit/credit-add/credit-add.component';
 import { CreditListComponent } from './credit/credit-list/credit-list.component';
 import { CreditDetailsComponent } from './credit/credit-details/credit-details.component';
-import { UserAddComponent } from './user/user-add/user-add.component';
-import { UserListComponent } from './user/user-list/user-list.component';
-import { UserDetailsComponent } from './user/user-details/user-details.component';
-import { ChangePasswordComponent } from './user/change-password/change-password.component';
 import { AccountdetailsComponent } from './account/accountdetails/accountdetails.component';
 import { DailyOperationComponent } from './cash-desk/daily-operation/daily-operation.component';
 import { OpenCashDeskComponent } from './cash-desk/open-cash-desk/open-cash-desk.component';
@@ -293,29 +288,9 @@ const routes: Routes = [
 
   // Utilisateurs
   {
-    path: 'user-add/:id',
-    component: UserAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'user-add',
-    component: UserAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'user-list',
-    component: UserListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'user-details/:id',
-    component: UserDetailsComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'change-password',
-    component: ChangePasswordComponent,
-    canActivate: [AuthGuard]
+    path: 'user',
+    loadChildren: () => import('./user/user.module').then(m => m.UserModule),
+    canActivate: [AuthGuard],
   },
 
   // Commerciaux
@@ -338,8 +313,8 @@ const routes: Routes = [
   // Caisse
   {
     path: 'accounting-day',
-    component: AccountingDayComponent,
-    canActivate: [AuthGuard]
+    loadChildren: () => import('./accounting-day/accounting-day.module').then(m => m.AccountingDayModule),
+    canActivate: [AuthGuard],
   },
   {
     path: 'daily-operation',

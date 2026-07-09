@@ -1,5 +1,6 @@
 package com.optimize.common.securities.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -12,4 +13,12 @@ public class ChangePasswordDto {
     @NotBlank(message = "Le nouveau mot de passe est obligatoire !")
     private String newPassword;
     private Boolean forced;
+
+    @AssertTrue(message = "L'ancien mot de passe est obligatoire.")
+    public boolean isOldPasswordProvidedWhenNotForced() {
+        if (Boolean.TRUE.equals(forced)) {
+            return true;
+        }
+        return oldPassword != null && !oldPassword.isBlank();
+    }
 }

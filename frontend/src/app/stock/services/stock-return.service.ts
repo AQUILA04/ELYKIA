@@ -86,4 +86,14 @@ export class StockReturnService {
   validate(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/api/stock-returns/${id}/validate`, {}); }
   cancel(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/api/stock-returns/${id}/cancel`, {}); }
   refuse(id: number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/api/stock-returns/${id}/refuse`, {}); }
+
+  exportPdf(startDate: string, endDate: string, collector: string | null): Observable<Blob> {
+    let params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+    if (collector) {
+      params = params.set('collector', collector);
+    }
+    return this.http.get(`${this.apiUrl}/api/stock-returns/export/pdf`, { params, responseType: 'blob' });
+  }
 }

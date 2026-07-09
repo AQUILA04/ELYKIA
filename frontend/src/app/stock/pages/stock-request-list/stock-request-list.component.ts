@@ -185,11 +185,11 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `rapport_stock_${range.startDate}_${range.endDate}.pdf`;
+        link.download = `fiche_sortie_stock_${range.startDate}_${range.endDate}.pdf`;
         link.click();
         window.URL.revokeObjectURL(url);
         this.exportLoading = false;
-        this.toastr.success('Export PDF téléchargé avec succès');
+        this.toastr.success('Fiche de sortie téléchargée avec succès');
       },
       error: (err) => {
         console.error('Export error', err);

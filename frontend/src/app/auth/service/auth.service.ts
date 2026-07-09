@@ -71,7 +71,7 @@ export class AuthService {
         // Si on est sur la page de login, rediriger vers home
         if (this.router.url === '/login') {
           if (user.mustChangePassword) {
-            this.router.navigate(['/change-password'], { queryParams: { forced: 'true' } });
+            this.router.navigate(['/user/change-password'], { queryParams: { forced: 'true' } });
           } else {
             const returnUrl = this.router.routerState.snapshot.root.queryParams['returnUrl'] || '/home';
             this.router.navigateByUrl(returnUrl);

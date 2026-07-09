@@ -101,7 +101,7 @@
             <tr *ngFor="let user of users; let i = index" class="table-row">
               <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
               <td>
-                <a class="col-user-link" [routerLink]="['/user-details', user.id]">{{ user.username }}</a>
+                <a class="col-user-link" [routerLink]="['/user/details', user.id]">{{ user.username }}</a>
               </td>
               <td><span class="col-user">{{ user.firstname }} {{ user.lastname }}</span></td>
               <td>{{ user.email || '—' }}</td>

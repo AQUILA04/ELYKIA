@@ -57,4 +57,14 @@ export class CommercialStockService extends BaseHttpService {
   getSoldValueHistory(stockItemId: number): Observable<SoldValueHistoryEntry[]> {
     return this.http.get<SoldValueHistoryEntry[]>(`${this.baseUrl}/items/${stockItemId}/sold-value-history`);
   }
+
+  exportPdf(startDate: string, endDate: string, collector: string | null): Observable<Blob> {
+    let params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+    if (collector) {
+      params = params.set('collector', collector);
+    }
+    return this.http.get(`${this.baseUrl}/export/pdf`, { params, responseType: 'blob' });
+  }
 }

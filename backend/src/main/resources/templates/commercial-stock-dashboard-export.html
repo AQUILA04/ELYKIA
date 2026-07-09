@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <style>
+        body { font-family: sans-serif; }
+        h1 { text-align: center; color: #333; }
+        .header { margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .footer { margin-top: 30px; text-align: right; font-size: 0.9em; color: #777; }
+        .no-data { text-align: center; padding: 20px; font-style: italic; }
+        .text-right { text-align: right; }
+    </style>
+</head>
+
+<body>
+    <h1 th:text="${context.title}">Rapport de Stock Commercial</h1>
+
+    <div class="header">
+        <p><strong>Période :</strong> <span th:text="${context.startDate}"></span> au <span th:text="${context.endDate}"></span></p>
+        <p><strong>Commercial :</strong> <span th:text="${context.collector}"></span></p>
+        <p><strong>Date de génération :</strong> <span th:text="${context.generationDate}"></span></p>
+        <p><em>Basé sur les dates de livraison (sorties) et de réception (retours).</em></p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Prix Unitaire</th>
+                <th>Pris (Magasin)</th>
+                <th>Vendu (Clients)</th>
+                <th>Retourné</th>
+                <th>Restant</th>
+                <th>Valeur Vendue</th>
+                <th>Valeur Restante</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:if="${#lists.isEmpty(context.items)}">
+                <td colspan="8" class="no-data">Aucune donnée trouvée pour cette période.</td>
+            </tr>
+            <tr th:each="item : ${context.items}">
+                <td th:text="${item.articleName}"></td>
+                <td th:text="${item.unitPrice}"></td>
+                <td th:text="${item.quantityTaken}"></td>
+                <td th:text="${item.quantitySold}"></td>
+                <td th:text="${item.quantityReturned}"></td>
+                <td th:text="${item.quantityRemaining}"></td>
+                <td th:text="${item.soldValue}"></td>
+                <td th:text="${item.remainingValue}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer" th:if="${!#lists.isEmpty(context.items)}">
+        <p><strong>Total Pris : </strong><span th:text="${context.totalTaken}"></span></p>
+        <p><strong>Total Vendu : </strong><span th:text="${context.totalSold}"></span></p>
+        <p><strong>Total Retourné : </strong><span th:text="${context.totalReturned}"></span></p>
+        <p><strong>Total Restant : </strong><span th:text="${context.totalRemaining}"></span></p>
+        <p><strong>Valeur Vendue Totale : </strong><span th:text="${context.totalSoldValue}"></span></p>
+        <p><strong>Valeur Restante Totale : </strong><span th:text="${context.totalRemainingValue}"></span></p>
+    </div>
+</body>
+
+</html>
