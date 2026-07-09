@@ -137,7 +137,6 @@ import { RecouvrementFilterComponent } from './credit/recouvrement/components/re
 import { RecouvrementTableComponent } from './credit/recouvrement/components/recouvrement-table/recouvrement-table.component';
 import {NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule} from "ngx-google-analytics";
 import {environment} from "../environments/environment";
-import { AngularFireModule } from '@angular/fire/compat';
 import { FeatureFlagService } from './shared/service/feature-flag.service';
 
 export function initializeApp(featureFlagService: FeatureFlagService) {
@@ -284,7 +283,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     NgxGoogleAnalyticsModule.forRoot(environment.gaMeasurementId),
     // Track automatique les changements de routes (pages vues)
     NgxGoogleAnalyticsRouterModule,
-    AngularFireModule.initializeApp(environment.firebase),
   ],
   providers: [
     // --- CORRECTION DES PROVIDERS ---

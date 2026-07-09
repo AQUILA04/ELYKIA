@@ -250,8 +250,7 @@ export class SidebarComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const currentUser = this.authService.getCurrentUser();
-    this.permissionsService.loadPermissions(currentUser.roles);
+    this.authService.loadPermissionsFromCurrentUser();
     this.isCaisseOpen = false;
     this.isSecurityOpen = false;
     this.isStockOpen = false;

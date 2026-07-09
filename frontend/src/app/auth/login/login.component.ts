@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../service/auth.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { NgxPermissionsService } from 'ngx-permissions';
 import Swal from 'sweetalert2';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -28,7 +27,6 @@ export class LoginComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private tokenStorage: TokenStorageService,
-    private permissionsService: NgxPermissionsService,
     private route: ActivatedRoute,
   ) {
     this.loginForm = this.formBuilder.group({
@@ -96,8 +94,7 @@ export class LoginComponent implements OnInit {
           }
 
           // Configurer les permissions
-          this.authService.setPermissions(response.roles || []);
-          this.permissionsService.loadPermissions(response.roles || []);
+          this.authService.setPermissions(response.roles);
 
           this.isLoading = false;
 

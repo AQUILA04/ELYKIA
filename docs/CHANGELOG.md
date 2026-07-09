@@ -123,6 +123,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - `PdfService.generateStockReceptionPdf` : utilise `getReceptionByIdWithItems` pour inclure toutes les lignes article dans le PDF, sans réintroduire les items dans l'endpoint API fiche.
 
+## Frontend — [2.9.21] — 2026-07-09
+
+### Fixed
+
+- Permissions prod : `loadPermissions` ne reçoit plus `undefined` quand `user.roles` est absent (sidebar, accounting-day) ; normalisation centralisée dans `AuthService.setPermissions`.
+
+## Frontend — [2.9.20] — 2026-07-09
+
+### Fixed
+
+- Remote Config prod : initialisation explicite de l'app Firebase modulaire (`initializeApp`) avant `getRemoteConfig` ; suppression de `AngularFireModule` compat qui n'enregistrait pas l'app `[DEFAULT]` attendue par le SDK v9+.
+
 ## Frontend — [2.9.19] — 2026-07-09
 
 ### Fixed

@@ -1,5 +1,5 @@
 import { Injectable, isDevMode } from '@angular/core';
-import { getApp } from 'firebase/app';
+import { getApp, getApps, initializeApp } from 'firebase/app';
 import {
   fetchAndActivate,
   getBoolean,
@@ -92,9 +92,19 @@ export class FeatureFlagService {
     return this.flagsState.value[feature] ?? false;
   }
 
+  private getFirebaseApp() {
+    if (getApps().length === 0) {
+      if (!environment.firebase) {
+        throw new Error('Firebase configuration is missing');
+      }
+      initializeApp(environment.firebase);
+    }
+    return getApp();
+  }
+
   private getRemoteConfigInstance(): RemoteConfig {
     if (!this.remoteConfig) {
-      this.remoteConfig = getRemoteConfig(getApp());
+      this.remoteConfig = getRemoteConfig(this.getFirebaseApp());
       this.remoteConfig.defaultConfig = { ...this.defaultFlags };
       this.remoteConfig.settings.minimumFetchIntervalMillis = isDevMode() ? 0 : 3_600_000;
     }

@@ -90,13 +90,8 @@ export class AppComponent implements OnInit {
     // 1. Récupérer l'utilisateur (qui est une chaîne JSON)
     const userString = this.tokenStorageService.getUser();
 
-    if (userString) {
-      // 2. Convertir la chaîne JSON en objet JavaScript
-      const currentUser = this.authService.getCurrentUser();
-
-      // 3. Charger les permissions. Utiliser un tableau vide si 'roles' n'existe pas.
-      this.permissionsService.loadPermissions(currentUser.roles || []);
-
+    if (userString && Object.keys(userString).length > 0) {
+      this.authService.loadPermissionsFromCurrentUser();
     } else {
       // 4. Si aucun utilisateur n'est connecté, vider toutes les permissions
       this.permissionsService.flushPermissions();

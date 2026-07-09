@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import Swal from 'sweetalert2';
 import { AccountingDayService } from './service/accounting-day.service';
 import { TokenStorageService } from '../shared/service/token-storage.service';
-import { NgxPermissionsService } from 'ngx-permissions';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from '../shared/service/alert.service';
 import {AuthService} from "../auth/service/auth.service";
@@ -22,7 +21,6 @@ export class AccountingDayComponent implements OnInit {
 
   constructor(private accountingDayService: AccountingDayService,
               private tokenStorage: TokenStorageService,
-              private permissionsService: NgxPermissionsService,
               private spinner : NgxSpinnerService,
               private alertService: AlertService,
               private authService: AuthService
@@ -34,8 +32,7 @@ export class AccountingDayComponent implements OnInit {
   ngOnInit(): void {
     this.checkIfDayIsOpened();
     this.getOpenCashDesks();
-    const currentUser = this.authService.getCurrentUser();
-    this.permissionsService.loadPermissions(currentUser.roles);
+    this.authService.loadPermissionsFromCurrentUser();
   }
 
   getOpenCashDesks(): void {

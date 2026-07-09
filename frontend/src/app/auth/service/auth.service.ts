@@ -77,8 +77,13 @@ export class AuthService {
     }
   }
 
-  setPermissions(roles: string[]): void {
-    this.permissionsService.loadPermissions(roles);
+  setPermissions(roles: string[] | null | undefined): void {
+    this.permissionsService.loadPermissions(Array.isArray(roles) ? roles : []);
+  }
+
+  loadPermissionsFromCurrentUser(): void {
+    const user = this.getCurrentUser();
+    this.setPermissions(user?.roles);
   }
 
   hasPermission(permission: string): Promise<boolean> {
