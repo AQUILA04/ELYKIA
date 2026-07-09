@@ -6,6 +6,7 @@ export interface User {
   accessToken: string;
   refreshToken: string;
   passwordHash?: string; // For local storage
+  mustChangePassword?: boolean;
 }
 
 export interface AuthResponse {
@@ -17,6 +18,7 @@ export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   deviceRestrictionActive?: boolean;
+  mustChangePassword?: boolean;
 }
 
 export interface LoginRequest {

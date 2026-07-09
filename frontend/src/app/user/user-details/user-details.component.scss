@@ -164,6 +164,11 @@
   color: var(--orange);
   border: 1px solid rgba(199, 80, 0, .25);
 }
+.user-details-page .chip-warn {
+  background: #fff4e5;
+  color: #b45309;
+  border: 1px solid rgba(180, 83, 9, .25);
+}
 
 .user-details-page .details-header-actions {
   display: flex;

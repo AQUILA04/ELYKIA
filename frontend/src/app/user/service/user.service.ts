@@ -8,8 +8,9 @@ import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 export interface ChangePasswordRequest {
   id: number;
   username: string;
-  oldPassword: string;
+  oldPassword?: string;
   newPassword: string;
+  forced?: boolean;
 }
 
 export interface User {
@@ -27,6 +28,7 @@ export interface User {
   profil?: { id?: number; name?: string };
   userPermissions?: Array<{ name?: string; permission?: { name?: string } } | string>;
   mobileDeviceRestrictionEnabled?: boolean;
+  mustChangePassword?: boolean;
 }
 
 @Injectable({
@@ -83,6 +85,10 @@ export class UserService {
 
   changePassword(dto: ChangePasswordRequest): Observable<any> {
     return this.http.patch(`${this.baseUrl}/change-password`, dto);
+  }
+
+  resetPassword(userId: number, newPassword: string): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/${userId}/reset-password`, { newPassword });
   }
 
   getPromoters(pageIndex: number, pageSize: number): Observable<any> {

@@ -156,8 +156,7 @@ export class MorePage implements OnInit, OnDestroy {
   }
 
   changePassword() {
-    // TODO: Implement change password
-    console.log('Change password clicked');
+    this.router.navigateByUrl('/change-password');
   }
 
   async logout() {

@@ -55,6 +55,9 @@ public class UserAccount extends BaseEntity<String> {
     @Column(name = "pin_configured", columnDefinition = "boolean default false")
     private Boolean pinConfigured = Boolean.FALSE;
 
+    @Column(name = "must_change_password", columnDefinition = "boolean default false")
+    private Boolean mustChangePassword = Boolean.FALSE;
+
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "PROID", nullable = false)
     private UserProfil userProfil;

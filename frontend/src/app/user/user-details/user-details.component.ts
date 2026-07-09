@@ -8,6 +8,7 @@ import { PermissionService } from '../../security/services/permission.service';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY, ParameterService } from 'src/app/parameters/parameter.service';
 import { firstValueFrom } from 'rxjs';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-user-details',
@@ -280,6 +281,59 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.alertService.showError(err?.error?.message || 'Erreur lors de la réactivation.');
       },
+    });
+  }
+
+  resetPassword(): void {
+    if (!this.userId || !this.user) {
+      return;
+    }
+
+    Swal.fire({
+      title: 'Réinitialiser le mot de passe',
+      html: `<p style="margin-bottom:12px;text-align:left;color:#555;">
+        Définissez un mot de passe temporaire pour <strong>${this.user.username}</strong>.
+        L'utilisateur devra le changer à sa prochaine connexion.
+      </p>`,
+      input: 'password',
+      inputLabel: 'Mot de passe temporaire',
+      inputPlaceholder: 'Au moins 6 caractères',
+      inputAttributes: {
+        minlength: '6',
+        autocapitalize: 'off',
+        autocorrect: 'off',
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Réinitialiser',
+      cancelButtonText: 'Annuler',
+      buttonsStyling: false,
+      customClass: {
+        confirmButton: 'custom-swal-confirm-button btn btn-primary',
+        cancelButton: 'custom-swal-cancel-button btn btn-outline-secondary',
+      },
+      preConfirm: (value) => {
+        if (!value || value.length < 6) {
+          Swal.showValidationMessage('Le mot de passe doit contenir au moins 6 caractères.');
+          return false;
+        }
+        return value;
+      },
+    }).then((result) => {
+      if (!result.isConfirmed || !result.value) {
+        return;
+      }
+
+      this.userService.resetPassword(this.userId!, result.value).subscribe({
+        next: () => {
+          this.alertService.showDefaultSucces(
+            'Mot de passe réinitialisé. Communiquez le mot de passe temporaire à l\'utilisateur.'
+          );
+          this.loadUserDetails(this.userId!);
+        },
+        error: (err) => {
+          this.alertService.showError(err?.error?.message || 'Erreur lors de la réinitialisation du mot de passe.');
+        },
+      });
     });
   }
 }

@@ -70,8 +70,12 @@ export class AuthService {
 
         // Si on est sur la page de login, rediriger vers home
         if (this.router.url === '/login') {
-          const returnUrl = this.router.routerState.snapshot.root.queryParams['returnUrl'] || '/home';
-          this.router.navigateByUrl(returnUrl);
+          if (user.mustChangePassword) {
+            this.router.navigate(['/change-password'], { queryParams: { forced: 'true' } });
+          } else {
+            const returnUrl = this.router.routerState.snapshot.root.queryParams['returnUrl'] || '/home';
+            this.router.navigateByUrl(returnUrl);
+          }
         }
       }
     }
@@ -156,5 +160,20 @@ export class AuthService {
   getUsername(): string | null {
     const user = this.getCurrentUser();
     return user ? user.username : null;
+  }
+
+  mustChangePassword(): boolean {
+    const user = this.getCurrentUser();
+    return user?.mustChangePassword === true;
+  }
+
+  clearMustChangePasswordFlag(): void {
+    const user = this.getCurrentUser();
+    if (!user) {
+      return;
+    }
+    const updated = { ...user, mustChangePassword: false };
+    this.tokenStorageService.saveUser(updated);
+    this.currentUserSubject.next(updated);
   }
 }

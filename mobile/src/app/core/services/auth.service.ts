@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 import { Preferences } from '@capacitor/preferences';
-import { Observable, from, throwError } from 'rxjs';
+import { Observable, from, throwError, firstValueFrom } from 'rxjs';
 import { switchMap, tap, catchError } from 'rxjs/operators';
 import { AuthResponse, User, LoginRequest } from '../../models/auth.model';
 import { environment } from '../../../environments/environment';
@@ -60,6 +60,33 @@ export class AuthService {
 
   get currentUser(): User | null {
     return this._user;
+  }
+
+  mustChangePassword(): boolean {
+    return this._user?.mustChangePassword === true;
+  }
+
+  async changePassword(newPassword: string, forced = false): Promise<void> {
+    const user = this._user;
+    if (!user?.id || !user.username) {
+      throw new Error('Utilisateur non connecté.');
+    }
+
+    await firstValueFrom(this.http.patch(`${environment.apiUrl}/api/v1/users/change-password`, {
+      id: Number(user.id),
+      username: user.username,
+      newPassword,
+      forced,
+    }));
+
+    const updatedUser: User = {
+      ...user,
+      mustChangePassword: false,
+      passwordHash: this.hashPassword(newPassword),
+    };
+    this._user = updatedUser;
+    await this.saveUserLocally(updatedUser);
+    this.store.dispatch(AuthActions.loginSuccess({ user: updatedUser }));
   }
 
   login(request: LoginRequest): Observable<boolean> {
@@ -171,7 +198,8 @@ export class AuthService {
       roles: response.roles,
       accessToken: response.accessToken,
       refreshToken: response.refreshToken,
-      passwordHash: this.hashPassword(passwordPlain) // Store hashed password
+      passwordHash: this.hashPassword(passwordPlain),
+      mustChangePassword: response.mustChangePassword === true,
     };
     this._user = user;
     await this.saveUserLocally(user);
@@ -253,6 +281,12 @@ export class AuthService {
     }
 
     if (storedUser && storedUser.username === username && storedUser.passwordHash === this.hashPassword(passwordPlain)) {
+      if (storedUser.mustChangePassword) {
+        throw new Error(
+          'Vous devez définir un nouveau mot de passe en ligne avant de continuer.\n\n' +
+          'Connectez-vous au réseau de l\'entreprise pour finaliser le changement de mot de passe.'
+        );
+      }
       this._user = storedUser;
       this._isAuthenticated = true;
       console.log('Offline login successful');

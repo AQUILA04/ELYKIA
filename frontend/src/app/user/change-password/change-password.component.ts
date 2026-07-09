@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
@@ -27,6 +27,7 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
   hideOld = true;
   hideNew = true;
   hideConfirm = true;
+  forcedMode = false;
 
   currentDate = new Date();
   private dateIntervalId?: ReturnType<typeof setInterval>;
@@ -37,15 +38,19 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private tokenStorage: TokenStorageService,
     private alertService: AlertService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.tokenStorage.checkConnectedUser();
   }
 
   ngOnInit(): void {
+    this.forcedMode = this.route.snapshot.queryParamMap.get('forced') === 'true'
+      || this.authService.mustChangePassword();
+
     this.form = this.formBuilder.group(
       {
-        oldPassword: ['', Validators.required],
+        oldPassword: ['', this.forcedMode ? [] : Validators.required],
         newPassword: ['', [Validators.required, Validators.minLength(6)]],
         confirmPassword: ['', Validators.required]
       },
@@ -68,6 +73,10 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
+    if (this.forcedMode) {
+      this.authService.logout();
+      return;
+    }
     this.router.navigate(['/home']);
   }
 
@@ -83,7 +92,7 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.form.value.oldPassword === this.form.value.newPassword) {
+    if (!this.forcedMode && this.form.value.oldPassword === this.form.value.newPassword) {
       this.alertService.showError('Le nouveau mot de passe doit être différent de l\'ancien.');
       return;
     }
@@ -91,17 +100,27 @@ export class ChangePasswordComponent implements OnInit, OnDestroy {
     const payload: ChangePasswordRequest = {
       id: user.id,
       username: user.username,
-      oldPassword: this.form.value.oldPassword,
-      newPassword: this.form.value.newPassword
+      newPassword: this.form.value.newPassword,
+      forced: this.forcedMode || undefined,
     };
+
+    if (!this.forcedMode) {
+      payload.oldPassword = this.form.value.oldPassword;
+    }
 
     this.isSubmitting = true;
     this.userService.changePassword(payload).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.alertService.showDefaultSucces('Votre mot de passe a été modifié avec succès.');
+        this.authService.clearMustChangePasswordFlag();
+        this.alertService.showDefaultSucces(
+          this.forcedMode
+            ? 'Votre mot de passe a été défini. Vous pouvez continuer.'
+            : 'Votre mot de passe a été modifié avec succès.'
+        );
         this.form.reset();
         this.hideOld = this.hideNew = this.hideConfirm = true;
+        this.router.navigate(['/home']);
       },
       error: (err) => {
         this.isSubmitting = false;

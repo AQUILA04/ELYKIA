@@ -9,6 +9,29 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.22] — 2026-07-09
+
+### Added
+
+- Réinitialisation du mot de passe utilisateur par l'admin depuis la fiche utilisateur (`PATCH /api/v1/users/{id}/reset-password`, permission `ROLE_EDIT_USER`).
+- Flux de changement de mot de passe obligatoire à la première connexion après reset : redirection automatique vers `/change-password?forced=true`, garde d'accès et formulaire sans ancien mot de passe.
+
+## Mobile — [2.10.4] — 2026-07-09
+
+### Added
+
+- Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
+- Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
+
+## Backend — [1.1.1] — 2026-07-09
+
+### Added
+
+- Colonne `must_change_password` sur `uacc`, flag exposé dans `JwtResponse` et sur le modèle utilisateur.
+- Endpoint admin `PATCH /api/v1/users/{id}/reset-password` (mot de passe temporaire + `mustChangePassword=true`).
+- Changement de mot de passe forcé via `PATCH /api/v1/users/change-password` avec `forced=true` (sans ancien mot de passe, nouveau mot de passe différent du temporaire).
+- Nouveaux comptes créés via signup : `mustChangePassword=true` à la première connexion.
+
 ## Customer-space — [0.0.6] — 2026-07-08
 
 ## Customer-space — [0.1.0] — 2026-07-09

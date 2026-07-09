@@ -21,6 +21,9 @@ public class JwtResponse {
   @Getter
   @Setter
   private boolean deviceRestrictionActive;
+  @Getter
+  @Setter
+  private boolean mustChangePassword;
 
   public JwtResponse(String accessToken, String refreshToken, Long id, String username, String email, List<String> roles, String profil) {
     this.token = accessToken;

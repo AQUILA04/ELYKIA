@@ -102,6 +102,14 @@ public class User extends BaseEntity<String> {
     return null;
   }
 
+  @JsonProperty("mustChangePassword")
+  public Boolean getMustChangePassword() {
+    if (Objects.nonNull(userAccount)) {
+      return Boolean.TRUE.equals(userAccount.getMustChangePassword());
+    }
+    return false;
+  }
+
   public String getPassword() {
     if (Objects.nonNull(userAccount)) {
       return userAccount.getPassword();

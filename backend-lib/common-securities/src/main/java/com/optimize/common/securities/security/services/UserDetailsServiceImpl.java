@@ -50,6 +50,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             signUpRequest.getPhone(), signUpRequest.getUsername(), signUpRequest.getPassword());
     UserProfil profil = userProfilService.getById(signUpRequest.getProfilId());
     user.addProfile(profil);
+    user.getUserAccount().setMustChangePassword(true);
     UserAccount createdAccount = userAccountService.create(user.getUserAccount());
     user.setUserAccount(createdAccount);
     return userRepository.save(user);

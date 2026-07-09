@@ -1,6 +1,7 @@
 package com.optimize.common.securities.controllers;
 
 import com.optimize.common.securities.dto.ChangePasswordDto;
+import com.optimize.common.securities.dto.ResetPasswordDto;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.models.UserProfil;
 import com.optimize.common.securities.payload.request.AddPermissionDto;
@@ -12,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -71,6 +73,13 @@ public class UserController {
     public ResponseEntity<?> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto) {
         return ResponseEntity.ok(new MessageResponse("user get successfully!",
                 userService.changePassword(changePasswordDto)));
+    }
+
+    @PatchMapping("/{id}/reset-password")
+    @PreAuthorize("hasRole('ROLE_EDIT_USER')")
+    public ResponseEntity<?> resetPassword(@PathVariable Long id, @RequestBody @Valid ResetPasswordDto resetPasswordDto) {
+        return ResponseEntity.ok(new MessageResponse("Mot de passe réinitialisé avec succès.",
+                userService.resetPasswordByAdmin(id, resetPasswordDto)));
     }
 
     @GetMapping("/profil/all")

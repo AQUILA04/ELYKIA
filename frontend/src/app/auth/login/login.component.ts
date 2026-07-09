@@ -98,6 +98,11 @@ export class LoginComponent implements OnInit {
 
           this.isLoading = false;
 
+          if (response.mustChangePassword) {
+            this.router.navigate(['/change-password'], { queryParams: { forced: 'true' } });
+            return;
+          }
+
           // Rediriger vers l'URL de retour ou home
           this.router.navigateByUrl(this.returnUrl);
         },

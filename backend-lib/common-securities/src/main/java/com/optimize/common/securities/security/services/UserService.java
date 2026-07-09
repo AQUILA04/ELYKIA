@@ -7,6 +7,7 @@ import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.entities.util.CustomValidator;
 import com.optimize.common.securities.config.ProfileProperties;
 import com.optimize.common.securities.dto.ChangePasswordDto;
+import com.optimize.common.securities.dto.ResetPasswordDto;
 import com.optimize.common.securities.models.AccountPermission;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.models.UserAccount;
@@ -24,7 +25,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -111,17 +114,55 @@ public class UserService extends GenericService<User, Long> {
     public Map<String, Object> changePassword(ChangePasswordDto changePasswordDto) {
         User old = getById(changePasswordDto.getId());
         User currentUser = getCurrentUser();
-        if (!currentUser.getUserAccount().getUsername().equals(old.getUserAccount().getUsername()) && (!currentUser.is("MANAGER") || !currentUser.is("ADMIN") || !currentUser.is("SUPER_ADMIN"))) {
-            throw new CustomValidationException("Vous n'êtes pas autorisé à changer le mot de passe de l'utilisateur");
-        }
         UserAccount userAccount = old.getUserAccount();
-        if (!passwordEncoder.matches(changePasswordDto.getOldPassword(), userAccount.getPassword())) {
-            throw new CustomValidationException("L'ancien mot de passe est incorrect.");
+        boolean isSelf = currentUser.getUserAccount().getUsername().equalsIgnoreCase(userAccount.getUsername());
+        boolean forced = Boolean.TRUE.equals(changePasswordDto.getForced());
+
+        if (forced) {
+            if (!isSelf) {
+                throw new CustomValidationException("Vous n'êtes pas autorisé à changer le mot de passe de l'utilisateur");
+            }
+            if (!Boolean.TRUE.equals(userAccount.getMustChangePassword())) {
+                throw new CustomValidationException("Aucun changement de mot de passe obligatoire pour ce compte.");
+            }
+        } else {
+            if (!isSelf && !canManageUsers(currentUser)) {
+                throw new CustomValidationException("Vous n'êtes pas autorisé à changer le mot de passe de l'utilisateur");
+            }
+            if (!StringUtils.hasText(changePasswordDto.getOldPassword())) {
+                throw new CustomValidationException("L'ancien mot de passe est obligatoire.");
+            }
+            if (!passwordEncoder.matches(changePasswordDto.getOldPassword(), userAccount.getPassword())) {
+                throw new CustomValidationException("L'ancien mot de passe est incorrect.");
+            }
         }
+
+        if (passwordEncoder.matches(changePasswordDto.getNewPassword(), userAccount.getPassword())) {
+            throw new CustomValidationException("Le nouveau mot de passe doit être différent du mot de passe actuel.");
+        }
+
         userAccount.setPassword(passwordEncoder.encode(changePasswordDto.getNewPassword()));
+        userAccount.setMustChangePassword(false);
+        userAccount.setPasswordUpdateTime(LocalDateTime.now());
         old.setUserAccount(userAccount);
+        userAccountService.update(userAccount);
         repository.saveAndFlush(old);
         return DefaultResponse.successReturn();
+    }
+
+    @Transactional
+    public Map<String, Object> resetPasswordByAdmin(Long userId, ResetPasswordDto resetPasswordDto) {
+        User user = getById(userId);
+        UserAccount userAccount = user.getUserAccount();
+        userAccount.setPassword(passwordEncoder.encode(resetPasswordDto.getNewPassword()));
+        userAccount.setMustChangePassword(true);
+        userAccount.setPasswordUpdateTime(LocalDateTime.now());
+        userAccountService.update(userAccount);
+        return DefaultResponse.successReturn();
+    }
+
+    private boolean canManageUsers(User user) {
+        return user.is("MANAGER") || user.is("ADMIN") || user.is("SUPER_ADMIN");
     }
 
     public User getByEmail(String email) {

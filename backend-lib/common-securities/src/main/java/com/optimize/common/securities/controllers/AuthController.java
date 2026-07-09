@@ -23,6 +23,7 @@ import com.optimize.common.securities.security.jwt.exception.TokenRefreshExcepti
 import com.optimize.common.securities.security.services.RefreshTokenService;
 import com.optimize.common.securities.security.services.UserDetailsImpl;
 import com.optimize.common.securities.security.services.UserDetailsServiceImpl;
+import com.optimize.common.securities.repository.UserRepository;
 import com.optimize.common.securities.service.DeploymentLicenceService;
 import com.optimize.common.securities.service.LicenceService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -57,6 +58,7 @@ public class AuthController {
   private DeploymentLicenceService deploymentLicenceService;
   private LicenceService licenceService;
   private UserAuthorizedDeviceService userAuthorizedDeviceService;
+  private UserRepository userRepository;
 
   @PostMapping("/signin")
 
@@ -96,6 +98,11 @@ public class AuthController {
         userDetails.getUsername(), userDetails.getEmail(), roles, userDetails.getProfil());
     jwtResponse.setDeviceRestrictionActive(
         userAuthorizedDeviceService.isRestrictionActiveForUserId(userDetails.getId()));
+    userRepository.findById(userDetails.getId()).ifPresent(user -> {
+      if (user.getUserAccount() != null) {
+        jwtResponse.setMustChangePassword(Boolean.TRUE.equals(user.getUserAccount().getMustChangePassword()));
+      }
+    });
     return ResponseEntity.ok(jwtResponse);
   }
 
@@ -163,5 +170,10 @@ public class AuthController {
   @Autowired
   public void setUserAuthorizedDeviceService(UserAuthorizedDeviceService userAuthorizedDeviceService) {
     this.userAuthorizedDeviceService = userAuthorizedDeviceService;
+  }
+
+  @Autowired
+  public void setUserRepository(UserRepository userRepository) {
+    this.userRepository = userRepository;
   }
 }

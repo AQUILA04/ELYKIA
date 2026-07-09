@@ -56,9 +56,10 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
-        tap(() => {
-          this.log.log('[AuthEffects] loginSuccess$ triggered, navigating to /initial-loading.');
-          this.router.navigateByUrl('/initial-loading');
+        tap(({ user }) => {
+          const target = user?.mustChangePassword ? '/change-password' : '/initial-loading';
+          this.log.log(`[AuthEffects] loginSuccess$ triggered, navigating to ${target}.`);
+          this.router.navigateByUrl(target);
         })
       ),
     { dispatch: false }
