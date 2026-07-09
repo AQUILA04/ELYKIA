@@ -1,0 +1,30 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Mes tontines</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content" data-testid="e2e-tontines-page">
+  <div class="page-inner" *ngIf="!isLoading">
+    <div class="tontine-card" *ngFor="let t of tontines" [routerLink]="['/tontines', t.memberId]" [attr.data-testid]="'e2e-tontine-row-' + t.memberId">
+      <div class="tc-head">
+        <span class="tc-year">Session {{ t.sessionYear }}</span>
+        <span class="tc-status">{{ statusLabel(t.deliveryStatus) }}</span>
+      </div>
+      <div class="tc-amount">{{ t.totalContribution | number:'1.0-0' }} FCFA</div>
+      <div class="tc-meta">
+        <span>Mise: {{ t.dailyStake | number:'1.0-0' }} FCFA/jour</span>
+        <span>Solde: {{ t.availableContribution | number:'1.0-0' }} FCFA</span>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="tontines.length === 0" data-testid="e2e-tontines-empty">
+      <ion-icon name="albums-outline" class="empty-icon"></ion-icon>
+      <p class="empty-title">Aucune tontine active</p>
+      <p class="empty-sub">Vos tontines apparaitront ici.</p>
+    </div>
+  </div>
+  <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
+</ion-content>
+
+<app-customer-tab-bar></app-customer-tab-bar>

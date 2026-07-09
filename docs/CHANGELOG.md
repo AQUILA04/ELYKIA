@@ -11,6 +11,20 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Customer-space — [0.0.6] — 2026-07-08
 
+## Customer-space — [0.1.0] — 2026-07-09
+
+### Added
+
+- Parcours tontine client en lecture seule : nouvelles routes `/tontines`, `/tontines/:id`, `/tontines/:id/timeline` avec navigation dashboard + tab bar, pages liste/detail/timeline et branchement API customer.
+- Vue metier "carnet de mises" en pastilles numerotees mensuelles (composant partage `tontine-monthly-pills`) pour reprendre la logique de carnet connue des clients.
+- Contrats frontend tontine (`CustomerTontineContribution*`, `CustomerTontinePayment*`), endpoints API client integres dans `CustomerApiService`, tests unitaires + spec E2E Playwright `tontine-readonly`.
+
+### Changed
+
+- Dashboard customer-space : ajout du raccourci "Tontine" dans les quick actions pour acces direct au suivi des mises.
+
+## Customer-space — [0.0.6] — 2026-07-08
+
 ### Fixed
 
 - Sécurité : credentials Firebase retirés des fichiers versionnés ; injection via `firebase.config.local.ts` (gitignored) et secrets CI.
@@ -46,6 +60,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Enforcement lazy-loading frontend : règle Cursor renforcée (checklist obligatoire inline, globs domaines eager), hook `postToolUse` (`.cursor/hooks/lazy-loading-reminder.py`), garde CI `.github/scripts/check-frontend-lazy-loading.py`, script local `npm run check:lazy-loading` dans `frontend/`.
+
+## Backend — [1.1.0] — 2026-07-09
+
+### Added
+
+- API customer tontine read-only : `GET /api/customer/tontine/contributions`, `GET /api/customer/tontine/contributions/{memberId}`, `GET /api/customer/tontine/contributions/{memberId}/payments` avec verification d'ownership par client JWT.
+- DTOs customer-space tontine (liste, detail, paiements pagines, synthese mensuelle "carnet") et aggregation mensuelle backend pour afficher les pastilles numerotees cote client.
+- Migration `V74__customer_tontine_tracking_indexes.sql` pour les index de lecture tontine (`tontine_member(client_id, tontine_session_id)` et `tontine_collection(tontine_member_id, collection_date DESC)`).
 
 ## Backend — [1.0.29] — 2026-07-09
 

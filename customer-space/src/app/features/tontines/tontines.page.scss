@@ -1,0 +1,39 @@
+.tontine-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: var(--elyk-shadow);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.tc-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tc-year {
+  font-weight: 700;
+  color: var(--elyk-navy);
+}
+
+.tc-status {
+  font-size: 12px;
+  color: var(--elyk-gray-text);
+}
+
+.tc-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--elyk-gold);
+}
+
+.tc-meta {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--elyk-gray-text);
+}

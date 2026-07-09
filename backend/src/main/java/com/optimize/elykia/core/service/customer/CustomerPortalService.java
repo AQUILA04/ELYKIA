@@ -12,10 +12,14 @@ import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import com.optimize.elykia.core.entity.sale.Order;
+import com.optimize.elykia.core.entity.tontine.TontineCollection;
+import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.OrderStatus;
+import com.optimize.elykia.core.repository.TontineCollectionRepository;
+import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
@@ -23,15 +27,22 @@ import com.optimize.elykia.core.repository.CreditArticlesRepository;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.YearMonth;
+import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +56,8 @@ public class CustomerPortalService {
     private final ArticlesService articlesService;
     private final OrderService orderService;
     private final CreditArticlesRepository creditArticlesRepository;
+    private final TontineMemberRepository tontineMemberRepository;
+    private final TontineCollectionRepository tontineCollectionRepository;
 
     public CustomerDashboardDto getDashboard() {
         Client client = contextService.requireClient(contextService.currentUsername());
@@ -89,6 +102,62 @@ public class CustomerPortalService {
     public CustomerPurchaseDto getPurchase(Long creditId) {
         Credit credit = requireOwnedCredit(creditId);
         return toPurchaseDetail(credit);
+    }
+
+    public List<CustomerTontineContributionSummaryDto> getTontineContributions() {
+        Client client = contextService.requireClient(contextService.currentUsername());
+        return tontineMemberRepository.findCustomerContributionSummariesByClientId(
+                client.getId(),
+                com.optimize.common.entities.enums.State.ENABLED);
+    }
+
+    public CustomerTontineContributionDetailDto getTontineContribution(Long memberId) {
+        TontineMember member = requireOwnedTontineMember(memberId);
+        List<CustomerTontineMonthlySummaryDto> monthlySummaries = buildMonthlySummaries(member);
+        return CustomerTontineContributionDetailDto.builder()
+                .memberId(String.valueOf(member.getId()))
+                .sessionYear(member.getTontineSession() != null ? member.getTontineSession().getYear() : null)
+                .deliveryStatus(member.getDeliveryStatus() != null ? member.getDeliveryStatus().name() : null)
+                .sessionStatus(member.getTontineSession() != null && member.getTontineSession().getStatus() != null
+                        ? member.getTontineSession().getStatus().name()
+                        : null)
+                .dailyStake(nullSafe(member.getAmount()))
+                .totalContribution(nullSafe(member.getTotalContribution()))
+                .societyShare(nullSafe(member.getSocietyShare()))
+                .availableContribution(nullSafe(member.getAvailableContribution()))
+                .validatedMonths(member.getValidatedMonths() != null ? member.getValidatedMonths() : 0)
+                .currentMonthDays(member.getCurrentMonthDays() != null ? member.getCurrentMonthDays() : 0)
+                .registrationDate(member.getRegistrationDate() != null ? member.getRegistrationDate().toString() : null)
+                .sessionStartDate(member.getTontineSession() != null && member.getTontineSession().getStartDate() != null
+                        ? member.getTontineSession().getStartDate().toString()
+                        : null)
+                .sessionEndDate(member.getTontineSession() != null && member.getTontineSession().getEndDate() != null
+                        ? member.getTontineSession().getEndDate().toString()
+                        : null)
+                .monthlySummaries(monthlySummaries)
+                .build();
+    }
+
+    public CustomerTontinePaymentPageDto getTontinePayments(Long memberId, int page, int size) {
+        Client client = contextService.requireClient(contextService.currentUsername());
+        requireOwnedTontineMember(memberId);
+        int sanitizedPage = Math.max(page, 0);
+        int sanitizedSize = Math.min(Math.max(size, 1), 50);
+        Page<CustomerTontinePaymentDto> result = tontineCollectionRepository.findCustomerPaymentsByMember(
+                memberId,
+                client.getId(),
+                com.optimize.common.entities.enums.State.ENABLED,
+                PageRequest.of(
+                        sanitizedPage,
+                        sanitizedSize,
+                        Sort.by(Sort.Direction.DESC, "collectionDate", "id")));
+        return CustomerTontinePaymentPageDto.builder()
+                .items(result.getContent())
+                .page(result.getNumber())
+                .size(result.getSize())
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .build();
     }
 
     public List<CustomerRecoveryDto> getRecoveries(Long creditId) {
@@ -203,6 +272,58 @@ public class CustomerPortalService {
             throw new CustomValidationException("Accès non autorisé à cet achat.");
         }
         return credit;
+    }
+
+    private TontineMember requireOwnedTontineMember(Long memberId) {
+        Client client = contextService.requireClient(contextService.currentUsername());
+        TontineMember member = tontineMemberRepository.findById(memberId)
+                .orElseThrow(() -> new ResourceNotFoundException("tontine.member.not.found"));
+        if (member.getState() != com.optimize.common.entities.enums.State.ENABLED) {
+            throw new ResourceNotFoundException("tontine.member.not.found");
+        }
+        if (member.getClient() == null || !client.getId().equals(member.getClient().getId())) {
+            throw new CustomValidationException("Accès non autorisé à cette tontine.");
+        }
+        return member;
+    }
+
+    private List<CustomerTontineMonthlySummaryDto> buildMonthlySummaries(TontineMember member) {
+        if (member.getTontineSession() == null || member.getTontineSession().getStartDate() == null || member.getTontineSession().getEndDate() == null) {
+            return List.of();
+        }
+        List<TontineCollection> collections = tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(
+                member.getId(),
+                com.optimize.common.entities.enums.State.ENABLED);
+        Map<YearMonth, List<TontineCollection>> grouped = collections.stream()
+                .collect(Collectors.groupingBy(c -> YearMonth.from(c.getCollectionDate()), LinkedHashMap::new, Collectors.toList()));
+
+        List<CustomerTontineMonthlySummaryDto> summaries = new ArrayList<>();
+        YearMonth start = YearMonth.from(member.getTontineSession().getStartDate());
+        YearMonth end = YearMonth.from(member.getTontineSession().getEndDate());
+        YearMonth current = YearMonth.now();
+        YearMonth cursor = start;
+        while (!cursor.isAfter(end)) {
+            List<TontineCollection> monthCollections = grouped.getOrDefault(cursor, List.of());
+            int count = monthCollections.size();
+            double amount = monthCollections.stream().mapToDouble(c -> c.getAmount() != null ? c.getAmount() : 0).sum();
+            int equivalentDays = 0;
+            if (member.getAmount() != null && member.getAmount() > 0) {
+                equivalentDays = (int) Math.floor(amount / member.getAmount());
+            }
+            String monthLabel = cursor.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, Locale.FRENCH);
+            monthLabel = monthLabel.substring(0, 1).toUpperCase(Locale.FRENCH) + monthLabel.substring(1);
+            summaries.add(CustomerTontineMonthlySummaryDto.builder()
+                    .month(monthLabel)
+                    .year(cursor.getYear())
+                    .count(count)
+                    .totalAmount(amount)
+                    .equivalentDays(Math.max(equivalentDays, 0))
+                    .isFuture(cursor.isAfter(current))
+                    .isCurrent(cursor.equals(current))
+                    .build());
+            cursor = cursor.plusMonths(1);
+        }
+        return summaries;
     }
 
     private CustomerPurchaseDto toPurchaseSummary(Credit credit) {

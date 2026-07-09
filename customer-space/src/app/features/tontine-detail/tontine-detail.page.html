@@ -1,0 +1,50 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tontines"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Detail tontine</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content" data-testid="e2e-tontine-detail-page">
+  <div class="page-inner" *ngIf="!isLoading && detail">
+    <div class="summary-card">
+      <h2>Session {{ detail.sessionYear }}</h2>
+      <div class="summary-line">
+        <span>Total contribue</span>
+        <strong>{{ detail.totalContribution | number:'1.0-0' }} FCFA</strong>
+      </div>
+      <div class="summary-line">
+        <span>Disponible</span>
+        <strong>{{ detail.availableContribution | number:'1.0-0' }} FCFA</strong>
+      </div>
+      <div class="summary-line">
+        <span>Mise journaliere</span>
+        <strong>{{ detail.dailyStake | number:'1.0-0' }} FCFA</strong>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-head">
+          <span>Progression mois</span>
+          <span>{{ detail.validatedMonths }}/10</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="progressPercent()"></div>
+        </div>
+      </div>
+      <ion-button
+        expand="block"
+        fill="outline"
+        [routerLink]="['/tontines', memberId, 'timeline']"
+        data-testid="e2e-tontine-detail-timeline-btn">
+        Voir la timeline
+      </ion-button>
+    </div>
+
+    <app-tontine-monthly-pills
+      [summaries]="detail.monthlySummaries"
+      data-testid="e2e-tontine-carnet-pills">
+    </app-tontine-monthly-pills>
+  </div>
+  <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
+</ion-content>

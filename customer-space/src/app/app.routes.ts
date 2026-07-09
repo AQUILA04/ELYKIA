@@ -35,6 +35,22 @@ export const routes: Routes = [
       import('./features/recovery-timeline/recovery-timeline.page').then(m => m.RecoveryTimelinePage),
   },
   {
+    path: 'tontines',
+    canActivate: [CustomerAuthGuard],
+    loadComponent: () => import('./features/tontines/tontines.page').then(m => m.TontinesPage),
+  },
+  {
+    path: 'tontines/:id',
+    canActivate: [CustomerAuthGuard],
+    loadComponent: () => import('./features/tontine-detail/tontine-detail.page').then(m => m.TontineDetailPage),
+  },
+  {
+    path: 'tontines/:id/timeline',
+    canActivate: [CustomerAuthGuard],
+    loadComponent: () =>
+      import('./features/tontine-timeline/tontine-timeline.page').then(m => m.TontineTimelinePage),
+  },
+  {
     path: 'payment/:id',
     canActivate: [CustomerAuthGuard],
     loadComponent: () => import('./features/payment/payment.page').then(m => m.PaymentPage),

@@ -18,6 +18,9 @@ import {
   CustomerArticleType,
   OrderRequest,
   OrderResponse,
+  CustomerTontineContributionSummary,
+  CustomerTontineContributionDetail,
+  CustomerTontinePaymentPage,
 } from '../models/customer.model';
 
 /**
@@ -69,6 +72,25 @@ export class CustomerApiService {
 
   submitMobileMoneyPayment(payload: MobileMoneyPaymentRequest): Observable<CustomerRecovery> {
     return this.http.post<CustomerRecovery>(`${this.base}/recoveries/mobile-money`, payload);
+  }
+
+  // ─── TONTINE ──────────────────────────────────────────────────────────────
+
+  getTontineContributions(): Observable<CustomerTontineContributionSummary[]> {
+    return this.http.get<CustomerTontineContributionSummary[]>(`${this.base}/tontine/contributions`);
+  }
+
+  getTontineContributionById(memberId: string): Observable<CustomerTontineContributionDetail> {
+    return this.http.get<CustomerTontineContributionDetail>(`${this.base}/tontine/contributions/${memberId}`);
+  }
+
+  getTontinePayments(memberId: string, page = 0, size = 50): Observable<CustomerTontinePaymentPage> {
+    return this.http.get<CustomerTontinePaymentPage>(
+      `${this.base}/tontine/contributions/${memberId}/payments`,
+      {
+        params: { page: String(page), size: String(size) },
+      },
+    );
   }
 
   // ─── CATALOGUE & COMMANDES ───────────────────────────────────────────────

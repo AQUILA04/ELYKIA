@@ -3,6 +3,7 @@ package com.optimize.elykia.core.repository;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.dto.TontineCollectionRespDto;
+import com.optimize.elykia.core.dto.customer.CustomerTontinePaymentDto;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,11 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
 
     Page<TontineCollection> findByTontineMember_Id(Long memberId, Pageable pageable);
     Page<TontineCollection> findByTontineMember_IdAndState(Long memberId, State state, Pageable pageable);
+    Page<TontineCollection> findByTontineMember_IdAndTontineMember_Client_IdAndState(
+            Long memberId,
+            Long clientId,
+            State state,
+            Pageable pageable);
     java.util.List<TontineCollection> findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(Long memberId, State state);
     long countByTontineMember_IdAndCollectionDateBetweenAndState(Long memberId, java.time.LocalDateTime start, java.time.LocalDateTime end, State state);
 
@@ -26,6 +32,27 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
 
     boolean existsByReference(String reference);
     Optional<TontineCollection> findByReference(String reference);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.customer.CustomerTontinePaymentDto(
+                tc.id,
+                tc.reference,
+                tc.amount,
+                tc.collectionDate,
+                tc.isDeliveryCollection,
+                tc.societyShareAmount,
+                CASE WHEN tc.state = com.optimize.common.entities.enums.State.ENABLED THEN 'VALIDE' ELSE 'INITIE' END
+            )
+            FROM TontineCollection tc
+            WHERE tc.tontineMember.id = :memberId
+              AND tc.tontineMember.client.id = :clientId
+              AND tc.state = :state
+            """)
+    Page<CustomerTontinePaymentDto> findCustomerPaymentsByMember(
+            @Param("memberId") Long memberId,
+            @Param("clientId") Long clientId,
+            @Param("state") State state,
+            Pageable pageable);
 
     @Query("SELECT new com.optimize.elykia.core.dto.TontineCollectionRespDto(" +
            "tc.id, " +

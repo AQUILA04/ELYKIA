@@ -1,0 +1,48 @@
+.summary-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: var(--elyk-shadow);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.summary-card h2 {
+  margin: 0 0 10px;
+  color: var(--elyk-navy);
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: var(--elyk-gray-text);
+}
+
+.summary-line strong {
+  color: var(--elyk-navy-mid);
+}
+
+.progress-wrap {
+  margin: 10px 0 14px;
+}
+
+.progress-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--elyk-gray-text);
+}
+
+.progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--elyk-gold);
+}

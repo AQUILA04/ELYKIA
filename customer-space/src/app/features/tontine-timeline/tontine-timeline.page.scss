@@ -1,0 +1,38 @@
+.timeline-item {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: var(--elyk-shadow);
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ti-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ti-date {
+  color: var(--elyk-navy-mid);
+  font-weight: 700;
+}
+
+.ti-ref {
+  color: var(--elyk-gray-text);
+  font-size: 12px;
+}
+
+.ti-side {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ti-status {
+  font-size: 12px;
+  color: #22c55e;
+}

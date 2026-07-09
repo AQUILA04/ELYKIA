@@ -9,6 +9,9 @@ import {
   MOCK_PURCHASES,
   MOCK_RECOVERIES,
   MOCK_SESSION,
+  MOCK_TONTINE_DETAIL,
+  MOCK_TONTINE_PAYMENTS,
+  MOCK_TONTINES,
   MOCK_TOP_ARTICLE_TYPES,
 } from './mock-customer-api';
 
@@ -65,6 +68,21 @@ export async function mockCustomerApi(page: Page): Promise<void> {
 
     if (url.endsWith('/purchases') && method === 'GET') {
       await route.fulfill(jsonResponse(MOCK_PURCHASES));
+      return;
+    }
+
+    if (url.match(/\/tontine\/contributions\/[^/]+\/payments/) && method === 'GET') {
+      await route.fulfill(jsonResponse(MOCK_TONTINE_PAYMENTS));
+      return;
+    }
+
+    if (url.match(/\/tontine\/contributions\/[^/]+$/) && method === 'GET') {
+      await route.fulfill(jsonResponse(MOCK_TONTINE_DETAIL));
+      return;
+    }
+
+    if (url.endsWith('/tontine/contributions') && method === 'GET') {
+      await route.fulfill(jsonResponse(MOCK_TONTINES));
       return;
     }
 

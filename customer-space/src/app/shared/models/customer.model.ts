@@ -7,6 +7,8 @@
 
 export type RecoveryStatus = 'INITIE' | 'VALIDE' | 'RETARD';
 export type OrderStatus    = 'INITIE' | 'VALIDE' | 'LIVRE';
+export type TontineDeliveryStatus = 'SESSION_INPROGRESS' | 'PENDING' | 'VALIDATED' | 'DELIVERED';
+export type TontineSessionStatus = 'ACTIVE' | 'CLOSED' | 'ENDED';
 
 // ─── TABLEAU DE BORD ────────────────────────────────────────────────────────
 
@@ -87,6 +89,56 @@ export interface MobileMoneyPaymentRequest {
   mobileMoneyAmount: number;
   mobileMoneyReference: string;
   notes?: string;
+}
+
+// ─── TONTINE ────────────────────────────────────────────────────────────────
+
+export interface CustomerTontineContributionSummary {
+  memberId: string;
+  sessionYear: number;
+  deliveryStatus: TontineDeliveryStatus;
+  dailyStake: number;
+  totalContribution: number;
+  societyShare: number;
+  availableContribution: number;
+  validatedMonths: number;
+  currentMonthDays: number;
+  registrationDate: string;
+  sessionStartDate: string;
+  sessionEndDate: string;
+  sessionStatus: TontineSessionStatus;
+}
+
+export interface CustomerTontineMonthlySummary {
+  month: string;
+  year: number;
+  count: number;
+  totalAmount: number;
+  equivalentDays: number;
+  isFuture: boolean;
+  isCurrent: boolean;
+}
+
+export interface CustomerTontineContributionDetail extends CustomerTontineContributionSummary {
+  monthlySummaries: CustomerTontineMonthlySummary[];
+}
+
+export interface CustomerTontinePayment {
+  id: string;
+  reference?: string;
+  amount: number;
+  collectionDate: string;
+  deliveryCollection: boolean;
+  societyShareAmount: number;
+  status: RecoveryStatus | 'VALIDE';
+}
+
+export interface CustomerTontinePaymentPage {
+  items: CustomerTontinePayment[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
 }
 
 // ─── COMMANDES ──────────────────────────────────────────────────────────────

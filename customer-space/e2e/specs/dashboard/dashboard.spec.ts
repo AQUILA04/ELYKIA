@@ -9,6 +9,7 @@ test.describe('Dashboard', () => {
     await expect(page.getByTestId('e2e-dashboard-page')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('e2e-dashboard-credit-card')).toContainText('350');
     await expect(page.getByTestId('e2e-dashboard-quick-actions')).toBeVisible();
+    await expect(page.getByTestId('e2e-dashboard-tontine-btn')).toBeVisible();
     await expect(page.getByTestId('e2e-dashboard-activities')).toBeVisible();
     await expect(page.getByTestId('e2e-customer-tabs')).toBeVisible();
   });

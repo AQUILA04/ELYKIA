@@ -116,6 +116,51 @@ export const MOCK_ORDER_RESPONSE = {
   createdAt: '2026-06-18T12:00:00',
 };
 
+export const MOCK_TONTINES = [
+  {
+    memberId: '77',
+    sessionYear: 2026,
+    deliveryStatus: 'SESSION_INPROGRESS',
+    dailyStake: 1_000,
+    totalContribution: 120_000,
+    societyShare: 8_000,
+    availableContribution: 112_000,
+    validatedMonths: 4,
+    currentMonthDays: 10,
+    registrationDate: '2026-01-10T09:00:00',
+    sessionStartDate: '2026-01-01',
+    sessionEndDate: '2026-12-31',
+    sessionStatus: 'ACTIVE',
+  },
+];
+
+export const MOCK_TONTINE_DETAIL = {
+  ...MOCK_TONTINES[0],
+  monthlySummaries: [
+    { month: 'Janvier', year: 2026, count: 2, totalAmount: 30_000, equivalentDays: 30, isFuture: false, isCurrent: false },
+    { month: 'Fevrier', year: 2026, count: 1, totalAmount: 10_000, equivalentDays: 10, isFuture: false, isCurrent: false },
+    { month: 'Mars', year: 2026, count: 0, totalAmount: 0, equivalentDays: 0, isFuture: false, isCurrent: false },
+  ],
+};
+
+export const MOCK_TONTINE_PAYMENTS = {
+  items: [
+    {
+      id: 'tp-1',
+      reference: 'TCL-2026-001',
+      amount: 10_000,
+      collectionDate: '2026-02-12T10:00:00',
+      deliveryCollection: false,
+      societyShareAmount: 500,
+      status: 'VALIDE',
+    },
+  ],
+  page: 0,
+  size: 50,
+  totalElements: 1,
+  totalPages: 1,
+};
+
 export function jsonResponse(body: unknown, status = 200) {
   return {
     status,

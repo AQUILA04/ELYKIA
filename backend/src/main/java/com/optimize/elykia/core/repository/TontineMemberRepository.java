@@ -3,6 +3,7 @@ package com.optimize.elykia.core.repository;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.dto.TontineMemberRespDto;
+import com.optimize.elykia.core.dto.customer.CustomerTontineContributionSummaryDto;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import org.springframework.data.domain.Page;
@@ -16,11 +17,37 @@ import java.util.Optional;
 public interface TontineMemberRepository extends GenericRepository<TontineMember, Long> {
 
         Optional<TontineMember> findByTontineSession_YearAndClient_Id(Integer year, Long clientId);
+        List<TontineMember> findByClient_IdAndStateOrderByRegistrationDateDesc(Long clientId, State state);
 
         Page<TontineMember> findByTontineSession_YearAndClient_Collector(Integer year, String collectorUsername,
                         Pageable pageable);
 
         Page<TontineMember> findByTontineSession_Year(Integer year, Pageable pageable);
+
+        @Query("""
+        SELECT new com.optimize.elykia.core.dto.customer.CustomerTontineContributionSummaryDto(
+            tm.id,
+            tm.tontineSession.year,
+            tm.deliveryStatus,
+            tm.amount,
+            tm.totalContribution,
+            tm.societyShare,
+            tm.availableContribution,
+            tm.validatedMonths,
+            tm.currentMonthDays,
+            tm.registrationDate,
+            tm.tontineSession.startDate,
+            tm.tontineSession.endDate,
+            tm.tontineSession.status
+        )
+        FROM TontineMember tm
+        WHERE tm.client.id = :clientId
+          AND tm.state = :state
+        ORDER BY tm.registrationDate DESC
+        """)
+        List<CustomerTontineContributionSummaryDto> findCustomerContributionSummariesByClientId(
+                @Param("clientId") Long clientId,
+                @Param("state") State state);
 
         // Méthodes pour les sessions historiques
         List<TontineMember> findByTontineSessionIdAndState(Long sessionId, State state);
