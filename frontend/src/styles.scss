@@ -447,6 +447,44 @@ mat-error {
   padding: 28px !important;
   box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
   font-family: var(--font-main) !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.custom-swal-popup--form {
+  max-width: calc(100vw - 32px) !important;
+
+  .swal2-html-container {
+    margin: 0 0 12px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .swal-reset-password-intro {
+    margin: 0;
+    text-align: left;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .custom-swal-input-label,
+  .swal2-input-label {
+    justify-content: flex-start !important;
+    margin: 0 0 6px !important;
+    padding: 0 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+  }
+
+  .custom-swal-input,
+  .swal2-input {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
 }
 
 .custom-swal-title {

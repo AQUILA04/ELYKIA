@@ -8,6 +8,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
 import { TontineStockMovementDialogComponent } from '../../components/tontine-stock-movement-dialog/tontine-stock-movement-dialog.component';
 import { TontineDeliveryDetailsDialogComponent } from '../../components/tontine-delivery-details-dialog/tontine-delivery-details-dialog.component';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
   selector: 'app-my-tontine-stock-dashboard',
@@ -29,12 +30,15 @@ export class MyTontineStockDashboardComponent implements OnInit {
   pageSize: number = 20;
   pageIndex: number = 0;
 
+  private exportingStockKeys = new Set<string>();
+
   constructor(
     private tontineStockService: TontineStockService,
     private authService: AuthService,
     private spinner: NgxSpinnerService,
     private clientService: ClientService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private alertService: AlertService
   ) { }
 
   ngOnInit(): void {
@@ -166,6 +170,38 @@ export class MyTontineStockDashboardComponent implements OnInit {
         weightedAverageUnitPrice: item.weightedAverageUnitPrice ?? 0
       }
     });
+  }
+
+  isExporting(stock: { collector: string; year: number }): boolean {
+    return this.exportingStockKeys.has(this.stockKey(stock));
+  }
+
+  onExportPdf(stock: { collector: string; year: number }): void {
+    const key = this.stockKey(stock);
+    this.exportingStockKeys.add(key);
+
+    this.tontineStockService.exportPdf(stock.collector, stock.year).subscribe({
+      next: (data) => {
+        const blob = new Blob([data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `rapport_stock_tontine_${stock.collector}_${stock.year}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.exportingStockKeys.delete(key);
+        this.alertService.toastSuccess(`Rapport de ${stock.collector} — année ${stock.year} téléchargé`);
+      },
+      error: (err) => {
+        console.error('Export error', err);
+        this.alertService.toastError('Erreur lors du téléchargement du PDF');
+        this.exportingStockKeys.delete(key);
+      }
+    });
+  }
+
+  private stockKey(stock: { collector: string; year: number }): string {
+    return `${stock.collector}-${stock.year}`;
   }
 }
 

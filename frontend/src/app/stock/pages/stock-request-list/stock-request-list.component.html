@@ -62,6 +62,7 @@
         <span class="toolbar-label">Période</span>
         <select class="filter-select" [(ngModel)]="selectedPeriod" (ngModelChange)="onPeriodChange()">
           <option value="TODAY">Aujourd'hui</option>
+          <option value="YESTERDAY">Hier</option>
           <option value="WEEK">Cette semaine</option>
           <option value="MONTH">Ce mois</option>
           <optgroup label="Mois précédents">

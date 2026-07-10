@@ -13,6 +13,10 @@ import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.CommercialStockMovementRepository;
 import com.optimize.elykia.core.repository.StockRequestRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
+import com.optimize.elykia.core.repository.StockTontineRequestRepository;
+import com.optimize.elykia.core.repository.StockTontineReturnRepository;
+import com.optimize.elykia.core.repository.TontineStockRepository;
+import com.optimize.elykia.core.entity.tontine.TontineStock;
 import com.optimize.elykia.core.util.ArticleSortOrder;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import org.springframework.stereotype.Service;
@@ -35,6 +39,9 @@ public class StockExportService {
 
     private final StockRequestRepository stockRequestRepository;
     private final StockReturnRepository stockReturnRepository;
+    private final StockTontineRequestRepository stockTontineRequestRepository;
+    private final StockTontineReturnRepository stockTontineReturnRepository;
+    private final TontineStockRepository tontineStockRepository;
     private final CommercialStockMovementRepository commercialStockMovementRepository;
     private final UserService userService;
     private final TemplateEngine templateEngine;
@@ -42,11 +49,17 @@ public class StockExportService {
     public StockExportService(
             StockRequestRepository stockRequestRepository,
             StockReturnRepository stockReturnRepository,
+            StockTontineRequestRepository stockTontineRequestRepository,
+            StockTontineReturnRepository stockTontineReturnRepository,
+            TontineStockRepository tontineStockRepository,
             CommercialStockMovementRepository commercialStockMovementRepository,
             UserService userService,
             TemplateEngine templateEngine) {
         this.stockRequestRepository = stockRequestRepository;
         this.stockReturnRepository = stockReturnRepository;
+        this.stockTontineRequestRepository = stockTontineRequestRepository;
+        this.stockTontineReturnRepository = stockTontineReturnRepository;
+        this.tontineStockRepository = tontineStockRepository;
         this.commercialStockMovementRepository = commercialStockMovementRepository;
         this.userService = userService;
         this.templateEngine = templateEngine;
@@ -171,6 +184,105 @@ public class StockExportService {
                 .build();
 
         return renderPdf("stock-return-export", "context", contextDto);
+    }
+
+    public byte[] generateStockTontineRequestSortiePdfExport(LocalDate startDate, LocalDate endDate, String collector) {
+        collector = resolveCollector(collector);
+
+        List<StockRequestExportDTO> data = stockTontineRequestRepository.findAggregatedStockRequests(
+                startDate, endDate, collector, List.of(StockRequestStatus.DELIVERED));
+        data.sort(ArticleSortOrder.forExportDto());
+
+        long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
+        double totalAmount = data.stream().mapToDouble(StockRequestExportDTO::getTotalAmount).sum();
+
+        StockExportPdfContextDto contextDto = StockExportPdfContextDto.builder()
+                .title("Fiche des demandes de sortie stock tontine")
+                .startDate(formatDate(startDate))
+                .endDate(formatDate(endDate))
+                .collector(collector != null ? collector : "Tous")
+                .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
+                .items(data)
+                .totalQuantity(totalQuantity)
+                .totalAmount(totalAmount)
+                .build();
+
+        return renderPdf("stock-request-sortie-export", "context", contextDto);
+    }
+
+    public byte[] generateStockTontineReturnPdfExport(LocalDate startDate, LocalDate endDate, String collector) {
+        collector = resolveCollector(collector);
+
+        List<StockRequestExportDTO> data = stockTontineReturnRepository.findAggregatedStockReturns(
+                startDate, endDate, collector, StockReturnStatus.RECEIVED);
+        data.sort(ArticleSortOrder.forExportDto());
+
+        long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
+        double totalAmount = data.stream().mapToDouble(dto -> dto.getTotalQuantity() * dto.getUnitPrice()).sum();
+
+        StockExportPdfContextDto contextDto = StockExportPdfContextDto.builder()
+                .title("Fiche des retours stock tontine")
+                .startDate(formatDate(startDate))
+                .endDate(formatDate(endDate))
+                .collector(collector != null ? collector : "Tous")
+                .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
+                .items(data)
+                .totalQuantity(totalQuantity)
+                .totalAmount(totalAmount)
+                .build();
+
+        return renderPdf("stock-return-export", "context", contextDto);
+    }
+
+    public byte[] generateTontineDashboardPdfExport(String commercial, Integer year) {
+        commercial = resolveCollector(commercial);
+        List<TontineStock> stocks = tontineStockRepository.findByCommercialAndYear(commercial, year);
+
+        List<CommercialStockDashboardExportDTO> finalData = stocks.stream()
+                .map(stock -> {
+                    double unitPrice = stock.getWeightedAverageUnitPrice() != null ? stock.getWeightedAverageUnitPrice() : 0.0;
+                    int taken = stock.getTotalQuantity() != null ? stock.getTotalQuantity() : 0;
+                    int sold = stock.getDistributedQuantity() != null ? stock.getDistributedQuantity() : 0;
+                    int returned = stock.getQuantityReturned() != null ? stock.getQuantityReturned() : 0;
+                    double soldValue = sold * unitPrice;
+                    return new CommercialStockDashboardExportDTO(
+                            stock.getArticleName(),
+                            unitPrice,
+                            (long) taken,
+                            (long) sold,
+                            (long) returned,
+                            soldValue,
+                            null, null, null, stock.getArticleName());
+                })
+                .sorted(ArticleSortOrder.forDashboardExportDto())
+                .toList();
+
+        long totalTaken = finalData.stream().mapToLong(CommercialStockDashboardExportDTO::getQuantityTaken).sum();
+        long totalSold = finalData.stream().mapToLong(CommercialStockDashboardExportDTO::getQuantitySold).sum();
+        long totalReturned = finalData.stream().mapToLong(CommercialStockDashboardExportDTO::getQuantityReturned).sum();
+        long totalRemaining = finalData.stream().mapToLong(CommercialStockDashboardExportDTO::getQuantityRemaining).sum();
+        double totalSoldValue = finalData.stream().mapToDouble(CommercialStockDashboardExportDTO::getSoldValue).sum();
+        double totalRemainingValue = finalData.stream().mapToDouble(CommercialStockDashboardExportDTO::getRemainingValue).sum();
+
+        LocalDate startDate = LocalDate.of(year, 1, 1);
+        LocalDate endDate = LocalDate.of(year, 12, 31);
+
+        StockDashboardExportPdfContextDto contextDto = StockDashboardExportPdfContextDto.builder()
+                .title("Rapport de Stock Tontine")
+                .startDate(formatDate(startDate))
+                .endDate(formatDate(endDate))
+                .collector(commercial != null ? commercial : "Tous")
+                .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
+                .items(finalData)
+                .totalTaken(totalTaken)
+                .totalSold(totalSold)
+                .totalReturned(totalReturned)
+                .totalRemaining(totalRemaining)
+                .totalSoldValue(totalSoldValue)
+                .totalRemainingValue(totalRemainingValue)
+                .build();
+
+        return renderPdf("commercial-stock-dashboard-export", "context", contextDto);
     }
 
     private String resolveCollector(String collector) {

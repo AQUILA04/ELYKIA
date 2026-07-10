@@ -33,6 +33,19 @@
           </mat-panel-description>
         </mat-expansion-panel-header>
 
+        <div class="panel-export-bar">
+          <span class="panel-period-label">
+            Rapport annuel — {{ stock.collector }} · {{ stock.year }}
+          </span>
+          <button mat-raised-button class="historic-btn panel-export-btn"
+                  (click)="onExportPdf(stock)"
+                  [disabled]="isExporting(stock)"
+                  [attr.data-testid]="'e2e-tontine-my-stock-export-pdf-' + stock.collector + '-' + stock.year">
+            <mat-icon>picture_as_pdf</mat-icon>
+            {{ isExporting(stock) ? 'Export…' : 'Télécharger rapport' }}
+          </button>
+        </div>
+
         <div class="stats-row mb-4">
           <div class="stats-card">
             <div class="stats-icon bg-info">

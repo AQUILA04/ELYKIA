@@ -10,6 +10,7 @@ import com.optimize.elykia.core.dto.TontineMemberRespDto;
 import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
 import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
+import com.optimize.elykia.core.service.stock.StockExportService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -17,7 +18,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +39,7 @@ public class TontineController {
     private final TontineService tontineService;
     private final TontineStockService tontineStockService;
     private final CreditArticlesService creditArticlesService;
+    private final StockExportService stockExportService;
 
     @GetMapping("/sessions/current")
     public ResponseEntity<Response> getCurrentSession() {
@@ -154,6 +158,22 @@ public class TontineController {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(creditArticlesService.getDetailsByTontineItemId(tontineItemId)),
                 HttpStatus.OK);
+    }
+
+    @GetMapping("/stock/export/pdf")
+    public ResponseEntity<byte[]> exportStockPdf(
+            @RequestParam String commercial,
+            @RequestParam Integer year) {
+
+        byte[] pdfContent = stockExportService.generateTontineDashboardPdfExport(commercial, year);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        String filename = "rapport_stock_tontine_" + commercial + "_" + year + ".pdf";
+        headers.setContentDispositionFormData("attachment", filename);
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+        return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
     }
 
     @GetMapping("/stock")

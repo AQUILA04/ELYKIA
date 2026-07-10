@@ -11,14 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { SalesDetailsDialogComponent } from '../../components/sales-details-dialog/sales-details-dialog.component';
 import { StockMovementDialogComponent } from '../../components/stock-movement-dialog/stock-movement-dialog.component';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
-import { ToastrService } from 'ngx-toastr';
-import {
-  buildPreviousMonthOptions,
-  getStockPeriodLabel,
-  MonthOption,
-  resolveStockPeriodRange,
-  StockPeriodKey
-} from '../../utils/stock-period.util';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
   selector: 'app-my-stock-dashboard',
@@ -39,14 +32,12 @@ export class MyStockDashboardComponent implements OnInit {
   totalElements: number = 0;
   pageSize: number = 20;
   pageIndex: number = 0;
-  isManager = false; // Changed declaration
-  isStoreKeeper = false; // Changed declaration
-  isPromoter = false; // Changed declaration
+  isManager = false;
+  isStoreKeeper = false;
+  isPromoter = false;
   isSecretary = false;
 
-  selectedPeriod: StockPeriodKey = 'MONTH';
-  previousMonths: MonthOption[] = [];
-  exportLoading = false;
+  private exportingStockKeys = new Set<string>();
 
   constructor(
     private commercialStockService: CommercialStockService,
@@ -56,11 +47,10 @@ export class MyStockDashboardComponent implements OnInit {
     private userService: UserService,
     private dialog: MatDialog,
     private featureFlagService: FeatureFlagService,
-    private toastr: ToastrService
+    private alertService: AlertService
   ) { }
 
   ngOnInit(): void {
-    this.previousMonths = buildPreviousMonthOptions();
     this.currentUser = this.authService.getCurrentUser();
     this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE) || this.userService.hasProfile(UserProfile.ADMIN) || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
     this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER);
@@ -98,7 +88,7 @@ export class MyStockDashboardComponent implements OnInit {
 
   toggleHistoric() {
     this.isHistoric = !this.isHistoric;
-    this.pageIndex = 0; // Reset pagination
+    this.pageIndex = 0;
     this.loadCurrentStock();
   }
 
@@ -184,30 +174,46 @@ export class MyStockDashboardComponent implements OnInit {
     });
   }
 
-  get periodLabel(): string {
-    return getStockPeriodLabel(this.selectedPeriod);
+  isExporting(stock: CommercialMonthlyStock): boolean {
+    return this.exportingStockKeys.has(this.stockKey(stock));
   }
 
-  onExportPdf(): void {
-    const range = resolveStockPeriodRange(this.selectedPeriod);
-    this.exportLoading = true;
-    this.commercialStockService.exportPdf(range.startDate, range.endDate, this.selectedAgent).subscribe({
+  onExportPdf(stock: CommercialMonthlyStock): void {
+    const key = this.stockKey(stock);
+    const range = this.getMonthRange(stock);
+    this.exportingStockKeys.add(key);
+
+    this.commercialStockService.exportPdf(range.startDate, range.endDate, stock.collector).subscribe({
       next: (data) => {
         const blob = new Blob([data], { type: 'application/pdf' });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `rapport_stock_commercial_${range.startDate}_${range.endDate}.pdf`;
+        const monthLabel = this.getMonthName(stock.month).toLowerCase();
+        link.download = `rapport_stock_${stock.collector}_${monthLabel}_${stock.year}.pdf`;
         link.click();
         window.URL.revokeObjectURL(url);
-        this.exportLoading = false;
-        this.toastr.success('Rapport stock téléchargé avec succès');
+        this.exportingStockKeys.delete(key);
+        this.alertService.toastSuccess(`Rapport de ${stock.collector} — ${this.getMonthName(stock.month)} ${stock.year} téléchargé`);
       },
       error: (err) => {
         console.error('Export error', err);
-        this.toastr.error('Erreur lors du téléchargement du PDF');
-        this.exportLoading = false;
+        this.alertService.toastError('Erreur lors du téléchargement du PDF');
+        this.exportingStockKeys.delete(key);
       }
     });
+  }
+
+  private stockKey(stock: CommercialMonthlyStock): string {
+    return `${stock.collector}-${stock.year}-${stock.month}`;
+  }
+
+  private getMonthRange(stock: CommercialMonthlyStock): { startDate: string; endDate: string } {
+    const year = stock.year;
+    const month = stock.month;
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    return { startDate, endDate };
   }
 }

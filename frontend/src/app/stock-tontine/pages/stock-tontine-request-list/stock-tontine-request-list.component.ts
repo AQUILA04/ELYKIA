@@ -172,14 +172,14 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `rapport_stock_tontine_${range.startDate}_${range.endDate}.pdf`;
+        link.download = `fiche_sortie_stock_tontine_${range.startDate}_${range.endDate}.pdf`;
         link.click();
         window.URL.revokeObjectURL(url);
         this.exportLoading = false;
-        this.toastr.success('Export PDF téléchargé avec succès');
+        this.alertService.toastSuccess('Fiche de sortie tontine téléchargée avec succès');
       },
       error: () => {
-        this.toastr.error('Erreur lors du téléchargement du PDF');
+        this.alertService.toastError('Erreur lors du téléchargement du PDF');
         this.exportLoading = false;
       }
     });

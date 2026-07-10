@@ -23,6 +23,10 @@ public class StockTontineReturn extends Auditable<String> {
     private String collector; // Le commercial
 
     private LocalDate returnDate;
+    private LocalDate receivedDate;
+    private String receivedBy;
+    private LocalDate canceledDate;
+    private String canceledBy;
 
     private String comment;
 

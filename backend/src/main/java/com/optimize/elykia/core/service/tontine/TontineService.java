@@ -385,7 +385,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
         double societyShareAmount = processCollectionAllocation(member, dto.getAmount(), allocationDate);
         collection.setSocietyShareAmount(societyShareAmount);
 
-        this.update(member);
+        super.update(member);
 
         // Update session total revenue
         TontineSession session = member.getTontineSession();
@@ -393,8 +393,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         TontineCollection savedCollection = tontineCollectionRepository.save(collection);
 
+        String tontineCollector = member.getClient().getTontineCollector();
         if (metricsPublisher != null) {
-            metricsPublisher.tontineCollectionRecorded(commercialUsername, dto.getAmount());
+            metricsPublisher.tontineCollectionRecorded(tontineCollector, dto.getAmount());
         }
 
         // Publish Event
@@ -402,7 +403,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineCollectionEvent(
                     this,
                     collection.getAmount(),
-                    collection.getCommercialUsername(),
+                    tontineCollector,
                     member.getClient().getFullName()));
         }
 
@@ -528,7 +529,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
         tontineCollectionRepository.save(collection);
 
         recalculateMemberFromCollections(member);
-        this.update(member);
+        super.update(member);
         updateSessionRevenue(member.getTontineSession());
 
         if (eventPublisher != null) {
@@ -664,7 +665,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
         Double societyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
 
         // Capital available for validation is Total - SocietyShare
-        Double availableContribution = totalContrib - societyShare;
+        double availableContribution = totalContrib - societyShare;
         if (availableContribution < 0)
             availableContribution = 0.0;
 
@@ -722,13 +723,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
         Page<TontineMemberRespDto> memberRespDtos= null;
         if (Objects.isNull(searchFilter)) {
             memberRespDtos= getRepository().findMembersDto(currentYear, commercialFilter, statusFilter, pageable);
-            log.info("===>TONTINE MEMBER LOG -memberRespDtos= " + memberRespDtos.getContent().size());
-            log.info("**************##### ===>TONTINE MEMBER LOG -LIST MEMBER ID= " + memberRespDtos.getContent().stream().map(TontineMemberRespDto::id).toList());
             return memberRespDtos;
         } else {
             memberRespDtos = getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter, statusFilter, pageable);
-            log.info("===>TONTINE MEMBER LOG -memberRespDtos= " + memberRespDtos.getContent().size());
-            log.info("**************##### ===>TONTINE MEMBER LOG -LIST MEMBER ID= " + memberRespDtos.getContent().stream().map(TontineMemberRespDto::id).toList());
 
             return memberRespDtos;
         }

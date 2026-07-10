@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 
-export type StockPeriodKey = 'TODAY' | 'WEEK' | 'MONTH' | string;
+export type StockPeriodKey = 'TODAY' | 'YESTERDAY' | 'WEEK' | 'MONTH' | string;
 
 export interface StockPeriodRange {
   startDate: string;
@@ -41,6 +41,9 @@ export function resolveStockPeriodRange(period: StockPeriodKey): StockPeriodRang
 
   if (period === 'TODAY') {
     startDate = moment().format('YYYY-MM-DD');
+  } else if (period === 'YESTERDAY') {
+    startDate = moment().subtract(1, 'day').format('YYYY-MM-DD');
+    endDate = startDate;
   } else if (period === 'WEEK') {
     startDate = moment().startOf('isoWeek').format('YYYY-MM-DD');
   } else if (period === 'MONTH') {
@@ -61,6 +64,7 @@ export function resolveStockPeriodRange(period: StockPeriodKey): StockPeriodRang
 
 export function getStockPeriodLabel(period: StockPeriodKey): string {
   if (period === 'TODAY') return "Aujourd'hui";
+  if (period === 'YESTERDAY') return 'Hier';
   if (period === 'WEEK') return 'Cette semaine';
   if (period === 'MONTH') return 'Ce mois';
   if (period.startsWith('PREV_MONTH_')) {

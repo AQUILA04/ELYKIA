@@ -49,8 +49,8 @@ public interface StockRequestRepository extends GenericRepository<StockRequest, 
             "FROM StockRequest s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +
-            "AND (:#{#startDate == null} = true OR s.requestDate >= :startDate) " +
-            "AND (:#{#endDate == null} = true OR s.requestDate <= :endDate) " +
+            "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
             "ORDER BY s.id DESC")
     Page<com.optimize.elykia.core.dto.stock.StockRequestListDto> findFilteredList(
             @Param("collector") String collector,
@@ -68,8 +68,8 @@ public interface StockRequestRepository extends GenericRepository<StockRequest, 
     @Query("SELECT s FROM StockRequest s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +
-            "AND (:#{#startDate == null} = true OR s.requestDate >= :startDate) " +
-            "AND (:#{#endDate == null} = true OR s.requestDate <= :endDate) " +
+            "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
             "ORDER BY s.id DESC")
     Page<StockRequest> findFiltered(
             @Param("collector") String collector,
@@ -81,8 +81,8 @@ public interface StockRequestRepository extends GenericRepository<StockRequest, 
     @Query("SELECT s.status, COUNT(s) FROM StockRequest s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +
-            "AND (:#{#startDate == null} = true OR s.requestDate >= :startDate) " +
-            "AND (:#{#endDate == null} = true OR s.requestDate <= :endDate) " +
+            "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
             "GROUP BY s.status")
     List<Object[]> countByStatusFiltered(
             @Param("collector") String collector,

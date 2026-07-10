@@ -23,22 +23,6 @@
       </ng-select>
     </div>
 
-    <div class="export-group">
-      <label class="export-label">Période export</label>
-      <select class="export-select" [(ngModel)]="selectedPeriod">
-        <option value="TODAY">Aujourd'hui</option>
-        <option value="WEEK">Cette semaine</option>
-        <option value="MONTH">Ce mois</option>
-        <optgroup label="Mois précédents">
-          <option *ngFor="let month of previousMonths" [value]="month.value">{{ month.label }}</option>
-        </optgroup>
-      </select>
-      <button mat-raised-button color="primary" class="export-btn" (click)="onExportPdf()" [disabled]="exportLoading" data-testid="e2e-my-stock-export-pdf">
-        <mat-icon>picture_as_pdf</mat-icon>
-        {{ exportLoading ? 'Export…' : 'Télécharger rapport' }}
-      </button>
-    </div>
-
     <button mat-raised-button class="historic-btn" [class.active]="isHistoric" (click)="toggleHistoric()">
       <mat-icon>history</mat-icon>
       {{ isHistoric ? 'Masquer Historique' : 'Historique' }}
@@ -56,6 +40,19 @@
             Valeur Stock Restant: {{ getTotalStockValue(stock) | number:'1.0-0' }} FCFA
           </mat-panel-description>
         </mat-expansion-panel-header>
+
+        <div class="panel-export-bar">
+          <span class="panel-period-label">
+            Rapport mensuel — {{ getMonthName(stock.month) | titlecase }} {{ stock.year }}
+          </span>
+          <button mat-raised-button class="historic-btn panel-export-btn"
+                  (click)="onExportPdf(stock)"
+                  [disabled]="isExporting(stock)"
+                  [attr.data-testid]="'e2e-my-stock-export-pdf-' + stock.collector + '-' + stock.year + '-' + stock.month">
+            <mat-icon>picture_as_pdf</mat-icon>
+            {{ isExporting(stock) ? 'Export…' : 'Télécharger rapport' }}
+          </button>
+        </div>
 
         <div class="stats-row mb-4">
           <div class="stats-card">

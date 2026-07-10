@@ -291,7 +291,8 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
 
     Swal.fire({
       title: 'Réinitialiser le mot de passe',
-      html: `<p style="margin-bottom:12px;text-align:left;color:#555;">
+      width: '28rem',
+      html: `<p class="swal-reset-password-intro">
         Définissez un mot de passe temporaire pour <strong>${this.user.username}</strong>.
         L'utilisateur devra le changer à sa prochaine connexion.
       </p>`,
@@ -308,6 +309,11 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
       cancelButtonText: 'Annuler',
       buttonsStyling: false,
       customClass: {
+        popup: 'custom-swal-popup custom-swal-popup--form',
+        title: 'custom-swal-title',
+        htmlContainer: 'custom-swal-html-container',
+        input: 'custom-swal-input',
+        inputLabel: 'custom-swal-input-label',
         confirmButton: 'custom-swal-confirm-button btn btn-primary',
         cancelButton: 'custom-swal-cancel-button btn btn-outline-secondary',
       },

@@ -71,6 +71,16 @@ export class StockTontineReturnService extends BaseHttpService {
     return this.get<StockReturnKpis>(`${this.baseUrl}/kpis`, { params });
   }
 
+  exportPdf(startDate: string, endDate: string, collector: string | null): Observable<Blob> {
+    let params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+    if (collector) {
+      params = params.set('collector', collector);
+    }
+    return this.http.get(`${this.baseUrl}/export/pdf`, { params, responseType: 'blob' });
+  }
+
   getMyReturns(page: number = 0, size: number = 20): Observable<Page<StockTontineReturn>> {
     return this.getAllReturns({}, page, size);
   }

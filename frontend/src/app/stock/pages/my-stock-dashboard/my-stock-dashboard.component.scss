@@ -34,38 +34,41 @@
     }
 
     .historic-btn {
-        background-color: #003366;
-        color: white;
+        background-color: #003366 !important;
+        color: white !important;
+        white-space: nowrap;
 
         &.active {
-            background-color: #c53030; // Red for active/warn state
+            background-color: #c53030 !important;
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
     }
+}
 
-    .export-group {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
+.panel-export-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 8px;
+    flex-wrap: wrap;
 
-        .export-label {
-            font-size: 13px;
-            color: #718096;
-            font-weight: 500;
-        }
+    .panel-period-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #003366;
+    }
 
-        .export-select {
-            padding: 8px 12px;
-            border: 1px solid #dde3ec;
-            border-radius: 8px;
-            background: white;
-            font-size: 14px;
-            min-width: 160px;
-        }
-
-        .export-btn {
-            white-space: nowrap;
-        }
+    .panel-export-btn {
+        flex-shrink: 0;
     }
 }
 

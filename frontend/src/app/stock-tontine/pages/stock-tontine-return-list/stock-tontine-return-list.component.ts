@@ -41,6 +41,7 @@ export class StockTontineReturnListComponent implements OnInit, OnDestroy {
   size = 10;
   totalElements = 0;
   isLoading = true;
+  exportLoading = false;
 
   isPromoter = false;
   isStoreKeeper = false;
@@ -156,6 +157,29 @@ export class StockTontineReturnListComponent implements OnInit, OnDestroy {
     this.size = event.pageSize;
     this.saveState();
     this.loadReturns();
+  }
+
+  onExportPdf(): void {
+    const range = resolveStockPeriodRange(this.selectedPeriod);
+    this.exportLoading = true;
+    this.returnService.exportPdf(range.startDate, range.endDate, this.selectedCommercial).subscribe({
+      next: (data) => {
+        const blob = new Blob([data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `fiche_retours_stock_tontine_${range.startDate}_${range.endDate}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.exportLoading = false;
+        this.alertService.toastSuccess('Fiche des retours tontine téléchargée avec succès');
+      },
+      error: (err) => {
+        console.error('Export error', err);
+        this.alertService.toastError('Erreur lors du téléchargement du PDF');
+        this.exportLoading = false;
+      }
+    });
   }
 
   validate(stockReturn: StockTontineReturnListItem): void {

@@ -124,7 +124,7 @@ public class OrderService extends GenericService<Order, Long> {
 
     @Transactional
     public Credit soldOrder(Long orderId) throws Exception {
-        Order order = getById(orderId);
+        Order order = super.getById(orderId);
         String username = userService.getCurrentUser().getUsername();
 
         if (order.getStatus() != OrderStatus.ACCEPTED) {
@@ -133,7 +133,7 @@ public class OrderService extends GenericService<Order, Long> {
         Long newCreditId = creditService.transformOrderToCredit(order);
 
         order.setStatus(OrderStatus.SOLD);
-        this.update(order);
+        super.update(order);
         historyService.createHistory(order, OrderStatus.ACCEPTED, OrderStatus.SOLD, username);
         clientService.updateOrderStatus(order.getClient().getId(), Boolean.FALSE);
         return creditService.getById(newCreditId);
@@ -144,14 +144,14 @@ public class OrderService extends GenericService<Order, Long> {
         List<Order> updatedOrders = new ArrayList<>();
 
         for (Long orderId : dto.getOrderIds()) {
-            Order order = getById(orderId);
+            Order order = super.getById(orderId);
             OrderStatus oldStatus = order.getStatus();
             OrderStatus newStatus = dto.getNewStatus();
 
             validateStatusTransition(oldStatus, newStatus);
 
             order.setStatus(newStatus);
-            Order updatedOrder = this.update(order);
+            Order updatedOrder = super.update(order);
             updatedOrders.add(updatedOrder);
 
             historyService.createHistory(updatedOrder, oldStatus, newStatus, username);
@@ -239,13 +239,13 @@ public class OrderService extends GenericService<Order, Long> {
         order.setTotalAmount(totalAmount);
         order.setTotalPurchasePrice(totalPurchasePrice);
 
-        Order savedOrder = this.create(order);
+        Order savedOrder = super.create(order);
 
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.OrderCreatedEvent(
                     this,
                     savedOrder.getTotalAmount(),
-                    savedOrder.getCreatedBy(),
+                    client.getCollector(),
                     savedOrder.getId()));
         }
 
@@ -255,7 +255,7 @@ public class OrderService extends GenericService<Order, Long> {
     }
 
     public Order updatePendingOrder(Long orderId, OrderDto dto) {
-        Order order = getById(orderId);
+        Order order = super.getById(orderId);
 
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new CustomValidationException("Seules les commandes en attente peuvent être modifiées.");
@@ -283,7 +283,7 @@ public class OrderService extends GenericService<Order, Long> {
         order.setTotalAmount(totalAmount);
         order.setTotalPurchasePrice(totalPurchasePrice);
 
-        return this.update(order);
+        return super.update(order);
     }
 
     @Override

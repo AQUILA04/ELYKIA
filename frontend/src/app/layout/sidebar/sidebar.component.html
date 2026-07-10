@@ -5,7 +5,7 @@
   <!-- Sidebar scroll-->
   <div>
     <div class="brand-logo d-flex align-items-center justify-content-between">
-      <a routerLink="/home" class="text-nowrap logo-img">
+      <a [routerLink]="mustChangePassword ? '/user/change-password' : '/home'" class="text-nowrap logo-img">
         <img src="../assets/images/logos/elykiaa.png" width="180" alt="" />
       </a>
       <div class="close-btn d-xl-none d-block cursor-pointer" id="sidebarCollapse"
@@ -16,6 +16,7 @@
     <!-- Sidebar navigation-->
     <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
       <ul id="sidebarnav">
+        <ng-container *ngIf="!mustChangePassword">
         <li class="nav-small-cap">
           <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
           <span class="hide-menu">Menu</span>
@@ -447,11 +448,24 @@
           </ul>
         </li>
 
+        </ng-container>
+
+        <li class="nav-small-cap" *ngIf="mustChangePassword">
+          <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
+          <span class="hide-menu">Sécurité du compte</span>
+        </li>
+        <li class="sidebar-item sidebar-security-notice" *ngIf="mustChangePassword">
+          <div class="security-notice-box" role="status" aria-live="polite">
+            <mat-icon>lock_reset</mat-icon>
+            <p>Le changement de mot de passe est obligatoire avant d'accéder au reste de l'application.</p>
+          </div>
+        </li>
+
         <li class="nav-small-cap">
           <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
           <span class="hide-menu">Aide</span>
         </li>
-        <li class="sidebar-item" *ngIf="showElykiaAi">
+        <li class="sidebar-item" *ngIf="showElykiaAi && !mustChangePassword">
           <a class="sidebar-link" routerLink="/ai-chat" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/ai-chat') }">
             <span>
@@ -469,7 +483,7 @@
             <span class="hide-menu">Changer le mot de passe</span>
           </a>
         </li>
-        <li class="sidebar-item">
+        <li class="sidebar-item" *ngIf="!mustChangePassword">
           <a class="sidebar-link" [href]="getUserGuideLink()" target="_blank">
             <span>
               <mat-icon>help_outline</mat-icon>

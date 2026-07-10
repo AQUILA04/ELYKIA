@@ -62,6 +62,7 @@
         <span class="toolbar-label">Période</span>
         <select class="filter-select" [(ngModel)]="selectedPeriod" (ngModelChange)="onPeriodChange()">
           <option value="TODAY">Aujourd'hui</option>
+          <option value="YESTERDAY">Hier</option>
           <option value="WEEK">Cette semaine</option>
           <option value="MONTH">Ce mois</option>
           <optgroup label="Mois précédents">
@@ -80,9 +81,9 @@
 
       <button type="button" class="btn-clear" (click)="resetFilters()">Réinitialiser</button>
 
-      <button type="button" class="btn-download" (click)="onExportPdf()" [disabled]="exportLoading">
+      <button type="button" class="btn-download" (click)="onExportPdf()" [disabled]="exportLoading" data-testid="e2e-stock-tontine-request-export-pdf">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        {{ exportLoading ? 'Export…' : 'Télécharger PDF' }}
+        {{ exportLoading ? 'Export…' : 'Fiche sortie PDF' }}
       </button>
 
       <span class="result-count">

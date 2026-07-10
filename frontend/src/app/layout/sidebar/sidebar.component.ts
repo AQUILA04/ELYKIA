@@ -361,4 +361,8 @@ export class SidebarComponent implements OnInit {
   closeSidebar() {
     this.layoutService.closeSidebar();
   }
+
+  get mustChangePassword(): boolean {
+    return this.authService.mustChangePassword();
+  }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../../shared/service/base-http.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TontineStock } from '../models/tontine-stock.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
@@ -51,5 +51,12 @@ export class TontineStockService extends BaseHttpService {
 
   getSalesDetails(tontineItemId: number): Observable<any> {
     return this.get<any>(`${this.baseUrl}/stock/items/${tontineItemId}/sales-details`);
+  }
+
+  exportPdf(commercial: string, year: number): Observable<Blob> {
+    const params = new HttpParams()
+      .set('commercial', commercial)
+      .set('year', year.toString());
+    return this.http.get(`${this.baseUrl}/stock/export/pdf`, { params, responseType: 'blob' });
   }
 }

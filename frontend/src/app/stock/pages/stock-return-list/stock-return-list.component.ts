@@ -175,11 +175,11 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
         link.click();
         window.URL.revokeObjectURL(url);
         this.exportLoading = false;
-        this.toastr.success('Fiche des retours téléchargée avec succès');
+        this.alertService.toastSuccess('Fiche des retours téléchargée avec succès');
       },
       error: (err) => {
         console.error('Export error', err);
-        this.toastr.error('Erreur lors du téléchargement du PDF');
+        this.alertService.toastError('Erreur lors du téléchargement du PDF');
         this.exportLoading = false;
       }
     });

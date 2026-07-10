@@ -9,6 +9,48 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.30] — 2026-07-10
+
+### Added
+
+- Stock tontine : filtre période **Hier** sur les listes demandes de sortie et retours.
+- Stock tontine : **fiche sortie PDF** (demandes livrées, `deliveryDate`) et **fiche retours PDF** (réceptions, `receivedDate`).
+- Stock tontine annuel : téléchargement du rapport PDF par panneau commercial/année sur **Mon stock tontine**.
+
+### Changed
+
+- Toasts des exports PDF stock / stock tontine : passage par `AlertService` (`toastSuccess` / `toastError`) au lieu de `ToastrService` direct.
+
+## Frontend — [2.9.29] — 2026-07-10
+
+### Added
+
+- Filtres période des listes **Demandes de sortie** et **Retours stock** : option **Hier** (jour calendaire précédent).
+
+## Frontend — [2.9.28] — 2026-07-10
+
+### Changed
+
+- Changement de mot de passe obligatoire : sidebar réduite à la section Aide (changement + déconnexion), encart explicatif dans le menu et bannière sur la page de définition du nouveau mot de passe.
+
+## Frontend — [2.9.27] — 2026-07-10
+
+### Changed
+
+- Mon stock : export PDF déplacé sur chaque panneau commercial/mois (plus de filtre période global) ; le téléchargement couvre le mois complet du stock affiché (courant ou historique).
+
+## Frontend — [2.9.26] — 2026-07-10
+
+### Fixed
+
+- Mon stock : bouton « Télécharger rapport » aligné sur le style `historic-btn` (bleu marine #003366) et disposition sur une seule ligne avec le filtre période.
+
+## Frontend — [2.9.25] — 2026-07-10
+
+### Fixed
+
+- Modal SweetAlert « Réinitialiser le mot de passe » : champ temporaire contenu dans le popup (largeur, `box-sizing`, classes `custom-swal-popup--form`).
+
 ## Frontend — [2.9.24] — 2026-07-09
 
 ### Changed
@@ -37,6 +79,19 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
 - Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
+
+## Backend — [1.1.4] — 2026-07-10
+
+### Added
+
+- `StockExportService` — exports PDF stock tontine :
+  - `GET /api/v1/stock-tontine-request/export/pdf` — fiche sortie (livraisons, `deliveryDate`).
+  - `GET /api/v1/stock-tontine-return/export/pdf` — fiche retours (réceptions, `receivedDate`).
+  - `GET /api/v1/tontines/stock/export/pdf` — rapport stock tontine annuel par commercial et année.
+
+### Fixed
+
+- KPI retours stock tontine : filtre période aligné sur `receivedDate` (cohérent avec la liste).
 
 ## Backend — [1.1.3] — 2026-07-10
 

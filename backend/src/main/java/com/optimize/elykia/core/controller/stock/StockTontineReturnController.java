@@ -3,11 +3,14 @@ package com.optimize.elykia.core.controller.stock;
 import com.optimize.elykia.core.entity.stock.StockTontineReturn;
 import com.optimize.elykia.core.entity.stock.StockTontineReturnItem;
 import java.util.List;
+import com.optimize.elykia.core.service.stock.StockExportService;
 import com.optimize.elykia.core.service.stock.StockTontineReturnService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,7 @@ import java.time.LocalDate;
 public class StockTontineReturnController {
 
     private final StockTontineReturnService service;
+    private final StockExportService stockExportService;
 
     @PostMapping("/create")
     public ResponseEntity<StockTontineReturn> createReturn(@RequestBody StockTontineReturn stockReturn) {
@@ -68,5 +72,22 @@ public class StockTontineReturnController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ResponseEntity.ok(service.getKpis(collector, startDate, endDate));
+    }
+
+    @GetMapping("/export/pdf")
+    public ResponseEntity<byte[]> exportPdf(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String collector) {
+
+        byte[] pdfContent = stockExportService.generateStockTontineReturnPdfExport(startDate, endDate, collector);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        String filename = "fiche-retours-stock-tontine-" + LocalDate.now() + ".pdf";
+        headers.setContentDispositionFormData("attachment", filename);
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+        return new ResponseEntity<>(pdfContent, headers, org.springframework.http.HttpStatus.OK);
     }
 }

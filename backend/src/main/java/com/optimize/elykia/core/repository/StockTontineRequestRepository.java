@@ -30,14 +30,18 @@ public interface StockTontineRequestRepository extends GenericRepository<StockTo
     @Query("SELECT max(s.id) FROM StockTontineRequest s")
     Long findMaxId();
 
-    @Query("SELECT new com.optimize.elykia.core.dto.StockRequestExportDTO(i.itemName, SUM(i.quantity)) " +
-            "FROM StockTontineRequest s JOIN s.items i " +
+    @Query("SELECT new com.optimize.elykia.core.dto.StockRequestExportDTO(" +
+            "COALESCE(i.itemName, CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name)), " +
+            "SUM(i.quantity), COALESCE(i.unitPrice, 0.0), SUM(i.quantity * COALESCE(i.unitPrice, 0.0)), " +
+            "a.type, a.marque, a.model, a.name) " +
+            "FROM StockTontineRequest s JOIN s.items i LEFT JOIN i.article a " +
             "WHERE s.status IN :statuses " +
             "AND (:#{#collector == null} = true OR s.collector = :collector) " +
             "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
             "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
-            "GROUP BY i.itemName " +
-            "ORDER BY i.itemName")
+            "GROUP BY COALESCE(i.itemName, CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name)), i.unitPrice, " +
+            "a.type, a.marque, a.model, a.name " +
+            "ORDER BY COALESCE(i.itemName, CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name))")
     List<com.optimize.elykia.core.dto.StockRequestExportDTO> findAggregatedStockRequests(
             @Param("startDate") java.time.LocalDate startDate,
             @Param("endDate") java.time.LocalDate endDate,
@@ -49,8 +53,8 @@ public interface StockTontineRequestRepository extends GenericRepository<StockTo
             "FROM StockTontineRequest s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +
-            "AND (:#{#startDate == null} = true OR s.requestDate >= :startDate) " +
-            "AND (:#{#endDate == null} = true OR s.requestDate <= :endDate) " +
+            "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
             "ORDER BY s.id DESC")
     Page<com.optimize.elykia.core.dto.stock.StockTontineRequestListDto> findFilteredList(
             @Param("collector") String collector,
@@ -68,8 +72,8 @@ public interface StockTontineRequestRepository extends GenericRepository<StockTo
     @Query("SELECT s FROM StockTontineRequest s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +
-            "AND (:#{#startDate == null} = true OR s.requestDate >= :startDate) " +
-            "AND (:#{#endDate == null} = true OR s.requestDate <= :endDate) " +
+            "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
             "ORDER BY s.id DESC")
     Page<StockTontineRequest> findFiltered(
             @Param("collector") String collector,
@@ -81,8 +85,8 @@ public interface StockTontineRequestRepository extends GenericRepository<StockTo
     @Query("SELECT s.status, COUNT(s) FROM StockTontineRequest s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +
-            "AND (:#{#startDate == null} = true OR s.requestDate >= :startDate) " +
-            "AND (:#{#endDate == null} = true OR s.requestDate <= :endDate) " +
+            "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
             "GROUP BY s.status")
     List<Object[]> countByStatusFiltered(
             @Param("collector") String collector,

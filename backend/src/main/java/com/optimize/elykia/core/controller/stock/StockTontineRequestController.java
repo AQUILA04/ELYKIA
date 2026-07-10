@@ -4,6 +4,7 @@ import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
 import java.util.List;
 import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
+import com.optimize.elykia.core.service.stock.StockExportService;
 import com.optimize.elykia.core.service.stock.StockTontineRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import org.springframework.http.MediaType;
 public class StockTontineRequestController {
 
     private final StockTontineRequestService service;
+    private final StockExportService stockExportService;
 
     @PostMapping("/create")
     public ResponseEntity<StockTontineRequest> createRequest(@RequestBody StockTontineRequest request) {
@@ -87,11 +89,11 @@ public class StockTontineRequestController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String collector) {
 
-        byte[] pdfContent = service.generatePdfExport(startDate, endDate, collector);
+        byte[] pdfContent = stockExportService.generateStockTontineRequestSortiePdfExport(startDate, endDate, collector);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        String filename = "stock-tontine-export-" + LocalDate.now() + ".pdf";
+        String filename = "fiche-sortie-stock-tontine-" + LocalDate.now() + ".pdf";
         headers.setContentDispositionFormData("attachment", filename);
         headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 

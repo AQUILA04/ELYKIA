@@ -55,6 +55,8 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
                     entity.setCollector(userService.getCurrentUser().getUsername());
                 }
                 entity.setStatus(StockReturnStatus.RECEIVED);
+                entity.setReceivedDate(LocalDate.now());
+                entity.setReceivedBy(userService.getCurrentUser().getUsername());
             } else {
                 entity.setCollector(userService.getCurrentUser().getUsername());
                 entity.setStatus(StockReturnStatus.CREATED);
@@ -82,6 +84,8 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         processValidationLogic(returnRequest);
 
         returnRequest.setStatus(StockReturnStatus.RECEIVED);
+        returnRequest.setReceivedDate(LocalDate.now());
+        returnRequest.setReceivedBy(userService.getCurrentUser().getUsername());
         return update(returnRequest);
     }
 
@@ -101,7 +105,9 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         }
 
         returnRequest.setStatus(StockReturnStatus.CANCELLED);
-        update(returnRequest);
+        returnRequest.setCanceledDate(LocalDate.now());
+        returnRequest.setCanceledBy(userService.getCurrentUser().getUsername());
+        super.update(returnRequest);
     }
 
     public void refuseReturn(Long returnId) {
@@ -119,12 +125,14 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         }
 
         returnRequest.setStatus(StockReturnStatus.REFUSED);
-        update(returnRequest);
+        returnRequest.setCanceledDate(LocalDate.now());
+        returnRequest.setCanceledBy(userService.getCurrentUser().getUsername());
+        super.update(returnRequest);
     }
 
     private void processValidationLogic(StockTontineReturn returnRequest) {
         tontineStockService.processStockReturn(returnRequest);
-        update(returnRequest);
+        super.update(returnRequest);
 
         double totalAmount = returnRequest.getItems().stream()
                 .mapToDouble(item -> item.getQuantity() * item.getArticle().getSellingPrice())
