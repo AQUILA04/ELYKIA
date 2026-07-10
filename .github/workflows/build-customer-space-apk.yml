@@ -1,0 +1,274 @@
+name: ELYKIA Customer Space APK Build
+
+# Builds a release APK after CD deployed a commit AND ci-customer-space validated it.
+# Triggers on CD completion (customer-space may still be running) or ci-customer-space completion.
+#   main  → test APK
+#   prod/** → prod APK (direct, same commit as the prod CI)
+#   promote (manual) → prod APK rebuilt from the last successful test deployment (GitHub API only)
+
+on:
+  workflow_run:
+    workflows: ["ELYKIA CD Pipeline", "ELYKIA CI Customer Space Pipeline"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        type: choice
+        required: true
+        default: promote
+        options:
+          - promote
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  prepare:
+    if: |
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'promote')
+    runs-on: ubuntu-latest
+    outputs:
+      target: ${{ steps.resolve.outputs.target }}
+      customer_space_built: ${{ steps.customer_space.outputs.customer_space_built }}
+      build_sha: ${{ steps.resolve.outputs.build_sha }}
+    steps:
+      - name: Resolve deployment context
+        id: resolve
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+
+          REPO='${{ github.repository }}'
+          EVENT='${{ github.event_name }}'
+          TRIGGER_PATH='${{ github.event.workflow_run.path }}'
+          TRIGGER_SHA='${{ github.event.workflow_run.head_sha }}'
+          TRIGGER_RUN_ID='${{ github.event.workflow_run.id }}'
+          CD_STARTED='${{ github.event.workflow_run.run_started_at }}'
+
+          find_ci_sha_before() {
+            local branch_filter="$1"
+            local before_time="$2"
+            local runs
+            runs=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/actions/workflows/ci.yml/runs?status=completed&per_page=30")
+            if [ "$branch_filter" = "main" ]; then
+              echo "$runs" | jq -r --arg cd "$before_time" '
+                [.workflow_runs[]
+                  | select(.head_branch == "main" and .conclusion == "success")
+                  | select(.run_started_at <= $cd)
+                ] | sort_by(.run_started_at) | last | .head_sha // empty'
+            else
+              echo "$runs" | jq -r --arg cd "$before_time" '
+                [.workflow_runs[]
+                  | select(.head_branch | startswith("prod/"))
+                  | select(.conclusion == "success")
+                  | select(.run_started_at <= $cd)
+                ] | sort_by(.run_started_at) | last | .head_sha // empty'
+            fi
+          }
+
+          find_last_test_deploy_ci_sha() {
+            local cd_runs run_id run_started jobs test_ok
+            cd_runs=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/actions/workflows/cd.yml/runs?status=completed&per_page=30")
+            while read -r run_id run_started; do
+              [ -z "$run_id" ] && continue
+              jobs=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+                "https://api.github.com/repos/${REPO}/actions/runs/${run_id}/jobs")
+              test_ok=$(echo "$jobs" | jq -r \
+                '.jobs[] | select(.name=="Deploy to TEST after CI") | .conclusion' | head -n1 || true)
+              if [ "$test_ok" = "success" ]; then
+                find_ci_sha_before "main" "$run_started"
+                return 0
+              fi
+            done < <(echo "$cd_runs" | jq -r '.workflow_runs[] | "\(.id) \(.run_started_at)"')
+            return 1
+          }
+
+          resolve_target_from_cd_run() {
+            local run_id="$1"
+            local jobs_json prod promote test
+            jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/actions/runs/${run_id}/jobs")
+            prod=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Deploy to PROD after CI") | .conclusion' | head -n1 || true)
+            promote=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Promote test -> prod") | .conclusion' | head -n1 || true)
+            test=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Deploy to TEST after CI") | .conclusion' | head -n1 || true)
+            if [ "$prod" = "success" ] || [ "$promote" = "success" ]; then
+              echo "prod"
+            elif [ "$test" = "success" ]; then
+              echo "test"
+            fi
+          }
+
+          resolve_target_from_cd_run_id() {
+            local cd_run_id="$1"
+            local jobs_json promote_conclusion prod_conclusion test_conclusion
+            jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/actions/runs/${cd_run_id}/jobs")
+            echo "CD run $cd_run_id jobs:" >&2
+            echo "$jobs_json" | jq -r '.jobs[] | "\(.name): \(.conclusion)"' >&2
+            promote_conclusion=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Promote test -> prod") | .conclusion' | head -n1 || true)
+            prod_conclusion=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Deploy to PROD after CI") | .conclusion' | head -n1 || true)
+            test_conclusion=$(echo "$jobs_json" | jq -r \
+              '.jobs[] | select(.name=="Deploy to TEST after CI") | .conclusion' | head -n1 || true)
+            if [ "$prod_conclusion" = "success" ]; then
+              echo "prod|prod"
+            elif [ "$promote_conclusion" = "success" ]; then
+              echo "prod|promote"
+            elif [ "$test_conclusion" = "success" ]; then
+              echo "test|test"
+            fi
+          }
+
+          TARGET=""
+          BUILD_SHA=""
+          CUSTOMER_SPACE_RUN_ID=""
+
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            TARGET="prod"
+            BUILD_SHA=$(find_last_test_deploy_ci_sha) || true
+            if [ -z "$BUILD_SHA" ]; then
+              echo "Could not resolve CI commit for promote" >&2
+              exit 2
+            fi
+            echo "Manual promote → PROD APK from test deployment at $BUILD_SHA" >&2
+          elif [ "$TRIGGER_PATH" = ".github/workflows/ci-customer-space.yml" ]; then
+            echo "Triggered by ci-customer-space for commit $TRIGGER_SHA" >&2
+            CUSTOMER_SPACE_RUN_ID="$TRIGGER_RUN_ID"
+            cd_runs=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/actions/workflows/cd.yml/runs?status=completed&per_page=30")
+            while read -r run_id run_sha; do
+              [ -z "$run_id" ] && continue
+              if [ "$run_sha" = "$TRIGGER_SHA" ]; then
+                TARGET=$(resolve_target_from_cd_run "$run_id" || true)
+                if [ -n "$TARGET" ]; then
+                  BUILD_SHA="$TRIGGER_SHA"
+                  echo "Found CD run $run_id for $TRIGGER_SHA → target=$TARGET" >&2
+                  break
+                fi
+              fi
+            done < <(echo "$cd_runs" | jq -r '.workflow_runs[] | "\(.id) \(.head_sha)"')
+            if [ -z "$TARGET" ]; then
+              echo "No successful CD deploy found yet for commit $TRIGGER_SHA" >&2
+            fi
+          else
+            echo "Triggered by CD run $TRIGGER_RUN_ID" >&2
+            resolved=$(resolve_target_from_cd_run_id "$TRIGGER_RUN_ID" || true)
+            if [ -n "$resolved" ]; then
+              TARGET="${resolved%%|*}"
+              SHA_SOURCE="${resolved#*|}"
+              case "$SHA_SOURCE" in
+                test) BUILD_SHA=$(find_ci_sha_before "main" "$CD_STARTED") ;;
+                prod) BUILD_SHA=$(find_ci_sha_before "prod" "$CD_STARTED") ;;
+                promote) BUILD_SHA=$(find_last_test_deploy_ci_sha) || true ;;
+              esac
+              echo "Resolved CI commit ($SHA_SOURCE): $BUILD_SHA" >&2
+            fi
+          fi
+
+          if [ -z "$TARGET" ] || [ -z "$BUILD_SHA" ]; then
+            echo "target=" >> "$GITHUB_OUTPUT"
+            echo "build_sha=" >> "$GITHUB_OUTPUT"
+            echo "customer_space_run_id=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "build_sha=$BUILD_SHA" >> "$GITHUB_OUTPUT"
+          echo "customer_space_run_id=$CUSTOMER_SPACE_RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Check if customer-space was validated in ci-customer-space
+        id: customer_space
+        if: steps.resolve.outputs.target != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+
+          HEAD_SHA='${{ steps.resolve.outputs.build_sha }}'
+          CUSTOMER_SPACE_RUN_ID='${{ steps.resolve.outputs.customer_space_run_id }}'
+
+          if [ -z "$CUSTOMER_SPACE_RUN_ID" ]; then
+            RUNS=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ci-customer-space.yml/runs?head_sha=${HEAD_SHA}&status=completed&per_page=5")
+            CUSTOMER_SPACE_RUN_ID=$(echo "$RUNS" | jq -r '[.workflow_runs[] | select(.conclusion=="success")][0].id // empty')
+            if [ -z "$CUSTOMER_SPACE_RUN_ID" ]; then
+              echo "No successful ci-customer-space run found for commit $HEAD_SHA (may still be running)"
+              echo "customer_space_built=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          echo "ci-customer-space run id: $CUSTOMER_SPACE_RUN_ID"
+          jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${CUSTOMER_SPACE_RUN_ID}/jobs")
+          build_conclusion=$(echo "$jobs_json" | jq -r '.jobs[] | select(.name=="build-customer-space") | .conclusion' | head -n1 || true)
+          echo "build-customer-space conclusion: $build_conclusion"
+
+          if [ "$build_conclusion" = "success" ]; then
+            echo "customer_space_built=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "customer_space_built=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-apk-test:
+    needs: prepare
+    if: needs.prepare.outputs.target == 'test' && needs.prepare.outputs.customer_space_built == 'true'
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.build_sha }}
+
+      - name: Build and upload TEST APK
+        uses: ./.github/actions/build-customer-space-apk
+        with:
+          target: test
+          api-url: ${{ secrets.TEST_API_URL }}
+          google-services-json: ${{ secrets.CUSTOMER_SPACE_GOOGLE_SERVICES_JSON }}
+          android-keystore-base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          android-keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          android-key-alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          android-key-password: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          minio-endpoint: ${{ secrets.TEST_MINIO_ENDPOINT }}
+          minio-access-key: ${{ secrets.TEST_MINIO_ACCESS_KEY }}
+          minio-secret-key: ${{ secrets.TEST_MINIO_SECRET_KEY }}
+          minio-customer-space-releases-bucket: ${{ secrets.MINIO_CUSTOMER_SPACE_RELEASES_BUCKET }}
+
+  build-apk-prod:
+    needs: prepare
+    if: needs.prepare.outputs.target == 'prod' && needs.prepare.outputs.customer_space_built == 'true'
+    runs-on: ubuntu-latest
+    environment: prod
+    name: Build PROD APK
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.build_sha }}
+
+      - name: Build and upload PROD APK
+        uses: ./.github/actions/build-customer-space-apk
+        with:
+          target: prod
+          api-url: ${{ secrets.PROD_API_URL }}
+          google-services-json: ${{ secrets.CUSTOMER_SPACE_GOOGLE_SERVICES_JSON }}
+          android-keystore-base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          android-keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          android-key-alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          android-key-password: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          minio-endpoint: ${{ secrets.PROD_MINIO_ENDPOINT }}
+          minio-access-key: ${{ secrets.PROD_MINIO_ACCESS_KEY }}
+          minio-secret-key: ${{ secrets.PROD_MINIO_SECRET_KEY }}
+          minio-customer-space-releases-bucket: ${{ secrets.MINIO_CUSTOMER_SPACE_RELEASES_BUCKET }}

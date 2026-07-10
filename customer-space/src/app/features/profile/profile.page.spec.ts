@@ -2,8 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { ProfilePage } from './profile.page';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
-import { IonicModule } from '@ionic/angular';
+import { AppUpdateService } from '../../shared/services/app-update.service';
+import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { RouterTestingModule } from '@angular/router/testing';
+import { environment } from '../../../environments/environment';
 
 describe('ProfilePage', () => {
   let fixture: ComponentFixture<ProfilePage>;
@@ -13,13 +15,37 @@ describe('ProfilePage', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ProfilePage, IonicModule.forRoot(), RouterTestingModule],
-      providers: [CustomerSessionService],
+      providers: [
+        CustomerSessionService,
+        {
+          provide: AppUpdateService,
+          useValue: jasmine.createSpyObj('AppUpdateService', ['checkForUpdate', 'downloadAndInstall']),
+        },
+        {
+          provide: AlertController,
+          useValue: jasmine.createSpyObj('AlertController', ['create']),
+        },
+        {
+          provide: ToastController,
+          useValue: jasmine.createSpyObj('ToastController', ['create']),
+        },
+      ],
     }).compileComponents();
     session = TestBed.inject(CustomerSessionService);
     router = TestBed.inject(Router);
     spyOn(session, 'clearSession');
     spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
     fixture = TestBed.createComponent(ProfilePage);
+  });
+
+  it('exposes current app version', () => {
+    expect(fixture.componentInstance.appVersion).toBe(environment.version);
+  });
+
+  it('displays version in template', () => {
+    fixture.detectChanges();
+    const versionEl = fixture.nativeElement.querySelector('[data-testid="e2e-profile-version"]');
+    expect(versionEl?.textContent).toContain(environment.version);
   });
 
   it('logs out and redirects to auth', () => {

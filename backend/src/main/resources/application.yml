@@ -73,6 +73,8 @@ minio:
   reports-bucket: ${MINIO_REPORTS_BUCKET:elykia-reports}
   mobile-releases-bucket: ${MINIO_MOBILE_RELEASES_BUCKET:elykia-mobile-releases}
   mobile-release-channel: ${MOBILE_RELEASE_CHANNEL:prod}
+  customer-space-releases-bucket: ${MINIO_CUSTOMER_SPACE_RELEASES_BUCKET:elykia-customer-space-releases}
+  customer-space-release-channel: ${CUSTOMER_SPACE_RELEASE_CHANNEL:prod}
   public-url: ${MINIO_PUBLIC_URL:http://localhost:9000}
 #debug: true
 security:

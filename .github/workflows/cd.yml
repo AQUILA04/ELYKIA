@@ -5,6 +5,7 @@ name: ELYKIA CD Pipeline
 # Customer-space CI (ci-customer-space.yml) is decoupled and does not block deployment.
 # It deploys to 'test' when CI ran on branch 'main', and to 'prod' when CI ran on branches matching 'prod/**'.
 # Mobile APK builds run in build-mobile-apk.yml after CD and ci-mobile both succeed for the same commit.
+# Customer-space APK builds run in build-customer-space-apk.yml after CD and ci-customer-space both succeed.
 # Web E2E tests (Playwright) run in parallel in e2e.yml after a successful TEST deploy.
 # It also supports a manual 'promote' workflow_dispatch to promote the current test release to prod.
 #

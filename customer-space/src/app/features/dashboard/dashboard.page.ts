@@ -1,12 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { AlertController, IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
+import { AppUpdateService } from '../../shared/services/app-update.service';
 import { CustomerDashboard } from '../../shared/models/customer.model';
+import { AppReleaseInfo } from '../../shared/models/app-release.model';
 import { CreditProgressCardComponent } from '../../shared/components/credit-progress-card/credit-progress-card.component';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
+import { environment } from '../../../environments/environment';
 
 /** Page Tableau de Bord — S-03. */
 @Component({
@@ -22,10 +26,14 @@ export class DashboardPage implements OnInit {
   loadError = false;
   canPayNext = false;
   paymentQueryParams: Record<string, number> | null = null;
+  appVersion = environment.version;
+  updateInProgress = false;
 
   constructor(
     private api: CustomerApiService,
     private session: CustomerSessionService,
+    private appUpdateService: AppUpdateService,
+    private alertController: AlertController,
   ) {}
 
   get displayName(): string {
@@ -64,6 +72,7 @@ export class DashboardPage implements OnInit {
 
   ngOnInit(): void {
     this.loadDashboard();
+    void this.checkForAppUpdateOnDashboard();
   }
 
   loadDashboard(): void {
@@ -81,6 +90,56 @@ export class DashboardPage implements OnInit {
         this.isLoading = false;
         this.loadError = true;
       },
+    });
+  }
+
+  private async checkForAppUpdateOnDashboard(): Promise<void> {
+    if (Capacitor.getPlatform() === 'web') {
+      return;
+    }
+
+    try {
+      const release = await this.appUpdateService.checkForUpdate();
+      if (!release.updateAvailable) {
+        return;
+      }
+
+      const confirmed = await this.promptAppUpdate(release);
+      if (!confirmed) {
+        return;
+      }
+
+      this.updateInProgress = true;
+      await this.appUpdateService.downloadAndInstall(release);
+    } catch {
+      // Silently ignore update check failures on dashboard boot
+    } finally {
+      this.updateInProgress = false;
+    }
+  }
+
+  private async promptAppUpdate(release: AppReleaseInfo): Promise<boolean> {
+    const mandatory = release.updateRequired || release.mandatory;
+    const sizeMb = release.sizeBytes > 0
+      ? (release.sizeBytes / (1024 * 1024)).toFixed(1)
+      : null;
+    const sizeLine = sizeMb ? `\n\nTaille : ${sizeMb} Mo` : '';
+    const notes = release.releaseNotes?.trim()
+      ? `\n\n${release.releaseNotes.trim()}`
+      : '';
+
+    return new Promise<boolean>((resolve) => {
+      void this.alertController.create({
+        header: mandatory ? 'Mise à jour obligatoire' : 'Mise à jour disponible',
+        message: `Version ${release.version} disponible (vous êtes en ${this.appVersion}).${sizeLine}${notes}`,
+        backdropDismiss: !mandatory,
+        buttons: mandatory
+          ? [{ text: 'Mettre à jour', handler: () => resolve(true) }]
+          : [
+              { text: 'Plus tard', role: 'cancel', handler: () => resolve(false) },
+              { text: 'Mettre à jour', handler: () => resolve(true) },
+            ],
+      }).then((alert) => alert.present());
     });
   }
 }

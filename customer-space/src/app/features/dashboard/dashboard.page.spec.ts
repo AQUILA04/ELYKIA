@@ -3,7 +3,8 @@ import { of, throwError } from 'rxjs';
 import { DashboardPage } from './dashboard.page';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
-import { IonicModule } from '@ionic/angular';
+import { AppUpdateService } from '../../shared/services/app-update.service';
+import { IonicModule, AlertController } from '@ionic/angular';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('DashboardPage', () => {
@@ -34,6 +35,14 @@ describe('DashboardPage', () => {
       providers: [
         { provide: CustomerApiService, useValue: api },
         CustomerSessionService,
+        {
+          provide: AppUpdateService,
+          useValue: jasmine.createSpyObj('AppUpdateService', ['checkForUpdate', 'downloadAndInstall']),
+        },
+        {
+          provide: AlertController,
+          useValue: jasmine.createSpyObj('AlertController', ['create']),
+        },
       ],
     }).compileComponents();
 

@@ -29,6 +29,7 @@ export class AuthPage implements ViewWillEnter {
   firebaseIdToken = '';
   isLoading = false;
   error = '';
+  appVersion = environment.version;
 
   phoneForm: FormGroup;
   pinForm: FormGroup;

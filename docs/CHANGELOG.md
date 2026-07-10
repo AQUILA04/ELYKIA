@@ -91,6 +91,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
 - Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
 
+## Backend — [1.2.0] — 2026-07-10
+
+### Added
+
+- API release espace client (`GET /api/v1/customer/app/release/latest`, `GET /api/v1/customer/app/release/download`) avec bucket MinIO `elykia-customer-space-releases` et canal `CUSTOMER_SPACE_RELEASE_CHANNEL`.
+
 ## Backend — [1.1.5] — 2026-07-10
 
 ### Fixed
@@ -137,6 +143,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Nouveaux comptes créés via signup : `mustChangePassword=true` à la première connexion.
 
 ## Customer-space — [0.0.6] — 2026-07-08
+
+## Customer-space — [0.2.0] — 2026-07-10
+
+### Added
+
+- Pipelines CI/CD APK espace client : build test/prod (`build-customer-space-apk.yml`), job `build-customer-space` dans `ci-customer-space.yml`, promote manuel test → prod, publication MinIO (`elykia-customer-space-releases`).
+- API backend `GET /api/v1/customer/app/release/latest` et `/download` avec manifest MinIO dédié (`CUSTOMER_SPACE_RELEASE_CHANNEL`).
+- Mise à jour in-app Android : `AppUpdateService`, plugin natif `AppUpdate`, vérification automatique sur le dashboard (proposition ou mise à jour obligatoire).
+- Affichage de la version courante sur la page de connexion et dans le profil (bouton « Mettre à jour l'application »).
 
 ## Customer-space — [0.1.0] — 2026-07-09
 

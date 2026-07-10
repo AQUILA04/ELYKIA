@@ -16,7 +16,10 @@ public class MinioProperties {
     private String bucket = "elykia-clients";
     private String reportsBucket = "elykia-reports";
     private String mobileReleasesBucket = "elykia-mobile-releases";
+    private String customerSpaceReleasesBucket = "elykia-customer-space-releases";
     private String publicUrl;
     /** Canal de release mobile (ex. test, prod) — préfixe des objets manifest/APK dans MinIO. */
     private String mobileReleaseChannel = "prod";
+    /** Canal de release espace client (ex. test, prod). */
+    private String customerSpaceReleaseChannel = "prod";
 }

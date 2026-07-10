@@ -27,4 +27,29 @@ ion-toolbar { --background: #fff; --color: var(--elyk-navy, #0d1b2a); }
   font-family: 'Playfair Display', serif;
 }
 .profile-phone { font-size: 13px; color: var(--elyk-gray-text, #64748b); margin-top: 4px; }
+.about-card {
+  background: #fff;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: var(--elyk-shadow-lg, 0 4px 24px rgba(13, 27, 42, 0.1));
+  overflow: hidden;
+}
+.about-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 14px;
+  color: var(--elyk-navy, #0d1b2a);
+  background: transparent;
+  border: none;
+  text-align: left;
+}
+.about-row ion-icon { font-size: 20px; color: var(--elyk-gold, #c9922a); }
+.about-row--action {
+  cursor: pointer;
+  border-top: 1px solid rgba(13, 27, 42, 0.06);
+}
+.about-row--action:disabled { opacity: 0.6; cursor: default; }
 ion-button { --border-radius: 12px; font-weight: 600; }

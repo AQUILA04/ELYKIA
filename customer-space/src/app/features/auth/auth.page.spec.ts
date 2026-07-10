@@ -47,6 +47,12 @@ describe('AuthPage', () => {
     expect(fixture.componentInstance.step).toBe('phone');
   });
 
+  it('displays app version', () => {
+    fixture.detectChanges();
+    const footer = fixture.nativeElement.querySelector('[data-testid="e2e-auth-version"]');
+    expect(footer?.textContent).toContain(fixture.componentInstance.appVersion);
+  });
+
   it('moves to pin step when phone is recognized', async () => {
     fixture.componentInstance.phoneForm.patchValue({ phone: '90123456' });
     await fixture.componentInstance.submitPhone();

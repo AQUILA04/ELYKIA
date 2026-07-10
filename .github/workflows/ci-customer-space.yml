@@ -23,6 +23,12 @@ jobs:
           customer_space:
             - 'customer-space/**'
             - '.github/workflows/ci-customer-space.yml'
+            - '.github/workflows/build-customer-space-apk.yml'
+            - '.github/actions/build-customer-space-apk/**'
+            - '.github/workflows/android-config-customer-space/**'
+            - '.github/scripts/publish-customer-space-apk.sh'
+            - '.github/scripts/validate-customer-space-pipeline.sh'
+            - '.github/scripts/install-customer-space-app-update-plugin.sh'
 
   test-customer-space:
     needs: changes
@@ -66,6 +72,106 @@ jobs:
         name: playwright-report-customer-space
         path: customer-space/playwright-report/
         retention-days: 14
+
+  build-customer-space:
+    needs: changes
+    if: ${{ needs.changes.outputs.customer_space == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./customer-space
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Validate APK pipeline scripts
+      working-directory: .
+      run: |
+        chmod +x .github/scripts/*.sh
+        .github/scripts/validate-customer-space-pipeline.sh
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '20.19.3'
+        cache: 'npm'
+        cache-dependency-path: 'customer-space/package-lock.json'
+
+    - name: Setup Java JDK
+      uses: actions/setup-java@v5
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v4
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Prepare environment files
+      run: node scripts/ensure-firebase-config.mjs && node scripts/sync-app-version.mjs
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+
+    - name: Run E2E Smoke Tests
+      run: npm run test:e2e:smoke
+      env:
+        CI: true
+
+    - name: Install Ionic and Capacitor CLI
+      run: npm install -g @ionic/cli @capacitor/cli
+
+    - name: Build Ionic app
+      run: ionic build --prod
+
+    - name: Add Android platform
+      run: npx cap add android
+
+    - name: Create google-services.json
+      run: |
+        echo '${{ secrets.CUSTOMER_SPACE_GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+
+    - name: Sync Capacitor
+      run: npx cap sync android
+
+    - name: Apply Android configuration
+      run: |
+        mkdir -p android/app/src/main/res/xml
+        cp ../.github/workflows/android-config-customer-space/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+        cp ../.github/workflows/android-config-customer-space/config.xml android/app/src/main/res/xml/config.xml
+        cp ../.github/workflows/android-config-customer-space/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml
+        cp ../.github/workflows/android-config-customer-space/file_paths.xml android/app/src/main/res/xml/file_paths.xml
+        ../.github/scripts/install-customer-space-app-update-plugin.sh android
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x android/gradlew
+
+    - name: Build Android Debug APK
+      run: |
+        cd android
+        if [ -f gradle.properties ]; then
+          sed -i '/org.gradle.jvmargs/d' gradle.properties
+          sed -i '/org.gradle.daemon/d' gradle.properties
+        fi
+        echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> gradle.properties
+        echo "org.gradle.daemon=false" >> gradle.properties
+        ./gradlew assembleDebug --stacktrace
+
+    - name: Extract App Version and Rename APK
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "Detected version: $VERSION"
+        echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+        mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/elykia-customer-dev-v$VERSION.apk
+
+    - name: Upload APK as artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: elykia-customer-dev-v${{ env.APP_VERSION }}.apk
+        path: customer-space/android/app/build/outputs/apk/debug/elykia-customer-dev-v${{ env.APP_VERSION }}.apk
+        retention-days: ${{ github.ref == 'refs/heads/main' && 90 || 10 }}
 
   build-customer-space-prod:
     needs: [changes, test-customer-space]

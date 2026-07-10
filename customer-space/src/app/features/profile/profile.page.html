@@ -8,6 +8,23 @@
       <div class="profile-name" data-testid="e2e-profile-name">{{ session?.fullName }}</div>
       <div class="profile-phone" data-testid="e2e-profile-phone">{{ session?.phone }}</div>
     </div>
+
+    <div class="about-card">
+      <div class="about-row" data-testid="e2e-profile-version">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <span>Version {{ appVersion }}</span>
+      </div>
+      <button
+        type="button"
+        class="about-row about-row--action"
+        data-testid="e2e-profile-update-btn"
+        [disabled]="updateInProgress"
+        (click)="checkForAppUpdate()">
+        <ion-icon name="cloud-download-outline"></ion-icon>
+        <span>{{ updateInProgress ? updateProgressLabel || 'Mise à jour...' : 'Mettre à jour l\'application' }}</span>
+      </button>
+    </div>
+
     <ion-button expand="block" color="danger" fill="outline" data-testid="e2e-profile-logout" (click)="logout()">
       Se déconnecter
     </ion-button>
