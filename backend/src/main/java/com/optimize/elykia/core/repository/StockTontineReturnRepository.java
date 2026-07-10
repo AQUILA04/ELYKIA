@@ -34,8 +34,8 @@ public interface StockTontineReturnRepository extends GenericRepository<StockTon
             "FROM StockTontineReturn s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +
-            "AND (:#{#startDate == null} = true OR s.receivedDate >= :startDate) " +
-            "AND (:#{#endDate == null} = true OR s.receivedDate <= :endDate) " +
+            "AND (:#{#startDate == null} = true OR COALESCE(s.receivedDate, s.returnDate) >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR COALESCE(s.receivedDate, s.returnDate) <= :endDate) " +
             "ORDER BY s.id DESC")
     Page<com.optimize.elykia.core.dto.stock.StockTontineReturnListDto> findFilteredList(
             @Param("collector") String collector,
@@ -53,8 +53,8 @@ public interface StockTontineReturnRepository extends GenericRepository<StockTon
     @Query("SELECT s FROM StockTontineReturn s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +
-            "AND (:#{#startDate == null} = true OR s.receivedDate >= :startDate) " +
-            "AND (:#{#endDate == null} = true OR s.receivedDate <= :endDate) " +
+            "AND (:#{#startDate == null} = true OR COALESCE(s.receivedDate, s.returnDate) >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR COALESCE(s.receivedDate, s.returnDate) <= :endDate) " +
             "ORDER BY s.id DESC")
     Page<StockTontineReturn> findFiltered(
             @Param("collector") String collector,
@@ -66,8 +66,8 @@ public interface StockTontineReturnRepository extends GenericRepository<StockTon
     @Query("SELECT s.status, COUNT(s) FROM StockTontineReturn s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +
-            "AND (:#{#startDate == null} = true OR s.receivedDate >= :startDate) " +
-            "AND (:#{#endDate == null} = true OR s.receivedDate <= :endDate) " +
+            "AND (:#{#startDate == null} = true OR COALESCE(s.receivedDate, s.returnDate) >= :startDate) " +
+            "AND (:#{#endDate == null} = true OR COALESCE(s.receivedDate, s.returnDate) <= :endDate) " +
             "GROUP BY s.status")
     List<Object[]> countByStatusFiltered(
             @Param("collector") String collector,

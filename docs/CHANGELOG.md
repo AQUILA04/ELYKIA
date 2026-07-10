@@ -91,6 +91,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
 - Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
 
+## Backend — [1.1.5] — 2026-07-10
+
+### Fixed
+
+- Listes et KPI stock (demandes/retours, classique et tontine) : filtre période sur `COALESCE(date métier, date demande)` — les enregistrements **CREATED** sans date de livraison/réception réapparaissent dans la liste (corrige golden-path étape 3). Les exports PDF restent filtrés sur `deliveryDate` / `receivedDate` uniquement.
+
 ## Backend — [1.1.4] — 2026-07-10
 
 ### Added
