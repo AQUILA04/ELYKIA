@@ -9,6 +9,7 @@ export interface StockReturnListItem {
   id?: number;
   collector?: string;
   returnDate?: string;
+  receivedDate?: string;
   status?: StockReturnStatus;
 }
 
@@ -16,6 +17,7 @@ export interface StockReturn {
   id?: number;
   collector?: string;
   returnDate?: string;
+  receivedDate?: string;
   status?: StockReturnStatus;
   items?: StockReturnItem[];
 }

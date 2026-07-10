@@ -20,6 +20,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Toasts des exports PDF stock / stock tontine : passage par `AlertService` (`toastSuccess` / `toastError`) au lieu de `ToastrService` direct.
+- Listes retours stock / retours tontine : colonnes **Date demande** et **Date réception** (réception affichée « — » tant que le retour n'est pas réceptionné).
 
 ## Frontend — [2.9.29] — 2026-07-10
 
@@ -92,6 +93,8 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - KPI retours stock tontine : filtre période aligné sur `receivedDate` (cohérent avec la liste).
+- Listes retours stock et retours tontine : `findFilteredList` expose `returnDate` et `receivedDate` (filtre période toujours sur `receivedDate`).
+- Export PDF retours stock tontine : total montant basé sur `StockRequestExportDTO.getTotalAmount()` (aligné requête SQL et export stock classique).
 
 ## Backend — [1.1.3] — 2026-07-10
 

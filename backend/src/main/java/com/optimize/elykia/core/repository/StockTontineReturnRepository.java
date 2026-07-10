@@ -30,7 +30,7 @@ public interface StockTontineReturnRepository extends GenericRepository<StockTon
     List<StockTontineReturn> findByCollectorAndStatus(@Param("collector") String collector, @Param("status") StockReturnStatus status);
 
     @Query("SELECT new com.optimize.elykia.core.dto.stock.StockTontineReturnListDto(" +
-            "s.id, s.returnDate, s.collector, s.status) " +
+            "s.id, s.returnDate, s.receivedDate, s.collector, s.status) " +
             "FROM StockTontineReturn s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +

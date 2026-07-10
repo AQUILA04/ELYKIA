@@ -255,7 +255,7 @@ public class OrderService extends GenericService<Order, Long> {
     }
 
     public Order updatePendingOrder(Long orderId, OrderDto dto) {
-        Order order = super.getById(orderId);
+        Order order = getById(orderId);
 
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new CustomValidationException("Seules les commandes en attente peuvent être modifiées.");

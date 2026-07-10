@@ -118,7 +118,8 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Date retour</th>
+              <th>Date demande</th>
+              <th>Date réception</th>
               <th>Commercial</th>
               <th>Statut</th>
               <th>Actions</th>
@@ -132,6 +133,7 @@
                 [attr.data-status]="ret.status">
               <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
               <td><span class="col-date">{{ ret.returnDate | date:'dd/MM/yyyy' }}</span></td>
+              <td><span class="col-date">{{ ret.receivedDate ? (ret.receivedDate | date:'dd/MM/yyyy') : '—' }}</span></td>
               <td>{{ ret.collector }}</td>
               <td>
                 <span class="status-badge" [ngClass]="getStatusClass(ret.status)">{{ getStatusLabel(ret.status) }}</span>
@@ -192,7 +194,8 @@
       <div class="detail-grid">
         <div>
           <p><strong>Commercial :</strong> {{ selectedReturn.collector }}</p>
-          <p><strong>Date :</strong> {{ selectedReturn.returnDate | date:'dd/MM/yyyy' }}</p>
+          <p><strong>Date demande :</strong> {{ selectedReturn.returnDate | date:'dd/MM/yyyy' }}</p>
+          <p><strong>Date réception :</strong> {{ selectedReturn.receivedDate ? (selectedReturn.receivedDate | date:'dd/MM/yyyy') : '—' }}</p>
         </div>
         <div class="detail-status">
           <p><strong>Statut :</strong>

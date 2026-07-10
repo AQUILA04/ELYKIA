@@ -37,7 +37,7 @@ public interface StockReturnRepository extends GenericRepository<StockReturn, Lo
             @Param("status") StockReturnStatus status);
 
     @Query("SELECT new com.optimize.elykia.core.dto.stock.StockReturnListDto(" +
-            "s.id, s.returnDate, s.collector, s.status) " +
+            "s.id, s.returnDate, s.receivedDate, s.collector, s.status) " +
             "FROM StockReturn s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +

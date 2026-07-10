@@ -218,7 +218,7 @@ public class StockExportService {
         data.sort(ArticleSortOrder.forExportDto());
 
         long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
-        double totalAmount = data.stream().mapToDouble(dto -> dto.getTotalQuantity() * dto.getUnitPrice()).sum();
+        double totalAmount = data.stream().mapToDouble(StockRequestExportDTO::getTotalAmount).sum();
 
         StockExportPdfContextDto contextDto = StockExportPdfContextDto.builder()
                 .title("Fiche des retours stock tontine")

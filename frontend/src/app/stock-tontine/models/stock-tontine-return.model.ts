@@ -14,6 +14,7 @@ export interface StockTontineReturnListItem {
   id?: number;
   collector?: string;
   returnDate?: string;
+  receivedDate?: string;
   status?: StockReturnStatus;
 }
 
@@ -21,6 +22,7 @@ export interface StockTontineReturn {
   id?: number;
   collector?: string;
   returnDate?: string;
+  receivedDate?: string;
   status?: StockReturnStatus;
   items?: StockTontineReturnItem[];
 }
