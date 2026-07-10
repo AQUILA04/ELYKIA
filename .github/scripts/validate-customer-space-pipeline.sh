@@ -53,7 +53,7 @@ grep -q "APP_VERSION" "$ROOT/customer-space/src/environments/app-version.ts" || 
 pass "app-version.ts present"
 
 CONFIG_DIR="$ROOT/.github/workflows/android-config-customer-space"
-for f in AndroidManifest.xml MainActivity.java AppUpdatePlugin.java file_paths.xml; do
+for f in AndroidManifest.xml config.xml network_security_config.xml file_paths.xml MainActivity.java AppUpdatePlugin.java; do
   [ -f "$CONFIG_DIR/$f" ] || fail "missing $CONFIG_DIR/$f"
 done
 pass "android-config-customer-space files"

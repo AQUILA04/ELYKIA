@@ -58,6 +58,8 @@ export class AppUpdateService {
 
     const apkFileName = `elykia-customer-update-v${release.version}.apk`;
     let progressListener: { remove: () => Promise<void> } | undefined;
+    let filePath: string | undefined;
+    let installLaunched = false;
 
     try {
       progressListener = await Filesystem.addListener('progress', (event) => {
@@ -79,19 +81,24 @@ export class AppUpdateService {
 
       onProgress?.({ phase: 'verifying' });
 
-      const filePath = downloadResult.path ?? apkFileName;
+      filePath = downloadResult.path ?? apkFileName;
       const verifyResult = await AppUpdateNative.verifyFileSha256({
         filePath,
         sha256: release.sha256,
       });
 
       if (!verifyResult.valid) {
-        await this.safeDelete(filePath);
         throw new Error('Le fichier téléchargé est invalide (empreinte SHA-256 incorrecte).');
       }
 
       onProgress?.({ phase: 'installing' });
       await AppUpdateNative.installApk({ filePath });
+      installLaunched = true;
+    } catch (error) {
+      if (filePath && !installLaunched) {
+        await this.safeDelete(filePath);
+      }
+      throw error;
     } finally {
       await progressListener?.remove();
     }

@@ -5,6 +5,7 @@ import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.elykia.client.storage.MinioProperties;
 import com.optimize.elykia.client.storage.MinioStorageService;
+import com.optimize.elykia.core.dto.AppReleaseDownloadDto;
 import com.optimize.elykia.core.dto.MobileAppReleaseInfoDto;
 import com.optimize.elykia.core.dto.MobileAppReleaseManifestDto;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +66,7 @@ public class CustomerAppReleaseService {
         }
     }
 
-    public InputStream openLatestApkStream() {
+    public AppReleaseDownloadDto prepareLatestApkDownload() {
         MobileAppReleaseManifestDto manifest = loadManifest();
         String bucket = minioProperties.getCustomerSpaceReleasesBucket();
         String apkKey = manifest.getApkObjectKey();
@@ -74,7 +75,20 @@ public class CustomerAppReleaseService {
             throw new ResourceNotFoundException("Fichier APK introuvable pour la version " + manifest.getVersion());
         }
 
-        return minioStorageService.openObjectStream(bucket, apkKey);
+        long sizeBytes = manifest.getSizeBytes() > 0
+                ? manifest.getSizeBytes()
+                : minioStorageService.getObjectSize(bucket, apkKey);
+
+        return AppReleaseDownloadDto.builder()
+                .apkStream(minioStorageService.openObjectStream(bucket, apkKey))
+                .filename("elykia-customer-" + releaseChannel() + "-v" + manifest.getVersion() + ".apk")
+                .sizeBytes(sizeBytes)
+                .sha256(manifest.getSha256())
+                .build();
+    }
+
+    public InputStream openLatestApkStream() {
+        return prepareLatestApkDownload().getApkStream();
     }
 
     public long getLatestApkSize() {

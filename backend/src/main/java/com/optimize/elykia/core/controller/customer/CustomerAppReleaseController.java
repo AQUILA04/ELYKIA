@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.InputStream;
-
 @RestController
 @RequestMapping("api/v1/customer/app/release")
 @RequiredArgsConstructor
@@ -43,20 +41,17 @@ public class CustomerAppReleaseController {
     @GetMapping("/download")
     @Operation(summary = "Télécharger l'APK de la dernière version espace client")
     public ResponseEntity<Resource> downloadLatestApk() {
-        InputStream apkStream = customerAppReleaseService.openLatestApkStream();
-        String filename = customerAppReleaseService.getLatestApkFilename();
-        long size = customerAppReleaseService.getLatestApkSize();
-        String sha256 = customerAppReleaseService.getLatestApkSha256();
+        var download = customerAppReleaseService.prepareLatestApkDownload();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
-        headers.add("X-APK-SHA256", sha256);
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + download.getFilename() + "\"");
+        headers.add("X-APK-SHA256", download.getSha256());
 
         return ResponseEntity.ok()
                 .headers(headers)
-                .contentLength(size)
+                .contentLength(download.getSizeBytes())
                 .contentType(MediaType.parseMediaType("application/vnd.android.package-archive"))
-                .body(new InputStreamResource(apkStream));
+                .body(new InputStreamResource(download.getApkStream()));
     }
 
     private String resolveStatusMessage(boolean updateAvailable, boolean updateRequired) {

@@ -91,6 +91,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
 - Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
 
+## Backend — [1.2.1] — 2026-07-10
+
+### Fixed
+
+- Téléchargement APK espace client : le manifest MinIO n'est plus chargé 4 fois par requête (`prepareLatestApkDownload`).
+
 ## Backend — [1.2.0] — 2026-07-10
 
 ### Added
@@ -143,6 +149,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Nouveaux comptes créés via signup : `mustChangePassword=true` à la première connexion.
 
 ## Customer-space — [0.0.6] — 2026-07-08
+
+## Customer-space — [0.2.1] — 2026-07-10
+
+### Fixed
+
+- Mise à jour in-app : suppression du fichier APK en cache si l'installation échoue après vérification SHA-256 réussie.
+- Pipeline APK : `validate-customer-space-pipeline.sh` vérifie aussi `config.xml` et `network_security_config.xml` (copiés par CI/release).
 
 ## Customer-space — [0.2.0] — 2026-07-10
 
