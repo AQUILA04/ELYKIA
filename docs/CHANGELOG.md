@@ -150,6 +150,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Customer-space — [0.0.6] — 2026-07-08
 
+## Customer-space — [0.2.2] — 2026-07-10
+
+### Fixed
+
+- Mise à jour in-app : résolution du chemin APK via `Filesystem.getUri()` avant vérification SHA-256 et installation native (chemin absolu au lieu du chemin relatif cache).
+
 ## Customer-space — [0.2.1] — 2026-07-10
 
 ### Fixed

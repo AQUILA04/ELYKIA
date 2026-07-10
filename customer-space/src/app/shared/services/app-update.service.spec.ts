@@ -32,6 +32,13 @@ describe('AppUpdateService', () => {
     expect(service.parseVersionCode('1.10.4')).toBe(11004);
   });
 
+  it('converts capacitor file uri to native absolute path', () => {
+    expect(service.filesystemUriToNativePath(
+      'file:///data/user/0/com.optimize.elykia.customer/cache/elykia-customer-update-v0.2.1.apk',
+    )).toBe('/data/user/0/com.optimize.elykia.customer/cache/elykia-customer-update-v0.2.1.apk');
+    expect(service.filesystemUriToNativePath('/already/absolute/path.apk')).toBe('/already/absolute/path.apk');
+  });
+
   it('checks for update via API', fakeAsync(() => {
     spyOn(service, 'getLocalVersionCode').and.returnValue(Promise.resolve(200));
     let result: { version: string; updateAvailable: boolean } | undefined;

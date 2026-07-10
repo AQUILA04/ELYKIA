@@ -81,9 +81,11 @@ export class AppUpdateService {
 
       onProgress?.({ phase: 'verifying' });
 
-      filePath = downloadResult.path ?? apkFileName;
+      const cachePath = downloadResult.path ?? apkFileName;
+      filePath = cachePath;
+      const nativeFilePath = await this.resolveNativeFilePath(cachePath);
       const verifyResult = await AppUpdateNative.verifyFileSha256({
-        filePath,
+        filePath: nativeFilePath,
         sha256: release.sha256,
       });
 
@@ -92,7 +94,7 @@ export class AppUpdateService {
       }
 
       onProgress?.({ phase: 'installing' });
-      await AppUpdateNative.installApk({ filePath });
+      await AppUpdateNative.installApk({ filePath: nativeFilePath });
       installLaunched = true;
     } catch (error) {
       if (filePath && !installLaunched) {
@@ -113,9 +115,25 @@ export class AppUpdateService {
     return major * 10000 + minor * 100 + patch;
   }
 
-  private async safeDelete(filePath: string): Promise<void> {
+  /** Convertit l'URI Capacitor (file://…) en chemin absolu lisible par le plugin Android. */
+  filesystemUriToNativePath(uri: string): string {
+    if (!uri.startsWith('file://')) {
+      return uri;
+    }
+    return decodeURIComponent(uri.replace(/^file:\/\//, ''));
+  }
+
+  private async resolveNativeFilePath(cachePath: string): Promise<string> {
+    const { uri } = await Filesystem.getUri({
+      path: cachePath,
+      directory: Directory.Cache,
+    });
+    return this.filesystemUriToNativePath(uri);
+  }
+
+  private async safeDelete(cachePath: string): Promise<void> {
     try {
-      await Filesystem.deleteFile({ path: filePath, directory: Directory.Cache });
+      await Filesystem.deleteFile({ path: cachePath, directory: Directory.Cache });
     } catch {
       // ignore cleanup errors
     }
