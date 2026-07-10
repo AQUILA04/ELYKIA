@@ -105,6 +105,7 @@ import { AdvancedSearchComponent } from './credit/components/advanced-search/adv
 import { SharedComponentsModule } from './shared/components/shared-components.module';
 import { ToastrModule } from 'ngx-toastr';
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
+import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
 import { ParameterEditComponent } from './parameters/parameter-edit/parameter-edit.component';
 import { CashDepositModalComponent } from './report/components/cash-deposit-modal/cash-deposit-modal.component';
 import { DailyStakeModalComponent } from './credit/components/daily-stake-modal/daily-stake-modal.component';
@@ -207,6 +208,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     // --- NOUVELLE DÉCLARATION ---
     ParameterListComponent,
     ParameterEditComponent,
+    MobileMoneyConfigListComponent,
     CashDepositModalComponent,
     DailyStakeModalComponent,
     ClientKpiCardsComponent,

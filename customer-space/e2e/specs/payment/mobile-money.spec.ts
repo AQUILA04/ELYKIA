@@ -7,6 +7,9 @@ test.describe('Mobile money payment', () => {
     await page.goto(`/payment/${MOCK_PURCHASE_ID}?amount=35000&installment=3`);
 
     await expect(page.getByTestId('e2e-payment-page')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('e2e-payment-recipients')).toBeVisible();
+    await expect(page.getByTestId('e2e-payment-mixx-number')).toContainText('90123456');
+    await expect(page.getByTestId('e2e-payment-moov-number')).toContainText('97654321');
     await fillIonTestId(page, 'e2e-payment-phone', '90123456');
     await fillIonTestId(page, 'e2e-payment-amount', '35000');
     await fillIonTestId(page, 'e2e-payment-reference', 'TXN-E2E-001');

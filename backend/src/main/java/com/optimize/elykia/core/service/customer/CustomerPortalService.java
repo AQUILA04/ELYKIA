@@ -58,6 +58,7 @@ public class CustomerPortalService {
     private final CreditArticlesRepository creditArticlesRepository;
     private final TontineMemberRepository tontineMemberRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
+    private final CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
 
     public CustomerDashboardDto getDashboard() {
         Client client = contextService.requireClient(contextService.currentUsername());
@@ -102,6 +103,15 @@ public class CustomerPortalService {
     public CustomerPurchaseDto getPurchase(Long creditId) {
         Credit credit = requireOwnedCredit(creditId);
         return toPurchaseDetail(credit);
+    }
+
+    public CustomerMobileMoneyRecipientDto getMobileMoneyRecipients(Long creditId) {
+        Credit credit = requireOwnedCredit(creditId);
+        String collector = credit.getCollector();
+        if (!StringUtils.hasText(collector) && credit.getClient() != null) {
+            collector = credit.getClient().getCollector();
+        }
+        return commercialMobileMoneyConfigService.resolveForCollector(collector);
     }
 
     public List<CustomerTontineContributionSummaryDto> getTontineContributions() {

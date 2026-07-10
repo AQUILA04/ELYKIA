@@ -64,7 +64,8 @@ export class SidebarComponent implements OnInit {
       return this.activeRoute.startsWith('/localitylist') ||
              this.activeRoute.startsWith('/article-type') ||
              this.activeRoute.startsWith('/expense/types') ||
-             this.activeRoute.startsWith('/parameters');
+             this.activeRoute.startsWith('/parameters') ||
+             this.activeRoute.startsWith('/configuration/mobile-money');
     }
 
     // Gestion pour le menu Tontines

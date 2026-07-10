@@ -91,6 +91,15 @@ export interface MobileMoneyPaymentRequest {
   notes?: string;
 }
 
+export interface MobileMoneyRecipient {
+  collector?: string;
+  collectorName?: string;
+  mixxNumber?: string;
+  moovNumber?: string;
+  mixxUsesGlobalDefault?: boolean;
+  moovUsesGlobalDefault?: boolean;
+}
+
 // ─── TONTINE ────────────────────────────────────────────────────────────────
 
 export interface CustomerTontineContributionSummary {

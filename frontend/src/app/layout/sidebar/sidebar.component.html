@@ -340,6 +340,14 @@
                 <span class="hide-menu">Paramètres</span>
               </a>
             </li>
+            <li class="sidebar-item submenu-item" *ngIf="hasAccessToParameters() && !isPromoter()">
+              <a class="sidebar-link" routerLink="/configuration/mobile-money"
+                 data-testid="e2e-sidebar-mobile-money-config"
+                 [ngClass]="{ 'active': isSubRouteActive('/configuration/mobile-money') }">
+                <span class="material-icons">payments</span>
+                <span class="hide-menu">Mobile Money</span>
+              </a>
+            </li>
           </ul>
         </li>
 

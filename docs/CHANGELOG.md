@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.32] — 2026-07-11
+
+### Added
+
+- Configuration **Mobile Money** (menu Configuration) : numéros Mixx by YAS et Moov Money par commercial, avec repli sur les numéros globaux société.
+
 ## Frontend — [2.9.31] — 2026-07-10
 
 ### Fixed
@@ -91,6 +97,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
 - Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
 
+## Backend — [1.2.2] — 2026-07-11
+
+### Added
+
+- Configuration Mobile Money : numéros globaux société (`app.customer.mobile-money.mixx-number` / `moov-number` dans `application.yml`), table `commercial_mobile_money_config`, API admin `/api/v1/commercial-mobile-money-config` et endpoint client `GET /api/customer/purchases/{id}/mobile-money-recipients` (repli global si aucun numéro commercial).
+
 ## Backend — [1.2.1] — 2026-07-10
 
 ### Fixed
@@ -149,6 +161,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Nouveaux comptes créés via signup : `mustChangePassword=true` à la première connexion.
 
 ## Customer-space — [0.0.6] — 2026-07-08
+
+## Customer-space — [0.2.4] — 2026-07-11
+
+### Added
+
+- Paiement Mobile Money : affichage des numéros Mixx by YAS et Moov Money du commercial (collector) avec repli sur la configuration globale société.
 
 ## Customer-space — [0.2.3] — 2026-07-11
 

@@ -59,6 +59,11 @@ public class CustomerApiController {
         return ResponseEntity.ok(customerPortalService.getTontinePayments(memberId, page, size));
     }
 
+    @GetMapping("/purchases/{id}/mobile-money-recipients")
+    public ResponseEntity<CustomerMobileMoneyRecipientDto> getMobileMoneyRecipients(@PathVariable Long id) {
+        return ResponseEntity.ok(customerPortalService.getMobileMoneyRecipients(id));
+    }
+
     @PostMapping("/recoveries/mobile-money")
     public ResponseEntity<CustomerRecoveryDto> submitMobileMoney(@Valid @RequestBody CustomerMobileMoneyRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(customerPortalService.submitMobileMoney(request));

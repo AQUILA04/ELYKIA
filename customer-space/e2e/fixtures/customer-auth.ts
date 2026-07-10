@@ -56,6 +56,18 @@ export async function mockCustomerApi(page: Page): Promise<void> {
       return;
     }
 
+    if (url.match(/\/purchases\/[^/]+\/mobile-money-recipients$/) && method === 'GET') {
+      await route.fulfill(jsonResponse({
+        collector: 'COM001',
+        collectorName: 'Jean Commercial',
+        mixxNumber: '90123456',
+        moovNumber: '97654321',
+        mixxUsesGlobalDefault: false,
+        moovUsesGlobalDefault: true,
+      }));
+      return;
+    }
+
     if (url.match(/\/purchases\/[^/]+\/recoveries$/) && method === 'GET') {
       await route.fulfill(jsonResponse(MOCK_RECOVERIES));
       return;

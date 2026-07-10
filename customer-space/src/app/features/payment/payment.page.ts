@@ -5,6 +5,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
+import { MobileMoneyRecipient } from '../../shared/models/customer.model';
 
 /** Page Paiement Mobile Money — S-07, S-08. */
 @Component({
@@ -22,6 +23,9 @@ export class PaymentPage implements OnInit {
   isLoading = false;
   isSubmitted = false;
   error = '';
+  recipientsLoading = true;
+  recipientsError = '';
+  recipients: MobileMoneyRecipient | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -45,6 +49,27 @@ export class PaymentPage implements OnInit {
     if (this.expectedAmount > 0) {
       this.form.patchValue({ mobileMoneyAmount: this.expectedAmount });
     }
+    this.loadRecipients();
+  }
+
+  async loadRecipients(): Promise<void> {
+    if (!this.distributionId) {
+      this.recipientsLoading = false;
+      return;
+    }
+    this.recipientsLoading = true;
+    this.recipientsError = '';
+    try {
+      this.recipients = await firstValueFrom(this.api.getMobileMoneyRecipients(this.distributionId));
+    } catch {
+      this.recipientsError = 'Impossible de charger les numéros de paiement.';
+    } finally {
+      this.recipientsLoading = false;
+    }
+  }
+
+  hasRecipientNumbers(): boolean {
+    return !!(this.recipients?.mixxNumber || this.recipients?.moovNumber);
   }
 
   async submit(): Promise<void> {

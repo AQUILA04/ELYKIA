@@ -407,6 +407,9 @@ app:
       firebase:
         enabled: ${FIREBASE_ENABLED:false}
         credentials-path: ${FIREBASE_CREDENTIALS:}
+    mobile-money:
+      mixx-number: ${CUSTOMER_MOBILE_MONEY_MIXX_NUMBER:}
+      moov-number: ${CUSTOMER_MOBILE_MONEY_MOOV_NUMBER:}
   security:
     parameter:
       init-enabled: true

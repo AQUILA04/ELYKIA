@@ -12,8 +12,16 @@ describe('PaymentPage', () => {
   let api: jasmine.SpyObj<CustomerApiService>;
 
   beforeEach(async () => {
-    api = jasmine.createSpyObj('CustomerApiService', ['submitMobileMoneyPayment']);
+    api = jasmine.createSpyObj('CustomerApiService', ['submitMobileMoneyPayment', 'getMobileMoneyRecipients']);
     api.submitMobileMoneyPayment.and.returnValue(of({ id: '1' } as any));
+    api.getMobileMoneyRecipients.and.returnValue(of({
+      collector: 'COM001',
+      collectorName: 'Jean Commercial',
+      mixxNumber: '90123456',
+      moovNumber: '97654321',
+      mixxUsesGlobalDefault: false,
+      moovUsesGlobalDefault: true,
+    }));
 
     await TestBed.configureTestingModule({
       imports: [PaymentPage, ReactiveFormsModule, IonicModule.forRoot(), RouterTestingModule],
@@ -37,6 +45,13 @@ describe('PaymentPage', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.expectedAmount).toBe(35000);
     expect(fixture.componentInstance.form.value.mobileMoneyAmount).toBe(35000);
+  });
+
+  it('loads mobile money recipient numbers', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(api.getMobileMoneyRecipients).toHaveBeenCalledWith('101');
+    expect(fixture.componentInstance.recipients?.mixxNumber).toBe('90123456');
   });
 
   it('submits mobile money payment', async () => {

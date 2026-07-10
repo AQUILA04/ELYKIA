@@ -51,6 +51,7 @@ import { CreateTontineComponent } from "./credit/components/create-tontine/creat
 import { AuthGuard } from "./auth/guards/auth.guard";
 import { AiChatGuard } from './ai-chat/guards/ai-chat.guard';
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
+import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
 import { CreditLateComponent } from './credit/credit-late/credit-late.component';
 import { CreditEcheanceComponent } from './credit/credit-echeance/credit-echeance.component';
 import { RecouvrementComponent } from './credit/recouvrement/recouvrement.component';
@@ -502,6 +503,11 @@ const routes: Routes = [
   {
     path: 'parameters',
     component: ParameterListComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'configuration/mobile-money',
+    component: MobileMoneyConfigListComponent,
     canActivate: [AuthGuard]
   }
 ];

@@ -10,6 +10,34 @@
       <ion-icon name="information-circle-outline"></ion-icon>
       <p>Mise #{{ installmentNumber }} — montant attendu : {{ expectedAmount | number:'1.0-0' }} FCFA</p>
     </div>
+
+    <div class="recipients-card" *ngIf="recipientsLoading" data-testid="e2e-payment-recipients-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>Chargement des numéros de paiement…</span>
+    </div>
+
+    <div class="info-box warning" *ngIf="!recipientsLoading && recipientsError">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ recipientsError }}</p>
+    </div>
+
+    <div class="recipients-card" *ngIf="!recipientsLoading && hasRecipientNumbers()" data-testid="e2e-payment-recipients">
+      <h3>Effectuez votre transfert vers :</h3>
+      <p class="collector-line" *ngIf="recipients?.collectorName || recipients?.collector">
+        Commercial : <strong>{{ recipients?.collectorName || recipients?.collector }}</strong>
+      </p>
+      <div class="recipient-row" *ngIf="recipients?.mixxNumber" data-testid="e2e-payment-mixx-number">
+        <span class="recipient-label">Mixx by YAS</span>
+        <span class="recipient-number">{{ recipients?.mixxNumber }}</span>
+        <span class="recipient-hint" *ngIf="recipients?.mixxUsesGlobalDefault">(numéro société)</span>
+      </div>
+      <div class="recipient-row" *ngIf="recipients?.moovNumber" data-testid="e2e-payment-moov-number">
+        <span class="recipient-label">Moov Money</span>
+        <span class="recipient-number">{{ recipients?.moovNumber }}</span>
+        <span class="recipient-hint" *ngIf="recipients?.moovUsesGlobalDefault">(numéro société)</span>
+      </div>
+    </div>
+
     <div class="info-box">
       <ion-icon name="information-circle-outline"></ion-icon>
       <p>Effectuez d'abord votre transfert Mobile Money, puis renseignez les informations ci-dessous.</p>

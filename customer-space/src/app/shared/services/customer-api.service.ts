@@ -14,6 +14,7 @@ import {
   CustomerPurchase,
   CustomerRecovery,
   MobileMoneyPaymentRequest,
+  MobileMoneyRecipient,
   CustomerArticle,
   CustomerArticleType,
   OrderRequest,
@@ -68,6 +69,10 @@ export class CustomerApiService {
 
   getRecoveries(distributionId: string): Observable<CustomerRecovery[]> {
     return this.http.get<CustomerRecovery[]>(`${this.base}/purchases/${distributionId}/recoveries`);
+  }
+
+  getMobileMoneyRecipients(distributionId: string): Observable<MobileMoneyRecipient> {
+    return this.http.get<MobileMoneyRecipient>(`${this.base}/purchases/${distributionId}/mobile-money-recipients`);
   }
 
   submitMobileMoneyPayment(payload: MobileMoneyPaymentRequest): Observable<CustomerRecovery> {

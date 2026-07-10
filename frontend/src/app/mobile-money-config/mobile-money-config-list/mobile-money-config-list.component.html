@@ -1,0 +1,106 @@
+<div class="main-container mobile-money-page a1">
+
+  <div class="breadcrumb-bar">
+    <a routerLink="/home" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Tableau de bord
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">CONFIGURATION</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          <rect x="2" y="5" width="20" height="14" rx="2"/>
+          <path d="M2 10h20"/>
+        </svg>
+        <h1 class="page-title">Mobile Money</h1>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn-refresh" (click)="refresh()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+    </div>
+    <p class="page-subtitle">
+      Numéros Mixx by YAS et Moov Money par commercial pour les paiements manuels de l'Espace Client.
+      Les champs vides utilisent la configuration globale de la société (<code>application.yml</code>).
+    </p>
+  </div>
+
+  <div class="global-defaults a3" *ngIf="page">
+    <div class="global-card">
+      <div class="global-label">Mixx by YAS (global)</div>
+      <div class="global-value">{{ page.globalMixxNumber || '—' }}</div>
+    </div>
+    <div class="global-card">
+      <div class="global-label">Moov Money (global)</div>
+      <div class="global-value">{{ page.globalMoovNumber || '—' }}</div>
+    </div>
+  </div>
+
+  <div class="kpi-strip a4">
+    <div class="kpi-card kpi-p0">
+      <div class="kpi-label">Commerciaux</div>
+      <div class="kpi-value">{{ rows.length }}</div>
+      <div class="kpi-sub">configurables</div>
+    </div>
+    <div class="kpi-card kpi-p1">
+      <div class="kpi-label">Config. spécifique</div>
+      <div class="kpi-value">{{ customConfigCount }}</div>
+      <div class="kpi-sub">numéros personnalisés</div>
+    </div>
+  </div>
+
+  <div class="table-card a5">
+    <table>
+      <thead>
+        <tr>
+          <th>Commercial</th>
+          <th>Mixx by YAS</th>
+          <th>Moov Money</th>
+          <th>Effectif</th>
+          <th style="width:120px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="isLoading">
+          <td colspan="5" class="empty-cell">Chargement…</td>
+        </tr>
+        <tr *ngIf="!isLoading && rows.length === 0">
+          <td colspan="5" class="empty-cell">Aucun commercial trouvé.</td>
+        </tr>
+        <tr *ngFor="let row of rows">
+          <td>
+            <div class="commercial-name">{{ row.commercialFullName }}</div>
+            <div class="commercial-meta">{{ row.commercialUsername }} · {{ row.commercialPhone || '—' }}</div>
+          </td>
+          <td>
+            <input class="field-input" [(ngModel)]="row.draftMixxNumber" placeholder="Numéro Mixx" />
+          </td>
+          <td>
+            <input class="field-input" [(ngModel)]="row.draftMoovNumber" placeholder="Numéro Moov" />
+          </td>
+          <td class="effective-cell">
+            <div><span class="tag">Mixx</span> {{ row.effectiveMixxNumber || page?.globalMixxNumber || '—' }}</div>
+            <div><span class="tag">Moov</span> {{ row.effectiveMoovNumber || page?.globalMoovNumber || '—' }}</div>
+          </td>
+          <td>
+            <button type="button" class="btn-primary" (click)="saveRow(row)" [disabled]="row.saving">
+              {{ row.saving ? '…' : 'Enregistrer' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
