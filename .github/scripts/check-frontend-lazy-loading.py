@@ -28,7 +28,6 @@ EAGER_DOMAINS = frozenset({
     "dashboard-chart",
     "accounting-day",
     "credit",
-    "user",
     "cash-desk",
     "inventory",
     "gestion",

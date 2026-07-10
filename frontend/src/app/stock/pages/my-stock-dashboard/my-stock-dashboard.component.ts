@@ -12,6 +12,7 @@ import { SalesDetailsDialogComponent } from '../../components/sales-details-dial
 import { StockMovementDialogComponent } from '../../components/stock-movement-dialog/stock-movement-dialog.component';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-my-stock-dashboard',
@@ -209,11 +210,10 @@ export class MyStockDashboardComponent implements OnInit {
   }
 
   private getMonthRange(stock: CommercialMonthlyStock): { startDate: string; endDate: string } {
-    const year = stock.year;
-    const month = stock.month;
-    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-    const lastDay = new Date(year, month, 0).getDate();
-    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-    return { startDate, endDate };
+    const monthDate = moment().year(stock.year).month(stock.month - 1);
+    return {
+      startDate: monthDate.clone().startOf('month').format('YYYY-MM-DD'),
+      endDate: monthDate.clone().endOf('month').format('YYYY-MM-DD'),
+    };
   }
 }

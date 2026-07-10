@@ -9,6 +9,16 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.9.31] — 2026-07-10
+
+### Fixed
+
+- Mon stock : calcul de la plage mensuelle d'export PDF via `moment` (mois calendaire 1–12, aligné sur `stock-period.util`).
+
+### Changed
+
+- Règle lazy-loading : domaine `user` retiré de la liste eager (déjà migré : `user.module.ts`, routes `/user/...`).
+
 ## Frontend — [2.9.30] — 2026-07-10
 
 ### Added
