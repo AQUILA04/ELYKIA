@@ -108,6 +108,31 @@ ion-input {
   margin-bottom: 12px;
 }
 
+.unavailable {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(201, 146, 42, 0.1);
+  border: 1px solid rgba(201, 146, 42, 0.35);
+  border-radius: var(--elyk-radius-input);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  color: var(--elyk-navy-mid);
+}
+
+.unavailable ion-icon {
+  font-size: 20px;
+  color: var(--elyk-gold);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.unavailable p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 ion-button {
   margin-top: 8px;
   font-weight: 600;

@@ -7,4 +7,5 @@ export const environment = {
   appName: 'ELYKIA Espace Client',
   version: APP_VERSION,
   firebase: firebaseConfig,
+  remoteConfigEnabled: true,
 };

@@ -13,6 +13,8 @@ import {
 } from '../../shared/models/customer-auth.model';
 import { environment } from '../../../environments/environment';
 import { toUsername } from '../../shared/utils/phone-normalizer';
+import { FeatureFlagService } from '../../shared/services/feature-flag.service';
+import { APP_UNAVAILABLE_MESSAGE } from '../../shared/constants/app-availability';
 
 /** Page Connexion — wizard téléphone → PIN ou OTP+PIN. */
 @Component({
@@ -29,6 +31,8 @@ export class AuthPage implements ViewWillEnter {
   firebaseIdToken = '';
   isLoading = false;
   error = '';
+  appUnavailable = false;
+  readonly appUnavailableMessage = APP_UNAVAILABLE_MESSAGE;
   appVersion = environment.version;
 
   phoneForm: FormGroup;
@@ -41,6 +45,7 @@ export class AuthPage implements ViewWillEnter {
     private api: CustomerApiService,
     private session: CustomerSessionService,
     private firebaseAuth: FirebaseAuthService,
+    private featureFlags: FeatureFlagService,
     private router: Router,
   ) {
     this.phoneForm = this.fb.group({
@@ -70,6 +75,7 @@ export class AuthPage implements ViewWillEnter {
     this.maskedName = '';
     this.firebaseIdToken = '';
     this.error = '';
+    this.appUnavailable = false;
     this.isLoading = false;
     this.phoneForm.reset();
     this.pinForm.reset();
@@ -107,7 +113,14 @@ export class AuthPage implements ViewWillEnter {
     if (this.phoneForm.invalid) return;
     this.isLoading = true;
     this.error = '';
+    this.appUnavailable = false;
     try {
+      await this.featureFlags.refresh();
+      if (!this.featureFlags.isCustomerSpaceAvailable()) {
+        this.appUnavailable = true;
+        return;
+      }
+
       this.phone = toUsername(this.phoneForm.value.phone);
       const res = await firstValueFrom(this.api.checkPhone({ phone: this.phone }));
       if (!res.exists) {
@@ -219,6 +232,7 @@ export class AuthPage implements ViewWillEnter {
 
   goBack(): void {
     this.error = '';
+    this.appUnavailable = false;
     if (this.step === 'pin' || this.step === 'otp') {
       this.step = 'phone';
     } else if (this.step === 'setup-pin') {

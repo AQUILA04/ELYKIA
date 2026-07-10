@@ -150,6 +150,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Customer-space — [0.0.6] — 2026-07-08
 
+## Customer-space — [0.2.3] — 2026-07-11
+
+### Added
+
+- Feature flag Firebase Remote Config `customerSpaceAvailable` : vérification à la soumission du numéro sur la page de connexion ; si désactivé, message d'indisponibilité avec invitation à contacter l'agence Amenouveve-Yaveh.
+
 ## Customer-space — [0.2.2] — 2026-07-10
 
 ### Fixed

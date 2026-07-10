@@ -6,12 +6,15 @@ import { AuthPage } from './auth.page';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import { FirebaseAuthService } from '../../shared/services/firebase-auth.service';
+import { FeatureFlagService } from '../../shared/services/feature-flag.service';
+import { APP_UNAVAILABLE_MESSAGE } from '../../shared/constants/app-availability';
 import { IonicModule } from '@ionic/angular';
 
 describe('AuthPage', () => {
   let fixture: ComponentFixture<AuthPage>;
   let api: jasmine.SpyObj<CustomerApiService>;
   let router: jasmine.SpyObj<Router>;
+  let featureFlags: jasmine.SpyObj<FeatureFlagService>;
 
   beforeEach(async () => {
     api = jasmine.createSpyObj('CustomerApiService', ['checkPhone', 'login', 'setupPin']);
@@ -27,6 +30,10 @@ describe('AuthPage', () => {
     router = jasmine.createSpyObj('Router', ['navigate']);
     router.navigate.and.returnValue(Promise.resolve(true));
 
+    featureFlags = jasmine.createSpyObj('FeatureFlagService', ['refresh', 'isCustomerSpaceAvailable']);
+    featureFlags.refresh.and.returnValue(Promise.resolve());
+    featureFlags.isCustomerSpaceAvailable.and.returnValue(true);
+
     await TestBed.configureTestingModule({
       imports: [AuthPage, ReactiveFormsModule, IonicModule.forRoot()],
       providers: [
@@ -36,6 +43,7 @@ describe('AuthPage', () => {
           provide: FirebaseAuthService,
           useValue: jasmine.createSpyObj('FirebaseAuthService', ['isConfigured', 'sendOtp', 'verifyOtp']),
         },
+        { provide: FeatureFlagService, useValue: featureFlags },
         { provide: Router, useValue: router },
       ],
     }).compileComponents();
@@ -56,7 +64,19 @@ describe('AuthPage', () => {
   it('moves to pin step when phone is recognized', async () => {
     fixture.componentInstance.phoneForm.patchValue({ phone: '90123456' });
     await fixture.componentInstance.submitPhone();
+    expect(featureFlags.refresh).toHaveBeenCalled();
     expect(fixture.componentInstance.step).toBe('pin');
+  });
+
+  it('shows unavailable message when feature flag is disabled', async () => {
+    featureFlags.isCustomerSpaceAvailable.and.returnValue(false);
+    fixture.componentInstance.phoneForm.patchValue({ phone: '90123456' });
+    await fixture.componentInstance.submitPhone();
+
+    expect(api.checkPhone).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.appUnavailable).toBeTrue();
+    expect(fixture.componentInstance.appUnavailableMessage).toBe(APP_UNAVAILABLE_MESSAGE);
+    expect(fixture.componentInstance.step).toBe('phone');
   });
 
   it('starts OTP when phone exists without PIN', async () => {
