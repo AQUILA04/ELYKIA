@@ -18,6 +18,7 @@ public class CronManager {
     private final AccountingDayService accountingDayService;
 
     @Scheduled(cron = "0 0 8 * * *")
+    @SchedulerLock(name = "updatePromoterCreditStatus", lockAtLeastFor = "PT30S", lockAtMostFor = "PT15M")
     @Transactional
     public void updatePromoterCreditStatus() {
         long start = System.currentTimeMillis();

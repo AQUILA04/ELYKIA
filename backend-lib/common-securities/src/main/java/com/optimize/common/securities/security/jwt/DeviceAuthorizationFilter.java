@@ -32,6 +32,8 @@ public class DeviceAuthorizationFilter extends OncePerRequestFilter {
         return path.startsWith("/api/auth/")
                 || path.startsWith("/actuator/")
                 || path.startsWith("/api/customer/auth/")
+                || path.startsWith("/api/v1/customer/app/release/")
+                || path.startsWith("/api/v1/mobile/app/release/")
                 || path.startsWith("/api/licences/")
                 || path.startsWith("/swagger")
                 || path.startsWith("/v3/api-docs")

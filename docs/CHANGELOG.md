@@ -127,6 +127,9 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Distribution mobile (`applyMobileFinancialTerms`) : à la création, `totalAmountPaid` est initialisé uniquement à partir de l'avance ; les montants payés/restant envoyés par le mobile (recouvrements locaux non encore synchronisés) ne sont plus recopiés, afin que les `CreditTimeline` puissent se synchroniser correctement.
+- `BiScheduler` : suppression de l'import `Slf4j` dupliqué.
+- `CronManager.updatePromoterCreditStatus` : ajout de `@SchedulerLock` pour éviter l'exécution concurrente en environnement distribué.
+- `WebSecurityConfig` : endpoints publics explicites pour les mises à jour APK espace client et mobile (`/api/v1/customer/app/release/**`, `/api/v1/mobile/app/release/**`).
 
 ## Backend — [1.2.7] — 2026-07-11
 
