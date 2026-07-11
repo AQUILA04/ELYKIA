@@ -155,27 +155,13 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
     }
 
     this.clientsLoading = true;
-    const request$ = this.commercial
-      ? this.clientService.getClientByCommercial(
-        this.commercial,
-        this.clientsPage,
-        this.pageSize,
-        'firstname,asc',
-        this.clientsSearchTerm
-      )
-      : this.clientService.getClients(
-        this.clientsPage,
-        this.pageSize,
-        'firstname,asc',
-        this.username,
-        this.clientsSearchTerm,
-        this.tontine
-      );
+    const request$ = this.buildClientsRequest();
 
     this.loadClientsSub?.unsubscribe();
     this.loadClientsSub = request$.subscribe({
       next: (response: any) => {
-        let newItems: Client[] = response.data?.content || [];
+        const data = response.data;
+        let newItems: Client[] = data?.content || [];
         if (this.clientTypeFilter) {
           newItems = newItems.filter(client => client.clientType === this.clientTypeFilter);
         }
@@ -185,13 +171,54 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
           ...this.clients,
           ...newItems.filter(client => !existingIds.has(client.id))
         ];
-        this.clientsTotalPages = response.data?.totalPages ?? 0;
+        this.clientsTotalPages = this.resolveTotalPages(data);
         this.clientsLoading = false;
       },
       error: () => {
         this.clientsLoading = false;
       }
     });
+  }
+
+  private buildClientsRequest() {
+    const search = this.clientsSearchTerm.trim();
+    const commercialUsername = this.commercial ?? this.username ?? '';
+
+    if (search) {
+      return this.clientService.getClients(
+        this.clientsPage,
+        this.pageSize,
+        'firstname,asc',
+        commercialUsername,
+        search,
+        this.tontine
+      );
+    }
+
+    if (this.commercial) {
+      return this.clientService.getClientByCommercial(
+        this.commercial,
+        this.clientsPage,
+        this.pageSize,
+        'firstname,asc'
+      );
+    }
+
+    return this.clientService.getClients(
+      this.clientsPage,
+      this.pageSize,
+      'firstname,asc',
+      this.username,
+      '',
+      this.tontine
+    );
+  }
+
+  private resolveTotalPages(data: any): number {
+    const totalElements = data?.page?.totalElements ?? data?.totalElements ?? 0;
+    return data?.page?.totalPages
+      ?? data?.totalPages
+      ?? (totalElements > 0 ? Math.ceil(totalElements / this.pageSize) : 0);
   }
 
   private ensureClientLoaded(clientId: number): void {

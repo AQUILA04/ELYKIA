@@ -50,7 +50,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
   get clientSelectCommercial(): string | null {
     if (this.saleType === 'CREDIT') {
-      return this.creditForm.get('commercial')?.value || null;
+      return this.creditForm.getRawValue().commercial || null;
     }
     if (this.isPromoter) {
       return this.currentUser?.username || null;

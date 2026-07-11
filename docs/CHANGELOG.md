@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.10.3] — 2026-07-12
+
+### Fixed
+
+- Sélection client (`app-client-select`) : correction du scroll infini (lecture de `data.page.totalPages`) et de la recherche backend lorsqu'un commercial est sélectionné (endpoint Elasticsearch avec filtre commercial).
+- Formulaire **Nouvelle vente** : le commercial désactivé (agent) est bien transmis au sélecteur client via `getRawValue()`.
+
 ## Frontend — [2.10.2] — 2026-07-11
 
 ### Changed
