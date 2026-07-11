@@ -107,7 +107,7 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
     }
 
     private LocalDate doEnsureCurrentAccountingDay() {
-        Optional<AccountingDay> openedDay = getRepository().findByStatus(AccountingDayStatus.OPENED);
+        Optional<AccountingDay> openedDay = accountingDayStepExecutor.findOpenedAccountingDay();
         if (openedDay.isEmpty()) {
             return doOpenAccountingDay().getAccountingDate();
         }
@@ -121,7 +121,7 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
 
     private AccountingDay doOpenAccountingDay() {
         long start = System.currentTimeMillis();
-        Optional<AccountingDay> openedDay = getRepository().findByStatus(AccountingDayStatus.OPENED);
+        Optional<AccountingDay> openedDay = accountingDayStepExecutor.findOpenedAccountingDay();
         if (openedDay.isPresent()) {
             AccountingDay existing = openedDay.get();
             if (!existing.getAccountingDate().isBefore(LocalDate.now())) {
@@ -140,7 +140,7 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
 
     private AccountingDay doCloseAccountingDay() {
         long start = System.currentTimeMillis();
-        AccountingDay accountingDay = getRepository().findByStatus(AccountingDayStatus.OPENED)
+        AccountingDay accountingDay = accountingDayStepExecutor.findOpenedAccountingDay()
                 .orElseThrow(() -> new ResourceNotFoundException("Journée comptable introuvable !"));
         LocalDate accountingDate = accountingDay.getAccountingDate();
         Long accountingDayId = accountingDay.getId();
@@ -148,7 +148,7 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
         accountingDayStepExecutor.closeDailyAccountingRecord(accountingDate);
         accountingDayStepExecutor.finalizeClosedAccountingDay(accountingDayId);
         log.info("Journée comptable {} fermée en {} ms", accountingDate, System.currentTimeMillis() - start);
-        return getRepository().findById(accountingDayId).orElse(accountingDay);
+        return accountingDayStepExecutor.findAccountingDayById(accountingDayId).orElse(accountingDay);
     }
 
     private void closeOpenCashDesksForDate(LocalDate accountingDate) {
@@ -187,7 +187,7 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
     private LocalDate resolveNextAvailableAccountingDate(LocalDate startDate) {
         LocalDate candidate = startDate;
         for (int day = 0; day < MAX_ACCOUNTING_DATE_LOOKUP_DAYS; day++) {
-            if (!getRepository().existsByStatusAndAccountingDate(AccountingDayStatus.CLOSED, candidate)) {
+            if (!accountingDayStepExecutor.existsClosedAccountingDayForDate(candidate)) {
                 return candidate;
             }
             candidate = candidate.plusDays(1);

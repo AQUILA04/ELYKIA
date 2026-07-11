@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Étapes d'écriture de la bascule comptable, chacune dans sa propre transaction
@@ -29,6 +30,31 @@ public class AccountingDayStepExecutor {
     private final DailyAccountingService dailyAccountingService;
     private final DailyAccountancyService dailyAccountancyService;
     private final CreditRepository creditRepository;
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public Optional<AccountingDay> findOpenedAccountingDay() {
+        return accountingDayRepository.findByStatus(AccountingDayStatus.OPENED);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public boolean existsClosedAccountingDayForDate(LocalDate accountingDate) {
+        return accountingDayRepository.existsByStatusAndAccountingDate(AccountingDayStatus.CLOSED, accountingDate);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public Optional<AccountingDay> findAccountingDayById(Long accountingDayId) {
+        return accountingDayRepository.findById(accountingDayId);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public List<DailyAccountancy> findOpenCashDesks() {
+        return dailyAccountancyService.getOpenCashDesks();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public boolean hasOpenCashDesks() {
+        return dailyAccountancyService.isExistsOpenedCashDesk();
+    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void closeOpenCashDesk(CloseCollectorOperationDto dto, LocalDate accountingDate) {
@@ -59,13 +85,5 @@ public class AccountingDayStepExecutor {
                 .orElseThrow();
         accountingDay.close();
         accountingDayRepository.save(accountingDay);
-    }
-
-    public List<DailyAccountancy> findOpenCashDesks() {
-        return dailyAccountancyService.getOpenCashDesks();
-    }
-
-    public boolean hasOpenCashDesks() {
-        return dailyAccountancyService.isExistsOpenedCashDesk();
     }
 }
