@@ -6,7 +6,10 @@ import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
+
+import jakarta.persistence.QueryHint;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,12 +31,15 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
                 .mapToDouble(CreditTimeline::getAmount).sum();
     }
 
+    @QueryHints(@QueryHint(name = "org.hibernate.flushMode", value = "COMMIT"))
     @Query(value = "select sum(amount) from credit_timeline ct join daily_accountancy da on ct.daily_accountancy_id=da.id where ct.collector = :collector and cast(da.accounting_date as date) >= cast(:dateFrom as date) and cast(da.accounting_date as date) <= cast(:dateTo as date)", nativeQuery = true)
     Double sumAmountByCollectorAndDate(@Param(value = "collector") String collector, @Param(value = "dateFrom") LocalDateTime dateFrom, @Param(value = "dateTo") LocalDateTime dateTo);
 
+    @QueryHints(@QueryHint(name = "org.hibernate.flushMode", value = "COMMIT"))
     @Query(value = "select sum(ct.amount) from credit_timeline ct join daily_accountancy da on ct.daily_accountancy_id=da.id where  cast(da.accounting_date as date) >= cast(:dateFrom as date) and cast(da.accounting_date as date) <= cast(:dateTo as date)", nativeQuery = true)
     Double sumAmountByDate( @Param(value = "dateFrom") LocalDateTime dateFrom, @Param(value = "dateTo") LocalDateTime dateTo);
 
+    @QueryHints(@QueryHint(name = "org.hibernate.flushMode", value = "COMMIT"))
     @Query(value = "select sum(ct.amount) from credit_timeline ct join credit c on ct.credit_id = c.id join daily_accountancy da on ct.daily_accountancy_id=da.id where cast(da.date_reg as date) >= cast(:dateFrom as date) and cast(da.date_reg as date) <= cast(:dateTo as date) and c.type = :type", nativeQuery = true)
     Double sumAmountByDateAndCreditType(@Param(value = "dateFrom") LocalDateTime dateFrom, @Param(value = "dateTo") LocalDateTime dateTo, @Param("type") String type);
 

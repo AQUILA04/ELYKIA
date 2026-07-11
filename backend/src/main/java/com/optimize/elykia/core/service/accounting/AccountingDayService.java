@@ -9,22 +9,25 @@ import com.optimize.elykia.core.entity.accounting.DailyAccountancy;
 import com.optimize.elykia.core.entity.accounting.DailyAccounting;
 import com.optimize.elykia.core.enumaration.AccountingDayStatus;
 import com.optimize.elykia.core.repository.AccountingDayRepository;
-import com.optimize.elykia.core.repository.CreditRepository;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
 @Getter
+@Slf4j
 public class AccountingDayService extends GenericService<AccountingDay, Long> {
 
     private static final int MAX_ACCOUNTING_DATE_LOOKUP_DAYS = 366;
@@ -32,14 +35,14 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
     private final Object accountingDayLock = new Object();
 
     private final DailyAccountingService dailyAccountingService;
-    private final CreditRepository creditRepository;
+    private final AccountingDayStepExecutor accountingDayStepExecutor;
 
     protected AccountingDayService(AccountingDayRepository repository,
                                    DailyAccountingService dailyAccountingService,
-                                   CreditRepository creditRepository) {
+                                   AccountingDayStepExecutor accountingDayStepExecutor) {
         super(repository);
         this.dailyAccountingService = dailyAccountingService;
-        this.creditRepository = creditRepository;
+        this.accountingDayStepExecutor = accountingDayStepExecutor;
     }
 
     @Transactional
@@ -84,7 +87,7 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
      * ou en ouvre une si aucune n'est ouverte. À appeler explicitement (endpoint /current, cron)
      * et non sur chaque lecture métier.
      */
-    @Transactional
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public LocalDate ensureCurrentAccountingDay() {
         synchronized (accountingDayLock) {
             return doEnsureCurrentAccountingDay();
@@ -117,6 +120,7 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
     }
 
     private AccountingDay doOpenAccountingDay() {
+        long start = System.currentTimeMillis();
         Optional<AccountingDay> openedDay = getRepository().findByStatus(AccountingDayStatus.OPENED);
         if (openedDay.isPresent()) {
             AccountingDay existing = openedDay.get();
@@ -126,40 +130,56 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
             doCloseAccountingDay();
         }
 
-        AccountingDay accountingDay = new AccountingDay();
-        accountingDay.setAccountingDate(resolveNextAvailableAccountingDate(LocalDate.now()));
+        LocalDate nextDate = resolveNextAvailableAccountingDate(LocalDate.now());
+        closeStaleOpenCashDesks();
 
-        if (this.dailyAccountingService.getDailyAccountancyService().isExistsOpenedCashDesk()) {
-            this.dailyAccountingService.getDailyAccountancyService().getOpenCashDesks().forEach(dailyAccountancy -> {
-                CloseCollectorOperationDto dto = new CloseCollectorOperationDto();
-                dto.setCollector(dailyAccountancy.getCollector());
-                dto.setRealTotalAmount(dailyAccountancy.getRealBalance());
-                dailyAccountingService.closeCollectorOperation(dto, dailyAccountancy.getAccountingDate());
-                dailyAccountingService.closeDailyAccounting(dailyAccountancy.getAccountingDate());
-            });
-        }
-        create(accountingDay);
-        dailyAccountingService.initDailyAccounting(accountingDay.getAccountingDate());
-        creditRepository.updateDailyPaidForCredit();
+        AccountingDay accountingDay = accountingDayStepExecutor.createAndOpenAccountingDay(nextDate);
+        log.info("Journée comptable {} ouverte en {} ms", nextDate, System.currentTimeMillis() - start);
         return accountingDay;
     }
 
     private AccountingDay doCloseAccountingDay() {
+        long start = System.currentTimeMillis();
         final LocalDate accountingDate = getByStatus(AccountingDayStatus.OPENED).getAccountingDate();
-        if (this.dailyAccountingService.getDailyAccountancyService().isExistsOpenedCashDesk()) {
-            this.dailyAccountingService.getDailyAccountancyService().getOpenCashDesks().forEach(dailyAccountancy -> {
-                CloseCollectorOperationDto dto = new CloseCollectorOperationDto();
-                dto.setCollector(dailyAccountancy.getCollector());
-                dto.setRealTotalAmount(dailyAccountancy.getRealBalance());
-                dailyAccountingService.closeCollectorOperation(dto, accountingDate);
-            });
-        }
+        closeOpenCashDesksForDate(accountingDate);
+        accountingDayStepExecutor.closeDailyAccountingRecord(accountingDate);
         AccountingDay accountingDay = getByStatus(AccountingDayStatus.OPENED);
-
-        dailyAccountingService.closeDailyAccounting(accountingDate);
-        accountingDay.close();
-        update(accountingDay);
+        accountingDayStepExecutor.finalizeClosedAccountingDay(accountingDay.getId());
+        log.info("Journée comptable {} fermée en {} ms", accountingDate, System.currentTimeMillis() - start);
         return accountingDay;
+    }
+
+    private void closeOpenCashDesksForDate(LocalDate accountingDate) {
+        if (!accountingDayStepExecutor.hasOpenCashDesks()) {
+            return;
+        }
+        List<DailyAccountancy> openDesks = accountingDayStepExecutor.findOpenCashDesks();
+        log.info("Fermeture de {} caisse(s) ouverte(s) pour la date {}", openDesks.size(), accountingDate);
+        for (DailyAccountancy dailyAccountancy : openDesks) {
+            CloseCollectorOperationDto dto = new CloseCollectorOperationDto();
+            dto.setCollector(dailyAccountancy.getCollector());
+            dto.setRealTotalAmount(dailyAccountancy.getRealBalance());
+            accountingDayStepExecutor.closeOpenCashDesk(dto, accountingDate);
+        }
+    }
+
+    /** Ferme les caisses restées ouvertes avant l'ouverture d'une nouvelle journée. */
+    private void closeStaleOpenCashDesks() {
+        if (!accountingDayStepExecutor.hasOpenCashDesks()) {
+            return;
+        }
+        List<DailyAccountancy> openDesks = accountingDayStepExecutor.findOpenCashDesks();
+        log.info("Nettoyage de {} caisse(s) ouverte(s) avant ouverture journée", openDesks.size());
+        for (DailyAccountancy dailyAccountancy : openDesks) {
+            CloseCollectorOperationDto dto = new CloseCollectorOperationDto();
+            dto.setCollector(dailyAccountancy.getCollector());
+            dto.setRealTotalAmount(dailyAccountancy.getRealBalance());
+            LocalDate deskDate = dailyAccountancy.getAccountingDate() != null
+                    ? dailyAccountancy.getAccountingDate()
+                    : LocalDate.now();
+            accountingDayStepExecutor.closeOpenCashDesk(dto, deskDate);
+            accountingDayStepExecutor.closeDailyAccountingRecord(deskDate);
+        }
     }
 
     private LocalDate resolveNextAvailableAccountingDate(LocalDate startDate) {

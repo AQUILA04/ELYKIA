@@ -21,6 +21,8 @@ import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,6 +57,7 @@ import com.optimize.elykia.core.dto.stock.StockRequestListDto;
 
 @Service
 @Transactional
+@Slf4j
 public class StockRequestService extends GenericService<StockRequest, Long> {
 
     private final ArticlesService articlesService;
@@ -477,18 +480,18 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         repository.save(request);
     }
 
+    /** Minuit GMT+4 — annulation automatique des demandes stock obsolètes (> 30 jours). */
     @Scheduled(cron = "0 0 0 * * ?")
+    @SchedulerLock(name = "autoCancelOldStockRequests", lockAtLeastFor = "PT30S", lockAtMostFor = "PT15M")
     public void autoCancelOldRequests() {
+        long start = System.currentTimeMillis();
         LocalDate thresholdDate = LocalDate.now().minusDays(30);
-        List<StockRequest> oldRequests = ((StockRequestRepository) repository).findByStatusAndRequestDateBefore(StockRequestStatus.CREATED, thresholdDate);
-        
-        for (StockRequest request : oldRequests) {
-            request.setStatus(StockRequestStatus.CANCELLED);
-            repository.save(request);
-            if (metricsPublisher != null) {
-                metricsPublisher.stockRequestAutoCancelled();
-            }
+        int cancelled = ((StockRequestRepository) repository).bulkUpdateStatusBeforeDate(
+                StockRequestStatus.CREATED, StockRequestStatus.CANCELLED, thresholdDate);
+        if (cancelled > 0 && metricsPublisher != null) {
+            metricsPublisher.stockRequestAutoCancelled();
         }
+        log.info("autoCancelOldRequests: {} demande(s) annulée(s) en {} ms", cancelled, System.currentTimeMillis() - start);
     }
 
     private void updateCommercialMonthlyStock(StockRequest request) {

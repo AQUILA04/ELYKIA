@@ -30,6 +30,7 @@ export class SidebarComponent implements OnInit {
   activeRoute: string = '';
   showMonthlyReports = false;
   showElykiaAi = false;
+  showRecruitment = false;
 
   isRouteActive(route: string): boolean {
     // Gestion spécifique pour le menu Caisse et ses sous-menus
@@ -76,6 +77,10 @@ export class SidebarComponent implements OnInit {
     // Gestion pour le menu Articles
     if (route === '/article') {
       return this.activeRoute.startsWith('/article') && !this.activeRoute.startsWith('/article-type');
+    }
+
+    if (route === '/recruitment') {
+      return this.activeRoute.startsWith('/recruitment');
     }
 
     // Pour toutes les autres routes, utiliser une correspondance exacte ou avec un slash
@@ -265,6 +270,7 @@ export class SidebarComponent implements OnInit {
 
     this.featureFlagService.flags$.subscribe(flags => {
       this.showMonthlyReports = flags[FeatureFlags.MonthlyReports] ?? false;
+      this.showRecruitment = flags[FeatureFlags.Recruitment] ?? false;
       this.refreshElykiaAiVisibility();
     });
     this.refreshElykiaAiVisibility();

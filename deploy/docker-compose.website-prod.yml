@@ -6,6 +6,8 @@ services:
   website:
     image: ${WEBSITE_IMAGE}
     restart: unless-stopped
+    environment:
+      ELYKIA_API_BASE: ${ELYKIA_API_BASE:-https://elykia.amenouveve-yaveh.com/api}
     networks:
       - traefik-public
     labels:

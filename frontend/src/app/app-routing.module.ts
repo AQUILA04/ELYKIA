@@ -509,6 +509,18 @@ const routes: Routes = [
     path: 'configuration/mobile-money',
     component: MobileMoneyConfigListComponent,
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'recruitment',
+    loadChildren: () => import('./recruitment/recruitment.module').then(m => m.RecruitmentModule),
+    canActivate: [AuthGuard, NgxPermissionsGuard, FeatureFlagGuard],
+    data: {
+      featureFlag: FeatureFlags.Recruitment,
+      permissions: {
+        only: ['ROLE_ADMIN', 'ROLE_RECRUITMENT'],
+        redirectTo: '/home'
+      }
+    }
   }
 ];
 

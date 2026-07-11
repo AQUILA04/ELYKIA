@@ -22,4 +22,6 @@ public class MinioProperties {
     private String mobileReleaseChannel = "prod";
     /** Canal de release espace client (ex. test, prod). */
     private String customerSpaceReleaseChannel = "prod";
+    /** Bucket recrutement (offres + CV). */
+    private String recruitmentBucket = "elykia-recruitment";
 }

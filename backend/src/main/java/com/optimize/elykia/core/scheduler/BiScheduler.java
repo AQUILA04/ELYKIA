@@ -4,6 +4,8 @@ import com.optimize.elykia.core.service.commercial.CommercialPerformanceService;
 import com.optimize.elykia.core.service.bi.DailyBusinessSnapshotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,18 +22,17 @@ public class BiScheduler {
     private final DailyBusinessSnapshotService snapshotService;
     private final CommercialPerformanceService performanceService;
     
-    /**
-     * Génère le snapshot quotidien tous les jours à 1h du matin
-     */
     @Scheduled(cron = "0 0 1 * * *")
+    @SchedulerLock(name = "generateDailySnapshot", lockAtLeastFor = "PT2M", lockAtMostFor = "PT1H")
     public void generateDailySnapshot() {
+        long start = System.currentTimeMillis();
         try {
             log.info("Génération du snapshot quotidien...");
             LocalDate yesterday = LocalDate.now().minusDays(1);
             snapshotService.generateSnapshot(yesterday);
-            log.info("Snapshot quotidien généré avec succès pour {}", yesterday);
+            log.info("Snapshot quotidien généré avec succès pour {} en {} ms", yesterday, System.currentTimeMillis() - start);
         } catch (Exception e) {
-            log.error("Erreur lors de la génération du snapshot quotidien", e);
+            log.error("Erreur lors de la génération du snapshot quotidien après {} ms", System.currentTimeMillis() - start, e);
         }
     }
     

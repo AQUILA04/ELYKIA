@@ -4,6 +4,7 @@ import com.optimize.common.securities.config.DefaultSecurityAuditorAware;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -18,8 +19,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Slf4j
 @SpringBootApplication(scanBasePackages = "com.optimize" )
+@EntityScan(basePackages = {"com.optimize.elykia", "com.optimize.common.securities"})
 @EnableJpaRepositories(basePackages = {"com.optimize.elykia", "com.optimize.common.securities"},repositoryFactoryBeanClass = EnversRevisionRepositoryFactoryBean.class)
-@ConfigurationPropertiesScan({"com.optimize.elykia.core.config", "com.optimize.elykia.core.ai.config"})
+@ConfigurationPropertiesScan({"com.optimize.elykia.core.config", "com.optimize.elykia.core.ai.config", "com.optimize.elykia.recruitment"})
 @EnableJpaAuditing(auditorAwareRef = "auditorProvider")
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 @EnableScheduling

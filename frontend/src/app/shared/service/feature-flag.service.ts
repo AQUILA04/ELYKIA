@@ -21,6 +21,7 @@ export enum FeatureFlags {
   MobileDeviceManagement = 'mobileDeviceManagement',
   DashboardV2 = 'dashboardV2',
   EditStockRequest = 'editStockRequest',
+  Recruitment = 'recruitment',
 }
 
 const REMOTE_CONFIG_FETCH_TIMEOUT_MS = 10_000;
@@ -42,6 +43,7 @@ export class FeatureFlagService {
     [FeatureFlags.MobileDeviceManagement]: false,
     [FeatureFlags.DashboardV2]: false,
     [FeatureFlags.EditStockRequest]: false,
+    [FeatureFlags.Recruitment]: false,
   };
 
   private flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);

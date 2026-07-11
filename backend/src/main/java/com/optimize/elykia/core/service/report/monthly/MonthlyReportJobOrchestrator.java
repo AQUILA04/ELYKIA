@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -73,8 +74,15 @@ public class MonthlyReportJobOrchestrator {
             }
         } finally {
             pool.shutdown();
-            while (!pool.isTerminated()) {
-                Thread.yield();
+            try {
+                if (!pool.awaitTermination(2, TimeUnit.HOURS)) {
+                    log.warn("Timeout génération rapports commerciaux — arrêt forcé du pool");
+                    pool.shutdownNow();
+                    pool.awaitTermination(5, TimeUnit.MINUTES);
+                }
+            } catch (InterruptedException e) {
+                pool.shutdownNow();
+                Thread.currentThread().interrupt();
             }
         }
     }

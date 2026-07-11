@@ -1,0 +1,63 @@
+<div class="main-container recruitment-page a1" *ngIf="application">
+  <div class="breadcrumb-bar">
+    <a routerLink="/recruitment/applications" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Candidatures
+    </a>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">RESSOURCES HUMAINES</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        <h1 class="page-title">{{ application.firstName }} {{ application.lastName }}</h1>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn-secondary" (click)="back()">Retour</button>
+        <button type="button" class="btn-primary" (click)="downloadCv()">Télécharger le CV</button>
+      </div>
+    </div>
+    <p class="page-subtitle">Candidature pour l'offre « {{ application.jobOfferTitle }} »</p>
+  </div>
+
+  <div class="detail-card a3">
+    <div class="detail-grid">
+      <div class="detail-item">
+        <label>Offre</label>
+        <span>{{ application.jobOfferTitle }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Téléphone</label>
+        <span>{{ application.phone }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Email</label>
+        <span>{{ application.email || '—' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Date de naissance</label>
+        <span>{{ application.birthDate | date:'longDate' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Sexe</label>
+        <span>{{ genderLabel(application.gender) }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Localité</label>
+        <span>{{ application.locality }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Soumis le</label>
+        <span>{{ application.submittedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+    </div>
+  </div>
+</div>

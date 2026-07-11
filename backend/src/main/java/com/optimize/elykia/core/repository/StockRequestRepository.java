@@ -5,6 +5,7 @@ import com.optimize.elykia.core.entity.stock.StockRequest;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -23,6 +24,13 @@ public interface StockRequestRepository extends GenericRepository<StockRequest, 
     Page<StockRequest> findByStatusInOrderByIdDesc(List<StockRequestStatus> statuses, Pageable pageable);
 
     List<StockRequest> findByStatusAndRequestDateBefore(StockRequestStatus status, LocalDate date);
+
+    @Modifying
+    @Query("UPDATE StockRequest s SET s.status = :newStatus WHERE s.status = :oldStatus AND s.requestDate < :threshold")
+    int bulkUpdateStatusBeforeDate(
+            @Param("oldStatus") StockRequestStatus oldStatus,
+            @Param("newStatus") StockRequestStatus newStatus,
+            @Param("threshold") LocalDate threshold);
 
     @Query("SELECT MAX(s.id) FROM StockRequest s")
     Long findMaxId();

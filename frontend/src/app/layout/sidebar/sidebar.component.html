@@ -373,6 +373,16 @@
           </li>
         </ng-container>
 
+        <ng-container *ngIf="showRecruitment">
+          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ADMIN', 'ROLE_RECRUITMENT']">
+            <a class="sidebar-link" routerLink="/recruitment/offers"
+               [ngClass]="{ 'active': isRouteActive('/recruitment') }">
+              <span><mat-icon>work</mat-icon></span>
+              <span class="hide-menu">Recrutement</span>
+            </a>
+          </li>
+        </ng-container>
+
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER','ROLE_REPORT']">
           <a class="sidebar-link" routerLink="/inventory" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/inventory') }">

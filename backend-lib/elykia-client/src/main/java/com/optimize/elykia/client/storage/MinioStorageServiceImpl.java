@@ -32,6 +32,8 @@ public class MinioStorageServiceImpl implements MinioStorageService {
         initBucketIfMissing(minioProperties.getBucket());
         initBucketIfMissing(minioProperties.getReportsBucket());
         initBucketIfMissing(minioProperties.getMobileReleasesBucket());
+        initBucketIfMissing(minioProperties.getCustomerSpaceReleasesBucket());
+        initBucketIfMissing(minioProperties.getRecruitmentBucket());
     }
 
     @Override

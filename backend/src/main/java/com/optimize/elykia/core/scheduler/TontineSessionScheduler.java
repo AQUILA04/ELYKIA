@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,10 +31,12 @@ public class TontineSessionScheduler {
         this.tontineMemberRepository = tontineMemberRepository;
     }
 
-    // Runs every day at 1:00 AM
+    /** 01h00 GMT+4 — fermeture des sessions tontine expirées. */
     @Scheduled(cron = "0 0 1 * * ?")
+    @SchedulerLock(name = "closeExpiredTontineSessions", lockAtLeastFor = "PT1M", lockAtMostFor = "PT1H")
     @Transactional
     public void closeExpiredTontineSessions() {
+        long start = System.currentTimeMillis();
         LocalDate today = LocalDate.now();
         List<TontineSession> expiredSessions = tontineSessionRepository.findByStatusAndEndDateBefore(TontineSessionStatus.ACTIVE, today);
 
@@ -68,6 +71,7 @@ public class TontineSessionScheduler {
         } else {
             log.info("No expired tontine sessions found to close.");
         }
+        log.info("closeExpiredTontineSessions terminé en {} ms", System.currentTimeMillis() - start);
     }
 
     // Runs every year on December 31st at 1:00 AM

@@ -66,9 +66,18 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     List<Credit> findByStatusAndCollectorAndDailyPaidIsFalseAndClientTypeOrderByClient_quarterAsc
             (CreditStatus status, String username, ClientType clientType);
 
-    @Query(value = "UPDATE Credit c SET c.dailyPaid = false WHERE c.status = 'INPROGRESS'")
-    @Modifying
-    void updateDailyPaidForCredit();
+    /**
+     * Remet daily_paid à false pour tous les crédits en cours — UPDATE SQL natif,
+     * sans charger les entités Credit en mémoire.
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = """
+            UPDATE credit
+            SET daily_paid = false
+            WHERE status = 'INPROGRESS'
+              AND COALESCE(daily_paid, false) = true
+            """, nativeQuery = true)
+    int updateDailyPaidForCredit();
 
     @Query("""
             SELECT new com.optimize.elykia.core.dto.DailyUnrecoveredCreditDto(
@@ -519,6 +528,44 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
         AND c.client_type = 'CLIENT'
         """, nativeQuery = true)
     com.optimize.elykia.core.dto.bi.PortfolioMetricsProjection getPortfolioMetrics();
+
+    @Query(value = """
+        SELECT
+            COUNT(c.id) as salesCount,
+            COALESCE(SUM(c.total_amount), 0) as totalAmount,
+            COALESCE(SUM(c.total_amount - c.total_purchase), 0) as totalProfit,
+            COALESCE(AVG(c.total_amount), 0) as avgAmount
+        FROM credit c
+        WHERE c.accounting_date = :date
+        AND c.type = 'CREDIT'
+        AND c.client_type = 'CLIENT'
+        """, nativeQuery = true)
+    com.optimize.elykia.core.dto.bi.SalesMetricsProjection getDailySalesMetricsForAccountingDate(
+            @Param("date") LocalDate date);
+
+    @Query(value = """
+        SELECT
+            COUNT(CASE WHEN c.status = 'INPROGRESS' THEN 1 END) as activeCount,
+            COALESCE(SUM(CASE WHEN c.status = 'INPROGRESS' THEN c.total_amount_remaining ELSE 0 END), 0) as totalOutstanding,
+            COALESCE(SUM(CASE WHEN c.status = 'INPROGRESS' AND c.expected_end_date < :asOfDate THEN c.total_amount_remaining ELSE 0 END), 0) as totalOverdue,
+            0 as par7,
+            0 as par15,
+            0 as par30
+        FROM credit c
+        WHERE c.type = 'CREDIT'
+        AND c.client_type = 'CLIENT'
+        """, nativeQuery = true)
+    com.optimize.elykia.core.dto.bi.PortfolioMetricsProjection getPortfolioMetricsAsOf(
+            @Param("asOfDate") LocalDate asOfDate);
+
+    @Query(value = """
+        SELECT COALESCE(SUM(c.daily_stake), 0)
+        FROM credit c
+        WHERE c.status = 'INPROGRESS'
+        AND c.type = 'CREDIT'
+        AND c.client_type = 'CLIENT'
+        """, nativeQuery = true)
+    Double sumExpectedDailyCollection();
     
     /**
      * Get overdue analysis by date ranges

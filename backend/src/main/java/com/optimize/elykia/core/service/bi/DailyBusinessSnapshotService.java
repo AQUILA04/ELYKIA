@@ -1,11 +1,9 @@
 package com.optimize.elykia.core.service.bi;
 
 import com.optimize.common.entities.service.GenericService;
-import com.optimize.elykia.client.enumeration.ClientType;
-import com.optimize.elykia.core.entity.article.Articles;
-import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.dto.bi.PortfolioMetricsProjection;
+import com.optimize.elykia.core.dto.bi.SalesMetricsProjection;
 import com.optimize.elykia.core.entity.bi.DailyBusinessSnapshot;
-import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.DailyBusinessSnapshotRepository;
@@ -15,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -40,7 +37,7 @@ public class DailyBusinessSnapshotService extends GenericService<DailyBusinessSn
     }
 
     /**
-     * Génère le snapshot pour une date donnée
+     * Génère le snapshot pour une date donnée (agrégations SQL, sans charger tout le portefeuille en mémoire).
      */
     public DailyBusinessSnapshot generateSnapshot(LocalDate date) {
         DailyBusinessSnapshot snapshot = snapshotRepository.findBySnapshotDate(date)
@@ -48,54 +45,34 @@ public class DailyBusinessSnapshotService extends GenericService<DailyBusinessSn
         
         snapshot.setSnapshotDate(date);
         
-        // Ventes du jour
-        List<Credit> dailyCredits = creditRepository.findByAccountingDate(date);
-        snapshot.setNewCreditsCount(dailyCredits.size());
-        snapshot.setNewCreditsTotalAmount(
-            dailyCredits.stream().mapToDouble(Credit::getTotalAmount).sum()
-        );
-        snapshot.setNewCreditsProfit(
-            dailyCredits.stream()
-                .mapToDouble(c -> c.getTotalAmount() - c.getTotalPurchase())
-                .sum()
-        );
+        SalesMetricsProjection dailySales = creditRepository.getDailySalesMetricsForAccountingDate(date);
+        snapshot.setNewCreditsCount(dailySales.getSalesCount() != null ? dailySales.getSalesCount() : 0);
+        snapshot.setNewCreditsTotalAmount(dailySales.getTotalAmount() != null ? dailySales.getTotalAmount() : 0.0);
+        snapshot.setNewCreditsProfit(dailySales.getTotalProfit() != null ? dailySales.getTotalProfit() : 0.0);
         
-        // Collections du jour
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(23, 59, 59);
         Double dailyCollections = timelineRepository.sumAmountByDate(startOfDay, endOfDay);
         snapshot.setDailyCollections(dailyCollections != null ? dailyCollections : 0.0);
         
-        // Stock
-        List<Articles> allArticles = articlesService.getAll();
         Map<String, Double> stockValues = articlesService.getDetailedStockValues();
         snapshot.setTotalStockValue(stockValues.getOrDefault("purchaseTotal", 0.0));
-        snapshot.setOutOfStockItemsCount(
-            (int) allArticles.stream().filter(a -> a.getStockQuantity() == 0).count()
-        );
+        snapshot.setOutOfStockItemsCount((int) articlesService.getRepository().countByStockQuantityEquals(0));
         snapshot.setLowStockItemsCount(
-            (int) allArticles.stream()
-                .filter(a -> a.getReorderPoint() != null && a.getStockQuantity() <= a.getReorderPoint())
-                .count()
+            (int) articlesService.getRepository().countByStockQuantityLessThanEqualAndStockQuantityGreaterThan(6, 0)
         );
         
-        // Portefeuille
-        List<Credit> activeCredits = creditRepository.findByStatusAndClientType(CreditStatus.INPROGRESS, ClientType.CLIENT);
-        snapshot.setActiveCreditsCount(activeCredits.size());
+        PortfolioMetricsProjection portfolio = creditRepository.getPortfolioMetricsAsOf(date);
+        snapshot.setActiveCreditsCount(portfolio.getActiveCount() != null ? portfolio.getActiveCount() : 0);
         snapshot.setTotalOutstandingAmount(
-            activeCredits.stream().mapToDouble(Credit::getTotalAmountRemaining).sum()
+            portfolio.getTotalOutstanding() != null ? portfolio.getTotalOutstanding() : 0.0
         );
         snapshot.setTotalOverdueAmount(
-            activeCredits.stream()
-                .filter(c -> c.getExpectedEndDate() != null && c.getExpectedEndDate().isBefore(date))
-                .mapToDouble(Credit::getTotalAmountRemaining)
-                .sum()
+            portfolio.getTotalOverdue() != null ? portfolio.getTotalOverdue() : 0.0
         );
         
-        // Collection attendue
-        snapshot.setExpectedDailyCollection(
-            activeCredits.stream().mapToDouble(Credit::getDailyStake).sum()
-        );
+        Double expectedCollection = creditRepository.sumExpectedDailyCollection();
+        snapshot.setExpectedDailyCollection(expectedCollection != null ? expectedCollection : 0.0);
         
         return snapshotRepository.save(snapshot);
     }

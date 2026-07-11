@@ -45,7 +45,8 @@ public class DailyAccountingService extends GenericService<DailyAccounting, Long
     @Transactional
     public DailyAccounting closeDailyAccounting(List<String> collectors, LocalDate accountingDate) {
         DailyAccounting dailyAccounting = getByAccountingDate(accountingDate);
-        dailyAccounting.setTotalAmount(creditTimelineRepository.sumAmountByCreatedDateBetween(accountingDate.atStartOfDay(), accountingDate.atTime(23, 59)));
+        dailyAccounting.setTotalAmount(creditTimelineRepository.sumAmountByDate(
+                accountingDate.atStartOfDay(), accountingDate.atTime(23, 59)));
         update(dailyAccounting);
         dailyAccountancyService.makeDailyAccountancy(collectors, accountingDate, dailyAccounting);
         return getByAccountingDate(accountingDate);

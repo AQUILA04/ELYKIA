@@ -141,6 +141,25 @@ class CreditMobileDistributionTest {
         assertEquals(CreditStatus.INPROGRESS, credit.getStatus());
     }
 
+    @Test
+    void applyMobileFinancialTerms_ignoresMobilePaidAmountBeyondAdvance() {
+        DistributeArticleDto dto = mobileDistributionDto(
+                10_700.0,
+                400.0,
+                300.0,
+                LocalDate.of(2026, 7, 1),
+                LocalDate.of(2026, 7, 27));
+        dto.setTotalAmountPaid(10_700.0);
+        dto.setTotalAmountRemaining(0.0);
+
+        Credit credit = Credit.buildDistribution(new Client(), dto);
+
+        assertEquals(300.0, credit.getTotalAmountPaid(),
+                "Seule l'avance doit alimenter totalAmountPaid à la création mobile");
+        assertEquals(10_400.0, credit.getTotalAmountRemaining(),
+                "Le restant doit être recalculé sans les recouvrements locaux non synchronisés");
+    }
+
     private static DistributeArticleDto mobileDistributionDto(
             double totalAmount,
             double dailyStake,

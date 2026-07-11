@@ -383,55 +383,54 @@
       </div>
     </section>
 
-    <!-- ── Recrutement ── -->
+    <!-- ── Recrutement (dynamique) ── -->
     <section class="recruitment" id="recruitment">
       <div class="container">
-        <div class="recruitment__grid">
-          <div class="recruitment__content reveal reveal--left">
-            <span class="recruitment__tag">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-              Rejoignez l'équipe
-            </span>
-            <h2 class="recruitment__title">Nous recrutons des aides commerciales.</h2>
-            <p class="recruitment__description">Nous recherchons des aides commerciales passionnées pour accompagner nos commerciaux dans les marchés de Lomé.</p>
-            <ul class="recruitment__list">
-              <li class="recruitment__list-item">
-                <span class="recruitment__list-icon">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                </span>
-                Du lundi au vendredi, 3 jours par semaine
-              </li>
-              <li class="recruitment__list-item">
-                <span class="recruitment__list-icon">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                </span>
-                Salaire fixe garanti + primes
-              </li>
-              <li class="recruitment__list-item">
-                <span class="recruitment__list-icon">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                </span>
-                Bonne moralité, dynamisme et sens du contact
-              </li>
-              <li class="recruitment__list-item">
-                <span class="recruitment__list-icon">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                </span>
-                Âge minimum : 18 ans
-              </li>
-            </ul>
-            <a href="https://wa.me/22896186822?text=Bonjour%2C%20je%20souhaite%20postuler%20pour%20le%20poste%20d'aide%20commerciale." class="btn btn--primary" target="_blank" rel="noopener">
-              Postuler maintenant
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </a>
-          </div>
-
-          <div class="recruitment__image reveal reveal--right">
-            <img src="assets/images/recruitment-team.png" alt="Équipe Aménouvévé-Yaveh Logistics — Rejoignez notre équipe" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-xl);">
-          </div>
+        <div class="section__header">
+          <span class="section__tag">Rejoignez l'équipe</span>
+          <h2 class="section__title">Nos offres d'emploi</h2>
+        </div>
+        <div id="recruitment-offers" class="recruitment-offers" aria-live="polite">
+          <p class="recruitment__loading">Chargement des offres…</p>
         </div>
       </div>
     </section>
+
+    <!-- Modal candidature -->
+    <div class="recruitment-modal" id="recruitment-modal" hidden>
+      <div class="recruitment-modal__backdrop" id="recruitment-modal-backdrop"></div>
+      <div class="recruitment-modal__dialog" role="dialog" aria-labelledby="recruitment-modal-title">
+        <button type="button" class="recruitment-modal__close" id="recruitment-modal-close" aria-label="Fermer">×</button>
+        <h3 id="recruitment-modal-title">Postuler</h3>
+        <p class="recruitment-modal__offer-title" id="recruitment-modal-offer-title"></p>
+        <form id="recruitment-apply-form" class="recruitment-form">
+          <input type="hidden" name="jobOfferId" id="apply-job-offer-id" />
+          <div class="recruitment-form__row">
+            <label>Prénom <input type="text" name="firstName" required /></label>
+            <label>Nom <input type="text" name="lastName" required /></label>
+          </div>
+          <label>Téléphone <input type="tel" name="phone" required placeholder="90 00 00 00" /></label>
+          <label>Email (optionnel) <input type="email" name="email" /></label>
+          <label>Date de naissance <input type="date" name="birthDate" required /></label>
+          <label>Sexe
+            <select name="gender" required>
+              <option value="">—</option>
+              <option value="MALE">Homme</option>
+              <option value="FEMALE">Femme</option>
+              <option value="OTHER">Autre</option>
+              <option value="UNSPECIFIED">Non précisé</option>
+            </select>
+          </label>
+          <label>Quartier / localité <input type="text" name="locality" required /></label>
+          <label>CV (PDF, JPG ou PNG, max 5 Mo)
+            <input type="file" name="cv" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" required />
+          </label>
+          <p class="recruitment-form__error" id="recruitment-form-error" hidden></p>
+          <p class="recruitment-form__success" id="recruitment-form-success" hidden></p>
+          <button type="submit" class="btn btn--primary btn--full">Envoyer ma candidature</button>
+        </form>
+      </div>
+    </div>
 
     <!-- ── Témoignages ── -->
     <section class="testimonials" id="testimonials">
@@ -618,6 +617,8 @@
     </div>
   </footer>
 
+  <script src="js/config.js"></script>
+  <script src="js/recruitment.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

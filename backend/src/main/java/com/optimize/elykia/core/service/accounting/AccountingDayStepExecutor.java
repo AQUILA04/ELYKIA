@@ -1,0 +1,71 @@
+package com.optimize.elykia.core.service.accounting;
+
+import com.optimize.elykia.core.dto.CloseCollectorOperationDto;
+import com.optimize.elykia.core.entity.accounting.AccountingDay;
+import com.optimize.elykia.core.entity.accounting.DailyAccountancy;
+import com.optimize.elykia.core.enumaration.AccountingDayStatus;
+import com.optimize.elykia.core.repository.AccountingDayRepository;
+import com.optimize.elykia.core.repository.CreditRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * Étapes d'écriture de la bascule comptable, chacune dans sa propre transaction
+ * pour éviter l'accumulation d'entités Credit dans le contexte Hibernate
+ * (auto-flush catastrophique sur les requêtes natives de somme).
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class AccountingDayStepExecutor {
+
+    private final AccountingDayRepository accountingDayRepository;
+    private final DailyAccountingService dailyAccountingService;
+    private final DailyAccountancyService dailyAccountancyService;
+    private final CreditRepository creditRepository;
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void closeOpenCashDesk(CloseCollectorOperationDto dto, LocalDate accountingDate) {
+        dailyAccountingService.closeCollectorOperation(dto, accountingDate);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void closeDailyAccountingRecord(LocalDate accountingDate) {
+        dailyAccountingService.closeDailyAccounting(accountingDate);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public AccountingDay createAndOpenAccountingDay(LocalDate accountingDate) {
+        AccountingDay accountingDay = new AccountingDay();
+        accountingDay.setAccountingDate(accountingDate);
+        accountingDay = accountingDayRepository.save(accountingDay);
+        dailyAccountingService.initDailyAccounting(accountingDate);
+        int dailyPaidReset = creditRepository.updateDailyPaidForCredit();
+        if (dailyPaidReset > 0) {
+            log.info("Ouverture journée comptable {}: {} crédit(s) remis à dailyPaid=false", accountingDate, dailyPaidReset);
+        }
+        return accountingDay;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void finalizeClosedAccountingDay(Long accountingDayId) {
+        AccountingDay accountingDay = accountingDayRepository.findById(accountingDayId)
+                .orElseThrow();
+        accountingDay.close();
+        accountingDayRepository.save(accountingDay);
+    }
+
+    public List<DailyAccountancy> findOpenCashDesks() {
+        return dailyAccountancyService.getOpenCashDesks();
+    }
+
+    public boolean hasOpenCashDesks() {
+        return dailyAccountancyService.isExistsOpenedCashDesk();
+    }
+}

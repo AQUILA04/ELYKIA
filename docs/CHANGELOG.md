@@ -9,6 +9,31 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.10.2] — 2026-07-11
+
+### Changed
+
+- Formulaire offre **Recrutement** : champs custom (`field-input`) et zone d'upload image stylée (aperçu, overlay, retrait) à la place des composants Material / input file natif.
+
+## Frontend — [2.10.1] — 2026-07-11
+
+### Changed
+
+- Module **Recrutement** : refonte UI alignée sur le style standard ELYKIA (header-card, KPIs, toolbar, tableau, boutons navy, états vide/chargement) pour les pages offres, candidatures et formulaires.
+
+## Frontend — [2.10.0] — 2026-07-11
+
+### Added
+
+- Module **Recrutement** (lazy, feature flag `recruitment`) : gestion des offres d'emploi (CRUD, publication, image multipart) et consultation des candidatures avec téléchargement CV.
+
+## Docs & Infra — 2026-07-11
+
+### Added
+
+- Site vitrine : section recrutement dynamique (offres API publique, modal candidature multipart), injection `ELYKIA_API_BASE` au démarrage Docker, documentation `docs/RECRUITMENT.md`.
+- Deploy test : origine CORS `https://site.amenouveve-yaveh.com` pour les appels API depuis le site test.
+
 ## Frontend — [2.9.32] — 2026-07-11
 
 ### Added
@@ -96,6 +121,47 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
 - Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
+
+## Backend — [1.2.8] — 2026-07-12
+
+### Fixed
+
+- Distribution mobile (`applyMobileFinancialTerms`) : à la création, `totalAmountPaid` est initialisé uniquement à partir de l'avance ; les montants payés/restant envoyés par le mobile (recouvrements locaux non encore synchronisés) ne sont plus recopiés, afin que les `CreditTimeline` puissent se synchroniser correctement.
+
+## Backend — [1.2.7] — 2026-07-11
+
+### Fixed
+
+- Bascule journée comptable (`rollForwardAccountingDay`) : transactions courtes par caisse/étape (`REQUIRES_NEW`) et `flushMode=COMMIT` sur les sommes SQL natives, pour éviter l'auto-flush Hibernate de milliers de `Credit` qui saturait le CPU (`scheduling-1` à 100 % pendant des heures).
+- Fermeture journalière comptable : agrégat SQL natif au lieu de charger tous les `CreditTimeline` en mémoire.
+
+## Backend — [1.2.6] — 2026-07-11
+
+### Changed
+
+- `updateDailyPaidForCredit` : `UPDATE` SQL natif sur `credit` (sans chargement Hibernate des entités), avec `clearAutomatically` et filtre `daily_paid = true` pour limiter les écritures disque.
+
+## Backend — [1.2.5] — 2026-07-11
+
+### Changed
+
+- Performance des tâches planifiées : pool scheduler dédié (4 threads), ShedLock sur les jobs lourds, logs de durée.
+- `autoCancelOldRequests` : mise à jour bulk SQL au lieu de charger/sauver chaque demande stock.
+- `DailyBusinessSnapshotService` : agrégations SQL sans charger tout le portefeuille en mémoire.
+- `MetricsScheduler` : intervalle porté à 15 minutes (au lieu de 5) pour réduire la charge CPU continue.
+- `MonthlyReportJobOrchestrator` : correction d'une boucle busy-wait (`Thread.yield`) qui pouvait saturer un cœur CPU à 100 %.
+
+## Backend — [1.2.4] — 2026-07-11
+
+### Fixed
+
+- Démarrage JPA : `@EntityScan("com.optimize.elykia")` pour enregistrer les entités du modulith `recruitment` (`JobOffer`, `JobApplication`).
+
+## Backend — [1.2.3] — 2026-07-11
+
+### Added
+
+- Modulith **recruitment** (`site` / `admin` / `shared`) : API publique offres + candidatures, API admin CRUD offres et consultation CV, stockage MinIO bucket `elykia-recruitment`, migration Flyway V77, permission `ROLE_RECRUITMENT`.
 
 ## Backend — [1.2.2] — 2026-07-11
 

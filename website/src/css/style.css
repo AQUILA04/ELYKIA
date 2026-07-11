@@ -457,6 +457,38 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   transition: transform var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) ease;
 }
 .recruitment__image:hover { transform: scale(1.02) rotate(0.5deg); box-shadow: 0 32px 80px rgba(36,66,103,0.18); }
+
+.recruitment-offers { display: grid; gap: var(--space-6); }
+.recruitment-card {
+  display: grid; grid-template-columns: 280px 1fr; gap: var(--space-5);
+  background: var(--color-surface); border-radius: var(--radius-xl);
+  overflow: hidden; box-shadow: var(--shadow-md);
+}
+.recruitment-card__image img { width: 100%; height: 100%; object-fit: cover; min-height: 220px; }
+.recruitment-card__body { padding: var(--space-5); }
+.recruitment-card__title { font-size: 22px; font-weight: 700; color: var(--color-primary); margin-bottom: var(--space-2); }
+.recruitment-card__description { color: var(--color-on-surface-variant); margin-bottom: var(--space-3); }
+.recruitment__empty, .recruitment__loading { text-align: center; color: var(--color-on-surface-variant); padding: var(--space-6); }
+
+.recruitment-modal[hidden] { display: none !important; }
+.recruitment-modal { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.recruitment-modal__backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.55); }
+.recruitment-modal__dialog {
+  position: relative; background: #fff; border-radius: var(--radius-xl);
+  max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px;
+  box-shadow: var(--shadow-float);
+}
+.recruitment-modal__close { position: absolute; top: 12px; right: 16px; border: none; background: none; font-size: 28px; cursor: pointer; }
+.recruitment-form label { display: block; margin-bottom: 12px; font-size: 14px; font-weight: 500; }
+.recruitment-form input, .recruitment-form select { width: 100%; margin-top: 4px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.recruitment-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.recruitment-form__error { color: #b91c1c; font-size: 14px; }
+.recruitment-form__success { color: #166534; font-size: 14px; }
+
+@media (max-width: 768px) {
+  .recruitment-card { grid-template-columns: 1fr; }
+  .recruitment-form__row { grid-template-columns: 1fr; }
+}
 .recruitment__image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease-out); }
 .recruitment__image:hover img { transform: scale(1.04); }
 

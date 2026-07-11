@@ -613,10 +613,10 @@ public class Credit extends BaseEntity<String> {
             throw new CustomValidationException("L'avance de la distribution mobile est invalide.");
         }
         this.advance = advance;
-        this.totalAmountPaid = dto.getTotalAmountPaid() != null ? dto.getTotalAmountPaid() : advance;
-        this.totalAmountRemaining = dto.getTotalAmountRemaining() != null
-                ? dto.getTotalAmountRemaining()
-                : dto.getTotalAmount() - advance;
+        // À la création mobile, seul l'avance doit alimenter totalAmountPaid.
+        // Les recouvrements (CreditTimeline) seront synchronisés séparément.
+        this.totalAmountPaid = advance;
+        this.totalAmountRemaining = dto.getTotalAmount() - advance;
         if (this.totalAmountRemaining < 0) {
             throw new CustomValidationException("Le montant restant de la distribution mobile est invalide.");
         }

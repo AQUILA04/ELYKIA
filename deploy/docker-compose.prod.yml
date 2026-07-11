@@ -70,7 +70,7 @@ services:
       SERVER_PORT: ${SERVER_PORT:-8080}
       LOKI_API_KEY: ${LOKI_API_KEY:-}
       SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-false}
-      SECURITY_CONFIG_ALLOW_ORIGIN: ${SECURITY_ALLOWED_ORIGINS:-https://elykia.amenouveve-yaveh.com,http://localhost,capacitor://localhost,http://localhost:8100,https://localhost,ionic://localhost}
+      SECURITY_CONFIG_ALLOW_ORIGIN: ${SECURITY_ALLOWED_ORIGINS:-https://elykia.amenouveve-yaveh.com,https://www.amenouveve-yaveh.com,https://amenouveve-yaveh.com,http://localhost,capacitor://localhost,http://localhost:8100,https://localhost,ionic://localhost}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
@@ -79,6 +79,7 @@ services:
       MINIO_MOBILE_RELEASES_BUCKET: ${MINIO_MOBILE_RELEASES_BUCKET:-elykia-mobile-releases}
       MOBILE_RELEASE_CHANNEL: ${MOBILE_RELEASE_CHANNEL:-prod}
       MINIO_CUSTOMER_SPACE_RELEASES_BUCKET: ${MINIO_CUSTOMER_SPACE_RELEASES_BUCKET:-elykia-customer-space-releases}
+      MINIO_RECRUITMENT_BUCKET: ${MINIO_RECRUITMENT_BUCKET:-elykia-recruitment}
       CUSTOMER_SPACE_RELEASE_CHANNEL: ${CUSTOMER_SPACE_RELEASE_CHANNEL:-prod}
       MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://minio-api.amenouveve-yaveh.com}
       PHOTO_FALLBACK_PATH: /opt/elykia/photos/pending

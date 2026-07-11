@@ -101,7 +101,8 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers("/api/auth/**",
+                                .requestMatchers("/api/public/**",
+                                        "/api/auth/**",
                                         "/i18n/**",
                                         "/content/**",
                                         "/v3/api-docs/swagger-config/**",
