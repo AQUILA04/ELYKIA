@@ -46,9 +46,15 @@ public class DailyBusinessSnapshotService extends GenericService<DailyBusinessSn
         snapshot.setSnapshotDate(date);
         
         SalesMetricsProjection dailySales = creditRepository.getDailySalesMetricsForAccountingDate(date);
-        snapshot.setNewCreditsCount(dailySales.getSalesCount() != null ? dailySales.getSalesCount() : 0);
-        snapshot.setNewCreditsTotalAmount(dailySales.getTotalAmount() != null ? dailySales.getTotalAmount() : 0.0);
-        snapshot.setNewCreditsProfit(dailySales.getTotalProfit() != null ? dailySales.getTotalProfit() : 0.0);
+        if (dailySales != null) {
+            snapshot.setNewCreditsCount(dailySales.getSalesCount() != null ? dailySales.getSalesCount() : 0);
+            snapshot.setNewCreditsTotalAmount(dailySales.getTotalAmount() != null ? dailySales.getTotalAmount() : 0.0);
+            snapshot.setNewCreditsProfit(dailySales.getTotalProfit() != null ? dailySales.getTotalProfit() : 0.0);
+        } else {
+            snapshot.setNewCreditsCount(0);
+            snapshot.setNewCreditsTotalAmount(0.0);
+            snapshot.setNewCreditsProfit(0.0);
+        }
         
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(23, 59, 59);
@@ -61,13 +67,19 @@ public class DailyBusinessSnapshotService extends GenericService<DailyBusinessSn
         snapshot.setLowStockItemsCount((int) articlesService.countLowStockItems());
         
         PortfolioMetricsProjection portfolio = creditRepository.getPortfolioMetricsAsOf(date);
-        snapshot.setActiveCreditsCount(portfolio.getActiveCount() != null ? portfolio.getActiveCount() : 0);
-        snapshot.setTotalOutstandingAmount(
-            portfolio.getTotalOutstanding() != null ? portfolio.getTotalOutstanding() : 0.0
-        );
-        snapshot.setTotalOverdueAmount(
-            portfolio.getTotalOverdue() != null ? portfolio.getTotalOverdue() : 0.0
-        );
+        if (portfolio != null) {
+            snapshot.setActiveCreditsCount(portfolio.getActiveCount() != null ? portfolio.getActiveCount() : 0);
+            snapshot.setTotalOutstandingAmount(
+                portfolio.getTotalOutstanding() != null ? portfolio.getTotalOutstanding() : 0.0
+            );
+            snapshot.setTotalOverdueAmount(
+                portfolio.getTotalOverdue() != null ? portfolio.getTotalOverdue() : 0.0
+            );
+        } else {
+            snapshot.setActiveCreditsCount(0);
+            snapshot.setTotalOutstandingAmount(0.0);
+            snapshot.setTotalOverdueAmount(0.0);
+        }
         
         Double expectedCollection = creditRepository.sumExpectedDailyCollection();
         snapshot.setExpectedDailyCollection(expectedCollection != null ? expectedCollection : 0.0);

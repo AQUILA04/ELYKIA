@@ -129,6 +129,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
 - Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
 
+## Backend — [1.2.10] — 2026-07-12
+
+### Fixed
+
+- Snapshot BI quotidien : garde-fous sur les projections natives `SalesMetricsProjection` et `PortfolioMetricsProjection` lorsque les requêtes SQL ne retournent aucune ligne (évite `NullPointerException` sur base vide ou sans données du jour).
+
 ## Backend — [1.2.9] — 2026-07-12
 
 ### Fixed
