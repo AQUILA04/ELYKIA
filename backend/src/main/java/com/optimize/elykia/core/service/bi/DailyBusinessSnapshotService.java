@@ -58,9 +58,7 @@ public class DailyBusinessSnapshotService extends GenericService<DailyBusinessSn
         Map<String, Double> stockValues = articlesService.getDetailedStockValues();
         snapshot.setTotalStockValue(stockValues.getOrDefault("purchaseTotal", 0.0));
         snapshot.setOutOfStockItemsCount((int) articlesService.getRepository().countByStockQuantityEquals(0));
-        snapshot.setLowStockItemsCount(
-            (int) articlesService.getRepository().countByStockQuantityLessThanEqualAndStockQuantityGreaterThan(6, 0)
-        );
+        snapshot.setLowStockItemsCount((int) articlesService.countLowStockItems());
         
         PortfolioMetricsProjection portfolio = creditRepository.getPortfolioMetricsAsOf(date);
         snapshot.setActiveCreditsCount(portfolio.getActiveCount() != null ? portfolio.getActiveCount() : 0);

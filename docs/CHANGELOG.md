@@ -122,6 +122,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
 - Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
 
+## Backend — [1.2.9] — 2026-07-12
+
+### Fixed
+
+- Bascule journée comptable : `openAccountingDay` / `closeAccountingDay` / `ensureCurrentAccountingDay` en `NOT_SUPPORTED` pour éviter une transaction Hibernate englobante pendant les étapes `REQUIRES_NEW` ; fermeture basée sur une seule résolution de la journée ouverte.
+- Sécurité : retrait du wildcard `/api/v1/**` en `permitAll` ; seuls les endpoints publics explicites (releases APK, auth, etc.) restent ouverts, les routes admin recrutement exigent une authentification HTTP.
+- Snapshot BI stock faible : comptage aligné sur le seuil de réapprovisionnement (`stockQuantity <= reorderPoint`) au lieu d'un seuil fixe à 6 unités.
+
 ## Backend — [1.2.8] — 2026-07-12
 
 ### Fixed

@@ -402,11 +402,16 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }
 
     @Transactional(readOnly = true)
+    public long countLowStockItems() {
+        return getRepository().countLowStockByReorderPoint();
+    }
+
+    @Transactional(readOnly = true)
     public Map<String, Object> getArticleStockKpis() {
         Map<String, Double> values = getDetailedStockValues();
         long inStockCount = getRepository().countByStockQuantityGreaterThan(0);
         long outOfStockCount = getRepository().countByStockQuantityEquals(0);
-        long lowStockCount = getRepository().countByStockQuantityLessThanEqualAndStockQuantityGreaterThan(6, 0);
+        long lowStockCount = countLowStockItems();
 
         Map<String, Object> kpis = new java.util.LinkedHashMap<>();
         kpis.put("inStockCount", inStockCount);
@@ -492,7 +497,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
 
         long totalItems = getRepository().count();
         long outOfStock = getRepository().countByStockQuantityEquals(0);
-        long lowStock = getRepository().countByStockQuantityLessThanEqualAndStockQuantityGreaterThan(6, 0);
+        long lowStock = countLowStockItems();
         Double avgTurnover = getRepository().getAverageTurnoverRate();
 
         if (metricsPublisher != null) {

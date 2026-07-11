@@ -115,7 +115,6 @@ public class WebSecurityConfig {
                                         "/actuator/**",
                                         "/api/v1/customer/app/release/**",
                                         "/api/v1/mobile/app/release/**",
-                                        "/api/v1/**",
                                         "/api/licences/**",
                                         "/api/parameters/**",
                                         "/api/customer/auth/**",

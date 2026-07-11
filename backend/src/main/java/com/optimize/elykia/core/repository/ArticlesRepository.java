@@ -94,6 +94,14 @@ public interface ArticlesRepository extends GenericRepository<Articles, Long> {
 
     long countByStockQuantityLessThanEqualAndStockQuantityGreaterThan(int max, int min);
 
+    @Query("""
+            SELECT COUNT(a) FROM Articles a
+            WHERE a.stockQuantity > 0
+              AND a.reorderPoint IS NOT NULL
+              AND a.stockQuantity <= a.reorderPoint
+            """)
+    long countLowStockByReorderPoint();
+
     @Query("SELECT AVG(a.stockTurnoverRate) FROM Articles a")
     Double getAverageTurnoverRate();
 
