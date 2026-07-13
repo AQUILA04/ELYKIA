@@ -9,6 +9,7 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import localeFrExtra from '@angular/common/locales/extra/fr';
 import { PdfService } from '../../../core/services/pdf.service';
+import { computeRecoveryReceiptBalances } from '../../../core/services/printing.service';
 import { LoggerService } from '../../../core/services/logger.service';
 
 registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
@@ -27,6 +28,14 @@ export class RecoverySummaryModalComponent implements OnInit {
   @Input() client!: Client;
 
   qrCodeData: string = '';
+
+  get previousRemainingAmount(): number {
+    return computeRecoveryReceiptBalances(this.distribution, this.recovery.amount).previousRemainingAmount;
+  }
+
+  get newRemainingAmount(): number {
+    return computeRecoveryReceiptBalances(this.distribution, this.recovery.amount).newRemainingAmount;
+  }
 
   constructor(
     private modalController: ModalController,

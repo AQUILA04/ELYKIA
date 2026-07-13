@@ -3,10 +3,10 @@ import { Router } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { Store } from '@ngrx/store';
 import { Observable, combineLatest, Subject, BehaviorSubject, of } from 'rxjs';
-import { switchMap, take, takeUntil, distinctUntilChanged, map } from 'rxjs/operators';
+import { switchMap, take, takeUntil, distinctUntilChanged, map, filter } from 'rxjs/operators';
 import { Commercial } from '../../models/commercial.model';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
-import { selectCommercialByUsername } from '../../store/commercial/commercial.selectors';
+import { selectCommercialByUsername, selectCommercialLoading } from '../../store/commercial/commercial.selectors';
 import { selectIsOnline } from '../../store/health-check/health-check.selectors';
 import * as CommercialActions from '../../store/commercial/commercial.actions';
 import * as AuthActions from '../../store/auth/auth.actions';
@@ -155,15 +155,18 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       const commercialId = user.username; // Use username as ID for now if ID is missing or same
       this.store.dispatch(CommercialActions.loadCommercial({ commercialUsername: username }));
 
-      setTimeout(() => {
+      // Attendre la fin du chargement (pas un délai fixe) avant de conclure à une absence de commercial
+      this.store.select(selectCommercialLoading).pipe(
+        filter(loading => !loading),
+        take(1)
+      ).subscribe(() => {
         this.store.select(selectCommercialByUsername(username)).pipe(take(1)).subscribe(commercial => {
           if (!commercial || (!commercial.fullName && !commercial.username)) {
             this.log.log('[DashboardPage] Commercial data missing after load attempt. Logging out.');
             this.store.dispatch(AuthActions.logout());
           }
         });
-      }, 2000); // 2 second grace period for data to load
-
+      });
 
       if (!commercialId) {
         console.error('[DashboardPage] Commercial ID missing in auth user');

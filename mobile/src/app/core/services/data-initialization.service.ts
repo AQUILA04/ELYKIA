@@ -376,7 +376,7 @@ export class DataInitializationService {
     const articles = await this.dbService.getArticles();
     const localities = await this.dbService.getLocalities();
     const clients = await this.dbService.getClients(this.commercialUsername);
-    const commercial = await this.dbService.getCommercial();
+    const commercial = await this.dbService.getCommercial(this.commercialUsername);
     const accounts = await this.dbService.getAccounts(this.commercialUsername);
 
     if (articles.length === 0 || localities.length === 0 || !commercial) {

@@ -97,20 +97,36 @@ export class ClientEffects {
   );
 
   /**
-   * @deprecated This effect triggers a full reload which is bad for performance.
-   * It should be removed or refactored to only reload necessary data.
+   * Legacy `loadClients` → relecture paginée SQLite (1ʳᵉ page).
+   * Remplace l’ancien chargement complet en mémoire, désormais sans effet dédié.
+   */
+  loadClients$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ClientActions.loadClients),
+      map((action) => {
+        if (!action.commercialUsername) {
+          return ClientActions.loadFirstPageClientsFailure({
+            error: 'commercialUsername is required for security'
+          });
+        }
+        return ClientActions.loadFirstPageClients({
+          commercialUsername: action.commercialUsername,
+        });
+      })
+    )
+  );
+
+  /**
+   * @deprecated Prefer specific update actions or loadFirstPageClients.
    */
   loadClientViewsUpdate$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ClientActions.loadClientViewsUpdate),
       withLatestFrom(this.store.select(selectAuthUser)),
-      switchMap(([action, user]) => {
+      switchMap(([, user]) => {
         if (!user) {
           return of(ClientActions.loadClientsFailure({ error: 'User not authenticated' }));
         }
-        // Instead of loading ALL clients, we should probably just reload the current page
-        // or do nothing if the state is already updated via other actions.
-        // For now, let's reload the first page to be safe but efficient.
         return [
           ClientActions.loadFirstPageClients({ commercialUsername: user.username })
         ];

@@ -1018,10 +1018,18 @@ export class DatabaseService {
     }
   }
 
-  async getCommercial(): Promise<Commercial | null> {
+  /**
+   * Charge le commercial local. Sans username, LIMIT 1 reste ambigu si plusieurs
+   * promoteurs coexistent après un changement de compte — toujours préférer filtrer.
+   */
+  async getCommercial(username?: string): Promise<Commercial | null> {
     if (!this.db) {
       console.error('Database not initialized.');
       return null;
+    }
+    if (username) {
+      const ret = await this.db.query('SELECT * FROM commercials WHERE username = ? LIMIT 1', [username]);
+      return ret.values && ret.values.length > 0 ? ret.values[0] : null;
     }
     const ret = await this.db.query('SELECT * FROM commercials LIMIT 1');
     return ret.values && ret.values.length > 0 ? ret.values[0] : null;

@@ -128,6 +128,26 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Réinitialisation du mot de passe utilisateur par l'admin depuis la fiche utilisateur (`PATCH /api/v1/users/{id}/reset-password`, permission `ROLE_EDIT_USER`).
 - Flux de changement de mot de passe obligatoire à la première connexion après reset : redirection automatique vers `/change-password?forced=true`, garde d'accès et formulaire sans ancien mot de passe.
 
+## Mobile — [2.10.7] — 2026-07-13
+
+### Fixed
+
+- Changement de compte commercial : le dashboard et la page Paramètres affichent désormais le promoteur connecté (chargement local filtré par `username` au lieu de `LIMIT 1`), et plus de déconnexion erronée après reconnexion.
+- Action legacy `loadClients` : relecture de la première page clients depuis SQLite via `loadFirstPageClients` (le store NgRx se resynchronise après init / sync).
+- Recouvrement : chargement du client manquant du store par `getClientById` au lieu d’attendre un `loadClientsSuccess` qui n’était plus émis.
+
+## Mobile — [2.10.6] — 2026-07-13
+
+### Fixed
+
+- Reçu de distribution : affichage du nom complet du client (`fullName`) au lieu de « null » lorsque `firstname` / `lastname` ne sont pas renseignés en base locale.
+
+## Mobile — [2.10.5] — 2026-07-13
+
+### Fixed
+
+- Reçu de recouvrement : correction du calcul « Ancien solde » / « Nouveau solde » lorsque la distribution affichée n’était pas encore mise à jour après le paiement (ex. vente 14 200 FCFA, avance 200, recouvrement 2 000 → ancien 14 000, nouveau 12 000).
+
 ## Mobile — [2.10.4] — 2026-07-09
 
 ### Added

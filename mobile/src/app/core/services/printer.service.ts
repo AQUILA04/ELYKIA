@@ -6,6 +6,7 @@ import { Distribution } from '../../models/distribution.model';
 import { Client } from '../../models/client.model';
 import { Article } from '../../models/article.model';
 import { Recovery } from '../../models/recovery.model';
+import { computeRecoveryReceiptBalances, formatClientDisplayName } from './printing.service';
 
 export interface PrintableDistribution {
   distribution: Distribution;
@@ -161,7 +162,7 @@ export class PrinterService {
 
     // Client info
     commands += 'CLIENT:\n';
-    commands += `${client.firstname} ${client.lastname}\n`;
+    commands += `${formatClientDisplayName(client)}\n`;
     if (client.address) commands += `${client.address}\n`;
     if (client.phone) commands += `Tel: ${client.phone}\n`;
     commands += '\n';
@@ -311,7 +312,7 @@ export class PrinterService {
 
         <div style="margin-bottom: 10px;">
           <strong>CLIENT:</strong><br>
-          ${client.firstname} ${client.lastname}<br>
+          ${formatClientDisplayName(client)}<br>
           ${client.address || ''}<br>
           ${client.phone || ''}
         </div>
@@ -391,6 +392,10 @@ export class PrinterService {
   }
 
   private generateRecoveryReceiptHTML(recovery: Recovery, distribution: Distribution, client: Client): string {
+    const balances = computeRecoveryReceiptBalances(distribution, recovery.amount);
+    const oldBalance = balances.previousRemainingAmount;
+    const newBalance = balances.newRemainingAmount;
+
     return `
       <!DOCTYPE html>
       <html>
@@ -442,7 +447,7 @@ export class PrinterService {
 
         <div class="row">
           <span>Client:</span>
-          <span>${client.fullName}</span>
+          <span>${formatClientDisplayName(client)}</span>
         </div>
         <div class="row">
           <span>Réf. Distribution:</span>
@@ -455,13 +460,17 @@ export class PrinterService {
 
         <div class="separator"></div>
 
+        <div class="row">
+          <span>Ancien Solde:</span>
+          <span>${oldBalance.toLocaleString('fr-FR')} FCFA</span>
+        </div>
         <div class="row total-row">
           <span>Montant Payé:</span>
           <span>${recovery.amount.toLocaleString('fr-FR')} FCFA</span>
         </div>
         <div class="row">
           <span>Nouveau Solde:</span>
-          <span>${distribution.remainingAmount?.toLocaleString('fr-FR')} FCFA</span>
+          <span>${newBalance.toLocaleString('fr-FR')} FCFA</span>
         </div>
 
         <div class="separator"></div>

@@ -126,7 +126,7 @@ export class RapportJournalierService {
     const targetDate = date || new Date();
     const dateString = targetDate.toISOString().split('T')[0];
 
-    const commercial$: Observable<Commercial | null> = from(this.databaseService.getCommercial());
+    const commercial$: Observable<Commercial | null> = from(this.databaseService.getCommercial(currentCommercialId));
 
     const distributions$ = from(this.databaseService.getDistributions(currentCommercialId)).pipe(
       switchMap(distributions => {

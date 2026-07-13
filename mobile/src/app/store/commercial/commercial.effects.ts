@@ -16,7 +16,7 @@ export class CommercialEffects {
     this.actions$.pipe(
       ofType(CommercialActions.loadCommercial),
       switchMap((action) =>
-        this.commercialService.getCommercials().pipe(
+        this.commercialService.getCommercials(action.commercialUsername).pipe(
           map((commercial) => CommercialActions.loadCommercialSuccess({ commercial })),
           catchError((error) => of(CommercialActions.loadCommercialFailure({ error: error.message })))
         )

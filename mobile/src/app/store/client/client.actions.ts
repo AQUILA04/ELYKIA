@@ -4,7 +4,8 @@ import { DateFilter } from '../../core/models/date-filter.model';
 import { ClientRepositoryFilters } from '../../core/repositories/client.repository.extensions';
 
 /**
- * @deprecated Use loadFirstPageClients instead. This action loads ALL clients into memory.
+ * @deprecated Prefer loadFirstPageClients. Bridged by ClientEffects.loadClients$
+ * to loadFirstPageClients (relecture SQLite, 1ʳᵉ page).
  */
 export const loadClients = createAction(
   '[Client] Load Clients',
@@ -12,7 +13,7 @@ export const loadClients = createAction(
 );
 
 /**
- * @deprecated Use loadFirstPageClientsSuccess instead.
+ * @deprecated Prefer loadFirstPageClientsSuccess. Rarely dispatched after pagination migration.
  */
 export const loadClientsSuccess = createAction(
   '[Client] Load Clients Success',
@@ -20,7 +21,7 @@ export const loadClientsSuccess = createAction(
 );
 
 /**
- * @deprecated Use loadFirstPageClientsFailure instead.
+ * @deprecated Prefer loadFirstPageClientsFailure.
  */
 export const loadClientsFailure = createAction(
   '[Client] Load Clients Failure',

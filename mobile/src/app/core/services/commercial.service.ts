@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from, of } from 'rxjs';
+import { Observable, from } from 'rxjs';
 import { switchMap, tap, catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { DatabaseService } from './database.service';
 import { Commercial } from '../../models/commercial.model';
 import { ApiResponse } from '../../models/api-response.model';
-import { selectAuthUser } from '../../store/auth/auth.selectors';
-import { Store } from '@ngrx/store';
 import { HealthCheckService } from './health-check.service';
 
 @Injectable({
@@ -18,7 +16,6 @@ export class CommercialService {
   constructor(
     private http: HttpClient,
     private dbService: DatabaseService,
-    private store: Store,
     private healthCheckService: HealthCheckService
   ) {
   }
@@ -35,11 +32,11 @@ export class CommercialService {
             }),
             catchError(async (error) => {
               console.error('Failed to fetch commercial data from API, attempting local:', error);
-              return this.getLocalCommercial();
+              return this.getLocalCommercial(commercialUsername);
             })
           );
         } else {
-          return from(this.getLocalCommercial());
+          return from(this.getLocalCommercial(commercialUsername));
         }
       })
     );
@@ -59,23 +56,23 @@ export class CommercialService {
     );
   }
 
-  private async getLocalCommercial(): Promise<Commercial> {
-    const commercial = await this.dbService.getCommercial();
+  private async getLocalCommercial(commercialUsername: string): Promise<Commercial> {
+    const commercial = await this.dbService.getCommercial(commercialUsername);
     if (commercial) {
       return commercial;
     } else {
-      console.error('No commercial data available locally.');
+      console.error(`No commercial data available locally for username: ${commercialUsername}`);
       throw new Error('Impossible de charger les données du commercial. Veuillez vérifier votre connexion ou synchroniser.');
     }
   }
 
   /**
-   * Retourne les informations du commercial sous forme d'Observable.
-   * Utilise la logique de récupération locale existante.
+   * Retourne les informations du commercial connecté depuis la base locale.
+   * Filtre obligatoirement par username pour éviter d'afficher un autre compte
+   * présent sur le même appareil après une reconnexion.
    */
-  public getCommercials(): Observable<Commercial> {
-    // L'opérateur 'from' de RxJS convertit une Promise en Observable
-    return from(this.getLocalCommercial());
+  public getCommercials(commercialUsername: string): Observable<Commercial> {
+    return from(this.getLocalCommercial(commercialUsername));
   }
 
 }

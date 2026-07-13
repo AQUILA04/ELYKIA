@@ -2,9 +2,9 @@ import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRe
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, from, Subject, firstValueFrom } from 'rxjs';
-import { takeUntil, take, filter } from 'rxjs/operators';
+import { takeUntil, take, filter, switchMap } from 'rxjs/operators';
 import { Commercial } from 'src/app/models/commercial.model';
-import { selectCommercial } from 'src/app/store/commercial/commercial.selectors';
+import { selectCommercialByUsername } from 'src/app/store/commercial/commercial.selectors';
 import * as AuthActions from 'src/app/store/auth/auth.actions';
 import * as PreferencesActions from 'src/app/store/preferences/preferences.actions';
 import { selectSyncDateFilter } from 'src/app/store/preferences/preferences.selectors';
@@ -12,6 +12,7 @@ import { Storage } from '@ionic/storage-angular';
 import { selectClientKpiTotalByCommercial, selectDistributionKpiActiveByCommercial, selectCollectionRateKpi } from 'src/app/store/kpi/kpi.selectors';
 import * as KpiActions from 'src/app/store/kpi/kpi.actions';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
+import * as CommercialActions from 'src/app/store/commercial/commercial.actions';
 import { DatabaseService } from '../../core/services/database.service';
 import { AlertController, ToastController, LoadingController } from '@ionic/angular';
 import { SyncErrorService } from 'src/app/core/services/sync-error.service';
@@ -84,7 +85,9 @@ export class MorePage implements OnInit, OnDestroy {
     private readonly exportLocationService: ExportLocationService,
     private readonly appUpdateService: AppUpdateService
   ) {
-    this.user$ = this.store.select(selectCommercial);
+    this.user$ = this.store.select(selectAuthUser).pipe(
+      switchMap(user => this.store.select(selectCommercialByUsername(user?.username || '')))
+    );
     this.totalClients$ = this.store.select(selectClientKpiTotalByCommercial);
     this.activeCreditsCount$ = this.store.select(selectDistributionKpiActiveByCommercial);
     this.collectionRate$ = this.store.select(selectCollectionRateKpi);
@@ -131,6 +134,7 @@ export class MorePage implements OnInit, OnDestroy {
       take(1)
     ).subscribe(user => {
       if (user) {
+        this.store.dispatch(CommercialActions.loadCommercial({ commercialUsername: user.username }));
         this.store.dispatch(KpiActions.loadClientKpi({ commercialUsername: user.username }));
         this.store.dispatch(KpiActions.loadDistributionKpi({ commercialId: user.username }));
         this.store.dispatch(KpiActions.loadRecoveryKpi({ commercialId: user.username }));

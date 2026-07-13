@@ -34,7 +34,7 @@ export interface ClientInitializationProgress {
 export class ClientService {
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
   private readonly MAX_CLIENTS = 5000;
-  private readonly PAGE_SIZE = 20;
+  private readonly PAGE_SIZE = 200;
 
   private clientsCache: { data: Client[]; timestamp: number; commercialUsername: string } | null = null;
   private initializationProgress$ = new BehaviorSubject<ClientInitializationProgress>({

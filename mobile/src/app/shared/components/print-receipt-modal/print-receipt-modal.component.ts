@@ -5,7 +5,7 @@ import { Distribution } from '../../../models/distribution.model';
 import { Client } from '../../../models/client.model';
 import { Article } from '../../../models/article.model';
 import { User } from '../../../models/auth.model';
-import { PrintableDistribution, PrintingService } from '../../../core/services/printing.service';
+import { PrintableDistribution, PrintingService, formatClientDisplayName } from '../../../core/services/printing.service';
 import * as DistributionActions from '../../../store/distribution/distribution.actions';
 import { PdfService } from '../../../core/services/pdf.service';
 
@@ -23,6 +23,10 @@ export class PrintReceiptModalComponent implements OnInit {
 
   printableDistribution!: PrintableDistribution;
   qrCodeData: string = '';
+
+  get clientDisplayName(): string {
+    return formatClientDisplayName(this.printableDistribution?.client ?? this.client);
+  }
 
   constructor(
     private modalController: ModalController,
@@ -47,7 +51,7 @@ export class PrintReceiptModalComponent implements OnInit {
       distributionId: this.distribution.id,
       reference: this.distribution.reference,
       clientId: this.client.id,
-      clientName: this.client.fullName,
+      clientName: formatClientDisplayName(this.client),
       totalAmount: this.distribution.totalAmount,
       advance: this.distribution.advance,
       remainingAmount: this.distribution.remainingAmount,

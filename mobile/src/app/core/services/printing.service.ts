@@ -28,6 +28,62 @@ export interface PrintableRecovery {
     name: string;
     phone?: string;
   };
+  previousRemainingAmount?: number;
+  newRemainingAmount?: number;
+}
+
+type ClientNameSource = {
+  fullName?: string | null;
+  firstname?: string | null;
+  lastname?: string | null;
+};
+
+/** Nom affiché sur les reçus (priorité fullName, sinon prénom + nom). */
+export function formatClientDisplayName(client: ClientNameSource | null | undefined): string {
+  if (!client) {
+    return 'Client';
+  }
+
+  const fullName = client.fullName?.trim();
+  if (fullName) {
+    return fullName;
+  }
+
+  const fromParts = [client.firstname, client.lastname]
+    .map((part) => (part == null ? '' : String(part).trim()))
+    .filter((part) => part.length > 0 && part.toLowerCase() !== 'null')
+    .join(' ')
+    .trim();
+
+  return fromParts || 'Client';
+}
+
+/** Soldes affichés sur le reçu de recouvrement (avant / après le paiement courant). */
+export function computeRecoveryReceiptBalances(
+  distribution: Distribution,
+  recoveryAmount: number
+): { previousRemainingAmount: number; newRemainingAmount: number } {
+  const amount = recoveryAmount ?? 0;
+  const remaining = distribution.remainingAmount ?? 0;
+  const paid = distribution.paidAmount ?? 0;
+  const total = distribution.totalAmount ?? 0;
+
+  const expectedRemainingIfUpdated = Math.max(total - paid, 0);
+  const balancesAlreadyIncludeRecovery = amount > 0
+    && paid >= amount
+    && Math.abs(remaining - expectedRemainingIfUpdated) < 0.01;
+
+  if (balancesAlreadyIncludeRecovery) {
+    return {
+      previousRemainingAmount: remaining + amount,
+      newRemainingAmount: remaining,
+    };
+  }
+
+  return {
+    previousRemainingAmount: remaining,
+    newRemainingAmount: Math.max(remaining - amount, 0),
+  };
 }
 
 export interface PrintableTontineCollection {
@@ -113,14 +169,16 @@ export class PrintingService {
 
   private generateRecoveryReceiptHTML(printableRecovery: PrintableRecovery): string {
     const { recovery, distribution, client, commercial } = printableRecovery;
-    const oldBalance = (distribution.remainingAmount ?? 0) + recovery.amount;
+    const balances = computeRecoveryReceiptBalances(distribution, recovery.amount);
+    const oldBalance = printableRecovery.previousRemainingAmount ?? balances.previousRemainingAmount;
+    const newBalance = printableRecovery.newRemainingAmount ?? balances.newRemainingAmount;
     const reliquatUsed = recovery.reliquatUsedAmount || 0;
     const reliquatGenerated = recovery.reliquatGeneratedAmount || 0;
     const cashReceived = recovery.amount - reliquatUsed + reliquatGenerated;
     
     const uniqueId = `#EL${new Date(recovery.paymentDate).getTime().toString()}`;
     const remainingInstallments = distribution.dailyPayment > 0
-      ? Math.ceil((distribution.remainingAmount ?? 0) / distribution.dailyPayment)
+      ? Math.ceil(newBalance / distribution.dailyPayment)
       : 0;
 
     return `
@@ -175,7 +233,7 @@ export class PrintingService {
           </div>
          <div style="margin-bottom: 10px;">
             CLIENT:<br>
-            ${client.fullName || (client.firstname + ' ' + client.lastname)}<br>
+            ${formatClientDisplayName(client)}<br>
             ${client.phone || ''}
           </div>
           <div style="margin-bottom: 10px;">
@@ -217,7 +275,7 @@ export class PrintingService {
           <p>---------------------------</p>
           <div class="row">
             <span>Nouveau Solde:</span>
-            <span class="value">${(distribution.remainingAmount ?? 0).toLocaleString('fr-FR')} FCFA</span>
+            <span class="value">${newBalance.toLocaleString('fr-FR')} FCFA</span>
           </div>
           <div class="row">
             <span>Mise journalier:</span>
@@ -315,10 +373,10 @@ export class PrintingService {
 
         <div class="separator"></div>
         <div class="content-wrapper">
-          <div style="margin-bottom: 10px;">
+         <div style="margin-bottom: 10px;">
             CLIENT:<br>
-            ${client.code}<br>
-            ${client.firstname} ${client.lastname}<br>
+            ${client.code ? `${client.code}<br>` : ''}
+            ${formatClientDisplayName(client)}<br>
             ${client.address || ''}<br>
             ${client.phone || ''}
           </div>
@@ -452,7 +510,7 @@ export class PrintingService {
           
           <div style="margin: 8px 0;">
             <strong>CLIENT:</strong><br>
-            ${client.fullName}<br>
+            ${formatClientDisplayName(client)}<br>
             ${client.phone || ''}
           </div>
 
@@ -599,7 +657,7 @@ export class PrintingService {
           
           <div style="margin: 8px 0;">
             <strong>BENEFICIAIRE:</strong><br>
-            ${client.fullName || 'Client'}<br>
+            ${formatClientDisplayName(client)}<br>
             ${client.phone || ''}
           </div>
 

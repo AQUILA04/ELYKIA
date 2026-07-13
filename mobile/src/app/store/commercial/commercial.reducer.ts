@@ -29,6 +29,7 @@ export const commercialReducer = createReducer(
   })),
   on(CommercialActions.loadCommercialFailure, (state, { error }) => ({
     ...state,
+    commercial: null,
     loading: false,
     error,
   }))

@@ -622,7 +622,9 @@ export class RapportJournalierPage implements OnDestroy {
           console.log('Rapport imprimé avec succès');
 
           // Save the report to the database
-          const commercial = await this.databaseService.getCommercial();
+          const commercial = this.commercialUsername
+            ? await this.databaseService.getCommercial(this.commercialUsername)
+            : null;
           if (commercial) {
             await this.databaseService.saveDailyReport(fullData, commercial.id);
           } else {

@@ -7,11 +7,11 @@ import { catchError, map, switchMap, exhaustMap, withLatestFrom, tap } from 'rxj
 import * as RecoveryActions from './recovery.actions';
 import { RecoveryCreationInFlightError, RecoveryService } from '../../core/services/recovery.service';
 import { LoggerService } from '../../core/services/logger.service';
-import { PrintingService, PrintableRecovery } from '../../core/services/printing.service';
+import { PrintingService, PrintableRecovery, computeRecoveryReceiptBalances } from '../../core/services/printing.service';
 import * as TransactionActions from '../transaction/transaction.actions';
 import * as DistributionActions from '../distribution/distribution.actions';
 import { selectDistributionById } from '../distribution/distribution.selectors';
-import { selectClientById, selectAllClients } from '../client/client.selectors';
+import { selectClientById } from '../client/client.selectors';
 import { selectAuthUser } from '../auth/auth.selectors';
 import { RecoverySummaryModalComponent } from '../../shared/components/recovery-summary-modal/recovery-summary-modal.component';
 import { Transaction } from '../../models/transaction.model';
@@ -20,6 +20,7 @@ import { filter, take } from 'rxjs/operators';
 import { RecoveryRepositoryExtensions } from '../../core/repositories/recovery.repository.extensions';
 import * as KpiActions from '../kpi/kpi.actions';
 import { selectDistributionRecoveryPagination } from './recovery.selectors';
+import { ClientService } from '../../core/services/client.service';
 
 @Injectable()
 export class RecoveryEffects {
@@ -30,6 +31,7 @@ export class RecoveryEffects {
     private store: Store,
     private modalController: ModalController,
     private recoveryRepositoryExtensions: RecoveryRepositoryExtensions,
+    private clientService: ClientService,
     private log: LoggerService
   ) { }
 
@@ -49,13 +51,13 @@ export class RecoveryEffects {
           take(1),
           map(client => {
             if (client) {
-              return { client, needsLoad: false, user: user!, clientId };
+              return { client, needsLoad: false, clientId };
             }
-            return { client: null, needsLoad: true, user: user!, clientId };
+            return { client: null, needsLoad: true, clientId };
           })
         );
       }),
-      switchMap(({ client, needsLoad, user, clientId }) => {
+      switchMap(({ client, needsLoad, clientId }) => {
         if (!needsLoad && client) {
           return [
             RecoveryActions.setSelectedClient({ client }),
@@ -63,26 +65,18 @@ export class RecoveryEffects {
           ];
         }
 
-        this.store.dispatch(ClientActions.loadClients({ commercialUsername: user.username }));
-
-        return this.actions$.pipe(
-          ofType(ClientActions.loadClientsSuccess),
-          take(1),
-          switchMap(() => {
-            return this.store.select(selectClientById(clientId)).pipe(
-              take(1),
-              switchMap(newlyLoadedClient => {
-                if (newlyLoadedClient) {
-                  return [
-                    RecoveryActions.setSelectedClient({ client: newlyLoadedClient }),
-                    RecoveryActions.loadClientCredits({ clientId }),
-                  ];
-                } else {
-                  return of(RecoveryActions.loadClientCreditsFailure({ error: `Client not found after loading: ${clientId}` }));
-                }
-              })
-            );
-          })
+        // Client hors du store paginé : lecture SQLite par id (pas uniquement la 1ʳᵉ page).
+        return from(this.clientService.getClientById(clientId)).pipe(
+          switchMap((loadedClient) => [
+            ClientActions.updateClientSuccess({ client: loadedClient }),
+            RecoveryActions.setSelectedClient({ client: loadedClient }),
+            RecoveryActions.loadClientCredits({ clientId }),
+          ]),
+          catchError((error) =>
+            of(RecoveryActions.loadClientCreditsFailure({
+              error: `Client not found after loading: ${clientId} (${error?.message || error})`,
+            }))
+          )
         );
       })
     );
@@ -228,13 +222,16 @@ export class RecoveryEffects {
         await modal.present();
         const { data } = await modal.onDidDismiss();
         if (data?.printed) {
+          const balances = computeRecoveryReceiptBalances(distribution, recovery.amount);
           const printableRecovery: PrintableRecovery = {
             recovery,
             distribution,
             client,
             commercial: {
               name: user ? user.username : 'N/A',
-            }
+            },
+            previousRemainingAmount: balances.previousRemainingAmount,
+            newRemainingAmount: balances.newRemainingAmount,
           };
           this.store.dispatch(RecoveryActions.printRecoveryReceipt({ printableRecovery }));
         }

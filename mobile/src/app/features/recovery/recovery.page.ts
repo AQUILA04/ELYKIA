@@ -17,6 +17,7 @@ import * as ClientActions from '../../store/client/client.actions';
 import * as DistributionActions from '../../store/distribution/distribution.actions';
 import { LoggerService } from '../../core/services/logger.service';
 import { RecoveryService } from '../../core/services/recovery.service';
+import { computeRecoveryReceiptBalances } from '../../core/services/printing.service';
 import { ReliquatService } from '../../core/services/reliquat.service';
 import { ClientReliquat, RecoveryPlan } from '../../models/reliquat.model';
 
@@ -146,7 +147,17 @@ export class RecoveryPage implements OnInit, OnDestroy {
       await toast.present();
 
       if (vm.client && vm.selectedCredit && user) {
-        this.store.dispatch(RecoveryActions.showRecoverySummary({ recovery, client: vm.client, distribution: vm.selectedCredit }));
+        const balances = computeRecoveryReceiptBalances(vm.selectedCredit, recovery.amount);
+        const distributionForReceipt: Distribution = {
+          ...vm.selectedCredit,
+          paidAmount: (vm.selectedCredit.paidAmount || 0) + recovery.amount,
+          remainingAmount: balances.newRemainingAmount,
+        };
+        this.store.dispatch(RecoveryActions.showRecoverySummary({
+          recovery,
+          client: vm.client,
+          distribution: distributionForReceipt,
+        }));
         this.store.dispatch(RecoveryActions.loadRecoveries({ commercialUsername: user.username }));
         this.store.dispatch(DistributionActions.loadDistributions({ commercialUsername: user.username }));
         this.cdr.markForCheck();

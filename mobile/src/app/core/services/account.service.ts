@@ -16,7 +16,7 @@ import {LoggerService} from "./logger.service";
   providedIn: 'root'
 })
 export class AccountService {
-  private readonly PAGE_SIZE = 20;
+  private readonly PAGE_SIZE = 200;
   private commercialUsername: string | undefined;
 
   constructor(

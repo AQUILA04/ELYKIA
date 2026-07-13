@@ -62,11 +62,11 @@
 
     <div class="row">
       <span>Ancien Solde:</span>
-      <span>{{ ((distribution.remainingAmount || 0) + recovery.amount) | number:'1.0-0' }} FCFA</span>
+      <span>{{ previousRemainingAmount | number:'1.0-0' }} FCFA</span>
     </div>
     <div class="row">
       <span>Nouveau Solde:</span>
-      <span>{{ (distribution.remainingAmount || 0) | number:'1.0-0' }} FCFA</span>
+      <span>{{ newRemainingAmount | number:'1.0-0' }} FCFA</span>
     </div>
 
     <div class="separator"></div>
