@@ -1,6 +1,7 @@
 package com.optimize.common.securities.controllers;
 
 import com.optimize.common.securities.dto.ChangePasswordDto;
+import com.optimize.common.securities.dto.RequirePasswordChangeDto;
 import com.optimize.common.securities.dto.ResetPasswordDto;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.models.UserProfil;
@@ -80,6 +81,20 @@ public class UserController {
     public ResponseEntity<?> resetPassword(@PathVariable Long id, @RequestBody @Valid ResetPasswordDto resetPasswordDto) {
         return ResponseEntity.ok(new MessageResponse("Mot de passe réinitialisé avec succès.",
                 userService.resetPasswordByAdmin(id, resetPasswordDto)));
+    }
+
+    @PatchMapping("/{id}/require-password-change")
+    @PreAuthorize("hasRole('ROLE_EDIT_USER')")
+    public ResponseEntity<?> requirePasswordChange(@PathVariable Long id) {
+        return ResponseEntity.ok(new MessageResponse("Changement de mot de passe requis pour l'utilisateur.",
+                userService.requirePasswordChange(id)));
+    }
+
+    @PatchMapping("/require-password-change")
+    @PreAuthorize("hasRole('ROLE_EDIT_USER')")
+    public ResponseEntity<?> requirePasswordChangeBulk(@RequestBody @Valid RequirePasswordChangeDto dto) {
+        return ResponseEntity.ok(new MessageResponse("Changement de mot de passe requis pour les utilisateurs sélectionnés.",
+                userService.requirePasswordChangeBulk(dto.getUserIds())));
     }
 
     @GetMapping("/profil/all")

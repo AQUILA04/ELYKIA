@@ -342,4 +342,31 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
       });
     });
   }
+
+  requirePasswordChange(): void {
+    if (!this.userId || !this.user || this.user.mustChangePassword) {
+      return;
+    }
+
+    this.alertService.showConfirmation(
+      'Exiger le changement de mot de passe',
+      `L'utilisateur « ${this.user.username} » devra changer son mot de passe à la prochaine connexion. Continuer ?`
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.userService.requirePasswordChange(this.userId!).subscribe({
+        next: () => {
+          this.alertService.showDefaultSucces(
+            'Changement de mot de passe requis. L\'utilisateur sera redirigé à sa prochaine connexion.'
+          );
+          this.loadUserDetails(this.userId!);
+        },
+        error: (err) => {
+          this.alertService.showError(err?.error?.message || 'Erreur lors de la mise à jour.');
+        },
+      });
+    });
+  }
 }

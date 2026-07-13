@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.optimize</groupId>
 	<artifactId>common-security-service</artifactId>
-	<version>1.2.0</version>
+  <version>1.2.1</version>
 	<name>common-security-service</name>
 	<description>Spring Boot, Spring Security, PostgreSQL: JWT Authentication &amp; Authorization example</description>
 

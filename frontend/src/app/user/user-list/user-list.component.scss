@@ -278,6 +278,22 @@
   flex-wrap: wrap;
 }
 
+.user-page .btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.user-page .btn-outline svg { width: 14px; height: 14px; }
+.user-page .btn-outline.btn-sm { padding: 5px 10px; }
+
 .user-page .table-card {
   background: var(--bg-white);
   border: 1px solid var(--border);
@@ -314,6 +330,25 @@
 }
 
 .user-page .data-table tbody tr:hover td { background: var(--navy-xpale); }
+.user-page .data-table tbody tr.selected-row td { background: #dce8f4; }
+
+.user-page .col-check {
+  width: 44px;
+  text-align: center;
+}
+
+.user-page .row-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--navy);
+  cursor: pointer;
+}
+
+.user-page .status-warn {
+  margin-left: 6px;
+  background: var(--orange-pale);
+  color: var(--orange);
+}
 
 .user-page .col-ref {
   font-family: 'DM Mono', monospace;

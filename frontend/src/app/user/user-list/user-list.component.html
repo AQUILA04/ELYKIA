@@ -58,9 +58,19 @@
 
       <span class="result-count">
         <strong>{{ totalElement }}</strong> utilisateur(s)
+        <span *ngIf="selectedUsers.size > 0"> · {{ selectedUsers.size }} sélectionné(s)</span>
       </span>
 
       <div class="toolbar-actions">
+        <ng-container *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+          <button
+            class="btn-outline btn-sm"
+            *ngIf="selectedUsers.size > 0"
+            (click)="requirePasswordChangeSelected()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+            Exiger changement mot de passe
+          </button>
+        </ng-container>
         <button class="btn-primary" (click)="addUser()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
           Ajouter
@@ -88,6 +98,15 @@
         <table class="data-table" *ngIf="!isLoading && users.length > 0">
           <thead>
             <tr>
+              <th class="col-check" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+                <input
+                  type="checkbox"
+                  class="row-checkbox"
+                  [checked]="isAllSelected"
+                  [indeterminate]="selectedUsers.size > 0 && !isAllSelected"
+                  (change)="toggleAllSelection()"
+                  aria-label="Tout sélectionner">
+              </th>
               <th>#</th>
               <th>Identifiant</th>
               <th>Nom et prénom</th>
@@ -98,7 +117,15 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let user of users; let i = index" class="table-row">
+            <tr *ngFor="let user of users; let i = index" class="table-row" [class.selected-row]="selectedUsers.has(user.id)">
+              <td class="col-check" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+                <input
+                  type="checkbox"
+                  class="row-checkbox"
+                  [checked]="selectedUsers.has(user.id)"
+                  (change)="toggleSelection(user)"
+                  [attr.aria-label]="'Sélectionner ' + user.username">
+              </td>
               <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
               <td>
                 <a class="col-user-link" [routerLink]="['/user/details', user.id]">{{ user.username }}</a>
@@ -108,6 +135,7 @@
               <td><span class="col-phone">{{ user.phone || '—' }}</span></td>
               <td>
                 <span class="status-badge" [ngClass]="getStatusBadgeClass(user)">{{ getStatusLabel(user) }}</span>
+                <span class="status-badge status-warn" *ngIf="user.mustChangePassword">MDP requis</span>
               </td>
               <td class="col-actions">
                 <button class="btn-detail" (click)="viewDetails(user.id)" title="Détails">

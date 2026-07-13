@@ -91,6 +91,14 @@ export class UserService {
     return this.http.patch(`${this.baseUrl}/${userId}/reset-password`, { newPassword });
   }
 
+  requirePasswordChange(userId: number): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/${userId}/require-password-change`, {});
+  }
+
+  requirePasswordChangeBulk(userIds: number[]): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/require-password-change`, { userIds });
+  }
+
   getPromoters(pageIndex: number, pageSize: number): Observable<any> {
     const url = `${this.promotersUrl}?page=${pageIndex}&size=${pageSize}`;
     return this.http.get<any>(url);

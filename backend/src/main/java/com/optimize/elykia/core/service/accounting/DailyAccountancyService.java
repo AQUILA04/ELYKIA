@@ -50,7 +50,7 @@ public class DailyAccountancyService extends GenericService<DailyAccountancy, Lo
             dailyAccountancy.setCollector(collector);
             dailyAccountancy.setAccountingDate(accountingDate);
             dailyAccountancy.setDailyAccounting(dailyAccounting);
-            Double balance = creditTimelineRepository.sumAmountByCollectorAndDate(collector, accountingDate.atStartOfDay(), accountingDate.atTime(23, 59));
+            Double balance = creditTimelineRepository.sumAmountByCollectorAndDate(collector, accountingDate.atStartOfDay(), accountingDate.atTime(23, 59, 59));
             dailyAccountancy.setSystemBalance(Objects.nonNull(balance) ? balance : 0.0);
             create(dailyAccountancy);
         });
@@ -60,7 +60,7 @@ public class DailyAccountancyService extends GenericService<DailyAccountancy, Lo
     @Deprecated
     public DailyAccountancy finishedCollectorOperation(CloseCollectorOperationDto dto) {
         DailyAccountancy dailyAccountancy = new DailyAccountancy();
-        Double balance = creditTimelineRepository.sumAmountByCollectorAndDate(dto.getCollector(), LocalDate.now().atStartOfDay(), LocalDate.now().atTime(23, 59));
+        Double balance = creditTimelineRepository.sumAmountByCollectorAndDate(dto.getCollector(), LocalDate.now().atStartOfDay(), LocalDate.now().atTime(23, 59, 59));
         dailyAccountancy.setSystemBalance(Objects.nonNull(balance) ? balance : 0.0);
         dailyAccountancy.setRealBalance(dto.getRealTotalAmount());
         dailyAccountancy.setCollector(dto.getCollector());

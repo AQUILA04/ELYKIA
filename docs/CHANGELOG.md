@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.10.4] — 2026-07-12
+
+### Added
+
+- Gestion utilisateurs : action admin pour exiger le changement de mot de passe (`mustChangePassword`) depuis la fiche utilisateur et en sélection multiple sur la liste (case à cocher + tout sélectionner).
+
 ## Frontend — [2.10.3] — 2026-07-12
 
 ### Fixed
@@ -128,6 +134,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
 - Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
+
+## Backend — [1.2.13] — 2026-07-12
+
+### Added
+
+- Endpoints admin `PATCH /api/v1/users/{id}/require-password-change` et `PATCH /api/v1/users/require-password-change` (sélection multiple) pour imposer `mustChangePassword` sans réinitialiser le mot de passe (`common-securities` 1.2.1).
+
+## Backend — [1.2.12] — 2026-07-12
+
+### Fixed
+
+- Comptabilisation journalière : borne de fin de journée alignée sur le standard `atTime(23, 59, 59)` dans `DailyAccountingService` et `DailyAccountancyService` (au lieu de `23:59:00`).
 
 ## Backend — [1.2.11] — 2026-07-12
 

@@ -46,7 +46,7 @@ public class DailyAccountingService extends GenericService<DailyAccounting, Long
     public DailyAccounting closeDailyAccounting(List<String> collectors, LocalDate accountingDate) {
         DailyAccounting dailyAccounting = getByAccountingDate(accountingDate);
         dailyAccounting.setTotalAmount(creditTimelineRepository.sumAmountByDate(
-                accountingDate.atStartOfDay(), accountingDate.atTime(23, 59)));
+                accountingDate.atStartOfDay(), accountingDate.atTime(23, 59, 59)));
         update(dailyAccounting);
         dailyAccountancyService.makeDailyAccountancy(collectors, accountingDate, dailyAccounting);
         return getByAccountingDate(accountingDate);
@@ -58,7 +58,7 @@ public class DailyAccountingService extends GenericService<DailyAccounting, Long
         if (Objects.isNull(dailyAccounting)) {
             return null;
         }
-        dailyAccounting.setTotalAmount(creditTimelineRepository.sumAmountByDate(accountingDate.atStartOfDay(), accountingDate.atTime(23, 59)));
+        dailyAccounting.setTotalAmount(creditTimelineRepository.sumAmountByDate(accountingDate.atStartOfDay(), accountingDate.atTime(23, 59, 59)));
         dailyAccounting.setStatus(AccountingDayStatus.OLD);
         return update(dailyAccounting);
     }

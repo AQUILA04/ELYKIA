@@ -161,6 +161,21 @@ public class UserService extends GenericService<User, Long> {
         return DefaultResponse.successReturn();
     }
 
+    @Transactional
+    public User requirePasswordChange(Long userId) {
+        User user = getById(userId);
+        UserAccount userAccount = user.getUserAccount();
+        userAccount.setMustChangePassword(true);
+        userAccountService.update(userAccount);
+        return user;
+    }
+
+    @Transactional
+    public Map<String, Object> requirePasswordChangeBulk(List<Long> userIds) {
+        userIds.forEach(this::requirePasswordChange);
+        return Map.of("updated", userIds.size());
+    }
+
     private boolean canManageUsers(User user) {
         return user.is("MANAGER") || user.is("ADMIN") || user.is("SUPER_ADMIN");
     }

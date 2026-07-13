@@ -22,6 +22,8 @@ export class UserListComponent implements OnInit, OnDestroy {
   private dateIntervalId?: ReturnType<typeof setInterval>;
 
   users: User[] = [];
+  selectedUsers = new Set<number>();
+  isAllSelected = false;
   currentPage = 0;
   pageSize = 10;
   totalElement = 0;
@@ -61,6 +63,8 @@ export class UserListComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.users = data.data?.content ?? [];
         this.totalElement = data.data?.page?.totalElements ?? data.data?.totalElements ?? 0;
+        this.selectedUsers.clear();
+        this.isAllSelected = false;
         this.lastUpdate = new Date();
         this.isLoading = false;
         this.saveState();
@@ -137,6 +141,58 @@ export class UserListComponent implements OnInit, OnDestroy {
           }
         });
       });
+  }
+
+  toggleSelection(user: User): void {
+    if (this.selectedUsers.has(user.id)) {
+      this.selectedUsers.delete(user.id);
+    } else {
+      this.selectedUsers.add(user.id);
+    }
+    this.updateAllSelectedState();
+  }
+
+  toggleAllSelection(): void {
+    if (this.isAllSelected) {
+      this.selectedUsers.clear();
+    } else {
+      this.users.forEach(user => this.selectedUsers.add(user.id));
+    }
+    this.updateAllSelectedState();
+  }
+
+  private updateAllSelectedState(): void {
+    this.isAllSelected = this.users.length > 0 && this.users.every(user => this.selectedUsers.has(user.id));
+  }
+
+  requirePasswordChangeSelected(): void {
+    if (this.selectedUsers.size === 0) {
+      return;
+    }
+
+    const count = this.selectedUsers.size;
+    this.alertService.showConfirmation(
+      'Exiger le changement de mot de passe',
+      `Les ${count} utilisateur(s) sélectionné(s) devront changer leur mot de passe à la prochaine connexion. Continuer ?`
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.userService.requirePasswordChangeBulk(Array.from(this.selectedUsers)).subscribe({
+        next: () => {
+          this.alertService.showDefaultSucces(
+            `Changement de mot de passe requis pour ${count} utilisateur(s).`
+          );
+          this.selectedUsers.clear();
+          this.isAllSelected = false;
+          this.loadUsers();
+        },
+        error: (err) => {
+          this.alertService.showError(err?.error?.message || 'Erreur lors de la mise à jour.');
+        },
+      });
+    });
   }
 
   addUser(): void {
