@@ -8,7 +8,7 @@ test.describe('Navigation gestionnaire (ges003)', () => {
 
   test('accès à la liste des clients', async ({ page }) => {
     await page.getByTestId('e2e-sidebar-clients').click();
-    await expect(page).toHaveURL(/\/client-list/);
+    await expect(page).toHaveURL(/\/client\/list/);
     await expect(page.getByTestId('e2e-client-list')).toBeVisible();
     await expect(page.getByTestId('e2e-client-add-btn')).toBeVisible();
   });

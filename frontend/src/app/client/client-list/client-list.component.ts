@@ -8,6 +8,8 @@ import { AuthService } from '../../auth/service/auth.service';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { Collector } from 'src/app/credit/types/credit-merge.types';
+import { NgxSpinnerService } from 'ngx-spinner';
 
 interface ClientListState {
   searchTerm: string;
@@ -41,6 +43,14 @@ export class ClientListComponent implements OnInit, OnDestroy {
   clientKpis: ClientKpis | null = null;
   dualCreditEnabled = false;
   isGestionnaire = false;
+  bulkAssignCollectorEnabled = false;
+
+  selectedClients: Set<number> = new Set();
+  isAllSelected = false;
+  showBulkAssignCollectorModal = false;
+  collectors: Collector[] = [];
+  selectedCreditCollector = '';
+  selectedTontineCollector = '';
 
   constructor(
     private clientService: ClientService,
@@ -49,13 +59,15 @@ export class ClientListComponent implements OnInit, OnDestroy {
     private alertService: AlertService,
     private authService: AuthService,
     private featureFlagService: FeatureFlagService,
-    private userService: UserService
+    private userService: UserService,
+    private spinner: NgxSpinnerService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
 
   ngOnInit(): void {
     this.dualCreditEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
+    this.bulkAssignCollectorEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.ClientBulkAssignCollector);
     this.isGestionnaire = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
     this.restoreState();
     this.loadClientKpis();
@@ -145,6 +157,8 @@ export class ClientListComponent implements OnInit, OnDestroy {
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
+    this.selectedClients.clear();
+    this.isAllSelected = false;
     this.saveState();
     this.loadClient();
   }
@@ -174,17 +188,17 @@ export class ClientListComponent implements OnInit, OnDestroy {
 
   addClient(): void {
     this.saveState();
-    this.router.navigate(['/client-add']);
+    this.router.navigate(['/client/add']);
   }
 
   viewDetails(clientId: number): void {
     this.saveState();
-    this.router.navigate(['/client-details', clientId]);
+    this.router.navigate(['/client/details', clientId]);
   }
 
   editClient(clientId: number): void {
     this.saveState();
-    this.router.navigate(['/client-add', clientId]);
+    this.router.navigate(['/client/add', clientId]);
   }
 
   authorizeBusinessCredit(client: Client, event: Event): void {
@@ -212,9 +226,102 @@ export class ClientListComponent implements OnInit, OnDestroy {
   onCommercialSelected(commercial: string | null): void {
     this.selectedCommercial = commercial;
     this.currentPage = 0;
+    this.selectedClients.clear();
+    this.isAllSelected = false;
     this.saveState();
     this.loadClientKpis();
     this.loadClient();
+  }
+
+  toggleSelection(clientId: number): void {
+    if (this.selectedClients.has(clientId)) {
+      this.selectedClients.delete(clientId);
+    } else {
+      this.selectedClients.add(clientId);
+    }
+    this.isAllSelected = this.clients.length > 0 && this.selectedClients.size === this.clients.length;
+  }
+
+  toggleAllSelection(): void {
+    if (this.isAllSelected) {
+      this.selectedClients.clear();
+    } else {
+      this.clients.forEach(c => this.selectedClients.add(c.id));
+    }
+    this.isAllSelected = !this.isAllSelected;
+  }
+
+  isSelected(clientId: number): boolean {
+    return this.selectedClients.has(clientId);
+  }
+
+  openBulkAssignCollectorModal(): void {
+    if (this.selectedClients.size === 0) {
+      this.alertService.showWarning('Veuillez sélectionner au moins un client.');
+      return;
+    }
+    this.loadCollectors();
+    this.showBulkAssignCollectorModal = true;
+  }
+
+  closeBulkAssignCollectorModal(): void {
+    this.showBulkAssignCollectorModal = false;
+    this.selectedCreditCollector = '';
+    this.selectedTontineCollector = '';
+  }
+
+  confirmBulkAssignCollector(): void {
+    if (!this.selectedCreditCollector && !this.selectedTontineCollector) {
+      this.alertService.showWarning('Veuillez sélectionner au moins un commercial crédit ou tontine.');
+      return;
+    }
+
+    const dto: {
+      clientIds: number[];
+      collector?: string;
+      tontineCollector?: string;
+    } = {
+      clientIds: Array.from(this.selectedClients)
+    };
+    if (this.selectedCreditCollector) {
+      dto.collector = this.selectedCreditCollector;
+    }
+    if (this.selectedTontineCollector) {
+      dto.tontineCollector = this.selectedTontineCollector;
+    }
+
+    this.spinner.show();
+    this.clientService.bulkAssignCollectors(dto).subscribe({
+      next: () => {
+        this.spinner.hide();
+        this.alertService.showSuccess('Changement de commercial effectué avec succès.');
+        this.closeBulkAssignCollectorModal();
+        this.selectedClients.clear();
+        this.isAllSelected = false;
+        this.loadClient();
+      },
+      error: (error) => {
+        this.spinner.hide();
+        this.alertService.showError(error.error?.message || 'Erreur lors du changement de commercial.');
+        console.error(error);
+      }
+    });
+  }
+
+  private loadCollectors(): void {
+    if (this.collectors.length > 0) {
+      return;
+    }
+    this.clientService.getAgents().subscribe({
+      next: (data) => {
+        this.collectors = data;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des commerciaux', error);
+        this.alertService.showError('Erreur lors du chargement des commerciaux');
+        this.collectors = [];
+      }
+    });
   }
 
   private saveState(): void {

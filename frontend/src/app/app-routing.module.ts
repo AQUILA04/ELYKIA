@@ -5,9 +5,6 @@ import { LocalityListComponent } from './locality/localitylist/localitylist.comp
 import { LocalityDetailsComponent } from './locality/localitydetails/localitydetails.component';
 import { AccountAddComponent } from './account/accountadd/accountadd.component';
 import { AccountListComponent } from './account/accountlist/accountlist.component';
-import { ClientAddComponent } from './client/client-add/client-add.component';
-import { ClientListComponent } from './client/client-list/client-list.component';
-import { ClientDetailsComponent } from './client/client-details/client-details.component';
 import { LoginComponent } from './auth/login/login.component';
 import { NgxPermissionsGuard } from 'ngx-permissions';
 import { DashboardComponent } from './dashboard/dashboard.component';
@@ -42,7 +39,6 @@ import { Back2StoreComponent } from './history/back2-store/back2-store.component
 import { DistributionComponent } from './credit/distribution/distribution.component';
 import { CommercialListComponent } from './commercial/commercial-list/commercial-list.component';
 import { CommercialViewComponent } from './commercial/commercial-view/commercial-view.component';
-import { ClientViewComponent } from './client/client-view/client-view.component';
 import { CreditViewComponent } from './credit/credit-view/credit-view.component';
 import { OutPdfListComponent } from './out/out-pdf-list/out-pdf-list.component';
 import { OldReleaseListComponent } from "./out/old-release-list/old-release-list.component";
@@ -262,29 +258,9 @@ const routes: Routes = [
 
   // Clients
   {
-    path: 'client-add',
-    component: ClientAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'client-add/:id',
-    component: ClientAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'client-list',
-    component: ClientListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'client-details/:id',
-    component: ClientDetailsComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'client-view/:id',
-    component: ClientViewComponent,
-    canActivate: [AuthGuard]
+    path: 'client',
+    loadChildren: () => import('./client/client.module').then(m => m.ClientModule),
+    canActivate: [AuthGuard],
   },
 
   // Utilisateurs

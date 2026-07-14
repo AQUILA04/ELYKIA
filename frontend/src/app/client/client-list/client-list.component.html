@@ -101,6 +101,17 @@
   </div>
 
   <div class="table-card a5">
+    <div class="table-card-actions" *ngIf="bulkAssignCollectorEnabled">
+      <button
+        *ngIf="selectedClients.size > 0"
+        type="button"
+        class="btn-secondary"
+        *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']"
+        (click)="openBulkAssignCollectorModal()"
+        data-testid="e2e-client-bulk-assign-collector-btn">
+        Changer de commercial ({{ selectedClients.size }})
+      </button>
+    </div>
     <div class="table-wrapper">
       <div *ngIf="isLoading" class="table-loading">
         <div class="empty-state">
@@ -120,6 +131,11 @@
       <table class="data-table" *ngIf="!isLoading && clients.length > 0">
         <thead>
           <tr>
+            <th *ngIf="bulkAssignCollectorEnabled" class="col-select">
+              <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
+                <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedClients.size > 0 && !isAllSelected"></mat-checkbox>
+              </ng-container>
+            </th>
             <th>#</th>
             <th>Nom</th>
             <th>Prénom</th>
@@ -130,9 +146,14 @@
         </thead>
         <tbody>
           <tr *ngFor="let client of clients; let i = index" class="table-row">
+            <td *ngIf="bulkAssignCollectorEnabled" class="col-select">
+              <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
+                <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
+              </ng-container>
+            </td>
             <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
             <td>
-              <a class="col-client-link" [routerLink]="['/client-view', client.id]">{{ client.lastname }}</a>
+              <a class="col-client-link" [routerLink]="['/client/view', client.id]">{{ client.lastname }}</a>
               <span *ngIf="dualCreditEnabled && client.businessCreditAuthorized" class="badge badge-success ml-1" title="Crédit business autorisé">B</span>
             </td>
             <td><span class="col-client">{{ client.firstname }}</span></td>
@@ -174,5 +195,41 @@
       </mat-paginator>
     </div>
   </div>
+  </div>
+</div>
+
+<div class="client-list-bulk-modal modal-overlay" *ngIf="showBulkAssignCollectorModal" (click)="closeBulkAssignCollectorModal()">
+  <div class="bulk-modal-dialog" role="dialog" (click)="$event.stopPropagation()">
+    <div class="bulk-modal-content">
+      <div class="bulk-modal-header">
+        <h5 class="bulk-modal-title">Changer de commercial</h5>
+        <button type="button" class="bulk-modal-close" aria-label="Fermer" (click)="closeBulkAssignCollectorModal()">&times;</button>
+      </div>
+      <div class="bulk-modal-body">
+        <p>Sélectionnez le(s) nouveau(x) commercial(aux) pour les {{ selectedClients.size }} client(s) sélectionné(s).</p>
+        <div class="bulk-form-group">
+          <label for="creditCollectorSelect">Commercial crédit</label>
+          <select class="bulk-form-control" id="creditCollectorSelect" [(ngModel)]="selectedCreditCollector">
+            <option value="">— Ne pas modifier —</option>
+            <option *ngFor="let collector of collectors" [value]="collector.username">
+              {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
+            </option>
+          </select>
+        </div>
+        <div class="bulk-form-group">
+          <label for="tontineCollectorSelect">Commercial tontine</label>
+          <select class="bulk-form-control" id="tontineCollectorSelect" [(ngModel)]="selectedTontineCollector">
+            <option value="">— Ne pas modifier —</option>
+            <option *ngFor="let collector of collectors" [value]="collector.username">
+              {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="bulk-modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeBulkAssignCollectorModal()">Annuler</button>
+        <button type="button" class="btn-validate" (click)="confirmBulkAssignCollector()" [disabled]="!selectedCreditCollector && !selectedTontineCollector">Valider</button>
+      </div>
+    </div>
   </div>
 </div>

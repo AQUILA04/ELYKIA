@@ -170,11 +170,11 @@ export class ClientDetailsComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/client-list']);
+    this.router.navigate(['/client/list']);
   }
 
   navigateToEdit(clientId: number): void {
-    this.router.navigate(['/client-add', clientId]);
+    this.router.navigate(['/client/add', clientId]);
   }
 
   onCreditPageChange(event: PageEvent): void {

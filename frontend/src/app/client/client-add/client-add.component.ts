@@ -243,7 +243,7 @@ export class ClientAddComponent implements OnInit {
               this.spinner.hide();
               this.alertService.toastSuccess('Client mis à jour avec succès');
               this.isLoading = false;
-              this.router.navigate(['/client-list']);
+              this.router.navigate(['/client/list']);
             } else {
               this.spinner.hide();
               this.alertService.showError('Erreur lors de la mise à jour du client : ' + resp.message);
@@ -277,13 +277,13 @@ export class ClientAddComponent implements OnInit {
                   this.spinner.hide();
                   this.alertService.showSuccess('Client et Compte créés avec succès');
                   this.isLoading = false;
-                  this.router.navigate(['/client-list']);
+                  this.router.navigate(['/client/list']);
                 },
                 (accountError) => {
                   this.spinner.hide();
                   this.alertService.showError('Client créé mais erreur lors de la création du compte : ' + (accountError?.error?.message || accountError.message));
                   this.isLoading = false;
-                  this.router.navigate(['/client-list']);
+                  this.router.navigate(['/client/list']);
                 }
               );
 
@@ -387,7 +387,7 @@ export class ClientAddComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/client-list']);
+    this.router.navigate(['/client/list']);
   }
 
   minAgeValidator(age: number) {

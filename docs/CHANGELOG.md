@@ -9,6 +9,29 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.10.5] — 2026-07-14
+
+### Added
+
+- Liste clients : changement de commercial en lot (sélection par cases, modal crédit + tontine) sous feature flag `clientBulkAssignCollector`, rôle `ROLE_ASSIGN_CLIENT_COLLECTOR`.
+
+### Changed
+
+- Domaine `client` migré en lazy-loading (`/client/list`, `/client/add`, `/client/details/:id`, `/client/view/:id`).
+
+## Backend — [1.2.16] — 2026-07-14
+
+### Added
+
+- Historique asynchrone des changements de commercial client (`ClientCollectorsChangedEvent` → `client_collector_history`) avec traçabilité commercial X → Y pour crédit et tontine.
+
+## Backend — [1.2.15] — 2026-07-14
+
+### Added
+
+- `POST /api/v1/clients/bulk-assign-collectors` : réaffectation batch des commerciaux crédit et/ou tontine sans charger les entités client (`ClientRepository.bulkUpdateCollector` / `bulkUpdateTontineCollector`).
+- Rôle `ROLE_ASSIGN_CLIENT_COLLECTOR` (profils SECRETARY, GESTIONNAIRE, ADMIN, SUPER_ADMIN).
+
 ## Frontend — [2.10.4] — 2026-07-12
 
 ### Added

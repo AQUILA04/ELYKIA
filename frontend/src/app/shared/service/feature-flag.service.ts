@@ -22,6 +22,7 @@ export enum FeatureFlags {
   DashboardV2 = 'dashboardV2',
   EditStockRequest = 'editStockRequest',
   Recruitment = 'recruitment',
+  ClientBulkAssignCollector = 'clientBulkAssignCollector',
 }
 
 const REMOTE_CONFIG_FETCH_TIMEOUT_MS = 10_000;
@@ -44,6 +45,7 @@ export class FeatureFlagService {
     [FeatureFlags.DashboardV2]: false,
     [FeatureFlags.EditStockRequest]: false,
     [FeatureFlags.Recruitment]: false,
+    [FeatureFlags.ClientBulkAssignCollector]: false,
   };
 
   private flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);

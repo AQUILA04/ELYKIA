@@ -27,7 +27,7 @@ test.describe('Authentification web admin', () => {
   });
 
   test('redirection vers login si non authentifié', async ({ page }) => {
-    await page.goto('/client-list');
+    await page.goto('/client/list');
     await expect(page).toHaveURL(/\/login/);
     await expect(page.getByTestId('e2e-login-form')).toBeVisible();
   });

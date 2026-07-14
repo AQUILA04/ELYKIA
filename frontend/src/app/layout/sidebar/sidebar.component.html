@@ -74,9 +74,9 @@
           </ul>
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT']">
-          <a class="sidebar-link" routerLink="/client-list" aria-expanded="false"
+          <a class="sidebar-link" routerLink="/client/list" aria-expanded="false"
              data-testid="e2e-sidebar-clients"
-             [ngClass]="{ 'active': isRouteActive('/client-list') }">
+             [ngClass]="{ 'active': isRouteActive('/client/list') }">
             <span>
               <mat-icon>account_circle</mat-icon>
             </span>

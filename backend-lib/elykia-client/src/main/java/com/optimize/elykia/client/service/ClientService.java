@@ -17,8 +17,12 @@ import com.optimize.elykia.client.entity.PhotoStore;
 import com.optimize.elykia.client.enumeration.AccountStatus;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.enumeration.PhotoType;
+import com.optimize.elykia.client.event.ClientCollectorChangeRecord;
+import com.optimize.elykia.client.event.ClientCollectorsChangedEvent;
 import com.optimize.elykia.client.event.ClientCreatedEvent;
 import com.optimize.elykia.client.event.ClientPhoneUpdatedEvent;
+import com.optimize.elykia.client.enumeration.ClientCollectorType;
+import com.optimize.elykia.client.repository.ClientCollectorSnapshot;
 import com.optimize.elykia.client.mapper.ClientMapper;
 import com.optimize.elykia.client.repository.BusinessCreditAuthorizationEventRepository;
 import com.optimize.elykia.client.repository.ClientRepository;
@@ -36,7 +40,10 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -423,6 +430,59 @@ public class ClientService extends GenericService<Client, Long> {
         Client client = getById(dto.getClientId());
         client.setCollector(dto.getCollector());
         return update(client);
+    }
+
+    @Transactional
+    @EvictClientListCaches
+    public void bulkAssignCollectors(BulkAssignCollectorsDto dto, String performedBy) {
+        if (dto.getClientIds() == null || dto.getClientIds().isEmpty()) {
+            throw new CustomValidationException("La liste des clients ne peut pas être vide.");
+        }
+        boolean hasCollector = StringUtils.hasText(dto.getCollector());
+        boolean hasTontineCollector = StringUtils.hasText(dto.getTontineCollector());
+        if (!hasCollector && !hasTontineCollector) {
+            throw new CustomValidationException(
+                    "Veuillez renseigner au moins un commercial crédit ou tontine.");
+        }
+
+        Map<Long, ClientCollectorSnapshot> snapshotsById = getRepository()
+                .findCollectorSnapshotsByIds(dto.getClientIds())
+                .stream()
+                .collect(Collectors.toMap(ClientCollectorSnapshot::getId, Function.identity()));
+
+        List<ClientCollectorChangeRecord> changes = new ArrayList<>();
+
+        if (hasCollector) {
+            for (Long clientId : dto.getClientIds()) {
+                ClientCollectorSnapshot snapshot = snapshotsById.get(clientId);
+                if (snapshot != null && !Objects.equals(snapshot.getCollector(), dto.getCollector())) {
+                    changes.add(new ClientCollectorChangeRecord(
+                            clientId,
+                            ClientCollectorType.CREDIT,
+                            snapshot.getCollector(),
+                            dto.getCollector()));
+                }
+            }
+            getRepository().bulkUpdateCollector(dto.getClientIds(), dto.getCollector());
+        }
+        if (hasTontineCollector) {
+            for (Long clientId : dto.getClientIds()) {
+                ClientCollectorSnapshot snapshot = snapshotsById.get(clientId);
+                if (snapshot != null
+                        && !Objects.equals(snapshot.getTontineCollector(), dto.getTontineCollector())) {
+                    changes.add(new ClientCollectorChangeRecord(
+                            clientId,
+                            ClientCollectorType.TONTINE,
+                            snapshot.getTontineCollector(),
+                            dto.getTontineCollector()));
+                }
+            }
+            getRepository().bulkUpdateTontineCollector(dto.getClientIds(), dto.getTontineCollector());
+        }
+
+        if (!changes.isEmpty() && eventPublisher != null && StringUtils.hasText(performedBy)) {
+            eventPublisher.publishEvent(new ClientCollectorsChangedEvent(this, changes, performedBy));
+        }
     }
 
     @Transactional

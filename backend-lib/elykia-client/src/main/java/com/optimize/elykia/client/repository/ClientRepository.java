@@ -9,6 +9,7 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -187,4 +188,26 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
             AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))
             """)
     long countClientsWithoutCreditNorTontine(@Param("username") String username);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE Client c SET c.collector = :collector
+            WHERE c.id IN :clientIds AND c.state <> com.optimize.common.entities.enums.State.DELETED
+            """)
+    int bulkUpdateCollector(@Param("clientIds") List<Long> clientIds, @Param("collector") String collector);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE Client c SET c.tontineCollector = :tontineCollector
+            WHERE c.id IN :clientIds AND c.state <> com.optimize.common.entities.enums.State.DELETED
+            """)
+    int bulkUpdateTontineCollector(@Param("clientIds") List<Long> clientIds,
+            @Param("tontineCollector") String tontineCollector);
+
+    @Query("""
+            SELECT c.id as id, c.collector as collector, c.tontineCollector as tontineCollector
+            FROM Client c
+            WHERE c.id IN :clientIds AND c.state <> com.optimize.common.entities.enums.State.DELETED
+            """)
+    List<ClientCollectorSnapshot> findCollectorSnapshotsByIds(@Param("clientIds") List<Long> clientIds);
 }

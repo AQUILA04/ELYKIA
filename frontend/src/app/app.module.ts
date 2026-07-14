@@ -23,9 +23,6 @@ import { AccountAddComponent } from './account/accountadd/accountadd.component';
 import { AccountListComponent } from './account/accountlist/accountlist.component';
 import { AccountdetailsComponent } from './account/accountdetails/accountdetails.component';
 import { LocalityAddComponent } from './locality/localityadd/localityadd.component';
-import { ClientAddComponent } from './client/client-add/client-add.component';
-import { ClientListComponent } from './client/client-list/client-list.component';
-import { ClientDetailsComponent } from './client/client-details/client-details.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { NgxPermissionsModule } from 'ngx-permissions';
@@ -84,7 +81,6 @@ import { Back2StoreComponent } from './history/back2-store/back2-store.component
 import { DistributionComponent } from './credit/distribution/distribution.component';
 import { CommercialListComponent } from './commercial/commercial-list/commercial-list.component';
 import { CommercialViewComponent } from './commercial/commercial-view/commercial-view.component';
-import { ClientViewComponent } from './client/client-view/client-view.component';
 import { OutPdfListComponent } from './out/out-pdf-list/out-pdf-list.component';
 import { CreditViewComponent } from './credit/credit-view/credit-view.component';
 import { StatusBadgePipe } from './shared/pipes/status-badge.pipe';
@@ -109,10 +105,6 @@ import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-mon
 import { ParameterEditComponent } from './parameters/parameter-edit/parameter-edit.component';
 import { CashDepositModalComponent } from './report/components/cash-deposit-modal/cash-deposit-modal.component';
 import { DailyStakeModalComponent } from './credit/components/daily-stake-modal/daily-stake-modal.component';
-import { ClientKpiCardsComponent } from './client/components/client-kpi-cards/client-kpi-cards.component';
-import { ClientInfoCardComponent } from './client/components/client-info-card/client-info-card.component';
-import { ClientCreditListComponent } from './client/components/client-credit-list/client-credit-list.component';
-import { ClientCotisationHistoryComponent } from './client/components/client-cotisation-history/client-cotisation-history.component';
 import { CreditLateComponent } from './credit/credit-late/credit-late.component';
 import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
 import { CreditListKpiComponent } from './credit/credit-list/components/credit-list-kpi/credit-list-kpi.component';
@@ -151,9 +143,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     AccountListComponent,
     AccountdetailsComponent,
     LocalityAddComponent,
-    ClientAddComponent,
-    ClientListComponent,
-    ClientDetailsComponent,
     LoginComponent,
     RegisterComponent,
     DashboardComponent,
@@ -198,7 +187,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     DistributionComponent,
     CommercialListComponent,
     CommercialViewComponent,
-    ClientViewComponent,
     OutPdfListComponent,
     CreditViewComponent,
     StatusBadgePipe,
@@ -211,10 +199,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     MobileMoneyConfigListComponent,
     CashDepositModalComponent,
     DailyStakeModalComponent,
-    ClientKpiCardsComponent,
-    ClientInfoCardComponent,
-    ClientCreditListComponent,
-    ClientCotisationHistoryComponent,
     CreditLateComponent,
     CreditLateKpiComponent,
     CreditListKpiComponent,

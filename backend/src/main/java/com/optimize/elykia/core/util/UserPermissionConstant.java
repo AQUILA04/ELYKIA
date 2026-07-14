@@ -83,4 +83,6 @@ public class UserPermissionConstant {
     public static final String RECONCILE_INVENTORY = "ROLE_RECONCILE_INVENTORY";
     public static final String FINALIZE_INVENTORY = "ROLE_FINALIZE_INVENTORY";
 
+    public static final String ASSIGN_CLIENT_COLLECTOR = "ROLE_ASSIGN_CLIENT_COLLECTOR";
+
 }

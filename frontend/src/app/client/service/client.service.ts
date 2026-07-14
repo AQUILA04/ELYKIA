@@ -221,4 +221,13 @@ export class ClientService {
       `${this.apiUrl}/${clientId}/business-credit-authorization/history`, { headers }
     ).pipe(map(response => response.data ?? []));
   }
+
+  bulkAssignCollectors(dto: {
+    clientIds: number[];
+    collector?: string;
+    tontineCollector?: string;
+  }): Observable<ApiResponse<boolean>> {
+    const headers = this.getHeader();
+    return this.http.post<ApiResponse<boolean>>(`${this.apiUrl}/bulk-assign-collectors`, dto, { headers });
+  }
 }

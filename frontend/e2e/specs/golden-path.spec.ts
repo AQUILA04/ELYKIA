@@ -164,7 +164,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
 
     await page.getByTestId('e2e-client-submit').click();
 
-    await expect(page).toHaveURL(/\/client-list/, { timeout: 30_000 });
+    await expect(page).toHaveURL(/\/client\/list/, { timeout: 30_000 });
     await dismissSwalSuccess(page);
 
     await page.getByTestId('e2e-client-search').fill(clientLastName);
@@ -712,7 +712,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await page.getByTestId('e2e-client-type').selectOption('CLIENT');
     await page.getByTestId('e2e-client-account-balance').fill('1000');
     await page.getByTestId('e2e-client-submit').click();
-    await expect(page).toHaveURL(/\/client-list/, { timeout: 30_000 });
+    await expect(page).toHaveURL(/\/client\/list/, { timeout: 30_000 });
     await dismissSwalSuccess(page);
     await activateClientAccount(page, rattrapageClientLastName);
 

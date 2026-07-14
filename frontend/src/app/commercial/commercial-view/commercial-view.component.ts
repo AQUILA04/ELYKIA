@@ -242,7 +242,7 @@ export class CommercialViewComponent implements OnInit {
 
   // Méthode pour voir les détails d'un client
   viewClientDetails(clientId: number): void {
-    this.router.navigate(['/client-details', clientId]);
+    this.router.navigate(['/client/details', clientId]);
   }
 
   loadHistoriquesData(): void {
