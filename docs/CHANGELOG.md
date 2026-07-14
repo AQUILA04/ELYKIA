@@ -19,6 +19,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Domaine `client` migré en lazy-loading (`/client/list`, `/client/add`, `/client/details/:id`, `/client/view/:id`).
 
+## Backend — [1.2.18] — 2026-07-14
+
+### Fixed
+
+- Changement commercial client en lot : validation des IDs, mise à jour uniquement des clients réellement modifiés, contrôle du nombre de lignes affectées avant publication de l'historique.
+
+## Backend — [1.2.17] — 2026-07-14
+
+### Fixed
+
+- Historique commercial client : séparation du gate `@TransactionalEventListener(AFTER_COMMIT)` et du `@Async` (service dédié) pour garantir la persistance après commit sans ambiguïté d'ordre des aspects.
+
 ## Backend — [1.2.16] — 2026-07-14
 
 ### Added

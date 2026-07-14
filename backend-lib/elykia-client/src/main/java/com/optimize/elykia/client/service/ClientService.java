@@ -450,12 +450,21 @@ public class ClientService extends GenericService<Client, Long> {
                 .stream()
                 .collect(Collectors.toMap(ClientCollectorSnapshot::getId, Function.identity()));
 
+        for (Long clientId : dto.getClientIds()) {
+            if (!snapshotsById.containsKey(clientId)) {
+                throw new CustomValidationException(
+                        "Client introuvable ou supprimé : " + clientId);
+            }
+        }
+
         List<ClientCollectorChangeRecord> changes = new ArrayList<>();
 
         if (hasCollector) {
+            List<Long> creditIdsToUpdate = new ArrayList<>();
             for (Long clientId : dto.getClientIds()) {
                 ClientCollectorSnapshot snapshot = snapshotsById.get(clientId);
-                if (snapshot != null && !Objects.equals(snapshot.getCollector(), dto.getCollector())) {
+                if (!Objects.equals(snapshot.getCollector(), dto.getCollector())) {
+                    creditIdsToUpdate.add(clientId);
                     changes.add(new ClientCollectorChangeRecord(
                             clientId,
                             ClientCollectorType.CREDIT,
@@ -463,13 +472,22 @@ public class ClientService extends GenericService<Client, Long> {
                             dto.getCollector()));
                 }
             }
-            getRepository().bulkUpdateCollector(dto.getClientIds(), dto.getCollector());
+            if (!creditIdsToUpdate.isEmpty()) {
+                int affected = getRepository().bulkUpdateCollector(creditIdsToUpdate, dto.getCollector());
+                if (affected != creditIdsToUpdate.size()) {
+                    throw new CustomValidationException(
+                            "Échec de la mise à jour du commercial crédit : "
+                                    + affected + " client(s) mis à jour sur "
+                                    + creditIdsToUpdate.size() + " attendu(s).");
+                }
+            }
         }
         if (hasTontineCollector) {
+            List<Long> tontineIdsToUpdate = new ArrayList<>();
             for (Long clientId : dto.getClientIds()) {
                 ClientCollectorSnapshot snapshot = snapshotsById.get(clientId);
-                if (snapshot != null
-                        && !Objects.equals(snapshot.getTontineCollector(), dto.getTontineCollector())) {
+                if (!Objects.equals(snapshot.getTontineCollector(), dto.getTontineCollector())) {
+                    tontineIdsToUpdate.add(clientId);
                     changes.add(new ClientCollectorChangeRecord(
                             clientId,
                             ClientCollectorType.TONTINE,
@@ -477,7 +495,16 @@ public class ClientService extends GenericService<Client, Long> {
                             dto.getTontineCollector()));
                 }
             }
-            getRepository().bulkUpdateTontineCollector(dto.getClientIds(), dto.getTontineCollector());
+            if (!tontineIdsToUpdate.isEmpty()) {
+                int affected = getRepository().bulkUpdateTontineCollector(
+                        tontineIdsToUpdate, dto.getTontineCollector());
+                if (affected != tontineIdsToUpdate.size()) {
+                    throw new CustomValidationException(
+                            "Échec de la mise à jour du commercial tontine : "
+                                    + affected + " client(s) mis à jour sur "
+                                    + tontineIdsToUpdate.size() + " attendu(s).");
+                }
+            }
         }
 
         if (!changes.isEmpty() && eventPublisher != null && StringUtils.hasText(performedBy)) {
