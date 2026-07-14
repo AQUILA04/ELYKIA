@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -41,8 +42,7 @@ public class AccountService extends GenericService<Account, Long> {
     @Transactional
     public AccountRespDto createAccount(AccountDto accountDto) {
         Account account = accountMapper.toEntity(accountDto);
-        account.setStatus(AccountStatus.CREATED);
-        Account savedAccount = create(account);
+        Account savedAccount = saveOrReactivateAccount(account, AccountStatus.CREATED);
 
         publishAccountCreationEvent(savedAccount);
 
@@ -52,12 +52,30 @@ public class AccountService extends GenericService<Account, Long> {
     @Transactional
     public AccountRespDto syncAccount(AccountDto accountDto) {
         Account account = accountMapper.toEntity(accountDto);
-        account.setStatus(AccountStatus.ACTIF);
-        Account savedAccount = create(account);
+        Account savedAccount = saveOrReactivateAccount(account, AccountStatus.ACTIF);
 
         publishAccountCreationEvent(savedAccount);
 
         return AccountRespDto.fromAccount(savedAccount);
+    }
+
+    private Account saveOrReactivateAccount(Account account, AccountStatus status) {
+        Long clientId = account.getClient() != null ? account.getClient().getId() : null;
+        if (clientId != null) {
+            Optional<Account> deletedAccount = getRepository().findByClient_IdAndState(clientId, State.DELETED);
+            if (deletedAccount.isPresent()) {
+                Account existing = deletedAccount.get();
+                existing.setState(State.ENABLED);
+                existing.setAccountBalance(account.getAccountBalance());
+                if (StringUtils.hasText(account.getAccountNumber())) {
+                    existing.setAccountNumber(account.getAccountNumber());
+                }
+                existing.setStatus(status);
+                return update(existing);
+            }
+        }
+        account.setStatus(status);
+        return create(account);
     }
 
     private void publishAccountCreationEvent(Account account) {

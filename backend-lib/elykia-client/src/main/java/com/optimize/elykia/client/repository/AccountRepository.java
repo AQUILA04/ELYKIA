@@ -13,9 +13,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public interface AccountRepository extends GenericRepository<Account, Long> {
+
+    Optional<Account> findByClient_IdAndState(Long clientId, State state);
 
     default Page<Account> elasticsearch(String keyword, Pageable pageable) {
         return findAll(getElasticsearchCriteria(keyword), pageable);

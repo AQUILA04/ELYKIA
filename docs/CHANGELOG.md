@@ -155,6 +155,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Écran `/change-password` pour le changement obligatoire après reset admin, avec blocage de la navigation tant que le mot de passe n'est pas redéfini.
 - Connexion hors ligne bloquée tant que `mustChangePassword` est actif ; mise à jour du hash local après changement réussi.
 
+## Backend — [1.2.14] — 2026-07-14
+
+### Fixed
+
+- Création de compte client : réactivation du compte précédemment supprimé (même `client_id`) avec le nouveau solde et numéro de compte, au lieu d'échouer sur la contrainte d'unicité (`AccountService.createAccount` / `syncAccount`).
+
 ## Backend — [1.2.13] — 2026-07-12
 
 ### Added
