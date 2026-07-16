@@ -10,6 +10,7 @@ import { StockTontineRequestService } from '../../services/stock-tontine-request
 import { StockListFilter, StockRequestKpis } from '../../../stock/services/stock-request.service';
 import { coerceStockItems } from '../../../stock/utils/stock-detail.util';
 import { forkJoin } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import {
   buildPreviousMonthOptions,
   getStockPeriodLabel,
@@ -41,6 +42,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
   totalElement = 0;
   isLoading = true;
   exportLoading = false;
+  processingId: number | null = null;
 
   isManager = false;
   isStoreKeeper = false;
@@ -202,9 +204,15 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
   }
 
   deliver(request: StockTontineRequestListItem): void {
+    if (!request.id || this.processingId === request.id) {
+      return;
+    }
     this.alertService.showConfirmation('Confirmation', 'Confirmer la livraison de cette demande ?').then((confirmed) => {
       if (confirmed) {
-        this.requestService.deliver(request.id!).subscribe({
+        this.processingId = request.id!;
+        this.requestService.deliver(request.id!).pipe(
+          finalize(() => { this.processingId = null; })
+        ).subscribe({
           next: (resp: any) => {
             if (resp?.statusCode >= 400) {
               this.alertService.showError(resp.message ?? 'Erreur de livraison', 'Erreur de livraison');

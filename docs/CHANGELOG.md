@@ -9,6 +9,24 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.2.20] — 2026-07-16
+
+### Fixed
+
+- Réception des retours stock commercial et livraison/réception stock tontine : verrouillage pessimiste pendant le traitement pour empêcher un double impact concurrentiel.
+
+## Frontend — [2.10.6] — 2026-07-16
+
+### Fixed
+
+- Listes demandes/retours stock et stock tontine : protection des boutons Livrer / Réceptionner contre le double-clic pendant le traitement.
+
+## Backend — [1.2.19] — 2026-07-16
+
+### Fixed
+
+- Livraison des demandes de stock commercial : verrouillage pessimiste de la demande pendant la livraison pour empêcher deux appels concurrents d'impacter deux fois le stock mensuel du commercial.
+
 ## Frontend — [2.10.5] — 2026-07-14
 
 ### Added

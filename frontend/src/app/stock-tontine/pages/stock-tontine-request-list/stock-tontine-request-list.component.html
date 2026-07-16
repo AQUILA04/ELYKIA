@@ -151,7 +151,8 @@
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 </button>
                 <button *ngIf="isStoreKeeper && req.status === 'VALIDATED'" class="btn-detail"
-                        (click)="deliver(req)" title="Livrer" data-testid="e2e-stock-tontine-request-deliver">
+                        (click)="deliver(req)" title="Livrer" data-testid="e2e-stock-tontine-request-deliver"
+                        [disabled]="processingId === req.id">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                 </button>
                 <button *ngIf="(isManager || (currentUser?.username === req.collector)) && req.status === 'CREATED'"

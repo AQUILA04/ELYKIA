@@ -263,7 +263,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     }
 
     public PartialDeliveryResponseDTO deliverRequest(Long requestId) {
-        StockRequest request = getById(requestId);
+        StockRequest request = getByIdForDelivery(requestId);
         if (request.getStatus() != StockRequestStatus.VALIDATED) {
             throw new CustomValidationException("La demande doit être validée avant livraison.");
         }
@@ -587,6 +587,11 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     @Override
     public StockRequest getById(Long id) {
         return ((StockRequestRepository) repository).findByIdWithItems(id)
+                .orElseThrow(() -> new com.optimize.common.entities.exception.ResourceNotFoundException("resource.not.found"));
+    }
+
+    private StockRequest getByIdForDelivery(Long id) {
+        return ((StockRequestRepository) repository).findByIdForUpdate(id)
                 .orElseThrow(() -> new com.optimize.common.entities.exception.ResourceNotFoundException("resource.not.found"));
     }
 

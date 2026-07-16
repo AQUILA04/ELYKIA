@@ -3,8 +3,10 @@ package com.optimize.elykia.core.repository;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.stock.StockRequest;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -72,6 +74,10 @@ public interface StockRequestRepository extends GenericRepository<StockRequest, 
             "LEFT JOIN FETCH i.article " +
             "WHERE s.id = :id")
     java.util.Optional<StockRequest> findByIdWithItems(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM StockRequest s WHERE s.id = :id")
+    java.util.Optional<StockRequest> findByIdForUpdate(@Param("id") Long id);
 
     @Query("SELECT s FROM StockRequest s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +

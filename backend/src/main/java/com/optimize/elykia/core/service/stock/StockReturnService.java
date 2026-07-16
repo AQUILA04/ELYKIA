@@ -112,7 +112,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     }
 
     public StockReturn validateReturn(Long returnId) {
-        StockReturn stockReturn = getById(returnId);
+        StockReturn stockReturn = getByIdForValidation(returnId);
         if (stockReturn.getStatus() != StockReturnStatus.CREATED) {
             throw new CustomValidationException("Le retour a déjà été traité.");
         }
@@ -451,6 +451,11 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     @Override
     public StockReturn getById(Long id) {
         return ((StockReturnRepository) repository).findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
+    }
+
+    private StockReturn getByIdForValidation(Long id) {
+        return ((StockReturnRepository) repository).findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
     }
 

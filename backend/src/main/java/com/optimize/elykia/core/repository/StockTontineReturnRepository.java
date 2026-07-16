@@ -3,8 +3,10 @@ package com.optimize.elykia.core.repository;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.stock.StockTontineReturn;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -49,6 +51,10 @@ public interface StockTontineReturnRepository extends GenericRepository<StockTon
             "LEFT JOIN FETCH i.article " +
             "WHERE s.id = :id")
     Optional<StockTontineReturn> findByIdWithItems(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM StockTontineReturn s WHERE s.id = :id")
+    Optional<StockTontineReturn> findByIdForUpdate(@Param("id") Long id);
 
     @Query("SELECT s FROM StockTontineReturn s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +

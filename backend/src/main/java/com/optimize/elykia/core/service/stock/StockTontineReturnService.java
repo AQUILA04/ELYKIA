@@ -76,7 +76,7 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
     }
 
     public StockTontineReturn validate(Long id) {
-        StockTontineReturn returnRequest = getById(id);
+        StockTontineReturn returnRequest = getByIdForValidation(id);
         if (returnRequest.getStatus() != StockReturnStatus.CREATED) {
             throw new CustomValidationException("Seuls les retours au statut CREATED peuvent être validés.");
         }
@@ -148,6 +148,11 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
     @Override
     public StockTontineReturn getById(Long id) {
         return ((StockTontineReturnRepository) getRepository()).findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
+    }
+
+    private StockTontineReturn getByIdForValidation(Long id) {
+        return ((StockTontineReturnRepository) getRepository()).findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
     }
 

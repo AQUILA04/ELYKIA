@@ -138,7 +138,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     }
 
     public PartialDeliveryResponseDTO deliver(Long id) {
-        StockTontineRequest request = getById(id);
+        StockTontineRequest request = getByIdForDelivery(id);
         if (request.getStatus() != StockRequestStatus.VALIDATED) {
             throw new CustomValidationException("Seules les demandes au statut VALIDATED peuvent être livrées.");
         }
@@ -331,6 +331,11 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     @Override
     public StockTontineRequest getById(Long id) {
         return ((StockTontineRequestRepository) getRepository()).findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
+    }
+
+    private StockTontineRequest getByIdForDelivery(Long id) {
+        return ((StockTontineRequestRepository) getRepository()).findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
     }
 

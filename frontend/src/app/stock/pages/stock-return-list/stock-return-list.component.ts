@@ -10,6 +10,7 @@ import { StockListFilter } from '../../services/stock-request.service';
 import { StockReturnKpis, StockReturnService } from '../../services/stock-return.service';
 import { coerceStockItems, formatArticleLabel } from '../../utils/stock-detail.util';
 import { forkJoin } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import {
   buildPreviousMonthOptions,
   getStockPeriodLabel,
@@ -41,6 +42,7 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
   totalElements = 0;
   isLoading = true;
   exportLoading = false;
+  processingId: number | null = null;
 
   isPromoter = false;
   isStoreKeeper = false;
@@ -186,9 +188,15 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
   }
 
   validate(stockReturn: StockReturnListItem): void {
+    if (!stockReturn.id || this.processingId === stockReturn.id) {
+      return;
+    }
     this.alertService.showConfirmation('Confirmation', 'Confirmer la réception de ce retour ?').then((confirmed) => {
       if (confirmed) {
-        this.stockReturnService.validate(stockReturn.id!).subscribe({
+        this.processingId = stockReturn.id!;
+        this.stockReturnService.validate(stockReturn.id!).pipe(
+          finalize(() => { this.processingId = null; })
+        ).subscribe({
           next: () => {
             this.toastr.success('Retour validé et stock mis à jour');
             this.refresh();
