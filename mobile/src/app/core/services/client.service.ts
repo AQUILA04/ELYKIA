@@ -148,18 +148,19 @@ export class ClientService {
 
               return []; // Return empty array to indicate success but no data payload
             }),
-            catchError(async (error) => {
-              this.log.log(`[ClientService] API fetch failed: ${error.message}`);
+            catchError(error => {
+              const detail = error instanceof Error ? error.message : this.log.formatError(error);
+              this.log.error(`[ClientService] API fetch/save failed — blocking initialization`, error);
               this.updateProgress({
                 isLoading: false,
                 currentPage: 0,
                 totalPages: 0,
                 loadedClients: 0,
                 totalClients: 0,
-                message: `Mode hors ligne activé`
+                message: `Erreur clients: ${detail}`
               });
-
-              return [];
+              // Ne pas avaler l'erreur (ex. FK 787) : l'init doit s'arrêter.
+              return throwError(() => error instanceof Error ? error : new Error(detail));
             })
           );
         } else {
@@ -184,8 +185,8 @@ export class ClientService {
           totalClients: 0,
           message: 'Erreur lors du chargement des clients'
         });
-        this.log.log(`[ClientService] initializeClients error: ${error.message}`);
-        return of([]);
+        this.log.error(`[ClientService] initializeClients error`, error);
+        return throwError(() => error instanceof Error ? error : new Error(this.log.formatError(error)));
       })
     );
   }
@@ -204,16 +205,26 @@ export class ClientService {
               const pageInfo = response.data.page;
 
               if (page === 0) {
-                  await this.clientRepository.deleteSyncedForReinit(commercialUsername);
-                  await this.log.log(`[ClientService] Purged synced clients before re-initialization for ${commercialUsername}`);
+                  try {
+                      await this.clientRepository.deleteSyncedForReinit(commercialUsername);
+                      await this.log.log(`[ClientService] Purged synced clients before re-initialization for ${commercialUsername}`);
+                  } catch (purgeError) {
+                      this.log.error(`[ClientService] Failed to purge synced clients (page 0)`, purgeError);
+                      throw purgeError;
+                  }
               }
 
               if (clients.length > 0) {
-                  const merged = await this.clientRepository.reconcileIncomingServerClients(clients, commercialUsername);
-                  if (merged > 0) {
-                      await this.log.log(`[ClientService] Reconciled ${merged} local client duplicate(s) before page ${page + 1} import.`);
+                  try {
+                      const merged = await this.clientRepository.reconcileIncomingServerClients(clients, commercialUsername);
+                      if (merged > 0) {
+                          await this.log.log(`[ClientService] Reconciled ${merged} local client duplicate(s) before page ${page + 1} import.`);
+                      }
+                      await this.clientRepository.saveAll(clients);
+                  } catch (saveError) {
+                      this.log.error(`[ClientService] Failed to save clients page ${page}`, saveError);
+                      throw saveError;
                   }
-                  await this.clientRepository.saveAll(clients);
               }
 
               this.updateProgress({
@@ -237,8 +248,8 @@ export class ClientService {
               }
           }),
           catchError(error => {
-              const detail = error instanceof Error ? error.message : String(error);
-              this.log.log(`[ClientService] Error fetching page ${page}: ${detail}`);
+              const detail = error instanceof Error ? error.message : this.log.formatError(error);
+              this.log.error(`[ClientService] Error fetching/saving page ${page}`, error);
               return throwError(() => error instanceof Error ? error : new Error(detail));
           })
       );

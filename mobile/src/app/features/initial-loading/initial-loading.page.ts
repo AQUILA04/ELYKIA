@@ -209,6 +209,14 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
         const comparisonResult = await this.initValidationService.validateInitialization(user.username)
           .pipe(take(1)).toPromise();
 
+        if (comparisonResult && comparisonResult.clientsMismatch) {
+          this.log.log('[InitialLoadingPage] ❌ Client count mismatch — blocking completion: ' + JSON.stringify(comparisonResult.missingData));
+          this.presentErrorAlert(
+            `Échec de validation des clients.\n\n${comparisonResult.missingData.join('\n')}\n\nRéessayez l'initialisation. Les données clients doivent correspondre au serveur.`
+          );
+          return;
+        }
+
         if (comparisonResult && comparisonResult.isComplete) {
           this.log.log('[InitialLoadingPage] ✅ Data validation successful - all data complete');
           await this.initValidationService.markInitializationComplete();
@@ -217,18 +225,16 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
           this.progress = 100;
         } else if (comparisonResult) {
           this.log.log('[InitialLoadingPage] ⚠️ Data validation warning - some data missing: ' + JSON.stringify(comparisonResult.missingData));
-          // Afficher un avertissement mais continuer
+          // Afficher un avertissement mais continuer (sauf clients, déjà bloqué ci-dessus)
           await this.presentDataIncompleteWarning(comparisonResult.missingData);
-          // Marquer quand même comme complète pour permettre le travail, mais ne pas marquer la date si incomplet?
-          // Décision: Marquer la date pour éviter le blocage offline, car l'utilisateur a vu l'avertissement.
-          // OU: Ne pas marquer la date pour forcer une ré-init propre le lendemain?
-          // Le doc VALIDATION dit: "Affiche un avertissement mais continue".
-          // Et "connexion hors ligne (nouvelle journée) -> NON (car nouvelle journée)"
-          // Donc on doit mettre à jour la date pour permettre le travail offline AUJOURD'HUI.
           await this.initValidationService.markInitializationComplete();
           await this.storage.set('initialization_complete', true);
           this.statusText = "Initialisation terminée (avec avertissements)";
           this.progress = 100;
+        } else {
+          this.log.log('[InitialLoadingPage] ❌ Validation returned no result — blocking completion');
+          this.presentErrorAlert('La validation des données n\'a renvoyé aucun résultat. Réessayez l\'initialisation.');
+          return;
         }
 
         // --- PRELOAD KPIS START ---
@@ -255,13 +261,11 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
         return;
       }
     } catch (error) {
-      this.log.log(`[InitialLoadingPage] Data validation failed: ${error}`);
-      console.error('Data validation error:', error);
-      // En cas d'erreur technique (réseau, crash), on marque comme complet pour ne pas bloquer
-      // mais on ne met pas à jour la date de validation stricte (donc offline login pourrait échouer demain, ce qui est bien)
-      await this.storage.set('initialization_complete', true);
-      this.statusText = "Initialisation terminée (validation ignorée)";
-      this.progress = 100;
+      this.log.error('[InitialLoadingPage] Data validation failed', error);
+      const detail = error instanceof Error ? error.message : this.log.formatError(error);
+      // Ne plus marquer comme complet : une validation en échec peut masquer des clients manquants
+      this.presentErrorAlert(`Erreur lors de la validation des données: ${detail}`);
+      return;
     }
 
     this.performBackgroundBackup();

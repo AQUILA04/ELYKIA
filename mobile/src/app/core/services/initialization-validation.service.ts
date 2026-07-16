@@ -19,6 +19,8 @@ export class InitializationValidationService {
 
   private readonly INIT_DATE_KEY = 'last_complete_initialization_date';
   private readonly TOLERANCE_PERCENTAGE = 0.05; // 5% de tolérance
+  /** Sous-effectif clients : tolérance plus stricte (1 %) pour détecter une init clients ratée. */
+  private readonly CLIENT_UNDER_TOLERANCE_PERCENTAGE = 0.01;
 
   constructor(
     private http: HttpClient,
@@ -61,8 +63,13 @@ export class InitializationValidationService {
 
     // Comparer les totaux
     const missingData: string[] = [];
+    let clientsMismatch = false;
 
-    if (!this.isWithinTolerance(localCounts.clients, serverSummary.totalClients)) {
+    const clientComparison = this.compareClientCounts(localCounts.clients, serverSummary.totalClients);
+    if (!clientComparison.acceptable) {
+      if (clientComparison.blocking) {
+        clientsMismatch = true;
+      }
       missingData.push(`Clients (local: ${localCounts.clients}, serveur: ${serverSummary.totalClients})`);
     }
 
@@ -104,30 +111,61 @@ export class InitializationValidationService {
 
     const isComplete = missingData.length === 0;
 
+    console.log('[InitializationValidation] Local counts:', JSON.stringify(localCounts));
+    console.log('[InitializationValidation] Server summary clients/distributions:',
+      serverSummary.totalClients, serverSummary.totalDistributions);
+
     if (isComplete) {
       console.log('[InitializationValidation] ✅ Data is complete and matches server');
     } else {
       console.warn('[InitializationValidation] ⚠️ Data is incomplete:', missingData);
+      if (clientsMismatch) {
+        console.error('[InitializationValidation] ❌ CRITICAL: client count mismatch — initialization must not be marked complete');
+      }
     }
 
     return {
       isComplete,
       missingData,
       serverSummary,
-      localCounts
+      localCounts,
+      clientsMismatch
     };
   }
 
   /**
    * Vérifie si deux valeurs sont dans la tolérance acceptable
    */
-  private isWithinTolerance(local: number, server: number): boolean {
+  private isWithinTolerance(local: number, server: number, tolerancePercentage: number = this.TOLERANCE_PERCENTAGE): boolean {
     if (server === 0) {
       return local === 0;
     }
     const difference = Math.abs(local - server);
-    const tolerance = server * this.TOLERANCE_PERCENTAGE;
+    const tolerance = server * tolerancePercentage;
     return difference <= tolerance;
+  }
+
+  /**
+   * Clients :
+   * - blocage uniquement si le serveur a plus de clients que le mobile ;
+   * - simple warning si le mobile en a plus que le serveur.
+   */
+  private compareClientCounts(local: number, server: number): { acceptable: boolean; blocking: boolean } {
+    if (server === 0) {
+      return { acceptable: true, blocking: false };
+    }
+    if (local === 0) {
+      return { acceptable: false, blocking: true };
+    }
+    if (local < server) {
+      const missing = server - local;
+      const underTolerance = Math.max(1, server * this.CLIENT_UNDER_TOLERANCE_PERCENTAGE);
+      const acceptable = missing <= underTolerance;
+      return { acceptable, blocking: !acceptable };
+    }
+
+    const acceptable = this.isWithinTolerance(local, server, this.TOLERANCE_PERCENTAGE);
+    return { acceptable, blocking: false };
   }
 
   /**

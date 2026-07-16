@@ -4,6 +4,7 @@ import { Client } from '../../models/client.model';
 import { DatabaseService } from '../services/database.service';
 import { capSQLiteSet } from '@capacitor-community/sqlite';
 import { ClientMapper } from '../../shared/mapper/client.mapper';
+import { LoggerService } from '../services/logger.service';
 
 @Injectable({
     providedIn: 'root'
@@ -11,7 +12,21 @@ import { ClientMapper } from '../../shared/mapper/client.mapper';
 export class ClientRepository extends BaseRepository<Client, string> {
     protected tableName = 'clients';
 
-    constructor(databaseService: DatabaseService) {
+    /** Filtre des clients synchronisés purgés avant une ré-initialisation. */
+    private readonly syncedClientPurgeFilter = `
+        commercial = ?
+          AND isSync = 1
+          AND isLocal = 0
+          AND (updated = 0 OR updated IS NULL)
+          AND (updatedPhoto = 0 OR updatedPhoto IS NULL)
+          AND (updatedPhotoUrl = 0 OR updatedPhotoUrl IS NULL)
+          AND (updatedInfo = 0 OR updatedInfo IS NULL)
+    `;
+
+    constructor(
+        databaseService: DatabaseService,
+        private log: LoggerService
+    ) {
         super(databaseService);
     }
 
@@ -28,9 +43,9 @@ export class ClientRepository extends BaseRepository<Client, string> {
             if (!localClient.id) { continue; }
             const clientIdStr = String(localClient.id);
 
-            // INSERT OR REPLACE pour mettre à jour ou insérer le client
-            // On ne compare plus les hashs, on écrase systématiquement avec les données du serveur
-            const sql = `INSERT OR REPLACE INTO clients (
+            // UPSERT (pas INSERT OR REPLACE) : évite le DELETE implicite qui déclenche
+            // les FK enfants (client_reliquats, orders legacy, tontine_members legacy).
+            const sql = `INSERT INTO clients (
                 id, firstname, lastname, fullName, phone, address, dateOfBirth, occupation,
                 clientType, cardType, cardID, quarter, commercial, isLocal, isSync, syncDate,
                 syncHash, latitude, longitude, mll, contactPersonName, contactPersonPhone,
@@ -38,7 +53,44 @@ export class ClientRepository extends BaseRepository<Client, string> {
                 businessCreditAuthorized, businessCreditAuthorizedBy, businessCreditAuthorizedAt,
                 cardPhoto, profilPhotoUrl, cardPhotoUrl, profilPhotoThumbUrl, cardPhotoThumbUrl,
                 updatedPhotoUrl, tontineCollector, createdAt
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                firstname = excluded.firstname,
+                lastname = excluded.lastname,
+                fullName = excluded.fullName,
+                phone = excluded.phone,
+                address = excluded.address,
+                dateOfBirth = excluded.dateOfBirth,
+                occupation = excluded.occupation,
+                clientType = excluded.clientType,
+                cardType = excluded.cardType,
+                cardID = excluded.cardID,
+                quarter = excluded.quarter,
+                commercial = excluded.commercial,
+                isLocal = excluded.isLocal,
+                isSync = excluded.isSync,
+                syncDate = excluded.syncDate,
+                syncHash = excluded.syncHash,
+                latitude = excluded.latitude,
+                longitude = excluded.longitude,
+                mll = excluded.mll,
+                contactPersonName = excluded.contactPersonName,
+                contactPersonPhone = excluded.contactPersonPhone,
+                contactPersonAddress = excluded.contactPersonAddress,
+                code = excluded.code,
+                profilPhoto = excluded.profilPhoto,
+                creditInProgress = excluded.creditInProgress,
+                businessCreditInProgress = excluded.businessCreditInProgress,
+                businessCreditAuthorized = excluded.businessCreditAuthorized,
+                businessCreditAuthorizedBy = excluded.businessCreditAuthorizedBy,
+                businessCreditAuthorizedAt = excluded.businessCreditAuthorizedAt,
+                cardPhoto = excluded.cardPhoto,
+                profilPhotoUrl = excluded.profilPhotoUrl,
+                cardPhotoUrl = excluded.cardPhotoUrl,
+                profilPhotoThumbUrl = excluded.profilPhotoThumbUrl,
+                cardPhotoThumbUrl = excluded.cardPhotoThumbUrl,
+                updatedPhotoUrl = excluded.updatedPhotoUrl,
+                tontineCollector = excluded.tontineCollector`;
 
             const params = [
                 clientIdStr,
@@ -87,11 +139,16 @@ export class ClientRepository extends BaseRepository<Client, string> {
         try {
             if (sqlSet.length > 0) {
                 await this.databaseService.executeSet(sqlSet);
-                console.log(`Successfully saved ${entities.length} clients (INSERT OR REPLACE).`);
+                this.log.log(`[ClientRepository] Successfully saved ${entities.length} clients (UPSERT).`);
             }
         } catch (error) {
-            console.error('Failed to save clients in repository.', error);
-            throw error;
+            const detail = await this.diagnoseClientFkFailure(
+                'saveAll',
+                error,
+                entities.map(c => String(c.id)).filter(Boolean)
+            );
+            this.log.error(`[ClientRepository] Failed to save clients. ${detail}`, error);
+            throw new Error(`Échec sauvegarde clients: ${detail}`);
         }
     }
 
@@ -99,24 +156,131 @@ export class ClientRepository extends BaseRepository<Client, string> {
      * Supprime les clients déjà synchronisés (isSync = 1) pour un commercial,
      * en préservant les clients locaux non synchronisés et ceux avec des
      * modifications locales en attente (GPS, photos, fiche).
-     * Appelé après le succès de la première page API lors de l'initialisation.
+     * Purge d'abord les enfants avec FK active (reliquats, orders legacy…).
      */
     async deleteSyncedForReinit(commercialUsername: string): Promise<void> {
         if (!this.databaseService['db']) {
             throw new Error('Database not initialized.');
         }
-        await this.databaseService.execute(
-            `DELETE FROM clients
-             WHERE commercial = ?
-               AND isSync = 1
-               AND isLocal = 0
-               AND (updated = 0 OR updated IS NULL)
-               AND (updatedPhoto = 0 OR updatedPhoto IS NULL)
-               AND (updatedPhotoUrl = 0 OR updatedPhotoUrl IS NULL)
-               AND (updatedInfo = 0 OR updatedInfo IS NULL)`,
-            [commercialUsername]
-        );
-        console.log(`[ClientRepository] Synced clients purged for ${commercialUsername} before re-initialization.`);
+
+        const filter = this.syncedClientPurgeFilter;
+        const clientSubquery = `SELECT id FROM clients WHERE ${filter}`;
+
+        try {
+            // 1) Enfants avec FK → clients(id) (sinon DELETE parents = code 787)
+            await this.databaseService.execute(
+                `DELETE FROM client_reliquats WHERE clientId IN (${clientSubquery})`,
+                [commercialUsername]
+            );
+
+            // Orders legacy (migration v4) : FK clientId possible sur anciennes DB
+            await this.safeExecute(
+                `DELETE FROM order_items WHERE orderId IN (
+                    SELECT id FROM orders WHERE clientId IN (${clientSubquery})
+                )`,
+                [commercialUsername],
+                'order_items (legacy FK cleanup)'
+            );
+            await this.safeExecute(
+                `DELETE FROM orders WHERE clientId IN (${clientSubquery})`,
+                [commercialUsername],
+                'orders (legacy FK cleanup)'
+            );
+
+            // 2) Parents
+            await this.databaseService.execute(
+                `DELETE FROM clients WHERE ${filter}`,
+                [commercialUsername]
+            );
+            this.log.log(`[ClientRepository] Synced clients purged for ${commercialUsername} before re-initialization.`);
+        } catch (error) {
+            const detail = await this.diagnoseClientFkFailure('deleteSyncedForReinit', error, undefined, commercialUsername);
+            this.log.error(`[ClientRepository] Failed to purge synced clients. ${detail}`, error);
+            throw new Error(`Échec purge clients synchronisés: ${detail}`);
+        }
+    }
+
+    private async safeExecute(sql: string, params: unknown[], label: string): Promise<void> {
+        try {
+            await this.databaseService.execute(sql, params);
+        } catch (error) {
+            // Table absente ou schéma différent : on log et on continue (diag FK plus bas si purge échoue)
+            this.log.log(`[ClientRepository] Optional cleanup skipped (${label}): ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
+    /**
+     * Diagnostique une erreur FK 787 en comptant les enfants qui référencent des clients.
+     */
+    private async diagnoseClientFkFailure(
+        operation: string,
+        error: unknown,
+        candidateIds?: string[],
+        commercialUsername?: string
+    ): Promise<string> {
+        const baseMsg = error instanceof Error ? error.message : String(error);
+        if (!baseMsg.includes('FOREIGN KEY') && !baseMsg.includes('787')) {
+            return baseMsg;
+        }
+
+        const childTables = [
+            'client_reliquats',
+            'accounts',
+            'distributions',
+            'recoveries',
+            'transactions',
+            'orders',
+            'tontine_members'
+        ];
+
+        const findings: string[] = [];
+        try {
+            if (candidateIds && candidateIds.length > 0) {
+                const sample = candidateIds.slice(0, 50);
+                const placeholders = sample.map(() => '?').join(',');
+                for (const table of childTables) {
+                    try {
+                        const res = await this.databaseService.query(
+                            `SELECT COUNT(*) as cnt FROM ${table} WHERE clientId IN (${placeholders})`,
+                            sample
+                        );
+                        const cnt = res.values?.[0]?.cnt ?? 0;
+                        if (cnt > 0) {
+                            findings.push(`${table}=${cnt}`);
+                        }
+                    } catch {
+                        // table/colonne absente
+                    }
+                }
+                findings.unshift(`operation=${operation}`, `candidateIdsSample=${sample.length}`);
+            } else if (commercialUsername) {
+                const filter = this.syncedClientPurgeFilter;
+                for (const table of childTables) {
+                    try {
+                        const res = await this.databaseService.query(
+                            `SELECT COUNT(*) as cnt FROM ${table} WHERE clientId IN (SELECT id FROM clients WHERE ${filter})`,
+                            [commercialUsername]
+                        );
+                        const cnt = res.values?.[0]?.cnt ?? 0;
+                        if (cnt > 0) {
+                            findings.push(`${table}=${cnt}`);
+                        }
+                    } catch {
+                        // table/colonne absente
+                    }
+                }
+                findings.unshift(`operation=${operation}`, `commercial=${commercialUsername}`);
+            } else {
+                findings.push(`operation=${operation}`);
+            }
+        } catch (diagError) {
+            findings.push(`diagFailed=${diagError instanceof Error ? diagError.message : String(diagError)}`);
+        }
+
+        const constraintHint = findings.length > 1
+            ? `Contrainte FK probable sur enfants: ${findings.join(', ')}`
+            : 'Contrainte FK (table enfant non identifiée)';
+        return `${baseMsg} | ${constraintHint}`;
     }
 
     // ==================== SPECIFIC UPDATE METHODS ====================
@@ -398,6 +562,7 @@ export class ClientRepository extends BaseRepository<Client, string> {
             { statement: `UPDATE transactions SET clientId = ? WHERE clientId = ?`, values: [toId, fromId] },
             { statement: `UPDATE orders SET clientId = ? WHERE clientId = ?`, values: [toId, fromId] },
             { statement: `UPDATE tontine_members SET clientId = ? WHERE clientId = ?`, values: [toId, fromId] },
+            { statement: `UPDATE client_reliquats SET clientId = ? WHERE clientId = ?`, values: [toId, fromId] },
         ];
     }
 
@@ -479,7 +644,13 @@ export class ClientRepository extends BaseRepository<Client, string> {
             });
         }
 
-        await this.databaseService.executeSet(updateSet);
+        try {
+            await this.databaseService.executeSet(updateSet);
+        } catch (error) {
+            const detail = await this.diagnoseClientFkFailure('mergeLocalClientIntoServerId', error, [localId, serverId]);
+            this.log.error(`[ClientRepository] Failed to merge local client ${localId} → ${serverId}. ${detail}`, error);
+            throw new Error(`Échec fusion client local→serveur: ${detail}`);
+        }
         await this.saveIdMapping(localId, serverId, 'client');
     }
 

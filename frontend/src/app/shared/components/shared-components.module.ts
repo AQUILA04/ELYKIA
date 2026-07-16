@@ -20,6 +20,7 @@ import { MatInputModule } from '@angular/material/input';
 import { StockExportFilterComponent } from './stock-export-filter/stock-export-filter.component';
 import { CommercialSelectorComponent } from './commercial-selector/commercial-selector.component';
 import { ClientSelectComponent } from './client-select/client-select.component';
+import { StatusBadgePipe } from '../pipes/status-badge.pipe';
 
 @NgModule({
     declarations: [
@@ -30,7 +31,8 @@ import { ClientSelectComponent } from './client-select/client-select.component';
         AdvancedSearchComponent,
         StockExportFilterComponent,
         CommercialSelectorComponent,
-        ClientSelectComponent
+        ClientSelectComponent,
+        StatusBadgePipe
     ],
     imports: [
         CommonModule,
@@ -56,6 +58,7 @@ import { ClientSelectComponent } from './client-select/client-select.component';
         StockExportFilterComponent,
         CommercialSelectorComponent,
         ClientSelectComponent,
+        StatusBadgePipe,
         NgxSpinnerModule
     ]
 })

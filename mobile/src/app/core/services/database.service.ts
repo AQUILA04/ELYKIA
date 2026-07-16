@@ -101,7 +101,7 @@ export class DatabaseService {
     // 2. Migrations incrémentielles (natif uniquement).
     // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
     const currentVersion = await this.db.getVersion();
-    const targetVersion = 28; // dual credit authorization (clients + distributions)
+    const targetVersion = 29; // client_reliquats: remove FK(clientId) to allow client re-init
     const dbVersion = currentVersion.version ?? 2;
     const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -668,6 +668,8 @@ export class DatabaseService {
         );
 
         -- Table des reliquats
+        -- Pas de FK(clientId) : la ré-init clients purge/réécrit les parents avant
+        -- le rechargement des reliquats ; une FK active provoque SQLITE 787.
         CREATE TABLE IF NOT EXISTS client_reliquats (
             id TEXT PRIMARY KEY,
             clientId TEXT NOT NULL,
@@ -678,8 +680,7 @@ export class DatabaseService {
             updatedAt TEXT NOT NULL,
             lastAccountedDate TEXT,
             isSync INTEGER DEFAULT 0,
-            syncDate TEXT,
-            FOREIGN KEY(clientId) REFERENCES clients(id)
+            syncDate TEXT
         );
         CREATE INDEX IF NOT EXISTS idx_client_reliquats_clientId ON client_reliquats(clientId);
         CREATE INDEX IF NOT EXISTS idx_client_reliquats_commercialId ON client_reliquats(commercialId);

@@ -102,15 +102,16 @@
 
   <div class="table-card a5">
     <div class="table-card-actions" *ngIf="bulkAssignCollectorEnabled">
-      <button
-        *ngIf="selectedClients.size > 0"
-        type="button"
-        class="btn-secondary"
-        *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']"
-        (click)="openBulkAssignCollectorModal()"
-        data-testid="e2e-client-bulk-assign-collector-btn">
-        Changer de commercial ({{ selectedClients.size }})
-      </button>
+      <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
+        <button
+          *ngIf="selectedClients.size > 0"
+          type="button"
+          class="btn-secondary"
+          (click)="openBulkAssignCollectorModal()"
+          data-testid="e2e-client-bulk-assign-collector-btn">
+          Changer de commercial ({{ selectedClients.size }})
+        </button>
+      </ng-container>
     </div>
     <div class="table-wrapper">
       <div *ngIf="isLoading" class="table-loading">

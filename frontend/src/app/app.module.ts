@@ -83,7 +83,6 @@ import { CommercialListComponent } from './commercial/commercial-list/commercial
 import { CommercialViewComponent } from './commercial/commercial-view/commercial-view.component';
 import { OutPdfListComponent } from './out/out-pdf-list/out-pdf-list.component';
 import { CreditViewComponent } from './credit/credit-view/credit-view.component';
-import { StatusBadgePipe } from './shared/pipes/status-badge.pipe';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { LicenseKeyFormatterPipe } from './shared/pipe/license-key-formatter.pipe'; // Ajustez le chemin si nécessaire
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -189,7 +188,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     CommercialViewComponent,
     OutPdfListComponent,
     CreditViewComponent,
-    StatusBadgePipe,
     LicenseKeyFormatterPipe,
     OldReleaseListComponent,
     CreditMergeModalComponent,

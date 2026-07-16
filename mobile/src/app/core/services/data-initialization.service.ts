@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { concatMap, from, Observable, of, switchMap } from 'rxjs';
+import { concatMap, from, Observable, of, switchMap, throwError } from 'rxjs';
 import { catchError, filter, map, take } from 'rxjs/operators';
 import { ArticleService } from './article.service';
 import { LocalityService } from './locality.service';
@@ -108,8 +108,9 @@ export class DataInitializationService {
             return true;
           }),
           catchError(error => {
+            // Propager l'erreur (détail FK inclus) pour bloquer l'init et afficher le message.
             console.error('[DataInitializationService] initializeClients error:', error);
-            return of(false);
+            return throwError(() => error instanceof Error ? error : new Error(String(error)));
           })
         );
       })

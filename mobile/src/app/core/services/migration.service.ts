@@ -133,6 +133,9 @@ export class MigrationService {
       case 28:
         await this.migrateToV28(db);
         break;
+      case 29:
+        await this.migrateToV29(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -759,6 +762,52 @@ export class MigrationService {
     } catch (error: any) {
       this.log.log(`Error in migration v28: ${error}`);
       console.error('Error in migration v28', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Rebuild client_reliquats without FOREIGN KEY(clientId) so client purge/re-init
+   * during daily initialization no longer fails with SQLITE 787.
+   */
+  private async migrateToV29(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v29: rebuild client_reliquats without FK(clientId)...');
+      await db.execute('PRAGMA foreign_keys = OFF;');
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS client_reliquats_v29 (
+            id TEXT PRIMARY KEY,
+            clientId TEXT NOT NULL,
+            commercialId TEXT NOT NULL,
+            totalAmount REAL NOT NULL DEFAULT 0,
+            lastRecoveryId TEXT,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            lastAccountedDate TEXT,
+            isSync INTEGER DEFAULT 0,
+            syncDate TEXT
+        );
+      `);
+      await db.execute(`
+        INSERT OR IGNORE INTO client_reliquats_v29
+          (id, clientId, commercialId, totalAmount, lastRecoveryId, createdAt, updatedAt, lastAccountedDate, isSync, syncDate)
+        SELECT id, clientId, commercialId, totalAmount, lastRecoveryId, createdAt, updatedAt, lastAccountedDate, isSync, syncDate
+        FROM client_reliquats;
+      `);
+      await db.execute('DROP TABLE IF EXISTS client_reliquats;');
+      await db.execute('ALTER TABLE client_reliquats_v29 RENAME TO client_reliquats;');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_client_reliquats_clientId ON client_reliquats(clientId);');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_client_reliquats_commercialId ON client_reliquats(commercialId);');
+      await db.execute('PRAGMA foreign_keys = ON;');
+      this.log.log('Migration to v29 successful.');
+    } catch (error: any) {
+      try {
+        await db.execute('PRAGMA foreign_keys = ON;');
+      } catch {
+        // ignore
+      }
+      this.log.log(`Error in migration v29: ${error}`);
+      console.error('Error in migration v29', error);
       throw error;
     }
   }

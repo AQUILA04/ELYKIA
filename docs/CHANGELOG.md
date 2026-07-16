@@ -15,6 +15,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Réception des retours stock commercial et livraison/réception stock tontine : verrouillage pessimiste pendant le traitement pour empêcher un double impact concurrentiel.
 
+## Frontend — [2.10.7] — 2026-07-16
+
+### Fixed
+
+- Build production : correction du double binding structurel (`*ngIf` + `*ngxPermissionsOnly`) sur le bouton d’affectation commerciale en lot, et export du pipe `statusBadge` via `SharedComponentsModule` pour le module lazy `client`.
+
 ## Frontend — [2.10.6] — 2026-07-16
 
 ### Fixed
@@ -180,6 +186,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Réinitialisation du mot de passe utilisateur par l'admin depuis la fiche utilisateur (`PATCH /api/v1/users/{id}/reset-password`, permission `ROLE_EDIT_USER`).
 - Flux de changement de mot de passe obligatoire à la première connexion après reset : redirection automatique vers `/change-password?forced=true`, garde d'accès et formulaire sans ancien mot de passe.
+
+## Mobile — [2.10.8] — 2026-07-16
+
+### Fixed
+
+- Initialisation clients : une erreur SQL (ex. FK 787) bloque désormais la suite de l’init au lieu d’être avalée comme « mode hors ligne » ; le message d’erreur détaille la contrainte / tables enfants en cause.
+- Purge clients avant ré-init : suppression préalable des `client_reliquats` (et orders legacy) pour éviter le conflit FK ; sauvegarde clients en UPSERT (`ON CONFLICT DO UPDATE`) au lieu de `INSERT OR REPLACE`.
+- Migration v29 : reconstruction de `client_reliquats` sans `FOREIGN KEY(clientId)`.
+- Validation post-init : écart critique sur le nombre de clients bloque la complétion (plus de passage au dashboard avec portefeuille incorrect).
 
 ## Mobile — [2.10.7] — 2026-07-13
 

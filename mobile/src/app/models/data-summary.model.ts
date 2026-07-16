@@ -27,6 +27,8 @@ export interface DataSummary {
 export interface DataComparisonResult {
   isComplete: boolean;
   missingData: string[];
+  /** Écart strict sur le nombre de clients — doit bloquer la fin d'init. */
+  clientsMismatch?: boolean;
   serverSummary: DataSummary;
   localCounts: {
     clients: number;
