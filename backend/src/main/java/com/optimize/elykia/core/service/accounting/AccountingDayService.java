@@ -114,19 +114,24 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public LocalDate ensureAccountingReadyForOperations() {
-        Optional<LocalDate> ready = accountingDayStepExecutor.findReadyAccountingDate();
-        if (ready.isPresent()) {
-            return ready.get();
-        }
-        synchronized (accountingDayLock) {
-            ready = accountingDayStepExecutor.findReadyAccountingDate();
+        try {
+            Optional<LocalDate> ready = accountingDayStepExecutor.findReadyAccountingDate();
             if (ready.isPresent()) {
                 return ready.get();
             }
-            LocalDate openDate = doEnsureCurrentAccountingDay();
-            accountingDayStepExecutor.ensureCurrentDailyAccountingRecord(openDate);
-            log.info("Journée comptable prête pour opérations : {}", openDate);
-            return openDate;
+            synchronized (accountingDayLock) {
+                ready = accountingDayStepExecutor.findReadyAccountingDate();
+                if (ready.isPresent()) {
+                    return ready.get();
+                }
+                LocalDate openDate = doEnsureCurrentAccountingDay();
+                accountingDayStepExecutor.ensureCurrentDailyAccountingRecord(openDate);
+                log.info("Journée comptable prête pour opérations : {}", openDate);
+                return openDate;
+            }
+        } catch (RuntimeException e) {
+            log.error("Échec ensureAccountingReadyForOperations: {}", e.getMessage(), e);
+            throw e;
         }
     }
 

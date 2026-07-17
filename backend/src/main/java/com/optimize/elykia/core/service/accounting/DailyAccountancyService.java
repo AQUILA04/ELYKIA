@@ -15,6 +15,7 @@ import com.optimize.elykia.core.repository.DailyAccountancyRepository;
 import com.optimize.elykia.core.repository.DailyAccountingRepository;
 import com.optimize.elykia.core.util.ReportPeriod;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
+@Slf4j
 public class DailyAccountancyService extends GenericService<DailyAccountancy, Long> {
     private final CreditTimelineRepository creditTimelineRepository;
     private final UserService userService;
@@ -123,16 +125,22 @@ public class DailyAccountancyService extends GenericService<DailyAccountancy, Lo
 
     @Transactional
     public DailyAccountancy getByCollectorOrCreateNew (String username) {
-        DailyAccounting dailyAccounting = dailyAccountingRepository.getCurrentDailyAccounting();
-        LocalDate accountingDate = dailyAccounting.getAccountingDate();
-        return getRepository().findByAccountingDateAndCollectorAndIsOpened(accountingDate, username, Boolean.TRUE).stream().findFirst().orElseGet(() -> {
-            DailyAccountancy dailyAccountancy = new DailyAccountancy();
-            dailyAccountancy.setCollector(username);
-            dailyAccountancy.setDailyAccounting(dailyAccounting);
-            dailyAccountancy.setAccountingDate(accountingDate);
+        try {
+            DailyAccounting dailyAccounting = dailyAccountingRepository.getCurrentDailyAccounting();
+            LocalDate accountingDate = dailyAccounting.getAccountingDate();
+            return getRepository().findByAccountingDateAndCollectorAndIsOpened(accountingDate, username, Boolean.TRUE).stream().findFirst().orElseGet(() -> {
+                log.info("Ouverture caisse collector={} pour journée comptable {}", username, accountingDate);
+                DailyAccountancy dailyAccountancy = new DailyAccountancy();
+                dailyAccountancy.setCollector(username);
+                dailyAccountancy.setDailyAccounting(dailyAccounting);
+                dailyAccountancy.setAccountingDate(accountingDate);
 
-            return create(dailyAccountancy);
-        });
+                return create(dailyAccountancy);
+            });
+        } catch (RuntimeException e) {
+            log.error("Échec getByCollectorOrCreateNew collector={}: {}", username, e.getMessage(), e);
+            throw e;
+        }
     }
 
     public boolean isExistsOpenedCashDesk () {

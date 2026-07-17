@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.2.22] — 2026-07-17
+
+### Fixed
+
+- Sync mobile des recouvrements : chaque mise s'exécute en `REQUIRES_NEW` pour supprimer le `UnexpectedRollbackException` qui masquait l'erreur métier quand une unité échouait dans le lot.
+- Journalisation complète (stacktrace) des échecs de recouvrement web/sync, de la préparation de journée comptable, et de l'ouverture de caisse ; handler dédié pour exposer la cause racine d'un `UnexpectedRollbackException`.
+
 ## Backend — [1.2.21] — 2026-07-17
 
 ### Fixed

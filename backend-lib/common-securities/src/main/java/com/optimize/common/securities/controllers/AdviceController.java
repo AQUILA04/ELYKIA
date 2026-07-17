@@ -217,8 +217,12 @@ public class AdviceController extends CommonAdviceController {
 
 
     private void logger(Exception ex) {
-        log.error("===> Error Message: {}", ex.toString());
-        log.error("===> Error Message: {}", this.messageSource.getMessage(ex.getMessage()));
-        log.error(ex.getLocalizedMessage(), ex.getCause());
+        log.error("===> Error Message: {}", ex.toString(), ex);
+        if (ex.getMessage() != null) {
+            log.error("===> Error Message (resolved): {}", this.messageSource.getMessage(ex.getMessage()));
+        }
+        if (ex.getCause() != null) {
+            log.error("===> Cause: {}", ex.getCause().toString(), ex.getCause());
+        }
     }
 }

@@ -21,8 +21,11 @@ import com.optimize.elykia.core.service.bi.BiAggregationService;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
@@ -44,9 +47,10 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     private final AccountingDayService accountingDayService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final ClientReliquatService clientReliquatService;
+    private final TransactionTemplate requiresNewTransactionTemplate;
     private CreditPaymentEventService creditPaymentEventService;
     private CreditEnrichmentService creditEnrichmentService;
-    private BiAggregationService biAggregationService;  // Added for real-time aggregation
+    private BiAggregationService biAggregationService;
     private BusinessMetricsPublisher metricsPublisher;
 
     protected CreditTimelineService(CreditTimelineRepository repository,
@@ -56,7 +60,8 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
             DailyAccountancyService dailyAccountancyService,
             AccountingDayService accountingDayService,
             org.springframework.context.ApplicationEventPublisher eventPublisher,
-            ClientReliquatService clientReliquatService) {
+            ClientReliquatService clientReliquatService,
+            PlatformTransactionManager transactionManager) {
         super(repository);
         this.creditMapper = creditMapper;
         this.creditService = creditService;
@@ -65,6 +70,8 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         this.accountingDayService = accountingDayService;
         this.eventPublisher = eventPublisher;
         this.clientReliquatService = clientReliquatService;
+        this.requiresNewTransactionTemplate = new TransactionTemplate(transactionManager);
+        this.requiresNewTransactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -89,125 +96,164 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
     @Transactional
     public CreditTimeline makeDailyStake(CreditTimelineDto dto) {
-        if (StringUtils.hasText(dto.getReference()) && getRepository().existsByReference(dto.getReference())) {
-            return getRepository().findByReference(dto.getReference()).orElseThrow();
+        try {
+            if (StringUtils.hasText(dto.getReference()) && getRepository().existsByReference(dto.getReference())) {
+                return getRepository().findByReference(dto.getReference()).orElseThrow();
+            }
+            CreditTimeline creditTimeline = creditMapper.toCreditTimeline(dto);
+            Credit credit = creditService.getById(dto.getCreditId());
+            dailyStakeFactor(credit, creditTimeline);
+            return creditTimeline;
+        } catch (RuntimeException e) {
+            log.error("Échec recouvrement web creditId={} reference={}: {}",
+                    dto.getCreditId(), dto.getReference(), e.getMessage(), e);
+            throw e;
         }
-        CreditTimeline creditTimeline = creditMapper.toCreditTimeline(dto);
-        Credit credit = creditService.getById(dto.getCreditId());
-        dailyStakeFactor(credit, creditTimeline);
-        return creditTimeline;
     }
 
     @Transactional
     public void dailyStakeFactor(Credit credit, CreditTimeline creditTimeline) {
-        // Assure journée OPENED + DailyAccounting CURRENT (fast-path si déjà cohérent)
-        accountingDayService.ensureAccountingReadyForOperations();
-        DailyAccountancy dailyAccountancy = dailyAccountancyService.getByCollectorOrCreateNew(credit.getCollector());
-        credit.checkInProgressStatus();
+        try {
+            LocalDate accountingDate = accountingDayService.ensureAccountingReadyForOperations();
+            log.debug("Recouvrement crédit {} sur journée comptable {}", credit.getId(), accountingDate);
+            DailyAccountancy dailyAccountancy = dailyAccountancyService.getByCollectorOrCreateNew(credit.getCollector());
+            credit.checkInProgressStatus();
 
-        // C'est ici que se trouve l'ancienne vérification
-        creditTimeline.checkStakeValue(credit.getDailyStake());
+            creditTimeline.checkStakeValue(credit.getDailyStake());
 
-        creditTimeline = credit.dailyStakeOperation(creditTimeline);
-        creditTimeline.setDailyAccountancy(dailyAccountancy);
-        if (creditTimeline.getCollector() == null) {
-            creditTimeline.setCollector(credit.getCollector());
-        }
-        // Générer une référence uniquement si elle n'est pas déjà renseignée.
-        // Si elle vient du mobile (ex: "REC-2026XXX-ABCDEF"), on la conserve pour
-        // permettre la réconciliation lors de la réinitialisation mobile.
-        if (!StringUtils.hasText(creditTimeline.getReference())) {
-            LocalDate now = LocalDate.now();
-            Random random = new Random();
-            int nombreAleatoire = random.nextInt();
-            String hexString = String.format("%08x", nombreAleatoire & 0xFFFFFFFFL);
-            creditTimeline.setReference("REC-"+ now.getYear() + now.getMonthValue()+ "-" + hexString);
-        }
-        creditService.update(credit);
-        super.create(creditTimeline);
-        if (CreditStatus.SETTLED.equals(credit.getStatus()) || credit.getTotalAmountRemaining() == 0) {
-            creditService.syncClientCreditFlagsAfterClose(credit);
-        }
-
-
-        // === INTÉGRATION BI : Enregistrement de l'événement de paiement ===
-        if (creditPaymentEventService != null) {
-            creditPaymentEventService.recordPayment(credit, creditTimeline.getAmount(), "CASH");
-        }
-
-        // === INTÉGRATION BI : Mise à jour des métriques du crédit ===
-        if (creditEnrichmentService != null) {
-            creditEnrichmentService.enrichCredit(credit);
+            creditTimeline = credit.dailyStakeOperation(creditTimeline);
+            creditTimeline.setDailyAccountancy(dailyAccountancy);
+            if (creditTimeline.getCollector() == null) {
+                creditTimeline.setCollector(credit.getCollector());
+            }
+            if (!StringUtils.hasText(creditTimeline.getReference())) {
+                LocalDate now = LocalDate.now();
+                Random random = new Random();
+                int nombreAleatoire = random.nextInt();
+                String hexString = String.format("%08x", nombreAleatoire & 0xFFFFFFFFL);
+                creditTimeline.setReference("REC-"+ now.getYear() + now.getMonthValue()+ "-" + hexString);
+            }
             creditService.update(credit);
-        }
-
-        if (metricsPublisher != null) {
-            metricsPublisher.collectionRecorded(credit.getCollector(), creditTimeline.getAmount());
-            if (CreditStatus.SETTLED.equals(credit.getStatus())) {
-                metricsPublisher.creditSettled(credit.getCollector());
+            super.create(creditTimeline);
+            if (CreditStatus.SETTLED.equals(credit.getStatus()) || credit.getTotalAmountRemaining() == 0) {
+                creditService.syncClientCreditFlagsAfterClose(credit);
             }
-        }
 
-        // Publish CreditCollectionEvent
-        if (eventPublisher != null) {
-            String ref = credit.getReference() + " | Client : " + credit.getClient().getFullName();
-            eventPublisher.publishEvent(new CreditCollectionEvent(
-                    this,
-                    creditTimeline.getAmount(),
-                    creditTimeline.getCollector(),
-                    ref,
-                    creditTimeline.getReference(),
-                    creditTimeline.getReliquatGeneratedAmount(),
-                    creditTimeline.getReliquatUsedAmount()
-            ));
-        }
-
-        // Real-time aggregation update for BI performance optimization
-        if (biAggregationService != null) {
-            try {
-                biAggregationService.updateCollectionAggregation(creditTimeline);
-            } catch (Exception e) {
-                // Log error but don't fail the main payment operation
-                // This ensures aggregation errors don't impact business operations
+            if (creditPaymentEventService != null) {
+                creditPaymentEventService.recordPayment(credit, creditTimeline.getAmount(), "CASH");
             }
-        }
 
+            if (creditEnrichmentService != null) {
+                creditEnrichmentService.enrichCredit(credit);
+                creditService.update(credit);
+            }
+
+            if (metricsPublisher != null) {
+                metricsPublisher.collectionRecorded(credit.getCollector(), creditTimeline.getAmount());
+                if (CreditStatus.SETTLED.equals(credit.getStatus())) {
+                    metricsPublisher.creditSettled(credit.getCollector());
+                }
+            }
+
+            if (eventPublisher != null) {
+                String ref = credit.getReference() + " | Client : " + credit.getClient().getFullName();
+                eventPublisher.publishEvent(new CreditCollectionEvent(
+                        this,
+                        creditTimeline.getAmount(),
+                        creditTimeline.getCollector(),
+                        ref,
+                        creditTimeline.getReference(),
+                        creditTimeline.getReliquatGeneratedAmount(),
+                        creditTimeline.getReliquatUsedAmount()
+                ));
+            }
+
+            if (biAggregationService != null) {
+                try {
+                    biAggregationService.updateCollectionAggregation(creditTimeline);
+                } catch (Exception e) {
+                    log.error("Échec agrégation BI pour recoveryRef={} creditId={}: {}",
+                            creditTimeline.getReference(), credit.getId(), e.getMessage(), e);
+                }
+            }
+        } catch (RuntimeException e) {
+            log.error("Échec dailyStakeFactor creditId={} collector={} recoveryRef={}: {}",
+                    credit.getId(), credit.getCollector(), creditTimeline.getReference(), e.getMessage(), e);
+            throw e;
+        }
     }
 
-    @Transactional
+    /**
+     * Sync mobile mises normales : chaque mise dans sa propre transaction (REQUIRES_NEW)
+     * pour éviter UnexpectedRollbackException quand une unité échoue dans le lot.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public SpecialDailyStakeResponseDto defaultDailyStakeByCollector(CollectorDailyStakeDto dto) {
+        ensureAccountingReadyOrFail("defaultDailyStake");
         List<String> successRecoveryIds = new ArrayList<>();
         List<SpecialDailyStakeResponseDto.FailedRecoveryDto> failedRecoveries = new ArrayList<>();
         dto.getStakeUnits().forEach(stakeUnit -> {
             try {
-                processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), null, true, successRecoveryIds, false, stakeUnit.getReliquatGeneratedAmount(), stakeUnit.getReliquatUsedAmount(), stakeUnit.getOperationConsentCode(), stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode());
+                requiresNewTransactionTemplate.executeWithoutResult(status ->
+                        processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), null, true,
+                                successRecoveryIds, false, stakeUnit.getReliquatGeneratedAmount(),
+                                stakeUnit.getReliquatUsedAmount(), stakeUnit.getOperationConsentCode(),
+                                stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode()));
             } catch (Exception e) {
-                failedRecoveries.add(new SpecialDailyStakeResponseDto.FailedRecoveryDto(stakeUnit.getRecoveryId(), e.getMessage()));
+                log.error("Échec mise quotidienne (sync) recoveryId={} creditId={}: {}",
+                        stakeUnit.getRecoveryId(), stakeUnit.getCreditId(), e.getMessage(), e);
+                failedRecoveries.add(new SpecialDailyStakeResponseDto.FailedRecoveryDto(
+                        stakeUnit.getRecoveryId(), rootMessage(e)));
             }
         });
-        failedRecoveries.forEach(failure -> log.error("Échec de la mise quotidienne pour Recovery ID: {}. Erreur: {}", failure.getRecoveryId(), failure.getErrorMessage()));
-
         return new SpecialDailyStakeResponseDto(successRecoveryIds, failedRecoveries);
     }
 
-
-    @Transactional
+    /**
+     * Sync mobile mises spéciales : chaque mise dans sa propre transaction (REQUIRES_NEW).
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public SpecialDailyStakeResponseDto specialDailyStakeByCollector(SpecialDailyStakeDto dto) {
+        ensureAccountingReadyOrFail("specialDailyStake");
         List<String> successRecoveryIds = new ArrayList<>();
         List<SpecialDailyStakeResponseDto.FailedRecoveryDto> failedRecoveries = new ArrayList<>();
 
         dto.getStakeUnits().forEach(stakeUnit -> {
             try {
-                processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), stakeUnit.getAmount(), false, successRecoveryIds, true, stakeUnit.getReliquatGeneratedAmount(), stakeUnit.getReliquatUsedAmount(), stakeUnit.getOperationConsentCode(), stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode());
+                requiresNewTransactionTemplate.executeWithoutResult(status ->
+                        processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), stakeUnit.getAmount(),
+                                false, successRecoveryIds, true, stakeUnit.getReliquatGeneratedAmount(),
+                                stakeUnit.getReliquatUsedAmount(), stakeUnit.getOperationConsentCode(),
+                                stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode()));
             } catch (Exception e) {
-                failedRecoveries.add(new SpecialDailyStakeResponseDto.FailedRecoveryDto(stakeUnit.getRecoveryId(), e.getMessage()));
+                log.error("Échec mise spéciale (sync) recoveryId={} creditId={} amount={}: {}",
+                        stakeUnit.getRecoveryId(), stakeUnit.getCreditId(), stakeUnit.getAmount(), e.getMessage(), e);
+                failedRecoveries.add(new SpecialDailyStakeResponseDto.FailedRecoveryDto(
+                        stakeUnit.getRecoveryId(), rootMessage(e)));
             }
         });
         return new SpecialDailyStakeResponseDto(successRecoveryIds, failedRecoveries);
+    }
+
+    private void ensureAccountingReadyOrFail(String context) {
+        try {
+            LocalDate date = accountingDayService.ensureAccountingReadyForOperations();
+            log.info("Journée comptable prête ({}) : {}", context, date);
+        } catch (RuntimeException e) {
+            log.error("Impossible de préparer la journée comptable ({}): {}", context, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    private static String rootMessage(Throwable e) {
+        Throwable root = e;
+        while (root.getCause() != null && root.getCause() != root) {
+            root = root.getCause();
+        }
+        return root.getMessage() != null ? root.getMessage() : e.toString();
     }
 
     private void processDailyStake(Long creditId, String recoveryId, Double amount, boolean isNormalStake, List<String> successRecoveryIds, boolean throwOnNotFound, Double reliquatGenerated, Double reliquatUsed, String operationConsentCode, Double confirmedAmount, String syncConsentCode) {
-        // Check for duplicate reference
         if (getRepository().existsByReference(recoveryId)) {
             successRecoveryIds.add(recoveryId);
             return;
@@ -222,6 +268,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
             if (throwOnNotFound) {
                 throw new CustomValidationException("Crédit introuvable ou statut incorrect pour l'ID: " + creditId);
             }
+            log.warn("Mise ignorée : crédit introuvable ou non INPROGRESS id={} recoveryId={}", creditId, recoveryId);
             return;
         }
 
