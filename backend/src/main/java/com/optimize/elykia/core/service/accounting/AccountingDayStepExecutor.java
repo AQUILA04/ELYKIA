@@ -82,6 +82,15 @@ public class AccountingDayStepExecutor {
         return dailyAccountancyService.isExistsOpenedCashDesk();
     }
 
+    /**
+     * Fermeture bulk de toutes les caisses ouvertes — un seul UPDATE SQL,
+     * pour éviter timeout/CPU sur des centaines de milliers de lignes.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int closeAllOpenCashDesksBulk() {
+        return dailyAccountancyService.closeAllOpenCashDesksBulk();
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void closeOpenCashDesk(CloseCollectorOperationDto dto, LocalDate accountingDate) {
         dailyAccountingService.closeCollectorOperation(dto, accountingDate);
@@ -90,6 +99,15 @@ public class AccountingDayStepExecutor {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void closeDailyAccountingRecord(LocalDate accountingDate) {
         dailyAccountingService.closeDailyAccounting(accountingDate);
+    }
+
+    /** Ferme le DailyAccounting CURRENT s'il existe (une seule fois, pas par caisse). */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void closeCurrentDailyAccountingIfPresent() {
+        dailyAccountingService.getRepository().findByStatus(AccountingDayStatus.CURRENT).ifPresent(current -> {
+            log.info("Fermeture DailyAccounting CURRENT orphelin pour {}", current.getAccountingDate());
+            dailyAccountingService.closeDailyAccounting(current.getAccountingDate());
+        });
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

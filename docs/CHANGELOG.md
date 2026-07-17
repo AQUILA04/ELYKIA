@@ -9,11 +9,21 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.2.24] — 2026-07-18
+
+### Fixed
+
+- Bascule journée comptable : fermeture des caisses ouvertes en un seul `UPDATE` SQL bulk (`is_opened = false`) au lieu d'itérer des centaines de milliers de lignes (timeout CPU/HTTP). Le nettoyage ne crée plus de nouvelles caisses via `finishedCollectorOperation`.
+
 ## Backend — [1.2.23] — 2026-07-17
 
 ### Fixed
 
 - Recouvrement : la préparation de journée comptable (`ensure`, `NOT_SUPPORTED`) n'est plus appelée au milieu d'une transaction JPA — elle s'exécute avant, puis la mise en `REQUIRES_NEW`, ce qui corrige `Could not open JPA EntityManager for transaction`.
+
+### Added
+
+- Tests `CreditTimelineServiceRecoveryFlowTest` : ensure avant ouverture TX, isolation `REQUIRES_NEW` par mise sync, et absence d'ensure dans `dailyStakeFactor`.
 
 ## Backend — [1.2.22] — 2026-07-17
 

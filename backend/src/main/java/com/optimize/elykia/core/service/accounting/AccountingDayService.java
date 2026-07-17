@@ -5,7 +5,6 @@ import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.core.dto.CloseCollectorOperationDto;
 import com.optimize.elykia.core.entity.accounting.AccountingDay;
-import com.optimize.elykia.core.entity.accounting.DailyAccountancy;
 import com.optimize.elykia.core.entity.accounting.DailyAccounting;
 import com.optimize.elykia.core.enumaration.AccountingDayStatus;
 import com.optimize.elykia.core.repository.AccountingDayRepository;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -193,36 +191,26 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
     }
 
     private void closeOpenCashDesksForDate(LocalDate accountingDate) {
-        if (!accountingDayStepExecutor.hasOpenCashDesks()) {
-            return;
-        }
-        List<DailyAccountancy> openDesks = accountingDayStepExecutor.findOpenCashDesks();
-        log.info("Fermeture de {} caisse(s) ouverte(s) pour la date {}", openDesks.size(), accountingDate);
-        for (DailyAccountancy dailyAccountancy : openDesks) {
-            CloseCollectorOperationDto dto = new CloseCollectorOperationDto();
-            dto.setCollector(dailyAccountancy.getCollector());
-            dto.setRealTotalAmount(dailyAccountancy.getRealBalance());
-            accountingDayStepExecutor.closeOpenCashDesk(dto, accountingDate);
+        long start = System.currentTimeMillis();
+        int closed = accountingDayStepExecutor.closeAllOpenCashDesksBulk();
+        if (closed > 0) {
+            log.info("Fermeture bulk de {} caisse(s) ouverte(s) pour la date {} en {} ms",
+                    closed, accountingDate, System.currentTimeMillis() - start);
         }
     }
 
-    /** Ferme les caisses restées ouvertes avant l'ouverture d'une nouvelle journée. */
+    /**
+     * Ferme toutes les caisses restées ouvertes avant l'ouverture d'une nouvelle journée.
+     * Bulk SQL — ne jamais itérer ligne à ligne (risque timeout / saturation CPU).
+     */
     private void closeStaleOpenCashDesks() {
-        if (!accountingDayStepExecutor.hasOpenCashDesks()) {
-            return;
+        long start = System.currentTimeMillis();
+        int closed = accountingDayStepExecutor.closeAllOpenCashDesksBulk();
+        if (closed > 0) {
+            log.info("Nettoyage bulk de {} caisse(s) ouverte(s) avant ouverture journée en {} ms",
+                    closed, System.currentTimeMillis() - start);
         }
-        List<DailyAccountancy> openDesks = accountingDayStepExecutor.findOpenCashDesks();
-        log.info("Nettoyage de {} caisse(s) ouverte(s) avant ouverture journée", openDesks.size());
-        for (DailyAccountancy dailyAccountancy : openDesks) {
-            CloseCollectorOperationDto dto = new CloseCollectorOperationDto();
-            dto.setCollector(dailyAccountancy.getCollector());
-            dto.setRealTotalAmount(dailyAccountancy.getRealBalance());
-            LocalDate deskDate = dailyAccountancy.getAccountingDate() != null
-                    ? dailyAccountancy.getAccountingDate()
-                    : LocalDate.now();
-            accountingDayStepExecutor.closeOpenCashDesk(dto, deskDate);
-            accountingDayStepExecutor.closeDailyAccountingRecord(deskDate);
-        }
+        accountingDayStepExecutor.closeCurrentDailyAccountingIfPresent();
     }
 
     private LocalDate resolveNextAvailableAccountingDate(LocalDate startDate) {

@@ -151,6 +151,19 @@ public class DailyAccountancyService extends GenericService<DailyAccountancy, Lo
         return getRepository().findAllByIsOpenedIsTrue();
     }
 
+    /**
+     * Fermeture bulk de toutes les caisses ouvertes (UPDATE SQL unique).
+     * @return nombre de lignes mises à jour
+     */
+    @Transactional
+    public int closeAllOpenCashDesksBulk() {
+        int closed = getRepository().closeAllOpenCashDesks();
+        if (closed > 0) {
+            log.info("Fermeture bulk de {} caisse(s) (is_opened=false)", closed);
+        }
+        return closed;
+    }
+
     public List<DailyAccountancy> getCollectorAccountancyByPeriod(PeriodState period, String collector) {
         ReportPeriod reportPeriod = ReportPeriod.from(period);
         return getRepository()

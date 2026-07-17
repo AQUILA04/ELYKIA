@@ -16,6 +16,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -87,6 +88,29 @@ class AccountingDayServiceTest {
         LocalDate result = service.ensureAccountingReadyForOperations();
 
         assertEquals(today, result);
+        verify(accountingDayStepExecutor).ensureCurrentDailyAccountingRecord(today);
+    }
+
+    @Test
+    void openAccountingDay_closesStaleDesksWithBulkUpdateNotPerRowLoop() {
+        LocalDate today = LocalDate.now();
+        when(accountingDayStepExecutor.findOpenedAccountingDay()).thenReturn(Optional.empty());
+        when(accountingDayStepExecutor.existsClosedAccountingDayForDate(today)).thenReturn(false);
+        when(accountingDayStepExecutor.closeAllOpenCashDesksBulk()).thenReturn(377646);
+
+        AccountingDay created = new AccountingDay();
+        created.setId(1L);
+        created.setAccountingDate(today);
+        when(accountingDayStepExecutor.createAndOpenAccountingDay(today)).thenReturn(created);
+
+        AccountingDay result = service.openAccountingDay();
+
+        assertEquals(today, result.getAccountingDate());
+        verify(accountingDayStepExecutor).closeAllOpenCashDesksBulk();
+        verify(accountingDayStepExecutor).closeCurrentDailyAccountingIfPresent();
+        verify(accountingDayStepExecutor, never()).findOpenCashDesks();
+        verify(accountingDayStepExecutor, never()).closeOpenCashDesk(any(), any());
+        verify(accountingDayStepExecutor).createAndOpenAccountingDay(today);
         verify(accountingDayStepExecutor).ensureCurrentDailyAccountingRecord(today);
     }
 }

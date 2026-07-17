@@ -4,6 +4,8 @@ import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.accounting.DailyAccountancy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,4 +24,15 @@ public interface DailyAccountancyRepository extends GenericRepository<DailyAccou
     List<DailyAccountancy> findAllByIsOpenedIsTrue();
 
     List<DailyAccountancy> findByAccountingDateGreaterThanEqualAndAccountingDateLessThanEqualAndCollector(LocalDate dateFrom, LocalDate dateTo, String collector);
+
+    /**
+     * Ferme toutes les caisses ouvertes en un seul UPDATE SQL (évite de charger/boucler des centaines de milliers de lignes).
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = """
+            UPDATE daily_accountancy
+            SET is_opened = false
+            WHERE COALESCE(is_opened, true) = true
+            """, nativeQuery = true)
+    int closeAllOpenCashDesks();
 }
