@@ -15,6 +15,7 @@ import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.event.CreditCollectionEvent;
 import com.optimize.elykia.core.mapper.CreditMapper;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
 import com.optimize.elykia.core.service.bi.BiAggregationService;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
@@ -40,6 +41,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     private final CreditService creditService;
     private final ClientService clientService;
     private final DailyAccountancyService dailyAccountancyService;
+    private final AccountingDayService accountingDayService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final ClientReliquatService clientReliquatService;
     private CreditPaymentEventService creditPaymentEventService;
@@ -52,6 +54,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
             CreditService creditService,
             ClientService clientService,
             DailyAccountancyService dailyAccountancyService,
+            AccountingDayService accountingDayService,
             org.springframework.context.ApplicationEventPublisher eventPublisher,
             ClientReliquatService clientReliquatService) {
         super(repository);
@@ -59,6 +62,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         this.creditService = creditService;
         this.clientService = clientService;
         this.dailyAccountancyService = dailyAccountancyService;
+        this.accountingDayService = accountingDayService;
         this.eventPublisher = eventPublisher;
         this.clientReliquatService = clientReliquatService;
     }
@@ -96,6 +100,8 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
     @Transactional
     public void dailyStakeFactor(Credit credit, CreditTimeline creditTimeline) {
+        // Assure journée OPENED + DailyAccounting CURRENT (fast-path si déjà cohérent)
+        accountingDayService.ensureAccountingReadyForOperations();
         DailyAccountancy dailyAccountancy = dailyAccountancyService.getByCollectorOrCreateNew(credit.getCollector());
         credit.checkInProgressStatus();
 

@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service.accounting;
 import com.optimize.elykia.core.dto.CloseCollectorOperationDto;
 import com.optimize.elykia.core.entity.accounting.AccountingDay;
 import com.optimize.elykia.core.entity.accounting.DailyAccountancy;
+import com.optimize.elykia.core.entity.accounting.DailyAccounting;
 import com.optimize.elykia.core.enumaration.AccountingDayStatus;
 import com.optimize.elykia.core.repository.AccountingDayRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
@@ -34,6 +35,31 @@ public class AccountingDayStepExecutor {
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public Optional<AccountingDay> findOpenedAccountingDay() {
         return accountingDayRepository.findByStatus(AccountingDayStatus.OPENED);
+    }
+
+    /**
+     * Fast-path lecture seule : journée OPENED à jour + DailyAccounting CURRENT aligné.
+     * Aucune écriture — utilisé pour éviter un verrou/bascule sur chaque recouvrement.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public Optional<LocalDate> findReadyAccountingDate() {
+        Optional<AccountingDay> opened = accountingDayRepository.findByStatus(AccountingDayStatus.OPENED);
+        if (opened.isEmpty()) {
+            return Optional.empty();
+        }
+        LocalDate accountingDate = opened.get().getAccountingDate();
+        if (accountingDate.isBefore(LocalDate.now())) {
+            return Optional.empty();
+        }
+        if (!dailyAccountingService.hasCurrentForDate(accountingDate)) {
+            return Optional.empty();
+        }
+        return Optional.of(accountingDate);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public DailyAccounting ensureCurrentDailyAccountingRecord(LocalDate accountingDate) {
+        return dailyAccountingService.ensureCurrentRecordForDate(accountingDate);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)

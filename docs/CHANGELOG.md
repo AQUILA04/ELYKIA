@@ -9,6 +9,14 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.2.21] — 2026-07-17
+
+### Fixed
+
+- Recouvrements (web / sync mobile) : `ensureAccountingReadyForOperations` garantit une journée `OPENED` et un `DailyAccounting CURRENT` alignés avant chaque mise (fast-path lecture seule si déjà cohérent ; bascule bornée à 366 jours sous verrou sinon).
+- `hasOpenedDay` : restauration en lecture seule réelle (plus de stub toujours `true`), sans ouverture/fermeture automatique pour éviter la saturation CPU.
+- Réparation des états partiels : `DailyAccountingService.ensureCurrentRecordForDate` réactive ou crée le `CURRENT`, et ferme un `CURRENT` orphelin lors des bascules incomplètes.
+
 ## Backend — [1.2.20] — 2026-07-16
 
 ### Fixed

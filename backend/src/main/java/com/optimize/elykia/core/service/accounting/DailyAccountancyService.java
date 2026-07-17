@@ -124,11 +124,12 @@ public class DailyAccountancyService extends GenericService<DailyAccountancy, Lo
     @Transactional
     public DailyAccountancy getByCollectorOrCreateNew (String username) {
         DailyAccounting dailyAccounting = dailyAccountingRepository.getCurrentDailyAccounting();
-        return getRepository().findByAccountingDateAndCollectorAndIsOpened(LocalDate.now(), username, Boolean.TRUE).stream().findFirst().orElseGet(() -> {
+        LocalDate accountingDate = dailyAccounting.getAccountingDate();
+        return getRepository().findByAccountingDateAndCollectorAndIsOpened(accountingDate, username, Boolean.TRUE).stream().findFirst().orElseGet(() -> {
             DailyAccountancy dailyAccountancy = new DailyAccountancy();
             dailyAccountancy.setCollector(username);
             dailyAccountancy.setDailyAccounting(dailyAccounting);
-            dailyAccountancy.setAccountingDate(dailyAccounting.getAccountingDate());
+            dailyAccountancy.setAccountingDate(accountingDate);
 
             return create(dailyAccountancy);
         });

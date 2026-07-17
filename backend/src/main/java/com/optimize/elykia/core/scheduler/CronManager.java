@@ -31,7 +31,7 @@ public class CronManager {
     public void rollForwardAccountingDay() {
         long start = System.currentTimeMillis();
         log.info("Début bascule journée comptable");
-        accountingDayService.ensureCurrentAccountingDay();
+        accountingDayService.ensureAccountingReadyForOperations();
         log.info("Bascule journée comptable terminée en {} ms", System.currentTimeMillis() - start);
     }
 

@@ -45,17 +45,29 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
         this.accountingDayStepExecutor = accountingDayStepExecutor;
     }
 
-    @Transactional
+    /**
+     * Lecture seule : indique si une journée comptable est ouverte.
+     * Ne déclenche jamais d'ouverture/fermeture (évite la saturation CPU historique).
+     */
+    @Transactional(readOnly = true)
     public Map<String, Object> hasOpenedDay() {
-        Map<String, Object> response = new java.util.HashMap<>(Map.of("status", Boolean.TRUE));
-            response.put("accountingDate", LocalDate.now());
-         return response;
+        Map<String, Object> response = new java.util.HashMap<>();
+        Optional<AccountingDay> opened = getRepository().findByStatus(AccountingDayStatus.OPENED);
+        if (opened.isPresent()) {
+            response.put("status", Boolean.TRUE);
+            response.put("accountingDate", opened.get().getAccountingDate());
+        } else {
+            response.put("status", Boolean.FALSE);
+        }
+        return response;
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public AccountingDay openAccountingDay() {
         synchronized (accountingDayLock) {
-            return doOpenAccountingDay();
+            AccountingDay day = doOpenAccountingDay();
+            accountingDayStepExecutor.ensureCurrentDailyAccountingRecord(day.getAccountingDate());
+            return day;
         }
     }
 
@@ -89,8 +101,32 @@ public class AccountingDayService extends GenericService<AccountingDay, Long> {
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public LocalDate ensureCurrentAccountingDay() {
+        return ensureAccountingReadyForOperations();
+    }
+
+    /**
+     * Garantit une journée {@code OPENED} à jour et un {@code DailyAccounting CURRENT} aligné.
+     * <ul>
+     *   <li>Fast-path lecture seule si déjà cohérent (pas de verrou, pas d'écriture)</li>
+     *   <li>Sinon bascule bornée (max {@value #MAX_ACCOUNTING_DATE_LOOKUP_DAYS} jours) sous verrou unique</li>
+     * </ul>
+     * À utiliser avant les opérations métier (recouvrement, sync) — jamais depuis {@link #hasOpenedDay()}.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public LocalDate ensureAccountingReadyForOperations() {
+        Optional<LocalDate> ready = accountingDayStepExecutor.findReadyAccountingDate();
+        if (ready.isPresent()) {
+            return ready.get();
+        }
         synchronized (accountingDayLock) {
-            return doEnsureCurrentAccountingDay();
+            ready = accountingDayStepExecutor.findReadyAccountingDate();
+            if (ready.isPresent()) {
+                return ready.get();
+            }
+            LocalDate openDate = doEnsureCurrentAccountingDay();
+            accountingDayStepExecutor.ensureCurrentDailyAccountingRecord(openDate);
+            log.info("Journée comptable prête pour opérations : {}", openDate);
+            return openDate;
         }
     }
 
