@@ -6,7 +6,13 @@ async function dismissBlockingAlerts(page: Page) {
     return;
   }
 
-  const knownButtons = ['Continuer', 'OK', 'Fermer', 'Confirmer'];
+  const knownButtons = [
+    'Continuer (données limitées)',
+    'Continuer',
+    'OK',
+    'Fermer',
+    'Confirmer',
+  ];
   for (const label of knownButtons) {
     const button = page.locator('ion-alert button').filter({ hasText: label }).first();
     if (await button.isVisible().catch(() => false)) {
@@ -22,6 +28,21 @@ async function dismissBlockingAlerts(page: Page) {
     await anyButton.click();
     await alert.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   }
+}
+
+async function waitForTabsAfterInitialization(page: Page, timeoutMs: number) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    if (/\/tabs/.test(page.url())) {
+      return;
+    }
+
+    await dismissBlockingAlerts(page);
+    await page.waitForTimeout(500);
+  }
+
+  await expect(page).toHaveURL(/\/tabs/, { timeout: 0 });
 }
 
 async function fillIonInput(page: Page, placeholder: string, value: string) {
@@ -45,6 +66,6 @@ export async function loginAndWaitForTabs(page: Page, timeoutMs = 90_000) {
 
   // App now goes through /initial-loading before landing on /tabs.
   await expect(page).toHaveURL(/\/(initial-loading|tabs)/, { timeout: 15_000 });
-  await expect(page).toHaveURL(/\/tabs/, { timeout: timeoutMs });
+  await waitForTabsAfterInitialization(page, timeoutMs);
   await dismissBlockingAlerts(page);
 }

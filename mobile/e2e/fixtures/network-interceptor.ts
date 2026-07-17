@@ -1,5 +1,5 @@
 import { Page, Route } from '@playwright/test';
-import { MockData } from './mock-data';
+import { resolveMockResponse } from './mock-resolver';
 
 export class NetworkInterceptor {
   constructor(private page: Page) {}
@@ -21,28 +21,15 @@ export class NetworkInterceptor {
       const request = route.request();
       const url = new URL(request.url());
       const apiPath = url.pathname + url.search;
+      const resolvedMock = resolveMockResponse(apiPath, request.method());
 
-      // Find if we have a mock for this exact path
-      if (MockData[apiPath]) {
+      if (resolvedMock) {
         console.log(`[Mock] Intercepting ${request.method()} ${apiPath}`);
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify(MockData[apiPath]),
+          body: JSON.stringify(resolvedMock),
         });
-      } else if (request.method() === 'POST' && url.pathname.includes('/auth/signin')) {
-        // Special case for login if the path doesn't match exactly
-        console.log(`[Mock] Intercepting Login ${apiPath}`);
-        const loginPath = Object.keys(MockData).find(k => k.includes('/auth/signin'));
-        if (loginPath) {
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(MockData[loginPath]),
-          });
-        } else {
-          await route.continue();
-        }
       } else if (request.method() === 'GET' && url.pathname.includes('/api/commercial-stocks/available/')) {
         console.log(`[Mock] Intercepting ${request.method()} ${apiPath} with empty stock array`);
         await route.fulfill({
