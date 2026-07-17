@@ -122,6 +122,17 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     }
 
     /**
+     * Recouvrement initial (vente comptant / livraison tontine) dans la transaction appelante.
+     * Utilise le {@link Credit} déjà géré — ne recharge pas via {@code getById}, car le crédit
+     * n'est pas encore visible dans une TX {@code REQUIRES_NEW} tant que la création n'est pas commitée.
+     */
+    public void recordInitialSaleRecovery(Credit credit, CreditTimelineDto dto) {
+        CreditTimeline creditTimeline = creditMapper.toCreditTimeline(dto);
+        creditTimeline.setCredit(credit);
+        dailyStakeFactor(credit, creditTimeline);
+    }
+
+    /**
      * Enregistre la mise. Prérequis : journée comptable + DailyAccounting CURRENT déjà prêts
      * (appeler {@link AccountingDayService#ensureAccountingReadyForOperations()} avant d'ouvrir la TX métier).
      */

@@ -200,8 +200,9 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     /**
-     * Enregistre un recouvrement pour une vente comptant ou une vente de tontine
-     * @param credit la vente comptant ou tontine
+     * Enregistre un recouvrement pour une vente comptant ou une vente de tontine.
+     * Doit rester dans la TX de création : {@code makeDailyStake} (REQUIRES_NEW) ne voit pas
+     * encore le crédit non commit et lève {@code resource.not.found}.
      */
     private void filledRecovery(Credit credit) {
         var timeline = new CreditTimelineDto();
@@ -209,7 +210,7 @@ public class CreditService extends GenericService<Credit, Long> {
         timeline.setCollector(credit.getCollector());
         timeline.setAmount(credit.getTotalAmount());
         timeline.setNormalStake(Boolean.FALSE);
-        creditTimelineService.makeDailyStake(timeline);
+        creditTimelineService.recordInitialSaleRecovery(credit, timeline);
     }
 
     @Transactional

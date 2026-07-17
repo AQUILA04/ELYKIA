@@ -9,6 +9,14 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.2.25] — 2026-07-18
+
+### Fixed
+
+- Vente comptant / livraison tontine : le recouvrement initial reste dans la transaction de création (`recordInitialSaleRecovery`) au lieu de `makeDailyStake` en `REQUIRES_NEW`, ce qui corrige `resource.not.found` sur le crédit non encore commit (golden-path étape 15).
+- `AccountingDayService` : import manquant de `DailyAccountancy` (échec de compilation après 1.2.24).
+- Compilation : réimport de `DailyAccountancy` dans `AccountingDayService` (retour de `closeCollectorOperation`).
+
 ## Backend — [1.2.24] — 2026-07-18
 
 ### Fixed
