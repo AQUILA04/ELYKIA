@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.2.23] — 2026-07-17
+
+### Fixed
+
+- Recouvrement : la préparation de journée comptable (`ensure`, `NOT_SUPPORTED`) n'est plus appelée au milieu d'une transaction JPA — elle s'exécute avant, puis la mise en `REQUIRES_NEW`, ce qui corrige `Could not open JPA EntityManager for transaction`.
+
 ## Backend — [1.2.22] — 2026-07-17
 
 ### Fixed

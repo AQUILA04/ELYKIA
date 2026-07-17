@@ -94,16 +94,19 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         this.metricsPublisher = metricsPublisher;
     }
 
-    @Transactional
+    /**
+     * Recouvrement unitaire (web / recovery-manager).
+     * Prépare la journée comptable HORS transaction JPA, puis exécute la mise en REQUIRES_NEW
+     * pour éviter "Could not open JPA EntityManager" (suspend NOT_SUPPORTED au milieu d'une TX).
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CreditTimeline makeDailyStake(CreditTimelineDto dto) {
         try {
             if (StringUtils.hasText(dto.getReference()) && getRepository().existsByReference(dto.getReference())) {
                 return getRepository().findByReference(dto.getReference()).orElseThrow();
             }
-            CreditTimeline creditTimeline = creditMapper.toCreditTimeline(dto);
-            Credit credit = creditService.getById(dto.getCreditId());
-            dailyStakeFactor(credit, creditTimeline);
-            return creditTimeline;
+            ensureAccountingReadyOrFail("makeDailyStake");
+            return requiresNewTransactionTemplate.execute(status -> doMakeDailyStake(dto));
         } catch (RuntimeException e) {
             log.error("Échec recouvrement web creditId={} reference={}: {}",
                     dto.getCreditId(), dto.getReference(), e.getMessage(), e);
@@ -111,11 +114,19 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         }
     }
 
-    @Transactional
+    private CreditTimeline doMakeDailyStake(CreditTimelineDto dto) {
+        CreditTimeline creditTimeline = creditMapper.toCreditTimeline(dto);
+        Credit credit = creditService.getById(dto.getCreditId());
+        dailyStakeFactor(credit, creditTimeline);
+        return creditTimeline;
+    }
+
+    /**
+     * Enregistre la mise. Prérequis : journée comptable + DailyAccounting CURRENT déjà prêts
+     * (appeler {@link AccountingDayService#ensureAccountingReadyForOperations()} avant d'ouvrir la TX métier).
+     */
     public void dailyStakeFactor(Credit credit, CreditTimeline creditTimeline) {
         try {
-            LocalDate accountingDate = accountingDayService.ensureAccountingReadyForOperations();
-            log.debug("Recouvrement crédit {} sur journée comptable {}", credit.getId(), accountingDate);
             DailyAccountancy dailyAccountancy = dailyAccountancyService.getByCollectorOrCreateNew(credit.getCollector());
             credit.checkInProgressStatus();
 
