@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StockTontineRequestService } from '../../services/stock-tontine-request.service';
@@ -8,7 +8,6 @@ import { NgxSpinnerService } from 'ngx-spinner';
 import { ClientService } from '../../../client/service/client.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
-import { ArticleSelectorComponent } from 'src/app/credit/components/article-selector/article-selector.component';
 
 @Component({
   selector: 'app-stock-tontine-request-create',
@@ -16,8 +15,6 @@ import { ArticleSelectorComponent } from 'src/app/credit/components/article-sele
   styleUrls: ['./stock-tontine-request-create.component.scss']
 })
 export class StockTontineRequestCreateComponent implements OnInit {
-
-  @ViewChild(ArticleSelectorComponent) articleSelector?: ArticleSelectorComponent;
 
   form: FormGroup;
   agents: any[] = [];
@@ -71,14 +68,11 @@ export class StockTontineRequestCreateComponent implements OnInit {
     }
 
     const formValue = this.form.getRawValue();
-
-    const items = formValue.items.map((item: any) => {
-      const articleObj = this.articleSelector?.getArticle(item.articleId);
-      return {
-        article: articleObj,
-        quantity: item.quantity
-      };
-    });
+    // Backend ne lit que article.id puis recharge l'entité.
+    const items = formValue.items.map((item: any) => ({
+      article: { id: item.articleId },
+      quantity: item.quantity
+    }));
 
     const request = {
       collector: formValue.collector,

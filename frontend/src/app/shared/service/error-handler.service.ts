@@ -33,22 +33,34 @@ export class ErrorHandlerService {
       code = error.error.code || 'API_ERROR';
       details = error.error.data || error.error.details;
     }
-    // Cas 2: Erreur avec message direct dans error.error (string)
+    // Cas 1b: Corps JSON renvoyé comme string (non parsé)
     else if (error?.error && typeof error.error === 'string') {
-      message = error.error;
-      code = 'API_STRING_ERROR';
+      try {
+        const parsed = JSON.parse(error.error);
+        if (parsed?.message) {
+          message = parsed.message;
+          code = parsed.code || 'API_JSON_STRING_ERROR';
+          details = parsed.data || parsed.details;
+        } else {
+          message = error.error;
+          code = 'API_STRING_ERROR';
+        }
+      } catch {
+        message = error.error;
+        code = 'API_STRING_ERROR';
+      }
     }
-    // Cas 3: Erreur avec message dans error.message
-    else if (error?.message) {
+    // Cas 2: Erreur avec message dans error.message (éviter le message générique HttpClient)
+    else if (error?.message && !String(error.message).startsWith('Http failure response')) {
       message = error.message;
       code = 'ERROR_MESSAGE';
     }
-    // Cas 4: Erreur côté client (réseau, etc.)
+    // Cas 3: Erreur côté client (réseau, etc.)
     else if (error?.error instanceof ErrorEvent) {
       message = error.error.message || 'Erreur de connexion';
       code = 'CLIENT_ERROR';
     }
-    // Cas 5: Erreurs HTTP standard basées sur le code de statut
+    // Cas 4: Erreurs HTTP standard basées sur le code de statut
     else {
       const errorInfo = this.getStandardHttpErrorMessage(statusCode);
       message = errorInfo.message;

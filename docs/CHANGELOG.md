@@ -9,6 +9,48 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.2.33] — 2026-07-18
+
+### Fixed
+
+- Liste articles : clé de cache SpEL pointe vers `com.optimize.elykia.core.util.PageableCacheKeyHelper` (la classe `common-entities` n'était pas dans le JAR déployé → EL1005E / 500).
+
+## Backend — [1.2.32] — 2026-07-18
+
+### Changed
+
+- Listes / recherche articles (`GET /api/v1/articles`, `/enabled`, `/all`, elasticsearch, out-of-stock) : retournent `ArticleListItemDto` (id, code, name, marque, model, type, commercialName, prix, stock, status) au lieu de l'entité complète (sans champs BI / audit). `GET /{id}` reste l'entité pour le détail / édition. Customer-space inchangé (`CustomerArticleDto` déjà dédié).
+
+## Backend — [1.2.31] — 2026-07-18
+
+### Changed
+
+- `GET /api/v1/promoters` et `/promoters/all` : retournent `PromoterUserDto` (id, username, firstname, lastname, gender, phone, email) au lieu de l'entité `User` avec ses relations JPA.
+
+## Backend — [1.2.30] — 2026-07-18
+
+### Fixed
+
+- Annulation de recouvrement : décrémente le `DailyCommercialReport` (et journalise) sur la date du recouvrement (`createdDate`), plus sur la date du jour.
+
+## Backend — [1.2.29] — 2026-07-18
+
+### Fixed
+
+- Flyway `V79` : ajout de `CREDIT_COLLECTION_CANCEL` à la contrainte `daily_operation_log_type_check` (échec 500 à l'annulation de recouvrement).
+
+## Frontend — [2.10.11] — 2026-07-18
+
+### Changed
+
+- Création / modification de demande de stock (crédit et tontine) : envoi de `article: { id }` uniquement, aligné sur le backend qui recharge l'article par id.
+
+## Frontend — [2.10.10] — 2026-07-18
+
+### Fixed
+
+- Annulation de recouvrement : affichage du `message` backend (`error.error.message`) au lieu du message générique HttpClient.
+
 ## Mobile — [2.10.9] — 2026-07-18
 
 ### Added

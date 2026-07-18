@@ -122,7 +122,9 @@ export class RecouvrementComponent implements OnInit {
       },
       error: (err) => {
         this.spinner.hide();
-        this.alertService.showError(err?.message || 'Erreur lors de l\'annulation du recouvrement');
+        this.alertService.showError(
+          err?.error?.message || err?.message || 'Erreur lors de l\'annulation du recouvrement'
+        );
       }
     });
   }

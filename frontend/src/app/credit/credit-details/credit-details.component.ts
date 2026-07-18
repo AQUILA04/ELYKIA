@@ -218,7 +218,9 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
       },
       error: (err) => {
         this.spinner.hide();
-        this.handleError(err, 'Erreur lors de l\'annulation du recouvrement');
+        this.alertService.showError(
+          err?.error?.message || this.getErrorMessage(err) || 'Erreur lors de l\'annulation du recouvrement'
+        );
       }
     });
   }

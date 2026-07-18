@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StockRequestService } from '../../services/stock-request.service';
@@ -10,7 +10,6 @@ import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { MonthEndCalculator } from '../../../shared/utils/month-end-calculator';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
-import { ArticleSelectorComponent } from 'src/app/credit/components/article-selector/article-selector.component';
 
 @Component({
   selector: 'app-stock-request-create',
@@ -18,8 +17,6 @@ import { ArticleSelectorComponent } from 'src/app/credit/components/article-sele
   styleUrls: ['./stock-request-create.component.scss']
 })
 export class StockRequestCreateComponent implements OnInit {
-
-  @ViewChild(ArticleSelectorComponent) articleSelector?: ArticleSelectorComponent;
 
   form: FormGroup;
   agents: any[] = [];
@@ -133,19 +130,11 @@ export class StockRequestCreateComponent implements OnInit {
 
     this.isSubmitting = true;
     const formValue = this.form.getRawValue();
-    // ArticleSelector returns [{articleId: 1, quantity: 5}, ...]
-    // Mapper needs to find the Article object if the backend expects the full object,
-    // or just send IDs if the backend supports it.
-    // Based on previous code: "article: item.article" (full object)
-    // We need to map back from ID to object.
-
-    const items = formValue.items.map((item: any) => {
-      const articleObj = this.articleSelector?.getArticle(item.articleId);
-      return {
-        article: articleObj,
-        quantity: item.quantity
-      };
-    });
+    // Backend ne lit que article.id puis recharge l'entité (createRequest / updateRequest).
+    const items = formValue.items.map((item: any) => ({
+      article: { id: item.articleId },
+      quantity: item.quantity
+    }));
 
     const request = {
       collector: formValue.collector,

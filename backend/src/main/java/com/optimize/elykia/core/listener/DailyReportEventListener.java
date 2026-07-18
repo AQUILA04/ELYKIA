@@ -220,8 +220,9 @@ public class DailyReportEventListener {
         @EventListener
         @Transactional(propagation = Propagation.REQUIRES_NEW)
         public void handleCreditCollectionCancelled(CreditCollectionCancelledEvent event) {
-                log.info("Processing CreditCollectionCancelledEvent for collector: {}", event.getCollector());
-                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                log.info("Processing CreditCollectionCancelledEvent for collector: {} on date: {}",
+                                event.getCollector(), event.getOperationDate());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector(), event.getOperationDate());
 
                 int currentCount = report.getCollectionsCount() != null ? report.getCollectionsCount() : 0;
                 double currentAmount = report.getCollectionsAmount() != null ? report.getCollectionsAmount() : 0.0;
@@ -258,7 +259,8 @@ public class DailyReportEventListener {
                                 "Annulation Recouvrement",
                                 description,
                                 -generated,
-                                -used);
+                                -used,
+                                event.getOperationDate());
         }
 
         @EventListener
@@ -377,11 +379,15 @@ public class DailyReportEventListener {
         }
 
         private DailyCommercialReport getOrCreateReport(String commercialUsername) {
-                LocalDate today = LocalDate.now();
-                return repository.findByDateAndCommercialUsername(today, commercialUsername)
+                return getOrCreateReport(commercialUsername, LocalDate.now());
+        }
+
+        private DailyCommercialReport getOrCreateReport(String commercialUsername, LocalDate date) {
+                LocalDate reportDate = date != null ? date : LocalDate.now();
+                return repository.findByDateAndCommercialUsername(reportDate, commercialUsername)
                                 .orElseGet(() -> {
                                         DailyCommercialReport newReport = new DailyCommercialReport();
-                                        newReport.setDate(today);
+                                        newReport.setDate(reportDate);
                                         newReport.setCommercialUsername(commercialUsername);
                                         return reportPersistence.save(newReport);
                                 });

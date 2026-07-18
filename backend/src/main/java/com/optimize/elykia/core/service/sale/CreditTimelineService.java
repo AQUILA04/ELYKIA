@@ -389,6 +389,9 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         if (eventPublisher != null) {
             String ref = credit.getReference() + " | Client : "
                     + (credit.getClient() != null ? credit.getClient().getFullName() : "N/A");
+            java.time.LocalDate operationDate = timeline.getCreatedDate() != null
+                    ? timeline.getCreatedDate().toLocalDate()
+                    : java.time.LocalDate.now();
             eventPublisher.publishEvent(new CreditCollectionCancelledEvent(
                     this,
                     amount,
@@ -396,7 +399,8 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
                     ref,
                     timeline.getReference(),
                     generated,
-                    used));
+                    used,
+                    operationDate));
         }
 
         log.info("Recouvrement annulé timelineId={} reference={} creditId={} amount={}",

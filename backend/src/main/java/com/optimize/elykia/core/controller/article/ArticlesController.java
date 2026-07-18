@@ -2,6 +2,7 @@ package com.optimize.elykia.core.controller.article;
 
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
+import com.optimize.elykia.core.dto.ArticleListItemDto;
 import com.optimize.elykia.core.dto.ArticlesDto;
 import com.optimize.elykia.core.dto.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.StockEntryDto;
@@ -72,19 +73,22 @@ public class ArticlesController {
 
     @GetMapping
     public ResponseEntity<Response> getAll(Pageable pageable) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getAll(pageable)),
+        return new ResponseEntity<Response>(
+                ResponseUtil.successResponse(ArticleListItemDto.fromPage(articlesService.getAll(pageable))),
                 HttpStatus.OK);
     }
 
     @GetMapping("/enabled")
     public ResponseEntity<Response> getAllEnabled(Pageable pageable) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getAllEnabled(pageable)),
+        return new ResponseEntity<Response>(
+                ResponseUtil.successResponse(ArticleListItemDto.fromPage(articlesService.getAllEnabled(pageable))),
                 HttpStatus.OK);
     }
 
     @GetMapping("/enabled/all")
     public ResponseEntity<Response> getAllEnabledList() {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getAllEnabledList()),
+        return new ResponseEntity<Response>(
+                ResponseUtil.successResponse(ArticleListItemDto.fromList(articlesService.getAllEnabledList())),
                 HttpStatus.OK);
     }
 
@@ -114,7 +118,9 @@ public class ArticlesController {
 
     @GetMapping(value = "all")
     public ResponseEntity<Response> getAll() {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getAll()), HttpStatus.OK);
+        return new ResponseEntity<Response>(
+                ResponseUtil.successResponse(ArticleListItemDto.fromList(articlesService.getAll())),
+                HttpStatus.OK);
     }
 
     @DeleteMapping(value = "{id}")
@@ -126,26 +132,30 @@ public class ArticlesController {
     @PostMapping(value = "elasticsearch")
     public ResponseEntity<Response> elasticSearch(@RequestBody ElasticSearchWrapper wrapper, Pageable pageable) {
         return new ResponseEntity<Response>(
-                ResponseUtil.successResponse(articlesService.elasticSearch(wrapper.getKeyword(), pageable)),
+                ResponseUtil.successResponse(
+                        ArticleListItemDto.fromPage(articlesService.elasticSearch(wrapper.getKeyword(), pageable))),
                 HttpStatus.OK);
     }
 
     @PostMapping(value = "elasticsearch/enabled")
     public ResponseEntity<Response> elasticSearchEnabled(@RequestBody ElasticSearchWrapper wrapper, Pageable pageable) {
         return new ResponseEntity<Response>(
-                ResponseUtil.successResponse(articlesService.elasticSearchEnabled(wrapper.getKeyword(), pageable)),
+                ResponseUtil.successResponse(ArticleListItemDto
+                        .fromPage(articlesService.elasticSearchEnabled(wrapper.getKeyword(), pageable))),
                 HttpStatus.OK);
     }
 
     @GetMapping(value = "out-of-stock")
     public ResponseEntity<Response> getAllOutOfTheStock(Pageable pageable) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getOutOfStock(pageable)),
+        return new ResponseEntity<Response>(
+                ResponseUtil.successResponse(ArticleListItemDto.fromPage(articlesService.getOutOfStock(pageable))),
                 HttpStatus.OK);
     }
 
     @GetMapping(value = "next-out-of-stock")
     public ResponseEntity<Response> getNextOutOfTheStock(Pageable pageable) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getNextOutOfStock(pageable)),
+        return new ResponseEntity<Response>(
+                ResponseUtil.successResponse(ArticleListItemDto.fromPage(articlesService.getNextOutOfStock(pageable))),
                 HttpStatus.OK);
     }
 

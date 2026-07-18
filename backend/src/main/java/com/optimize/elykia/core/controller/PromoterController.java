@@ -2,8 +2,8 @@ package com.optimize.elykia.core.controller;
 
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
-import com.optimize.common.securities.models.User;
 import com.optimize.elykia.core.dto.PromoterDto;
+import com.optimize.elykia.core.dto.PromoterUserDto;
 import com.optimize.elykia.core.service.commercial.PromoterService;
 import com.optimize.elykia.core.service.user.UserManagement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -47,13 +47,13 @@ public class PromoterController {
 
     @GetMapping
     public ResponseEntity<Response> getAll(Pageable pageable) {
-        List<User> users = userManagement.getPromoters();
-        return new ResponseEntity<>(ResponseUtil.successResponse(new PageImpl<>(users, pageable, users.size())), HttpStatus.OK);
+        List<PromoterUserDto> promoters = PromoterUserDto.fromList(userManagement.getPromoters());
+        return new ResponseEntity<>(ResponseUtil.successResponse(new PageImpl<>(promoters, pageable, promoters.size())), HttpStatus.OK);
     }
 
     @GetMapping(value = "all")
     public ResponseEntity<Response> getAll() {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(userManagement.getPromoters()), HttpStatus.OK);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(PromoterUserDto.fromList(userManagement.getPromoters())), HttpStatus.OK);
     }
 
     @DeleteMapping(value = "{id}")
