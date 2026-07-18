@@ -9,6 +9,26 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.2.27] — 2026-07-18
+
+### Changed
+
+- Recouvrements web : les endpoints d'historique et d'annulation exposent `CreditTimelineRespDto` (projection JPQL) au lieu de l'entité `CreditTimeline`, avec chargement `JOIN FETCH` à l'annulation pour éviter le N+1.
+
+## Backend — [1.2.26] — 2026-07-18
+
+### Added
+
+- Annulation de recouvrement : `DELETE /api/v1/credits/timelines/{id}` (`CreditTimelineService.cancelRecovery`), soft-delete du timeline, reverse de `totalAmountPaid` / `totalAmountRemaining` (réouverture si crédit soldé), reverse des reliquats, événement `CreditCollectionCancelledEvent` traité par `DailyReportEventListener` (décrémente `DailyCommercialReport`, journal `CREDIT_COLLECTION_CANCEL`).
+- Permission `ROLE_CANCEL_RECOVERY` attribuée uniquement au profil ADMIN.
+
+## Frontend — [2.10.8] — 2026-07-18
+
+### Added
+
+- Annulation de recouvrement (rôle `ROLE_CANCEL_RECOVERY`) sur la liste des recouvrements et l'historique dans le détail crédit.
+- Domaine `credit` migré en lazy-loading (`/credit/list`, `/credit/add`, `/credit/details/:id`, `/credit/view/:id/:client-type`, `/credit/late`, `/credit/echeance`, `/credit/recouvrements`, `/credit/change-daily-stake/:id`, `/credit/create-tontine`, `/credit/distribute/:id`).
+
 ## Backend — [1.2.25] — 2026-07-18
 
 ### Fixed

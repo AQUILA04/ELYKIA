@@ -1070,8 +1070,9 @@ public class CreditService extends GenericService<Credit, Long> {
         return initial + yy.substring(2) + clientId + RandomStringUtils.randomNumeric(4);
     }
 
-    public Page<CreditTimeline> getTimelines(Long creditId, Pageable pageable) {
-        return creditTimelineRepository.findByCredit_id(creditId, pageable);
+    public Page<CreditTimelineRespDto> getTimelines(Long creditId, Pageable pageable) {
+        return creditTimelineRepository.findRespDtosByCreditIdAndState(creditId,
+                com.optimize.common.entities.enums.State.ENABLED, pageable);
     }
 
     public Page<CreditTimeline> getTimelinesByClient(Long clientId, Pageable pageable) {

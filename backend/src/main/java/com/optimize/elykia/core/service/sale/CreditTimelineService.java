@@ -1,17 +1,24 @@
 package com.optimize.elykia.core.service.sale;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
+import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.CollectorDailyStakeDto;
 import com.optimize.elykia.core.dto.CreditTimelineDto;
 import com.optimize.elykia.core.dto.CreditTimelineMobileDto;
+import com.optimize.elykia.core.dto.CreditTimelineRespDto;
 import com.optimize.elykia.core.dto.SpecialDailyStakeDto;
 import com.optimize.elykia.core.dto.SpecialDailyStakeResponseDto;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import com.optimize.elykia.core.entity.accounting.DailyAccountancy;
+import com.optimize.elykia.core.enumaration.CreditPurpose;
 import com.optimize.elykia.core.enumaration.CreditStatus;
+import com.optimize.elykia.core.enumaration.SolvencyStatus;
+import com.optimize.elykia.core.event.CreditCollectionCancelledEvent;
 import com.optimize.elykia.core.event.CreditCollectionEvent;
 import com.optimize.elykia.core.mapper.CreditMapper;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
@@ -329,8 +336,102 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         successRecoveryIds.add(recoveryId);
     }
 
-    public List<CreditTimeline> getAllByCredit(Long creditId) {
-        return getRepository().findByCredit_id(creditId);
+    public List<CreditTimelineRespDto> getAllByCredit(Long creditId) {
+        return getRepository().findRespDtosByCreditIdAndState(creditId, State.ENABLED);
+    }
+
+    /**
+     * Annule un recouvrement : soft-delete du timeline, reverse des montants crédit,
+     * reverse reliquats, et publication de {@link CreditCollectionCancelledEvent}
+     * pour DailyCommercialReport + DailyOperationLog.
+     */
+    public CreditTimelineRespDto cancelRecovery(Long timelineId) {
+        CreditTimeline timeline = getRepository().findByIdWithCreditAndClient(timelineId)
+                .orElseThrow(() -> new ResourceNotFoundException("Recouvrement introuvable."));
+
+        if (State.DELETED.equals(timeline.getState())) {
+            throw new CustomValidationException("Ce recouvrement est déjà annulé.");
+        }
+
+        Credit credit = timeline.getCredit();
+        if (credit == null) {
+            throw new CustomValidationException("Crédit associé au recouvrement introuvable.");
+        }
+
+        double amount = timeline.getAmount() != null ? timeline.getAmount() : 0.0;
+        double generated = timeline.getReliquatGeneratedAmount() != null ? timeline.getReliquatGeneratedAmount() : 0.0;
+        double used = timeline.getReliquatUsedAmount() != null ? timeline.getReliquatUsedAmount() : 0.0;
+
+        timeline.setState(State.DELETED);
+        getRepository().save(timeline);
+
+        boolean reopened = reverseCreditAmounts(credit, amount);
+        creditService.update(credit);
+
+        if (reopened && credit.getClientId() != null && ClientType.CLIENT.equals(credit.getClientType())) {
+            CreditPurpose purpose = credit.getCreditPurpose() != null
+                    ? credit.getCreditPurpose()
+                    : CreditPurpose.PERSONAL;
+            if (CreditPurpose.BUSINESS.equals(purpose)) {
+                clientService.updateBusinessCreditInProgress(credit.getClientId(), Boolean.TRUE);
+            } else {
+                clientService.updateCreditStatus(credit.getClientId(), Boolean.TRUE);
+            }
+        }
+
+        if (generated > 0 && credit.getClientId() != null) {
+            clientReliquatService.consumeReliquat(credit.getClientId(), generated, timeline.getReference(), null);
+        }
+        if (used > 0 && credit.getClientId() != null) {
+            clientReliquatService.addReliquat(credit.getClientId(), used, timeline.getReference(), null);
+        }
+
+        if (eventPublisher != null) {
+            String ref = credit.getReference() + " | Client : "
+                    + (credit.getClient() != null ? credit.getClient().getFullName() : "N/A");
+            eventPublisher.publishEvent(new CreditCollectionCancelledEvent(
+                    this,
+                    amount,
+                    timeline.getCollector(),
+                    ref,
+                    timeline.getReference(),
+                    generated,
+                    used));
+        }
+
+        log.info("Recouvrement annulé timelineId={} reference={} creditId={} amount={}",
+                timelineId, timeline.getReference(), credit.getId(), amount);
+        return CreditTimelineRespDto.fromEntity(timeline);
+    }
+
+    private boolean reverseCreditAmounts(Credit credit, double amount) {
+        double paid = credit.getTotalAmountPaid() != null ? credit.getTotalAmountPaid() : 0.0;
+        double newPaid = Math.max(0.0, paid - amount);
+        credit.setTotalAmountPaid(newPaid);
+        credit.setTotalAmountRemaining(credit.getTotalAmount() - newPaid);
+
+        boolean reopened = false;
+        boolean wasSettled = CreditStatus.SETTLED.equals(credit.getStatus());
+        if (wasSettled && credit.getTotalAmountRemaining() > 0) {
+            credit.setStatus(CreditStatus.INPROGRESS);
+            credit.setEffectiveEndDate(null);
+            credit.setSolvencyNote(SolvencyStatus.ND);
+            credit.setLateDaysCount(0);
+            if (credit.getClient() != null) {
+                credit.getClient().setCreditInProgress(true);
+            }
+            reopened = true;
+        }
+
+        Double dailyStake = credit.getDailyStake();
+        if (dailyStake != null && dailyStake > 0 && credit.getTotalAmountRemaining() > 0) {
+            credit.setRemainingDaysCount((int) Math.ceil(credit.getTotalAmountRemaining() / dailyStake));
+        } else if (credit.getTotalAmountRemaining() == 0) {
+            credit.setRemainingDaysCount(0);
+        }
+
+        credit.setDailyPaid(Boolean.FALSE);
+        return reopened;
     }
 
     public CreditTimelineRepository getRepository() {

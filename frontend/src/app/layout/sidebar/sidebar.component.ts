@@ -54,10 +54,7 @@ export class SidebarComponent implements OnInit {
 
     // Gestion pour le menu Ventes
     if (route === '/ventes') {
-      return this.activeRoute.startsWith('/credit-list') ||
-             this.activeRoute.startsWith('/credits/late') ||
-             this.activeRoute.startsWith('/credits/echeance') ||
-             this.activeRoute.startsWith('/credits/recouvrements');
+      return this.activeRoute.startsWith('/credit');
     }
 
     // Gestion pour le menu Configuration
@@ -101,7 +98,7 @@ export class SidebarComponent implements OnInit {
   private hasConflictingRoute(route: string): boolean {
     const allRoutes = [
       '/home', '/accounting-day', '/open-cashDesk', '/daily-operation',
-      '/article', '/localitylist', '/credit-list', '/out-list', '/tontine-list',
+      '/article', '/localitylist', '/credit', '/out-list', '/tontine-list',
       '/accountlist', '/client/list', '/report', '/inventory', '/gestion-list',
       '/operation-list', '/deposit-list', '/user/list', '/commercial-list',
       '/article-type', '/expense/types', '/parameters', '/stock', '/stock-tontine'
@@ -151,15 +148,12 @@ export class SidebarComponent implements OnInit {
 
   // Gestionnaire de clic pour le menu Ventes
   onVentesClick() {
-    const isVentesActive = this.activeRoute.startsWith('/credit-list') ||
-                           this.activeRoute.startsWith('/credits/late') ||
-                           this.activeRoute.startsWith('/credits/echeance') ||
-                           this.activeRoute.startsWith('/credits/recouvrements');
+    const isVentesActive = this.activeRoute.startsWith('/credit');
 
     if (isVentesActive) {
       this.isVentesOpen = !this.isVentesOpen;
     } else {
-      this.router.navigate(['/credit-list']);
+      this.router.navigate(['/credit/list']);
       this.isVentesOpen = true;
     }
   }
@@ -231,10 +225,7 @@ export class SidebarComponent implements OnInit {
       }
 
       // Gestion de l'état ouvert/fermé pour Ventes
-      if (this.activeRoute.startsWith('/credit-list') ||
-          this.activeRoute.startsWith('/credits/late') ||
-          this.activeRoute.startsWith('/credits/echeance') ||
-          this.activeRoute.startsWith('/credits/recouvrements')) {
+      if (this.activeRoute.startsWith('/credit')) {
         this.isVentesOpen = true;
       } else {
         this.isVentesOpen = false;

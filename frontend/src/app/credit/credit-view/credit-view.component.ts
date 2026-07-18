@@ -181,7 +181,7 @@ export class CreditViewComponent implements OnInit {
 
   // Méthode pour voir les détails d'un crédit
   viewCreditDetails(creditId: number): void {
-    this.router.navigate(['/credit-details', creditId]);
+    this.router.navigate(['/credit/details', creditId]);
   }
 }
 

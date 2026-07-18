@@ -151,7 +151,7 @@
         <tbody>
         <tr *ngFor="let credit of credits; let i = index">
           <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-          <td><a [routerLink]="['/credit-view', credit.id, credit.clientType]" class="table-link">{{ credit.reference }}</a></td>
+          <td><a [routerLink]="['/credit/view', credit.id, credit.clientType]" class="table-link">{{ credit.reference }}</a></td>
           <td><a [routerLink]="['/client/view', credit.client?.id]" class="table-link">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</a></td>
           <td>{{ credit.totalAmount | number:'1.0-0' }} FCFA</td>
           <td>{{ credit.beginDate | date:'dd/MM/yyyy' }}</td>

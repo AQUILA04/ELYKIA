@@ -173,11 +173,11 @@ export class ClientViewComponent implements OnInit {
 
   // Méthode pour voir les détails d'un achat
   viewCreditDetails(creditId: number): void {
-    this.router.navigate(['/credit-details', creditId]);
+    this.router.navigate(['/credit/details', creditId]);
   }
 
   navigateToCreditView(creditId: number, clientType: string): void {
-    this.router.navigate(['/credit-view', creditId, clientType]);
+    this.router.navigate(['/credit/view', creditId, clientType]);
   }
 
 

@@ -75,7 +75,7 @@ export class DailyOperationComponent implements OnInit {
   }
 
   viewDetails(id: number): void {
-    this.router.navigate(['/credit-details', id]);
+    this.router.navigate(['/credit/details', id]);
   }
 
   onTFJClick(): void {

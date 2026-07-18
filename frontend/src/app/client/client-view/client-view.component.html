@@ -27,7 +27,7 @@
         </div>
         <div class="detail-line">
             <span class="detail-label">Commercial en charge:</span>
-            <span class="detail-value"><a [routerLink]="['/credit-view', this.clientId]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{this.clientDetails.collector ?? 'Non spécifié'}}</a> </span>
+            <span class="detail-value"><a [routerLink]="['/credit/view', this.clientId]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{this.clientDetails.collector ?? 'Non spécifié'}}</a> </span>
         </div>
         <div class="detail-line">
             <span class="detail-label">Numéro de compte:</span>
@@ -121,7 +121,7 @@
         <tbody>
           <tr *ngFor="let credit of credits; let i = index">
             <td>{{(currentPage * pageSize) + (i + 1)}}</td>
-            <td><a [routerLink]="['/credit-view', credit.id, credit.clientType]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{credit.reference}}</a></td>
+            <td><a [routerLink]="['/credit/view', credit.id, credit.clientType]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{credit.reference}}</a></td>
             <td>{{credit.totalAmount | number:'1.0-0'}} FCFA</td>
             <td>{{credit.beginDate | date:'dd/MM/yyyy'}}</td>
             <td>

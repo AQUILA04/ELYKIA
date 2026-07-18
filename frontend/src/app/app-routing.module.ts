@@ -8,9 +8,6 @@ import { AccountListComponent } from './account/accountlist/accountlist.componen
 import { LoginComponent } from './auth/login/login.component';
 import { NgxPermissionsGuard } from 'ngx-permissions';
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { CreditAddComponent } from './credit/credit-add/credit-add.component';
-import { CreditListComponent } from './credit/credit-list/credit-list.component';
-import { CreditDetailsComponent } from './credit/credit-details/credit-details.component';
 import { AccountdetailsComponent } from './account/accountdetails/accountdetails.component';
 import { DailyOperationComponent } from './cash-desk/daily-operation/daily-operation.component';
 import { OpenCashDeskComponent } from './cash-desk/open-cash-desk/open-cash-desk.component';
@@ -36,21 +33,14 @@ import { OutListComponent } from './out/out-list/out-list.component';
 import { HistoryComponent } from './history/history.component';
 import { OutDetailsComponent } from './out/out-details/out-details.component';
 import { Back2StoreComponent } from './history/back2-store/back2-store.component';
-import { DistributionComponent } from './credit/distribution/distribution.component';
 import { CommercialListComponent } from './commercial/commercial-list/commercial-list.component';
 import { CommercialViewComponent } from './commercial/commercial-view/commercial-view.component';
-import { CreditViewComponent } from './credit/credit-view/credit-view.component';
 import { OutPdfListComponent } from './out/out-pdf-list/out-pdf-list.component';
 import { OldReleaseListComponent } from "./out/old-release-list/old-release-list.component";
-import { ChangeDailyStakeComponent } from './credit/change-daily-stake/change-daily-stake.component';
-import { CreateTontineComponent } from "./credit/components/create-tontine/create-tontine.component";
 import { AuthGuard } from "./auth/guards/auth.guard";
 import { AiChatGuard } from './ai-chat/guards/ai-chat.guard';
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
-import { CreditLateComponent } from './credit/credit-late/credit-late.component';
-import { CreditEcheanceComponent } from './credit/credit-echeance/credit-echeance.component';
-import { RecouvrementComponent } from './credit/recouvrement/recouvrement.component';
 import { MonthlyReportsComponent } from './report/pages/monthly-reports/monthly-reports.component';
 import { FeatureFlagGuard } from './shared/guards/feature-flag.guard';
 import { FeatureFlags } from './shared/service/feature-flag.service';
@@ -173,64 +163,10 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
 
-  // Crédits
+  // Crédits (lazy-loaded)
   {
-    path: 'credit-add',
-    component: CreditAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'credit-add/:id',
-    component: CreditAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'credit-list',
-    component: CreditListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'credits/late',
-    component: CreditLateComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
-  },
-  {
-    path: 'credits/echeance',
-    component: CreditEcheanceComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: 'Crédits à Échéance' }
-  },
-  {
-    path: 'credits/recouvrements',
-    component: RecouvrementComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: 'Recouvrements' }
-  },
-  {
-    path: 'credit-details/:id',
-    component: CreditDetailsComponent,
-    canActivate: [AuthGuard],
-    data: { breadcrumb: '' }
-  },
-  {
-    path: 'credit-view/:id/:client-type',
-    component: CreditViewComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'create-tontine',
-    component: CreateTontineComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'change-daily-stake/:id',
-    component: ChangeDailyStakeComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'distribute/:id',
-    component: DistributionComponent,
+    path: 'credit',
+    loadChildren: () => import('./credit/credit.module').then(m => m.CreditModule),
     canActivate: [AuthGuard]
   },
 

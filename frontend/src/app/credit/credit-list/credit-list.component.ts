@@ -379,17 +379,17 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
 
   addCredit(): void {
     this.saveState();
-    this.router.navigate(['/credit-add']);
+    this.router.navigate(['/credit/add']);
   }
 
   viewDetails(id: number): void {
     this.saveState();
-    this.router.navigate(['/credit-details', id]);
+    this.router.navigate(['/credit/details', id]);
   }
 
   editCredit(id: number): void {
     this.saveState();
-    this.router.navigate(['/credit-add', id]);
+    this.router.navigate(['/credit/add', id]);
   }
 
   validateCredit(id: number): void {
@@ -473,7 +473,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
 
   changeDailyStake(id: number): void {
     this.saveState();
-    this.router.navigate(['/change-daily-stake', id]);
+    this.router.navigate(['/credit/change-daily-stake', id]);
   }
 
   openDailyStakeModal(credit: any): void {

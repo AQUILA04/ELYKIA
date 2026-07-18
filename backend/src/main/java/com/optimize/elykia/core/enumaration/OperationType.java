@@ -2,6 +2,7 @@ package com.optimize.elykia.core.enumaration;
 
 public enum OperationType {
     CREDIT_COLLECTION,
+    CREDIT_COLLECTION_CANCEL,
     TONTINE_COLLECTION,
     TONTINE_COLLECTION_CANCEL,
     ORDER,

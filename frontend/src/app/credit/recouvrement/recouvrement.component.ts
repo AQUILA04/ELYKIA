@@ -1,9 +1,12 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { RecouvrementService } from '../service/recouvrement.service';
+import { CreditService } from '../service/credit.service';
 import { RecouvrementWebDto, RecouvrementKpiDto } from '../models/recouvrement.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { AlertService } from 'src/app/shared/service/alert.service';
+import { NgxSpinnerService } from 'ngx-spinner';
 
 @Component({
   selector: 'app-recouvrement',
@@ -16,20 +19,23 @@ export class RecouvrementComponent implements OnInit {
   summary: RecouvrementKpiDto = { totalMises: 0, totalMontant: 0 };
   recouvrements: RecouvrementWebDto[] = [];
   isLoading: boolean = false;
-  
+
   currentCollector: string = 'all';
   dateFrom: string = '';
   dateTo: string = '';
 
   currentDate: Date = new Date();
   lastUpdate: Date = new Date();
-  
+
   isCommercialLogue: boolean = false;
 
   constructor(
     private recouvrementService: RecouvrementService,
+    private creditService: CreditService,
     private tokenStorage: TokenStorageService,
-    private userService: UserService
+    private userService: UserService,
+    private alertService: AlertService,
+    private spinner: NgxSpinnerService
   ) {}
 
   ngOnInit() {
@@ -42,7 +48,6 @@ export class RecouvrementComponent implements OnInit {
   }
 
   initDefaultFilters() {
-    // Default to today
     const today = new Date().toISOString().split('T')[0];
     this.dateFrom = today;
     this.dateTo = today;
@@ -58,8 +63,7 @@ export class RecouvrementComponent implements OnInit {
 
   loadData() {
     this.isLoading = true;
-    
-    // Load summary
+
     this.recouvrementService.getSummary(this.dateFrom, this.dateTo, this.currentCollector).subscribe({
       next: (res: any) => {
         if (res.statusCode === 200 && res.data) {
@@ -70,7 +74,6 @@ export class RecouvrementComponent implements OnInit {
       error: (err: any) => console.error(err)
     });
 
-    // Load table data
     this.recouvrementService.getRecouvrements(this.dateFrom, this.dateTo, this.currentCollector).subscribe({
       next: (res: any) => {
         if (res.statusCode === 200 && res.data) {
@@ -97,5 +100,30 @@ export class RecouvrementComponent implements OnInit {
     this.dateFrom = dates.from;
     this.dateTo = dates.to;
     this.loadData();
+  }
+
+  async onCancelRecovery(row: RecouvrementWebDto): Promise<void> {
+    if (!row?.id) return;
+
+    const confirmed = await this.alertService.showConfirmation(
+      'Annulation de recouvrement',
+      `Êtes-vous sûr de vouloir annuler le recouvrement ${row.reference || ''} ? Les montants du crédit et du rapport journalier seront corrigés.`,
+      'Oui, annuler',
+      'Non'
+    );
+    if (!confirmed) return;
+
+    this.spinner.show();
+    this.creditService.cancelRecovery(row.id).subscribe({
+      next: () => {
+        this.spinner.hide();
+        this.alertService.showSuccess('Recouvrement annulé avec succès.');
+        this.loadData();
+      },
+      error: (err) => {
+        this.spinner.hide();
+        this.alertService.showError(err?.message || 'Erreur lors de l\'annulation du recouvrement');
+      }
+    });
   }
 }

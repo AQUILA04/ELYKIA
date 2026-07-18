@@ -346,6 +346,12 @@
                   {{ tl.amount === credit.dailyStake ? 'Mise normale' : 'Mise spéciale' }}
                 </span>
                 <span class="rt-amount">{{ tl.amount | number }} FCFA</span>
+                <ng-container *ngxPermissionsOnly="['ROLE_CANCEL_RECOVERY', 'ROLE_ADMIN']">
+                  <button type="button" class="btn-cancel-recovery" (click)="onCancelRecovery(tl)"
+                    title="Annuler ce recouvrement">
+                    Annuler
+                  </button>
+                </ng-container>
               </div>
             </div>
             <div class="rt-meta">

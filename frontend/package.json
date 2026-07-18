@@ -1,6 +1,6 @@
 {
   "name": "optimize-elykia-ui",
-  "version": "2.10.7",
+  "version": "2.10.8",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

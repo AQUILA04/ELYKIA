@@ -2,6 +2,7 @@ import { DailyOperationLog } from 'src/app/report/models/daily-operation-log.mod
 
 const TYPE_LABELS: Record<string, string> = {
   CREDIT_COLLECTION: 'a enregistré un recouvrement crédit',
+  CREDIT_COLLECTION_CANCEL: 'a annulé un recouvrement crédit',
   TONTINE_COLLECTION: 'a effectué une collecte tontine',
   TONTINE_COLLECTION_CANCEL: 'a annulé une collecte tontine',
   ORDER: 'a passé une commande',
@@ -46,6 +47,7 @@ export function formatOperationMessage(log: DailyOperationLog, includeUsername =
 export function getOperationIcon(type: string): string {
   const icons: Record<string, string> = {
     CREDIT_COLLECTION: 'payments',
+    CREDIT_COLLECTION_CANCEL: 'money_off',
     TONTINE_COLLECTION: 'savings',
     NEW_CLIENT: 'person_add',
     CREDIT_SALES: 'shopping_cart',

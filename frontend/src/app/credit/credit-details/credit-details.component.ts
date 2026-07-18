@@ -64,11 +64,11 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
   }
 
   onCancel(): void {
-    this.router.navigate(['/credit-list']);
+    this.router.navigate(['/credit/list']);
   }
 
   navigateToEdit(creditId: number | null): void {
-    this.router.navigate(['/credit-add', creditId]);
+    this.router.navigate(['/credit/add', creditId]);
   }
 
   loadAllCreditData(creditId: number): void {
@@ -192,6 +192,33 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
       error: (err) => {
         this.spinner.hide();
         this.handleError(err, 'Erreur lors de la modification du commercial');
+      }
+    });
+  }
+
+  async onCancelRecovery(timeline: any): Promise<void> {
+    if (!timeline?.id) return;
+
+    const confirmed = await this.alertService.showConfirmation(
+      'Annulation de recouvrement',
+      `Êtes-vous sûr de vouloir annuler le recouvrement ${timeline.reference || ''} ? Les montants du crédit et du rapport journalier seront corrigés.`,
+      'Oui, annuler',
+      'Non'
+    );
+    if (!confirmed) return;
+
+    this.spinner.show();
+    this.creditService.cancelRecovery(timeline.id).subscribe({
+      next: () => {
+        this.spinner.hide();
+        this.alertService.showSuccess('Recouvrement annulé avec succès.');
+        if (this.creditId) {
+          this.loadAllCreditData(this.creditId);
+        }
+      },
+      error: (err) => {
+        this.spinner.hide();
+        this.handleError(err, 'Erreur lors de l\'annulation du recouvrement');
       }
     });
   }

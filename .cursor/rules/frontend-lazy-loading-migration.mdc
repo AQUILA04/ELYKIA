@@ -35,11 +35,11 @@ Si le fichier modifié est sous `frontend/src/app/{domaine}/` :
 
 ## Domaines encore eager (à migrer quand touchés)
 
-`locality`, `account`, `client`, `dashboard`, `dashboard-chart`, `accounting-day`, `credit`, `cash-desk`, `inventory`, `gestion`, `operation`, `deposit`, `report`, `history`, `out`, `commercial`, `parameters`
+`locality`, `account`, `client`, `dashboard`, `dashboard-chart`, `accounting-day`, `cash-desk`, `inventory`, `gestion`, `operation`, `deposit`, `report`, `history`, `out`, `commercial`, `parameters`
 
 ## Déjà lazy-loaded (ne pas migrer)
 
-`orders`, `bi`, `ai-chat`, `tontine`, `stock`, `stock-tontine`, `article-type`, `article`, `expense`, `security`, `user`
+`orders`, `bi`, `ai-chat`, `tontine`, `stock`, `stock-tontine`, `article-type`, `article`, `expense`, `security`, `user`, `credit`
 
 ## Transverse (ne pas migrer)
 

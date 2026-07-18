@@ -112,7 +112,7 @@ export async function submitCreditForm(page: Page): Promise<void> {
 
   const deadline = Date.now() + 60_000;
   while (Date.now() < deadline) {
-    if (/\/credit-list/.test(page.url())) {
+    if (/\/credit\/list/.test(page.url())) {
       await dismissSwalSuccess(page);
       return;
     }
@@ -120,7 +120,7 @@ export async function submitCreditForm(page: Page): Promise<void> {
     const receiptModal = page.locator('.receipt-modal-container');
     if (await receiptModal.isVisible().catch(() => false)) {
       await page.getByRole('button', { name: 'Fermer' }).click();
-      await expect(page).toHaveURL(/\/credit-list/, { timeout: 15_000 });
+      await expect(page).toHaveURL(/\/credit\/list/, { timeout: 15_000 });
       return;
     }
 
@@ -137,6 +137,6 @@ export async function submitCreditForm(page: Page): Promise<void> {
   }
 
   throw new Error(
-    `Soumission vente : pas de redirection vers /credit-list (URL=${page.url()})`,
+    `Soumission vente : pas de redirection vers /credit/list (URL=${page.url()})`,
   );
 }

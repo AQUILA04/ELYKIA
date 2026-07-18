@@ -88,7 +88,7 @@ export class CreateTontineComponent implements OnInit, OnDestroy {
 
         if (body.statusCode === 200 || body.statusCode === 201) {
           this.alertService.showSuccess('Livraison tontine créée avec succès');
-          this.router.navigate(['/credit-list']);
+          this.router.navigate(['/credit/list']);
         } else {
           this.alertService.showError(body.message || 'Une erreur est survenue');
         }
@@ -114,7 +114,7 @@ export class CreateTontineComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
-    this.router.navigate(['/credit-list']);
+    this.router.navigate(['/credit/list']);
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {

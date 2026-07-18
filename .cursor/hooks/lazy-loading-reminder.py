@@ -16,7 +16,7 @@ FRONTEND_APP = REPO_ROOT / "frontend" / "src" / "app"
 
 EAGER_DOMAINS = frozenset({
     "locality", "account", "client", "dashboard", "dashboard-chart",
-    "accounting-day", "credit", "user", "cash-desk", "inventory", "gestion",
+    "accounting-day", "user", "cash-desk", "inventory", "gestion",
     "operation", "deposit", "report", "history", "out", "commercial", "parameters",
 })
 

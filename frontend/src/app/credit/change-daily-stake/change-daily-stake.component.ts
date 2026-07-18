@@ -30,7 +30,7 @@ export class ChangeDailyStakeComponent implements OnInit {
       this.loadCreditDetails(); // Charger les détails pour obtenir la mise actuelle
     } else {
       this.alertService.showError("ID du crédit non trouvé.");
-      this.router.navigate(['/credit-list']);
+      this.router.navigate(['/credit/list']);
     }
   }
 
@@ -73,7 +73,7 @@ export class ChangeDailyStakeComponent implements OnInit {
       next: (response) => {
         this.spinner.hide();
         this.alertService.showSuccess("Succès", "La mise journalière a été modifiée avec succès !");
-        this.router.navigate(['/credit-list']);
+        this.router.navigate(['/credit/list']);
       },
       // #### CORRECTION FINALE APPLIQUÉE ICI ####
       error: (err: any) => {
@@ -98,7 +98,7 @@ export class ChangeDailyStakeComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/credit-list']);
+    this.router.navigate(['/credit/list']);
   }
 }
 

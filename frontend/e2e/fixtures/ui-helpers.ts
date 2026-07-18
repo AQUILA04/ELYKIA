@@ -192,7 +192,7 @@ function creditRowLocator(page: Page, clientLastName: string): Locator {
 
 /** Parcourt les pages de la liste des ventes jusqu'à trouver le client E2E. */
 export async function findCreditRow(page: Page, clientLastName: string): Promise<Locator> {
-  await page.goto('/credit-list');
+  await page.goto('/credit/list');
   await page.locator('ngx-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
 
   for (let pageIndex = 0; pageIndex < 15; pageIndex++) {

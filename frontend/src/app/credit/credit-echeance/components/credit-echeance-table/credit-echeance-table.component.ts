@@ -58,7 +58,7 @@ export class CreditEcheanceTableComponent implements OnChanges {
   }
 
   viewDetails(id: number) {
-    this.router.navigate(['/credit-details', id]);
+    this.router.navigate(['/credit/details', id]);
   }
 
   // ── Helpers CSS classes ──────────────────────────────────────

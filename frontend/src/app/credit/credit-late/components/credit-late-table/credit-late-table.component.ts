@@ -65,7 +65,7 @@ export class CreditLateTableComponent implements OnChanges {
   }
 
   viewDetails(creditId: number) {
-    this.router.navigate(['/credit-details', creditId]);
+    this.router.navigate(['/credit/details', creditId]);
   }
 
   getGraviteClass(d: CreditLateDTO): string {

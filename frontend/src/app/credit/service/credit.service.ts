@@ -238,6 +238,10 @@ export class CreditService extends BaseHttpService {
     return this.get(`${this.apiUrl}/${creditId}/timelines?page=${page}&size=${size}&sort=${sort}`);
   }
 
+  cancelRecovery(timelineId: number): Observable<any> {
+    return this.delete(`${this.apiUrl}/timelines/${timelineId}`);
+  }
+
   getArticleQuantityDistributed(creditId: number, articleId: number): Observable<any> {
     return this.get(`${this.apiUrl}/article-quantity-distributed?creditId=${creditId}&articleId=${articleId}`);
   }

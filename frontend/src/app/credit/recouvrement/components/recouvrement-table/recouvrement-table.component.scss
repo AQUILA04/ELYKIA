@@ -170,3 +170,26 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.btn-cancel-recovery {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(192, 57, 43, 0.35);
+  background: #fdecea;
+  color: #c0392b;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-cancel-recovery:hover {
+  background: #f8d7d4;
+  border-color: #c0392b;
+}
+
+.text-center {
+  text-align: center;
+}

@@ -203,7 +203,7 @@ export class CommercialViewComponent implements OnInit {
 
   // Méthode pour voir les détails d'une vente
   viewCreditDetails(creditId: number): void {
-    this.router.navigate(['/credit-details', creditId]);
+    this.router.navigate(['/credit/details', creditId]);
   }
 
   // Méthode pour charger les clients du commercial

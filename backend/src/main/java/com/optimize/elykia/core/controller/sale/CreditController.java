@@ -11,6 +11,7 @@ import com.optimize.elykia.core.service.sale.CreditListSummaryService;
 import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.core.service.sale.CreditTimelineService;
 import com.optimize.elykia.core.service.report.PdfService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -114,6 +116,13 @@ public class CreditController {
     public ResponseEntity<Response> dailyStake(@RequestBody @Valid CreditTimelineDto dto) {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditTimelineService.makeDailyStake(dto)),
                 HttpStatus.CREATED);
+    }
+
+    @DeleteMapping(value = "timelines/{id}")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.CANCEL_RECOVERY + "', '" + UserPermissionConstant.ADMIN + "')")
+    public ResponseEntity<Response> cancelRecovery(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditTimelineService.cancelRecovery(id)),
+                HttpStatus.OK);
     }
 
 

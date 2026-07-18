@@ -42,10 +42,16 @@ public class RecouvrementService {
 
         if (collector == null || collector.trim().isEmpty() || "all".equalsIgnoreCase(collector)) {
             totalMontant = timelineRepository.sumAmountByCreatedDateBetween(start, end);
-            totalMises = timelineRepository.findByCreatedDateGreaterThanEqualAndCreatedDateLessThanEqual(start, end).count();
+            totalMises = timelineRepository
+                    .findByCreatedDateGreaterThanEqualAndCreatedDateLessThanEqualAndState(start, end,
+                            com.optimize.common.entities.enums.State.ENABLED)
+                    .count();
         } else {
             totalMontant = timelineRepository.sumAmountByCollectorAndCreatedDateBetween(collector, start, end);
-            totalMises = timelineRepository.findByCollectorAndCreatedDateGreaterThanEqualAndCreatedDateLessThanEqual(collector, start, end).count();
+            totalMises = timelineRepository
+                    .findByCollectorAndCreatedDateGreaterThanEqualAndCreatedDateLessThanEqualAndState(collector, start,
+                            end, com.optimize.common.entities.enums.State.ENABLED)
+                    .count();
         }
 
         return RecouvrementKpiDto.builder()

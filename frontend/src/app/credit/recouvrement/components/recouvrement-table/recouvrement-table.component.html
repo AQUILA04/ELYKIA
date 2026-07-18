@@ -23,6 +23,7 @@
           <th>Commercial</th>
           <th class="text-right">Montant</th>
           <th class="text-right">Reste dû</th>
+          <th class="text-center">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -41,6 +42,14 @@
           </td>
           <td class="text-right amount-val">{{ row.amount | number }} <small>FCFA</small></td>
           <td class="text-right remaining-val">{{ row.totalAmountRemaining | number }} <small>FCFA</small></td>
+          <td class="text-center">
+            <ng-container *ngxPermissionsOnly="['ROLE_CANCEL_RECOVERY', 'ROLE_ADMIN']">
+              <button type="button" class="btn-cancel-recovery" (click)="onCancel(row)"
+                title="Annuler ce recouvrement">
+                Annuler
+              </button>
+            </ng-container>
+          </td>
         </tr>
       </tbody>
     </table>

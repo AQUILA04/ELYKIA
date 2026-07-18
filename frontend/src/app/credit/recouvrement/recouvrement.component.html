@@ -45,6 +45,7 @@
 
   <app-recouvrement-table
     [recouvrements]="recouvrements"
-    [isLoading]="isLoading">
+    [isLoading]="isLoading"
+    (cancelRecovery)="onCancelRecovery($event)">
   </app-recouvrement-table>
 </div>

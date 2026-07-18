@@ -329,7 +329,7 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.toastr.success('Distribution de rattrapage enregistrée avec succès');
-          this.router.navigate(['/credit-list']);
+          this.router.navigate(['/credit/list']);
         },
         error: (err) => {
           this.toastr.error(
@@ -341,7 +341,7 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
-    this.router.navigate(['/credit-list']);
+    this.router.navigate(['/credit/list']);
   }
 
   ngOnDestroy(): void {

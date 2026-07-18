@@ -55,7 +55,7 @@ export class DistributionComponent implements OnInit, OnDestroy {
   loadInitialData(): void {
     this.creditId = +this.route.snapshot.params['id'];
     if (!this.creditId) {
-      this.router.navigate(['/credit-list']);
+      this.router.navigate(['/credit/list']);
       return;
     }
 
@@ -197,7 +197,7 @@ export class DistributionComponent implements OnInit, OnDestroy {
             this.spinner.hide();
                       this.isLoading = false;
                       this.alertService.showSuccess('Distribution effectuée avec succès.');
-                      this.router.navigate(['/credit-list']);
+                      this.router.navigate(['/credit/list']);
 
             }else{
               this.spinner.hide();
@@ -222,6 +222,6 @@ export class DistributionComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
-    this.router.navigate(['/credit-list']);
+    this.router.navigate(['/credit/list']);
   }
 }

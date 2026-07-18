@@ -451,7 +451,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
               this.openReceiptModal(savedCredit);
             } else {
               this.alertService.showSuccess(msg);
-              this.router.navigate(['/credit-list']);
+              this.router.navigate(['/credit/list']);
             }
           } else {
             this.alertService.showError(body.message || 'Une erreur est survenue');
@@ -476,7 +476,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
-    this.router.navigate(['/credit-list']);
+    this.router.navigate(['/credit/list']);
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {
@@ -534,7 +534,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
 
   closeReceiptModal(): void {
     this.showReceiptModal = false;
-    this.router.navigate(['/credit-list']);
+    this.router.navigate(['/credit/list']);
   }
 
   printReceipt(): void {

@@ -38,9 +38,6 @@ import { TimeAgoPipe } from './dashboard/dashboard-v2/pipes/time-ago.pipe';
 import { NgChartsModule } from 'ng2-charts';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgxSpinnerModule } from 'ngx-spinner';
-import { CreditAddComponent } from './credit/credit-add/credit-add.component';
-import { CreditListComponent } from './credit/credit-list/credit-list.component';
-import { CreditDetailsComponent } from './credit/credit-details/credit-details.component';
 import { AuthInterceptor } from './shared/auth.interceptor';
 import { OpenCashDeskComponent } from './cash-desk/open-cash-desk/open-cash-desk.component';
 import { CloseCashDeskComponent } from './cash-desk/close-cash-desk/close-cash-desk.component';
@@ -78,11 +75,9 @@ import { HistoryComponent } from './history/history.component';
 import { OutDetailsComponent } from './out/out-details/out-details.component';
 import { HistoryDetailsComponent } from './history/history-details/history-details.component';
 import { Back2StoreComponent } from './history/back2-store/back2-store.component';
-import { DistributionComponent } from './credit/distribution/distribution.component';
 import { CommercialListComponent } from './commercial/commercial-list/commercial-list.component';
 import { CommercialViewComponent } from './commercial/commercial-view/commercial-view.component';
 import { OutPdfListComponent } from './out/out-pdf-list/out-pdf-list.component';
-import { CreditViewComponent } from './credit/credit-view/credit-view.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { LicenseKeyFormatterPipe } from './shared/pipe/license-key-formatter.pipe'; // Ajustez le chemin si nécessaire
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -93,35 +88,16 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { OldReleaseListComponent } from './out/old-release-list/old-release-list.component';
-import { CreditMergeModalComponent } from './credit/credit-merge-modal/credit-merge-modal.component';
 // Tontine module is lazy loaded, no need to import here
-// --- NOUVELLE IMPORTATION ---
-import { AdvancedSearchComponent } from './credit/components/advanced-search/advanced-search.component';
 import { SharedComponentsModule } from './shared/components/shared-components.module';
 import { ToastrModule } from 'ngx-toastr';
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
 import { ParameterEditComponent } from './parameters/parameter-edit/parameter-edit.component';
 import { CashDepositModalComponent } from './report/components/cash-deposit-modal/cash-deposit-modal.component';
-import { DailyStakeModalComponent } from './credit/components/daily-stake-modal/daily-stake-modal.component';
-import { CreditLateComponent } from './credit/credit-late/credit-late.component';
-import { CreditLateKpiComponent } from './credit/credit-late/components/credit-late-kpi/credit-late-kpi.component';
-import { CreditListKpiComponent } from './credit/credit-list/components/credit-list-kpi/credit-list-kpi.component';
-import { CreditLateFilterComponent } from './credit/credit-late/components/credit-late-filter/credit-late-filter.component';
-import { CreditLateTableComponent } from './credit/credit-late/components/credit-late-table/credit-late-table.component';
-import { CreditLateCloseModalComponent } from './credit/credit-late/components/credit-late-close-modal/credit-late-close-modal.component';
 import { RecoveryManagerReportTabComponent } from './report/components/recovery-manager-report-tab/recovery-manager-report-tab.component';
 import { CashPeriodRemittanceTabComponent } from './report/components/cash-period-remittance-tab/cash-period-remittance-tab.component';
 import { MonthlyReportsComponent } from './report/pages/monthly-reports/monthly-reports.component';
-import { CreditEcheanceComponent } from './credit/credit-echeance/credit-echeance.component';
-import { CreditEcheanceKpiComponent } from './credit/credit-echeance/components/credit-echeance-kpi/credit-echeance-kpi.component';
-import { CreditEcheanceCalendarComponent } from './credit/credit-echeance/components/credit-echeance-calendar/credit-echeance-calendar.component';
-import { CreditEcheanceFilterComponent } from './credit/credit-echeance/components/credit-echeance-filter/credit-echeance-filter.component';
-import { CreditEcheanceTableComponent } from './credit/credit-echeance/components/credit-echeance-table/credit-echeance-table.component';
-import { RecouvrementComponent } from './credit/recouvrement/recouvrement.component';
-import { RecouvrementKpiComponent } from './credit/recouvrement/components/recouvrement-kpi/recouvrement-kpi.component';
-import { RecouvrementFilterComponent } from './credit/recouvrement/components/recouvrement-filter/recouvrement-filter.component';
-import { RecouvrementTableComponent } from './credit/recouvrement/components/recouvrement-table/recouvrement-table.component';
 import {NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule} from "ngx-google-analytics";
 import {environment} from "../environments/environment";
 import { FeatureFlagService } from './shared/service/feature-flag.service';
@@ -153,9 +129,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     StockStatusChartComponent,
     DashboardStockkeeperAlertsComponent,
     TimeAgoPipe,
-    CreditAddComponent,
-    CreditListComponent,
-    CreditDetailsComponent,
     OpenCashDeskComponent,
     CloseCashDeskComponent,
     DailyOperationComponent,
@@ -183,39 +156,18 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     OutDetailsComponent,
     HistoryDetailsComponent,
     Back2StoreComponent,
-    DistributionComponent,
     CommercialListComponent,
     CommercialViewComponent,
     OutPdfListComponent,
-    CreditViewComponent,
     LicenseKeyFormatterPipe,
     OldReleaseListComponent,
-    CreditMergeModalComponent,
-    // --- NOUVELLE DÉCLARATION ---
     ParameterListComponent,
     ParameterEditComponent,
     MobileMoneyConfigListComponent,
     CashDepositModalComponent,
-    DailyStakeModalComponent,
-    CreditLateComponent,
-    CreditLateKpiComponent,
-    CreditListKpiComponent,
-    CreditLateFilterComponent,
-    CreditLateTableComponent,
-    CreditLateCloseModalComponent,
     RecoveryManagerReportTabComponent,
     CashPeriodRemittanceTabComponent,
-    MonthlyReportsComponent,
-    CreditEcheanceComponent,
-    CreditEcheanceKpiComponent,
-    CreditEcheanceCalendarComponent,
-    CreditEcheanceFilterComponent,
-    CreditEcheanceTableComponent,
-    RecouvrementComponent,
-    RecouvrementKpiComponent,
-    RecouvrementFilterComponent,
-    RecouvrementTableComponent
-    // --- NOUVELLES COMPOSANTS DÉPLACÉS DANS SHARED ---
+    MonthlyReportsComponent
   ],
   imports: [
     BrowserModule,

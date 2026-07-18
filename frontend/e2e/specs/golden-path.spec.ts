@@ -272,7 +272,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     stockRemainingBefore = stockItemBefore?.quantityRemaining ?? 0;
 
     await loginAsGestionnaire(page);
-    await page.goto('/credit-add');
+    await page.goto('/credit/add');
     await page.locator('ngx-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
 
     await fillCreditSaleForm(
@@ -323,7 +323,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
 
   test('étape 9 — vérifier le recouvrement dans la liste', async ({ page }) => {
     await loginAsGestionnaire(page);
-    await page.goto('/credits/recouvrements');
+    await page.goto('/credit/recouvrements');
 
     await expect(page.getByTestId('e2e-recouvrement-page')).toBeVisible();
     await page.getByTestId('e2e-recouvrement-period-today').click();
@@ -449,7 +449,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     collectionsBeforeCash = reportsBefore[0]?.collectionsAmount ?? 0;
 
     await loginAsGestionnaire(page);
-    await page.goto('/credit-add');
+    await page.goto('/credit/add');
     await page.locator('ngx-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
 
     await selectCashSaleType(page);
@@ -741,7 +741,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await page.getByTestId('e2e-rattrapage-daily-stake').fill(String(E2E_RATTRAPAGE_DAILY_STAKE));
     await page.getByTestId('e2e-rattrapage-submit').click();
 
-    await expect(page).toHaveURL(/\/credit-list/, { timeout: 30_000 });
+    await expect(page).toHaveURL(/\/credit\/list/, { timeout: 30_000 });
     await dismissSwalSuccess(page);
 
     const credit = await expectRattrapageCreditForClient(rattrapageClientLastName, { status: 'INPROGRESS' });
@@ -756,7 +756,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     );
 
     await loginAsGestionnaire(page);
-    await page.goto('/credit-list');
+    await page.goto('/credit/list');
     await page.locator('ngx-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
 
     const rattrapageRow = page.locator(

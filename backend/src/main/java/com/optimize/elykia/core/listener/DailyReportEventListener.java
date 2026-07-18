@@ -219,6 +219,50 @@ public class DailyReportEventListener {
 
         @EventListener
         @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleCreditCollectionCancelled(CreditCollectionCancelledEvent event) {
+                log.info("Processing CreditCollectionCancelledEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+
+                int currentCount = report.getCollectionsCount() != null ? report.getCollectionsCount() : 0;
+                double currentAmount = report.getCollectionsAmount() != null ? report.getCollectionsAmount() : 0.0;
+                double amountToCancel = event.getAmount() != null ? event.getAmount() : 0.0;
+                double generated = event.getReliquatGeneratedAmount() != null ? event.getReliquatGeneratedAmount() : 0.0;
+                double used = event.getReliquatUsedAmount() != null ? event.getReliquatUsedAmount() : 0.0;
+                double currentGenerated = report.getTotalReliquatGeneratedAmount() != null
+                                ? report.getTotalReliquatGeneratedAmount()
+                                : 0.0;
+                double currentUsed = report.getTotalReliquatUsedAmount() != null
+                                ? report.getTotalReliquatUsedAmount()
+                                : 0.0;
+                double currentDeposit = report.getTotalAmountToDeposit() != null ? report.getTotalAmountToDeposit() : 0.0;
+                double cashToReverse = amountToCancel + generated - used;
+
+                report.setCollectionsCount(Math.max(0, currentCount - 1));
+                report.setCollectionsAmount(Math.max(0.0, currentAmount - amountToCancel));
+                report.setTotalReliquatGeneratedAmount(Math.max(0.0, currentGenerated - generated));
+                report.setTotalReliquatUsedAmount(Math.max(0.0, currentUsed - used));
+                report.setTotalAmountToDeposit(Math.max(0.0, currentDeposit - cashToReverse));
+                reportPersistence.save(report);
+
+                String description = String.format("Annulation recouvrement crédit (Ref: %s, Rec: %s)",
+                                event.getCreditReference() != null ? event.getCreditReference() : "N/A",
+                                event.getRecoveryReference() != null ? event.getRecoveryReference() : "N/A");
+                if (generated > 0 || used > 0) {
+                        description += String.format(" [Reliquat généré: %.0f, utilisé: %.0f]", generated, used);
+                }
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.core.enumaration.OperationType.CREDIT_COLLECTION_CANCEL,
+                                -amountToCancel,
+                                "Annulation Recouvrement",
+                                description,
+                                -generated,
+                                -used);
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
         public void handleRecoveryManagerCollection(RecoveryManagerCollectionEvent event) {
                 log.info("Processing RecoveryManagerCollectionEvent for commercial: {}", event.getCommercialUsername());
                 DailyCommercialReport report = getOrCreateReport(event.getCommercialUsername());

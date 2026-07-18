@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RecouvrementWebDto } from '../../../models/recouvrement.model';
 
 @Component({
@@ -10,7 +10,8 @@ import { RecouvrementWebDto } from '../../../models/recouvrement.model';
 export class RecouvrementTableComponent {
   @Input() recouvrements: RecouvrementWebDto[] = [];
   @Input() isLoading: boolean = false;
-  
+  @Output() cancelRecovery = new EventEmitter<RecouvrementWebDto>();
+
   // Pagination
   currentPage: number = 1;
   itemsPerPage: number = 20;
@@ -23,5 +24,9 @@ export class RecouvrementTableComponent {
   onPageChange(event: any) {
     this.currentPage = event.pageIndex + 1;
     this.itemsPerPage = event.pageSize;
+  }
+
+  onCancel(row: RecouvrementWebDto): void {
+    this.cancelRecovery.emit(row);
   }
 }
