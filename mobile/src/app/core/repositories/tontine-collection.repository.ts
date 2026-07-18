@@ -96,6 +96,37 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
         await this.databaseService.execute(updateQuery, [amount, memberId]);
     }
 
+    async decrementMemberTotalContribution(memberId: string, amount: number): Promise<void> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+
+        const updateQuery = `
+            UPDATE tontine_members
+            SET totalContribution = MAX(0, COALESCE(totalContribution, 0) - ?)
+            WHERE id = ?
+        `;
+
+        await this.databaseService.execute(updateQuery, [amount, memberId]);
+    }
+
+    /**
+     * Supprime une collecte locale non synchronisée et décrémente totalContribution.
+     */
+    async deleteLocalUnsyncedCollection(collectionId: string): Promise<void> {
+        const collection = await this.findById(collectionId);
+        if (!collection) {
+            throw new Error('Cotisation introuvable.');
+        }
+
+        const isSynced = collection.isSync === true || (collection as any).isSync === 1;
+        const isLocal = collection.isLocal === true || (collection as any).isLocal === 1;
+        if (isSynced || !isLocal) {
+            throw new Error('Seules les cotisations locales non synchronisées peuvent être supprimées.');
+        }
+
+        await this.decrementMemberTotalContribution(collection.tontineMemberId, collection.amount || 0);
+        await this.delete(collectionId);
+    }
+
     /**
      * Update the totalContribution for a member by summing all their collections
      * @deprecated Use incrementMemberTotalContribution instead to avoid issues with partial local history
@@ -145,8 +176,16 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
      */
     async getByMemberId(memberId: string): Promise<TontineCollection[]> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
-        const result = await this.databaseService.query('SELECT * FROM tontine_collections WHERE tontineMemberId = ?', [memberId]);
-        return result.values || [];
+        const result = await this.databaseService.query(
+            'SELECT * FROM tontine_collections WHERE tontineMemberId = ? ORDER BY collectionDate DESC',
+            [memberId]
+        );
+        return (result.values || []).map((row: any) => ({
+            ...row,
+            isLocal: row.isLocal === 1 || row.isLocal === true,
+            isSync: row.isSync === 1 || row.isSync === true,
+            isDeliveryCollection: row.isDeliveryCollection === 1 || row.isDeliveryCollection === true
+        }));
     }
 
     /**

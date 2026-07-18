@@ -47,31 +47,56 @@ public class DailyOperationService {
 
     public Page<DailyOperationLog> getOperations(LocalDate startDate, LocalDate endDate, String commercialUsername,
             Pageable pageable) {
+        return getOperations(startDate, endDate, commercialUsername, null, pageable);
+    }
+
+    public Page<DailyOperationLog> getOperations(LocalDate startDate, LocalDate endDate, String commercialUsername,
+            OperationType type, Pageable pageable) {
         if (commercialUsername != null) {
             if (startDate != null && endDate != null) {
-                return ((DailyOperationLogRepository) repository).findByDateBetweenAndCommercialUsername(startDate,
-                        endDate,
-                        commercialUsername, pageable);
+                if (type != null) {
+                    return repository.findByDateBetweenAndCommercialUsernameAndType(startDate, endDate,
+                            commercialUsername, type, pageable);
+                }
+                return repository.findByDateBetweenAndCommercialUsername(startDate, endDate, commercialUsername,
+                        pageable);
             } else if (startDate != null) {
-                return ((DailyOperationLogRepository) repository).findByDateAndCommercialUsername(startDate,
-                        commercialUsername, pageable);
+                if (type != null) {
+                    return repository.findByDateAndCommercialUsernameAndType(startDate, commercialUsername, type,
+                            pageable);
+                }
+                return repository.findByDateAndCommercialUsername(startDate, commercialUsername, pageable);
             }
         } else {
             if (startDate != null && endDate != null) {
-                return ((DailyOperationLogRepository) repository).findByDateBetween(startDate, endDate, pageable);
+                if (type != null) {
+                    return repository.findByDateBetweenAndType(startDate, endDate, type, pageable);
+                }
+                return repository.findByDateBetween(startDate, endDate, pageable);
             }
         }
         return Page.empty();
     }
 
     public byte[] generatePdfExport(LocalDate startDate, LocalDate endDate, String commercialUsername) {
+        return generatePdfExport(startDate, endDate, commercialUsername, null);
+    }
+
+    public byte[] generatePdfExport(LocalDate startDate, LocalDate endDate, String commercialUsername,
+            OperationType type) {
         List<DailyOperationLog> operations;
 
         if (commercialUsername != null && !commercialUsername.isEmpty()) {
-            operations = ((DailyOperationLogRepository) repository).findByDateBetweenAndCommercialUsername(startDate,
-                    endDate, commercialUsername);
+            if (type != null) {
+                operations = repository.findByDateBetweenAndCommercialUsernameAndType(startDate, endDate,
+                        commercialUsername, type);
+            } else {
+                operations = repository.findByDateBetweenAndCommercialUsername(startDate, endDate, commercialUsername);
+            }
+        } else if (type != null) {
+            operations = repository.findByDateBetweenAndType(startDate, endDate, type);
         } else {
-            operations = ((DailyOperationLogRepository) repository).findByDateBetween(startDate, endDate);
+            operations = repository.findByDateBetween(startDate, endDate);
         }
 
         Double totalAmount = operations.stream().mapToDouble(DailyOperationLog::getAmount).sum();

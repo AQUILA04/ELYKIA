@@ -363,13 +363,24 @@
 
         <mat-tab label="JOURNAL DES OPÉRATIONS">
             <div class="p-4">
-                <div *ngIf="operations.length > 0; else noOps">
+                <div *ngIf="operations.length > 0 || selectedOperationType; else noOps">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-gray-200">
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Heure</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Commercial</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Type</th>
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500 type-col-header">
+                                    <div class="type-filter">
+                                        <span>Type</span>
+                                        <select class="type-filter-select"
+                                            data-testid="e2e-daily-report-type-filter"
+                                            [(ngModel)]="selectedOperationType"
+                                            (ngModelChange)="onOperationTypeFilterChange()">
+                                            <option [ngValue]="null">Tous</option>
+                                            <option *ngFor="let t of operationTypes" [ngValue]="t.value">{{ t.label }}</option>
+                                        </select>
+                                    </div>
+                                </th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500">Sujet</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-600">Description</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Montant</th>
@@ -387,6 +398,11 @@
                                         [class.text-gray-400]="op.amount === 0">
                                         {{ op.amount | currency:'XOF':'symbol':'1.0-0' }}
                                     </span>
+                                </td>
+                            </tr>
+                            <tr *ngIf="operations.length === 0">
+                                <td colspan="6" class="py-8 text-center text-gray-400">
+                                    Aucune opération pour ce type sur la période filtrée.
                                 </td>
                             </tr>
                         </tbody>

@@ -26,8 +26,6 @@ import { OperationDetailsComponent } from './operation/operation-details/operati
 import { DepositAddComponent } from './deposit/deposit-add/deposit-add.component';
 import { DepositListComponent } from './deposit/deposit-list/deposit-list.component';
 import { DepositDetailsComponent } from './deposit/deposit-details/deposit-details.component';
-import { ReportComponent } from './report/report/report.component';
-import { DailyReportComponent } from './report/pages/daily-report/daily-report.component';
 import { ReactivateLicenseComponent } from './license/reactivate-license/reactivate-license.component';
 import { OutListComponent } from './out/out-list/out-list.component';
 import { HistoryComponent } from './history/history.component';
@@ -41,7 +39,6 @@ import { AuthGuard } from "./auth/guards/auth.guard";
 import { AiChatGuard } from './ai-chat/guards/ai-chat.guard';
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
-import { MonthlyReportsComponent } from './report/pages/monthly-reports/monthly-reports.component';
 import { FeatureFlagGuard } from './shared/guards/feature-flag.guard';
 import { FeatureFlags } from './shared/service/feature-flag.service';
 
@@ -381,25 +378,8 @@ const routes: Routes = [
   // Rapports
   {
     path: 'report',
-    component: ReportComponent,
+    loadChildren: () => import('./report/report.module').then(m => m.ReportModule),
     canActivate: [AuthGuard]
-  },
-  {
-    path: 'daily-report',
-    component: DailyReportComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'monthly-reports',
-    component: MonthlyReportsComponent,
-    canActivate: [AuthGuard, NgxPermissionsGuard, FeatureFlagGuard],
-    data: {
-      featureFlag: FeatureFlags.MonthlyReports,
-      permissions: {
-        only: ['ROLE_REPORT'],
-        redirectTo: '/home'
-      }
-    }
   },
   { path: 'article-type', loadChildren: () => import('./article-type/article-type.module').then(m => m.ArticleTypeModule) },
   {

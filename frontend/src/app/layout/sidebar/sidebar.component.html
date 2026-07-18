@@ -352,9 +352,9 @@
         </li>
 
         <li class="sidebar-item" *ngIf="!isStorekeeper()">
-          <a class="sidebar-link" routerLink="/daily-report" aria-expanded="false"
+          <a class="sidebar-link" routerLink="/report/daily" aria-expanded="false"
              data-testid="e2e-sidebar-daily-report"
-             [ngClass]="{ 'active': isRouteActive('/daily-report') }">
+             [ngClass]="{ 'active': isRouteActive('/report/daily') }">
             <span>
               <mat-icon>today</mat-icon>
             </span>
@@ -363,8 +363,8 @@
         </li>
         <ng-container *ngIf="showMonthlyReports">
           <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']">
-            <a class="sidebar-link" routerLink="/monthly-reports" aria-expanded="false"
-               [ngClass]="{ 'active': isRouteActive('/monthly-reports') }">
+            <a class="sidebar-link" routerLink="/report/monthly" aria-expanded="false"
+               [ngClass]="{ 'active': isRouteActive('/report/monthly') }">
               <span>
                 <mat-icon>calendar_month</mat-icon>
               </span>

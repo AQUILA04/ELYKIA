@@ -30,6 +30,6 @@ test.describe('Navigation gestionnaire (ges003)', () => {
 
   test('accès au rapport journalier', async ({ page }) => {
     await page.getByTestId('e2e-sidebar-daily-report').click();
-    await expect(page).toHaveURL(/\/daily-report/);
+    await expect(page).toHaveURL(/\/report\/daily/);
   });
 });

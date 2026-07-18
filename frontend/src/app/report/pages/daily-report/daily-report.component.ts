@@ -52,6 +52,25 @@ export class DailyReportComponent implements OnInit {
     operationsTotal = 0;
     operationsPage = 0;
     operationsPageSize = 20;
+    selectedOperationType: string | null = null;
+    readonly operationTypes: { value: string; label: string }[] = [
+        { value: 'CREDIT_COLLECTION', label: 'CREDIT_COLLECTION' },
+        { value: 'CREDIT_COLLECTION_CANCEL', label: 'CREDIT_COLLECTION_CANCEL' },
+        { value: 'TONTINE_COLLECTION', label: 'TONTINE_COLLECTION' },
+        { value: 'TONTINE_COLLECTION_CANCEL', label: 'TONTINE_COLLECTION_CANCEL' },
+        { value: 'ORDER', label: 'ORDER' },
+        { value: 'NEW_ACCOUNT', label: 'NEW_ACCOUNT' },
+        { value: 'CASH_DEPOSIT', label: 'CASH_DEPOSIT' },
+        { value: 'CASH_DEPOSIT_CANCEL', label: 'CASH_DEPOSIT_CANCEL' },
+        { value: 'STOCK_RETURN', label: 'STOCK_RETURN' },
+        { value: 'STOCK_REQUEST', label: 'STOCK_REQUEST' },
+        { value: 'STOCK_TONTINE_REQUEST', label: 'STOCK_TONTINE_REQUEST' },
+        { value: 'STOCK_TONTINE_RETURN', label: 'STOCK_TONTINE_RETURN' },
+        { value: 'TONTINE_DELIVERY', label: 'TONTINE_DELIVERY' },
+        { value: 'CREDIT_SALES', label: 'CREDIT_SALES' },
+        { value: 'NEW_CLIENT', label: 'NEW_CLIENT' },
+        { value: 'TONTINE_MEMBER_ENROLLMENT', label: 'TONTINE_MEMBER_ENROLLMENT' },
+    ];
 
     today = new Date(); // Added for datepicker max date
 
@@ -268,7 +287,14 @@ export class DailyReportComponent implements OnInit {
         const end = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '';
         const collector = this.selectedAgent || (this.isPromoter ? this.tokenStorage.getUser().username : undefined);
 
-        this.dailyOperationService.getOperations(start, end, collector, this.operationsPage, this.operationsPageSize).subscribe({
+        this.dailyOperationService.getOperations(
+            start,
+            end,
+            collector,
+            this.operationsPage,
+            this.operationsPageSize,
+            this.selectedOperationType
+        ).subscribe({
             next: (res) => {
                 this.operations = res.content;
                 this.operationsTotal = res.page.totalElements;
@@ -276,6 +302,11 @@ export class DailyReportComponent implements OnInit {
             error: (err) => console.error('Error loading operations', err)
         });
         this.loadDeposits(start, end, collector);
+    }
+
+    onOperationTypeFilterChange(): void {
+        this.operationsPage = 0;
+        this.loadOperations();
     }
 
     loadDeposits(start: string, end: string, collector?: string) {
@@ -303,6 +334,8 @@ export class DailyReportComponent implements OnInit {
 
     resetFilters() {
         this.selectedAgent = null;
+        this.selectedOperationType = null;
+        this.operationsPage = 0;
         this.setFilter('today');
         this.loadYearlySummary();
     }
@@ -479,7 +512,7 @@ export class DailyReportComponent implements OnInit {
         const end = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '';
         const collector = this.selectedAgent || (this.isPromoter ? this.tokenStorage.getUser().username : undefined);
 
-        this.dailyOperationService.exportPdf(start, end, collector).subscribe({
+        this.dailyOperationService.exportPdf(start, end, collector, this.selectedOperationType).subscribe({
             next: (data: Blob) => {
                 const blob = new Blob([data], { type: 'application/pdf' });
                 const url = window.URL.createObjectURL(blob);

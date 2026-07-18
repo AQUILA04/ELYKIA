@@ -3,7 +3,8 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 @Component({
   selector: 'app-billetage',
   templateUrl: './billetage.component.html',
-  styleUrls: ['./billetage.component.scss']
+  styleUrls: ['./billetage.component.scss'],
+  standalone: false
 })
 export class BilletageComponent implements OnInit {
   @Input() showHeader = true;

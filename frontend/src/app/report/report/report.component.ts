@@ -8,7 +8,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-report',
   templateUrl: './report.component.html',
-  styleUrls: ['./report.component.scss']
+  styleUrls: ['./report.component.scss'],
+  standalone: false
 })
 export class ReportComponent implements OnInit {
     rapports: any[] = [];

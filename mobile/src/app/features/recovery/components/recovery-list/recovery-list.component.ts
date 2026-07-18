@@ -1,18 +1,19 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, combineLatest, Subject } from 'rxjs';
-import { map, startWith, filter, switchMap, takeUntil, take, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { map, startWith, filter, takeUntil, take, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Recovery } from '../../../../models/recovery.model';
 import * as RecoveryActions from '../../../../store/recovery/recovery.actions';
 import * as RecoverySelectors from '../../../../store/recovery/recovery.selectors';
 import * as KpiSelectors from '../../../../store/kpi/kpi.selectors';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 import { Actions, ofType } from '@ngrx/effects';
-import { ModalController, IonInfiniteScroll } from '@ionic/angular';
+import { ModalController, IonInfiniteScroll, AlertController, ToastController, LoadingController } from '@ionic/angular';
 import { RecoveryDetailComponent } from '../recovery-detail/recovery-detail.component';
 import { FormControl } from '@angular/forms';
 import { RecoveryView } from '../../../../models/recovery-view.model';
 import { User } from '../../../../models/auth.model';
+import { RecoveryService } from '../../../../core/services/recovery.service';
 
 @Component({
   selector: 'app-recovery-list',
@@ -45,7 +46,16 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
     stats: { total: number; today: number; totalAmount: number };
   }>;
 
-  constructor(private store: Store, private modalController: ModalController, private cdr: ChangeDetectorRef, private actions$: Actions) {
+  constructor(
+    private store: Store,
+    private modalController: ModalController,
+    private cdr: ChangeDetectorRef,
+    private actions$: Actions,
+    private recoveryService: RecoveryService,
+    private alertController: AlertController,
+    private toastController: ToastController,
+    private loadingController: LoadingController
+  ) {
     this.recoveries$ = this.store.select(RecoverySelectors.selectPaginatedRecoveryViews);
     this.loading$ = this.store.select(RecoverySelectors.selectRecoveryPaginationLoading);
     this.error$ = this.store.select(RecoverySelectors.selectRecoveryPaginationError);
@@ -199,7 +209,78 @@ export class RecoveryListComponent implements OnInit, OnDestroy {
       component: RecoveryDetailComponent,
       componentProps: { recoveryId: recovery.id }
     });
-    return await modal.present();
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.deleted) {
+      this.reloadCurrentFilters();
+    }
+  }
+
+  async deleteLocalRecovery(event: Event, recovery: RecoveryView): Promise<void> {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (recovery.isSync) {
+      const toast = await this.toastController.create({
+        message: 'Impossible de supprimer un recouvrement déjà synchronisé.',
+        duration: 2500,
+        color: 'danger'
+      });
+      await toast.present();
+      return;
+    }
+
+    const alert = await this.alertController.create({
+      header: 'Confirmer la suppression',
+      message: `Supprimer le recouvrement local ${recovery.reference || recovery.id} (${recovery.amount || 0} FCFA) ?`,
+      buttons: [
+        { text: 'Annuler', role: 'cancel' },
+        {
+          text: 'Supprimer',
+          role: 'destructive',
+          handler: () => {
+            void this.performDeleteLocalRecovery(recovery);
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  private async performDeleteLocalRecovery(recovery: RecoveryView): Promise<void> {
+    const loading = await this.loadingController.create({
+      message: 'Suppression en cours...'
+    });
+    await loading.present();
+
+    try {
+      await this.recoveryService.deleteLocalUnsyncedRecovery(recovery.id);
+      const toast = await this.toastController.create({
+        message: 'Recouvrement local supprimé.',
+        duration: 2000,
+        color: 'success'
+      });
+      await toast.present();
+      this.reloadCurrentFilters();
+    } catch (error: any) {
+      console.error('Error deleting local recovery:', error);
+      const toast = await this.toastController.create({
+        message: error?.message || 'Erreur lors de la suppression',
+        duration: 3000,
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+  private reloadCurrentFilters(): void {
+    this.loadFirstPage(
+      this.searchControl.value || '',
+      this.typeFilterControl.value || 'all',
+      this.periodFilterControl.value || 'all'
+    );
   }
 
 }

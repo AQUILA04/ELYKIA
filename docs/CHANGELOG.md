@@ -9,6 +9,25 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.10.9] — 2026-07-18
+
+### Added
+
+- Suppression locale des recouvrements et cotisations tontine non synchronisés (`isSync = false`) depuis la liste/détail des recouvrements et l'historique du détail membre, avec reverse des soldes distribution/reliquats et de `totalContribution`.
+
+## Frontend — [2.10.9] — 2026-07-18
+
+### Added
+
+- Journal des opérations (rapport journalier) : filtre de colonne sur le type d'opération (liste sélectionnable), appliqué après les filtres globaux de période et commercial.
+- Domaine `report` migré en lazy-loading (`/report`, `/report/daily`, `/report/monthly`).
+
+## Backend — [1.2.28] — 2026-07-18
+
+### Added
+
+- API journal des opérations : paramètre optionnel `type` sur `GET /api/daily-operations` et l'export PDF, en complément des filtres période / commercial.
+
 ## Backend — [1.2.27] — 2026-07-18
 
 ### Changed

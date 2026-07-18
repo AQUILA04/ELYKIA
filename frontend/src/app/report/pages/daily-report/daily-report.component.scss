@@ -207,3 +207,28 @@ mat-expansion-panel {
         }
     }
 }
+
+.type-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+}
+
+.type-filter-select {
+    min-width: 180px;
+    max-width: 220px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #003366;
+    background: #f0f4f9;
+    border: 1px solid #dde3ec;
+    border-radius: 6px;
+    cursor: pointer;
+
+    &:focus {
+        outline: none;
+        border-color: #003366;
+    }
+}

@@ -266,6 +266,57 @@ export class RecoveryService {
     );
   }
 
+  async deleteRecoveriesByDistributionIds(distributionIds: string[]): Promise<void> {
+    if (!this.commercialUsername) {
+      throw new Error('Commercial user not identified.');
+    }
+    await this.recoveryRepository.deleteByDistributionIds(distributionIds);
+  }
+
+  /**
+   * Supprime un recouvrement local non synchronisé et reverse ses effets
+   * (solde distribution + reliquats).
+   */
+  async deleteLocalUnsyncedRecovery(recoveryId: string): Promise<void> {
+    const recovery = await this.recoveryRepository.findById(recoveryId);
+    if (!recovery) {
+      throw new Error('Recouvrement introuvable.');
+    }
+
+    const isSynced = recovery.isSync === true || (recovery as any).isSync === 1;
+    const isLocal = recovery.isLocal === true || (recovery as any).isLocal === 1;
+    if (isSynced || !isLocal) {
+      throw new Error('Seuls les recouvrements locaux non synchronisés peuvent être supprimés.');
+    }
+
+    const amount = recovery.amount || 0;
+    const generated = recovery.reliquatGeneratedAmount || 0;
+    const used = recovery.reliquatUsedAmount || 0;
+
+    await this.reverseDistributionBalance(recovery.distributionId, amount);
+
+    if (generated > 0 && recovery.clientId) {
+      const current = await this.reliquatService.getReliquatForClient(recovery.clientId);
+      const toReverse = Math.min(generated, current?.totalAmount || 0);
+      if (toReverse > 0) {
+        await this.reliquatService.consumeReliquat(recovery.clientId, toReverse);
+      }
+    }
+    if (used > 0 && recovery.clientId && this.commercialUsername) {
+      await this.reliquatService.addReliquat(
+        recovery.clientId,
+        this.commercialUsername,
+        used,
+        recovery.id
+      );
+    }
+
+    await this.recoveryRepository.delete(recoveryId);
+    void this.log.log(
+      `[RecoveryService][DELETE_LOCAL] recoveryId=${recoveryId} amount=${amount} distribution=${recovery.distributionId}`
+    );
+  }
+
   /**
    * Mettre à jour le solde d'une distribution après un recouvrement
    */
@@ -281,11 +332,21 @@ export class RecoveryService {
     }
   }
 
-  async deleteRecoveriesByDistributionIds(distributionIds: string[]): Promise<void> {
-    if (!this.commercialUsername) {
-      throw new Error('Commercial user not identified.');
+  private async reverseDistributionBalance(distributionId: string, recoveryAmount: number): Promise<void> {
+    const distribution = await this.distributionRepository.findById(distributionId);
+    if (!distribution) {
+      return;
     }
-    await this.recoveryRepository.deleteByDistributionIds(distributionIds);
+
+    const paidAmount = Math.max(0, (distribution.paidAmount || 0) - recoveryAmount);
+    const remainingAmount = (distribution.remainingAmount || 0) + recoveryAmount;
+    const updatedDistribution = {
+      ...distribution,
+      paidAmount,
+      remainingAmount,
+      status: remainingAmount > 0 ? 'INPROGRESS' : distribution.status
+    };
+    await this.distributionRepository.updateDistribution(updatedDistribution as any);
   }
 
   // ==================== PAGINATION METHODS ====================

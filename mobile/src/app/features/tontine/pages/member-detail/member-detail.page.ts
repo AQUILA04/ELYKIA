@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { NavController, AlertController, ActionSheetController } from '@ionic/angular';
+import { NavController, AlertController, ActionSheetController, ToastController, LoadingController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -55,6 +55,8 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         private navCtrl: NavController,
         private alertCtrl: AlertController,
         private actionSheetCtrl: ActionSheetController,
+        private toastCtrl: ToastController,
+        private loadingCtrl: LoadingController,
         private store: Store,
         private memberRepo: TontineMemberRepository,
         private collectionRepo: TontineCollectionRepository,
@@ -314,6 +316,57 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         });
 
         await alert.present();
+    }
+
+    async deleteLocalCollection(collection: TontineCollection): Promise<void> {
+        if (collection.isSync) {
+            const toast = await this.toastCtrl.create({
+                message: 'Impossible de supprimer une cotisation déjà synchronisée.',
+                duration: 2500,
+                color: 'danger'
+            });
+            await toast.present();
+            return;
+        }
+
+        const alert = await this.alertCtrl.create({
+            header: 'Confirmer la suppression',
+            message: `Supprimer la cotisation locale du ${this.formatDate(collection.collectionDate)} (${this.formatCurrency(collection.amount)}) ?`,
+            buttons: [
+                { text: 'Annuler', role: 'cancel' },
+                {
+                    text: 'Supprimer',
+                    role: 'destructive',
+                    handler: () => {
+                        void this.performDeleteLocalCollection(collection);
+                    }
+                }
+            ]
+        });
+        await alert.present();
+    }
+
+    private async performDeleteLocalCollection(collection: TontineCollection): Promise<void> {
+        const loading = await this.loadingCtrl.create({
+            message: 'Suppression en cours...'
+        });
+        await loading.present();
+
+        try {
+            await this.collectionRepo.deleteLocalUnsyncedCollection(collection.id);
+            const toast = await this.toastCtrl.create({
+                message: 'Cotisation locale supprimée.',
+                duration: 2000,
+                color: 'success'
+            });
+            await toast.present();
+            await this.loadMemberData();
+        } catch (error: any) {
+            console.error('Error deleting local collection:', error);
+            this.showError(error?.message || 'Erreur lors de la suppression');
+        } finally {
+            await loading.dismiss();
+        }
     }
 
     goBack() {

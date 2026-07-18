@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.controller.report;
 
 import com.optimize.elykia.core.entity.report.DailyOperationLog;
+import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.service.report.DailyOperationService;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.common.securities.models.User;
@@ -30,6 +31,7 @@ public class DailyOperationController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String commercialUsername,
+            @RequestParam(required = false) OperationType type,
             @PageableDefault(sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable) {
 
         User currentUser = userService.getCurrentUser();
@@ -40,12 +42,13 @@ public class DailyOperationController {
 
         if (currentUser.is(UserProfilConstant.PROMOTER)) {
             return ResponseEntity
-                    .ok(dailyOperationService.getOperations(start, end, currentUser.getUsername(), pageable));
+                    .ok(dailyOperationService.getOperations(start, end, currentUser.getUsername(), type, pageable));
         } else {
             if (commercialUsername != null && !commercialUsername.isEmpty()) {
-                return ResponseEntity.ok(dailyOperationService.getOperations(start, end, commercialUsername, pageable));
+                return ResponseEntity
+                        .ok(dailyOperationService.getOperations(start, end, commercialUsername, type, pageable));
             } else {
-                return ResponseEntity.ok(dailyOperationService.getOperations(start, end, null, pageable));
+                return ResponseEntity.ok(dailyOperationService.getOperations(start, end, null, type, pageable));
             }
         }
     }
@@ -54,7 +57,8 @@ public class DailyOperationController {
     public ResponseEntity<byte[]> exportPdf(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(required = false) String commercialUsername) {
+            @RequestParam(required = false) String commercialUsername,
+            @RequestParam(required = false) OperationType type) {
 
         LocalDate start = startDate != null ? startDate : LocalDate.now();
         LocalDate end = endDate != null ? endDate : LocalDate.now();
@@ -65,7 +69,7 @@ public class DailyOperationController {
             commercialUsername = currentUser.getUsername();
         }
 
-        byte[] pdfBytes = dailyOperationService.generatePdfExport(start, end, commercialUsername);
+        byte[] pdfBytes = dailyOperationService.generatePdfExport(start, end, commercialUsername, type);
 
         return ResponseEntity.ok()
                 .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,

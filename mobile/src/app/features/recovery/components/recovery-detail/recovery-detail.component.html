@@ -3,6 +3,15 @@
   <ion-toolbar class="glass-toolbar">
     <ion-title class="header-title">Recouvrement REC-2024-001</ion-title>
     <ion-buttons slot="end">
+      <ng-container *ngIf="recovery$ | async as recovery">
+        <ion-button
+          *ngIf="!recovery.isSync"
+          fill="clear"
+          color="danger"
+          (click)="deleteLocalRecovery(recovery)">
+          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ng-container>
       <ion-button
         fill="clear"
         class="close-button"

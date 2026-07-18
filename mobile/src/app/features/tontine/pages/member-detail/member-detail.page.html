@@ -187,6 +187,15 @@
                         <ion-badge *ngIf="!collection.isSync" color="warning" mode="ios">Local</ion-badge>
                         <ion-icon *ngIf="collection.isSync" name="checkmark-circle" color="success"></ion-icon>
                     </div>
+                    <ion-button
+                        *ngIf="!collection.isSync"
+                        fill="clear"
+                        color="danger"
+                        size="small"
+                        (click)="deleteLocalCollection(collection)"
+                        aria-label="Supprimer la cotisation locale">
+                        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                    </ion-button>
                 </div>
             </div>
         </div>

@@ -47,7 +47,7 @@ import { TFJComponent } from './cash-desk/tfj/tfj.component';
 import { MatListModule } from '@angular/material/list';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTableModule } from '@angular/material/table';
-import { BilletageComponent } from './cash-desk/billetage/billetage.component';
+import { BilletageModule } from './cash-desk/billetage/billetage.module';
 import { DashboardChartComponent } from './dashboard-chart/dashboard-chart.component';
 import { NgApexchartsModule } from 'ng-apexcharts';
 // Tontine components removed - now using lazy loaded module
@@ -64,8 +64,6 @@ import { OperationDetailsComponent } from './operation/operation-details/operati
 import { DepositAddComponent } from './deposit/deposit-add/deposit-add.component';
 import { DepositListComponent } from './deposit/deposit-list/deposit-list.component';
 import { DepositDetailsComponent } from './deposit/deposit-details/deposit-details.component';
-import { ReportComponent } from './report/report/report.component';
-import { DailyReportComponent } from './report/pages/daily-report/daily-report.component';
 import { LicenseInterceptorService } from './interceptors/license-interceptor.service';
 import { ReactivateLicenseComponent } from './license/reactivate-license/reactivate-license.component';
 import { MatCardModule } from '@angular/material/card';
@@ -94,10 +92,6 @@ import { ToastrModule } from 'ngx-toastr';
 import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
 import { ParameterEditComponent } from './parameters/parameter-edit/parameter-edit.component';
-import { CashDepositModalComponent } from './report/components/cash-deposit-modal/cash-deposit-modal.component';
-import { RecoveryManagerReportTabComponent } from './report/components/recovery-manager-report-tab/recovery-manager-report-tab.component';
-import { CashPeriodRemittanceTabComponent } from './report/components/cash-period-remittance-tab/cash-period-remittance-tab.component';
-import { MonthlyReportsComponent } from './report/pages/monthly-reports/monthly-reports.component';
 import {NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule} from "ngx-google-analytics";
 import {environment} from "../environments/environment";
 import { FeatureFlagService } from './shared/service/feature-flag.service';
@@ -133,7 +127,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     CloseCashDeskComponent,
     DailyOperationComponent,
     TFJComponent,
-    BilletageComponent,
     DashboardChartComponent,
     InventoryComponent,
     AddInventoryComponent,
@@ -148,8 +141,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     DepositAddComponent,
     DepositListComponent,
     DepositDetailsComponent,
-    ReportComponent,
-    DailyReportComponent,
     ReactivateLicenseComponent,
     OutListComponent,
     HistoryComponent,
@@ -164,10 +155,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     ParameterListComponent,
     ParameterEditComponent,
     MobileMoneyConfigListComponent,
-    CashDepositModalComponent,
-    RecoveryManagerReportTabComponent,
-    CashPeriodRemittanceTabComponent,
-    MonthlyReportsComponent
   ],
   imports: [
     BrowserModule,
@@ -202,6 +189,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     MatDatepickerModule,
     MatNativeDateModule,
     SharedComponentsModule,
+    BilletageModule,
     ToastrModule.forRoot(),
     MatExpansionModule,
     NgChartsModule,

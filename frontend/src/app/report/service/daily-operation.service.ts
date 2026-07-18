@@ -12,7 +12,14 @@ export class DailyOperationService {
 
     constructor(private http: HttpClient) { }
 
-    getOperations(startDate: string, endDate: string, commercialUsername?: string, page: number = 0, size: number = 20): Observable<any> {
+    getOperations(
+        startDate: string,
+        endDate: string,
+        commercialUsername?: string,
+        page: number = 0,
+        size: number = 20,
+        type?: string | null
+    ): Observable<any> {
         let params = new HttpParams()
             .set('startDate', startDate)
             .set('endDate', endDate)
@@ -23,17 +30,28 @@ export class DailyOperationService {
         if (commercialUsername) {
             params = params.set('commercialUsername', commercialUsername);
         }
+        if (type) {
+            params = params.set('type', type);
+        }
 
         return this.http.get<any>(this.operationsUrl, { params });
     }
 
-    exportPdf(startDate: string, endDate: string, commercialUsername?: string): Observable<Blob> {
+    exportPdf(
+        startDate: string,
+        endDate: string,
+        commercialUsername?: string,
+        type?: string | null
+    ): Observable<Blob> {
         let params = new HttpParams()
             .set('startDate', startDate)
             .set('endDate', endDate);
 
         if (commercialUsername) {
             params = params.set('commercialUsername', commercialUsername);
+        }
+        if (type) {
+            params = params.set('type', type);
         }
 
         return this.http.get(this.operationsUrl + '/export/pdf', {

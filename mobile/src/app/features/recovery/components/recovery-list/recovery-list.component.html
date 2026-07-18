@@ -105,6 +105,15 @@
             Sync
           </ion-badge>
         </div>
+        <ion-button
+          *ngIf="!recovery.isSync"
+          slot="end"
+          fill="clear"
+          color="danger"
+          (click)="deleteLocalRecovery($event, recovery)"
+          aria-label="Supprimer le recouvrement local">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
       </ion-item>
     </ion-list>
 
