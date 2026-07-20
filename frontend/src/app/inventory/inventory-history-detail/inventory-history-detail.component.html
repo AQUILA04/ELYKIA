@@ -1,0 +1,87 @@
+<div class="main-container inventory-detail-page a1">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/dashboard" class="breadcrumb-link">Tableau de bord</a>
+      <a routerLink="/inventory/history" class="breadcrumb-link">Historique</a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">INVENTAIRE #{{ inventoryId }}</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <h1 class="page-title">Détail inventaire</h1>
+        </div>
+        <button type="button" class="btn-refresh" (click)="load()" [disabled]="isLoading">Actualiser</button>
+      </div>
+      <p class="page-subtitle">
+        {{ inventoryDate | date:'dd/MM/yyyy' }} · {{ getStatusLabel(status) }} · {{ createdByUser }}
+        <span *ngIf="completedAt"> · Clôturé {{ completedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="page-scroll-body">
+    <div class="kpi-strip a3">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Articles</div>
+        <div class="kpi-value">{{ items.length }}</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Avec écart</div>
+        <div class="kpi-value">{{ discrepancyCount }}</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Validés</div>
+        <div class="kpi-value">{{ validatedCount }}</div>
+      </div>
+    </div>
+
+    <div class="toolbar a4">
+      <div class="filter-group filter-group-search">
+        <span class="toolbar-label">Recherche article</span>
+        <input type="text" class="search-input" [(ngModel)]="searchTerm" (ngModelChange)="applyFilter()"
+               placeholder="Nom, marque, modèle…">
+      </div>
+      <span class="result-count"><strong>{{ filteredItems.length }}</strong> ligne(s)</span>
+    </div>
+
+    <div class="table-card a5">
+      <div class="table-wrapper">
+        <div *ngIf="isLoading" class="loading-state">Chargement…</div>
+        <table *ngIf="!isLoading">
+          <thead>
+            <tr>
+              <th>Article</th>
+              <th>Système</th>
+              <th>Physique</th>
+              <th>Écart</th>
+              <th>Statut</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of filteredItems">
+              <td>
+                <strong>{{ item.articleName }}</strong>
+                <div class="muted">{{ item.articleMarque }} {{ item.articleModel }}</div>
+              </td>
+              <td>{{ item.systemQuantity }}</td>
+              <td>{{ item.physicalQuantity != null ? item.physicalQuantity : '—' }}</td>
+              <td [class.neg]="(item.difference || 0) < 0" [class.pos]="(item.difference || 0) > 0">
+                {{ item.difference != null ? item.difference : '—' }}
+              </td>
+              <td>{{ getStatusLabel(item.status) }}</td>
+              <td>
+                <button type="button" class="btn-detail" (click)="openTrajectory(item.id)">Trajectoire</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

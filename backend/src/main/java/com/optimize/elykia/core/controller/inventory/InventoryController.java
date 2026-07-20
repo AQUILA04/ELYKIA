@@ -3,9 +3,13 @@ package com.optimize.elykia.core.controller.inventory;
 import com.lowagie.text.DocumentException;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
+import com.optimize.elykia.core.dto.ArticleStockTrajectoryDto;
 import com.optimize.elykia.core.dto.InventoryDto;
 import com.optimize.elykia.core.dto.InventoryItemDto;
+import com.optimize.elykia.core.dto.InventorySummaryDto;
 import com.optimize.elykia.core.dto.PhysicalQuantitySubmissionDto;
+import com.optimize.elykia.core.enumaration.InventoryStatus;
+import com.optimize.elykia.core.service.store.ArticleStockTrajectoryService;
 import com.optimize.elykia.core.service.store.InventoryService;
 import com.optimize.elykia.core.service.report.PdfService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +20,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,6 +31,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -37,6 +44,7 @@ import java.util.List;
 public class InventoryController {
 
     private final InventoryService inventoryService;
+    private final ArticleStockTrajectoryService trajectoryService;
     private final PdfService pdfService;
 
     @PostMapping
@@ -55,7 +63,18 @@ public class InventoryController {
                 .orElse(new ResponseEntity<>(ResponseUtil.successResponse(null), HttpStatus.OK));
     }
 
+    @GetMapping("/items/{itemId}/trajectory")
+    @PreAuthorize("hasRole('ROLE_CONSULT_INVENTORY_HISTORY')")
+    @Operation(summary = "Trajectoire stock depuis un item d'inventaire jusqu'à une date T")
+    public ResponseEntity<Response> getItemTrajectory(
+            @PathVariable Long itemId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
+        ArticleStockTrajectoryDto trajectory = trajectoryService.getTrajectoryFromInventoryItem(itemId, toDate);
+        return new ResponseEntity<>(ResponseUtil.successResponse(trajectory), HttpStatus.OK);
+    }
+
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_CONSULT_INVENTORY_HISTORY')")
     @Operation(summary = "Obtenir un inventaire par ID")
     public ResponseEntity<Response> getInventoryById(@PathVariable Long id) {
         InventoryDto dto = inventoryService.toInventoryDto(inventoryService.getInventoryById(id));
@@ -63,9 +82,15 @@ public class InventoryController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister les inventaires")
-    public ResponseEntity<Response> getAllInventories(Pageable pageable) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(inventoryService.getAllInventories(pageable)), HttpStatus.OK);
+    @PreAuthorize("hasRole('ROLE_CONSULT_INVENTORY_HISTORY')")
+    @Operation(summary = "Lister les inventaires (résumé paginé avec filtres)")
+    public ResponseEntity<Response> getAllInventories(
+            @RequestParam(required = false) InventoryStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            Pageable pageable) {
+        Page<InventorySummaryDto> page = inventoryService.getInventorySummaries(status, fromDate, toDate, pageable);
+        return new ResponseEntity<>(ResponseUtil.successResponse(page), HttpStatus.OK);
     }
 
     @PostMapping("/{id}/submit-physical-quantities")

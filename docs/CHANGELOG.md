@@ -9,6 +9,33 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.11.1] — 2026-07-20
+
+### Changed
+- Bouton « Historique inventaires » et routes associées (`/inventory/history`, détail, trajectoire) réservés au rôle `ROLE_CONSULT_INVENTORY_HISTORY`
+
+## Backend — [1.3.1] — 2026-07-20
+
+### Added
+- Rôle `ROLE_CONSULT_INVENTORY_HISTORY` (attribué par défaut au profil ADMIN) pour la consultation de l’historique inventaires et des trajectoires
+
+## Frontend — [2.11.0] — 2026-07-20
+
+### Added
+- Module inventaire lazy-loadé (`/inventory/list`, `/inventory/history`, `/inventory/history/:id`, `/inventory/trajectory/:itemId`)
+- Consultation des inventaires passés (filtres statut / dates) et détail lecture seule
+- Vue trajectoire article depuis un item d’inventaire jusqu’à une date T (timeline jalons + mouvements)
+
+## Backend — [1.3.0] — 2026-07-20
+
+### Added
+- Trajectoire stock article depuis un `InventoryItem` (API `GET /api/v1/inventories/items/{itemId}/trajectory` et `GET /api/v1/articles/{id}/trajectory`)
+- Enrichissement `article_history` (`occurred_at`, lien inventaire, référence métier) — migration V80
+- Liste inventaires filtrée avec résumé (`itemCount`, `discrepancyCount`)
+
+### Fixed
+- Double écriture d’historique et `stockBefore` incorrect lors des réconciliations inventaire
+
 ## Backend — [1.2.33] — 2026-07-18
 
 ### Fixed

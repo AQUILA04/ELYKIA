@@ -81,7 +81,7 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
       next: (response) => {
         if (response.statusCode === 200) {
           this.alertService.showSuccess('Entrée de stock effectuée avec succès');
-          this.router.navigate(['/inventory']);
+          this.router.navigate(['/inventory/list']);
         } else {
           this.alertService.showError(response.message || 'Erreur lors de l\'ajout de l\'article');
           this.isSubmitting = false;
@@ -98,7 +98,7 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
-    this.router.navigate(['/inventory']);
+    this.router.navigate(['/inventory/list']);
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {

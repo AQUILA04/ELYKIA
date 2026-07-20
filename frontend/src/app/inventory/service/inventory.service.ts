@@ -20,7 +20,80 @@ export interface InventoryDto {
   status: string;
   createdByUser: string;
   completedAt?: string;
+  itemCount?: number;
+  discrepancyCount?: number;
   items?: InventoryItemDto[];
+}
+
+export interface InventorySummaryDto {
+  id: number;
+  inventoryDate: string;
+  status: string;
+  createdByUser: string;
+  completedAt?: string;
+  itemCount: number;
+  discrepancyCount: number;
+}
+
+export interface InventoryCheckpointDto {
+  inventoryId: number;
+  inventoryItemId: number;
+  inventoryDate: string;
+  completedAt?: string;
+  anchorAt?: string;
+  inventoryStatus: string;
+  systemQuantity: number;
+  physicalQuantity?: number;
+  difference?: number;
+  itemStatus: string;
+  baselineSystemQuantity: number;
+  reconciliationAction?: string;
+  markAsDebt?: boolean;
+  debtCancelled?: boolean;
+}
+
+export interface TrajectorySummaryDto {
+  totalIn: number;
+  totalOut: number;
+  netDelta: number;
+  movementCount: number;
+  intermediateInventoryCount: number;
+}
+
+export interface TimelineNodeDto {
+  kind: 'INVENTORY_CHECKPOINT' | 'MOVEMENT';
+  occurredAt: string;
+  quantityBefore?: number;
+  quantityAfter?: number;
+  delta?: number;
+  gapDetected?: boolean;
+  historyId?: number;
+  operationType?: string;
+  operationUser?: string;
+  referenceType?: string;
+  referenceId?: number;
+  reason?: string;
+  inventoryId?: number;
+  inventoryItemId?: number;
+  systemQuantity?: number;
+  physicalQuantity?: number;
+  difference?: number;
+  itemStatus?: string;
+  reconciliationAction?: string;
+}
+
+export interface ArticleStockTrajectoryDto {
+  articleId: number;
+  articleName: string;
+  articleMarque?: string;
+  articleModel?: string;
+  from: InventoryCheckpointDto;
+  toDate: string;
+  reconstructedQuantity: number;
+  currentSystemQuantity: number;
+  drift: number;
+  summary: TrajectorySummaryDto;
+  nodes: TimelineNodeDto[];
 }
 
 export interface InventoryItemDto {
@@ -145,12 +218,49 @@ export class InventoryService {
     );
   }
 
-  getAllInventories(page: number, size: number): Observable<any> {
+  getAllInventories(
+    page: number,
+    size: number,
+    status?: string,
+    fromDate?: string,
+    toDate?: string
+  ): Observable<any> {
     const headers = this.getHeader();
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('page', page)
       .set('size', size);
+    if (status) {
+      params = params.set('status', status);
+    }
+    if (fromDate) {
+      params = params.set('fromDate', fromDate);
+    }
+    if (toDate) {
+      params = params.set('toDate', toDate);
+    }
     return this.http.get<any>(`${this.inventoryApiUrl}`, { headers, params });
+  }
+
+  getItemTrajectory(itemId: number, toDate?: string): Observable<ArticleStockTrajectoryDto> {
+    const headers = this.getHeader();
+    let params = new HttpParams();
+    if (toDate) {
+      params = params.set('toDate', toDate);
+    }
+    return this.http.get<any>(`${this.inventoryApiUrl}/items/${itemId}/trajectory`, { headers, params }).pipe(
+      map((response: any) => response.data || response)
+    );
+  }
+
+  getArticleTrajectory(articleId: number, fromInventoryId: number, toDate?: string): Observable<ArticleStockTrajectoryDto> {
+    const headers = this.getHeader();
+    let params = new HttpParams().set('fromInventoryId', fromInventoryId);
+    if (toDate) {
+      params = params.set('toDate', toDate);
+    }
+    return this.http.get<any>(`${this.apiUrl}/${articleId}/trajectory`, { headers, params }).pipe(
+      map((response: any) => response.data || response)
+    );
   }
 
   submitPhysicalQuantities(inventoryId: number, quantities: { [articleId: number]: number }): Observable<any> {

@@ -85,6 +85,8 @@ public class UserPermissionConstant {
     public static final String CREATE_INVENTORY = "ROLE_CREATE_INVENTORY";
     public static final String RECONCILE_INVENTORY = "ROLE_RECONCILE_INVENTORY";
     public static final String FINALIZE_INVENTORY = "ROLE_FINALIZE_INVENTORY";
+    /** Consultation historique inventaires et trajectoire article (ADMIN par défaut). */
+    public static final String CONSULT_INVENTORY_HISTORY = "ROLE_CONSULT_INVENTORY_HISTORY";
 
     public static final String ASSIGN_CLIENT_COLLECTOR = "ROLE_ASSIGN_CLIENT_COLLECTOR";
 

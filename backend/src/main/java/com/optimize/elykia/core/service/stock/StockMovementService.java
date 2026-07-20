@@ -37,20 +37,33 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
 
     public StockMovement recordMovement(Articles article, MovementType type, Integer quantity,
             String reason, String performedBy, Credit relatedCredit, Double unitCost) {
+        int stockBefore = article.getStockQuantity() != null ? article.getStockQuantity() : 0;
+        int stockAfter;
+        if (type == MovementType.ENTRY || type == MovementType.RETURN || type == MovementType.INVENTORY_ADJUSTMENT) {
+            stockAfter = stockBefore + quantity;
+        } else if (type == MovementType.RELEASE || type == MovementType.LOSS) {
+            stockAfter = stockBefore - quantity;
+        } else {
+            stockAfter = stockBefore;
+        }
+        return recordMovementWithSnapshot(article, type, quantity, stockBefore, stockAfter,
+                reason, performedBy, relatedCredit, unitCost, true);
+    }
+
+    /**
+     * Enregistre un mouvement avec stock avant/après explicites.
+     * Utile quand le stock article a déjà été muté (ex. réconciliation inventaire).
+     *
+     * @param writeArticleHistory si false, n'écrit pas ArticleHistory (appelant gère le ledger)
+     */
+    public StockMovement recordMovementWithSnapshot(Articles article, MovementType type, Integer quantity,
+            Integer stockBefore, Integer stockAfter, String reason, String performedBy,
+            Credit relatedCredit, Double unitCost, boolean writeArticleHistory) {
         StockMovement movement = new StockMovement();
         movement.setArticle(article);
         movement.setType(type);
         movement.setQuantity(quantity);
-        movement.setStockBefore(article.getStockQuantity());
-
-        // Mise à jour du stock selon le type de mouvement
-        int stockAfter = 0;
-        if (type == MovementType.ENTRY || type == MovementType.RETURN || type == MovementType.INVENTORY_ADJUSTMENT) {
-            stockAfter = article.getStockQuantity() + quantity;
-        } else if (type == MovementType.RELEASE || type == MovementType.LOSS) {
-            stockAfter = article.getStockQuantity() - quantity;
-        }
-
+        movement.setStockBefore(stockBefore);
         movement.setStockAfter(stockAfter);
         movement.setMovementDate(LocalDateTime.now());
         movement.setReason(reason);
@@ -60,44 +73,54 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
 
         StockMovement saved = stockMovementRepository.save(movement);
 
-        // Enregistrement dans l'historique de l'article
-        ArticleHistory history = buildArticleHistory(article, type, quantity, performedBy);
-        articleHistoryService.create(history);
+        if (writeArticleHistory) {
+            ArticleHistory history = buildArticleHistory(article, type, quantity, performedBy,
+                    stockBefore, stockAfter);
+            articleHistoryService.create(history);
+        }
 
         return saved;
     }
 
-    /**
-     * Construit l'entrée d'historique correspondant au type de mouvement.
-     */
     private ArticleHistory buildArticleHistory(Articles article, MovementType type, Integer quantity,
-            String performedBy) {
+            String performedBy, Integer stockBefore, Integer stockAfter) {
         return switch (type) {
             case ENTRY -> {
                 com.optimize.elykia.core.dto.StockEntry stockEntry = new com.optimize.elykia.core.dto.StockEntry();
                 stockEntry.setArticleId(article.getId());
                 stockEntry.setQuantity(quantity);
-                yield ArticleHistory.buildEntryHistory(article, stockEntry, performedBy);
+                ArticleHistory h = ArticleHistory.buildEntryHistory(article, stockEntry, performedBy);
+                h.setInitialQuantity(stockBefore);
+                h.setFinalQuantity(stockAfter);
+                yield h;
             }
-            case RETURN -> ArticleHistory.buildReturnHistory(article, quantity, performedBy);
-            case RELEASE, LOSS -> ArticleHistory.buildReleaseHistory(article, quantity, performedBy);
-            case ADJUSTMENT,
-                    INVENTORY_ADJUSTMENT ->
-                buildAdjustmentHistory(article, quantity, performedBy);
+            case RETURN -> {
+                ArticleHistory h = ArticleHistory.buildReturnHistory(article, quantity, performedBy);
+                h.setInitialQuantity(stockBefore);
+                h.setFinalQuantity(stockAfter);
+                yield h;
+            }
+            case RELEASE, LOSS -> {
+                ArticleHistory h = ArticleHistory.buildReleaseHistory(article, quantity, performedBy);
+                h.setInitialQuantity(stockBefore);
+                h.setFinalQuantity(stockAfter);
+                yield h;
+            }
+            case ADJUSTMENT, INVENTORY_ADJUSTMENT ->
+                buildAdjustmentHistory(article, quantity, performedBy, stockBefore, stockAfter);
         };
     }
 
-    /**
-     * Construit un historique de type INVENTORY_ADJUSTMENT (ajustement/inventaire).
-     */
-    private ArticleHistory buildAdjustmentHistory(Articles article, Integer quantity, String performedBy) {
+    private ArticleHistory buildAdjustmentHistory(Articles article, Integer quantity, String performedBy,
+            Integer stockBefore, Integer stockAfter) {
         ArticleHistory history = new ArticleHistory();
         history.setArticles(article);
-        history.setInitialQuantity(article.getStockQuantity());
+        history.setInitialQuantity(stockBefore);
         history.setOperationQuantity(quantity);
-        history.setFinalQuantity(article.getStockQuantity() + quantity);
+        history.setFinalQuantity(stockAfter);
         history.setOperationType(StockOperationType.INVENTORY_ADJUSTMENT);
         history.setOperationDate(java.time.LocalDate.now());
+        history.setOccurredAt(LocalDateTime.now());
         history.setOperationUser(performedBy);
         return history;
     }

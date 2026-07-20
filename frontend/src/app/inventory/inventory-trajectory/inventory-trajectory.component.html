@@ -1,0 +1,95 @@
+<div class="main-container inventory-trajectory-page a1">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/dashboard" class="breadcrumb-link">Tableau de bord</a>
+      <a routerLink="/inventory/history" class="breadcrumb-link">Historique</a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">TRAJECTOIRE ARTICLE</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <h1 class="page-title">{{ trajectory?.articleName || 'Chargement…' }}</h1>
+        </div>
+        <button type="button" class="btn-refresh" (click)="load()" [disabled]="isLoading">Actualiser</button>
+      </div>
+      <p class="page-subtitle" *ngIf="trajectory">
+        {{ trajectory.articleMarque }} {{ trajectory.articleModel }} · Depuis inventaire #{{ trajectory.from.inventoryId }}
+        ({{ trajectory.from.inventoryDate | date:'dd/MM/yyyy' }}) jusqu’au {{ trajectory.toDate | date:'dd/MM/yyyy' }}
+      </p>
+    </div>
+  </div>
+
+  <div class="page-scroll-body">
+    <div class="toolbar a4">
+      <div class="filter-group">
+        <span class="toolbar-label">Jusqu’à la date T</span>
+        <input type="date" class="search-input" [(ngModel)]="toDate">
+      </div>
+      <button type="button" class="btn-primary" (click)="load()" [disabled]="isLoading">Recalculer</button>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-banner">{{ errorMessage }}</div>
+    <div *ngIf="isLoading" class="loading-state">Chargement de la trajectoire…</div>
+
+    <ng-container *ngIf="!isLoading && trajectory as t">
+      <div class="kpi-strip a3">
+        <div class="kpi-card kpi-total">
+          <div class="kpi-label">Baseline système</div>
+          <div class="kpi-value">{{ t.from.baselineSystemQuantity }}</div>
+          <div class="kpi-sub">Physique {{ t.from.physicalQuantity != null ? t.from.physicalQuantity : '—' }}</div>
+        </div>
+        <div class="kpi-card kpi-amount">
+          <div class="kpi-label">Entrées / Sorties</div>
+          <div class="kpi-value kpi-value-sm">+{{ t.summary.totalIn }} / −{{ t.summary.totalOut }}</div>
+          <div class="kpi-sub">Net {{ t.summary.netDelta }}</div>
+        </div>
+        <div class="kpi-card kpi-green">
+          <div class="kpi-label">Stock reconstruit</div>
+          <div class="kpi-value">{{ t.reconstructedQuantity }}</div>
+          <div class="kpi-sub">{{ t.summary.movementCount }} mouvements</div>
+        </div>
+        <div class="kpi-card" [class.kpi-delai]="t.drift !== 0" [class.kpi-green]="t.drift === 0">
+          <div class="kpi-label">Écart vs système actuel</div>
+          <div class="kpi-value">{{ t.drift }}</div>
+          <div class="kpi-sub">Actuel {{ t.currentSystemQuantity }}</div>
+        </div>
+        <div class="kpi-card kpi-amount">
+          <div class="kpi-label">Inventaires intermédiaires</div>
+          <div class="kpi-value">{{ t.summary.intermediateInventoryCount }}</div>
+        </div>
+      </div>
+
+      <div class="table-card a5">
+        <div class="timeline-header">Timeline chronologique</div>
+        <div *ngIf="t.nodes.length === 0" class="empty-state">Aucun mouvement entre l’inventaire et la date T.</div>
+        <ul class="timeline" *ngIf="t.nodes.length > 0">
+          <li *ngFor="let node of t.nodes" [class.checkpoint]="node.kind === 'INVENTORY_CHECKPOINT'"
+              [class.gap]="node.gapDetected">
+            <div class="tl-kind">{{ kindLabel(node.kind) }}</div>
+            <div class="tl-when">{{ node.occurredAt | date:'dd/MM/yyyy HH:mm' }}</div>
+            <div class="tl-body" *ngIf="node.kind === 'MOVEMENT'">
+              <strong>{{ operationLabel(node.operationType) }}</strong>
+              <span class="delta" [class.neg]="(node.delta || 0) < 0" [class.pos]="(node.delta || 0) > 0">
+                {{ (node.delta || 0) > 0 ? '+' : '' }}{{ node.delta }}
+              </span>
+              <span class="qty">{{ node.quantityBefore }} → {{ node.quantityAfter }}</span>
+              <span class="muted" *ngIf="node.operationUser"> · {{ node.operationUser }}</span>
+              <div class="muted" *ngIf="node.reason">{{ node.reason }}</div>
+            </div>
+            <div class="tl-body" *ngIf="node.kind === 'INVENTORY_CHECKPOINT'">
+              <strong>Inventaire #{{ node.inventoryId }}</strong>
+              <span> Sys {{ node.systemQuantity }} · Phy {{ node.physicalQuantity != null ? node.physicalQuantity : '—' }} · Écart {{ node.difference != null ? node.difference : '—' }}</span>
+              <span class="gap-flag" *ngIf="node.gapDetected">Écart journal détecté</span>
+              <div class="muted" *ngIf="node.reconciliationAction">Action : {{ node.reconciliationAction }}</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </ng-container>
+  </div>
+</div>

@@ -407,6 +407,6 @@ export class InventoryReconciliationComponent implements OnInit {
   }
 
   back(): void {
-    this.router.navigate(['/inventory']);
+    this.router.navigate(['/inventory/list']);
   }
 }

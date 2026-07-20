@@ -1,0 +1,106 @@
+<div class="main-container inventory-history-page a1">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/dashboard" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Tableau de bord
+      </a>
+      <a routerLink="/inventory/list" class="breadcrumb-link">Inventaires</a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">GESTION DU STOCK</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
+          </svg>
+          <h1 class="page-title">Historique des inventaires</h1>
+        </div>
+        <button type="button" class="btn-refresh" (click)="loadInventories()" [disabled]="isLoading">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">Inventaires passés · Consultation et trajectoire article</p>
+    </div>
+  </div>
+
+  <div class="page-scroll-body">
+    <div class="toolbar a4">
+      <div class="filter-group">
+        <span class="toolbar-label">Statut</span>
+        <select class="search-input" [(ngModel)]="statusFilter" (change)="onFilter()">
+          <option value="">Tous</option>
+          <option value="COMPLETED">Clôturé</option>
+          <option value="RECONCILED">Réconcilié</option>
+          <option value="IN_PROGRESS">En cours</option>
+          <option value="DRAFT">Brouillon</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="toolbar-label">Du</span>
+        <input type="date" class="search-input" [(ngModel)]="fromDate" (change)="onFilter()">
+      </div>
+      <div class="filter-group">
+        <span class="toolbar-label">Au</span>
+        <input type="date" class="search-input" [(ngModel)]="toDate" (change)="onFilter()">
+      </div>
+      <button type="button" class="btn-clear" (click)="clearFilters()">Effacer</button>
+      <span class="result-count"><strong>{{ totalElements }}</strong> inventaire(s)</span>
+      <div class="toolbar-actions">
+        <a class="btn-primary" routerLink="/inventory/list">Retour stock</a>
+      </div>
+    </div>
+
+    <div class="table-card a5">
+      <div class="table-wrapper">
+        <div *ngIf="isLoading" class="loading-state">Chargement…</div>
+        <div *ngIf="!isLoading && inventories.length === 0" class="empty-state">
+          <p class="empty-title">Aucun inventaire trouvé</p>
+        </div>
+        <table *ngIf="!isLoading && inventories.length > 0">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Statut</th>
+              <th>Créé par</th>
+              <th>Clôturé le</th>
+              <th>Articles</th>
+              <th>Écarts</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let inv of inventories">
+              <td>{{ inv.inventoryDate | date:'dd/MM/yyyy' }}</td>
+              <td><span class="status-badge" [class]="'status-' + inv.status.toLowerCase()">{{ getStatusLabel(inv.status) }}</span></td>
+              <td>{{ inv.createdByUser }}</td>
+              <td>{{ inv.completedAt ? (inv.completedAt | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+              <td>{{ inv.itemCount }}</td>
+              <td>{{ inv.discrepancyCount }}</td>
+              <td>
+                <button type="button" class="btn-detail" (click)="openDetail(inv.id)">Consulter</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <mat-paginator
+        *ngIf="totalElements > 0"
+        [length]="totalElements"
+        [pageIndex]="currentPage"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 20, 50]"
+        (page)="onPageChange($event)">
+      </mat-paginator>
+    </div>
+  </div>
+</div>

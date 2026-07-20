@@ -13,6 +13,7 @@ import com.optimize.elykia.core.enumaration.InventoryItemStatus;
 import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.enumaration.ReconciliationAction;
 import com.optimize.elykia.core.enumaration.ReconciliationType;
+import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.enumaration.StockOperationType;
 import com.optimize.elykia.core.repository.InventoryItemRepository;
 import com.optimize.elykia.core.repository.InventoryReconciliationRepository;
@@ -37,7 +38,10 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
     private final StockMovementService stockMovementService;
     private final UserService userService;
 
-    public InventoryReconciliationService(InventoryReconciliationRepository repository, InventoryItemRepository inventoryItemRepository, StockMovementRepository stockMovementRepository, ArticlesService articlesService, ArticleHistoryService articleHistoryService, StockMovementService stockMovementService, UserService userService) {
+    public InventoryReconciliationService(InventoryReconciliationRepository repository,
+            InventoryItemRepository inventoryItemRepository, StockMovementRepository stockMovementRepository,
+            ArticlesService articlesService, ArticleHistoryService articleHistoryService,
+            StockMovementService stockMovementService, UserService userService) {
         super(repository);
         this.reconciliationRepository = repository;
         this.inventoryItemRepository = inventoryItemRepository;
@@ -74,8 +78,7 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
         reconciliation.setComment(dto.getComment());
 
         if (dto.getAction() == ReconciliationAction.ADJUST_TO_PHYSICAL) {
-            // Ajuster le stock système au niveau physique
-            Integer adjustment = item.getDifference(); // différence négative
+            Integer adjustment = item.getDifference();
             Integer newStock = Math.max(0, article.getStockQuantity() + adjustment);
             article.setStockQuantity(newStock);
 
@@ -83,26 +86,9 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
             reconciliation.setAction(ReconciliationAction.ADJUST_TO_PHYSICAL);
             reconciliation.setStockAfter(newStock);
 
-            // Enregistrer dans l'historique (on trace la quantité totale ajustée)
-            ArticleHistory history = new ArticleHistory();
-            history.setArticles(article);
-            history.setInitialQuantity(stockBefore);
-            history.setOperationQuantity(Math.abs(adjustment));
-            history.setFinalQuantity(newStock);
-            history.setOperationType(StockOperationType.INVENTORY_ADJUSTMENT);
-            history.setOperationDate(LocalDate.now());
-            history.setOperationUser(username);
-            articleHistoryService.create(history);
-
-            // Enregistrer le mouvement de stock
-            StockMovement movement = stockMovementService.recordMovement(
-                    article,
-                    MovementType.INVENTORY_ADJUSTMENT,
-                    Math.abs(adjustment),
-                    "Ajustement inventaire - Correction erreur: " + dto.getComment(),
-                    username,
-                    null
-            );
+            String reason = "Ajustement inventaire - Correction erreur: " + dto.getComment();
+            recordInventoryAdjustmentLedger(item, article, stockBefore, newStock, Math.abs(adjustment),
+                    username, reason);
 
             item.setStatus(InventoryItemStatus.RECONCILED);
             item.setReconciliationComment(dto.getComment());
@@ -165,33 +151,14 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
         reconciliation.setReconciliationType(ReconciliationType.SURPLUS_RESOLUTION);
         reconciliation.setAction(ReconciliationAction.MARK_AS_SURPLUS);
 
-        // Ajuster le stock système au niveau physique (surplus = quantité physique > quantité système)
-        Integer adjustment = item.getDifference(); // différence positive
+        Integer adjustment = item.getDifference();
         Integer newStock = Math.max(0, article.getStockQuantity() + adjustment);
         article.setStockQuantity(newStock);
 
         reconciliation.setStockAfter(newStock);
 
-        // Enregistrer dans l'historique (on trace la quantité totale ajustée)
-        ArticleHistory history = new ArticleHistory();
-        history.setArticles(article);
-        history.setInitialQuantity(stockBefore);
-        history.setOperationQuantity(adjustment);
-        history.setFinalQuantity(newStock);
-        history.setOperationType(StockOperationType.INVENTORY_ADJUSTMENT);
-        history.setOperationDate(LocalDate.now());
-        history.setOperationUser(username);
-        articleHistoryService.create(history);
-
-        // Enregistrer le mouvement de stock
-        StockMovement movement = stockMovementService.recordMovement(
-                article,
-                MovementType.INVENTORY_ADJUSTMENT,
-                adjustment,
-                "Ajustement inventaire - Surplus: " + dto.getComment(),
-                username,
-                null
-        );
+        String reason = "Ajustement inventaire - Surplus: " + dto.getComment();
+        recordInventoryAdjustmentLedger(item, article, stockBefore, newStock, adjustment, username, reason);
 
         item.setStatus(InventoryItemStatus.RECONCILED);
         item.setReconciliationComment(dto.getComment());
@@ -204,6 +171,41 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
         inventoryItemRepository.save(item);
 
         return item;
+    }
+
+    /**
+     * Une seule écriture ArticleHistory (liée à l'item) + StockMovement sans double historique.
+     */
+    private void recordInventoryAdjustmentLedger(InventoryItem item, Articles article,
+            Integer stockBefore, Integer stockAfter, Integer operationQuantity,
+            String username, String reason) {
+        LocalDateTime now = LocalDateTime.now();
+        ArticleHistory history = new ArticleHistory();
+        history.setArticles(article);
+        history.setInitialQuantity(stockBefore);
+        history.setOperationQuantity(operationQuantity);
+        history.setFinalQuantity(stockAfter);
+        history.setOperationType(StockOperationType.INVENTORY_ADJUSTMENT);
+        history.setOperationDate(now.toLocalDate());
+        history.setOccurredAt(now);
+        history.setOperationUser(username);
+        history.setInventoryItem(item);
+        history.setReferenceType(StockHistoryReferenceType.INVENTORY);
+        history.setReferenceId(item.getInventory() != null ? item.getInventory().getId() : null);
+        history.setReason(reason);
+        articleHistoryService.create(history);
+
+        stockMovementService.recordMovementWithSnapshot(
+                article,
+                MovementType.INVENTORY_ADJUSTMENT,
+                operationQuantity,
+                stockBefore,
+                stockAfter,
+                reason,
+                username,
+                null,
+                null,
+                false);
     }
 
     @Transactional
@@ -225,7 +227,8 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
     }
 
     @Transactional
-    public List<com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult> bulkReconcile(com.optimize.elykia.core.dto.BulkReconciliationDto bulkDto) {
+    public List<com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult> bulkReconcile(
+            com.optimize.elykia.core.dto.BulkReconciliationDto bulkDto) {
         List<com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult> results = new java.util.ArrayList<>();
 
         for (Long itemId : bulkDto.getInventoryItemIds()) {
@@ -250,7 +253,6 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
                 result.setSuccess(true);
                 result.setMessage("Succès");
 
-                // On laisse le controller le convertir en DTO (InventoryItemDto)
                 com.optimize.elykia.core.dto.InventoryItemDto itemDto = new com.optimize.elykia.core.dto.InventoryItemDto();
                 itemDto.setId(item.getId());
                 itemDto.setSystemQuantity(item.getSystemQuantity());
@@ -288,17 +290,14 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
                 .orElseThrow(() -> new ApplicationException("Article d'inventaire non trouvé"));
         Long articleId = item.getArticle().getId();
 
-        // Récupérer tous les mouvements de sortie (RELEASE) dans la période
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
 
         return stockMovementRepository.findByTypeAndMovementDateBetween(
                 MovementType.RELEASE,
                 startDateTime,
-                endDateTime
-        ).stream()
+                endDateTime).stream()
                 .filter(movement -> movement.getArticle().getId().equals(articleId))
                 .toList();
     }
 }
-

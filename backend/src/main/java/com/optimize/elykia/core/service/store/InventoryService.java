@@ -6,6 +6,7 @@ import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.InventoryDto;
 import com.optimize.elykia.core.dto.InventoryItemDto;
+import com.optimize.elykia.core.dto.InventorySummaryDto;
 import com.optimize.elykia.core.dto.PhysicalQuantitySubmissionDto;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.inventory.Inventory;
@@ -100,11 +101,36 @@ public class InventoryService extends GenericService<Inventory, Long> {
     }
 
     public Inventory getInventoryById(Long id) {
-        return getById(id);
+        Inventory inventory = getById(id);
+        // Force load items + articles for DTO mapping
+        inventory.getItems().forEach(item -> {
+            if (item.getArticle() != null) {
+                item.getArticle().getName();
+            }
+        });
+        return inventory;
     }
 
     public Page<Inventory> getAllInventories(Pageable pageable) {
         return getAll(pageable);
+    }
+
+    public Page<InventorySummaryDto> getInventorySummaries(
+            InventoryStatus status, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
+        Page<Inventory> page = inventoryRepository.findFiltered(status, fromDate, toDate, pageable);
+        return page.map(this::toInventorySummaryDto);
+    }
+
+    public InventorySummaryDto toInventorySummaryDto(Inventory inventory) {
+        return InventorySummaryDto.builder()
+                .id(inventory.getId())
+                .inventoryDate(inventory.getInventoryDate())
+                .status(inventory.getStatus())
+                .createdByUser(inventory.getCreatedByUser())
+                .completedAt(inventory.getCompletedAt())
+                .itemCount(inventoryItemRepository.countByInventoryId(inventory.getId()))
+                .discrepancyCount(inventoryItemRepository.countDiscrepanciesByInventoryId(inventory.getId()))
+                .build();
     }
 
     @Transactional
@@ -202,12 +228,22 @@ public class InventoryService extends GenericService<Inventory, Long> {
         dto.setId(inventory.getId());
         dto.setInventoryDate(inventory.getInventoryDate());
         dto.setStatus(inventory.getStatus());
-        dto.setCreatedByUser(inventory.getCreatedBy());
+        dto.setCreatedByUser(inventory.getCreatedByUser());
         dto.setCompletedAt(inventory.getCompletedAt());
-        List<InventoryItemDto> items = inventory.getItems().stream()
-                .map(this::toInventoryItemDto)
-                .collect(Collectors.toList());
-        dto.setItems(items);
+        dto.setItemCount(inventoryItemRepository.countByInventoryId(inventory.getId()));
+        dto.setDiscrepancyCount(inventoryItemRepository.countDiscrepanciesByInventoryId(inventory.getId()));
+        if (inventory.getItems() != null && !inventory.getItems().isEmpty()) {
+            List<InventoryItemDto> items = inventory.getItems().stream()
+                    .map(this::toInventoryItemDto)
+                    .collect(Collectors.toList());
+            dto.setItems(items);
+        }
+        return dto;
+    }
+
+    public InventoryDto toInventoryDtoWithoutItems(Inventory inventory) {
+        InventoryDto dto = toInventoryDto(inventory);
+        dto.setItems(null);
         return dto;
     }
 }

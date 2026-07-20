@@ -3,21 +3,27 @@ package com.optimize.elykia.core.controller.article;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.ArticleListItemDto;
+import com.optimize.elykia.core.dto.ArticleStockTrajectoryDto;
 import com.optimize.elykia.core.dto.ArticlesDto;
 import com.optimize.elykia.core.dto.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.StockEntryDto;
+import com.optimize.elykia.core.service.store.ArticleStockTrajectoryService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +37,7 @@ import java.util.Map;
 public class ArticlesController {
     private final ArticlesService articlesService;
     private final CreditArticlesService creditArticlesService;
+    private final ArticleStockTrajectoryService trajectoryService;
 
     @PostMapping
     public ResponseEntity<Response> createArticle(@RequestBody @Valid ArticlesDto dto) {
@@ -181,6 +188,17 @@ public class ArticlesController {
     public ResponseEntity<Response> getArticleHistory(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 articlesService.getArticleHistoryService().getByArticleId(id)), HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/trajectory")
+    @PreAuthorize("hasRole('ROLE_CONSULT_INVENTORY_HISTORY')")
+    @Operation(summary = "Trajectoire stock depuis un inventaire jusqu'à une date T")
+    public ResponseEntity<Response> getArticleTrajectory(
+            @PathVariable Long id,
+            @RequestParam Long fromInventoryId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
+        ArticleStockTrajectoryDto trajectory = trajectoryService.getTrajectoryFromArticle(id, fromInventoryId, toDate);
+        return new ResponseEntity<>(ResponseUtil.successResponse(trajectory), HttpStatus.OK);
     }
 
     @GetMapping("/{id}/state-history")

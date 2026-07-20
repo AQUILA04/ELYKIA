@@ -204,7 +204,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   addItem(): void {
     this.saveState();
-    this.router.navigate(['/inventory-add']);
+    this.router.navigate(['/inventory/add']);
   }
 
   onPageChange(event: PageEvent): void {
@@ -303,7 +303,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   navigateToReconciliation(): void {
     if (this.currentInventory?.id) {
       this.saveState();
-      this.router.navigate(['/inventory-reconciliation', this.currentInventory.id]);
+      this.router.navigate(['/inventory/reconciliation', this.currentInventory.id]);
     }
   }
 
