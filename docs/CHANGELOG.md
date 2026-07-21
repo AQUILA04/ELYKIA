@@ -30,6 +30,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 - Bouton « Historique inventaires » et routes associées (`/inventory/history`, détail, trajectoire) réservés au rôle `ROLE_CONSULT_INVENTORY_HISTORY`
 
+## Backend — [1.3.3] — 2026-07-21
+
+### Fixed
+
+- Création client (`POST /api/v1/clients`) : idempotence renforcée contre les doublons concurrents (sync mobile) — verrou advisory PostgreSQL sur téléphone/pièce, `saveAndFlush`, puis re-résolution du client existant en cas de violation d'unicité SQL au lieu de laisser passer un second enregistrement.
+
 ## Backend — [1.3.2] — 2026-07-21
 
 ### Added
@@ -100,6 +106,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Annulation de recouvrement : affichage du `message` backend (`error.error.message`) au lieu du message générique HttpClient.
+
+## Mobile — [2.10.11] — 2026-07-21
+
+### Fixed
+
+- Initialisation clients : déduplication automatique des doublons serveur dans un même lot API (`cardID` / `phone` / `code` identiques, IDs différents) avant UPSERT SQLite, avec journalisation du client conservé et du client ignoré.
 
 ## Mobile — [2.10.10] — 2026-07-21
 

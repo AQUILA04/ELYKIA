@@ -35,13 +35,32 @@ export class ClientRepository extends BaseRepository<Client, string> {
             throw new Error('Database not initialized.');
         }
 
+        const { clients, skipped } = this.deduplicateIncomingServerClients(entities);
+        if (skipped.length > 0) {
+            for (const entry of skipped) {
+                this.log.log(
+                    `[ClientRepository] Deduped server batch: skipped id=${entry.skipped.id} (kept id=${entry.kept.id}) ` +
+                    `${entry.keyField}=${entry.keyValue} fullName=${entry.skipped.fullName ?? 'N/A'}`
+                );
+            }
+        }
+
         const sqlSet: capSQLiteSet[] = [];
         const now = new Date().toISOString();
 
-        for (const client of entities) {
+        for (const client of clients) {
             const localClient = ClientMapper.toLocal(client);
             if (!localClient.id) { continue; }
             const clientIdStr = String(localClient.id);
+
+            const existingConflict = await this.findExistingUniqueConflictForIncoming(localClient);
+            if (existingConflict) {
+                this.log.log(
+                    `[ClientRepository] Skipped incoming id=${clientIdStr} (${this.formatClientIdentity(localClient)}) ` +
+                    `— already stored as id=${existingConflict.id} (${this.formatClientIdentity(existingConflict)})`
+                );
+                continue;
+            }
 
             // UPSERT (pas INSERT OR REPLACE) : évite le DELETE implicite qui déclenche
             // les FK enfants (client_reliquats, orders legacy, tontine_members legacy).
@@ -139,13 +158,89 @@ export class ClientRepository extends BaseRepository<Client, string> {
         try {
             if (sqlSet.length > 0) {
                 await this.databaseService.executeSet(sqlSet);
-                this.log.log(`[ClientRepository] Successfully saved ${entities.length} clients (UPSERT).`);
+                this.log.log(`[ClientRepository] Successfully saved ${clients.length} clients (UPSERT).`);
             }
         } catch (error) {
-            const detail = await this.diagnoseClientSaveFailure('saveAll', error, entities);
+            const detail = await this.diagnoseClientSaveFailure('saveAll', error, clients);
             this.log.error(`[ClientRepository] Failed to save clients. ${detail}`, error);
             throw new Error(`Échec sauvegarde clients: ${detail}`);
         }
+    }
+
+    /**
+     * Déduplique les clients serveur d'un même lot API (même cardID / phone / code, IDs différents).
+     * Conserve l'enregistrement au plus grand id numérique (tri API sort=id,desc).
+     */
+    private deduplicateIncomingServerClients(entities: Client[]): {
+        clients: Client[];
+        skipped: Array<{ kept: Client; skipped: Client; keyField: string; keyValue: string }>;
+    } {
+        const skipped: Array<{ kept: Client; skipped: Client; keyField: string; keyValue: string }> = [];
+        const winners = new Map<string, Client>();
+
+        for (const entity of entities) {
+            const client = ClientMapper.toLocal(entity);
+            if (!client.id) {
+                continue;
+            }
+
+            const dedupKey = this.buildIncomingDedupKey(client);
+            if (!dedupKey) {
+                winners.set(`__id__:${client.id}`, client);
+                continue;
+            }
+
+            const existing = winners.get(dedupKey.key);
+            if (!existing) {
+                winners.set(dedupKey.key, client);
+                continue;
+            }
+
+            const winner = this.pickPreferredIncomingClient(existing, client);
+            const loser = winner.id === client.id ? existing : client;
+            winners.set(dedupKey.key, winner);
+            skipped.push({
+                kept: winner,
+                skipped: loser,
+                keyField: dedupKey.field,
+                keyValue: dedupKey.value
+            });
+        }
+
+        return { clients: Array.from(winners.values()), skipped };
+    }
+
+    private buildIncomingDedupKey(client: Client): { key: string; field: string; value: string } | null {
+        const cardID = this.normalizeUniqueValue(client.cardID);
+        if (cardID) {
+            return { key: `cardID:${cardID}`, field: 'cardID', value: cardID };
+        }
+        const phone = this.normalizeUniqueValue(client.phone);
+        if (phone) {
+            return { key: `phone:${phone}`, field: 'phone', value: phone };
+        }
+        const code = this.normalizeUniqueValue(client.code);
+        if (code) {
+            return { key: `code:${code}`, field: 'code', value: code };
+        }
+        return null;
+    }
+
+    private async findExistingUniqueConflictForIncoming(client: Client): Promise<Partial<Client> | null> {
+        const conflicts = await this.findExistingUniqueConflictCandidates(client);
+        if (conflicts.length === 0) {
+            return null;
+        }
+        return conflicts[0] ?? null;
+    }
+
+    private pickPreferredIncomingClient(a: Client, b: Client): Client {
+        const idA = Number(a.id);
+        const idB = Number(b.id);
+        if (!Number.isNaN(idA) && !Number.isNaN(idB) && idA !== idB) {
+            return idA > idB ? a : b;
+        }
+        return String(a.id) > String(b.id) ? a : b;
     }
 
     /**

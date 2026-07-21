@@ -210,4 +210,11 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
             WHERE c.id IN :clientIds AND c.state <> com.optimize.common.entities.enums.State.DELETED
             """)
     List<ClientCollectorSnapshot> findCollectorSnapshotsByIds(@Param("clientIds") List<Long> clientIds);
+
+    /**
+     * Verrou transactionnel PostgreSQL pour sérialiser les créations concurrentes
+     * sur la même clé métier (téléphone ou pièce d'identité).
+     */
+    @Query(value = "SELECT pg_advisory_xact_lock(hashtext(:lockKey))", nativeQuery = true)
+    Long acquireCreateAdvisoryLock(@Param("lockKey") String lockKey);
 }

@@ -29,8 +29,11 @@ import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.client.repository.PhotoStoreRepository;
 import com.optimize.elykia.client.enumeration.BusinessCreditAuthorizationAction;
 import com.optimize.elykia.client.entity.BusinessCreditAuthorizationEvent;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -56,6 +59,9 @@ public class ClientService extends GenericService<Client, Long> {
     private final PhotoStoreRepository photoStoreRepository;
     private final BusinessCreditAuthorizationEventRepository businessCreditAuthorizationEventRepository;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     protected ClientService(ClientRepository repository, ClientMapper clientMapper,
             ClientProperties clientProperties,
             ClientAutoInitProperties clientAutoInitProperties, AccountService accountService,
@@ -72,7 +78,7 @@ public class ClientService extends GenericService<Client, Long> {
         this.businessCreditAuthorizationEventRepository = businessCreditAuthorizationEventRepository;
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = DataIntegrityViolationException.class)
     @EvictClientListCaches
     public ClientRespDto addClient(ClientDto dto) {
         Client client = clientMapper.toEntity(dto);
@@ -80,14 +86,47 @@ public class ClientService extends GenericService<Client, Long> {
         if (existingClient != null) {
             return ClientRespDto.fromClient(existingClient);
         }
+        try {
+            return persistNewClient(client);
+        } catch (DataIntegrityViolationException ex) {
+            entityManager.clear();
+            return resolveExistingClientAfterUniqueViolation(client, ex);
+        }
+    }
+
+    private ClientRespDto persistNewClient(Client client) {
+        acquireCreateLocks(client);
         PhotoStore profilPhoto = PhotoStore.buildClientProfil(client);
         PhotoStore cardPhoto = PhotoStore.buildClientCard(client);
         client.removePhotos();
-        Client savedClient = create(client);
+        Client savedClient = getRepository().saveAndFlush(client);
         profilPhoto.setClientId(savedClient.getId());
         cardPhoto.setClientId(savedClient.getId());
         photoStoreRepository.saveProfilAndCard(profilPhoto, cardPhoto);
+        publishClientCreatedEvent(savedClient);
+        return ClientRespDto.fromClient(savedClient);
+    }
 
+    private void acquireCreateLocks(Client client) {
+        if (StringUtils.hasText(client.getPhone())) {
+            getRepository().acquireCreateAdvisoryLock("client:phone:" + client.getPhone().trim());
+        }
+        if (StringUtils.hasText(client.getCardID())) {
+            getRepository().acquireCreateAdvisoryLock("client:card:" + client.getCardID().trim());
+        }
+    }
+
+    private ClientRespDto resolveExistingClientAfterUniqueViolation(
+            Client client, DataIntegrityViolationException cause) {
+        Client existingAfterRace = resolveExistingClientForCreate(client);
+        if (existingAfterRace != null) {
+            return ClientRespDto.fromClient(existingAfterRace);
+        }
+        throw new CustomValidationException(
+                "Impossible de créer le client : contrainte d'unicité violée.", cause);
+    }
+
+    private void publishClientCreatedEvent(Client savedClient) {
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new ClientCreatedEvent(
                     this,
@@ -96,8 +135,6 @@ public class ClientService extends GenericService<Client, Long> {
                     savedClient.getId(),
                     savedClient.getPhone()));
         }
-
-        return ClientRespDto.fromClient(savedClient);
     }
 
     @Transactional
