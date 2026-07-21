@@ -101,6 +101,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Annulation de recouvrement : affichage du `message` backend (`error.error.message`) au lieu du message générique HttpClient.
 
+## Mobile — [2.10.10] — 2026-07-21
+
+### Fixed
+
+- Initialisation clients : en cas d'échec de contrainte SQL pendant l'import, les logs remontent désormais les clients suspects avec `id`, `fullName`, `cardID`, `phone`, `code` et l'éventuelle ligne locale en conflit pour identifier rapidement l'enregistrement fautif.
+- Réconciliation avant import : tous les doublons locaux détectés sur `phone`, `cardID` ou `code` sont fusionnés avant l'UPSERT serveur, ce qui réduit les erreurs récurrentes de contrainte `UNIQUE` sur les clients.
+
 ## Mobile — [2.10.9] — 2026-07-18
 
 ### Added

@@ -142,11 +142,7 @@ export class ClientRepository extends BaseRepository<Client, string> {
                 this.log.log(`[ClientRepository] Successfully saved ${entities.length} clients (UPSERT).`);
             }
         } catch (error) {
-            const detail = await this.diagnoseClientFkFailure(
-                'saveAll',
-                error,
-                entities.map(c => String(c.id)).filter(Boolean)
-            );
+            const detail = await this.diagnoseClientSaveFailure('saveAll', error, entities);
             this.log.error(`[ClientRepository] Failed to save clients. ${detail}`, error);
             throw new Error(`Échec sauvegarde clients: ${detail}`);
         }
@@ -281,6 +277,145 @@ export class ClientRepository extends BaseRepository<Client, string> {
             ? `Contrainte FK probable sur enfants: ${findings.join(', ')}`
             : 'Contrainte FK (table enfant non identifiée)';
         return `${baseMsg} | ${constraintHint}`;
+    }
+
+    /**
+     * Enrichit les erreurs batch clients avec l'identité précise du ou des clients suspects.
+     */
+    private async diagnoseClientSaveFailure(
+        operation: string,
+        error: unknown,
+        entities: Client[]
+    ): Promise<string> {
+        const baseMsg = error instanceof Error ? error.message : String(error);
+        const details: string[] = [];
+
+        if (baseMsg.includes('FOREIGN KEY') || baseMsg.includes('787')) {
+            details.push(await this.diagnoseClientFkFailure(
+                operation,
+                error,
+                entities.map(c => String(c.id)).filter(Boolean)
+            ));
+        }
+
+        if (baseMsg.includes('UNIQUE') || baseMsg.toLowerCase().includes('constraint')) {
+            const uniqueHints = await this.diagnoseUniqueClientConflictCandidates(entities);
+            if (uniqueHints.length > 0) {
+                details.push(`Conflits clients suspects: ${uniqueHints.join(' | ')}`);
+            }
+        }
+
+        if (details.length === 0) {
+            return baseMsg;
+        }
+
+        return `${baseMsg} | ${details.join(' | ')}`;
+    }
+
+    private async diagnoseUniqueClientConflictCandidates(entities: Client[]): Promise<string[]> {
+        const locals = entities
+            .map(client => ClientMapper.toLocal(client))
+            .filter(client => !!client.id);
+        const hints: string[] = [];
+
+        hints.push(...this.findIncomingBatchDuplicates(locals));
+
+        for (const client of locals) {
+            if (hints.length >= 8) {
+                break;
+            }
+            const conflicts = await this.findExistingUniqueConflictCandidates(client);
+            if (conflicts.length > 0) {
+                hints.push(
+                    `incoming(${this.formatClientIdentity(client)}) -> existing(${conflicts.map(conflict => this.formatClientIdentity(conflict)).join(' ; ')})`
+                );
+            }
+        }
+
+        return hints.slice(0, 8);
+    }
+
+    private findIncomingBatchDuplicates(clients: Client[]): string[] {
+        const hints: string[] = [];
+        const fields: Array<'phone' | 'cardID'> = ['phone', 'cardID'];
+
+        for (const field of fields) {
+            const groups = new Map<string, Client[]>();
+            for (const client of clients) {
+                const value = this.normalizeUniqueValue(client[field]);
+                if (!value) {
+                    continue;
+                }
+                const existing = groups.get(value) ?? [];
+                existing.push(client);
+                groups.set(value, existing);
+            }
+
+            for (const [value, groupedClients] of groups.entries()) {
+                if (groupedClients.length > 1) {
+                    hints.push(
+                        `doublon lot ${field}=${value} -> ${groupedClients.map(client => this.formatClientIdentity(client)).join(' ; ')}`
+                    );
+                }
+            }
+        }
+
+        return hints;
+    }
+
+    private async findExistingUniqueConflictCandidates(client: Client): Promise<Partial<Client>[]> {
+        const phone = this.normalizeUniqueValue(client.phone);
+        const cardID = this.normalizeUniqueValue(client.cardID);
+        const clauses: string[] = [];
+        const params: (string | number)[] = [String(client.id)];
+
+        if (phone) {
+            clauses.push(`(phone IS NOT NULL AND TRIM(phone) != '' AND phone = ?)`);
+            params.push(phone);
+        }
+        if (cardID) {
+            clauses.push(`(cardID IS NOT NULL AND TRIM(cardID) != '' AND cardID = ?)`);
+            params.push(cardID);
+        }
+        if (clauses.length === 0) {
+            return [];
+        }
+
+        const sql = `
+            SELECT id, firstname, lastname, fullName, phone, cardID, code, commercial,
+                   isLocal, isSync, updated, updatedInfo, updatedPhoto, updatedPhotoUrl
+            FROM clients
+            WHERE id != ?
+              AND (${clauses.join(' OR ')})
+            ORDER BY isLocal DESC, isSync ASC, createdAt ASC
+            LIMIT 5
+        `;
+
+        try {
+            const result = await this.databaseService.query(sql, params);
+            return (result.values || []) as Partial<Client>[];
+        } catch (error) {
+            this.log.log(`[ClientRepository] Unique conflict lookup failed for ${this.formatClientIdentity(client)}: ${error instanceof Error ? error.message : String(error)}`);
+            return [];
+        }
+    }
+
+    private formatClientIdentity(client: Partial<Client>): string {
+        const first = typeof client.firstname === 'string' ? client.firstname : '';
+        const last = typeof client.lastname === 'string' ? client.lastname : '';
+        const fullName = (typeof client.fullName === 'string' ? client.fullName : `${first} ${last}`).trim() || 'N/A';
+        const id = client.id != null ? String(client.id) : 'N/A';
+        const cardID = this.normalizeUniqueValue(client.cardID) ?? 'null';
+        const phone = this.normalizeUniqueValue(client.phone) ?? 'null';
+        const code = this.normalizeUniqueValue(client.code) ?? 'null';
+        const commercial = typeof client.commercial === 'string' ? client.commercial : 'N/A';
+        const syncFlags = `isLocal=${client.isLocal ?? 'n/a'},isSync=${client.isSync ?? 'n/a'}`;
+        return `id=${id},fullName=${fullName},cardID=${cardID},phone=${phone},code=${code},commercial=${commercial},${syncFlags}`;
+    }
+
+    private normalizeUniqueValue(value: string | null | undefined): string | null {
+        const normalized = value?.trim();
+        return normalized ? normalized : null;
     }
 
     // ==================== SPECIFIC UPDATE METHODS ====================
@@ -517,13 +652,15 @@ export class ClientRepository extends BaseRepository<Client, string> {
      * (même téléphone, carte ou code), pour éviter les violations UNIQUE à l'INSERT.
      */
     async reconcileLocalDuplicateIfAny(serverClient: Client, commercialUsername: string): Promise<boolean> {
-        const localId = await this.findStaleLocalDuplicateId(serverClient, commercialUsername);
-        if (!localId) {
+        const localIds = await this.findStaleLocalDuplicateIds(serverClient, commercialUsername);
+        if (localIds.length === 0) {
             return false;
         }
         const serverId = String(serverClient.id);
-        await this.mergeLocalClientIntoServerId(localId, serverId, { deleteLocalOnly: true });
-        console.log(`[ClientRepository] Reconciled local duplicate ${localId} → server ${serverId} before import.`);
+        for (const localId of localIds) {
+            await this.mergeLocalClientIntoServerId(localId, serverId, { deleteLocalOnly: true });
+            this.log.log(`[ClientRepository] Reconciled local duplicate ${localId} → server ${serverId} before import.`);
+        }
         return true;
     }
 
@@ -569,14 +706,14 @@ export class ClientRepository extends BaseRepository<Client, string> {
     /**
      * Trouve un client local obsolète (UUID) qui correspond au même client serveur.
      */
-    private async findStaleLocalDuplicateId(serverClient: Client, commercialUsername: string): Promise<string | null> {
+    private async findStaleLocalDuplicateIds(serverClient: Client, commercialUsername: string): Promise<string[]> {
         const serverId = String(serverClient.id);
-        const phone = serverClient.phone?.trim();
-        const cardID = serverClient.cardID?.trim();
-        const code = serverClient.code?.trim();
+        const phone = this.normalizeUniqueValue(serverClient.phone);
+        const cardID = this.normalizeUniqueValue(serverClient.cardID);
+        const code = this.normalizeUniqueValue(serverClient.code);
 
         if (!phone && !cardID && !code) {
-            return null;
+            return [];
         }
 
         const matchClauses: string[] = [];
@@ -607,8 +744,9 @@ export class ClientRepository extends BaseRepository<Client, string> {
         `;
 
         const result = await this.databaseService.query(sql, params);
-        const row = result.values?.[0];
-        return row?.id ? String(row.id) : null;
+        return (result.values || [])
+            .map((row: Record<string, unknown>) => row['id'] ? String(row['id']) : null)
+            .filter((id: string | null): id is string => !!id);
     }
 
     /**
