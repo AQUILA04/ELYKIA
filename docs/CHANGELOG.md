@@ -35,6 +35,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Création client (`POST /api/v1/clients`) : idempotence renforcée contre les doublons concurrents (sync mobile) — verrou advisory PostgreSQL sur téléphone/pièce, `saveAndFlush`, puis re-résolution du client existant en cas de violation d'unicité SQL au lieu de laisser passer un second enregistrement.
+- Verrou advisory client : exécution via `EntityManager` (au lieu d'une requête native Spring Data retournant `Long`) pour éviter l'échec silencieux de création client en E2E.
 
 ## Backend — [1.3.2] — 2026-07-21
 

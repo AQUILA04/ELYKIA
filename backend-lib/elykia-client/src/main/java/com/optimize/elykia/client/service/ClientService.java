@@ -109,11 +109,17 @@ public class ClientService extends GenericService<Client, Long> {
 
     private void acquireCreateLocks(Client client) {
         if (StringUtils.hasText(client.getPhone())) {
-            getRepository().acquireCreateAdvisoryLock("client:phone:" + client.getPhone().trim());
+            acquireCreateAdvisoryLock("client:phone:" + client.getPhone().trim());
         }
         if (StringUtils.hasText(client.getCardID())) {
-            getRepository().acquireCreateAdvisoryLock("client:card:" + client.getCardID().trim());
+            acquireCreateAdvisoryLock("client:card:" + client.getCardID().trim());
         }
+    }
+
+    private void acquireCreateAdvisoryLock(String lockKey) {
+        entityManager.createNativeQuery("SELECT pg_advisory_xact_lock(hashtext(?1))")
+                .setParameter(1, lockKey)
+                .getSingleResult();
     }
 
     private ClientRespDto resolveExistingClientAfterUniqueViolation(Client client) {
