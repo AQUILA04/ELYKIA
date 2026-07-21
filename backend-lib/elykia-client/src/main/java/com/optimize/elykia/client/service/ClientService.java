@@ -90,7 +90,7 @@ public class ClientService extends GenericService<Client, Long> {
             return persistNewClient(client);
         } catch (DataIntegrityViolationException ex) {
             entityManager.clear();
-            return resolveExistingClientAfterUniqueViolation(client, ex);
+            return resolveExistingClientAfterUniqueViolation(client);
         }
     }
 
@@ -116,14 +116,13 @@ public class ClientService extends GenericService<Client, Long> {
         }
     }
 
-    private ClientRespDto resolveExistingClientAfterUniqueViolation(
-            Client client, DataIntegrityViolationException cause) {
+    private ClientRespDto resolveExistingClientAfterUniqueViolation(Client client) {
         Client existingAfterRace = resolveExistingClientForCreate(client);
         if (existingAfterRace != null) {
             return ClientRespDto.fromClient(existingAfterRace);
         }
         throw new CustomValidationException(
-                "Impossible de créer le client : contrainte d'unicité violée.", cause);
+                "Impossible de créer le client : contrainte d'unicité violée.");
     }
 
     private void publishClientCreatedEvent(Client savedClient) {
