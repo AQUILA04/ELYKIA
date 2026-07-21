@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxPermissionsModule } from 'ngx-permissions';
 import { NgxSpinnerModule } from 'ngx-spinner';
@@ -41,6 +42,7 @@ import { StockLotsTableComponent } from './details/components/stock-lots-table/s
   ],
   imports: [
     CommonModule,
+    RouterModule,
     ArticleRoutingModule,
     FormsModule,
     ReactiveFormsModule,

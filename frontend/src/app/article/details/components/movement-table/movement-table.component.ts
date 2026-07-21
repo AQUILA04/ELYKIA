@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { Params } from '@angular/router';
 import { ArticleHistoryItem } from '../../../service/item.service';
 import { MovementListDialogComponent } from '../movement-list-dialog/movement-list-dialog.component';
 
@@ -21,7 +22,7 @@ export class MovementTableComponent {
     }
 
     badgeClass(op: string): string {
-        if (op === 'ENTREE') return 'op-entree';
+        if (op === 'ENTREE' || op === 'RETURN') return 'op-entree';
         if (op === 'SORTIE' || op === 'CANCEL_RECEPTION') return 'op-sortie';
         return 'op-reset';
     }
@@ -29,17 +30,18 @@ export class MovementTableComponent {
     formatOperationType(op: string): string {
         if (op === 'CANCEL_RECEPTION') return 'ANNUL. RÉCEPTION';
         if (op === 'INVENTORY_ADJUSTMENT') return 'AJUSTEMENT INVENT.';
+        if (op === 'RETURN') return 'RETURN';
         return op;
     }
 
     qtyClass(op: string): string {
-        if (op === 'ENTREE') return 'qty-plus';
+        if (op === 'ENTREE' || op === 'RETURN') return 'qty-plus';
         if (op === 'SORTIE' || op === 'CANCEL_RECEPTION') return 'qty-minus';
         return 'qty-reset';
     }
 
     qtyPrefix(op: string): string {
-        if (op === 'ENTREE') return '+';
+        if (op === 'ENTREE' || op === 'RETURN') return '+';
         if (op === 'SORTIE' || op === 'CANCEL_RECEPTION') return '−';
         return '';
     }
@@ -47,6 +49,54 @@ export class MovementTableComponent {
     formatDate(dateStr: string): string {
         if (!dateStr) return '—';
         return new Date(dateStr).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    getBeneficiary(movement: ArticleHistoryItem): string {
+        return movement.beneficiary || movement.operationUser || '—';
+    }
+
+    showAuthor(movement: ArticleHistoryItem): boolean {
+        const beneficiary = movement.beneficiary;
+        return !!beneficiary && !!movement.operationUser && beneficiary !== movement.operationUser;
+    }
+
+    hasReferenceLink(movement: ArticleHistoryItem): boolean {
+        return !!movement.referenceType && !!movement.referenceId && !!this.getReferenceRoute(movement);
+    }
+
+    getReferenceRoute(movement: ArticleHistoryItem): string | any[] | null {
+        if (!movement.referenceType || !movement.referenceId) {
+            return null;
+        }
+        switch (movement.referenceType) {
+            case 'STOCK_REQUEST':
+                return ['/stock/request'];
+            case 'STOCK_RETURN':
+                return ['/stock/return'];
+            case 'STOCK_TONTINE_REQUEST':
+                return ['/stock-tontine/request'];
+            case 'STOCK_TONTINE_RETURN':
+                return ['/stock-tontine/return'];
+            case 'INVENTORY':
+                return ['/inventory/history', movement.referenceId];
+            default:
+                return null;
+        }
+    }
+
+    getReferenceQueryParams(movement: ArticleHistoryItem): Params | null {
+        if (!movement.referenceId) {
+            return null;
+        }
+        switch (movement.referenceType) {
+            case 'STOCK_REQUEST':
+            case 'STOCK_RETURN':
+            case 'STOCK_TONTINE_REQUEST':
+            case 'STOCK_TONTINE_RETURN':
+                return { id: movement.referenceId };
+            default:
+                return null;
+        }
     }
 
     openAllMovements(): void {

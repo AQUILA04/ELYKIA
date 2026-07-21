@@ -1,34 +1,82 @@
-<div class="picklist-container">
-    <div class="list-container">
-        <h4 class="list-header">Permissions disponibles</h4>
-        <mat-selection-list #sourceListComp [(ngModel)]="selectedSource" class="custom-list">
-            <mat-list-option *ngFor="let perm of sourceList" [value]="perm">
-                {{ perm.name || perm }}
-            </mat-list-option>
-        </mat-selection-list>
+<div class="permission-picklist">
+  <div class="picklist-panel picklist-panel--source">
+    <div class="panel-header">
+      <span class="panel-title">Permissions disponibles</span>
+      <span class="panel-count" aria-label="Nombre de permissions disponibles">{{ sourceList.length }}</span>
     </div>
+    <div class="panel-body">
+      <p class="panel-empty" *ngIf="sourceList.length === 0">
+        Toutes les permissions sont déjà affectées
+      </p>
+      <mat-selection-list
+        #sourceListComp
+        [(ngModel)]="selectedSource"
+        class="permission-list"
+        [class.permission-list--hidden]="sourceList.length === 0">
+        <mat-list-option *ngFor="let perm of sourceList" [value]="perm" class="permission-option">
+          <span class="permission-name">{{ perm.name || perm }}</span>
+        </mat-list-option>
+      </mat-selection-list>
+    </div>
+  </div>
 
-    <div class="controls-container">
-        <button mat-mini-fab color="primary" (click)="moveToTarget()" [disabled]="selectedSource.length === 0">
-            <mat-icon>chevron_right</mat-icon>
-        </button>
-        <button mat-mini-fab color="primary" (click)="moveAllToTarget()" [disabled]="sourceList.length === 0">
-            <mat-icon>last_page</mat-icon>
-        </button>
-        <button mat-mini-fab color="warn" (click)="moveToSource()" [disabled]="selectedTarget.length === 0">
-            <mat-icon>chevron_left</mat-icon>
-        </button>
-        <button mat-mini-fab color="warn" (click)="moveAllToSource()" [disabled]="targetList.length === 0">
-            <mat-icon>first_page</mat-icon>
-        </button>
-    </div>
+  <div class="picklist-controls" aria-label="Transférer les permissions">
+    <button
+      type="button"
+      class="ctrl-btn ctrl-btn--primary"
+      matTooltip="Affecter la sélection"
+      (click)="moveToTarget()"
+      [disabled]="selectedSource.length === 0">
+      <mat-icon class="icon-desktop" aria-hidden="true">chevron_right</mat-icon>
+      <mat-icon class="icon-mobile" aria-hidden="true">keyboard_arrow_down</mat-icon>
+    </button>
+    <button
+      type="button"
+      class="ctrl-btn ctrl-btn--primary"
+      matTooltip="Tout affecter"
+      (click)="moveAllToTarget()"
+      [disabled]="sourceList.length === 0">
+      <mat-icon class="icon-desktop" aria-hidden="true">last_page</mat-icon>
+      <mat-icon class="icon-mobile" aria-hidden="true">keyboard_double_arrow_down</mat-icon>
+    </button>
+    <button
+      type="button"
+      class="ctrl-btn ctrl-btn--secondary"
+      matTooltip="Retirer la sélection"
+      (click)="moveToSource()"
+      [disabled]="selectedTarget.length === 0">
+      <mat-icon class="icon-desktop" aria-hidden="true">chevron_left</mat-icon>
+      <mat-icon class="icon-mobile" aria-hidden="true">keyboard_arrow_up</mat-icon>
+    </button>
+    <button
+      type="button"
+      class="ctrl-btn ctrl-btn--danger"
+      matTooltip="Tout retirer"
+      (click)="moveAllToSource()"
+      [disabled]="targetList.length === 0">
+      <mat-icon class="icon-desktop" aria-hidden="true">first_page</mat-icon>
+      <mat-icon class="icon-mobile" aria-hidden="true">keyboard_double_arrow_up</mat-icon>
+    </button>
+  </div>
 
-    <div class="list-container">
-        <h4 class="list-header">Permissions affectées</h4>
-        <mat-selection-list #targetListComp [(ngModel)]="selectedTarget" class="custom-list">
-            <mat-list-option *ngFor="let perm of targetList" [value]="perm">
-                {{ perm.name || perm }}
-            </mat-list-option>
-        </mat-selection-list>
+  <div class="picklist-panel picklist-panel--target">
+    <div class="panel-header">
+      <span class="panel-title">Permissions affectées</span>
+      <span class="panel-count panel-count--assigned" aria-label="Nombre de permissions affectées">{{ targetList.length }}</span>
     </div>
+    <div class="panel-body">
+      <p class="panel-empty" *ngIf="targetList.length === 0">
+        Aucune permission spécifique — seul le profil s'applique
+      </p>
+      <mat-selection-list
+        #targetListComp
+        [(ngModel)]="selectedTarget"
+        class="permission-list"
+        [class.permission-list--hidden]="targetList.length === 0">
+        <mat-list-option *ngFor="let perm of targetList" [value]="perm" class="permission-option">
+          <span class="permission-name">{{ perm.name || perm }}</span>
+        </mat-list-option>
+      </mat-selection-list>
+    </div>
+  </div>
 </div>

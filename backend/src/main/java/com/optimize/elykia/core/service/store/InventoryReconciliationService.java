@@ -192,6 +192,10 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
         history.setInventoryItem(item);
         history.setReferenceType(StockHistoryReferenceType.INVENTORY);
         history.setReferenceId(item.getInventory() != null ? item.getInventory().getId() : null);
+        if (item.getInventory() != null) {
+            history.setReferenceLabel("Inventaire #" + item.getInventory().getId());
+        }
+        history.setBeneficiary(username);
         history.setReason(reason);
         articleHistoryService.create(history);
 

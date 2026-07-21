@@ -7,7 +7,8 @@
                     <th>Qté</th>
                     <th>Stock</th>
                     <th>Date</th>
-                    <th>Par</th>
+                    <th>Pour</th>
+                    <th>Demande</th>
                 </tr>
             </thead>
             <tbody>
@@ -26,7 +27,24 @@
                         {{ m.initialQuantity }}&nbsp;<span class="arrow">→</span>&nbsp;{{ m.finalQuantity }}
                     </td>
                     <td>{{ formatDate(m.operationDate) }}</td>
-                    <td class="col-user">{{ m.operationUser }}</td>
+                    <td class="col-beneficiary">
+                        <span class="beneficiary-name">{{ getBeneficiary(m) }}</span>
+                        <span class="author-hint" *ngIf="showAuthor(m)">par {{ m.operationUser }}</span>
+                    </td>
+                    <td class="col-reference">
+                        <ng-container *ngIf="m.referenceLabel; else noReference">
+                            <span class="reference-label">{{ m.referenceLabel }}</span>
+                            <a *ngIf="hasReferenceLink(m)"
+                               class="reference-link"
+                               [routerLink]="getReferenceRoute(m)"
+                               [queryParams]="getReferenceQueryParams(m)">
+                                Voir la demande
+                            </a>
+                        </ng-container>
+                        <ng-template #noReference>
+                            <span class="reference-empty">—</span>
+                        </ng-template>
+                    </td>
                 </tr>
             </tbody>
         </table>

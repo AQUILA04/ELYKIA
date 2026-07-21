@@ -1,10 +1,12 @@
 package com.optimize.elykia.core.service;
 
+import com.optimize.elykia.core.dto.ArticleHistoryContext;
 import com.optimize.elykia.core.entity.article.ArticleHistory;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.stock.StockMovement;
 import com.optimize.elykia.core.enumaration.MovementType;
+import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.repository.StockMovementRepository;
 import com.optimize.elykia.core.service.stock.StockMovementService;
 import com.optimize.elykia.core.service.store.ArticleHistoryService;
@@ -48,6 +50,46 @@ class StockMovementServiceTest {
 
         credit = new Credit();
         credit.setId(1L);
+    }
+
+    @Test
+    void testRecordMovement_WithHistoryContext() {
+        when(stockMovementRepository.save(any(StockMovement.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(articleHistoryService.create(any(ArticleHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ArticleHistoryContext context = ArticleHistoryContext.withReference(
+                "ges003",
+                StockHistoryReferenceType.STOCK_REQUEST,
+                42L,
+                "DS-2026-0142");
+
+        stockMovementService.recordMovement(
+                article, MovementType.RELEASE, 2,
+                "Livraison demande DS-2026-0142", "mag001", null, null, context);
+
+        verify(articleHistoryService).create(argThat(history ->
+                "ges003".equals(history.getBeneficiary())
+                        && StockHistoryReferenceType.STOCK_REQUEST == history.getReferenceType()
+                        && Long.valueOf(42L).equals(history.getReferenceId())
+                        && "DS-2026-0142".equals(history.getReferenceLabel())
+                        && "mag001".equals(history.getOperationUser())));
+    }
+
+    @Test
+    void testRecordMovement_DefaultBeneficiaryFromPerformer() {
+        when(stockMovementRepository.save(any(StockMovement.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(articleHistoryService.create(any(ArticleHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        stockMovementService.recordMovement(
+                article, MovementType.ENTRY, 5, "Réapprovisionnement", "admin", null);
+
+        verify(articleHistoryService).create(argThat(history ->
+                "admin".equals(history.getBeneficiary())
+                        && "admin".equals(history.getOperationUser())));
     }
 
     @Test

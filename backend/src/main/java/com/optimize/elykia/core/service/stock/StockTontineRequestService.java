@@ -4,12 +4,14 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.dto.ArticleHistoryContext;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
 import com.optimize.elykia.core.enumaration.MovementType;
 import com.optimize.elykia.core.dto.stock.FifoConsumptionResult;
+import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.event.StockTontineRequestDeliveredEvent;
 import com.optimize.elykia.core.repository.StockTontineRequestRepository;
@@ -202,7 +204,12 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
                     "Livraison Tontine " + request.getReference(),
                     currentUser.getUsername(),
                     null,
-                    consumption.getAverageUnitCost());
+                    consumption.getAverageUnitCost(),
+                    ArticleHistoryContext.withReference(
+                            request.getCollector(),
+                            StockHistoryReferenceType.STOCK_TONTINE_REQUEST,
+                            request.getId(),
+                            request.getReference()));
 
             article.makeRelease(item.getQuantity());
             articlesService.update(article);

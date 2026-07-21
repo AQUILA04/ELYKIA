@@ -4,6 +4,7 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.dto.ArticleHistoryContext;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
@@ -12,6 +13,7 @@ import com.optimize.elykia.core.entity.stock.StockRequestItem;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
 import com.optimize.elykia.core.enumaration.MovementType;
+import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
@@ -341,7 +343,12 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                     "Livraison demande " + request.getReference(),
                     currentUser.getUsername(),
                     null,
-                    consumption.getAverageUnitCost());
+                    consumption.getAverageUnitCost(),
+                    ArticleHistoryContext.withReference(
+                            request.getCollector(),
+                            StockHistoryReferenceType.STOCK_REQUEST,
+                            request.getId(),
+                            request.getReference()));
 
             article.makeRelease(item.getQuantity());
             articlesService.update(article);

@@ -4,6 +4,7 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.dto.ArticleHistoryContext;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
@@ -12,6 +13,7 @@ import com.optimize.elykia.core.entity.stock.StockReturnItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.enumaration.MovementType;
+import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
@@ -433,7 +435,12 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                     "Validation retour stock " + stockReturn.getId(),
                     currentUser.getUsername(),
                     null,
-                    returnUnitCost);
+                    returnUnitCost,
+                    ArticleHistoryContext.withReference(
+                            stockReturn.getCollector(),
+                            StockHistoryReferenceType.STOCK_RETURN,
+                            stockReturn.getId(),
+                            stockReturn.getReference()));
 
             article.makeEntry(item.getQuantity());
             articlesService.update(article);

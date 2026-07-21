@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { PageEvent } from '@angular/material/paginator';
 import { ToastrService } from 'ngx-toastr';
 import { AlertService } from 'src/app/shared/service/alert.service';
@@ -67,7 +68,8 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userService: UserService,
     private toastr: ToastrService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -83,6 +85,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
 
     this.restoreState();
     this.refresh();
+    this.openDetailsFromQueryParam();
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
     }, 1000);
@@ -289,6 +292,18 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
         this.toastr.error('Erreur lors du chargement du détail', 'Erreur');
       }
     });
+  }
+
+  private openDetailsFromQueryParam(): void {
+    const idParam = this.route.snapshot.queryParamMap.get('id');
+    if (!idParam) {
+      return;
+    }
+    const id = Number(idParam);
+    if (!Number.isFinite(id)) {
+      return;
+    }
+    this.showDetails({ id } as StockTontineRequestListItem);
   }
 
   closeDetails(): void {

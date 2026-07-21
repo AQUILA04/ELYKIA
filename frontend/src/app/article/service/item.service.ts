@@ -69,12 +69,16 @@ export interface NewArticleData {
 
 export interface ArticleHistoryItem {
   id: number;
-  operationType: 'ENTREE' | 'SORTIE' | 'RESET';
+  operationType: 'ENTREE' | 'SORTIE' | 'RETURN' | 'RESET' | 'CANCEL_RECEPTION' | 'INVENTORY_ADJUSTMENT';
   initialQuantity: number;
   operationQuantity: number;
   finalQuantity: number;
   operationDate: string;
   operationUser: string;
+  beneficiary?: string;
+  referenceType?: string;
+  referenceId?: number;
+  referenceLabel?: string;
 }
 
 export interface ArticleStateHistoryItem {

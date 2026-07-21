@@ -52,8 +52,50 @@ tbody td {
     font-size: 10px;
 }
 
-.col-user {
+.col-user,
+.col-beneficiary,
+.col-reference {
     font-size: 11px;
+    color: var(--ad-text-muted);
+}
+
+.col-beneficiary,
+.col-reference {
+    vertical-align: top;
+}
+
+.beneficiary-name {
+    display: block;
+    color: var(--ad-text-secondary);
+    font-weight: 600;
+}
+
+.author-hint {
+    display: block;
+    margin-top: 2px;
+    font-size: 10px;
+    color: var(--ad-text-muted);
+}
+
+.reference-label {
+    display: block;
+    color: var(--ad-text-secondary);
+    font-weight: 600;
+}
+
+.reference-link {
+    display: inline-block;
+    margin-top: 3px;
+    font-size: 10px;
+    color: var(--ad-navy);
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.reference-empty {
     color: var(--ad-text-muted);
 }
 

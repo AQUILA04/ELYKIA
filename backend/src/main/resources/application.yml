@@ -42,7 +42,7 @@ spring:
           location: ${GOOGLE_CLOUD_LOCATION:us-central1}
           chat:
             options:
-              model: gemini-2.0-flash
+              model: gemini-3.5-flash
               temperature: 0.1
               max-output-tokens: 4096
     deepseek:

@@ -333,6 +333,22 @@
   background: var(--navy-xpale);
 }
 
+@media (max-width: 768px) {
+  .user-details-page .permissions-body {
+    padding: 12px;
+  }
+
+  .user-details-page .permissions-footer {
+    padding: 12px;
+    justify-content: stretch;
+  }
+
+  .user-details-page .permissions-footer .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 720px) {
   .user-details-page .info-grid {
     grid-template-columns: 1fr;

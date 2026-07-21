@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.service.stock;
 
 import com.optimize.common.entities.service.GenericService;
+import com.optimize.elykia.core.dto.ArticleHistoryContext;
 import com.optimize.elykia.core.entity.article.ArticleHistory;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.sale.Credit;
@@ -32,11 +33,17 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
 
     public StockMovement recordMovement(Articles article, MovementType type, Integer quantity,
             String reason, String performedBy, Credit relatedCredit) {
-        return recordMovement(article, type, quantity, reason, performedBy, relatedCredit, null);
+        return recordMovement(article, type, quantity, reason, performedBy, relatedCredit, null, null);
     }
 
     public StockMovement recordMovement(Articles article, MovementType type, Integer quantity,
             String reason, String performedBy, Credit relatedCredit, Double unitCost) {
+        return recordMovement(article, type, quantity, reason, performedBy, relatedCredit, unitCost, null);
+    }
+
+    public StockMovement recordMovement(Articles article, MovementType type, Integer quantity,
+            String reason, String performedBy, Credit relatedCredit, Double unitCost,
+            ArticleHistoryContext historyContext) {
         int stockBefore = article.getStockQuantity() != null ? article.getStockQuantity() : 0;
         int stockAfter;
         if (type == MovementType.ENTRY || type == MovementType.RETURN || type == MovementType.INVENTORY_ADJUSTMENT) {
@@ -47,7 +54,14 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
             stockAfter = stockBefore;
         }
         return recordMovementWithSnapshot(article, type, quantity, stockBefore, stockAfter,
-                reason, performedBy, relatedCredit, unitCost, true);
+                reason, performedBy, relatedCredit, unitCost, true, historyContext);
+    }
+
+    public StockMovement recordMovementWithSnapshot(Articles article, MovementType type, Integer quantity,
+            Integer stockBefore, Integer stockAfter, String reason, String performedBy,
+            Credit relatedCredit, Double unitCost, boolean writeArticleHistory) {
+        return recordMovementWithSnapshot(article, type, quantity, stockBefore, stockAfter,
+                reason, performedBy, relatedCredit, unitCost, writeArticleHistory, null);
     }
 
     /**
@@ -58,7 +72,8 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
      */
     public StockMovement recordMovementWithSnapshot(Articles article, MovementType type, Integer quantity,
             Integer stockBefore, Integer stockAfter, String reason, String performedBy,
-            Credit relatedCredit, Double unitCost, boolean writeArticleHistory) {
+            Credit relatedCredit, Double unitCost, boolean writeArticleHistory,
+            ArticleHistoryContext historyContext) {
         StockMovement movement = new StockMovement();
         movement.setArticle(article);
         movement.setType(type);
@@ -75,7 +90,7 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
 
         if (writeArticleHistory) {
             ArticleHistory history = buildArticleHistory(article, type, quantity, performedBy,
-                    stockBefore, stockAfter);
+                    stockBefore, stockAfter, historyContext);
             articleHistoryService.create(history);
         }
 
@@ -83,8 +98,9 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
     }
 
     private ArticleHistory buildArticleHistory(Articles article, MovementType type, Integer quantity,
-            String performedBy, Integer stockBefore, Integer stockAfter) {
-        return switch (type) {
+            String performedBy, Integer stockBefore, Integer stockAfter,
+            ArticleHistoryContext historyContext) {
+        ArticleHistory history = switch (type) {
             case ENTRY -> {
                 com.optimize.elykia.core.dto.StockEntry stockEntry = new com.optimize.elykia.core.dto.StockEntry();
                 stockEntry.setArticleId(article.getId());
@@ -109,6 +125,25 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
             case ADJUSTMENT, INVENTORY_ADJUSTMENT ->
                 buildAdjustmentHistory(article, quantity, performedBy, stockBefore, stockAfter);
         };
+        applyHistoryContext(history, historyContext, performedBy);
+        return history;
+    }
+
+    static void applyHistoryContext(ArticleHistory history, ArticleHistoryContext context, String performedBy) {
+        if (context == null) {
+            if (history.getBeneficiary() == null) {
+                history.setBeneficiary(performedBy);
+            }
+            return;
+        }
+        if (context.getBeneficiary() != null) {
+            history.setBeneficiary(context.getBeneficiary());
+        } else if (history.getBeneficiary() == null) {
+            history.setBeneficiary(performedBy);
+        }
+        history.setReferenceType(context.getReferenceType());
+        history.setReferenceId(context.getReferenceId());
+        history.setReferenceLabel(context.getReferenceLabel());
     }
 
     private ArticleHistory buildAdjustmentHistory(Articles article, Integer quantity, String performedBy,

@@ -51,6 +51,12 @@ public class ArticleHistory extends Auditable<String> {
     @Column(name = "reason", length = 1000)
     private String reason;
 
+    @Column(name = "beneficiary", length = 255)
+    private String beneficiary;
+
+    @Column(name = "reference_label", length = 100)
+    private String referenceLabel;
+
     @PrePersist
     void ensureOccurredAt() {
         if (occurredAt == null) {

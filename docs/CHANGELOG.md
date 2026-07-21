@@ -9,10 +9,33 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.11.3] — 2026-07-21
+
+### Changed
+- Détail article — historique des mouvements : colonnes **Pour** (bénéficiaire) et **Demande** (référence + lien vers la demande de sortie/retour) à la place de la seule colonne auteur
+
+### Added
+- Deep link `?id=` sur les listes demandes de sortie, retours stock et demandes/retours tontine pour ouvrir le modal détail depuis l’historique article
+
+### Fixed
+- Lien demande de sortie depuis l’historique article : ouverture du modal détail (`/stock/request?id=`) au lieu du formulaire d’édition
+
+## Frontend — [2.11.2] — 2026-07-21
+
+### Changed
+- Composant `permission-picklist` (fiche utilisateur) : refonte visuelle alignée palette ELYKIA, compteurs, états vides, boutons personnalisés ; mise en page une colonne sur mobile avec flèches verticales
+
 ## Frontend — [2.11.1] — 2026-07-20
 
 ### Changed
 - Bouton « Historique inventaires » et routes associées (`/inventory/history`, détail, trajectoire) réservés au rôle `ROLE_CONSULT_INVENTORY_HISTORY`
+
+## Backend — [1.3.2] — 2026-07-21
+
+### Added
+- Historique article (`article_history`) : champs `beneficiary` et `reference_label` (migration V81) ; types `STOCK_TONTINE_REQUEST` / `STOCK_TONTINE_RETURN`
+- Enregistrement du bénéficiaire et de la référence demande lors des entrées, sorties (demande commerciale/tontine), retours stock et ajustements inventaire
+- API `GET /api/v1/articles/{id}/history` : expose `beneficiary`, `referenceType`, `referenceId`, `referenceLabel`
 
 ## Backend — [1.3.1] — 2026-07-20
 

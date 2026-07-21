@@ -321,6 +321,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
             double unitPrice = stockValuationFacade.resolveEntryUnitPrice(articles, stockEntry.getUnitPrice());
 
             ArticleHistory articleHistory = ArticleHistory.buildEntryHistory(articles, stockEntry, connectedUser);
+            articleHistory.setBeneficiary(connectedUser);
             articleHistoryService.create(articleHistory);
 
             StockReceptionItem receptionItem = new StockReceptionItem();
@@ -387,6 +388,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
         Articles articles = getById(creditArticles.getArticlesId());
         ArticleHistory articleHistory = ArticleHistory.buildReleaseHistory(articles, creditArticles.getQuantity(),
                 connectedUser);
+        articleHistory.setBeneficiary(connectedUser);
         articleHistoryService.create(articleHistory);
         articles.makeRelease(creditArticles.getQuantity());
         update(articles);

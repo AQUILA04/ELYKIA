@@ -30,6 +30,10 @@ public class ArticleHistoryService extends GenericService<ArticleHistory, Long> 
                         .finalQuantity(h.getFinalQuantity())
                         .operationDate(h.getOperationDate())
                         .operationUser(h.getOperationUser())
+                        .beneficiary(h.getBeneficiary())
+                        .referenceType(h.getReferenceType())
+                        .referenceId(h.getReferenceId())
+                        .referenceLabel(h.getReferenceLabel())
                         .build())
                 .collect(Collectors.toList());
     }
