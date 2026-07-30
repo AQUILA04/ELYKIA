@@ -44,7 +44,9 @@ export class StockTontineReturnListComponent implements OnInit, OnDestroy {
   totalElements = 0;
   isLoading = true;
   exportLoading = false;
+  exportSelectionLoading = false;
   processingId: number | null = null;
+  selectedReturnIds = new Set<number>();
 
   isPromoter = false;
   isStoreKeeper = false;
@@ -125,6 +127,7 @@ export class StockTontineReturnListComponent implements OnInit, OnDestroy {
       next: (page) => {
         this.returns = page.content;
         this.totalElements = page.totalElements ?? 0;
+        this.syncSelectionWithCurrentData();
         this.lastUpdate = new Date();
         this.isLoading = false;
         this.saveState();
@@ -183,6 +186,78 @@ export class StockTontineReturnListComponent implements OnInit, OnDestroy {
         console.error('Export error', err);
         this.alertService.toastError('Erreur lors du téléchargement du PDF');
         this.exportLoading = false;
+      }
+    });
+  }
+
+  get selectedCount(): number {
+    return this.selectedReturnIds.size;
+  }
+
+  get hasSelectedReturns(): boolean {
+    return this.selectedCount > 0;
+  }
+
+  get areAllCurrentPageSelected(): boolean {
+    const selectableIds = this.returns.map(ret => ret.id).filter((id): id is number => !!id);
+    return selectableIds.length > 0 && selectableIds.every(id => this.selectedReturnIds.has(id));
+  }
+
+  toggleSelectAllCurrentPage(checked: boolean): void {
+    this.returns.forEach(ret => {
+      if (!ret.id) return;
+      if (checked) {
+        this.selectedReturnIds.add(ret.id);
+      } else {
+        this.selectedReturnIds.delete(ret.id);
+      }
+    });
+  }
+
+  toggleReturnSelection(stockReturn: StockTontineReturnListItem, checked: boolean): void {
+    if (!stockReturn.id) return;
+    if (checked) {
+      this.selectedReturnIds.add(stockReturn.id);
+    } else {
+      this.selectedReturnIds.delete(stockReturn.id);
+    }
+  }
+
+  isReturnSelected(stockReturn: StockTontineReturnListItem): boolean {
+    return !!stockReturn.id && this.selectedReturnIds.has(stockReturn.id);
+  }
+
+  onExportSelectedPdf(): void {
+    const requestIds = Array.from(this.selectedReturnIds.values());
+    if (requestIds.length === 0) {
+      return;
+    }
+    this.exportSelectionLoading = true;
+    this.returnService.exportPdfByRequestIds(requestIds).subscribe({
+      next: (data) => {
+        this.downloadPdfBlob(data, `fiche_retours_stock_tontine_selection_${new Date().getTime()}.pdf`);
+        this.alertService.toastSuccess('Fiche des retours sélectionnés téléchargée avec succès');
+        this.exportSelectionLoading = false;
+      },
+      error: () => {
+        this.alertService.toastError('Erreur lors du téléchargement des retours sélectionnés');
+        this.exportSelectionLoading = false;
+      }
+    });
+  }
+
+  onExportSingleReturnPdf(stockReturn: StockTontineReturnListItem): void {
+    if (!stockReturn.id) return;
+    this.exportSelectionLoading = true;
+    this.returnService.exportPdfByRequestIds([stockReturn.id]).subscribe({
+      next: (data) => {
+        this.downloadPdfBlob(data, `fiche_retour_stock_tontine_${stockReturn.id}.pdf`);
+        this.alertService.toastSuccess('Fiche du retour téléchargée avec succès');
+        this.exportSelectionLoading = false;
+      },
+      error: () => {
+        this.alertService.toastError('Erreur lors du téléchargement de la fiche du retour');
+        this.exportSelectionLoading = false;
       }
     });
   }
@@ -270,6 +345,25 @@ export class StockTontineReturnListComponent implements OnInit, OnDestroy {
       case 'REFUSED': return 'Refusé';
       default: return 'Inconnu';
     }
+  }
+
+  private syncSelectionWithCurrentData(): void {
+    const currentIds = new Set(this.returns.map(ret => ret.id).filter((id): id is number => !!id));
+    this.selectedReturnIds.forEach(id => {
+      if (!currentIds.has(id)) {
+        this.selectedReturnIds.delete(id);
+      }
+    });
+  }
+
+  private downloadPdfBlob(data: Blob, filename: string): void {
+    const blob = new Blob([data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 
   private saveState(): void {

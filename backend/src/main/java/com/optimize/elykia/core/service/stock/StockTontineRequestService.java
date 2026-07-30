@@ -428,7 +428,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         }
 
         List<StockRequestExportDTO> data = ((StockTontineRequestRepository) getRepository())
-                .findAggregatedStockRequests(startDate, endDate, collector, statuses);
+                .findAggregatedStockRequests(startDate, endDate, collector, statuses, null);
 
         long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
 

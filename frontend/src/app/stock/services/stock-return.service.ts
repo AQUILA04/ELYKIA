@@ -96,4 +96,12 @@ export class StockReturnService {
     }
     return this.http.get(`${this.apiUrl}/api/stock-returns/export/pdf`, { params, responseType: 'blob' });
   }
+
+  exportPdfByRequestIds(requestIds: number[]): Observable<Blob> {
+    let params = new HttpParams();
+    requestIds.forEach(id => {
+      params = params.append('requestIds', id);
+    });
+    return this.http.get(`${this.apiUrl}/api/stock-returns/export/pdf`, { params, responseType: 'blob' });
+  }
 }

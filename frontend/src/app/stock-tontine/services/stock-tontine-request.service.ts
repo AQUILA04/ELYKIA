@@ -94,4 +94,12 @@ export class StockTontineRequestService extends BaseHttpService {
     }
     return this.get(url, { responseType: 'blob' });
   }
+
+  exportPdfByRequestIds(requestIds: number[]): Observable<Blob> {
+    let params = new HttpParams();
+    requestIds.forEach(id => {
+      params = params.append('requestIds', id);
+    });
+    return this.get(`${this.baseUrl}/export/pdf`, { params, responseType: 'blob' });
+  }
 }

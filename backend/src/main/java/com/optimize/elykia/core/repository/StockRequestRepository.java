@@ -46,13 +46,15 @@ public interface StockRequestRepository extends GenericRepository<StockRequest, 
             "AND (:#{#collector == null} = true OR s.collector = :collector) " +
             "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
             "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
+            "AND (:#{#requestIds == null || #requestIds.isEmpty()} = true OR s.id IN :requestIds) " +
             "GROUP BY a.type, a.marque, a.model, a.name, i.unitPrice " +
             "ORDER BY a.type, a.marque, a.model, a.name")
     List<com.optimize.elykia.core.dto.StockRequestExportDTO> findAggregatedStockRequests(
             @Param("startDate") java.time.LocalDate startDate,
             @Param("endDate") java.time.LocalDate endDate,
             @Param("collector") String collector,
-            @Param("statuses") List<StockRequestStatus> statuses);
+            @Param("statuses") List<StockRequestStatus> statuses,
+            @Param("requestIds") List<Long> requestIds);
 
     @Query("SELECT new com.optimize.elykia.core.dto.stock.StockRequestListDto(" +
             "s.id, s.reference, s.collector, s.requestDate, s.validationDate, s.deliveryDate, s.status) " +

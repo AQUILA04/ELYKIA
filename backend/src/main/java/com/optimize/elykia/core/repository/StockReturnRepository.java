@@ -26,17 +26,19 @@ public interface StockReturnRepository extends GenericRepository<StockReturn, Lo
             "SUM(i.quantity), i.unitPrice, SUM(i.quantity * COALESCE(i.unitPrice, 0.0)), " +
             "a.type, a.marque, a.model, a.name) " +
             "FROM StockReturn s JOIN s.items i JOIN i.article a " +
-            "WHERE s.status = :status " +
+            "WHERE s.status IN :statuses " +
             "AND (:#{#collector == null} = true OR s.collector = :collector) " +
             "AND (:#{#startDate == null} = true OR s.receivedDate >= :startDate) " +
             "AND (:#{#endDate == null} = true OR s.receivedDate <= :endDate) " +
+            "AND (:#{#requestIds == null || #requestIds.isEmpty()} = true OR s.id IN :requestIds) " +
             "GROUP BY a.type, a.marque, a.model, a.name, i.unitPrice " +
             "ORDER BY a.type, a.marque, a.model, a.name")
     List<com.optimize.elykia.core.dto.StockRequestExportDTO> findAggregatedStockReturns(
             @Param("startDate") java.time.LocalDate startDate,
             @Param("endDate") java.time.LocalDate endDate,
             @Param("collector") String collector,
-            @Param("status") StockReturnStatus status);
+            @Param("statuses") List<StockReturnStatus> statuses,
+            @Param("requestIds") List<Long> requestIds);
 
     @Query("SELECT new com.optimize.elykia.core.dto.stock.StockReturnListDto(" +
             "s.id, s.returnDate, s.receivedDate, s.collector, s.status) " +

@@ -87,9 +87,10 @@ public class StockTontineRequestController {
     public ResponseEntity<byte[]> exportPdf(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(required = false) String collector) {
+            @RequestParam(required = false) String collector,
+            @RequestParam(required = false) List<Long> requestIds) {
 
-        byte[] pdfContent = stockExportService.generateStockTontineRequestSortiePdfExport(startDate, endDate, collector);
+        byte[] pdfContent = stockExportService.generateStockTontineRequestSortiePdfExport(startDate, endDate, collector, requestIds);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);

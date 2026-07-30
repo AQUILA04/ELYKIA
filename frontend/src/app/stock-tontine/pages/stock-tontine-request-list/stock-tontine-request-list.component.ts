@@ -43,7 +43,9 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
   totalElement = 0;
   isLoading = true;
   exportLoading = false;
+  exportSelectionLoading = false;
   processingId: number | null = null;
+  selectedRequestIds = new Set<number>();
 
   isManager = false;
   isStoreKeeper = false;
@@ -129,6 +131,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
       next: (page) => {
         this.requests = page.content;
         this.totalElement = page.totalElements ?? 0;
+        this.syncSelectionWithCurrentData();
         this.lastUpdate = new Date();
         this.isLoading = false;
         this.saveState();
@@ -186,6 +189,79 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
       error: () => {
         this.alertService.toastError('Erreur lors du téléchargement du PDF');
         this.exportLoading = false;
+      }
+    });
+  }
+
+  get selectedCount(): number {
+    return this.selectedRequestIds.size;
+  }
+
+  get hasSelectedRequests(): boolean {
+    return this.selectedCount > 0;
+  }
+
+  get areAllCurrentPageSelected(): boolean {
+    const selectableIds = this.requests.map(req => req.id).filter((id): id is number => !!id);
+    return selectableIds.length > 0 && selectableIds.every(id => this.selectedRequestIds.has(id));
+  }
+
+  toggleSelectAllCurrentPage(checked: boolean): void {
+    this.requests.forEach(req => {
+      if (!req.id) return;
+      if (checked) {
+        this.selectedRequestIds.add(req.id);
+      } else {
+        this.selectedRequestIds.delete(req.id);
+      }
+    });
+  }
+
+  toggleRequestSelection(request: StockTontineRequestListItem, checked: boolean): void {
+    if (!request.id) return;
+    if (checked) {
+      this.selectedRequestIds.add(request.id);
+    } else {
+      this.selectedRequestIds.delete(request.id);
+    }
+  }
+
+  isRequestSelected(request: StockTontineRequestListItem): boolean {
+    return !!request.id && this.selectedRequestIds.has(request.id);
+  }
+
+  onExportSelectedPdf(): void {
+    const requestIds = Array.from(this.selectedRequestIds.values());
+    if (requestIds.length === 0) {
+      return;
+    }
+    this.exportSelectionLoading = true;
+    this.requestService.exportPdfByRequestIds(requestIds).subscribe({
+      next: (data) => {
+        this.downloadPdfBlob(data, `fiche_sortie_stock_tontine_selection_${new Date().getTime()}.pdf`);
+        this.alertService.toastSuccess('Fiche des demandes sélectionnées téléchargée avec succès');
+        this.exportSelectionLoading = false;
+      },
+      error: () => {
+        this.alertService.toastError('Erreur lors du téléchargement des demandes sélectionnées');
+        this.exportSelectionLoading = false;
+      }
+    });
+  }
+
+  onExportSingleRequestPdf(request: StockTontineRequestListItem): void {
+    if (!request.id) return;
+    this.exportSelectionLoading = true;
+    this.requestService.exportPdfByRequestIds([request.id]).subscribe({
+      next: (data) => {
+        const suffix = request.reference ?? `demande_${request.id}`;
+        this.downloadPdfBlob(data, `fiche_sortie_stock_tontine_${suffix}.pdf`);
+        this.alertService.toastSuccess('Fiche de la demande téléchargée avec succès');
+        this.exportSelectionLoading = false;
+      },
+      error: () => {
+        this.alertService.toastError('Erreur lors du téléchargement de la fiche de la demande');
+        this.exportSelectionLoading = false;
       }
     });
   }
@@ -333,6 +409,25 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
       case 'REFUSED': return 'Refusé';
       default: return status;
     }
+  }
+
+  private syncSelectionWithCurrentData(): void {
+    const currentIds = new Set(this.requests.map(req => req.id).filter((id): id is number => !!id));
+    this.selectedRequestIds.forEach(id => {
+      if (!currentIds.has(id)) {
+        this.selectedRequestIds.delete(id);
+      }
+    });
+  }
+
+  private downloadPdfBlob(data: Blob, filename: string): void {
+    const blob = new Blob([data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 
   private saveState(): void {

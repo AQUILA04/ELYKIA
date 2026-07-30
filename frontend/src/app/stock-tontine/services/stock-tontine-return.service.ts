@@ -81,6 +81,14 @@ export class StockTontineReturnService extends BaseHttpService {
     return this.http.get(`${this.baseUrl}/export/pdf`, { params, responseType: 'blob' });
   }
 
+  exportPdfByRequestIds(requestIds: number[]): Observable<Blob> {
+    let params = new HttpParams();
+    requestIds.forEach(id => {
+      params = params.append('requestIds', id);
+    });
+    return this.http.get(`${this.baseUrl}/export/pdf`, { params, responseType: 'blob' });
+  }
+
   getMyReturns(page: number = 0, size: number = 20): Observable<Page<StockTontineReturn>> {
     return this.getAllReturns({}, page, size);
   }

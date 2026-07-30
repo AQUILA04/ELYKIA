@@ -86,15 +86,17 @@ public interface StockTontineReturnRepository extends GenericRepository<StockTon
             "SUM(i.quantity), COALESCE(a.sellingPrice, 0.0), SUM(i.quantity * COALESCE(a.sellingPrice, 0.0)), " +
             "a.type, a.marque, a.model, a.name) " +
             "FROM StockTontineReturn s JOIN s.items i JOIN i.article a " +
-            "WHERE s.status = :status " +
+            "WHERE s.status IN :statuses " +
             "AND (:#{#collector == null} = true OR s.collector = :collector) " +
             "AND (:#{#startDate == null} = true OR s.receivedDate >= :startDate) " +
             "AND (:#{#endDate == null} = true OR s.receivedDate <= :endDate) " +
+            "AND (:#{#requestIds == null || #requestIds.isEmpty()} = true OR s.id IN :requestIds) " +
             "GROUP BY a.type, a.marque, a.model, a.name, a.sellingPrice " +
             "ORDER BY a.type, a.marque, a.model, a.name")
     List<com.optimize.elykia.core.dto.StockRequestExportDTO> findAggregatedStockReturns(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
             @Param("collector") String collector,
-            @Param("status") StockReturnStatus status);
+            @Param("statuses") List<StockReturnStatus> statuses,
+            @Param("requestIds") List<Long> requestIds);
 }

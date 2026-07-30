@@ -113,4 +113,12 @@ export class StockRequestService extends BaseHttpService {
     }
     return this.http.get(url, { responseType: 'blob' });
   }
+
+  exportPdfByRequestIds(requestIds: number[]): Observable<Blob> {
+    let params = new HttpParams();
+    requestIds.forEach(id => {
+      params = params.append('requestIds', id);
+    });
+    return this.http.get(`${this.baseUrl}/export/pdf`, { params, responseType: 'blob' });
+  }
 }

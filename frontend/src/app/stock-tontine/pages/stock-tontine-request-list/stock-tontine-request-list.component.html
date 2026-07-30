@@ -85,6 +85,10 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         {{ exportLoading ? 'Export…' : 'Fiche sortie PDF' }}
       </button>
+      <button type="button" class="btn-download" (click)="onExportSelectedPdf()" [disabled]="exportSelectionLoading || !hasSelectedRequests">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        {{ exportSelectionLoading ? 'Export…' : 'Télécharger sélection (' + selectedCount + ')' }}
+      </button>
 
       <span class="result-count">
         <strong>{{ totalElement }}</strong> demande(s)
@@ -118,6 +122,13 @@
         <table class="data-table" *ngIf="!isLoading && requests.length > 0">
           <thead>
             <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  [checked]="areAllCurrentPageSelected"
+                  (change)="toggleSelectAllCurrentPage($any($event.target).checked)"
+                  title="Tout sélectionner">
+              </th>
               <th>#</th>
               <th>Référence</th>
               <th>Date demande</th>
@@ -133,6 +144,13 @@
                 [attr.data-reference]="req.reference"
                 [attr.data-status]="req.status"
                 [attr.data-collector]="req.collector">
+              <td>
+                <input
+                  type="checkbox"
+                  [checked]="isRequestSelected(req)"
+                  (change)="toggleRequestSelection(req, $any($event.target).checked)"
+                  title="Sélectionner la demande">
+              </td>
               <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
               <td><span class="col-ref-main">{{ req.reference || '—' }}</span></td>
               <td><span class="col-date">{{ req.requestDate | date:'dd/MM/yyyy' }}</span></td>
@@ -145,6 +163,9 @@
                 <button class="btn-detail" (click)="showDetails(req)" title="Détails">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                   Voir
+                </button>
+                <button class="btn-detail" (click)="onExportSingleRequestPdf(req)" title="Télécharger la demande" [disabled]="exportSelectionLoading">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 </button>
                 <button *ngIf="isManager && req.status === 'CREATED'" class="btn-detail btn-success"
                         (click)="validate(req)" title="Valider" data-testid="e2e-stock-tontine-request-validate">
@@ -241,6 +262,9 @@
       </ng-container>
     </div>
     <div class="stock-modal-footer">
+      <button type="button" class="btn-download" (click)="onExportSingleRequestPdf(selectedRequest!)" [disabled]="exportSelectionLoading || !selectedRequest">
+        Télécharger la demande
+      </button>
       <button type="button" class="btn-primary" (click)="closeDetails()">Fermer</button>
     </div>
   </div>

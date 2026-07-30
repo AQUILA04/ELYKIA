@@ -18,10 +18,22 @@
     <h1 th:text="${context.title}">Fiche des demandes de sortie stock</h1>
 
     <div class="header">
-        <p><strong>Période :</strong> <span th:text="${context.startDate}"></span> au <span th:text="${context.endDate}"></span></p>
+        <p th:if="${context.selectionMode}">
+            <strong>Référence(s) :</strong>
+            <span th:text="${context.references}">—</span>
+        </p>
+        <p th:unless="${context.selectionMode}">
+            <strong>Période :</strong>
+            <span th:text="${context.startDate}"></span> au <span th:text="${context.endDate}"></span>
+        </p>
         <p><strong>Commercial :</strong> <span th:text="${context.collector}"></span></p>
         <p><strong>Date de génération :</strong> <span th:text="${context.generationDate}"></span></p>
-        <p><em>Basé sur la date de livraison des demandes livrées.</em></p>
+        <p th:unless="${context.selectionMode}">
+            <em>Basé sur la date de livraison des demandes livrées.</em>
+        </p>
+        <p th:if="${context.selectionMode}">
+            <em>Fiche limitée aux demande(s) sélectionnée(s).</em>
+        </p>
     </div>
 
     <table>
@@ -35,7 +47,10 @@
         </thead>
         <tbody>
             <tr th:if="${#lists.isEmpty(context.items)}">
-                <td colspan="4" class="no-data">Aucune donnée trouvée pour cette période.</td>
+                <td colspan="4" class="no-data"
+                    th:text="${context.selectionMode} ? 'Aucune donnée trouvée pour cette/ces demande(s).' : 'Aucune donnée trouvée pour cette période.'">
+                    Aucune donnée trouvée.
+                </td>
             </tr>
             <tr th:each="item : ${context.items}">
                 <td th:text="${item.articleName}"></td>

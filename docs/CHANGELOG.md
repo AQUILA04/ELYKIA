@@ -9,6 +9,85 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.12.11] — 2026-07-30
+
+### Added
+- Crédits en retard : action « Terrain » par ligne (desktop/mobile) pour enregistrer le total constaté dans le carnet client pendant le ratissage.
+- Modal de saisie « Contrôle terrain » sur les crédits en retard (montant carnet + note optionnelle) avec envoi API dédié.
+- Détail crédit : nouvelle section conditionnelle « Contrôle terrain » (affichée uniquement si une saisie terrain existe) avec comparaison système vs carnet, écart et statut conformité/disparité.
+
+### Changed
+- Service crédit : ajout des appels frontend `createFieldControl` et `getLatestFieldControl` pour brancher la saisie terrain et la visualisation dans le détail crédit.
+
+## Frontend — [2.12.10] — 2026-07-30
+
+### Added
+- Listes demandes/retours stock (standard et tontine) : téléchargement PDF par demande depuis la ligne et la fenêtre détail.
+- Listes demandes/retours stock (standard et tontine) : sélection multiple avec case « tout sélectionner » et export d’une fiche PDF commune pour les demandes sélectionnées.
+
+### Changed
+- Services frontend stock et stock tontine : nouvel appel d’export PDF avec paramètre `requestIds` pour cibler un lot précis de demandes/retours.
+
+## Frontend — [2.12.9] — 2026-07-24
+
+### Changed
+- Rapport journalier : navigation par segments (boutons) à la place des onglets Material scrollables, grille 2×2 sur mobile
+
+## Frontend — [2.12.8] — 2026-07-24
+
+### Changed
+- Liste clients : toolbar filtres harmonisée (labels au-dessus, champs alignés) ; en-tête non fixé sur mobile
+- Fiche client : en-tête non fixé sur mobile (scroll page entière)
+
+## Frontend — [2.12.7] — 2026-07-24
+
+### Changed
+- Rapport journalier — onglet Recouvrement terrain : tableaux « À remettre par commercial » et « Détail des opérations » en cartes sur mobile
+
+## Frontend — [2.12.6] — 2026-07-24
+
+### Changed
+- Rapport journalier : barre de filtres globaux (période, dates, commercial) en toolbar structurée au-dessus des onglets ; sélecteur chef de recouvrement aligné sur l’onglet Recouvrement terrain
+
+## Frontend — [2.12.5] — 2026-07-24
+
+### Changed
+- Mobile (&lt;768px) : listes ventes, clients, membres tontine et collectes tontine en cartes ; tableaux desktop conservés
+- Filtres période (échéances, recouvrements, collecte tontine, ventes) : empilement mobile (pills, dates, commercial, Apply pleine largeur)
+
+## Frontend — [2.12.4] — 2026-07-24
+
+### Changed
+- Détail crédit : tableau des articles en cartes sur mobile (nom, type, quantité, prix, total) ; tableau conservé sur desktop
+
+## Frontend — [2.12.3] — 2026-07-24
+
+### Changed
+- Crédits en retard — filtres mobile : champs empilés (commercial, mois, localité, type) sans séparateurs desktop, pills type et téléchargement pleine largeur
+- Modal clôture terrain : liste en cartes sur mobile (client, commercial, partiel, montant) ; tableau conservé sur desktop
+
+## Frontend — [2.12.2] — 2026-07-23
+
+### Changed
+- Fiche client : historiques des achats et cotisations masqués sur mobile (sous 768px) ; visibles sur tablette/desktop
+
+## Frontend — [2.12.1] — 2026-07-23
+
+### Added
+- Page crédits en retard (mobile) : bandeau « Tout sélectionner / Tout désélectionner » pour le chef de recouvrement au-dessus des cartes
+
+## Frontend — [2.12.0] — 2026-07-23
+
+### Added
+- Connexion SSO depuis l’app mobile via hash `#sso=` (profil chef de recouvrement)
+- Bouton « Voir sur Maps » sur la fiche client lorsque les coordonnées GPS sont renseignées
+- Listes mobile (cartes) pour crédits en retard, échéances et recouvrements
+
+### Changed
+- Expérience mobile-first des écrans chef de recouvrement (crédits, client, listes tontine)
+- Sidebar mobile : fermeture automatique après navigation, backdrop cliquable, zones tactiles agrandies
+- Nom du client cliquable vers `/client/details/:id` depuis retards et détail crédit
+
 ## Frontend — [2.11.3] — 2026-07-21
 
 ### Changed
@@ -29,6 +108,30 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Changed
 - Bouton « Historique inventaires » et routes associées (`/inventory/history`, détail, trajectoire) réservés au rôle `ROLE_CONSULT_INVENTORY_HISTORY`
+
+## Backend — [1.3.6] — 2026-07-30
+
+### Added
+- Contrôle terrain crédit : nouvelle table `credit_field_control` (migration Flyway `V82`) pour tracer le total carnet observé, le montant système, l’écart, le statut et l’auteur du contrôle.
+- API crédits : création et consultation des contrôles terrain via `POST /api/v1/credits/{id}/field-controls`, `GET /api/v1/credits/{id}/field-controls/latest` et `GET /api/v1/credits/{id}/field-controls`.
+
+### Changed
+- Sécurisation de la création de contrôle terrain : endpoint restreint aux rôles recouvrement/management (`RECOVERY_MANAGER`, `MANAGER`, `ADMIN`) pour garantir l’intégrité des saisies terrain.
+
+## Backend — [1.3.5] — 2026-07-30
+
+### Added
+- Endpoints d’export PDF stock (`/api/stock-requests/export/pdf`, `/api/stock-returns/export/pdf`, `/api/v1/stock-tontine-request/export/pdf`, `/api/v1/stock-tontine-return/export/pdf`) : support du paramètre optionnel `requestIds` pour générer une fiche par demande ou par lot de demandes.
+- Templates PDF sortie/retour : en-tête **Référence(s)** en mode sélection (unitaire ou multi), à la place de la période.
+
+### Changed
+- Agrégations SQL d’export stock : filtrage optionnel par identifiants de demandes/retours (`IN :requestIds`) en complément des filtres période/commercial.
+- Export par sélection : inclusion de tous les statuts pertinents (pas seulement livré/réceptionné) pour afficher les articles de la demande ciblée.
+
+## Backend — [1.3.4] — 2026-07-23
+
+### Added
+- Champ `clientId` exposé dans `CreditLateDTO` pour navigation vers la fiche client
 
 ## Backend — [1.3.3] — 2026-07-21
 
@@ -107,6 +210,20 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Annulation de recouvrement : affichage du `message` backend (`error.error.message`) au lieu du message générique HttpClient.
+
+## Mobile — [2.11.1] — 2026-07-24
+
+### Fixed
+- Connexion web / SSO : si `apiUrl` est `localhost` (ou `127.0.0.1`) sur le port Spring `8081`, redirection vers le frontend Angular sur le port `4200`
+
+## Mobile — [2.11.0] — 2026-07-23
+
+### Added
+- Lien « Se connecter sur le web » sur l’écran de login (URL dérivée de `apiUrl` sans suffixe `/api`)
+- Redirection SSO vers le frontend pour le profil `RECOVERY_MANAGER` après login (token transmis en hash)
+
+### Changed
+- Refonte hiérarchie login : CTA primaire unique ; web et restauration en actions secondaires
 
 ## Mobile — [2.10.11] — 2026-07-21
 

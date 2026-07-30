@@ -41,6 +41,7 @@ public interface StockTontineRequestRepository extends GenericRepository<StockTo
             "AND (:#{#collector == null} = true OR s.collector = :collector) " +
             "AND (:#{#startDate == null} = true OR s.deliveryDate >= :startDate) " +
             "AND (:#{#endDate == null} = true OR s.deliveryDate <= :endDate) " +
+            "AND (:#{#requestIds == null || #requestIds.isEmpty()} = true OR s.id IN :requestIds) " +
             "GROUP BY COALESCE(i.itemName, CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name)), i.unitPrice, " +
             "a.type, a.marque, a.model, a.name " +
             "ORDER BY COALESCE(i.itemName, CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name))")
@@ -48,7 +49,8 @@ public interface StockTontineRequestRepository extends GenericRepository<StockTo
             @Param("startDate") java.time.LocalDate startDate,
             @Param("endDate") java.time.LocalDate endDate,
             @Param("collector") String collector,
-            @Param("statuses") List<StockRequestStatus> statuses);
+            @Param("statuses") List<StockRequestStatus> statuses,
+            @Param("requestIds") List<Long> requestIds);
 
     @Query("SELECT new com.optimize.elykia.core.dto.stock.StockTontineRequestListDto(" +
             "s.id, s.reference, s.collector, s.requestDate, s.validationDate, s.deliveryDate, s.status) " +
