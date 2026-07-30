@@ -9,6 +9,7 @@ import { ErrorHandlerService } from 'src/app/shared/service/error-handler.servic
 // Enhanced interfaces with proper typing
 import { CreditDistributionDetail, CreditTimelineDto } from '../types/credit.types';
 import { CreditListSummaryRequest } from '../types/credit-list-summary.types';
+import { CreateCreditFieldControlPayload, CreditFieldControlDto } from '../models/credit-field-control.model';
 // Interface pour les articles dans les réponses du serveur (avec id)
 interface CreditArticleResponse {
   readonly id: number;
@@ -128,6 +129,14 @@ export class CreditService extends BaseHttpService {
 
   getCollectorHistory(creditId: number): Observable<ApiResponse<any[]>> {
     return this.get(`${this.apiUrl}/${creditId}/collector-history`);
+  }
+
+  createFieldControl(creditId: number, payload: CreateCreditFieldControlPayload): Observable<ApiResponse<CreditFieldControlDto>> {
+    return this.post(`${this.apiUrl}/${creditId}/field-controls`, payload);
+  }
+
+  getLatestFieldControl(creditId: number): Observable<ApiResponse<CreditFieldControlDto>> {
+    return this.get(`${this.apiUrl}/${creditId}/field-controls/latest`);
   }
 
   searchCredits(searchDto: any, page: number, size: number): Observable<any> {

@@ -15,6 +15,7 @@ export class CreditLateTableComponent implements OnChanges {
   @Input() isRecoveryManager: boolean = false;
   @Output() pageChanged = new EventEmitter<number>();
   @Output() closeCredit = new EventEmitter<CreditLateDTO>();
+  @Output() fieldControl = new EventEmitter<CreditLateDTO>();
   @Output() selectionChanged = new EventEmitter<CreditLateDTO[]>();
   pageSize: number = 8;
   paginatedCredits: CreditLateDTO[] = [];
@@ -24,9 +25,19 @@ export class CreditLateTableComponent implements OnChanges {
 
   constructor(private router: Router) {}
 
+  get pageSelectedCount(): number {
+    return this.paginatedCredits.filter(c => c.selected).length;
+  }
+
+  get someSelected(): boolean {
+    const count = this.pageSelectedCount;
+    return count > 0 && count < this.paginatedCredits.length;
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['credits'] || changes['currentPage']) {
       this.updatePagination();
+      this.syncAllSelectedState();
     }
   }
 
@@ -37,8 +48,12 @@ export class CreditLateTableComponent implements OnChanges {
   }
 
   onSelectionChange(): void {
-    this.allSelected = this.paginatedCredits.length > 0 && this.paginatedCredits.every(c => c.selected);
+    this.syncAllSelectedState();
     this.emitSelection();
+  }
+
+  private syncAllSelectedState(): void {
+    this.allSelected = this.paginatedCredits.length > 0 && this.paginatedCredits.every(c => c.selected);
   }
 
   private emitSelection(): void {

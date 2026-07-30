@@ -36,6 +36,7 @@ import { CreditLateKpiComponent } from './credit-late/components/credit-late-kpi
 import { CreditLateFilterComponent } from './credit-late/components/credit-late-filter/credit-late-filter.component';
 import { CreditLateTableComponent } from './credit-late/components/credit-late-table/credit-late-table.component';
 import { CreditLateCloseModalComponent } from './credit-late/components/credit-late-close-modal/credit-late-close-modal.component';
+import { CreditFieldControlModalComponent } from './credit-late/components/credit-field-control-modal/credit-field-control-modal.component';
 import { CreditListKpiComponent } from './credit-list/components/credit-list-kpi/credit-list-kpi.component';
 import { CreditEcheanceComponent } from './credit-echeance/credit-echeance.component';
 import { CreditEcheanceKpiComponent } from './credit-echeance/components/credit-echeance-kpi/credit-echeance-kpi.component';
@@ -61,6 +62,7 @@ import { RecouvrementTableComponent } from './recouvrement/components/recouvreme
     CreditLateFilterComponent,
     CreditLateTableComponent,
     CreditLateCloseModalComponent,
+    CreditFieldControlModalComponent,
     CreditListKpiComponent,
     CreditEcheanceComponent,
     CreditEcheanceKpiComponent,

@@ -11,6 +11,7 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 import {UserService} from "../../user/service/user.service";
 import {UserProfilConstant} from "../../shared/constants/user-profil.constant";
 import {UserProfile} from "../../shared/models/user-profile.enum";
+import { CreditFieldControlDto } from '../models/credit-field-control.model';
 
 @Component({
   selector: 'app-credit-details',
@@ -28,6 +29,7 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
   collectorHistory: any[] = [];
   dailyStakeHistory: any[] = [];
   lateMetrics: any = null;
+  fieldControlLatest: CreditFieldControlDto | null = null;
 
   showChangeCollectorModal = false;
   agents: any[] = [];
@@ -112,6 +114,19 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
         }
       },
       error: (error) => this.handleError(error, 'Erreur de chargement de l\'historique des mises')
+    });
+
+    this.creditService.getLatestFieldControl(creditId).subscribe({
+      next: (response: any) => {
+        this.fieldControlLatest = response?.data || null;
+      },
+      error: (error) => {
+        if (error?.status === 404) {
+          this.fieldControlLatest = null;
+          return;
+        }
+        this.handleError(error, 'Erreur de chargement du contrôle terrain');
+      }
     });
 
     // Hide spinner once all requests are initiated

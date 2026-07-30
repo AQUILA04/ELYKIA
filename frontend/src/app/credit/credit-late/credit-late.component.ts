@@ -5,6 +5,9 @@ import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { MatDialog } from '@angular/material/dialog';
 import { CreditLateCloseModalComponent } from './components/credit-late-close-modal/credit-late-close-modal.component';
+import { CreditFieldControlModalComponent } from './components/credit-field-control-modal/credit-field-control-modal.component';
+import { CreditService } from '../service/credit.service';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
   selector: 'app-credit-late',
@@ -35,8 +38,10 @@ export class CreditLateComponent implements OnInit {
 
   constructor(
     private creditLateService: CreditLateService,
+    private creditService: CreditService,
     private userService: UserService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private alertService: AlertService
   ) {}
 
   ngOnInit() {
@@ -91,9 +96,38 @@ export class CreditLateComponent implements OnInit {
     this.openCloseModal([credit]);
   }
 
+  onFieldControl(credit: CreditLateDTO): void {
+    const dialogRef = this.dialog.open(CreditFieldControlModalComponent, {
+      width: '620px',
+      maxWidth: '95vw',
+      data: { credit },
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe((result?: { notebookTotalAmount: number; note?: string }) => {
+      if (!result) {
+        return;
+      }
+
+      this.creditService.createFieldControl(credit.id, result).subscribe({
+        next: () => {
+          this.alertService.showSuccess('Contrôle terrain enregistré avec succès.');
+          this.loadData();
+        },
+        error: (error) => {
+          console.error(error);
+          this.alertService.showError('Impossible d’enregistrer le contrôle terrain.');
+        }
+      });
+    });
+  }
+
   openCloseModal(credits: CreditLateDTO[]) {
     const dialogRef = this.dialog.open(CreditLateCloseModalComponent, {
       width: '800px',
+      maxWidth: '96vw',
+      panelClass: 'credit-late-close-dialog',
+      autoFocus: false,
       data: { credits },
       disableClose: true
     });

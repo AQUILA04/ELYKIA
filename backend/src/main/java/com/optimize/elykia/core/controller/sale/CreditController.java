@@ -6,6 +6,7 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.*;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
+import com.optimize.elykia.core.service.sale.CreditFieldControlService;
 import com.optimize.elykia.core.service.sale.CreditReturnHistoryService;
 import com.optimize.elykia.core.service.sale.CreditListSummaryService;
 import com.optimize.elykia.core.service.sale.CreditService;
@@ -43,6 +44,7 @@ public class CreditController {
     private final CreditReturnHistoryService creditReturnHistoryService;
     private final CreditArticlesService creditArticlesService;
     private final CreditListSummaryService creditListSummaryService;
+    private final CreditFieldControlService creditFieldControlService;
 
     @PostMapping
     public ResponseEntity<Response> createCredit(@RequestBody @Valid CreditDto dto) throws Exception {
@@ -309,6 +311,26 @@ public class CreditController {
     public ResponseEntity<Response> bulkChangeCollector(@RequestBody @Valid BulkChangeCollectorDto dto) {
         creditService.bulkChangeCollector(dto);
         return new ResponseEntity<>(ResponseUtil.successResponse(true), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "{id}/field-controls")
+    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Response> createFieldControl(@PathVariable Long id,
+                                                       @RequestBody @Valid CreateCreditFieldControlDto dto) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditFieldControlService.create(id, dto)),
+                HttpStatus.CREATED);
+    }
+
+    @GetMapping(value = "{id}/field-controls/latest")
+    public ResponseEntity<Response> getLatestFieldControl(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditFieldControlService.getLatest(id)),
+                HttpStatus.OK);
+    }
+
+    @GetMapping(value = "{id}/field-controls")
+    public ResponseEntity<Response> getFieldControlHistory(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditFieldControlService.getHistory(id)),
+                HttpStatus.OK);
     }
 
     @GetMapping(value = "{id}/collector-history")

@@ -1,0 +1,22 @@
+.field-control-modal {
+  .modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: min(560px, 92vw);
+  }
+
+  .credit-context {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #dde3ec;
+    background: #f7f9fc;
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+  }
+
+  .full-width {
+    width: 100%;
+  }
+}
