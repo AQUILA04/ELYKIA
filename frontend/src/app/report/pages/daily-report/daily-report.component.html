@@ -1,57 +1,104 @@
-<div class="container" data-testid="e2e-daily-report">
+<div class="container daily-report-page" data-testid="e2e-daily-report">
     <div class="header-fixed">
         <h1>Rapport Journalier</h1>
+        <p class="page-subtitle">Filtres période et commercial appliqués à tous les onglets · Vue d’ensemble, journal, recouvrement terrain</p>
     </div>
 
     <!-- Filters Toolbar -->
-    <div class="filters-container d-flex flex-wrap align-items-center gap-2 mb-4">
-        <button mat-stroked-button [color]="selectedFilter === 'today' ? 'primary' : undefined"
-            (click)="setFilter('today')" data-testid="e2e-daily-report-filter-today">Aujourd'hui</button>
-        <button mat-stroked-button [color]="selectedFilter === 'week' ? 'primary' : undefined"
-            (click)="setFilter('week')">Cette Semaine</button>
-        <button mat-stroked-button [color]="selectedFilter === 'month' ? 'primary' : undefined"
-            (click)="setFilter('month')">Ce
-            Mois</button>
-        <button mat-stroked-button [color]="selectedFilter === 'custom' ? 'primary' : undefined"
-            (click)="selectedFilter = 'custom'">Personnaliser</button>
+    <div class="toolbar daily-report-filters">
+        <div class="filter-fields">
+            <div class="filter-field filter-field-period">
+                <span class="toolbar-label">Période</span>
+                <div class="period-tabs">
+                    <button type="button" class="ptab"
+                        [class.active]="selectedFilter === 'today'"
+                        (click)="setFilter('today')"
+                        data-testid="e2e-daily-report-filter-today">Aujourd'hui</button>
+                    <button type="button" class="ptab"
+                        [class.active]="selectedFilter === 'week'"
+                        (click)="setFilter('week')">Cette semaine</button>
+                    <button type="button" class="ptab"
+                        [class.active]="selectedFilter === 'month'"
+                        (click)="setFilter('month')">Ce mois</button>
+                    <button type="button" class="ptab"
+                        [class.active-orange]="selectedFilter === 'custom'"
+                        (click)="selectedFilter = 'custom'">Personnalisé</button>
+                </div>
+            </div>
 
-        <!-- Custom Date Range -->
-        <mat-form-field appearance="outline" *ngIf="selectedFilter === 'custom'" class="custom-date-field">
-            <mat-label>Période</mat-label>
-            <mat-date-range-input [formGroup]="range" [rangePicker]="picker" [max]="today">
-                <input matStartDate formControlName="start" placeholder="Début">
-                <input matEndDate formControlName="end" placeholder="Fin" (dateChange)="applyCustomFilter()">
-            </mat-date-range-input>
-            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-date-range-picker #picker></mat-date-range-picker>
-        </mat-form-field>
+            <div class="filter-field filter-field-dates" *ngIf="selectedFilter === 'custom'">
+                <span class="toolbar-label">Dates</span>
+                <mat-form-field appearance="outline" class="custom-date-field" subscriptSizing="dynamic">
+                    <mat-label>Du — Au</mat-label>
+                    <mat-date-range-input [formGroup]="range" [rangePicker]="picker" [max]="today">
+                        <input matStartDate formControlName="start" placeholder="Début">
+                        <input matEndDate formControlName="end" placeholder="Fin" (dateChange)="applyCustomFilter()">
+                    </mat-date-range-input>
+                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-date-range-picker #picker></mat-date-range-picker>
+                </mat-form-field>
+            </div>
 
-        <!-- Commercial Selector (Admin Only) -->
-        <div class="agent-select" *ngIf="!isPromoter">
-            <ng-select [items]="agents" bindLabel="username" bindValue="username"
-                placeholder="Sélectionner un commercial" [searchFn]="searchAgent" [(ngModel)]="selectedAgent"
-                (change)="onAgentChange($event)" data-testid="e2e-daily-report-agent-select">
-                <ng-template ng-option-tmp let-item="item">
-                    {{item.username}} <small class="text-muted">({{item.firstname}}
-                        {{item.lastname}})</small>
-                </ng-template>
-            </ng-select>
+            <div class="filter-field filter-field-commercial" *ngIf="!isPromoter">
+                <span class="toolbar-label">Commercial</span>
+                <div class="agent-select">
+                    <ng-select [items]="agents" bindLabel="username" bindValue="username"
+                        placeholder="Sélectionner un commercial" [searchFn]="searchAgent" [(ngModel)]="selectedAgent"
+                        (change)="onAgentChange($event)" data-testid="e2e-daily-report-agent-select">
+                        <ng-template ng-option-tmp let-item="item">
+                            {{item.username}} <small class="text-muted">({{item.firstname}}
+                                {{item.lastname}})</small>
+                        </ng-template>
+                    </ng-select>
+                </div>
+            </div>
         </div>
 
-        <button mat-button color="warn" (click)="resetFilters()" *ngIf="selectedFilter === 'custom' || selectedAgent">
-            Réinitialiser
-        </button>
-
-        <!-- Margin Toggle Button -->
-        <button mat-icon-button (click)="toggleMargins()" matTooltip="Afficher/Masquer les marges"
-            *ngIf="!isPromoter && !isRecoveryManager">
-            <mat-icon>{{ showMargins ? 'visibility_off' : 'visibility' }}</mat-icon>
-        </button>
+        <div class="filter-actions">
+            <button type="button" class="btn-clear"
+                (click)="resetFilters()"
+                *ngIf="selectedFilter === 'custom' || selectedAgent">
+                Réinitialiser
+            </button>
+            <button type="button" class="btn-icon-toggle"
+                (click)="toggleMargins()"
+                title="Afficher/Masquer les marges"
+                *ngIf="!isPromoter && !isRecoveryManager"
+                [class.active]="showMargins">
+                <mat-icon>{{ showMargins ? 'visibility_off' : 'visibility' }}</mat-icon>
+                <span class="btn-icon-label">{{ showMargins ? 'Masquer marges' : 'Voir marges' }}</span>
+            </button>
+        </div>
     </div>
 
-    <!-- TABS -->
-    <mat-tab-group class="mt-4" animationDuration="0ms">
-        <mat-tab label="VUE D'ENSEMBLE">
+    <!-- Segment navigation -->
+    <nav class="report-segment" role="tablist" aria-label="Sections du rapport">
+        <button type="button" role="tab" class="segment-btn"
+            [class.active]="activeTab === 'overview'"
+            [attr.aria-selected]="activeTab === 'overview'"
+            (click)="activeTab = 'overview'">Vue d'ensemble</button>
+        <button type="button" role="tab" class="segment-btn"
+            [class.active]="activeTab === 'journal'"
+            [attr.aria-selected]="activeTab === 'journal'"
+            (click)="activeTab = 'journal'">Journal</button>
+        <button type="button" role="tab" class="segment-btn"
+            *ngIf="isRecoveryManager || isManager"
+            [class.active]="activeTab === 'recovery'"
+            [attr.aria-selected]="activeTab === 'recovery'"
+            (click)="activeTab = 'recovery'">Recouvrement</button>
+        <button type="button" role="tab" class="segment-btn"
+            [class.active]="activeTab === 'deposits'"
+            [attr.aria-selected]="activeTab === 'deposits'"
+            (click)="activeTab = 'deposits'">Versements</button>
+        <button type="button" role="tab" class="segment-btn"
+            *ngIf="isManager || isSecretary"
+            [class.active]="activeTab === 'remittance'"
+            [attr.aria-selected]="activeTab === 'remittance'"
+            (click)="activeTab = 'remittance'">Remise</button>
+    </nav>
+
+    <!-- PANEL: Vue d'ensemble -->
+    <div class="report-panel" *ngIf="activeTab === 'overview'" role="tabpanel">
             <div class="p-4">
                 <!-- Loading Spinner -->
                 <div *ngIf="isLoading" class="loading-container">
@@ -359,9 +406,10 @@
 
                 </div>
             </div>
-        </mat-tab>
+    </div>
 
-        <mat-tab label="JOURNAL DES OPÉRATIONS">
+    <!-- PANEL: Journal des opérations -->
+    <div class="report-panel" *ngIf="activeTab === 'journal'" role="tabpanel">
             <div class="p-4">
                 <div *ngIf="operations.length > 0 || selectedOperationType; else noOps">
                     <table class="w-full text-left border-collapse">
@@ -425,17 +473,19 @@
                     </div>
                 </ng-template>
             </div>
-        </mat-tab>
+    </div>
 
-        <mat-tab label="RECOUVREMENT TERRAIN" *ngIf="isRecoveryManager || isManager">
+    <!-- PANEL: Recouvrement terrain -->
+    <div class="report-panel" *ngIf="activeTab === 'recovery' && (isRecoveryManager || isManager)" role="tabpanel">
             <app-recovery-manager-report-tab
                 [startDate]="periodStart"
                 [endDate]="periodEnd"
                 [commercialUsername]="selectedAgent">
             </app-recovery-manager-report-tab>
-        </mat-tab>
+    </div>
 
-        <mat-tab label="HISTORIQUE DES VERSEMENTS">
+    <!-- PANEL: Historique des versements -->
+    <div class="report-panel" *ngIf="activeTab === 'deposits'" role="tabpanel">
             <div class="p-4">
                 <div *ngIf="deposits.length > 0; else noDeps">
                     <table class="w-full text-left border-collapse">
@@ -499,12 +549,12 @@
                     </div>
                 </ng-template>
             </div>
-        </mat-tab>
+    </div>
 
-        <mat-tab label="REMISE AU GESTIONNAIRE" *ngIf="isManager || isSecretary">
+    <!-- PANEL: Remise au gestionnaire -->
+    <div class="report-panel" *ngIf="activeTab === 'remittance' && (isManager || isSecretary)" role="tabpanel">
             <app-cash-period-remittance-tab></app-cash-period-remittance-tab>
-        </mat-tab>
-    </mat-tab-group>
+    </div>
 
     <div *ngIf="!isLoading && reports.length === 0" class="alert alert-info mt-3">
         Aucun rapport trouvé pour la période sélectionnée.

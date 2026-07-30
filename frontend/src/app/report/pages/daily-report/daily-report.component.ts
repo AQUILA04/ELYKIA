@@ -46,6 +46,7 @@ export class DailyReportComponent implements OnInit {
     isSecretary = false;
     showMargins = false; // Toggle for margin visibility
     isDownloading = false;
+    activeTab: 'overview' | 'journal' | 'recovery' | 'deposits' | 'remittance' = 'overview';
 
     // Operations Log
     operations: DailyOperationLog[] = [];
