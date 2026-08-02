@@ -132,3 +132,49 @@
     font-weight: 500;
   }
 }
+
+@media (max-width: 768px) {
+  .filter-card {
+    padding: 14px;
+  }
+
+  .filter-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .filter-group {
+    width: 100%;
+    max-width: none !important;
+  }
+
+  .period-pills {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .pill-btn {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 10px;
+  }
+
+  .date-inputs {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+
+    .date-sep {
+      display: none;
+    }
+
+    .filter-input,
+    .btn-apply-dates {
+      width: 100%;
+      min-height: 44px;
+      font-size: 16px;
+    }
+  }
+}

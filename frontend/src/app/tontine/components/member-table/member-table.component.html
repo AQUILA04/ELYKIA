@@ -1,51 +1,90 @@
 <div class="table-card">
   <div class="table-wrapper">
-    <table mat-table [dataSource]="dataSource" matSort class="members-table">
+    <div class="desktop-table-wrap">
+      <table mat-table [dataSource]="dataSource" matSort class="members-table">
 
-      <ng-container matColumnDef="client">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header="client.lastname">Client</th>
-        <td mat-cell *matCellDef="let member">
-          <div class="col-client">{{ getClientName(member) }}</div>
-          <div class="col-client-sub" *ngIf="member.client?.code">{{ member.client.code }}</div>
-        </td>
-      </ng-container>
+        <ng-container matColumnDef="client">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="client.lastname">Client</th>
+          <td mat-cell *matCellDef="let member">
+            <div class="col-client">{{ getClientName(member) }}</div>
+            <div class="col-client-sub" *ngIf="member.client?.code">{{ member.client.code }}</div>
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="totalContribution">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header="totalContribution">Total Contribué</th>
-        <td mat-cell *matCellDef="let member">
-          <div class="col-amount">{{ formatCurrency(member.totalContribution) }}</div>
-        </td>
-      </ng-container>
+        <ng-container matColumnDef="totalContribution">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="totalContribution">Total Contribué</th>
+          <td mat-cell *matCellDef="let member">
+            <div class="col-amount">{{ formatCurrency(member.totalContribution) }}</div>
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="commercial">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header="client.tontineCollector">Commercial</th>
-        <td mat-cell *matCellDef="let member">
-          <div class="col-collector">
-            <div class="col-collector-dot">{{ getInitials(getCommercial(member)) }}</div>
-            {{ getCommercial(member) }}
-          </div>
-        </td>
-      </ng-container>
+        <ng-container matColumnDef="commercial">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="client.tontineCollector">Commercial</th>
+          <td mat-cell *matCellDef="let member">
+            <div class="col-collector">
+              <div class="col-collector-dot">{{ getInitials(getCommercial(member)) }}</div>
+              {{ getCommercial(member) }}
+            </div>
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="deliveryStatus">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header="deliveryStatus">Statut Livraison</th>
-        <td mat-cell *matCellDef="let member">
+        <ng-container matColumnDef="deliveryStatus">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="deliveryStatus">Statut Livraison</th>
+          <td mat-cell *matCellDef="let member">
+            <span class="status-badge" [ngClass]="getStatusBadgeClass(member.deliveryStatus)">
+              {{ getStatusLabel(member.deliveryStatus) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="registrationDate">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="registrationDate">Date d'Inscription</th>
+          <td mat-cell *matCellDef="let member">
+            <span class="date-ok">{{ formatDate(member.registrationDate) }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Action</th>
+          <td mat-cell *matCellDef="let member">
+            <button class="btn-detail" (click)="onViewDetails(member)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              Voir
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
+            data-testid="e2e-tontine-member-row"
+            [attr.data-member-id]="row.id"
+            [attr.data-client-lastname]="row.client?.lastname"></tr>
+      </table>
+    </div>
+
+    <div class="mobile-card-list" *ngIf="!loading && dataSource.data.length > 0">
+      <div
+        class="mobile-card"
+        *ngFor="let member of dataSource.data"
+        data-testid="e2e-tontine-member-row"
+        [attr.data-member-id]="member.id"
+        [attr.data-client-lastname]="member.client?.lastname">
+        <div class="mobile-card-top">
           <span class="status-badge" [ngClass]="getStatusBadgeClass(member.deliveryStatus)">
             {{ getStatusLabel(member.deliveryStatus) }}
           </span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="registrationDate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header="registrationDate">Date d'Inscription</th>
-        <td mat-cell *matCellDef="let member">
-          <span class="date-ok">{{ formatDate(member.registrationDate) }}</span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Action</th>
-        <td mat-cell *matCellDef="let member">
+          <span class="mobile-card-ref" *ngIf="member.client?.code">{{ member.client.code }}</span>
+        </div>
+        <div class="mobile-card-client">{{ getClientName(member) }}</div>
+        <div class="mobile-card-meta">
+          <span>{{ getCommercial(member) }}</span>
+          <span>{{ formatDate(member.registrationDate) }}</span>
+        </div>
+        <div class="mobile-card-amount">{{ formatCurrency(member.totalContribution) }}</div>
+        <div class="mobile-card-actions">
           <button class="btn-detail" (click)="onViewDetails(member)">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -53,15 +92,9 @@
             </svg>
             Voir
           </button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
-          data-testid="e2e-tontine-member-row"
-          [attr.data-member-id]="row.id"
-          [attr.data-client-lastname]="row.client?.lastname"></tr>
-    </table>
+        </div>
+      </div>
+    </div>
 
     <div *ngIf="loading" class="table-loading">
       <div class="empty-state">

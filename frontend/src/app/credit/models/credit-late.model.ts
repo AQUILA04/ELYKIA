@@ -6,6 +6,7 @@ export enum LateType {
 export interface CreditLateDTO {
   id: number;
   reference: string;
+  clientId?: number;
   clientName: string;
   clientPhone: string;
   collector: string;

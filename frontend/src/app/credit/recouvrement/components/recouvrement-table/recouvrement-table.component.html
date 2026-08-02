@@ -12,54 +12,77 @@
     <p>Aucune donnée ne correspond à vos filtres actuels.</p>
   </div>
 
-  <div class="table-responsive" *ngIf="!isLoading && recouvrements.length > 0">
-    <table class="elykia-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Réf. Recouv.</th>
-          <th>Réf. Crédit</th>
-          <th>Client</th>
-          <th>Commercial</th>
-          <th class="text-right">Montant</th>
-          <th class="text-right">Reste dû</th>
-          <th class="text-center">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let row of paginatedRecouvrements">
-          <td class="date-cell">
-            <span class="d-date">{{ row.creationDate | date:'dd/MM/yyyy' }}</span>
-            <span class="d-time">{{ row.creationDate | date:'HH:mm' }}</span>
-          </td>
-          <td><span class="mono-badge">{{ row.reference }}</span></td>
-          <td><span class="mono-badge secondary">{{ row.creditReference }}</span></td>
-          <td class="client-cell">
-            <span class="c-name">{{ row.clientName }}</span>
-          </td>
-          <td class="commercial-cell">
-            <span class="cm-name">{{ row.commercial || 'N/A' }}</span>
-          </td>
-          <td class="text-right amount-val">{{ row.amount | number }} <small>FCFA</small></td>
-          <td class="text-right remaining-val">{{ row.totalAmountRemaining | number }} <small>FCFA</small></td>
-          <td class="text-center">
-            <ng-container *ngxPermissionsOnly="['ROLE_CANCEL_RECOVERY', 'ROLE_ADMIN']">
-              <button type="button" class="btn-cancel-recovery" (click)="onCancel(row)"
-                title="Annuler ce recouvrement">
-                Annuler
-              </button>
-            </ng-container>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <mat-paginator
-      [length]="recouvrements.length"
-      [pageSize]="itemsPerPage"
-      [pageSizeOptions]="[10, 20, 50, 100]"
-      (page)="onPageChange($event)"
-      aria-label="Sélectionner la page">
-    </mat-paginator>
+  <div class="desktop-table-wrap" *ngIf="!isLoading && recouvrements.length > 0">
+    <div class="table-responsive">
+      <table class="elykia-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Réf. Recouv.</th>
+            <th>Réf. Crédit</th>
+            <th>Client</th>
+            <th>Commercial</th>
+            <th class="text-right">Montant</th>
+            <th class="text-right">Reste dû</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of paginatedRecouvrements">
+            <td class="date-cell">
+              <span class="d-date">{{ row.creationDate | date:'dd/MM/yyyy' }}</span>
+              <span class="d-time">{{ row.creationDate | date:'HH:mm' }}</span>
+            </td>
+            <td><span class="mono-badge">{{ row.reference }}</span></td>
+            <td><span class="mono-badge secondary">{{ row.creditReference }}</span></td>
+            <td class="client-cell">
+              <span class="c-name">{{ row.clientName }}</span>
+            </td>
+            <td class="commercial-cell">
+              <span class="cm-name">{{ row.commercial || 'N/A' }}</span>
+            </td>
+            <td class="text-right amount-val">{{ row.amount | number }} <small>FCFA</small></td>
+            <td class="text-right remaining-val">{{ row.totalAmountRemaining | number }} <small>FCFA</small></td>
+            <td class="text-center">
+              <ng-container *ngxPermissionsOnly="['ROLE_CANCEL_RECOVERY', 'ROLE_ADMIN']">
+                <button type="button" class="btn-cancel-recovery" (click)="onCancel(row)"
+                  title="Annuler ce recouvrement">
+                  Annuler
+                </button>
+              </ng-container>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
+
+  <div class="mobile-card-list" *ngIf="!isLoading && recouvrements.length > 0">
+    <div class="mobile-card" *ngFor="let row of paginatedRecouvrements">
+      <div class="mobile-card-meta">
+        <span>{{ row.creationDate | date:'dd/MM/yyyy HH:mm' }}</span>
+        <span class="mono-badge">{{ row.reference }}</span>
+      </div>
+      <div class="mobile-card-client">{{ row.clientName }}</div>
+      <div class="mobile-card-meta">
+        <span>Crédit {{ row.creditReference }}</span>
+        <span>{{ row.commercial || 'N/A' }}</span>
+      </div>
+      <div class="mobile-card-amount">{{ row.amount | number }} FCFA · reste {{ row.totalAmountRemaining | number }}</div>
+      <div class="mobile-card-actions">
+        <ng-container *ngxPermissionsOnly="['ROLE_CANCEL_RECOVERY', 'ROLE_ADMIN']">
+          <button type="button" class="btn-cancel-recovery" (click)="onCancel(row)">Annuler</button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <mat-paginator
+    *ngIf="!isLoading && recouvrements.length > 0"
+    [length]="recouvrements.length"
+    [pageSize]="itemsPerPage"
+    [pageSizeOptions]="[10, 20, 50, 100]"
+    (page)="onPageChange($event)"
+    aria-label="Sélectionner la page">
+  </mat-paginator>
 </div>

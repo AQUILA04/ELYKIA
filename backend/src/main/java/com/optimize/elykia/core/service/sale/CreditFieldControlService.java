@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +29,11 @@ public class CreditFieldControlService {
 
     @Transactional
     public CreditFieldControlDto create(Long creditId, CreateCreditFieldControlDto dto) {
+        String reference = dto.getReference() != null ? dto.getReference().trim() : null;
+        if (StringUtils.hasText(reference) && repository.existsByReference(reference)) {
+            return toDto(repository.findByReference(reference).orElseThrow());
+        }
+
         Credit credit = creditRepository.findById(creditId)
                 .orElseThrow(() -> new ResourceNotFoundException("credit.not.found"));
 
@@ -37,6 +43,7 @@ public class CreditFieldControlService {
 
         CreditFieldControl entity = new CreditFieldControl();
         entity.setCredit(credit);
+        entity.setReference(reference);
         entity.setNotebookTotalAmount(notebookAmount);
         entity.setSystemTotalAmountPaid(systemAmountPaid);
         entity.setDifferenceAmount(differenceAmount);
@@ -66,6 +73,7 @@ public class CreditFieldControlService {
         return CreditFieldControlDto.builder()
                 .id(entity.getId())
                 .creditId(entity.getCredit() != null ? entity.getCredit().getId() : null)
+                .reference(entity.getReference())
                 .notebookTotalAmount(entity.getNotebookTotalAmount())
                 .systemTotalAmountPaid(entity.getSystemTotalAmountPaid())
                 .differenceAmount(entity.getDifferenceAmount())

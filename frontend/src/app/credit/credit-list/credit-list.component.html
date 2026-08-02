@@ -116,7 +116,8 @@
         </div>
       </div>
 
-      <table class="data-table" *ngIf="!isLoading && filteredCredits.length > 0">
+      <div class="desktop-table-wrap" *ngIf="!isLoading && filteredCredits.length > 0">
+      <table class="data-table">
         <thead>
           <tr>
             <th *ngIf="!isRecoveryManager && !isPromoter" class="col-select">
@@ -161,32 +162,79 @@
               </span>
             </td>
             <td class="col-actions">
-              <span *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
-                <button *ngIf="credit.status === 'VALIDATED'" type="button" class="btn-detail" title="Démarrer" (click)="startCredit(credit.id)">Démarrer</button>
-              </span>
-              <span *ngxPermissionsOnly="['ROLE_VALIDATE_CREDIT']">
-                <button *ngIf="credit.status === 'CREATED'" type="button" class="btn-detail btn-detail-success" title="Valider" (click)="validateCredit(credit.id)">Valider</button>
-              </span>
-              <button type="button" class="btn-detail" title="Détails" (click)="viewDetails(credit.id)">Détails</button>
-              <button *ngIf="['CREATED', 'VALIDATED', 'INPROGRESS'].includes(credit.status) && !isRecoveryManager" type="button" class="btn-detail" title="Changer la mise" (click)="changeDailyStake(credit.id)">Mise</button>
-              <button
-                *ngIf="credit.status === 'INPROGRESS' && credit.type === 'CREDIT' && credit.clientType === 'CLIENT' && !isRecoveryManager"
-                type="button"
-                class="btn-detail btn-detail-success"
-                title="Faire une mise"
-                data-testid="e2e-credit-daily-stake-btn"
-                (click)="openDailyStakeModal(credit)">
-                Encaisser
-              </button>
-              <span *ngIf="['CREATED', 'VALIDATED'].includes(credit.status)">
-                <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" type="button" class="btn-detail" title="Modifier" (click)="editCredit(credit.id)">Modifier</button>
-                <button *ngxPermissionsOnly="['ROLE_DEL_CREDIT']" type="button" class="btn-detail btn-detail-danger" title="Supprimer" (click)="deleteCredit(credit.id)">Supprimer</button>
-              </span>
+              <ng-container *ngTemplateOutlet="creditActions; context: { $implicit: credit }"></ng-container>
             </td>
           </tr>
         </tbody>
       </table>
+      </div>
+
+      <div class="mobile-card-list" *ngIf="!isLoading && filteredCredits.length > 0">
+        <div class="mobile-select-bar" *ngIf="!isRecoveryManager && !isPromoter">
+          <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected">
+            Tout sélectionner
+          </mat-checkbox>
+          <span class="mobile-select-count" *ngIf="selectedCredits.size > 0">{{ selectedCredits.size }} sélectionné(s)</span>
+        </div>
+        <div
+          class="mobile-card"
+          *ngFor="let credit of filteredCredits; let i = index"
+          data-testid="e2e-credit-row"
+          [attr.data-credit-id]="credit.id"
+          [attr.data-credit-reference]="credit.reference"
+          [attr.data-client-lastname]="credit.client?.lastname"
+          [attr.data-status]="credit.status">
+          <div class="mobile-card-top">
+            <mat-checkbox
+              *ngIf="!isRecoveryManager && !isPromoter && credit.status !== 'SETTLED'"
+              (change)="toggleSelection(credit.id)"
+              [checked]="isSelected(credit.id)">
+            </mat-checkbox>
+            <span class="mobile-card-ref">#{{ (currentPage * pageSize) + (i + 1) }}</span>
+            <span class="status-badge {{ (credit.status | statusBadge).badgeClass }}">
+              {{ (credit.status | statusBadge).label }}
+            </span>
+          </div>
+          <div class="mobile-card-client">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</div>
+          <div class="mobile-card-meta">
+            <span>{{ credit.collector || '—' }}</span>
+            <span>{{ credit.beginDate | date:'dd/MM/yyyy' }}</span>
+            <span [ngClass]="getBadgeClass(credit.remainingDaysCount)">{{ credit.remainingDaysCount ?? 0 }} j rest.</span>
+          </div>
+          <div class="mobile-card-amount">
+            {{ credit.totalAmount | number:'1.0-0' }} FCFA
+            <span class="mobile-card-amount-sub">· mise {{ credit.dailyStake | number:'1.0-0' }}/j</span>
+          </div>
+          <div class="mobile-card-actions">
+            <ng-container *ngTemplateOutlet="creditActions; context: { $implicit: credit }"></ng-container>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <ng-template #creditActions let-credit>
+      <span *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
+        <button *ngIf="credit.status === 'VALIDATED'" type="button" class="btn-detail" title="Démarrer" (click)="startCredit(credit.id)">Démarrer</button>
+      </span>
+      <span *ngxPermissionsOnly="['ROLE_VALIDATE_CREDIT']">
+        <button *ngIf="credit.status === 'CREATED'" type="button" class="btn-detail btn-detail-success" title="Valider" (click)="validateCredit(credit.id)">Valider</button>
+      </span>
+      <button type="button" class="btn-detail" title="Détails" (click)="viewDetails(credit.id)">Détails</button>
+      <button *ngIf="['CREATED', 'VALIDATED', 'INPROGRESS'].includes(credit.status) && !isRecoveryManager" type="button" class="btn-detail" title="Changer la mise" (click)="changeDailyStake(credit.id)">Mise</button>
+      <button
+        *ngIf="credit.status === 'INPROGRESS' && credit.type === 'CREDIT' && credit.clientType === 'CLIENT' && !isRecoveryManager"
+        type="button"
+        class="btn-detail btn-detail-success"
+        title="Faire une mise"
+        data-testid="e2e-credit-daily-stake-btn"
+        (click)="openDailyStakeModal(credit)">
+        Encaisser
+      </button>
+      <span *ngIf="['CREATED', 'VALIDATED'].includes(credit.status)">
+        <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" type="button" class="btn-detail" title="Modifier" (click)="editCredit(credit.id)">Modifier</button>
+        <button *ngxPermissionsOnly="['ROLE_DEL_CREDIT']" type="button" class="btn-detail btn-detail-danger" title="Supprimer" (click)="deleteCredit(credit.id)">Supprimer</button>
+      </span>
+    </ng-template>
 
     <mat-paginator
       *ngIf="!isLoading && totalElement > 0"

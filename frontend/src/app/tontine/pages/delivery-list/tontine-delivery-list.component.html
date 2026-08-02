@@ -130,7 +130,7 @@
           </div>
         </div>
 
-        <table class="data-table" *ngIf="!isLoading && deliveries.length > 0">
+        <table class="data-table mobile-responsive" *ngIf="!isLoading && deliveries.length > 0">
           <thead>
             <tr>
               <th>#</th>
@@ -145,21 +145,28 @@
           </thead>
           <tbody>
             <tr *ngFor="let delivery of deliveries; let i = index" class="table-row">
-              <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
-              <td><span class="col-ref">{{ delivery.reference || '—' }}</span></td>
-              <td>
-                <span class="col-client">{{ delivery.clientFirstname }} {{ delivery.clientLastname }}</span>
+              <td data-label="#"><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
+              <td data-label="Référence"><span class="col-ref">{{ delivery.reference || '—' }}</span></td>
+              <td data-label="Client">
+                <a *ngIf="delivery.clientId; else deliveryClientPlain"
+                   class="col-client client-link"
+                   [routerLink]="['/client/details', delivery.clientId]">
+                  {{ delivery.clientFirstname }} {{ delivery.clientLastname }}
+                </a>
+                <ng-template #deliveryClientPlain>
+                  <span class="col-client">{{ delivery.clientFirstname }} {{ delivery.clientLastname }}</span>
+                </ng-template>
                 <span class="col-phone" *ngIf="delivery.clientPhone">{{ delivery.clientPhone }}</span>
               </td>
-              <td>{{ delivery.commercialUsername }}</td>
-              <td>{{ delivery.deliveryDate | date:'dd/MM/yyyy HH:mm' }}</td>
-              <td><span class="col-amount">{{ delivery.totalAmount | number:'1.0-0' }} FCFA</span></td>
-              <td>
+              <td data-label="Commercial">{{ delivery.commercialUsername }}</td>
+              <td data-label="Date">{{ delivery.deliveryDate | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td data-label="Montant"><span class="col-amount">{{ delivery.totalAmount | number:'1.0-0' }} FCFA</span></td>
+              <td data-label="Statut">
                 <span class="status-badge" [ngClass]="getStatusClass(delivery.deliveryStatus)">
                   {{ getStatusLabel(delivery.deliveryStatus) }}
                 </span>
               </td>
-              <td class="col-actions">
+              <td class="col-actions" data-label="Action">
                 <button class="btn-detail" (click)="viewMember(delivery.tontineMemberId)" title="Détails membre">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                   Voir

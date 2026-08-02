@@ -1,37 +1,56 @@
 <div class="field-control-modal">
-  <h2 mat-dialog-title>Contrôle terrain</h2>
+  <div class="modal-header">
+    <h2>Contrôle terrain</h2>
+    <button type="button" class="close-btn" (click)="close()" [disabled]="isSubmitting" aria-label="Fermer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
 
-  <div mat-dialog-content class="modal-content">
-    <div class="credit-context">
-      <div><strong>Référence :</strong> {{ data.credit.reference }}</div>
-      <div><strong>Client :</strong> {{ data.credit.clientName }}</div>
-      <div><strong>Payé système :</strong> {{ data.credit.totalAmountPaid | number }} FCFA</div>
-      <div><strong>Restant dû :</strong> {{ data.credit.totalAmountRemaining | number }} FCFA</div>
+  <div class="modal-body">
+    <div class="credit-info">
+      <p><strong>Référence :</strong> {{ data.credit.reference }}</p>
+      <p><strong>Client :</strong> {{ data.credit.clientName }}</p>
+      <p><strong>Payé système :</strong> {{ data.credit.totalAmountPaid | number }} FCFA</p>
+      <p><strong>Restant dû :</strong> {{ data.credit.totalAmountRemaining | number }} FCFA</p>
     </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Total noté dans le carnet client</mat-label>
-      <input matInput type="number" min="0" [(ngModel)]="notebookTotalAmount" />
-      <span matTextSuffix>FCFA</span>
-      <mat-hint>Saisir le cumul effectivement marqué dans le carnet</mat-hint>
-    </mat-form-field>
+    <div class="form-group">
+      <label for="notebookTotal">Total noté dans le carnet client</label>
+      <div class="input-wrap">
+        <input
+          id="notebookTotal"
+          type="number"
+          min="0"
+          [(ngModel)]="notebookTotalAmount"
+          [disabled]="isSubmitting"
+          placeholder="0"
+        />
+        <span class="input-suffix">FCFA</span>
+      </div>
+      <small class="field-hint">Saisir le cumul effectivement marqué dans le carnet</small>
+    </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Note terrain (optionnel)</mat-label>
+    <div class="form-group">
+      <label for="fieldNote">Note terrain <span class="optional">(optionnel)</span></label>
       <textarea
-        matInput
+        id="fieldNote"
+        class="form-control note-area"
         rows="3"
         maxlength="500"
         [(ngModel)]="note"
-        placeholder="Ex: montant confirmé avec le client, correction à prévoir..."
+        [disabled]="isSubmitting"
+        placeholder="Ex. : montant confirmé avec le client, correction à prévoir…"
       ></textarea>
-    </mat-form-field>
+    </div>
   </div>
 
-  <div mat-dialog-actions align="end">
-    <button mat-stroked-button type="button" (click)="close()" [disabled]="isSubmitting">Annuler</button>
-    <button mat-flat-button color="primary" type="button" (click)="submit()" [disabled]="!isValid || isSubmitting">
-      Enregistrer
+  <div class="modal-actions">
+    <button type="button" class="btn btn-secondary" (click)="close()" [disabled]="isSubmitting">Annuler</button>
+    <button type="button" class="btn btn-primary" (click)="submit()" [disabled]="!isValid || isSubmitting">
+      {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer' }}
     </button>
   </div>
 </div>

@@ -1,9 +1,10 @@
 <div class="p-4">
-  <!-- Recovery Manager Selector (visible for MANAGER/ADMIN) TODO: load recovery managers list -->
-  <div class="rm-selector" *ngIf="isManager">
-    <label>Chef de recouvrement :</label>
-    <input type="text" class="rm-input" placeholder="Username du chef de recouvrement"
-      [(ngModel)]="recoveryManagerUsername" (ngModelChange)="onRecoveryManagerChange($event)" />
+  <div class="rm-toolbar" *ngIf="isManager">
+    <div class="filter-field">
+      <span class="toolbar-label">Chef de recouvrement</span>
+      <input type="text" class="rm-input" placeholder="Username du chef de recouvrement"
+        [(ngModel)]="recoveryManagerUsername" (ngModelChange)="onRecoveryManagerChange($event)" />
+    </div>
   </div>
 
   <!-- Loading -->
@@ -37,22 +38,35 @@
   <ng-container *ngIf="summary as s">
     <div class="section-card" *ngIf="s.remittanceByCommercial?.length">
       <h3 class="section-title">À remettre par commercial</h3>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Commercial</th>
-            <th class="text-right">Nb opérations</th>
-            <th class="text-right">Montant à remettre</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let rem of s.remittanceByCommercial">
-            <td>{{ rem.commercialUsername }}</td>
-            <td class="text-right">{{ rem.operationsCount }}</td>
-            <td class="text-right">{{ rem.totalToRemit | number }} FCFA</td>
-          </tr>
-        </tbody>
-      </table>
+
+      <div class="desktop-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Commercial</th>
+              <th class="text-right">Nb opérations</th>
+              <th class="text-right">Montant à remettre</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let rem of s.remittanceByCommercial">
+              <td>{{ rem.commercialUsername }}</td>
+              <td class="text-right">{{ rem.operationsCount }}</td>
+              <td class="text-right">{{ rem.totalToRemit | number }} FCFA</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mobile-card-list">
+        <div class="mobile-card" *ngFor="let rem of s.remittanceByCommercial">
+          <div class="mobile-card-client">{{ rem.commercialUsername }}</div>
+          <div class="mobile-card-meta">
+            <span>{{ rem.operationsCount }} opération(s)</span>
+          </div>
+          <div class="mobile-card-amount">{{ rem.totalToRemit | number }} FCFA</div>
+        </div>
+      </div>
     </div>
   </ng-container>
 
@@ -60,32 +74,52 @@
   <div class="section-card">
     <h3 class="section-title">Détail des opérations</h3>
     <div *ngIf="operations.length > 0; else noOps">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Réf. crédit</th>
-            <th>Client</th>
-            <th>Commercial</th>
-            <th class="text-right">Montant</th>
-            <th>Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let op of operations">
-            <td>{{ op.operationDate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ op.creditReference }}</td>
-            <td>{{ op.clientName }}</td>
-            <td>{{ op.commercialUsername }}</td>
-            <td class="text-right">{{ op.amountCollected | number }} FCFA</td>
-            <td>
-              <span class="type-badge" [class.partial]="op.isPartial" [class.total]="!op.isPartial">
-                {{ op.isPartial ? 'Partiel' : 'Total' }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="desktop-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Réf. crédit</th>
+              <th>Client</th>
+              <th>Commercial</th>
+              <th class="text-right">Montant</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let op of operations">
+              <td>{{ op.operationDate | date:'dd/MM/yyyy' }}</td>
+              <td>{{ op.creditReference }}</td>
+              <td>{{ op.clientName }}</td>
+              <td>{{ op.commercialUsername }}</td>
+              <td class="text-right">{{ op.amountCollected | number }} FCFA</td>
+              <td>
+                <span class="type-badge" [class.partial]="op.isPartial" [class.total]="!op.isPartial">
+                  {{ op.isPartial ? 'Partiel' : 'Total' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mobile-card-list">
+        <div class="mobile-card" *ngFor="let op of operations">
+          <div class="mobile-card-top">
+            <span class="type-badge" [class.partial]="op.isPartial" [class.total]="!op.isPartial">
+              {{ op.isPartial ? 'Partiel' : 'Total' }}
+            </span>
+            <span class="mobile-card-ref">{{ op.operationDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="mobile-card-client">{{ op.clientName }}</div>
+          <div class="mobile-card-meta">
+            <span>{{ op.creditReference }}</span>
+            <span>{{ op.commercialUsername }}</span>
+          </div>
+          <div class="mobile-card-amount">{{ op.amountCollected | number }} FCFA</div>
+        </div>
+      </div>
+
       <div class="mt-3">
         <mat-paginator [length]="totalElements" [pageSize]="pageSize"
           [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)">

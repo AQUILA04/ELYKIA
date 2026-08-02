@@ -16,41 +16,57 @@
 
   <!-- Table -->
   <div *ngIf="!isLoading && collectes.length > 0">
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Réf. Collecte</th>
-          <th>Client</th>
-          <th>Commercial</th>
-          <th class="text-right">Montant</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let row of paginatedCollectes">
-          <td>
-            <div class="date-ok">{{ row.collectionDate | date:'dd/MM/yyyy' }}</div>
-            <div class="date-label">{{ row.collectionDate | date:'HH:mm' }}</div>
-          </td>
-          <td>
-            <span class="col-ref">{{ row.reference }}</span>
-          </td>
-          <td>
-            <span class="col-client">{{ row.clientName }}</span>
-          </td>
-          <td>
-            <div class="col-collector">
-              <div class="col-collector-dot">{{ (row.commercialUsername || 'N/A') | slice:0:2 | uppercase }}</div>
-              <span>{{ row.commercialUsername || 'N/A' }}</span>
-            </div>
-          </td>
-          <td class="text-right">
-            <span class="col-amount">{{ row.amount | number }}</span>
-            <div class="col-amount-sub">FCFA</div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="desktop-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Réf. Collecte</th>
+            <th>Client</th>
+            <th>Commercial</th>
+            <th class="text-right">Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of paginatedCollectes">
+            <td>
+              <div class="date-ok">{{ row.collectionDate | date:'dd/MM/yyyy' }}</div>
+              <div class="date-label">{{ row.collectionDate | date:'HH:mm' }}</div>
+            </td>
+            <td>
+              <span class="col-ref">{{ row.reference }}</span>
+            </td>
+            <td>
+              <span class="col-client">{{ row.clientName }}</span>
+            </td>
+            <td>
+              <div class="col-collector">
+                <div class="col-collector-dot">{{ (row.commercialUsername || 'N/A') | slice:0:2 | uppercase }}</div>
+                <span>{{ row.commercialUsername || 'N/A' }}</span>
+              </div>
+            </td>
+            <td class="text-right">
+              <span class="col-amount">{{ row.amount | number }}</span>
+              <div class="col-amount-sub">FCFA</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mobile-card-list">
+      <div class="mobile-card" *ngFor="let row of paginatedCollectes">
+        <div class="mobile-card-meta">
+          <span>{{ row.collectionDate | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span class="col-ref">{{ row.reference }}</span>
+        </div>
+        <div class="mobile-card-client">{{ row.clientName }}</div>
+        <div class="mobile-card-meta">
+          <span>{{ row.commercialUsername || 'N/A' }}</span>
+        </div>
+        <div class="mobile-card-amount">{{ row.amount | number }} FCFA</div>
+      </div>
+    </div>
 
     <mat-paginator
       [length]="collectes.length"

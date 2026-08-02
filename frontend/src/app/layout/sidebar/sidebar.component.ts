@@ -197,6 +197,9 @@ export class SidebarComponent implements OnInit {
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.activeRoute = event.url;
+      if (typeof window !== 'undefined' && window.innerWidth < 1200) {
+        this.closeSidebar();
+      }
       // Gérer l'état de isCaisseOpen en fonction de la route active
       if (this.activeRoute.startsWith('/open-cashDesk') || this.activeRoute.startsWith('/daily-operation')) {
         this.isCaisseOpen = true;

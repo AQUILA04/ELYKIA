@@ -3,6 +3,7 @@ package com.optimize.elykia.core.controller.tontine;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.common.securities.models.User;
+import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlDto;
 import com.optimize.elykia.core.dto.TontineCollectionDto;
 import com.optimize.elykia.core.dto.TontineCatchupPreviewDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
@@ -11,6 +12,7 @@ import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
 import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
 import com.optimize.elykia.core.service.stock.StockExportService;
+import com.optimize.elykia.core.service.tontine.TontineMemberFieldControlService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -38,6 +40,7 @@ public class TontineController {
 
     private final TontineService tontineService;
     private final TontineStockService tontineStockService;
+    private final TontineMemberFieldControlService tontineMemberFieldControlService;
     private final CreditArticlesService creditArticlesService;
     private final StockExportService stockExportService;
 
@@ -112,6 +115,30 @@ public class TontineController {
     public ResponseEntity<Response> getMemberAmountHistory(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 tontineService.getMemberAmountHistory(id)), HttpStatus.OK);
+    }
+
+    @PostMapping("/members/{id}/field-controls")
+    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Response> createMemberFieldControl(
+            @PathVariable Long id,
+            @RequestBody @Valid CreateTontineMemberFieldControlDto dto) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineMemberFieldControlService.create(id, dto)),
+                HttpStatus.CREATED);
+    }
+
+    @GetMapping("/members/{id}/field-controls/latest")
+    public ResponseEntity<Response> getLatestMemberFieldControl(@PathVariable Long id) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineMemberFieldControlService.getLatest(id)),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/members/{id}/field-controls")
+    public ResponseEntity<Response> getMemberFieldControlHistory(@PathVariable Long id) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineMemberFieldControlService.getHistory(id)),
+                HttpStatus.OK);
     }
 
     @PutMapping("/members/{id}")

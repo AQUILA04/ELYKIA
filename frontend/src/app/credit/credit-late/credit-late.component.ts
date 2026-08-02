@@ -6,8 +6,6 @@ import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { MatDialog } from '@angular/material/dialog';
 import { CreditLateCloseModalComponent } from './components/credit-late-close-modal/credit-late-close-modal.component';
 import { CreditFieldControlModalComponent } from './components/credit-field-control-modal/credit-field-control-modal.component';
-import { CreditService } from '../service/credit.service';
-import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
   selector: 'app-credit-late',
@@ -35,13 +33,12 @@ export class CreditLateComponent implements OnInit {
 
   isRecoveryManager: boolean = false;
   selectedCredits: CreditLateDTO[] = [];
+  isFieldControlBusy = false;
 
   constructor(
     private creditLateService: CreditLateService,
-    private creditService: CreditService,
     private userService: UserService,
-    private dialog: MatDialog,
-    private alertService: AlertService
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -97,28 +94,25 @@ export class CreditLateComponent implements OnInit {
   }
 
   onFieldControl(credit: CreditLateDTO): void {
+    if (this.isFieldControlBusy) {
+      return;
+    }
+
+    this.isFieldControlBusy = true;
     const dialogRef = this.dialog.open(CreditFieldControlModalComponent, {
-      width: '620px',
+      width: '640px',
       maxWidth: '95vw',
       data: { credit },
-      disableClose: true
+      disableClose: true,
+      panelClass: 'field-control-dialog-panel',
+      autoFocus: false
     });
 
-    dialogRef.afterClosed().subscribe((result?: { notebookTotalAmount: number; note?: string }) => {
-      if (!result) {
-        return;
+    dialogRef.afterClosed().subscribe((saved?: boolean) => {
+      this.isFieldControlBusy = false;
+      if (saved) {
+        this.loadData();
       }
-
-      this.creditService.createFieldControl(credit.id, result).subscribe({
-        next: () => {
-          this.alertService.showSuccess('Contrôle terrain enregistré avec succès.');
-          this.loadData();
-        },
-        error: (error) => {
-          console.error(error);
-          this.alertService.showError('Impossible d’enregistrer le contrôle terrain.');
-        }
-      });
     });
   }
 

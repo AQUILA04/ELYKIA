@@ -777,9 +777,93 @@
   display: block !important;
 }
 
+.field-control-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field-control-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  background: var(--navy-xpale);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-control-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.field-control-value {
+  font-size: 16px;
+  color: var(--navy);
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+}
+
+.field-control-value.is-ok {
+  color: var(--green);
+}
+
+.field-control-value.is-gap {
+  color: var(--red);
+}
+
+.field-control-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field-control-badge.badge-ok {
+  color: var(--green);
+  background: var(--green-pale);
+}
+
+.field-control-badge.badge-gap {
+  color: var(--red);
+  background: var(--red-pale);
+}
+
+.field-control-meta {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.field-control-note {
+  margin-top: 10px;
+  padding: 12px;
+  border-left: 3px solid var(--navy);
+  border-radius: 0 8px 8px 0;
+  background: #f7f9fc;
+  font-size: 13px;
+  color: var(--navy);
+}
+
 .credit-table {
   width: 100% !important;
   border-collapse: collapse !important;
+}
+
+.articles-desktop-table {
+  display: block !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.articles-mobile-cards {
+  display: none !important;
 }
 
 .credit-table thead th {
@@ -830,6 +914,68 @@
   font-family: 'DM Mono', monospace !important;
   font-weight: 700 !important;
   color: var(--navy) !important;
+}
+
+.article-card {
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  padding: 14px !important;
+  background: #fff !important;
+  margin-bottom: 10px !important;
+  box-shadow: 0 1px 3px rgba(0, 51, 102, 0.06) !important;
+}
+
+.article-card-name {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--navy) !important;
+  line-height: 1.35 !important;
+  margin-bottom: 10px !important;
+}
+
+.article-card-meta {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin-bottom: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+.article-card-qty {
+  font-family: 'DM Mono', monospace !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--text-muted) !important;
+}
+
+.article-card-prices {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+  padding-top: 10px !important;
+  border-top: 1px solid var(--navy-pale) !important;
+}
+
+.article-card-label {
+  display: block !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--text-muted) !important;
+  margin-bottom: 4px !important;
+}
+
+.article-card-total {
+  text-align: right !important;
+}
+
+.article-card-empty {
+  text-align: center !important;
+  color: var(--text-muted) !important;
+  font-size: 13px !important;
+  padding: 16px !important;
 }
 
 .table-footer-row {
@@ -1410,6 +1556,17 @@
   }
 }
 
+.client-link {
+  color: var(--navy) !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+
+  &:hover {
+    text-decoration: underline !important;
+  }
+}
+
 @media (max-width: 600px) {
   .dates-strip {
     grid-template-columns: 1fr !important;
@@ -1421,6 +1578,44 @@
 
   .cd-page-wrapper {
     padding: 14px 12px 40px !important;
+  }
+
+  .late-banner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .client-hero {
+    flex-wrap: wrap !important;
+  }
+
+  .cd-btn-edit,
+  .btn-detail,
+  button.cd-btn {
+    min-height: 40px !important;
+  }
+
+  .articles-desktop-table {
+    display: none !important;
+  }
+
+  .articles-mobile-cards {
+    display: block !important;
+  }
+
+  .table-footer-row {
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+  }
+
+  .footer-value {
+    font-size: 18px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-strip {
+    grid-template-columns: 1fr !important;
   }
 }
 

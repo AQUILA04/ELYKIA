@@ -6,6 +6,18 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 import Swal from 'sweetalert2';
 import { HttpErrorResponse } from '@angular/common/http';
 
+interface MobileSsoPayload {
+  accessToken: string;
+  refreshToken?: string;
+  id: string | number;
+  username: string;
+  email?: string;
+  roles: string[];
+  profil?: string;
+  mustChangePassword?: boolean;
+  agencyId?: number | string;
+}
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -36,11 +48,17 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+
+    if (this.tryConsumeMobileSso()) {
+      return;
+    }
+
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/home']);
       return;
     }
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+
     // Détection du mode système (optionnel)
     if (window.matchMedia) {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
@@ -51,9 +69,64 @@ export class LoginComponent implements OnInit {
         this.isDarkMode = e.matches;
       });
     }
+  }
 
-    // Vous pouvez aussi ajouter un bouton pour basculer manuellement
-    // this.checkTimeForTheme();
+  /**
+   * Consumes `#sso=<base64url>` payload produced by the mobile app for RECOVERY_MANAGER.
+   */
+  private tryConsumeMobileSso(): boolean {
+    const hash = window.location.hash || '';
+    const match = hash.match(/(?:^|#|&)sso=([^&]+)/);
+    if (!match?.[1]) {
+      return false;
+    }
+
+    try {
+      const payload = this.decodeSsoPayload(match[1]);
+      if (!payload?.accessToken || !payload?.username || !Array.isArray(payload.roles)) {
+        throw new Error('Payload SSO incomplet');
+      }
+
+      const user = {
+        accessToken: payload.accessToken,
+        refreshToken: payload.refreshToken,
+        id: payload.id,
+        username: payload.username,
+        email: payload.email,
+        roles: payload.roles,
+        profil: payload.profil,
+        mustChangePassword: payload.mustChangePassword === true,
+        agencyId: payload.agencyId,
+      };
+
+      this.tokenStorage.saveToken(user.accessToken);
+      this.tokenStorage.saveUser(user);
+      if (user.agencyId != null && user.agencyId !== '') {
+        this.tokenStorage.saveAgencyId(String(user.agencyId));
+      }
+      this.authService.hydrateSession(user);
+
+      // Clear hash so a refresh does not re-apply SSO.
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+
+      if (user.mustChangePassword) {
+        this.router.navigate(['/user/change-password'], { queryParams: { forced: 'true' } });
+      } else {
+        this.router.navigateByUrl(this.returnUrl);
+      }
+      return true;
+    } catch {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      this.errorMessage = 'Connexion automatique depuis mobile impossible. Veuillez vous connecter manuellement.';
+      return false;
+    }
+  }
+
+  private decodeSsoPayload(encoded: string): MobileSsoPayload {
+    const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const json = decodeURIComponent(escape(atob(padded)));
+    return JSON.parse(json) as MobileSsoPayload;
   }
 
   // Méthode optionnelle pour changer le thème basé sur l'heure

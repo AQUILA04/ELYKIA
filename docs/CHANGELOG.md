@@ -9,6 +9,31 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.12.15] — 2026-08-02
+
+### Changed
+- Fiche membre tontine — contrôle terrain : détail mois en format lisible (`Mois` puis `Système | Carnet | Écart`), empilé sur mobile.
+
+## Frontend — [2.12.14] — 2026-08-02
+
+### Changed
+- Modals contrôle terrain (crédit et tontine) : style aligné sur le modal de mise (header navy, bloc info avec bordure gauche, champs et boutons arrondis) sans KPI.
+
+## Frontend — [2.12.13] — 2026-08-02
+
+### Changed
+- Contrôle terrain crédit et tontine : envoi API depuis la modal avec garde anti-double-clic (`isSubmitting`), référence d’idempotence générée une seule fois à l’ouverture, boutons désactivés pendant l’enregistrement.
+
+## Frontend — [2.12.12] — 2026-07-30
+
+### Added
+- Fiche membre tontine : bouton « Contrôle terrain » (chef de recouvrement) pour saisir, mois par mois, le total marqué dans le carnet client.
+- Modal de saisie terrain tontine : sélection multi-mois, montant carnet par mois, comparaison avec le total système du mois, note optionnelle.
+- Fiche membre tontine : section conditionnelle « Contrôle terrain » (affichée uniquement si une saisie existe) avec totaux, écart, statut et détail mois par mois.
+
+### Changed
+- Service tontine : ajout des appels `createMemberFieldControl` et `getLatestMemberFieldControl` pour brancher la saisie et la visualisation terrain.
+
 ## Frontend — [2.12.11] — 2026-07-30
 
 ### Added
@@ -108,6 +133,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Changed
 - Bouton « Historique inventaires » et routes associées (`/inventory/history`, détail, trajectoire) réservés au rôle `ROLE_CONSULT_INVENTORY_HISTORY`
+
+## Backend — [1.3.8] — 2026-08-02
+
+### Added
+- Contrôle terrain crédit/tontine : colonne `reference` unique (migration Flyway `V84`) et création idempotente — une même référence renvoie le contrôle déjà créé au lieu d’en dupliquer un.
+
+## Backend — [1.3.7] — 2026-07-30
+
+### Added
+- Contrôle terrain tontine : tables `tontine_member_field_control` et `tontine_member_field_control_line` (migration Flyway `V83`) pour tracer les montants carnet mois par mois face aux collectes système.
+- API membres tontine : `POST /api/v1/tontines/members/{id}/field-controls`, `GET .../field-controls/latest` et `GET .../field-controls` (création réservée à `RECOVERY_MANAGER`, `MANAGER`, `ADMIN`).
 
 ## Backend — [1.3.6] — 2026-07-30
 

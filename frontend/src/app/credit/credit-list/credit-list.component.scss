@@ -758,12 +758,158 @@
   .credit-list-page .kpi-strip-4 { grid-template-columns: repeat(2, 1fr); }
 }
 
+.credit-list-page .desktop-table-wrap {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.credit-list-page .mobile-card-list {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .credit-list-page .kpi-strip-2,
   .credit-list-page .kpi-strip-4 { grid-template-columns: 1fr; }
   .credit-list-page .advanced-search-panel .form-grid { grid-template-columns: 1fr; }
   .credit-list-page .header-card-main { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .credit-list-page .result-count { margin-left: 0; width: 100%; }
+  .credit-list-page .result-count { margin-left: 0; width: 100%; text-align: center; }
+
+  .credit-list-page .toolbar-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .credit-list-page .filter-group,
+  .credit-list-page .filter-group-period,
+  .credit-list-page .filter-group-dates {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credit-list-page .period-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .credit-list-page .period-btn {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 10px;
+  }
+
+  .credit-list-page .date-input {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .credit-list-page .btn-filter-toggle,
+  .credit-list-page .toolbar-actions,
+  .credit-list-page .toolbar-actions .btn-primary,
+  .credit-list-page .toolbar-actions .btn-secondary {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .credit-list-page .desktop-table-wrap { display: none; }
+
+  .credit-list-page .mobile-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 4px 0 8px;
+  }
+
+  .credit-list-page .mobile-select-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--navy-xpale);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    min-height: 48px;
+  }
+
+  .credit-list-page .mobile-select-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .credit-list-page .mobile-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    box-shadow: 0 1px 3px rgba(0, 51, 102, 0.06);
+  }
+
+  .credit-list-page .mobile-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .credit-list-page .mobile-card-ref {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    flex: 1;
+  }
+
+  .credit-list-page .mobile-card-client {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 4px 0;
+  }
+
+  .credit-list-page .mobile-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .credit-list-page .mobile-card-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 12px;
+  }
+
+  .credit-list-page .mobile-card-amount-sub {
+    font-weight: 500;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .credit-list-page .mobile-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .btn-detail {
+      flex: 1;
+      min-height: 40px;
+      justify-content: center;
+    }
+  }
 }
 
 @media (max-width: 600px) {

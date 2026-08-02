@@ -85,6 +85,12 @@ export class AuthService {
     this.permissionsService.loadPermissions(Array.isArray(roles) ? roles : []);
   }
 
+  /** Hydrate session after mobile SSO (token already saved). */
+  hydrateSession(user: any): void {
+    this.currentUserSubject.next(user);
+    this.setPermissions(user?.roles);
+  }
+
   loadPermissionsFromCurrentUser(): void {
     const user = this.getCurrentUser();
     this.setPermissions(user?.roles);

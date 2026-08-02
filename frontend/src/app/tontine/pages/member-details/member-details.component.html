@@ -36,6 +36,11 @@
     </div>
 
     <div class="header-actions">
+      <button class="btn-field-control" type="button" (click)="onFieldControl()"
+              *ngIf="isRecoveryManager" [disabled]="isFieldControlBusy">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+        {{ isFieldControlBusy ? 'Contrôle en cours...' : 'Contrôle terrain' }}
+      </button>
       <button class="btn-primary" (click)="onRecordCollection()" *ngIf="isSessionActive" data-testid="e2e-tontine-record-collection-btn">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         Enregistrer une Collecte
@@ -90,6 +95,66 @@
       <div class="kpi-label">Collectes à la livraison</div>
       <div class="kpi-value">{{ formatCurrency(member.totalDeliveryCollections || 0) }}</div>
       <div class="kpi-sub">Lors de la livraison</div>
+    </div>
+  </div>
+
+  <!-- Contrôle terrain -->
+  <div class="section-card a3 field-control-section" *ngIf="fieldControlLatest">
+    <div class="section-header">
+      <h2 class="section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+        Contrôle terrain
+      </h2>
+      <span class="field-control-badge"
+            [ngClass]="fieldControlLatest.status === 'CONFORME' ? 'badge-ok' : 'badge-gap'">
+        {{ fieldControlLatest.status === 'CONFORME' ? 'Conforme' : 'Disparité' }}
+      </span>
+    </div>
+
+    <div class="field-control-totals">
+      <div class="field-control-item">
+        <span class="field-control-label">Total système (mois contrôlés)</span>
+        <span class="field-control-value">{{ formatCurrency(fieldControlLatest.systemTotalAmount) }}</span>
+      </div>
+      <div class="field-control-item">
+        <span class="field-control-label">Total carnet</span>
+        <span class="field-control-value">{{ formatCurrency(fieldControlLatest.notebookTotalAmount) }}</span>
+      </div>
+      <div class="field-control-item">
+        <span class="field-control-label">Écart constaté</span>
+        <span class="field-control-value"
+              [ngClass]="fieldControlLatest.differenceAmount === 0 ? 'is-ok' : 'is-gap'">
+          {{ formatCurrency(fieldControlLatest.differenceAmount) }}
+        </span>
+      </div>
+    </div>
+
+    <div class="field-control-meta">
+      Saisi le {{ fieldControlLatest.observedAt | date:'dd/MM/yyyy HH:mm' }}
+      par <strong>{{ fieldControlLatest.observedBy }}</strong>
+    </div>
+    <div class="field-control-note" *ngIf="fieldControlLatest.note">
+      {{ fieldControlLatest.note }}
+    </div>
+
+    <div class="field-control-lines" *ngIf="fieldControlLatest.lines?.length">
+      <div class="field-control-month" *ngFor="let line of fieldControlLatest.lines">
+        <div class="field-control-month-name">
+          {{ getFieldControlMonthLabel(line.month) }} {{ line.year }}
+        </div>
+        <div class="field-control-month-values">
+          <span>Système : <strong class="mono">{{ formatCurrency(line.systemAmount) }}</strong></span>
+          <span class="sep" aria-hidden="true">|</span>
+          <span>Carnet : <strong class="mono">{{ formatCurrency(line.notebookAmount) }}</strong></span>
+          <span class="sep" aria-hidden="true">|</span>
+          <span>
+            Écart :
+            <strong class="mono" [ngClass]="line.differenceAmount === 0 ? 'is-ok' : 'is-gap'">
+              {{ formatCurrency(line.differenceAmount) }}
+            </strong>
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 

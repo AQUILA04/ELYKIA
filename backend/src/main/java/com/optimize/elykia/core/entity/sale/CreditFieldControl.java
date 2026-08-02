@@ -26,6 +26,10 @@ public class CreditFieldControl extends BaseEntity<String> {
     @JoinColumn(name = "credit_id", nullable = false)
     private Credit credit;
 
+    /** Client-supplied idempotency key (unique). */
+    @Column(name = "reference", nullable = false, length = 64, unique = true)
+    private String reference;
+
     @Column(name = "notebook_total_amount", nullable = false)
     private Double notebookTotalAmount;
 

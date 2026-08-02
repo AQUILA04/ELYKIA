@@ -2,6 +2,13 @@
   data-sidebar-position="fixed" data-header-position="fixed"
   [class.show-sidebar]="showHeaderAndSidebar && (layoutService.isSidebarOpen$ | async)">
 
+  <!-- Mobile sidebar backdrop -->
+  <div
+    class="sidebar-backdrop"
+    *ngIf="showHeaderAndSidebar && (layoutService.isSidebarOpen$ | async)"
+    (click)="layoutService.closeSidebar()"
+    aria-hidden="true"></div>
+
   <!-- Sidebar -->
   <div *ngIf="showHeaderAndSidebar" class="sidebar">
     <app-sidebar></app-sidebar>

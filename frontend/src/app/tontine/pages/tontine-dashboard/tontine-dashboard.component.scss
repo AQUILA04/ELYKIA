@@ -704,10 +704,105 @@
 }
 
 /* ── RESPONSIVE ─────────────────────────────────────────────── */
+.tontine-page .desktop-table-wrap {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tontine-page .mobile-card-list {
+  display: none;
+}
+
 @media (max-width: 1000px) {
   .tontine-page .tontine-kpi-strip { grid-template-columns: repeat(2, 1fr); }
   .tontine-page .header-meta-row { flex-direction: column; align-items: flex-start; }
   .tontine-page .header-actions { width: 100%; }
+}
+
+@media (max-width: 768px) {
+  .tontine-page .desktop-table-wrap { display: none; }
+
+  .tontine-page .mobile-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 4px 0 8px;
+  }
+
+  .tontine-page .mobile-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    box-shadow: 0 1px 3px rgba(0, 51, 102, 0.06);
+  }
+
+  .tontine-page .mobile-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tontine-page .mobile-card-ref {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .tontine-page .mobile-card-client {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 4px 0 8px;
+  }
+
+  .tontine-page .mobile-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .tontine-page .mobile-card-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--green, #1d8a3c);
+    margin-bottom: 12px;
+  }
+
+  .tontine-page .mobile-card-actions {
+    display: flex;
+    gap: 8px;
+
+    .btn-detail {
+      flex: 1;
+      min-height: 40px;
+      justify-content: center;
+    }
+  }
+
+  .tontine-page .header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    button {
+      flex: 1 1 auto;
+      min-height: 40px;
+    }
+  }
+
+  .tontine-page .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 @media (max-width: 680px) {

@@ -46,6 +46,20 @@
       </div>
     </div>
 
+    <div class="info-item" *ngIf="hasCoordinates">
+      <mat-icon class="info-icon">place</mat-icon>
+      <div class="info-content">
+        <span class="info-label">Position GPS</span>
+        <span class="info-value mono-coords">
+          {{ client.latitude | number:'1.5-5' }}, {{ client.longitude | number:'1.5-5' }}
+        </span>
+        <button type="button" class="btn-maps" (click)="openOnMaps()">
+          <mat-icon>map</mat-icon>
+          Voir sur Maps
+        </button>
+      </div>
+    </div>
+
     <div class="info-item">
       <mat-icon class="info-icon">map</mat-icon>
       <div class="info-content">

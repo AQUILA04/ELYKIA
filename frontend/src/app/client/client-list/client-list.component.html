@@ -56,47 +56,51 @@
   </div>
 
   <div class="toolbar a4">
-    <div class="filter-group filter-group-search">
-      <span class="toolbar-label">Recherche</span>
-      <div class="search-row">
-        <input
-          type="text"
-          class="search-input"
-          [(ngModel)]="searchTerm"
-          (keydown.enter)="onSearch()"
-          placeholder="Nom, prénom, téléphone, localité…"
-          data-testid="e2e-client-search">
-        <button type="button" class="btn-search-icon" (click)="onSearch()" title="Rechercher" aria-label="Rechercher">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        </button>
+    <div class="filter-fields">
+      <div class="filter-field filter-field-search">
+        <span class="toolbar-label">Recherche</span>
+        <div class="search-row">
+          <input
+            type="text"
+            class="search-input"
+            [(ngModel)]="searchTerm"
+            (keydown.enter)="onSearch()"
+            placeholder="Nom, prénom, téléphone, localité…"
+            data-testid="e2e-client-search">
+          <button type="button" class="btn-search-icon" (click)="onSearch()" title="Rechercher" aria-label="Rechercher">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-field filter-field-commercial">
+        <span class="toolbar-label">Commercial</span>
+        <app-commercial-selector
+          [initialValue]="selectedCommercial"
+          (commercialSelected)="onCommercialSelected($event)">
+        </app-commercial-selector>
       </div>
     </div>
 
-    <div class="filter-group filter-group-commercial">
-      <span class="toolbar-label">Commercial</span>
-      <app-commercial-selector
-        [initialValue]="selectedCommercial"
-        (commercialSelected)="onCommercialSelected($event)">
-      </app-commercial-selector>
-    </div>
-
-    <button class="btn-clear" (click)="clearSearch()">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-      Effacer recherche
-    </button>
-    <button class="btn-clear" (click)="resetFilters()">
-      Réinitialiser tout
-    </button>
-
-    <span class="result-count">
-      <strong>{{ totalElement }}</strong> client(s)
-    </span>
-
-    <div class="toolbar-actions" *ngxPermissionsOnly="['ROLE_EDIT_CLIENT', 'ROLE_PROMOTER']">
-      <button class="btn-primary" (click)="addClient()" data-testid="e2e-client-add-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-        Ajouter
+    <div class="filter-actions">
+      <button type="button" class="btn-clear" (click)="clearSearch()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        Effacer
       </button>
+      <button type="button" class="btn-clear" (click)="resetFilters()">
+        Réinitialiser
+      </button>
+
+      <span class="result-count">
+        <strong>{{ totalElement }}</strong> client(s)
+      </span>
+
+      <div class="toolbar-actions" *ngxPermissionsOnly="['ROLE_EDIT_CLIENT', 'ROLE_PROMOTER']">
+        <button type="button" class="btn-primary" (click)="addClient()" data-testid="e2e-client-add-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Ajouter
+        </button>
+      </div>
     </div>
   </div>
 
@@ -129,7 +133,8 @@
         </div>
       </div>
 
-      <table class="data-table" *ngIf="!isLoading && clients.length > 0">
+      <div class="desktop-table-wrap" *ngIf="!isLoading && clients.length > 0">
+      <table class="data-table">
         <thead>
           <tr>
             <th *ngIf="bulkAssignCollectorEnabled" class="col-select">
@@ -161,29 +166,67 @@
             <td>{{ client.address || client.quarter || '—' }}</td>
             <td><span class="col-phone">{{ client.phone }}</span></td>
             <td class="col-actions">
-              <button class="btn-detail" (click)="viewDetails(client.id)" title="Détails">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                Voir
-              </button>
-              <button *ngIf="dualCreditEnabled && isGestionnaire && !client.businessCreditAuthorized"
-                      class="btn-detail" (click)="authorizeBusinessCredit(client, $event)" title="Autoriser crédit business">
-                <mat-icon>verified</mat-icon>
-              </button>
-              <button *ngIf="dualCreditEnabled && isGestionnaire && client.businessCreditAuthorized"
-                      class="btn-detail" (click)="revokeBusinessCredit(client, $event)" title="Retirer autorisation business">
-                <mat-icon>block</mat-icon>
-              </button>
-              <button *ngxPermissionsOnly="['ROLE_EDIT_CLIENT']" class="btn-detail" (click)="editClient(client.id)" title="Modifier">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-              </button>
-              <button *ngxPermissionsOnly="['ROLE_DEL_CLIENT']" class="btn-detail btn-danger" (click)="deleteClient(client.id)" title="Supprimer">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              </button>
+              <ng-container *ngTemplateOutlet="clientActions; context: { $implicit: client }"></ng-container>
             </td>
           </tr>
         </tbody>
       </table>
+      </div>
+
+      <div class="mobile-card-list" *ngIf="!isLoading && clients.length > 0">
+        <div class="mobile-select-bar" *ngIf="bulkAssignCollectorEnabled">
+          <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
+            <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedClients.size > 0 && !isAllSelected">
+              Tout sélectionner
+            </mat-checkbox>
+            <span class="mobile-select-count" *ngIf="selectedClients.size > 0">{{ selectedClients.size }} sélectionné(s)</span>
+          </ng-container>
+        </div>
+        <div class="mobile-card" *ngFor="let client of clients; let i = index">
+          <div class="mobile-card-top">
+            <ng-container *ngIf="bulkAssignCollectorEnabled">
+              <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
+                <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
+              </ng-container>
+            </ng-container>
+            <span class="mobile-card-ref">#{{ (currentPage * pageSize) + (i + 1) }}</span>
+            <span *ngIf="dualCreditEnabled && client.businessCreditAuthorized" class="badge badge-success" title="Crédit business autorisé">B</span>
+          </div>
+          <a class="mobile-card-client" [routerLink]="['/client/view', client.id]">
+            {{ client.lastname }} {{ client.firstname }}
+          </a>
+          <div class="mobile-card-meta">
+            <span>{{ client.phone || '—' }}</span>
+            <span>{{ client.address || client.quarter || '—' }}</span>
+            <span *ngIf="client.collector">{{ client.collector }}</span>
+          </div>
+          <div class="mobile-card-actions">
+            <ng-container *ngTemplateOutlet="clientActions; context: { $implicit: client }"></ng-container>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <ng-template #clientActions let-client>
+      <button class="btn-detail" (click)="viewDetails(client.id)" title="Détails">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        Voir
+      </button>
+      <button *ngIf="dualCreditEnabled && isGestionnaire && !client.businessCreditAuthorized"
+              class="btn-detail" (click)="authorizeBusinessCredit(client, $event)" title="Autoriser crédit business">
+        <mat-icon>verified</mat-icon>
+      </button>
+      <button *ngIf="dualCreditEnabled && isGestionnaire && client.businessCreditAuthorized"
+              class="btn-detail" (click)="revokeBusinessCredit(client, $event)" title="Retirer autorisation business">
+        <mat-icon>block</mat-icon>
+      </button>
+      <button *ngxPermissionsOnly="['ROLE_EDIT_CLIENT']" class="btn-detail" (click)="editClient(client.id)" title="Modifier">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+      </button>
+      <button *ngxPermissionsOnly="['ROLE_DEL_CLIENT']" class="btn-detail btn-danger" (click)="deleteClient(client.id)" title="Supprimer">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+    </ng-template>
 
     <div class="pagination client-pagination">
       <mat-paginator

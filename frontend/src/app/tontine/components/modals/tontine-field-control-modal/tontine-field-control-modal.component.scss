@@ -1,0 +1,329 @@
+.tontine-field-control-modal {
+  --navy: #003366;
+  --navy-dark: #002244;
+  --border: #dde3ec;
+  --text-muted: #6b7a99;
+  --radius: 8px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.tontine-field-control-modal .modal-header {
+  background-color: var(--navy);
+  color: #fff;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h2 {
+    margin: 0;
+    padding: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+  }
+}
+
+.tontine-field-control-modal .close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: opacity 0.18s, background 0.18s;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover:not(:disabled) {
+    opacity: 0.85;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.tontine-field-control-modal .modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.tontine-field-control-modal .member-info {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  border-left: 4px solid var(--navy);
+
+  p {
+    margin: 5px 0;
+    color: #333;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  strong {
+    color: var(--navy);
+    font-weight: 600;
+  }
+
+  .hint {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+}
+
+.tontine-field-control-modal .months-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-bottom: 18px;
+  padding-right: 2px;
+}
+
+.tontine-field-control-modal .month-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.2fr) minmax(120px, 1fr) minmax(150px, 1.1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #f8f9fa;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.tontine-field-control-modal .month-row.selected {
+  border-color: var(--navy);
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.08);
+}
+
+.tontine-field-control-modal .month-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  min-width: 0;
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--navy);
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+}
+
+.tontine-field-control-modal .month-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.tontine-field-control-modal .month-system {
+  font-size: 13px;
+  color: var(--text-muted);
+
+  strong {
+    color: var(--navy);
+    font-family: 'DM Mono', monospace;
+  }
+}
+
+.tontine-field-control-modal .month-input {
+  label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #333;
+  }
+}
+
+.tontine-field-control-modal .form-group {
+  margin-bottom: 0;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+  }
+
+  .optional {
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+}
+
+.tontine-field-control-modal .input-wrap {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #ddd;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.18s, box-shadow 0.18s;
+
+  &:focus-within {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.1);
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 8px 10px;
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+    color: #333;
+    min-width: 0;
+    width: 100%;
+    background: transparent;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+}
+
+.tontine-field-control-modal .input-suffix {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  background: #f8f9fa;
+  border-left: 1px solid #ddd;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tontine-field-control-modal .note-area,
+.tontine-field-control-modal .form-control.note-area {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+
+  &:focus {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &::placeholder {
+    color: #9aacc4;
+  }
+}
+
+.tontine-field-control-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 20px 20px;
+  background: #fff;
+}
+
+.tontine-field-control-modal .btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: none;
+  font-weight: 500;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.tontine-field-control-modal .btn-secondary {
+  background-color: #e9ecef;
+  color: #333;
+
+  &:hover:not(:disabled) {
+    background-color: #dde2e6;
+  }
+}
+
+.tontine-field-control-modal .btn-primary {
+  background-color: var(--navy);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background-color: var(--navy-dark);
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    color: #fff;
+    opacity: 1;
+  }
+}
+
+.tontine-field-control-dialog-panel .mat-mdc-dialog-container,
+.tontine-field-control-dialog-panel .mdc-dialog__surface {
+  padding: 0 !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+@media (max-width: 700px) {
+  .tontine-field-control-modal .month-row {
+    grid-template-columns: 1fr;
+  }
+
+  .tontine-field-control-modal .modal-actions {
+    flex-direction: column-reverse;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}

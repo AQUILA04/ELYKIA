@@ -1,6 +1,19 @@
 /* ── Modal Styles ──────────────────────────────────────────── */
 :host {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: block;
+}
+
+.close-dialog-content {
+  max-height: min(70vh, 560px);
+}
+
+.close-desktop-table {
+  display: block;
+}
+
+.close-mobile-cards {
+  display: none;
 }
 
 .close-table {
@@ -54,6 +67,14 @@
   border-color: #003366;
 }
 
+.amount-input-mobile {
+  width: 100%;
+  min-height: 44px;
+  font-size: 16px;
+  text-align: left;
+  padding: 10px 12px;
+}
+
 .full-amount {
   font-family: 'DM Mono', monospace;
   font-weight: 600;
@@ -87,12 +108,14 @@
   align-items: center;
   padding: 4px 0;
   font-size: 13px;
+  gap: 12px;
 }
 
 .resume-value {
   font-weight: 700;
   color: #003366;
   font-family: 'DM Mono', monospace;
+  text-align: right;
 }
 
 .error-banner {
@@ -103,6 +126,59 @@
   border-radius: 6px;
   color: #b91c1c;
   font-size: 13px;
+}
+
+.close-card {
+  border: 1px solid #dde3ec;
+  border-radius: 10px;
+  padding: 14px;
+  background: #fff;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0, 51, 102, 0.06);
+}
+
+.close-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.close-card-restant {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c75000;
+  white-space: nowrap;
+}
+
+.close-card-meta,
+.close-card-row,
+.close-card-amount {
+  margin-top: 10px;
+}
+
+.close-card-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7a99;
+  margin-bottom: 4px;
+}
+
+.close-card-meta {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #003366;
+}
+
+.close-dialog-actions {
+  gap: 8px;
+  padding: 12px 24px 20px !important;
 }
 
 /* ── BOUTON CONFIRMER (bleu primaire) ──────────────────────────── */
@@ -116,4 +192,39 @@
 ::ng-deep .btn-confirm.mat-mdc-raised-button[disabled] {
   background-color: #c5cfe0 !important;
   color: #9aacc4 !important;
+}
+
+@media (max-width: 700px) {
+  .close-desktop-table {
+    display: none;
+  }
+
+  .close-mobile-cards {
+    display: block;
+  }
+
+  .close-dialog-content {
+    max-height: min(62vh, 520px);
+    padding-bottom: 8px !important;
+  }
+
+  .close-dialog-actions {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+
+    button {
+      width: 100%;
+      min-height: 44px;
+      margin: 0 !important;
+    }
+  }
+
+  .resume-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .resume-value {
+    text-align: left;
+  }
 }

@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 public class CreditFieldControlDto {
     private Long id;
     private Long creditId;
+    private String reference;
     private Double notebookTotalAmount;
     private Double systemTotalAmountPaid;
     private Double differenceAmount;

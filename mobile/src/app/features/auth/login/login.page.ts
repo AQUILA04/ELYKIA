@@ -15,6 +15,8 @@ import { DatabaseService } from 'src/app/core/services/database.service'; // Imp
 import { environment } from 'src/environments/environment'; // Import environment
 import { RestoreResult } from 'src/app/core/models/restore.models';
 import { FilesystemPermissionService } from 'src/app/core/services/filesystem-permission.service';
+import { Browser } from '@capacitor/browser';
+import { getWebBaseUrl } from 'src/app/core/utils/web-base-url.util';
 
 @Component({
   selector: 'app-login',
@@ -84,6 +86,16 @@ export class LoginPage implements OnInit, OnDestroy, ViewWillEnter {
 
   onLogin() {
     this.store.dispatch(AuthActions.login({ request: { username: this.username, password: this.password } }));
+  }
+
+  async onOpenWeb(): Promise<void> {
+    const url = getWebBaseUrl(environment.apiUrl);
+    try {
+      await Browser.open({ url, toolbarColor: '#003366' });
+    } catch (error: any) {
+      this.log.log(`[LoginPage] Failed to open web URL: ${error?.message || error}`);
+      await this.presentAlert('Ouverture impossible', 'Impossible d\'ouvrir l\'application web. Vérifiez la configuration réseau.');
+    }
   }
 
   async onRestore() {

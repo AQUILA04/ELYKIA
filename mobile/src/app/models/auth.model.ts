@@ -3,6 +3,8 @@ export interface User {
   username: string;
   email: string;
   roles: string[];
+  /** User profile name from JwtResponse (e.g. PROMOTER, RECOVERY_MANAGER). */
+  profil?: string;
   accessToken: string;
   refreshToken: string;
   passwordHash?: string; // For local storage
@@ -14,10 +16,24 @@ export interface AuthResponse {
   username: string;
   email: string;
   roles: string[];
+  profil?: string;
   tokenType: string;
   accessToken: string;
   refreshToken: string;
   deviceRestrictionActive?: boolean;
+  mustChangePassword?: boolean;
+}
+
+export const RECOVERY_MANAGER_PROFIL = 'RECOVERY_MANAGER';
+
+export interface MobileSsoPayload {
+  accessToken: string;
+  refreshToken: string;
+  id: string;
+  username: string;
+  email: string;
+  roles: string[];
+  profil?: string;
   mustChangePassword?: boolean;
 }
 

@@ -44,6 +44,21 @@ export class ClientInfoCardComponent implements OnChanges {
     return `Photo de profil de ${this.clientFullName}`;
   }
 
+  get hasCoordinates(): boolean {
+    const lat = Number(this.client?.latitude);
+    const lng = Number(this.client?.longitude);
+    return Number.isFinite(lat) && Number.isFinite(lng) && !(lat === 0 && lng === 0);
+  }
+
+  openOnMaps(): void {
+    if (!this.hasCoordinates) {
+      return;
+    }
+    const lat = Number(this.client.latitude);
+    const lng = Number(this.client.longitude);
+    window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank', 'noopener');
+  }
+
   openPhotoPreview(): void {
     if (this.canPreviewPhoto) {
       this.showPhotoPreview = true;

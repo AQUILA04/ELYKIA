@@ -196,6 +196,7 @@ export class AuthService {
       username: response.username,
       email: response.email,
       roles: response.roles,
+      profil: response.profil,
       accessToken: response.accessToken,
       refreshToken: response.refreshToken,
       passwordHash: this.hashPassword(passwordPlain),

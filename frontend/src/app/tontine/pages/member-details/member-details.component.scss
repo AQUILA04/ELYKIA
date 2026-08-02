@@ -217,6 +217,177 @@
   background: var(--navy-xpale);
 }
 
+.member-details-page .btn-field-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .18s;
+  white-space: nowrap;
+  background: #e8f6ff;
+  color: #00658a;
+  border: 1px solid #b6dff1;
+  box-shadow: var(--shadow-sm);
+}
+
+.member-details-page .btn-field-control svg {
+  width: 14px;
+  height: 14px;
+}
+
+.member-details-page .btn-field-control:hover {
+  background: #00658a;
+  color: #fff;
+  border-color: #00658a;
+}
+
+.member-details-page .field-control-section .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.member-details-page .field-control-totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.member-details-page .field-control-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  background: var(--navy-xpale);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.member-details-page .field-control-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.member-details-page .field-control-value {
+  font-size: 16px;
+  color: var(--navy);
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+}
+
+.member-details-page .field-control-value.is-ok,
+.member-details-page .field-control-month-values .is-ok {
+  color: var(--green);
+}
+
+.member-details-page .field-control-value.is-gap,
+.member-details-page .field-control-month-values .is-gap {
+  color: var(--red);
+}
+
+.member-details-page .field-control-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.member-details-page .field-control-badge.badge-ok {
+  color: var(--green);
+  background: var(--green-pale);
+}
+
+.member-details-page .field-control-badge.badge-gap {
+  color: var(--red);
+  background: var(--red-pale);
+}
+
+.member-details-page .field-control-meta {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.member-details-page .field-control-note {
+  margin-top: 10px;
+  padding: 12px;
+  border-left: 3px solid var(--navy);
+  border-radius: 0 8px 8px 0;
+  background: #f7f9fc;
+  font-size: 13px;
+  color: var(--navy);
+}
+
+.member-details-page .field-control-lines {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.member-details-page .field-control-month {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  background: #fff;
+}
+
+.member-details-page .field-control-month-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.member-details-page .field-control-month-values {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.member-details-page .field-control-month-values .sep {
+  color: var(--border-dark, #c5d0de);
+  font-weight: 400;
+}
+
+.member-details-page .field-control-month-values .mono {
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+@media (max-width: 768px) {
+  .member-details-page .field-control-totals {
+    grid-template-columns: 1fr;
+  }
+
+  .member-details-page .field-control-month-values {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .member-details-page .field-control-month-values .sep {
+    display: none;
+  }
+}
+
 .member-details-page .btn-refresh:disabled,
 .member-details-page .btn-primary:disabled,
 .member-details-page .btn-accent:disabled,

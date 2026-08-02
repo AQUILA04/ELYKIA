@@ -26,7 +26,13 @@ import { RecordCollectionModalComponent } from '../../components/modals/record-c
 import { RecordCatchupCollectionModalComponent } from '../../components/modals/record-catchup-collection-modal/record-catchup-collection-modal.component';
 import { DeliveryArticleSelectionModalComponent } from '../../components/modals/delivery-article-selection-modal/delivery-article-selection-modal.component';
 import { AddMemberModalComponent } from '../../components/modals/add-member-modal/add-member-modal.component';
+import { TontineFieldControlModalComponent } from '../../components/modals/tontine-field-control-modal/tontine-field-control-modal.component';
 import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
+import { UserService } from 'src/app/user/service/user.service';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import {
+  TontineMemberFieldControlDto
+} from '../../models/tontine-member-field-control.model';
 
 /** Mois calendaires de la session tontine (Fév = 1 … Nov = 10, index JS Date.getMonth()). */
 const TONTINE_JS_MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
@@ -65,6 +71,9 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   currentSessionStatus: TontineSessionStatus | null = null;
   isSessionActive: boolean = false;
   isAdmin = false;
+  isRecoveryManager = false;
+  fieldControlLatest: TontineMemberFieldControlDto | null = null;
+  isFieldControlBusy = false;
 
   monthsList = [
     'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -78,7 +87,8 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     private deliveryService: TontineDeliveryService,
     private dialog: MatDialog,
     private authService: AuthService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -87,6 +97,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       this.loadMemberDetails(memberId);
       this.loadCollections(memberId);
       this.loadAmountHistory(memberId);
+      this.loadFieldControl(memberId);
     }
 
     // Subscribe to current session status
@@ -100,6 +111,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     // Ensure current session is loaded in the service if it's not already
     this.tontineService.getCurrentSession().pipe(takeUntil(this.destroy$)).subscribe();
     this.isAdmin = this.authService.hasRole(UserProfilConstant.ADMIN);
+    this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
 
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
@@ -119,6 +131,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     this.loadMemberDetails(this.member.id);
     this.loadCollections(this.member.id);
     this.loadAmountHistory(this.member.id);
+    this.loadFieldControl(this.member.id);
     this.lastUpdate = new Date();
   }
 
@@ -200,6 +213,59 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
         this.loadingAmountHistory = false;
       }
     });
+  }
+
+  private loadFieldControl(memberId: number): void {
+    this.tontineService.getLatestMemberFieldControl(memberId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.fieldControlLatest = response?.data || null;
+      },
+      error: (error) => {
+        if (error?.status === 404) {
+          this.fieldControlLatest = null;
+          return;
+        }
+        this.fieldControlLatest = null;
+      }
+    });
+  }
+
+  onFieldControl(): void {
+    if (!this.member || this.isFieldControlBusy) {
+      return;
+    }
+
+    this.isFieldControlBusy = true;
+    const dialogRef = this.dialog.open(TontineFieldControlModalComponent, {
+      width: '760px',
+      maxWidth: '95vw',
+      data: {
+        memberId: this.member.id,
+        memberName: this.getClientName(),
+        monthlySummaries: this.monthlyCollectionSummaries
+      },
+      disableClose: true,
+      panelClass: 'tontine-field-control-dialog-panel',
+      autoFocus: false
+    });
+
+    dialogRef.afterClosed().subscribe((saved?: boolean) => {
+      this.isFieldControlBusy = false;
+      if (saved && this.member) {
+        this.loadFieldControl(this.member.id);
+      }
+    });
+  }
+
+  getFieldControlMonthLabel(month: number): string {
+    // calendaire 2–11 → index 0–9 dans monthsList
+    const index = month - 2;
+    if (index < 0 || index >= this.monthsList.length) {
+      return `Mois ${month}`;
+    }
+    return this.monthsList[index];
   }
 
   getClientName(): string {

@@ -57,6 +57,7 @@ import { RecordCollectionModalComponent } from './components/modals/record-colle
 import { RecordCatchupCollectionModalComponent } from './components/modals/record-catchup-collection-modal/record-catchup-collection-modal.component';
 import { SessionSettingsModalComponent } from './components/modals/session-settings-modal/session-settings-modal.component';
 import { DeliveryArticleSelectionModalComponent } from './components/modals/delivery-article-selection-modal/delivery-article-selection-modal.component';
+import { TontineFieldControlModalComponent } from './components/modals/tontine-field-control-modal/tontine-field-control-modal.component';
 
 // Collectes
 import { TontineCollecteComponent } from './collecte/tontine-collecte.component';
@@ -92,6 +93,7 @@ import { TontineSessionService } from './services/tontine-session.service';
     RecordCatchupCollectionModalComponent,
     SessionSettingsModalComponent,
     DeliveryArticleSelectionModalComponent,
+    TontineFieldControlModalComponent,
 
     // Collectes
     TontineCollecteComponent,

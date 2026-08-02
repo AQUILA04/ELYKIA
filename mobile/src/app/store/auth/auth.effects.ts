@@ -5,18 +5,24 @@ import { catchError, map, switchMap, tap, finalize } from 'rxjs/operators';
 import * as AuthActions from './auth.actions';
 import { AuthService } from '../../core/services/auth.service';
 import { Router } from '@angular/router';
-import { LoadingController } from '@ionic/angular';
+import { LoadingController, ToastController } from '@ionic/angular';
 import { LoggerService } from '../../core/services/logger.service';
+import { Browser } from '@capacitor/browser';
+import { environment } from '../../../environments/environment';
+import { getWebBaseUrl } from '../../core/utils/web-base-url.util';
+import { MobileSsoPayload, RECOVERY_MANAGER_PROFIL, User } from '../../models/auth.model';
 
 @Injectable()
 export class AuthEffects {
   private loading: HTMLIonLoadingElement | null = null;
+  private lastSsoRedirectAt = 0;
 
   constructor(
     private actions$: Actions,
     private authService: AuthService,
     private router: Router,
     private loadingController: LoadingController,
+    private toastController: ToastController,
     private log: LoggerService
   ) {}
 
@@ -57,6 +63,10 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
         tap(({ user }) => {
+          if (user?.profil === RECOVERY_MANAGER_PROFIL) {
+            void this.redirectRecoveryManagerToWeb(user);
+            return;
+          }
           const target = user?.mustChangePassword ? '/change-password' : '/initial-loading';
           this.log.log(`[AuthEffects] loginSuccess$ triggered, navigating to ${target}.`);
           this.router.navigateByUrl(target);
@@ -103,6 +113,58 @@ export class AuthEffects {
       ),
     { dispatch: false }
   );
+
+  private async redirectRecoveryManagerToWeb(user: User): Promise<void> {
+    const now = Date.now();
+    if (now - this.lastSsoRedirectAt < 2000) {
+      return;
+    }
+    this.lastSsoRedirectAt = now;
+
+    const payload: MobileSsoPayload = {
+      accessToken: user.accessToken,
+      refreshToken: user.refreshToken,
+      id: String(user.id),
+      username: user.username,
+      email: user.email,
+      roles: user.roles || [],
+      profil: user.profil,
+      mustChangePassword: user.mustChangePassword === true,
+    };
+
+    const encoded = this.toBase64Url(JSON.stringify(payload));
+    const webBase = getWebBaseUrl(environment.apiUrl);
+    const url = `${webBase}/login#sso=${encoded}`;
+
+    this.log.log('[AuthEffects] RECOVERY_MANAGER detected — opening web SSO.');
+    try {
+      await Browser.open({ url, toolbarColor: '#003366' });
+      const toast = await this.toastController.create({
+        message: 'Profil chef de recouvrement : redirection vers l\'application web…',
+        duration: 3500,
+        color: 'primary',
+        position: 'top',
+      });
+      await toast.present();
+      // Clear mobile session — recovery managers use the web app, not mobile sync.
+      await this.authService.logout();
+      this.router.navigateByUrl('/login');
+    } catch (error: any) {
+      this.log.log(`[AuthEffects] Failed to open web SSO: ${error?.message || error}`);
+      const toast = await this.toastController.create({
+        message: 'Impossible d\'ouvrir le web. Utilisez « Se connecter sur le web ».',
+        duration: 4000,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+    }
+  }
+
+  private toBase64Url(value: string): string {
+    const base64 = btoa(unescape(encodeURIComponent(value)));
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
 
   async presentLoading(message: string) {
     this.log.log(`[AuthEffects] presentLoading called with message: "${message}"`);

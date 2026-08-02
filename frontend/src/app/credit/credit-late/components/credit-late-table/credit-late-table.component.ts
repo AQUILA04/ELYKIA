@@ -13,6 +13,7 @@ export class CreditLateTableComponent implements OnChanges {
   @Input() isLoading: boolean = false;
   @Input() currentPage: number = 1;
   @Input() isRecoveryManager: boolean = false;
+  @Input() isFieldControlBusy: boolean = false;
   @Output() pageChanged = new EventEmitter<number>();
   @Output() closeCredit = new EventEmitter<CreditLateDTO>();
   @Output() fieldControl = new EventEmitter<CreditLateDTO>();

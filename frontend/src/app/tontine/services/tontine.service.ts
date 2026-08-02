@@ -25,6 +25,10 @@ import {
   , TontineCatchupPreview
 } from '../types/tontine.types';
 import {AuthService} from "../../auth/service/auth.service";
+import {
+  CreateTontineMemberFieldControlPayload,
+  TontineMemberFieldControlDto
+} from '../models/tontine-member-field-control.model';
 
 @Injectable({
   providedIn: 'root'
@@ -146,6 +150,26 @@ export class TontineService {
     const headers = this.getHeaders();
     return this.http.get<ApiResponse<TontineMemberAmountHistory[]>>(
       `${this.apiUrl}/members/${memberId}/amount-history`,
+      { headers }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
+  createMemberFieldControl(
+    memberId: number,
+    payload: CreateTontineMemberFieldControlPayload
+  ): Observable<ApiResponse<TontineMemberFieldControlDto>> {
+    const headers = this.getHeaders();
+    return this.http.post<ApiResponse<TontineMemberFieldControlDto>>(
+      `${this.apiUrl}/members/${memberId}/field-controls`,
+      payload,
+      { headers }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
+  getLatestMemberFieldControl(memberId: number): Observable<ApiResponse<TontineMemberFieldControlDto>> {
+    const headers = this.getHeaders();
+    return this.http.get<ApiResponse<TontineMemberFieldControlDto>>(
+      `${this.apiUrl}/members/${memberId}/field-controls/latest`,
       { headers }
     ).pipe(catchError(this.handleApiError.bind(this)));
   }

@@ -169,6 +169,7 @@ public class CreditLateService {
         return CreditLateDTO.builder()
                 .id(credit.getId())
                 .reference(credit.getReference())
+                .clientId(credit.getClient() != null ? credit.getClient().getId() : null)
                 .clientName(credit.getClient() != null
                         ? credit.getClient().getLastname() + " " + credit.getClient().getFirstname()
                         : "—")

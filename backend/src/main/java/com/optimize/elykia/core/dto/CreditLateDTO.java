@@ -15,6 +15,7 @@ public class CreditLateDTO {
     private String      reference;
 
     // Client
+    private Long        clientId;
     private String      clientName;
     private String      clientPhone;
     private String      clientQuarter;

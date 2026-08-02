@@ -1,114 +1,200 @@
 <div class="table-card a5">
-  <table>
-    <thead>
-      <tr>
-        <th style="width:48px" *ngIf="isRecoveryManager">
-          <mat-checkbox (change)="toggleSelectAll($event)" [checked]="allSelected"></mat-checkbox>
-        </th>
-        <th style="width:130px">
-          Gravité <span class="sort-icon">↓</span>
-        </th>
-        <th>Référence / Client</th>
-        <th>Localité</th>
-        <th>Type de retard</th>
-        <th class="col-hide">Agent collecteur</th>
-        <th class="col-hide">Montant restant</th>
-        <th class="col-hide">Date fin prévue</th>
-        <th style="width:90px">Action</th>
-        <th style="width:60px" *ngIf="isRecoveryManager"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngIf="isLoading">
-        <td [attr.colspan]="isRecoveryManager ? 10 : 8">
-          <div class="empty-state">
-            <div class="empty-icon">⏳</div>
-            <div class="empty-title">Chargement…</div>
-          </div>
-        </td>
-      </tr>
-      <tr *ngIf="!isLoading && credits.length === 0">
-        <td [attr.colspan]="isRecoveryManager ? 10 : 8">
-          <div class="empty-state">
-            <div class="empty-icon">✅</div>
-            <div class="empty-title">Aucun retard trouvé</div>
-            <div class="empty-sub">Aucun crédit ne correspond aux filtres sélectionnés.</div>
-          </div>
-        </td>
-      </tr>
+  <!-- Desktop table -->
+  <div class="desktop-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:48px" *ngIf="isRecoveryManager">
+            <mat-checkbox (change)="toggleSelectAll($event)" [checked]="allSelected"></mat-checkbox>
+          </th>
+          <th style="width:130px">
+            Gravité <span class="sort-icon">↓</span>
+          </th>
+          <th>Référence / Client</th>
+          <th>Localité</th>
+          <th>Type de retard</th>
+          <th class="col-hide">Agent collecteur</th>
+          <th class="col-hide">Montant restant</th>
+          <th class="col-hide">Date fin prévue</th>
+          <th style="width:90px">Action</th>
+          <th style="width:60px" *ngIf="isRecoveryManager"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="isLoading">
+          <td [attr.colspan]="isRecoveryManager ? 10 : 8">
+            <div class="empty-state">
+              <div class="empty-icon">⏳</div>
+              <div class="empty-title">Chargement…</div>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!isLoading && credits.length === 0">
+          <td [attr.colspan]="isRecoveryManager ? 10 : 8">
+            <div class="empty-state">
+              <div class="empty-icon">✅</div>
+              <div class="empty-title">Aucun retard trouvé</div>
+              <div class="empty-sub">Aucun crédit ne correspond aux filtres sélectionnés.</div>
+            </div>
+          </td>
+        </tr>
 
-      <tr *ngFor="let d of paginatedCredits" [class]="getGraviteClass(d)">
-        <td *ngIf="isRecoveryManager">
-          <mat-checkbox [(ngModel)]="d.selected" (change)="onSelectionChange()"></mat-checkbox>
-        </td>
-        <td>
-          <div class="gravite-cell">
-            <div class="gravite-bar-wrap">
-              <div class="gravite-bar-track">
-                <div class="gravite-bar-fill" [class]="getBarClass(d)" [style.width.%]="getBarPct(d)"></div>
+        <tr *ngFor="let d of paginatedCredits" [class]="getGraviteClass(d)">
+          <td *ngIf="isRecoveryManager">
+            <mat-checkbox [(ngModel)]="d.selected" (change)="onSelectionChange()"></mat-checkbox>
+          </td>
+          <td>
+            <div class="gravite-cell">
+              <div class="gravite-bar-wrap">
+                <div class="gravite-bar-track">
+                  <div class="gravite-bar-fill" [class]="getBarClass(d)" [style.width.%]="getBarPct(d)"></div>
+                </div>
+              </div>
+              <div>
+                <div class="gravite-days" [class]="getDaysClass(d)">{{ getLateDays(d) }}j</div>
+                <div class="gravite-label" style="color:var(--text-light)">{{ getGraviteLabel(d) }}</div>
               </div>
             </div>
-            <div>
-              <div class="gravite-days" [class]="getDaysClass(d)">{{ getLateDays(d) }}j</div>
-              <div class="gravite-label" style="color:var(--text-light)">{{ getGraviteLabel(d) }}</div>
+          </td>
+          <td>
+            <div class="col-ref">{{ d.reference }}</div>
+            <a *ngIf="d.clientId; else lateClientPlain"
+               class="col-client client-link"
+               [routerLink]="['/client/details', d.clientId]"
+               (click)="$event.stopPropagation()">{{ d.clientName }}</a>
+            <ng-template #lateClientPlain>
+              <div class="col-client">{{ d.clientName }}</div>
+            </ng-template>
+            <div class="col-client-sub">{{ d.clientPhone }}</div>
+          </td>
+          <td>
+            <div class="col-locality">{{ d.clientQuarter || '—' }}</div>
+          </td>
+          <td>
+            <ng-container *ngIf="d.lateType === 'DELAI'">
+              <span class="retard-badge retard-delai">⚠ Délai dépassé ({{ d.lateDaysDelai }}j)</span>
+            </ng-container>
+            <ng-container *ngIf="d.lateType === 'ECHEANCE'">
+              <span class="retard-badge retard-echeance">⏱ Échéance ({{ d.lateDaysEcheance }}j)</span>
+            </ng-container>
+          </td>
+          <td class="col-hide">
+            <div class="col-collector">
+              <div class="col-collector-dot">{{ getInitials(d.collector) }}</div>
+              {{ d.collector }}
             </div>
-          </div>
-        </td>
-        <td>
-          <div class="col-ref">{{ d.reference }}</div>
-          <div class="col-client">{{ d.clientName }}</div>
-          <div class="col-client-sub">{{ d.clientPhone }}</div>
-        </td>
-        <td>
-          <div class="col-locality">{{ d.clientQuarter || '—' }}</div>
-        </td>
-        <td>
-          <ng-container *ngIf="d.lateType === 'DELAI'">
-            <span class="retard-badge retard-delai">⚠ Délai dépassé ({{ d.lateDaysDelai }}j)</span>
-          </ng-container>
-          <ng-container *ngIf="d.lateType === 'ECHEANCE'">
-            <span class="retard-badge retard-echeance">⏱ Échéance ({{ d.lateDaysEcheance }}j)</span>
-          </ng-container>
-        </td>
-        <td class="col-hide">
-          <div class="col-collector">
-            <div class="col-collector-dot">{{ getInitials(d.collector) }}</div>
-            {{ d.collector }}
-          </div>
-        </td>
-        <td class="col-hide">
-          <div class="col-amount">{{ d.totalAmountRemaining | number }} FCFA</div>
-          <div class="col-amount-sub">
-            Payé: {{ getPaidPct(d) }}% ({{ d.totalAmountPaid | number }} FCFA)
-          </div>
-        </td>
-        <td class="col-hide">
-          <div [class]="isDateOverdue(d.expectedEndDate) ? 'date-overdue' : 'date-ok'">
-            {{ d.expectedEndDate | date:'dd/MM/yyyy' }}
-          </div>
-          <div class="date-label">
-            {{ isDateOverdue(d.expectedEndDate) ? '⚠ Dépassée' : 'Échéance prévue' }}
-          </div>
-        </td>
-        <td>
-          <button class="btn-detail" (click)="viewDetails(d.id)">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-            </svg>
-            Voir
-          </button>
-        </td>
-        <td *ngIf="isRecoveryManager">
-          <button mat-icon-button color="warn"
-                  matTooltip="Clôturer ce crédit"
-                  (click)="$event.stopPropagation(); closeCredit.emit(d)">
-            <mat-icon>lock</mat-icon>
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+          </td>
+          <td class="col-hide">
+            <div class="col-amount">{{ d.totalAmountRemaining | number }} FCFA</div>
+            <div class="col-amount-sub">
+              Payé: {{ getPaidPct(d) }}% ({{ d.totalAmountPaid | number }} FCFA)
+            </div>
+          </td>
+          <td class="col-hide">
+            <div [class]="isDateOverdue(d.expectedEndDate) ? 'date-overdue' : 'date-ok'">
+              {{ d.expectedEndDate | date:'dd/MM/yyyy' }}
+            </div>
+            <div class="date-label">
+              {{ isDateOverdue(d.expectedEndDate) ? '⚠ Dépassée' : 'Échéance prévue' }}
+            </div>
+          </td>
+          <td>
+            <div class="row-actions">
+              <button class="btn-detail" (click)="viewDetails(d.id)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                Voir
+              </button>
+              <button class="btn-field-control" *ngIf="isRecoveryManager"
+                      type="button"
+                      [disabled]="isFieldControlBusy"
+                      (click)="fieldControl.emit(d)">
+                Terrain
+              </button>
+            </div>
+          </td>
+          <td *ngIf="isRecoveryManager">
+            <button mat-icon-button color="warn"
+                    matTooltip="Clôturer ce crédit"
+                    (click)="$event.stopPropagation(); closeCredit.emit(d)">
+              <mat-icon>lock</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="mobile-card-list" *ngIf="!isLoading && credits.length > 0">
+    <div class="mobile-select-bar" *ngIf="isRecoveryManager">
+      <mat-checkbox
+        [checked]="allSelected"
+        [indeterminate]="someSelected"
+        (change)="toggleSelectAll($event)">
+        {{ allSelected ? 'Tout désélectionner' : 'Tout sélectionner' }}
+      </mat-checkbox>
+      <span class="mobile-select-count" *ngIf="pageSelectedCount > 0">
+        {{ pageSelectedCount }} / {{ paginatedCredits.length }}
+      </span>
+    </div>
+    <div class="mobile-card" *ngFor="let d of paginatedCredits" [class]="getGraviteClass(d)">
+      <div class="mobile-card-top">
+        <mat-checkbox *ngIf="isRecoveryManager" [(ngModel)]="d.selected" (change)="onSelectionChange()"></mat-checkbox>
+        <div class="mobile-card-gravite">
+          <span class="gravite-days" [class]="getDaysClass(d)">{{ getLateDays(d) }}j</span>
+          <span class="gravite-label">{{ getGraviteLabel(d) }}</span>
+        </div>
+        <ng-container *ngIf="d.lateType === 'DELAI'">
+          <span class="retard-badge retard-delai">Délai</span>
+        </ng-container>
+        <ng-container *ngIf="d.lateType === 'ECHEANCE'">
+          <span class="retard-badge retard-echeance">Échéance</span>
+        </ng-container>
+      </div>
+      <div class="mobile-card-ref">{{ d.reference }}</div>
+      <a *ngIf="d.clientId; else lateMobileClientPlain"
+         class="mobile-card-client client-link"
+         [routerLink]="['/client/details', d.clientId]">{{ d.clientName }}</a>
+      <ng-template #lateMobileClientPlain>
+        <div class="mobile-card-client">{{ d.clientName }}</div>
+      </ng-template>
+      <div class="mobile-card-meta">
+        <span>{{ d.clientPhone || '—' }}</span>
+        <span>{{ d.clientQuarter || '—' }}</span>
+      </div>
+      <div class="mobile-card-amount">{{ d.totalAmountRemaining | number }} FCFA restants</div>
+      <div class="mobile-card-actions">
+        <button class="btn-detail" (click)="viewDetails(d.id)">Voir</button>
+        <button *ngIf="isRecoveryManager" class="btn-field-control" type="button"
+                [disabled]="isFieldControlBusy"
+                (click)="fieldControl.emit(d)">
+          Terrain
+        </button>
+        <button *ngIf="isRecoveryManager" class="btn-close-mobile" type="button"
+                (click)="closeCredit.emit(d)">
+          <mat-icon>lock</mat-icon> Clôturer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mobile-card-list" *ngIf="isLoading">
+    <div class="empty-state">
+      <div class="empty-icon">⏳</div>
+      <div class="empty-title">Chargement…</div>
+    </div>
+  </div>
+
+  <div class="mobile-card-list" *ngIf="!isLoading && credits.length === 0">
+    <div class="empty-state">
+      <div class="empty-icon">✅</div>
+      <div class="empty-title">Aucun retard trouvé</div>
+      <div class="empty-sub">Aucun crédit ne correspond aux filtres sélectionnés.</div>
+    </div>
+  </div>
 
   <div class="pagination">
     <span class="page-info">{{ getPaginationInfo() }}</span>

@@ -1,53 +1,57 @@
-<div class="toolbar a4">
-  <app-commercial-selector (commercialSelected)="onCommercialSelected($event)"></app-commercial-selector>
+<div class="toolbar a4 late-filters">
+  <div class="filter-fields">
+    <div class="filter-field filter-field-commercial">
+      <span class="toolbar-label">Commercial</span>
+      <app-commercial-selector (commercialSelected)="onCommercialSelected($event)"></app-commercial-selector>
+    </div>
 
-  <div class="divider"></div>
+    <div class="filter-field filter-field-month">
+      <span class="toolbar-label">Mois</span>
+      <select class="filter-select" [value]="currentMonth ?? 'all'" (change)="onMonthSelected($event)">
+        <option value="all">Tous</option>
+        <option *ngFor="let m of months" [value]="m.index">{{ m.name }}</option>
+      </select>
+    </div>
 
-  <span class="toolbar-label">Mois</span>
-  <select class="tab-btn" style="width: max-content; min-width: 120px;" (change)="onMonthSelected($event)">
-    <option value="all">Tous</option>
-    <option *ngFor="let m of months" [value]="m.index">{{ m.name }}</option>
-  </select>
+    <div class="filter-field filter-field-locality">
+      <span class="toolbar-label">Localité</span>
+      <ng-select
+        [items]="localities"
+        bindLabel="name"
+        placeholder="Toutes"
+        [(ngModel)]="currentLocality"
+        [loading]="localityLoading"
+        [virtualScroll]="true"
+        (scrollToEnd)="onLocalityScrollToEnd()"
+        (search)="onLocalitySearch($event)"
+        (change)="onLocalitySelected($event)"
+        [clearable]="true"
+        [searchable]="true">
+      </ng-select>
+    </div>
 
-  <div class="divider"></div>
-
-  <span class="toolbar-label">Localité</span>
-  <div style="width: 200px; margin-right: 15px;">
-    <ng-select
-      [items]="localities"
-      bindLabel="name"
-      placeholder="Toutes"
-      [(ngModel)]="currentLocality"
-      [loading]="localityLoading"
-      [virtualScroll]="true"
-      (scrollToEnd)="onLocalityScrollToEnd()"
-      (search)="onLocalitySearch($event)"
-      (change)="onLocalitySelected($event)"
-      [clearable]="true"
-      [searchable]="true">
-    </ng-select>
+    <div class="filter-field filter-field-type">
+      <span class="toolbar-label">Type</span>
+      <div class="type-tabs">
+        <button type="button" class="tab-btn" [class.active]="currentType === 'all'" (click)="setTypeFilter('all')">Tous</button>
+        <button type="button" class="tab-btn" [class.active-red]="currentType === 'DELAI'" (click)="setTypeFilter('DELAI')">Retard délai</button>
+        <button type="button" class="tab-btn" [class.active-orange]="currentType === 'ECHEANCE'" (click)="setTypeFilter('ECHEANCE')">Retard échéance</button>
+      </div>
+    </div>
   </div>
 
-  <div class="divider"></div>
-
-  <span class="toolbar-label">Type</span>
-  <div class="type-tabs">
-    <button class="tab-btn" [class.active]="currentType === 'all'" (click)="setTypeFilter('all')">Tous</button>
-    <button class="tab-btn" [class.active-red]="currentType === 'DELAI'" (click)="setTypeFilter('DELAI')">Retard délai</button>
-    <button class="tab-btn" [class.active-orange]="currentType === 'ECHEANCE'" (click)="setTypeFilter('ECHEANCE')">Retard échéance</button>
+  <div class="filter-actions">
+    <span class="result-count">
+      <strong>{{ resultCount }}</strong> résultat(s)
+    </span>
+    <button type="button" class="btn-download" (click)="onDownload()" [disabled]="isDownloading" [class.loading]="isDownloading">
+      <svg *ngIf="!isDownloading" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      <div class="spinner-small" *ngIf="isDownloading"></div>
+      {{ isDownloading ? 'Téléchargement...' : 'Télécharger' }}
+    </button>
   </div>
-
-  <span class="result-count">
-    <strong>{{ resultCount }}</strong> résultat(s)
-  </span>
-
-  <button class="btn-download" (click)="onDownload()" [disabled]="isDownloading" [class.loading]="isDownloading">
-    <svg *ngIf="!isDownloading" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-      <polyline points="7 10 12 15 17 10"></polyline>
-      <line x1="12" y1="15" x2="12" y2="3"></line>
-    </svg>
-    <div class="spinner-small" *ngIf="isDownloading"></div>
-    {{ isDownloading ? 'Téléchargement...' : 'Télécharger' }}
-  </button>
 </div>

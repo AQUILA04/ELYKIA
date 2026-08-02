@@ -11,4 +11,8 @@ public interface CreditFieldControlRepository extends GenericRepository<CreditFi
     Optional<CreditFieldControl> findFirstByCredit_idAndStateOrderByObservedAtDesc(Long creditId, State state);
 
     List<CreditFieldControl> findByCredit_idAndStateOrderByObservedAtDesc(Long creditId, State state);
+
+    boolean existsByReference(String reference);
+
+    Optional<CreditFieldControl> findByReference(String reference);
 }
