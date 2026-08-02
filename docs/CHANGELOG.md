@@ -9,6 +9,11 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-08-02
+
+### Added
+- Pipeline CD (`cd.yml`) : après un promote manuel test → prod réussi, le job `promote-stop-test` arrête la stack test (`docker compose ... elykia-test ... down`).
+
 ## Frontend — [2.12.15] — 2026-08-02
 
 ### Changed

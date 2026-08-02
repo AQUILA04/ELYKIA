@@ -7,7 +7,8 @@ name: ELYKIA CD Pipeline
 # Mobile APK builds run in build-mobile-apk.yml after CD and ci-mobile both succeed for the same commit.
 # Customer-space APK builds run in build-customer-space-apk.yml after CD and ci-customer-space both succeed.
 # Web E2E tests (Playwright) run in parallel in e2e.yml after a successful TEST deploy.
-# It also supports a manual 'promote' workflow_dispatch to promote the current test release to prod.
+# It also supports a manual 'promote' workflow_dispatch to promote the current test release to prod,
+# then stop the test stack once prod deploy has succeeded.
 #
 # IMAGE RESOLUTION STRATEGY
 # --------------------------
@@ -399,6 +400,42 @@ jobs:
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
              && cd $PROD_PATH \
              && ./deploy/deploy.sh $DEPLOY_FORCE_UPDATE prod '$FRONTEND_IMAGE' '$BACKEND_IMAGE'"
+
+      - name: Cleanup
+        if: always()
+        run: rm -f private_key
+
+  # ---------------------------------------------------------------------------
+  # Stop TEST stack after successful promote to PROD
+  # ---------------------------------------------------------------------------
+  promote-stop-test:
+    needs: promote-deploy-prod
+    runs-on: ubuntu-latest
+    name: Stop test stack after promote
+    environment: test
+    steps:
+      - name: Prepare SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key
+          chmod 600 private_key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Stop test stack
+        env:
+          TEST_USER: ${{ secrets.TEST_SERVER_USER }}
+          TEST_HOST: ${{ secrets.TEST_SERVER_HOST }}
+          TEST_PATH: ${{ secrets.TEST_DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          : "${TEST_USER:?Missing TEST_SERVER_USER}"
+          : "${TEST_HOST:?Missing TEST_SERVER_HOST}"
+          : "${TEST_PATH:?Missing TEST_DEPLOY_PATH}"
+
+          echo "Prod promote succeeded → stopping test stack on $TEST_HOST"
+          ssh -o StrictHostKeyChecking=no -i private_key "$TEST_USER@$TEST_HOST" \
+            "cd '$TEST_PATH/deploy' \
+             && docker compose -f docker-compose.test.yml --project-name elykia-test --env-file /opt/elykia/test/.env down"
 
       - name: Cleanup
         if: always()
