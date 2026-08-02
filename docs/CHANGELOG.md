@@ -14,6 +14,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 - Pipeline CD (`cd.yml`) : après un promote manuel test → prod réussi, le job `promote-stop-test` arrête la stack test (`docker compose ... elykia-test ... down`).
 
+## Frontend — [2.12.16] — 2026-08-02
+
+### Fixed
+- E2E golden path : sélecteurs `e2e-credit-row` limités aux éléments `:visible` (évite le conflit table desktop / carte mobile)
+
 ## Frontend — [2.12.15] — 2026-08-02
 
 ### Changed

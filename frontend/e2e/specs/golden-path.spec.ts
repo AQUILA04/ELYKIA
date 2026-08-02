@@ -760,7 +760,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await page.locator('ngx-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
 
     const rattrapageRow = page.locator(
-      `[data-testid="e2e-credit-row"][data-credit-reference="${rattrapageReference}"]`,
+      `[data-testid="e2e-credit-row"][data-credit-reference="${rattrapageReference}"]:visible`,
     );
     await expect(rattrapageRow).toBeVisible({ timeout: 15_000 });
     await expect(rattrapageRow).toContainText(rattrapageClientLastName);

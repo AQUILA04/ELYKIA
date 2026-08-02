@@ -185,8 +185,9 @@ export async function chooseCurrentMonthIfPrompted(page: Page): Promise<void> {
 }
 
 function creditRowLocator(page: Page, clientLastName: string): Locator {
+  // Desktop table + mobile cards both use e2e-credit-row; prefer the visible one.
   return page.locator(
-    `[data-testid="e2e-credit-row"][data-client-lastname="${clientLastName}"]`,
+    `[data-testid="e2e-credit-row"][data-client-lastname="${clientLastName}"]:visible`,
   );
 }
 
