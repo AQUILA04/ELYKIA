@@ -247,6 +247,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Annulation de recouvrement : affichage du `message` backend (`error.error.message`) au lieu du message générique HttpClient.
 
+## Mobile — [2.11.2] — 2026-08-02
+
+### Fixed
+- E2E offline smoke : clic login avec `exact: true` pour ne plus confondre « SE CONNECTER » et « Se connecter sur le web »
+
 ## Mobile — [2.11.1] — 2026-07-24
 
 ### Fixed

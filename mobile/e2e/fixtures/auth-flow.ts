@@ -62,7 +62,7 @@ export async function loginAndWaitForTabs(page: Page, timeoutMs = 90_000) {
 
   await fillIonInput(page, "Saisissez votre nom d'utilisateur", 'COM002');
   await fillIonInput(page, 'Saisissez votre mot de passe', 'password');
-  await page.getByRole('button', { name: 'SE CONNECTER' }).click();
+  await page.getByRole('button', { name: 'SE CONNECTER', exact: true }).click();
 
   // App now goes through /initial-loading before landing on /tabs.
   await expect(page).toHaveURL(/\/(initial-loading|tabs)/, { timeout: 15_000 });
