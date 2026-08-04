@@ -218,6 +218,13 @@
                 <span class="hide-menu">Recouvrements</span>
               </a>
             </li>
+            <li class="sidebar-item submenu-item" *ngIf="canViewCollectorTransfers()">
+              <a class="sidebar-link" routerLink="/credit/transferts-commerciaux"
+                 [ngClass]="{ 'active': isSubRouteActive('/credit/transferts-commerciaux') }">
+                <span class="material-icons">swap_horiz</span>
+                <span class="hide-menu">Transfert Ventes</span>
+              </a>
+            </li>
             <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_RATTRAPAGE']">
               <a class="sidebar-link" routerLink="/stock/credit/rattrapage"
                  [ngClass]="{ 'active': isSubRouteActive('/stock/credit/rattrapage') }"

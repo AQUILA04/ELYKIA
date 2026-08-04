@@ -1,0 +1,198 @@
+<div class="main-container collector-transfers-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/dashboard" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Tableau de bord
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">GESTION DES VENTES</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          <path d="M16 3h5v5"/>
+          <path d="M8 3H3v5"/>
+          <path d="M21 3l-7 7"/>
+          <path d="M3 3l7 7"/>
+          <path d="M3 21h5"/>
+          <path d="M21 21h-5"/>
+          <path d="M3 21l7-7"/>
+          <path d="M21 21l-7-7"/>
+        </svg>
+        <h1 class="page-title">Transfert Ventes</h1>
+      </div>
+      <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="loading">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Actualiser
+      </button>
+    </div>
+    <p class="page-subtitle">Montants figés à la passation · 1 crédit compté une seule fois (dernière passation) · Filtres conservés à la navigation</p>
+  </div>
+
+  <div class="kpi-strip a3">
+    <div class="kpi-card kpi-total">
+      <div class="kpi-label">Crédits transférés</div>
+      <div class="kpi-value">{{ summary.creditCount | number }}</div>
+      <div class="kpi-sub">Passations trouvées</div>
+    </div>
+    <div class="kpi-card kpi-amount">
+      <div class="kpi-label">Total ventes</div>
+      <div class="kpi-value">{{ summary.totalSalesAmount | number }}</div>
+      <div class="kpi-sub">FCFA à la passation</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Déjà recouvré</div>
+      <div class="kpi-value">{{ summary.totalPaidAtTransfer | number }}</div>
+      <div class="kpi-sub">Par le commercial sortant</div>
+    </div>
+    <div class="kpi-card kpi-delai">
+      <div class="kpi-label">Restant à recouvrer</div>
+      <div class="kpi-value">{{ summary.totalRemainingAtTransfer | number }}</div>
+      <div class="kpi-sub">Pour le commercial entrant</div>
+    </div>
+  </div>
+
+  <div class="toolbar a4">
+    <div class="filter-field">
+      <span class="toolbar-label">Sortant</span>
+      <app-commercial-selector
+        [initialValue]="oldCollector || null"
+        (commercialSelected)="onOldCollectorSelected($event)">
+      </app-commercial-selector>
+    </div>
+    <div class="filter-field">
+      <span class="toolbar-label">Entrant</span>
+      <app-commercial-selector
+        [initialValue]="newCollector || null"
+        (commercialSelected)="onNewCollectorSelected($event)">
+      </app-commercial-selector>
+    </div>
+    <div class="filter-field filter-dates">
+      <span class="toolbar-label">Du</span>
+      <input type="date" lang="fr-FR" class="date-input" [(ngModel)]="fromDate" (change)="onDateChanged()">
+    </div>
+    <div class="filter-field filter-dates">
+      <span class="toolbar-label">Au</span>
+      <input type="date" lang="fr-FR" class="date-input" [(ngModel)]="toDate" (change)="onDateChanged()">
+    </div>
+    <button type="button" class="btn-clear" (click)="clearFilters()">Réinitialiser</button>
+    <span class="result-count">
+      <strong>{{ summary.byPair.length }}</strong> couple(s) ·
+      <strong>{{ filteredDetails.length }}</strong> détail(s)
+    </span>
+  </div>
+
+  <div class="table-card a5">
+    <div class="section-heading">Vue globale par commercial</div>
+    <div class="table-wrapper">
+      <div *ngIf="loading" class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Chargement des passations…</div>
+      </div>
+
+      <div *ngIf="!loading && summary.byPair.length === 0" class="empty-state">
+        <div class="empty-icon">↔</div>
+        <div class="empty-title">Aucun transfert trouvé</div>
+        <div class="empty-sub">Modifiez les filtres commercial ou la période.</div>
+      </div>
+
+      <table *ngIf="!loading && summary.byPair.length > 0" class="data-table summary-table">
+        <thead>
+          <tr>
+            <th class="col-text">Sortant</th>
+            <th class="col-text">Entrant</th>
+            <th class="col-num">Crédits</th>
+            <th class="col-num">Total ventes</th>
+            <th class="col-num">Recouvré sortant</th>
+            <th class="col-num">Restant entrant</th>
+            <th class="col-period">Période</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let pair of summary.byPair"
+            class="clickable-row"
+            [class.selected]="isPairSelected(pair)"
+            (click)="selectPair(pair)">
+            <td class="col-text"><span class="collector-chip">{{ pair.oldCollector }}</span></td>
+            <td class="col-text"><span class="collector-chip chip-in">{{ pair.newCollector }}</span></td>
+            <td class="col-num mono">{{ pair.creditCount | number }}</td>
+            <td class="col-num mono">{{ pair.totalSalesAmount | number }}</td>
+            <td class="col-num mono">{{ pair.totalPaidAtTransfer | number }}</td>
+            <td class="col-num mono remaining">{{ pair.totalRemainingAtTransfer | number }}</td>
+            <td class="col-period period-cell">
+              {{ pair.firstTransferDate | date:'dd/MM/yyyy' }}
+              <span *ngIf="pair.lastTransferDate && pair.lastTransferDate !== pair.firstTransferDate">
+                → {{ pair.lastTransferDate | date:'dd/MM/yyyy' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-card a5 detail-card">
+    <div class="section-heading">
+      Détail des ventes
+      <span *ngIf="selectedPairKey" class="section-hint">Filtré sur {{ selectedPairKey }}</span>
+    </div>
+    <div class="table-wrapper">
+      <div *ngIf="loadingDetails" class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Chargement du détail…</div>
+      </div>
+
+      <div *ngIf="!loadingDetails && filteredDetails.length === 0" class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">Aucune vente dans ce périmètre</div>
+        <div class="empty-sub">Sélectionnez un couple dans le tableau ci-dessus ou élargissez les filtres.</div>
+      </div>
+
+      <table *ngIf="!loadingDetails && filteredDetails.length > 0" class="data-table detail-table">
+        <thead>
+          <tr>
+            <th class="col-date">Date</th>
+            <th class="col-ref">Référence</th>
+            <th class="col-client">Client</th>
+            <th class="col-passation">Passation</th>
+            <th class="col-num">Vente</th>
+            <th class="col-num">Recouvré</th>
+            <th class="col-num">Restant</th>
+            <th class="col-num">Restant actuel</th>
+            <th class="col-actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of filteredDetails">
+            <td class="col-date mono">{{ row.changeDate | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td class="col-ref mono">{{ row.creditReference || ('#' + row.creditId) }}</td>
+            <td class="col-client">
+              <div class="client-name">{{ row.clientName || '—' }}</div>
+              <div class="client-sub" *ngIf="row.clientPhone">{{ row.clientPhone }}</div>
+            </td>
+            <td class="col-passation">
+              <span class="collector-chip">{{ row.oldCollector }}</span>
+              <span class="arrow">→</span>
+              <span class="collector-chip chip-in">{{ row.newCollector }}</span>
+            </td>
+            <td class="col-num mono">{{ row.totalAmount | number }}</td>
+            <td class="col-num mono">{{ row.totalAmountPaid | number }}</td>
+            <td class="col-num mono remaining">{{ row.totalAmountRemaining | number }}</td>
+            <td class="col-num mono">{{ row.currentAmountRemaining | number }}</td>
+            <td class="col-actions">
+              <button type="button" class="btn-detail" (click)="openCredit(row.creditId)">Détail</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

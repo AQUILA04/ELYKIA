@@ -305,6 +305,14 @@ export class SidebarComponent implements OnInit {
     return this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
   }
 
+  canViewCollectorTransfers(): boolean {
+    return this.userService.hasProfile(UserProfile.RECOVERY_MANAGER)
+      || this.userService.hasProfile(UserProfile.ADMIN)
+      || this.userService.hasProfile(UserProfile.SUPER_ADMIN)
+      || this.userService.hasProfile(UserProfile.GESTIONNAIRE)
+      || this.userService.hasProfile(UserProfile.SECRETARY);
+  }
+
   isPromoter(): boolean {
     return this.userService.hasProfile(UserProfile.PROMOTER);
   }
