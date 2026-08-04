@@ -59,6 +59,13 @@ public interface CommercialMonthlyStockRepository extends GenericRepository<Comm
             @Param("currentMonth") int currentMonth,
             @Param("currentYear") int currentYear);
 
+    @Query("""
+            SELECT DISTINCT s FROM CommercialMonthlyStock s
+            LEFT JOIN FETCH s.items
+            WHERE s.id = :id
+            """)
+    Optional<CommercialMonthlyStock> findByIdWithItems(@Param("id") Long id);
+
     default CommercialMonthlyStock getCommercialMonthStock(String commercialUsername) {
         LocalDate currentDate = LocalDate.now();
         return findByCollectorAndMonthAndYear(commercialUsername, currentDate.getMonthValue(), currentDate.getYear())

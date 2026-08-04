@@ -2,6 +2,7 @@ package com.optimize.elykia.core.controller.stock;
 
 import com.optimize.elykia.core.dto.CommercialMonthlyStockItemSoldValueHistoryDto;
 import com.optimize.elykia.core.dto.CommercialStockItemDto;
+import com.optimize.elykia.core.dto.stock.StockLinkedSalesResponseDto;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
@@ -43,6 +44,11 @@ public class CommercialMonthlyStockController {
         LocalDate now = LocalDate.now();
         return ResponseEntity.of(monthlyStockService.findEnrichedByCollectorAndMonthAndYear(
                 collector, now.getMonthValue(), now.getYear()));
+    }
+
+    @GetMapping("/{stockId}/linked-sales")
+    public ResponseEntity<StockLinkedSalesResponseDto> getLinkedSales(@PathVariable Long stockId) {
+        return ResponseEntity.ok(monthlyStockService.getLinkedSales(stockId));
     }
     
     @GetMapping("/{collector}/{year}/{month}")

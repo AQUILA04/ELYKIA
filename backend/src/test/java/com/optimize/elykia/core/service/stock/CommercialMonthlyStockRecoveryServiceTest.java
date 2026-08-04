@@ -1,11 +1,14 @@
 package com.optimize.elykia.core.service.stock;
 
+import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.dto.stock.CreditSoldAmountOnStockProjection;
+import com.optimize.elykia.core.dto.stock.StockLinkedSalesResponseDto;
 import com.optimize.elykia.core.dto.stock.StockRecoverySummaryDto;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
+import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockItemSoldValueHistoryRepository;
 import com.optimize.elykia.core.repository.CreditArticlesRepository;
@@ -16,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -149,6 +153,76 @@ class CommercialMonthlyStockRecoveryServiceTest {
         assertEquals(3_000D, summary.getTotalRecoveredAmount() + summary.getTotalRemainingAmount());
     }
 
+    @Test
+    void listsLinkedSalesDedupedByCreditIncludingRattrapageOnThisStock() {
+        CommercialMonthlyStock stock = buildCreditRecoveryStock();
+        stock.setId(28L);
+
+        when(soldValueHistoryRepository.sumSoldValueByCreditForStockItems(any()))
+                .thenReturn(List.of(
+                        projection(100L, 60_000D),
+                        projection(200L, 40_000D),
+                        projection(900L, 15_650D)));
+        when(creditArticlesRepository.sumSoldValueByCreditForStockItemIds(any()))
+                .thenReturn(List.of(projection(100L, 60_000D)));
+        when(creditArticlesRepository.findCreditIdsByStockItemIds(any()))
+                .thenReturn(List.of(100L, 200L, 900L));
+
+        Credit credit100 = credit(100L, 60_000D, 20_000D, 40_000D);
+        credit100.setReference("DIST-007-AAAA");
+        credit100.setBeginDate(LocalDate.of(2026, 5, 10));
+        credit100.setStatus(CreditStatus.SETTLED);
+        credit100.setClient(client("Ada", "Lovelace"));
+
+        Credit credit200 = credit(200L, 40_000D, 40_000D, 0D);
+        credit200.setReference("DIST-007-BBBB");
+        credit200.setBeginDate(LocalDate.of(2026, 5, 12));
+        credit200.setStatus(CreditStatus.SETTLED);
+        credit200.setClient(client("Grace", "Hopper"));
+
+        Credit rattrapage = credit(900L, 15_650D, 0D, 15_650D);
+        rattrapage.setReference("RAT-EQ9AKOYN");
+        rattrapage.setBeginDate(LocalDate.of(2026, 6, 4));
+        rattrapage.setStatus(CreditStatus.INPROGRESS);
+        rattrapage.setClient(client("DA VICTO", "AVOTOR"));
+
+        when(creditRepository.findAllById(Set.of(100L, 200L, 900L)))
+                .thenReturn(List.of(credit100, credit200, rattrapage));
+
+        StockLinkedSalesResponseDto response = service.listLinkedSales(stock);
+
+        assertEquals(28L, response.getStockId());
+        assertEquals(100_000D, response.getStockSoldValue());
+        assertEquals(3, response.getSalesCount());
+        assertEquals(115_650D, response.getSumCreditTotalAmount());
+        assertEquals(115_650D, response.getSumSoldValueOnStock());
+        assertEquals("DIST-007-AAAA", response.getSales().get(0).getReference());
+        assertEquals("Ada Lovelace", response.getSales().get(0).getClientFullName());
+        assertEquals("RAT-EQ9AKOYN", response.getSales().get(2).getReference());
+        assertEquals(LocalDate.of(2026, 6, 4), response.getSales().get(2).getBeginDate());
+    }
+
+    @Test
+    void listsLinkedSalesExcludesRattrapageNotAttributedToThisStock() {
+        CommercialMonthlyStock stock = buildCreditRecoveryStock();
+        stock.setId(28L);
+
+        when(soldValueHistoryRepository.sumSoldValueByCreditForStockItems(any())).thenReturn(List.of());
+        when(creditArticlesRepository.sumSoldValueByCreditForStockItemIds(any())).thenReturn(List.of());
+        when(creditArticlesRepository.findCreditIdsByStockItemIds(any())).thenReturn(List.of(900L));
+        when(creditArticlesRepository.countLinkedArticlesOnStockItems(eq(900L), any())).thenReturn(0L);
+
+        Credit rattrapage = credit(900L, 47_000D, 10_000D, 37_000D);
+        rattrapage.setReference("RAT-OTHER");
+        when(creditRepository.findAllById(Set.of(900L))).thenReturn(List.of(rattrapage));
+
+        StockLinkedSalesResponseDto response = service.listLinkedSales(stock);
+
+        assertEquals(0, response.getSalesCount());
+        assertEquals(100_000D, response.getStockSoldValue());
+        assertEquals(0D, response.getSumSoldValueOnStock());
+    }
+
     private static CommercialMonthlyStock buildCreditRecoveryStock() {
         CommercialMonthlyStock stock = new CommercialMonthlyStock();
         stock.setCollector("COM001");
@@ -203,6 +277,13 @@ class CommercialMonthlyStockRecoveryServiceTest {
         Credit credit = credit(id, total, total, 0D);
         credit.setType(OperationType.CASH);
         return credit;
+    }
+
+    private static Client client(String firstname, String lastname) {
+        Client client = new Client();
+        client.setFirstname(firstname);
+        client.setLastname(lastname);
+        return client;
     }
 
     private static CreditSoldAmountOnStockProjection projection(Long creditId, double soldValue) {

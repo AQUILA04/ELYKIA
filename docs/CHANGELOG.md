@@ -9,10 +9,51 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-08-04
+
+### Added
+- `docs/sql/rapport_transferts_commerciaux.sql` : requêtes de rapport passation (synthèse COM014→COM013, détail, agrégats par couple / sortant / entrant), avec déduplication 1 crédit = 1 fois (dernière passation).
+- `docs/sql/diagnostic_stock_recovery.sql` §9 : diagnostic disparité KPI stock vendu vs rapport créances (`begin_date`), cas COM007/mai, export périmètre stock.
+
+### Changed
+- `docs/sql/rapport_transferts_commerciaux.sql` : agrégats basés sur `DISTINCT ON (credit_id)` pour éviter le double comptage des ventes multi-passations.
+- `backend/src/main/resources/db/business/request.sql` : export ventes aligné sur le périmètre stock mensuel (history + `stock_item_id`) au lieu de `begin_date` seul.
+
 ## Docs & Infra — 2026-08-02
 
 ### Added
 - Pipeline CD (`cd.yml`) : après un promote manuel test → prod réussi, le job `promote-stop-test` arrête la stack test (`docker compose ... elykia-test ... down`).
+
+## Frontend — [2.14.4] — 2026-08-04
+
+### Changed
+- Modal « Valeur stock vendu » : alignement à droite des en-têtes Montant total / Imputé stock ; lignes et références cliquables vers la fiche crédit.
+
+## Frontend — [2.14.3] — 2026-08-04
+
+### Changed
+- Modal « Valeur stock vendu » : mise en forme alignée palette ELYKIA (header navy, KPI à bande, tableau, badges statut, bouton Fermer).
+- Transfert Ventes : sous-titre précisant qu’un crédit n’est compté qu’une fois (dernière passation).
+
+## Frontend — [2.14.2] — 2026-08-04
+
+### Changed
+- Page et menu renommés en « Transfert Ventes » ; alignement des en-têtes et montants (colonnes numériques à droite) sur les tableaux de passation.
+
+## Frontend — [2.14.1] — 2026-08-04
+
+### Changed
+- Menu « Transfert Ventes » visible pour les profils `GESTIONNAIRE`, `SECRETARY`, `RECOVERY_MANAGER`, `ADMIN` et `SUPER_ADMIN` (aligné sur `application.yml`).
+
+## Frontend — [2.14.0] — 2026-08-04
+
+### Added
+- Page `/credit/transferts-commerciaux` : rapport global des passations de commercial (KPI, filtres sortant/entrant/période, agrégat par couple, détail des ventes avec lien fiche crédit).
+
+## Frontend — [2.13.0] — 2026-08-04
+
+### Added
+- Stock mensuel : clic sur le KPI « Valeur Stock Vendu » ouvre la liste des ventes liées (référence, client, montant, date, valeur imputée).
 
 ## Frontend — [2.12.16] — 2026-08-02
 
@@ -143,6 +184,26 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Changed
 - Bouton « Historique inventaires » et routes associées (`/inventory/history`, détail, trajectoire) réservés au rôle `ROLE_CONSULT_INVENTORY_HISTORY`
+
+## Backend — [1.5.2] — 2026-08-04
+
+### Fixed
+- Rapport passations commerciaux : un crédit n’est plus compté plusieurs fois s’il a subi plusieurs transferts — agrégats et détail sur la dernière passation du crédit (filtre inclus).
+
+## Backend — [1.5.1] — 2026-08-04
+
+### Changed
+- Rapport passations commerciaux : accès étendu aux profils `GESTIONNAIRE` et `SECRETARY` (en plus de `RECOVERY_MANAGER` et `ADMIN`), conformément à `application.yml`.
+
+## Backend — [1.5.0] — 2026-08-04
+
+### Added
+- API rapport passations commerciaux : `GET /api/v1/credits/collector-transfers/summary` et `GET /api/v1/credits/collector-transfers` (filtres old/new collector + période, rôles RECOVERY_MANAGER / MANAGER / ADMIN).
+
+## Backend — [1.4.0] — 2026-08-04
+
+### Added
+- Endpoint `GET /api/commercial-stocks/{stockId}/linked-sales` : ventes liées au stock mensuel (history + `stock_item_id`), avec totaux de contrôle pour le drill-down KPI.
 
 ## Backend — [1.3.8] — 2026-08-02
 

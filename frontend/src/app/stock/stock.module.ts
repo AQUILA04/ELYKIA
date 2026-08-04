@@ -19,6 +19,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { SalesDetailsDialogComponent } from './components/sales-details-dialog/sales-details-dialog.component';
+import { StockSoldSalesDialogComponent } from './components/stock-sold-sales-dialog/stock-sold-sales-dialog.component';
 import { StockMovementDialogComponent } from './components/stock-movement-dialog/stock-movement-dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
@@ -39,6 +40,7 @@ import { StockReturnHistoriqueComponent } from './stock-return-historique/stock-
     StockReturnListComponent,
     StockReturnCreateComponent,
     SalesDetailsDialogComponent,
+    StockSoldSalesDialogComponent,
     StockMovementDialogComponent,
     StockReceptionListComponent,
     StockReceptionDetailComponent,

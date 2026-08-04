@@ -9,6 +9,7 @@ import { UserService } from "../../../user/service/user.service";
 import { UserProfile } from "../../../shared/models/user-profile.enum";
 import { MatDialog } from '@angular/material/dialog';
 import { SalesDetailsDialogComponent } from '../../components/sales-details-dialog/sales-details-dialog.component';
+import { StockSoldSalesDialogComponent } from '../../components/stock-sold-sales-dialog/stock-sold-sales-dialog.component';
 import { StockMovementDialogComponent } from '../../components/stock-movement-dialog/stock-movement-dialog.component';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
@@ -160,6 +161,24 @@ export class MyStockDashboardComponent implements OnInit {
         quantitySold: item.quantitySold,
         totalSoldValue: item.totalSoldValue ?? 0,
         weightedAverageUnitPrice: item.weightedAverageUnitPrice ?? 0
+      }
+    });
+  }
+
+  openSoldSales(stock: CommercialMonthlyStock): void {
+    if (!stock?.id) {
+      return;
+    }
+    this.dialog.open(StockSoldSalesDialogComponent, {
+      width: '1100px',
+      maxWidth: '95vw',
+      panelClass: 'stock-sold-sales-dialog-panel',
+      data: {
+        stockId: stock.id,
+        collector: stock.collector,
+        monthLabel: this.getMonthName(stock.month),
+        year: stock.year,
+        stockSoldValue: this.getTotalSoldValue(stock)
       }
     });
   }

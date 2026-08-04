@@ -4,6 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CommercialMonthlyStock } from '../models/commercial-stock.model';
 import { SoldValueHistoryEntry } from '../models/sold-value-history.model';
+import { StockLinkedSalesResponse } from '../models/stock-linked-sales.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 
@@ -56,6 +57,10 @@ export class CommercialStockService extends BaseHttpService {
 
   getSoldValueHistory(stockItemId: number): Observable<SoldValueHistoryEntry[]> {
     return this.http.get<SoldValueHistoryEntry[]>(`${this.baseUrl}/items/${stockItemId}/sold-value-history`);
+  }
+
+  getLinkedSales(stockId: number): Observable<StockLinkedSalesResponse> {
+    return this.http.get<StockLinkedSalesResponse>(`${this.baseUrl}/${stockId}/linked-sales`);
   }
 
   exportPdf(startDate: string, endDate: string, collector: string | null): Observable<Blob> {

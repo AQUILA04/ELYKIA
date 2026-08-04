@@ -1,0 +1,348 @@
+.stock-sold-sales-dialog-panel {
+  --navy: #003366;
+  --navy-dark: #002244;
+  --navy-pale: #e8eef6;
+  --navy-xpale: #f0f4f9;
+  --bg-page: #f2f4f8;
+  --bg-white: #ffffff;
+  --border: #dde3ec;
+  --text-muted: #6b7a99;
+  --text-light: #9aacc4;
+  --green: #1d8a3c;
+  --green-pale: #e6f5eb;
+  --orange: #c75000;
+  --orange-pale: #fff3e6;
+  --kpi-cyan: #0095c8;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 3px rgba(0, 51, 102, 0.08);
+
+  .mat-mdc-dialog-container,
+  .mat-dialog-container {
+    padding: 0 !important;
+    border-radius: var(--radius) !important;
+    overflow: hidden;
+  }
+}
+
+.stock-sold-sales-dialog {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  background: var(--bg-page, #f2f4f8);
+}
+
+.stock-sold-sales-dialog .dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  background: var(--bg-white, #fff);
+  border-bottom: 1px solid var(--border, #dde3ec);
+}
+
+.stock-sold-sales-dialog .dialog-surtitle {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-light, #9aacc4);
+}
+
+.stock-sold-sales-dialog .dialog-title {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--navy, #003366);
+}
+
+.stock-sold-sales-dialog .dialog-subtitle {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-muted, #6b7a99);
+  max-width: 52rem;
+}
+
+.stock-sold-sales-dialog .btn-close {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border, #dde3ec);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-white, #fff);
+  color: var(--text-muted, #6b7a99);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.stock-sold-sales-dialog .btn-close:hover {
+  background: var(--navy-xpale, #f0f4f9);
+  color: var(--navy, #003366);
+}
+
+.stock-sold-sales-dialog .dialog-body {
+  padding: 16px 24px;
+  overflow: auto;
+  flex: 1;
+}
+
+.stock-sold-sales-dialog .kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stock-sold-sales-dialog .kpi-card {
+  position: relative;
+  background: var(--bg-white, #fff);
+  border: 1px solid var(--border, #dde3ec);
+  border-radius: var(--radius-sm, 8px);
+  box-shadow: var(--shadow-sm);
+  padding: 12px 14px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.stock-sold-sales-dialog .kpi-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.stock-sold-sales-dialog .kpi-total::before { background: var(--navy, #003366); }
+.stock-sold-sales-dialog .kpi-amount::before { background: var(--kpi-cyan, #0095c8); }
+.stock-sold-sales-dialog .kpi-green::before { background: var(--green, #1d8a3c); }
+.stock-sold-sales-dialog .kpi-delai::before { background: var(--orange, #c75000); }
+
+.stock-sold-sales-dialog .kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-light, #9aacc4);
+}
+
+.stock-sold-sales-dialog .kpi-value {
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.stock-sold-sales-dialog .kpi-value small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted, #6b7a99);
+}
+
+.stock-sold-sales-dialog .kpi-total .kpi-value { color: var(--navy, #003366); }
+.stock-sold-sales-dialog .kpi-amount .kpi-value { color: var(--kpi-cyan, #0095c8); }
+.stock-sold-sales-dialog .kpi-green .kpi-value { color: var(--green, #1d8a3c); }
+.stock-sold-sales-dialog .kpi-delai .kpi-value { color: var(--orange, #c75000); }
+
+.stock-sold-sales-dialog .table-card {
+  background: var(--bg-white, #fff);
+  border: 1px solid var(--border, #dde3ec);
+  border-radius: var(--radius, 12px);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.stock-sold-sales-dialog .table-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border, #dde3ec);
+  background: var(--navy-xpale, #f0f4f9);
+}
+
+.stock-sold-sales-dialog .result-count {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-muted, #6b7a99);
+}
+
+.stock-sold-sales-dialog .result-count strong {
+  color: var(--navy, #003366);
+}
+
+.stock-sold-sales-dialog .table-wrapper {
+  max-height: min(420px, 48vh);
+  overflow: auto;
+}
+
+.stock-sold-sales-dialog .data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.stock-sold-sales-dialog .data-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--navy, #003366);
+  background: var(--navy-xpale, #f0f4f9);
+  border-bottom: 2px solid var(--navy-pale, #e8eef6);
+}
+
+.stock-sold-sales-dialog .data-table th.col-amount,
+.stock-sold-sales-dialog .data-table td.col-amount {
+  text-align: right;
+}
+
+.stock-sold-sales-dialog .data-table td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border, #dde3ec);
+  vertical-align: middle;
+}
+
+.stock-sold-sales-dialog .data-table tbody tr.clickable-row {
+  cursor: pointer;
+}
+
+.stock-sold-sales-dialog .data-table tbody tr.clickable-row:hover td {
+  background: var(--navy-xpale, #f0f4f9);
+}
+
+.stock-sold-sales-dialog .data-table tbody tr.clickable-row:focus-visible {
+  outline: 2px solid var(--navy, #003366);
+  outline-offset: -2px;
+}
+
+.stock-sold-sales-dialog .ref-link {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-family: 'DM Mono', ui-monospace, monospace;
+  color: var(--navy, #003366);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.stock-sold-sales-dialog .ref-link:hover {
+  color: var(--kpi-cyan, #0095c8);
+}
+
+.stock-sold-sales-dialog .text-right {
+  text-align: right;
+}
+
+.stock-sold-sales-dialog .mono {
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.stock-sold-sales-dialog .status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stock-sold-sales-dialog .status-inprogress {
+  background: var(--orange-pale, #fff3e6);
+  color: var(--orange, #c75000);
+}
+
+.stock-sold-sales-dialog .status-settled {
+  background: var(--green-pale, #e6f5eb);
+  color: var(--green, #1d8a3c);
+}
+
+.stock-sold-sales-dialog .status-other {
+  background: var(--navy-pale, #e8eef6);
+  color: var(--navy, #003366);
+}
+
+.stock-sold-sales-dialog .empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--bg-white, #fff);
+  border: 1px dashed var(--border, #dde3ec);
+  border-radius: var(--radius, 12px);
+}
+
+.stock-sold-sales-dialog .empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--navy, #003366);
+  margin-bottom: 4px;
+}
+
+.stock-sold-sales-dialog .empty-sub {
+  font-size: 13px;
+  color: var(--text-muted, #6b7a99);
+  margin-bottom: 12px;
+}
+
+.stock-sold-sales-dialog .dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 24px;
+  background: var(--bg-white, #fff);
+  border-top: 1px solid var(--border, #dde3ec);
+}
+
+.stock-sold-sales-dialog .btn-primary {
+  border: none;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--navy, #003366);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 18px;
+  cursor: pointer;
+}
+
+.stock-sold-sales-dialog .btn-primary:hover {
+  background: var(--navy-dark, #002244);
+}
+
+@media (max-width: 900px) {
+  .stock-sold-sales-dialog .kpi-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .stock-sold-sales-dialog .dialog-header,
+  .stock-sold-sales-dialog .dialog-body,
+  .stock-sold-sales-dialog .dialog-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .stock-sold-sales-dialog .kpi-strip {
+    grid-template-columns: 1fr;
+  }
+}

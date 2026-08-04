@@ -1,0 +1,97 @@
+<div class="stock-sold-sales-dialog">
+  <header class="dialog-header">
+    <div class="dialog-header-text">
+      <p class="dialog-surtitle">Stock mensuel · Ventes liées</p>
+      <h2 class="dialog-title">
+        {{ data.collector }} — {{ data.monthLabel | titlecase }} {{ data.year }}
+      </h2>
+      <p class="dialog-subtitle">
+        Ventes liées à ce stock (y compris rattrapages qui l’ont débité).
+      </p>
+    </div>
+    <button type="button" class="btn-close" (click)="close()" aria-label="Fermer">&times;</button>
+  </header>
+
+  <div class="dialog-body">
+    <div class="kpi-strip" *ngIf="!loading && !error">
+      <div class="kpi-card kpi-total">
+        <span class="kpi-label">KPI stock vendu</span>
+        <span class="kpi-value">{{ data.stockSoldValue | number:'1.0-0' }} <small>FCFA</small></span>
+      </div>
+      <div class="kpi-card kpi-amount" *ngIf="response">
+        <span class="kpi-label">Somme ventes liées</span>
+        <span class="kpi-value">{{ response.sumCreditTotalAmount | number:'1.0-0' }} <small>FCFA</small></span>
+      </div>
+      <div class="kpi-card kpi-green" *ngIf="response">
+        <span class="kpi-label">Valeur imputée stock</span>
+        <span class="kpi-value">{{ response.sumSoldValueOnStock | number:'1.0-0' }} <small>FCFA</small></span>
+      </div>
+      <div class="kpi-card kpi-delai" *ngIf="response">
+        <span class="kpi-label">Nombre de ventes</span>
+        <span class="kpi-value">{{ response.salesCount }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="empty-state">
+      <div class="empty-title">Chargement des ventes…</div>
+    </div>
+
+    <div *ngIf="!loading && error" class="empty-state">
+      <div class="empty-title">{{ error }}</div>
+      <button type="button" class="btn-primary" (click)="loadSales()">Réessayer</button>
+    </div>
+
+    <div class="table-card" *ngIf="!loading && !error && sales.length > 0">
+      <div class="table-toolbar">
+        <span class="result-count"><strong>{{ sales.length }}</strong> vente(s)</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Référence</th>
+              <th>Client</th>
+              <th>Date vente</th>
+              <th class="col-amount">Montant total</th>
+              <th class="col-amount">Imputé stock</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of sales"
+                class="clickable-row"
+                (click)="openCredit(row)"
+                (keydown.enter)="openCredit(row)"
+                tabindex="0"
+                role="link"
+                [attr.aria-label]="'Ouvrir le crédit ' + row.reference">
+              <td class="mono">
+                <button type="button" class="ref-link" (click)="openCredit(row); $event.stopPropagation()">
+                  {{ row.reference }}
+                </button>
+              </td>
+              <td>{{ row.clientFullName || '—' }}</td>
+              <td class="mono">{{ row.beginDate | date:'dd/MM/yyyy' }}</td>
+              <td class="col-amount mono">{{ row.totalAmount | number:'1.0-0' }}</td>
+              <td class="col-amount mono">{{ row.soldValueOnStock | number:'1.0-0' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusClass(row.status)">
+                  {{ getStatusLabel(row.status) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && !error && sales.length === 0" class="empty-state">
+      <div class="empty-title">Aucune vente liée</div>
+      <div class="empty-sub">Aucune vente n’est rattachée à ce stock mensuel.</div>
+    </div>
+  </div>
+
+  <footer class="dialog-footer">
+    <button type="button" class="btn-primary" (click)="close()">Fermer</button>
+  </footer>
+</div>

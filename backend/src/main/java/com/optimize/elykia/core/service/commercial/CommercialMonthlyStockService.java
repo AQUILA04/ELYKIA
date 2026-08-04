@@ -5,6 +5,7 @@ import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.dto.stock.StockLinkedSalesResponseDto;
 import com.optimize.elykia.core.dto.stock.StockRecoverySummaryDto;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
@@ -128,6 +129,13 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
                 .totalCreditDepositedAmount(Math.ceil(creditDeposited))
                 .build());
         return stock;
+    }
+
+    public StockLinkedSalesResponseDto getLinkedSales(Long stockId) {
+        CommercialMonthlyStock stock = ((CommercialMonthlyStockRepository) repository)
+                .findByIdWithItems(stockId)
+                .orElseThrow(() -> new ResourceNotFoundException("Stock mensuel introuvable : " + stockId));
+        return recoveryService.listLinkedSales(stock);
     }
 
     private Page<CommercialMonthlyStock> enrichPage(Page<CommercialMonthlyStock> page) {

@@ -65,13 +65,20 @@
             </div>
           </div>
 
-          <div class="stats-card">
+          <div class="stats-card clickable-kpi"
+               (click)="openSoldSales(stock)"
+               role="button"
+               tabindex="0"
+               (keydown.enter)="openSoldSales(stock)"
+               title="Voir les ventes liées"
+               data-testid="e2e-my-stock-sold-value-kpi">
             <div class="stats-icon bg-success">
               <mat-icon>monetization_on</mat-icon>
             </div>
             <div class="stats-info">
               <p class="stats-label">Valeur Stock Vendu</p>
               <p class="stats-value">{{ getTotalSoldValue(stock) | number:'1.0-0' }} FCFA</p>
+              <p class="stats-hint">Cliquer pour le détail des ventes</p>
             </div>
           </div>
 
