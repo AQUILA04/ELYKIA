@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
 import { TontineService } from '../../services/tontine.service';
@@ -74,6 +74,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   isRecoveryManager = false;
   fieldControlLatest: TontineMemberFieldControlDto | null = null;
   isFieldControlBusy = false;
+  exportingPdf = false;
 
   monthsList = [
     'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -266,6 +267,33 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       return `Mois ${month}`;
     }
     return this.monthsList[index];
+  }
+
+  onDownloadPdf(): void {
+    if (!this.member || this.exportingPdf) {
+      return;
+    }
+    this.exportingPdf = true;
+    const memberId = this.member.id;
+    const clientCode = this.member.client?.code || String(memberId);
+    this.tontineService.exportMemberDetailsPdf(memberId).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.exportingPdf = false)
+    ).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        const safeCode = String(clientCode).replace(/[^a-zA-Z0-9_-]/g, '_');
+        anchor.download = `cotisations_membre_${safeCode}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+        this.showSuccess('PDF téléchargé avec succès');
+      },
+      error: () => {
+        this.showError('Erreur lors du téléchargement du PDF');
+      }
+    });
   }
 
   getClientName(): string {

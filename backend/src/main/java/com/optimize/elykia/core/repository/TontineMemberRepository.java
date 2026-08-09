@@ -25,6 +25,19 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
         Page<TontineMember> findByTontineSession_Year(Integer year, Pageable pageable);
 
         @Query("""
+                SELECT tm FROM TontineMember tm
+                JOIN FETCH tm.client c
+                LEFT JOIN FETCH tm.tontineSession s
+                WHERE s.year = :year
+                  AND c.tontineCollector = :commercial
+                  AND tm.state = :state
+                """)
+        List<TontineMember> findBySessionYearAndTontineCollector(
+                        @Param("year") Integer year,
+                        @Param("commercial") String commercial,
+                        @Param("state") State state);
+
+        @Query("""
         SELECT new com.optimize.elykia.core.dto.customer.CustomerTontineContributionSummaryDto(
             tm.id,
             tm.tontineSession.year,

@@ -50,6 +50,7 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   showHistoricalAlertMessage = false;
   isRecoveryManager = false;
   isPromoter = false;
+  exportingPdf = false;
 
   constructor(
     private readonly tontineService: TontineService,
@@ -210,6 +211,31 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
       page: 0 // Reset to first page on new filter/search
     };
     this.loadMembers();
+  }
+
+  onExportCommercialPdf(commercial: string): void {
+    if (!commercial || this.exportingPdf) {
+      return;
+    }
+    this.exportingPdf = true;
+    this.tontineService.exportCommercialMembersPdf(commercial).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.exportingPdf = false)
+    ).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        const safeCommercial = commercial.replace(/[^a-zA-Z0-9_-]/g, '_');
+        anchor.download = `membres_tontine_${safeCommercial}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+        this.showSuccess('PDF téléchargé avec succès');
+      },
+      error: () => {
+        this.showError('Erreur lors du téléchargement du PDF');
+      }
+    });
   }
 
   onPageChange(event: { page: number, size: number }): void {

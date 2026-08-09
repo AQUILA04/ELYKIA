@@ -1,0 +1,110 @@
+name: Deploy Elykia Landing Page
+
+# Builds & deploys landing-page/ to the Contabo VPS (shared Traefik).
+# Triggers only when files under landing-page/ change (or this workflow file).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "landing-page/**"
+      - ".github/workflows/deploy-landing-page.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: elykia-landing-prod
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Build & deploy landing-page
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: landing-page
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in VPS_HOST VPS_USER SSH_PRIVATE_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing GitHub secret: $name"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Sync landing-page to VPS
+        env:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_LANDING_PATH: ${{ secrets.VPS_LANDING_PATH }}
+        run: |
+          set -euo pipefail
+          REMOTE="${VPS_USER}@${VPS_HOST}"
+          DEST="${VPS_LANDING_PATH:-/opt/optimizesolux/elykia-landing}"
+
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes "$REMOTE" \
+            "mkdir -p '$DEST' && (docker network inspect traefik-public >/dev/null 2>&1 || docker network create traefik-public)"
+
+          rsync -az --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'README.md' \
+            --exclude 'mockup' \
+            -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes" \
+            ./ "$REMOTE:$DEST/"
+
+      - name: Build & restart container on VPS
+        env:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_LANDING_PATH: ${{ secrets.VPS_LANDING_PATH }}
+          LANDING_HOST: ${{ secrets.LANDING_HOST }}
+          COMPOSE_PROJECT_NAME: ${{ secrets.LANDING_COMPOSE_PROJECT }}
+        run: |
+          set -euo pipefail
+          REMOTE="${VPS_USER}@${VPS_HOST}"
+          DEST="${VPS_LANDING_PATH:-/opt/optimizesolux/elykia-landing}"
+          HOST_NAME="${LANDING_HOST:-elykia.optimizesolux.com}"
+          PROJECT="${COMPOSE_PROJECT_NAME:-elykia-landing}"
+
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes "$REMOTE" bash -s <<EOF
+          set -euo pipefail
+          cd '$DEST'
+          printf 'LANDING_HOST=%s\n' '$HOST_NAME' > .env
+          docker compose --project-name '$PROJECT' up -d --build
+          docker compose --project-name '$PROJECT' ps
+          docker inspect --format='{{.State.Health.Status}}' elykia-landing || true
+          EOF
+
+      - name: Smoke check
+        continue-on-error: true
+        env:
+          LANDING_HOST: ${{ secrets.LANDING_HOST }}
+        run: |
+          set -euo pipefail
+          HOST_NAME="${LANDING_HOST:-elykia.optimizesolux.com}"
+          echo "Checking https://${HOST_NAME}/ …"
+          curl -fsSIL --max-time 30 "https://${HOST_NAME}/" | head -n 20 || \
+            echo "::warning::Smoke check failed (DNS/TLS may still be propagating)."

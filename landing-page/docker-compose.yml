@@ -1,0 +1,28 @@
+# Elykia product landing — Host via LANDING_HOST (default elykia.optimizesolux.com)
+# Requires shared Traefik + network traefik-public on the Contabo VPS.
+#
+# Deploy:
+#   docker compose --project-name elykia-landing up -d --build
+
+services:
+  landing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: elykia-landing:latest
+    container_name: elykia-landing
+    restart: unless-stopped
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.elykia-landing.rule=Host(`${LANDING_HOST:-elykia.optimizesolux.com}`)"
+      - "traefik.http.routers.elykia-landing.entrypoints=websecure"
+      - "traefik.http.routers.elykia-landing.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.elykia-landing.priority=10"
+      - "traefik.http.services.elykia-landing.loadbalancer.server.port=80"
+
+networks:
+  traefik-public:
+    external: true

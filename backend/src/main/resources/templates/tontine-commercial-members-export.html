@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: sans-serif; font-size: 11px; color: #333; }
+        h1 { text-align: center; color: #003366; margin-bottom: 8px; font-size: 18px; }
+        .header { margin-bottom: 16px; border-bottom: 2px solid #003366; padding-bottom: 10px; }
+        .header p { margin: 4px 0; }
+        .member-block { margin-top: 16px; page-break-inside: avoid; border: 1px solid #dde3ec; border-radius: 4px; overflow: hidden; }
+        .member-summary { width: 100%; border-collapse: collapse; background: #f0f4f9; }
+        .member-summary th, .member-summary td { border: none; padding: 7px 8px; text-align: left; }
+        .member-summary th { color: #003366; font-size: 10px; text-transform: uppercase; font-weight: bold; }
+        .member-summary .client-name { font-size: 13px; font-weight: bold; color: #003366; }
+        .member-summary .text-right { text-align: right; }
+        .months-table { width: 100%; border-collapse: collapse; }
+        .months-table th, .months-table td { border-top: 1px solid #dde3ec; padding: 5px 8px; text-align: left; font-size: 10px; }
+        .months-table th { background: #e8eef6; color: #003366; font-weight: bold; text-transform: uppercase; font-size: 9px; }
+        .months-table .text-right { text-align: right; }
+        .months-table .empty { color: #9aacc4; font-style: italic; }
+        .totals-box { margin-top: 18px; padding: 10px; background: #e8eef6; border: 1px solid #dde3ec; }
+        .totals-box p { margin: 3px 0; font-weight: bold; color: #003366; }
+        .footer { margin-top: 24px; text-align: center; font-size: 10px; color: #6b7a99; border-top: 1px solid #dde3ec; padding-top: 8px; }
+        .no-data { text-align: center; padding: 20px; font-style: italic; color: #777; }
+    </style>
+</head>
+<body>
+    <h1 th:text="${context.title}">Membres tontine par commercial</h1>
+
+    <div class="header">
+        <p><strong>Commercial :</strong> <span th:text="${context.commercial}">COM001</span></p>
+        <p><strong>Session :</strong> <span th:text="${context.sessionYear}">2026</span></p>
+        <p><strong>Nombre de membres :</strong> <span th:text="${context.memberCount}">0</span></p>
+        <p><strong>Date de génération :</strong> <span th:text="${context.generationDate}"></span></p>
+    </div>
+
+    <div th:if="${#lists.isEmpty(context.members)}" class="no-data">
+        Aucun membre trouvé pour ce commercial sur la session en cours.
+    </div>
+
+    <div class="member-block" th:each="m : ${context.members}">
+        <table class="member-summary">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Code</th>
+                    <th class="text-right">Total contribué</th>
+                    <th class="text-right">Part société</th>
+                    <th class="text-right">Total disponible</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="client-name" th:text="${m.clientName}">Jean Dupont</td>
+                    <td th:text="${m.clientCode}">C001</td>
+                    <td class="text-right" th:text="${#numbers.formatDecimal(m.totalContribution, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</td>
+                    <td class="text-right" th:text="${#numbers.formatDecimal(m.societyShare, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</td>
+                    <td class="text-right" th:text="${#numbers.formatDecimal(m.availableContribution, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="months-table">
+            <thead>
+                <tr>
+                    <th>Mois</th>
+                    <th class="text-right">Nb cotisations</th>
+                    <th class="text-right">Montant cotisé</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="month : ${m.months}">
+                    <td th:text="${month.monthLabel}">Février 2026</td>
+                    <td class="text-right" th:text="${month.collectionCount}">0</td>
+                    <td class="text-right"
+                        th:classappend="${month.collectionCount == 0} ? ' empty'"
+                        th:text="${month.collectionCount == 0} ? '—' : (${#numbers.formatDecimal(month.totalAmount, 1, 'WHITESPACE', 0, 'COMMA') + ' F'})">0 F</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="totals-box" th:if="${!#lists.isEmpty(context.members)}">
+        <p>Totaux commercial —
+            Contribué : <span th:text="${#numbers.formatDecimal(context.totalContribution, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</span>
+            · Part société : <span th:text="${#numbers.formatDecimal(context.totalSocietyShare, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</span>
+            · Disponible : <span th:text="${#numbers.formatDecimal(context.totalAvailable, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</span>
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>Optimize Elykia — Export membres tontine par commercial</p>
+    </div>
+</body>
+</html>

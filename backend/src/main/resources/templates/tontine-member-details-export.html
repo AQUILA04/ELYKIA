@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: sans-serif; font-size: 12px; color: #333; }
+        h1 { text-align: center; color: #003366; margin-bottom: 8px; font-size: 18px; }
+        h2 { color: #003366; font-size: 14px; margin: 20px 0 8px; border-bottom: 1px solid #dde3ec; padding-bottom: 4px; }
+        .header { margin-bottom: 16px; border-bottom: 2px solid #003366; padding-bottom: 10px; }
+        .header p { margin: 4px 0; }
+        .kpi-grid { width: 100%; border-collapse: collapse; margin: 12px 0 18px; }
+        .kpi-grid td { border: 1px solid #dde3ec; padding: 10px; width: 25%; vertical-align: top; }
+        .kpi-label { font-size: 10px; text-transform: uppercase; color: #6b7a99; font-weight: bold; margin-bottom: 4px; }
+        .kpi-value { font-size: 14px; font-weight: bold; color: #003366; }
+        table.data { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        table.data th, table.data td { border: 1px solid #dde3ec; padding: 7px 8px; text-align: left; }
+        table.data th { background-color: #e8eef6; color: #003366; font-weight: bold; font-size: 11px; text-transform: uppercase; }
+        table.data td { font-size: 11px; }
+        .text-right { text-align: right; }
+        .totals-row { background-color: #f0f4f9; font-weight: bold; }
+        .footer { margin-top: 24px; text-align: center; font-size: 10px; color: #6b7a99; border-top: 1px solid #dde3ec; padding-top: 8px; }
+        .no-data { text-align: center; padding: 20px; font-style: italic; color: #777; }
+    </style>
+</head>
+<body>
+    <h1 th:text="${context.title}">Détail des cotisations</h1>
+
+    <div class="header">
+        <p><strong>Client :</strong> <span th:text="${context.clientName}">Jean Dupont</span>
+            (<span th:text="${context.clientCode}">C001</span>)</p>
+        <p><strong>Commercial :</strong> <span th:text="${context.commercial}">COM001</span></p>
+        <p><strong>Session :</strong> <span th:text="${context.sessionYear}">2026</span>
+            — Statut livraison : <span th:text="${context.deliveryStatus}">SESSION_INPROGRESS</span></p>
+        <p><strong>Inscription :</strong> <span th:text="${context.registrationDate}">—</span></p>
+        <p><strong>Mise journalière :</strong>
+            <span th:text="${#numbers.formatDecimal(context.dailyStake, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</span>
+            — Mois validés : <span th:text="${context.validatedMonths}">0</span>/10
+            — Jours mois courant : <span th:text="${context.currentMonthDays}">0</span></p>
+        <p><strong>Date de génération :</strong> <span th:text="${context.generationDate}"></span></p>
+    </div>
+
+    <table class="kpi-grid">
+        <tr>
+            <td>
+                <div class="kpi-label">Total contribué</div>
+                <div class="kpi-value" th:text="${#numbers.formatDecimal(context.totalContribution, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</div>
+            </td>
+            <td>
+                <div class="kpi-label">Part société</div>
+                <div class="kpi-value" th:text="${#numbers.formatDecimal(context.societyShare, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</div>
+            </td>
+            <td>
+                <div class="kpi-label">Total disponible</div>
+                <div class="kpi-value" th:text="${#numbers.formatDecimal(context.availableContribution, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</div>
+            </td>
+            <td>
+                <div class="kpi-label">Collectes</div>
+                <div class="kpi-value" th:text="${context.collectionsCount}">0</div>
+            </td>
+        </tr>
+    </table>
+
+    <h2>Historique des cotisations</h2>
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Référence</th>
+                <th>Perçu par</th>
+                <th class="text-right">Montant</th>
+                <th class="text-right">Part société</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:if="${#lists.isEmpty(context.collections)}">
+                <td colspan="5" class="no-data">Aucune cotisation enregistrée.</td>
+            </tr>
+            <tr th:each="c : ${context.collections}">
+                <td th:text="${c.collectionDate}">01/01/2026 10:00</td>
+                <td th:text="${c.reference != null ? c.reference : '—'}">REF</td>
+                <td th:text="${c.commercialUsername}">COM001</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(c.amount, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(c.societyShareAmount, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</td>
+            </tr>
+            <tr class="totals-row" th:if="${!#lists.isEmpty(context.collections)}">
+                <td colspan="3">Total des cotisations</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(context.collectionsTotal, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Optimize Elykia — Export détail cotisations membre tontine</p>
+    </div>
+</body>
+</html>

@@ -165,7 +165,8 @@
 .member-details-page .btn-refresh,
 .member-details-page .btn-primary,
 .member-details-page .btn-accent,
-.member-details-page .btn-warn {
+.member-details-page .btn-warn,
+.member-details-page .btn-download {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -185,15 +186,18 @@
 .member-details-page .btn-primary svg,
 .member-details-page .btn-accent svg,
 .member-details-page .btn-warn svg,
+.member-details-page .btn-download svg,
 .member-details-page .btn-outline svg { width: 14px; height: 14px; }
 
 .member-details-page .btn-refresh,
-.member-details-page .btn-primary { background: var(--navy); }
+.member-details-page .btn-primary,
+.member-details-page .btn-download { background: var(--navy); }
 .member-details-page .btn-accent { background: var(--kpi-cyan); }
 .member-details-page .btn-warn { background: var(--red); }
 
 .member-details-page .btn-refresh:hover:not(:disabled),
-.member-details-page .btn-primary:hover:not(:disabled) { background: var(--navy-dark); transform: translateY(-1px); }
+.member-details-page .btn-primary:hover:not(:disabled),
+.member-details-page .btn-download:hover:not(:disabled) { background: var(--navy-dark); transform: translateY(-1px); }
 .member-details-page .btn-accent:hover:not(:disabled) { background: #007aa8; transform: translateY(-1px); }
 .member-details-page .btn-warn:hover:not(:disabled) { background: #991b1b; transform: translateY(-1px); }
 
@@ -391,6 +395,7 @@
 .member-details-page .btn-refresh:disabled,
 .member-details-page .btn-primary:disabled,
 .member-details-page .btn-accent:disabled,
+.member-details-page .btn-download:disabled,
 .member-details-page .btn-outline:disabled {
   opacity: 0.5;
   cursor: not-allowed;

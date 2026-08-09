@@ -67,7 +67,9 @@
   <app-tontine-filter-bar
     class="a4"
     [resultCount]="paginatedMembers?.page?.totalElements ?? paginatedMembers?.totalElements ?? 0"
-    (filterChanged)="onFilterChange($event)">
+    [downloading]="exportingPdf"
+    (filterChanged)="onFilterChange($event)"
+    (downloadPdf)="onExportCommercialPdf($event)">
   </app-tontine-filter-bar>
 
   <app-tontine-member-table

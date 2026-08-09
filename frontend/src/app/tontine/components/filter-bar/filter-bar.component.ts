@@ -9,12 +9,14 @@ import { ClientService } from 'src/app/client/service/client.service';
 })
 export class TontineFilterBarComponent implements OnInit {
   @Input() resultCount = 0;
+  @Input() downloading = false;
   currentSearchTerm: string = '';
   currentSelectedStatus: TontineMemberDeliveryStatus | 'ALL' = 'ALL';
   currentSelectedCommercial: string = 'ALL';
   commerciaux: any[] = [];
 
   @Output() filterChanged = new EventEmitter<TontineFilterBarParams & { commercial?: string }>();
+  @Output() downloadPdf = new EventEmitter<string>();
 
   TontineMemberDeliveryStatus = TontineMemberDeliveryStatus;
 
@@ -51,6 +53,13 @@ export class TontineFilterBarComponent implements OnInit {
     this.currentSelectedStatus = 'ALL';
     this.currentSelectedCommercial = 'ALL';
     this.emitFilterChanges();
+  }
+
+  onDownloadPdf(): void {
+    if (this.currentSelectedCommercial === 'ALL' || this.downloading) {
+      return;
+    }
+    this.downloadPdf.emit(this.currentSelectedCommercial);
   }
 
   private emitFilterChanges(): void {

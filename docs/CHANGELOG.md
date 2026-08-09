@@ -9,6 +9,29 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.14.6] — 2026-08-08
+
+### Changed
+- Tontine : boutons d’export PDF protégés par le nouveau rôle `ROLE_TONTINE_MEMBER_PDF` (et `ROLE_ADMIN`).
+
+## Backend — [1.5.4] — 2026-08-08
+
+### Added
+- Permission `ROLE_TONTINE_MEMBER_PDF` (constante + initialisation `application.yml`, assignée au profil ADMIN).
+
+### Changed
+- Export PDF membres par commercial : détail du nombre et du montant cotisé par mois pour chaque client ; endpoints protégés par `ROLE_TONTINE_MEMBER_PDF`.
+
+## Frontend — [2.14.5] — 2026-08-08
+
+### Added
+- Tontine : bouton « Télécharger » (PDF) sur la liste des membres lorsqu’un commercial est sélectionné, et sur la fiche membre pour l’export des cotisations — visibles uniquement avec `ROLE_REPORT` ou `ROLE_ADMIN`.
+
+## Backend — [1.5.3] — 2026-08-08
+
+### Added
+- Export PDF des membres tontine d’un commercial (session en cours : total contribué, part société, total disponible) et export PDF du détail des cotisations d’un membre (`GET /api/v1/tontines/members/export/pdf`, `GET /api/v1/tontines/members/{id}/export/pdf`).
+
 ## Docs & Infra — 2026-08-04
 
 ### Added

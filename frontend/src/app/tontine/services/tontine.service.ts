@@ -400,6 +400,24 @@ export class TontineService {
     }
   }
 
+  exportCommercialMembersPdf(commercial: string): Observable<Blob> {
+    const headers = this.getHeaders();
+    const params = new HttpParams().set('commercial', commercial);
+    return this.http.get(`${this.apiUrl}/members/export/pdf`, {
+      headers,
+      params,
+      responseType: 'blob'
+    });
+  }
+
+  exportMemberDetailsPdf(memberId: number): Observable<Blob> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/members/${memberId}/export/pdf`, {
+      headers,
+      responseType: 'blob'
+    });
+  }
+
   private handleApiError = (error: HttpErrorResponse): Observable<never> => {
     let errorMessage = 'Une erreur inattendue s\'est produite.';
 

@@ -1,18 +1,29 @@
 package com.optimize.elykia.core.service.tontine;
 
+import com.itextpdf.html2pdf.HtmlConverter;
 import com.lowagie.text.DocumentException;
+import com.optimize.common.entities.enums.State;
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.elykia.core.dto.SessionStatsDto;
+import com.optimize.elykia.core.dto.TontineCommercialMembersExportPdfDto;
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
+import com.optimize.elykia.core.dto.TontineMemberDetailsExportPdfDto;
+import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
+import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
+import com.optimize.elykia.core.repository.TontineCollectionRepository;
+import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.report.PdfService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -20,8 +31,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -29,8 +49,13 @@ import java.util.List;
 @Slf4j
 public class TontineExportService {
 
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
     private final TontineSessionService sessionService;
     private final TontineDeliveryService deliveryService;
+    private final TontineService tontineService;
+    private final TontineMemberRepository memberRepository;
+    private final TontineCollectionRepository collectionRepository;
     private final TemplateEngine templateEngine;
     private final PdfService pdfService;
 
@@ -95,6 +120,172 @@ public class TontineExportService {
 
         // Convertir en PDF
         return pdfService.generatePdfFromHtml(html, "SESSION_" + stats.getYear());
+    }
+
+    /**
+     * Export PDF des membres d'un commercial pour la session en cours
+     * (total contribué, part société, total disponible + cotisations par mois).
+     */
+    public byte[] exportCommercialMembersPdf(String commercial) {
+        if (!StringUtils.hasText(commercial)) {
+            throw new CustomValidationException("Le commercial est obligatoire pour l'export PDF");
+        }
+
+        TontineSession session = tontineService.getActiveSession();
+        List<TontineMember> members = memberRepository.findBySessionYearAndTontineCollector(
+                session.getYear(), commercial.trim(), State.ENABLED);
+
+        List<Long> memberIds = members.stream().map(TontineMember::getId).toList();
+        Map<Long, List<TontineCollection>> collectionsByMember = memberIds.isEmpty()
+                ? Map.of()
+                : collectionRepository.findByTontineMember_IdInAndState(memberIds, State.ENABLED).stream()
+                        .collect(Collectors.groupingBy(c -> c.getTontineMember().getId()));
+
+        List<TontineCommercialMembersExportPdfDto.TontineMemberExportRowDto> rows = members.stream()
+                .sorted(Comparator
+                        .comparing((TontineMember m) -> m.getClient() != null && m.getClient().getLastname() != null
+                                ? m.getClient().getLastname() : "", String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(m -> m.getClient() != null && m.getClient().getFirstname() != null
+                                ? m.getClient().getFirstname() : "", String.CASE_INSENSITIVE_ORDER))
+                .map(member -> TontineCommercialMembersExportPdfDto.TontineMemberExportRowDto.builder()
+                        .clientCode(member.getClient() != null && member.getClient().getCode() != null
+                                ? member.getClient().getCode() : "—")
+                        .clientName(member.getClient() != null ? member.getClient().getFullName() : "N/A")
+                        .totalContribution(nullSafe(member.getTotalContribution()))
+                        .societyShare(nullSafe(member.getSocietyShare()))
+                        .availableContribution(nullSafe(member.getAvailableContribution()))
+                        .months(buildMonthlyRows(session, collectionsByMember.getOrDefault(member.getId(), List.of())))
+                        .build())
+                .toList();
+
+        double totalContribution = rows.stream().mapToDouble(TontineCommercialMembersExportPdfDto.TontineMemberExportRowDto::getTotalContribution).sum();
+        double totalSocietyShare = rows.stream().mapToDouble(TontineCommercialMembersExportPdfDto.TontineMemberExportRowDto::getSocietyShare).sum();
+        double totalAvailable = rows.stream().mapToDouble(TontineCommercialMembersExportPdfDto.TontineMemberExportRowDto::getAvailableContribution).sum();
+
+        TontineCommercialMembersExportPdfDto contextDto = TontineCommercialMembersExportPdfDto.builder()
+                .title("Membres tontine — session en cours")
+                .commercial(commercial.trim())
+                .sessionYear(session.getYear())
+                .generationDate(LocalDateTime.now().format(DATE_TIME_FORMATTER))
+                .members(rows)
+                .memberCount(rows.size())
+                .totalContribution(totalContribution)
+                .totalSocietyShare(totalSocietyShare)
+                .totalAvailable(totalAvailable)
+                .build();
+
+        return renderPdf("tontine-commercial-members-export", contextDto);
+    }
+
+    private List<TontineCommercialMembersExportPdfDto.TontineMonthlyExportRowDto> buildMonthlyRows(
+            TontineSession session,
+            List<TontineCollection> collections) {
+        Map<YearMonth, List<TontineCollection>> grouped = collections.stream()
+                .filter(c -> c.getCollectionDate() != null)
+                .collect(Collectors.groupingBy(c -> YearMonth.from(c.getCollectionDate()), LinkedHashMap::new, Collectors.toList()));
+
+        YearMonth start;
+        YearMonth end;
+        if (session.getStartDate() != null && session.getEndDate() != null) {
+            start = YearMonth.from(session.getStartDate());
+            end = YearMonth.from(session.getEndDate());
+        } else {
+            // Calendrier tontine standard : février → novembre de l'année de session
+            int year = session.getYear() != null ? session.getYear() : LocalDateTime.now().getYear();
+            start = YearMonth.of(year, 2);
+            end = YearMonth.of(year, 11);
+        }
+
+        List<TontineCommercialMembersExportPdfDto.TontineMonthlyExportRowDto> months = new ArrayList<>();
+        YearMonth cursor = start;
+        while (!cursor.isAfter(end)) {
+            List<TontineCollection> monthCollections = grouped.getOrDefault(cursor, List.of());
+            double amount = monthCollections.stream().mapToDouble(c -> nullSafe(c.getAmount())).sum();
+            months.add(TontineCommercialMembersExportPdfDto.TontineMonthlyExportRowDto.builder()
+                    .monthLabel(formatMonthLabel(cursor))
+                    .collectionCount(monthCollections.size())
+                    .totalAmount(amount)
+                    .build());
+            cursor = cursor.plusMonths(1);
+        }
+        return months;
+    }
+
+    private String formatMonthLabel(YearMonth yearMonth) {
+        String monthLabel = yearMonth.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, Locale.FRENCH);
+        monthLabel = monthLabel.substring(0, 1).toUpperCase(Locale.FRENCH) + monthLabel.substring(1);
+        return monthLabel + " " + yearMonth.getYear();
+    }
+
+    /**
+     * Export PDF du détail des cotisations d'un membre.
+     */
+    public byte[] exportMemberDetailsPdf(Long memberId) {
+        TontineMember member = tontineService.getById(memberId);
+        List<TontineCollection> collections = collectionRepository
+                .findByTontineMember_IdAndState(memberId, State.ENABLED, Pageable.unpaged())
+                .getContent()
+                .stream()
+                .sorted(Comparator.comparing(TontineCollection::getCollectionDate,
+                        Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                .toList();
+
+        List<TontineMemberDetailsExportPdfDto.TontineCollectionExportRowDto> collectionRows = collections.stream()
+                .map(c -> TontineMemberDetailsExportPdfDto.TontineCollectionExportRowDto.builder()
+                        .collectionDate(c.getCollectionDate() != null
+                                ? c.getCollectionDate().format(DATE_TIME_FORMATTER) : "—")
+                        .amount(nullSafe(c.getAmount()))
+                        .societyShareAmount(nullSafe(c.getSocietyShareAmount()))
+                        .commercialUsername(c.getCommercialUsername() != null ? c.getCommercialUsername() : "—")
+                        .reference(c.getReference())
+                        .build())
+                .toList();
+
+        double collectionsTotal = collectionRows.stream()
+                .mapToDouble(TontineMemberDetailsExportPdfDto.TontineCollectionExportRowDto::getAmount)
+                .sum();
+
+        String clientName = member.getClient() != null ? member.getClient().getFullName() : "N/A";
+        String clientCode = member.getClient() != null && member.getClient().getCode() != null
+                ? member.getClient().getCode() : "—";
+        String commercial = member.getClient() != null && StringUtils.hasText(member.getClient().getTontineCollector())
+                ? member.getClient().getTontineCollector() : "—";
+
+        TontineMemberDetailsExportPdfDto contextDto = TontineMemberDetailsExportPdfDto.builder()
+                .title("Détail des cotisations membre")
+                .clientCode(clientCode)
+                .clientName(clientName)
+                .commercial(commercial)
+                .sessionYear(member.getTontineSession() != null ? member.getTontineSession().getYear() : null)
+                .deliveryStatus(member.getDeliveryStatus() != null ? member.getDeliveryStatus().name() : "—")
+                .registrationDate(member.getRegistrationDate() != null
+                        ? member.getRegistrationDate().format(DATE_TIME_FORMATTER) : "—")
+                .generationDate(LocalDateTime.now().format(DATE_TIME_FORMATTER))
+                .dailyStake(nullSafe(member.getAmount()))
+                .totalContribution(nullSafe(member.getTotalContribution()))
+                .societyShare(nullSafe(member.getSocietyShare()))
+                .availableContribution(nullSafe(member.getAvailableContribution()))
+                .validatedMonths(member.getValidatedMonths() != null ? member.getValidatedMonths() : 0)
+                .currentMonthDays(member.getCurrentMonthDays() != null ? member.getCurrentMonthDays() : 0)
+                .collections(collectionRows)
+                .collectionsTotal(collectionsTotal)
+                .collectionsCount(collectionRows.size())
+                .build();
+
+        return renderPdf("tontine-member-details-export", contextDto);
+    }
+
+    private byte[] renderPdf(String template, Object contextDto) {
+        Context context = new Context();
+        context.setVariable("context", contextDto);
+        String html = templateEngine.process(template, context);
+        ByteArrayOutputStream target = new ByteArrayOutputStream();
+        HtmlConverter.convertToPdf(html, target);
+        return target.toByteArray();
+    }
+
+    private double nullSafe(Double value) {
+        return value != null ? value : 0.0;
     }
 
     /**

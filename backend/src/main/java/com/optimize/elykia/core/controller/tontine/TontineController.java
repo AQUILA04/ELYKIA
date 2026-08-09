@@ -12,9 +12,11 @@ import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
 import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
 import com.optimize.elykia.core.service.stock.StockExportService;
+import com.optimize.elykia.core.service.tontine.TontineExportService;
 import com.optimize.elykia.core.service.tontine.TontineMemberFieldControlService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -43,6 +45,7 @@ public class TontineController {
     private final TontineMemberFieldControlService tontineMemberFieldControlService;
     private final CreditArticlesService creditArticlesService;
     private final StockExportService stockExportService;
+    private final TontineExportService tontineExportService;
 
     @GetMapping("/sessions/current")
     public ResponseEntity<Response> getCurrentSession() {
@@ -105,10 +108,37 @@ public class TontineController {
                 tontineService.getMembersHistoryPage(commercial, pageable)), HttpStatus.OK);
     }
 
+    @GetMapping("/members/export/pdf")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.TONTINE_MEMBER_PDF + "', '" + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Exporter en PDF les membres d'un commercial (session en cours)")
+    public ResponseEntity<byte[]> exportCommercialMembersPdf(@RequestParam String commercial) {
+        byte[] pdfContent = tontineExportService.exportCommercialMembersPdf(commercial);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        String safeCommercial = commercial.replaceAll("[^a-zA-Z0-9_-]", "_");
+        headers.setContentDispositionFormData("attachment",
+                "membres_tontine_" + safeCommercial + "_" + LocalDate.now() + ".pdf");
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+        return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
+    }
+
     @GetMapping("/members/{id}")
     public ResponseEntity<Response> getMemberById(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 TontineMemberRespDto.fromTontineMember(tontineService.getById(id))), HttpStatus.OK);
+    }
+
+    @GetMapping("/members/{id}/export/pdf")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.TONTINE_MEMBER_PDF + "', '" + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Exporter en PDF le détail des cotisations d'un membre")
+    public ResponseEntity<byte[]> exportMemberDetailsPdf(@PathVariable Long id) {
+        byte[] pdfContent = tontineExportService.exportMemberDetailsPdf(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment",
+                "cotisations_membre_" + id + "_" + LocalDate.now() + ".pdf");
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+        return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
     }
 
     @GetMapping("/members/{id}/amount-history")
