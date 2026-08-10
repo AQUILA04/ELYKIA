@@ -18,6 +18,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 - **Deploy —** README : liens migration Contabo ; landing-page DNS documenté en Proxied (aligné shared-traefik DNS-01).
 
+## Backend — [1.5.6] — 2026-08-10
+
+### Fixed
+- Gestion des retards : le montant restant (liste, KPI, PDF) est net du reliquat client ; la clôture terrain consomme le reliquat pour solder le crédit tout en n’encaissant que le cash dû.
+
+## Frontend — [2.14.7] — 2026-08-10
+
+### Fixed
+- Clôture des retards : validation autorisant un encaissement à 0 lorsque le restant net (après reliquat) est déjà soldé.
+
 ## Backend — [1.5.5] — 2026-08-10
 
 ### Changed

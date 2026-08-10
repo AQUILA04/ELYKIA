@@ -8,7 +8,7 @@ import lombok.Getter;
 import java.time.LocalDate;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class CreditLateDTO {
 
     private Long        id;
@@ -26,7 +26,10 @@ public class CreditLateDTO {
     // Montants
     private Double      totalAmount;
     private Double      totalAmountPaid;
+    /** Montant restant net du reliquat client (à encaisser). */
     private Double      totalAmountRemaining;
+    /** Reliquat client imputé sur ce crédit pour le calcul du restant net. */
+    private Double      clientReliquatApplied;
     private Double      dailyStake;
 
     // Dates

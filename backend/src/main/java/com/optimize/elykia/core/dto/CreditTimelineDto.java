@@ -25,4 +25,7 @@ public class CreditTimelineDto {
     private String syncConsentCode;
     private String reference;
 
+    private Double reliquatGeneratedAmount;
+    private Double reliquatUsedAmount;
+
 }

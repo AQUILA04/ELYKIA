@@ -123,8 +123,25 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
     private CreditTimeline doMakeDailyStake(CreditTimelineDto dto) {
         CreditTimeline creditTimeline = creditMapper.toCreditTimeline(dto);
+        if (creditTimeline.getReliquatGeneratedAmount() == null) {
+            creditTimeline.setReliquatGeneratedAmount(
+                    dto.getReliquatGeneratedAmount() != null ? dto.getReliquatGeneratedAmount() : 0.0);
+        }
+        if (creditTimeline.getReliquatUsedAmount() == null) {
+            creditTimeline.setReliquatUsedAmount(
+                    dto.getReliquatUsedAmount() != null ? dto.getReliquatUsedAmount() : 0.0);
+        }
         Credit credit = creditService.getById(dto.getCreditId());
         dailyStakeFactor(credit, creditTimeline);
+
+        Double reliquatGenerated = dto.getReliquatGeneratedAmount();
+        Double reliquatUsed = dto.getReliquatUsedAmount();
+        if (reliquatGenerated != null && reliquatGenerated > 0 && credit.getClientId() != null) {
+            clientReliquatService.addReliquat(credit.getClientId(), reliquatGenerated, creditTimeline.getReference(), null);
+        }
+        if (reliquatUsed != null && reliquatUsed > 0 && credit.getClientId() != null) {
+            clientReliquatService.consumeReliquat(credit.getClientId(), reliquatUsed, creditTimeline.getReference(), null);
+        }
         return creditTimeline;
     }
 

@@ -26,7 +26,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -36,6 +35,7 @@ public class RecoveryManagerService {
 
     private final CreditTimelineService creditTimelineService;
     private final CreditService creditService;
+    private final ClientReliquatService clientReliquatService;
     private final RecoveryManagerOperationRepository operationRepository;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -89,11 +89,20 @@ public class RecoveryManagerService {
                     "Opération déjà enregistrée aujourd'hui"));
         }
 
-        if (Boolean.TRUE.equals(item.getIsPartial()) && !isValidPartialAmount(item, credit)) {
-            return Optional.of(buildFailureResult(item.getCreditId(), credit.getReference(),
-                    "Le montant partiel doit être > 0 et < " + credit.getTotalAmountRemaining()));
+        double remaining = credit.getTotalAmountRemaining() != null ? credit.getTotalAmountRemaining() : 0.0;
+        double cash = item.getAmount() != null ? item.getAmount() : 0.0;
+        double availableReliquat = getAvailableReliquat(credit);
+        double netDue = Math.max(0.0, remaining - availableReliquat);
+
+        if (Boolean.TRUE.equals(item.getIsPartial())) {
+            if (netDue <= 0 || cash <= 0 || cash >= netDue || cash > remaining) {
+                return Optional.of(buildFailureResult(item.getCreditId(), credit.getReference(),
+                        "Le montant partiel doit être > 0 et < " + (long) netDue + " (restant net du reliquat)"));
+            }
+            return Optional.empty();
         }
 
+        // Clôture totale : cash + reliquat sont recalculés serveur-side pour solder le crédit
         return Optional.empty();
     }
 
@@ -101,32 +110,61 @@ public class RecoveryManagerService {
         return credit.getExpectedEndDate() != null && credit.getExpectedEndDate().isBefore(LocalDate.now());
     }
 
-    private boolean isValidPartialAmount(CreditCloseItemDto item, Credit credit) {
-        return item.getAmount() > 0 && item.getAmount() < credit.getTotalAmountRemaining();
+    private double getAvailableReliquat(Credit credit) {
+        if (credit.getClientId() == null) {
+            return 0.0;
+        }
+        Double reliquat = clientReliquatService.getReliquatForClient(credit.getClientId());
+        return reliquat != null ? Math.max(0.0, reliquat) : 0.0;
     }
 
     private RecoveryManagerOperation processCreditClosure(Credit credit,
                                                           CreditCloseItemDto item,
                                                           String recoveryManagerUsername,
                                                           String commercialUsername) {
-        CreditTimelineDto timelineDto = buildTimelineDto(item, commercialUsername);
+        ClosureAmounts amounts = resolveClosureAmounts(credit, item);
+        CreditTimelineDto timelineDto = buildTimelineDto(item.getCreditId(), commercialUsername, amounts);
         var creditTimeline = creditTimelineService.makeDailyStake(timelineDto);
 
-        RecoveryManagerOperation operation = buildOperation(credit, item, recoveryManagerUsername, creditTimeline.getId());
+        RecoveryManagerOperation operation = buildOperation(credit, item, recoveryManagerUsername,
+                creditTimeline.getId(), amounts.cash());
         operationRepository.save(operation);
 
-        eventPublisher.publishEvent(new RecoveryManagerCollectionEvent(this, credit.getCollector(), item.getAmount()));
+        // Remise terrain = cash réellement encaissé (hors reliquat déjà chez l'entreprise)
+        eventPublisher.publishEvent(new RecoveryManagerCollectionEvent(this, credit.getCollector(), amounts.cash()));
 
         return operation;
     }
 
-    private CreditTimelineDto buildTimelineDto(CreditCloseItemDto item, String commercialUsername) {
+    private record ClosureAmounts(double cash, double reliquatUsed, double stakeAmount) {}
+
+    /**
+     * - Partiel : cash = montant saisi.
+     * - Total : privilégie le montant affiché (net reliquat) comme cash, complète avec le reliquat.
+     */
+    private ClosureAmounts resolveClosureAmounts(Credit credit, CreditCloseItemDto item) {
+        double remaining = credit.getTotalAmountRemaining() != null ? credit.getTotalAmountRemaining() : 0.0;
+        if (Boolean.TRUE.equals(item.getIsPartial())) {
+            double cash = item.getAmount() != null ? item.getAmount() : 0.0;
+            return new ClosureAmounts(cash, 0.0, cash);
+        }
+        double availableReliquat = getAvailableReliquat(credit);
+        double requestedCash = item.getAmount() != null ? item.getAmount() : Math.max(0.0, remaining - availableReliquat);
+        requestedCash = Math.min(Math.max(0.0, requestedCash), remaining);
+        double reliquatUsed = Math.min(availableReliquat, remaining - requestedCash);
+        double cash = remaining - reliquatUsed;
+        return new ClosureAmounts(cash, reliquatUsed, remaining);
+    }
+
+    private CreditTimelineDto buildTimelineDto(Long creditId, String commercialUsername, ClosureAmounts amounts) {
         CreditTimelineDto timelineDto = new CreditTimelineDto();
-        timelineDto.setCreditId(item.getCreditId());
-        timelineDto.setAmount(item.getAmount());
+        timelineDto.setCreditId(creditId);
         timelineDto.setCollector(commercialUsername);
         timelineDto.setNormalStake(Boolean.FALSE);
         timelineDto.setReference(generateTimelineReference());
+        timelineDto.setAmount(amounts.stakeAmount());
+        timelineDto.setReliquatUsedAmount(amounts.reliquatUsed());
+        timelineDto.setReliquatGeneratedAmount(0.0);
         return timelineDto;
     }
 
@@ -146,13 +184,14 @@ public class RecoveryManagerService {
     }
 
     private RecoveryManagerOperation buildOperation(Credit credit, CreditCloseItemDto item,
-                                                    String recoveryManagerUsername, Long timelineId) {
+                                                    String recoveryManagerUsername, Long timelineId,
+                                                    double cashCollected) {
         RecoveryManagerOperation operation = new RecoveryManagerOperation();
         operation.setRecoveryManagerUsername(recoveryManagerUsername);
         operation.setCommercialUsername(credit.getCollector());
         operation.setCreditId(item.getCreditId());
         operation.setCreditTimelineId(timelineId);
-        operation.setAmountCollected(item.getAmount());
+        operation.setAmountCollected(cashCollected);
         operation.setIsPartial(item.getIsPartial());
         operation.setOriginalAmountRemaining(credit.getTotalAmountRemaining());
         operation.setOperationDate(LocalDate.now());

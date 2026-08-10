@@ -2,8 +2,10 @@ package com.optimize.elykia.core.service;
 
 import com.optimize.elykia.core.dto.CreditLateDTO;
 import com.optimize.elykia.core.dto.CreditLateSummaryDTO;
+import com.optimize.elykia.core.entity.sale.ClientReliquat;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.LateType;
+import com.optimize.elykia.core.repository.ClientReliquatRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,9 +14,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.thymeleaf.TemplateEngine;
@@ -27,6 +33,7 @@ import java.io.ByteArrayOutputStream;
 public class CreditLateService {
 
     private final CreditRepository creditRepository;
+    private final ClientReliquatRepository clientReliquatRepository;
     private final TemplateEngine templateEngine;
 
     public List<CreditLateDTO> getLateCredits(String collector, Integer month, String locality) {
@@ -40,7 +47,7 @@ public class CreditLateService {
         LocalDate today = LocalDate.now();
         int currentYear = today.getYear();
 
-        return credits.stream()
+        List<CreditLateDTO> lates = credits.stream()
                 .filter(c -> {
                     if (month == null)
                         return true;
@@ -58,10 +65,15 @@ public class CreditLateService {
                 })
                 .map(c -> buildLateDTO(c, today))
                 .filter(dto -> dto.getLateType() != null)
-                .sorted(Comparator
-                        .comparing((CreditLateDTO d) -> d.getLateType() == LateType.DELAI ? 0 : 1)
-                        .thenComparing(d -> -Math.max(d.getLateDaysDelai(), d.getLateDaysEcheance())))
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        applyClientReliquatDeduction(lates);
+
+        lates.sort(Comparator
+                .comparing((CreditLateDTO d) -> d.getLateType() == LateType.DELAI ? 0 : 1)
+                .thenComparing(d -> -Math.max(d.getLateDaysDelai(), d.getLateDaysEcheance())));
+
+        return lates;
     }
 
     public CreditLateSummaryDTO getSummary(String collector, Integer month, String locality) {
@@ -129,6 +141,47 @@ public class CreditLateService {
         return target.toByteArray();
     }
 
+    /**
+     * Déduit le reliquat client du montant restant affiché (liste / KPI / PDF / clôture).
+     * Si un client a plusieurs crédits en retard, le reliquat est réparti sans double comptage.
+     */
+    private void applyClientReliquatDeduction(List<CreditLateDTO> lates) {
+        Set<Long> clientIds = lates.stream()
+                .map(CreditLateDTO::getClientId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (clientIds.isEmpty()) {
+            return;
+        }
+
+        Map<Long, Double> remainingReliquat = new HashMap<>();
+        for (ClientReliquat reliquat : clientReliquatRepository.findByClientIdIn(clientIds)) {
+            if (reliquat.getClient() == null || reliquat.getClient().getId() == null) {
+                continue;
+            }
+            double amount = reliquat.getTotalAmount() != null ? reliquat.getTotalAmount() : 0.0;
+            remainingReliquat.put(reliquat.getClient().getId(), Math.max(0.0, amount));
+        }
+
+        for (int i = 0; i < lates.size(); i++) {
+            CreditLateDTO dto = lates.get(i);
+            if (dto.getClientId() == null) {
+                continue;
+            }
+            double available = remainingReliquat.getOrDefault(dto.getClientId(), 0.0);
+            if (available <= 0) {
+                continue;
+            }
+            double remaining = dto.getTotalAmountRemaining() != null ? dto.getTotalAmountRemaining() : 0.0;
+            double applied = Math.min(remaining, available);
+            remainingReliquat.put(dto.getClientId(), available - applied);
+            lates.set(i, dto.toBuilder()
+                    .totalAmountRemaining(remaining - applied)
+                    .clientReliquatApplied(applied)
+                    .build());
+        }
+    }
+
     private CreditLateDTO buildLateDTO(Credit credit, LocalDate today) {
         int lateDaysDelai = 0;
         boolean isLateDelai = false;
@@ -179,6 +232,7 @@ public class CreditLateService {
                 .totalAmount(credit.getTotalAmount())
                 .totalAmountPaid(credit.getTotalAmountPaid())
                 .totalAmountRemaining(credit.getTotalAmountRemaining())
+                .clientReliquatApplied(0.0)
                 .dailyStake(credit.getDailyStake())
                 .beginDate(credit.getBeginDate())
                 .expectedEndDate(credit.getExpectedEndDate())

@@ -39,9 +39,13 @@ export class CreditLateCloseModalComponent implements OnInit {
   }
 
   get isValid(): boolean {
-    return this.items.every(item =>
-      item.amount > 0 && item.amount <= item.credit.totalAmountRemaining
-    );
+    return this.items.every(item => {
+      const remaining = item.credit.totalAmountRemaining || 0;
+      if (remaining === 0) {
+        return !item.isPartial && item.amount === 0;
+      }
+      return item.amount > 0 && item.amount <= remaining;
+    });
   }
 
   get totalAmount(): number {
@@ -64,10 +68,17 @@ export class CreditLateCloseModalComponent implements OnInit {
   }
 
   validateAmount(item: CloseItem): void {
+    const remaining = item.credit.totalAmountRemaining || 0;
+    if (remaining === 0) {
+      item.amountError = item.isPartial
+        ? 'Clôture partielle impossible : restant net déjà à 0 (reliquat)'
+        : undefined;
+      return;
+    }
     if (item.amount <= 0) {
       item.amountError = 'Le montant doit être supérieur à 0';
-    } else if (item.amount > item.credit.totalAmountRemaining) {
-      item.amountError = `Le montant ne peut pas dépasser ${item.credit.totalAmountRemaining.toLocaleString()} FCFA`;
+    } else if (item.amount > remaining) {
+      item.amountError = `Le montant ne peut pas dépasser ${remaining.toLocaleString()} FCFA`;
     } else {
       item.amountError = undefined;
     }

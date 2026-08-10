@@ -12,7 +12,10 @@ export interface CreditLateDTO {
   collector: string;
   totalAmount: number;
   totalAmountPaid: number;
+  /** Montant restant net du reliquat client (à encaisser). */
   totalAmountRemaining: number;
+  /** Reliquat imputé sur ce crédit pour le calcul du restant net. */
+  clientReliquatApplied?: number;
   dailyStake: number;
   beginDate: string;
   expectedEndDate: string;
