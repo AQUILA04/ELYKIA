@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -10,9 +10,9 @@
 	</parent>
 	<groupId>com.optimize.elykia</groupId>
 	<artifactId>optimize-elykia-core</artifactId>
-  <version>1.5.4</version>
+  <version>1.5.5</version>
 	<name>optimize-elykia-core</name>
-	<description>Gestion des crÃ©dits et tontines</description>
+	<description>Gestion des crédits et tontines</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -179,7 +179,7 @@
             <artifactId>janino</artifactId>
         </dependency>
 
-        <!-- Flyway pour la gestion des migrations de base de donnÃ©es -->
+        <!-- Flyway pour la gestion des migrations de base de données -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
@@ -204,13 +204,13 @@
 			<version>5.2.5</version>
 		</dependency>
 
-		<!-- Micrometer Prometheus registry pour les mÃ©triques custom -->
+		<!-- Micrometer Prometheus registry pour les métriques custom -->
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
 
-		<!-- Elykia IA â€” Spring AI (Ollama dev, Anthropic/OpenAI cloud) + validation SQL -->
+		<!-- Elykia IA — Spring AI (Ollama dev, Anthropic/OpenAI cloud) + validation SQL -->
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-starter-model-ollama</artifactId>

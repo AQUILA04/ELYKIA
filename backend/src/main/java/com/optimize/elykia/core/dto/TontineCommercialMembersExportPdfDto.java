@@ -23,6 +23,7 @@ public class TontineCommercialMembersExportPdfDto {
     public static class TontineMemberExportRowDto {
         private String clientCode;
         private String clientName;
+        private String quarter;
         private double totalContribution;
         private double societyShare;
         private double availableContribution;

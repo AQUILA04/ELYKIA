@@ -42,6 +42,7 @@
         <table class="member-summary">
             <thead>
                 <tr>
+                    <th>Quartier</th>
                     <th>Client</th>
                     <th>Code</th>
                     <th class="text-right">Total contribué</th>
@@ -51,6 +52,7 @@
             </thead>
             <tbody>
                 <tr>
+                    <td th:text="${m.quarter}">Quartier A</td>
                     <td class="client-name" th:text="${m.clientName}">Jean Dupont</td>
                     <td th:text="${m.clientCode}">C001</td>
                     <td class="text-right" th:text="${#numbers.formatDecimal(m.totalContribution, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}">0 F</td>

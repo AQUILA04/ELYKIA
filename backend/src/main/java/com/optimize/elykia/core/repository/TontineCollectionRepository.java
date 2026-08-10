@@ -23,9 +23,29 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             Pageable pageable);
     java.util.List<TontineCollection> findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(Long memberId, State state);
 
-    java.util.List<TontineCollection> findByTontineMember_IdInAndState(java.util.Collection<Long> memberIds, State state);
-
     long countByTontineMember_IdAndCollectionDateBetweenAndState(Long memberId, java.time.LocalDateTime start, java.time.LocalDateTime end, State state);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.TontineMemberMonthlyAggregateDto(
+                tm.id,
+                YEAR(tc.collectionDate),
+                MONTH(tc.collectionDate),
+                COUNT(tc.id),
+                COALESCE(SUM(tc.amount), 0)
+            )
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            JOIN tm.tontineSession s
+            JOIN tm.client c
+            WHERE s.year = :year
+              AND c.tontineCollector = :commercial
+              AND tc.state = :state
+            GROUP BY tm.id, YEAR(tc.collectionDate), MONTH(tc.collectionDate)
+            """)
+    java.util.List<TontineMemberMonthlyAggregateDto> sumMonthlyBySessionYearAndTontineCollector(
+            @Param("year") Integer year,
+            @Param("commercial") String commercial,
+            @Param("state") State state);
 
     @Query("SELECT SUM(tc.amount) FROM TontineCollection tc WHERE tc.tontineMember.id = :memberId AND tc.isDeliveryCollection = true AND tc.state = :state")
     Double sumDeliveryCollectionsByMember(@Param("memberId") Long memberId, @Param("state") State state);

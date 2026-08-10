@@ -9,6 +9,11 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.5.5] — 2026-08-10
+
+### Changed
+- Export PDF membres tontine par commercial : tri `quarter` / `lastname` / `firstname` ; requêtes allégées (projection + agrégats mensuels SQL) pour les gros portefeuilles.
+
 ## Frontend — [2.14.6] — 2026-08-08
 
 ### Changed
