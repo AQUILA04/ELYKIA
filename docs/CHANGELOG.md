@@ -9,6 +9,15 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-08-10
+
+### Added
+- **Deploy —** migration DigitalOcean → Contabo : `migrate-do-to-contabo.sh`, compose slim `docker-compose.contabo-{prod,test}.yml`, guide `CONTABO_MIGRATION.md` (Postgres + MinIO → OCI, shared-traefik, Grafana/pgAdmin partagés).
+- **Deploy —** exemple d’env Contabo `.env.contabo.prod.example`.
+
+### Changed
+- **Deploy —** README : liens migration Contabo ; landing-page DNS documenté en Proxied (aligné shared-traefik DNS-01).
+
 ## Backend — [1.5.5] — 2026-08-10
 
 ### Changed

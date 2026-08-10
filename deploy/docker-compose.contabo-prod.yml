@@ -1,0 +1,118 @@
+# CONTABO PROD — ELYKIA as OptimizeSolux common-infra consumer
+# Project: elykia-prod
+# Path on VPS: /opt/elykia/deploy
+#
+# Prerequisites:
+#   - shared-traefik up (network traefik-public)
+#   - optimize-common-infra up (network optimizesolux-common, MinIO, Grafana, pgAdmin)
+#
+# Start:
+#   docker compose -f docker-compose.contabo-prod.yml --project-name elykia-prod \
+#     --env-file /opt/elykia/prod/.env up -d
+#
+# Does NOT include: Traefik, MinIO, monitoring, pgAdmin (all shared).
+
+services:
+  db:
+    image: postgres:15
+    container_name: elykia-prod-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-elykia_prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      POSTGRES_DB: ${POSTGRES_DB:-elykia_prod_db}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-elykia_prod} -d ${POSTGRES_DB:-elykia_prod_db} || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      optimizesolux-common:
+        aliases: ["elykia-db", "elykia-prod-db"]
+      internal:
+
+  backend:
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE required}
+    container_name: elykia-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://elykia-db:5432/${POSTGRES_DB:-elykia_prod_db}}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-elykia_prod}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      LOGGING_FILE_PATH: /home/app/.optimize-elykia-core/logs
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SPRINGDOC_SWAGGER_UI_DISABLE_SWAGGER_DEFAULT_URL: "true"
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      LOKI_API_KEY: ${LOKI_API_KEY:-}
+      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-false}
+      SECURITY_CONFIG_ALLOW_ORIGIN: ${SECURITY_ALLOWED_ORIGINS:-https://elykia.amenouveve-yaveh.com,https://www.amenouveve-yaveh.com,https://amenouveve-yaveh.com,http://localhost,capacitor://localhost,http://localhost:8100,https://localhost,ionic://localhost}
+      # Shared MinIO (OCI)
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY required}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY required}
+      MINIO_BUCKET: ${MINIO_BUCKET:-elykia-clients}
+      MINIO_REPORTS_BUCKET: ${MINIO_REPORTS_BUCKET:-elykia-reports}
+      MINIO_MOBILE_RELEASES_BUCKET: ${MINIO_MOBILE_RELEASES_BUCKET:-elykia-mobile-releases}
+      MOBILE_RELEASE_CHANNEL: ${MOBILE_RELEASE_CHANNEL:-prod}
+      MINIO_CUSTOMER_SPACE_RELEASES_BUCKET: ${MINIO_CUSTOMER_SPACE_RELEASES_BUCKET:-elykia-customer-space-releases}
+      MINIO_RECRUITMENT_BUCKET: ${MINIO_RECRUITMENT_BUCKET:-elykia-recruitment}
+      CUSTOMER_SPACE_RELEASE_CHANNEL: ${CUSTOMER_SPACE_RELEASE_CHANNEL:-prod}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://s3.optimizesolux.com}
+      PHOTO_FALLBACK_PATH: /opt/elykia/photos/pending
+      # Observability (OCI)
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-elykia-api}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
+      OTEL_RESOURCE_ATTRIBUTES: ${OTEL_RESOURCE_ATTRIBUTES:-service.namespace=optimizesolux,deployment.environment=prod}
+    volumes:
+      - ${LOG_PATH:-/opt/elykia/prod/logs}:/home/app/.optimize-elykia-core/logs
+      - ${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/prod/photos/pending}:/opt/elykia/photos/pending
+    networks:
+      - optimizesolux-common
+      - traefik-public
+      - internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.elykia-prod-backend.rule=Host(`${APP_HOSTNAME:-elykia.amenouveve-yaveh.com}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.elykia-prod-backend.entrypoints=websecure"
+      - "traefik.http.routers.elykia-prod-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.elykia-prod-backend.priority=10"
+      - "traefik.http.routers.elykia-prod-backend.middlewares=elykia-prod-strip-api"
+      - "traefik.http.middlewares.elykia-prod-strip-api.stripprefix.prefixes=/api"
+      - "traefik.http.services.elykia-prod-backend.loadbalancer.server.port=${SERVER_PORT:-8080}"
+
+  frontend:
+    image: ${FRONTEND_IMAGE:?FRONTEND_IMAGE required}
+    container_name: elykia-frontend
+    restart: unless-stopped
+    environment:
+      API_URL: ${API_URL:-https://elykia.amenouveve-yaveh.com/api}
+      GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.elykia-prod-frontend.rule=Host(`${APP_HOSTNAME:-elykia.amenouveve-yaveh.com}`)"
+      - "traefik.http.routers.elykia-prod-frontend.entrypoints=websecure"
+      - "traefik.http.routers.elykia-prod-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.elykia-prod-frontend.priority=1"
+      - "traefik.http.services.elykia-prod-frontend.loadbalancer.server.port=80"
+
+volumes:
+  db_data:
+
+networks:
+  internal:
+    name: elykia-prod-internal
+    driver: bridge
+  traefik-public:
+    external: true
+  optimizesolux-common:
+    external: true

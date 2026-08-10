@@ -42,7 +42,7 @@ echo 'LANDING_HOST=elykia.optimizesolux.com' > .env
 docker compose --project-name elykia-landing up -d --build
 ```
 
-DNS (Cloudflare, **DNS only** / grey cloud for Let's Encrypt HTTP-01):
+DNS (Cloudflare, **Proxied** / orange + SSL Full — shared-traefik DNS-01) :
 
 | Type | Name | Content |
 |------|------|---------|

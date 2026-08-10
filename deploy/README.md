@@ -76,6 +76,9 @@ graph TD
 - `deploy.sh` - Script pour déployer une paire d'images (frontend/backend) et enregistrer la release.
 - `rollback.sh` - Script pour revenir à une release précédente.
 - `import-db.sh` - Script pour importer un dump SQL dans le container Postgres.
+- `migrate-do-to-contabo.sh` - Migration DigitalOcean → Contabo (consommateur OCI + shared-traefik).
+- `docker-compose.contabo-prod.yml` / `docker-compose.contabo-test.yml` - Compose Contabo slim (FE/BE/DB).
+- `CONTABO_MIGRATION.md` - Guide de migration Contabo.
 - `INSTRUCTION_SETUP.md` - Guide détaillé pour l'installation initiale du serveur.
 - `INSTRUCTION_BOOTSTRAP.md` - Guide pour la création de l'utilisateur de déploiement et configuration CI/CD.
 
@@ -124,6 +127,8 @@ docker compose -f deploy/docker-compose.dev.yml down -v  # arrêter + supprimer 
 
 ### 1. Installation Initiale (Une seule fois)
 Avant le premier déploiement, vous devez préparer le serveur. Consultez le fichier **`INSTRUCTION_SETUP.md`** pour les étapes détaillées (mise à jour Docker, exécution de `setup-server.sh`, configuration des mots de passe).
+
+**Migration DigitalOcean → Contabo** (shared-traefik + optimize-common-infra déjà présents) : voir **`CONTABO_MIGRATION.md`** et le script `migrate-do-to-contabo.sh`.
 
 ### 2. Déploiement d'une version
 Une fois le serveur configuré, le déploiement se fait via le script `deploy.sh` :
