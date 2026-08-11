@@ -1,0 +1,55 @@
+<div class="rm-fc-sheet">
+  <header>
+    <div>
+      <p class="surtitle">Contrôle carnet</p>
+      <h2>{{ credit?.clientName || 'Client' }}</h2>
+      <p class="meta">{{ credit?.reference }} · {{ credit?.collector }}</p>
+    </div>
+    <ion-button fill="clear" (click)="dismiss()">
+      <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+    </ion-button>
+  </header>
+
+  <section class="summary">
+    <div class="row">
+      <span>Système (payé)</span>
+      <strong>{{ formatAmount(systemPaid) }} FCFA</strong>
+    </div>
+    <div class="row">
+      <span>Écart estimé</span>
+      <strong [class.ecart]="statusLabel === 'ECART'" [class.ok]="statusLabel === 'CONFORME'">
+        {{ formatAmount(difference) }} · {{ statusLabel }}
+      </strong>
+    </div>
+  </section>
+
+  <section class="card">
+    <label>Montant observé sur le carnet</label>
+    <ion-input
+      type="number"
+      inputmode="decimal"
+      [(ngModel)]="notebookTotalAmount"
+      (ionInput)="validate()"
+      class="amount-input">
+    </ion-input>
+    <p class="error" *ngIf="amountError">{{ amountError }}</p>
+  </section>
+
+  <section class="card">
+    <label>Note (optionnelle)</label>
+    <ion-textarea
+      [(ngModel)]="note"
+      rows="3"
+      placeholder="Observation terrain…"
+      autoGrow="true">
+    </ion-textarea>
+  </section>
+
+  <ion-button
+    expand="block"
+    class="rm-cta"
+    [disabled]="!isValid || submitting"
+    (click)="confirm()">
+    {{ submitting ? 'Enregistrement…' : 'Capturer le contrôle' }}
+  </ion-button>
+</div>

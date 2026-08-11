@@ -6,6 +6,8 @@ import { map, switchMap, take } from 'rxjs/operators';
 import { selectIsLoggedIn, selectAuthUser } from '../../store/auth/auth.selectors';
 import { Storage } from '@ionic/storage-angular';
 import { DatabaseService } from '../services/database.service';
+import { RECOVERY_MANAGER_PROFIL } from '../../models/auth.model';
+import { FeatureFlagService, FeatureFlags } from '../services/feature-flag.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +18,8 @@ export class AuthGuard implements CanActivate {
     private store: Store,
     private router: Router,
     private storage: Storage,
-    private dbService: DatabaseService
+    private dbService: DatabaseService,
+    private featureFlags: FeatureFlagService
   ) { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
@@ -29,12 +32,31 @@ export class AuthGuard implements CanActivate {
             return of(this.router.createUrlTree(['/login']));
           }
 
-          if (state.url.includes('initial-loading') || state.url.includes('change-password')) {
+          if (state.url.includes('change-password')) {
             return of(true);
           }
 
           if (user?.mustChangePassword) {
             return of(this.router.createUrlTree(['/change-password']));
+          }
+
+          const isRm =
+            user?.profil === RECOVERY_MANAGER_PROFIL &&
+            this.featureFlags.isFeatureEnabled(FeatureFlags.RecoveryManagerMobile);
+
+          if (isRm) {
+            if (state.url.startsWith('/rm')) {
+              return of(true);
+            }
+            return of(this.router.createUrlTree(['/rm/plan']));
+          }
+
+          if (state.url.includes('initial-loading')) {
+            return of(true);
+          }
+
+          if (state.url.startsWith('/rm')) {
+            return of(this.router.createUrlTree(['/tabs/dashboard']));
           }
 
           return from(this.storage.get('initialization_complete')).pipe(

@@ -1,0 +1,22 @@
+<div class="rm-page">
+  <header class="rm-hero">
+    <p class="surtitle">Parcours</p>
+    <h1>Terrain</h1>
+  </header>
+
+  <section *ngFor="let block of byCommercial" class="block">
+    <h2>{{ block.commercial }}</h2>
+    <article *ngFor="let q of block.quarters" class="quarter-card">
+      <h3>{{ q.quarter }} · {{ q.items.length }}</h3>
+      <div class="row" *ngFor="let item of q.items">
+        <div>
+          <strong>{{ item.clientName }}</strong>
+          <span>{{ formatAmount(item.totalAmountRemaining || 0) }} FCFA</span>
+        </div>
+        <ion-button size="small" fill="outline" (click)="openMaps(item)">Naviguer</ion-button>
+      </div>
+    </article>
+  </section>
+
+  <p class="empty" *ngIf="!byCommercial.length">Aucun retard dans le pack.</p>
+</div>

@@ -1,0 +1,56 @@
+<div class="rm-edit-sheet">
+  <header>
+    <div>
+      <p class="surtitle">Fiche client</p>
+      <h2>{{ client?.fullName || (client?.firstname + ' ' + client?.lastname) }}</h2>
+      <p class="meta">{{ client?.quarter || '—' }} · {{ client?.collector }}</p>
+    </div>
+    <ion-button fill="clear" (click)="dismiss()">
+      <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+    </ion-button>
+  </header>
+
+  <section class="card">
+    <label>Téléphone</label>
+    <ion-input
+      type="tel"
+      inputmode="tel"
+      [(ngModel)]="phone"
+      (ionInput)="validatePhone()"
+      placeholder="07 XX XX XX XX">
+    </ion-input>
+    <p class="error" *ngIf="phoneError">{{ phoneError }}</p>
+  </section>
+
+  <section class="card">
+    <label>Géolocalisation</label>
+    <p class="coords" *ngIf="hasGeo">
+      {{ latitude | number:'1.5-5' }}, {{ longitude | number:'1.5-5' }}
+    </p>
+    <p class="coords muted" *ngIf="!hasGeo">Aucune position enregistrée</p>
+
+    <div class="geo-actions">
+      <ion-button expand="block" class="rm-cta" [disabled]="locating" (click)="captureLocation()">
+        <ion-icon slot="start" name="locate-outline"></ion-icon>
+        {{ locating ? 'Capture…' : 'Mettre à jour ma position' }}
+      </ion-button>
+      <ion-button
+        expand="block"
+        fill="outline"
+        class="rm-cta-outline"
+        [disabled]="!mllPreview"
+        (click)="openMaps()">
+        Ouvrir Maps
+      </ion-button>
+    </div>
+    <p class="hint">MLL généré automatiquement à partir de latitude / longitude.</p>
+  </section>
+
+  <ion-button
+    expand="block"
+    class="rm-cta"
+    [disabled]="!isValid || submitting"
+    (click)="save()">
+    {{ submitting ? 'Enregistrement…' : 'Enregistrer' }}
+  </ion-button>
+</div>

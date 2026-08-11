@@ -361,3 +361,15 @@ ion-modal.stock-modal {
     margin: 0;
   }
 }
+
+/* RM close sheet modal */
+.rm-close-modal {
+  --width: 100%;
+  --height: auto;
+  --max-height: 92%;
+  --border-radius: 20px 20px 0 0;
+  align-items: flex-end;
+}
+.rm-close-modal::part(content) {
+  border-radius: 20px 20px 0 0;
+}

@@ -1,0 +1,31 @@
+.rm-page {
+  --rm-navy: #003366;
+  --rm-muted: #6b7a99;
+  --rm-bg: #f2f4f8;
+  min-height: 100%;
+  background: var(--rm-bg);
+  padding-bottom: 88px;
+}
+.rm-hero {
+  background: linear-gradient(160deg, #003366, #002244);
+  color: #fff;
+  padding: 24px 18px 18px;
+  border-radius: 0 0 20px 20px;
+}
+.surtitle { margin: 0; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
+.rm-hero h1 { margin: 6px 0 0; font-size: 24px; font-weight: 800; }
+.block { padding: 16px; }
+.block h2 { color: #003366; font-size: 16px; margin: 0 0 10px; }
+.quarter-card {
+  background: #fff; border-radius: 16px; padding: 12px 14px; margin-bottom: 12px;
+  border: 1px solid #dde3ec;
+}
+.quarter-card h3 { margin: 0 0 8px; color: var(--rm-muted); font-size: 12px; text-transform: uppercase; }
+.row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-top: 1px solid #f0f4f9; gap: 8px;
+}
+.row strong { display: block; color: #003366; font-size: 14px; }
+.row span { color: var(--rm-muted); font-size: 12px; }
+ion-button { --border-color: #003366; --color: #003366; --border-radius: 10px; }
+.empty { text-align: center; color: var(--rm-muted); padding: 40px 16px; }

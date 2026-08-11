@@ -20,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.util.StringUtils;
+
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -56,6 +58,14 @@ public class RecoveryManagerService {
     private void processCreditItem(CreditCloseItemDto item, String recoveryManagerUsername,
                                    List<CreditCloseResultDto> successes, List<CreditCloseResultDto> failures) {
         try {
+            if (StringUtils.hasText(item.getReference())) {
+                Optional<RecoveryManagerOperation> existing = operationRepository.findByReference(item.getReference().trim());
+                if (existing.isPresent()) {
+                    successes.add(buildSuccessFromExisting(existing.get()));
+                    return;
+                }
+            }
+
             Credit credit = creditService.getById(item.getCreditId());
 
             Optional<CreditCloseResultDto> validationError = validateCredit(credit, item);
@@ -195,10 +205,26 @@ public class RecoveryManagerService {
         operation.setIsPartial(item.getIsPartial());
         operation.setOriginalAmountRemaining(credit.getTotalAmountRemaining());
         operation.setOperationDate(LocalDate.now());
-        operation.setReference(generateReference());
+        operation.setReference(resolveOperationReference(item));
         operation.setClientName(getClientFullName(credit));
         operation.setCreditReference(credit.getReference());
         return operation;
+    }
+
+    private String resolveOperationReference(CreditCloseItemDto item) {
+        if (StringUtils.hasText(item.getReference())) {
+            return item.getReference().trim();
+        }
+        return generateReference();
+    }
+
+    private CreditCloseResultDto buildSuccessFromExisting(RecoveryManagerOperation operation) {
+        return CreditCloseResultDto.builder()
+                .creditId(operation.getCreditId())
+                .creditReference(operation.getCreditReference())
+                .clientName(operation.getClientName())
+                .operation(operation)
+                .build();
     }
 
     private String getClientFullName(Credit credit) {

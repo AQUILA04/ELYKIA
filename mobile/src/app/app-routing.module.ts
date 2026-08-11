@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { InitializationGuard } from './core/guards/initialization.guard';
+import { RmProfilGuard } from './core/guards/rm-profil.guard';
 
 const routes: Routes = [
   {
@@ -21,6 +22,16 @@ const routes: Routes = [
     path: 'change-password',
     loadChildren: () => import('./features/auth/change-password/change-password.module').then(m => m.ChangePasswordPageModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'rm/plan',
+    loadChildren: () => import('./features/rm/plan/rm-plan.module').then(m => m.RmPlanPageModule),
+    canActivate: [AuthGuard, RmProfilGuard]
+  },
+  {
+    path: 'rm',
+    loadChildren: () => import('./rm-tabs/rm-tabs.module').then(m => m.RmTabsPageModule),
+    canActivate: [AuthGuard, RmProfilGuard]
   },
   {
     path: 'tabs',

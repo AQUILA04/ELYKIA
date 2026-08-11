@@ -1,0 +1,74 @@
+<div class="rm-dash">
+  <header class="rm-hero">
+    <div class="top">
+      <div>
+        <p class="surtitle">Recouvrement terrain</p>
+        <h1>Retards</h1>
+      </div>
+      <ion-button fill="clear" color="light" (click)="openPlan()">
+        <ion-icon slot="icon-only" name="map-outline"></ion-icon>
+      </ion-button>
+    </div>
+    <p class="meta" *ngIf="plan">
+      {{ plan.commercialUsernames?.length || 0 }} commerciaux
+      <span *ngIf="plan.quarters?.length"> · {{ plan.quarters.length }} quartiers</span>
+      <span *ngIf="pendingCloses > 0"> · {{ pendingCloses }} en attente sync</span>
+    </p>
+  </header>
+
+  <section class="kpi-strip">
+    <article class="kpi kpi-navy">
+      <span>Retards</span>
+      <strong>{{ lateCount }}</strong>
+    </article>
+    <article class="kpi kpi-orange">
+      <span>Dû</span>
+      <strong>{{ formatAmount(totalDue) }}</strong>
+    </article>
+    <article class="kpi kpi-green">
+      <span>Clôturé</span>
+      <strong>{{ formatAmount(closedTodayAmount) }}</strong>
+    </article>
+  </section>
+
+  <section class="filters" *ngIf="plan?.commercialUsernames?.length">
+    <ion-chip [class.on]="!filterCommercial" (click)="setCommercialFilter('')">Tous</ion-chip>
+    <ion-chip
+      *ngFor="let u of plan?.commercialUsernames"
+      [class.on]="filterCommercial === u"
+      (click)="setCommercialFilter(u)">
+      {{ u }}
+    </ion-chip>
+  </section>
+
+  <section *ngIf="!pack" class="empty">
+    <p>Aucun pack offline. Configurez le plan du jour.</p>
+    <ion-button class="rm-cta" (click)="openPlan()">Plan du jour</ion-button>
+  </section>
+
+  <section *ngFor="let group of grouped" class="quarter-block">
+    <h2>{{ group.quarter }}</h2>
+    <article class="late-card" *ngFor="let item of group.items">
+      <div class="late-main">
+        <h3>{{ item.clientName || 'Client' }}</h3>
+        <p>{{ item.reference }} · {{ item.collector }}</p>
+        <p class="phone" *ngIf="item.clientPhone">{{ item.clientPhone }}</p>
+        <span
+          class="ctrl-badge"
+          *ngIf="controlStatus(item.id) as st"
+          [class.ok]="st === 'CONFORME'"
+          [class.ecart]="st === 'ECART'">
+          {{ st }}
+        </span>
+      </div>
+      <div class="late-side">
+        <strong>{{ formatAmount(item.totalAmountRemaining || 0) }}</strong>
+        <span class="badge" *ngIf="item.lateDaysDelai">{{ item.lateDaysDelai }}j</span>
+        <ion-button size="small" fill="outline" class="ctrl-btn" (click)="openFieldControl(item, $event)">
+          Contrôle
+        </ion-button>
+        <ion-button size="small" class="close-btn" (click)="openClose(item, $event)">Clôturer</ion-button>
+      </div>
+    </article>
+  </section>
+</div>

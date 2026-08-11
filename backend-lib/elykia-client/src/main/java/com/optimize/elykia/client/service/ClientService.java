@@ -235,8 +235,46 @@ public class ClientService extends GenericService<Client, Long> {
         Client client = getById(dto.id());
         client.setLatitude(dto.latitude());
         client.setLongitude(dto.longitude());
+        if (dto.latitude() != null && dto.longitude() != null) {
+            client.setMll("https://www.google.com/maps/search/?api=1&query="
+                    + dto.latitude() + "," + dto.longitude());
+        }
         update(client);
         return Boolean.TRUE;
+    }
+
+    /**
+     * Mise à jour contact limitée (téléphone + géoloc) pour le chef de recouvrement.
+     */
+    @Transactional
+    @EvictClientListCaches
+    public ClientRespDto updatePhoneAndGeo(Long clientId, String phone, Double latitude, Double longitude, String mll) {
+        if (!StringUtils.hasText(phone) && latitude == null && longitude == null && !StringUtils.hasText(mll)) {
+            throw new CustomValidationException("Aucun champ contact à mettre à jour");
+        }
+        Client client = getById(clientId);
+        String oldPhone = client.getPhone();
+
+        if (StringUtils.hasText(phone)) {
+            client.setPhone(phone.trim());
+        }
+        if (latitude != null) {
+            client.setLatitude(latitude);
+        }
+        if (longitude != null) {
+            client.setLongitude(longitude);
+        }
+        if (StringUtils.hasText(mll)) {
+            client.setMll(mll.trim());
+        } else if (client.getLatitude() != null && client.getLongitude() != null) {
+            client.setMll("https://www.google.com/maps/search/?api=1&query="
+                    + client.getLatitude() + "," + client.getLongitude());
+        }
+
+        validateClientUniquenessForUpdate(client);
+        Client updated = update(client);
+        publishPhoneUpdatedIfChanged(clientId, oldPhone, updated.getPhone());
+        return ClientRespDto.fromClient(updated);
     }
 
     @Transactional

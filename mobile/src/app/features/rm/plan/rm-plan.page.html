@@ -1,0 +1,92 @@
+<div class="rm-plan-page">
+  <header class="rm-hero">
+    <p class="rm-surtitle">Chef de recouvrement</p>
+    <h1>Plan du jour</h1>
+    <p class="rm-subtitle">Choisissez 1 à 3 commerciaux pour borner le cache offline.</p>
+
+    <div class="rm-steps">
+      <span [class.active]="step === 1" [class.done]="step > 1">1</span>
+      <i></i>
+      <span [class.active]="step === 2" [class.done]="step > 2">2</span>
+      <i></i>
+      <span [class.active]="step === 3">3</span>
+    </div>
+  </header>
+
+  <main class="rm-body">
+    <!-- Step 1 -->
+    <section *ngIf="step === 1">
+      <h2>Commerciaux</h2>
+      <p class="hint">{{ selectedCommercials.size }} / {{ maxCommercials }} sélectionnés</p>
+
+      <div *ngIf="loadingStats" class="skeleton-list">
+        <div class="skeleton" *ngFor="let i of [1,2,3,4]"></div>
+      </div>
+
+      <ion-list *ngIf="!loadingStats" lines="none" class="rm-list">
+        <ion-item
+          *ngFor="let c of collectors"
+          button
+          detail="false"
+          (click)="toggleCommercial(c.username)"
+          [class.selected]="isSelected(c.username)">
+          <ion-checkbox
+            slot="start"
+            [checked]="isSelected(c.username)">
+          </ion-checkbox>
+          <ion-label>
+            <h3>{{ c.username }}</h3>
+            <p>{{ c.lateCount }} retards · {{ formatAmount(c.totalAmountRemaining) }} FCFA</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <ion-button expand="block" class="rm-cta" [disabled]="selectedCommercials.size < 1" (click)="goStep2()">
+        Continuer
+      </ion-button>
+    </section>
+
+    <!-- Step 2 -->
+    <section *ngIf="step === 2">
+      <h2>Quartiers</h2>
+      <p class="hint">Filtre optionnel sur <code>client.quarter</code></p>
+
+      <ion-chip [class.chip-on]="allQuarters" (click)="selectAllQuarters()">Tous les quartiers</ion-chip>
+
+      <div class="chip-wrap">
+        <ion-chip
+          *ngFor="let q of availableQuarters"
+          [class.chip-on]="!allQuarters && selectedQuarters.has(q)"
+          (click)="toggleQuarter(q)">
+          {{ q }}
+        </ion-chip>
+      </div>
+
+      <div class="rm-actions">
+        <ion-button fill="outline" class="rm-cta-outline" (click)="step = 1">Retour</ion-button>
+        <ion-button class="rm-cta" (click)="goStep3()">Continuer</ion-button>
+      </div>
+    </section>
+
+    <!-- Step 3 -->
+    <section *ngIf="step === 3">
+      <h2>Téléchargement</h2>
+      <div class="estimate-card">
+        <div class="row"><span>Commerciaux</span><strong>{{ selectedCommercials.size }}</strong></div>
+        <div class="row"><span>Retards estimés</span><strong>{{ estimateLates }}</strong></div>
+        <div class="row"><span>Montant dû</span><strong>{{ formatAmount(estimateAmount) }} FCFA</strong></div>
+        <div class="row">
+          <span>Quartiers</span>
+          <strong>{{ allQuarters ? 'Tous' : selectedQuarters.size }}</strong>
+        </div>
+      </div>
+
+      <div class="rm-actions">
+        <ion-button fill="outline" class="rm-cta-outline" (click)="step = 2">Retour</ion-button>
+        <ion-button class="rm-cta" [disabled]="downloading" (click)="confirmDownload()">
+          Télécharger le pack
+        </ion-button>
+      </div>
+    </section>
+  </main>
+</div>

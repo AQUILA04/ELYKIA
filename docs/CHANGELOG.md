@@ -9,6 +9,48 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.18.0] — 2026-08-11
+
+### Added
+- **RM contrôle carnet crédit —** sheet hybrid (CONFORME/ECART), file offline + sync idempotente via `POST /credits/{id}/field-controls`.
+- Bouton Contrôle sur le dashboard Retards + badge statut du jour.
+
+## Mobile — [2.17.0] — 2026-08-11
+
+### Added
+- **RM clients —** édition hybrid téléphone + géoloc (`latitude`/`longitude`/`mll`) depuis l’onglet Clients.
+- File offline contacts + sync (avant les clôtures) dans Plus.
+
+## Backend — [1.6.2] — 2026-08-11
+
+### Added
+- **`PATCH /api/v1/recovery-manager/clients/{id}/contact`** — phone + géoloc, scoping au plan ACTIVE du jour.
+- **ClientService.updatePhoneAndGeo** — mise à jour contact limitée (+ génération `mll`).
+
+## Mobile — [2.16.0] — 2026-08-11
+
+### Added
+- **RM clôture hybrid —** sheet total/partiel, `OnlineFirstWriteCoordinator` → `close-credits`, file offline `rm_close_ops` + sync depuis Plus.
+- KPI « Clôturé » du jour et badge file d’attente sur le dashboard Retards.
+
+## Backend — [1.6.1] — 2026-08-11
+
+### Added
+- **close-credits —** champ `reference` optionnel (idempotence mobile) ; replay même référence = succès sans double écriture.
+- Montant clôture en `@PositiveOrZero` (aligné cas restant net 0 / reliquat).
+
+## Mobile — [2.15.0] — 2026-08-11
+
+### Added
+- **Chef de recouvrement —** shell mobile dédié (`/rm`) : tabs Retards / Terrain / Clients / Plus, design navy `#003366`.
+- **Plan du jour —** wizard 1–3 commerciaux + quartiers (`client.quarter`) + téléchargement pack offline.
+- **Feature flag** `recoveryManagerMobile` (actif par défaut) ; auth RM sans redirection SSO web.
+
+## Backend — [1.6.0] — 2026-08-11
+
+### Added
+- **Field day plan —** table `recovery_field_day_plan` (V85) + APIs `field-plans` (CRUD jour, collector-stats, offline-pack).
+
 ## Docs & Infra — 2026-08-11
 
 ### Added

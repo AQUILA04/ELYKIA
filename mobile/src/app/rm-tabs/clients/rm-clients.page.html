@@ -1,0 +1,30 @@
+<div class="rm-page">
+  <header class="rm-hero">
+    <p class="surtitle">Périmètre du jour</p>
+    <h1>Clients</h1>
+  </header>
+
+  <div class="search">
+    <ion-searchbar
+      [(ngModel)]="query"
+      placeholder="Nom, téléphone, quartier"
+      debounce="200">
+    </ion-searchbar>
+  </div>
+
+  <article class="client-card" *ngFor="let c of filtered" (click)="openEdit(c)">
+    <div>
+      <h3>{{ c.fullName || (c.firstname + ' ' + c.lastname) }}</h3>
+      <p>{{ c.phone || '—' }} · {{ c.quarter || '—' }}</p>
+      <p class="meta">{{ c.collector }}</p>
+    </div>
+    <div class="right">
+      <ion-badge [color]="hasGeo(c) ? 'success' : 'medium'">
+        {{ hasGeo(c) ? 'GPS' : 'Sans GPS' }}
+      </ion-badge>
+      <ion-icon name="create-outline" color="primary"></ion-icon>
+    </div>
+  </article>
+
+  <p class="empty" *ngIf="!filtered.length">Aucun client dans le pack.</p>
+</div>

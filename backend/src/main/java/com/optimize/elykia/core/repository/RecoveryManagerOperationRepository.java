@@ -10,11 +10,16 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RecoveryManagerOperationRepository extends GenericRepository<RecoveryManagerOperation, Long> {
 
     boolean existsByCreditIdAndOperationDate(Long creditId, LocalDate operationDate);
+
+    boolean existsByReference(String reference);
+
+    Optional<RecoveryManagerOperation> findByReference(String reference);
 
     @Query("SELECT r FROM RecoveryManagerOperation r " +
             "WHERE r.operationDate BETWEEN :startDate AND :endDate " +

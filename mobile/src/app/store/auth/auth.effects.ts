@@ -5,25 +5,30 @@ import { catchError, map, switchMap, tap, finalize } from 'rxjs/operators';
 import * as AuthActions from './auth.actions';
 import { AuthService } from '../../core/services/auth.service';
 import { Router } from '@angular/router';
-import { LoadingController, ToastController } from '@ionic/angular';
+import { LoadingController } from '@ionic/angular';
 import { LoggerService } from '../../core/services/logger.service';
-import { Browser } from '@capacitor/browser';
-import { environment } from '../../../environments/environment';
-import { getWebBaseUrl } from '../../core/utils/web-base-url.util';
-import { MobileSsoPayload, RECOVERY_MANAGER_PROFIL, User } from '../../models/auth.model';
+import { RECOVERY_MANAGER_PROFIL } from '../../models/auth.model';
+import { FeatureFlagService, FeatureFlags } from '../../core/services/feature-flag.service';
+import { RmScopeService } from '../../core/services/rm/rm-scope.service';
+import { RmCloseQueueService } from '../../core/services/rm/rm-close-queue.service';
+import { RmContactQueueService } from '../../core/services/rm/rm-contact-queue.service';
+import { RmFieldControlQueueService } from '../../core/services/rm/rm-field-control-queue.service';
 
 @Injectable()
 export class AuthEffects {
   private loading: HTMLIonLoadingElement | null = null;
-  private lastSsoRedirectAt = 0;
 
   constructor(
     private actions$: Actions,
     private authService: AuthService,
     private router: Router,
     private loadingController: LoadingController,
-    private toastController: ToastController,
-    private log: LoggerService
+    private log: LoggerService,
+    private featureFlags: FeatureFlagService,
+    private rmScope: RmScopeService,
+    private rmCloseQueue: RmCloseQueueService,
+    private rmContactQueue: RmContactQueueService,
+    private rmFieldControlQueue: RmFieldControlQueueService
   ) {}
 
   login$ = createEffect(() =>
@@ -63,13 +68,21 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
         tap(({ user }) => {
-          if (user?.profil === RECOVERY_MANAGER_PROFIL) {
-            void this.redirectRecoveryManagerToWeb(user);
+          if (user?.mustChangePassword) {
+            this.log.log('[AuthEffects] loginSuccess$ → /change-password');
+            this.router.navigateByUrl('/change-password');
             return;
           }
-          const target = user?.mustChangePassword ? '/change-password' : '/initial-loading';
-          this.log.log(`[AuthEffects] loginSuccess$ triggered, navigating to ${target}.`);
-          this.router.navigateByUrl(target);
+          if (
+            user?.profil === RECOVERY_MANAGER_PROFIL &&
+            this.featureFlags.isFeatureEnabled(FeatureFlags.RecoveryManagerMobile)
+          ) {
+            this.log.log('[AuthEffects] loginSuccess$ RECOVERY_MANAGER → /rm/plan');
+            this.router.navigateByUrl('/rm/plan');
+            return;
+          }
+          this.log.log('[AuthEffects] loginSuccess$ → /initial-loading');
+          this.router.navigateByUrl('/initial-loading');
         })
       ),
     { dispatch: false }
@@ -107,64 +120,16 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.logoutSuccess),
         tap(() => {
+          void this.rmScope.clear();
+          void this.rmCloseQueue.clearAll();
+          void this.rmContactQueue.clearAll();
+          void this.rmFieldControlQueue.clearAll();
           this.log.log('[AuthEffects] logoutSuccess$ triggered, navigating to /login.');
           this.router.navigateByUrl('/login');
         })
       ),
     { dispatch: false }
   );
-
-  private async redirectRecoveryManagerToWeb(user: User): Promise<void> {
-    const now = Date.now();
-    if (now - this.lastSsoRedirectAt < 2000) {
-      return;
-    }
-    this.lastSsoRedirectAt = now;
-
-    const payload: MobileSsoPayload = {
-      accessToken: user.accessToken,
-      refreshToken: user.refreshToken,
-      id: String(user.id),
-      username: user.username,
-      email: user.email,
-      roles: user.roles || [],
-      profil: user.profil,
-      mustChangePassword: user.mustChangePassword === true,
-    };
-
-    const encoded = this.toBase64Url(JSON.stringify(payload));
-    const webBase = getWebBaseUrl(environment.apiUrl);
-    const url = `${webBase}/login#sso=${encoded}`;
-
-    this.log.log('[AuthEffects] RECOVERY_MANAGER detected — opening web SSO.');
-    try {
-      await Browser.open({ url, toolbarColor: '#003366' });
-      const toast = await this.toastController.create({
-        message: 'Profil chef de recouvrement : redirection vers l\'application web…',
-        duration: 3500,
-        color: 'primary',
-        position: 'top',
-      });
-      await toast.present();
-      // Clear mobile session — recovery managers use the web app, not mobile sync.
-      await this.authService.logout();
-      this.router.navigateByUrl('/login');
-    } catch (error: any) {
-      this.log.log(`[AuthEffects] Failed to open web SSO: ${error?.message || error}`);
-      const toast = await this.toastController.create({
-        message: 'Impossible d\'ouvrir le web. Utilisez « Se connecter sur le web ».',
-        duration: 4000,
-        color: 'warning',
-        position: 'top',
-      });
-      await toast.present();
-    }
-  }
-
-  private toBase64Url(value: string): string {
-    const base64 = btoa(unescape(encodeURIComponent(value)));
-    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
 
   async presentLoading(message: string) {
     this.log.log(`[AuthEffects] presentLoading called with message: "${message}"`);

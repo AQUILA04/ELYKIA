@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../../core/services/auth.service';
+import { RECOVERY_MANAGER_PROFIL } from '../../../models/auth.model';
+import { FeatureFlagService, FeatureFlags } from '../../../core/services/feature-flag.service';
 
 @Component({
   selector: 'app-change-password',
@@ -21,7 +23,8 @@ export class ChangePasswordPage {
     private authService: AuthService,
     private router: Router,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private featureFlags: FeatureFlagService
   ) {
     this.forcedMode = this.authService.mustChangePassword();
     this.form = this.formBuilder.group({
@@ -52,7 +55,11 @@ export class ChangePasswordPage {
       await this.authService.changePassword(newPassword, this.forcedMode);
       await loading.dismiss();
       await this.presentToast('Mot de passe mis à jour avec succès.', 'success');
-      this.router.navigateByUrl('/initial-loading');
+      const user = this.authService.currentUser;
+      const rmMobile =
+        user?.profil === RECOVERY_MANAGER_PROFIL &&
+        this.featureFlags.isFeatureEnabled(FeatureFlags.RecoveryManagerMobile);
+      this.router.navigateByUrl(rmMobile ? '/rm/plan' : '/initial-loading');
     } catch (error) {
       await loading.dismiss();
       const message = error instanceof Error ? error.message : 'Erreur lors du changement de mot de passe.';
@@ -68,7 +75,7 @@ export class ChangePasswordPage {
   private async presentToast(message: string, color: 'success' | 'danger'): Promise<void> {
     const toast = await this.toastController.create({
       message,
-      duration: 3500,
+      duration: 2500,
       color,
       position: 'top',
     });

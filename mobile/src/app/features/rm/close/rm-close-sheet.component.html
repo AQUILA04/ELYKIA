@@ -1,0 +1,57 @@
+<div class="rm-close-sheet">
+  <header>
+    <div>
+      <p class="surtitle">Clôturer le retard</p>
+      <h2>{{ credit?.clientName || 'Client' }}</h2>
+      <p class="meta">{{ credit?.reference }} · {{ credit?.collector }}</p>
+    </div>
+    <ion-button fill="clear" (click)="dismiss()">
+      <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+    </ion-button>
+  </header>
+
+  <section class="summary">
+    <div class="row">
+      <span>Restant dû</span>
+      <strong>{{ formatAmount(remaining) }} FCFA</strong>
+    </div>
+    <div class="row" *ngIf="reliquat > 0">
+      <span>Reliquat appliqué</span>
+      <strong>{{ formatAmount(reliquat) }} FCFA</strong>
+    </div>
+  </section>
+
+  <section class="mode">
+    <div class="mode-toggle">
+      <button type="button" [class.on]="!isPartial" (click)="setTotal()">Total</button>
+      <button type="button" [class.on]="isPartial" (click)="setPartial()">Partiel</button>
+    </div>
+  </section>
+
+  <section class="amount-block">
+    <label>Montant encaissé</label>
+    <ion-input
+      type="number"
+      inputmode="decimal"
+      [(ngModel)]="amount"
+      [readonly]="!isPartial"
+      (ionInput)="validateAmount()"
+      class="amount-input">
+    </ion-input>
+    <p class="error" *ngIf="amountError">{{ amountError }}</p>
+
+    <div class="chips" *ngIf="isPartial && netDue > 0">
+      <button type="button" *ngIf="chip10kVisible" (click)="setChip(10000)">10 000</button>
+      <button type="button" (click)="setChip(halfAmount)">½</button>
+      <button type="button" (click)="setTotal()">Net</button>
+    </div>
+  </section>
+
+  <ion-button
+    expand="block"
+    class="rm-cta"
+    [disabled]="!isValid || submitting"
+    (click)="confirm()">
+    {{ submitting ? 'Enregistrement…' : 'Confirmer la clôture' }}
+  </ion-button>
+</div>

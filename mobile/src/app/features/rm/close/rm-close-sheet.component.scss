@@ -1,0 +1,133 @@
+.rm-close-sheet {
+  --rm-navy: #003366;
+  --rm-muted: #6b7a99;
+  --rm-bg: #f2f4f8;
+  padding: 18px 16px 28px;
+  background: var(--rm-bg);
+  min-height: 100%;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.surtitle {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rm-muted);
+}
+
+h2 {
+  margin: 6px 0 4px;
+  color: var(--rm-navy);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.meta {
+  margin: 0;
+  color: var(--rm-muted);
+  font-size: 13px;
+}
+
+.summary,
+.amount-block {
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  color: var(--rm-muted);
+  font-size: 14px;
+  border-bottom: 1px solid #f0f4f9;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row strong {
+  color: var(--rm-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mode-toggle button {
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid #dde3ec;
+  background: #fff;
+  color: var(--rm-navy);
+  font-weight: 700;
+}
+
+.mode-toggle button.on {
+  background: #003366;
+  color: #fff;
+  border-color: #003366;
+}
+
+.amount-block label {
+  display: block;
+  color: var(--rm-muted);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.amount-input {
+  --background: #f0f4f9;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--rm-navy);
+}
+
+.error {
+  color: #b91c1c;
+  font-size: 12px;
+  margin: 8px 0 0;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chips button {
+  border: 1px solid #003366;
+  background: #e8eef6;
+  color: #003366;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.rm-cta {
+  --background: #003366;
+  --background-activated: #002244;
+  --border-radius: 12px;
+  font-weight: 700;
+  height: 50px;
+  margin-top: 8px;
+}

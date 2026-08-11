@@ -1,0 +1,45 @@
+.rm-page {
+  --rm-navy: #003366;
+  --rm-muted: #6b7a99;
+  --rm-bg: #f2f4f8;
+  min-height: 100%;
+  background: var(--rm-bg);
+  padding-bottom: 88px;
+}
+.rm-hero {
+  background: linear-gradient(160deg, #003366, #002244);
+  color: #fff;
+  padding: 24px 18px 18px;
+  border-radius: 0 0 20px 20px;
+}
+.surtitle { margin: 0; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
+.rm-hero h1 { margin: 6px 0 0; font-size: 24px; font-weight: 800; }
+.card {
+  margin: 16px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  border: 1px solid #dde3ec;
+}
+.card h2 { margin: 0 0 8px; color: #003366; font-size: 15px; }
+.card p { margin: 4px 0; color: var(--rm-muted); font-size: 13px; }
+.pending-row {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f0f4f9;
+}
+.pending-row strong { display: block; color: #003366; font-size: 13px; }
+.pending-row span { color: var(--rm-muted); font-size: 12px; }
+.pending-row .err { display: block; color: #b91c1c; font-size: 11px; margin-top: 4px; }
+.menu {
+  margin: 0 16px;
+  background: transparent;
+}
+.menu ion-item {
+  --background: #fff;
+  --border-radius: 14px;
+  margin-bottom: 10px;
+  border: 1px solid #dde3ec;
+  border-radius: 14px;
+}
+.menu ion-icon { color: #003366; margin-right: 8px; }

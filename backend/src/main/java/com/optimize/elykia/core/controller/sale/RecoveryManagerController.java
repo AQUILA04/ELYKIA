@@ -4,8 +4,11 @@ import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.sale.CloseCreditsRequestDto;
+import com.optimize.elykia.core.dto.sale.FieldDayPlanRequestDto;
+import com.optimize.elykia.core.dto.sale.RmClientContactUpdateDto;
 import com.optimize.elykia.core.dto.sale.RecoveryManagerReportSummaryDto;
 import com.optimize.elykia.core.service.report.RecoveryManagerReportPdfService;
+import com.optimize.elykia.core.service.sale.RecoveryFieldPlanService;
 import com.optimize.elykia.core.service.sale.RecoveryManagerService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,6 +37,7 @@ public class RecoveryManagerController {
 
     private final RecoveryManagerService recoveryManagerService;
     private final RecoveryManagerReportPdfService reportPdfService;
+    private final RecoveryFieldPlanService recoveryFieldPlanService;
     private final UserService userService;
 
     @PostMapping("/close-credits")
@@ -98,5 +102,79 @@ public class RecoveryManagerController {
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDispositionFormData("filename", "rapport_recouvrement_terrain.pdf");
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/field-plans/collector-stats")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> getCollectorStats() {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.getCollectorStats()),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/field-plans")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> createFieldPlan(@RequestBody @Valid FieldDayPlanRequestDto dto) {
+        String username = userService.getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.createOrReplacePlan(dto, username)),
+                HttpStatus.CREATED
+        );
+    }
+
+    @GetMapping("/field-plans/today")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> getTodayFieldPlan() {
+        String username = userService.getCurrentUser().getUsername();
+        return recoveryFieldPlanService.getTodayPlan(username)
+                .map(plan -> new ResponseEntity<>(ResponseUtil.successResponse(plan), HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(ResponseUtil.successResponse(null), HttpStatus.OK));
+    }
+
+    @PatchMapping("/field-plans/{id}")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> updateFieldPlan(
+            @PathVariable Long id,
+            @RequestBody @Valid FieldDayPlanRequestDto dto) {
+        String username = userService.getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.updatePlan(id, dto, username)),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/field-plans/{id}/close")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> closeFieldPlan(@PathVariable Long id) {
+        String username = userService.getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.closePlan(id, username)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/field-plans/{id}/offline-pack")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> getOfflinePack(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean includeTontine) {
+        String username = userService.getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.buildOfflinePack(id, username, includeTontine)),
+                HttpStatus.OK
+        );
+    }
+
+    @PatchMapping("/clients/{id}/contact")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> updateClientContact(
+            @PathVariable Long id,
+            @RequestBody @Valid RmClientContactUpdateDto dto) {
+        String username = userService.getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.updateClientContact(id, dto, username)),
+                HttpStatus.OK
+        );
     }
 }

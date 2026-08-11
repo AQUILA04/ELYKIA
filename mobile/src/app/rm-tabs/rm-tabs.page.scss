@@ -1,0 +1,20 @@
+.rm-shell {
+  --rm-navy: #003366;
+  --rm-navy-dark: #002244;
+  --rm-navy-pale: #e8eef6;
+  --rm-bg: #f2f4f8;
+  --rm-muted: #6b7a99;
+  height: 100%;
+}
+
+.rm-tab-bar {
+  --background: #ffffff;
+  --border: 1px solid #dde3ec;
+  box-shadow: 0 -4px 20px rgba(0, 51, 102, 0.06);
+}
+
+ion-tab-button {
+  --color: var(--rm-muted);
+  --color-selected: var(--rm-navy);
+  font-weight: 600;
+}
