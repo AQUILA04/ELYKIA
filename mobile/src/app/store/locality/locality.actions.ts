@@ -26,7 +26,7 @@ export const loadLocalitiesFailure = createAction(
 
 export const addLocality = createAction(
   '[Locality] Add Locality',
-  props<{ locality: Pick<Locality, 'name'> }>()
+  props<{ locality: Pick<Locality, 'name'>; forceOffline?: boolean }>()
 );
 
 export const addLocalitySuccess = createAction(

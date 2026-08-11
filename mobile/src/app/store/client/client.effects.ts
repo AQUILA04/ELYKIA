@@ -4,7 +4,7 @@ import { concat, from, of } from 'rxjs';
 import { map, catchError, switchMap, withLatestFrom, take, concatMap, filter } from 'rxjs/operators';
 import * as ClientActions from './client.actions';
 import { ClientService } from '../../core/services/client.service';
-import { Store } from '@ngrx/store';
+import { Store, Action } from '@ngrx/store';
 import { selectAuthUser } from '../auth/auth.selectors';
 import { Client } from '../../models/client.model';
 import * as AccountActions from '../account/account.actions';
@@ -54,15 +54,28 @@ export class ClientEffects {
     retryOfflineAction: () => ReturnType<typeof ClientActions.addClient>
   ) {
     if (this.hybridSyncUiService.isOnlineWriteBusinessError(error)) {
-      const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(
-        this.hybridSyncUiService.isOnlineWriteBusinessError(error) ? error.message : 'Erreur serveur'
-      );
+      const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
       if (saveOffline) {
         return retryOfflineAction();
       }
     }
     const message = error instanceof Error ? error.message : String(error);
     return ClientActions.addClientFailure({ error: message });
+  }
+
+  private async handleBusinessWriteError(
+    error: unknown,
+    retryOfflineAction: () => Action,
+    failureAction: (message: string) => Action
+  ): Promise<Action> {
+    if (this.hybridSyncUiService.isOnlineWriteBusinessError(error)) {
+      const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
+      if (saveOffline) {
+        return retryOfflineAction();
+      }
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    return failureAction(message);
   }
 
   updateClientCreditStatus$ = createEffect(() =>
@@ -114,10 +127,16 @@ export class ClientEffects {
   updateClient$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ClientActions.updateClient),
-      switchMap(action =>
-        from(this.clientService.updateClient(action.client)).pipe(
+      concatMap((action) =>
+        from(this.clientService.updateClient(action.client, action.forceOffline)).pipe(
           map(client => ClientActions.updateClientSuccess({ client })),
-          catchError(error => of(ClientActions.updateClientFailure({ error })))
+          catchError((error) =>
+            from(this.handleBusinessWriteError(
+              error,
+              () => ClientActions.updateClient({ client: action.client, forceOffline: true }),
+              (message) => ClientActions.updateClientFailure({ error: message })
+            ))
+          )
         )
       )
     )
@@ -164,15 +183,22 @@ export class ClientEffects {
   updateClientBalance$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ClientActions.updateClientBalance),
-      switchMap(action =>
-        from(this.clientService.updateClientBalance(action.clientId, action.balance)).pipe(
+      concatMap((action) =>
+        from(this.clientService.updateClientBalance(action.clientId, action.balance, action.forceOffline)).pipe(
           switchMap((account) => [
             AccountActions.updateAccountSuccess({ account }),
-            // We don't need to reload all clients just for a balance update.
-            // The account update is handled by AccountStore.
-            // The ClientView selector combines Client + Account, so it will automatically reflect the change.
           ]),
-          catchError(error => of(ClientActions.updateClientBalanceFailure({ error })))
+          catchError((error) =>
+            from(this.handleBusinessWriteError(
+              error,
+              () => ClientActions.updateClientBalance({
+                clientId: action.clientId,
+                balance: action.balance,
+                forceOffline: true
+              }),
+              (message) => ClientActions.updateClientBalanceFailure({ error: message })
+            ))
+          )
         )
       )
     )
@@ -181,10 +207,26 @@ export class ClientEffects {
   updateClientLocation$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ClientActions.updateClientLocation),
-      switchMap(action =>
-        from(this.clientService.updateClientLocation(action.id, action.latitude, action.longitude)).pipe(
+      concatMap((action) =>
+        from(this.clientService.updateClientLocation(
+          action.id,
+          action.latitude,
+          action.longitude,
+          action.forceOffline
+        )).pipe(
           map(client => ClientActions.updateClientLocationSuccess({ client })),
-          catchError(error => of(ClientActions.updateClientLocationFailure({ error })))
+          catchError((error) =>
+            from(this.handleBusinessWriteError(
+              error,
+              () => ClientActions.updateClientLocation({
+                id: action.id,
+                latitude: action.latitude,
+                longitude: action.longitude,
+                forceOffline: true
+              }),
+              (message) => ClientActions.updateClientLocationFailure({ error: message })
+            ))
+          )
         )
       )
     )
@@ -193,10 +235,16 @@ export class ClientEffects {
   updateClientPhotosAndInfo$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ClientActions.updateClientPhotosAndInfo),
-      switchMap(action =>
-        from(this.clientService.updateClientPhotosAndInfo(action)).pipe(
+      concatMap((action) =>
+        from(this.clientService.updateClientPhotosAndInfo(action, action.forceOffline)).pipe(
           map(client => ClientActions.updateClientPhotosAndInfoSuccess({ client })),
-          catchError(error => of(ClientActions.updateClientPhotosAndInfoFailure({ error })))
+          catchError((error) =>
+            from(this.handleBusinessWriteError(
+              error,
+              () => ClientActions.updateClientPhotosAndInfo({ ...action, forceOffline: true }),
+              (message) => ClientActions.updateClientPhotosAndInfoFailure({ error: message })
+            ))
+          )
         )
       )
     )

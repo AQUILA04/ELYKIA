@@ -26,32 +26,18 @@ export class LocalitySyncService extends BaseSyncService<Locality, LocalityRepos
     }
 
     async syncSingle(item: Locality): Promise<any> {
-        // Only sync if local? Or if unsynced?
-        // fetchUnsynced returns items with isSync=false.
-        // If isLocal=true, it's a new locality.
-        // If isLocal=false, it's an update to existing server locality?
-        // Let's assume we handle creation first.
-
         if (item.isLocal) {
             return this.createLocality(item);
         } else {
-            // Update logic if needed, typically handled by PUT
-            // For now, let's assume update is also needed
             return this.updateLocality(item);
         }
     }
 
-    protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<Locality[]> {
-        // LocalityRepositoryExtensions.findAllPaginated supports isSync filter now.
-        // It does NOT filter by commercial because localities are global/tenant based.
-        const page = await this.localityRepositoryExtensions.findAllPaginated(0, limit, { isSync: false, isActive: undefined });
-        return page.content;
-    }
-
-    private async createLocality(locality: Locality): Promise<Locality> {
-        const syncRequest = {
-            name: locality.name
-        };
+    /**
+     * Crée une localité sur le serveur sans modifier SQLite (online-first).
+     */
+    async postCreateLocality(locality: Pick<Locality, 'name'>): Promise<Locality> {
+        const syncRequest = { name: locality.name };
         const headers = this.getAuthHeaders();
 
         const response = await firstValueFrom(
@@ -62,11 +48,23 @@ export class LocalitySyncService extends BaseSyncService<Locality, LocalityRepos
             throw new Error(response?.message || 'Invalid response from server for locality sync');
         }
 
-        const syncedLocality = response.data;
-        // Map local ID to server ID
+        return {
+            ...response.data,
+            id: String(response.data.id)
+        };
+    }
+
+    protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<Locality[]> {
+        // LocalityRepositoryExtensions.findAllPaginated supports isSync filter now.
+        // It does NOT filter by commercial because localities are global/tenant based.
+        const page = await this.localityRepositoryExtensions.findAllPaginated(0, limit, { isSync: false, isActive: undefined });
+        return page.content;
+    }
+
+    private async createLocality(locality: Locality): Promise<Locality> {
+        const syncedLocality = await this.postCreateLocality(locality);
         await this.repository.saveIdMapping(locality.id, syncedLocality.id, 'locality');
         await this.repository.markAsSynced(locality.id, syncedLocality.id);
-
         return syncedLocality;
     }
 

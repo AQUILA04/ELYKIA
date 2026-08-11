@@ -68,36 +68,52 @@ export class AccountSyncService extends BaseSyncService<Account, AccountReposito
 
             return response.data;
         } else {
-            // UPDATE (PUT)
-            // account.id IS server ID (if mapping exists locally, we use local ID for updateSyncStatus, but for API call we need server ID)
-            // If isLocal=false, account.id should be the server ID.
-            // But wait, BaseRepository uses local ID as PK always (UUID or ServerID).
-            // If isLocal=false, PK matches ServerID usually.
-            const serverId = parseInt(account.id, 10);
-            if (isNaN(serverId)) {
-                throw new Error(`Invalid Server Account ID ${account.id} for update`);
-            }
-
-            const updateRequest: AccountUpdateRequest = {
-                id: serverId,
-                clientId: clientIdNumber,
-                accountNumber: account.accountNumber,
-                accountBalance: account.accountBalance,
-                status: account.status || 'ACTIVE'
-            };
-
-            const response = await firstValueFrom(
-                this.http.put<ApiResponse<AccountSyncResponse>>(`${this.baseUrl}/api/v1/accounts/${serverId}`, updateRequest, { headers })
-            );
-
-            if (!response || !response.data) {
-                throw new Error(response?.message || 'Invalid response from server');
-            }
-
-            // Mark as synced (locally)
+            const responseData = await this.postUpdateAccount(account, clientIdNumber);
             await this.repository.updateSyncStatus(account.id, true);
-            return response.data;
+            return responseData;
         }
+    }
+
+    /**
+     * Met à jour un compte sur le serveur sans modifier SQLite (online-first).
+     */
+    async postUpdateAccount(account: Account, clientIdNumber?: number): Promise<AccountSyncResponse> {
+        let resolvedClientId = clientIdNumber;
+        if (resolvedClientId === undefined) {
+            let finalServerClientId = account.clientId;
+            const mappedClientId = await this.repository.getServerId(account.clientId, 'client');
+            if (mappedClientId) {
+                finalServerClientId = mappedClientId;
+            }
+            resolvedClientId = parseInt(finalServerClientId, 10);
+            if (isNaN(resolvedClientId)) {
+                throw new Error(`Invalid Server Client ID ${finalServerClientId}, expected number`);
+            }
+        }
+
+        const serverId = parseInt(account.id, 10);
+        if (isNaN(serverId)) {
+            throw new Error(`Invalid Server Account ID ${account.id} for update`);
+        }
+
+        const updateRequest: AccountUpdateRequest = {
+            id: serverId,
+            clientId: resolvedClientId,
+            accountNumber: account.accountNumber,
+            accountBalance: account.accountBalance,
+            status: account.status || 'ACTIVE'
+        };
+
+        const headers = this.getAuthHeaders();
+        const response = await firstValueFrom(
+            this.http.put<ApiResponse<AccountSyncResponse>>(`${this.baseUrl}/api/v1/accounts/${serverId}`, updateRequest, { headers })
+        );
+
+        if (!response || !response.data) {
+            throw new Error(response?.message || 'Invalid response from server');
+        }
+
+        return response.data;
     }
 
     protected override getAuthHeaders(): HttpHeaders {

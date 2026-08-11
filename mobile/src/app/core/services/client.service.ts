@@ -18,6 +18,7 @@ import { ClientRepository } from '../repositories/client.repository';
 import { AccountRepository } from '../repositories/account.repository';
 import { DistributionRepository } from '../repositories/distribution.repository';
 import { ClientSyncService } from './sync/client-sync.service';
+import { AccountSyncService } from './sync/account-sync.service';
 import { OnlineFirstWriteCoordinator } from './online-first-write.coordinator';
 
 export interface ClientInitializationProgress {
@@ -60,6 +61,7 @@ export class ClientService {
     private accountRepository: AccountRepository,
     private distributionRepository: DistributionRepository,
     private clientSyncService: ClientSyncService,
+    private accountSyncService: AccountSyncService,
     private onlineFirstWriteCoordinator: OnlineFirstWriteCoordinator
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
@@ -583,66 +585,88 @@ export class ClientService {
     }
   }
 
-  async updateClientBalance(clientId: string, balance: number): Promise<Account> {
+  async updateClientBalance(clientId: string, balance: number, forceOffline = false): Promise<Account> {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
 
-    // OPTIMIZATION: Fetch specific client and account
     const client = await this.clientRepository.findById(clientId);
-
-    if (client) {
-      // Use AccountRepository to find account by clientId
-      const account = await this.accountRepository.findByClientId(clientId);
-
-      if (account) {
-        const isNumericId = /^[0-9]+$/.test(clientId);
-        const IS_SYNC = isNumericId ? 1 : 0;
-
-        if (account.accountBalance > 0 && IS_SYNC) {
-          account.old_balance = account.accountBalance;
-          account.updated = true;
-          account.syncDate = new Date().toISOString();
-        }
-        account.accountBalance = balance;
-        await this.accountRepository.saveAll([account]);
-        return account;
-      } else {
-        // Create a new account
-        const timestamp = Date.now().toString().slice(-6);
-        const newAccountNumber = `0021${client.commercial.slice(-2)}${timestamp}`;
-
-        const newAccount: Account = {
-          id: this.generateUuid(),
-          accountNumber: newAccountNumber,
-          accountBalance: balance,
-          status: 'ACTIF',
-          clientId: clientId,
-          isLocal: true,
-          isSync: false,
-          createdAt: new Date().toISOString(),
-          syncDate: ''
-        };
-        await this.accountRepository.saveAll([newAccount]);
-        return newAccount;
-      }
+    if (!client) {
+      throw new Error('Client not found');
     }
-    throw new Error('Client not found');
+
+    const writeResult = await this.onlineFirstWriteCoordinator.executeWrite({
+      entityLabel: 'account-balance',
+      forceOffline,
+      saveOffline: () => this.persistClientBalance(client, balance, false),
+      saveOnline: () => this.persistClientBalance(client, balance, true)
+    });
+    return writeResult.data;
+  }
+
+  private async persistClientBalance(client: Client, balance: number, online: boolean): Promise<Account> {
+    const account = await this.accountRepository.findByClientId(client.id);
+
+    if (account) {
+      const isNumericId = /^[0-9]+$/.test(account.id);
+      if (online && isNumericId && !account.isLocal) {
+        const nextAccount: Account = {
+          ...account,
+          accountBalance: balance,
+          old_balance: account.accountBalance > 0 ? account.accountBalance : account.old_balance,
+          updated: false,
+          isSync: true,
+          syncDate: new Date().toISOString()
+        };
+        await this.accountSyncService.postUpdateAccount(nextAccount);
+        await this.accountRepository.saveAll([nextAccount]);
+        return nextAccount;
+      }
+
+      if (account.accountBalance > 0 && isNumericId) {
+        account.old_balance = account.accountBalance;
+        account.updated = true;
+        account.syncDate = new Date().toISOString();
+      }
+      account.accountBalance = balance;
+      await this.accountRepository.saveAll([account]);
+      return account;
+    }
+
+    const timestamp = Date.now().toString().slice(-6);
+    const newAccountNumber = `0021${client.commercial.slice(-2)}${timestamp}`;
+    const newAccount: Account = {
+      id: this.generateUuid(),
+      accountNumber: newAccountNumber,
+      accountBalance: balance,
+      status: 'ACTIF',
+      clientId: client.id,
+      isLocal: true,
+      isSync: false,
+      createdAt: new Date().toISOString(),
+      syncDate: ''
+    };
+    await this.accountRepository.saveAll([newAccount]);
+    return newAccount;
   }
 
   async deleteClient(id: string): Promise<void> {
-    // Use Repository instead of DatabaseService
     await this.clientRepository.deleteClientAndRelatedData(id);
   }
 
-  async updateClient(client: Client): Promise<Client> {
-    try {
-      // Use Repository instead of DatabaseService
-      return await this.clientRepository.updateClient(client);
-    } catch (error) {
-      console.error('Error in ClientService.updateClient calling repository.updateClient:', error);
-      throw error; // Re-throw the error to be caught by the NgRx effect
-    }
+  async updateClient(client: Client, forceOffline = false): Promise<Client> {
+    const writeResult = await this.onlineFirstWriteCoordinator.executeWrite({
+      entityLabel: 'client-info',
+      forceOffline,
+      saveOffline: () => this.clientRepository.updateClient(client),
+      saveOnline: async () => {
+        await this.clientSyncService.postUpdateClientInfo(client);
+        const persisted = await this.clientRepository.updateClient(client);
+        await this.clientRepository.markAsInfoSynced(persisted.id);
+        return persisted;
+      }
+    });
+    return writeResult.data;
   }
 
   /**
@@ -660,14 +684,79 @@ export class ClientService {
     return this.distributionRepository.hasUnsyncedForClient(clientId);
   }
 
-  async updateClientLocation(id: string, latitude: number, longitude: number): Promise<Client> {
-    // Use Repository instead of DatabaseService
-    return await this.clientRepository.updateLocation(id, latitude, longitude);
+  async updateClientLocation(
+    id: string,
+    latitude: number,
+    longitude: number,
+    forceOffline = false
+  ): Promise<Client> {
+    const writeResult = await this.onlineFirstWriteCoordinator.executeWrite({
+      entityLabel: 'client-location',
+      forceOffline,
+      saveOffline: () => this.clientRepository.updateLocation(id, latitude, longitude),
+      saveOnline: async () => {
+        const existing = await this.clientRepository.findById(id);
+        if (!existing) {
+          throw new Error('Client not found');
+        }
+        const toSync: Client = { ...existing, latitude, longitude };
+        await this.clientSyncService.postUpdateClientLocation(toSync);
+        const client = await this.clientRepository.updateLocation(id, latitude, longitude);
+        await this.clientRepository.markAsLocationSynced(client.id);
+        return client;
+      }
+    });
+    return writeResult.data;
   }
 
-  async updateClientPhotosAndInfo(data: { clientId: string; cardType: string; cardID: string; profilPhoto: string | null; cardPhoto: string | null; profilPhotoUrl?: string | null; cardPhotoUrl?: string | null; }): Promise<Client> {
-    // Use Repository instead of DatabaseService
-    return await this.clientRepository.updatePhotosAndInfo(data);
+  async updateClientPhotosAndInfo(data: {
+    clientId: string;
+    cardType: string;
+    cardID: string;
+    profilPhoto: string | null;
+    cardPhoto: string | null;
+    profilPhotoUrl?: string | null;
+    cardPhotoUrl?: string | null;
+  }, forceOffline = false): Promise<Client> {
+    const writeResult = await this.onlineFirstWriteCoordinator.executeWrite({
+      entityLabel: 'client-photos',
+      forceOffline,
+      saveOffline: () => this.clientRepository.updatePhotosAndInfo(data),
+      saveOnline: async () => {
+        const existing = await this.clientRepository.findById(data.clientId);
+        if (!existing) {
+          throw new Error('Client not found');
+        }
+        const toSync: Client = {
+          ...existing,
+          cardType: data.cardType,
+          cardID: data.cardID,
+          profilPhoto: data.profilPhoto ?? existing.profilPhoto,
+          cardPhoto: data.cardPhoto ?? existing.cardPhoto
+        };
+        // Card info online; photos stay best-effort (non-blocking)
+        await this.clientSyncService.postUpdateClientInfo(toSync);
+        const client = await this.clientRepository.updatePhotosAndInfo(data);
+        await this.clientRepository.markAsInfoSynced(client.id);
+        void this.tryUploadClientPhotos(client);
+        return client;
+      }
+    });
+    return writeResult.data;
+  }
+
+  private async tryUploadClientPhotos(client: Client): Promise<void> {
+    try {
+      if (!client.profilPhoto && !client.cardPhoto) {
+        return;
+      }
+      await this.clientSyncService.postUpdateClientPhotos(client);
+      await this.clientRepository.markAsPhotoSynced(client.id);
+    } catch (error) {
+      void this.log.log(
+        `[ClientService] Best-effort photo upload failed for ${client.id}: ${String(error)}`
+      );
+    }
   }
 
   async getClientById(id: string): Promise<Client> {

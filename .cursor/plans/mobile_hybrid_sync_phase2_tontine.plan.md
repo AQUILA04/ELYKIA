@@ -16,9 +16,9 @@ todos:
     status: completed
   - id: phase3-secondary
     content: "Écritures secondaires : localité create, client/account updates, photos best-effort"
-    status: pending
+    status: completed
   - id: phase4-hardening
-    content: "Tests intégration tontine, métriques, CHANGELOG + bump 2.13.0"
+    content: "Tests intégration tontine, métriques, CHANGELOG + bump (post-2.14.0)"
     status: pending
 isProject: false
 ---
@@ -46,10 +46,10 @@ Ce plan couvre **tout ce qui reste**, avec la **tontine en lot prioritaire phase
 | UX fallback distribution / commande | ✅ 2.12.1 | — |
 | Listes localités | ✅ SWR 2.12.1 | — |
 | Listes commandes | SQLite only (pas de GET API) | **P2** |
-| Localité create | Offline-first | **P2** |
-| Client update (info, GPS, photos) | Offline-first batch | **P2** |
-| Compte update | Offline-first batch | **P2** |
-| Photos profil / CNI upload | Batch sync master | **P3** |
+| Localité create | ✅ online-first 2.14.0 | — |
+| Client update (info, GPS, photos) | ✅ online-first 2.14.0 | — |
+| Compte update | ✅ online-first 2.14.0 | — |
+| Photos profil / CNI upload | ✅ best-effort + batch fallback 2.14.0 | — |
 | Tests scheduler auto-sync | ✅ 2.12.1 | — |
 
 ---

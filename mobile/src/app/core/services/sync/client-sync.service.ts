@@ -193,6 +193,67 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
         return response.data;
     }
 
+    /**
+     * Met à jour les infos client sur le serveur sans modifier SQLite (online-first).
+     */
+    async postUpdateClientInfo(client: Client): Promise<ClientSyncResponse> {
+        const serverId = await this.repository.getServerId(client.id, 'client');
+        if (!serverId) {
+            throw new Error(`Server ID not found for client ${client.id}`);
+        }
+
+        const allowNameUpdate = client.creditInProgress
+            ? await this.distributionRepository.hasUnsyncedForClient(client.id)
+            : true;
+
+        const requestBody = this.prepareClientInfoUpdateRequest(client, parseInt(serverId, 10), allowNameUpdate);
+        const headers = this.getAuthHeaders();
+
+        const response = await firstValueFrom(
+            this.http.patch<ApiResponse<ClientSyncResponse>>(`${this.baseUrl}/api/v1/clients/info-update`, requestBody, { headers })
+        );
+
+        if (!response?.data) {
+            throw new Error(response?.message || 'Invalid response from server for client info update');
+        }
+
+        return response.data;
+    }
+
+    /**
+     * Met à jour la localisation client sur le serveur sans modifier SQLite (online-first).
+     */
+    async postUpdateClientLocation(client: Client): Promise<void> {
+        const requestBody = {
+            id: client.id,
+            latitude: client.latitude,
+            longitude: client.longitude
+        };
+        const headers = this.getAuthHeaders();
+        const response = await firstValueFrom(
+            this.http.patch<ApiResponse<boolean>>(`${this.baseUrl}/api/v1/clients/location-update`, requestBody, { headers })
+        );
+
+        if (!(response.statusCode === 200 && response.data === true)) {
+            throw new Error(response.message || 'Failed to sync updated client location.');
+        }
+    }
+
+    /**
+     * Upload photos client sur le serveur sans modifier SQLite (online-first / best-effort).
+     */
+    async postUpdateClientPhotos(client: Client): Promise<void> {
+        const requestBody = await this.prepareUpdatePhotoDto(client);
+        const headers = this.getAuthHeaders();
+        const response = await firstValueFrom(
+            this.http.patch<ApiResponse<boolean>>(`${this.baseUrl}/api/v1/clients/photo-update`, requestBody, { headers })
+        );
+
+        if (!(response.statusCode === 200 && response.data === true)) {
+            throw new Error(response.message || 'Failed to sync updated client photo.');
+        }
+    }
+
     private async syncSingleClient(client: Client): Promise<ClientSyncResponse> {
         const syncRequest = await this.prepareClientSyncRequest(client);
         const headers = this.getAuthHeaders();
@@ -234,17 +295,8 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
     }
 
     private async syncUpdatedPhotoClient(client: Client): Promise<void> {
-        const requestBody = await this.prepareUpdatePhotoDto(client);
-        const headers = this.getAuthHeaders();
-        const response = await firstValueFrom(
-            this.http.patch<ApiResponse<boolean>>(`${this.baseUrl}/api/v1/clients/photo-update`, requestBody, { headers })
-        );
-
-        if (response.statusCode === 200 && response.data === true) {
-            await this.repository.markAsPhotoSynced(client.id);
-        } else {
-            throw new Error(response.message || 'Failed to sync updated client photo.');
-        }
+        await this.postUpdateClientPhotos(client);
+        await this.repository.markAsPhotoSynced(client.id);
     }
 
     private async syncUpdatedPhotoUrlClient(client: Client): Promise<void> {
@@ -267,26 +319,7 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
     }
 
     private async syncUpdatedInfoClient(client: Client): Promise<void> {
-        const serverId = await this.repository.getServerId(client.id, 'client');
-        if (!serverId) {
-            throw new Error(`Server ID not found for client ${client.id}`);
-        }
-
-        const allowNameUpdate = client.creditInProgress
-            ? await this.distributionRepository.hasUnsyncedForClient(client.id)
-            : true;
-
-        const requestBody = this.prepareClientInfoUpdateRequest(client, parseInt(serverId, 10), allowNameUpdate);
-        const headers = this.getAuthHeaders();
-
-        const response = await firstValueFrom(
-            this.http.patch<ApiResponse<ClientSyncResponse>>(`${this.baseUrl}/api/v1/clients/info-update`, requestBody, { headers })
-        );
-
-        if (!response?.data) {
-            throw new Error(response?.message || 'Invalid response from server for client info update');
-        }
-
+        await this.postUpdateClientInfo(client);
         await this.repository.markAsInfoSynced(client.id);
     }
 
@@ -318,21 +351,8 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
     }
 
     private async syncUpdatedLocationClient(client: Client): Promise<void> {
-        const requestBody = {
-            id: client.id,
-            latitude: client.latitude,
-            longitude: client.longitude
-        };
-        const headers = this.getAuthHeaders();
-        const response = await firstValueFrom(
-            this.http.patch<ApiResponse<boolean>>(`${this.baseUrl}/api/v1/clients/location-update`, requestBody, { headers })
-        );
-
-        if (response.statusCode === 200 && response.data === true) {
-            await this.repository.markAsLocationSynced(client.id);
-        } else {
-            throw new Error(response.message || 'Failed to sync updated client location.');
-        }
+        await this.postUpdateClientLocation(client);
+        await this.repository.markAsLocationSynced(client.id);
     }
 
     private async prepareClientSyncRequest(client: Client): Promise<ClientSyncRequest> {

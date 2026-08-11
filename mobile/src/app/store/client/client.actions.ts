@@ -70,7 +70,7 @@ export const deleteClientFailure = createAction(
 
 export const updateClientBalance = createAction(
   '[Client] Update Client Balance',
-  props<{ clientId: string; balance: number }>()
+  props<{ clientId: string; balance: number; forceOffline?: boolean }>()
 );
 
 export const updateClientBalanceSuccess = createAction(
@@ -85,7 +85,7 @@ export const updateClientBalanceFailure = createAction(
 
 export const updateClient = createAction(
   '[Client] Update Client',
-  props<{ client: Client }>()
+  props<{ client: Client; forceOffline?: boolean }>()
 );
 
 export const updateClientSuccess = createAction(
@@ -100,7 +100,7 @@ export const updateClientFailure = createAction(
 
 export const updateClientLocation = createAction(
   '[Client] Update Client Location',
-  props<{ id: string; latitude: number; longitude: number }>()
+  props<{ id: string; latitude: number; longitude: number; forceOffline?: boolean }>()
 );
 
 export const updateClientLocationSuccess = createAction(
@@ -125,6 +125,7 @@ export const updateClientPhotosAndInfo = createAction(
     cardPhotoUrl?: string | null;
     profilPhotoThumbUrl?: string | null;
     cardPhotoThumbUrl?: string | null;
+    forceOffline?: boolean;
   }>()
 );
 

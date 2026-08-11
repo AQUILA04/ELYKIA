@@ -370,6 +370,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Annulation de recouvrement : affichage du `message` backend (`error.error.message`) au lieu du message générique HttpClient.
 
+## Mobile — [2.14.0] — 2026-08-11
+
+### Added
+- Localité create online-first (`postCreateLocality` + repli offline)
+- Updates client/compte online-first : infos, GPS, solde (`postUpdateClient*` / `postUpdateAccount`)
+- Upload photos client best-effort après save online (file batch inchangée en fallback)
+
+### Changed
+- Effects client/localité : dialogue hybrid sync + retry `forceOffline` sur erreur métier
+
 ## Mobile — [2.13.2] — 2026-08-11
 
 ### Changed
