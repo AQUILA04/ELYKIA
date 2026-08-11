@@ -8,6 +8,9 @@ import { takeUntil } from 'rxjs/operators';
 
 import { TontineMemberRepository } from 'src/app/core/repositories/tontine-member.repository';
 import { TontineCollectionRepository } from 'src/app/core/repositories/tontine-collection.repository';
+import { TontineWriteService } from 'src/app/core/services/tontine-write.service';
+import { HybridSyncUiService } from 'src/app/core/services/hybrid-sync-ui.service';
+import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-first-write.types';
 import { ClientRepository } from 'src/app/core/repositories/client.repository';
 import { TontineMember, TontineCollection, TontineSession } from 'src/app/models/tontine.model';
 import { Client } from 'src/app/models/client.model';
@@ -58,6 +61,8 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         private memberRepo: TontineMemberRepository,
         private collectionRepo: TontineCollectionRepository,
         private clientRepo: ClientRepository,
+        private tontineWriteService: TontineWriteService,
+        private hybridSyncUiService: HybridSyncUiService,
         private dailyConsentGuard: DailyConsentGuardService,
         private dailyConsentState: DailyConsentStateService,
         private amountConfirmation: AmountConfirmationService
@@ -203,11 +208,11 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         const loading = await this.loadingCtrl.create({
             message: 'Enregistrement en cours...'
         });
+        let newCollection: TontineCollection | null = null;
 
         try {
             const formValue = this.collectionForm.value;
 
-            // Modales interactives avant le loader bloquant
             await this.dailyConsentGuard.requireDailyConsent();
             const confirmedAmount = await this.amountConfirmation.confirmAmount(formValue.amount);
 
@@ -215,7 +220,7 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
 
             const returnToDelivery = this.route.snapshot.queryParamMap.get('returnToDelivery') === 'true';
 
-            const newCollection: TontineCollection = {
+            newCollection = {
                 id: this.generateUuid(),
                 tontineMemberId: this.selectedMember.id,
                 amount: formValue.amount,
@@ -229,12 +234,41 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
                 confirmedAmount
             };
 
-            await this.collectionRepo.save(newCollection);
+            await this.persistCollection(newCollection, false, loading);
 
-            // Update Store specifically for Dashboard KPI
+        } catch (error) {
+            if (await this.loadingCtrl.getTop()) {
+                await loading.dismiss();
+            }
+            console.error('Error saving collection:', error);
+
+            if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS && newCollection) {
+                const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
+                if (saveOffline) {
+                    await this.persistCollection(newCollection, true);
+                    return;
+                }
+            }
+
+            this.showAlert('Erreur', error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'enregistrement.');
+        }
+    }
+
+    private async persistCollection(
+        newCollection: TontineCollection,
+        forceOffline: boolean,
+        loading?: HTMLIonLoadingElement
+    ): Promise<void> {
+        if (!loading) {
+            loading = await this.loadingCtrl.create({ message: 'Enregistrement en cours...' });
+            await loading.present();
+        }
+
+        try {
+            const savedCollection = await this.tontineWriteService.recordCollection(newCollection, forceOffline);
+
             this.store.dispatch(TontineActions.loadTontineCollections());
 
-            // Refresh Tontine KPI for dashboard
             const now = new Date();
             const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
             const endDate = now.toISOString().split('T')[0];
@@ -244,26 +278,26 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
                 dateFilter
             }));
 
-            await loading.dismiss();
+            if (await this.loadingCtrl.getTop()) {
+                await loading.dismiss();
+            }
 
-            // Calculate total collected to date including this new collection
-            const memberCollections = await this.collectionRepo.getByMemberId(this.selectedMember.id);
+            const memberCollections = await this.collectionRepo.getByMemberId(this.selectedMember!.id);
             const totalToDate = memberCollections.reduce((sum, c) => sum + (c.amount || 0), 0);
 
-            // Prepare receipt data
             const receiptData: PrintableTontineCollection = {
                 collection: {
-                    id: newCollection.id,
-                    amount: newCollection.amount,
-                    date: newCollection.collectionDate
+                    id: savedCollection.id,
+                    amount: savedCollection.amount,
+                    date: savedCollection.collectionDate
                 },
                 member: {
-                    frequency: this.selectedMember.frequency || 'N/A',
-                    amount: this.selectedMember.amount || 0
+                    frequency: this.selectedMember!.frequency || 'N/A',
+                    amount: this.selectedMember!.amount || 0
                 },
                 client: {
-                    fullName: this.selectedMember.clientName || 'Client Inconnu',
-                    phone: this.selectedMember.client?.phone
+                    fullName: this.selectedMember!.clientName || 'Client Inconnu',
+                    phone: this.selectedMember!.client?.phone
                 },
                 session: {
                     year: this.session!.year
@@ -274,7 +308,6 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
                 totalToDate: totalToDate
             };
 
-            // Open receipt modal
             const modal = await this.modalCtrl.create({
                 component: TontineReceiptModalComponent,
                 componentProps: {
@@ -283,17 +316,13 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
             });
 
             await modal.present();
-
-            // Wait for modal to be dismissed, then navigate back
             await modal.onDidDismiss();
             this.navCtrl.back();
-
         } catch (error) {
             if (await this.loadingCtrl.getTop()) {
                 await loading.dismiss();
             }
-            console.error('Error saving collection:', error);
-            this.showAlert('Erreur', 'Une erreur est survenue lors de l\'enregistrement.');
+            throw error;
         }
     }
 

@@ -159,7 +159,13 @@ export class ReliquatService {
     };
   }
 
-  async addReliquat(clientId: string, commercialId: string, amount: number, recoveryId: string): Promise<void> {
+  async addReliquat(
+    clientId: string,
+    commercialId: string,
+    amount: number,
+    recoveryId: string,
+    markSynced = false
+  ): Promise<void> {
     let reliquat = await this.getReliquatForClient(clientId);
     const now = new Date().toISOString();
 
@@ -167,7 +173,10 @@ export class ReliquatService {
       reliquat.totalAmount += amount;
       reliquat.lastRecoveryId = recoveryId;
       reliquat.updatedAt = now;
-      reliquat.isSync = false;
+      reliquat.isSync = markSynced;
+      if (markSynced) {
+        reliquat.syncDate = now;
+      }
     } else {
       reliquat = {
         id: this.generateUuid(),
@@ -177,7 +186,8 @@ export class ReliquatService {
         lastRecoveryId: recoveryId,
         createdAt: now,
         updatedAt: now,
-        isSync: false
+        isSync: markSynced,
+        syncDate: markSynced ? now : undefined
       };
     }
 
@@ -185,7 +195,7 @@ export class ReliquatService {
     this.log.log(`Added ${amount} reliquat for client ${clientId}`);
   }
 
-  async consumeReliquat(clientId: string, amount: number): Promise<void> {
+  async consumeReliquat(clientId: string, amount: number, markSynced = false): Promise<void> {
     const reliquat = await this.getReliquatForClient(clientId);
     
     if (!reliquat) {
@@ -203,7 +213,10 @@ export class ReliquatService {
     }
     
     reliquat.updatedAt = new Date().toISOString();
-    reliquat.isSync = false;
+    reliquat.isSync = markSynced;
+    if (markSynced) {
+      reliquat.syncDate = reliquat.updatedAt;
+    }
 
     await this.reliquatRepository.upsert(reliquat);
     this.log.log(`Consumed ${amount} reliquat for client ${clientId}`);

@@ -16,6 +16,8 @@ import { TontineStockRepositoryExtensions } from '../repositories/tontine-stock.
 import { TontineMemberRepository } from '../repositories/tontine-member.repository';
 import { TontineMemberAmountHistoryRepository } from '../repositories/tontine-member-amount-history.repository';
 import { SyncOrchestratorService } from './sync/sync-orchestrator.service';
+import { DataCleanerService } from './sync/data-cleaner.service';
+import { ConnectivityService } from './connectivity.service';
 import { SyncOptions } from '../models/tontine-sync.models';
 
 /**
@@ -56,7 +58,9 @@ export class TontineService {
         private readonly tontineStockRepositoryExtensions: TontineStockRepositoryExtensions,
         private readonly memberRepo: TontineMemberRepository,
         private readonly historyRepo: TontineMemberAmountHistoryRepository,
-        private readonly syncOrchestrator: SyncOrchestratorService
+        private readonly syncOrchestrator: SyncOrchestratorService,
+        private readonly dataCleaner: DataCleanerService,
+        private readonly connectivityService: ConnectivityService
     ) {
         this.store.select(selectAuthUser).subscribe(user => {
             this.commercialUsername = user?.username;
@@ -78,7 +82,12 @@ export class TontineService {
 
     /**
      * Initialize Tontine Data (Session, Members, Stocks, etc.)
-     * Uses the new SyncOrchestrator for reliable data synchronization
+     * Uses the new SyncOrchestrator for reliable data synchronization.
+     *
+     * Safe hybrid init:
+     * - Offline → local session only (no wipe)
+     * - Unsynced local tontine data → incremental sync (forceCleanup=false)
+     * - Clean local state + online → full sync with cleanup
      */
     initializeTontine(commercialUsername?: string): Observable<boolean> {
         if (commercialUsername) {
@@ -92,53 +101,92 @@ export class TontineService {
 
         console.log(`TontineService: Initializing tontine data for ${this.commercialUsername}...`);
 
-        // First fetch and save the session
-        return this.fetchAndSaveSession().pipe(
-            switchMap(session => {
-                if (!session) {
-                    console.log('TontineService: No active session found.');
-                    return of(true);
+        return from(this.resolveInitStrategy(this.commercialUsername)).pipe(
+            switchMap((strategy) => {
+                if (strategy.offlineLocalOnly) {
+                    console.log('TontineService: Backend unreachable — using local tontine data only');
+                    return from(this.dbService.getTontineSession()).pipe(
+                        map((session) => {
+                            const ok = !!session;
+                            console.log(ok
+                                ? 'TontineService: Local session available offline'
+                                : 'TontineService: No local session offline');
+                            return ok;
+                        })
+                    );
                 }
 
-                console.log('TontineService: Session found, starting sync orchestrator...', session.id);
-
-                // Use the new SyncOrchestrator for reliable synchronization
-                const syncOptions: SyncOptions = {
-                    forceCleanup: true,
-                    sessionId: session.id,
-                    commercialUsername: this.commercialUsername!,
-                    batchSize: 500
-                };
-
-                return this.syncOrchestrator.startSync(syncOptions).pipe(
-                    switchMap(result => {
-                        if (result.success) {
-                            console.log('TontineService: Tontine initialization completed successfully.');
-                            console.log(`TontineService: Synced ${result.totalMembers} members, ${result.totalCollections} collections, ${result.totalStocks} stocks`);
-
-                            // Fetch amount history after successful sync
-                            return this.fetchAndSaveAmountHistory(session.id).pipe(
-                                map(() => true),
-                                catchError(err => {
-                                    console.error('TontineService: Error fetching amount history:', err);
-                                    // Even if history fails, the main sync was successful
-                                    return of(true);
-                                })
-                            );
-                        } else {
-                            console.error('TontineService: Sync failed with errors:', result.errors);
-                            this.log.log('TontineService: Sync failed: ' + JSON.stringify(result.errors));
-                            return of(false);
+                return this.fetchAndSaveSession().pipe(
+                    switchMap(session => {
+                        if (!session) {
+                            console.log('TontineService: No active session found.');
+                            return of(true);
                         }
+
+                        console.log(
+                            `TontineService: Session found, starting sync orchestrator ` +
+                            `(forceCleanup=${strategy.forceCleanup})...`,
+                            session.id
+                        );
+
+                        const syncOptions: SyncOptions = {
+                            forceCleanup: strategy.forceCleanup,
+                            sessionId: session.id,
+                            commercialUsername: this.commercialUsername!,
+                            batchSize: 500
+                        };
+
+                        return this.syncOrchestrator.startSync(syncOptions).pipe(
+                            switchMap(result => {
+                                if (result.success) {
+                                    console.log('TontineService: Tontine initialization completed successfully.');
+                                    console.log(`TontineService: Synced ${result.totalMembers} members, ${result.totalCollections} collections, ${result.totalStocks} stocks`);
+
+                                    return this.fetchAndSaveAmountHistory(session.id).pipe(
+                                        map(() => true),
+                                        catchError(err => {
+                                            console.error('TontineService: Error fetching amount history:', err);
+                                            return of(true);
+                                        })
+                                    );
+                                } else {
+                                    console.error('TontineService: Sync failed with errors:', result.errors);
+                                    this.log.log('TontineService: Sync failed: ' + JSON.stringify(result.errors));
+                                    return of(false);
+                                }
+                            })
+                        );
+                    }),
+                    catchError(error => {
+                        console.error('TontineService: Error initializing tontine, falling back to local:', error);
+                        this.log.log('TontineService: Error initializing tontine: ' + JSON.stringify(error));
+                        return from(this.dbService.getTontineSession()).pipe(
+                            map((session) => !!session)
+                        );
                     })
                 );
-            }),
-            catchError(error => {
-                console.error('TontineService: Error initializing tontine:', error);
-                this.log.log('TontineService: Error initializing tontine: ' + JSON.stringify(error));
-                return of(false);
             })
         );
+    }
+
+    private async resolveInitStrategy(commercialUsername: string): Promise<{
+        forceCleanup: boolean;
+        offlineLocalOnly: boolean;
+    }> {
+        const reachable = await this.connectivityService.checkBackendReachable(true);
+        if (!reachable) {
+            return { forceCleanup: false, offlineLocalOnly: true };
+        }
+
+        const unsyncedCount = await this.dataCleaner.countUnsyncedTontineData(commercialUsername);
+        if (unsyncedCount > 0) {
+            void this.log.log(
+                `TontineService: ${unsyncedCount} unsynced tontine record(s) — incremental init (no forceCleanup)`
+            );
+            return { forceCleanup: false, offlineLocalOnly: false };
+        }
+
+        return { forceCleanup: true, offlineLocalOnly: false };
     }
 
     /**

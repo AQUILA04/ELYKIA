@@ -81,6 +81,24 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
         return this.syncSingleTontineCollection(item);
     }
 
+    /**
+     * Crée une collecte tontine sur le serveur sans modifier SQLite (online-first).
+     */
+    async postCreateCollection(collection: TontineCollection): Promise<TontineCollectionSyncResponse> {
+        const syncRequest = await this.prepareTontineCollectionSyncRequest(collection);
+        const headers = this.getAuthHeaders();
+
+        const response = await firstValueFrom(
+            this.http.post<ApiResponse<TontineCollectionSyncResponse>>(`${this.baseUrl}/api/v1/tontines/collections`, syncRequest, { headers })
+        );
+
+        if (!response?.data) {
+            throw new Error(response?.message || 'Invalid response from server for tontine collection sync');
+        }
+
+        return response.data;
+    }
+
     protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<TontineCollection[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
@@ -113,12 +131,19 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
     }
 
     private async syncSingleTontineCollection(collection: TontineCollection): Promise<TontineCollectionSyncResponse> {
+        const syncedCollection = await this.postCreateCollection(collection);
+        await this.repository.saveIdMapping(collection.id, syncedCollection.id.toString(), 'tontine-collection');
+        await this.repository.markAsSynced(collection.id, syncedCollection.id.toString());
+        return syncedCollection;
+    }
+
+    private async prepareTontineCollectionSyncRequest(collection: TontineCollection): Promise<TontineCollectionSyncRequest> {
         const serverMemberId = await this.repository.getServerId(collection.tontineMemberId, 'tontine-member');
         if (!serverMemberId) {
             throw new Error(`Impossible de trouver l'ID serveur pour le membre de tontine local ${collection.tontineMemberId}`);
         }
 
-        const syncRequest: TontineCollectionSyncRequest = {
+        return {
             memberId: Number.parseInt(serverMemberId, 10),
             amount: collection.amount,
             isDeliveryCollection: collection.isDeliveryCollection,
@@ -128,21 +153,5 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
             confirmedAmount: collection.confirmedAmount ?? null,
             syncConsentCode: this.syncConsentCode ?? null
         };
-
-        const headers = this.getAuthHeaders();
-
-        const response = await firstValueFrom(
-            this.http.post<ApiResponse<TontineCollectionSyncResponse>>(`${this.baseUrl}/api/v1/tontines/collections`, syncRequest, { headers })
-        );
-
-        if (!response?.data) {
-            throw new Error(response?.message || 'Invalid response from server for tontine collection sync');
-        }
-
-        const syncedCollection = response.data;
-        await this.repository.saveIdMapping(collection.id, syncedCollection.id.toString(), 'tontine-collection');
-        await this.repository.markAsSynced(collection.id, syncedCollection.id.toString());
-
-        return syncedCollection;
     }
 }

@@ -22,6 +22,8 @@ import {LoggerService} from "./logger.service";
 import { DailyConsentGuardService } from '../../features/daily-consent/daily-consent-guard.service';
 import { DailyConsentStateService } from '../daily-consent/daily-consent-state.service';
 import { AmountConfirmationService } from '../../features/amount-confirmation/amount-confirmation.service';
+import { DistributionSyncService } from './sync/distribution-sync.service';
+import { OnlineFirstWriteCoordinator } from './online-first-write.coordinator';
 
 import { CreditPurpose } from '../../models/credit-purpose.model';
 
@@ -37,6 +39,7 @@ interface CreateDistributionData {
   creditId?: string; // Made optional
   type?: string; // 'CLIENT' ou 'COMMERCIAL'
   creditPurpose?: CreditPurpose;
+  forceOffline?: boolean;
 }
 
 @Injectable({
@@ -57,7 +60,9 @@ export class DistributionService {
     private readonly log: LoggerService,
     private readonly dailyConsentGuard: DailyConsentGuardService,
     private readonly dailyConsentState: DailyConsentStateService,
-    private readonly amountConfirmation: AmountConfirmationService
+    private readonly amountConfirmation: AmountConfirmationService,
+    private readonly distributionSyncService: DistributionSyncService,
+    private readonly onlineFirstWriteCoordinator: OnlineFirstWriteCoordinator
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -254,11 +259,9 @@ export class DistributionService {
   // Create a new distribution - save to local database only
   createDistribution(distributionData: CreateDistributionData): Observable<Distribution> {
     return from(this.createLocalDistribution(distributionData)).pipe(
-      map(distribution => {
-        return distribution;
-      }),
+      map(distribution => distribution),
       catchError(error => {
-        console.error('Failed to create distribution locally:', error);
+        console.error('Failed to create distribution:', error);
         throw error;
       })
     );
@@ -383,42 +386,68 @@ export class DistributionService {
     distribution.confirmedAmount = confirmedAmount;
     distribution.operationConsentCode = this.dailyConsentState.getActiveConsentCode() ?? undefined;
 
-    await this.dbService.saveDistributionsAndItems([distribution]);
-
-    // Create and save the corresponding transaction for the history
-    // Still using dbService for transactions
-    await this.dbService.addTransaction({
-      id: `trans-${distribution.id}`,
-      clientId: distribution.clientId,
-      referenceId: distribution.reference,
-      type: 'DISTRIBUTION',
-      amount: distribution.totalAmount,
-      details: `Distribution de ${distributionData.articles.length} article(s) à ${distributionData.client?.fullName || 'client inconnu'}`,
-      date: distribution.createdAt,
-      isSync: false,
-      isLocal: true
+    const { forceOffline } = distributionData;
+    const writeResult = await this.onlineFirstWriteCoordinator.executeWrite({
+      entityLabel: 'distribution',
+      forceOffline,
+      saveOffline: () => this.persistDistribution(distribution, distributionData.articles, false),
+      saveOnline: () => this.persistDistribution(distribution, distributionData.articles, true)
     });
 
-    // Update the stock for each article
-    await this.updateArticleStock(distributionData.articles);
+    return writeResult.data;
+  }
 
-    // --- SNAPSHOT INCREMENT ---
-    // Incrémenter le cumul des ventes locales dans le snapshot.
-    // Fait après la persistance réussie pour garantir la cohérence.
+  private async persistDistribution(
+    distribution: Distribution,
+    articleQuantities: Array<{ articleId: string; quantity: number }>,
+    online: boolean
+  ): Promise<Distribution> {
+    const distributionItems = distribution.items || [];
+    let persistedDistribution = { ...distribution };
+
+    if (online) {
+      const response = await this.distributionSyncService.postCreateDistribution(persistedDistribution, distributionItems);
+      const serverId = response.id.toString();
+      persistedDistribution = {
+        ...persistedDistribution,
+        id: serverId,
+        isLocal: false,
+        isSync: true,
+        syncDate: new Date().toISOString(),
+        items: distributionItems.map((item) => ({
+          ...item,
+          distributionId: serverId,
+          id: `d-item-${serverId}-${item.articleId}`
+        }))
+      };
+    }
+
+    await this.dbService.saveDistributionsAndItems([persistedDistribution]);
+
+    await this.dbService.addTransaction({
+      id: `trans-${persistedDistribution.id}`,
+      clientId: persistedDistribution.clientId,
+      referenceId: persistedDistribution.reference,
+      type: 'DISTRIBUTION',
+      amount: persistedDistribution.totalAmount,
+      details: `Distribution de ${articleQuantities.length} article(s) à ${persistedDistribution.client?.fullName || 'client inconnu'}`,
+      date: persistedDistribution.createdAt,
+      isSync: online,
+      isLocal: !online
+    });
+
+    await this.updateArticleStock(articleQuantities);
+
     try {
       await this.stockSnapshotRepository.incrementLocalSales(
-        this.commercialUsername,
-        newDistributionTotal
+        this.commercialUsername!,
+        persistedDistribution.totalAmount || 0
       );
     } catch (snapshotError) {
-      // L'incrément du snapshot est non-bloquant : la distribution est déjà persistée.
-      // On log l'erreur mais on ne fait pas échouer la distribution.
       console.warn('[DistributionService] Failed to increment stock snapshot (non-blocking):', snapshotError);
     }
-    // --- SNAPSHOT INCREMENT END ---
 
-    // Return the created distribution
-    return distribution;
+    return persistedDistribution;
   }
 
   private async updateArticleStock(articleQuantities: Array<{ articleId: string; quantity: number }>): Promise<void> {

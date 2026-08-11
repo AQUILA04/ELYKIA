@@ -19,6 +19,8 @@ import { ReliquatService } from './reliquat.service';
 import { DailyConsentGuardService } from '../../features/daily-consent/daily-consent-guard.service';
 import { DailyConsentStateService } from '../daily-consent/daily-consent-state.service';
 import { AmountConfirmationService } from '../../features/amount-confirmation/amount-confirmation.service';
+import { RecoverySyncService } from './sync/recovery-sync.service';
+import { OnlineFirstWriteCoordinator } from './online-first-write.coordinator';
 
 export class RecoveryCreationInFlightError extends Error {
   constructor(message = 'Un recouvrement est déjà en cours de création.') {
@@ -47,7 +49,9 @@ export class RecoveryService {
     private readonly reliquatService: ReliquatService,
     private readonly dailyConsentGuard: DailyConsentGuardService,
     private readonly dailyConsentState: DailyConsentStateService,
-    private readonly amountConfirmation: AmountConfirmationService
+    private readonly amountConfirmation: AmountConfirmationService,
+    private readonly recoverySyncService: RecoverySyncService,
+    private readonly onlineFirstWriteCoordinator: OnlineFirstWriteCoordinator
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -133,7 +137,11 @@ export class RecoveryService {
   /**
    * Créer un nouveau recouvrement
    */
-  async createRecovery(recovery: Partial<Recovery>, keepReliquat: boolean = true): Promise<Recovery> {
+  async createRecovery(
+    recovery: Partial<Recovery>,
+    keepReliquat: boolean = true,
+    forceOffline = false
+  ): Promise<Recovery> {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
@@ -194,28 +202,23 @@ export class RecoveryService {
       newRecovery.operationConsentCode = this.dailyConsentState.getActiveConsentCode() ?? undefined;
 
       void this.log.log(
-        `[RecoveryService][CREATE_STEP][${traceId}] amountConfirmed=${confirmedAmount} savingToDb`
+        `[RecoveryService][CREATE_STEP][${traceId}] amountConfirmed=${confirmedAmount} persisting`
       );
 
-      // Sauvegarder localement
-      await this.recoveryRepository.save(newRecovery);
+      const writeResult = await this.onlineFirstWriteCoordinator.executeWrite({
+        entityLabel: 'recovery',
+        forceOffline,
+        saveOffline: () => this.persistRecovery(newRecovery, keepReliquat, false),
+        saveOnline: () => this.persistRecovery(newRecovery, keepReliquat, true)
+      });
 
-      // Gérer les reliquats
-      if (keepReliquat && newRecovery.reliquatGeneratedAmount && newRecovery.reliquatGeneratedAmount > 0) {
-        await this.reliquatService.addReliquat(newRecovery.clientId, this.commercialUsername, newRecovery.reliquatGeneratedAmount, newRecovery.id);
-      }
-      if (newRecovery.reliquatUsedAmount && newRecovery.reliquatUsedAmount > 0) {
-        await this.reliquatService.consumeReliquat(newRecovery.clientId, newRecovery.reliquatUsedAmount);
-      }
-
-      // Mettre à jour le solde de la distribution
-      await this.updateDistributionBalance(newRecovery.distributionId, newRecovery.amount);
+      const savedRecovery = writeResult.data;
 
       void this.log.log(
-        `[RecoveryService][CREATE_DONE][${traceId}] recoveryId=${newRecovery.id} amount=${newRecovery.amount} ` +
-        `paymentDate=${newRecovery.paymentDate} client=${newRecovery.clientId}`
+        `[RecoveryService][CREATE_DONE][${traceId}] recoveryId=${savedRecovery.id} mode=${writeResult.mode} amount=${savedRecovery.amount} ` +
+        `paymentDate=${savedRecovery.paymentDate} client=${savedRecovery.clientId}`
       );
-      return newRecovery;
+      return savedRecovery;
     } catch (error) {
       void this.log.error(`[RecoveryService][CREATE_FAILED][${traceId}]`, error);
       throw error;
@@ -225,9 +228,51 @@ export class RecoveryService {
     }
   }
 
-  /**
-   * Récupérer les crédits actifs d'un client
-   */
+  private async persistRecovery(
+    newRecovery: Recovery,
+    keepReliquat: boolean,
+    online: boolean
+  ): Promise<Recovery> {
+    if (online) {
+      await this.recoverySyncService.postCreateRecovery(newRecovery);
+    }
+
+    const persistedRecovery: Recovery = {
+      ...newRecovery,
+      isLocal: !online,
+      isSync: online,
+      syncDate: online ? new Date().toISOString() : ''
+    };
+
+    await this.recoveryRepository.save(persistedRecovery);
+    await this.applyReliquatChanges(persistedRecovery, keepReliquat, online);
+    await this.updateDistributionBalance(persistedRecovery.distributionId, persistedRecovery.amount);
+    return persistedRecovery;
+  }
+
+  private async applyReliquatChanges(
+    recovery: Recovery,
+    keepReliquat: boolean,
+    markSynced: boolean
+  ): Promise<void> {
+    if (!this.commercialUsername) {
+      return;
+    }
+
+    if (keepReliquat && recovery.reliquatGeneratedAmount && recovery.reliquatGeneratedAmount > 0) {
+      await this.reliquatService.addReliquat(
+        recovery.clientId,
+        this.commercialUsername,
+        recovery.reliquatGeneratedAmount,
+        recovery.id,
+        markSynced
+      );
+    }
+    if (recovery.reliquatUsedAmount && recovery.reliquatUsedAmount > 0) {
+      await this.reliquatService.consumeReliquat(recovery.clientId, recovery.reliquatUsedAmount, markSynced);
+    }
+  }
+
   async getClientActiveCredits(clientId: string): Promise<Distribution[]> {
     return await this.distributionRepository.getActiveByClientId(clientId);
   }

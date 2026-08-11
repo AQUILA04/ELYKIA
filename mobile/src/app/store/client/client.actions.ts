@@ -30,7 +30,7 @@ export const loadClientsFailure = createAction(
 
 export const addClient = createAction(
   '[Client] Add Client',
-  props<{ client: any, commercialUsername: string }>()
+  props<{ client: any; commercialUsername: string; forceOffline?: boolean }>()
 );
 
 export const addClientSuccess = createAction(

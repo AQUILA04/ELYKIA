@@ -7,6 +7,8 @@ import { TransactionConfig, TransactionData } from '../../../../shared/component
 import { ClientSelectorModalComponent } from '../../../../shared/components/client-selector-modal/client-selector-modal.component';
 import { OrderService } from '../../../../core/services/order.service';
 import { LoggerService } from '../../../../core/services/logger.service';
+import { HybridSyncUiService } from '../../../../core/services/hybrid-sync-ui.service';
+import { OnlineWriteError, WriteErrorKind } from '../../../../core/services/online-first-write.types';
 import { Client } from '../../../../models/client.model';
 import { Article } from '../../../../models/article.model';
 
@@ -29,7 +31,8 @@ export class NewOrderPage implements OnInit {
     private toastController: ToastController,
     private loadingController: LoadingController,
     private orderService: OrderService,
-    private log: LoggerService
+    private log: LoggerService,
+    private hybridSyncUiService: HybridSyncUiService
   ) {
     // Configuration spécifique aux commandes
     this.config = {
@@ -93,6 +96,10 @@ export class NewOrderPage implements OnInit {
       return;
     }
 
+    await this.submitOrder(data);
+  }
+
+  private async submitOrder(data: TransactionData, forceOffline = false): Promise<void> {
     let loading: any = null;
 
     try {
@@ -105,15 +112,15 @@ export class NewOrderPage implements OnInit {
         clientId: data.clientId,
         articles: data.articles,
         totalAmount: data.totalAmount,
-        client: data.client
+        client: data.client,
+        forceOffline
       };
 
       const createdOrder = await firstValueFrom(this.orderService.createOrder(orderData));
-      
+
       await loading.dismiss();
       loading = null;
 
-      // Afficher un message de succès
       const toast = await this.toastController.create({
         message: `Commande ${createdOrder.reference} créée avec succès`,
         duration: 3000,
@@ -122,19 +129,26 @@ export class NewOrderPage implements OnInit {
       });
       await toast.present();
 
-      // Rediriger vers la liste des commandes
       this.router.navigate(['/tabs/orders']);
-
     } catch (error) {
-      console.error('Error creating order:', error);
-      
-      // S'assurer que le loading est fermé en cas d'erreur
       if (loading) {
         await loading.dismiss();
+        loading = null;
       }
-      
+
+      if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS) {
+        const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
+        if (saveOffline) {
+          await this.submitOrder(data, true);
+          return;
+        }
+      }
+
+      console.error('Error creating order:', error);
+
+      const message = error instanceof Error ? error.message : 'Erreur lors de la création de la commande';
       const toast = await this.toastController.create({
-        message: 'Erreur lors de la création de la commande',
+        message,
         duration: 3000,
         color: 'danger',
         position: 'top'

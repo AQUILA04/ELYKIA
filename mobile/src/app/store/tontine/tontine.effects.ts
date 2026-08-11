@@ -1,15 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, mergeMap, switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { catchError, concatMap, filter, map, mergeMap, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { concat, from, of } from 'rxjs';
 import * as TontineActions from './tontine.actions';
 import { TontineService } from '../../core/services/tontine.service';
+import { OnlineListRefreshService } from '../../core/services/online-list-refresh.service';
 import { Store } from '@ngrx/store';
 import { selectAuthUser } from '../auth/auth.selectors';
-import { withLatestFrom } from 'rxjs/operators';
 import { selectTontineState } from './tontine.selectors';
-import { TontineCollectionRepositoryExtensions } from '../../core/repositories/tontine-collection.repository.extensions';
-import { from } from 'rxjs';
+import { Page } from '../../core/repositories/repository.interface';
 
 @Injectable()
 export class TontineEffects {
@@ -48,32 +47,60 @@ export class TontineEffects {
         })
     ));
 
-    // Pagination Effects
+    // Pagination Effects — SWR
     loadFirstPageTontineMembers$ = createEffect(() =>
         this.actions$.pipe(
             ofType(TontineActions.loadFirstPageTontineMembers),
-            switchMap(({ sessionId, filters }) =>
-                this.tontineService.getTontineMembersPaginated(sessionId, 0, 20, filters).pipe(
-                    map(page => TontineActions.loadFirstPageTontineMembersSuccess({
-                        members: page.content,
-                        totalElements: page.totalElements,
-                        totalPages: page.totalPages
-                    })),
+            withLatestFrom(this.store.select(selectAuthUser)),
+            switchMap(([{ sessionId, filters }, user]) => {
+                const commercialUsername = user?.username || '';
+                return this.tontineService.getTontineMembersPaginated(sessionId, 0, 20, filters).pipe(
+                    concatMap((localPage) => concat(
+                        of(TontineActions.loadFirstPageTontineMembersSuccess({
+                            members: localPage.content,
+                            totalElements: localPage.totalElements,
+                            totalPages: localPage.totalPages
+                        })),
+                        from(this.onlineListRefreshService.refreshTontineMembersPage(
+                            sessionId,
+                            commercialUsername,
+                            0,
+                            20,
+                            filters
+                        )).pipe(
+                            filter((serverPage): serverPage is Page<any> => !!serverPage),
+                            map((serverPage) => TontineActions.loadFirstPageTontineMembersSuccess({
+                                members: serverPage.content,
+                                totalElements: serverPage.totalElements,
+                                totalPages: serverPage.totalPages
+                            }))
+                        )
+                    )),
                     catchError(error => of(TontineActions.loadFirstPageTontineMembersFailure({ error: error.message })))
-                )
-            )
+                );
+            })
         )
     );
 
     loadNextPageTontineMembers$ = createEffect(() =>
         this.actions$.pipe(
             ofType(TontineActions.loadNextPageTontineMembers),
-            withLatestFrom(this.store.select(selectTontineState)),
-            switchMap(([{ sessionId, filters }, state]) => {
+            withLatestFrom(this.store.select(selectTontineState), this.store.select(selectAuthUser)),
+            switchMap(([{ sessionId, filters }, state, user]) => {
                 const nextPage = state.memberPagination.currentPage + 1;
+                const commercialUsername = user?.username || '';
                 return this.tontineService.getTontineMembersPaginated(sessionId, nextPage, 20, filters).pipe(
-                    map(page => TontineActions.loadNextPageTontineMembersSuccess({
-                        members: page.content
+                    tap(() => {
+                        void this.onlineListRefreshService.refreshTontineMembersPage(
+                            sessionId,
+                            commercialUsername,
+                            nextPage,
+                            20,
+                            filters
+                        );
+                    }),
+                    map((localPage) => TontineActions.loadNextPageTontineMembersSuccess({
+                        members: localPage.content
                     })),
                     catchError(error => of(TontineActions.loadNextPageTontineMembersFailure({ error: error.message })))
                 );
@@ -81,32 +108,57 @@ export class TontineEffects {
         )
     );
 
-    // Collection Pagination Effects
     loadFirstPageTontineCollections$ = createEffect(() =>
         this.actions$.pipe(
             ofType(TontineActions.loadFirstPageTontineCollections),
-            switchMap(({ filters }) =>
-                this.tontineService.getTontineCollectionsPaginated(0, 20, filters).pipe(
-                    map(page => TontineActions.loadFirstPageTontineCollectionsSuccess({
-                        collections: page.content,
-                        totalElements: page.totalElements,
-                        totalPages: page.totalPages
-                    })),
+            withLatestFrom(this.store.select(selectAuthUser)),
+            switchMap(([{ filters }, user]) => {
+                const commercialUsername = user?.username || '';
+                return this.tontineService.getTontineCollectionsPaginated(0, 20, filters).pipe(
+                    concatMap((localPage) => concat(
+                        of(TontineActions.loadFirstPageTontineCollectionsSuccess({
+                            collections: localPage.content,
+                            totalElements: localPage.totalElements,
+                            totalPages: localPage.totalPages
+                        })),
+                        from(this.onlineListRefreshService.refreshTontineCollectionsPage(
+                            commercialUsername,
+                            0,
+                            20,
+                            filters
+                        )).pipe(
+                            filter((serverPage): serverPage is Page<any> => !!serverPage),
+                            map((serverPage) => TontineActions.loadFirstPageTontineCollectionsSuccess({
+                                collections: serverPage.content,
+                                totalElements: serverPage.totalElements,
+                                totalPages: serverPage.totalPages
+                            }))
+                        )
+                    )),
                     catchError(error => of(TontineActions.loadFirstPageTontineCollectionsFailure({ error: error.message })))
-                )
-            )
+                );
+            })
         )
     );
 
     loadNextPageTontineCollections$ = createEffect(() =>
         this.actions$.pipe(
             ofType(TontineActions.loadNextPageTontineCollections),
-            withLatestFrom(this.store.select(selectTontineState)),
-            switchMap(([{ filters }, state]) => {
+            withLatestFrom(this.store.select(selectTontineState), this.store.select(selectAuthUser)),
+            switchMap(([{ filters }, state, user]) => {
                 const nextPage = state.collectionPagination.currentPage + 1;
+                const commercialUsername = user?.username || '';
                 return this.tontineService.getTontineCollectionsPaginated(nextPage, 20, filters).pipe(
-                    map(page => TontineActions.loadNextPageTontineCollectionsSuccess({
-                        collections: page.content
+                    tap(() => {
+                        void this.onlineListRefreshService.refreshTontineCollectionsPage(
+                            commercialUsername,
+                            nextPage,
+                            20,
+                            filters
+                        );
+                    }),
+                    map((localPage) => TontineActions.loadNextPageTontineCollectionsSuccess({
+                        collections: localPage.content
                     })),
                     catchError(error => of(TontineActions.loadNextPageTontineCollectionsFailure({ error: error.message })))
                 );
@@ -114,32 +166,57 @@ export class TontineEffects {
         )
     );
 
-    // Delivery Pagination Effects
     loadFirstPageTontineDeliveries$ = createEffect(() =>
         this.actions$.pipe(
             ofType(TontineActions.loadFirstPageTontineDeliveries),
-            switchMap(({ filters }) =>
-                this.tontineService.getTontineDeliveriesPaginated(0, 20, filters).pipe(
-                    map(page => TontineActions.loadFirstPageTontineDeliveriesSuccess({
-                        deliveries: page.content,
-                        totalElements: page.totalElements,
-                        totalPages: page.totalPages
-                    })),
+            withLatestFrom(this.store.select(selectAuthUser)),
+            switchMap(([{ filters }, user]) => {
+                const commercialUsername = user?.username || '';
+                return this.tontineService.getTontineDeliveriesPaginated(0, 20, filters).pipe(
+                    concatMap((localPage) => concat(
+                        of(TontineActions.loadFirstPageTontineDeliveriesSuccess({
+                            deliveries: localPage.content,
+                            totalElements: localPage.totalElements,
+                            totalPages: localPage.totalPages
+                        })),
+                        from(this.onlineListRefreshService.refreshTontineDeliveriesPage(
+                            commercialUsername,
+                            0,
+                            20,
+                            filters
+                        )).pipe(
+                            filter((serverPage): serverPage is Page<any> => !!serverPage),
+                            map((serverPage) => TontineActions.loadFirstPageTontineDeliveriesSuccess({
+                                deliveries: serverPage.content,
+                                totalElements: serverPage.totalElements,
+                                totalPages: serverPage.totalPages
+                            }))
+                        )
+                    )),
                     catchError(error => of(TontineActions.loadFirstPageTontineDeliveriesFailure({ error: error.message })))
-                )
-            )
+                );
+            })
         )
     );
 
     loadNextPageTontineDeliveries$ = createEffect(() =>
         this.actions$.pipe(
             ofType(TontineActions.loadNextPageTontineDeliveries),
-            withLatestFrom(this.store.select(selectTontineState)),
-            switchMap(([{ filters }, state]) => {
+            withLatestFrom(this.store.select(selectTontineState), this.store.select(selectAuthUser)),
+            switchMap(([{ filters }, state, user]) => {
                 const nextPage = state.deliveryPagination.currentPage + 1;
+                const commercialUsername = user?.username || '';
                 return this.tontineService.getTontineDeliveriesPaginated(nextPage, 20, filters).pipe(
-                    map(page => TontineActions.loadNextPageTontineDeliveriesSuccess({
-                        deliveries: page.content
+                    tap(() => {
+                        void this.onlineListRefreshService.refreshTontineDeliveriesPage(
+                            commercialUsername,
+                            nextPage,
+                            20,
+                            filters
+                        );
+                    }),
+                    map((localPage) => TontineActions.loadNextPageTontineDeliveriesSuccess({
+                        deliveries: localPage.content
                     })),
                     catchError(error => of(TontineActions.loadNextPageTontineDeliveriesFailure({ error: error.message })))
                 );
@@ -147,32 +224,59 @@ export class TontineEffects {
         )
     );
 
-    // Stock Pagination Effects
     loadFirstPageTontineStocks$ = createEffect(() =>
         this.actions$.pipe(
             ofType(TontineActions.loadFirstPageTontineStocks),
-            switchMap(({ sessionId, filters }) =>
-                this.tontineService.getTontineStocksPaginated(sessionId, 0, 20, filters).pipe(
-                    map(page => TontineActions.loadFirstPageTontineStocksSuccess({
-                        stocks: page.content,
-                        totalElements: page.totalElements,
-                        totalPages: page.totalPages
-                    })),
+            withLatestFrom(this.store.select(selectAuthUser)),
+            switchMap(([{ sessionId, filters }, user]) => {
+                const commercialUsername = user?.username || '';
+                return this.tontineService.getTontineStocksPaginated(sessionId, 0, 20, filters).pipe(
+                    concatMap((localPage) => concat(
+                        of(TontineActions.loadFirstPageTontineStocksSuccess({
+                            stocks: localPage.content,
+                            totalElements: localPage.totalElements,
+                            totalPages: localPage.totalPages
+                        })),
+                        from(this.onlineListRefreshService.refreshTontineStocksPage(
+                            sessionId,
+                            commercialUsername,
+                            0,
+                            20,
+                            filters
+                        )).pipe(
+                            filter((serverPage): serverPage is Page<any> => !!serverPage),
+                            map((serverPage) => TontineActions.loadFirstPageTontineStocksSuccess({
+                                stocks: serverPage.content,
+                                totalElements: serverPage.totalElements,
+                                totalPages: serverPage.totalPages
+                            }))
+                        )
+                    )),
                     catchError(error => of(TontineActions.loadFirstPageTontineStocksFailure({ error: error.message })))
-                )
-            )
+                );
+            })
         )
     );
 
     loadNextPageTontineStocks$ = createEffect(() =>
         this.actions$.pipe(
             ofType(TontineActions.loadNextPageTontineStocks),
-            withLatestFrom(this.store.select(selectTontineState)),
-            switchMap(([{ sessionId, filters }, state]) => {
+            withLatestFrom(this.store.select(selectTontineState), this.store.select(selectAuthUser)),
+            switchMap(([{ sessionId, filters }, state, user]) => {
                 const nextPage = state.stockPagination.currentPage + 1;
+                const commercialUsername = user?.username || '';
                 return this.tontineService.getTontineStocksPaginated(sessionId, nextPage, 20, filters).pipe(
-                    map(page => TontineActions.loadNextPageTontineStocksSuccess({
-                        stocks: page.content
+                    tap(() => {
+                        void this.onlineListRefreshService.refreshTontineStocksPage(
+                            sessionId,
+                            commercialUsername,
+                            nextPage,
+                            20,
+                            filters
+                        );
+                    }),
+                    map((localPage) => TontineActions.loadNextPageTontineStocksSuccess({
+                        stocks: localPage.content
                     })),
                     catchError(error => of(TontineActions.loadNextPageTontineStocksFailure({ error: error.message })))
                 );
@@ -183,7 +287,7 @@ export class TontineEffects {
     constructor(
         private actions$: Actions,
         private tontineService: TontineService,
-        private store: Store,
-        private tontineCollectionRepositoryExtensions: TontineCollectionRepositoryExtensions
+        private onlineListRefreshService: OnlineListRefreshService,
+        private store: Store
     ) { }
 }

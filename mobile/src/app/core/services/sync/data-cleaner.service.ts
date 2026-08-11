@@ -14,6 +14,44 @@ export class DataCleanerService implements IDataCleaner {
   constructor(private databaseService: DatabaseService) { }
 
   /**
+   * Compte les données tontine locales non synchronisées pour un commercial.
+   * Utilisé pour décider si un forceCleanup d'init est sûr.
+   */
+  async countUnsyncedTontineData(commercialUsername: string): Promise<number> {
+    if (!commercialUsername || commercialUsername.trim() === '') {
+      return 0;
+    }
+
+    try {
+      const membersSql = `
+        SELECT COUNT(*) as count FROM tontine_members
+        WHERE commercialUsername = ? AND isSync = 0
+      `;
+      const collectionsSql = `
+        SELECT COUNT(*) as count FROM tontine_collections
+        WHERE commercialUsername = ? AND isSync = 0
+      `;
+      const deliveriesSql = `
+        SELECT COUNT(*) as count FROM tontine_deliveries
+        WHERE commercialUsername = ? AND isSync = 0
+      `;
+
+      const [members, collections, deliveries] = await Promise.all([
+        this.databaseService.query(membersSql, [commercialUsername]),
+        this.databaseService.query(collectionsSql, [commercialUsername]),
+        this.databaseService.query(deliveriesSql, [commercialUsername])
+      ]);
+
+      return (members?.values?.[0]?.count || 0)
+        + (collections?.values?.[0]?.count || 0)
+        + (deliveries?.values?.[0]?.count || 0);
+    } catch (error) {
+      console.error('Erreur lors du comptage des données tontine non syncées:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Nettoie toutes les données tontine pour un commercial
    * @param commercialUsername Nom d'utilisateur du commercial
    * @returns Promise du résultat de nettoyage avec compteurs

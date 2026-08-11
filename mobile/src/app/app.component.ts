@@ -18,6 +18,7 @@ import { Capacitor } from '@capacitor/core';
 import {FirebaseCrashlytics} from "@capacitor-firebase/crashlytics";
 import { FeatureFlagService, FeatureFlags } from './core/services/feature-flag.service';
 import { DeviceIdentityService } from './core/services/device-identity.service';
+import { AutoSyncSchedulerService } from './core/services/auto-sync-scheduler.service';
 
 @Component({
   selector: 'app-root',
@@ -41,7 +42,8 @@ export class AppComponent implements OnInit {
     private readonly alertController: AlertController,
     private readonly router: Router,
     private readonly featureFlagService: FeatureFlagService,
-    private readonly deviceIdentityService: DeviceIdentityService
+    private readonly deviceIdentityService: DeviceIdentityService,
+    private readonly autoSyncSchedulerService: AutoSyncSchedulerService
   ) { this.initializeApp().then(r => console.log(r) ); }
 
   async ngOnInit() {
@@ -143,6 +145,8 @@ export class AppComponent implements OnInit {
         enabled: true,
       });
     }
+
+    await this.autoSyncSchedulerService.init();
   }
 
   /** Aligné sur --ion-color-primary (barre de statut + en-têtes dashboard). */

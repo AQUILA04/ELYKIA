@@ -30,6 +30,23 @@ describe('DataCleanerService', () => {
     expect(service).toBeTruthy();
   });
 
+  describe('countUnsyncedTontineData', () => {
+    it('sums unsynced members, collections and deliveries', async () => {
+      databaseServiceSpy.query.and.returnValues(
+        Promise.resolve({ values: [{ count: 2 }] }),
+        Promise.resolve({ values: [{ count: 3 }] }),
+        Promise.resolve({ values: [{ count: 1 }] })
+      );
+
+      await expectAsync(service.countUnsyncedTontineData('com1')).toBeResolvedTo(6);
+    });
+
+    it('returns 0 for empty commercial username', async () => {
+      await expectAsync(service.countUnsyncedTontineData('')).toBeResolvedTo(0);
+      expect(databaseServiceSpy.query).not.toHaveBeenCalled();
+    });
+  });
+
   describe('cleanTontineData', () => {
     it('should clean all tontine data and return cleanup result', async () => {
       // Arrange

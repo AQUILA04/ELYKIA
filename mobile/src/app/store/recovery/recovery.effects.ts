@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { of, from, concatMap, EMPTY } from 'rxjs';
+import { of, from, concat, EMPTY } from 'rxjs';
 import { ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { catchError, map, switchMap, exhaustMap, withLatestFrom, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, exhaustMap, withLatestFrom, tap, concatMap, filter, take } from 'rxjs/operators';
 import * as RecoveryActions from './recovery.actions';
 import { RecoveryCreationInFlightError, RecoveryService } from '../../core/services/recovery.service';
 import { LoggerService } from '../../core/services/logger.service';
@@ -16,11 +16,13 @@ import { selectAuthUser } from '../auth/auth.selectors';
 import { RecoverySummaryModalComponent } from '../../shared/components/recovery-summary-modal/recovery-summary-modal.component';
 import { Transaction } from '../../models/transaction.model';
 import * as ClientActions from '../client/client.actions';
-import { filter, take } from 'rxjs/operators';
 import { RecoveryRepositoryExtensions } from '../../core/repositories/recovery.repository.extensions';
 import * as KpiActions from '../kpi/kpi.actions';
 import { selectDistributionRecoveryPagination } from './recovery.selectors';
 import { ClientService } from '../../core/services/client.service';
+import { OnlineListRefreshService } from '../../core/services/online-list-refresh.service';
+import { HybridSyncUiService } from '../../core/services/hybrid-sync-ui.service';
+import { Page } from '../../core/repositories/repository.interface';
 
 @Injectable()
 export class RecoveryEffects {
@@ -32,7 +34,9 @@ export class RecoveryEffects {
     private modalController: ModalController,
     private recoveryRepositoryExtensions: RecoveryRepositoryExtensions,
     private clientService: ClientService,
-    private log: LoggerService
+    private log: LoggerService,
+    private onlineListRefreshService: OnlineListRefreshService,
+    private hybridSyncUiService: HybridSyncUiService
   ) { }
 
   loadAndSelectClient$ = createEffect(() => {
@@ -141,8 +145,12 @@ export class RecoveryEffects {
           `amount=${recovery.amount} creditRef=${distribution.reference} paymentDate=${recovery.paymentDate}`
         );
       }),
-      exhaustMap(({ recovery, distribution, keepReliquat }) =>
-        from(this.recoveryService.createRecovery(recovery, keepReliquat !== undefined ? keepReliquat : true)).pipe(
+      exhaustMap(({ recovery, distribution, keepReliquat, forceOffline }) =>
+        from(this.recoveryService.createRecovery(
+          recovery,
+          keepReliquat !== undefined ? keepReliquat : true,
+          forceOffline
+        )).pipe(
           switchMap((createdRecovery) => {
             void this.log.log(
               `[RecoveryEffects][CREATE_SUCCESS] recoveryId=${createdRecovery.id} amount=${createdRecovery.amount} ` +
@@ -155,8 +163,8 @@ export class RecoveryEffects {
               date: createdRecovery.paymentDate,
               clientId: createdRecovery.clientId,
               referenceId: createdRecovery.distributionId,
-              isLocal: true,
-              isSync: false,
+              isLocal: !createdRecovery.isSync,
+              isSync: createdRecovery.isSync,
             };
 
             const oldPaidAmount = distribution.paidAmount || 0;
@@ -194,13 +202,28 @@ export class RecoveryEffects {
               })
             );
           }),
-          catchError(error => {
+          catchError((error) => {
             if (error instanceof RecoveryCreationInFlightError) {
               void this.log.log(
                 `[RecoveryEffects][ACTION_DROPPED] Duplicate createRecovery blocked while another is in flight. ` +
                 `client=${recovery.clientId} amount=${recovery.amount}`
               );
               return EMPTY;
+            }
+            if (this.hybridSyncUiService.isOnlineWriteBusinessError(error)) {
+              return from(this.hybridSyncUiService.promptOfflineFallback(error.message)).pipe(
+                switchMap((saveOffline) => {
+                  if (saveOffline) {
+                    return of(RecoveryActions.createRecovery({
+                      recovery,
+                      distribution,
+                      keepReliquat,
+                      forceOffline: true
+                    }));
+                  }
+                  return of(RecoveryActions.createRecoveryFailure({ error: error.message }));
+                })
+              );
             }
             void this.log.error('[RecoveryEffects][CREATE_FAILURE]', error);
             return of(RecoveryActions.createRecoveryFailure({ error: error.message }));
@@ -279,12 +302,23 @@ export class RecoveryEffects {
         return from(
           this.recoveryRepositoryExtensions.findViewsByCommercialPaginated(
             action.commercialId,
-            0, // First page
+            0,
             action.pageSize || 20,
             action.filters
           )
         ).pipe(
-          map((page) => RecoveryActions.loadFirstPageRecoveriesSuccess({ page })),
+          concatMap((localPage) => concat(
+            of(RecoveryActions.loadFirstPageRecoveriesSuccess({ page: localPage })),
+            from(this.onlineListRefreshService.refreshRecoveriesPage(
+              action.commercialId,
+              0,
+              action.pageSize || 20,
+              action.filters
+            )).pipe(
+              filter((serverPage): serverPage is Page<any> => !!serverPage),
+              map((serverPage) => RecoveryActions.loadFirstPageRecoveriesSuccess({ page: serverPage }))
+            )
+          )),
           catchError((error) => of(RecoveryActions.loadFirstPageRecoveriesFailure({ error: error.message })))
         );
       })

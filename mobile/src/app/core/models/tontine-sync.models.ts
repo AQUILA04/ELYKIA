@@ -393,6 +393,11 @@ export interface IDataCleaner {
   cleanTontineData(commercialUsername: string): Promise<CleanupResult>;
 
   /**
+   * Compte les enregistrements tontine locaux non synchronisés
+   */
+  countUnsyncedTontineData(commercialUsername: string): Promise<number>;
+
+  /**
    * Nettoie les membres
    * @param sessionId ID de session tontine
    * @param commercialUsername Nom d'utilisateur du commercial

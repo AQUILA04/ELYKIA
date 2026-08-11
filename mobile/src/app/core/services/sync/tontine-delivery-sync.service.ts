@@ -5,7 +5,7 @@ import { TontineDeliveryRepository } from '../../repositories/tontine-delivery.r
 import { TontineDeliveryRepositoryExtensions } from '../../repositories/tontine-delivery.repository.extensions';
 import { AuthService } from '../auth.service';
 import { SyncErrorService } from '../sync-error.service';
-import { TontineDelivery } from '../../../models/tontine.model';
+import { TontineDelivery, TontineDeliveryItem } from '../../../models/tontine.model';
 import { TontineDeliverySyncRequest, TontineDeliverySyncResponse } from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
@@ -81,6 +81,27 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
         return this.syncSingleTontineDelivery(item);
     }
 
+    /**
+     * Crée une livraison tontine sur le serveur sans modifier SQLite (online-first).
+     */
+    async postCreateDelivery(
+        delivery: TontineDelivery,
+        items: TontineDeliveryItem[]
+    ): Promise<TontineDeliverySyncResponse> {
+        const syncRequest = await this.prepareTontineDeliverySyncRequest(delivery, items);
+        const headers = this.getAuthHeaders();
+
+        const response = await firstValueFrom(
+            this.http.post<ApiResponse<TontineDeliverySyncResponse>>(`${this.baseUrl}/api/v1/tontines/deliveries/distribute`, syncRequest, { headers })
+        );
+
+        if (!response?.data) {
+            throw new Error(response?.message || 'Invalid response from server for tontine delivery sync');
+        }
+
+        return response.data;
+    }
+
     protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<TontineDelivery[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
@@ -113,26 +134,17 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
     }
 
     private async syncSingleTontineDelivery(delivery: TontineDelivery): Promise<TontineDeliverySyncResponse> {
-        const syncRequest = await this.prepareTontineDeliverySyncRequest(delivery);
-        const headers = this.getAuthHeaders();
-
-        const response = await firstValueFrom(
-            this.http.post<ApiResponse<TontineDeliverySyncResponse>>(`${this.baseUrl}/api/v1/tontines/deliveries/distribute`, syncRequest, { headers })
-        );
-
-        if (!response?.data) {
-            throw new Error(response?.message || 'Invalid response from server for tontine delivery sync');
-        }
-
-        const syncedDelivery = response.data;
+        const syncedDelivery = await this.postCreateDelivery(delivery, delivery.items || await this.repository.getItems(delivery.id));
         await this.repository.saveIdMapping(delivery.id, syncedDelivery.id.toString(), 'tontine-delivery');
         await this.repository.markAsSynced(delivery.id, syncedDelivery.id.toString());
-
         return syncedDelivery;
     }
 
-    private async prepareTontineDeliverySyncRequest(delivery: TontineDelivery): Promise<TontineDeliverySyncRequest> {
-        const items = await this.repository.getItems(delivery.id);
+    private async prepareTontineDeliverySyncRequest(
+        delivery: TontineDelivery,
+        items?: TontineDeliveryItem[]
+    ): Promise<TontineDeliverySyncRequest> {
+        const deliveryItems = items ?? await this.repository.getItems(delivery.id);
         const serverMemberId = await this.repository.getServerId(delivery.tontineMemberId, 'tontine-member');
 
         if (!serverMemberId) {
@@ -143,7 +155,7 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
             tontineMemberId: Number.parseInt(serverMemberId, 10),
             reference: delivery.reference ?? null,
             requestDate: delivery.requestDate,
-            items: items.map(item => ({
+            items: deliveryItems.map(item => ({
                 articleId: Number.parseInt(item.articleId, 10),
                 quantity: item.quantity,
                 unitPrice: item.unitPrice

@@ -6,6 +6,7 @@ import { OrderRepositoryExtensions } from '../../repositories/order.repository.e
 import { AuthService } from '../auth.service';
 import { SyncErrorService } from '../sync-error.service';
 import { Order } from '../../../models/order.model';
+import { OrderItem } from '../../../models/order-item.model';
 import { OrderSyncRequest, OrderSyncResponse } from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
@@ -81,6 +82,24 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
         return this.syncSingleOrder(item);
     }
 
+    /**
+     * Crée une commande sur le serveur sans modifier SQLite (online-first).
+     */
+    async postCreateOrder(order: Order, items: OrderItem[]): Promise<OrderSyncResponse> {
+        const syncRequest = await this.prepareOrderSyncRequestFromItems(order, items);
+        const headers = this.getAuthHeaders();
+
+        const response = await firstValueFrom(
+            this.http.post<ApiResponse<OrderSyncResponse>>(`${this.baseUrl}/api/v1/orders`, syncRequest, { headers })
+        );
+
+        if (!response?.data) {
+            throw new Error(response?.message || 'Invalid response from server for order sync');
+        }
+
+        return response.data;
+    }
+
     protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<Order[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
@@ -116,6 +135,10 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
 
     private async prepareOrderSyncRequest(order: Order): Promise<OrderSyncRequest> {
         const items = await this.repository.getItemsForOrder(order.id);
+        return this.prepareOrderSyncRequestFromItems(order, items);
+    }
+
+    private async prepareOrderSyncRequestFromItems(order: Order, items: OrderItem[]): Promise<OrderSyncRequest> {
         const clientServerId = await this.repository.getServerId(order.clientId, 'client');
 
         if (!clientServerId) {

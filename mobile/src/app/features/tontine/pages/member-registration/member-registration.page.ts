@@ -8,6 +8,9 @@ import { takeUntil } from 'rxjs/operators';
 
 import { TontineMemberRepository } from 'src/app/core/repositories/tontine-member.repository';
 import { ClientRepository } from 'src/app/core/repositories/client.repository';
+import { TontineWriteService } from 'src/app/core/services/tontine-write.service';
+import { HybridSyncUiService } from 'src/app/core/services/hybrid-sync-ui.service';
+import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-first-write.types';
 import { ClientSelectorModalComponent } from 'src/app/shared/components/client-selector-modal/client-selector-modal.component';
 import { Client } from 'src/app/models/client.model';
 import { TontineMember } from 'src/app/models/tontine.model';
@@ -56,6 +59,8 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
         private route: ActivatedRoute,
         private tontineMemberRepo: TontineMemberRepository,
         private clientRepo: ClientRepository,
+        private tontineWriteService: TontineWriteService,
+        private hybridSyncUiService: HybridSyncUiService,
         private dailyConsentGuard: DailyConsentGuardService,
         private dailyConsentState: DailyConsentStateService
     ) {
@@ -251,41 +256,17 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
             const formValue = this.registrationForm.value;
 
             if (this.isEditMode && this.memberId) {
-                // Update existing member
                 const updatedMember: TontineMember = {
-                    ...await this.tontineMemberRepo.findById(this.memberId) as TontineMember, // Fetch current state to be safe or use what we loaded if we stored it
+                    ...await this.tontineMemberRepo.findById(this.memberId) as TontineMember,
                     frequency: formValue.frequency,
                     amount: formValue.amount,
                     notes: formValue.notes || null,
                     updateScope: this.showUpdateScope ? formValue.updateScope : null,
-                    // IMPORTANT: isSync is handled by repo.updateMember (sets to 0)
-                    // isLocal remains as is (handled by repo not touching it, or we pass it)
-                    // Actually repo.updateMember only updates specific fields and sync status.
-                    // We just need to pass an object with id and the fields to update.
                     id: this.memberId
                 };
 
-                // We construct a partial member object just for the update method to use
-                // The repository updateMember method uses: frequency, amount, notes, id.
-                // So this is sufficient.
-                await this.tontineMemberRepo.updateMember(updatedMember);
-
                 await loading.dismiss();
-
-                // Reload members list to reflect the changes
-                this.store.dispatch(loadTontineMembers({ sessionId: this.sessionId }));
-
-                const alert = await this.alertCtrl.create({
-                    header: 'Succès',
-                    message: 'Le membre a été modifié avec succès.',
-                    buttons: [{
-                        text: 'OK',
-                        handler: () => {
-                            this.navCtrl.back();
-                        }
-                    }]
-                });
-                await alert.present();
+                await this.saveMember((forceOffline) => this.tontineWriteService.updateMember(updatedMember, forceOffline));
                 return;
             }
 
@@ -305,24 +286,8 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
                 operationConsentCode: this.dailyConsentState.getActiveConsentCode() ?? undefined
             };
 
-            await this.tontineMemberRepo.save(newMember);
-
             await loading.dismiss();
-
-            // Reload members list to reflect the new member
-            this.store.dispatch(loadTontineMembers({ sessionId: this.sessionId }));
-
-            const alert = await this.alertCtrl.create({
-                header: 'Succès',
-                message: 'Le membre a été enregistré avec succès.',
-                buttons: [{
-                    text: 'OK',
-                    handler: () => {
-                        this.navCtrl.back();
-                    }
-                }]
-            });
-            await alert.present();
+            await this.saveMember((forceOffline) => this.tontineWriteService.registerMember(newMember, forceOffline));
 
         } catch (error) {
             if (await this.loadingCtrl.getTop()) {
@@ -332,10 +297,44 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
 
             const alert = await this.alertCtrl.create({
                 header: 'Erreur',
-                message: 'Une erreur est survenue lors de l\'enregistrement. Veuillez réessayer.',
+                message: error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'enregistrement. Veuillez réessayer.',
                 buttons: ['OK']
             });
             await alert.present();
+        }
+    }
+
+    private async saveMember(
+        saveFn: (forceOffline?: boolean) => Promise<TontineMember>,
+        forceOffline = false
+    ): Promise<void> {
+        try {
+            await saveFn(forceOffline);
+
+            this.store.dispatch(loadTontineMembers({ sessionId: this.sessionId! }));
+
+            const alert = await this.alertCtrl.create({
+                header: 'Succès',
+                message: this.isEditMode
+                    ? 'Le membre a été modifié avec succès.'
+                    : 'Le membre a été enregistré avec succès.',
+                buttons: [{
+                    text: 'OK',
+                    handler: () => {
+                        this.navCtrl.back();
+                    }
+                }]
+            });
+            await alert.present();
+        } catch (error) {
+            if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS) {
+                const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
+                if (saveOffline) {
+                    await this.saveMember(saveFn, true);
+                    return;
+                }
+            }
+            throw error;
         }
     }
 

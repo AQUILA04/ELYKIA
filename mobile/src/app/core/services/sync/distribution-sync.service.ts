@@ -6,6 +6,7 @@ import { DistributionRepositoryExtensions } from '../../repositories/distributio
 import { AuthService } from '../auth.service';
 import { SyncErrorService } from '../sync-error.service';
 import { Distribution } from '../../../models/distribution.model';
+import { DistributionItem } from '../../../models/distribution-item.model';
 import { DistributionSyncRequest, DistributionSyncResponse } from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
@@ -81,6 +82,24 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
         return this.syncSingleDistribution(item);
     }
 
+    /**
+     * Crée une distribution sur le serveur sans modifier SQLite (online-first).
+     */
+    async postCreateDistribution(distribution: Distribution, items: DistributionItem[]): Promise<DistributionSyncResponse> {
+        const syncRequest = await this.prepareDistributionSyncRequestFromItems(distribution, items);
+        const headers = this.getAuthHeaders();
+
+        const response = await firstValueFrom(
+            this.http.patch<ApiResponse<DistributionSyncResponse>>(`${this.baseUrl}/api/v1/credits/distribute-articles`, syncRequest, { headers })
+        );
+
+        if (!response?.data) {
+            throw new Error(response?.message || 'Invalid response from server for distribution sync');
+        }
+
+        return response.data;
+    }
+
     protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<Distribution[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
@@ -116,6 +135,13 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
 
     private async prepareDistributionSyncRequest(distribution: Distribution): Promise<DistributionSyncRequest> {
         const items = await this.repository.getItemsForDistribution(distribution.id);
+        return this.prepareDistributionSyncRequestFromItems(distribution, items);
+    }
+
+    private async prepareDistributionSyncRequestFromItems(
+        distribution: Distribution,
+        items: DistributionItem[]
+    ): Promise<DistributionSyncRequest> {
         const clientServerId = await this.repository.getServerId(distribution.clientId, 'client');
 
         if (!items || items.length === 0) {

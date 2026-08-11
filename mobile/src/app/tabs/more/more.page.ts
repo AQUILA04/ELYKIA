@@ -32,6 +32,11 @@ import { Capacitor } from '@capacitor/core';
 import { ExportLocationService } from '../../core/services/export-location.service';
 import { AppUpdateService } from '../../core/services/app-update.service';
 import { MobileAppReleaseInfo } from 'src/app/models/mobile-app-release.model';
+import {
+  AutoSyncIntervalMinutes,
+  HybridSyncPreferenceService
+} from '../../core/services/hybrid-sync-preference.service';
+import { AutoSyncSchedulerService } from '../../core/services/auto-sync-scheduler.service';
 
 @Component({
   selector: 'app-more',
@@ -45,6 +50,8 @@ export class MorePage implements OnInit, OnDestroy {
 
   user$: Observable<Commercial | null>;
   autoSync = false;
+  autoSyncIntervalMinutes: AutoSyncIntervalMinutes = 120;
+  autoSyncIntervalLabel = 'Toutes les 2 heures';
   autoLock = false;
   autoLockDuration = 2;
   enableProfilePhotoSync = false;
@@ -83,7 +90,9 @@ export class MorePage implements OnInit, OnDestroy {
     private readonly dailyConsentHistoryRepository: DailyConsentHistoryRepository,
     private readonly syncConsentHistoryRepository: SyncConsentHistoryRepository,
     private readonly exportLocationService: ExportLocationService,
-    private readonly appUpdateService: AppUpdateService
+    private readonly appUpdateService: AppUpdateService,
+    private readonly hybridSyncPreferenceService: HybridSyncPreferenceService,
+    private readonly autoSyncSchedulerService: AutoSyncSchedulerService
   ) {
     this.user$ = this.store.select(selectAuthUser).pipe(
       switchMap(user => this.store.select(selectCommercialByUsername(user?.username || '')))
@@ -95,7 +104,9 @@ export class MorePage implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    this.autoSync = await this.storage.get('autoSync') || false;
+    this.autoSync = await this.hybridSyncPreferenceService.getAutoSyncEnabled();
+    this.autoSyncIntervalMinutes = await this.hybridSyncPreferenceService.getAutoSyncIntervalMinutes();
+    this.updateAutoSyncIntervalLabel();
     this.autoLock = await this.storage.get('autoLock') || true;
     this.autoLockDuration = await this.storage.get('autoLockDuration') || 2;
 
@@ -172,7 +183,19 @@ export class MorePage implements OnInit, OnDestroy {
   }
 
   onSyncToggleChange() {
-    this.storage.set('autoSync', this.autoSync);
+    void this.hybridSyncPreferenceService.setAutoSyncEnabled(this.autoSync);
+    void this.autoSyncSchedulerService.refreshScheduler();
+  }
+
+  async onAutoSyncIntervalChange() {
+    await this.hybridSyncPreferenceService.setAutoSyncIntervalMinutes(this.autoSyncIntervalMinutes);
+    this.updateAutoSyncIntervalLabel();
+    await this.autoSyncSchedulerService.refreshScheduler();
+    this.cdr.markForCheck();
+  }
+
+  private updateAutoSyncIntervalLabel(): void {
+    this.autoSyncIntervalLabel = this.hybridSyncPreferenceService.getAutoSyncIntervalLabel(this.autoSyncIntervalMinutes);
   }
 
   onAutoLockToggleChange() {

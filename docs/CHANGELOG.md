@@ -9,6 +9,11 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-08-11
+
+### Added
+- **Spec —** Chef de Recouvrement mobile : écrans premium (navy `#003366`) + contrats API + hybrid-first — `.kiro/specs/recovery-manager-mobile/screens-and-api.md`.
+
 ## Docs & Infra — 2026-08-10
 
 ### Added
@@ -364,6 +369,52 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Annulation de recouvrement : affichage du `message` backend (`error.error.message`) au lieu du message générique HttpClient.
+
+## Mobile — [2.13.2] — 2026-08-11
+
+### Changed
+- Init tontine safe : pas de `forceCleanup` s'il existe des données locales non syncées ; offline → session locale uniquement
+- Validation d'intégrité : compte uniquement `isSync=1` ; skip en mode sync incrémentale
+
+### Fixed
+- Init tontine : plus d'échec de validation dû aux collectes/membres/livraisons locaux en file d'attente
+
+## Mobile — [2.13.1] — 2026-08-11
+
+### Added
+- Listes tontine SWR : membres, collectes, livraisons et stocks (local immédiat puis refresh API paginé)
+
+### Changed
+- `tontine.effects` : première page remplacée après refresh serveur ; pages suivantes upsert SQLite sans double append NgRx
+
+## Mobile — [2.13.0] — 2026-08-11
+
+### Added
+- Tontine online-first : `TontineWriteService` + `postCreate*` sur membres, collectes et livraisons
+- Écritures tontine hybrides avec repli offline (dialogue « Corriger » / « Enregistrer hors ligne »)
+
+### Changed
+- Inscription membre, enregistrement collecte et création livraison : API-first si backend joignable, sinon file locale `isSync=false`
+
+## Mobile — [2.12.1] — 2026-08-11
+
+### Added
+- Listes localités SWR : cache local puis rafraîchissement paginé serveur (`GET /api/v1/localities`)
+- Tests unitaires : `AutoSyncSchedulerService`, `OnlineListRefreshService`
+
+### Changed
+- Distribution et commande : dialogue « Corriger » / « Enregistrer hors ligne » en erreur métier online (aligné client/encaissement)
+
+## Mobile — [2.12.0] — 2026-08-11
+
+### Added
+- Architecture sync hybride online-preferring : écritures API-first (client, encaissement+reliquat, distribution, commande) avec repli offline
+- `ConnectivityService` (cache ping 120s), `OnlineFirstWriteCoordinator`, sync auto foreground (`AutoSyncSchedulerService`)
+- Listes SWR : affichage local immédiat puis rafraîchissement serveur (clients, encaissements, crédits)
+- Paramètres : toggle sync auto branché + fréquence configurable (30 min à 4 h)
+
+### Changed
+- En erreur métier online : dialogue « Corriger » / « Enregistrer hors ligne » (client et encaissement)
 
 ## Mobile — [2.11.2] — 2026-08-02
 

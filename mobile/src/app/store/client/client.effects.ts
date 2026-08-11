@@ -1,13 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { of, from } from 'rxjs';
-import { map, catchError, switchMap, withLatestFrom, take } from 'rxjs/operators';
+import { concat, from, of } from 'rxjs';
+import { map, catchError, switchMap, withLatestFrom, take, concatMap, filter } from 'rxjs/operators';
 import * as ClientActions from './client.actions';
 import { ClientService } from '../../core/services/client.service';
 import { Store } from '@ngrx/store';
 import { selectAuthUser } from '../auth/auth.selectors';
 import { Client } from '../../models/client.model';
 import * as AccountActions from '../account/account.actions';
+import { OnlineListRefreshService } from '../../core/services/online-list-refresh.service';
+import { HybridSyncUiService } from '../../core/services/hybrid-sync-ui.service';
+import { Page } from '../../core/repositories/repository.interface';
 
 // Import the selectors properly
 import { selectClientById } from './client.selectors';
@@ -17,26 +20,50 @@ export class ClientEffects {
   constructor(
     private actions$: Actions,
     private clientService: ClientService,
-    private store: Store
+    private store: Store,
+    private onlineListRefreshService: OnlineListRefreshService,
+    private hybridSyncUiService: HybridSyncUiService
   ) { }
 
 
   addClient$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ClientActions.addClient),
-      switchMap(action =>
-        from(this.clientService.createClientLocally(action.client, action.commercialUsername)).pipe(
+      concatMap((action) =>
+        from(this.clientService.createClientLocally(action.client, action.commercialUsername, action.forceOffline)).pipe(
           switchMap(({ client, account }) => [
             ClientActions.addClientSuccess({ client }),
             AccountActions.addAccountSuccess({ account }),
-            // Instead of reloading everything, we just rely on the success action to update the store
-            // ClientActions.loadClientViewsUpdate()
           ]),
-          catchError(error => of(ClientActions.addClientFailure({ error })))
+          catchError((error) =>
+            from(this.handleCreateWriteError(error, () =>
+              ClientActions.addClient({
+                client: action.client,
+                commercialUsername: action.commercialUsername,
+                forceOffline: true
+              })
+            ))
+          )
         )
       )
     )
   );
+
+  private async handleCreateWriteError(
+    error: unknown,
+    retryOfflineAction: () => ReturnType<typeof ClientActions.addClient>
+  ) {
+    if (this.hybridSyncUiService.isOnlineWriteBusinessError(error)) {
+      const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(
+        this.hybridSyncUiService.isOnlineWriteBusinessError(error) ? error.message : 'Erreur serveur'
+      );
+      if (saveOffline) {
+        return retryOfflineAction();
+      }
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    return ClientActions.addClientFailure({ error: message });
+  }
 
   updateClientCreditStatus$ = createEffect(() =>
     this.actions$.pipe(
@@ -189,15 +216,28 @@ export class ClientEffects {
           }));
         }
 
+        const pageSize = action.pageSize || 20;
+
         return from(
           this.clientService.getClientsPaginated(
             action.commercialUsername,
-            0, // First page
-            action.pageSize || 20,
+            0,
+            pageSize,
             action.filters
           )
         ).pipe(
-          map((page) => ClientActions.loadFirstPageClientsSuccess({ page })),
+          concatMap((localPage) => concat(
+            of(ClientActions.loadFirstPageClientsSuccess({ page: localPage })),
+            from(this.onlineListRefreshService.refreshClientsPage(
+              action.commercialUsername,
+              0,
+              pageSize,
+              action.filters
+            )).pipe(
+              filter((serverPage): serverPage is Page<any> => !!serverPage),
+              map((serverPage) => ClientActions.loadFirstPageClientsSuccess({ page: serverPage }))
+            )
+          )),
           catchError((error) => of(ClientActions.loadFirstPageClientsFailure({ error: error.message })))
         );
       })
@@ -230,7 +270,18 @@ export class ClientEffects {
             action.filters
           )
         ).pipe(
-          map((page) => ClientActions.loadNextPageClientsSuccess({ page })),
+          concatMap((localPage) => concat(
+            of(ClientActions.loadNextPageClientsSuccess({ page: localPage })),
+            from(this.onlineListRefreshService.refreshClientsPage(
+              action.commercialUsername,
+              nextPage,
+              pagination.pageSize,
+              action.filters
+            )).pipe(
+              filter((serverPage): serverPage is Page<any> => !!serverPage),
+              map((serverPage) => ClientActions.loadNextPageClientsSuccess({ page: serverPage }))
+            )
+          )),
           catchError((error) => of(ClientActions.loadNextPageClientsFailure({ error: error.message })))
         );
       })

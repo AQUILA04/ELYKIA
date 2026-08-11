@@ -178,35 +178,58 @@ export class SyncOrchestratorService implements ISyncOrchestrator {
   }
 
   /**
-   * Effectue le nettoyage des données
+   * Effectue le nettoyage des données.
+   * Skip automatique si des données tontine locales non syncées existent (préservation).
    */
   private performCleanup(options: SyncOptions, result: SyncResult): Observable<void> {
-    if (!options.forceCleanup) {
-      this.log.log('SyncOrchestrator: Skipping cleanup (forceCleanup=false)');
-      return of(undefined);
-    }
+    return from(this.resolveCleanupDecision(options)).pipe(
+      switchMap((shouldCleanup) => {
+        if (!shouldCleanup) {
+          return of(undefined);
+        }
 
-    this.log.log('SyncOrchestrator: Starting data cleanup');
-    this.updateProgress('Nettoyage des données', 1, 5);
+        this.log.log('SyncOrchestrator: Starting data cleanup');
+        this.updateProgress('Nettoyage des données', 1, 5);
 
-    return from(this.dataCleaner.cleanTontineData(options.commercialUsername)).pipe(
-      tap(cleanupResult => {
-        this.log.log(
-          `SyncOrchestrator: Cleanup completed - ${cleanupResult.membersDeleted} members, ` +
-          `${cleanupResult.collectionsDeleted} collections, ${cleanupResult.stocksDeleted} stocks deleted`
+        return from(this.dataCleaner.cleanTontineData(options.commercialUsername)).pipe(
+          tap(cleanupResult => {
+            this.log.log(
+              `SyncOrchestrator: Cleanup completed - ${cleanupResult.membersDeleted} members, ` +
+              `${cleanupResult.collectionsDeleted} collections, ${cleanupResult.stocksDeleted} stocks deleted`
+            );
+          }),
+          map(() => undefined),
+          catchError(error => {
+            const syncError = this.createSyncError(
+              SyncErrorType.DATABASE,
+              `Erreur lors du nettoyage des données: ${error.message}`,
+              this.createErrorContext('', options.commercialUsername, 'cleanup')
+            );
+            result.errors.push(syncError);
+            return throwError(() => syncError);
+          })
         );
-      }),
-      map(() => undefined),
-      catchError(error => {
-        const syncError = this.createSyncError(
-          SyncErrorType.DATABASE,
-          `Erreur lors du nettoyage des données: ${error.message}`,
-          this.createErrorContext('', options.commercialUsername, 'cleanup')
-        );
-        result.errors.push(syncError);
-        return throwError(() => syncError);
       })
     );
+  }
+
+  private async resolveCleanupDecision(options: SyncOptions): Promise<boolean> {
+    if (!options.forceCleanup) {
+      this.log.log('SyncOrchestrator: Skipping cleanup (forceCleanup=false)');
+      return false;
+    }
+
+    const unsyncedCount = await this.dataCleaner.countUnsyncedTontineData(options.commercialUsername);
+    if (unsyncedCount > 0) {
+      // Mode incrémental : pas de cleanup, pas de validation stricte ensuite
+      options.forceCleanup = false;
+      this.log.log(
+        `SyncOrchestrator: Skipping cleanup — ${unsyncedCount} unsynced tontine record(s) preserved (incremental init)`
+      );
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -273,6 +296,9 @@ export class SyncOrchestratorService implements ISyncOrchestrator {
   /**
    * Effectue la validation d'intégrité des données synchronisées
    * Exigence 1.3: Vérifier que le nombre de données sauvegardées correspond au nombre total attendu
+   *
+   * En mode incrémental (forceCleanup=false), la validation stricte est ignorée :
+   * des enregistrements locaux non syncés ou des syncés obsolètes peuvent rester.
    */
   private performIntegrityValidation(
     options: SyncOptions,
@@ -280,6 +306,11 @@ export class SyncOrchestratorService implements ISyncOrchestrator {
   ): Observable<void> {
     this.log.log('SyncOrchestrator: Starting integrity validation');
     this.updateProgress('Validation d\'intégrité', 5, 5);
+
+    if (!options.forceCleanup) {
+      this.log.log('SyncOrchestrator: Skipping strict integrity validation (incremental sync)');
+      return of(undefined);
+    }
 
     return from(this.getActualDataCounts(options.commercialUsername)).pipe(
       map(actualData => {
@@ -321,20 +352,20 @@ export class SyncOrchestratorService implements ISyncOrchestrator {
       throw new Error('Aucune session tontine trouvée pour la validation');
     }
 
-    // Compter les membres
+    // Compter uniquement les membres syncés (ne pas faire échouer la validation
+    // à cause de membres locaux isSync=0 encore en file d'attente)
     const membersQuery = `
       SELECT COUNT(*) as count 
       FROM tontine_members 
-      WHERE tontineSessionId = ? AND commercialUsername = ?
+      WHERE tontineSessionId = ? AND commercialUsername = ? AND isSync = 1
     `;
     const membersResult = await this.dbService.query(membersQuery, [sessionId, commercialUsername]);
     const memberCount = membersResult?.values?.[0]?.count || 0;
 
-    // Compter les collections
     const collectionsQuery = `
       SELECT COUNT(*) as count 
       FROM tontine_collections 
-      WHERE commercialUsername = ?
+      WHERE commercialUsername = ? AND isSync = 1
     `;
     const collectionsResult = await this.dbService.query(collectionsQuery, [commercialUsername]);
     const collectionCount = collectionsResult?.values?.[0]?.count || 0;

@@ -35,9 +35,9 @@
           <ion-icon name="sync-circle-outline" slot="start"></ion-icon>
           <ion-label>
             <h3>Synchronisation automatique</h3>
-            <p>Synchroniser les données automatiquement</p>
+            <p>Synchroniser les données automatiquement (app ouverte)</p>
           </ion-label>
-          <ion-toggle slot="end"></ion-toggle>
+          <ion-toggle slot="end" [(ngModel)]="autoSync" (ionChange)="onSyncToggleChange()"></ion-toggle>
         </ion-item>
         <ion-item>
           <ion-icon name="person-circle-outline" slot="start"></ion-icon>
@@ -57,13 +57,18 @@
           <ion-toggle slot="end" [(ngModel)]="enableCardPhotoSync"
             (ionChange)="onCardPhotoSyncToggleChange()"></ion-toggle>
         </ion-item>
-        <ion-item button>
+        <ion-item>
           <ion-icon name="time-outline" slot="start"></ion-icon>
           <ion-label>
             <h3>Fréquence de synchronisation</h3>
-            <p>Toutes les 2 heures</p>
+            <p>{{ autoSyncIntervalLabel }}</p>
           </ion-label>
-          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+          <ion-select [(ngModel)]="autoSyncIntervalMinutes" (ionChange)="onAutoSyncIntervalChange()" slot="end">
+            <ion-select-option [value]="30">30 minutes</ion-select-option>
+            <ion-select-option [value]="60">1 heure</ion-select-option>
+            <ion-select-option [value]="120">2 heures</ion-select-option>
+            <ion-select-option [value]="240">4 heures</ion-select-option>
+          </ion-select>
         </ion-item>
         <ion-item>
           <ion-icon name="calendar-outline" slot="start"></ion-icon>

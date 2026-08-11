@@ -175,6 +175,24 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
         }
     }
 
+    /**
+     * Crée un client sur le serveur sans modifier la base locale (online-first).
+     */
+    async postCreateClient(client: Client): Promise<ClientSyncResponse> {
+        const syncRequest = await this.prepareClientSyncRequest(client);
+        const headers = this.getAuthHeaders();
+
+        const response = await firstValueFrom(
+            this.http.post<ApiResponse<ClientSyncResponse>>(`${this.baseUrl}/api/v1/clients`, syncRequest, { headers })
+        );
+
+        if (!response?.data) {
+            throw new Error(response?.message || 'Invalid response from server');
+        }
+
+        return response.data;
+    }
+
     private async syncSingleClient(client: Client): Promise<ClientSyncResponse> {
         const syncRequest = await this.prepareClientSyncRequest(client);
         const headers = this.getAuthHeaders();

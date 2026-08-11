@@ -20,12 +20,15 @@ import { OrderView } from '../../models/order-view.model';
 import { DailyConsentGuardService } from '../../features/daily-consent/daily-consent-guard.service';
 import { DailyConsentStateService } from '../daily-consent/daily-consent-state.service';
 import { AmountConfirmationService } from '../../features/amount-confirmation/amount-confirmation.service';
+import { OrderSyncService } from './sync/order-sync.service';
+import { OnlineFirstWriteCoordinator } from './online-first-write.coordinator';
 
 interface CreateOrderData {
   clientId: string;
   articles: Array<{ articleId: string; quantity: number }>;
   totalAmount: number;
   client?: any;
+  forceOffline?: boolean;
 }
 
 @Injectable({
@@ -44,7 +47,9 @@ export class OrderService {
     private articleRepository: ArticleRepository,
     private dailyConsentGuard: DailyConsentGuardService,
     private dailyConsentState: DailyConsentStateService,
-    private amountConfirmation: AmountConfirmationService
+    private amountConfirmation: AmountConfirmationService,
+    private orderSyncService: OrderSyncService,
+    private onlineFirstWriteCoordinator: OnlineFirstWriteCoordinator
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -198,28 +203,57 @@ export class OrderService {
     order.confirmedAmount = confirmedAmount;
     order.operationConsentCode = this.dailyConsentState.getActiveConsentCode() ?? undefined;
 
-    // Save order and items in a single transaction using Repository
-    await this.orderRepository.saveAll([order]);
-
-    // Create transaction for history (optional for orders)
-    // We still use dbService for transactions as there is no TransactionRepository yet?
-    // Or we should create one. For now, keep dbService usage for this specific part or create repository.
-    // Assuming TransactionRepository exists or we use dbService.
-    await this.dbService.addTransaction({
-      id: `trans-${order.id}`,
-      clientId: order.clientId,
-      referenceId: order.reference,
-      type: 'ORDER',
-      amount: order.totalAmount,
-      details: `Commande de ${orderData.articles.length} article(s) pour ${orderData.client?.fullName || 'client inconnu'}`,
-      date: order.createdAt,
-      isSync: false,
-      isLocal: true
+    const { forceOffline } = orderData;
+    const writeResult = await this.onlineFirstWriteCoordinator.executeWrite({
+      entityLabel: 'order',
+      forceOffline,
+      saveOffline: () => this.persistOrder(order, orderItems, orderData, false),
+      saveOnline: () => this.persistOrder(order, orderItems, orderData, true)
     });
 
-    // NOTE: Pas de mise à jour du stock pour les commandes
+    return writeResult.data;
+  }
 
-    return order;
+  private async persistOrder(
+    order: Order,
+    orderItems: OrderItem[],
+    orderData: CreateOrderData,
+    online: boolean
+  ): Promise<Order> {
+    let persistedOrder: Order = { ...order, items: orderItems };
+
+    if (online) {
+      const response = await this.orderSyncService.postCreateOrder(persistedOrder, orderItems);
+      const serverId = response.id.toString();
+      persistedOrder = {
+        ...persistedOrder,
+        id: serverId,
+        isLocal: false,
+        isSync: true,
+        syncDate: new Date().toISOString(),
+        items: orderItems.map((item) => ({
+          ...item,
+          orderId: serverId,
+          id: `o-item-${serverId}-${item.articleId}`
+        }))
+      };
+    }
+
+    await this.orderRepository.saveAll([persistedOrder]);
+
+    await this.dbService.addTransaction({
+      id: `trans-${persistedOrder.id}`,
+      clientId: persistedOrder.clientId,
+      referenceId: persistedOrder.reference,
+      type: 'ORDER',
+      amount: persistedOrder.totalAmount,
+      details: `Commande de ${orderData.articles.length} article(s) pour ${orderData.client?.fullName || 'client inconnu'}`,
+      date: persistedOrder.createdAt,
+      isSync: online,
+      isLocal: !online
+    });
+
+    return persistedOrder;
   }
 
   // Update order locally

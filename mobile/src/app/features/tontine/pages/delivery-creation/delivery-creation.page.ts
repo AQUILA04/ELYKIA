@@ -10,6 +10,9 @@ import { TontineCollectionRepository } from 'src/app/core/repositories/tontine-c
 import { ClientRepository } from 'src/app/core/repositories/client.repository';
 import { TontineStockRepository } from 'src/app/core/repositories/tontine-stock.repository';
 import { TontineDeliveryRepository } from 'src/app/core/repositories/tontine-delivery.repository';
+import { TontineWriteService } from 'src/app/core/services/tontine-write.service';
+import { HybridSyncUiService } from 'src/app/core/services/hybrid-sync-ui.service';
+import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-first-write.types';
 import { DatabaseService } from 'src/app/core/services/database.service';
 import { TontineCalculationService } from 'src/app/core/services/tontine-calculation.service';
 
@@ -90,6 +93,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         private clientRepo: ClientRepository,
         private stockRepo: TontineStockRepository,
         private deliveryRepo: TontineDeliveryRepository,
+        private tontineWriteService: TontineWriteService,
+        private hybridSyncUiService: HybridSyncUiService,
         private dbService: DatabaseService,
         private tontineCalculationService: TontineCalculationService,
         private dailyConsentGuard: DailyConsentGuardService,
@@ -346,14 +351,12 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         await alert.present();
     }
 
-    async processDelivery() {
+    async processDelivery(forceOffline = false) {
         const loading = await this.loadingCtrl.create({ message: 'Enregistrement...' });
 
         try {
             const deliveryId = this.generateUuid();
             const items: TontineDeliveryItem[] = [];
-
-            // Prepare items and collect stock IDs for update
             const stockUpdates: Array<{ stockId: string, quantity: number }> = [];
 
             this.cart.forEach((qty, stockId) => {
@@ -373,7 +376,6 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             });
 
             await this.dailyConsentGuard.requireDailyConsent();
-
             await loading.present();
 
             const delivery: TontineDelivery = {
@@ -391,29 +393,21 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 operationConsentCode: this.dailyConsentState.getActiveConsentCode() ?? undefined
             };
 
-            // Save delivery
-            await this.deliveryRepo.save(delivery);
-
-            // Update tontine stocks
-            for (const update of stockUpdates) {
-                await this.stockRepo.updateQuantities(update.stockId, update.quantity);
-            }
-
-            // Update member status to DELIVERED
-            if (this.vm.member) {
-                this.vm.member.deliveryStatus = 'DELIVERED';
-                await this.memberRepo.save(this.vm.member);
-            }
+            const savedDelivery = await this.tontineWriteService.createDelivery({
+                delivery,
+                items,
+                stockUpdates,
+                member: this.vm.member!
+            }, forceOffline);
 
             await loading.dismiss();
 
-            // Prepare receipt data
             const receiptData: PrintableTontineDelivery = {
                 delivery: {
-                    id: delivery.id,
-                    requestDate: delivery.requestDate,
-                    deliveryDate: delivery.deliveryDate,
-                    totalAmount: delivery.totalAmount
+                    id: savedDelivery.id,
+                    requestDate: savedDelivery.requestDate,
+                    deliveryDate: savedDelivery.deliveryDate,
+                    totalAmount: savedDelivery.totalAmount
                 },
                 items: items.map(item => {
                     const details = this.cartDetails.get(item.articleId);
@@ -434,11 +428,10 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 commercial: {
                     name: this.commercialUsername || 'Commercial'
                 },
-                totalBudget: this.vm.availableBudget, // Use available budget for receipt
+                totalBudget: this.vm.availableBudget,
                 remainingBudget: this.vm.remainingBudget
             };
 
-            // Open receipt modal
             const modal = await this.modalCtrl.create({
                 component: TontineDeliveryReceiptModalComponent,
                 componentProps: {
@@ -447,11 +440,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             });
 
             await modal.present();
-
-            // Wait for modal to be dismissed, then navigate to dashboard
             await modal.onDidDismiss();
-            // Naviguer vers le dashboard général puis automatiquement vers le dashboard tontine
-            // pour éviter qu'un goBack retourne sur cette page
             this.navigateToTontineDashboard();
 
         } catch (error) {
@@ -459,7 +448,16 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             if (await this.loadingCtrl.getTop()) {
                 await loading.dismiss();
             }
-            this.showError('Erreur lors de l\'enregistrement');
+
+            if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS && !forceOffline) {
+                const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
+                if (saveOffline) {
+                    await this.processDelivery(true);
+                    return;
+                }
+            }
+
+            this.showError(error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement');
         }
     }
 

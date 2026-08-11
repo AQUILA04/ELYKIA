@@ -101,7 +101,10 @@ describe('SyncOrchestratorService', () => {
   };
 
   beforeEach(() => {
-    const dataCleanerSpyObj = jasmine.createSpyObj('DataCleanerService', ['cleanTontineData']);
+    const dataCleanerSpyObj = jasmine.createSpyObj('DataCleanerService', [
+      'cleanTontineData',
+      'countUnsyncedTontineData'
+    ]);
     const syncManagerSpyObj = jasmine.createSpyObj('SequentialSyncManager', [
       'syncMembers',
       'syncCollections',
@@ -158,6 +161,7 @@ describe('SyncOrchestratorService', () => {
       // Setup default successful mocks
       rollbackManagerSpy.createRestorePoint.and.returnValue(Promise.resolve(mockRestorePoint));
       dataCleanerSpy.cleanTontineData.and.returnValue(Promise.resolve(mockCleanupResult));
+      dataCleanerSpy.countUnsyncedTontineData.and.returnValue(Promise.resolve(0));
       dbServiceSpy.getTontineSession.and.returnValue(Promise.resolve({ id: 'session-123' }));
       syncManagerSpy.syncMembers.and.returnValue(of(mockMembersSyncResult));
       syncManagerSpy.syncCollections.and.returnValue(of(mockCollectionsSyncResult));
@@ -222,6 +226,22 @@ describe('SyncOrchestratorService', () => {
       service.startSync(optionsNoCleanup).subscribe({
         next: () => {
           expect(dataCleanerSpy.cleanTontineData).not.toHaveBeenCalled();
+          done();
+        },
+        error: (error) => {
+          fail(`Should not have errored: ${error.message}`);
+          done();
+        }
+      });
+    });
+
+    it('should skip cleanup when unsynced tontine data exists', (done) => {
+      dataCleanerSpy.countUnsyncedTontineData.and.returnValue(Promise.resolve(3));
+
+      service.startSync(mockOptions).subscribe({
+        next: () => {
+          expect(dataCleanerSpy.cleanTontineData).not.toHaveBeenCalled();
+          expect(integrityValidatorSpy.validateSyncResult).not.toHaveBeenCalled();
           done();
         },
         error: (error) => {
@@ -433,6 +453,7 @@ describe('SyncOrchestratorService', () => {
     beforeEach(() => {
       rollbackManagerSpy.createRestorePoint.and.returnValue(Promise.resolve(mockRestorePoint));
       dataCleanerSpy.cleanTontineData.and.returnValue(Promise.resolve(mockCleanupResult));
+      dataCleanerSpy.countUnsyncedTontineData.and.returnValue(Promise.resolve(0));
       dbServiceSpy.getTontineSession.and.returnValue(Promise.resolve({ id: 'session-123' }));
       
       // Make sync operations take time

@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
-import { concatMap, from, mergeMap, of } from 'rxjs';
+import { concatMap, concat, from, mergeMap, of } from 'rxjs';
 import { map, catchError, switchMap, tap, withLatestFrom, filter, take } from 'rxjs/operators';
+import { HybridSyncUiService } from '../../core/services/hybrid-sync-ui.service';
 import { ToastController } from '@ionic/angular';
 
 import { DistributionService } from '../../core/services/distribution.service';
@@ -19,6 +20,8 @@ import * as CommercialStockActions from '../commercial-stock/commercial-stock.ac
 import { selectDistributionState } from './distribution.selectors';
 import { DistributionRepositoryExtensions } from '../../core/repositories/distribution.repository.extensions';
 import * as KpiActions from '../kpi/kpi.actions';
+import { OnlineListRefreshService } from '../../core/services/online-list-refresh.service';
+import { Page } from '../../core/repositories/repository.interface';
 
 @Injectable()
 export class DistributionEffects {
@@ -29,7 +32,9 @@ export class DistributionEffects {
     private printingService: PrintingService,
     private toastController: ToastController,
     private store: Store,
-    private distributionRepositoryExtensions: DistributionRepositoryExtensions
+    private distributionRepositoryExtensions: DistributionRepositoryExtensions,
+    private onlineListRefreshService: OnlineListRefreshService,
+    private hybridSyncUiService: HybridSyncUiService
   ) { }
 
   // Load Distributions Effect - from local database only
@@ -74,14 +79,23 @@ export class DistributionEffects {
   loadFirstPageDistributions$ = createEffect(() =>
     this.actions$.pipe(
       ofType(DistributionActions.loadFirstPageDistributions),
-      // Use DEFAULT_PAGE_SIZE = 20 from config, hardcoded for now or use constant
       switchMap(({ commercialUsername, filters }) =>
-        this.distributionService.getDistributionsPaginated(0, 20, filters).pipe( // Page 0, Size 20
-          map(page => DistributionActions.loadFirstPageDistributionsSuccess({
-            distributions: page.content,
-            totalElements: page.totalElements,
-            totalPages: page.totalPages
-          })),
+        this.distributionService.getDistributionsPaginated(0, 20, filters).pipe(
+          concatMap((localPage) => concat(
+            of(DistributionActions.loadFirstPageDistributionsSuccess({
+              distributions: localPage.content,
+              totalElements: localPage.totalElements,
+              totalPages: localPage.totalPages
+            })),
+            from(this.onlineListRefreshService.refreshDistributionsPage(commercialUsername, 0, 20, filters)).pipe(
+              filter((serverPage): serverPage is Page<any> => !!serverPage),
+              map((serverPage) => DistributionActions.loadFirstPageDistributionsSuccess({
+                distributions: serverPage.content,
+                totalElements: serverPage.totalElements,
+                totalPages: serverPage.totalPages
+              }))
+            )
+          )),
           catchError(error => of(DistributionActions.loadFirstPageDistributionsFailure({ error: error.message })))
         )
       )
@@ -154,23 +168,41 @@ export class DistributionEffects {
     )
   );
 
-  // Create Distribution Effect - save to local database only
+  // Create Distribution Effect — online-first with offline fallback UX
   createDistribution$ = createEffect(() =>
     this.actions$.pipe(
       ofType(DistributionActions.createDistribution),
-      switchMap(({ distributionData }) =>
+      concatMap(({ distributionData }) =>
         this.distributionService.createDistribution(distributionData).pipe(
           map(distribution => DistributionActions.createDistributionSuccess({ distribution })),
-          catchError(error => {
-            console.error('Create distribution failed:', error);
-            return of(DistributionActions.createDistributionFailure({
-              error: error.message || 'Erreur lors de la création de la distribution'
-            }));
-          })
+          catchError((error) =>
+            from(this.handleCreateWriteError(error, () =>
+              DistributionActions.createDistribution({
+                distributionData: { ...distributionData, forceOffline: true }
+              })
+            ))
+          )
         )
       )
     )
   );
+
+  private async handleCreateWriteError(
+    error: unknown,
+    retryOfflineAction: () => ReturnType<typeof DistributionActions.createDistribution>
+  ) {
+    if (this.hybridSyncUiService.isOnlineWriteBusinessError(error)) {
+      const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
+      if (saveOffline) {
+        return retryOfflineAction();
+      }
+    }
+    console.error('Create distribution failed:', error);
+    const message = error instanceof Error ? error.message : String(error);
+    return DistributionActions.createDistributionFailure({
+      error: message || 'Erreur lors de la création de la distribution'
+    });
+  }
 
   // Print Receipt Effect
   printReceipt$ = createEffect(() =>

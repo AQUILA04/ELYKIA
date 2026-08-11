@@ -107,6 +107,17 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
         }
     }
 
+    /**
+     * Envoie un encaissement au serveur sans mettre à jour SQLite (online-first).
+     */
+    async postCreateRecovery(recovery: Recovery): Promise<void> {
+        if (recovery.isDefaultStake) {
+            await this.postDefaultDailyStakes([recovery]);
+        } else {
+            await this.postSpecialDailyStakes([recovery]);
+        }
+    }
+
     protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<Recovery[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
@@ -318,6 +329,105 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                 await this.syncErrorService.logSyncError('recovery', recovery.id, 'CREATE', error, syncRequest, `Recovery ${recovery.id}`, recovery);
             }
             throw error;
+        }
+    }
+
+    private async postDefaultDailyStakes(recoveries: Recovery[]): Promise<void> {
+        const stakeUnits = [];
+        const currentUser = this.authService.currentUser;
+
+        for (const recovery of recoveries) {
+            const distributionServerId = await this.repository.getServerId(recovery.distributionId, 'distribution');
+            if (distributionServerId) {
+                stakeUnits.push({
+                    creditId: Number.parseInt(distributionServerId, 10),
+                    recoveryId: recovery.id,
+                    reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
+                    reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
+                    operationConsentCode: recovery.operationConsentCode ?? null,
+                    confirmedAmount: recovery.confirmedAmount ?? null
+                });
+            }
+        }
+
+        if (stakeUnits.length === 0) {
+            throw new Error('Impossible de synchroniser l\'encaissement : crédit parent introuvable sur le serveur.');
+        }
+
+        const syncRequest: DefaultDailyStakeRequest = {
+            collector: currentUser?.username || '',
+            syncConsentCode: this.syncConsentCode ?? null,
+            stakeUnits
+        };
+
+        const headers = this.getAuthHeaders();
+        const response = await firstValueFrom(
+            this.http.post<ApiResponse<DefaultDailyStakeResponse>>(`${this.baseUrl}/api/v1/credits/default-daily-stake`, syncRequest, { headers })
+        );
+
+        this.assertRecoveryPushSuccess(recoveries, response?.data?.successRecoveryIds, response?.data?.failedRecoveries);
+    }
+
+    private async postSpecialDailyStakes(recoveries: Recovery[]): Promise<void> {
+        const stakeUnits = [];
+        const currentUser = this.authService.currentUser;
+
+        for (const recovery of recoveries) {
+            if (recovery.clientId && recovery.distributionId) {
+                const clientServerId = await this.repository.getServerId(recovery.clientId, 'client');
+                const distributionServerId = await this.repository.getServerId(recovery.distributionId, 'distribution');
+
+                if (clientServerId && distributionServerId) {
+                    const parsedCreditId = Number.parseInt(distributionServerId, 10);
+                    const parsedClientId = Number.parseInt(clientServerId, 10);
+
+                    if (!Number.isNaN(parsedCreditId) && !Number.isNaN(parsedClientId)) {
+                        stakeUnits.push({
+                            amount: recovery.amount,
+                            creditId: parsedCreditId,
+                            clientId: parsedClientId,
+                            recoveryId: recovery.id,
+                            reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
+                            reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
+                            operationConsentCode: recovery.operationConsentCode ?? null,
+                            confirmedAmount: recovery.confirmedAmount ?? null
+                        });
+                    }
+                }
+            }
+        }
+
+        if (stakeUnits.length === 0) {
+            throw new Error('Impossible de synchroniser l\'encaissement : client ou crédit parent introuvable sur le serveur.');
+        }
+
+        const syncRequest: SpecialDailyStakeRequest = {
+            collector: currentUser?.username || '',
+            syncConsentCode: this.syncConsentCode ?? null,
+            stakeUnits
+        };
+
+        const headers = this.getAuthHeaders();
+        const response = await firstValueFrom(
+            this.http.post<ApiResponse<SpecialDailyStakeResponse>>(`${this.baseUrl}/api/v1/credits/special-daily-stake`, syncRequest, { headers })
+        );
+
+        this.assertRecoveryPushSuccess(recoveries, response?.data?.successRecoveryIds, response?.data?.failedRecoveries);
+    }
+
+    private assertRecoveryPushSuccess(
+        recoveries: Recovery[],
+        successRecoveryIds?: string[],
+        failedRecoveries?: Array<{ recoveryId: string; errorMessage: string }>
+    ): void {
+        for (const recovery of recoveries) {
+            const failed = failedRecoveries?.find((item) => item.recoveryId === recovery.id);
+            if (failed) {
+                throw new Error(failed.errorMessage || `Échec de l'encaissement ${recovery.id}`);
+            }
+            if (successRecoveryIds && !successRecoveryIds.includes(recovery.id)) {
+                throw new Error(`L'encaissement ${recovery.id} n'a pas été confirmé par le serveur.`);
+            }
         }
     }
 }

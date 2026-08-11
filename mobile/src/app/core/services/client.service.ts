@@ -17,7 +17,8 @@ import { buildDateFilterClause } from '../models/date-filter.model';
 import { ClientRepository } from '../repositories/client.repository';
 import { AccountRepository } from '../repositories/account.repository';
 import { DistributionRepository } from '../repositories/distribution.repository';
-import { capSQLiteSet } from '@capacitor-community/sqlite';
+import { ClientSyncService } from './sync/client-sync.service';
+import { OnlineFirstWriteCoordinator } from './online-first-write.coordinator';
 
 export interface ClientInitializationProgress {
   isLoading: boolean;
@@ -57,7 +58,9 @@ export class ClientService {
     private clientRepository: ClientRepository,
     private clientRepositoryExtensions: ClientRepositoryExtensions,
     private accountRepository: AccountRepository,
-    private distributionRepository: DistributionRepository
+    private distributionRepository: DistributionRepository,
+    private clientSyncService: ClientSyncService,
+    private onlineFirstWriteCoordinator: OnlineFirstWriteCoordinator
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -284,15 +287,32 @@ export class ClientService {
     this.log.log('[ClientService] Cache cleared');
   }
 
-  async createClientLocally(clientData: any, commercialUsername: string): Promise<{ client: Client, account: any }> {
+  async createClientLocally(
+    clientData: any,
+    commercialUsername: string,
+    forceOffline = false
+  ): Promise<{ client: Client; account: Account }> {
     if (!this.commercialUsername) {
       throw new Error('Commercial user not identified.');
     }
 
-    // OPTIMIZATION: Don't load all clients. Use count to generate code.
+    const { client: newClient, account: newAccount } = await this.buildNewClientAndAccount(clientData, commercialUsername);
+    const writeResult = await this.onlineFirstWriteCoordinator.executeWrite({
+      entityLabel: 'client',
+      forceOffline,
+      saveOffline: () => this.persistNewClient(newClient, newAccount, false),
+      saveOnline: () => this.persistNewClient(newClient, newAccount, true)
+    });
+    return writeResult.data;
+  }
+
+  private async buildNewClientAndAccount(
+    clientData: any,
+    commercialUsername: string
+  ): Promise<{ client: Client; account: Account }> {
     let totalClients = 0;
     try {
-      totalClients = await this.clientRepositoryExtensions.countByCommercial(this.commercialUsername);
+      totalClients = await this.clientRepositoryExtensions.countByCommercial(this.commercialUsername!);
     } catch (error: any) {
       const errorMessage = `[ClientService] createClientLocally: Error counting clients. Message: ${error.message}`;
       await this.log.log(errorMessage);
@@ -300,27 +320,26 @@ export class ClientService {
       throw error;
     }
 
-    let clientCode: string = '';
-    let accountNumber: string = '';
+    let clientCode = '';
+    let accountNumber = '';
     let newClientIndex = totalClients + 1;
     let codeExists = true;
     let accountExists = true;
 
     while (codeExists || accountExists) {
-        clientCode = `${commercialUsername.slice(-2)}${newClientIndex.toString().padStart(3, '0')}`;
-        accountNumber = `0021${commercialUsername.slice(-2)}${newClientIndex.toString().padStart(4, '0')}`;
+      clientCode = `${commercialUsername.slice(-2)}${newClientIndex.toString().padStart(3, '0')}`;
+      accountNumber = `0021${commercialUsername.slice(-2)}${newClientIndex.toString().padStart(4, '0')}`;
 
-        const codeResult = await this.dbService.query('SELECT COUNT(*) as count FROM clients WHERE code = ?', [clientCode]);
-        codeExists = (codeResult.values?.[0]?.count ?? 0) > 0;
+      const codeResult = await this.dbService.query('SELECT COUNT(*) as count FROM clients WHERE code = ?', [clientCode]);
+      codeExists = (codeResult.values?.[0]?.count ?? 0) > 0;
 
-        const accountResult = await this.dbService.query('SELECT COUNT(*) as count FROM accounts WHERE accountNumber = ?', [accountNumber]);
-        accountExists = (accountResult.values?.[0]?.count ?? 0) > 0;
+      const accountResult = await this.dbService.query('SELECT COUNT(*) as count FROM accounts WHERE accountNumber = ?', [accountNumber]);
+      accountExists = (accountResult.values?.[0]?.count ?? 0) > 0;
 
-        if (codeExists || accountExists) {
-            newClientIndex++;
-        }
+      if (codeExists || accountExists) {
+        newClientIndex++;
+      }
     }
-
 
     const now = new Date();
     const timezoneOffset = now.getTimezoneOffset() * 60000;
@@ -340,7 +359,7 @@ export class ClientService {
 
     const newAccount: Account = {
       id: this.generateUuid(),
-      accountNumber: accountNumber,
+      accountNumber,
       accountBalance: clientData.balance || 0,
       status: 'ACTIF',
       clientId: newClient.id,
@@ -350,8 +369,46 @@ export class ClientService {
       createdAt: new Date().toISOString()
     };
 
-    // Insertion atomique : client + compte dans une seule transaction executeSet.
-    // Si l'une des deux insertions échoue, aucune des deux n'est persistée.
+    return { client: newClient, account: newAccount };
+  }
+
+  private async persistNewClient(
+    newClient: Client,
+    newAccount: Account,
+    online: boolean
+  ): Promise<{ client: Client; account: Account }> {
+    if (online) {
+      const response = await this.clientSyncService.postCreateClient(newClient);
+      const serverClientId = response.id.toString();
+      const syncedClient: Client = {
+        ...newClient,
+        id: serverClientId,
+        isLocal: false,
+        isSync: true,
+        syncDate: new Date().toISOString(),
+        profilPhotoUrl: response.profilPhotoUrl ?? newClient.profilPhotoUrl,
+        cardPhotoUrl: response.cardPhotoUrl ?? newClient.cardPhotoUrl
+      };
+      const syncedAccount: Account = {
+        ...newAccount,
+        id: response.accountId?.toString() || newAccount.id,
+        clientId: serverClientId,
+        isLocal: false,
+        isSync: true,
+        syncDate: new Date().toISOString()
+      };
+      await this.saveClientAndAccountTransaction(syncedClient, syncedAccount);
+      return { client: syncedClient, account: syncedAccount };
+    }
+
+    await this.saveClientAndAccountTransaction(
+      { ...newClient, isLocal: true, isSync: false },
+      { ...newAccount, isLocal: true, isSync: false }
+    );
+    return { client: newClient, account: newAccount };
+  }
+
+  private async saveClientAndAccountTransaction(client: Client, account: Account): Promise<void> {
     const nowIso = new Date().toISOString();
 
     const clientSql = `INSERT OR REPLACE INTO clients (
@@ -364,40 +421,40 @@ export class ClientService {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     const clientParams = [
-      newClient.id,
-      newClient.firstname ?? null,
-      newClient.lastname ?? null,
-      newClient.fullName ?? null,
-      newClient.phone ?? null,
-      newClient.address ?? null,
-      newClient.dateOfBirth ?? null,
-      newClient.occupation ?? null,
-      newClient.clientType ?? null,
-      newClient.cardType ?? null,
-      newClient.cardID ?? null,
-      newClient.quarter ?? null,
-      newClient.commercial ?? null,
-      1, // isLocal
-      0, // isSync
-      nowIso,
-      null, // syncHash
-      newClient.latitude ?? 0,
-      newClient.longitude ?? 0,
-      newClient.mll ?? null,
-      newClient.contactPersonName ?? null,
-      newClient.contactPersonPhone ?? null,
-      newClient.contactPersonAddress ?? null,
-      newClient.code ?? null,
-      newClient.profilPhoto ?? null,
-      0, // creditInProgress
-      newClient.cardPhoto ?? null,
-      newClient.profilPhotoUrl ?? null,
-      newClient.cardPhotoUrl ?? null,
-      newClient.profilPhotoThumbUrl ?? null,
-      newClient.cardPhotoThumbUrl ?? null,
-      0, // updatedPhotoUrl
-      newClient.tontineCollector ?? null,
-      newClient.createdAt ?? nowIso
+      client.id,
+      client.firstname ?? null,
+      client.lastname ?? null,
+      client.fullName ?? null,
+      client.phone ?? null,
+      client.address ?? null,
+      client.dateOfBirth ?? null,
+      client.occupation ?? null,
+      client.clientType ?? null,
+      client.cardType ?? null,
+      client.cardID ?? null,
+      client.quarter ?? null,
+      client.commercial ?? null,
+      client.isLocal ? 1 : 0,
+      client.isSync ? 1 : 0,
+      client.syncDate || nowIso,
+      null,
+      client.latitude ?? 0,
+      client.longitude ?? 0,
+      client.mll ?? null,
+      client.contactPersonName ?? null,
+      client.contactPersonPhone ?? null,
+      client.contactPersonAddress ?? null,
+      client.code ?? null,
+      client.profilPhoto ?? null,
+      0,
+      client.cardPhoto ?? null,
+      client.profilPhotoUrl ?? null,
+      client.cardPhotoUrl ?? null,
+      client.profilPhotoThumbUrl ?? null,
+      client.cardPhotoThumbUrl ?? null,
+      0,
+      client.tontineCollector ?? null,
+      client.createdAt ?? nowIso
     ];
 
     const accountSql = `INSERT INTO accounts (
@@ -405,37 +462,25 @@ export class ClientService {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     const accountParams = [
-      newAccount.id,
-      newAccount.accountNumber,
-      newAccount.accountBalance ?? 0,
-      newAccount.status ?? 'ACTIF',
-      newAccount.clientId,
-      1, // isLocal
-      0, // isSync
-      nowIso,
-      null, // syncHash
-      null, // old_balance
-      0,    // updated
-      newAccount.createdAt ?? nowIso
+      account.id,
+      account.accountNumber,
+      account.accountBalance ?? 0,
+      account.status ?? 'ACTIF',
+      account.clientId,
+      account.isLocal ? 1 : 0,
+      account.isSync ? 1 : 0,
+      account.syncDate || nowIso,
+      null,
+      null,
+      0,
+      account.createdAt ?? nowIso
     ];
 
-    const transactionSet: capSQLiteSet[] = [
+    await this.dbService.executeSet([
       { statement: clientSql, values: clientParams },
       { statement: accountSql, values: accountParams }
-    ];
-
-    try {
-      await this.dbService.executeSet(transactionSet);
-      await this.log.log(`[ClientService] createClientLocally: Client and account saved atomically.`);
-    } catch (error: any) {
-      const errorMessage = `[ClientService] createClientLocally: Atomic transaction failed. Message: ${error?.message ?? JSON.stringify(error)}`;
-      await this.log.log(errorMessage);
-      console.error('Atomic transaction failed:', error);
-      // Relancer une erreur lisible
-      throw new Error(errorMessage);
-    }
-
-    return { client: newClient, account: newAccount };
+    ]);
+    await this.log.log(`[ClientService] Client and account saved atomically (online=${client.isSync}).`);
   }
 
 

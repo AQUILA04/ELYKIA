@@ -96,6 +96,42 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
         }
     }
 
+    /**
+     * Crée un membre tontine sur le serveur sans modifier SQLite (online-first).
+     */
+    async postCreateMember(member: TontineMember): Promise<TontineMemberSyncResponse> {
+        const syncRequest = await this.prepareTontineMemberSyncRequest(member, false);
+        const headers = this.getAuthHeaders();
+
+        const response = await firstValueFrom(
+            this.http.post<ApiResponse<TontineMemberSyncResponse>>(`${this.baseUrl}/api/v1/tontines/members`, syncRequest, { headers })
+        );
+
+        if (!response?.data) {
+            throw new Error(response?.message || 'Invalid response from server for tontine member sync');
+        }
+
+        return response.data;
+    }
+
+    /**
+     * Met à jour un membre tontine sur le serveur sans modifier SQLite (online-first).
+     */
+    async postUpdateMember(member: TontineMember): Promise<TontineMemberSyncResponse> {
+        const syncRequest = await this.prepareTontineMemberSyncRequest(member, true);
+        const headers = this.getAuthHeaders();
+
+        const response = await firstValueFrom(
+            this.http.put<ApiResponse<TontineMemberSyncResponse>>(`${this.baseUrl}/api/v1/tontines/members/${member.id}`, syncRequest, { headers })
+        );
+
+        if (!response?.data) {
+            throw new Error(response?.message || 'Invalid response from server for tontine member update');
+        }
+
+        return response.data;
+    }
+
     protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<TontineMember[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
@@ -141,40 +177,16 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
     }
 
     private async syncSingleTontineMember(member: TontineMember): Promise<TontineMemberSyncResponse> {
-        const syncRequest = await this.prepareTontineMemberSyncRequest(member, false);
-        const headers = this.getAuthHeaders();
-
-        const response = await firstValueFrom(
-            this.http.post<ApiResponse<TontineMemberSyncResponse>>(`${this.baseUrl}/api/v1/tontines/members`, syncRequest, { headers })
-        );
-
-        if (!response?.data) {
-            throw new Error(response?.message || 'Invalid response from server for tontine member sync');
-        }
-
-        const syncedMember = response.data;
+        const syncedMember = await this.postCreateMember(member);
         await this.repository.saveIdMapping(member.id, syncedMember.id.toString(), 'tontine-member');
         await this.repository.markAsSynced(member.id, syncedMember.id.toString());
-
         return syncedMember;
     }
 
     private async updateSingleTontineMember(member: TontineMember): Promise<TontineMemberSyncResponse> {
-        const syncRequest = await this.prepareTontineMemberSyncRequest(member, true);
-        const headers = this.getAuthHeaders();
-
-        const response = await firstValueFrom(
-            this.http.put<ApiResponse<TontineMemberSyncResponse>>(`${this.baseUrl}/api/v1/tontines/members/${member.id}`, syncRequest, { headers })
-        );
-
-        if (!response?.data) {
-            throw new Error(response?.message || 'Invalid response from server for tontine member update');
-        }
-
-        // Just mark as synced (isSync=1)
+        const syncedMember = await this.postUpdateMember(member);
         await this.repository.markAsSynced(member.id, member.id);
-
-        return response.data;
+        return syncedMember;
     }
 
     private async prepareTontineMemberSyncRequest(member: TontineMember, isUpdate: boolean): Promise<TontineMemberSyncRequest> {
