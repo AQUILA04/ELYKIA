@@ -22,7 +22,7 @@ export class RmOfflinePackService {
   async createPlanAndDownload(request: FieldDayPlanRequest): Promise<RmPackDownloadResult> {
     const plan = await this.api.createPlan(request);
     await this.scope.setPlan(plan);
-    const pack = await this.api.downloadOfflinePack(plan.id, false);
+    const pack = await this.api.downloadOfflinePack(plan.id, true);
     await this.scope.setPack(pack);
     return this.withWarning(pack);
   }
@@ -32,7 +32,7 @@ export class RmOfflinePackService {
     if (!plan?.id) {
       throw new Error('Aucun plan actif');
     }
-    const pack = await this.api.downloadOfflinePack(plan.id, false);
+    const pack = await this.api.downloadOfflinePack(plan.id, true);
     await this.scope.setPack(pack);
     return this.withWarning(pack);
   }

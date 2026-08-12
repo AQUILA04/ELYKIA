@@ -8,5 +8,6 @@ import lombok.Getter;
 public class RmOfflinePackStatsDto {
     private long lateCredits;
     private long clients;
+    private long tontineMembers;
     private long estimatedBytes;
 }

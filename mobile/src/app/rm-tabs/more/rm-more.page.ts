@@ -11,10 +11,13 @@ import { RmContactQueueService } from '../../core/services/rm/rm-contact-queue.s
 import { RmContactSyncService } from '../../core/services/rm/rm-contact-sync.service';
 import { RmFieldControlQueueService } from '../../core/services/rm/rm-field-control-queue.service';
 import { RmFieldControlSyncService } from '../../core/services/rm/rm-field-control-sync.service';
+import { RmTontineFieldControlQueueService } from '../../core/services/rm/rm-tontine-field-control-queue.service';
+import { RmTontineFieldControlSyncService } from '../../core/services/rm/rm-tontine-field-control-sync.service';
 import { FieldDayPlan, RmOfflinePack } from '../../core/services/rm/rm.models';
 import { RmCloseOp } from '../../core/services/rm/rm-close.models';
 import { RmContactPatch } from '../../core/services/rm/rm-contact.models';
 import { RmFieldControlOp } from '../../core/services/rm/rm-field-control.models';
+import { RmTontineFieldControlOp } from '../../core/services/rm/rm-tontine-field-control.models';
 import { LoadingController, ToastController } from '@ionic/angular';
 
 @Component({
@@ -29,6 +32,7 @@ export class RmMorePage implements OnInit, OnDestroy {
   pendingOps: RmCloseOp[] = [];
   pendingContacts: RmContactPatch[] = [];
   pendingControls: RmFieldControlOp[] = [];
+  pendingTontineControls: RmTontineFieldControlOp[] = [];
   private subs: Subscription[] = [];
 
   constructor(
@@ -40,6 +44,8 @@ export class RmMorePage implements OnInit, OnDestroy {
     private readonly contactSync: RmContactSyncService,
     private readonly fieldControlQueue: RmFieldControlQueueService,
     private readonly fieldControlSync: RmFieldControlSyncService,
+    private readonly tontineFieldControlQueue: RmTontineFieldControlQueueService,
+    private readonly tontineFieldControlSync: RmTontineFieldControlSyncService,
     private readonly store: Store,
     private readonly router: Router,
     private readonly loadingCtrl: LoadingController,
@@ -58,6 +64,9 @@ export class RmMorePage implements OnInit, OnDestroy {
       }),
       this.fieldControlQueue.ops$.subscribe(ops => {
         this.pendingControls = ops.filter(o => !o.isSync);
+      }),
+      this.tontineFieldControlQueue.ops$.subscribe(ops => {
+        this.pendingTontineControls = ops.filter(o => !o.isSync);
       })
     );
   }
@@ -67,7 +76,10 @@ export class RmMorePage implements OnInit, OnDestroy {
   }
 
   get pendingTotal(): number {
-    return this.pendingOps.length + this.pendingContacts.length + this.pendingControls.length;
+    return this.pendingOps.length
+      + this.pendingContacts.length
+      + this.pendingControls.length
+      + this.pendingTontineControls.length;
   }
 
   async refreshPack(): Promise<void> {
@@ -91,11 +103,15 @@ export class RmMorePage implements OnInit, OnDestroy {
     try {
       const contacts = await this.contactSync.syncPending();
       const controls = await this.fieldControlSync.syncPending();
+      const tontineControls = await this.tontineFieldControlSync.syncPending();
       const closes = await this.closeSync.syncPending();
       await loading.dismiss();
-      const synced = contacts.synced + controls.synced + closes.synced;
-      const failed = contacts.failed + controls.failed + closes.failed;
-      const firstError = contacts.errors[0] || controls.errors[0] || closes.errors[0];
+      const synced = contacts.synced + controls.synced + tontineControls.synced + closes.synced;
+      const failed = contacts.failed + controls.failed + tontineControls.failed + closes.failed;
+      const firstError = contacts.errors[0]
+        || controls.errors[0]
+        || tontineControls.errors[0]
+        || closes.errors[0];
       if (failed === 0) {
         await this.toast(`${synced} opération(s) synchronisée(s)`, 'success');
       } else {
@@ -120,6 +136,7 @@ export class RmMorePage implements OnInit, OnDestroy {
     void this.closeQueue.clearAll();
     void this.contactQueue.clearAll();
     void this.fieldControlQueue.clearAll();
+    void this.tontineFieldControlQueue.clearAll();
     this.store.dispatch(AuthActions.logout());
   }
 

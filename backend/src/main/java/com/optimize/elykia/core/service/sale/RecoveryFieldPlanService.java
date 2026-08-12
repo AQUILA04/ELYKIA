@@ -9,14 +9,22 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.CreditFieldControlDto;
 import com.optimize.elykia.core.dto.CreditLateDTO;
+import com.optimize.elykia.core.dto.TontineMemberFieldControlDto;
+import com.optimize.elykia.core.dto.TontineMemberFieldControlLineDto;
+import com.optimize.elykia.core.dto.TontineMemberMonthlyAggregateDto;
 import com.optimize.elykia.core.dto.sale.*;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditFieldControl;
 import com.optimize.elykia.core.entity.sale.RecoveryFieldDayPlan;
+import com.optimize.elykia.core.entity.tontine.TontineMember;
+import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControl;
 import com.optimize.elykia.core.enumaration.FieldDayPlanStatus;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.RecoveryFieldDayPlanRepository;
+import com.optimize.elykia.core.repository.TontineCollectionRepository;
+import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
+import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.CreditLateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,11 +47,17 @@ public class RecoveryFieldPlanService {
 
     private static final int MAX_COMMERCIALS = 3;
     private static final long BYTES_PER_LATE_CREDIT_ESTIMATE = 8_000L;
+    private static final long BYTES_PER_TONTINE_MEMBER_ESTIMATE = 3_000L;
+    private static final List<Integer> TONTINE_CALENDAR_MONTHS =
+            List.of(2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
 
     private final RecoveryFieldDayPlanRepository planRepository;
     private final CreditLateService creditLateService;
     private final CreditRepository creditRepository;
     private final CreditFieldControlRepository creditFieldControlRepository;
+    private final TontineMemberRepository tontineMemberRepository;
+    private final TontineCollectionRepository tontineCollectionRepository;
+    private final TontineMemberFieldControlRepository tontineMemberFieldControlRepository;
     private final ClientService clientService;
     private final ObjectMapper objectMapper;
 
@@ -225,12 +239,24 @@ public class RecoveryFieldPlanService {
         List<Long> creditIds = lateCredits.stream().map(CreditLateDTO::getId).filter(Objects::nonNull).toList();
         List<CreditFieldControlDto> controlsToday = loadFieldControlsToday(creditIds);
 
+        List<RmPackTontineMemberDto> tontineMembers = includeTontine
+                ? loadTontineMembers(commercials, quarterFilter, clientsById)
+                : List.of();
+        List<Long> tontineMemberIds = tontineMembers.stream()
+                .map(RmPackTontineMemberDto::getId)
+                .filter(Objects::nonNull)
+                .toList();
+        List<TontineMemberFieldControlDto> tontineControlsToday = includeTontine
+                ? loadTontineFieldControlsToday(tontineMemberIds)
+                : List.of();
+
         List<RmCommercialRefDto> commercialRefs = commercials.stream()
                 .map(u -> RmCommercialRefDto.builder().username(u).displayName(u).build())
                 .toList();
 
         long estimatedBytes = lateCredits.size() * BYTES_PER_LATE_CREDIT_ESTIMATE
-                + clientsById.size() * 2_000L;
+                + clientsById.size() * 2_000L
+                + tontineMembers.size() * BYTES_PER_TONTINE_MEMBER_ESTIMATE;
 
         return RmOfflinePackDto.builder()
                 .planId(plan.getId())
@@ -239,14 +265,135 @@ public class RecoveryFieldPlanService {
                 .stats(RmOfflinePackStatsDto.builder()
                         .lateCredits(lateCredits.size())
                         .clients(clientsById.size())
+                        .tontineMembers(tontineMembers.size())
                         .estimatedBytes(estimatedBytes)
                         .build())
                 .commercials(commercialRefs)
                 .lateCredits(lateCredits)
                 .clients(new ArrayList<>(clientsById.values()))
                 .creditFieldControlsToday(controlsToday)
-                .tontineMembers(includeTontine ? List.of() : List.of())
-                .tontineFieldControlsToday(List.of())
+                .tontineMembers(tontineMembers)
+                .tontineFieldControlsToday(tontineControlsToday)
+                .build();
+    }
+
+    private List<RmPackTontineMemberDto> loadTontineMembers(
+            List<String> commercials,
+            Set<String> quarterFilter,
+            Map<Long, RmPackClientDto> clientsById) {
+        if (commercials == null || commercials.isEmpty()) {
+            return List.of();
+        }
+        int sessionYear = LocalDate.now().getYear();
+        List<TontineMember> members = tontineMemberRepository.findActiveBySessionYearAndTontineCollectors(
+                sessionYear, commercials, State.ENABLED);
+        if (members.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, Map<String, Double>> amountsByMemberMonth = new HashMap<>();
+        List<TontineMemberMonthlyAggregateDto> aggregates = tontineCollectionRepository
+                .sumMonthlyBySessionYearAndTontineCollectors(sessionYear, commercials, State.ENABLED);
+        for (TontineMemberMonthlyAggregateDto agg : aggregates) {
+            if (agg.getMemberId() == null) {
+                continue;
+            }
+            String key = agg.getYear() + "-" + agg.getMonth();
+            amountsByMemberMonth
+                    .computeIfAbsent(agg.getMemberId(), id -> new HashMap<>())
+                    .put(key, agg.getTotalAmount());
+        }
+
+        List<RmPackTontineMemberDto> result = new ArrayList<>();
+        for (TontineMember member : members) {
+            Client client = member.getClient();
+            if (client == null) {
+                continue;
+            }
+            String quarter = client.getQuarter();
+            if (!quarterFilter.isEmpty()) {
+                if (!StringUtils.hasText(quarter)
+                        || !quarterFilter.contains(quarter.trim().toLowerCase(Locale.ROOT))) {
+                    continue;
+                }
+            }
+
+            if (client.getId() != null && !clientsById.containsKey(client.getId())) {
+                clientsById.put(client.getId(), toPackClientFromEntity(client, client.getTontineCollector()));
+            }
+
+            String firstname = client.getFirstname() != null ? client.getFirstname() : "";
+            String lastname = client.getLastname() != null ? client.getLastname() : "";
+            String fullName = (firstname + " " + lastname).trim();
+            if (!StringUtils.hasText(fullName)) {
+                fullName = "Client #" + client.getId();
+            }
+
+            Map<String, Double> monthAmounts = amountsByMemberMonth.getOrDefault(member.getId(), Map.of());
+            List<RmPackTontineMonthDto> months = new ArrayList<>();
+            for (Integer calendarMonth : TONTINE_CALENDAR_MONTHS) {
+                String key = sessionYear + "-" + calendarMonth;
+                months.add(RmPackTontineMonthDto.builder()
+                        .year(sessionYear)
+                        .month(calendarMonth)
+                        .systemAmount(monthAmounts.getOrDefault(key, 0d))
+                        .build());
+            }
+
+            result.add(RmPackTontineMemberDto.builder()
+                    .id(member.getId())
+                    .clientId(client.getId())
+                    .clientName(fullName)
+                    .clientPhone(client.getPhone())
+                    .clientQuarter(quarter)
+                    .tontineCollector(client.getTontineCollector())
+                    .sessionYear(member.getTontineSession() != null ? member.getTontineSession().getYear() : sessionYear)
+                    .amount(member.getAmount())
+                    .totalContribution(member.getTotalContribution())
+                    .deliveryStatus(member.getDeliveryStatus() != null ? member.getDeliveryStatus().name() : null)
+                    .months(months)
+                    .build());
+        }
+        return result;
+    }
+
+    private List<TontineMemberFieldControlDto> loadTontineFieldControlsToday(List<Long> memberIds) {
+        if (memberIds == null || memberIds.isEmpty()) {
+            return List.of();
+        }
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
+        List<TontineMemberFieldControl> controls = tontineMemberFieldControlRepository
+                .findByTontineMember_IdInAndObservedAtBetweenAndState(memberIds, start, end, State.ENABLED);
+        return controls.stream().map(this::toTontineFieldControlDto).toList();
+    }
+
+    private TontineMemberFieldControlDto toTontineFieldControlDto(TontineMemberFieldControl entity) {
+        List<TontineMemberFieldControlLineDto> lines = entity.getLines() == null
+                ? List.of()
+                : entity.getLines().stream()
+                .map(line -> TontineMemberFieldControlLineDto.builder()
+                        .id(line.getId())
+                        .year(line.getYear())
+                        .month(line.getMonth())
+                        .notebookAmount(line.getNotebookAmount())
+                        .systemAmount(line.getSystemAmount())
+                        .differenceAmount(line.getDifferenceAmount())
+                        .build())
+                .toList();
+
+        return TontineMemberFieldControlDto.builder()
+                .id(entity.getId())
+                .tontineMemberId(entity.getTontineMember() != null ? entity.getTontineMember().getId() : null)
+                .reference(entity.getReference())
+                .notebookTotalAmount(entity.getNotebookTotalAmount())
+                .systemTotalAmount(entity.getSystemTotalAmount())
+                .differenceAmount(entity.getDifferenceAmount())
+                .status(entity.getStatus())
+                .observedAt(entity.getObservedAt())
+                .observedBy(entity.getObservedBy())
+                .note(entity.getNote())
+                .lines(lines)
                 .build();
     }
 
@@ -288,6 +435,29 @@ public class RecoveryFieldPlanService {
                 .mll(mll)
                 .profilPhotoUrl(profilPhotoUrl)
                 .profilPhotoThumbUrl(profilPhotoThumbUrl)
+                .build();
+    }
+
+    private RmPackClientDto toPackClientFromEntity(Client client, String fallbackCollector) {
+        String firstname = client.getFirstname() != null ? client.getFirstname() : "";
+        String lastname = client.getLastname() != null ? client.getLastname() : "";
+        String fullName = (firstname + " " + lastname).trim();
+        if (!StringUtils.hasText(fullName)) {
+            fullName = "Client #" + client.getId();
+        }
+        return RmPackClientDto.builder()
+                .id(client.getId())
+                .firstname(client.getFirstname())
+                .lastname(client.getLastname())
+                .fullName(fullName)
+                .phone(client.getPhone())
+                .quarter(client.getQuarter())
+                .collector(StringUtils.hasText(fallbackCollector) ? fallbackCollector : client.getTontineCollector())
+                .latitude(client.getLatitude())
+                .longitude(client.getLongitude())
+                .mll(client.getMll())
+                .profilPhotoUrl(client.getProfilPhotoUrl())
+                .profilPhotoThumbUrl(client.getProfilPhotoThumbUrl())
                 .build();
     }
 

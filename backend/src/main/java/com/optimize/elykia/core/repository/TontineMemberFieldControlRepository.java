@@ -22,4 +22,12 @@ public interface TontineMemberFieldControlRepository extends GenericRepository<T
 
     @EntityGraph(attributePaths = "lines")
     Optional<TontineMemberFieldControl> findByReference(String reference);
+
+    @EntityGraph(attributePaths = {"lines", "tontineMember"})
+    List<TontineMemberFieldControl> findByTontineMember_IdInAndObservedAtBetweenAndState(
+            List<Long> memberIds,
+            java.time.LocalDateTime start,
+            java.time.LocalDateTime end,
+            State state
+    );
 }

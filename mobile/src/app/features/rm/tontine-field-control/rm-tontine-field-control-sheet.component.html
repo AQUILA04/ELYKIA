@@ -1,0 +1,80 @@
+<div class="rm-tfc-sheet">
+  <header>
+    <div>
+      <p class="surtitle">Contrôle carnet tontine</p>
+      <h2>{{ member?.clientName || 'Membre' }}</h2>
+      <p class="meta">{{ member?.tontineCollector }} · {{ member?.clientQuarter || '—' }} · session {{ member?.sessionYear }}</p>
+    </div>
+    <ion-button fill="clear" (click)="dismiss()">
+      <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+    </ion-button>
+  </header>
+
+  <section class="summary" *ngIf="selectedRows.length">
+    <div class="row">
+      <span>Système (sélection)</span>
+      <strong>{{ formatAmount(systemTotal) }} FCFA</strong>
+    </div>
+    <div class="row">
+      <span>Carnet (sélection)</span>
+      <strong>{{ formatAmount(notebookTotal) }} FCFA</strong>
+    </div>
+    <div class="row">
+      <span>Écart estimé</span>
+      <strong [class.ecart]="statusLabel === 'ECART'" [class.ok]="statusLabel === 'CONFORME'">
+        {{ formatAmount(difference) }} · {{ statusLabel }}
+      </strong>
+    </div>
+  </section>
+
+  <p class="hint">Sélectionnez les mois contrôlés et saisissez le total marqué dans le carnet.</p>
+
+  <section class="months">
+    <article
+      class="month-row"
+      *ngFor="let row of rows"
+      [class.selected]="row.selected"
+      (click)="toggleRow(row)">
+      <div class="month-head">
+          <ion-checkbox
+          [checked]="row.selected"
+          [disabled]="submitting"
+          class="month-check">
+        </ion-checkbox>
+        <div>
+          <strong>{{ row.monthName }} {{ row.year }}</strong>
+          <span>Système : {{ formatAmount(row.systemAmount) }} FCFA</span>
+        </div>
+      </div>
+      <div class="month-input" *ngIf="row.selected" (click)="$event.stopPropagation()">
+        <label>Montant carnet</label>
+        <ion-input
+          type="number"
+          inputmode="decimal"
+          [(ngModel)]="row.notebookAmount"
+          [disabled]="submitting"
+          class="amount-input">
+        </ion-input>
+      </div>
+    </article>
+  </section>
+
+  <section class="card">
+    <label>Note (optionnelle)</label>
+    <ion-textarea
+      [(ngModel)]="note"
+      rows="3"
+      placeholder="Observation terrain…"
+      autoGrow="true"
+      [disabled]="submitting">
+    </ion-textarea>
+  </section>
+
+  <ion-button
+    expand="block"
+    class="rm-cta"
+    [disabled]="!isValid || submitting"
+    (click)="confirm()">
+    {{ submitting ? 'Enregistrement…' : 'Capturer le contrôle' }}
+  </ion-button>
+</div>

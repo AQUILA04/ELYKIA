@@ -13,6 +13,7 @@ import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCloseQueueService } from '../../core/services/rm/rm-close-queue.service';
 import { RmContactQueueService } from '../../core/services/rm/rm-contact-queue.service';
 import { RmFieldControlQueueService } from '../../core/services/rm/rm-field-control-queue.service';
+import { RmTontineFieldControlQueueService } from '../../core/services/rm/rm-tontine-field-control-queue.service';
 
 @Injectable()
 export class AuthEffects {
@@ -28,7 +29,8 @@ export class AuthEffects {
     private rmScope: RmScopeService,
     private rmCloseQueue: RmCloseQueueService,
     private rmContactQueue: RmContactQueueService,
-    private rmFieldControlQueue: RmFieldControlQueueService
+    private rmFieldControlQueue: RmFieldControlQueueService,
+    private rmTontineFieldControlQueue: RmTontineFieldControlQueueService
   ) {}
 
   login$ = createEffect(() =>
@@ -124,6 +126,7 @@ export class AuthEffects {
           void this.rmCloseQueue.clearAll();
           void this.rmContactQueue.clearAll();
           void this.rmFieldControlQueue.clearAll();
+          void this.rmTontineFieldControlQueue.clearAll();
           this.log.log('[AuthEffects] logoutSuccess$ triggered, navigating to /login.');
           this.router.navigateByUrl('/login');
         })

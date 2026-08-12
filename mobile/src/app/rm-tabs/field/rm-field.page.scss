@@ -1,10 +1,13 @@
+ion-content.rm-content {
+  --background: #f2f4f8;
+}
+
 .rm-page {
   --rm-navy: #003366;
   --rm-muted: #6b7a99;
   --rm-bg: #f2f4f8;
-  min-height: 100%;
   background: var(--rm-bg);
-  padding-bottom: 88px;
+  padding-bottom: 24px;
 }
 .rm-hero {
   background: linear-gradient(160deg, #003366, #002244);
@@ -21,11 +24,31 @@
   border: 1px solid #dde3ec;
 }
 .quarter-card h3 { margin: 0 0 8px; color: var(--rm-muted); font-size: 12px; text-transform: uppercase; }
+.q-label {
+  margin: 8px 0 4px;
+  color: var(--rm-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 .row {
   display: flex; justify-content: space-between; align-items: center;
   padding: 8px 0; border-top: 1px solid #f0f4f9; gap: 8px;
 }
 .row strong { display: block; color: #003366; font-size: 14px; }
 .row span { color: var(--rm-muted); font-size: 12px; }
+.badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: #e8eef6;
+  color: #003366;
+}
+.badge.ok { background: #e5f6ea; color: #1d8a3c; }
+.badge.ecart { background: #fdeee6; color: #c75000; }
 ion-button { --border-color: #003366; --color: #003366; --border-radius: 10px; }
 .empty { text-align: center; color: var(--rm-muted); padding: 40px 16px; }

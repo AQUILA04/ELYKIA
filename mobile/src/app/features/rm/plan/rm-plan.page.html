@@ -47,22 +47,36 @@
     </section>
 
     <!-- Step 2 -->
-    <section *ngIf="step === 2">
-      <h2>Quartiers</h2>
-      <p class="hint">Filtre optionnel sur <code>client.quarter</code></p>
+    <section *ngIf="step === 2" class="step-localities">
+      <h2>Localités</h2>
+      <p class="hint">Filtre optionnel — borné le pack aux localités choisies.</p>
 
-      <ion-chip [class.chip-on]="allQuarters" (click)="selectAllQuarters()">Tous les quartiers</ion-chip>
+      <article class="locality-card" [class.active]="allQuarters" (click)="selectAllQuarters()">
+        <ion-checkbox [checked]="allQuarters" class="pointer-none"></ion-checkbox>
+        <div>
+          <strong>Toutes les localités</strong>
+          <span>{{ availableQuarters.length }} disponibles pour la sélection</span>
+        </div>
+      </article>
 
-      <div class="chip-wrap">
-        <ion-chip
-          *ngFor="let q of availableQuarters"
-          [class.chip-on]="!allQuarters && selectedQuarters.has(q)"
-          (click)="toggleQuarter(q)">
-          {{ q }}
+      <article class="locality-card" [class.active]="!allQuarters" (click)="openLocalityPicker()">
+        <ion-icon name="checkbox-outline" class="card-icon"></ion-icon>
+        <div>
+          <strong>Sélection multiple</strong>
+          <span *ngIf="allQuarters">Choisir une ou plusieurs localités…</span>
+          <span *ngIf="!allQuarters">{{ selectedQuarters.size }} localité(s) sélectionnée(s)</span>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </article>
+
+      <div class="selected-preview" *ngIf="!allQuarters && selectedQuarters.size">
+        <ion-chip *ngFor="let q of selectedQuarterPreview" outline="true">{{ q }}</ion-chip>
+        <ion-chip *ngIf="selectedQuarters.size > selectedQuarterPreview.length" outline="true">
+          +{{ selectedQuarters.size - selectedQuarterPreview.length }}
         </ion-chip>
       </div>
 
-      <div class="rm-actions">
+      <div class="rm-actions sticky-actions">
         <ion-button fill="outline" class="rm-cta-outline" (click)="step = 1">Retour</ion-button>
         <ion-button class="rm-cta" (click)="goStep3()">Continuer</ion-button>
       </div>
@@ -76,8 +90,8 @@
         <div class="row"><span>Retards estimés</span><strong>{{ estimateLates }}</strong></div>
         <div class="row"><span>Montant dû</span><strong>{{ formatAmount(estimateAmount) }} FCFA</strong></div>
         <div class="row">
-          <span>Quartiers</span>
-          <strong>{{ allQuarters ? 'Tous' : selectedQuarters.size }}</strong>
+          <span>Localités</span>
+          <strong>{{ allQuarters ? 'Toutes' : selectedQuarters.size }}</strong>
         </div>
       </div>
 
@@ -90,3 +104,57 @@
     </section>
   </main>
 </div>
+
+<ion-modal [isOpen]="localityPickerOpen" (didDismiss)="closeLocalityPicker()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar class="rm-modal-toolbar">
+        <ion-title>Localités</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeLocalityPicker()">Fermer</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+      <ion-toolbar class="rm-modal-toolbar">
+        <ion-searchbar
+          [(ngModel)]="localityQuery"
+          placeholder="Rechercher une localité"
+          debounce="200"
+          showClearButton="focus">
+        </ion-searchbar>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="rm-modal-content">
+      <p class="modal-hint" *ngIf="!filteredQuarters.length">Aucune localité ne correspond.</p>
+      <ion-list lines="none" class="rm-list modal-list">
+        <ion-item
+          *ngFor="let q of filteredQuarters"
+          button
+          detail="false"
+          (click)="toggleQuarter(q)"
+          [class.selected]="selectedQuarters.has(q)">
+          <ion-checkbox slot="start" [checked]="selectedQuarters.has(q)" class="pointer-none"></ion-checkbox>
+          <ion-label>
+            <h3>{{ q }}</h3>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+
+    <ion-footer class="rm-modal-footer">
+      <ion-toolbar>
+        <div class="footer-row">
+          <span>{{ selectedQuarters.size }} sélectionnée(s)</span>
+          <div class="footer-actions">
+            <ion-button fill="clear" (click)="clearSelectedQuarters()" [disabled]="!selectedQuarters.size">
+              Effacer
+            </ion-button>
+            <ion-button class="rm-cta" (click)="applyLocalitySelection()">
+              Valider
+            </ion-button>
+          </div>
+        </div>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

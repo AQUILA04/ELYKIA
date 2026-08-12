@@ -1,0 +1,13 @@
+<div class="rm-session-bar">
+  <div class="identity">
+    <ion-icon name="person-circle-outline" aria-hidden="true"></ion-icon>
+    <div class="text">
+      <span class="role">Chef de recouvrement</span>
+      <strong>{{ username }}</strong>
+    </div>
+  </div>
+  <span class="status" [class.online]="isOnline" [class.offline]="!isOnline">
+    <i aria-hidden="true"></i>
+    {{ isOnline ? 'En ligne' : 'Hors ligne' }}
+  </span>
+</div>

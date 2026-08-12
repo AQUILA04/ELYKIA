@@ -1,22 +1,46 @@
-<div class="rm-page">
-  <header class="rm-hero">
-    <p class="surtitle">Parcours</p>
-    <h1>Terrain</h1>
-  </header>
+<ion-content class="rm-content" [fullscreen]="true">
+  <div class="rm-page">
+    <header class="rm-hero">
+      <p class="surtitle">Parcours</p>
+      <h1>Terrain</h1>
+    </header>
 
-  <section *ngFor="let block of byCommercial" class="block">
-    <h2>{{ block.commercial }}</h2>
-    <article *ngFor="let q of block.quarters" class="quarter-card">
-      <h3>{{ q.quarter }} · {{ q.items.length }}</h3>
-      <div class="row" *ngFor="let item of q.items">
-        <div>
-          <strong>{{ item.clientName }}</strong>
-          <span>{{ formatAmount(item.totalAmountRemaining || 0) }} FCFA</span>
+    <section class="block" *ngIf="tontineByCommercial.length">
+      <h2>Tontine — contrôles carnet</h2>
+      <article *ngFor="let block of tontineByCommercial" class="quarter-card">
+        <h3>{{ block.commercial }}</h3>
+        <div *ngFor="let q of block.quarters">
+          <p class="q-label">Localité · {{ q.quarter }} · {{ q.items.length }}</p>
+          <div class="row" *ngFor="let item of q.items">
+            <div>
+              <strong>{{ item.clientName }}</strong>
+              <span>{{ formatAmount(item.totalContribution || 0) }} FCFA cotisés</span>
+              <span class="badge" *ngIf="controlStatus(item) as st" [class.ok]="st === 'CONFORME'" [class.ecart]="st === 'ECART'">
+                {{ st }}
+              </span>
+            </div>
+            <ion-button size="small" fill="outline" (click)="openTontineControl(item)">Contrôle</ion-button>
+          </div>
         </div>
-        <ion-button size="small" fill="outline" (click)="openMaps(item)">Naviguer</ion-button>
-      </div>
-    </article>
-  </section>
+      </article>
+    </section>
 
-  <p class="empty" *ngIf="!byCommercial.length">Aucun retard dans le pack.</p>
-</div>
+    <section *ngFor="let block of byCommercial" class="block">
+      <h2>Retards — {{ block.commercial }}</h2>
+      <article *ngFor="let q of block.quarters" class="quarter-card">
+        <h3>Localité · {{ q.quarter }} · {{ q.items.length }}</h3>
+        <div class="row" *ngFor="let item of q.items">
+          <div>
+            <strong>{{ item.clientName }}</strong>
+            <span>{{ formatAmount(item.totalAmountRemaining || 0) }} FCFA</span>
+          </div>
+          <ion-button size="small" fill="outline" (click)="openMaps(item)">Naviguer</ion-button>
+        </div>
+      </article>
+    </section>
+
+    <p class="empty" *ngIf="!byCommercial.length && !tontineByCommercial.length">
+      Aucun retard ni membre tontine dans le pack.
+    </p>
+  </div>
+</ion-content>

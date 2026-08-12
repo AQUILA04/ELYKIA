@@ -1,3 +1,7 @@
+ion-content.rm-content {
+  --background: #f2f4f8;
+}
+
 .rm-dash {
   --rm-navy: #003366;
   --rm-navy-dark: #002244;
@@ -5,9 +9,8 @@
   --rm-bg: #f2f4f8;
   --rm-muted: #6b7a99;
   --rm-orange: #c75000;
-  min-height: 100%;
   background: var(--rm-bg);
-  padding-bottom: 88px;
+  padding-bottom: 24px;
 }
 
 .rm-hero {

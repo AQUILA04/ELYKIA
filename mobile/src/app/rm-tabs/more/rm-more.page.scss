@@ -1,10 +1,13 @@
+ion-content.rm-content {
+  --background: #f2f4f8;
+}
+
 .rm-page {
   --rm-navy: #003366;
   --rm-muted: #6b7a99;
   --rm-bg: #f2f4f8;
-  min-height: 100%;
   background: var(--rm-bg);
-  padding-bottom: 88px;
+  padding-bottom: 24px;
 }
 .rm-hero {
   background: linear-gradient(160deg, #003366, #002244);

@@ -48,6 +48,28 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             @Param("commercial") String commercial,
             @Param("state") State state);
 
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.TontineMemberMonthlyAggregateDto(
+                tm.id,
+                YEAR(tc.collectionDate),
+                MONTH(tc.collectionDate),
+                COUNT(tc.id),
+                COALESCE(SUM(tc.amount), 0)
+            )
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            JOIN tm.tontineSession s
+            JOIN tm.client c
+            WHERE s.year = :year
+              AND c.tontineCollector IN :collectors
+              AND tc.state = :state
+            GROUP BY tm.id, YEAR(tc.collectionDate), MONTH(tc.collectionDate)
+            """)
+    java.util.List<TontineMemberMonthlyAggregateDto> sumMonthlyBySessionYearAndTontineCollectors(
+            @Param("year") Integer year,
+            @Param("collectors") java.util.List<String> collectors,
+            @Param("state") State state);
+
     @Query("SELECT SUM(tc.amount) FROM TontineCollection tc WHERE tc.tontineMember.id = :memberId AND tc.isDeliveryCollection = true AND tc.state = :state")
     Double sumDeliveryCollectionsByMember(@Param("memberId") Long memberId, @Param("state") State state);
 

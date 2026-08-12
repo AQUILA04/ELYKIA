@@ -50,6 +50,21 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                         @Param("state") State state);
 
         @Query("""
+                SELECT tm FROM TontineMember tm
+                JOIN FETCH tm.client c
+                JOIN FETCH tm.tontineSession s
+                WHERE s.year = :year
+                  AND tm.state = :state
+                  AND tm.deliveryStatus = com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus.SESSION_INPROGRESS
+                  AND c.tontineCollector IN :collectors
+                ORDER BY c.quarter ASC, c.lastname ASC, c.firstname ASC
+                """)
+        List<TontineMember> findActiveBySessionYearAndTontineCollectors(
+                        @Param("year") Integer year,
+                        @Param("collectors") List<String> collectors,
+                        @Param("state") State state);
+
+        @Query("""
         SELECT new com.optimize.elykia.core.dto.customer.CustomerTontineContributionSummaryDto(
             tm.id,
             tm.tontineSession.year,

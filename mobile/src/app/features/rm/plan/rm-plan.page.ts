@@ -25,6 +25,12 @@ export class RmPlanPage implements OnInit {
   estimateAmount = 0;
   readonly maxCommercials = 3;
 
+  localityPickerOpen = false;
+  localityQuery = '';
+  private draftSelectedQuarters = new Set<string>();
+  private draftAllQuarters = true;
+  private localitySelectionCommitted = false;
+
   constructor(
     private readonly api: RmFieldPlanApiService,
     private readonly packService: RmOfflinePackService,
@@ -41,6 +47,18 @@ export class RmPlanPage implements OnInit {
       return;
     }
     await this.loadCollectors();
+  }
+
+  get filteredQuarters(): string[] {
+    const q = this.localityQuery.trim().toLowerCase();
+    if (!q) {
+      return this.availableQuarters;
+    }
+    return this.availableQuarters.filter(name => name.toLowerCase().includes(q));
+  }
+
+  get selectedQuarterPreview(): string[] {
+    return Array.from(this.selectedQuarters).slice(0, 6);
   }
 
   async loadCollectors(): Promise<void> {
@@ -89,21 +107,50 @@ export class RmPlanPage implements OnInit {
     this.allQuarters = true;
   }
 
+  openLocalityPicker(): void {
+    this.localityQuery = '';
+    this.draftSelectedQuarters = new Set(this.selectedQuarters);
+    this.draftAllQuarters = this.allQuarters;
+    this.localitySelectionCommitted = false;
+    if (this.allQuarters) {
+      this.selectedQuarters = new Set();
+    }
+    this.localityPickerOpen = true;
+  }
+
+  closeLocalityPicker(): void {
+    if (!this.localitySelectionCommitted) {
+      this.selectedQuarters = new Set(this.draftSelectedQuarters);
+      this.allQuarters = this.draftAllQuarters;
+    }
+    this.localityPickerOpen = false;
+    this.localityQuery = '';
+  }
+
+  applyLocalitySelection(): void {
+    this.localitySelectionCommitted = true;
+    this.allQuarters = this.selectedQuarters.size === 0;
+    this.localityPickerOpen = false;
+    this.localityQuery = '';
+  }
+
+  clearSelectedQuarters(): void {
+    this.selectedQuarters = new Set();
+  }
+
   toggleQuarter(quarter: string): void {
-    this.allQuarters = false;
     if (this.selectedQuarters.has(quarter)) {
       this.selectedQuarters.delete(quarter);
     } else {
       this.selectedQuarters.add(quarter);
     }
-    if (this.selectedQuarters.size === 0) {
-      this.allQuarters = true;
-    }
+    // Force change detection for Set mutations in template bindings
+    this.selectedQuarters = new Set(this.selectedQuarters);
   }
 
   selectAllQuarters(): void {
     this.allQuarters = true;
-    this.selectedQuarters.clear();
+    this.selectedQuarters = new Set();
   }
 
   goStep2(): void {
@@ -130,7 +177,6 @@ export class RmPlanPage implements OnInit {
       if (!this.selectedCommercials.has(c.username)) {
         continue;
       }
-      // Approximate: full commercial count if any quarter overlap (exact after pack)
       const overlap = (c.quarters || []).some(q => this.selectedQuarters.has(q));
       if (overlap) {
         lates += c.lateCount;

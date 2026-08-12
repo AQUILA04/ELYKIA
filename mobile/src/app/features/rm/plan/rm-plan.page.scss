@@ -6,6 +6,7 @@
   --rm-muted: #6b7a99;
   min-height: 100%;
   background: var(--rm-bg);
+  padding-bottom: 24px;
 }
 
 .rm-hero {
@@ -140,24 +141,71 @@
   margin-top: 20px;
 }
 
-.chip-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 0 8px;
+.sticky-actions {
+  position: sticky;
+  bottom: 12px;
+  z-index: 5;
+  padding-top: 8px;
+  background: linear-gradient(180deg, transparent, var(--rm-bg) 28%);
 }
 
-ion-chip {
+.locality-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.locality-card.active {
+  border-color: var(--rm-navy);
+  background: var(--rm-navy-pale);
+}
+
+.locality-card strong {
+  display: block;
+  color: var(--rm-navy);
+  font-size: 15px;
+}
+
+.locality-card span {
+  display: block;
+  color: var(--rm-muted);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.locality-card .card-icon,
+.locality-card .chevron {
+  color: var(--rm-navy);
+  font-size: 20px;
+}
+
+.locality-card .chevron {
+  margin-left: auto;
+  opacity: 0.55;
+}
+
+.pointer-none {
+  pointer-events: none;
+}
+
+.selected-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+
+.selected-preview ion-chip {
   --background: #fff;
   --color: var(--rm-navy);
   border: 1px solid #dde3ec;
-}
-
-ion-chip.chip-on {
-  --background: var(--rm-navy-pale);
-  --color: var(--rm-navy);
-  border-color: var(--rm-navy);
-  font-weight: 700;
+  max-width: 100%;
 }
 
 .estimate-card {
@@ -198,4 +246,51 @@ ion-chip.chip-on {
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+.rm-modal-toolbar {
+  --background: #fff;
+  --color: var(--rm-navy);
+}
+
+.rm-modal-content {
+  --background: var(--rm-bg);
+}
+
+.modal-list {
+  padding: 12px 12px 24px;
+}
+
+.modal-hint {
+  text-align: center;
+  color: var(--rm-muted);
+  padding: 32px 16px;
+}
+
+.rm-modal-footer ion-toolbar {
+  --background: #fff;
+  --border-width: 1px 0 0;
+  --border-color: #dde3ec;
+  padding: 8px 12px 12px;
+}
+
+.footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  color: var(--rm-muted);
+  font-size: 13px;
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.footer-actions .rm-cta {
+  min-width: 110px;
+  height: 42px;
 }

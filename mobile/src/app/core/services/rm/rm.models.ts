@@ -25,6 +25,7 @@ export interface RmCollectorStat {
 export interface RmOfflinePackStats {
   lateCredits: number;
   clients: number;
+  tontineMembers?: number;
   estimatedBytes: number;
 }
 
@@ -50,6 +51,26 @@ export interface RmPackClient {
   profilPhotoThumbUrl?: string;
 }
 
+export interface RmPackTontineMonth {
+  year: number;
+  month: number;
+  systemAmount: number;
+}
+
+export interface RmPackTontineMember {
+  id: number;
+  clientId?: number;
+  clientName?: string;
+  clientPhone?: string;
+  clientQuarter?: string;
+  tontineCollector?: string;
+  sessionYear?: number;
+  amount?: number;
+  totalContribution?: number;
+  deliveryStatus?: string;
+  months: RmPackTontineMonth[];
+}
+
 export interface RmCreditLate {
   id: number;
   reference?: string;
@@ -72,6 +93,24 @@ export interface RmCreditLate {
   status?: string;
 }
 
+export interface RmPackTontineFieldControlToday {
+  tontineMemberId?: number;
+  reference?: string;
+  status?: string;
+  notebookTotalAmount?: number;
+  systemTotalAmount?: number;
+  differenceAmount?: number;
+  note?: string;
+  observedAt?: string;
+  lines?: {
+    year: number;
+    month: number;
+    notebookAmount: number;
+    systemAmount: number;
+    differenceAmount: number;
+  }[];
+}
+
 export interface RmOfflinePack {
   planId: number;
   planDate: string;
@@ -81,6 +120,6 @@ export interface RmOfflinePack {
   lateCredits: RmCreditLate[];
   clients: RmPackClient[];
   creditFieldControlsToday: unknown[];
-  tontineMembers: unknown[];
-  tontineFieldControlsToday: unknown[];
+  tontineMembers: RmPackTontineMember[];
+  tontineFieldControlsToday: RmPackTontineFieldControlToday[];
 }
