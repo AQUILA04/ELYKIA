@@ -38,7 +38,8 @@ public class ExpenseController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete an expense")
     public ResponseEntity<Response> delete(@PathVariable Long id) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(expenseService.deleteSoft(id)), HttpStatus.OK);
+        expenseService.deleteExpense(id);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse("Dépense supprimée."), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

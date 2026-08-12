@@ -16,6 +16,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class ExpenseFormComponent implements OnInit {
   expenseForm: FormGroup;
   isEditMode = false;
+  isAccounted = false;
   expenseId?: number;
   expenseTypes: ExpenseType[] = [];
 
@@ -55,7 +56,6 @@ export class ExpenseFormComponent implements OnInit {
 
   loadExpense(id: number) {
     this.expenseService.getExpense(id).subscribe(data => {
-      // Convertir la date en format YYYY-MM-DD pour l'input type="date"
       const dateStr = data.expenseDate
         ? new Date(data.expenseDate).toISOString().split('T')[0]
         : '';
@@ -66,6 +66,10 @@ export class ExpenseFormComponent implements OnInit {
         description: data.description,
         reference: data.reference
       });
+      if (data.accounted) {
+        this.isAccounted = true;
+        this.expenseForm.disable();
+      }
     });
   }
 

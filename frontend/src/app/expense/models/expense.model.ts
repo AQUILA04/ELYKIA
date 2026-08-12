@@ -13,6 +13,8 @@ export interface Expense {
     expenseDate: string; // ISO Date string
     description?: string;
     reference?: string;
+    accounted?: boolean;
+    remittanceReference?: string;
 }
 
 export interface ExpenseKpi {

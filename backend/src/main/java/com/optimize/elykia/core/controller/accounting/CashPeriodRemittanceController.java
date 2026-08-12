@@ -12,6 +12,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+
 @RestController
 @RequestMapping("api/cash-period-remittances")
 @RequiredArgsConstructor
@@ -28,17 +30,24 @@ public class CashPeriodRemittanceController {
 
     @PostMapping("/submit")
     public ResponseEntity<CashPeriodRemittanceDto> submit(@RequestBody CashPeriodRemittanceRequest request) {
-        return ResponseEntity.ok(remittanceService.submitBySecretary(request.getYear(), request.getMonth()));
+        return ResponseEntity.ok(remittanceService.submitBySecretary(
+                request.getYear(), request.getMonth(),
+                request.getExpenseIds() != null ? request.getExpenseIds() : Collections.emptyList()));
     }
 
     @PostMapping("/{id}/acknowledge")
-    public ResponseEntity<CashPeriodRemittanceDto> acknowledge(@PathVariable Long id) {
-        return ResponseEntity.ok(remittanceService.acknowledgeByManager(id));
+    public ResponseEntity<CashPeriodRemittanceDto> acknowledge(
+            @PathVariable Long id,
+            @RequestBody(required = false) CashPeriodRemittanceRequest request) {
+        return ResponseEntity.ok(remittanceService.acknowledgeByManager(
+                id, request != null ? request.getExpenseIds() : null));
     }
 
     @PostMapping("/initiate")
     public ResponseEntity<CashPeriodRemittanceDto> initiate(@RequestBody CashPeriodRemittanceRequest request) {
-        return ResponseEntity.ok(remittanceService.initiateByManager(request.getYear(), request.getMonth()));
+        return ResponseEntity.ok(remittanceService.initiateByManager(
+                request.getYear(), request.getMonth(),
+                request.getExpenseIds() != null ? request.getExpenseIds() : Collections.emptyList()));
     }
 
     @GetMapping

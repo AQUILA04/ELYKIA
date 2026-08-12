@@ -9,6 +9,23 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.8.0] — 2026-08-12
+
+### Added
+- Remise au gestionnaire : association de dépenses avec calcul du montant net (total versé − dépenses).
+- Table de liaison `cash_period_remittance_expense` (migration V86) ; colonnes `expense_amount` / `net_amount`.
+- Accusé réception (`acknowledge`) accepte un sous-ensemble de dépenses (retrait par le gestionnaire) avec recalcul.
+- Verrou : update/delete dépense refusé si liée à une remise `RECEIVED`.
+
+## Frontend — [2.15.0] — 2026-08-12
+
+### Added
+- Onglet Remise : sélecteur de dépenses (pré-cochées par période), KPIs Dépenses + Net en temps réel.
+- Contrôle gestionnaire en `PENDING` : retrait de dépenses avec recalcul du net avant réception.
+- Historique des remises : colonnes Dépenses et Net.
+- Liste dépenses : badge « Comptabilisée » + actions éditer/supprimer désactivées si remise `RECEIVED`.
+- Formulaire dépenses : mode lecture seule avec bannière si comptabilisée.
+
 ## Mobile — [2.19.8] — 2026-08-12
 
 ### Changed
@@ -34,6 +51,52 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Added
 - Thumbnails MinIO (Thumbnailator) : upload original + `thumb.jpg`, outbox photo avec thumbs, URLs profil dans le pack offline RM (`profilPhotoUrl` / `profilPhotoThumbUrl`).
+
+## Mobile — [2.19.6] — 2026-08-12
+
+### Changed
+- Barre de session RM limitée aux onglets **Retards** et **Plus** (retirée de Plan, Terrain, Clients).
+
+## Mobile — [2.19.5] — 2026-08-12
+
+### Added
+- **RM session —** barre d’identité (username chef de recouvrement) + indicateur En ligne / Hors ligne (ping backend, refresh 30s) sur Plan, Retards, Terrain, Clients et Plus.
+
+## Mobile — [2.19.4] — 2026-08-11
+
+### Fixed
+- Scroll RM (Retards / Terrain / Clients / Plus) : contenu enveloppé dans `ion-content`.
+
+### Changed
+- Recherche Clients RM : barre arrondie (navy) ; en-têtes de groupes libellés « Localité · … ».
+
+## Mobile — [2.19.3] — 2026-08-11
+
+### Changed
+- Plan du jour RM : sélection des **localités** via modal multi-select + recherche (plus de chips exhaustifs) ; libellé métier « Localités » (champ `quarter` inchangé).
+- Boutons Continuer en sticky pour rester accessibles.
+
+## Mobile — [2.19.2] — 2026-08-11
+
+### Fixed
+- Typage `tontineFieldControlsToday` dans le pack RM (plus de `unknown[]` / erreur `status` sur Terrain).
+
+## Mobile — [2.19.1] — 2026-08-11
+
+### Fixed
+- Compilation Terrain RM : typage du statut de contrôle tontine du jour (`unknown[]`).
+
+## Mobile — [2.19.0] — 2026-08-11
+
+### Added
+- **RM contrôle carnet tontine (V2) —** pack offline avec membres + mois système, sheet mois-par-mois, file `rm_tontine_field_controls` + sync via `POST /tontines/members/{id}/field-controls`.
+- Onglet Terrain : liste tontine par commercial/quartier + badge CONFORME/ECART du jour.
+- Sync Plus : contacts → contrôles crédit → contrôles tontine → clôtures.
+
+## Backend — [1.7.0] — 2026-08-11
+
+### Added
+- **Offline pack RM —** `includeTontine=true` peuplé : membres `SESSION_INPROGRESS` (filtre `tontineCollector` + quarters), mois 2–11 avec montants système, contrôles tontine du jour.
 
 ## Mobile — [2.18.0] — 2026-08-11
 

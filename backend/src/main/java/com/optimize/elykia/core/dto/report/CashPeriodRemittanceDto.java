@@ -19,6 +19,8 @@ public class CashPeriodRemittanceDto {
     Double newBalanceAmount;
     RemittanceStatus status;
     RemittanceInitiator initiatedBy;
+    Double expenseAmount;
+    Double netAmount;
     String submittedBy;
     String receivedBy;
     LocalDateTime submittedAt;

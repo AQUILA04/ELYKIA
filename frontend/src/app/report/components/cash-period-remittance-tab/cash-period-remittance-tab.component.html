@@ -66,13 +66,62 @@
                 <div class="kpi-value">{{ summary.newBalanceAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
                 <div class="kpi-sub">Dépôts initiaux</div>
             </div>
+            <div class="kpi-card kpi-expense">
+                <div class="kpi-label">Dépenses</div>
+                <div class="kpi-value">{{ computedExpenseAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
+                <div class="kpi-sub">À déduire</div>
+            </div>
+            <div class="kpi-card" [class.kpi-net]="!netNegative" [class.kpi-net-negative]="netNegative">
+                <div class="kpi-label">Montant net</div>
+                <div class="kpi-value">{{ computedNetAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
+                <div class="kpi-sub">À remettre au gestionnaire</div>
+            </div>
+        </div>
+
+        <!-- Expense selection -->
+        <div class="expense-section" *ngIf="getVisibleExpenses().length > 0 || isReadOnly">
+            <div class="section-header">
+                <h3 class="section-title">Dépenses associées</h3>
+                <span class="section-hint" *ngIf="!isReadOnly && !summary.status">
+                    Cochez les dépenses à déduire de la remise
+                </span>
+                <span class="section-hint" *ngIf="!isReadOnly && summary.status === 'PENDING'">
+                    Le gestionnaire peut retirer des dépenses avant réception
+                </span>
+                <span class="section-hint" *ngIf="isReadOnly">
+                    Montants figés après réception
+                </span>
+            </div>
+            <div class="expense-list" *ngIf="getVisibleExpenses().length > 0">
+                <div class="expense-item" *ngFor="let expense of getVisibleExpenses()"
+                     [class.selected]="isExpenseSelected(expense)"
+                     [class.readonly]="isReadOnly"
+                     (click)="toggleExpense(expense)">
+                    <input type="checkbox"
+                        [checked]="isExpenseSelected(expense)"
+                        [disabled]="isReadOnly"
+                        class="expense-checkbox">
+                    <div class="expense-info">
+                        <span class="expense-type">{{ expense.expenseTypeName }}</span>
+                        <span class="expense-date">{{ expense.expenseDate | date:'dd/MM/yyyy' }}</span>
+                        <span class="expense-desc" *ngIf="expense.description">{{ expense.description }}</span>
+                    </div>
+                    <span class="expense-amount mono">{{ expense.amount | currency:'XOF':'symbol':'1.0-0' }}</span>
+                </div>
+            </div>
+            <div class="empty-state" *ngIf="getVisibleExpenses().length === 0 && isReadOnly">
+                <div class="empty-title">Aucune dépense associée</div>
+            </div>
+            <div class="net-negative-warn" *ngIf="netNegative">
+                Le total des dépenses dépasse le montant versé. Retirez des dépenses pour continuer.
+            </div>
         </div>
 
         <div class="actions-card" *ngIf="summary.canSubmit || summary.canAcknowledge || summary.canInitiate">
             <span class="actions-label">Actions disponibles</span>
             <div class="actions-row">
                 <button type="button" class="btn-primary" *ngIf="isSecretary && summary.canSubmit"
-                    [disabled]="isSubmitting" (click)="submitRemittance()" data-testid="e2e-remittance-submit">
+                    [disabled]="isSubmitting || netNegative" (click)="submitRemittance()" data-testid="e2e-remittance-submit">
                     <span class="spinner-small" *ngIf="isSubmitting"></span>
                     <svg *ngIf="!isSubmitting" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9 22 2z"/>
@@ -80,7 +129,7 @@
                     Soumettre la remise
                 </button>
                 <button type="button" class="btn-primary" *ngIf="isManager && summary.canAcknowledge"
-                    [disabled]="isSubmitting" (click)="acknowledge(summary.remittanceId!)"
+                    [disabled]="isSubmitting || netNegative" (click)="acknowledge(summary.remittanceId!)"
                     data-testid="e2e-remittance-acknowledge">
                     <span class="spinner-small" *ngIf="isSubmitting"></span>
                     <svg *ngIf="!isSubmitting" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -89,7 +138,7 @@
                     Accuser réception
                 </button>
                 <button type="button" class="btn-outline" *ngIf="isManager && summary.canInitiate"
-                    [disabled]="isSubmitting" (click)="initiateRemittance()" data-testid="e2e-remittance-initiate">
+                    [disabled]="isSubmitting || netNegative" (click)="initiateRemittance()" data-testid="e2e-remittance-initiate">
                     Initier la réception
                 </button>
             </div>
@@ -110,6 +159,8 @@
                         <th class="text-right">Crédit</th>
                         <th class="text-right">Tontine</th>
                         <th class="text-right">Solde Nx</th>
+                        <th class="text-right">Dépenses</th>
+                        <th class="text-right">Net</th>
                         <th>Statut</th>
                         <th>Soumis par</th>
                         <th>Reçu par</th>
@@ -122,6 +173,8 @@
                         <td class="text-right mono">{{ item.creditAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
                         <td class="text-right mono">{{ item.tontineAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
                         <td class="text-right mono">{{ item.newBalanceAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                        <td class="text-right mono">{{ item.expenseAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                        <td class="text-right mono">{{ item.netAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
                         <td>
                             <span class="status-badge" [ngClass]="getStatusClass(item.status)">{{ getStatusLabel(item.status) }}</span>
                         </td>

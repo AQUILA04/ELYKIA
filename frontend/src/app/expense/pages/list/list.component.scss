@@ -206,6 +206,23 @@ tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
 .page-btn:disabled { opacity: .5; cursor: not-allowed; background: var(--navy-xpale); }
 .page-btn svg { width: 14px; height: 14px; }
 
+.accounted-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ── RESPONSIVE ──────────────────────────────────────────────── */
 @media (max-width: 1000px) { .col-hide { display: none; } }
 @media (max-width: 680px) {

@@ -486,3 +486,122 @@
     }
   }
 }
+
+.expense-section {
+  margin-top: 1.5rem;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  background: var(--surface-secondary, #fafbfc);
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .section-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted, #64748b);
+    }
+  }
+
+  .expense-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .expense-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color, #e2e8f0);
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+
+    &:hover:not(.readonly) {
+      background: var(--hover-bg, #f1f5f9);
+    }
+
+    &.selected {
+      border-color: var(--primary-color, #3b82f6);
+      background: var(--primary-bg-light, #eff6ff);
+    }
+
+    &.readonly {
+      cursor: default;
+      opacity: 0.8;
+    }
+
+    .expense-checkbox {
+      flex-shrink: 0;
+      width: 1rem;
+      height: 1rem;
+      cursor: inherit;
+    }
+
+    .expense-info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+
+      .expense-type {
+        font-weight: 500;
+        font-size: 0.85rem;
+      }
+
+      .expense-date {
+        font-size: 0.8rem;
+        color: var(--text-muted, #64748b);
+      }
+
+      .expense-desc {
+        font-size: 0.8rem;
+        color: var(--text-secondary, #475569);
+      }
+    }
+
+    .expense-amount {
+      font-weight: 600;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+  }
+
+  .net-negative-warn {
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.5rem;
+    background: #fef2f2;
+    color: #dc2626;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+}
+
+.kpi-card.kpi-expense {
+  .kpi-label { color: #d97706; }
+  .kpi-value { color: #b45309; }
+}
+
+.kpi-card.kpi-net {
+  .kpi-label { color: #059669; }
+  .kpi-value { color: #047857; font-weight: 700; }
+}
+
+.kpi-card.kpi-net-negative {
+  .kpi-label { color: #dc2626; }
+  .kpi-value { color: #dc2626; font-weight: 700; }
+}

@@ -47,6 +47,12 @@ public class CashPeriodRemittance extends Auditable<String> {
     @Column(nullable = false)
     private RemittanceInitiator initiatedBy;
 
+    @Column(nullable = false)
+    private Double expenseAmount = 0.0;
+
+    @Column(nullable = false)
+    private Double netAmount = 0.0;
+
     private String submittedBy;
     private String receivedBy;
     private LocalDateTime submittedAt;

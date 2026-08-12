@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CashPeriodRemittanceService } from '../../service/cash-period-remittance.service';
 import { CashPeriodRemittance, CashPeriodRemittanceSummary } from '../../models/cash-period-remittance.model';
+import { Expense } from 'src/app/expense/models/expense.model';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -20,6 +21,10 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
     isSubmitting = false;
     isManager = false;
     isSecretary = false;
+
+    selectedExpenseIds: Set<number> = new Set();
+    computedExpenseAmount = 0;
+    computedNetAmount = 0;
 
     months = [
         { value: 1, label: 'Janvier' },
@@ -63,6 +68,7 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
         this.remittanceService.getSummary(this.selectedYear, this.selectedMonth).subscribe({
             next: (summary) => {
                 this.summary = summary;
+                this.initExpenseSelection();
                 this.isLoading = false;
             },
             error: (err) => {
@@ -81,10 +87,70 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
         });
     }
 
+    initExpenseSelection(): void {
+        this.selectedExpenseIds = new Set();
+        if (!this.summary) return;
+
+        if (!this.summary.status) {
+            // No remittance yet: pre-select all candidates
+            (this.summary.candidateExpenses || []).forEach(e => {
+                if (e.id) this.selectedExpenseIds.add(e.id);
+            });
+        } else if (this.summary.status === 'PENDING') {
+            // Existing PENDING: pre-select all linked
+            (this.summary.linkedExpenses || []).forEach(e => {
+                if (e.id) this.selectedExpenseIds.add(e.id);
+            });
+        }
+        this.recalculate();
+    }
+
+    toggleExpense(expense: Expense): void {
+        if (!expense.id) return;
+        if (this.summary?.status === 'RECEIVED') return;
+        if (this.selectedExpenseIds.has(expense.id)) {
+            this.selectedExpenseIds.delete(expense.id);
+        } else {
+            this.selectedExpenseIds.add(expense.id);
+        }
+        this.recalculate();
+    }
+
+    isExpenseSelected(expense: Expense): boolean {
+        return !!expense.id && this.selectedExpenseIds.has(expense.id);
+    }
+
+    recalculate(): void {
+        if (!this.summary) return;
+        const expenses = this.getVisibleExpenses();
+        this.computedExpenseAmount = expenses
+            .filter(e => e.id && this.selectedExpenseIds.has(e.id))
+            .reduce((sum, e) => sum + (e.amount || 0), 0);
+        this.computedNetAmount = (this.summary.totalAmount || 0) - this.computedExpenseAmount;
+    }
+
+    getVisibleExpenses(): Expense[] {
+        if (!this.summary) return [];
+        if (!this.summary.status) {
+            return this.summary.candidateExpenses || [];
+        }
+        return this.summary.linkedExpenses || [];
+    }
+
+    get isReadOnly(): boolean {
+        return this.summary?.status === 'RECEIVED';
+    }
+
+    get netNegative(): boolean {
+        return this.computedNetAmount < 0;
+    }
+
     submitRemittance(): void {
-        if (this.isSubmitting) return;
+        if (this.isSubmitting || this.netNegative) return;
         this.isSubmitting = true;
-        this.remittanceService.submit(this.selectedYear, this.selectedMonth).subscribe({
+        this.remittanceService.submit(
+            this.selectedYear, this.selectedMonth, Array.from(this.selectedExpenseIds)
+        ).subscribe({
             next: () => {
                 this.snackBar.open('Remise soumise au gestionnaire.', 'OK', { duration: 3000 });
                 this.isSubmitting = false;
@@ -99,9 +165,9 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
     }
 
     acknowledge(remittanceId: number): void {
-        if (this.isSubmitting) return;
+        if (this.isSubmitting || this.netNegative) return;
         this.isSubmitting = true;
-        this.remittanceService.acknowledge(remittanceId).subscribe({
+        this.remittanceService.acknowledge(remittanceId, Array.from(this.selectedExpenseIds)).subscribe({
             next: () => {
                 this.snackBar.open('Réception accusée.', 'OK', { duration: 3000 });
                 this.isSubmitting = false;
@@ -116,9 +182,11 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
     }
 
     initiateRemittance(): void {
-        if (this.isSubmitting) return;
+        if (this.isSubmitting || this.netNegative) return;
         this.isSubmitting = true;
-        this.remittanceService.initiate(this.selectedYear, this.selectedMonth).subscribe({
+        this.remittanceService.initiate(
+            this.selectedYear, this.selectedMonth, Array.from(this.selectedExpenseIds)
+        ).subscribe({
             next: () => {
                 this.snackBar.open('Réception enregistrée.', 'OK', { duration: 3000 });
                 this.isSubmitting = false;

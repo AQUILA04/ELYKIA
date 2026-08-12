@@ -14,4 +14,6 @@ public class ExpenseDto {
     private LocalDate expenseDate;
     private String description;
     private String reference;
+    private Boolean accounted;
+    private String remittanceReference;
 }

@@ -17,16 +17,17 @@ export class CashPeriodRemittanceService {
         return this.http.get<CashPeriodRemittanceSummary>(`${this.apiUrl}/summary`, { params });
     }
 
-    submit(year: number, month: number): Observable<CashPeriodRemittance> {
-        return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/submit`, { year, month });
+    submit(year: number, month: number, expenseIds: number[] = []): Observable<CashPeriodRemittance> {
+        return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/submit`, { year, month, expenseIds });
     }
 
-    acknowledge(id: number): Observable<CashPeriodRemittance> {
-        return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/${id}/acknowledge`, {});
+    acknowledge(id: number, expenseIds?: number[]): Observable<CashPeriodRemittance> {
+        const body = expenseIds != null ? { expenseIds } : {};
+        return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/${id}/acknowledge`, body);
     }
 
-    initiate(year: number, month: number): Observable<CashPeriodRemittance> {
-        return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/initiate`, { year, month });
+    initiate(year: number, month: number, expenseIds: number[] = []): Observable<CashPeriodRemittance> {
+        return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/initiate`, { year, month, expenseIds });
     }
 
     list(page: number = 0, size: number = 20): Observable<any> {

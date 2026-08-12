@@ -6,6 +6,7 @@ import com.optimize.elykia.core.dto.ExpenseKpiDto;
 import com.optimize.elykia.core.entity.expense.Expense;
 import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.mapper.ExpenseMapper;
+import com.optimize.elykia.core.repository.CashPeriodRemittanceExpenseRepository;
 import com.optimize.elykia.core.repository.ExpenseRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,9 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,11 +32,14 @@ public class ExpenseService extends GenericService<Expense, Long> {
 
     private final ExpenseTypeRepository expenseTypeRepository;
     private final ExpenseMapper expenseMapper;
+    private final CashPeriodRemittanceExpenseRepository remittanceExpenseRepository;
 
-    public ExpenseService(ExpenseRepository repository, ExpenseTypeRepository expenseTypeRepository, ExpenseMapper expenseMapper) {
+    public ExpenseService(ExpenseRepository repository, ExpenseTypeRepository expenseTypeRepository,
+                          ExpenseMapper expenseMapper, CashPeriodRemittanceExpenseRepository remittanceExpenseRepository) {
         super(repository);
         this.expenseTypeRepository = expenseTypeRepository;
         this.expenseMapper = expenseMapper;
+        this.remittanceExpenseRepository = remittanceExpenseRepository;
     }
 
     @Transactional
@@ -51,6 +57,7 @@ public class ExpenseService extends GenericService<Expense, Long> {
 
     @Transactional
     public ExpenseDto updateExpense(ExpenseDto dto, Long id) {
+        assertNotAccountedInReceivedRemittance(id);
         // GenericService update usually expects entity with ID.
         // We might need to fetch existing to set ExpenseType if not in DTO fully or handle relations.
         // But mapper + set ID should work for simple update if GenericService.update merges.
@@ -74,7 +81,7 @@ public class ExpenseService extends GenericService<Expense, Long> {
     }
 
     public Page<ExpenseDto> getAllDto(Pageable pageable) {
-        return getAll(pageable).map(expenseMapper::toDto);
+        return getAll(pageable).map(this::toDtoWithAccountedStatus);
     }
 
     public List<ExpenseDto> getExpensesByPeriod(LocalDate startDate, LocalDate endDate) {
@@ -117,6 +124,30 @@ public class ExpenseService extends GenericService<Expense, Long> {
         return kpis;
     }
     
+    @Transactional
+    public void deleteExpense(Long id) {
+        assertNotAccountedInReceivedRemittance(id);
+        delete(id);
+    }
+
+    private ExpenseDto toDtoWithAccountedStatus(Expense expense) {
+        ExpenseDto dto = expenseMapper.toDto(expense);
+        dto.setAccounted(isAccountedInReceivedRemittance(expense.getId()));
+        return dto;
+    }
+
+    public boolean isAccountedInReceivedRemittance(Long expenseId) {
+        Set<Long> received = remittanceExpenseRepository.findReceivedExpenseIdsIn(
+                Collections.singleton(expenseId));
+        return received.contains(expenseId);
+    }
+
+    private void assertNotAccountedInReceivedRemittance(Long expenseId) {
+        if (isAccountedInReceivedRemittance(expenseId)) {
+            throw new RuntimeException("Cette dépense est comptabilisée dans une remise réceptionnée et ne peut plus être modifiée.");
+        }
+    }
+
     @Override
     public ExpenseRepository getRepository() {
         return (ExpenseRepository) super.getRepository();
