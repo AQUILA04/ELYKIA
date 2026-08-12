@@ -67,11 +67,11 @@ export class ClientDetailsComponent implements OnInit {
 
   loadAllData(): void {
     this.isLoading = true;
+    this.safeProfilPhotoUrl = null;
     this.loadClient(this.clientId);
     this.loadClientDetails(this.clientId);
     this.loadCredits(this.clientId);
     this.loadCotisations(this.clientId);
-    this.loadProfilPhoto(this.clientId);
   }
 
   loadClient(clientId: number): void {
@@ -79,6 +79,7 @@ export class ClientDetailsComponent implements OnInit {
       (response: any) => {
         if (response && response.data) {
           this.client = response.data;
+          this.resolveProfilPhoto(this.client);
           if (this.dualCreditEnabled && this.isGestionnaire) {
             this.loadAuthorizationHistory(this.clientId);
           }
@@ -92,8 +93,17 @@ export class ClientDetailsComponent implements OnInit {
     );
   }
 
-  loadProfilPhoto(clientId: number): void {
-    this.clientService.getProfilPhotoStream(clientId).subscribe(
+  /**
+   * Prefer MinIO public URL (original then thumb); fallback to legacy PhotoStore stream.
+   */
+  resolveProfilPhoto(client: Client): void {
+    const minioUrl = client.profilPhotoUrl || client.profilPhotoThumbUrl;
+    if (minioUrl && (minioUrl.startsWith('http://') || minioUrl.startsWith('https://'))) {
+      this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(minioUrl);
+      return;
+    }
+
+    this.clientService.getProfilPhotoStream(client.id).subscribe(
       (image: Blob) => {
         if (image && image.size > 0) {
           const objectURL = URL.createObjectURL(image);

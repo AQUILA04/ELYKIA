@@ -1,10 +1,8 @@
 package com.optimize.elykia.client.outbox;
 
 import com.optimize.elykia.client.enumeration.PhotoType;
-import com.optimize.elykia.client.dto.UpdatePhotoUrlDto;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.client.storage.MinioStorageService;
-import com.optimize.elykia.client.storage.PhotoObjectKeyBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -43,15 +41,7 @@ public class PhotoOutboxRetryScheduler {
                 outboxRepository.save(entry);
 
                 byte[] bytes = Files.readAllBytes(Path.of(entry.getLocalFilePath()));
-                String objectKey = entry.getPhotoType() == PhotoType.PROFIL
-                        ? PhotoObjectKeyBuilder.profilOriginal(entry.getClientId())
-                        : PhotoObjectKeyBuilder.cardOriginal(entry.getClientId());
-                String url = minioStorageService.uploadPhoto(objectKey, bytes, "image/jpeg");
-                if (entry.getPhotoType() == PhotoType.PROFIL) {
-                    clientService.updateClientPhotoUrl(new UpdatePhotoUrlDto(entry.getClientId(), url, null));
-                } else {
-                    clientService.updateClientPhotoUrl(new UpdatePhotoUrlDto(entry.getClientId(), null, url));
-                }
+                clientService.uploadPhotoWithThumb(entry.getClientId(), bytes, entry.getPhotoType());
 
                 Files.deleteIfExists(Path.of(entry.getLocalFilePath()));
                 entry.setStatus(OutboxStatus.DONE);

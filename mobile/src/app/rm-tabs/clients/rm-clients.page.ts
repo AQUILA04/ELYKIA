@@ -14,6 +14,7 @@ import { RmClientEditSheetComponent } from '../../features/rm/client-edit/rm-cli
 export class RmClientsPage implements OnInit, OnDestroy {
   clients: RmPackClient[] = [];
   query = '';
+  private failedAvatars = new Set<number>();
   private sub?: Subscription;
 
   constructor(
@@ -24,6 +25,7 @@ export class RmClientsPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.sub = this.scope.pack$.subscribe(pack => {
       this.clients = pack?.clients ?? [];
+      this.failedAvatars.clear();
     });
   }
 
@@ -45,6 +47,29 @@ export class RmClientsPage implements OnInit, OnDestroy {
 
   hasGeo(c: RmPackClient): boolean {
     return c.latitude != null && c.longitude != null;
+  }
+
+  avatarUrl(c: RmPackClient): string | null {
+    if (this.failedAvatars.has(c.id)) {
+      return null;
+    }
+    if (c.profilPhotoThumbUrl) {
+      return c.profilPhotoThumbUrl;
+    }
+    if (c.profilPhotoUrl?.includes('original.jpg')) {
+      return c.profilPhotoUrl.replace('original.jpg', 'thumb.jpg');
+    }
+    return c.profilPhotoUrl || null;
+  }
+
+  initials(c: RmPackClient): string {
+    const first = (c.firstname || c.fullName || '?').trim().charAt(0);
+    const last = (c.lastname || '').trim().charAt(0);
+    return (first + last).toUpperCase() || '?';
+  }
+
+  onAvatarError(clientId: number): void {
+    this.failedAvatars.add(clientId);
   }
 
   async openEdit(client: RmPackClient): Promise<void> {

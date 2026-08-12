@@ -18,7 +18,7 @@ public interface PhotoStoreRepository extends GenericRepository<PhotoStore, Long
 
     boolean existsByClientId(Long clientId);
 
-    @Query("SELECT new com.optimize.elykia.client.dto.ClientPhotoDto(p.id, p.photo) FROM PhotoStore p WHERE p.clientId IN :ids AND p.type = :type")
+    @Query("SELECT new com.optimize.elykia.client.dto.ClientPhotoDto(p.clientId, p.photo) FROM PhotoStore p WHERE p.clientId IN :ids AND p.type = :type")
     List<ClientPhotoDto> getPhotos(List<Long> ids, PhotoType type);
 
 

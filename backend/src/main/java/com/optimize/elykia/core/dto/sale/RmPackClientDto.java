@@ -16,4 +16,8 @@ public class RmPackClientDto {
     private Double latitude;
     private Double longitude;
     private String mll;
+    /** URL MinIO photo de profil (original). */
+    private String profilPhotoUrl;
+    /** URL MinIO thumbnail profil (préféré pour listes). */
+    private String profilPhotoThumbUrl;
 }

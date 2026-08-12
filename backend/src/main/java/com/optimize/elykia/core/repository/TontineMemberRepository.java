@@ -127,7 +127,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized,
                 c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, 
                 null, null, null, null, c.code, c.profilPhotoUrl, 
-                c.cardPhotoUrl, c.tontineCollector, c.createdDate
+                c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl
             ),
             tm.totalContribution,
             tm.deliveryStatus,
@@ -174,7 +174,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized,
                 c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, 
                 null, null, null, null, c.code, c.profilPhotoUrl, 
-                c.cardPhotoUrl, c.tontineCollector, c.createdDate
+                c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl
             ),
             tm.totalContribution,
             tm.deliveryStatus,

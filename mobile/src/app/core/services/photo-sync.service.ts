@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from, of } from 'rxjs';
-import { switchMap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Storage } from '@ionic/storage-angular';
@@ -55,6 +53,10 @@ export class PhotoSyncService {
     await this.storage.set('enableCardPhotoSync', preferences.enableCardPhotoSync);
   }
 
+  /**
+   * Sync photos for commercial offline display.
+   * Prefer MinIO thumb URLs when present; fallback to legacy PhotoStore byte batch API.
+   */
   async syncPhotosForClients(clients?: Client[]): Promise<void> {
     const preferences = await this.getPhotoSyncPreferences();
 
@@ -79,19 +81,37 @@ export class PhotoSyncService {
 
       this.log.log(`[PhotoSyncService] Found ${syncedClients.length} synced clients to check for photos`);
 
-      // Batch processing for profile photos
       if (preferences.enableProfilePhotoSync) {
-        const clientsNeedingProfilePhoto = await this.filterClientsNeedingProfilePhoto(syncedClients);
-        if (clientsNeedingProfilePhoto.length > 0) {
-          await this.syncProfilePhotosBatch(clientsNeedingProfilePhoto);
+        const needing = await this.filterClientsNeedingProfilePhoto(syncedClients);
+        const minioClients = needing.filter(c => this.isHttpUrl(c.profilPhotoThumbUrl || c.profilPhotoUrl));
+        const legacyClients = needing.filter(c => !this.isHttpUrl(c.profilPhotoThumbUrl || c.profilPhotoUrl));
+
+        for (const client of minioClients) {
+          await this.downloadAndSaveThumbnail(
+            client,
+            client.profilPhotoThumbUrl || client.profilPhotoUrl!,
+            'profil'
+          );
+        }
+        if (legacyClients.length > 0) {
+          await this.syncProfilePhotosBatch(legacyClients);
         }
       }
 
-      // Batch processing for card photos
       if (preferences.enableCardPhotoSync) {
-        const clientsNeedingCardPhoto = await this.filterClientsNeedingCardPhoto(syncedClients);
-        if (clientsNeedingCardPhoto.length > 0) {
-          await this.syncCardPhotosBatch(clientsNeedingCardPhoto);
+        const needing = await this.filterClientsNeedingCardPhoto(syncedClients);
+        const minioClients = needing.filter(c => this.isHttpUrl(c.cardPhotoThumbUrl || c.cardPhotoUrl));
+        const legacyClients = needing.filter(c => !this.isHttpUrl(c.cardPhotoThumbUrl || c.cardPhotoUrl));
+
+        for (const client of minioClients) {
+          await this.downloadAndSaveThumbnail(
+            client,
+            client.cardPhotoThumbUrl || client.cardPhotoUrl!,
+            'card'
+          );
+        }
+        if (legacyClients.length > 0) {
+          await this.syncCardPhotosBatch(legacyClients);
         }
       }
 
@@ -99,6 +119,14 @@ export class PhotoSyncService {
       this.log.log(`[PhotoSyncService] Error syncing photos: ${error}`);
       console.error('Error syncing photos:', error);
     }
+  }
+
+  private isHttpUrl(value: string | null | undefined): boolean {
+    return !!value && (value.startsWith('http://') || value.startsWith('https://'));
+  }
+
+  private isLocalFsPath(value: string | null | undefined): boolean {
+    return !!value && value.startsWith('Pictures/');
   }
 
   private async filterClientsNeedingProfilePhoto(clients: Client[]): Promise<Client[]> {
@@ -121,9 +149,81 @@ export class PhotoSyncService {
     return needingPhoto;
   }
 
+  /**
+   * Download a MinIO thumb and store a local path for offline display.
+   * Does not mark updatedPhotoUrl (download only — never push local paths back to server).
+   */
+  private async downloadAndSaveThumbnail(
+    client: Client,
+    thumbUrl: string,
+    kind: 'profil' | 'card'
+  ): Promise<void> {
+    try {
+      const directory = kind === 'profil' ? this.PROFILE_PHOTO_DIR : this.CARD_PHOTO_DIR;
+      const fileName = `${kind}_${client.id}_thumb.jpg`;
+      const filePath = `${directory}/${fileName}`;
+
+      try {
+        await Filesystem.stat({ path: filePath, directory: Directory.Data });
+        await this.persistLocalPhotoPath(client, kind, filePath);
+        return;
+      } catch {
+        /* missing — download */
+      }
+
+      const response = await fetch(thumbUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const blob = await response.blob();
+      const base64Data = await this.blobToBase64(blob);
+
+      try {
+        await Filesystem.mkdir({ path: directory, directory: Directory.Data, recursive: true });
+      } catch {
+        /* ignore */
+      }
+
+      const data = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+      await Filesystem.writeFile({
+        path: filePath,
+        data,
+        directory: Directory.Data
+      });
+
+      await this.persistLocalPhotoPath(client, kind, filePath);
+      this.log.log(`[PhotoSyncService] Downloaded MinIO thumb for client ${client.id} (${kind})`);
+    } catch (error) {
+      this.log.log(`[PhotoSyncService] Failed MinIO thumb download for client ${client.id}: ${error}`);
+    }
+  }
+
+  private async persistLocalPhotoPath(client: Client, kind: 'profil' | 'card', filePath: string): Promise<void> {
+    if (kind === 'profil') {
+      const sql = `UPDATE clients SET profilPhoto = ?, profilPhotoThumbUrl = ? WHERE id = ?`;
+      await this.dbService.execute(sql, [filePath, filePath, client.id]);
+      client.profilPhoto = filePath;
+      client.profilPhotoThumbUrl = filePath;
+    } else {
+      const sql = `UPDATE clients SET cardPhoto = ?, cardPhotoThumbUrl = ? WHERE id = ?`;
+      await this.dbService.execute(sql, [filePath, filePath, client.id]);
+      client.cardPhoto = filePath;
+      client.cardPhotoThumbUrl = filePath;
+    }
+  }
+
+  private blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
   private async syncProfilePhotosBatch(clients: Client[]): Promise<void> {
-    const clientIds = clients.map(c => parseInt(c.id, 10)); // Assuming IDs are numeric for backend
-    this.log.log(`[PhotoSyncService] Fetching profile photos for ${clientIds.length} clients`);
+    const clientIds = clients.map(c => parseInt(c.id, 10));
+    this.log.log(`[PhotoSyncService] Fetching legacy profile photos for ${clientIds.length} clients`);
 
     try {
       const response = await this.fetchProfilePhotosBatchFromApi(clientIds);
@@ -139,20 +239,17 @@ export class PhotoSyncService {
                 `profile_${client.id}_${Date.now()}.png`
               );
 
-              // Generate thumbnail
               const thumbPath = await this.thumbnailService.generateThumbnail(photoPath, 200, 200);
 
-              // Update client with both paths
-              // Use Repository instead of direct DB call
               await this.clientRepository.updatePhotosAndInfo({
                 clientId: client.id,
                 cardType: client.cardType,
                 cardID: client.cardID,
                 profilPhoto: photoPath,
                 cardPhoto: client.cardPhoto || null,
-                profilPhotoUrl: photoPath, // Original path
+                profilPhotoUrl: photoPath,
                 cardPhotoUrl: client.cardPhotoUrl || null,
-                profilPhotoThumbUrl: thumbPath, // Thumbnail path
+                profilPhotoThumbUrl: thumbPath,
                 cardPhotoThumbUrl: client.cardPhotoThumbUrl || null
               });
 
@@ -169,7 +266,7 @@ export class PhotoSyncService {
 
   private async syncCardPhotosBatch(clients: Client[]): Promise<void> {
     const clientIds = clients.map(c => parseInt(c.id, 10));
-    this.log.log(`[PhotoSyncService] Fetching card photos for ${clientIds.length} clients`);
+    this.log.log(`[PhotoSyncService] Fetching legacy card photos for ${clientIds.length} clients`);
 
     try {
       const response = await this.fetchCardPhotosBatchFromApi(clientIds);
@@ -185,11 +282,8 @@ export class PhotoSyncService {
                 `card_${client.id}_${Date.now()}.png`
               );
 
-              // Generate thumbnail
               const thumbPath = await this.thumbnailService.generateThumbnail(photoPath, 200, 200);
 
-              // Update client with both paths
-              // Use Repository instead of direct DB call
               await this.clientRepository.updatePhotosAndInfo({
                 clientId: client.id,
                 cardType: client.cardType,
@@ -197,9 +291,9 @@ export class PhotoSyncService {
                 profilPhoto: client.profilPhoto || null,
                 cardPhoto: photoPath,
                 profilPhotoUrl: client.profilPhotoUrl || null,
-                cardPhotoUrl: photoPath, // Original path
+                cardPhotoUrl: photoPath,
                 profilPhotoThumbUrl: client.profilPhotoThumbUrl || null,
-                cardPhotoThumbUrl: thumbPath // Thumbnail path
+                cardPhotoThumbUrl: thumbPath
               });
 
               await this.markClientPhotoUrlsUpdated(client.id);
@@ -224,30 +318,50 @@ export class PhotoSyncService {
   }
 
   private async shouldFetchProfilePhoto(client: Client): Promise<boolean> {
-    // Récupérer si pas d'URL ou si le fichier n'existe pas
-    if (!client.profilPhotoUrl) {
+    if (this.isLocalFsPath(client.profilPhotoThumbUrl) || this.isLocalFsPath(client.profilPhoto)) {
+      try {
+        return !(await this.checkIfFileExists(client.profilPhotoThumbUrl || client.profilPhoto!));
+      } catch {
+        return true;
+      }
+    }
+
+    // MinIO URL → download only if local cache missing
+    if (this.isHttpUrl(client.profilPhotoThumbUrl) || this.isHttpUrl(client.profilPhotoUrl)) {
+      return !(await this.checkIfFileExists(`${this.PROFILE_PHOTO_DIR}/profil_${client.id}_thumb.jpg`));
+    }
+
+    // Legacy: no URL yet → try PhotoStore batch
+    if (!client.profilPhotoUrl && !client.profilPhotoThumbUrl) {
       return true;
     }
 
-    // Vérifier si le fichier existe dans le système de fichiers
     try {
-      const exists = await this.checkIfFileExists(client.profilPhotoUrl);
-      return !exists;
+      return !(await this.checkIfFileExists(client.profilPhotoUrl!));
     } catch {
       return true;
     }
   }
 
   private async shouldFetchCardPhoto(client: Client): Promise<boolean> {
-    // Récupérer si pas d'URL ou si le fichier n'existe pas
-    if (!client.cardPhotoUrl) {
+    if (this.isLocalFsPath(client.cardPhotoThumbUrl) || this.isLocalFsPath(client.cardPhoto)) {
+      try {
+        return !(await this.checkIfFileExists(client.cardPhotoThumbUrl || client.cardPhoto!));
+      } catch {
+        return true;
+      }
+    }
+
+    if (this.isHttpUrl(client.cardPhotoThumbUrl) || this.isHttpUrl(client.cardPhotoUrl)) {
+      return !(await this.checkIfFileExists(`${this.CARD_PHOTO_DIR}/card_${client.id}_thumb.jpg`));
+    }
+
+    if (!client.cardPhotoUrl && !client.cardPhotoThumbUrl) {
       return true;
     }
 
-    // Vérifier si le fichier existe dans le système de fichiers
     try {
-      const exists = await this.checkIfFileExists(client.cardPhotoUrl);
-      return !exists;
+      return !(await this.checkIfFileExists(client.cardPhotoUrl!));
     } catch {
       return true;
     }
@@ -267,8 +381,6 @@ export class PhotoSyncService {
 
   private async savePhotoToFileSystem(base64Data: string, directory: string, fileName: string): Promise<string> {
     try {
-      // Créer le répertoire s'il n'existe pas.
-      // Enveloppé dans un try/catch pour ignorer l'erreur "directory already exists" sur Android.
       try {
         await Filesystem.mkdir({
           path: directory,
@@ -276,7 +388,6 @@ export class PhotoSyncService {
           recursive: true
         });
       } catch (e: any) {
-        // Ignorer l'erreur si le dossier existe déjà, sinon la relancer
         if (e.message && !e.message.includes('already exists')) {
           this.log.log(`[PhotoSyncService] Error creating directory, but it was not an 'already exists' error: ${e.message}`);
           throw e;
@@ -285,7 +396,6 @@ export class PhotoSyncService {
 
       const filePath = `${directory}/${fileName}`;
 
-      // Sauvegarder le fichier
       await Filesystem.writeFile({
         path: filePath,
         data: base64Data,
@@ -328,25 +438,29 @@ export class PhotoSyncService {
     try {
       if (progressCallback) progressCallback('Analyse des clients locaux...');
 
-      // 1. Récupérer les clients locaux synchronisés avec des URLs de photos
       const allClients = await this.dbService.getClients(this.commercialUsername);
       const candidates = allClients.filter(c =>
         c.isSync &&
         !c.isLocal &&
-        (c.profilPhotoUrl || c.cardPhotoUrl)
+        (this.isLocalFsPath(c.profilPhotoUrl) || this.isLocalFsPath(c.cardPhotoUrl) ||
+          this.isLocalFsPath(c.profilPhoto) || this.isLocalFsPath(c.cardPhoto))
       );
 
       this.log.log(`[PhotoSyncService] Found ${candidates.length} candidates for repair`);
       if (progressCallback) progressCallback(`${candidates.length} clients candidats trouvés.`);
 
-      // 2. Vérifier l'existence physique des fichiers
       const validClients: Client[] = [];
       for (const client of candidates) {
         let hasValidFile = false;
-        if (client.profilPhotoUrl && await this.checkIfFileExists(client.profilPhotoUrl)) {
+        const profilPath = this.isLocalFsPath(client.profilPhoto) ? client.profilPhoto
+          : (this.isLocalFsPath(client.profilPhotoUrl) ? client.profilPhotoUrl : null);
+        const cardPath = this.isLocalFsPath(client.cardPhoto) ? client.cardPhoto
+          : (this.isLocalFsPath(client.cardPhotoUrl) ? client.cardPhotoUrl : null);
+
+        if (profilPath && await this.checkIfFileExists(profilPath)) {
           hasValidFile = true;
         }
-        if (client.cardPhotoUrl && await this.checkIfFileExists(client.cardPhotoUrl)) {
+        if (cardPath && await this.checkIfFileExists(cardPath)) {
           hasValidFile = true;
         }
 
@@ -358,20 +472,17 @@ export class PhotoSyncService {
       this.log.log(`[PhotoSyncService] ${validClients.length} clients have valid local files`);
       if (progressCallback) progressCallback(`${validClients.length} clients avec fichiers valides.`);
 
-      // 3. Batch Check avec le backend (par lots de 20)
       const BATCH_SIZE = 20;
       for (let i = 0; i < validClients.length; i += BATCH_SIZE) {
         const batch = validClients.slice(i, i + BATCH_SIZE);
         const batchIds = batch.map(c => parseInt(c.id, 10));
 
-        if (progressCallback) progressCallback(`Vérification lot ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(validClients.length/BATCH_SIZE)}...`);
+        if (progressCallback) progressCallback(`Vérification lot ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(validClients.length / BATCH_SIZE)}...`);
 
         const checkResponse = await this.http.post<any>(`${environment.apiUrl}/api/v1/clients/check-missing-photos`, batchIds).toPromise();
 
         if (checkResponse && checkResponse.data) {
           const missingList: { clientId: number, missingProfil: boolean, missingCard: boolean }[] = checkResponse.data;
-
-          // Filtrer ceux qui ont vraiment besoin d'une mise à jour
           const toUpdate = missingList.filter(item => item.missingProfil || item.missingCard);
 
           if (toUpdate.length > 0) {
@@ -395,7 +506,6 @@ export class PhotoSyncService {
     progressCallback?: (message: string) => void
   ): Promise<void> {
 
-    // Traiter par petits lots de 5 pour éviter OOM avec les Base64
     const UPLOAD_BATCH_SIZE = 5;
 
     for (let i = 0; i < missingList.length; i += UPLOAD_BATCH_SIZE) {
@@ -409,26 +519,28 @@ export class PhotoSyncService {
         let profilPhotoBase64 = null;
         let cardPhotoBase64 = null;
 
-        if (item.missingProfil && client.profilPhotoUrl) {
+        const profilPath = this.isLocalFsPath(client.profilPhoto) ? client.profilPhoto
+          : (this.isLocalFsPath(client.profilPhotoUrl) ? client.profilPhotoUrl : null);
+        const cardPath = this.isLocalFsPath(client.cardPhoto) ? client.cardPhoto
+          : (this.isLocalFsPath(client.cardPhotoUrl) ? client.cardPhotoUrl : null);
+
+        if (item.missingProfil && profilPath) {
           try {
             const file = await Filesystem.readFile({
-              path: client.profilPhotoUrl,
+              path: profilPath,
               directory: Directory.Data,
-              encoding: Encoding.UTF8 // Assuming base64 string is stored directly or read as string
+              encoding: Encoding.UTF8
             });
-            // Si le fichier contient déjà le préfixe data:image..., on peut l'utiliser tel quel ou le nettoyer
-            // Ici on suppose que readFile retourne le contenu. Si c'est binaire, il faut ajuster.
-            // Généralement Filesystem.readFile retourne { data: string }
             profilPhotoBase64 = file.data;
           } catch (e) {
             this.log.log(`[PhotoSyncService] Failed to read profile photo for ${client.id}: ${e}`);
           }
         }
 
-        if (item.missingCard && client.cardPhotoUrl) {
+        if (item.missingCard && cardPath) {
           try {
             const file = await Filesystem.readFile({
-              path: client.cardPhotoUrl,
+              path: cardPath,
               directory: Directory.Data,
               encoding: Encoding.UTF8
             });

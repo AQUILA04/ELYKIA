@@ -33,6 +33,8 @@ export interface Client {
   clientType: string;
   profilPhotoUrl?: string;
   cardPhotoUrl?: string;
+  profilPhotoThumbUrl?: string;
+  cardPhotoThumbUrl?: string;
   profilPhoto?: string;
   latitude?: number;
   longitude?: number;

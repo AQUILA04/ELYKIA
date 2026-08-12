@@ -9,6 +9,32 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.19.8] — 2026-08-12
+
+### Changed
+- Sync photos commercial hybride : téléchargement des thumbs MinIO (`profilPhotoThumbUrl` / `cardPhotoThumbUrl`) pour offline, avec fallback batch bytes PhotoStore pour les clients non migrés.
+
+## Frontend — [2.14.8] — 2026-08-12
+
+### Changed
+- Fiche client : affichage photo via URL MinIO (`profilPhotoUrl` / thumb) en priorité, fallback stream PhotoStore legacy.
+
+## Backend — [1.7.2] — 2026-08-12
+
+### Added
+- Migration PhotoStore → MinIO (`PhotoMigrationJob`, endpoint admin `POST /api/v1/admin/migrate-photos`, bootstrap optionnel `optimize.client.migrate-photo.enabled`).
+- `ClientRespDto` / requêtes JPQL : exposition `profilPhotoThumbUrl` / `cardPhotoThumbUrl`.
+
+## Mobile — [2.19.7] — 2026-08-12
+
+### Added
+- Liste Clients RM : avatar circulaire (thumbnail MinIO `profilPhotoThumbUrl`, fallback initiales).
+
+## Backend — [1.7.1] — 2026-08-12
+
+### Added
+- Thumbnails MinIO (Thumbnailator) : upload original + `thumb.jpg`, outbox photo avec thumbs, URLs profil dans le pack offline RM (`profilPhotoUrl` / `profilPhotoThumbUrl`).
+
 ## Mobile — [2.18.0] — 2026-08-11
 
 ### Added

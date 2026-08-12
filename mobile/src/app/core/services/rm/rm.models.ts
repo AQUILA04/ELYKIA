@@ -44,6 +44,10 @@ export interface RmPackClient {
   latitude?: number;
   longitude?: number;
   mll?: string;
+  /** MinIO URL — photo profil originale. */
+  profilPhotoUrl?: string;
+  /** MinIO URL — thumbnail profil (listes). */
+  profilPhotoThumbUrl?: string;
 }
 
 export interface RmCreditLate {

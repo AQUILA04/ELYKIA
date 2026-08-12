@@ -256,6 +256,8 @@ public class RecoveryFieldPlanService {
         String mll = null;
         String firstname = null;
         String lastname = null;
+        String profilPhotoUrl = null;
+        String profilPhotoThumbUrl = null;
         try {
             Optional<Credit> credit = creditRepository.findById(late.getId());
             if (credit.isPresent() && credit.get().getClient() != null) {
@@ -265,6 +267,8 @@ public class RecoveryFieldPlanService {
                 latitude = client.getLatitude();
                 longitude = client.getLongitude();
                 mll = client.getMll();
+                profilPhotoUrl = client.getProfilPhotoUrl();
+                profilPhotoThumbUrl = client.getProfilPhotoThumbUrl();
             }
         } catch (Exception e) {
             log.warn("Unable to load geo for client {}: {}", late.getClientId(), e.getMessage());
@@ -282,6 +286,8 @@ public class RecoveryFieldPlanService {
                 .latitude(latitude)
                 .longitude(longitude)
                 .mll(mll)
+                .profilPhotoUrl(profilPhotoUrl)
+                .profilPhotoThumbUrl(profilPhotoThumbUrl)
                 .build();
     }
 

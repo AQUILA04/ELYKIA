@@ -29,6 +29,9 @@ import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.client.repository.PhotoStoreRepository;
 import com.optimize.elykia.client.enumeration.BusinessCreditAuthorizationAction;
 import com.optimize.elykia.client.entity.BusinessCreditAuthorizationEvent;
+import com.optimize.elykia.client.storage.ImageProcessingService;
+import com.optimize.elykia.client.storage.MinioStorageService;
+import com.optimize.elykia.client.storage.PhotoObjectKeyBuilder;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.cache.annotation.Cacheable;
@@ -58,6 +61,8 @@ public class ClientService extends GenericService<Client, Long> {
     private final ApplicationEventPublisher eventPublisher;
     private final PhotoStoreRepository photoStoreRepository;
     private final BusinessCreditAuthorizationEventRepository businessCreditAuthorizationEventRepository;
+    private final MinioStorageService minioStorageService;
+    private final ImageProcessingService imageProcessingService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -66,8 +71,10 @@ public class ClientService extends GenericService<Client, Long> {
             ClientProperties clientProperties,
             ClientAutoInitProperties clientAutoInitProperties, AccountService accountService,
             ApplicationEventPublisher eventPublisher,
-                            PhotoStoreRepository photoStoreRepository,
-                            BusinessCreditAuthorizationEventRepository businessCreditAuthorizationEventRepository) {
+            PhotoStoreRepository photoStoreRepository,
+            BusinessCreditAuthorizationEventRepository businessCreditAuthorizationEventRepository,
+            MinioStorageService minioStorageService,
+            ImageProcessingService imageProcessingService) {
         super(repository);
         this.clientMapper = clientMapper;
         this.clientProperties = clientProperties;
@@ -76,6 +83,8 @@ public class ClientService extends GenericService<Client, Long> {
         this.eventPublisher = eventPublisher;
         this.photoStoreRepository = photoStoreRepository;
         this.businessCreditAuthorizationEventRepository = businessCreditAuthorizationEventRepository;
+        this.minioStorageService = minioStorageService;
+        this.imageProcessingService = imageProcessingService;
     }
 
     @Transactional(noRollbackFor = DataIntegrityViolationException.class)
@@ -283,12 +292,66 @@ public class ClientService extends GenericService<Client, Long> {
         Client client = getById(dto.id());
         if (StringUtils.hasText(dto.profilPhotoUrl())) {
             client.setProfilPhotoUrl(dto.profilPhotoUrl());
+            if (StringUtils.hasText(dto.profilPhotoThumbUrl())) {
+                client.setProfilPhotoThumbUrl(dto.profilPhotoThumbUrl());
+            } else {
+                client.setProfilPhotoThumbUrl(deriveThumbUrl(dto.profilPhotoUrl()));
+            }
         }
         if (StringUtils.hasText(dto.cardPhotoUrl())) {
             client.setCardPhotoUrl(dto.cardPhotoUrl());
+            if (StringUtils.hasText(dto.cardPhotoThumbUrl())) {
+                client.setCardPhotoThumbUrl(dto.cardPhotoThumbUrl());
+            } else {
+                client.setCardPhotoThumbUrl(deriveThumbUrl(dto.cardPhotoUrl()));
+            }
+        }
+        if (StringUtils.hasText(dto.profilPhotoThumbUrl()) && !StringUtils.hasText(dto.profilPhotoUrl())) {
+            client.setProfilPhotoThumbUrl(dto.profilPhotoThumbUrl());
+        }
+        if (StringUtils.hasText(dto.cardPhotoThumbUrl()) && !StringUtils.hasText(dto.cardPhotoUrl())) {
+            client.setCardPhotoThumbUrl(dto.cardPhotoThumbUrl());
         }
         update(client);
         return Boolean.TRUE;
+    }
+
+    /**
+     * Upload original + thumbnail MinIO (feature/s3), puis met à jour les URLs client.
+     */
+    @Transactional
+    @EvictClientListCaches
+    public String uploadPhotoWithThumb(Long clientId, byte[] bytes, PhotoType type) {
+        if (bytes == null || bytes.length == 0) {
+            return null;
+        }
+        byte[] thumbBytes = imageProcessingService.generateThumbnail(bytes, 200, 200);
+        String originalKey = type == PhotoType.PROFIL
+                ? PhotoObjectKeyBuilder.profilOriginal(clientId)
+                : PhotoObjectKeyBuilder.cardOriginal(clientId);
+        String thumbKey = type == PhotoType.PROFIL
+                ? PhotoObjectKeyBuilder.profilThumb(clientId)
+                : PhotoObjectKeyBuilder.cardThumb(clientId);
+
+        String originalUrl = minioStorageService.uploadPhoto(originalKey, bytes, "image/jpeg");
+        String thumbUrl = minioStorageService.uploadPhoto(thumbKey, thumbBytes, "image/jpeg");
+
+        if (type == PhotoType.PROFIL) {
+            updateClientPhotoUrl(new UpdatePhotoUrlDto(clientId, originalUrl, null, thumbUrl, null));
+        } else {
+            updateClientPhotoUrl(new UpdatePhotoUrlDto(clientId, null, originalUrl, null, thumbUrl));
+        }
+        return originalUrl;
+    }
+
+    private static String deriveThumbUrl(String originalUrl) {
+        if (!StringUtils.hasText(originalUrl)) {
+            return null;
+        }
+        if (originalUrl.contains("original.jpg")) {
+            return originalUrl.replace("original.jpg", "thumb.jpg");
+        }
+        return originalUrl;
     }
 
     @Transactional
