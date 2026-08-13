@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -196,7 +195,7 @@ public class RattrapageCreditService {
         // Mise journalière
         credit.setDailyStake(dto.getDailyStake());
 
-        LocalDate beginDate = resolveBeginDate(dto.getBeginDate(), sourceStock);
+        LocalDate beginDate = RattrapageCreditSupport.resolveBeginDate(dto.getBeginDate(), sourceStock);
         credit.setBeginDate(beginDate);
 
         // Calcul du montant restant et de la date de fin (Propriété 4 : cas avance >= totalAmount)
@@ -221,31 +220,6 @@ public class RattrapageCreditService {
         credit.setCreditToCreditArticles();
 
         return credit;
-    }
-
-    /**
-     * Date de début du crédit : ancrée sur le mois du stock source (rattrapage),
-     * afin de ne pas rattacher le crédit au mois courant de saisie dans les filtres temporels.
-     * Si une date ultérieure est fournie (début effectif de remboursement), elle est conservée.
-     */
-    private LocalDate resolveBeginDate(LocalDate requestedBeginDate, CommercialMonthlyStock sourceStock) {
-        LocalDate stockMonthStart = YearMonth.of(sourceStock.getYear(), sourceStock.getMonth()).atDay(1);
-        LocalDate stockMonthEnd = YearMonth.of(sourceStock.getYear(), sourceStock.getMonth()).atEndOfMonth();
-        if (requestedBeginDate == null) {
-            return stockMonthEnd;
-        }
-        if (requestedBeginDate.isBefore(stockMonthStart)) {
-            throw new CustomValidationException(
-                    "La date de début ne peut pas être antérieure au mois du stock source ("
-                            + sourceStock.getMonth() + "/" + sourceStock.getYear() + ").");
-        }
-        if (requestedBeginDate.isAfter(stockMonthEnd)) {
-            log.warn(
-                    "[RattrapageCreditService] beginDate {} postérieure au mois stock source {}/{} — "
-                            + "le rattachement reste sur stock_item_id du mois source",
-                    requestedBeginDate, sourceStock.getMonth(), sourceStock.getYear());
-        }
-        return requestedBeginDate;
     }
 
     private void updateSourceStock(RattrapageCreditDto dto, CommercialMonthlyStock sourceStock, Credit credit) {

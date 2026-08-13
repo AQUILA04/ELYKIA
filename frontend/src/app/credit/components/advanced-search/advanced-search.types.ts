@@ -26,6 +26,7 @@ export enum CreditStatus {
 
 export interface CreditSearchDto {
   keyword?: string;
+  searchByReference?: boolean;
   clientType?: ClientType | null;
   type?: OperationType | null;
   status?: CreditStatus | null;

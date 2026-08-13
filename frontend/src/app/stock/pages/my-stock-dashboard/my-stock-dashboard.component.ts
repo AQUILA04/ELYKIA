@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommercialStockService } from '../../services/commercial-stock.service';
 import { AuthService } from '../../../auth/service/auth.service';
 import { CommercialMonthlyStock } from '../../models/commercial-stock.model';
@@ -40,6 +41,7 @@ export class MyStockDashboardComponent implements OnInit {
   isSecretary = false;
 
   private exportingStockKeys = new Set<string>();
+  private pendingSalesOpen: { collector: string; year: number; month: number } | null = null;
 
   constructor(
     private commercialStockService: CommercialStockService,
@@ -49,7 +51,9 @@ export class MyStockDashboardComponent implements OnInit {
     private userService: UserService,
     private dialog: MatDialog,
     private featureFlagService: FeatureFlagService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private route: ActivatedRoute,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -60,7 +64,26 @@ export class MyStockDashboardComponent implements OnInit {
     this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
     this.showStockReturnHistory = this.featureFlagService.isFeatureEnabled(FeatureFlags.StockReturnHistory);
     this.loadAgents();
-    this.loadCurrentStock();
+    this.route.queryParams.subscribe(params => {
+      const openSales = params['openSales'] === '1' || params['openSales'] === 1 || params['openSales'] === true;
+      const collector = params['collector'] as string | undefined;
+      const year = params['year'] ? +params['year'] : undefined;
+      const month = params['month'] ? +params['month'] : undefined;
+
+      if (collector) {
+        this.selectedAgent = collector;
+      }
+
+      if (openSales && collector && year && month) {
+        this.pendingSalesOpen = { collector, year, month };
+        const now = new Date();
+        this.isHistoric = !(year === now.getFullYear() && month === now.getMonth() + 1);
+      } else {
+        this.pendingSalesOpen = null;
+      }
+
+      this.loadCurrentStock();
+    });
   }
 
   loadAgents(): void {
@@ -107,10 +130,36 @@ export class MyStockDashboardComponent implements OnInit {
         this.stocks = data.content;
         this.totalElements = data.page.totalElements;
         this.spinner.hide();
+        this.tryOpenPendingSalesDialog();
       },
       error: (err) => {
         console.error('Erreur chargement stock', err);
         this.spinner.hide();
+      }
+    });
+  }
+
+  private tryOpenPendingSalesDialog(): void {
+    if (!this.pendingSalesOpen) {
+      return;
+    }
+
+    const pending = this.pendingSalesOpen;
+    this.pendingSalesOpen = null;
+
+    this.commercialStockService.getStockByDate(pending.collector, pending.year, pending.month).subscribe({
+      next: (stock) => {
+        this.openSoldSales(stock);
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { openSales: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+      },
+      error: (err) => {
+        console.error('Erreur chargement stock mensuel pour ouverture ventes', err);
+        this.alertService.showError('Impossible d\'ouvrir le stock mensuel associé à cette vente.');
       }
     });
   }

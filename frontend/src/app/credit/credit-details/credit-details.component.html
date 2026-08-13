@@ -182,6 +182,17 @@
         </button>
       </div>
 
+      <div class="source-stock-block" *ngIf="credit.sourceMonthlyStocks?.length">
+        <div class="source-stock-label">Stock mensuel source</div>
+        <button
+          type="button"
+          class="source-stock-link"
+          *ngFor="let stock of credit.sourceMonthlyStocks"
+          (click)="openSourceMonthlyStock(stock)">
+          Stock {{ stock.collector }} — {{ getMonthName(stock.month) }} {{ stock.year }}
+        </button>
+      </div>
+
       <div
         style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-light);margin-bottom:12px;">
         Historique des transferts</div>

@@ -91,7 +91,7 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
       commercial: [null, this.isPromoter ? [] : [Validators.required]],
       clientId: [null, [Validators.required]],
       selectedItems: [[], [Validators.required, Validators.minLength(1)]],
-      beginDate: [new Date().toISOString().split('T')[0], [Validators.required]],
+      beginDate: [null, [Validators.required]],
       dailyStake: [null, [Validators.required, Validators.min(200)]],
       advance: [0, [Validators.min(0)]],
       note: ['']
@@ -128,7 +128,7 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
     this.selectedCommercial = commercial;
 
     // Reset des étapes suivantes
-    this.rattrapageForm.patchValue({ clientId: null, selectedItems: [] });
+    this.rattrapageForm.patchValue({ clientId: null, selectedItems: [], beginDate: null });
     this.residualStocks = [];
     this.selectedStockMonth = null;
     this.selectedStockId = null;
@@ -169,6 +169,38 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
     this.currentStep = 3;
   }
 
+  get stockMonthStart(): string | null {
+    if (!this.selectedStockMonth?.year || !this.selectedStockMonth?.month) {
+      return null;
+    }
+    return this.formatStockMonthStart(this.selectedStockMonth.year, this.selectedStockMonth.month);
+  }
+
+  get stockMonthEnd(): string | null {
+    if (!this.selectedStockMonth?.year || !this.selectedStockMonth?.month) {
+      return null;
+    }
+    return this.formatStockMonthEnd(this.selectedStockMonth.year, this.selectedStockMonth.month);
+  }
+
+  onBeginDateChange(): void {
+    const beginDate = this.rattrapageForm.get('beginDate')?.value;
+    const min = this.stockMonthStart;
+    const max = this.stockMonthEnd;
+    if (beginDate && min && max && (beginDate < min || beginDate > max)) {
+      this.rattrapageForm.patchValue({ beginDate: max });
+      this.toastr.warning(
+        `La date de début doit être comprise entre le ${this.formatDisplayDate(min)} et le ${this.formatDisplayDate(max)}.`
+      );
+    }
+    this.recalculateEndDate();
+  }
+
+  /** Premier jour du mois stock source. */
+  private formatStockMonthStart(year: number, month: number): string {
+    return `${year}-${String(month).padStart(2, '0')}-01`;
+  }
+
   /** Dernier jour du mois stock source (ancrage temporel du rattrapage). */
   private formatStockMonthEnd(year: number, month: number): string {
     const lastDay = new Date(year, month, 0);
@@ -176,6 +208,11 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
     const m = String(lastDay.getMonth() + 1).padStart(2, '0');
     const d = String(lastDay.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+  }
+
+  private formatDisplayDate(isoDate: string): string {
+    const [year, month, day] = isoDate.split('-');
+    return `${day}/${month}/${year}`;
   }
 
   // ─── Sélection articles ──────────────────────────────────────────────────
@@ -296,6 +333,21 @@ export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
         this.rattrapageForm.get(k)?.markAsTouched()
       );
       this.toastr.warning('Veuillez remplir tous les champs requis', 'Formulaire incomplet');
+      return;
+    }
+
+    const min = this.stockMonthStart;
+    const max = this.stockMonthEnd;
+    let beginDate = this.rattrapageForm.get('beginDate')?.value as string | null;
+    if (!beginDate && max) {
+      beginDate = max;
+      this.rattrapageForm.patchValue({ beginDate });
+      this.recalculateEndDate();
+    }
+    if (min && max && beginDate && (beginDate < min || beginDate > max)) {
+      this.toastr.warning(
+        `La date de début doit être comprise entre le ${this.formatDisplayDate(min)} et le ${this.formatDisplayDate(max)}.`
+      );
       return;
     }
 

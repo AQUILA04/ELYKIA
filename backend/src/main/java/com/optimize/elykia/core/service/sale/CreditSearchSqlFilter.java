@@ -66,15 +66,20 @@ final class CreditSearchSqlFilter {
         }
 
         if (StringUtils.hasText(dto.keyword())) {
-            String kwParam = bind("keyword", dto.keyword().trim());
-            String patternParam = bind("keywordPattern", "%" + dto.keyword().trim().toLowerCase() + "%");
-            sql.append(" AND (")
-                    .append("LOWER(").append(creditAlias).append(".reference) LIKE :").append(patternParam)
-                    .append(" OR LOWER(").append(creditAlias).append(".old_reference) LIKE :").append(patternParam)
-                    .append(" OR LOWER(").append(creditAlias).append(".collector) LIKE :").append(patternParam)
-                    .append(" OR LOWER(CONCAT(cl.firstname, ' ', cl.lastname)) LIKE :").append(patternParam)
-                    .append(" OR CAST(").append(creditAlias).append(".id AS TEXT) = :").append(kwParam)
-                    .append(")\n");
+            String trimmed = dto.keyword().trim();
+            String kwParam = bind("keyword", trimmed);
+            String patternParam = bind("keywordPattern", "%" + trimmed.toLowerCase() + "%");
+            if (Boolean.TRUE.equals(dto.searchByReference())) {
+                sql.append(" AND LOWER(").append(creditAlias).append(".reference) LIKE :").append(patternParam).append('\n');
+            } else {
+                sql.append(" AND (")
+                        .append("LOWER(").append(creditAlias).append(".reference) LIKE :").append(patternParam)
+                        .append(" OR LOWER(").append(creditAlias).append(".old_reference) LIKE :").append(patternParam)
+                        .append(" OR LOWER(").append(creditAlias).append(".collector) LIKE :").append(patternParam)
+                        .append(" OR LOWER(CONCAT(cl.firstname, ' ', cl.lastname)) LIKE :").append(patternParam)
+                        .append(" OR CAST(").append(creditAlias).append(".id AS TEXT) = :").append(kwParam)
+                        .append(")\n");
+            }
         }
     }
 

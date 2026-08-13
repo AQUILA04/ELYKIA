@@ -1193,6 +1193,45 @@ public class CreditService extends GenericService<Credit, Long> {
         return CreditRespDto.fromCreditPage(page);
     }
 
+    @Transactional(readOnly = true)
+    public Credit getByIdWithSourceStocks(Long id) {
+        Credit credit = getById(id);
+        enrichSourceMonthlyStocks(credit);
+        return credit;
+    }
+
+    private void enrichSourceMonthlyStocks(Credit credit) {
+        if (credit.getArticles() == null || credit.getArticles().isEmpty()) {
+            credit.setSourceMonthlyStocks(List.of());
+            return;
+        }
+
+        Set<Long> stockItemIds = credit.getArticles().stream()
+                .map(CreditArticles::getStockItemId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (stockItemIds.isEmpty() || commercialMonthlyStockItemRepository == null) {
+            credit.setSourceMonthlyStocks(List.of());
+            return;
+        }
+
+        List<CreditSourceMonthlyStockDto> sourceStocks = commercialMonthlyStockItemRepository
+                .findAllByIdInWithMonthlyStock(stockItemIds)
+                .stream()
+                .map(CommercialMonthlyStockItem::getMonthlyStock)
+                .filter(Objects::nonNull)
+                .map(stock -> new CreditSourceMonthlyStockDto(
+                        stock.getId(),
+                        stock.getCollector(),
+                        stock.getMonth(),
+                        stock.getYear()))
+                .distinct()
+                .toList();
+
+        credit.setSourceMonthlyStocks(sourceStocks);
+    }
+
     @Transactional
     public void bulkChangeCollector(BulkChangeCollectorDto dto) {
         if (dto.getCreditIds() == null || dto.getCreditIds().isEmpty()) {

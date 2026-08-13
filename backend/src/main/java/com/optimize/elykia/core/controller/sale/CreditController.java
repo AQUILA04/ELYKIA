@@ -71,7 +71,7 @@ public class CreditController {
 
     @GetMapping(value = "{id}")
     public ResponseEntity<Response> getOne(@PathVariable Long id) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getById(id)), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getByIdWithSourceStocks(id)), HttpStatus.OK);
     }
 
     @GetMapping(value = "timeline/{creditId}")

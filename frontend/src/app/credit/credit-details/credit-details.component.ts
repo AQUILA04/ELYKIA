@@ -13,6 +13,13 @@ import {UserProfilConstant} from "../../shared/constants/user-profil.constant";
 import {UserProfile} from "../../shared/models/user-profile.enum";
 import { CreditFieldControlDto } from '../models/credit-field-control.model';
 
+export interface CreditSourceMonthlyStock {
+  id: number;
+  collector: string;
+  month: number;
+  year: number;
+}
+
 @Component({
   selector: 'app-credit-details',
   templateUrl: './credit-details.component.html',
@@ -207,6 +214,23 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
       error: (err) => {
         this.spinner.hide();
         this.handleError(err, 'Erreur lors de la modification du commercial');
+      }
+    });
+  }
+
+  getMonthName(monthNumber: number): string {
+    const date = new Date();
+    date.setMonth(monthNumber - 1);
+    return date.toLocaleString('fr-FR', { month: 'long' });
+  }
+
+  openSourceMonthlyStock(stock: CreditSourceMonthlyStock): void {
+    this.router.navigate(['/stock/my-stock'], {
+      queryParams: {
+        collector: stock.collector,
+        year: stock.year,
+        month: stock.month,
+        openSales: 1
       }
     });
   }

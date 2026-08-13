@@ -7,6 +7,7 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.DistributeArticleDto;
+import com.optimize.elykia.core.dto.CreditSourceMonthlyStockDto;
 import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.enumaration.CreditPurpose;
 import com.optimize.elykia.core.enumaration.CreditStatus;
@@ -27,6 +28,7 @@ import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -148,6 +150,9 @@ public class Credit extends BaseEntity<String> {
 
     @Column(name = "customer_segment")
     private String customerSegment; // Segmentation client (nouveau, fidèle, VIP, etc.)
+
+    @Transient
+    private List<CreditSourceMonthlyStockDto> sourceMonthlyStocks = new ArrayList<>();
 
     public Credit(Long creditId) {
         this.id = creditId;

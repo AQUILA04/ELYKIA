@@ -81,6 +81,7 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
   private initForm(): void {
     this.searchForm = this.fb.group({
       keyword: [''],
+      searchByReference: [false],
       clientType: [null],
       type: [null],
       status: [null],
@@ -119,6 +120,7 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
 
     const searchDto: CreditSearchDto = {
       keyword: formValue.keyword || undefined,
+      searchByReference: formValue.searchByReference || undefined,
       clientType: formValue.clientType || null,
       type: formValue.type || null,
       status: formValue.status || null,
@@ -131,6 +133,7 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
   onReset(): void {
     this.searchForm.reset({
       keyword: '',
+      searchByReference: false,
       clientType: null,
       type: null,
       status: null,

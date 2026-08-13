@@ -246,9 +246,15 @@
         <div class="form-row triple">
           <div class="form-group">
             <label class="form-label">Date de début <span class="req">*</span></label>
-            <input type="date" formControlName="beginDate" class="form-control" (change)="recalculateEndDate()" />
+            <input type="date"
+              formControlName="beginDate"
+              class="form-control"
+              [min]="stockMonthStart"
+              [max]="stockMonthEnd"
+              (change)="onBeginDateChange()" />
             <div class="form-hint">
-              Par défaut : fin du mois stock source. Modifiable pour le début effectif du remboursement.
+              Comprise entre le 1er et le dernier jour du mois du stock source.
+              Par défaut : dernier jour du mois si aucune date n'est saisie.
             </div>
             <mat-error *ngIf="rattrapageForm.get('beginDate')?.invalid && rattrapageForm.get('beginDate')?.touched">
               La date de début est requise.

@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface CommercialMonthlyStockItemRepository extends GenericRepository<CommercialMonthlyStockItem, Long> {
@@ -46,4 +48,8 @@ public interface CommercialMonthlyStockItemRepository extends GenericRepository<
     @EntityGraph(attributePaths = {"article", "monthlyStock"})
     @Query("SELECT s FROM CommercialMonthlyStockItem s WHERE s.id = :id")
     Optional<CommercialMonthlyStockItem> findByIdWithArticle(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = {"monthlyStock"})
+    @Query("SELECT s FROM CommercialMonthlyStockItem s WHERE s.id IN :ids")
+    List<CommercialMonthlyStockItem> findAllByIdInWithMonthlyStock(@Param("ids") Collection<Long> ids);
 }

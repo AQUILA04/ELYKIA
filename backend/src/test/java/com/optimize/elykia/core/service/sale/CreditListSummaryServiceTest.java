@@ -59,6 +59,7 @@ class CreditListSummaryServiceTest {
                 OperationType.CREDIT,
                 CreditStatus.INPROGRESS,
                 "agent1",
+                null,
                 null
         );
 

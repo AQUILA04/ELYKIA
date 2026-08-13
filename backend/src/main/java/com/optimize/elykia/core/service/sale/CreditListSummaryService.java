@@ -163,6 +163,6 @@ public class CreditListSummaryService {
     }
 
     private static CreditSearchDto emptySearch() {
-        return new CreditSearchDto(null, null, null, null, null, null);
+        return new CreditSearchDto(null, null, null, null, null, null, null);
     }
 }
