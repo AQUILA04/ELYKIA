@@ -67,8 +67,38 @@
         color: #003366;
     }
 
-    .panel-export-btn {
+    .btn-download {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         flex-shrink: 0;
+        white-space: nowrap;
+        height: 40px;
+        padding: 0 14px;
+        box-sizing: border-box;
+        border: none;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: #003366;
+        color: white;
+        box-shadow: 0 1px 3px rgba(0, 51, 102, 0.08);
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        &:hover:not(:disabled) {
+            background: #002244;
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     }
 }
 

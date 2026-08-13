@@ -14,7 +14,6 @@ import { StockSoldSalesDialogComponent } from '../../components/stock-sold-sales
 import { StockMovementDialogComponent } from '../../components/stock-movement-dialog/stock-movement-dialog.component';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
-import * as moment from 'moment';
 
 @Component({
   selector: 'app-my-stock-dashboard',
@@ -249,10 +248,9 @@ export class MyStockDashboardComponent implements OnInit {
 
   onExportPdf(stock: CommercialMonthlyStock): void {
     const key = this.stockKey(stock);
-    const range = this.getMonthRange(stock);
     this.exportingStockKeys.add(key);
 
-    this.commercialStockService.exportPdf(range.startDate, range.endDate, stock.collector).subscribe({
+    this.commercialStockService.exportPdf(stock.collector, stock.year, stock.month).subscribe({
       next: (data) => {
         const blob = new Blob([data], { type: 'application/pdf' });
         const url = window.URL.createObjectURL(blob);
@@ -275,13 +273,5 @@ export class MyStockDashboardComponent implements OnInit {
 
   private stockKey(stock: CommercialMonthlyStock): string {
     return `${stock.collector}-${stock.year}-${stock.month}`;
-  }
-
-  private getMonthRange(stock: CommercialMonthlyStock): { startDate: string; endDate: string } {
-    const monthDate = moment().year(stock.year).month(stock.month - 1);
-    return {
-      startDate: monthDate.clone().startOf('month').format('YYYY-MM-DD'),
-      endDate: monthDate.clone().endOf('month').format('YYYY-MM-DD'),
-    };
   }
 }

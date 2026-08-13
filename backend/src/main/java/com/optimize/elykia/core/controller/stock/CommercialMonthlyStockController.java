@@ -10,7 +10,6 @@ import com.optimize.elykia.core.service.stock.CommercialMonthlyStockItemSoldValu
 import com.optimize.elykia.core.service.stock.StockExportService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -79,15 +78,17 @@ public class CommercialMonthlyStockController {
 
     @GetMapping("/export/pdf")
     public ResponseEntity<byte[]> exportPdf(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(required = false) String collector) {
+            @RequestParam(required = false) String collector,
+            @RequestParam Integer year,
+            @RequestParam Integer month) {
 
-        byte[] pdfContent = stockExportService.generateDashboardPdfExport(startDate, endDate, collector);
+        byte[] pdfContent = stockExportService.generateDashboardPdfExport(collector, year, month);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("attachment", "rapport-stock-commercial-" + LocalDate.now() + ".pdf");
+        headers.setContentDispositionFormData(
+                "attachment",
+                "rapport-stock-commercial-" + collector + "-" + year + "-" + month + ".pdf");
         headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
         return ResponseEntity.ok(pdfContent);

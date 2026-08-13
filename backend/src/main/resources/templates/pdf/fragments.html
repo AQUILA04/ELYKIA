@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:fragment="styles">
+        <style>
+            @page {
+                size: A4;
+                margin: 14mm 14mm 24mm 14mm;
+            }
+            * { box-sizing: border-box; }
+            body {
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: 10px;
+                color: #1a2a44;
+                margin: 0;
+                padding: 0;
+            }
+            .pdf-brand {
+                background-color: #003366;
+                color: #ffffff;
+                padding: 14px 16px 12px 16px;
+                margin: 0 0 12px 0;
+            }
+            .pdf-brand-name {
+                font-size: 16px;
+                font-weight: bold;
+                letter-spacing: 0.08em;
+                margin: 0 0 4px 0;
+            }
+            .pdf-brand-meta {
+                font-size: 9px;
+                letter-spacing: 0.04em;
+                color: #c5d4e8;
+            }
+            .pdf-brand-sep { padding: 0 8px; color: #7a93b3; }
+            .pdf-doc-title {
+                color: #003366;
+                font-size: 18px;
+                font-weight: bold;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                margin: 0 0 14px 0;
+                padding: 0 2px 8px 2px;
+                border-bottom: 2px solid #003366;
+            }
+            .pdf-meta {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 12px;
+            }
+            .pdf-meta td {
+                border: 1px solid #dde3ec;
+                background-color: #f0f4f9;
+                padding: 8px 10px;
+                vertical-align: top;
+                width: 50%;
+            }
+            .pdf-meta-label {
+                display: block;
+                font-size: 8px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #6b7a99;
+                margin-bottom: 3px;
+            }
+            .pdf-meta-value {
+                font-size: 11px;
+                font-weight: bold;
+                color: #003366;
+            }
+            .pdf-kpi {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 14px;
+            }
+            .pdf-kpi td {
+                width: 25%;
+                border: 1px solid #dde3ec;
+                background-color: #ffffff;
+                padding: 8px 10px 8px 12px;
+                vertical-align: top;
+            }
+            .pdf-kpi .kpi-label {
+                font-size: 7.5px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: #6b7a99;
+                margin-bottom: 4px;
+            }
+            .pdf-kpi .kpi-value {
+                font-size: 16px;
+                font-weight: bold;
+                color: #003366;
+            }
+            .pdf-kpi td.kpi-cyan .kpi-value { color: #0095c8; }
+            .pdf-kpi td.kpi-green .kpi-value { color: #1d8a3c; }
+            .pdf-kpi td.kpi-orange .kpi-value { color: #c75000; }
+            .pdf-section-title {
+                background-color: #e8eef6;
+                color: #003366;
+                font-size: 10px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                padding: 6px 8px;
+                margin-top: 10px;
+                border-left: 4px solid #003366;
+            }
+            table.data-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 4px;
+                font-size: 9px;
+            }
+            table.data-table th {
+                background-color: #003366;
+                color: #ffffff;
+                text-transform: uppercase;
+                font-size: 8px;
+                letter-spacing: 0.05em;
+                padding: 6px 6px;
+                text-align: left;
+                border: 1px solid #003366;
+            }
+            table.data-table td {
+                border: 1px solid #dde3ec;
+                padding: 5px 6px;
+                vertical-align: middle;
+            }
+            table.data-table tr:nth-child(even) td {
+                background-color: #f0f4f9;
+            }
+            table.data-table .num { text-align: center; width: 28px; color: #6b7a99; }
+            table.data-table .flag { text-align: center; width: 52px; }
+            .badge-yes {
+                display: inline-block;
+                background-color: #e8eef6;
+                color: #003366;
+                font-weight: bold;
+                font-size: 8px;
+                padding: 1px 6px;
+            }
+            .badge-no { color: #9aacc4; }
+            .pdf-empty {
+                text-align: center;
+                padding: 28px 12px;
+                color: #6b7a99;
+                font-style: italic;
+                border: 1px dashed #dde3ec;
+            }
+            .quarter-block { page-break-inside: avoid; }
+        </style>
+    </th:block>
+</head>
+<body>
+<div th:fragment="header">
+    <div class="pdf-brand">
+        <div class="pdf-brand-name" th:text="${pdfCompanyName}">AMENOUVEVE-YAVEH</div>
+        <div class="pdf-brand-meta">
+            <span th:text="${pdfCompanyAddress}">TOKOIN HÔPITAL</span>
+            <span class="pdf-brand-sep">|</span>
+            <span>Tél. <span th:text="${pdfCompanyPhoneDisplay}">96 18 68 22</span></span>
+        </div>
+    </div>
+    <div class="pdf-doc-title" th:text="${pdfDocumentTitle}">Fiche Client</div>
+</div>
+</body>
+</html>

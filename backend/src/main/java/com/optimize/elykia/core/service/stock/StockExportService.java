@@ -1,16 +1,21 @@
 package com.optimize.elykia.core.service.stock;
 
-import com.itextpdf.html2pdf.HtmlConverter;
+import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
+import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
+import com.optimize.elykia.core.service.report.PdfHtmlRenderer;
 import com.optimize.elykia.core.dto.CommercialStockDashboardExportDTO;
 import com.optimize.elykia.core.dto.StockDashboardExportPdfContextDto;
 import com.optimize.elykia.core.dto.StockExportPdfContextDto;
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
-import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
+import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
+import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
-import com.optimize.elykia.core.repository.CommercialStockMovementRepository;
 import com.optimize.elykia.core.repository.StockRequestRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.repository.StockTontineRequestRepository;
@@ -24,27 +29,27 @@ import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Transactional(readOnly = true)
 public class StockExportService {
+
+    private static final String DASHBOARD_DOCUMENT_TITLE = "Rapport de Stock Commercial";
 
     private final StockRequestRepository stockRequestRepository;
     private final StockReturnRepository stockReturnRepository;
     private final StockTontineRequestRepository stockTontineRequestRepository;
     private final StockTontineReturnRepository stockTontineReturnRepository;
     private final TontineStockRepository tontineStockRepository;
-    private final CommercialStockMovementRepository commercialStockMovementRepository;
+    private final CommercialMonthlyStockService commercialMonthlyStockService;
     private final UserService userService;
     private final TemplateEngine templateEngine;
+    private final PdfHtmlRenderer pdfHtmlRenderer;
 
     public StockExportService(
             StockRequestRepository stockRequestRepository,
@@ -52,66 +57,42 @@ public class StockExportService {
             StockTontineRequestRepository stockTontineRequestRepository,
             StockTontineReturnRepository stockTontineReturnRepository,
             TontineStockRepository tontineStockRepository,
-            CommercialStockMovementRepository commercialStockMovementRepository,
+            CommercialMonthlyStockService commercialMonthlyStockService,
             UserService userService,
-            TemplateEngine templateEngine) {
+            TemplateEngine templateEngine,
+            PdfHtmlRenderer pdfHtmlRenderer) {
         this.stockRequestRepository = stockRequestRepository;
         this.stockReturnRepository = stockReturnRepository;
         this.stockTontineRequestRepository = stockTontineRequestRepository;
         this.stockTontineReturnRepository = stockTontineReturnRepository;
         this.tontineStockRepository = tontineStockRepository;
-        this.commercialStockMovementRepository = commercialStockMovementRepository;
+        this.commercialMonthlyStockService = commercialMonthlyStockService;
         this.userService = userService;
         this.templateEngine = templateEngine;
+        this.pdfHtmlRenderer = pdfHtmlRenderer;
     }
 
-    public byte[] generateDashboardPdfExport(LocalDate startDate, LocalDate endDate, String collector) {
-        collector = resolveCollector(collector);
-
-        List<StockRequestExportDTO> takenData = stockRequestRepository.findAggregatedStockRequests(
-                startDate, endDate, collector, List.of(StockRequestStatus.DELIVERED), null);
-
-        List<StockRequestExportDTO> returnedData = stockReturnRepository.findAggregatedStockReturns(
-                startDate, endDate, collector, List.of(StockReturnStatus.RECEIVED), null);
-
-        LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() : LocalDate.MIN.atStartOfDay();
-        LocalDateTime endDateTime = endDate != null ? endDate.atTime(23, 59, 59) : LocalDate.MAX.atTime(23, 59, 59);
-
-        List<CommercialStockDashboardExportDTO> soldData = commercialStockMovementRepository.findAggregatedSalesByPeriod(
-                startDateTime,
-                endDateTime,
-                collector,
-                List.of(CommercialStockMovementType.CREDIT_SALE, CommercialStockMovementType.CASH_SALE));
-
-        Map<String, CommercialStockDashboardExportDTO> merged = new LinkedHashMap<>();
-
-        for (StockRequestExportDTO taken : takenData) {
-            String key = articleKey(taken.getArticleName(), taken.getUnitPrice());
-            CommercialStockDashboardExportDTO item = merged.computeIfAbsent(key, k -> newItem(taken));
-            item.setQuantityTaken(item.getQuantityTaken() + taken.getTotalQuantity());
-            if (item.getUnitPrice() == null || item.getUnitPrice() == 0.0) {
-                item.setUnitPrice(taken.getUnitPrice());
-            }
+    public byte[] generateDashboardPdfExport(String collector, Integer year, Integer month) {
+        if (year == null || month == null) {
+            throw new CustomValidationException("L'année et le mois sont obligatoires pour exporter le rapport de stock.");
+        }
+        String resolvedCollector = resolveCollector(collector);
+        if (resolvedCollector == null || resolvedCollector.isBlank()) {
+            throw new CustomValidationException("Un commercial doit être sélectionné pour exporter le rapport de stock.");
         }
 
-        for (CommercialStockDashboardExportDTO sold : soldData) {
-            String key = articleKey(sold.getArticleName(), sold.getUnitPrice());
-            CommercialStockDashboardExportDTO item = merged.computeIfAbsent(key, k -> sold);
-            item.setQuantitySold(item.getQuantitySold() + sold.getQuantitySold());
-            item.setSoldValue(item.getSoldValue() + sold.getSoldValue());
-        }
+        CommercialMonthlyStock stock = commercialMonthlyStockService
+                .findEnrichedByCollectorAndMonthAndYear(resolvedCollector, month, year)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Stock mensuel introuvable pour " + resolvedCollector + " — " + month + "/" + year));
 
-        for (StockRequestExportDTO returned : returnedData) {
-            String key = articleKey(returned.getArticleName(), returned.getUnitPrice());
-            CommercialStockDashboardExportDTO item = merged.computeIfAbsent(key, k -> newItem(returned));
-            item.setQuantityReturned(item.getQuantityReturned() + returned.getTotalQuantity());
-            if (item.getUnitPrice() == null || item.getUnitPrice() == 0.0) {
-                item.setUnitPrice(returned.getUnitPrice());
-            }
-        }
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
-        List<CommercialStockDashboardExportDTO> finalData = new ArrayList<>(merged.values());
-        finalData.sort(ArticleSortOrder.forDashboardExportDto());
+        List<CommercialStockDashboardExportDTO> finalData = stock.getItems().stream()
+                .map(this::toDashboardExportDto)
+                .sorted(ArticleSortOrder.forDashboardExportDto())
+                .toList();
 
         long totalTaken = finalData.stream().mapToLong(CommercialStockDashboardExportDTO::getQuantityTaken).sum();
         long totalSold = finalData.stream().mapToLong(CommercialStockDashboardExportDTO::getQuantitySold).sum();
@@ -121,10 +102,10 @@ public class StockExportService {
         double totalRemainingValue = finalData.stream().mapToDouble(CommercialStockDashboardExportDTO::getRemainingValue).sum();
 
         StockDashboardExportPdfContextDto contextDto = StockDashboardExportPdfContextDto.builder()
-                .title("Rapport de Stock Commercial")
+                .title(DASHBOARD_DOCUMENT_TITLE)
                 .startDate(formatDate(startDate))
                 .endDate(formatDate(endDate))
-                .collector(collector != null ? collector : "Tous")
+                .collector(resolvedCollector)
                 .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
                 .items(finalData)
                 .totalTaken(totalTaken)
@@ -136,6 +117,29 @@ public class StockExportService {
                 .build();
 
         return renderPdf("commercial-stock-dashboard-export", "context", contextDto);
+    }
+
+    private CommercialStockDashboardExportDTO toDashboardExportDto(CommercialMonthlyStockItem item) {
+        Articles article = item.getArticle();
+        String commercialName = article != null ? article.getCommercialName() : "";
+        String name = article != null && article.getName() != null ? article.getName() : "";
+        String articleName = (commercialName + " " + name).trim();
+        double unitPrice = item.getWeightedAverageUnitPrice() != null ? item.getWeightedAverageUnitPrice() : 0.0;
+        long taken = item.getQuantityTaken() != null ? item.getQuantityTaken().longValue() : 0L;
+        long sold = item.getQuantitySold() != null ? item.getQuantitySold().longValue() : 0L;
+        long returned = item.getQuantityReturned() != null ? item.getQuantityReturned().longValue() : 0L;
+        double soldValue = item.getTotalSoldValue() != null ? item.getTotalSoldValue() : 0.0;
+        return new CommercialStockDashboardExportDTO(
+                articleName,
+                unitPrice,
+                taken,
+                sold,
+                returned,
+                soldValue,
+                article != null ? article.getType() : null,
+                article != null ? article.getMarque() : null,
+                article != null ? article.getModel() : null,
+                name);
     }
 
     public byte[] generateStockRequestSortiePdfExport(LocalDate startDate, LocalDate endDate, String collector, List<Long> requestIds) {
@@ -363,31 +367,26 @@ public class StockExportService {
                 .orElse("—");
     }
 
-    private CommercialStockDashboardExportDTO newItem(StockRequestExportDTO source) {
-        return new CommercialStockDashboardExportDTO(
-                source.getArticleName(),
-                source.getUnitPrice(),
-                0L, 0L, 0L, 0.0,
-                source.getType(),
-                source.getMarque(),
-                source.getModel(),
-                source.getName());
-    }
-
-    private String articleKey(String articleName, Double unitPrice) {
-        return articleName + "|" + (unitPrice != null ? unitPrice : 0.0);
-    }
-
     private String formatDate(LocalDate date) {
         return date != null ? date.toString() : "—";
     }
 
     private byte[] renderPdf(String template, String variableName, Object contextDto) {
+        String title = extractTitle(contextDto);
         Context context = new Context();
+        PdfDocumentIdentity.applyTo(context, title);
         context.setVariable(variableName, contextDto);
         String html = templateEngine.process(template, context);
-        ByteArrayOutputStream target = new ByteArrayOutputStream();
-        HtmlConverter.convertToPdf(html, target);
-        return target.toByteArray();
+        return pdfHtmlRenderer.htmlToPdf(html, PdfDocumentIdentity.footerLabel(title));
+    }
+
+    private String extractTitle(Object contextDto) {
+        if (contextDto instanceof StockExportPdfContextDto dto && dto.getTitle() != null && !dto.getTitle().isBlank()) {
+            return dto.getTitle();
+        }
+        if (contextDto instanceof StockDashboardExportPdfContextDto dto && dto.getTitle() != null && !dto.getTitle().isBlank()) {
+            return dto.getTitle();
+        }
+        return "Document";
     }
 }

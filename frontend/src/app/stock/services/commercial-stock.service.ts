@@ -63,13 +63,11 @@ export class CommercialStockService extends BaseHttpService {
     return this.http.get<StockLinkedSalesResponse>(`${this.baseUrl}/${stockId}/linked-sales`);
   }
 
-  exportPdf(startDate: string, endDate: string, collector: string | null): Observable<Blob> {
-    let params = new HttpParams()
-      .set('startDate', startDate)
-      .set('endDate', endDate);
-    if (collector) {
-      params = params.set('collector', collector);
-    }
+  exportPdf(collector: string, year: number, month: number): Observable<Blob> {
+    const params = new HttpParams()
+      .set('collector', collector)
+      .set('year', year.toString())
+      .set('month', month.toString());
     return this.http.get(`${this.baseUrl}/export/pdf`, { params, responseType: 'blob' });
   }
 }
