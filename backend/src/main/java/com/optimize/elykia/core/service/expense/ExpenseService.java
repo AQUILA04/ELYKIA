@@ -127,7 +127,7 @@ public class ExpenseService extends GenericService<Expense, Long> {
     @Transactional
     public void deleteExpense(Long id) {
         assertNotAccountedInReceivedRemittance(id);
-        delete(id);
+        super.deleteSoft(id);
     }
 
     private ExpenseDto toDtoWithAccountedStatus(Expense expense) {

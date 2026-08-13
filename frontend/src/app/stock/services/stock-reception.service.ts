@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { StockReceptionStatus } from '../../core/models/stock-reception.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,13 @@ export class StockReceptionService {
 
   constructor(private http: HttpClient) { }
 
-  getReceptions(page: number, size: number, reference?: string, receptionDate?: string | null): Observable<any> {
+  getReceptions(
+    page: number,
+    size: number,
+    reference?: string,
+    receptionDate?: string | null,
+    status?: StockReceptionStatus | null
+  ): Observable<any> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
@@ -25,7 +32,10 @@ export class StockReceptionService {
       params = params.set('receptionDate', receptionDate);
     }
 
-    // Determine the endpoint based on search criteria
+    if (status) {
+      params = params.set('status', status);
+    }
+
     const endpoint = (reference || receptionDate) ? `${this.apiUrl}/search` : this.apiUrl;
 
     return this.http.get<any>(endpoint, { params });
@@ -44,6 +54,14 @@ export class StockReceptionService {
 
   downloadPdf(id: number): Observable<Blob> {
     return this.http.get(`${this.pdfUrl}/download-reception/${id}`, { responseType: 'blob' });
+  }
+
+  validateReception(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/validate`, {});
+  }
+
+  refuseReception(id: number, reason?: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/refuse`, { reason: reason ?? null });
   }
 
   cancelReception(id: number): Observable<any> {

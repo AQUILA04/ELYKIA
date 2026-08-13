@@ -210,4 +210,16 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
             WHERE c.id IN :clientIds AND c.state <> com.optimize.common.entities.enums.State.DELETED
             """)
     List<ClientCollectorSnapshot> findCollectorSnapshotsByIds(@Param("clientIds") List<Long> clientIds);
+
+    @Query("""
+            SELECT c FROM Client c
+            WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.recoveryCollector = :collector)
+              AND c.clientType = :clientType
+              AND c.state = :state
+            ORDER BY c.quarter ASC, c.lastname ASC, c.firstname ASC
+            """)
+    List<Client> findAllEnabledClientsForCommercialExport(
+            @Param("collector") String collector,
+            @Param("clientType") ClientType clientType,
+            @Param("state") State state);
 }

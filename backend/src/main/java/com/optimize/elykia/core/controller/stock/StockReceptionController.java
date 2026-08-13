@@ -2,6 +2,8 @@ package com.optimize.elykia.core.controller.stock;
 
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
+import com.optimize.elykia.core.dto.StockReceptionRefuseRequest;
+import com.optimize.elykia.core.enumaration.ReceptionStatus;
 import com.optimize.elykia.core.service.stock.StockReceptionService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,16 +32,18 @@ public class StockReceptionController {
     public ResponseEntity<Response> getAll(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) ReceptionStatus status,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(service.getAllReceptions(startDate, endDate, pageable)), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseUtil.successResponse(service.getAllReceptions(startDate, endDate, status, pageable)), HttpStatus.OK);
     }
 
     @GetMapping("/search")
     public ResponseEntity<Response> search(
             @RequestParam(required = false) String reference,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate receptionDate,
+            @RequestParam(required = false) ReceptionStatus status,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(service.searchReceptions(reference, receptionDate, pageable)), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseUtil.successResponse(service.searchReceptions(reference, receptionDate, status, pageable)), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -52,6 +56,19 @@ public class StockReceptionController {
             @PathVariable Long id,
             @PageableDefault(sort = "id", direction = Sort.Direction.ASC, size = 30) Pageable pageable) {
         return new ResponseEntity<>(ResponseUtil.successResponse(service.getReceptionItemsById(id, pageable)), HttpStatus.OK);
+    }
+
+    @PostMapping("/{id}/validate")
+    public ResponseEntity<Response> validateReception(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(service.validateReception(id)), HttpStatus.OK);
+    }
+
+    @PostMapping("/{id}/refuse")
+    public ResponseEntity<Response> refuseReception(
+            @PathVariable Long id,
+            @RequestBody(required = false) StockReceptionRefuseRequest request) {
+        String reason = request != null ? request.getReason() : null;
+        return new ResponseEntity<>(ResponseUtil.successResponse(service.refuseReception(id, reason)), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

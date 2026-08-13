@@ -94,8 +94,8 @@ export class QuickStockEntryComponent implements OnInit {
                 this.spinner.hide();
                 this.isSubmitting = false;
                 if (response.statusCode === 200 || response.status === 'OK' || response.statusCode === undefined) {
-                    this.alertService.showSuccess('Entrée de stock enregistrée avec succès');
-                    this.dialogRef.close({ success: true, quantity: Number(this.quantityControl?.value) });
+                    this.alertService.showSuccess('Entrée enregistrée — en attente de validation du gestionnaire');
+                    this.dialogRef.close({ success: true, quantity: Number(this.quantityControl?.value), pending: true });
                 } else {
                     this.alertService.showError(response.message || 'Erreur lors de l\'entrée de stock');
                     this.dialogRef.close({ success: false });

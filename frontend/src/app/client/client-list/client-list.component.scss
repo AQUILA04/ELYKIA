@@ -149,7 +149,8 @@
 }
 
 .client-page .btn-refresh,
-.client-page .btn-primary {
+.client-page .btn-primary,
+.client-page .btn-download {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -164,11 +165,25 @@
   box-shadow: var(--shadow-sm);
 }
 .client-page .btn-refresh:hover,
-.client-page .btn-primary:hover {
+.client-page .btn-primary:hover,
+.client-page .btn-download:hover:not(:disabled) {
   background: var(--navy-dark);
 }
+.client-page .btn-download:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+.client-page .btn-download {
+  flex-shrink: 0;
+  white-space: nowrap;
+  height: 40px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
 .client-page .btn-refresh svg,
-.client-page .btn-primary svg { width: 14px; height: 14px; }
+.client-page .btn-primary svg,
+.client-page .btn-download svg { width: 14px; height: 14px; }
 
 .client-page .kpi-strip {
   display: grid;
@@ -874,6 +889,7 @@
   }
 
   .client-page .btn-clear,
+  .client-page .btn-download,
   .client-page .toolbar-actions,
   .client-page .toolbar-actions .btn-primary {
     width: 100%;

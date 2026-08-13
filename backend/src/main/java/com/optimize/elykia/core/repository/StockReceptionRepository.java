@@ -3,6 +3,7 @@ package com.optimize.elykia.core.repository;
 import com.optimize.common.entities.repository.BaseRepository;
 import com.optimize.elykia.core.dto.StockReceptionListDto;
 import com.optimize.elykia.core.entity.stock.StockReception;
+import com.optimize.elykia.core.enumaration.ReceptionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -20,6 +21,8 @@ public interface StockReceptionRepository extends BaseRepository<StockReception,
             FROM StockReception sr
             """;
 
+    String STATUS_FILTER = " WHERE (:status IS NULL OR sr.status = :status)";
+
     Page<StockReception> findByReceptionDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     Page<StockReception> findByReferenceContainingIgnoreCase(String reference, Pageable pageable);
@@ -28,32 +31,36 @@ public interface StockReceptionRepository extends BaseRepository<StockReception,
 
     Page<StockReception> findByReferenceContainingIgnoreCaseAndReceptionDate(String reference, LocalDate receptionDate, Pageable pageable);
 
-    @Query(LIST_PROJECTION)
-    Page<StockReceptionListDto> findAllList(Pageable pageable);
+    @Query(LIST_PROJECTION + STATUS_FILTER)
+    Page<StockReceptionListDto> findAllList(@Param("status") ReceptionStatus status, Pageable pageable);
 
-    @Query(LIST_PROJECTION + " WHERE sr.receptionDate BETWEEN :startDate AND :endDate")
+    @Query(LIST_PROJECTION + STATUS_FILTER + " AND sr.receptionDate BETWEEN :startDate AND :endDate")
     Page<StockReceptionListDto> findListByReceptionDateBetween(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
+            @Param("status") ReceptionStatus status,
             Pageable pageable);
 
-    @Query(LIST_PROJECTION + " WHERE LOWER(sr.reference) LIKE LOWER(CONCAT('%', :reference, '%'))")
+    @Query(LIST_PROJECTION + STATUS_FILTER + " AND LOWER(sr.reference) LIKE LOWER(CONCAT('%', :reference, '%'))")
     Page<StockReceptionListDto> findListByReferenceContainingIgnoreCase(
             @Param("reference") String reference,
+            @Param("status") ReceptionStatus status,
             Pageable pageable);
 
-    @Query(LIST_PROJECTION + " WHERE sr.receptionDate = :receptionDate")
+    @Query(LIST_PROJECTION + STATUS_FILTER + " AND sr.receptionDate = :receptionDate")
     Page<StockReceptionListDto> findListByReceptionDate(
             @Param("receptionDate") LocalDate receptionDate,
+            @Param("status") ReceptionStatus status,
             Pageable pageable);
 
-    @Query(LIST_PROJECTION + """
-             WHERE LOWER(sr.reference) LIKE LOWER(CONCAT('%', :reference, '%'))
+    @Query(LIST_PROJECTION + STATUS_FILTER + """
+             AND LOWER(sr.reference) LIKE LOWER(CONCAT('%', :reference, '%'))
              AND sr.receptionDate = :receptionDate
             """)
     Page<StockReceptionListDto> findListByReferenceContainingIgnoreCaseAndReceptionDate(
             @Param("reference") String reference,
             @Param("receptionDate") LocalDate receptionDate,
+            @Param("status") ReceptionStatus status,
             Pageable pageable);
 
     @Query("SELECT DISTINCT sr FROM StockReception sr " +

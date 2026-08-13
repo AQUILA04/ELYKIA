@@ -160,7 +160,65 @@ tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
   letter-spacing: .05em; text-transform: uppercase;
 }
 .badge-success { background-color: var(--green-pale); color: var(--green); border: 1px solid var(--green); }
+.badge-pending { background-color: #fff4e5; color: #c75000; border: 1px solid #c75000; }
+.badge-refused { background-color: #f3e8ff; color: #6b21a8; border: 1px solid #6b21a8; }
 .badge-danger { background-color: #fce8e8; color: #dc3545; border: 1px solid #dc3545; }
+
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.kpi-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+.kpi-pending::before { background: #c75000; }
+.kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-light); margin-bottom: 6px; }
+.kpi-value { font-family: 'DM Mono', monospace; font-size: 24px; font-weight: 700; color: #c75000; }
+.kpi-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+.status-select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-body);
+  background: var(--bg-white);
+}
+
+.btn-validate {
+  border: 1px solid var(--green);
+  background: var(--green-pale);
+  color: var(--green);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-refuse {
+  border: 1px solid #6b21a8;
+  background: #f3e8ff;
+  color: #6b21a8;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
 
 .cancelled-row td { background-color: #fafafa !important; opacity: 0.7; }
 .text-cancelled { text-decoration: line-through; color: var(--text-light) !important; }

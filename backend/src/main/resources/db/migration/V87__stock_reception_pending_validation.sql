@@ -1,0 +1,9 @@
+ALTER TABLE stock_reception ADD COLUMN IF NOT EXISTS validated_by VARCHAR(255);
+ALTER TABLE stock_reception ADD COLUMN IF NOT EXISTS validated_at TIMESTAMP;
+ALTER TABLE stock_reception ADD COLUMN IF NOT EXISTS refused_by VARCHAR(255);
+ALTER TABLE stock_reception ADD COLUMN IF NOT EXISTS refused_at TIMESTAMP;
+ALTER TABLE stock_reception ADD COLUMN IF NOT EXISTS refusal_reason VARCHAR(1000);
+ALTER TABLE stock_reception ADD COLUMN IF NOT EXISTS cancelled_by VARCHAR(255);
+ALTER TABLE stock_reception ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMP;
+
+ALTER TABLE stock_reception ALTER COLUMN status SET DEFAULT 'PENDING';

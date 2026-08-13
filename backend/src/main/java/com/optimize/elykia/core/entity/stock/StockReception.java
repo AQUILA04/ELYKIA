@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,7 +24,7 @@ public class    StockReception extends Auditable<String> {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ReceptionStatus status = ReceptionStatus.VALIDATED;
+    private ReceptionStatus status = ReceptionStatus.PENDING;
 
     @Column(unique = true)
     private String reference;
@@ -34,6 +35,20 @@ public class    StockReception extends Auditable<String> {
 
     @Column(columnDefinition = "double precision default 0")
     private Double totalAmount;
+
+    private String validatedBy;
+
+    private LocalDateTime validatedAt;
+
+    private String refusedBy;
+
+    private LocalDateTime refusedAt;
+
+    private String refusalReason;
+
+    private String cancelledBy;
+
+    private LocalDateTime cancelledAt;
 
     @OneToMany(mappedBy = "stockReception", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StockReceptionItem> items = new HashSet<>();

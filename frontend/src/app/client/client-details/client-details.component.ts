@@ -79,7 +79,7 @@ export class ClientDetailsComponent implements OnInit {
       (response: any) => {
         if (response && response.data) {
           this.client = response.data;
-          this.resolveProfilPhoto(this.client);
+          this.resolveProfilPhoto(response.data);
           if (this.dualCreditEnabled && this.isGestionnaire) {
             this.loadAuthorizationHistory(this.clientId);
           }

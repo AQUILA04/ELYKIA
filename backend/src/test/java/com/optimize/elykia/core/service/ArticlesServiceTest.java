@@ -32,6 +32,9 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -106,14 +109,9 @@ class ArticlesServiceTest {
     }
 
     @Test
-    void makeStockEntries_ShouldCreateExpense_WhenTotalAmountIsPositive() {
+    void makeStockEntries_ShouldCreatePendingReception_WithoutStockImpact() {
         when(userService.getCurrentUser()).thenReturn(currentUser);
         when(articlesRepository.findById(1L)).thenReturn(Optional.of(article));
-        
-        ExpenseType expenseType = new ExpenseType();
-        expenseType.setId(1L);
-        expenseType.setName("Approvisionnement");
-        when(expenseTypeRepository.findByName("Approvisionnement")).thenReturn(Optional.of(expenseType));
 
         StockEntryDto stockEntryDto = new StockEntryDto();
         StockEntry entry = new StockEntry();
@@ -125,20 +123,15 @@ class ArticlesServiceTest {
         String result = articlesService.makeStockEntries(stockEntryDto);
 
         assertThat(result).isEqualTo("success:true");
-        
-        // Verify Article update
-        verify(articlesRepository, atLeastOnce()).saveAndFlush(any(Articles.class)); // GenericService.update calls saveAndFlush
-        
-        // Verify History creation
-        verify(articleHistoryService, times(1)).create(any(ArticleHistory.class));
-        
-        // Verify StockReception creation
-        verify(stockReceptionRepository, times(1)).save(any(StockReception.class));
 
-        // Verify Expense creation logic
-        verify(expenseService, times(1)).createExpense(any(ExpenseDto.class));
+        verify(articlesRepository, never()).saveAndFlush(any(Articles.class));
+        verify(articleHistoryService, never()).create(any(ArticleHistory.class));
+        verify(stockValuationFacade, never()).registerEntry(any(), anyInt(), anyDouble(), any(), any(), any());
+        verify(expenseService, never()).createExpense(any(ExpenseDto.class));
+        verify(stockReceptionRepository, times(1)).save(argThat(reception ->
+                reception.getStatus() == com.optimize.elykia.core.enumaration.ReceptionStatus.PENDING));
     }
-    
+
     @Test
     void makeStockEntries_ShouldNotCreateExpense_WhenQuantityIsZero() {
         when(userService.getCurrentUser()).thenReturn(currentUser);
@@ -147,17 +140,15 @@ class ArticlesServiceTest {
         StockEntryDto stockEntryDto = new StockEntryDto();
         StockEntry entry = new StockEntry();
         entry.setArticleId(1L);
-        entry.setQuantity(0); // 0 quantity implies 0 cost
+        entry.setQuantity(0);
         entry.setUnitPrice(100.0);
         stockEntryDto.setArticleEntries(Set.of(entry));
 
-        String result = articlesService.makeStockEntries(stockEntryDto);
-        
-        // Verify StockReception creation
-        verify(stockReceptionRepository, times(1)).save(any(StockReception.class));
+        articlesService.makeStockEntries(stockEntryDto);
 
-        // With 0 quantity, total cost is 0. Condition if (totalCheck.get() > 0) should fail.
+        verify(stockReceptionRepository, times(1)).save(any(StockReception.class));
         verify(expenseService, never()).createExpense(any(ExpenseDto.class));
+        verify(articleHistoryService, never()).create(any(ArticleHistory.class));
     }
 
     @Test

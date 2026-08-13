@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${pdfDocumentTitle}">Fiche Client</title>
+    <th:block th:replace="~{pdf/fragments :: styles}"></th:block>
+</head>
+<body>
+    <div th:replace="~{pdf/fragments :: header}"></div>
+
+    <table class="pdf-meta">
+        <tr>
+            <td>
+                <span class="pdf-meta-label">Commercial</span>
+                <span class="pdf-meta-value" th:text="${doc.commercialLabel}">COM001</span>
+            </td>
+            <td>
+                <span class="pdf-meta-label">Date de génération</span>
+                <span class="pdf-meta-value" th:text="${doc.generationDate}">13/08/2026 18:00</span>
+            </td>
+        </tr>
+    </table>
+
+    <table class="pdf-kpi">
+        <tr>
+            <td>
+                <div class="kpi-label">Clients enregistrés</div>
+                <div class="kpi-value" th:text="${doc.totalRegistered}">0</div>
+            </td>
+            <td class="kpi-cyan">
+                <div class="kpi-label">Crédit en cours</div>
+                <div class="kpi-value" th:text="${doc.withActiveCredit}">0</div>
+            </td>
+            <td class="kpi-green">
+                <div class="kpi-label">Membres tontine</div>
+                <div class="kpi-value" th:text="${doc.tontineMembers}">0</div>
+            </td>
+            <td class="kpi-orange">
+                <div class="kpi-label">Sans crédit ni tontine</div>
+                <div class="kpi-value" th:text="${doc.withoutCreditNorTontine}">0</div>
+            </td>
+        </tr>
+    </table>
+
+    <div th:if="${doc.clientCount == 0}" class="pdf-empty">
+        Aucun client actif pour ce commercial.
+    </div>
+
+    <div th:each="group : ${doc.groups}" class="quarter-block">
+        <div class="pdf-section-title"
+             th:text="${group.quarter + '  —  ' + #lists.size(group.clients) + ' client(s)'}">Quartier</div>
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th class="num">#</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Téléphone</th>
+                <th>Adresse</th>
+                <th class="flag">Crédit</th>
+                <th class="flag">Tontine</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${group.clients}">
+                <td class="num" th:text="${row.index}">1</td>
+                <td th:text="${row.lastname}">Doe</td>
+                <td th:text="${row.firstname}">Jane</td>
+                <td th:text="${row.phone}">90123456</td>
+                <td th:text="${row.address}">Adresse</td>
+                <td class="flag">
+                    <span th:if="${row.creditInProgress}" class="badge-yes">Oui</span>
+                    <span th:unless="${row.creditInProgress}" class="badge-no">—</span>
+                </td>
+                <td class="flag">
+                    <span th:if="${row.tontineMember}" class="badge-yes">Oui</span>
+                    <span th:unless="${row.tontineMember}" class="badge-no">—</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

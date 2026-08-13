@@ -158,6 +158,14 @@ export class ClientService {
     return this.http.get(`${this.apiUrl}/profil-photo-stream/${id}`, { headers, responseType: 'blob' });
   }
 
+  exportClientsPdf(commercial: string): Observable<Blob> {
+    const headers = this.getHeader();
+    return this.http.get(`${this.apiUrl}/by-commercial/${encodeURIComponent(commercial)}/export/pdf`, {
+      headers,
+      responseType: 'blob'
+    });
+  }
+
   getClientByCommercial(username: string, page: number, size: number, sort: string, searchTerm: string = ''): Observable<any> {
     const headers = this.getHeader();
     let params = new HttpParams()

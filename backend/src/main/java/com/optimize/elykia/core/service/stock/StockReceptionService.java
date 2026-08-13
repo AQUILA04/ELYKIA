@@ -1,35 +1,39 @@
 package com.optimize.elykia.core.service.stock;
 
 import com.optimize.common.entities.service.GenericService;
+import com.optimize.common.securities.models.User;
+import com.optimize.elykia.core.dto.ExpenseDto;
+import com.optimize.elykia.core.dto.StockEntry;
 import com.optimize.elykia.core.dto.StockReceptionDto;
 import com.optimize.elykia.core.dto.StockReceptionItemDto;
 import com.optimize.elykia.core.dto.StockReceptionListDto;
+import com.optimize.elykia.core.entity.article.ArticleHistory;
+import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
+import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
+import com.optimize.elykia.core.enumaration.ReceptionStatus;
 import com.optimize.elykia.core.mapper.StockReceptionMapper;
+import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import com.optimize.elykia.core.repository.StockReceptionItemRepository;
 import com.optimize.elykia.core.repository.StockReceptionRepository;
+import com.optimize.elykia.core.service.expense.ExpenseService;
+import com.optimize.elykia.core.service.store.ArticleHistoryService;
+import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.core.util.ArticleSortOrder;
+import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.entities.exception.ResourceNotFoundException;
+import com.optimize.common.securities.security.services.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.optimize.elykia.core.enumaration.ReceptionStatus;
-import com.optimize.elykia.core.util.ArticleSortOrder;
-import com.optimize.common.entities.exception.CustomValidationException;
-import com.optimize.common.entities.exception.ResourceNotFoundException;
-import com.optimize.elykia.core.entity.article.Articles;
-import com.optimize.elykia.core.entity.article.ArticleHistory;
-import com.optimize.elykia.core.entity.expense.ExpenseType;
-import com.optimize.elykia.core.dto.ExpenseDto;
-import com.optimize.elykia.core.service.store.ArticlesService;
-import com.optimize.elykia.core.service.expense.ExpenseService;
-import com.optimize.elykia.core.repository.ExpenseTypeRepository;
-import com.optimize.elykia.core.service.store.ArticleHistoryService;
-import com.optimize.common.securities.security.services.UserService;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -71,26 +75,34 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         this.stockReceptionItemRepository = stockReceptionItemRepository;
     }
 
-    public Page<StockReceptionListDto> getAllReceptions(LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    public Page<StockReceptionListDto> getAllReceptions(
+            LocalDate startDate,
+            LocalDate endDate,
+            ReceptionStatus status,
+            Pageable pageable) {
         StockReceptionRepository repository = (StockReceptionRepository) getRepository();
         if (startDate != null && endDate != null) {
-            return repository.findListByReceptionDateBetween(startDate, endDate, pageable);
+            return repository.findListByReceptionDateBetween(startDate, endDate, status, pageable);
         }
-        return repository.findAllList(pageable);
+        return repository.findAllList(status, pageable);
     }
 
-    public Page<StockReceptionListDto> searchReceptions(String reference, LocalDate receptionDate, Pageable pageable) {
+    public Page<StockReceptionListDto> searchReceptions(
+            String reference,
+            LocalDate receptionDate,
+            ReceptionStatus status,
+            Pageable pageable) {
         StockReceptionRepository repository = (StockReceptionRepository) getRepository();
         if (reference != null && !reference.isEmpty() && receptionDate != null) {
-            return repository.findListByReferenceContainingIgnoreCaseAndReceptionDate(reference, receptionDate, pageable);
+            return repository.findListByReferenceContainingIgnoreCaseAndReceptionDate(reference, receptionDate, status, pageable);
         }
         if (reference != null && !reference.isEmpty()) {
-            return repository.findListByReferenceContainingIgnoreCase(reference, pageable);
+            return repository.findListByReferenceContainingIgnoreCase(reference, status, pageable);
         }
         if (receptionDate != null) {
-            return repository.findListByReceptionDate(receptionDate, pageable);
+            return repository.findListByReceptionDate(receptionDate, status, pageable);
         }
-        return repository.findAllList(pageable);
+        return repository.findAllList(status, pageable);
     }
 
     public StockReceptionDto getReceptionById(Long id) {
@@ -118,35 +130,157 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
     }
 
     @Transactional
-    public String cancelReception(Long id) {
+    public StockReceptionDto validateReception(Long id) {
+        StockReception reception = ((StockReceptionRepository) getRepository()).findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
+
+        if (reception.getStatus() != ReceptionStatus.PENDING) {
+            throw new CustomValidationException("Seules les réceptions en attente peuvent être validées.");
+        }
+
+        User currentUser = userService.getCurrentUser();
+        assertManagerOrAdmin(currentUser);
+
+        applyStockReception(reception, currentUser.getUsername());
+
+        reception.setStatus(ReceptionStatus.VALIDATED);
+        reception.setValidatedBy(currentUser.getUsername());
+        reception.setValidatedAt(LocalDateTime.now());
+        update(reception);
+
+        return mapper.toDto(reception);
+    }
+
+    @Transactional
+    public StockReceptionDto refuseReception(Long id, String reason) {
         StockReception reception = getById(id);
+
+        if (reception.getStatus() != ReceptionStatus.PENDING) {
+            throw new CustomValidationException("Seules les réceptions en attente peuvent être refusées.");
+        }
+
+        User currentUser = userService.getCurrentUser();
+        assertManagerOrAdmin(currentUser);
+
+        reception.setStatus(ReceptionStatus.REFUSED);
+        reception.setRefusedBy(currentUser.getUsername());
+        reception.setRefusedAt(LocalDateTime.now());
+        reception.setRefusalReason(reason);
+        update(reception);
+
+        return mapper.toDto(reception);
+    }
+
+    @Transactional
+    public String cancelReception(Long id) {
+        StockReception reception = ((StockReceptionRepository) getRepository()).findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
 
         if (ReceptionStatus.CANCELLED.equals(reception.getStatus())) {
             throw new CustomValidationException("Cette réception est déjà annulée.");
         }
 
-        validateStockAvailabilityForCancellation(reception);
+        if (ReceptionStatus.REFUSED.equals(reception.getStatus())) {
+            throw new CustomValidationException("Une réception refusée ne peut pas être annulée.");
+        }
 
-        final String connectedUser = userService.getCurrentUser().getUsername();
+        User currentUser = userService.getCurrentUser();
+        final String connectedUser = currentUser.getUsername();
+
+        if (ReceptionStatus.PENDING.equals(reception.getStatus())) {
+            assertCanCancelPending(reception, currentUser);
+            reception.setStatus(ReceptionStatus.CANCELLED);
+            reception.setCancelledBy(connectedUser);
+            reception.setCancelledAt(LocalDateTime.now());
+            update(reception);
+            return "success:true";
+        }
+
+        if (ReceptionStatus.VALIDATED.equals(reception.getStatus())) {
+            assertAdmin(currentUser);
+            reverseValidatedReception(reception, connectedUser);
+            reception.setStatus(ReceptionStatus.CANCELLED);
+            reception.setCancelledBy(connectedUser);
+            reception.setCancelledAt(LocalDateTime.now());
+            update(reception);
+            return "success:true";
+        }
+
+        throw new CustomValidationException("Statut de réception non pris en charge pour l'annulation.");
+    }
+
+    void applyStockReception(StockReception reception, String connectedUser) {
+        StringBuilder descriptionBuilder = new StringBuilder();
 
         for (StockReceptionItem item : reception.getItems()) {
-            // 1. Annuler la valorisation (supprime le lot en FIFO, ne fait rien en Legacy)
+            Articles article = articlesService.getById(item.getArticle().getId());
+            double unitPrice = item.getUnitPrice() != null ? item.getUnitPrice() : 0.0;
+            int quantity = item.getQuantity() != null ? item.getQuantity() : 0;
+
+            StockEntry stockEntry = new StockEntry();
+            stockEntry.setArticleId(article.getId());
+            stockEntry.setQuantity(quantity);
+            stockEntry.setUnitPrice(unitPrice);
+
+            ArticleHistory articleHistory = ArticleHistory.buildEntryHistory(article, stockEntry, connectedUser);
+            articleHistory.setBeneficiary(connectedUser);
+            articleHistoryService.create(articleHistory);
+
+            stockValuationFacade.registerEntry(
+                    article,
+                    quantity,
+                    unitPrice,
+                    ArticleStockLotSourceType.STOCK_RECEPTION,
+                    item,
+                    reception.getReceptionDate());
+
+            article.makeEntry(quantity);
+            article.setPurchasePrice(unitPrice);
+            article.setLastRestockDate(LocalDate.now());
+            articlesService.update(article);
+
+            double totalLinePrice = unitPrice * quantity;
+            if (descriptionBuilder.length() > 0) {
+                descriptionBuilder.append(" | ");
+            }
+            descriptionBuilder.append(article.getCommercialName())
+                    .append(" ").append(article.getName())
+                    .append(" Qte:").append(quantity)
+                    .append(" PU:").append(unitPrice)
+                    .append(" Total:").append(totalLinePrice);
+        }
+
+        if (reception.getTotalAmount() != null && reception.getTotalAmount() > 0) {
+            ExpenseType expenseType = expenseTypeRepository.findByName("Approvisionnement")
+                    .orElseThrow(() -> new RuntimeException("Expense Type 'Approvisionnement' not found"));
+
+            ExpenseDto expenseDto = new ExpenseDto();
+            expenseDto.setExpenseTypeId(expenseType.getId());
+            expenseDto.setAmount(BigDecimal.valueOf(reception.getTotalAmount()));
+            expenseDto.setExpenseDate(LocalDate.now());
+            expenseDto.setDescription("Commande : " + descriptionBuilder);
+            expenseDto.setReference("STOCK-" + System.currentTimeMillis());
+
+            expenseService.createExpense(expenseDto);
+        }
+    }
+
+    private void reverseValidatedReception(StockReception reception, String connectedUser) {
+        validateStockAvailabilityForCancellation(reception);
+
+        for (StockReceptionItem item : reception.getItems()) {
             stockValuationFacade.cancelEntry(item);
 
             Articles article = item.getArticle();
 
-            // 2. Historiser l'opération AVANT de mettre à jour le stock
-            // (pour avoir l'ancien stock comme initialQuantity)
             ArticleHistory history = ArticleHistory.buildCancelReceptionHistory(
                     article, item.getQuantity(), connectedUser);
             articleHistoryService.create(history);
 
-            // 3. Mettre à jour le stock (Legacy / global)
             article.makeRelease(item.getQuantity());
             articlesService.update(article);
         }
 
-        // 4. Annuler la dépense si applicable (contre-passation)
         if (reception.getTotalAmount() != null && reception.getTotalAmount() > 0) {
             ExpenseType expenseType = expenseTypeRepository.findByName("Approvisionnement")
                     .orElseThrow(() -> new RuntimeException("Expense Type 'Approvisionnement' not found"));
@@ -160,12 +294,31 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
 
             expenseService.createExpense(expenseDto);
         }
+    }
 
-        // 5. Mettre à jour le statut
-        reception.setStatus(ReceptionStatus.CANCELLED);
-        update(reception);
+    private void assertManagerOrAdmin(User currentUser) {
+        boolean isManagerOrAdmin = currentUser.is(UserProfilConstant.GESTIONNAIRE)
+                || currentUser.is(UserProfilConstant.ADMIN);
+        if (!isManagerOrAdmin) {
+            throw new CustomValidationException("Vous n'avez pas le droit de valider ou refuser cette réception.");
+        }
+    }
 
-        return "success:true";
+    private void assertAdmin(User currentUser) {
+        if (!currentUser.is(UserProfilConstant.ADMIN)) {
+            throw new CustomValidationException("Seul un administrateur peut annuler une réception validée.");
+        }
+    }
+
+    private void assertCanCancelPending(StockReception reception, User currentUser) {
+        boolean isCreator = reception.getReceivedBy() != null
+                && reception.getReceivedBy().equals(currentUser.getUsername());
+        boolean isManagerOrAdmin = currentUser.is(UserProfilConstant.GESTIONNAIRE)
+                || currentUser.is(UserProfilConstant.ADMIN);
+
+        if (!isCreator && !isManagerOrAdmin) {
+            throw new CustomValidationException("Vous n'avez pas le droit d'annuler cette réception en attente.");
+        }
     }
 
     private void validateStockAvailabilityForCancellation(StockReception reception) {

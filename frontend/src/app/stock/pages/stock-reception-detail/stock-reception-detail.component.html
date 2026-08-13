@@ -33,7 +33,11 @@
           </svg>
           <h1 class="page-title" style="margin:0;padding:0;line-height:1">Réception de stock</h1>
         </div>
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-validate" *ngIf="canValidateOrRefuse()" (click)="validateReception()">Valider</button>
+          <button class="btn-refuse" *ngIf="canValidateOrRefuse()" (click)="refuseReception()">Refuser</button>
+          <button class="btn-cancel" *ngIf="canAbandonPending()" (click)="abandonReception()">Abandonner</button>
+          <button class="btn-cancel" *ngIf="canCancelValidated()" (click)="cancelValidatedReception()">Annuler</button>
           <button class="btn-download" (click)="downloadPdf()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Télécharger PDF
@@ -44,7 +48,10 @@
           </button>
         </div>
       </div>
-      <p class="page-subtitle">{{ reception.receptionDate | date:'dd/MM/yyyy' }} · Reçu par {{ reception.receivedBy }}</p>
+      <p class="page-subtitle">
+        {{ reception.receptionDate | date:'dd/MM/yyyy' }} · Reçu par {{ reception.receivedBy }} · Statut : {{ getStatusLabel(reception.status) }}
+      </p>
+      <p class="page-subtitle" *ngIf="reception.refusalReason">Motif de refus : {{ reception.refusalReason }}</p>
     </div>
 
     <!-- KPI STRIP -->

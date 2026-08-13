@@ -5,6 +5,7 @@ import lombok.Data;
 
 import com.optimize.elykia.core.enumaration.ReceptionStatus;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
@@ -16,5 +17,12 @@ public class StockReceptionDto {
     private String receivedBy;
     private Double totalAmount;
     private ReceptionStatus status;
+    private String validatedBy;
+    private LocalDateTime validatedAt;
+    private String refusedBy;
+    private LocalDateTime refusedAt;
+    private String refusalReason;
+    private String cancelledBy;
+    private LocalDateTime cancelledAt;
     private Set<StockReceptionItemDto> items;
 }

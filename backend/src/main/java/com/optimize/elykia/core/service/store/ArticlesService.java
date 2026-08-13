@@ -7,7 +7,6 @@ import com.optimize.elykia.core.config.CacheNames;
 import com.optimize.elykia.core.dto.ArticlePriceHistoryDto;
 import com.optimize.elykia.core.dto.ArticleStateHistoryDto;
 import com.optimize.elykia.core.dto.ArticlesDto;
-import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.dto.StockEntryDto;
 import com.optimize.elykia.core.dto.StockValuesDto;
 import com.optimize.elykia.core.dto.bi.StockMetricsDto;
@@ -19,7 +18,7 @@ import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
-import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
+import com.optimize.elykia.core.enumaration.ReceptionStatus;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
 import com.optimize.elykia.core.repository.ArticlePriceHistoryRepository;
 import com.optimize.elykia.core.repository.ArticleStateHistoryRepository;
@@ -40,7 +39,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -49,13 +47,6 @@ import java.util.concurrent.atomic.AtomicReference;
 @Service
 @Transactional(readOnly = true)
 public class ArticlesService extends GenericService<Articles, Long> {
-
-    private record PendingStockEntry(
-            Articles article,
-            com.optimize.elykia.core.dto.StockEntry stockEntry,
-            double unitPrice,
-            StockReceptionItem receptionItem) {
-    }
 
     private final ArticlesMapper articlesMapper;
     private final UserService userService;
@@ -306,23 +297,17 @@ public class ArticlesService extends GenericService<Articles, Long> {
         final String connectedUser = userService.getCurrentUser().getUsername();
 
         AtomicReference<Double> totalCheck = new AtomicReference<>(0.0);
-        StringBuilder descriptionBuilder = new StringBuilder();
 
-        // Create StockReception
+        // Create StockReception (pending manager validation)
         StockReception stockReception = new StockReception();
+        stockReception.setStatus(ReceptionStatus.PENDING);
         stockReception.setReceptionDate(LocalDate.now());
         stockReception.setReceivedBy(connectedUser);
         stockReception.setReference("RCP-" + System.currentTimeMillis());
 
-        List<PendingStockEntry> pendingEntries = new ArrayList<>();
-
         stockEntryDto.getArticleEntries().forEach(stockEntry -> {
             Articles articles = getById(stockEntry.getArticleId());
             double unitPrice = stockValuationFacade.resolveEntryUnitPrice(articles, stockEntry.getUnitPrice());
-
-            ArticleHistory articleHistory = ArticleHistory.buildEntryHistory(articles, stockEntry, connectedUser);
-            articleHistory.setBeneficiary(connectedUser);
-            articleHistoryService.create(articleHistory);
 
             StockReceptionItem receptionItem = new StockReceptionItem();
             receptionItem.setArticle(articles);
@@ -331,53 +316,12 @@ public class ArticlesService extends GenericService<Articles, Long> {
             receptionItem.setTotalPrice(unitPrice * stockEntry.getQuantity());
             stockReception.addItem(receptionItem);
 
-            pendingEntries.add(new PendingStockEntry(articles, stockEntry, unitPrice, receptionItem));
-
             double totalLinePrice = unitPrice * stockEntry.getQuantity();
             totalCheck.updateAndGet(v -> v + totalLinePrice);
-
-            if (descriptionBuilder.length() > 0) {
-                descriptionBuilder.append(" | ");
-            }
-            descriptionBuilder.append(articles.getCommercialName())
-                    .append(" ").append(articles.getName())
-                    .append(" Qte:").append(stockEntry.getQuantity())
-                    .append(" PU:").append(unitPrice)
-                    .append(" Total:").append(totalLinePrice);
         });
 
         stockReception.setTotalAmount(totalCheck.get());
         stockReceptionRepository.save(stockReception);
-
-        pendingEntries.forEach(pending -> {
-            stockValuationFacade.registerEntry(
-                    pending.article(),
-                    pending.stockEntry().getQuantity(),
-                    pending.unitPrice(),
-                    ArticleStockLotSourceType.STOCK_RECEPTION,
-                    pending.receptionItem(),
-                    stockReception.getReceptionDate());
-
-            pending.article().makeEntry(pending.stockEntry().getQuantity());
-            pending.article().setPurchasePrice(pending.unitPrice());
-            pending.article().setLastRestockDate(LocalDate.now());
-            update(pending.article());
-        });
-
-        // Create Expense if amount > 0
-        if (totalCheck.get() > 0) {
-            ExpenseType expenseType = expenseTypeRepository.findByName("Approvisionnement")
-                    .orElseThrow(() -> new RuntimeException("Expense Type 'Approvisionnement' not found"));
-
-            ExpenseDto expenseDto = new ExpenseDto();
-            expenseDto.setExpenseTypeId(expenseType.getId());
-            expenseDto.setAmount(BigDecimal.valueOf(totalCheck.get()));
-            expenseDto.setExpenseDate(LocalDate.now());
-            expenseDto.setDescription("Commande : " + descriptionBuilder.toString());
-            expenseDto.setReference("STOCK-" + System.currentTimeMillis());
-
-            expenseService.createExpense(expenseDto);
-        }
 
         return "success:true";
     }

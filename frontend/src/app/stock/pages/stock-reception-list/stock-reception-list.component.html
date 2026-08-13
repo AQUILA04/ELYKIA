@@ -35,7 +35,16 @@
         Actualiser
       </button>
     </div>
-    <p class="page-subtitle">Toutes les réceptions de stock · Triées par date décroissante</p>
+    <p class="page-subtitle">Validation gestionnaire requise · Filtres et pagination conservés à la navigation</p>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-strip a3" *ngIf="isManager">
+    <div class="kpi-card kpi-pending">
+      <div class="kpi-label">En attente</div>
+      <div class="kpi-value">{{ pendingCount }}</div>
+      <div class="kpi-sub">réception(s) à valider</div>
+    </div>
   </div>
 
   <!-- TOOLBAR -->
@@ -53,6 +62,12 @@
     </svg>
     <input class="date-input" type="date" [(ngModel)]="searchDate" (input)="onSearchChange()">
 
+    <div class="divider"></div>
+
+    <select class="status-select" [(ngModel)]="statusFilter" (change)="onStatusChange()">
+      <option *ngFor="let option of statusOptions" [ngValue]="option.value">{{ option.label }}</option>
+    </select>
+
     <span class="result-count">
       <strong>{{ totalElement }}</strong> résultat(s)
     </span>
@@ -69,7 +84,7 @@
           <th class="col-hide">Reçu par</th>
           <th>Montant total</th>
           <th>Statut</th>
-          <th style="width:180px">Action</th>
+          <th style="width:280px">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -90,12 +105,12 @@
             </div>
           </td>
         </tr>
-        <tr *ngFor="let r of receptions; let i = index" [class.cancelled-row]="r.status === 'CANCELLED'">
+        <tr *ngFor="let r of receptions; let i = index" [class.cancelled-row]="r.status === 'CANCELLED' || r.status === 'REFUSED'">
           <td>
             <span class="row-num">{{ currentPage * pageSize + i + 1 }}</span>
           </td>
           <td>
-            <div class="col-ref" [class.text-cancelled]="r.status === 'CANCELLED'">{{ r.reference }}</div>
+            <div class="col-ref" [class.text-cancelled]="r.status === 'CANCELLED' || r.status === 'REFUSED'">{{ r.reference }}</div>
           </td>
           <td>
             <div class="col-date">{{ r.receptionDate | date:'dd/MM/yyyy' }}</div>
@@ -107,28 +122,20 @@
             </div>
           </td>
           <td>
-            <div class="col-amount" [class.text-cancelled]="r.status === 'CANCELLED'">{{ r.totalAmount | number }} FCFA</div>
+            <div class="col-amount" [class.text-cancelled]="r.status === 'CANCELLED' || r.status === 'REFUSED'">{{ r.totalAmount | number }} FCFA</div>
           </td>
           <td>
-            <span class="badge" [ngClass]="{'badge-success': r.status === 'VALIDATED', 'badge-danger': r.status === 'CANCELLED'}">
-              {{ r.status === 'CANCELLED' ? 'Annulée' : 'Validée' }}
+            <span class="badge" [ngClass]="getStatusClass(r.status)">
+              {{ getStatusLabel(r.status) }}
             </span>
           </td>
           <td>
             <div class="action-buttons">
-              <button class="btn-detail" (click)="viewDetails(r.id)">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-                Voir
-              </button>
-              <button class="btn-cancel" *ngIf="isAdmin && r.status !== 'CANCELLED'" (click)="cancelReception(r)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Annuler
-              </button>
+              <button class="btn-detail" (click)="viewDetails(r.id)">Voir</button>
+              <button class="btn-validate" *ngIf="canValidateOrRefuse(r)" (click)="validateReception(r)">Valider</button>
+              <button class="btn-refuse" *ngIf="canValidateOrRefuse(r)" (click)="refuseReception(r)">Refuser</button>
+              <button class="btn-cancel" *ngIf="canAbandonPending(r)" (click)="abandonReception(r)">Abandonner</button>
+              <button class="btn-cancel" *ngIf="canCancelValidated(r)" (click)="cancelValidatedReception(r)">Annuler</button>
             </div>
           </td>
         </tr>

@@ -1,13 +1,22 @@
+export type StockReceptionStatus = 'PENDING' | 'VALIDATED' | 'REFUSED' | 'CANCELLED';
+
 export interface StockReceptionListItem {
   id: number;
   reference: string;
   receptionDate: string;
   receivedBy: string;
   totalAmount: number;
-  status: 'VALIDATED' | 'CANCELLED';
+  status: StockReceptionStatus;
 }
 
 export interface StockReception extends StockReceptionListItem {
+  validatedBy?: string;
+  validatedAt?: string;
+  refusedBy?: string;
+  refusedAt?: string;
+  refusalReason?: string;
+  cancelledBy?: string;
+  cancelledAt?: string;
   items?: StockReceptionItem[];
 }
 

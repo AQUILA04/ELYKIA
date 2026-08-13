@@ -37,11 +37,11 @@ import java.util.List;
 import java.util.Objects;
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
 import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
-import com.itextpdf.html2pdf.HtmlConverter;
-import java.io.ByteArrayOutputStream;
+import com.optimize.elykia.core.dto.StockExportPdfContextDto;
+import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
+import com.optimize.elykia.core.service.report.PdfHtmlRenderer;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import com.optimize.elykia.core.dto.StockExportPdfContextDto;
 
 @Service
 @Transactional
@@ -55,6 +55,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     private final StockValuationFacade stockValuationFacade;
     private final AccountingDayService accountingDayService;
     private final TemplateEngine templateEngine;
+    private final PdfHtmlRenderer pdfHtmlRenderer;
 
     protected StockTontineRequestService(StockTontineRequestRepository repository,
             UserService userService,
@@ -64,7 +65,8 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             StockMovementService stockMovementService,
             StockValuationFacade stockValuationFacade,
             AccountingDayService accountingDayService,
-            TemplateEngine templateEngine) {
+            TemplateEngine templateEngine,
+            PdfHtmlRenderer pdfHtmlRenderer) {
         super(repository);
         this.userService = userService;
         this.tontineStockService = tontineStockService;
@@ -74,6 +76,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         this.stockValuationFacade = stockValuationFacade;
         this.accountingDayService = accountingDayService;
         this.templateEngine = templateEngine;
+        this.pdfHtmlRenderer = pdfHtmlRenderer;
     }
 
     public StockTontineRequest save(StockTontineRequest request) {
@@ -446,9 +449,6 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         context.setVariable("context", contextDto);
 
         String html = templateEngine.process("stock-export", context);
-
-        ByteArrayOutputStream target = new ByteArrayOutputStream();
-        HtmlConverter.convertToPdf(html, target);
-        return target.toByteArray();
+        return pdfHtmlRenderer.htmlToPdf(html, PdfDocumentIdentity.footerLabel(contextDto.getTitle()));
     }
 }

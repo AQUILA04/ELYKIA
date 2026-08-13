@@ -80,8 +80,8 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
     const submitSub = this.inventoryService.addInventories(payload).subscribe({
       next: (response) => {
         if (response.statusCode === 200) {
-          this.alertService.showSuccess('Entrée de stock effectuée avec succès');
-          this.router.navigate(['/inventory/list']);
+          this.alertService.showSuccess('Entrée enregistrée — en attente de validation du gestionnaire');
+          this.router.navigate(['/stock/receptions']);
         } else {
           this.alertService.showError(response.message || 'Erreur lors de l\'ajout de l\'article');
           this.isSubmitting = false;
