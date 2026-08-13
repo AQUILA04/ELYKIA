@@ -8,6 +8,7 @@ import { ClientService } from 'src/app/client/service/client.service';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { CashDepositModalComponent } from '../../components/cash-deposit-modal/cash-deposit-modal.component';
+import { RemainingAtClientsDialogComponent } from '../../components/remaining-at-clients-dialog/remaining-at-clients-dialog.component';
 import { DailyOperationLog } from '../../models/daily-operation-log.model';
 import { DailyOperationService } from '../../service/daily-operation.service';
 import { CashDepositService } from '../../service/cash-deposit.service';
@@ -240,7 +241,9 @@ export class DailyReportComponent implements OnInit {
             totalCreditSalesAmount: 0,
             totalCreditSalesCount: 0,
             totalCreditDepositedAmount: 0,
-            remainingAtClientsAmount: 0
+            totalCreditPaidOnCreditsAmount: 0,
+            remainingAtCommercialAmount: 0,
+            remainingAtClientAmount: 0
         };
     }
 
@@ -377,6 +380,24 @@ export class DailyReportComponent implements OnInit {
             return start === end;
         }
         return false;
+    }
+
+    openRemainingAtClientsModal(): void {
+        const commercialUsername = this.activeCommercialUsername;
+        if (!commercialUsername) {
+            return;
+        }
+        this.dialog.open(RemainingAtClientsDialogComponent, {
+            width: '960px',
+            maxWidth: '96vw',
+            panelClass: 'remaining-at-clients-dialog-panel',
+            data: {
+                year: this.summaryYear,
+                commercialUsername,
+                remainingAtCommercialAmount: this.yearlySummaryView.remainingAtCommercialAmount,
+                remainingAtClientAmount: this.yearlySummaryView.remainingAtClientAmount
+            }
+        });
     }
 
     openDepositModal(report?: DailyCommercialReport) {

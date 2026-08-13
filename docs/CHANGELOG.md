@@ -9,6 +9,154 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.9.13] — 2026-08-13
+
+### Changed
+- Bilan annuel crédit : `remainingAtCommercialAmount` (ventes − versements) et `remainingAtClientAmount` (somme des `totalAmountRemaining`).
+
+## Frontend — [2.16.11] — 2026-08-13
+
+### Changed
+- Bilan crédit du rapport journalier : KPI navy (4 cartes), libellés « Reste chez le commercial » / « Reste chez le client » (détail au clic).
+
+## Backend — [1.9.12] — 2026-08-13
+
+### Added
+- Bilan annuel crédit : champ `totalCreditPaidOnCreditsAmount` (somme des `totalAmountPaid` des crédits débutés dans l’année).
+
+## Frontend — [2.16.10] — 2026-08-13
+
+### Added
+- Rapport journalier : sous « Versements Crédit », affichage secondaire du payé consigné sur les crédits de l’année.
+
+## Backend — [1.9.11] — 2026-08-13
+
+### Fixed
+- Export PDF « Reste chez les clients » : correction du formatage Thymeleaf (`formatDecimal` / séparateur `WHITESPACE`) qui provoquait une erreur 500 au parsing du template.
+
+## Backend — [1.9.10] — 2026-08-13
+
+### Fixed
+- Export PDF stock mensuel (`GET /api/commercial-stocks/export/pdf`) : données lues depuis le `CommercialMonthlyStock` (collector/année/mois), alignées sur le dashboard, thème navy.
+
+## Frontend — [2.16.9] — 2026-08-13
+
+### Fixed
+- Dashboard stock mensuel : export PDF paramétré par commercial/année/mois (mêmes quantités que le panneau) ; bouton **Télécharger rapport** en style navy `.btn-download`.
+
+## Backend — [1.9.9] — 2026-08-13
+
+### Added
+- Endpoints `GET /api/daily-commercial-reports/yearly-remaining-credits` (pagination) et `/export/pdf` : liste allégée des crédits encore dus sur l’année (projection minimale, PDF navy).
+
+## Frontend — [2.16.8] — 2026-08-13
+
+### Added
+- Rapport journalier : le KPI « Reste chez les clients » ouvre un modal paginé (infinite scroll) avec lien vers la fiche crédit et export PDF.
+
+## Backend — [1.9.8] — 2026-08-13
+
+### Changed
+- Fiches PDF stock (demandes de sortie et retours, commercial et tontine) : pagination `n/N` en pied de page navy.
+
+## Backend — [1.9.7] — 2026-08-13
+
+### Added
+- Export PDF `GET /api/v1/clients/by-commercial/{commercial}/export/pdf` (fiche client par commercial, KPIs, groupement par quartier).
+- Thème PDF navy réutilisable (`PdfHtmlRenderer`, `PdfDocumentIdentity`) : en-tête AMENOUVEVE-YAVEH / TOKOIN HÔPITAL, pagination `n/N`.
+
+## Frontend — [2.16.7] — 2026-08-13
+
+### Added
+- Liste clients : bouton **Fiche Client PDF** visible uniquement lorsqu’un commercial est sélectionné, pour télécharger la liste complète de ses clients.
+
+## Backend — [1.9.6] — 2026-08-13
+
+### Changed
+- Rattrapage crédit : la date de début doit être comprise entre le 1er et le dernier jour du mois du stock source ; à défaut, le dernier jour du mois est utilisé.
+
+## Frontend — [2.16.6] — 2026-08-13
+
+### Changed
+- Formulaire rattrapage : le datepicker de début est limité au mois du stock mensuel sélectionné (défaut = dernier jour du mois).
+
+## Backend — [1.9.5] — 2026-08-13
+
+### Fixed
+- Recherche avancée crédits : les références contenant un tiret (ex. `RAT-YVG7ZNJ3`) ne sont plus interprétées comme une plage de dates et filtrent correctement les résultats.
+
+### Added
+- Recherche avancée : option `searchByReference` pour filtrer uniquement sur la référence crédit.
+- Fiche crédit (`GET /credit/{id}`) : expose `sourceMonthlyStocks` (stock mensuel source déduit de `stock_item_id`).
+
+## Backend — [1.9.4] — 2026-08-13
+
+### Added
+- Historique des remises : chaque ligne inclut la liste des versements liés (`deposits`) avec commercial, montants et référence.
+
+## Frontend — [2.16.5] — 2026-08-13
+
+### Fixed
+- Liste crédits : recherche par référence rattrapage (`RAT-*`) retourne désormais le crédit attendu au lieu de toute la liste.
+
+### Added
+- Recherche avancée crédits : case « Rechercher uniquement par référence ».
+- Fiche crédit : lien cliquable vers le stock mensuel source, ouvrant le modal des ventes du stock sur le dashboard.
+
+## Frontend — [2.16.4] — 2026-08-13
+
+### Added
+- Historique des remises : ligne extensible affichant les versements par commercial pour chaque remise reçue.
+
+## Backend — [1.9.3] — 2026-08-13
+
+### Fixed
+- Migration V89 : correction du backfill V88 qui liait tous les versements du mois à une remise déjà reçue ; seuls les versements antérieurs à la soumission et couverts par le montant de la remise restent liés.
+
+## Frontend — [2.16.3] — 2026-08-13
+
+### Fixed
+- Historique des remises : statut « Reçu » pour une remise individuelle (au lieu de « Tout remis » réservé au résumé période).
+
+## Backend — [1.9.2] — 2026-08-13
+
+### Changed
+- Remises mensuelles : plusieurs remises par période possibles ; seuls les versements non encore remis (`remittance_id` null) sont proposés.
+- Migration V88 : lien `cash_deposit.remittance_id`, suppression contrainte unique `(year, month)`.
+- Annulation versement : bloquée uniquement si le versement est déjà inclus dans une remise (PENDING ou RECEIVED).
+
+## Frontend — [2.16.2] — 2026-08-13
+
+### Changed
+- Onglet Remise : affiche le reste à remettre et le montant déjà remis ; statut « Nouveau versement » quand des versements subsistent après une remise reçue.
+
+## Backend — [1.9.1] — 2026-08-13
+
+### Changed
+- Historique des remises : tri par défaut `id DESC` (dernières remises en premier) avec pagination Spring (`page`, `size`).
+
+## Frontend — [2.16.1] — 2026-08-13
+
+### Changed
+- Onglet Remise : historique paginé côté backend (10 par page), tri `id DESC`, contrôles de pagination.
+
+## Backend — [1.9.0] — 2026-08-12
+
+### Added
+- Validation gestionnaire des entrées de stock : statuts `PENDING`, `VALIDATED`, `REFUSED`, `CANCELLED` sur `StockReception`.
+- Endpoints `POST /api/v1/stock-receptions/{id}/validate` et `POST /api/v1/stock-receptions/{id}/refuse`.
+- Migration V87 : champs audit (`validatedBy`, `refusedBy`, `cancelledBy`, etc.) et défaut `PENDING` pour les nouvelles réceptions.
+
+### Changed
+- `makeStockEntries` crée une réception `PENDING` sans impact stock, FIFO, historique ni dépense.
+- `cancelReception` : abandon sans reverse si `PENDING` (créateur ou gestionnaire/admin) ; reverse stock réservé à l'ADMIN sur `VALIDATED`.
+
+## Frontend — [2.16.0] — 2026-08-12
+
+### Added
+- Liste et détail réceptions : badges statut, filtre, KPI « en attente », actions Valider / Refuser / Abandonner / Annuler selon rôle.
+- Entrée stock (`inventory-add`, quick entry) : message et redirection vers `/stock/receptions` en attente de validation.
+
 ## Backend — [1.8.0] — 2026-08-12
 
 ### Added
@@ -139,6 +287,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Added
 - **Field day plan —** table `recovery_field_day_plan` (V85) + APIs `field-plans` (CRUD jour, collector-stats, offline-pack).
+
+## Docs & Infra — 2026-08-13
+
+### Added
+- Skill Cursor `elykia-pdf-style` : tout nouveau PDF backend doit utiliser le thème navy et `PdfHtmlRenderer`.
 
 ## Docs & Infra — 2026-08-11
 

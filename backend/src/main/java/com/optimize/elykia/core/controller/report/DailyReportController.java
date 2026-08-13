@@ -1,16 +1,21 @@
 package com.optimize.elykia.core.controller.report;
 
 import com.optimize.elykia.core.dto.report.CommercialYearlySummaryDto;
+import com.optimize.elykia.core.dto.report.RemainingAtClientsPageDto;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.service.report.CommercialReportMonthlyService;
 import com.optimize.elykia.core.service.report.DailyReportPdfService;
+import com.optimize.elykia.core.service.report.RemainingAtClientsPdfService;
+import com.optimize.elykia.core.service.report.RemainingAtClientsService;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -34,6 +39,8 @@ public class DailyReportController {
     private final UserService userService;
     private final DailyReportPdfService dailyReportPdfService;
     private final CommercialReportMonthlyService commercialReportMonthlyService;
+    private final RemainingAtClientsService remainingAtClientsService;
+    private final RemainingAtClientsPdfService remainingAtClientsPdfService;
 
     @GetMapping
     @Operation(summary = "Get daily report for a specific commercial and date")
@@ -74,16 +81,47 @@ public class DailyReportController {
             @RequestParam("year") int year,
             @RequestParam(value = "collector", required = false) String collector) {
 
-        User currentUser = userService.getCurrentUser();
-        String commercialUsername = collector;
-
-        if (currentUser.is(UserProfilConstant.PROMOTER)) {
-            commercialUsername = currentUser.getUsername();
-        } else if (commercialUsername == null || commercialUsername.isEmpty()) {
+        String commercialUsername = resolveCommercialUsername(collector);
+        if (commercialUsername == null) {
             return ResponseEntity.badRequest().build();
         }
 
         return ResponseEntity.ok(commercialReportMonthlyService.getYearlySummary(commercialUsername, year));
+    }
+
+    @GetMapping("/yearly-remaining-credits")
+    @Operation(summary = "Paginated list of credits still owed by clients for a commercial year")
+    public ResponseEntity<RemainingAtClientsPageDto> getYearlyRemainingCredits(
+            @RequestParam("year") int year,
+            @RequestParam(value = "collector", required = false) String collector,
+            @PageableDefault(size = 25) Pageable pageable) {
+
+        String commercialUsername = resolveCommercialUsername(collector);
+        if (commercialUsername == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(remainingAtClientsService.getPage(commercialUsername, year, pageable));
+    }
+
+    @GetMapping("/yearly-remaining-credits/export/pdf")
+    @Operation(summary = "Export remaining-at-clients credits as PDF for a commercial year")
+    public ResponseEntity<byte[]> exportYearlyRemainingCreditsPdf(
+            @RequestParam("year") int year,
+            @RequestParam(value = "collector", required = false) String collector) {
+
+        String commercialUsername = resolveCommercialUsername(collector);
+        if (commercialUsername == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        byte[] pdfBytes = remainingAtClientsPdfService.generatePdf(commercialUsername, year);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=reste_chez_les_clients_" + commercialUsername + "_" + year + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
     }
 
     @GetMapping("/export/pdf")
@@ -105,5 +143,16 @@ public class DailyReportController {
                         "attachment; filename=rapport_journalier_" + commercialUsername + "_" + startDate + "_" + endDate + ".pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfBytes);
+    }
+
+    private String resolveCommercialUsername(String collector) {
+        User currentUser = userService.getCurrentUser();
+        if (currentUser.is(UserProfilConstant.PROMOTER)) {
+            return currentUser.getUsername();
+        }
+        if (collector == null || collector.isEmpty()) {
+            return null;
+        }
+        return collector;
     }
 }

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${pdfDocumentTitle}">Reste chez les clients</title>
+    <th:block th:replace="~{pdf/fragments :: styles}"></th:block>
+</head>
+<body>
+    <div th:replace="~{pdf/fragments :: header}"></div>
+
+    <table class="pdf-meta">
+        <tr>
+            <td>
+                <span class="pdf-meta-label">Commercial</span>
+                <span class="pdf-meta-value" th:text="${doc.commercialLabel}">COM001</span>
+            </td>
+            <td>
+                <span class="pdf-meta-label">Année</span>
+                <span class="pdf-meta-value" th:text="${doc.year}">2026</span>
+            </td>
+            <td>
+                <span class="pdf-meta-label">Date de génération</span>
+                <span class="pdf-meta-value" th:text="${doc.generationDate}">13/08/2026 18:00</span>
+            </td>
+        </tr>
+    </table>
+
+    <table class="pdf-kpi">
+        <tr>
+            <td>
+                <div class="kpi-label">Ventes encore dues</div>
+                <div class="kpi-value" th:text="${doc.salesCount}">0</div>
+            </td>
+            <td class="kpi-orange">
+                <div class="kpi-label">Somme des restes</div>
+                <div class="kpi-value"
+                     th:text="${#numbers.formatDecimal(doc.totalRemainingAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</div>
+            </td>
+        </tr>
+    </table>
+
+    <div th:if="${#lists.isEmpty(doc.rows)}" class="pdf-empty">
+        Aucun crédit encore dû pour ce commercial sur l&apos;année.
+    </div>
+
+    <table class="data-table" th:if="${not #lists.isEmpty(doc.rows)}">
+        <thead>
+        <tr>
+            <th class="num">#</th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Référence</th>
+            <th>Date début</th>
+            <th class="num">Montant total</th>
+            <th class="num">Montant restant</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${doc.rows}">
+            <td class="num" th:text="${row.index}">1</td>
+            <td th:text="${row.clientLastname}">Doe</td>
+            <td th:text="${row.clientFirstname}">Jane</td>
+            <td th:text="${row.reference}">REF-001</td>
+            <td th:text="${row.beginDate}">01/01/2026</td>
+            <td class="num" th:text="${row.totalAmount}">0</td>
+            <td class="num" th:text="${row.totalAmountRemaining}">0</td>
+        </tr>
+        </tbody>
+    </table>
+</body>
+</html>

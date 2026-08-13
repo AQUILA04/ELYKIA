@@ -1,0 +1,94 @@
+<div class="remaining-at-clients-dialog">
+  <header class="dialog-header">
+    <div class="dialog-header-text">
+      <p class="dialog-surtitle">Bilan crédit {{ data.year }}</p>
+      <h2 class="dialog-title">Reste chez le client</h2>
+      <p class="dialog-subtitle">
+        {{ data.commercialUsername | uppercase }} — crédits débutés en {{ data.year }} avec un montant restant &gt; 0.
+        Distinct du « reste chez le commercial » (ventes − versements).
+      </p>
+    </div>
+    <button type="button" class="btn-close" (click)="close()" aria-label="Fermer">&times;</button>
+  </header>
+
+  <div class="dialog-body">
+    <div class="kpi-strip" *ngIf="!loading && !error">
+      <div class="kpi-card kpi-total">
+        <span class="kpi-label">Reste commercial</span>
+        <span class="kpi-value">{{ data.remainingAtCommercialAmount | number:'1.0-0' }} <small>FCFA</small></span>
+      </div>
+      <div class="kpi-card kpi-delai">
+        <span class="kpi-label">Reste client</span>
+        <span class="kpi-value">{{ (totalRemainingAmount || data.remainingAtClientAmount) | number:'1.0-0' }} <small>FCFA</small></span>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <span class="kpi-label">Ventes encore dues</span>
+        <span class="kpi-value">{{ salesCount }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="empty-state">
+      <div class="empty-title">Chargement des ventes…</div>
+    </div>
+
+    <div *ngIf="!loading && error" class="empty-state">
+      <div class="empty-title">{{ error }}</div>
+      <button type="button" class="btn-primary" (click)="retry()">Réessayer</button>
+    </div>
+
+    <div class="table-card" *ngIf="!loading && !error && rows.length > 0">
+      <div class="table-toolbar">
+        <button type="button" class="btn-download" (click)="downloadPdf()" [disabled]="downloading">
+          {{ downloading ? 'Téléchargement…' : 'Télécharger PDF' }}
+        </button>
+        <span class="result-count">
+          <strong>{{ rows.length }}</strong> / {{ salesCount }} vente(s)
+        </span>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Prénom</th>
+              <th>Référence</th>
+              <th>Date début</th>
+              <th class="col-amount">Montant total</th>
+              <th class="col-amount">Montant restant</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of rows">
+              <td>{{ row.clientLastname || '—' }}</td>
+              <td>{{ row.clientFirstname || '—' }}</td>
+              <td class="mono">
+                <button type="button" class="ref-link"
+                        (click)="openCredit(row)"
+                        [attr.aria-label]="'Ouvrir le crédit ' + row.reference">
+                  {{ row.reference }}
+                </button>
+              </td>
+              <td class="mono">{{ row.beginDate | date:'dd/MM/yyyy' }}</td>
+              <td class="col-amount mono">{{ row.totalAmount | number:'1.0-0' }}</td>
+              <td class="col-amount mono remaining">{{ row.totalAmountRemaining | number:'1.0-0' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div #scrollSentinel class="scroll-sentinel" aria-hidden="true"></div>
+        <div class="load-more" *ngIf="loadingMore">Chargement…</div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && !error && rows.length === 0" class="empty-state">
+      <div class="empty-title">Aucune vente encore due</div>
+      <div class="empty-sub">Aucun crédit de {{ data.year }} avec un montant restant pour ce commercial.</div>
+      <button type="button" class="btn-download" (click)="downloadPdf()" [disabled]="downloading">
+        {{ downloading ? 'Téléchargement…' : 'Télécharger PDF' }}
+      </button>
+    </div>
+  </div>
+
+  <footer class="dialog-footer">
+    <button type="button" class="btn-primary" (click)="close()">Fermer</button>
+  </footer>
+</div>

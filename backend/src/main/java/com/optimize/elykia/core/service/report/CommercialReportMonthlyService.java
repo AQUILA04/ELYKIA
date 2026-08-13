@@ -1,9 +1,12 @@
 package com.optimize.elykia.core.service.report;
 
+import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.dto.report.CommercialYearlySummaryDto;
 import com.optimize.elykia.core.entity.report.CommercialReportMonthly;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
+import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CommercialReportMonthlyRepository;
+import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ public class CommercialReportMonthlyService {
 
     private final CommercialReportMonthlyRepository monthlyRepository;
     private final DailyCommercialReportRepository dailyReportRepository;
+    private final CreditRepository creditRepository;
 
     @Transactional
     public void syncMonth(String commercialUsername, int year, int month) {
@@ -73,13 +77,30 @@ public class CommercialReportMonthlyService {
             totalDeposited = row[2] != null ? ((Number) row[2]).doubleValue() : 0.0;
         }
 
+        LocalDate start = LocalDate.of(year, 1, 1);
+        LocalDate end = LocalDate.of(year, 12, 31);
+        Double paidOnCredits = creditRepository.sumTotalAmountPaidForYear(
+                commercialUsername, OperationType.CREDIT, State.ENABLED, start, end);
+
+        List<Object[]> remainingRows = creditRepository.sumRemainingAtClients(
+                commercialUsername, OperationType.CREDIT, State.ENABLED, start, end);
+        double remainingOnCredits = 0.0;
+        if (remainingRows != null && !remainingRows.isEmpty() && remainingRows.get(0) != null) {
+            Object[] cells = remainingRows.get(0);
+            if (cells.length > 1 && cells[1] != null) {
+                remainingOnCredits = ((Number) cells[1]).doubleValue();
+            }
+        }
+
         return CommercialYearlySummaryDto.builder()
                 .year(year)
                 .commercialUsername(commercialUsername)
                 .totalCreditSalesAmount(totalSales)
                 .totalCreditSalesCount(totalSalesCount)
                 .totalCreditDepositedAmount(totalDeposited)
-                .remainingAtClientsAmount(totalSales - totalDeposited)
+                .totalCreditPaidOnCreditsAmount(paidOnCredits != null ? paidOnCredits : 0.0)
+                .remainingAtCommercialAmount(totalSales - totalDeposited)
+                .remainingAtClientAmount(remainingOnCredits)
                 .build();
     }
 

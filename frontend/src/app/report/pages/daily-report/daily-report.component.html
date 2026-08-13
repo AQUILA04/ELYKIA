@@ -119,26 +119,49 @@
                                 <div *ngIf="yearlySummaryLoading" class="loading-container">
                                     <mat-spinner diameter="36"></mat-spinner>
                                 </div>
-                                <div class="kpi-grid" *ngIf="!yearlySummaryLoading">
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Ventes Crédit (année)</span>
-                                        <span class="kpi-value">{{ yearlySummaryView.totalCreditSalesCount }} ({{
-                                            yearlySummaryView.totalCreditSalesAmount | currency:'XOF':'symbol':'1.0-0'
-                                            }})</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Versements Crédit (année)</span>
-                                        <span class="kpi-value">{{ yearlySummaryView.totalCreditDepositedAmount |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint">Remis au secrétaire</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Reste chez les clients</span>
-                                        <span class="kpi-value"
-                                            [ngClass]="{'text-danger': yearlySummaryView.remainingAtClientsAmount > 0, 'text-success': yearlySummaryView.remainingAtClientsAmount <= 0}">
-                                            {{ yearlySummaryView.remainingAtClientsAmount | currency:'XOF':'symbol':'1.0-0' }}
+                                <div class="yearly-kpi-strip" *ngIf="!yearlySummaryLoading">
+                                    <div class="yearly-kpi kpi-total">
+                                        <span class="yearly-kpi-label">Ventes crédit</span>
+                                        <span class="yearly-kpi-value">
+                                            {{ yearlySummaryView.totalCreditSalesAmount | number:'1.0-0' }}
+                                            <small>FCFA</small>
                                         </span>
-                                        <span class="kpi-hint">Ventes − versements crédit</span>
+                                        <span class="yearly-kpi-hint">{{ yearlySummaryView.totalCreditSalesCount }} vente(s)</span>
+                                    </div>
+                                    <div class="yearly-kpi kpi-amount">
+                                        <span class="yearly-kpi-label">Versements crédit</span>
+                                        <span class="yearly-kpi-value">
+                                            {{ yearlySummaryView.totalCreditDepositedAmount | number:'1.0-0' }}
+                                            <small>FCFA</small>
+                                        </span>
+                                        <span class="yearly-kpi-hint">Remis au secrétaire</span>
+                                        <span class="yearly-kpi-hint yearly-kpi-hint-secondary">
+                                            Payé sur crédits :
+                                            {{ yearlySummaryView.totalCreditPaidOnCreditsAmount | number:'1.0-0' }} FCFA
+                                        </span>
+                                    </div>
+                                    <div class="yearly-kpi kpi-green">
+                                        <span class="yearly-kpi-label">Reste chez le commercial</span>
+                                        <span class="yearly-kpi-value"
+                                            [class.is-warn]="yearlySummaryView.remainingAtCommercialAmount > 0">
+                                            {{ yearlySummaryView.remainingAtCommercialAmount | number:'1.0-0' }}
+                                            <small>FCFA</small>
+                                        </span>
+                                        <span class="yearly-kpi-hint">Ventes − versements</span>
+                                    </div>
+                                    <div class="yearly-kpi kpi-delai yearly-kpi-clickable"
+                                         role="button"
+                                         tabindex="0"
+                                         (click)="openRemainingAtClientsModal()"
+                                         (keydown.enter)="openRemainingAtClientsModal()"
+                                         (keydown.space)="$event.preventDefault(); openRemainingAtClientsModal()"
+                                         [attr.aria-label]="'Voir le détail du reste chez le client'">
+                                        <span class="yearly-kpi-label">Reste chez le client</span>
+                                        <span class="yearly-kpi-value">
+                                            {{ yearlySummaryView.remainingAtClientAmount | number:'1.0-0' }}
+                                            <small>FCFA</small>
+                                        </span>
+                                        <span class="yearly-kpi-hint">Somme des soldes · cliquer pour le détail</span>
                                     </div>
                                 </div>
                             </mat-card-content>

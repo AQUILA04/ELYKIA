@@ -329,7 +329,120 @@
 }
 
 .yearly-summary-card {
-    border-left: 4px solid #003366;
+    --navy: #003366;
+    --navy-dark: #002244;
+    --navy-pale: #e8eef6;
+    --navy-xpale: #f0f4f9;
+    --bg-white: #ffffff;
+    --border: #dde3ec;
+    --text-muted: #6b7a99;
+    --text-light: #9aacc4;
+    --green: #1d8a3c;
+    --orange: #c75000;
+    --kpi-cyan: #0095c8;
+    --radius: 12px;
+    --shadow-sm: 0 1px 3px rgba(0, 51, 102, 0.08);
+    border-left: 4px solid var(--navy);
+}
+
+.yearly-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    padding: 16px 0 8px;
+}
+
+.yearly-kpi {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 16px 14px 18px;
+    background: var(--bg-white, #fff);
+    border: 1px solid var(--border, #dde3ec);
+    border-radius: var(--radius, 12px);
+    box-shadow: var(--shadow-sm);
+    text-align: left;
+}
+
+.yearly-kpi::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+}
+
+.yearly-kpi.kpi-total::before { background: var(--navy, #003366); }
+.yearly-kpi.kpi-amount::before { background: var(--kpi-cyan, #0095c8); }
+.yearly-kpi.kpi-green::before { background: var(--green, #1d8a3c); }
+.yearly-kpi.kpi-delai::before { background: var(--orange, #c75000); }
+
+.yearly-kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-light, #9aacc4);
+}
+
+.yearly-kpi-value {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--navy, #003366);
+}
+
+.yearly-kpi-value small {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted, #6b7a99);
+    margin-left: 2px;
+}
+
+.yearly-kpi.kpi-total .yearly-kpi-value { color: var(--navy, #003366); }
+.yearly-kpi.kpi-amount .yearly-kpi-value { color: var(--kpi-cyan, #0095c8); }
+.yearly-kpi.kpi-green .yearly-kpi-value { color: var(--green, #1d8a3c); }
+.yearly-kpi.kpi-green .yearly-kpi-value.is-warn { color: var(--orange, #c75000); }
+.yearly-kpi.kpi-delai .yearly-kpi-value { color: var(--orange, #c75000); }
+
+.yearly-kpi-hint {
+    font-size: 12px;
+    color: var(--text-muted, #6b7a99);
+    line-height: 1.35;
+}
+
+.yearly-kpi-hint-secondary {
+    color: var(--text-light, #9aacc4);
+    font-weight: 500;
+}
+
+.yearly-kpi-clickable {
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--orange, #c75000);
+        box-shadow: 0 4px 14px rgba(199, 80, 0, 0.14);
+        transform: translateY(-1px);
+        outline: none;
+    }
+}
+
+@media (max-width: 900px) {
+    .yearly-kpi-strip {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .yearly-kpi-strip {
+        grid-template-columns: 1fr;
+    }
 }
 
 .kpi-grid {

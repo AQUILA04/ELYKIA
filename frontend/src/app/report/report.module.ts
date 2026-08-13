@@ -29,6 +29,7 @@ import { MonthlyReportsComponent } from './pages/monthly-reports/monthly-reports
 import { CashDepositModalComponent } from './components/cash-deposit-modal/cash-deposit-modal.component';
 import { RecoveryManagerReportTabComponent } from './components/recovery-manager-report-tab/recovery-manager-report-tab.component';
 import { CashPeriodRemittanceTabComponent } from './components/cash-period-remittance-tab/cash-period-remittance-tab.component';
+import { RemainingAtClientsDialogComponent } from './components/remaining-at-clients-dialog/remaining-at-clients-dialog.component';
 
 @NgModule({
   declarations: [
@@ -38,6 +39,7 @@ import { CashPeriodRemittanceTabComponent } from './components/cash-period-remit
     CashDepositModalComponent,
     RecoveryManagerReportTabComponent,
     CashPeriodRemittanceTabComponent,
+    RemainingAtClientsDialogComponent,
   ],
   imports: [
     CommonModule,

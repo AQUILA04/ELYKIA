@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { DailyCommercialReport } from '../models/daily-commercial-report.model';
 import { CommercialYearlySummary } from '../models/commercial-yearly-summary.model';
+import { RemainingAtClientsPage } from '../models/remaining-at-clients.model';
 
 @Injectable({
     providedIn: 'root'
@@ -31,6 +32,33 @@ export class DailyReportService {
             params = params.set('collector', collector);
         }
         return this.http.get<CommercialYearlySummary>(`${this.apiUrl}/yearly-summary`, { params });
+    }
+
+    getYearlyRemainingCredits(
+        year: number,
+        collector: string | undefined,
+        page: number,
+        size: number
+    ): Observable<RemainingAtClientsPage> {
+        let params = new HttpParams()
+            .set('year', year)
+            .set('page', page)
+            .set('size', size);
+        if (collector) {
+            params = params.set('collector', collector);
+        }
+        return this.http.get<RemainingAtClientsPage>(`${this.apiUrl}/yearly-remaining-credits`, { params });
+    }
+
+    exportYearlyRemainingCreditsPdf(year: number, collector?: string): Observable<Blob> {
+        let params = new HttpParams().set('year', year);
+        if (collector) {
+            params = params.set('collector', collector);
+        }
+        return this.http.get(`${this.apiUrl}/yearly-remaining-credits/export/pdf`, {
+            params,
+            responseType: 'blob'
+        });
     }
 
     exportPdf(startDate: string, endDate: string, commercialUsername: string): Observable<Blob> {

@@ -787,4 +787,91 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
         @Param("to")        LocalDate to,
         @Param("collector") String collector
     );
+
+    // ==========================================
+    // RESTE CHEZ LES CLIENTS (bilan annuel)
+    // ==========================================
+
+    @Query(
+            value = """
+                    SELECT new com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto(
+                        c.id, c.reference, cl.lastname, cl.firstname,
+                        c.beginDate, c.totalAmount, c.totalAmountRemaining)
+                    FROM Credit c
+                    JOIN c.client cl
+                    WHERE c.collector = :collector
+                      AND c.type = :type
+                      AND c.state = :state
+                      AND c.beginDate BETWEEN :startDate AND :endDate
+                      AND c.totalAmountRemaining > 0
+                    ORDER BY c.beginDate DESC, c.id DESC
+                    """,
+            countQuery = """
+                    SELECT COUNT(c.id)
+                    FROM Credit c
+                    WHERE c.collector = :collector
+                      AND c.type = :type
+                      AND c.state = :state
+                      AND c.beginDate BETWEEN :startDate AND :endDate
+                      AND c.totalAmountRemaining > 0
+                    """
+    )
+    Page<com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto> findRemainingAtClientsCredits(
+            @Param("collector") String collector,
+            @Param("type") OperationType type,
+            @Param("state") State state,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            Pageable pageable);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto(
+                c.id, c.reference, cl.lastname, cl.firstname,
+                c.beginDate, c.totalAmount, c.totalAmountRemaining)
+            FROM Credit c
+            JOIN c.client cl
+            WHERE c.collector = :collector
+              AND c.type = :type
+              AND c.state = :state
+              AND c.beginDate BETWEEN :startDate AND :endDate
+              AND c.totalAmountRemaining > 0
+            ORDER BY c.beginDate DESC, c.id DESC
+            """)
+    List<com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto> findAllRemainingAtClientsCredits(
+            @Param("collector") String collector,
+            @Param("type") OperationType type,
+            @Param("state") State state,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
+
+    @Query("""
+            SELECT COUNT(c.id), COALESCE(SUM(c.totalAmountRemaining), 0)
+            FROM Credit c
+            WHERE c.collector = :collector
+              AND c.type = :type
+              AND c.state = :state
+              AND c.beginDate BETWEEN :startDate AND :endDate
+              AND c.totalAmountRemaining > 0
+            """)
+    List<Object[]> sumRemainingAtClients(
+            @Param("collector") String collector,
+            @Param("type") OperationType type,
+            @Param("state") State state,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
+
+    @Query("""
+            SELECT COALESCE(SUM(c.totalAmountPaid), 0)
+            FROM Credit c
+            WHERE c.collector = :collector
+              AND c.type = :type
+              AND c.state = :state
+              AND c.beginDate BETWEEN :startDate AND :endDate
+            """)
+    Double sumTotalAmountPaidForYear(
+            @Param("collector") String collector,
+            @Param("type") OperationType type,
+            @Param("state") State state,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 }
