@@ -408,6 +408,124 @@
   color: var(--navy);
 }
 
+.remittance-tab .expand-col {
+  width: 40px;
+}
+
+.remittance-tab .expand-cell {
+  width: 40px;
+  padding: 0 8px;
+}
+
+.remittance-tab .btn-expand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--navy);
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    transition: transform .15s ease;
+  }
+
+  svg.expanded {
+    transform: rotate(90deg);
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--navy-xpale);
+    border-color: var(--navy-pale);
+  }
+
+  &:disabled {
+    opacity: .35;
+    cursor: default;
+  }
+}
+
+.remittance-tab .row-expanded {
+  background: var(--navy-xpale);
+}
+
+.remittance-tab .deposit-detail-row td {
+  padding: 0 12px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.remittance-tab .deposit-detail-panel {
+  margin: 4px 0 0 32px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.remittance-tab .deposit-detail-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.remittance-tab .deposit-detail-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.remittance-tab .deposit-subtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+
+  th {
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--navy-xpale);
+    color: var(--navy-dark);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.remittance-tab .commercial-cell {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.remittance-tab .ref-cell {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 .remittance-tab .loading-container {
   padding: 32px 0;
 }
@@ -604,4 +722,46 @@
 .kpi-card.kpi-net-negative {
   .kpi-label { color: #dc2626; }
   .kpi-value { color: #dc2626; font-weight: 700; }
+}
+
+.history-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border, #dde3ec);
+  background: #fff;
+}
+
+.history-pagination .page-info {
+  font-size: 12px;
+  color: var(--text-muted, #6b7a99);
+}
+
+.history-pagination .page-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.history-pagination .page-btn {
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid var(--border, #dde3ec);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--navy, #003366);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.history-pagination .page-btn.active {
+  background: var(--navy, #003366);
+  color: #fff;
+  border-color: var(--navy, #003366);
+}
+
+.history-pagination .page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

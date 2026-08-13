@@ -51,4 +51,9 @@ public class CashDeposit extends Auditable<String> {
     @JoinColumn(name = "daily_report_id")
     @JsonIgnore
     private DailyCommercialReport dailyReport;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "remittance_id")
+    @JsonIgnore
+    private CashPeriodRemittance remittance;
 }

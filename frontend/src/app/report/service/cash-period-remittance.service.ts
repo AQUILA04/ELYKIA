@@ -30,11 +30,11 @@ export class CashPeriodRemittanceService {
         return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/initiate`, { year, month, expenseIds });
     }
 
-    list(page: number = 0, size: number = 20): Observable<any> {
+    list(page: number = 0, size: number = 10): Observable<any> {
         const params = new HttpParams()
-            .set('page', page)
-            .set('size', size)
-            .set('sort', 'year,desc');
+            .set('page', page.toString())
+            .set('size', size.toString())
+            .set('sort', 'id,desc');
         return this.http.get<any>(this.apiUrl, { params });
     }
 }

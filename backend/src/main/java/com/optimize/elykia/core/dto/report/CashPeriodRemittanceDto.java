@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Value
 @Builder
@@ -26,4 +27,5 @@ public class CashPeriodRemittanceDto {
     LocalDateTime submittedAt;
     LocalDateTime receivedAt;
     String reference;
+    List<CashDepositDto> deposits;
 }

@@ -33,7 +33,7 @@
             </div>
         </div>
         <span class="result-count" *ngIf="summary">
-            <span class="status-badge" [ngClass]="getStatusClass(summary.status)">{{ getStatusLabel(summary.status) }}</span>
+            <span class="status-badge" [ngClass]="getStatusClass(summary.status)">{{ getSummaryStatusLabel(summary.status) }}</span>
         </span>
     </div>
 
@@ -47,9 +47,14 @@
     <div *ngIf="!isLoading && summary" class="a4">
         <div class="kpi-strip">
             <div class="kpi-card kpi-total">
-                <div class="kpi-label">Total versé</div>
+                <div class="kpi-label">{{ summary.status === 'PENDING' ? 'Montant en attente' : 'Reste à remettre' }}</div>
                 <div class="kpi-value">{{ summary.totalAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
-                <div class="kpi-sub">Tous commerciaux</div>
+                <div class="kpi-sub" *ngIf="summary.alreadyRemittedAmount && summary.alreadyRemittedAmount > 0">
+                    Déjà remis : {{ summary.alreadyRemittedAmount | currency:'XOF':'symbol':'1.0-0' }}
+                </div>
+                <div class="kpi-sub" *ngIf="!summary.alreadyRemittedAmount || summary.alreadyRemittedAmount <= 0">
+                    Versements non encore remis
+                </div>
             </div>
             <div class="kpi-card kpi-amount">
                 <div class="kpi-label">Crédit</div>
@@ -148,12 +153,17 @@
     <div class="table-card a5">
         <div class="table-card-header">
             <h3 class="section-title">Historique des remises</h3>
-            <span class="section-count">{{ history.length }} enregistrement(s)</span>
+            <span class="section-count">{{ historyTotalElements }} enregistrement(s)</span>
         </div>
         <div class="table-wrapper">
-            <table class="data-table" *ngIf="history.length > 0; else noHistory">
+            <div class="empty-state" *ngIf="historyLoading">
+                <mat-icon class="empty-icon-mat">hourglass_empty</mat-icon>
+                <div class="empty-title">Chargement…</div>
+            </div>
+            <table class="data-table" *ngIf="!historyLoading && history.length > 0; else noHistory">
                 <thead>
                     <tr>
+                        <th class="expand-col"></th>
                         <th>Période</th>
                         <th class="text-right">Total</th>
                         <th class="text-right">Crédit</th>
@@ -167,29 +177,88 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let item of history">
-                        <td class="period-cell">{{ getMonthLabel(item.month) }} {{ item.year }}</td>
-                        <td class="text-right mono">{{ item.totalAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
-                        <td class="text-right mono">{{ item.creditAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
-                        <td class="text-right mono">{{ item.tontineAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
-                        <td class="text-right mono">{{ item.newBalanceAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
-                        <td class="text-right mono">{{ item.expenseAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
-                        <td class="text-right mono">{{ item.netAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
-                        <td>
-                            <span class="status-badge" [ngClass]="getStatusClass(item.status)">{{ getStatusLabel(item.status) }}</span>
-                        </td>
-                        <td>{{ item.submittedBy || '—' }}</td>
-                        <td>{{ item.receivedBy || '—' }}</td>
-                    </tr>
+                    <ng-container *ngFor="let item of history">
+                        <tr [class.row-expanded]="isHistoryExpanded(item.id)">
+                            <td class="expand-cell">
+                                <button type="button" class="btn-expand"
+                                    (click)="toggleHistoryExpand(item.id)"
+                                    [disabled]="!hasDeposits(item)"
+                                    [attr.aria-expanded]="isHistoryExpanded(item.id)"
+                                    [attr.aria-label]="hasDeposits(item) ? 'Afficher les versements' : 'Aucun versement'">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        [class.expanded]="isHistoryExpanded(item.id)">
+                                        <polyline points="9 18 15 12 9 6"/>
+                                    </svg>
+                                </button>
+                            </td>
+                            <td class="period-cell">{{ getMonthLabel(item.month) }} {{ item.year }}</td>
+                            <td class="text-right mono">{{ item.totalAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                            <td class="text-right mono">{{ item.creditAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                            <td class="text-right mono">{{ item.tontineAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                            <td class="text-right mono">{{ item.newBalanceAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                            <td class="text-right mono">{{ item.expenseAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                            <td class="text-right mono">{{ item.netAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                            <td>
+                                <span class="status-badge" [ngClass]="getStatusClass(item.status)">{{ getHistoryStatusLabel(item.status) }}</span>
+                            </td>
+                            <td>{{ item.submittedBy || '—' }}</td>
+                            <td>{{ item.receivedBy || '—' }}</td>
+                        </tr>
+                        <tr *ngIf="isHistoryExpanded(item.id) && hasDeposits(item)" class="deposit-detail-row">
+                            <td colspan="11">
+                                <div class="deposit-detail-panel">
+                                    <div class="deposit-detail-title">
+                                        Versements inclus
+                                        <span class="deposit-detail-count">{{ item.deposits!.length }} ligne(s)</span>
+                                    </div>
+                                    <table class="deposit-subtable">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Commercial</th>
+                                                <th class="text-right">Total</th>
+                                                <th class="text-right">Crédit</th>
+                                                <th class="text-right">Tontine</th>
+                                                <th class="text-right">Solde Nx</th>
+                                                <th>Référence</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let deposit of item.deposits">
+                                                <td class="mono">{{ deposit.date | date:'dd/MM/yyyy' }}</td>
+                                                <td class="commercial-cell">{{ deposit.commercialUsername }}</td>
+                                                <td class="text-right mono">{{ deposit.amount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                                                <td class="text-right mono">{{ deposit.creditAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                                                <td class="text-right mono">{{ deposit.tontineAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                                                <td class="text-right mono">{{ deposit.newBalanceAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                                                <td class="mono ref-cell">{{ deposit.reference || '—' }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-container>
                 </tbody>
             </table>
             <ng-template #noHistory>
-                <div class="empty-state">
+                <div class="empty-state" *ngIf="!historyLoading">
                     <mat-icon class="empty-icon-mat">account_balance_wallet</mat-icon>
                     <div class="empty-title">Aucune remise enregistrée</div>
                     <div class="empty-sub">Les remises mensuelles soumises apparaîtront ici.</div>
                 </div>
             </ng-template>
+        </div>
+        <div class="history-pagination" *ngIf="!historyLoading && historyTotalPages > 1">
+            <span class="page-info">{{ getHistoryPaginationInfo() }}</span>
+            <div class="page-btns">
+                <button type="button" class="page-btn" (click)="changeHistoryPage(-1)" [disabled]="historyPage === 0">‹</button>
+                <button type="button" *ngFor="let p of historyPageNumbers" class="page-btn"
+                        [class.active]="historyPage === p - 1" (click)="goHistoryPage(p - 1)">{{ p }}</button>
+                <button type="button" class="page-btn" (click)="changeHistoryPage(1)"
+                        [disabled]="historyPage >= historyTotalPages - 1">›</button>
+            </div>
         </div>
     </div>
 </div>

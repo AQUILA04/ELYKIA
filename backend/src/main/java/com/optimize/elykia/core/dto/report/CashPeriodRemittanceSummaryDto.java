@@ -25,4 +25,5 @@ public class CashPeriodRemittanceSummaryDto {
     boolean canInitiate;
     List<ExpenseDto> candidateExpenses;
     List<ExpenseDto> linkedExpenses;
+    Double alreadyRemittedAmount;
 }

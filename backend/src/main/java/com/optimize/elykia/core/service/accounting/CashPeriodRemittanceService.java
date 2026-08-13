@@ -4,9 +4,11 @@ import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.ExpenseDto;
+import com.optimize.elykia.core.dto.report.CashDepositDto;
 import com.optimize.elykia.core.dto.report.CashPeriodRemittanceDto;
 import com.optimize.elykia.core.dto.report.CashPeriodRemittanceSummaryDto;
 import com.optimize.elykia.core.entity.expense.Expense;
+import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.entity.report.CashPeriodRemittance;
 import com.optimize.elykia.core.entity.report.CashPeriodRemittanceExpense;
 import com.optimize.elykia.core.enumaration.RemittanceInitiator;
@@ -57,51 +59,66 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
     @Transactional(readOnly = true)
     public CashPeriodRemittanceSummaryDto getSummary(int year, int month) {
         User currentUser = userService.getCurrentUser();
-        PeriodTotals totals = computeTotals(year, month);
-        CashPeriodRemittance existing = getRemittanceRepository()
-                .findByYearAndMonth(year, month)
+        PeriodTotals unremittedTotals = computeUnremittedTotals(year, month);
+        CashPeriodRemittance pending = getRemittanceRepository()
+                .findByYearAndMonthAndStatus(year, month, RemittanceStatus.PENDING)
                 .orElse(null);
+        double alreadyRemittedAmount = safe(getRemittanceRepository().sumReceivedTotalByYearAndMonth(year, month));
 
         boolean isSecretary = currentUser.is(UserProfilConstant.SECRETARY);
         boolean isManager = currentUser.is(UserProfilConstant.GESTIONNAIRE);
+        boolean hasUnremitted = unremittedTotals.totalAmount() > 0;
 
-        RemittanceStatus status = existing != null ? existing.getStatus() : null;
-        boolean hasDeposits = totals.totalAmount() > 0;
-
+        RemittanceStatus status = null;
+        Long remittanceId = null;
+        double displayTotal = unremittedTotals.totalAmount();
+        double displayCredit = unremittedTotals.creditAmount();
+        double displayTontine = unremittedTotals.tontineAmount();
+        double displayNewBalance = unremittedTotals.newBalanceAmount();
+        double expenseAmount = 0.0;
+        double netAmount = unremittedTotals.totalAmount();
         List<ExpenseDto> candidateExpenses = Collections.emptyList();
         List<ExpenseDto> linkedExpenses = Collections.emptyList();
-        Double expenseAmount = 0.0;
-        Double netAmount = totals.totalAmount();
+        boolean canSubmit = false;
+        boolean canAcknowledge = false;
+        boolean canInitiate = false;
 
-        if (existing != null) {
-            expenseAmount = existing.getExpenseAmount();
-            netAmount = existing.getNetAmount();
-            Set<Long> linkedIds = remittanceExpenseRepository.findExpenseIdsByRemittanceId(existing.getId());
-            if (!linkedIds.isEmpty()) {
-                linkedExpenses = expenseRepository.findAllById(linkedIds).stream()
-                        .map(expenseMapper::toDto)
-                        .collect(Collectors.toList());
-            }
-        } else {
+        if (pending != null) {
+            status = RemittanceStatus.PENDING;
+            remittanceId = pending.getId();
+            displayTotal = pending.getTotalAmount();
+            displayCredit = pending.getCreditAmount();
+            displayTontine = pending.getTontineAmount();
+            displayNewBalance = pending.getNewBalanceAmount();
+            expenseAmount = pending.getExpenseAmount();
+            netAmount = pending.getNetAmount();
+            linkedExpenses = loadLinkedExpenses(pending.getId());
+            canAcknowledge = isManager;
+        } else if (hasUnremitted) {
             candidateExpenses = getCandidateExpenses(year, month);
+            canSubmit = isSecretary;
+            canInitiate = isManager;
+        } else if (alreadyRemittedAmount > 0) {
+            status = RemittanceStatus.RECEIVED;
         }
 
         return CashPeriodRemittanceSummaryDto.builder()
                 .year(year)
                 .month(month)
-                .totalAmount(totals.totalAmount())
-                .creditAmount(totals.creditAmount())
-                .tontineAmount(totals.tontineAmount())
-                .newBalanceAmount(totals.newBalanceAmount())
+                .totalAmount(displayTotal)
+                .creditAmount(displayCredit)
+                .tontineAmount(displayTontine)
+                .newBalanceAmount(displayNewBalance)
                 .expenseAmount(expenseAmount)
                 .netAmount(netAmount)
                 .status(status)
-                .remittanceId(existing != null ? existing.getId() : null)
-                .canSubmit(isSecretary && existing == null && hasDeposits)
-                .canAcknowledge(isManager && existing != null && existing.getStatus() == RemittanceStatus.PENDING)
-                .canInitiate(isManager && existing == null && hasDeposits)
+                .remittanceId(remittanceId)
+                .canSubmit(canSubmit)
+                .canAcknowledge(canAcknowledge)
+                .canInitiate(canInitiate)
                 .candidateExpenses(candidateExpenses)
                 .linkedExpenses(linkedExpenses)
+                .alreadyRemittedAmount(alreadyRemittedAmount)
                 .build();
     }
 
@@ -110,11 +127,12 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
         if (!currentUser.is(UserProfilConstant.SECRETARY)) {
             throw new RuntimeException("Seul le secrétaire peut soumettre une remise.");
         }
-        assertNotExists(year, month);
+        assertNoPendingRemittance(year, month);
 
-        PeriodTotals totals = computeTotals(year, month);
+        List<CashDeposit> unremittedDeposits = loadUnremittedDeposits(year, month);
+        PeriodTotals totals = totalsFromDeposits(unremittedDeposits);
         if (totals.totalAmount() <= 0) {
-            throw new RuntimeException("Aucun versement enregistré pour cette période.");
+            throw new RuntimeException("Aucun versement en attente de remise pour cette période.");
         }
 
         List<Expense> expenses = resolveAndValidateExpenses(expenseIds);
@@ -133,9 +151,10 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
         remittance.setSubmittedAt(LocalDateTime.now());
 
         remittance = getRemittanceRepository().save(remittance);
+        linkDeposits(unremittedDeposits, remittance);
         linkExpenses(remittance, expenses);
 
-        return toDto(remittance);
+        return toDto(remittance, toDepositDtos(unremittedDeposits));
     }
 
     public CashPeriodRemittanceDto acknowledgeByManager(Long id, List<Long> expenseIds) {
@@ -177,7 +196,7 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
         remittance = repository.save(remittance);
         linkExpenses(remittance, finalExpenses);
 
-        return toDto(remittance);
+        return toDto(remittance, loadDepositsForRemittance(id));
     }
 
     public CashPeriodRemittanceDto initiateByManager(int year, int month, List<Long> expenseIds) {
@@ -185,11 +204,12 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
         if (!currentUser.is(UserProfilConstant.GESTIONNAIRE)) {
             throw new RuntimeException("Seul le gestionnaire peut initier une réception.");
         }
-        assertNotExists(year, month);
+        assertNoPendingRemittance(year, month);
 
-        PeriodTotals totals = computeTotals(year, month);
+        List<CashDeposit> unremittedDeposits = loadUnremittedDeposits(year, month);
+        PeriodTotals totals = totalsFromDeposits(unremittedDeposits);
         if (totals.totalAmount() <= 0) {
-            throw new RuntimeException("Aucun versement enregistré pour cette période.");
+            throw new RuntimeException("Aucun versement en attente de remise pour cette période.");
         }
 
         List<Expense> expenses = resolveAndValidateExpenses(expenseIds);
@@ -210,17 +230,22 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
         remittance.setReceivedAt(LocalDateTime.now());
 
         remittance = getRemittanceRepository().save(remittance);
+        linkDeposits(unremittedDeposits, remittance);
         linkExpenses(remittance, expenses);
 
-        return toDto(remittance);
+        return toDto(remittance, toDepositDtos(unremittedDeposits));
     }
 
     @Transactional(readOnly = true)
     public Page<CashPeriodRemittanceDto> list(Pageable pageable) {
-        return repository.findAll(pageable).map(this::toDto);
+        Page<CashPeriodRemittance> page = repository.findAll(pageable);
+        List<Long> remittanceIds = page.getContent().stream()
+                .map(CashPeriodRemittance::getId)
+                .toList();
+        Map<Long, List<CashDepositDto>> depositsByRemittance = loadDepositsByRemittanceIds(remittanceIds);
+        return page.map(remittance -> toDto(remittance,
+                depositsByRemittance.getOrDefault(remittance.getId(), Collections.emptyList())));
     }
-
-    // --- backward-compatible overloads ---
 
     public CashPeriodRemittanceDto submitBySecretary(int year, int month) {
         return submitBySecretary(year, month, Collections.emptyList());
@@ -234,7 +259,15 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
         return initiateByManager(year, month, Collections.emptyList());
     }
 
-    // --- helpers ---
+    private List<ExpenseDto> loadLinkedExpenses(Long remittanceId) {
+        Set<Long> linkedIds = remittanceExpenseRepository.findExpenseIdsByRemittanceId(remittanceId);
+        if (linkedIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return expenseRepository.findAllById(linkedIds).stream()
+                .map(expenseMapper::toDto)
+                .collect(Collectors.toList());
+    }
 
     private List<ExpenseDto> getCandidateExpenses(int year, int month) {
         YearMonth yearMonth = YearMonth.of(year, month);
@@ -283,10 +316,24 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
         }
     }
 
-    private void assertNotExists(int year, int month) {
-        if (getRemittanceRepository().existsByYearAndMonth(year, month)) {
-            throw new RuntimeException("Une remise existe déjà pour cette période.");
+    private void linkDeposits(List<CashDeposit> deposits, CashPeriodRemittance remittance) {
+        for (CashDeposit deposit : deposits) {
+            deposit.setRemittance(remittance);
+            cashDepositRepository.save(deposit);
         }
+    }
+
+    private void assertNoPendingRemittance(int year, int month) {
+        if (getRemittanceRepository().existsByYearAndMonthAndStatus(year, month, RemittanceStatus.PENDING)) {
+            throw new RuntimeException("Une remise est déjà en attente pour cette période.");
+        }
+    }
+
+    private List<CashDeposit> loadUnremittedDeposits(int year, int month) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        return cashDepositRepository.findUnremittedDepositsByPeriod(
+                yearMonth.atDay(1),
+                yearMonth.atEndOfMonth());
     }
 
     private CashPeriodRemittance buildRemittance(int year, int month, PeriodTotals totals) {
@@ -297,16 +344,32 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
         remittance.setCreditAmount(totals.creditAmount());
         remittance.setTontineAmount(totals.tontineAmount());
         remittance.setNewBalanceAmount(totals.newBalanceAmount());
-        remittance.setReference("REM-" + year + "-" + String.format("%02d", month));
+        remittance.setReference("REM-" + year + "-" + String.format("%02d", month) + "-" + System.currentTimeMillis());
         return remittance;
     }
 
-    private PeriodTotals computeTotals(int year, int month) {
+    private PeriodTotals computeUnremittedTotals(int year, int month) {
         YearMonth yearMonth = YearMonth.of(year, month);
-        LocalDate start = yearMonth.atDay(1);
-        LocalDate end = yearMonth.atEndOfMonth();
+        return readPeriodTotals(cashDepositRepository.sumUnremittedDepositsByPeriod(
+                yearMonth.atDay(1),
+                yearMonth.atEndOfMonth()));
+    }
 
-        List<Object[]> rows = cashDepositRepository.sumDepositsByPeriod(start, end);
+    private PeriodTotals totalsFromDeposits(List<CashDeposit> deposits) {
+        double total = 0;
+        double credit = 0;
+        double tontine = 0;
+        double newBalance = 0;
+        for (CashDeposit deposit : deposits) {
+            total += safe(deposit.getAmount());
+            credit += safe(deposit.getCreditAmount() != null ? deposit.getCreditAmount() : deposit.getAmount());
+            tontine += safe(deposit.getTontineAmount());
+            newBalance += safe(deposit.getNewBalanceAmount());
+        }
+        return new PeriodTotals(total, credit, tontine, newBalance);
+    }
+
+    private PeriodTotals readPeriodTotals(List<Object[]> rows) {
         if (rows == null || rows.isEmpty() || rows.get(0) == null) {
             return new PeriodTotals(0, 0, 0, 0);
         }
@@ -318,13 +381,17 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
                 toDouble(values[3]));
     }
 
+    private static double safe(Double value) {
+        return value != null ? value : 0.0;
+    }
+
     private static double toDouble(Object value) {
         if (value == null) return 0.0;
         if (value instanceof Number number) return number.doubleValue();
         return 0.0;
     }
 
-    private CashPeriodRemittanceDto toDto(CashPeriodRemittance entity) {
+    private CashPeriodRemittanceDto toDto(CashPeriodRemittance entity, List<CashDepositDto> deposits) {
         return CashPeriodRemittanceDto.builder()
                 .id(entity.getId())
                 .year(entity.getYear())
@@ -342,7 +409,45 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
                 .submittedAt(entity.getSubmittedAt())
                 .receivedAt(entity.getReceivedAt())
                 .reference(entity.getReference())
+                .deposits(deposits)
                 .build();
+    }
+
+    private List<CashDepositDto> loadDepositsForRemittance(Long remittanceId) {
+        return loadDepositsByRemittanceIds(List.of(remittanceId))
+                .getOrDefault(remittanceId, Collections.emptyList());
+    }
+
+    private Map<Long, List<CashDepositDto>> loadDepositsByRemittanceIds(List<Long> remittanceIds) {
+        if (remittanceIds == null || remittanceIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return cashDepositRepository
+                .findByRemittanceIdInOrderByRemittanceIdAscCommercialUsernameAscDateAscIdAsc(remittanceIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        deposit -> deposit.getRemittance().getId(),
+                        LinkedHashMap::new,
+                        Collectors.mapping(this::toDepositDto, Collectors.toList())));
+    }
+
+    private List<CashDepositDto> toDepositDtos(List<CashDeposit> deposits) {
+        return deposits.stream().map(this::toDepositDto).collect(Collectors.toList());
+    }
+
+    private CashDepositDto toDepositDto(CashDeposit deposit) {
+        CashDepositDto dto = new CashDepositDto();
+        dto.setId(deposit.getId());
+        dto.setDate(deposit.getDate());
+        dto.setCommercialUsername(deposit.getCommercialUsername());
+        dto.setAmount(deposit.getAmount());
+        dto.setCreditAmount(deposit.getCreditAmount());
+        dto.setTontineAmount(deposit.getTontineAmount());
+        dto.setNewBalanceAmount(deposit.getNewBalanceAmount());
+        dto.setSurplusAmount(deposit.getSurplusAmount());
+        dto.setReference(deposit.getReference());
+        dto.setReceivedBy(deposit.getReceivedBy());
+        return dto;
     }
 
     private CashPeriodRemittanceRepository getRemittanceRepository() {

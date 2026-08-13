@@ -52,7 +52,7 @@ public class CashPeriodRemittanceController {
 
     @GetMapping
     public ResponseEntity<Page<CashPeriodRemittanceDto>> list(
-            @PageableDefault(size = 20, sort = "year", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(remittanceService.list(pageable));
     }
 }

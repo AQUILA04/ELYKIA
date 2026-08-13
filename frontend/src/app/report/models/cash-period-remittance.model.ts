@@ -19,6 +19,19 @@ export interface CashPeriodRemittanceSummary {
     canInitiate: boolean;
     candidateExpenses: Expense[];
     linkedExpenses: Expense[];
+    alreadyRemittedAmount?: number;
+}
+
+export interface RemittanceDeposit {
+    id: number;
+    date: string;
+    commercialUsername: string;
+    amount: number;
+    creditAmount?: number;
+    tontineAmount?: number;
+    newBalanceAmount?: number;
+    reference?: string;
+    receivedBy?: string;
 }
 
 export interface CashPeriodRemittance {
@@ -38,4 +51,5 @@ export interface CashPeriodRemittance {
     submittedAt?: string;
     receivedAt?: string;
     reference: string;
+    deposits?: RemittanceDeposit[];
 }

@@ -17,6 +17,12 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
     selectedMonth = new Date().getMonth() + 1;
     summary: CashPeriodRemittanceSummary | null = null;
     history: CashPeriodRemittance[] = [];
+    historyPage = 0;
+    historyPageSize = 10;
+    historyTotalElements = 0;
+    historyTotalPages = 1;
+    historyLoading = false;
+    expandedHistoryIds = new Set<number>();
     isLoading = false;
     isSubmitting = false;
     isManager = false;
@@ -60,6 +66,7 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
 
     refresh(): void {
         this.loadSummary();
+        this.historyPage = 0;
         this.loadHistory();
     }
 
@@ -79,12 +86,45 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
     }
 
     loadHistory(): void {
-        this.remittanceService.list().subscribe({
+        this.historyLoading = true;
+        this.remittanceService.list(this.historyPage, this.historyPageSize).subscribe({
             next: (res) => {
                 this.history = res.content || [];
+                this.historyTotalElements = res.totalElements ?? this.history.length;
+                this.historyTotalPages = res.totalPages ?? 1;
+                this.historyLoading = false;
             },
-            error: (err) => console.error(err)
+            error: (err) => {
+                console.error(err);
+                this.history = [];
+                this.historyTotalElements = 0;
+                this.historyTotalPages = 1;
+                this.historyLoading = false;
+            }
         });
+    }
+
+    changeHistoryPage(delta: number): void {
+        this.historyPage = Math.max(0, Math.min(this.historyTotalPages - 1, this.historyPage + delta));
+        this.loadHistory();
+    }
+
+    goHistoryPage(index: number): void {
+        this.historyPage = index;
+        this.loadHistory();
+    }
+
+    get historyPageNumbers(): number[] {
+        return Array.from({ length: this.historyTotalPages }, (_, i) => i + 1);
+    }
+
+    getHistoryPaginationInfo(): string {
+        if (this.historyTotalElements === 0) {
+            return '0 résultat';
+        }
+        const start = this.historyPage * this.historyPageSize + 1;
+        const end = Math.min((this.historyPage + 1) * this.historyPageSize, this.historyTotalElements);
+        return `${start}–${end} sur ${this.historyTotalElements}`;
     }
 
     initExpenseSelection(): void {
@@ -154,6 +194,7 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
             next: () => {
                 this.snackBar.open('Remise soumise au gestionnaire.', 'OK', { duration: 3000 });
                 this.isSubmitting = false;
+                this.historyPage = 0;
                 this.loadSummary();
                 this.loadHistory();
             },
@@ -171,6 +212,7 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
             next: () => {
                 this.snackBar.open('Réception accusée.', 'OK', { duration: 3000 });
                 this.isSubmitting = false;
+                this.historyPage = 0;
                 this.loadSummary();
                 this.loadHistory();
             },
@@ -190,6 +232,7 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
             next: () => {
                 this.snackBar.open('Réception enregistrée.', 'OK', { duration: 3000 });
                 this.isSubmitting = false;
+                this.historyPage = 0;
                 this.loadSummary();
                 this.loadHistory();
             },
@@ -200,8 +243,17 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
         });
     }
 
-    getStatusLabel(status: string | null): string {
-        if (!status) return 'Non soumis';
+    getSummaryStatusLabel(status: string | null): string {
+        if (!status) {
+            return this.summary?.alreadyRemittedAmount && this.summary.alreadyRemittedAmount > 0
+                ? 'Nouveau versement'
+                : 'Non soumis';
+        }
+        return status === 'RECEIVED' ? 'Tout remis' : 'En attente';
+    }
+
+    getHistoryStatusLabel(status: string | null): string {
+        if (!status) return '—';
         return status === 'RECEIVED' ? 'Reçu' : 'En attente';
     }
 
@@ -212,5 +264,21 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
 
     getMonthLabel(month: number): string {
         return this.months.find(m => m.value === month)?.label || String(month);
+    }
+
+    toggleHistoryExpand(remittanceId: number): void {
+        if (this.expandedHistoryIds.has(remittanceId)) {
+            this.expandedHistoryIds.delete(remittanceId);
+        } else {
+            this.expandedHistoryIds.add(remittanceId);
+        }
+    }
+
+    isHistoryExpanded(remittanceId: number): boolean {
+        return this.expandedHistoryIds.has(remittanceId);
+    }
+
+    hasDeposits(item: CashPeriodRemittance): boolean {
+        return !!item.deposits?.length;
     }
 }

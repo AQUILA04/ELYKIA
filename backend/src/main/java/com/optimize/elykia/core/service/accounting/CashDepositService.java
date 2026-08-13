@@ -9,7 +9,6 @@ import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.RemittanceStatus;
 import com.optimize.elykia.core.repository.CashDepositRepository;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
-import com.optimize.elykia.core.repository.CashPeriodRemittanceRepository;
 import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;
 import com.optimize.elykia.core.service.report.DailyOperationService;
 import com.optimize.elykia.core.util.CashDepositCategoryCalculator;
@@ -33,20 +32,17 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
     private final DailyCommercialReportPersistence reportPersistence;
     private final DailyOperationService dailyOperationService;
     private final UserService userService;
-    private final CashPeriodRemittanceRepository remittanceRepository;
 
     public CashDepositService(CashDepositRepository repository,
             DailyCommercialReportRepository dailyReportRepository,
             DailyCommercialReportPersistence reportPersistence,
             DailyOperationService dailyOperationService,
-            UserService userService,
-            CashPeriodRemittanceRepository remittanceRepository) {
+            UserService userService) {
         super(repository);
         this.dailyReportRepository = dailyReportRepository;
         this.reportPersistence = reportPersistence;
         this.dailyOperationService = dailyOperationService;
         this.userService = userService;
-        this.remittanceRepository = remittanceRepository;
     }
 
     public CashDeposit createDeposit(CashDeposit deposit) {
@@ -146,7 +142,7 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
             throw new RuntimeException("Impossible d'annuler ce versement.");
         }
 
-        assertMonthNotRemitted(original.getDate());
+        assertDepositNotRemitted(original);
 
         String origRef = original.getReference() != null && !original.getReference().isEmpty()
                 ? original.getReference()
@@ -208,11 +204,18 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         report.setTotalSurplusAmountDeposited(safe(report.getTotalSurplusAmountDeposited()) + surplus);
     }
 
-    private void assertMonthNotRemitted(LocalDate date) {
-        if (remittanceRepository.existsByYearAndMonthAndStatus(date.getYear(), date.getMonthValue(),
-                RemittanceStatus.RECEIVED)) {
+    private void assertDepositNotRemitted(CashDeposit deposit) {
+        if (deposit.getRemittance() == null) {
+            return;
+        }
+        RemittanceStatus status = deposit.getRemittance().getStatus();
+        if (status == RemittanceStatus.RECEIVED) {
             throw new RuntimeException(
-                    "Impossible d'annuler un versement d'un mois déjà remis au gestionnaire.");
+                    "Impossible d'annuler un versement déjà remis au gestionnaire.");
+        }
+        if (status == RemittanceStatus.PENDING) {
+            throw new RuntimeException(
+                    "Impossible d'annuler un versement inclus dans une remise en attente.");
         }
     }
 
