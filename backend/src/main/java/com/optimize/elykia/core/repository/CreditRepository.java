@@ -874,4 +874,139 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("state") State state,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+    @Query("""
+            SELECT COALESCE(SUM(c.totalAmountPaid), 0)
+            FROM Credit c
+            WHERE c.collector = :collector
+              AND c.type = :type
+              AND c.state = :state
+            """)
+    Double sumTotalAmountPaidForCollector(
+            @Param("collector") String collector,
+            @Param("type") OperationType type,
+            @Param("state") State state);
+
+    // ==========================================
+    // PORTEFEUILLE LIVE (sans filtre beginDate)
+    // ==========================================
+
+    @Query(
+            value = """
+                    SELECT new com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto(
+                        c.id, c.reference, cl.lastname, cl.firstname,
+                        c.beginDate, c.totalAmount, c.totalAmountRemaining)
+                    FROM Credit c
+                    JOIN c.client cl
+                    WHERE c.collector = :collector
+                      AND c.type = :type
+                      AND c.state = :state
+                      AND c.totalAmountRemaining > 0
+                    ORDER BY c.beginDate DESC, c.id DESC
+                    """,
+            countQuery = """
+                    SELECT COUNT(c.id)
+                    FROM Credit c
+                    WHERE c.collector = :collector
+                      AND c.type = :type
+                      AND c.state = :state
+                      AND c.totalAmountRemaining > 0
+                    """
+    )
+    Page<com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto> findLiveRemainingAtClientsCredits(
+            @Param("collector") String collector,
+            @Param("type") OperationType type,
+            @Param("state") State state,
+            Pageable pageable);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto(
+                c.id, c.reference, cl.lastname, cl.firstname,
+                c.beginDate, c.totalAmount, c.totalAmountRemaining)
+            FROM Credit c
+            JOIN c.client cl
+            WHERE c.collector = :collector
+              AND c.type = :type
+              AND c.state = :state
+              AND c.totalAmountRemaining > 0
+            ORDER BY c.beginDate DESC, c.id DESC
+            """)
+    List<com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto> findAllLiveRemainingAtClientsCredits(
+            @Param("collector") String collector,
+            @Param("type") OperationType type,
+            @Param("state") State state);
+
+    @Query("""
+            SELECT COUNT(c.id), COALESCE(SUM(c.totalAmountRemaining), 0)
+            FROM Credit c
+            WHERE c.collector = :collector
+              AND c.type = :type
+              AND c.state = :state
+              AND c.totalAmountRemaining > 0
+            """)
+    List<Object[]> sumLiveRemainingAtClients(
+            @Param("collector") String collector,
+            @Param("type") OperationType type,
+            @Param("state") State state);
+
+    @Query(value = """
+            WITH eligible AS (
+                SELECT c.id,
+                       c.collector,
+                       c.total_amount,
+                       COALESCE(c.advance, 0) AS advance
+                FROM credit c
+                WHERE c.visibility = 'ENABLED'
+                  AND c.type = 'CREDIT'
+                  AND c.begin_date < CAST(:asOfDate AS date)
+            ),
+            holder AS (
+                SELECT e.id,
+                       COALESCE(
+                           (
+                               SELECT h.new_collector
+                               FROM credit_collector_history h
+                               WHERE h.credit_id = e.id
+                                 AND h.visibility = 'ENABLED'
+                                 AND h.change_date < CAST(:asOfDateTime AS timestamp)
+                               ORDER BY h.change_date DESC, h.id DESC
+                               LIMIT 1
+                           ),
+                           COALESCE(
+                               (
+                                   SELECT h.old_collector
+                                   FROM credit_collector_history h
+                                   WHERE h.credit_id = e.id
+                                     AND h.visibility = 'ENABLED'
+                                     AND h.change_date >= CAST(:asOfDateTime AS timestamp)
+                                   ORDER BY h.change_date ASC, h.id ASC
+                                   LIMIT 1
+                               ),
+                               e.collector
+                           )
+                       ) AS holder_collector
+                FROM eligible e
+            ),
+            paid AS (
+                SELECT e.id,
+                       e.advance + COALESCE((
+                           SELECT SUM(ct.amount)
+                           FROM credit_timeline ct
+                           INNER JOIN daily_accountancy da ON da.id = ct.daily_accountancy_id
+                           WHERE ct.credit_id = e.id
+                             AND ct.visibility = 'ENABLED'
+                             AND CAST(da.accounting_date AS date) < CAST(:asOfDate AS date)
+                       ), 0) AS paid_before
+                FROM eligible e
+            )
+            SELECT COALESCE(SUM(GREATEST(0, e.total_amount - p.paid_before)), 0)
+            FROM eligible e
+            INNER JOIN holder h ON h.id = e.id
+            INNER JOIN paid p ON p.id = e.id
+            WHERE UPPER(h.holder_collector) = UPPER(CAST(:collector AS text))
+            """, nativeQuery = true)
+    Double sumOpeningStockAtDate(
+            @Param("collector") String collector,
+            @Param("asOfDate") LocalDate asOfDate,
+            @Param("asOfDateTime") java.time.LocalDateTime asOfDateTime);
 }

@@ -14,6 +14,7 @@ import com.optimize.elykia.core.service.sale.CreditArticlesService;
 import com.optimize.elykia.core.service.stock.StockExportService;
 import com.optimize.elykia.core.service.tontine.TontineExportService;
 import com.optimize.elykia.core.service.tontine.TontineMemberFieldControlService;
+import com.optimize.elykia.core.service.tontine.TontineMemberContributionService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,6 +47,7 @@ public class TontineController {
     private final CreditArticlesService creditArticlesService;
     private final StockExportService stockExportService;
     private final TontineExportService tontineExportService;
+    private final TontineMemberContributionService tontineMemberContributionService;
 
     @GetMapping("/sessions/current")
     public ResponseEntity<Response> getCurrentSession() {
@@ -126,6 +128,14 @@ public class TontineController {
     public ResponseEntity<Response> getMemberById(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 TontineMemberRespDto.fromTontineMember(tontineService.getById(id))), HttpStatus.OK);
+    }
+
+    @GetMapping("/members/{id}/contributions-by-commercial")
+    @Operation(summary = "Répartition des cotisations d'un membre par commercial collecteur")
+    public ResponseEntity<Response> getMemberContributionsByCommercial(@PathVariable Long id) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineMemberContributionService.getByMember(id)),
+                HttpStatus.OK);
     }
 
     @GetMapping("/members/{id}/export/pdf")

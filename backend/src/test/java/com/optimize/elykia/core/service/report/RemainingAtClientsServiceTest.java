@@ -53,19 +53,17 @@ class RemainingAtClientsServiceTest {
     }
 
     @Test
-    void getPageUsesYearBoundsAndReturnsAggregate() {
+    void getPageUsesLivePortfolioWithoutBeginDateFilter() {
         Pageable pageable = PageRequest.of(0, 25);
         RemainingAtClientsCreditDto row = new RemainingAtClientsCreditDto(
-                1L, "CR-1", "Mensah", "Koffi", LocalDate.of(2026, 3, 10), 50000.0, 20000.0);
+                1L, "CR-1", "Mensah", "Koffi", LocalDate.of(2025, 3, 10), 50000.0, 20000.0);
         Page<RemainingAtClientsCreditDto> page = new PageImpl<>(List.of(row), pageable, 1);
 
-        when(creditRepository.findRemainingAtClientsCredits(
-                eq("COM004"), eq(OperationType.CREDIT), eq(State.ENABLED),
-                eq(LocalDate.of(2026, 1, 1)), eq(LocalDate.of(2026, 12, 31)), eq(pageable)))
+        when(creditRepository.findLiveRemainingAtClientsCredits(
+                eq("COM004"), eq(OperationType.CREDIT), eq(State.ENABLED), eq(pageable)))
                 .thenReturn(page);
-        when(creditRepository.sumRemainingAtClients(
-                eq("COM004"), eq(OperationType.CREDIT), eq(State.ENABLED),
-                eq(LocalDate.of(2026, 1, 1)), eq(LocalDate.of(2026, 12, 31))))
+        when(creditRepository.sumLiveRemainingAtClients(
+                eq("COM004"), eq(OperationType.CREDIT), eq(State.ENABLED)))
                 .thenReturn(List.<Object[]>of(new Object[]{1L, 20000.0}));
 
         RemainingAtClientsPageDto result = service.getPage("COM004", 2026, pageable);
@@ -73,18 +71,16 @@ class RemainingAtClientsServiceTest {
         assertThat(result.content().getContent()).hasSize(1);
         assertThat(result.salesCount()).isEqualTo(1L);
         assertThat(result.totalRemainingAmount()).isEqualTo(20000.0);
-        verify(creditRepository).findRemainingAtClientsCredits(
-                "COM004", OperationType.CREDIT, State.ENABLED,
-                LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31), pageable);
+        verify(creditRepository).findLiveRemainingAtClientsCredits(
+                "COM004", OperationType.CREDIT, State.ENABLED, pageable);
     }
 
     @Test
-    void findAllReturnsCreditsForYear() {
+    void findAllReturnsLiveCreditsForCollector() {
         RemainingAtClientsCreditDto row = new RemainingAtClientsCreditDto(
-                2L, "CR-2", "Ama", "Yao", LocalDate.of(2026, 1, 5), 10000.0, 5000.0);
-        when(creditRepository.findAllRemainingAtClientsCredits(
-                eq("COM004"), eq(OperationType.CREDIT), eq(State.ENABLED),
-                eq(LocalDate.of(2026, 1, 1)), eq(LocalDate.of(2026, 12, 31))))
+                2L, "CR-2", "Ama", "Yao", LocalDate.of(2024, 1, 5), 10000.0, 5000.0);
+        when(creditRepository.findAllLiveRemainingAtClientsCredits(
+                eq("COM004"), eq(OperationType.CREDIT), eq(State.ENABLED)))
                 .thenReturn(List.of(row));
 
         List<RemainingAtClientsCreditDto> result = service.findAll("COM004", 2026);

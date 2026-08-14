@@ -3,6 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { DailyReportService } from '../../service/daily-report.service';
 import { DailyCommercialReport, creditToDeposit, tontineToDeposit, newBalanceToDeposit, remainingCredit, remainingTontine, remainingNewBalance, totalRemainingToDeposit } from '../../models/daily-commercial-report.model';
 import { CommercialYearlySummary } from '../../models/commercial-yearly-summary.model';
+import { CommercialTontineYearlySummary } from '../../models/commercial-tontine-yearly-summary.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ClientService } from 'src/app/client/service/client.service';
 import { DatePipe } from '@angular/common';
@@ -85,6 +86,8 @@ export class DailyReportComponent implements OnInit {
     aggregatedReportData: any = null;
     yearlySummary: CommercialYearlySummary | null = null;
     yearlySummaryLoading = false;
+    yearlyTontineSummary: CommercialTontineYearlySummary | null = null;
+    yearlyTontineSummaryLoading = false;
     summaryYear = new Date().getFullYear();
 
     constructor(
@@ -212,9 +215,11 @@ export class DailyReportComponent implements OnInit {
 
         if (!collector) {
             this.yearlySummary = null;
+            this.yearlyTontineSummary = null;
             return;
         }
 
+        this.loadYearlyTontineSummary(collector);
         this.yearlySummaryLoading = true;
         this.dailyReportService.getYearlySummary(this.summaryYear, collector).subscribe({
             next: (data) => {
@@ -225,6 +230,21 @@ export class DailyReportComponent implements OnInit {
                 console.error('Error loading yearly summary', err);
                 this.yearlySummary = this.buildEmptyYearlySummary(collector);
                 this.yearlySummaryLoading = false;
+            }
+        });
+    }
+
+    private loadYearlyTontineSummary(collector: string): void {
+        this.yearlyTontineSummaryLoading = true;
+        this.dailyReportService.getYearlyTontineSummary(this.summaryYear, collector).subscribe({
+            next: (data) => {
+                this.yearlyTontineSummary = data ?? this.buildEmptyYearlyTontineSummary(collector);
+                this.yearlyTontineSummaryLoading = false;
+            },
+            error: (err) => {
+                console.error('Error loading yearly tontine summary', err);
+                this.yearlyTontineSummary = this.buildEmptyYearlyTontineSummary(collector);
+                this.yearlyTontineSummaryLoading = false;
             }
         });
     }
@@ -242,8 +262,28 @@ export class DailyReportComponent implements OnInit {
             totalCreditSalesCount: 0,
             totalCreditDepositedAmount: 0,
             totalCreditPaidOnCreditsAmount: 0,
+            openingStockAmount: 0,
+            creditsReceivedAmount: 0,
+            creditsCededAmount: 0,
+            entrustedPortfolioAmount: 0,
             remainingAtCommercialAmount: 0,
             remainingAtClientAmount: 0
+        };
+    }
+
+    get yearlyTontineSummaryView(): CommercialTontineYearlySummary {
+        const collector = this.activeCommercialUsername ?? '';
+        return this.yearlyTontineSummary ?? this.buildEmptyYearlyTontineSummary(collector);
+    }
+
+    private buildEmptyYearlyTontineSummary(collector: string): CommercialTontineYearlySummary {
+        return {
+            year: this.summaryYear,
+            commercialUsername: collector,
+            totalTontineCollectionsAmount: 0,
+            totalTontineCollectionsCount: 0,
+            totalTontineDepositedAmount: 0,
+            remainingAtCommercialAmount: 0
         };
     }
 
@@ -395,7 +435,8 @@ export class DailyReportComponent implements OnInit {
                 year: this.summaryYear,
                 commercialUsername,
                 remainingAtCommercialAmount: this.yearlySummaryView.remainingAtCommercialAmount,
-                remainingAtClientAmount: this.yearlySummaryView.remainingAtClientAmount
+                remainingAtClientAmount: this.yearlySummaryView.remainingAtClientAmount,
+                entrustedPortfolioAmount: this.yearlySummaryView.entrustedPortfolioAmount
             }
         });
     }

@@ -4,8 +4,8 @@
       <p class="dialog-surtitle">Bilan crédit {{ data.year }}</p>
       <h2 class="dialog-title">Reste chez le client</h2>
       <p class="dialog-subtitle">
-        {{ data.commercialUsername | uppercase }} — crédits débutés en {{ data.year }} avec un montant restant &gt; 0.
-        Distinct du « reste chez le commercial » (ventes − versements).
+        {{ data.commercialUsername | uppercase }} — portefeuille live : crédits encore dus chez ce commercial (toutes années).
+        Distinct du « reste chez le commercial » (portefeuille confié − versements).
       </p>
     </div>
     <button type="button" class="btn-close" (click)="close()" aria-label="Fermer">&times;</button>
@@ -14,15 +14,19 @@
   <div class="dialog-body">
     <div class="kpi-strip" *ngIf="!loading && !error">
       <div class="kpi-card kpi-total">
+        <span class="kpi-label">Portefeuille confié</span>
+        <span class="kpi-value">{{ data.entrustedPortfolioAmount | number:'1.0-0' }} <small>FCFA</small></span>
+      </div>
+      <div class="kpi-card kpi-amount">
         <span class="kpi-label">Reste commercial</span>
         <span class="kpi-value">{{ data.remainingAtCommercialAmount | number:'1.0-0' }} <small>FCFA</small></span>
       </div>
       <div class="kpi-card kpi-delai">
-        <span class="kpi-label">Reste client</span>
+        <span class="kpi-label">Reste client (live)</span>
         <span class="kpi-value">{{ (totalRemainingAmount || data.remainingAtClientAmount) | number:'1.0-0' }} <small>FCFA</small></span>
       </div>
-      <div class="kpi-card kpi-amount">
-        <span class="kpi-label">Ventes encore dues</span>
+      <div class="kpi-card kpi-green">
+        <span class="kpi-label">Crédits encore dus</span>
         <span class="kpi-value">{{ salesCount }}</span>
       </div>
     </div>
@@ -42,7 +46,7 @@
           {{ downloading ? 'Téléchargement…' : 'Télécharger PDF' }}
         </button>
         <span class="result-count">
-          <strong>{{ rows.length }}</strong> / {{ salesCount }} vente(s)
+          <strong>{{ rows.length }}</strong> / {{ salesCount }} crédit(s)
         </span>
       </div>
       <div class="table-wrapper">
@@ -80,8 +84,8 @@
     </div>
 
     <div *ngIf="!loading && !error && rows.length === 0" class="empty-state">
-      <div class="empty-title">Aucune vente encore due</div>
-      <div class="empty-sub">Aucun crédit de {{ data.year }} avec un montant restant pour ce commercial.</div>
+      <div class="empty-title">Aucun crédit encore dû</div>
+      <div class="empty-sub">Aucun solde client en cours pour ce commercial.</div>
       <button type="button" class="btn-download" (click)="downloadPdf()" [disabled]="downloading">
         {{ downloading ? 'Téléchargement…' : 'Télécharger PDF' }}
       </button>

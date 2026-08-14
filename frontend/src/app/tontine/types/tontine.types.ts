@@ -53,6 +53,13 @@ export interface TontineCollection {
   readonly confirmedAmount?: number;
 }
 
+export interface TontineMemberContributionByCommercial {
+  readonly commercialUsername: string;
+  readonly collectionsCount: number;
+  readonly totalAmount: number;
+  readonly currentCollector: boolean;
+}
+
 export interface TontineMemberAmountHistory {
   readonly id: number;
   readonly amount: number;

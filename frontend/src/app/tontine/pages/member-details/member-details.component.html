@@ -106,6 +106,50 @@
     </div>
   </div>
 
+  <div class="section-card a3 contribution-commercial-section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Cotisations par commercial</h2>
+        <p class="section-description">
+          Répartition selon le commercial ayant enregistré chaque collecte.
+        </p>
+      </div>
+      <span class="result-count" *ngIf="!loadingContributionsByCommercial">
+        Total : <strong>{{ formatCurrency(contributionsByCommercialTotal) }}</strong>
+      </span>
+    </div>
+
+    <div class="contribution-commercial-loading" *ngIf="loadingContributionsByCommercial">
+      Chargement de la répartition…
+    </div>
+
+    <div class="contribution-commercial-grid"
+         *ngIf="!loadingContributionsByCommercial && contributionsByCommercial.length > 0">
+      <div class="contribution-commercial-card"
+           *ngFor="let contribution of contributionsByCommercial"
+           [class.is-current]="contribution.currentCollector">
+        <div class="contribution-commercial-identity">
+          <div class="col-collector-dot">{{ getInitials(contribution.commercialUsername) }}</div>
+          <div>
+            <div class="contribution-commercial-name">{{ contribution.commercialUsername }}</div>
+            <div class="contribution-commercial-count">
+              {{ contribution.collectionsCount }} collecte(s)
+            </div>
+          </div>
+          <span class="current-collector-badge" *ngIf="contribution.currentCollector">Actuel</span>
+        </div>
+        <div class="contribution-commercial-amount">
+          {{ formatCurrency(contribution.totalAmount) }}
+        </div>
+      </div>
+    </div>
+
+    <div class="contribution-commercial-empty"
+         *ngIf="!loadingContributionsByCommercial && contributionsByCommercial.length === 0">
+      Aucune collecte enregistrée pour ce membre.
+    </div>
+  </div>
+
   <!-- Contrôle terrain -->
   <div class="section-card a3 field-control-section" *ngIf="fieldControlLatest">
     <div class="section-header">

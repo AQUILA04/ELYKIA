@@ -9,6 +9,36 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.9.16] — 2026-08-14
+
+### Added
+- Bilan tontine annuel par commercial : total des collectes réellement enregistrées, versements tontine et reste à verser.
+- Répartition des cotisations d’un membre par commercial collecteur, avec identification du commercial actuellement en charge.
+- Migration `V91__tontine_yearly_indexes` pour accélérer les agrégats annuels et le détail membre.
+
+## Frontend — [2.16.13] — 2026-08-14
+
+### Added
+- Rapport journalier : carte « Bilan tontine » présentant les collectes, les versements et le reste annuel du commercial.
+- Fiche membre tontine : répartition du total cotisé entre les commerciaux ayant enregistré les collectes, avec badge « Actuel ».
+
+## Backend — [1.9.15] — 2026-08-14
+
+### Added
+- Migration `V90__yearly_portfolio_indexes` : indexes partiels sur `credit_collector_history`, `credit` et `credit_timeline` pour accélérer le bilan annuel (stock 01/01, créances reçues/cédées, reste live).
+
+## Backend — [1.9.14] — 2026-08-14
+
+### Changed
+- Bilan annuel crédit (option B) : stock d'ouverture au 01/01, créances reçues/cédées (passations), portefeuille confié ; `remainingAtCommercialAmount` = portefeuille − versements.
+- « Reste chez le client » : somme live de tous les crédits encore dus chez le commercial (sans filtre `beginDate` sur l'année) ; modal et export PDF alignés.
+
+## Frontend — [2.16.12] — 2026-08-14
+
+### Changed
+- Bilan crédit du rapport journalier : deux rangées KPI (stock ouverture, ventes, reçues, cédées ; portefeuille confié, versements, reste commercial, reste client live).
+- Modal « Reste chez le client » : libellés portefeuille live actuel, KPI portefeuille confié.
+
 ## Backend — [1.9.13] — 2026-08-13
 
 ### Changed

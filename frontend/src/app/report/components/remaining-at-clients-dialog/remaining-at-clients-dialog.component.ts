@@ -10,6 +10,7 @@ export interface RemainingAtClientsDialogData {
   commercialUsername: string;
   remainingAtCommercialAmount: number;
   remainingAtClientAmount: number;
+  entrustedPortfolioAmount: number;
 }
 
 @Component({

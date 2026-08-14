@@ -204,4 +204,35 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
     @Query("DELETE FROM TontineCollection tc WHERE tc.tontineMember.tontineSession.id = :sessionId")
     void deleteAllBySessionId(@Param("sessionId") Long sessionId);
+
+    @Query("""
+            SELECT COALESCE(SUM(tc.amount), 0), COUNT(tc.id)
+            FROM TontineCollection tc
+            WHERE UPPER(tc.commercialUsername) = UPPER(:commercial)
+              AND tc.state = :state
+              AND tc.collectionDate >= :fromDate
+              AND tc.collectionDate < :toDate
+            """)
+    java.util.List<Object[]> sumYearlyCollectionsByCommercial(
+            @Param("commercial") String commercial,
+            @Param("state") State state,
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDate") java.time.LocalDateTime toDate);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.TontineMemberContributionByCommercialDto(
+                tc.commercialUsername,
+                COUNT(tc.id),
+                COALESCE(SUM(tc.amount), 0)
+            )
+            FROM TontineCollection tc
+            WHERE tc.tontineMember.id = :memberId
+              AND tc.state = :state
+            GROUP BY tc.commercialUsername
+            ORDER BY SUM(tc.amount) DESC
+            """)
+    java.util.List<com.optimize.elykia.core.dto.TontineMemberContributionByCommercialDto>
+            sumContributionsByMemberAndCommercial(
+                    @Param("memberId") Long memberId,
+                    @Param("state") State state);
 }

@@ -21,8 +21,9 @@ import {
   TONTINE_CONSTANTS,
   TontineMemberDeliveryStatus,
   TontineMemberQueryParams,
-  SessionStats
-  , TontineCatchupPreview
+  SessionStats,
+  TontineCatchupPreview,
+  TontineMemberContributionByCommercial
 } from '../types/tontine.types';
 import {AuthService} from "../../auth/service/auth.service";
 import {
@@ -150,6 +151,16 @@ export class TontineService {
     const headers = this.getHeaders();
     return this.http.get<ApiResponse<TontineMemberAmountHistory[]>>(
       `${this.apiUrl}/members/${memberId}/amount-history`,
+      { headers }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
+  getMemberContributionsByCommercial(
+    memberId: number
+  ): Observable<ApiResponse<TontineMemberContributionByCommercial[]>> {
+    const headers = this.getHeaders();
+    return this.http.get<ApiResponse<TontineMemberContributionByCommercial[]>>(
+      `${this.apiUrl}/members/${memberId}/contributions-by-commercial`,
       { headers }
     ).pipe(catchError(this.handleApiError.bind(this)));
   }

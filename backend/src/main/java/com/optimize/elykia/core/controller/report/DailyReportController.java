@@ -1,10 +1,12 @@
 package com.optimize.elykia.core.controller.report;
 
 import com.optimize.elykia.core.dto.report.CommercialYearlySummaryDto;
+import com.optimize.elykia.core.dto.report.CommercialTontineYearlySummaryDto;
 import com.optimize.elykia.core.dto.report.RemainingAtClientsPageDto;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.service.report.CommercialReportMonthlyService;
+import com.optimize.elykia.core.service.report.CommercialTontineYearlySummaryService;
 import com.optimize.elykia.core.service.report.DailyReportPdfService;
 import com.optimize.elykia.core.service.report.RemainingAtClientsPdfService;
 import com.optimize.elykia.core.service.report.RemainingAtClientsService;
@@ -41,6 +43,7 @@ public class DailyReportController {
     private final CommercialReportMonthlyService commercialReportMonthlyService;
     private final RemainingAtClientsService remainingAtClientsService;
     private final RemainingAtClientsPdfService remainingAtClientsPdfService;
+    private final CommercialTontineYearlySummaryService commercialTontineYearlySummaryService;
 
     @GetMapping
     @Operation(summary = "Get daily report for a specific commercial and date")
@@ -87,6 +90,21 @@ public class DailyReportController {
         }
 
         return ResponseEntity.ok(commercialReportMonthlyService.getYearlySummary(commercialUsername, year));
+    }
+
+    @GetMapping("/yearly-tontine-summary")
+    @Operation(summary = "Get yearly tontine collections and deposits for a commercial")
+    public ResponseEntity<CommercialTontineYearlySummaryDto> getYearlyTontineSummary(
+            @RequestParam("year") int year,
+            @RequestParam(value = "collector", required = false) String collector) {
+
+        String commercialUsername = resolveCommercialUsername(collector);
+        if (commercialUsername == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(
+                commercialTontineYearlySummaryService.buildYearlySummary(commercialUsername, year));
     }
 
     @GetMapping("/yearly-remaining-credits")

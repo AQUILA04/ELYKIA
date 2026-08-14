@@ -17,7 +17,8 @@ import {
   TontineMemberDeliveryStatus,
   TontineSessionStatus,
   TONTINE_DELIVERY_STATUS_LABELS,
-  TONTINE_DELIVERY_STATUS_COLORS
+  TONTINE_DELIVERY_STATUS_COLORS,
+  TontineMemberContributionByCommercial
 } from '../../types/tontine.types';
 import { collectionEquivalentDays } from '../../utils/tontine-amount-history.util';
 import { AuthService } from 'src/app/auth/service/auth.service';
@@ -67,6 +68,8 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['date', 'amount', 'commercial', 'consent', 'actions'];
   loadingCollections = false;
   loadingAmountHistory = false;
+  contributionsByCommercial: TontineMemberContributionByCommercial[] = [];
+  loadingContributionsByCommercial = false;
   loading: boolean = false;
   currentSessionStatus: TontineSessionStatus | null = null;
   isSessionActive: boolean = false;
@@ -98,6 +101,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       this.loadMemberDetails(memberId);
       this.loadCollections(memberId);
       this.loadAmountHistory(memberId);
+      this.loadContributionsByCommercial(memberId);
       this.loadFieldControl(memberId);
     }
 
@@ -132,6 +136,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     this.loadMemberDetails(this.member.id);
     this.loadCollections(this.member.id);
     this.loadAmountHistory(this.member.id);
+    this.loadContributionsByCommercial(this.member.id);
     this.loadFieldControl(this.member.id);
     this.lastUpdate = new Date();
   }
@@ -212,6 +217,22 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       error: () => {
         this.amountHistory = [];
         this.loadingAmountHistory = false;
+      }
+    });
+  }
+
+  private loadContributionsByCommercial(memberId: number): void {
+    this.loadingContributionsByCommercial = true;
+    this.tontineService.getMemberContributionsByCommercial(memberId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.contributionsByCommercial = response.data ?? [];
+        this.loadingContributionsByCommercial = false;
+      },
+      error: () => {
+        this.contributionsByCommercial = [];
+        this.loadingContributionsByCommercial = false;
       }
     });
   }
@@ -397,6 +418,13 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     return this.member?.client?.tontineCollector || '—';
   }
 
+  get contributionsByCommercialTotal(): number {
+    return this.contributionsByCommercial.reduce(
+      (total, contribution) => total + contribution.totalAmount,
+      0
+    );
+  }
+
   getInitials(name: string): string {
     if (!name || name === '—') return '?';
     const parts = name.trim().split(/[\s._-]+/).filter(Boolean);
@@ -532,6 +560,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
         this.loadMemberDetails(this.member.id);
         this.loadCollections(this.member.id);
         this.loadAmountHistory(this.member.id);
+        this.loadContributionsByCommercial(this.member.id);
         this.showSuccess('Collecte enregistrée avec succès');
       }
     });
@@ -551,6 +580,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
         this.loadMemberDetails(this.member.id);
         this.loadCollections(this.member.id);
         this.loadAmountHistory(this.member.id);
+        this.loadContributionsByCommercial(this.member.id);
         this.showSuccess('Collecte de rattrapage enregistrée avec succès');
       }
     });
@@ -574,6 +604,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
         this.loadMemberDetails(this.member!.id);
         this.loadCollections(this.member!.id);
         this.loadAmountHistory(this.member!.id);
+        this.loadContributionsByCommercial(this.member!.id);
         this.showSuccess('Collecte annulée avec succès');
       },
       error: (err) => {

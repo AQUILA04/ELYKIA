@@ -5,6 +5,7 @@ import { environment } from 'src/environments/environment';
 import { DailyCommercialReport } from '../models/daily-commercial-report.model';
 import { CommercialYearlySummary } from '../models/commercial-yearly-summary.model';
 import { RemainingAtClientsPage } from '../models/remaining-at-clients.model';
+import { CommercialTontineYearlySummary } from '../models/commercial-tontine-yearly-summary.model';
 
 @Injectable({
     providedIn: 'root'
@@ -32,6 +33,17 @@ export class DailyReportService {
             params = params.set('collector', collector);
         }
         return this.http.get<CommercialYearlySummary>(`${this.apiUrl}/yearly-summary`, { params });
+    }
+
+    getYearlyTontineSummary(year: number, collector?: string): Observable<CommercialTontineYearlySummary> {
+        let params = new HttpParams().set('year', year);
+        if (collector) {
+            params = params.set('collector', collector);
+        }
+        return this.http.get<CommercialTontineYearlySummary>(
+            `${this.apiUrl}/yearly-tontine-summary`,
+            { params }
+        );
     }
 
     getYearlyRemainingCredits(

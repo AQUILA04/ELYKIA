@@ -127,4 +127,30 @@ public interface CreditCollectorHistoryRepository extends JpaRepository<CreditCo
             @Param("newCollector") String newCollector,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate);
+
+    @Query(value = """
+            SELECT COALESCE(SUM(h.total_amount_remaining), 0)
+            FROM credit_collector_history h
+            WHERE h.visibility = 'ENABLED'
+              AND UPPER(h.new_collector) = UPPER(CAST(:collector AS text))
+              AND h.change_date >= CAST(:fromDate AS timestamp)
+              AND h.change_date < CAST(:toDate AS timestamp)
+            """, nativeQuery = true)
+    Double sumCreditsReceivedInPeriod(
+            @Param("collector") String collector,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate);
+
+    @Query(value = """
+            SELECT COALESCE(SUM(h.total_amount_remaining), 0)
+            FROM credit_collector_history h
+            WHERE h.visibility = 'ENABLED'
+              AND UPPER(h.old_collector) = UPPER(CAST(:collector AS text))
+              AND h.change_date >= CAST(:fromDate AS timestamp)
+              AND h.change_date < CAST(:toDate AS timestamp)
+            """, nativeQuery = true)
+    Double sumCreditsCededInPeriod(
+            @Param("collector") String collector,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate);
 }

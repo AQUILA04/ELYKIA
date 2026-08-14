@@ -352,6 +352,22 @@
     padding: 16px 0 8px;
 }
 
+.yearly-kpi-strip-three {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.yearly-tontine-card {
+    border-left-color: var(--green);
+}
+
+.yearly-kpi-strip-secondary {
+    padding-bottom: 0;
+}
+
+.yearly-kpi-strip + .yearly-kpi-strip {
+    padding-top: 8px;
+}
+
 .yearly-kpi {
     position: relative;
     overflow: hidden;
@@ -434,13 +450,15 @@
 }
 
 @media (max-width: 900px) {
-    .yearly-kpi-strip {
+    .yearly-kpi-strip,
+    .yearly-kpi-strip-three {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 600px) {
-    .yearly-kpi-strip {
+    .yearly-kpi-strip,
+    .yearly-kpi-strip-three {
         grid-template-columns: 1fr;
     }
 }

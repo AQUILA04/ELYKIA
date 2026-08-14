@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title th:text="${pdfDocumentTitle}">Reste chez les clients</title>
+    <title th:text="${pdfDocumentTitle}">Reste chez le client</title>
     <th:block th:replace="~{pdf/fragments :: styles}"></th:block>
 </head>
 <body>
@@ -28,7 +28,7 @@
     <table class="pdf-kpi">
         <tr>
             <td>
-                <div class="kpi-label">Ventes encore dues</div>
+                <div class="kpi-label">Crédits encore dus</div>
                 <div class="kpi-value" th:text="${doc.salesCount}">0</div>
             </td>
             <td class="kpi-orange">
@@ -40,7 +40,7 @@
     </table>
 
     <div th:if="${#lists.isEmpty(doc.rows)}" class="pdf-empty">
-        Aucun crédit encore dû pour ce commercial sur l&apos;année.
+        Aucun crédit encore dû dans le portefeuille actuel de ce commercial.
     </div>
 
     <table class="data-table" th:if="${not #lists.isEmpty(doc.rows)}">

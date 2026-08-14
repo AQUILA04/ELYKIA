@@ -112,56 +112,135 @@
                             <mat-card-header>
                                 <mat-card-title>BILAN CRÉDIT {{ summaryYear }}</mat-card-title>
                                 <mat-card-subtitle>
-                                    {{ activeCommercialUsername | uppercase }} — Ventes et versements sur l'année
+                                    {{ activeCommercialUsername | uppercase }} — Portefeuille confié {{ summaryYear }} (stock 01/01 + mouvements)
                                 </mat-card-subtitle>
                             </mat-card-header>
                             <mat-card-content>
                                 <div *ngIf="yearlySummaryLoading" class="loading-container">
                                     <mat-spinner diameter="36"></mat-spinner>
                                 </div>
-                                <div class="yearly-kpi-strip" *ngIf="!yearlySummaryLoading">
+                                <div *ngIf="!yearlySummaryLoading">
+                                    <div class="yearly-kpi-strip yearly-kpi-strip-secondary">
+                                        <div class="yearly-kpi kpi-total">
+                                            <span class="yearly-kpi-label">Stock ouverture</span>
+                                            <span class="yearly-kpi-value">
+                                                {{ yearlySummaryView.openingStockAmount | number:'1.0-0' }}
+                                                <small>FCFA</small>
+                                            </span>
+                                            <span class="yearly-kpi-hint">Restes au 01/01/{{ summaryYear }}</span>
+                                        </div>
+                                        <div class="yearly-kpi kpi-total">
+                                            <span class="yearly-kpi-label">Ventes crédit</span>
+                                            <span class="yearly-kpi-value">
+                                                {{ yearlySummaryView.totalCreditSalesAmount | number:'1.0-0' }}
+                                                <small>FCFA</small>
+                                            </span>
+                                            <span class="yearly-kpi-hint">{{ yearlySummaryView.totalCreditSalesCount }} ouverture(s)</span>
+                                        </div>
+                                        <div class="yearly-kpi kpi-amount">
+                                            <span class="yearly-kpi-label">Créances reçues</span>
+                                            <span class="yearly-kpi-value">
+                                                {{ yearlySummaryView.creditsReceivedAmount | number:'1.0-0' }}
+                                                <small>FCFA</small>
+                                            </span>
+                                            <span class="yearly-kpi-hint">Passations entrantes</span>
+                                        </div>
+                                        <div class="yearly-kpi kpi-amount">
+                                            <span class="yearly-kpi-label">Créances cédées</span>
+                                            <span class="yearly-kpi-value">
+                                                {{ yearlySummaryView.creditsCededAmount | number:'1.0-0' }}
+                                                <small>FCFA</small>
+                                            </span>
+                                            <span class="yearly-kpi-hint">Passations sortantes</span>
+                                        </div>
+                                    </div>
+                                    <div class="yearly-kpi-strip">
+                                        <div class="yearly-kpi kpi-green">
+                                            <span class="yearly-kpi-label">Portefeuille confié</span>
+                                            <span class="yearly-kpi-value">
+                                                {{ yearlySummaryView.entrustedPortfolioAmount | number:'1.0-0' }}
+                                                <small>FCFA</small>
+                                            </span>
+                                            <span class="yearly-kpi-hint">Stock + ventes + reçues − cédées</span>
+                                        </div>
+                                        <div class="yearly-kpi kpi-amount">
+                                            <span class="yearly-kpi-label">Versements crédit</span>
+                                            <span class="yearly-kpi-value">
+                                                {{ yearlySummaryView.totalCreditDepositedAmount | number:'1.0-0' }}
+                                                <small>FCFA</small>
+                                            </span>
+                                            <span class="yearly-kpi-hint">Remis au secrétaire</span>
+                                        </div>
+                                        <div class="yearly-kpi kpi-green">
+                                            <span class="yearly-kpi-label">Reste chez le commercial</span>
+                                            <span class="yearly-kpi-value"
+                                                [class.is-warn]="yearlySummaryView.remainingAtCommercialAmount > 0">
+                                                {{ yearlySummaryView.remainingAtCommercialAmount | number:'1.0-0' }}
+                                                <small>FCFA</small>
+                                            </span>
+                                            <span class="yearly-kpi-hint">Portefeuille − versements</span>
+                                        </div>
+                                        <div class="yearly-kpi kpi-delai yearly-kpi-clickable"
+                                             role="button"
+                                             tabindex="0"
+                                             (click)="openRemainingAtClientsModal()"
+                                             (keydown.enter)="openRemainingAtClientsModal()"
+                                             (keydown.space)="$event.preventDefault(); openRemainingAtClientsModal()"
+                                             [attr.aria-label]="'Voir le détail du reste chez le client'">
+                                            <span class="yearly-kpi-label">Reste chez le client</span>
+                                            <span class="yearly-kpi-value">
+                                                {{ yearlySummaryView.remainingAtClientAmount | number:'1.0-0' }}
+                                                <small>FCFA</small>
+                                            </span>
+                                            <span class="yearly-kpi-hint">Soldes live · cliquer pour le détail</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+
+                    <!-- Bilan annuel tontine (activité réellement enregistrée par le commercial) -->
+                    <div class="yearly-summary mb-4" *ngIf="activeCommercialUsername">
+                        <mat-card class="example-card yearly-summary-card yearly-tontine-card">
+                            <mat-card-header>
+                                <mat-card-title>BILAN TONTINE {{ summaryYear }}</mat-card-title>
+                                <mat-card-subtitle>
+                                    {{ activeCommercialUsername | uppercase }} — Collectes enregistrées et versements tontine
+                                </mat-card-subtitle>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <div *ngIf="yearlyTontineSummaryLoading" class="loading-container">
+                                    <mat-spinner diameter="36"></mat-spinner>
+                                </div>
+                                <div class="yearly-kpi-strip yearly-kpi-strip-three"
+                                     *ngIf="!yearlyTontineSummaryLoading">
                                     <div class="yearly-kpi kpi-total">
-                                        <span class="yearly-kpi-label">Ventes crédit</span>
+                                        <span class="yearly-kpi-label">Collectes tontine</span>
                                         <span class="yearly-kpi-value">
-                                            {{ yearlySummaryView.totalCreditSalesAmount | number:'1.0-0' }}
+                                            {{ yearlyTontineSummaryView.totalTontineCollectionsAmount | number:'1.0-0' }}
                                             <small>FCFA</small>
                                         </span>
-                                        <span class="yearly-kpi-hint">{{ yearlySummaryView.totalCreditSalesCount }} vente(s)</span>
+                                        <span class="yearly-kpi-hint">
+                                            {{ yearlyTontineSummaryView.totalTontineCollectionsCount }} opération(s) enregistrée(s)
+                                        </span>
                                     </div>
                                     <div class="yearly-kpi kpi-amount">
-                                        <span class="yearly-kpi-label">Versements crédit</span>
+                                        <span class="yearly-kpi-label">Versements tontine</span>
                                         <span class="yearly-kpi-value">
-                                            {{ yearlySummaryView.totalCreditDepositedAmount | number:'1.0-0' }}
+                                            {{ yearlyTontineSummaryView.totalTontineDepositedAmount | number:'1.0-0' }}
                                             <small>FCFA</small>
                                         </span>
                                         <span class="yearly-kpi-hint">Remis au secrétaire</span>
-                                        <span class="yearly-kpi-hint yearly-kpi-hint-secondary">
-                                            Payé sur crédits :
-                                            {{ yearlySummaryView.totalCreditPaidOnCreditsAmount | number:'1.0-0' }} FCFA
-                                        </span>
                                     </div>
                                     <div class="yearly-kpi kpi-green">
                                         <span class="yearly-kpi-label">Reste chez le commercial</span>
                                         <span class="yearly-kpi-value"
-                                            [class.is-warn]="yearlySummaryView.remainingAtCommercialAmount > 0">
-                                            {{ yearlySummaryView.remainingAtCommercialAmount | number:'1.0-0' }}
+                                              [class.is-warn]="yearlyTontineSummaryView.remainingAtCommercialAmount > 0">
+                                            {{ yearlyTontineSummaryView.remainingAtCommercialAmount | number:'1.0-0' }}
                                             <small>FCFA</small>
                                         </span>
-                                        <span class="yearly-kpi-hint">Ventes − versements</span>
-                                    </div>
-                                    <div class="yearly-kpi kpi-delai yearly-kpi-clickable"
-                                         role="button"
-                                         tabindex="0"
-                                         (click)="openRemainingAtClientsModal()"
-                                         (keydown.enter)="openRemainingAtClientsModal()"
-                                         (keydown.space)="$event.preventDefault(); openRemainingAtClientsModal()"
-                                         [attr.aria-label]="'Voir le détail du reste chez le client'">
-                                        <span class="yearly-kpi-label">Reste chez le client</span>
-                                        <span class="yearly-kpi-value">
-                                            {{ yearlySummaryView.remainingAtClientAmount | number:'1.0-0' }}
-                                            <small>FCFA</small>
-                                        </span>
-                                        <span class="yearly-kpi-hint">Somme des soldes · cliquer pour le détail</span>
+                                        <span class="yearly-kpi-hint">Collectes − versements</span>
                                     </div>
                                 </div>
                             </mat-card-content>

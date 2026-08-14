@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -24,12 +23,10 @@ public class RemainingAtClientsService {
     @Transactional(readOnly = true)
     public RemainingAtClientsPageDto getPage(String commercialUsername, int year, Pageable pageable) {
         validate(commercialUsername, year);
-        LocalDate start = LocalDate.of(year, 1, 1);
-        LocalDate end = LocalDate.of(year, 12, 31);
 
-        Page<RemainingAtClientsCreditDto> page = creditRepository.findRemainingAtClientsCredits(
-                commercialUsername, OperationType.CREDIT, State.ENABLED, start, end, pageable);
-        Aggregate aggregate = loadAggregate(commercialUsername, start, end);
+        Page<RemainingAtClientsCreditDto> page = creditRepository.findLiveRemainingAtClientsCredits(
+                commercialUsername, OperationType.CREDIT, State.ENABLED, pageable);
+        Aggregate aggregate = loadLiveAggregate(commercialUsername);
 
         return new RemainingAtClientsPageDto(page, aggregate.salesCount(), aggregate.totalRemainingAmount());
     }
@@ -37,21 +34,19 @@ public class RemainingAtClientsService {
     @Transactional(readOnly = true)
     public List<RemainingAtClientsCreditDto> findAll(String commercialUsername, int year) {
         validate(commercialUsername, year);
-        LocalDate start = LocalDate.of(year, 1, 1);
-        LocalDate end = LocalDate.of(year, 12, 31);
-        return creditRepository.findAllRemainingAtClientsCredits(
-                commercialUsername, OperationType.CREDIT, State.ENABLED, start, end);
+        return creditRepository.findAllLiveRemainingAtClientsCredits(
+                commercialUsername, OperationType.CREDIT, State.ENABLED);
     }
 
     @Transactional(readOnly = true)
     public Aggregate loadAggregate(String commercialUsername, int year) {
         validate(commercialUsername, year);
-        return loadAggregate(commercialUsername, LocalDate.of(year, 1, 1), LocalDate.of(year, 12, 31));
+        return loadLiveAggregate(commercialUsername);
     }
 
-    private Aggregate loadAggregate(String commercialUsername, LocalDate start, LocalDate end) {
-        List<Object[]> rows = creditRepository.sumRemainingAtClients(
-                commercialUsername, OperationType.CREDIT, State.ENABLED, start, end);
+    private Aggregate loadLiveAggregate(String commercialUsername) {
+        List<Object[]> rows = creditRepository.sumLiveRemainingAtClients(
+                commercialUsername, OperationType.CREDIT, State.ENABLED);
         if (rows == null || rows.isEmpty() || rows.get(0) == null) {
             return new Aggregate(0L, 0.0);
         }
